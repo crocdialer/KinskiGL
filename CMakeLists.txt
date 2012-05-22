@@ -2,6 +2,15 @@ cmake_minimum_required (VERSION 2.6)
 
 project (fwglTest)
 
+MESSAGE(${CMAKE_SOURCE_DIR})
+
+#SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_scripts
+#                      ${CMAKE_MODULE_PATH})
+
+##### PKGCONFIG
+find_package(PkgConfig REQUIRED)
+#####
+
 ##### OPENGL
 find_package(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
@@ -12,6 +21,18 @@ find_package(Boost REQUIRED COMPONENTS thread)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####
+
+##### GLFW
+pkg_search_module(GLFW REQUIRED libglfw)
+INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
+SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
+#####
+
+if(GLFW_FOUND)
+    message(STATUS "Found GLFW")
+endif(GLFW_FOUND)
+
+##### 
 
 ##### OPENCV
 find_package(OpenCV REQUIRED)
@@ -36,17 +57,18 @@ FILE(GLOB_RECURSE resFiles
   ${CMAKE_SOURCE_DIR}/res/*
 )
 
-### define all input sources, headers, moc, etc.
+### define all input sources + headers
 SET(ALL_STUFF  ${project_SOURCES} ${project_HEADERS})
 
 # Source Groups affect grouping in IDEs like MSVC or XCode
 SOURCE_GROUP("Headers" FILES ${project_HEADERS})
 SOURCE_GROUP("Sources" FILES ${project_SOURCES})
+SOURCE_GROUP("Project Resources" FILES ${resFiles})
 
 SET(PROGNAME fwglTest)
 
 IF( APPLE )
-#SET( MACOSX_BUNDLE_ICON_FILE persona.icns )
+SET( MACOSX_BUNDLE_ICON_FILE res/kinski.icns )
 
 SET_SOURCE_FILES_PROPERTIES(
   ${resFiles}
