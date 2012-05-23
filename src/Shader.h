@@ -22,15 +22,8 @@
 
 #pragma once
 
-#include <string>
 #include <exception>
-
-
-#include <OpenGL/gl.h>
-#include <boost/shared_ptr.hpp>
-
-#include <boost/static_assert.hpp>
-#include <glm/glm.hpp>
+#include "KinskiGL.h"
 
 using boost::shared_ptr;
 

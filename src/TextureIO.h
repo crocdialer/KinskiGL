@@ -10,5 +10,5 @@ class TextureIO
 public:
     
     static const gl::Texture loadTexture(const std::string &imgPath);
-    static bool saveTexture(const gl::Texture &texture, const std::string &imgPath);
+    static bool saveTexture(const std::string &imgPath, const gl::Texture &texture);
 };
