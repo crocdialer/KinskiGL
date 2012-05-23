@@ -1,14 +1,14 @@
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 
 project (fwglTest)
 
 MESSAGE(${CMAKE_SOURCE_DIR})
 
-#SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_scripts
-#                      ${CMAKE_MODULE_PATH})
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_scripts
+                      ${CMAKE_MODULE_PATH})
 
 ##### PKGCONFIG
-find_package(PkgConfig REQUIRED)
+#find_package(PkgConfig REQUIRED)
 #####
 
 ##### OPENGL
@@ -23,15 +23,16 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####
 
 ##### GLFW
-pkg_search_module(GLFW REQUIRED libglfw)
+#pkg_search_module(GLFW REQUIRED libglfw)
+find_package(GLFW REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 #####
 
-if(GLFW_FOUND)
-    message(STATUS "Found GLFW")
-endif(GLFW_FOUND)
-
+#####
+find_package(GLEW REQUIRED)
+INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${GLEW_LIBRARIES})
 ##### 
 
 ##### OPENCV

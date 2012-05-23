@@ -1,10 +1,7 @@
 #pragma once
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <gl/gl.h>
-#endif
+#include <GL/glew.h>
+#include <GL/glfw.h>
 
 #include <vector>
 #include <string>
