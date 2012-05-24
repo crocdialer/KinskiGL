@@ -14,10 +14,12 @@ const Texture TextureIO::loadTexture(const string &imgPath)
 	switch(img.channels()) 
 	{
 		case 1:
-            format = GL_LUMINANCE;
+//            format = GL_LUMINANCE;
+            format = GL_RED;
 			break;
 		case 2:
-            format = GL_LUMINANCE_ALPHA;
+//            format = GL_LUMINANCE_ALPHA;
+            format = GL_RED;
 			break;
 		case 3:
 			format = GL_BGR;

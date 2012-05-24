@@ -25,8 +25,6 @@
 #include <exception>
 #include "KinskiGL.h"
 
-using boost::shared_ptr;
-
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 namespace gl {
@@ -82,7 +80,7 @@ class Shader {
     const std::string readFile(const std::string &path);
 
 	struct Obj;
-    typedef shared_ptr<Obj> ObjPtr;
+    typedef boost::shared_ptr<Obj> ObjPtr;
 	ObjPtr	m_Obj;
 
   public:

@@ -196,7 +196,8 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat, GL_FLOAT, data );
 	}
 	else
-		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, GL_LUMINANCE, GL_FLOAT, 0 );  // init to black...
+        // init to black...
+		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, GL_RED, GL_FLOAT, 0 );  
     
     if( format.m_Mipmapping )
         glGenerateMipmap(m_Obj->m_Target);
@@ -231,7 +232,6 @@ bool Texture::dataFormatHasAlpha( GLint dataFormat )
 	switch( dataFormat ) {
 		case GL_RGBA:
 		case GL_ALPHA:
-		case GL_LUMINANCE_ALPHA:
 #if ! defined( CINDER_GLES )
 		case GL_BGRA:
 #endif
@@ -246,8 +246,7 @@ bool Texture::dataFormatHasColor( GLint dataFormat )
 {
 	switch( dataFormat ) {
 		case GL_ALPHA:
-		case GL_LUMINANCE:
-		case GL_LUMINANCE_ALPHA:
+		case GL_RED:
 			return false;
 		break;
 	}
@@ -367,13 +366,9 @@ bool Texture::hasAlpha() const
 #if ! defined( CINDER_GLES )
 		case GL_RGBA8:
 		case GL_RGBA16:
-		case GL_RGBA32F_ARB:
-		case GL_LUMINANCE8_ALPHA8:
-		case GL_LUMINANCE16_ALPHA16:
-		case GL_LUMINANCE_ALPHA32F_ARB:
+		case GL_RGBA32F:
 #endif
 		case GL_RGBA:
-		case GL_LUMINANCE_ALPHA:
 			return true;
 		break;
 		default:

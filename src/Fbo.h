@@ -23,7 +23,6 @@
 #pragma once
 
 #include <vector>
-
 #include "Texture.h"
 
 using boost::shared_ptr;

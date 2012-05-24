@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     
     glClearColor(1, 0, 0, 1);
     
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
     
     // Main loop
     while( running )

@@ -63,11 +63,11 @@ Shader::Shader(const char *vertexShader, const char *fragmentShader,
 		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
     
 	if( geometryShader ) {
-		loadShader( geometryShader, GL_GEOMETRY_SHADER_EXT );
+		loadShader( geometryShader, GL_GEOMETRY_SHADER );
         
-        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
-        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
-        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
+//        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
+//        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
+//        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
     }
     
 	link();
@@ -269,7 +269,7 @@ ShaderCompileExc::ShaderCompileExc( const std::string &log, GLint aShaderType ) 
 		strncpy( m_Message, "VERTEX: ", 1000 );
 	else if( m_ShaderType == GL_FRAGMENT_SHADER )
 		strncpy( m_Message, "FRAGMENT: ", 1000 );
-	else if( m_ShaderType == GL_GEOMETRY_SHADER_EXT )
+	else if( m_ShaderType == GL_GEOMETRY_SHADER )
 		strncpy( m_Message, "GEOMETRY: ", 1000 );
 	else
 		strncpy( m_Message, "UNKNOWN: ", 1000 );

@@ -4,7 +4,7 @@
 
 class TextureIO 
 {
-   private:
+private:
     TextureIO();
     
 public:

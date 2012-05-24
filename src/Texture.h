@@ -24,7 +24,6 @@
 
 #include "KinskiGL.h"
 
-using boost::shared_ptr;
 
 namespace gl 
 {
@@ -252,7 +251,7 @@ namespace gl
         
         // forward declared Implementation object
         struct Obj;
-        typedef shared_ptr<Obj> ObjPtr;
+        typedef boost::shared_ptr<Obj> ObjPtr;
         ObjPtr m_Obj;
         
     public:
