@@ -4,7 +4,7 @@ project (fwglTest)
 
 MESSAGE(${CMAKE_SOURCE_DIR})
 
-SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_scripts
+SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules
                       ${CMAKE_MODULE_PATH})
 
 ##### PKGCONFIG
