@@ -36,7 +36,7 @@ class Renderbuffer {
 	//! Creates a NULL Renderbuffer
 	Renderbuffer() {}
 	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	Renderbuffer( int width, int height, GLenum internalFormat = GL_RGBA8_OES );
 #else
 	Renderbuffer( int width, int height, GLenum internalFormat = GL_RGBA8 );
@@ -138,7 +138,7 @@ class Fbo {
 	//! Returns the ID of the framebuffer itself. For antialiased FBOs this is the ID of the output multisampled FBO
 	GLuint		getId() const { return mObj->mId; }
 
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 //	//! For antialiased FBOs this returns the ID of the mirror FBO designed for reading, where the multisampled render buffers are resolved to. For non-antialised, this is the equivalent to getId()
 //	GLuint		getResolveId() const { if( mObj->mResolveFramebufferId ) return mObj->mResolveFramebufferId; else return mObj->mId; }
 //

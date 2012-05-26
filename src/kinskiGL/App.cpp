@@ -1,8 +1,7 @@
 #include "App.h"
 
-namespace app
+namespace kinski
 {
-    AppPtr s_instance;
     
     App::App(const int width, const int height):m_running(GL_FALSE),
     m_displayTweakBar(true)
@@ -31,10 +30,11 @@ namespace app
         printf("GLSL: %s\n",glGetString(GL_SHADING_LANGUAGE_VERSION));
         
         // AntTweakbar
-        TwInit(TW_OPENGL, NULL);
+        TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(width, height);
         
-        m_tweakBar = TwNewBar("papa Jango");
+        m_tweakBar = TwNewBar("papa Jango:");
+        TwAddVarRW(m_tweakBar, "testFloat", TW_TYPE_FLOAT, &m_testFloat, "");
         
         // directly redirect GLFW events to AntTweakBar
         glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
@@ -46,7 +46,6 @@ namespace app
         // send window size events to AntTweakBar
         glfwSetWindowSizeCallback(&resize);
         
-        init();
     }
     
     App::~App()
@@ -56,33 +55,16 @@ namespace app
         // Close window and terminate GLFW
         glfwTerminate();
     }
-    
-    void App::init()
-    {
-        glClearColor(1, 0, 0, 1);
-        
-//        GLuint vao;
-//        glGenVertexArrays(1, &vao);
-    }
-    
+
     void App::resize(int w, int h)
     {
         TwWindowSize(w, h);
     }
-    
-    void App::draw()
-    {
-        // OpenGL rendering goes here...
-    
-    }
-    
-    void App::update(const float delta)
-    {
-    
-    }
+
     
     int App::run()
     {
+        
         m_running = GL_TRUE;
         
         // Main loop

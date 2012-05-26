@@ -179,7 +179,7 @@ namespace gl
             
             //! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE_ARB. Not available in OpenGL ES.
             
-            //#ifndef CINDER_GLES
+            //#ifndef KINSKI_GLES
             //		void	setTargetRect() { m_Target = GL_TEXTURE_RECTANGLE_ARB; }
             //#endif		
             

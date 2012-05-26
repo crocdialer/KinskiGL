@@ -1,6 +1,7 @@
 #ifndef _KINSKIGL_H
 #define _KINSKIGL_H
 
+//#define KINSKI_GLES
 #define GLFW_INCLUDE_GL3
 #define GLFW_NO_GLU
 

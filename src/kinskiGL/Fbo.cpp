@@ -30,7 +30,7 @@ GLint Fbo::sMaxSamples = -1;
 GLint Fbo::sMaxAttachments = -1;
 
 // Convenience macro to append either OES or EXT appropriately to a symbol based on OGLES vs. OGL
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	#define GL_SUFFIX(sym) sym##OES
     #define GL_ENUM(sym) sym##_OES
 #else
@@ -58,7 +58,7 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 #endif
 
 	//GL_SUFFIX(glGenRenderbuffers)( 1, &mId );
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
     glGenRenderbuffersOES( 1, &mId );
 #else
     glGenRenderbuffers( 1, &mId );
@@ -70,13 +70,13 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 	if( ! csaaSupported )
 		mCoverageSamples = 0;
 
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
     glBindRenderbufferOES( GL_RENDERBUFFER_OES, mId );
 #else
     glBindRenderbuffer( GL_RENDERBUFFER, mId );
 #endif
 
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
   #if defined( CINDER_MSW )
 	if( mCoverageSamples ) // create a CSAA buffer
 		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER_EXT, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
@@ -137,7 +137,7 @@ Fbo::Obj::~Obj()
 Fbo::Format::Format()
 {
 	mTarget = GL_TEXTURE_2D;
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	mColorInternalFormat = GL_RGBA;
 	mDepthInternalFormat = GL_DEPTH_COMPONENT24_OES;
 	mDepthBufferAsTexture = false;
@@ -160,7 +160,7 @@ Fbo::Format::Format()
 
 void Fbo::Format::enableColorBuffer( bool colorBuffer, int numColorBuffers )
 {
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	mNumColorBuffers = ( colorBuffer && numColorBuffers ) ? 1 : 0;
 #else
 	mNumColorBuffers = ( colorBuffer ) ? numColorBuffers : 0;
@@ -170,7 +170,7 @@ void Fbo::Format::enableColorBuffer( bool colorBuffer, int numColorBuffers )
 void Fbo::Format::enableDepthBuffer( bool depthBuffer, bool asTexture )
 {
 	mDepthBuffer = depthBuffer;
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	mDepthBufferAsTexture = false;
 #else
 	mDepthBufferAsTexture = asTexture;
@@ -214,7 +214,7 @@ void Fbo::init()
 		mObj->mColorTextures.push_back( Texture( mObj->mWidth, mObj->mHeight, textureFormat ) );
 	}
 	
-#if ! defined( CINDER_GLES )	
+#if ! defined( KINSKI_GLES )	
 	if( mObj->mFormat.mNumColorBuffers == 0 ) { // no color
 		glDrawBuffer( GL_NONE );
 		glReadBuffer( GL_NONE );	
@@ -229,7 +229,7 @@ void Fbo::init()
              GL_ENUM(GL_COLOR_ATTACHMENT0) + c, getTarget(), mObj->mColorTextures[c].getId(), 0 );
 			drawBuffers.push_back( GL_ENUM(GL_COLOR_ATTACHMENT0) + c );
 		}
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 		if( ! drawBuffers.empty() )
 			glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
 #endif
@@ -237,7 +237,7 @@ void Fbo::init()
 		// allocate and attach depth texture
 		if( mObj->mFormat.mDepthBuffer ) {
 			if( mObj->mFormat.mDepthBufferAsTexture ) {
-	#if ! defined( CINDER_GLES )			
+	#if ! defined( KINSKI_GLES )			
 				GLuint depthTextureId;
 				glGenTextures( 1, &depthTextureId );
 				glBindTexture( getTarget(), depthTextureId );
@@ -273,7 +273,7 @@ void Fbo::init()
 
 bool Fbo::initMultisample( bool csaa )
 {
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	return false;
 #else
 	glGenFramebuffers( 1, &mObj->mResolveFramebufferId );
@@ -321,7 +321,7 @@ bool Fbo::initMultisample( bool csaa )
 
 	// see if the primary framebuffer turned out ok
 	return checkStatus( &ignoredException );
-#endif // ! CINDER_GLES
+#endif // ! KINSKI_GLES
 }
 
 Fbo::Fbo( int width, int height, Format format )
@@ -335,7 +335,7 @@ Fbo::Fbo( int width, int height, bool alpha, bool color, bool depth )
 	: mObj( shared_ptr<Obj>( new Obj( width, height ) ) )
 {
 	Format format;
-#if defined( CINDER_GLES )
+#if defined( KINSKI_GLES )
 	mObj->mFormat.mColorInternalFormat = ( alpha ) ? GL_RGBA8_OES : GL_RGB8_OES;
 #else
 	mObj->mFormat.mColorInternalFormat = ( alpha ) ? GL_RGBA8 : GL_RGB8;
@@ -379,7 +379,7 @@ void Fbo::resolveTextures() const
 	if( ! mObj->mNeedsResolve )
 		return;
 
-#if ! defined( CINDER_GLES )		
+#if ! defined( KINSKI_GLES )		
 	// if this FBO is multisampled, resolve it, so it can be displayed
 	if ( mObj->mResolveFramebufferId ) {
 		//SaveFramebufferBinding saveFboBinding;
@@ -458,7 +458,7 @@ bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
 			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: duplicate attachment" );
 		return false;
 
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 		case GL_ENUM(GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER):
 			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: missing draw buffer" );
 		return false;
@@ -476,7 +476,7 @@ bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
 
 GLint Fbo::getMaxSamples()
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( sMaxSamples < 0 ) {
 //		if( ( ! gl::isExtensionAvailable( "GL_EXT_framebuffer_multisample" ) ) || ( ! gl::isExtensionAvailable( "GL_EXT_framebuffer_blit" ) ) ) {
 //			sMaxSamples = 0;
@@ -493,7 +493,7 @@ GLint Fbo::getMaxSamples()
 
 GLint Fbo::getMaxAttachments()
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( sMaxAttachments < 0 ) {
 		glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &sMaxAttachments );
 	}
@@ -504,7 +504,7 @@ GLint Fbo::getMaxAttachments()
 #endif
 }
 
-//#if ! defined( CINDER_GLES )
+//#if ! defined( KINSKI_GLES )
 //void Fbo::blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
 //{
 //	SaveFramebufferBinding saveFboBinding;
