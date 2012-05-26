@@ -16,12 +16,6 @@ find_package(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 
-##### BOOST
-find_package(Boost REQUIRED COMPONENTS thread)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${Boost_LIBRARIES})
-#####
-
 ##### GLFW
 #pkg_search_module(GLFW REQUIRED libglfw)
 find_package(GLFW REQUIRED)
@@ -30,10 +24,22 @@ SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 #####
 
 #####
-find_package(GLEW REQUIRED)
-INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${GLEW_LIBRARIES})
+#find_package(GLEW REQUIRED)
+#INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIRS})
+#set(LIBS ${LIBS} ${GLEW_LIBRARIES})
 ##### 
+
+##### AntTweakBar
+find_package(AntTweakBar REQUIRED)
+INCLUDE_DIRECTORIES(${ANTTWEAKBAR_INCLUDE_DIRS})
+SET(LIBS ${LIBS} ${ANTTWEAKBAR_LIBRARIES})
+#####
+
+##### BOOST
+find_package(Boost REQUIRED COMPONENTS thread)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${Boost_LIBRARIES})
+#####
 
 ##### OPENCV
 find_package(OpenCV REQUIRED)
