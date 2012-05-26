@@ -27,6 +27,7 @@
 
 using boost::shared_ptr;
 
+namespace kinski {
 namespace gl 
 {
 
@@ -282,3 +283,4 @@ class FboExceptionInvalidSpecification : public FboException {
 };
 
 } // namespace gl
+}

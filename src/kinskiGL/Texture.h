@@ -24,7 +24,8 @@
 
 #include "KinskiGL.h"
 
-
+namespace kinski
+{
 namespace gl 
 {
     
@@ -313,4 +314,5 @@ namespace gl
         bool m_isBound;
     };
     
+}
 }

@@ -3,15 +3,17 @@
 
 #include "Texture.h"
 
-class TextureIO 
+namespace kinski
 {
-private:
-    TextureIO();
-    
-public:
-    
-    static const gl::Texture loadTexture(const std::string &imgPath);
-    static bool saveTexture(const std::string &imgPath, const gl::Texture &texture);
-};
-
+    class TextureIO 
+    {
+    private:
+        TextureIO();
+        
+    public:
+        
+        static const gl::Texture loadTexture(const std::string &imgPath);
+        static bool saveTexture(const std::string &imgPath, const gl::Texture &texture);
+    };
+}
 #endif //_TEXTUREIO_IS_INCLUDED_

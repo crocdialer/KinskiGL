@@ -27,6 +27,7 @@
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
+namespace kinski{
 namespace gl {
 
 //! Represents an OpenGL GLSL program. \ImplShared
@@ -114,4 +115,5 @@ class ShaderNullProgramExc : public std::exception {
 
 };
 
+}
 }

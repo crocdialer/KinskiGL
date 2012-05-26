@@ -27,6 +27,7 @@
 
 using namespace std;
 
+namespace kinski{
 namespace gl {
 
 //////////////////////////////////////////////////////////////////////////
@@ -276,4 +277,4 @@ ShaderCompileExc::ShaderCompileExc( const std::string &log, GLint aShaderType ) 
 	strncat( m_Message, log.c_str(), 15000 );
 }
 	
-}
+}}

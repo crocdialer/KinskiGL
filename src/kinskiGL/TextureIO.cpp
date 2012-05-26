@@ -2,9 +2,12 @@
 #include "opencv2/opencv.hpp"
 
 using namespace std;
-using namespace gl;
 using namespace cv;
 
+namespace kinski{
+    
+using namespace gl;
+    
 const Texture TextureIO::loadTexture(const string &imgPath)
 {
     Mat img = imread(imgPath);
@@ -43,4 +46,4 @@ TextureIO::saveTexture(const string &imgPath, const Texture &texture)
     Mat outMat;
     //TODO: read baack data from Textureobject, query format and create cv::Mat
     return imwrite(imgPath, outMat);
-}
+}}

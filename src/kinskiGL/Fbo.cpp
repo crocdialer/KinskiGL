@@ -24,7 +24,9 @@ Copyright (c) 2010, The Barbarian Group
 
 using namespace std;
 
-namespace gl {
+namespace kinski {
+namespace gl 
+{
 
 GLint Fbo::sMaxSamples = -1;
 GLint Fbo::sMaxAttachments = -1;
@@ -542,3 +544,4 @@ FboExceptionInvalidSpecification::FboExceptionInvalidSpecification( const string
 #undef GL_SUFFIX
 
 }// namespace gl
+}

@@ -25,6 +25,8 @@
 using namespace std;
 //using namespace glm;
 
+namespace kinski
+{
 namespace gl {
     
 TextureDataExc::TextureDataExc( const std::string &log ) throw()
@@ -512,3 +514,4 @@ void Texture::disable() const
 /////////////////////////////////////////////////////////////////////////////////
 
 } // namespace gl
+}
