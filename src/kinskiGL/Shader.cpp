@@ -96,6 +96,8 @@ const string Shader::readFile(const std::string &path)
 {
     
     ifstream inStream(path.c_str());
+    if(!inStream.good()) fprintf(stderr, "file not found: %s\n", path.c_str());
+    
     string ret((istreambuf_iterator<char>(inStream)),
                 istreambuf_iterator<char>());
     return ret;

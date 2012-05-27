@@ -2,10 +2,33 @@
 
 namespace kinski
 {
+    App::WeakPtr App::s_instance;
     
-    App::App(const int width, const int height):m_running(GL_FALSE),
-    m_displayTweakBar(true)
+    App::App(const int width, const int height):
+    m_running(GL_FALSE),
+    m_lastTimeStamp(0.0), m_width(width), m_height(height),
+    m_fullscreen(false), m_displayTweakBar(true)
     {
+        
+    }
+    
+    App::~App()
+    {
+        TwTerminate();
+        
+        // Close window and terminate GLFW
+        glfwTerminate();
+    }
+    
+    App::Ptr App::getInstance()
+    {
+        return s_instance.lock();
+    }
+    
+    void App::init()
+    {
+        s_instance = shared_from_this();
+        
         // Initialize GLFW
         if( !glfwInit() )
         {
@@ -19,7 +42,8 @@ namespace kinski
         //glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         
         // Open an OpenGL window
-        if( !glfwOpenWindow( width, height, 0, 0, 0, 0, 32, 0, GLFW_WINDOW ) )
+        if( !glfwOpenWindow( m_width, m_height, 0, 0, 0, 0, 32, 0,
+                            m_fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
         {
             glfwTerminate();
             throw std::exception();
@@ -31,7 +55,7 @@ namespace kinski
         
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);
-        TwWindowSize(width, height);
+        TwWindowSize(m_width, m_height);
         
         m_tweakBar = TwNewBar("papa Jango:");
         TwAddVarRW(m_tweakBar, "testFloat", TW_TYPE_FLOAT, &m_testFloat, "");
@@ -44,38 +68,45 @@ namespace kinski
         glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
         
         // send window size events to AntTweakBar
-        glfwSetWindowSizeCallback(&resize);
+        glfwSetWindowSizeCallback(&s_resize);
         
+        // call user defined setup callback
+        setup();
     }
     
-    App::~App()
+    void App::resize(const int w,const int h)
     {
-        TwTerminate();
+        m_width = w;
+        m_height = h;
         
-        // Close window and terminate GLFW
-        glfwTerminate();
-    }
-
-    void App::resize(int w, int h)
-    {
         TwWindowSize(w, h);
     }
-
     
     int App::run()
     {
+        init();
         
         m_running = GL_TRUE;
+        
+        double timeStamp = 0.0;
         
         // Main loop
         while( m_running )
         {
             glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             
-            update(0);
+            // update application time
+            timeStamp = glfwGetTime();
+            
+            // call update callback
+            update(timeStamp - m_lastTimeStamp);
+            
+            m_lastTimeStamp = timeStamp;
+            
+            // call draw callback
             draw();
             
-            // tweakbar
+            // draw tweakbar
             if(m_displayTweakBar) TwDraw();
             
             // Swap front and back rendering buffers
@@ -88,5 +119,9 @@ namespace kinski
 
         return EXIT_SUCCESS;
     }
-
+    
+    double App::getApplicationTime()
+    {
+        return glfwGetTime();
+    }
 }
