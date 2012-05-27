@@ -36,8 +36,8 @@ namespace gl
     public:
         struct Format;
         
-        //! Default initializer. Points to a null Obj
-        Texture() {}
+        //! Default initializer. Points to a null Obj (questionable!)
+        Texture();
         /** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. **/
         Texture( int aWidth, int aHeight, Format format = Format() );
         

@@ -58,7 +58,7 @@ uniform mat4 u_textureMatrix;\n\
 //uniform mat3 u_normalMatrix;\n\
 \n\
 in vec4 a_position;\n\
-in vec3 a_normal;\n\
+//in vec3 a_normal;\n\
 in vec4 a_texCoord;\n\
 \n\
 out vec4 v_texCoord;\n\
@@ -86,6 +86,7 @@ void main()\n\
     vec4 tex = texture(u_textureMap, v_texCoord.xy);\n\
     \n\
     fragData = tex * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
+    //fragData = vec4(1.0);\n\
 }";
 
 #endif //_DATA_H_IS_INCLUDED

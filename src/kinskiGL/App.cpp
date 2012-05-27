@@ -79,6 +79,7 @@ namespace kinski
         m_width = w;
         m_height = h;
         
+        glViewport(0, 0, w, h);
         TwWindowSize(w, h);
     }
     

@@ -84,6 +84,7 @@ struct Texture::Obj {
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
+Texture::Texture(): m_Obj( ObjPtr( new Obj )){}
     
 Texture::Texture( int aWidth, int aHeight, Format format )
 	: m_Obj( ObjPtr( new Obj( aWidth, aHeight ) ) )
