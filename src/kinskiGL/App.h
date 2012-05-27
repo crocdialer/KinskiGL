@@ -3,7 +3,8 @@
 
 #include "kinskiGL/KinskiGL.h"
 
-namespace kinski{
+namespace kinski
+{
     
     class App : public boost::enable_shared_from_this<App>
     {

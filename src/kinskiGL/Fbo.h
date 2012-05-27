@@ -28,8 +28,7 @@
 using boost::shared_ptr;
 
 namespace kinski {
-namespace gl 
-{
+namespace gl {
 
 //! Represents an OpenGL Renderbuffer, used primarily in conjunction with FBOs. Supported on OpenGL ES but multisampling is currently ignored. \ImplShared
 class Renderbuffer {

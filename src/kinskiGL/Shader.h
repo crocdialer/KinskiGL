@@ -35,7 +35,7 @@ class Shader {
   public: 
 	Shader() {}
     
-	Shader( const char *vertexShader, const char *fragmentShader = 0,
+	Shader( const char *vertexShader, const char *fragmentShader,
             const char *geometryShader = 0, GLint geometryInputType = GL_POINTS,
             GLint geometryOutputType = GL_TRIANGLES,
             GLint geometryOutputVertices = 0);
@@ -65,13 +65,18 @@ class Shader {
                     int count, bool transpose );
     void uniform(   const std::string &name, const glm::mat4 *theArray,
                     int count, bool transpose );
-
+    
+    void bindFragDataLocation(const std::string &fragLoc);
+    
 	GLint getUniformLocation( const std::string &name );
 	GLint getAttribLocation( const std::string &name );
 
 	std::string getShaderLog( GLuint handle ) const;
     
-    void loadFromFile(const std::string &vertPath, const std::string &fragPath);
+    void loadFromData(const char *vertSrc, const char *fragSrc,
+                      const char *geomSrc = NULL);
+    void loadFromFile(const std::string &vertPath, const std::string &fragPath,
+                      const std::string &geomPath="");
     
   protected:
 	void loadShader( const char *shaderSource, GLint shaderType );

@@ -23,7 +23,9 @@
 #include "Shader.h"
 #include <map>
 #include <glm/gtc/type_ptr.hpp>
+
 #include <fstream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -73,8 +75,10 @@ Shader::Shader(const char *vertexShader, const char *fragmentShader,
     
 	link();
 }
-    
-void Shader::loadFromFile(const std::string &vertPath, const std::string &fragPath)
+
+void Shader::loadFromData(const char *vertSrc,
+                          const char *fragSrc,
+                          const char *geomSrc)
 {
     if(!m_Obj)
     {
@@ -82,25 +86,40 @@ void Shader::loadFromFile(const std::string &vertPath, const std::string &fragPa
         m_Obj->m_Handle = glCreateProgram();
     }
     
+    loadShader( vertSrc, GL_VERTEX_SHADER );
+	loadShader( fragSrc, GL_FRAGMENT_SHADER );
+
+    if(geomSrc) 
+        loadShader(geomSrc, GL_GEOMETRY_SHADER);
+    
+    link();
+
+}
+    
+void Shader::loadFromFile(const std::string &vertPath,
+                          const std::string &fragPath,
+                          const std::string &geomPath)
+{
     string vertSrc, fragSrc;
     vertSrc = readFile(vertPath);
     fragSrc = readFile(fragPath);
     
-    loadShader( vertSrc.c_str(), GL_VERTEX_SHADER );
-	loadShader( fragSrc.c_str(), GL_FRAGMENT_SHADER );
-    
-    link();
+    loadFromData(vertSrc.c_str(), fragSrc.c_str());
 }
     
 const string Shader::readFile(const std::string &path)
 {
     
     ifstream inStream(path.c_str());
-    if(!inStream.good()) fprintf(stderr, "file not found: %s\n", path.c_str());
+    if(!inStream.good())
+    {
+        string err = "file not found: " + path;
+        throw std::runtime_error(err);
+    }
+    //fprintf(stderr, "file not found: %s\n", path.c_str());
     
-    string ret((istreambuf_iterator<char>(inStream)),
-                istreambuf_iterator<char>());
-    return ret;
+    return string ((istreambuf_iterator<char>(inStream)),
+                    istreambuf_iterator<char>());
 }
     
 void Shader::loadShader( const char *shaderSource, GLint shaderType )
@@ -244,6 +263,11 @@ void Shader::uniform( const std::string &name, const glm::mat4 *theArray, int co
 {
     GLint loc = getUniformLocation( name );
     glUniformMatrix4fv( loc, count, ( transpose ) ? GL_TRUE : GL_FALSE, glm::value_ptr(theArray[0]) );
+}
+
+void Shader::bindFragDataLocation(const std::string &fragLoc)
+{
+    glBindFragDataLocation(m_Obj->m_Handle, 0, fragLoc.c_str());
 }
     
 GLint Shader::getUniformLocation( const std::string &name )

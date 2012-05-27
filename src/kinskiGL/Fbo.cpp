@@ -25,8 +25,7 @@ Copyright (c) 2010, The Barbarian Group
 using namespace std;
 
 namespace kinski {
-namespace gl 
-{
+namespace gl {
 
 GLint Fbo::sMaxSamples = -1;
 GLint Fbo::sMaxAttachments = -1;

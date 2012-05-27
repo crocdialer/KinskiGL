@@ -50,4 +50,42 @@ GLfloat g_CubeVertexData[288] =
     -0.5f, 0.5f, -0.5f,        0.0f, 0.0f, -1.0f,       0.0f, 1.0f
 };
 
+const char *g_vertShaderSrc = 
+"#version 150 core\n\
+\n\
+uniform mat4 u_modelViewProjectionMatrix;\n\
+uniform mat4 u_textureMatrix;\n\
+//uniform mat3 u_normalMatrix;\n\
+\n\
+in vec4 a_position;\n\
+in vec3 a_normal;\n\
+in vec4 a_texCoord;\n\
+\n\
+out vec4 v_texCoord;\n\
+\n\
+void main()\n\
+{\n\
+    //vec3 eyeNormal = normalize(u_normalMatrix * a_normal);\n\
+    //float nDotVP = max(0.0, dot(eyeNormal, normalize(lightPosition)));\n\
+    \n\
+    v_texCoord =  u_textureMatrix * a_texCoord;\n\
+    \n\
+    gl_Position = u_modelViewProjectionMatrix * a_position;\n\
+}";
+
+const char *g_fragShaderSrc =
+"#version 150 core\n\
+\n\
+uniform sampler2D   u_textureMap;\n\
+in vec4        v_texCoord;\n\
+\n\
+out vec4 fragData;\n\
+\n\
+void main()\n\
+{\n\
+    vec4 tex = texture(u_textureMap, v_texCoord.xy);\n\
+    \n\
+    fragData = tex * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
+}";
+
 #endif //_DATA_H_IS_INCLUDED

@@ -21,18 +21,22 @@ public:
     
     void setup()
     {
+//        printf("%s\n", g_vertShaderSrc);
+//        printf("%s\n", g_fragShaderSrc);
+        
         glEnable(GL_TEXTURE_2D);
         
         try 
         {
-            m_shader.loadFromFile("texShader.vsh", "texShader.fsh");
+            //m_shader.loadFromFile("texShader.vsh", "texShader.fsh");
+            m_shader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
         }
         catch (std::exception &e) 
         {
             fprintf(stdout, "%s\n",e.what());
-            
-            
         }
+        
+        m_shader.bindFragDataLocation("fragData");
         
         // orthographic projection with a [0,1] coordinate space
         //m_projectionMatrix = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);

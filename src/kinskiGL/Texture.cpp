@@ -23,10 +23,8 @@
 #include "Texture.h"
 
 using namespace std;
-//using namespace glm;
 
-namespace kinski
-{
+namespace kinski{
 namespace gl {
     
 TextureDataExc::TextureDataExc( const std::string &log ) throw()
@@ -156,13 +154,13 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
     
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
     
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, unpackRowLength );
 #endif
     
 	glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat, type, data );
     
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 #endif	
     
@@ -234,7 +232,7 @@ bool Texture::dataFormatHasAlpha( GLint dataFormat )
 	switch( dataFormat ) {
 		case GL_RGBA:
 		case GL_ALPHA:
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 		case GL_BGRA:
 #endif
 			return true;
@@ -365,7 +363,7 @@ void Texture::setCleanTexCoords( float maxU, float maxV )
 bool Texture::hasAlpha() const
 {
 	switch( m_Obj->m_InternalFormat ) {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 		case GL_RGBA8:
 		case GL_RGBA16:
 		case GL_RGBA32F:
@@ -396,32 +394,32 @@ float Texture::getTop() const
 
 GLint Texture::getInternalFormat() const
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( m_Obj->m_InternalFormat == -1 ) {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_Obj->m_InternalFormat );
 	}
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( KINSKI_GLES )
 	
 	return m_Obj->m_InternalFormat;
 }
 
 GLint Texture::getWidth() const
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( m_Obj->m_Width == -1 ) {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
 		m_Obj->m_CleanWidth = m_Obj->m_Width;
 	}
-#endif // ! defined( CINDER_GLES )
+#endif // ! defined( KINSKI_GLES )
 
 	return m_Obj->m_Width;
 }
 
 GLint Texture::getHeight() const
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( m_Obj->m_Height == -1 ) {
 		//TODO: examine in cinder src
 //        gl::SaveTextureBindState( m_Obj->m_Target );
@@ -429,13 +427,13 @@ GLint Texture::getHeight() const
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_Height );	
 		m_Obj->m_CleanHeight = m_Obj->m_Height;		
 	}
-#endif // ! defined( CINDER_GLES )	
+#endif // ! defined( KINSKI_GLES )	
 	return m_Obj->m_Height;
 }
 
 GLint Texture::getCleanWidth() const
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( m_Obj->m_CleanWidth == -1 ) {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
@@ -445,12 +443,12 @@ GLint Texture::getCleanWidth() const
 	return m_Obj->m_CleanWidth;
 #else
 	return m_Obj->m_Width;
-#endif // ! defined( CINDER_GLES )	
+#endif // ! defined( KINSKI_GLES )	
 }
 
 GLint Texture::getCleanHeight() const
 {
-#if ! defined( CINDER_GLES )
+#if ! defined( KINSKI_GLES )
 	if( m_Obj->m_CleanHeight == -1 ) {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_Height );	
@@ -460,7 +458,7 @@ GLint Texture::getCleanHeight() const
 	return m_Obj->m_CleanHeight;
 #else
 	return m_Obj->m_Height;
-#endif // ! defined( CINDER_GLES )	
+#endif // ! defined( KINSKI_GLES )	
 }
 
 float Texture::getBottom() const
