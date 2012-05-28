@@ -16,11 +16,11 @@ private:
     gl::Texture m_texture;
     gl::Shader m_shader;
     
-    GLuint m_vertexArrayObject;
+    GLuint m_cubeArray;
     GLuint m_vertexBuffer;
     
     GLuint m_otherVertBuf;
-    GLuint m_otherVertArray;
+    GLuint m_canvasArray;
     
     float m_rotation;
 
@@ -33,8 +33,8 @@ private:
                                 0.0,1.0,0.0,1.0,0.0};
         
         // create VAO to record all VBO calls
-        glGenVertexArrays(1, &m_otherVertArray);
-        glBindVertexArray(m_otherVertArray);
+        glGenVertexArrays(1, &m_canvasArray);
+        glBindVertexArray(m_canvasArray);
         
         glGenBuffers(1, &m_otherVertBuf);
         glBindBuffer(GL_ARRAY_BUFFER, m_otherVertBuf);
@@ -58,6 +58,88 @@ private:
         
     }
     
+    void buildCubeVBO()
+    {
+        // create and bind vertex array object
+        glGenVertexArrays(1, &m_cubeArray);
+        glBindVertexArray(m_cubeArray);
+        
+        // create vertex buffers and attrib locations
+        glGenBuffers(1, &m_vertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_CubeVertexData), g_CubeVertexData, GL_STATIC_DRAW);
+        
+        GLuint positionAttribLocation = m_shader.getAttribLocation("a_position");
+        GLuint normalAttribLocation = m_shader.getAttribLocation("a_normal");
+        GLuint texCoordAttribLocation = m_shader.getAttribLocation("a_texCoord");
+        
+        //        printf("pos: %d -- normal: %d -- tex: %d\n",    positionAttribLocation,
+        //                                                        0,
+        //                                                        texCoordAttribLocation);
+
+        // define attrib pointers
+        GLsizei stride = 8 * sizeof(GLfloat);
+        
+        glEnableVertexAttribArray(positionAttribLocation);
+        glVertexAttribPointer(positionAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              stride,
+                              BUFFER_OFFSET(0));
+        glEnableVertexAttribArray(normalAttribLocation);
+        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              stride,
+                              BUFFER_OFFSET(3 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(texCoordAttribLocation);
+        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
+                              stride,
+                              BUFFER_OFFSET(6 * sizeof(GLfloat)));
+        // unbind buffers
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        
+    }
+    
+    void drawTexture(gl::Texture theTexture)
+    {
+        // Texture and Shader bound for this scope
+        gl::scoped_bind<gl::Texture> texBind(theTexture);
+        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
+        
+        // orthographic projection with a [0,1] coordinate space
+        m_projectionMatrix = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        
+        m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
+        m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
+        
+        m_shader.uniform("u_modelViewProjectionMatrix", 
+                         m_projectionMatrix);
+        
+        glBindVertexArray(m_canvasArray);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    }
+    
+    void drawCube(gl::Texture theTexture)
+    {
+        // Texture and Shader bound for this scope
+        gl::scoped_bind<gl::Texture> texBind(theTexture);
+        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
+        
+        float aspect = fabsf(getWidth() / getHeight());
+        m_projectionMatrix = glm::perspective(65.0f, aspect, 0.1f, 100.0f);
+        
+        glm::mat4 modelViewMatrix;
+        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -2.0));
+        modelViewMatrix = glm::rotate(modelViewMatrix, glm::degrees(m_rotation), glm::vec3(1, 1, 1));
+        
+        m_shader.uniform("u_modelViewProjectionMatrix", 
+                         m_projectionMatrix * modelViewMatrix);
+        
+        m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
+        m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
+        
+        glBindVertexArray(m_cubeArray);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+    }
+    
 public:
     
     void setup()
@@ -78,86 +160,21 @@ public:
             fprintf(stdout, "%s\n",e.what());
         }
         
-        //m_shader.bindFragDataLocation("fragData");
-        
-        // orthographic projection with a [0,1] coordinate space
-        m_projectionMatrix = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-        
-        // create and bind vertex array object
-        glGenVertexArrays(1, &m_vertexArrayObject);
-        glBindVertexArray(m_vertexArrayObject);
-        
-        // create vertex buffers and attrib locations
-        glGenBuffers(1, &m_vertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(g_CubeVertexData), g_CubeVertexData, GL_STATIC_DRAW);
-        
-        GLuint positionAttribLocation = m_shader.getAttribLocation("a_position");
-        GLuint normalAttribLocation = m_shader.getAttribLocation("a_normal");
-        GLuint texCoordAttribLocation = m_shader.getAttribLocation("a_texCoord");
-        
-//        printf("pos: %d -- normal: %d -- tex: %d\n",    positionAttribLocation,
-//                                                        0,
-//                                                        texCoordAttribLocation);
-        // define attrib pointers
-        GLsizei stride = 8 * sizeof(GLfloat);
-        
-        glEnableVertexAttribArray(positionAttribLocation);
-        glVertexAttribPointer(positionAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(0));
-        glEnableVertexAttribArray(normalAttribLocation);
-        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(3 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(texCoordAttribLocation);
-        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(6 * sizeof(GLfloat)));
-        // unbind buffers
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-        
         m_rotation = 0.f;
         
         buildCanvasVBO();
+        buildCubeVBO();
     }
     
     void update(const float timeDelta)
     {
-//        float aspect = fabsf(getWidth() / getHeight());
-//        m_projectionMatrix = glm::perspective(65.0f, aspect, 0.1f, 100.0f);
-//        
-//        glm::mat4 modelViewMatrix;
-//        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -4.0));
-//        //modelViewMatrix = glm::rotate(modelViewMatrix, m_rotation, glm::vec3(1, 1, 1));
-//        
-//        m_shader.uniform("u_modelViewProjectionMatrix", 
-//                         m_projectionMatrix * modelViewMatrix);
-//        m_rotation += timeDelta * 0.5;
+        m_rotation += timeDelta * 0.5;
     }
     
     void draw()
     {
-        // Texture and Shader bound for this scope
-        gl::scoped_bind<gl::Texture> texBind(m_texture);
-        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
-        
-
-        m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
-        m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
-        
-//        glBindVertexArray(m_vertexArrayObject);
-//        glDrawArrays(GL_TRIANGLES, 0, 36);
-        
-        m_shader.uniform("u_modelViewProjectionMatrix", 
-                         m_projectionMatrix);
-        
-        //fragData
-        //m_shader.bindFragDataLocation("fragData");
-        
-        glBindVertexArray(m_otherVertArray);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        //drawTexture(m_texture);
+        drawCube(m_texture);
     }
 };
 
