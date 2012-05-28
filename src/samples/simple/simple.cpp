@@ -9,11 +9,10 @@
 using namespace std;
 using namespace kinski;
 
-class PoopApp : public App 
+class SimpleApp : public App 
 {
 private:
-    
-    glm::mat4 m_projectionMatrix;
+
     gl::Texture m_texture;
     gl::Shader m_shader;
     
@@ -23,7 +22,6 @@ private:
     GLuint m_otherVertBuf;
     GLuint m_canvasArray;
     
-    glm::vec3 m_noiseVec;
     float m_rotation;
     float m_rotationSpeed;
     
@@ -86,10 +84,6 @@ private:
         GLuint normalAttribLocation = m_shader.getAttribLocation("a_normal");
         GLuint texCoordAttribLocation = m_shader.getAttribLocation("a_texCoord");
         
-        //        printf("pos: %d -- normal: %d -- tex: %d\n",    positionAttribLocation,
-        //                                                        0,
-        //                                                        texCoordAttribLocation);
-
         // define attrib pointers
         GLsizei stride = 8 * sizeof(GLfloat);
         
@@ -118,43 +112,25 @@ private:
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
         
         // orthographic projection with a [0,1] coordinate space
-        m_projectionMatrix = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        glm::mat4 projectionMatrix = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
         
         m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
         m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
-                         m_projectionMatrix);
+                         projectionMatrix);
         
         glBindVertexArray(m_canvasArray);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
     
-    void drawCube(gl::Texture theTexture)
+    void drawCube()
     {
-        // Texture and Shader bound for this scope
-        gl::scoped_bind<gl::Texture> texBind(theTexture);
-        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
-        
-        float aspect = fabsf(getWidth() / getHeight());
-        m_projectionMatrix = glm::perspective(65.0f, aspect, 0.1f, 100.0f);
-        
-        glm::mat4 modelViewMatrix;
-        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -1.5));
-        modelViewMatrix = glm::rotate(modelViewMatrix, m_rotation, glm::vec3(1, 1, 1));
-        
-        m_shader.uniform("u_modelViewProjectionMatrix", 
-                         m_projectionMatrix * modelViewMatrix);
-        
         m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
         m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
         
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        
         glBindVertexArray(m_cubeArray);
         glDrawArrays(GL_TRIANGLES, 0, 36);
-        
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     
 public:
@@ -163,10 +139,7 @@ public:
     {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
-        
         glClearColor(0, 0, 0, 1);
-        
-        m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
         
         try 
         {
@@ -175,16 +148,15 @@ public:
         }
         catch (std::exception &e) 
         {
-            fprintf(stdout, "%s\n",e.what());
+            fprintf(stderr, "%s\n",e.what());
         }
+        
+        m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
+        
+        buildCubeVBO();
         
         m_rotation = 0.f;
         m_rotationSpeed = 1.f;
-        
-        buildCanvasVBO();
-        buildCubeVBO();
-        
-        //activateCamera();
     }
     
     void tearDown()
@@ -195,34 +167,33 @@ public:
     void update(const float timeDelta)
     {
         m_rotation += glm::degrees(timeDelta * m_rotationSpeed);
-        
-        // grab frame from camera and upload to texture
-        if(m_capture.isOpened() && m_capture.grab())
-        {		
-            cv::Mat capFrame;
-            m_capture.retrieve(capFrame, 0);
-            cv::Mat inFrame = capFrame.clone();
-            m_texture.update(inFrame.data, GL_BGR, inFrame.cols, inFrame.rows, true);
-        }
     }
     
     void draw()
     {
-        //drawTexture(m_texture);
-        drawCube(m_texture);
+        // Texture and Shader bound for this scope
+        gl::scoped_bind<gl::Texture> texBind(m_texture);
+        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
+        
+        glm::mat4 projectionMatrix = glm::perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
+        
+        glm::mat4 modelViewMatrix;
+        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -1.5));
+        modelViewMatrix = glm::rotate(modelViewMatrix, m_rotation, glm::vec3(1, 1, 1));
+        
+        glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(modelViewMatrix));
+        
+        m_shader.uniform("u_modelViewProjectionMatrix", 
+                         projectionMatrix * modelViewMatrix);
+        m_shader.uniform("u_normalMatrix", normalMatrix);
+        
+        drawCube();
     }
 };
 
 int main(int argc, char *argv[])
 {
-    char b[512];
-    getcwd(b, sizeof(b));
-    printf("working dir: '%s'\n", b);
-    
-    PoopApp::Ptr theApp(new PoopApp);
-    
-    //theApp->setFullSceen(true);
-    //theApp->setSize(1680, 1050);
-    
+    App::Ptr theApp(new SimpleApp);
+
     return theApp->run();
 }

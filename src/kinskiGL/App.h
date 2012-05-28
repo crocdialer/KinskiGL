@@ -29,7 +29,7 @@ namespace kinski
         
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
-        
+        inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
         inline const glm::ivec2 getSize(){return m_windowSize;};
         
         inline void setSize(uint32_t w, uint32_t h){setSize(glm::ivec2(w, h));};

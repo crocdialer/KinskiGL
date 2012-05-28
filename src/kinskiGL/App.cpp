@@ -41,6 +41,7 @@ namespace kinski
         glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
         glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         //glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
         
         // Open an OpenGL window
         if( !glfwOpenWindow( m_windowSize[0], m_windowSize[1], 0, 0, 0, 0, 24, 0,
