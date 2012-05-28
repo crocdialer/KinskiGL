@@ -4,6 +4,7 @@
 #include "Data.h"
 
 #include "TextureIO.h"
+#include "opencv2/opencv.hpp"
 
 using namespace std;
 using namespace kinski;
@@ -22,7 +23,19 @@ private:
     GLuint m_otherVertBuf;
     GLuint m_canvasArray;
     
+    glm::vec3 m_noiseVec;
     float m_rotation;
+    float m_rotationSpeed;
+    
+    cv::VideoCapture m_capture;
+    
+    void activateCamera(bool b = true)
+    {
+        if(b)
+            m_capture.open(0);
+        else
+            m_capture.release();
+    }
 
     void buildCanvasVBO()
     {
@@ -127,8 +140,8 @@ private:
         m_projectionMatrix = glm::perspective(65.0f, aspect, 0.1f, 100.0f);
         
         glm::mat4 modelViewMatrix;
-        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -2.0));
-        modelViewMatrix = glm::rotate(modelViewMatrix, glm::degrees(m_rotation), glm::vec3(1, 1, 1));
+        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -1.5));
+        modelViewMatrix = glm::rotate(modelViewMatrix, m_rotation, glm::vec3(1, 1, 1));
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          m_projectionMatrix * modelViewMatrix);
@@ -136,8 +149,12 @@ private:
         m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
         m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
         
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        
         glBindVertexArray(m_cubeArray);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     
 public:
@@ -146,6 +163,7 @@ public:
     {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
+        
         glClearColor(0, 0, 0, 1);
         
         m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
@@ -161,14 +179,31 @@ public:
         }
         
         m_rotation = 0.f;
+        m_rotationSpeed = 1.f;
         
         buildCanvasVBO();
         buildCubeVBO();
+        
+        //activateCamera();
+    }
+    
+    void tearDown()
+    {
+        printf("ciao simple love\n");
     }
     
     void update(const float timeDelta)
     {
-        m_rotation += timeDelta * 0.5;
+        m_rotation += glm::degrees(timeDelta * m_rotationSpeed);
+        
+        // grab frame from camera and upload to texture
+        if(m_capture.isOpened() && m_capture.grab())
+        {		
+            cv::Mat capFrame;
+            m_capture.retrieve(capFrame, 0);
+            cv::Mat inFrame = capFrame.clone();
+            m_texture.update(inFrame.data, GL_BGR, inFrame.cols, inFrame.rows, true);
+        }
     }
     
     void draw()
@@ -185,6 +220,9 @@ int main(int argc, char *argv[])
     printf("working dir: '%s'\n", b);
     
     PoopApp::Ptr theApp(new PoopApp);
+    
+    //theApp->setFullSceen(true);
+    //theApp->setSize(1680, 1050);
     
     return theApp->run();
 }

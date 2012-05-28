@@ -14,7 +14,7 @@ namespace kinski
         
         static Ptr getInstance();
         
-        App(const int width = 640, const int height = 480);
+        App(const int width = 800, const int height = 600);
         virtual ~App();
         
         void resize(const int w, const int h);
@@ -22,11 +22,21 @@ namespace kinski
         
         // you are supposed to implement these in a subclass
         virtual void setup() = 0;
-        virtual void draw() = 0;
         virtual void update(const float timeDelta) = 0;
+        virtual void draw() = 0;
         
-        inline float getWidth(){return m_width;};
-        inline float getHeight(){return m_height;};
+        virtual void tearDown(){};
+        
+        inline float getWidth(){return m_windowSize[0];};
+        inline float getHeight(){return m_windowSize[1];};
+        
+        inline const glm::ivec2 getSize(){return m_windowSize;};
+        
+        inline void setSize(uint32_t w, uint32_t h){setSize(glm::ivec2(w, h));};
+        inline void setSize(const glm::ivec2 size){m_windowSize = size;};
+        
+        inline bool isFullSceen(){return m_fullscreen;};
+        inline void setFullSceen(bool b){m_fullscreen = b;};
         
         double getApplicationTime();
         
@@ -46,8 +56,11 @@ namespace kinski
         
         GLint m_running;
         double m_lastTimeStamp;
+        uint64_t m_framesDrawn;
         
-        int m_width, m_height;
+        //int m_width, m_height;
+        glm::ivec2 m_windowSize;
+        
         bool m_fullscreen;
         
         TwBar *m_tweakBar;

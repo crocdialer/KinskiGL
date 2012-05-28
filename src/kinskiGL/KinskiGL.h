@@ -19,8 +19,19 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/noise.hpp>
 
 namespace kinski {
+
+    using boost::int8_t;
+    using boost::uint8_t;
+    using boost::int16_t;
+    using boost::uint16_t;
+    using boost::int32_t;
+    using boost::uint32_t;
+    using boost::int64_t;
+    using boost::uint64_t;
+    
 namespace gl{
  
  // implement cinder like draw routines here !?   

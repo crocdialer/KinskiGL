@@ -6,7 +6,8 @@ namespace kinski
     
     App::App(const int width, const int height):
     m_running(GL_FALSE),
-    m_lastTimeStamp(0.0), m_width(width), m_height(height),
+    m_lastTimeStamp(0.0), m_framesDrawn(0),
+    m_windowSize(glm::ivec2(width, height)),
     m_fullscreen(false), m_displayTweakBar(true)
     {
         
@@ -42,7 +43,7 @@ namespace kinski
         //glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         
         // Open an OpenGL window
-        if( !glfwOpenWindow( m_width, m_height, 0, 0, 0, 0, 32, 0,
+        if( !glfwOpenWindow( m_windowSize[0], m_windowSize[1], 0, 0, 0, 0, 24, 0,
                             m_fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
         {
             glfwTerminate();
@@ -55,7 +56,7 @@ namespace kinski
         
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);
-        TwWindowSize(m_width, m_height);
+        TwWindowSize(m_windowSize[0], m_windowSize[1]);
         
         m_tweakBar = TwNewBar("papa Jango:");
         TwAddVarRW(m_tweakBar, "testFloat", TW_TYPE_FLOAT, &m_testFloat, "");
@@ -76,8 +77,7 @@ namespace kinski
     
     void App::resize(const int w,const int h)
     {
-        m_width = w;
-        m_height = h;
+        m_windowSize = glm::ivec2(w, h);
         
         glViewport(0, 0, w, h);
         TwWindowSize(w, h);
@@ -113,11 +113,16 @@ namespace kinski
             // Swap front and back rendering buffers
             glfwSwapBuffers();
             
+            m_framesDrawn++;
+            
             // Check if ESC key was pressed or window was closed
             m_running = !glfwGetKey( GLFW_KEY_ESC ) &&
             glfwGetWindowParam( GLFW_OPENED );
         }
-
+        
+        // manage tearDown, save stuff etc.
+        tearDown();
+        
         return EXIT_SUCCESS;
     }
     
