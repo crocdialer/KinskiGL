@@ -44,6 +44,8 @@ namespace kinski
         bool isTweaBarVisible(){return m_displayTweakBar;};
         TwBar* getTweakBar(){return m_tweakBar;};
         
+        void addValueToTweakBar(const std::string &theLabel, float &v);
+        
     private:
         
         static WeakPtr s_instance;

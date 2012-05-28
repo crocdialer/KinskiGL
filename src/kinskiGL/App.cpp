@@ -59,8 +59,7 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(m_windowSize[0], m_windowSize[1]);
         
-        m_tweakBar = TwNewBar("papa Jango:");
-        TwAddVarRW(m_tweakBar, "testFloat", TW_TYPE_FLOAT, &m_testFloat, "");
+        m_tweakBar = TwNewBar("KinskiGL");
         
         // directly redirect GLFW events to AntTweakBar
         glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
@@ -131,4 +130,12 @@ namespace kinski
     {
         return glfwGetTime();
     }
+    
+/*******************************  TweakBar ************************************/
+    
+    void App::addValueToTweakBar(const std::string &theLabel, float &v)
+    {
+        TwAddVarRW(m_tweakBar, "theLabel", TW_TYPE_FLOAT, &v, "");
+    }
+    
 }
