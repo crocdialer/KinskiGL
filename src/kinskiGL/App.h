@@ -48,10 +48,10 @@ namespace kinski
     protected:   
         
         template<typename T>
-        void addValueToTweakBar(const std::string &theLabel, T v)
+        void addValueToTweakBar(const std::string &theLabel, const T v)
         {
-            Property::Ptr propertyPtr(new Property(v));
-            AntTweakBarConnector::connect(m_tweakBar, propertyPtr, theLabel);
+            Property::Ptr propertyPtr(new Property(theLabel, v));
+           // AntTweakBarConnector::connect(m_tweakBar, propertyPtr, theLabel);
         }
         
     private:

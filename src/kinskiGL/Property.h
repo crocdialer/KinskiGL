@@ -21,8 +21,8 @@ class Property
 public:
     typedef boost::shared_ptr<Property> Ptr;
     
-    //Property(); // default constructor
-    Property(std::string theName, boost::any &theProperty);
+    Property(); // default constructor
+    Property(const std::string &theName, boost::any theProperty);
    
     boost::any getValue();
     std::string getName();
@@ -60,7 +60,7 @@ public:
 
 private:
     std::string m_name;
-    boost::any &m_value;
+    boost::any m_value;
 	bool m_tweakable;
 
 public:

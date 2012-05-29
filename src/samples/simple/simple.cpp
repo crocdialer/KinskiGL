@@ -157,6 +157,9 @@ public:
         
         m_rotation = 0.f;
         m_rotationSpeed = 1.f;
+        
+        addValueToTweakBar("LuLuspeed", m_rotationSpeed);
+        
     }
     
     void tearDown()
@@ -194,6 +197,6 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleApp);
-
+    
     return theApp->run();
 }

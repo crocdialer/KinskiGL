@@ -16,7 +16,7 @@ namespace kinski
         
         std::string myPropName = theProperty->getName();
         
-        std::string myGroup = std::string(" group=") + theName;
+        std::string myGroup = std::string(" label=") + theName;
         
         if (theProperty->isOfType<int>()) 
         {
@@ -72,24 +72,24 @@ namespace kinski
         else if (theProperty->isOfType<glm::vec3>()) 
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_DIR3F, 
-                       AntTweakBarConnector::setArrayValue<glm::vec3>,
-                       AntTweakBarConnector::getArrayValue<glm::vec3>,
+                       AntTweakBarConnector::setVec3,
+                       AntTweakBarConnector::getVec3,
                        (void*)myPProp, myGroup.c_str());
         }
         else if (theProperty->isOfType<glm::vec4>()) 
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_COLOR4F, 
-                       AntTweakBarConnector::setArrayValue<glm::vec4>,
-                       AntTweakBarConnector::getArrayValue<glm::vec4>,
+                       AntTweakBarConnector::setVec4,
+                       AntTweakBarConnector::getVec4,
                        (void*)myPProp, myGroup.c_str());
         }
-        else if (theProperty->isOfType<glm::vec3>()) 
-        {
-            TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_QUAT4F, 
-                       AntTweakBarConnector::setArrayValue<glm::quat>,
-                       AntTweakBarConnector::getArrayValue<glm::quat>,
-                       (void*)myPProp, myGroup.c_str());
-        }
+//        else if (theProperty->isOfType<glm::vec3>()) 
+//        {
+//            TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_QUAT4F, 
+//                       AntTweakBarConnector::setQuaternion,
+//                       AntTweakBarConnector::getQuaternion,
+//                       (void*)myPProp, myGroup.c_str());
+//        }
     }
     
     template <typename T>
@@ -104,24 +104,6 @@ namespace kinski
     template <typename T>
     void TW_CALL 
     AntTweakBarConnector::setValue(const void *value, void *clientData) 
-    {
-        Property * theProperty = (Property*) clientData;
-        
-        theProperty->setValue( *(const T *)value );
-    }
-    
-    template <typename T>
-    void TW_CALL 
-    AntTweakBarConnector::getArrayValue(void *value, void *clientData) 
-    {
-        Property * theProperty = (Property*) clientData;
-        
-        *(T *)value = theProperty->getValue<T>(); 
-    }
-    
-    template <typename T>
-    void TW_CALL 
-    AntTweakBarConnector::setArrayValue(const void *value, void *clientData) 
     {
         Property * theProperty = (Property*) clientData;
         
@@ -146,5 +128,50 @@ namespace kinski
         theProperty->setValue(*srcPtr);
     }
     
-
+    /**************************************************************************/
+    
+    
+    void TW_CALL 
+    AntTweakBarConnector::getVec3(void *value, void *clientData) 
+    {
+        Property * theProperty = (Property*) clientData;
+        
+        *(float **)value = &theProperty->getValue<glm::vec3>()[0];
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::setVec3(const void *value, void *clientData) 
+    {
+        Property * theProperty = (Property*) clientData;
+        
+        theProperty->setValue(glm::make_vec3(*(const float **)value) );
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::getVec4(void *value, void *clientData) 
+    {
+        Property * theProperty = (Property*) clientData;
+        
+        *(float **)value = &theProperty->getValue<glm::vec4>()[0];
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::setVec4(const void *value, void *clientData) 
+    {
+        Property * theProperty = (Property*) clientData;
+        
+        theProperty->setValue(glm::make_vec4(*(const float **)value) );
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::getQuaternion(void *value, void *clientData) 
+    {
+        //TODO: insert from mat3
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::setQuaternion(const void *value, void *clientData) 
+    {
+       //TODO: insert as mat3
+    }
 }
