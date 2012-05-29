@@ -11,11 +11,11 @@
 using namespace kinski;
 using boost::any_cast;
 
-Property::Property() : m_tweakable(true)
-{
-}
+//Property::Property() : m_tweakable(true)
+//{
+//}
 
-Property::Property(std::string theName, boost::any theValue):
+Property::Property(std::string theName, boost::any &theValue):
     m_name(theName), m_value(theValue), m_tweakable(true)
 {
 } 

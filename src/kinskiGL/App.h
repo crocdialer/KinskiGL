@@ -2,6 +2,7 @@
 #define KINSKI_APP_H
 
 #include "kinskiGL/KinskiGL.h"
+#include "AntTweakBarConnector.h"
 
 namespace kinski
 {
@@ -44,7 +45,14 @@ namespace kinski
         bool isTweaBarVisible(){return m_displayTweakBar;};
         TwBar* getTweakBar(){return m_tweakBar;};
         
-        void addValueToTweakBar(const std::string &theLabel, float &v);
+    protected:   
+        
+        template<typename T>
+        void addValueToTweakBar(const std::string &theLabel, T v)
+        {
+            Property::Ptr propertyPtr(new Property(v));
+            AntTweakBarConnector::connect(m_tweakBar, propertyPtr, theLabel);
+        }
         
     private:
         

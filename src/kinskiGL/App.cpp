@@ -131,11 +131,5 @@ namespace kinski
         return glfwGetTime();
     }
     
-/*******************************  TweakBar ************************************/
-    
-    void App::addValueToTweakBar(const std::string &theLabel, float &v)
-    {
-        TwAddVarRW(m_tweakBar, "theLabel", TW_TYPE_FLOAT, &v, "");
-    }
-    
+/*******************************  TweakBar ************************************/ 
 }
