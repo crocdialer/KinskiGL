@@ -3,6 +3,7 @@
 
 #include "kinskiGL/KinskiGL.h"
 #include "AntTweakBarConnector.h"
+#include <list>
 
 namespace kinski
 {
@@ -47,11 +48,15 @@ namespace kinski
         
     protected:   
         
+        std::list<Property::Ptr> m_tweakProperties;
+        
         template<typename T>
         void addValueToTweakBar(const std::string &theLabel, const T v)
         {
             Property::Ptr propertyPtr(new Property(theLabel, v));
-           // AntTweakBarConnector::connect(m_tweakBar, propertyPtr, theLabel);
+            m_tweakProperties.push_back(propertyPtr);
+            
+            AntTweakBarConnector::connect(m_tweakBar, propertyPtr, theLabel);
         }
         
     private:

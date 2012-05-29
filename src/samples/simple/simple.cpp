@@ -158,7 +158,7 @@ public:
         m_rotation = 0.f;
         m_rotationSpeed = 1.f;
         
-        addValueToTweakBar("LuLuspeed", m_rotationSpeed);
+        addValueToTweakBar("RotationSpeed", m_rotationSpeed);
         
     }
     

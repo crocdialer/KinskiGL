@@ -22,7 +22,7 @@ public:
     typedef boost::shared_ptr<Property> Ptr;
     
     Property(); // default constructor
-    Property(const std::string &theName, boost::any theProperty);
+    Property(const std::string &theName, const boost::any &theProperty);
    
     boost::any getValue();
     std::string getName();

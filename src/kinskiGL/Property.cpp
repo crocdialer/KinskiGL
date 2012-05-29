@@ -15,7 +15,7 @@ Property::Property() : m_tweakable(true)
 {
 }
 
-Property::Property(const std::string &theName, boost::any theValue):
+Property::Property(const std::string &theName, const boost::any &theValue):
     m_name(theName), m_value(theValue), m_tweakable(true)
 {
 } 
