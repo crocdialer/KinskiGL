@@ -1,4 +1,5 @@
 #include "App.h"
+#include "AntTweakBarConnector.h"
 
 namespace kinski
 {
@@ -132,4 +133,11 @@ namespace kinski
     }
     
 /*******************************  TweakBar ************************************/ 
+    
+    void App::addPropertyToTweakBar(const Property::Ptr propPtr,
+                               const std::string &group)
+    {
+        m_tweakProperties.push_back(propPtr);
+        AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
+    }
 }

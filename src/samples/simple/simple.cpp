@@ -28,7 +28,12 @@ private:
     _Property<float>::Ptr m_distance;
     _Property<float>::Ptr m_rotationSpeed;
     _Property<vec3>::Ptr m_lightDir;
+    
+    _Property<mat3>::Ptr m_modelViewMatrix;
+    
     _Property<string>::Ptr m_infoString;
+    
+    _Property<vec4>::Ptr m_lightColor;
     
     cv::VideoCapture m_capture;
     
@@ -165,16 +170,23 @@ public:
         m_rotationSpeed = _Property<float>::create("RotationSpeed", 1.f);
         m_lightDir = _Property<vec3>::create("LightDir", vec3(0.0, 1.0, 1.0));
         m_infoString = _Property<string>::create("Info Bla",
-                                                 "This is some infoo bla ...\n");
+                                                 "This is some infoo bla for uu");
+        
+        m_lightColor = _Property<vec4>::create("lightColor", vec4(1));
+        
+        m_modelViewMatrix = _Property<mat3>::create("modelViewMatrix", mat3());
         
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
         addPropertyToTweakBar(m_rotationSpeed, "Floats");
         addPropertyToTweakBar(m_lightDir, "Vecs");
+        addPropertyToTweakBar(m_modelViewMatrix);
         addPropertyToTweakBar(m_infoString);
+        addPropertyToTweakBar(m_lightColor);
         
         // properties can be tweaked at any time
         m_distance->set(2);
+        m_lightDir->set(vec3(0.0f, 3.0f, 1.0f));
     }
     
     void tearDown()
@@ -204,6 +216,8 @@ public:
         modelViewMatrix = rotate(modelViewMatrix, m_rotation, vec3(1, 1, 1));
         
         mat3 normalMatrix = inverseTranspose(mat3(modelViewMatrix));
+        
+        m_modelViewMatrix->set(mat3(modelViewMatrix));
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewMatrix);

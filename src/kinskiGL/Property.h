@@ -31,7 +31,7 @@ public:
 	bool getIsTweakable() const;
 
     template <typename T> 
-    void setValue(T theValue) 
+    void setValue(const T& theValue) 
     {
         if (!isOfType<T>()) {throw WrongTypeSetException(m_name);}
         
@@ -49,7 +49,6 @@ public:
             return boost::any_cast<T>(m_value);
         
         } catch (const boost::bad_any_cast &theException) {
-//            LOG(ERROR) << "cannot cast value of '"  << m_name << "' to the requested type.";
             throw theException;
         }
     }
@@ -100,8 +99,10 @@ public:
         inline const T val() const {return getValue<T>();};
         inline const T operator*() const {return getValue<T>();};
         
-        inline void set(const T theVal){setValue<T>(theVal);};
-        inline void operator()(const T theVal){setValue<T>(theVal);};
+        inline void set(const T &theVal){setValue<T>(theVal);};
+        inline void operator()(const T &theVal){setValue<T>(theVal);};
+        
+        T& operator=(const T &theVal){setValue<T>(theVal); return *this;};
 
     private:
         _Property():Property(){};

@@ -1,6 +1,8 @@
 #include "kinskiGL/KinskiGL.h"
 #include "AntTweakBarConnector.h"
 
+using namespace glm;
+
 namespace kinski
 {
     void
@@ -72,27 +74,27 @@ namespace kinski
                        AntTweakBarConnector::getString,
                        (void*)myPProp, defString.c_str());
         }
-        else if (theProperty->isOfType<glm::vec3>()) 
+        else if (theProperty->isOfType<vec3>()) 
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_DIR3F, 
                        AntTweakBarConnector::setVec3,
                        AntTweakBarConnector::getVec3,
                        (void*)myPProp, defString.c_str());
         }
-        else if (theProperty->isOfType<glm::vec4>()) 
+        else if (theProperty->isOfType<vec4>()) 
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_COLOR4F, 
                        AntTweakBarConnector::setVec4,
                        AntTweakBarConnector::getVec4,
                        (void*)myPProp, defString.c_str());
         }
-//        else if (theProperty->isOfType<glm::vec3>()) 
-//        {
-//            TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_QUAT4F, 
-//                       AntTweakBarConnector::setQuaternion,
-//                       AntTweakBarConnector::getQuaternion,
-//                       (void*)myPProp, defString.c_str());
-//        }
+        else if (theProperty->isOfType<mat3>()) 
+        {
+            TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_QUAT4F, 
+                       AntTweakBarConnector::setQuaternion,
+                       AntTweakBarConnector::getQuaternion,
+                       (void*)myPProp, defString.c_str());
+        }
     }
     
     template <typename T>
@@ -137,44 +139,52 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getVec3(void *value, void *clientData) 
     {
-        Property * theProperty = (Property*) clientData;
+        _Property<vec3> * theProperty = (_Property<vec3>*) clientData;
         
-        memcpy(value, &theProperty->getValue<glm::vec3>()[0], 3 * sizeof(float));
+        memcpy(value, &theProperty->val()[0], 3 * sizeof(float));
     }
     
     void TW_CALL 
     AntTweakBarConnector::setVec3(const void *value, void *clientData) 
     {
-        Property * theProperty = (Property*) clientData;
-        
-        theProperty->setValue(glm::make_vec3(*(const float **)value) );
+        _Property<vec3> * theProperty = (_Property<vec3>*) clientData;
+        const float *v = (float*) value;
+        theProperty->set(vec3(v[0], v[1], v[2]));
     }
     
     void TW_CALL 
     AntTweakBarConnector::getVec4(void *value, void *clientData) 
     {
-        Property * theProperty = (Property*) clientData;
+        _Property<vec4> * theProperty = (_Property<vec4>*) clientData;
         
-        memcpy(value, &theProperty->getValue<glm::vec4>()[0], 4 * sizeof(float));
+        memcpy(value, &theProperty->val()[0], 4 * sizeof(float));
     }
     
     void TW_CALL 
     AntTweakBarConnector::setVec4(const void *value, void *clientData) 
     {
-        Property * theProperty = (Property*) clientData;
-        
-        theProperty->setValue(glm::make_vec4(*(const float **)value) );
+        _Property<vec4> * theProperty = (_Property<vec4>*) clientData;
+        const float *v = (float*) value;
+        theProperty->set(vec4(v[0], v[1], v[2], v[3]));
     }
     
     void TW_CALL 
     AntTweakBarConnector::getQuaternion(void *value, void *clientData) 
     {
-        //TODO: insert from mat3
+        _Property<mat3> * theProperty = (_Property<mat3>*) clientData;
+        quat outQuad (theProperty->val());
+        
+        memcpy(value, &outQuad[0], 4 * sizeof(float));
+        
     }
     
     void TW_CALL 
     AntTweakBarConnector::setQuaternion(const void *value, void *clientData) 
     {
-       //TODO: insert as mat3
+        _Property<mat3> * theProperty = (_Property<mat3>*) clientData;
+        const float *v = (float*) value;
+        quat outQuad(v[0], v[1], v[2], v[3]);
+        
+        theProperty->set(mat3_cast(outQuad));
     }
 }
