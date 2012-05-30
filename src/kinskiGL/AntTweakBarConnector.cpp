@@ -151,9 +151,9 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getVec4(void *value, void *clientData) 
     {
-//        Property * theProperty = (Property*) clientData;
-//        
-//        *(float **)value = &theProperty->getValue<glm::vec4>()[0];
+        Property * theProperty = (Property*) clientData;
+        
+        memcpy(value, &theProperty->getValue<glm::vec4>()[0], 4 * sizeof(float));
     }
     
     void TW_CALL 

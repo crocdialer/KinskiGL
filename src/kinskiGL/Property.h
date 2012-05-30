@@ -22,7 +22,7 @@ public:
     typedef boost::shared_ptr<Property> Ptr;
     
     Property(); // default constructor
-    Property(const std::string &theName, const boost::any &theProperty);
+    Property(const std::string &theName, const boost::any &theValue);
    
     boost::any getValue();
     std::string getName();
@@ -58,7 +58,7 @@ public:
         return m_value.type() == typeid(C);
     }
 
-private:
+protected:
     std::string m_name;
     boost::any m_value;
 	bool m_tweakable;
@@ -83,6 +83,27 @@ public:
         {}
     }; 
 };
+    template<typename T>
+    class _Property : public Property
+    {
+    public:
+        typedef boost::shared_ptr< _Property<T> > Ptr;
+        
+        static Ptr create(const std::string &theName, const T &theValue)
+        {
+            Ptr outPtr (new _Property(theName, theValue));
+            return outPtr;
+        };
+        
+        inline const T val(){return getValue<T>();};
+        inline const T operator*(){return getValue<T>();};
+
+    private:
+        _Property():Property(){};
+        _Property(const std::string &theName, const T &theValue):
+        Property(theName, theValue){};
+        
+    };
 
 }
 

@@ -24,8 +24,9 @@ private:
     
     float m_rotation;
     
-    Property::Ptr m_rotationSpeed;
-    Property::Ptr m_lightDir;
+    _Property<float>::Ptr m_rotationSpeed;
+    _Property<glm::vec3>::Ptr m_lightDir;
+    _Property<string>::Ptr m_infoString;
     
     cv::VideoCapture m_capture;
     
@@ -159,9 +160,15 @@ public:
         
         m_rotation = 0.f;
         
-        m_rotationSpeed = Property::Ptr(new Property("RotationSpeed", 1.f));
-        addPropertyToTweakBar(m_rotationSpeed);
+        m_rotationSpeed = _Property<float>::create("RotationSpeed", 1.f);
+        m_lightDir = _Property<glm::vec3>::create("LightDir", glm::vec3(1));
         
+        m_infoString = _Property<string>::create("Info Bla",
+                                                 "This is some infoo bla ...");
+        
+        addPropertyToTweakBar(m_rotationSpeed);
+        addPropertyToTweakBar(m_lightDir);
+        addPropertyToTweakBar(m_infoString);
     }
     
     void tearDown()
@@ -171,7 +178,7 @@ public:
     
     void update(const float timeDelta)
     {
-        m_rotation += glm::degrees(timeDelta * m_rotationSpeed->getValue<float>());
+        m_rotation += glm::degrees(timeDelta * (**m_rotationSpeed) );
     }
     
     void draw()
