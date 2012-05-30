@@ -20,12 +20,12 @@ Property::Property(const std::string &theName, const boost::any &theValue):
 {
 } 
 
-boost::any Property::getValue() 
+boost::any Property::getValue() const
 {
     return m_value;
 }
 
-std::string Property::getName() 
+std::string Property::getName() const
 {
     return m_name;
 }
@@ -35,7 +35,7 @@ void Property::setIsTweakable(bool isTweakableFlag)
 	m_tweakable = isTweakableFlag;
 }
 
-bool Property::getIsTweakable() 
+bool Property::getIsTweakable() const
 {
 	return m_tweakable;
 }

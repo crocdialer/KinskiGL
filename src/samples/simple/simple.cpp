@@ -18,16 +18,15 @@ private:
     gl::Shader m_shader;
     
     GLuint m_cubeArray;
-    GLuint m_vertexBuffer;
+    GLuint m_cubeBuffer;
     
-    GLuint m_otherVertBuf;
+    GLuint m_canvasBuffer;
     GLuint m_canvasArray;
     
     float m_rotation;
     
     _Property<float>::Ptr m_distance;
     _Property<float>::Ptr m_rotationSpeed;
-    
     _Property<vec3>::Ptr m_lightDir;
     _Property<string>::Ptr m_infoString;
     
@@ -53,8 +52,8 @@ private:
         glGenVertexArrays(1, &m_canvasArray);
         glBindVertexArray(m_canvasArray);
         
-        glGenBuffers(1, &m_otherVertBuf);
-        glBindBuffer(GL_ARRAY_BUFFER, m_otherVertBuf);
+        glGenBuffers(1, &m_canvasBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_canvasBuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
         
         GLsizei stride = 5 * sizeof(GLfloat);
@@ -82,8 +81,8 @@ private:
         glBindVertexArray(m_cubeArray);
         
         // create vertex buffers and attrib locations
-        glGenBuffers(1, &m_vertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+        glGenBuffers(1, &m_cubeBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_cubeBuffer);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_CubeVertexData), g_CubeVertexData, GL_STATIC_DRAW);
         
         GLuint positionAttribLocation = m_shader.getAttribLocation("a_position");
@@ -151,8 +150,7 @@ public:
         {
             //m_shader.loadFromFile("texShader.vsh", "texShader.fsh");
             m_shader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
-        }
-        catch (std::exception &e) 
+        }catch (std::exception &e) 
         {
             fprintf(stderr, "%s\n",e.what());
         }
@@ -164,21 +162,19 @@ public:
         m_rotation = 0.f;
         
         m_distance = _Property<float>::create("Cam distance", 1);
-        
         m_rotationSpeed = _Property<float>::create("RotationSpeed", 1.f);
         m_lightDir = _Property<vec3>::create("LightDir", vec3(1));
-        
         m_infoString = _Property<string>::create("Info Bla",
-                                                 "This is some infoo bla ...\n"
-                                                 "This is some infoo bla ...\n"
-                                                 "This is some infoo bla ...\n"
-                                                 "This is some infoo bla ...\n"
                                                  "This is some infoo bla ...\n");
+        
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
         addPropertyToTweakBar(m_rotationSpeed, "Floats");
         addPropertyToTweakBar(m_lightDir, "Vecs");
         addPropertyToTweakBar(m_infoString);
+        
+        // properties can be tweaked at any time
+        m_distance->set(2);
     }
     
     void tearDown()

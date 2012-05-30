@@ -24,11 +24,11 @@ public:
     Property(); // default constructor
     Property(const std::string &theName, const boost::any &theValue);
    
-    boost::any getValue();
-    std::string getName();
+    boost::any getValue() const;
+    std::string getName() const;
 
 	void setIsTweakable(bool isTweakable);
-	bool getIsTweakable();
+	bool getIsTweakable() const;
 
     template <typename T> 
     void setValue(T theValue) 
@@ -39,7 +39,8 @@ public:
     }
    
     template <typename T>
-    T getValue() {
+    T getValue() const
+    {
         
         if (!isOfType<T>()) {throw WrongTypeGetException(m_name);}
         
@@ -54,7 +55,8 @@ public:
     }
     
     template <typename C>
-    bool isOfType() {
+    bool isOfType() const
+    {
         return m_value.type() == typeid(C);
     }
 
@@ -95,8 +97,11 @@ public:
             return outPtr;
         };
         
-        inline const T val(){return getValue<T>();};
-        inline const T operator*(){return getValue<T>();};
+        inline const T val() const {return getValue<T>();};
+        inline const T operator*() const {return getValue<T>();};
+        
+        inline void set(const T theVal){setValue<T>(theVal);};
+        inline void operator()(const T theVal){setValue<T>(theVal);};
 
     private:
         _Property():Property(){};
