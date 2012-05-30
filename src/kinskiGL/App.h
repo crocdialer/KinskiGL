@@ -50,11 +50,12 @@ namespace kinski
         
         std::list<Property::Ptr> m_tweakProperties;
         
-        void addPropertyToTweakBar(const Property::Ptr propPtr)
+        void addPropertyToTweakBar(const Property::Ptr propPtr,
+                                   const std::string group = "")
         {
             m_tweakProperties.push_back(propPtr);
             
-            AntTweakBarConnector::connect(m_tweakBar, propPtr);
+            AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
         }
         
     private:

@@ -6,7 +6,9 @@ namespace kinski
 
 class AntTweakBarConnector {
 public:
-    static void connect(TwBar * theTweakBar, const Property::Ptr theProperty);
+    static void connect(TwBar * theTweakBar,
+                        const Property::Ptr theProperty,
+                        const std::string &theGroup="");
 private:
     
     template <typename T>

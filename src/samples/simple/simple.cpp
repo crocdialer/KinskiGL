@@ -8,6 +8,7 @@
 
 using namespace std;
 using namespace kinski;
+using namespace glm;
 
 class SimpleApp : public App 
 {
@@ -24,8 +25,10 @@ private:
     
     float m_rotation;
     
+    _Property<float>::Ptr m_distance;
     _Property<float>::Ptr m_rotationSpeed;
-    _Property<glm::vec3>::Ptr m_lightDir;
+    
+    _Property<vec3>::Ptr m_lightDir;
     _Property<string>::Ptr m_infoString;
     
     cv::VideoCapture m_capture;
@@ -115,7 +118,7 @@ private:
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
         
         // orthographic projection with a [0,1] coordinate space
-        glm::mat4 projectionMatrix = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
         
         m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
         m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
@@ -160,14 +163,21 @@ public:
         
         m_rotation = 0.f;
         
+        m_distance = _Property<float>::create("Cam distance", 1);
+        
         m_rotationSpeed = _Property<float>::create("RotationSpeed", 1.f);
-        m_lightDir = _Property<glm::vec3>::create("LightDir", glm::vec3(1));
+        m_lightDir = _Property<vec3>::create("LightDir", vec3(1));
         
         m_infoString = _Property<string>::create("Info Bla",
-                                                 "This is some infoo bla ...");
-        
-        addPropertyToTweakBar(m_rotationSpeed);
-        addPropertyToTweakBar(m_lightDir);
+                                                 "This is some infoo bla ...\n"
+                                                 "This is some infoo bla ...\n"
+                                                 "This is some infoo bla ...\n"
+                                                 "This is some infoo bla ...\n"
+                                                 "This is some infoo bla ...\n");
+        // add props to tweakbar
+        addPropertyToTweakBar(m_distance, "Floats");
+        addPropertyToTweakBar(m_rotationSpeed, "Floats");
+        addPropertyToTweakBar(m_lightDir, "Vecs");
         addPropertyToTweakBar(m_infoString);
     }
     
@@ -178,7 +188,7 @@ public:
     
     void update(const float timeDelta)
     {
-        m_rotation += glm::degrees(timeDelta * (**m_rotationSpeed) );
+        m_rotation += degrees(timeDelta * (**m_rotationSpeed) );
     }
     
     void draw()
@@ -187,13 +197,15 @@ public:
         gl::scoped_bind<gl::Texture> texBind(m_texture);
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
         
-        glm::mat4 projectionMatrix = glm::perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
+        mat4 projectionMatrix = perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
         
-        glm::mat4 modelViewMatrix;
-        modelViewMatrix = glm::translate(modelViewMatrix, glm::vec3(0, 0, -1.5));
-        modelViewMatrix = glm::rotate(modelViewMatrix, m_rotation, glm::vec3(1, 1, 1));
+        mat4 viewMatrix = lookAt(**m_distance * vec3(0, 1, 1), vec3(0), vec3(0, 1, 0));
         
-        glm::mat3 normalMatrix = glm::inverseTranspose(glm::mat3(modelViewMatrix));
+        mat4 modelViewMatrix = viewMatrix;
+        //modelViewMatrix = translate(modelViewMatrix, vec3(0, 0, -1.5));
+        modelViewMatrix = rotate(modelViewMatrix, m_rotation, vec3(1, 1, 1));
+        
+        mat3 normalMatrix = inverseTranspose(mat3(modelViewMatrix));
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewMatrix);

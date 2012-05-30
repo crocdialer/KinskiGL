@@ -5,7 +5,8 @@ namespace kinski
 {
     void
     AntTweakBarConnector::connect(TwBar * theTweakBar,
-                                  const Property::Ptr theProperty) {
+                                  const Property::Ptr theProperty,
+                                  const std::string &theGroup) {
             
         Property* myPProp = theProperty.get();
         if (!theProperty->getIsTweakable()) 
@@ -17,7 +18,8 @@ namespace kinski
         
         std::string myPropName = theProperty->getName();
         
-        std::string defString = std::string(" label='") + myPropName + "'";
+        std::string defString = " group='" + theGroup+"'";
+        defString += std::string(" label='") + myPropName + "'";
         
         if (theProperty->isOfType<int>()) 
         {
