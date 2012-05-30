@@ -50,13 +50,11 @@ namespace kinski
         
         std::list<Property::Ptr> m_tweakProperties;
         
-        template<typename T>
-        void addValueToTweakBar(const std::string &theLabel, const T v)
+        void addPropertyToTweakBar(const Property::Ptr propPtr)
         {
-            Property::Ptr propertyPtr(new Property(theLabel, v));
-            m_tweakProperties.push_back(propertyPtr);
+            m_tweakProperties.push_back(propPtr);
             
-            AntTweakBarConnector::connect(m_tweakBar, propertyPtr, theLabel);
+            AntTweakBarConnector::connect(m_tweakBar, propPtr);
         }
         
     private:

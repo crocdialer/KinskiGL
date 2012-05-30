@@ -53,9 +53,9 @@ public:
         }
     }
     
-    template <typename T>
+    template <typename C>
     bool isOfType() {
-        return m_value.type() == typeid(T);
+        return m_value.type() == typeid(C);
     }
 
 private:

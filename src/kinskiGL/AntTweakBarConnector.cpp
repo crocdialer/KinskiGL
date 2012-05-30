@@ -5,8 +5,7 @@ namespace kinski
 {
     void
     AntTweakBarConnector::connect(TwBar * theTweakBar,
-                                  Property::Ptr theProperty,
-                                  const std::string &theName) {
+                                  const Property::Ptr theProperty) {
             
         Property* myPProp = theProperty.get();
         if (!theProperty->getIsTweakable()) 
@@ -18,7 +17,7 @@ namespace kinski
         
         std::string myPropName = theProperty->getName();
         
-        std::string defString = std::string(" label='") + theName+"'";
+        std::string defString = std::string(" label='") + myPropName + "'";
         
         if (theProperty->isOfType<int>()) 
         {
@@ -138,7 +137,7 @@ namespace kinski
     {
         Property * theProperty = (Property*) clientData;
         
-        *(float **)value = &theProperty->getValue<glm::vec3>()[0];
+        memcpy(value, &theProperty->getValue<glm::vec3>()[0], 3 * sizeof(float));
     }
     
     void TW_CALL 
@@ -152,9 +151,9 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getVec4(void *value, void *clientData) 
     {
-        Property * theProperty = (Property*) clientData;
-        
-        *(float **)value = &theProperty->getValue<glm::vec4>()[0];
+//        Property * theProperty = (Property*) clientData;
+//        
+//        *(float **)value = &theProperty->getValue<glm::vec4>()[0];
     }
     
     void TW_CALL 

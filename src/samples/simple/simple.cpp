@@ -23,7 +23,9 @@ private:
     GLuint m_canvasArray;
     
     float m_rotation;
-    float m_rotationSpeed;
+    
+    Property::Ptr m_rotationSpeed;
+    Property::Ptr m_lightDir;
     
     cv::VideoCapture m_capture;
     
@@ -156,9 +158,9 @@ public:
         buildCubeVBO();
         
         m_rotation = 0.f;
-        m_rotationSpeed = 1.f;
         
-        addValueToTweakBar("RotationSpeed", m_rotationSpeed);
+        m_rotationSpeed = Property::Ptr(new Property("RotationSpeed", 1.f));
+        addPropertyToTweakBar(m_rotationSpeed);
         
     }
     
@@ -169,7 +171,7 @@ public:
     
     void update(const float timeDelta)
     {
-        m_rotation += glm::degrees(timeDelta * m_rotationSpeed);
+        m_rotation += glm::degrees(timeDelta * m_rotationSpeed->getValue<float>());
     }
     
     void draw()
