@@ -54,7 +54,6 @@ namespace kinski
                                    const std::string group = "")
         {
             m_tweakProperties.push_back(propPtr);
-            
             AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
         }
         

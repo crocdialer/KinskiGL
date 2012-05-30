@@ -163,7 +163,7 @@ public:
         
         m_distance = _Property<float>::create("Cam distance", 1);
         m_rotationSpeed = _Property<float>::create("RotationSpeed", 1.f);
-        m_lightDir = _Property<vec3>::create("LightDir", vec3(1));
+        m_lightDir = _Property<vec3>::create("LightDir", vec3(0.0, 1.0, 1.0));
         m_infoString = _Property<string>::create("Info Bla",
                                                  "This is some infoo bla ...\n");
         
@@ -195,7 +195,9 @@ public:
         
         mat4 projectionMatrix = perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
         
-        mat4 viewMatrix = lookAt(**m_distance * vec3(0, 1, 1), vec3(0), vec3(0, 1, 0));
+        mat4 viewMatrix = lookAt(m_distance->val() * vec3(0, 1, 1), // eye
+                                 vec3(0),                           // lookat
+                                 vec3(0, 1, 0));                    // up
         
         mat4 modelViewMatrix = viewMatrix;
         //modelViewMatrix = translate(modelViewMatrix, vec3(0, 0, -1.5));
@@ -206,6 +208,8 @@ public:
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewMatrix);
         m_shader.uniform("u_normalMatrix", normalMatrix);
+        
+        m_shader.uniform("u_lightDir", **m_lightDir);
         
         drawCube();
     }

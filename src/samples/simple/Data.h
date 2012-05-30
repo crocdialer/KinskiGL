@@ -56,6 +56,7 @@ const char *g_vertShaderSrc =
 uniform mat4 u_modelViewProjectionMatrix;\n\
 uniform mat3 u_normalMatrix;\n\
 uniform mat4 u_textureMatrix;\n\
+uniform vec3 u_lightDir;\n\
 \n\
 in vec4 a_position;\n\
 in vec3 a_normal;\n\
@@ -68,8 +69,7 @@ void main()\n\
 {\n\
     vec3 eyeNormal = normalize(u_normalMatrix * a_normal);\n\
 \n\
-    vec3 lightPosition = vec3(0.0, 1.0, 1.0);\n\
-    nDotL = max(0.0, dot(eyeNormal, normalize(lightPosition)));\n\
+    nDotL = max(0.0, dot(eyeNormal, normalize(u_lightDir)));\n\
 \n\
     v_texCoord =  u_textureMatrix * a_texCoord;\n\
 \n\
