@@ -80,6 +80,7 @@ const char *g_fragShaderSrc =
 "#version 150 core\n\
 \n\
 uniform sampler2D   u_textureMap;\n\
+uniform vec4   u_lightColor;\n\
 in vec4        v_texCoord;\n\
 \n\
 in float nDotL;\n\
@@ -91,7 +92,7 @@ void main()\n\
     vec4 tex = texture(u_textureMap, v_texCoord.xy);\n\
     \n\
     //fragData = tex * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
-    fragData = nDotL * tex;\n\
+    fragData = nDotL * tex * u_lightColor;\n\
 }";
 
 #endif //_DATA_H_IS_INCLUDED

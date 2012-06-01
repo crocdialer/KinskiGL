@@ -185,8 +185,8 @@ public:
         addPropertyToTweakBar(m_lightColor);
         
         // properties can be tweaked at any time
-        m_distance->set(2);
-        m_lightDir->set(vec3(0.0f, 3.0f, 1.0f));
+        m_distance->val(2);
+        m_lightDir->val(vec3(0.0f, 3.0f, 1.0f));
     }
     
     void tearDown()
@@ -217,13 +217,13 @@ public:
         
         mat3 normalMatrix = inverseTranspose(mat3(modelViewMatrix));
         
-        m_modelViewMatrix->set(mat3(modelViewMatrix));
+        m_modelViewMatrix->val(mat3(modelViewMatrix));
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewMatrix);
         m_shader.uniform("u_normalMatrix", normalMatrix);
-        
         m_shader.uniform("u_lightDir", **m_lightDir);
+        m_shader.uniform("u_lightColor", **m_lightColor);
         
         drawCube();
     }
