@@ -1,7 +1,8 @@
-#ifndef KINSKI_APP_H
-#define KINSKI_APP_H
+#ifndef _KINSKI_APP_IS_INCLUDED_
+#define _KINSKI_APP_IS_INCLUDED_
 
 #include "kinskiGL/KinskiGL.h"
+#include "Shader.h"
 #include "Property.h"
 #include <list>
 
@@ -49,6 +50,11 @@ namespace kinski
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "");
         
+        void loadPropertiesInShader(gl::Shader theShader,
+                                    const std::list<Property::Ptr> &theProps);
+        
+        const std::list<Property::Ptr>& getTweakProperties() const {return m_tweakProperties;};
+        
     private:
         
         static WeakPtr s_instance;
@@ -75,4 +81,4 @@ namespace kinski
         
     };    
 }
-#endif // KINSKI_APP_H
+#endif // _KINSKI_APP_IS_INCLUDED_

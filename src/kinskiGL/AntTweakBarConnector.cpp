@@ -15,9 +15,7 @@ namespace kinski
         {
             return;
         }
-        //float bla = boost::any_cast<float>(theProperty->getValue());
-        
-        
+
         std::string myPropName = theProperty->getName();
         
         std::string defString = " group='" + theGroup+"'";
@@ -95,6 +93,10 @@ namespace kinski
                        AntTweakBarConnector::getQuaternion,
                        (void*)myPProp, defString.c_str());
         }
+        else if (theProperty->isOfType<mat4>()) 
+        {
+            // TODO: split in mat3 and vec4 and add those to tweakBar
+        }
     }
     
     template <typename T>
@@ -149,7 +151,7 @@ namespace kinski
     {
         _Property<vec3> * theProperty = (_Property<vec3>*) clientData;
         const float *v = (float*) value;
-        theProperty->set(vec3(v[0], v[1], v[2]));
+        theProperty->val(vec3(v[0], v[1], v[2]));
     }
     
     void TW_CALL 
@@ -165,7 +167,7 @@ namespace kinski
     {
         _Property<vec4> * theProperty = (_Property<vec4>*) clientData;
         const float *v = (float*) value;
-        theProperty->set(vec4(v[0], v[1], v[2], v[3]));
+        theProperty->val(vec4(v[0], v[1], v[2], v[3]));
     }
     
     void TW_CALL 
@@ -185,6 +187,6 @@ namespace kinski
         const float *v = (float*) value;
         quat outQuad(v[0], v[1], v[2], v[3]);
         
-        theProperty->set(mat3_cast(outQuad));
+        theProperty->val(mat3_cast(outQuad));
     }
 }

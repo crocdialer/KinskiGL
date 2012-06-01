@@ -132,12 +132,49 @@ namespace kinski
         return glfwGetTime();
     }
     
-/*******************************  TweakBar ************************************/ 
+/****************************  TweakBar + Properties **************************/ 
     
     void App::addPropertyToTweakBar(const Property::Ptr propPtr,
                                const std::string &group)
     {
         m_tweakProperties.push_back(propPtr);
         AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
+    }
+    
+    void App::loadPropertiesInShader(gl::Shader theShader,
+                                     const std::list<Property::Ptr> &theProps)
+    {
+        std::list<Property::Ptr>::const_iterator propIt = theProps.begin();
+        
+        for (; propIt != theProps.end(); propIt++) 
+        {   
+            const Property::Ptr &aProp = *propIt;
+            
+            if (aProp->isOfType<int>()) 
+            {
+                theShader.uniform(aProp->getName(), aProp->getValue<int>());
+            }
+            else if (aProp->isOfType<float>()) 
+            {
+                theShader.uniform(aProp->getName(), aProp->getValue<float>());
+            }
+            else if (aProp->isOfType<glm::vec3>()) 
+            {
+                theShader.uniform(aProp->getName(), aProp->getValue<glm::vec3>());
+            }
+            else if (aProp->isOfType<glm::vec4>()) 
+            {
+                theShader.uniform(aProp->getName(), aProp->getValue<glm::vec4>());
+            }
+            else if (aProp->isOfType<glm::mat3>()) 
+            {
+                theShader.uniform(aProp->getName(), aProp->getValue<glm::mat3>());
+            }
+            else if (aProp->isOfType<glm::mat4>()) 
+            {
+                theShader.uniform(aProp->getName(), aProp->getValue<glm::mat4>());
+            }
+
+        }
     }
 }

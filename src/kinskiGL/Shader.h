@@ -20,7 +20,8 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
+#ifndef _KINSKI_SHADER_INCLUDED_
+#define _KINSKI_SHADER_INCLUDED_
 
 #include <exception>
 #include "KinskiGL.h"
@@ -122,3 +123,4 @@ class ShaderNullProgramExc : public std::exception {
 
 }
 }
+#endif // _KINSKI_SHADER_INCLUDED_

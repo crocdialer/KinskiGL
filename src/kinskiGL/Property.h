@@ -1,9 +1,8 @@
 //
 //  Property.h
-//  ATS
+//  KINSKIGL
 //
-//  Created by Sebastian Heymann on 8/11/11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
+//  
 //
 
 #ifndef _KINSKI_PROPERTY_INCLUDED__
@@ -30,6 +29,8 @@ public:
 	void setIsTweakable(bool isTweakable);
 	bool getIsTweakable() const;
 
+    bool empty() const {return m_value.empty();};
+    
     template <typename T> 
     void setValue(const T& theValue) 
     {
@@ -100,6 +101,7 @@ public:
         inline const T operator*() const {return getValue<T>();};
         
         inline void set(const T &theVal){setValue<T>(theVal);};
+        inline void val(const T &theVal){set(theVal);};
         inline void operator()(const T &theVal){setValue<T>(theVal);};
         
         T& operator=(const T &theVal){setValue<T>(theVal); return *this;};
