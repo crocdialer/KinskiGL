@@ -41,7 +41,8 @@ namespace kinski
         glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );    
         glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
         glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        //glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        
         glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
         
         // Open an OpenGL window
@@ -139,6 +140,17 @@ namespace kinski
     {
         m_tweakProperties.push_back(propPtr);
         AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
+    }
+    
+    void App::addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
+                                     const std::string &group)
+    {
+        std::list<Property::Ptr>::const_iterator propIt = theProps.begin();
+        
+        for (; propIt != theProps.end(); propIt++) 
+        {   
+            addPropertyToTweakBar(*propIt, group);
+        }
     }
     
     void App::loadPropertiesInShader(gl::Shader theShader,

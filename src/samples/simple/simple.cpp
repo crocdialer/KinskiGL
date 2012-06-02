@@ -201,6 +201,8 @@ public:
     
     void draw()
     {
+        drawTexture(m_texture);
+        
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(m_texture);
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
@@ -211,16 +213,16 @@ public:
                                  vec3(0),                           // lookat
                                  vec3(0, 1, 0));                    // up
         
-        mat4 modelViewMatrix = viewMatrix;
+        mat4 modelViewTmp = viewMatrix;
         //modelViewMatrix = translate(modelViewMatrix, vec3(0, 0, -1.5));
-        modelViewMatrix = rotate(modelViewMatrix, m_rotation, vec3(1, 1, 1));
+        modelViewTmp = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
         
-        mat3 normalMatrix = inverseTranspose(mat3(modelViewMatrix));
+        mat3 normalMatrix = inverseTranspose(mat3(modelViewTmp));
         
-        m_modelViewMatrix->val(mat3(modelViewMatrix));
+        m_modelViewMatrix->val(mat3(modelViewTmp));
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
-                         projectionMatrix * modelViewMatrix);
+                         projectionMatrix * modelViewTmp);
         m_shader.uniform("u_normalMatrix", normalMatrix);
         m_shader.uniform("u_lightDir", **m_lightDir);
         m_shader.uniform("u_lightColor", **m_lightColor);

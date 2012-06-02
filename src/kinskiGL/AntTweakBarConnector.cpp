@@ -1,5 +1,6 @@
 #include "kinskiGL/KinskiGL.h"
 #include "AntTweakBarConnector.h"
+//#include "boost/pointer_cast.hpp"
 
 using namespace glm;
 
@@ -95,7 +96,11 @@ namespace kinski
         }
         else if (theProperty->isOfType<mat4>()) 
         {
-            // TODO: split in mat3 and vec4 and add those to tweakBar
+            const _Property<mat4>::Ptr p = 
+            boost::static_pointer_cast<_Property<mat4> >(theProperty);
+            
+            quat rot = quat(mat3(p->val()));
+            vec4 pos = p->val()[3];
         }
     }
     

@@ -25,9 +25,14 @@ boost::any Property::getValue() const
     return m_value;
 }
 
-std::string Property::getName() const
+const std::string& Property::getName() const
 {
     return m_name;
+}
+
+void Property::setName(const std::string& theName)
+{
+    m_name = theName;
 }
 
 void Property::setIsTweakable(bool isTweakableFlag) 

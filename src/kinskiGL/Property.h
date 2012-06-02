@@ -24,7 +24,8 @@ public:
     Property(const std::string &theName, const boost::any &theValue);
    
     boost::any getValue() const;
-    std::string getName() const;
+    const std::string& getName() const;
+    void setName(const std::string& theName);
 
 	void setIsTweakable(bool isTweakable);
 	bool getIsTweakable() const;
@@ -104,7 +105,12 @@ public:
         inline void val(const T &theVal){set(theVal);};
         inline void operator()(const T &theVal){setValue<T>(theVal);};
         
-        T& operator=(const T &theVal){setValue<T>(theVal); return *this;};
+        T& operator=(const T &theVal)
+        {
+            setValue<T>(theVal); 
+            return *this;
+        };
+            
 
     private:
         _Property():Property(){};

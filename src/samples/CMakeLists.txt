@@ -11,14 +11,15 @@ function(addSample theName thePath)
     INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
     
     IF( APPLE )
-    SET( MACOSX_BUNDLE_ICON_FILE "icon.icns" )
     
-    SET_SOURCE_FILES_PROPERTIES(${resFiles} PROPERTIES 
-            MACOSX_PACKAGE_LOCATION Resources)
-
+    SET( MACOSX_BUNDLE_ICON_FILE kinski.icns)
+    SET_SOURCE_FILES_PROPERTIES(
+        ${resFiles}
+        PROPERTIES
+        MACOSX_PACKAGE_LOCATION Resources
+    ) 
     ADD_EXECUTABLE(${theName} MACOSX_BUNDLE ${FOLDER_SOURCES} ${FOLDER_HEADERS}
             ${resFiles})
-
     ELSE( APPLE )
     add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
     ENDIF( APPLE )

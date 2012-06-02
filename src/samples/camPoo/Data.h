@@ -69,7 +69,7 @@ void main()\n\
 {\n\
 vec3 eyeNormal = normalize(u_normalMatrix * a_normal);\n\
 \n\
-nDotL = max(0.0, dot(eyeNormal, normalize(u_lightDir)));\n\
+nDotL = max(0.0, dot(eyeNormal, normalize(-u_lightDir)));\n\
 \n\
 v_texCoord =  u_textureMatrix * a_texCoord;\n\
 \n\

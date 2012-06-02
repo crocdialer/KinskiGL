@@ -50,6 +50,9 @@ namespace kinski
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "");
         
+        void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
+                                       const std::string &group = "");
+        
         void loadPropertiesInShader(gl::Shader theShader,
                                     const std::list<Property::Ptr> &theProps);
         

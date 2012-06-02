@@ -1,17 +1,21 @@
-#FILE(GLOB FOLDER_SOURCES *.c*)
-#FILE(GLOB FOLDER_HEADERS *.h)
+FILE(GLOB FOLDER_SOURCES *.c*)
+FILE(GLOB FOLDER_HEADERS *.h)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 SET(LIB_NAME "AntTweakBar")
 
-SET(OUR_FLAGS "-Wall -fPIC -fno-strict-aliasing -D__PLACEMENT_NEW_INLINE")
+SET(CMAKE_CXX_FLAGS "-Wall -fPIC -fno-strict-aliasing -D__PLACEMENT_NEW_INLINE")
+
+#SET(FOLDER_SOURCES TwColors.cpp TwFonts.cpp TwOpenGL.cpp TwOpenGLCore.cpp TwBar.cpp TwMgr.cpp TwPrecomp.cpp LoadOGL.cpp LoadOGLCore.cpp TwEventGLFW.c TwEventGLUT.c TwEventSDL.c TwEventSDL12.c TwEventSDL13.c TwEventSFML.cpp)
+#SET(FOLDER_HEADERS AntPerfTimer.h LoadOGLCore.h MiniGLUT.h MiniSDL13.h TwBar.h TwGraph.h TwOpenGL.h TwPrecomp.h resource.h LoadOGL.h MiniGLFW.h MiniSDL12.h MiniSFML16.h TwColors.h TwFonts.h      TwMgr.h TwOpenGLCore.h)
 
 if(APPLE)
-    SET(FOLDER_SOURCES TwColors.cpp TwFonts.cpp TwOpenGL.cpp TwOpenGLCore.cpp TwBar.cpp TwMgr.cpp TwPrecomp.cpp LoadOGL.cpp LoadOGLCore.cpp TwEventGLFW.c TwEventGLUT.c TwEventSDL.c TwEventSDL12.c TwEventSDL13.c TwEventSFML.cpp)
-    SET(FOLDER_HEADERS AntPerfTimer.h LoadOGLCore.h MiniGLUT.h MiniSDL13.h TwBar.h TwGraph.h TwOpenGL.h TwPrecomp.h resource.h LoadOGL.h MiniGLFW.h MiniSDL12.h MiniSFML16.h TwColors.h TwFonts.h      TwMgr.h TwOpenGLCore.h)
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++")
+    ADD_DEFINITIONS("-D_MACOSX")
 
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OUR_FLAGS} -x objective-c++")
-    ADD_DEFINITIONS("-D_MACOSX") 
+elseif(UNIX)
+    ADD_DEFINITIONS("-D_UNIX")
+
 endif(APPLE)
 
 add_library(${LIB_NAME} STATIC ${FOLDER_SOURCES} ${FOLDER_HEADERS})
