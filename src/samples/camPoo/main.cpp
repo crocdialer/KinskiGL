@@ -4,7 +4,7 @@
 #include "Data.h"
 
 #include "TextureIO.h"
-#include "opencv2/opencv.hpp"
+#include "CVThread.h"
 
 using namespace std;
 using namespace kinski;
@@ -34,6 +34,8 @@ private:
     _Property<string>::Ptr m_infoString;
     
     _Property<vec4>::Ptr m_lightColor;
+    
+    CVThread::Ptr m_cvThread;
     
     cv::VideoCapture m_capture;
     
@@ -159,6 +161,8 @@ public:
         {
             fprintf(stderr, "%s\n",e.what());
         }
+        
+        m_cvThread = CVThread::Ptr(new CVThread());
         
         m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
         
