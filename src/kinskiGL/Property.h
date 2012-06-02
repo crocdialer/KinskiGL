@@ -105,13 +105,76 @@ public:
         inline void val(const T &theVal){set(theVal);};
         inline void operator()(const T &theVal){setValue<T>(theVal);};
         
-        T& operator=(const T &theVal)
+        inline _Property<T>& operator=(T const& theVal)
         {
             setValue<T>(theVal); 
             return *this;
         };
-            
+        
+        inline _Property<T>& operator+=(T const& theVal)
+        {
+            *this = getValue<T>() + theVal; 
+            return *this;
+        };
+        
+        inline _Property<T>& operator-=(T const& theVal)
+        {
+            *this = getValue<T>() - theVal; 
+            return *this;
+        };
+        
+        inline _Property<T>& operator*=(T const& theVal)
+        {
+            *this = getValue<T>() * theVal; 
+            return *this;
+        };
+        
+        inline _Property<T>& operator/=(T const& theVal)
+        {
+            *this = getValue<T>() / theVal; 
+            return *this;
+        };
+        
+        inline friend T operator+(T theVal, const _Property<T>& theProp)
+        {
+            return theVal + theProp.getValue<T>(); 
+        };
+        
+        inline friend T operator+(const _Property<T>& theProp, T theVal)
+        {
+            return theVal + theProp.getValue<T>(); 
+        };
 
+        inline friend T operator-(T theVal, const _Property<T>& theProp)
+        {
+            return theVal - theProp.getValue<T>(); 
+        };
+        
+        inline friend T operator-(const _Property<T>& theProp, T theVal)
+        {
+            return theProp.getValue<T>() - theVal; 
+        };
+        
+        inline friend T operator*(T theVal, const _Property<T>& theProp)
+        {
+            return theVal * theProp.getValue<T>(); 
+        };
+        
+        inline friend T operator*(const _Property<T>& theProp, T theVal)
+        {
+            return theVal * theProp.getValue<T>(); 
+        };
+        
+        inline friend T operator/(T theVal, const _Property<T>& theProp)
+        {
+            return theVal / theProp.getValue<T>(); 
+        };
+        
+        inline friend T operator/(const _Property<T>& theProp, T theVal)
+        {
+            return theProp.getValue<T>() / theVal; 
+        };
+        
     private:
         _Property():Property(){};
         _Property(const std::string &theName, const T &theValue):

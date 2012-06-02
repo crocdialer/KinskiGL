@@ -188,6 +188,7 @@ public:
         
         // properties can be tweaked at any time
         m_distance->val(2);
+        *m_distance = 3;
         m_lightDir->val(vec3(0.0f, 3.0f, 1.0f));
     }
     
@@ -198,7 +199,9 @@ public:
     
     void update(const float timeDelta)
     {
-        m_rotation += degrees(timeDelta * (**m_rotationSpeed) );
+        m_rotation += degrees(timeDelta * (*m_rotationSpeed) );
+        
+        *m_distance += 0.01;
     }
     
     void draw()
