@@ -1,6 +1,6 @@
 #include "kinskiGL/KinskiGL.h"
 #include "AntTweakBarConnector.h"
-//#include "boost/pointer_cast.hpp"
+#include <sstream>
 
 using namespace glm;
 
@@ -99,8 +99,28 @@ namespace kinski
             const _Property<mat4>::Ptr p = 
             boost::static_pointer_cast<_Property<mat4> >(theProperty);
             
-            quat rot = quat(mat3(p->val()));
-            vec4 pos = p->val()[3];
+            defString = " group='" + myPropName +"'";
+            
+            std::string rotStr = myPropName+" rotation";
+            std::string posStr = myPropName+" position";
+            
+            TwAddVarCB(theTweakBar, rotStr.c_str(), TW_TYPE_QUAT4F, 
+                       AntTweakBarConnector::setMat4_rot,
+                       AntTweakBarConnector::getMat4_rot,
+                       (void*)myPProp, defString.c_str());
+            
+            TwAddVarCB(theTweakBar, posStr.c_str(), TW_TYPE_DIR3F, 
+                       AntTweakBarConnector::setMat4_pos,
+                       AntTweakBarConnector::getMat4_pos,
+                       (void*)myPProp, defString.c_str());
+        }   
+        else
+        {
+            // Type not supported
+            std::stringstream stream;
+            stream<<"Could not add property '"<<theProperty->getName()<<"' "\
+            "to tweakBar : Type not supported";
+            std::cerr <<stream.str()<<"\n";
         }
     }
     
@@ -193,5 +213,44 @@ namespace kinski
         quat outQuad(v[0], v[1], v[2], v[3]);
         
         theProperty->val(mat3_cast(outQuad));
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::getMat4_rot(void *value, void *clientData) 
+    {
+        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        
+        quat outQuad (theProperty->val());
+        memcpy(value, &outQuad[0], 4 * sizeof(float));
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::setMat4_rot(const void *value, void *clientData) 
+    {
+        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        const float *v = (float*) value;
+        quat tmpQuad(v[0], v[1], v[2], v[3]);
+        mat4 outMat = mat4_cast(tmpQuad);
+        outMat[3] = theProperty->val()[3];
+        theProperty->val(outMat);
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::getMat4_pos(void *value, void *clientData) 
+    {
+        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        
+        memcpy(value, &theProperty->val()[3][0], 4 * sizeof(float));
+    }
+    
+    void TW_CALL 
+    AntTweakBarConnector::setMat4_pos(const void *value, void *clientData) 
+    {
+        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        const float *v = (float*) value;
+        mat4 outMat = theProperty->val();
+        outMat[3] = vec4(v[0], v[1], v[2], v[3]);
+        
+        theProperty->val(outMat);
     }
 }

@@ -29,7 +29,7 @@ private:
     _Property<float>::Ptr m_rotationSpeed;
     _Property<vec3>::Ptr m_lightDir;
     
-    _Property<mat3>::Ptr m_modelViewMatrix;
+    _Property<mat4>::Ptr m_viewMatrix;
     
     _Property<string>::Ptr m_infoString;
     
@@ -174,15 +174,17 @@ public:
         
         m_lightColor = _Property<vec4>::create("lightColor", vec4(1));
         
-        m_modelViewMatrix = _Property<mat3>::create("modelViewMatrix", mat3());
+        m_viewMatrix = _Property<mat4>::create("viewMatrix", mat4());
         
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
         addPropertyToTweakBar(m_rotationSpeed, "Floats");
         addPropertyToTweakBar(m_lightDir, "Vecs");
-        addPropertyToTweakBar(m_modelViewMatrix);
+        addPropertyToTweakBar(m_viewMatrix);
         addPropertyToTweakBar(m_infoString);
         addPropertyToTweakBar(m_lightColor);
+        
+        addPropertyToTweakBar(_Property<cv::Mat>::create("luluMat", cv::Mat()));
         
         // properties can be tweaked at any time
         m_distance->val(2);
@@ -209,17 +211,16 @@ public:
         
         mat4 projectionMatrix = perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
         
-        mat4 viewMatrix = lookAt(m_distance->val() * vec3(0, 1, 1), // eye
+        m_viewMatrix->val(lookAt(m_distance->val() * vec3(0, 1, 1), // eye
                                  vec3(0),                           // lookat
-                                 vec3(0, 1, 0));                    // up
+                                 vec3(0, 1, 0)));                    // up
         
-        mat4 modelViewTmp = viewMatrix;
+        mat4 modelViewTmp = m_viewMatrix->val();
         //modelViewMatrix = translate(modelViewMatrix, vec3(0, 0, -1.5));
         modelViewTmp = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
         
         mat3 normalMatrix = inverseTranspose(mat3(modelViewTmp));
         
-        m_modelViewMatrix->val(mat3(modelViewTmp));
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewTmp);

@@ -28,6 +28,15 @@ private:
     
     static void TW_CALL getQuaternion(void *value, void *clientData);
     static void TW_CALL setQuaternion(const void *value, void *clientData);
+    
+    static void TW_CALL 
+    getMat4_rot(void *value, void *clientData); 
+    static void TW_CALL 
+    setMat4_rot(const void *value, void *clientData); 
+    static void TW_CALL 
+    getMat4_pos(void *value, void *clientData); 
+    static void TW_CALL 
+    setMat4_pos(const void *value, void *clientData); 
 
 };
 };
