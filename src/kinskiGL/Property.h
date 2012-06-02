@@ -135,42 +135,42 @@ public:
             return *this;
         };
         
-        inline friend T operator+(T theVal, const _Property<T>& theProp)
+        inline friend const T operator+(T theVal, const _Property<T>& theProp)
         {
             return theVal + theProp.getValue<T>(); 
         };
         
-        inline friend T operator+(const _Property<T>& theProp, T theVal)
+        inline friend const T operator+(const _Property<T>& theProp, T theVal)
         {
             return theVal + theProp.getValue<T>(); 
         };
 
-        inline friend T operator-(T theVal, const _Property<T>& theProp)
+        inline friend const T operator-(T theVal, const _Property<T>& theProp)
         {
             return theVal - theProp.getValue<T>(); 
         };
         
-        inline friend T operator-(const _Property<T>& theProp, T theVal)
+        inline friend const T operator-(const _Property<T>& theProp, T theVal)
         {
             return theProp.getValue<T>() - theVal; 
         };
         
-        inline friend T operator*(T theVal, const _Property<T>& theProp)
+        inline friend const T operator*(T theVal, const _Property<T>& theProp)
         {
             return theVal * theProp.getValue<T>(); 
         };
         
-        inline friend T operator*(const _Property<T>& theProp, T theVal)
+        inline friend const T operator*(const _Property<T>& theProp, T theVal)
         {
             return theVal * theProp.getValue<T>(); 
         };
         
-        inline friend T operator/(T theVal, const _Property<T>& theProp)
+        inline friend const T operator/(T theVal, const _Property<T>& theProp)
         {
             return theVal / theProp.getValue<T>(); 
         };
         
-        inline friend T operator/(const _Property<T>& theProp, T theVal)
+        inline friend const T operator/(const _Property<T>& theProp, T theVal)
         {
             return theProp.getValue<T>() / theVal; 
         };
