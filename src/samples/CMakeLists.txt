@@ -11,7 +11,7 @@ function(addSample theName thePath)
     INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
     
     IF( APPLE )
-    SET( MACOSX_BUNDLE_ICON_FILE ${thePath}/res/icon.icns )
+    SET( MACOSX_BUNDLE_ICON_FILE "icon.icns" )
     
     SET_SOURCE_FILES_PROPERTIES(${resFiles} PROPERTIES 
             MACOSX_PACKAGE_LOCATION Resources)
