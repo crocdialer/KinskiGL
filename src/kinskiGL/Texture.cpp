@@ -206,13 +206,6 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 
 void Texture::update( const unsigned char *data,GLenum format, int theWidth, int theHeight, bool flipped )
 {   
-    if(!m_Obj)
-    {
-        m_Obj = ObjPtr(new Obj(theWidth, theHeight));
-        m_Obj->m_Target = GL_TEXTURE_2D;
-        m_Obj->m_InternalFormat = GL_RGBA;
-    }
-    
     if(m_Obj->m_Width == theWidth && m_Obj->m_Height == theHeight)
     {
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
@@ -220,6 +213,8 @@ void Texture::update( const unsigned char *data,GLenum format, int theWidth, int
     }
     else 
     {
+        m_Obj->m_Target = GL_TEXTURE_2D;
+        m_Obj->m_InternalFormat = GL_RGBA;
         m_Obj->m_CleanWidth = m_Obj->m_Width = theWidth;
         m_Obj->m_CleanHeight = m_Obj->m_Height = theHeight;
         setFlipped(flipped);

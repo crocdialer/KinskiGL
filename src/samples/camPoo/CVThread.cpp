@@ -16,6 +16,8 @@ using namespace cv;
 
 using namespace boost::timer;
 
+namespace kinski {
+
 CVThread::CVThread():m_streamType(NO_STREAM),m_currentFileIndex(0),m_sequenceStep(1),
 m_stopped(true), m_newFrame(false), m_captureFPS(25.f)
 {	
@@ -268,7 +270,7 @@ void CVThread::streamKinect(bool b)
 {
     if(b)
     {
-        m_freenect = boost::shared_ptr<Freenect::Freenect>( new Freenect::Freenect());
+        m_freenect = Freenect::Ptr(new Freenect);
         m_kinectDevice = &(m_freenect->createDevice<KinectDevice>(0));
         
         
@@ -514,3 +516,5 @@ int CVThread::getCurrentIndex()
 	boost::mutex::scoped_lock lock(m_mutex);
 	return m_currentFileIndex;
 }
+    
+}// namespace kinski

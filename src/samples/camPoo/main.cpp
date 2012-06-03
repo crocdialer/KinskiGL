@@ -151,7 +151,7 @@ public:
         
         m_cvThread = CVThread::Ptr(new CVThread());
         
-        m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
+        //m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
         
         buildCubeVBO();
         
@@ -184,7 +184,7 @@ public:
         // properties can be tweaked at any time
         m_distance->val(2);
         
-        m_lightDir->val(vec3(0.0f, 3.0f, 1.0f));
+        *m_lightDir = vec3(-1.15, -0.64, -2.88);
         
         m_cvThread->streamUSBCamera(true);
     }

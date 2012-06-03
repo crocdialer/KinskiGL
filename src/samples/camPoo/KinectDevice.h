@@ -7,8 +7,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef helloQtCmake_KincetDevice_h
-#define helloQtCmake_KincetDevice_h
+#ifndef __KINECT_DEVICE_INCLUDED_
+#define __KINECT_DEVICE_INCLUDED_
 
 #include <stdexcept>
 #include <stdio.h>
@@ -23,10 +23,7 @@
 // OpenCV
 #include "opencv2/opencv.hpp"
 
-using namespace cv;
-using namespace std;
-
-namespace Freenect
+namespace kinski
 {
 
 class FreenectTiltState
@@ -210,6 +207,9 @@ class Freenect: boost::noncopyable
 private:
 	typedef std::map<int, FreenectDevice*> DeviceMap;
 public:
+    
+    boost::shared_ptr<Freenect> Ptr;
+    
 	Freenect() :
 			m_stop(false)
 	{
@@ -323,4 +323,4 @@ public:
 	bool getDepth(Mat& output,Mat& outputColored = ms_emptyMat);
 };
 
-#endif
+#endif // __KINECT_DEVICE_INCLUDED_
