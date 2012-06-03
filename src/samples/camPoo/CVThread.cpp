@@ -13,10 +13,11 @@
 
 using namespace std;
 using namespace cv;
-//using namespace boost;
+
+using namespace boost::timer;
 
 CVThread::CVThread():m_streamType(NO_STREAM),m_currentFileIndex(0),m_sequenceStep(1),
-m_stopped(true),m_captureFPS(25.f)
+m_stopped(true), m_newFrame(false), m_captureFPS(25.f)
 {	
     printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
 	
@@ -29,8 +30,8 @@ m_stopped(true),m_captureFPS(25.f)
 CVThread::~CVThread()
 {
     stop();
-    m_thread.join();
     
+    m_thread.join();    
 	m_capture.release();
 
 }
@@ -125,19 +126,17 @@ void CVThread::jumpToFrame(int newIndex)
 
 	if(m_stopped)
 	{	
-        m_timer.start();
+        cpu_timer timer;
         
 		if(grabNextFrame() && m_frames.m_inFrame.size() != Size(0,0)) 
 		{	
 			//m_lastGrabTime = m_timer.elapsed();
 
-			m_timer.start();
+			timer.start();
 			
 			if(m_doProcessing)
 			{
 				//m_augmentImg = doProcessing(m_procImage);
-                
-                
 				//m_lastProcessTime = timer.getElapsedTime();
 			}
 			
@@ -201,9 +200,7 @@ void CVThread::streamVideo(const std::string& path2Video)
 		m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numVideoFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
 		printf("%d frames in video - fps: %.2f\n",m_numVideoFrames,m_captureFPS);
-		
-		
-        
+
         m_streamType = STREAM_VIDEOFILE ;
 		this->start();
 		
@@ -305,6 +302,8 @@ void CVThread::setKinectUseIR(bool b)
 
 bool CVThread::grabNextFrame()
 {	
+    //auto_cpu_timer t;
+    
 	bool success = true ;
 	
 	switch (m_streamType) 
@@ -395,18 +394,16 @@ bool CVThread::grabNextFrame()
 void CVThread::operator()()
 {	
 	m_stopped=false;
-	
-	// measure elapsed time with these
-	//clock_util timer,otherTimer;
-	
-	//double elapsedTime,sleepTime;
-	
+    
+    // measure elapsed time with these
+    boost::timer::cpu_timer threadTimer, cpuTimer;
+    
 	// gets next frame, which will be hold inside m_procImage
 	while( !m_stopped )
 	{
 		//restart timer
-//		timer.reset();
-//		otherTimer.reset();
+		threadTimer.start();        
+		cpuTimer.start();
 		
 		// fetch frame, cancel loop when not possible
 		// this call is supposed to be fast and not block the thread too long
@@ -415,13 +412,14 @@ void CVThread::operator()()
 		//skip iteration when invalid frame is returned (eg. from camera)
 		if(m_frames.m_inFrame.empty()) continue;
 		
-//		m_lastGrabTime = otherTimer.getElapsedTime();
-//		otherTimer.reset();
+        cpu_times t = cpuTimer.elapsed();
+        m_lastGrabTime = (t.user + t.system) / 1000000000.0;
 		
 		// image processing
-        {
-            Mat procResult = doProcessing(m_frames);
-            
+        cpuTimer.start();
+        Mat procResult = doProcessing(m_frames);
+        
+        {    
             boost::mutex::scoped_lock lock(m_mutex);
             
             if(m_doProcessing)
@@ -430,24 +428,24 @@ void CVThread::operator()()
                 m_frames.m_result = m_frames.m_inFrame;
             
             m_newFrame = true;
+            
+            t = cpuTimer.elapsed();
+            m_lastProcessTime = (t.user + t.system) / 1000000000.0;
 		}
         
-//		m_lastProcessTime = otherTimer.getElapsedTime();
-//		otherTimer.reset();
+        double elapsed_msecs,sleep_msecs;
         
-//		elapsedTime = timer.getElapsedTime();
-//		
-//		sleepTime = (1000.0 / m_captureFPS - elapsedTime);
-//		sleepTime = sleepTime > 0 ? sleepTime : 0 ;
-		
-		//printf("elapsed time: %.2f  -- sleeping: %.2f \n",elapsedTime,sleepTime);
-		
+		elapsed_msecs = threadTimer.elapsed().wall / 1000000.0;
+		sleep_msecs = (1000.0 / m_captureFPS - elapsed_msecs);
+        
 		// set thread asleep for a time to achieve desired framerate when possible
         boost::posix_time::milliseconds msecs(20);
         boost::this_thread::sleep(msecs);
 		
+        //std::cout<<sleep_msecs<<"\n";
 	}
-	
+    
+    m_stopped = true;
 }
 
 string CVThread::getCurrentImgPath()

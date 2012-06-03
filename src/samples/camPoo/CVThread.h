@@ -47,8 +47,6 @@ public:
         cv::Mat m_result;
     };
     
-	//inline double getElapsedTime(){return boost::posix_time::seconds(m_timer.elapsed().wall);}
-    
 	void openImage(const std::string& imgPath);
 	void openSequence(const std::vector<std::string>& files);
 	
@@ -108,8 +106,6 @@ public:
 
 private:
     
-    boost::timer::cpu_timer m_timer;
-    
 	CVStreamType m_streamType;
 	
 	std::vector<std::string> m_filesToStream ;
@@ -149,7 +145,6 @@ private:
 	double m_lastProcessTime;
     
     boost::thread m_thread;
-    
     boost::mutex m_mutex;
 
     virtual cv::Mat doProcessing(const FrameBundle &bundle) {return bundle.m_inFrame;};//= 0;

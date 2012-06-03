@@ -91,8 +91,8 @@ void main()\n\
 {\n\
 vec4 tex = texture(u_textureMap, v_texCoord.xy);\n\
 \n\
-//fragData = tex * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
-fragData = nDotL * tex * u_lightColor;\n\
+fragData = tex * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
+//fragData = nDotL * tex * u_lightColor;\n\
 }";
 
 #endif //_DATA_H_IS_INCLUDED

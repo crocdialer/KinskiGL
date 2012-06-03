@@ -28,11 +28,8 @@ private:
     _Property<float>::Ptr m_distance;
     _Property<float>::Ptr m_rotationSpeed;
     _Property<vec3>::Ptr m_lightDir;
-    
     _Property<mat4>::Ptr m_viewMatrix;
-    
     _Property<string>::Ptr m_infoString;
-    
     _Property<vec4>::Ptr m_lightColor;
     
     CVThread::Ptr m_cvThread;

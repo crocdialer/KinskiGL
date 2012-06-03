@@ -1,5 +1,6 @@
 #include "kinskiGL/KinskiGL.h"
 #include "AntTweakBarConnector.h"
+#include <iostream>
 #include <sstream>
 
 using namespace glm;
@@ -120,7 +121,7 @@ namespace kinski
             std::stringstream stream;
             stream<<"Could not add property '"<<theProperty->getName()<<"' "\
             "to tweakBar : Type not supported";
-            std::cerr <<stream.str()<<"\n";
+            std::cerr<<stream.str()<<"\n";
         }
     }
     
