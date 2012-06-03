@@ -37,7 +37,7 @@ SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 #####
 
 ##### BOOST
-find_package(Boost REQUIRED COMPONENTS thread)
+find_package(Boost REQUIRED COMPONENTS thread system timer)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####
