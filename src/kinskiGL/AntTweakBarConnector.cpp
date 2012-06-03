@@ -117,11 +117,7 @@ namespace kinski
         }   
         else
         {
-            // Type not supported
-            std::stringstream stream;
-            stream<<"Could not add property '"<<theProperty->getName()<<"' "\
-            "to tweakBar : Type not supported";
-            std::cerr<<stream.str()<<"\n";
+            throw PropertyUnsupportedException(theProperty->getName());
         }
     }
     

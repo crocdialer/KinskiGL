@@ -1,6 +1,8 @@
 #include "App.h"
 #include "AntTweakBarConnector.h"
 
+using namespace std;
+
 namespace kinski
 {
     App::WeakPtr App::s_instance;
@@ -139,7 +141,11 @@ namespace kinski
                                const std::string &group)
     {
         m_tweakProperties.push_back(propPtr);
-        AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
+        try {
+            AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
+        } catch (AntTweakBarConnector::PropertyUnsupportedException &e) {
+            cout<<e.getMessage()<<"\n";
+        }
     }
     
     void App::addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,

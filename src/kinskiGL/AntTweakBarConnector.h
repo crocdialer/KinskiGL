@@ -9,6 +9,17 @@ public:
     static void connect(TwBar * theTweakBar,
                         const Property::Ptr theProperty,
                         const std::string &theGroup="");
+    
+    // define exceptions
+    class PropertyUnsupportedException : public Exception
+    {
+    public:
+        PropertyUnsupportedException(std::string thePropertyName) : 
+        Exception("Could not add property '"+thePropertyName+"' "\
+                  "to tweakBar : Type not supported")
+        {};
+    }; 
+    
 private:
     
     template <typename T>
