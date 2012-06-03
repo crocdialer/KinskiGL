@@ -99,7 +99,7 @@ public:
         };
         
         inline const T val() const {return getValue<T>();};
-        inline const T operator*() const {return getValue<T>();};
+        //inline const T operator*() const {return getValue<T>();};
         
         inline void set(const T &theVal){setValue<T>(theVal);};
         inline void val(const T &theVal){set(theVal);};

@@ -4,7 +4,6 @@
 #include "Data.h"
 
 #include "TextureIO.h"
-#include "opencv2/opencv.hpp"
 
 using namespace std;
 using namespace kinski;
@@ -34,16 +33,6 @@ private:
     _Property<string>::Ptr m_infoString;
     
     _Property<vec4>::Ptr m_lightColor;
-    
-    cv::VideoCapture m_capture;
-    
-    void activateCamera(bool b = true)
-    {
-        if(b)
-            m_capture.open(0);
-        else
-            m_capture.release();
-    }
 
     void buildCanvasVBO()
     {
@@ -184,8 +173,6 @@ public:
         addPropertyToTweakBar(m_infoString);
         addPropertyToTweakBar(m_lightColor);
         
-        addPropertyToTweakBar(_Property<cv::Mat>::create("luluMat", cv::Mat()));
-        
         // properties can be tweaked at any time
         m_distance->val(2);
         *m_distance = 3;
@@ -201,12 +188,12 @@ public:
     {
         m_rotation += degrees(timeDelta * (*m_rotationSpeed) );
         
-        *m_distance += 0.01;
+        //*m_distance += 0.01;
     }
     
     void draw()
     {
-        drawTexture(m_texture);
+        //drawTexture(m_texture);
         
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(m_texture);
@@ -228,8 +215,8 @@ public:
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewTmp);
         m_shader.uniform("u_normalMatrix", normalMatrix);
-        m_shader.uniform("u_lightDir", **m_lightDir);
-        m_shader.uniform("u_lightColor", **m_lightColor);
+        m_shader.uniform("u_lightDir", m_lightDir->val());
+        m_shader.uniform("u_lightColor", m_lightColor->val());
         
         drawCube();
     }

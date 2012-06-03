@@ -17,13 +17,11 @@
 #include "boost/thread.hpp"
 #include <boost/timer/timer.hpp>
 
-#include "KinectDevice.h"
 #ifdef KINSKI_FREENECT
+#include "KinectDevice.h"
 #endif
 
-using namespace cv ;
-
-class CVThread
+class CVThread : public boost::noncopyable
 {
 	
 public:
@@ -49,8 +47,8 @@ public:
         cv::Mat m_result;
     };
     
-	inline double getElapsedTime(){return m_timer.elapsed().wall;};
-
+	//inline double getElapsedTime(){return boost::posix_time::seconds(m_timer.elapsed().wall);}
+    
 	void openImage(const std::string& imgPath);
 	void openSequence(const std::vector<std::string>& files);
 	
@@ -67,12 +65,13 @@ public:
 	void jumpToFrame(int index);
 	void skipFrames(int num);
 	
-	void stop(){stopped=true;};
+    void start();
+	void stop(){m_stopped=true;};
+    void operator()();
     
 	const std::vector<std::string>& getSeq(){ return m_filesToStream;};
 	
-	bool isCameraActive(){return isUSBCameraActive() || isIPCameraActive() ||
-        isKinectActive();};
+	bool isCameraActive(){return isUSBCameraActive() || isIPCameraActive();};
 	
 	bool isUSBCameraActive() const {return m_capture.isOpened();} ;
 	bool isIPCameraActive() const {return false ;} ;
@@ -84,8 +83,9 @@ public:
 #endif
     
 	void setImage(const cv::Mat& img);
-	const cv::Mat& getImage() const;
-    const cv::Mat& getDepthImage() const;
+    
+	bool getImage(cv::Mat& img);
+    bool getDepthImage(cv::Mat& img) const;
 	
     const FrameBundle& getFrameBundle() const {return m_frames;};
 	
@@ -107,25 +107,6 @@ public:
 	std::string getCurrentImgPath();
 
 private:
-	
-//    class clock_util 
-//    {
-//        tbb::tick_count m_startTick;
-//        
-//    public:
-//        
-//        clock_util():m_startTick(tbb::tick_count::now()){};
-//        
-//        inline void reset(){m_startTick=tbb::tick_count::now();};
-//        
-//        // return elapsed time since last reset in ms
-//        inline double getElapsedTime()
-//        {
-//            return (tbb::tick_count::now()-m_startTick).seconds() * 1000.0;
-//        };
-//    };
-//    
-//    clock_util m_timer;
     
     boost::timer::cpu_timer m_timer;
     
@@ -135,25 +116,24 @@ private:
 	int m_currentFileIndex;
 	unsigned int m_sequenceStep;
 	
-    volatile bool stopped;
+    volatile bool m_stopped;
     volatile bool m_doProcessing;
+    bool m_newFrame;
     
 	// fetch next frame, depending on current m_streamType
 	bool grabNextFrame();
 	
-	//Qt Thread-snychronisation
-	//mutable QMutex m_mutex;
-	
 	//-- OpenCV
     FrameBundle m_frames;
-    
-	VideoCapture m_capture ;
+	cv::VideoCapture m_capture ;
 	
     // Kinect
+    #ifdef KINSKI_FREENECT
     boost::shared_ptr<Freenect::Freenect> m_freenect;
     KinectDevice* m_kinectDevice;
     bool m_kinectUseIR;
-	
+    #endif
+    
 	//desired capturing / seconds  -> used to time threadmanagment
 	double m_captureFPS;
 	
@@ -162,20 +142,17 @@ private:
 	std::string m_videoPath;
 	
     // handle for IP-camera
-//	AxisCamera* m_ipCamera;
-//	bool m_ipCameraActive;
+    //	AxisCamera* m_ipCamera;
+    //	bool m_ipCameraActive;
     
 	double m_lastGrabTime;
 	double m_lastProcessTime;
     
     boost::thread m_thread;
+    
+    boost::mutex m_mutex;
 
     virtual cv::Mat doProcessing(const FrameBundle &bundle) {return bundle.m_inFrame;};//= 0;
-    
-protected:
-	
-	void run();
-
 };
 
 #endif // CHTHREAD_H

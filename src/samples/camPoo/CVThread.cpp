@@ -16,7 +16,7 @@ using namespace cv;
 //using namespace boost;
 
 CVThread::CVThread():m_streamType(NO_STREAM),m_currentFileIndex(0),m_sequenceStep(1),
-stopped(true),m_kinectDevice(NULL),m_kinectUseIR(false),m_captureFPS(25.f)
+m_stopped(true),m_captureFPS(25.f)
 {	
     printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
 	
@@ -29,9 +29,16 @@ stopped(true),m_kinectDevice(NULL),m_kinectUseIR(false),m_captureFPS(25.f)
 CVThread::~CVThread()
 {
     stop();
-    //
+    m_thread.join();
     
 	m_capture.release();
+
+}
+
+void CVThread::start()
+{
+    m_thread = boost::thread(boost::ref(*this));
+    m_stopped = false;
 
 }
 
@@ -49,16 +56,16 @@ void CVThread::loadFrameFromIpCamera()
 
 void CVThread::playPause()
 {
-	if(stopped)
+	if(m_stopped)
 	{	
-		stopped = false ;
+		m_stopped = false ;
 		start();
 	}
 	else 
 	{
-		stopped = true ; 
+		m_stopped = true ; 
 
-		this->wait();
+		m_thread.join();
 	}
 }
 
@@ -116,20 +123,22 @@ void CVThread::jumpToFrame(int newIndex)
 
 	}
 
-	if(stopped)
+	if(m_stopped)
 	{	
-		clock_util timer;
+        m_timer.start();
+        
 		if(grabNextFrame() && m_frames.m_inFrame.size() != Size(0,0)) 
 		{	
-			m_lastGrabTime = timer.getElapsedTime();
-			timer.reset();
+			//m_lastGrabTime = m_timer.elapsed();
+
+			m_timer.start();
 			
 			if(m_doProcessing)
 			{
 				//m_augmentImg = doProcessing(m_procImage);
                 
                 
-				m_lastProcessTime = timer.getElapsedTime();
+				//m_lastProcessTime = timer.getElapsedTime();
 			}
 			
 			else 
@@ -234,29 +243,30 @@ void CVThread::streamUSBCamera(bool b,int camId)
 void CVThread::streamIPCamera(bool b)
 {
 	
-	m_ipCameraActive = b ;
-	m_bufferThread->setUseAxisCam(b);
-	m_bufferThread->rebufferFromIndex(0);
-	
-	if(b)
-	{
-		if(m_capture.isOpened())
-			m_capture.release();
-		
-		m_streamType = STREAM_IP_CAM;
-		this->start();
-	}
-	else
-	{	
-		m_bufferThread->stop();
-		m_bufferThread->wait();
-		
-		this->stop();
-		m_streamType = NO_STREAM ;
-	}
+//	m_ipCameraActive = b ;
+//	m_bufferThread->setUseAxisCam(b);
+//	m_bufferThread->rebufferFromIndex(0);
+//	
+//	if(b)
+//	{
+//		if(m_capture.isOpened())
+//			m_capture.release();
+//		
+//		m_streamType = STREAM_IP_CAM;
+//		this->start();
+//	}
+//	else
+//	{	
+//		m_bufferThread->stop();
+//		m_bufferThread->wait();
+//		
+//		this->stop();
+//		m_streamType = NO_STREAM ;
+//	}
 	
 }
 
+#ifdef KINSKI_FREENECT
 void CVThread::streamKinect(bool b)
 {
     if(b)
@@ -291,6 +301,7 @@ void CVThread::setKinectUseIR(bool b)
         m_kinectDevice->setVideoFormat(b ?  FREENECT_VIDEO_IR_8BIT : 
                                             FREENECT_VIDEO_RGB); 
 }
+#endif
 
 bool CVThread::grabNextFrame()
 {	
@@ -300,11 +311,11 @@ bool CVThread::grabNextFrame()
 	{
 		case STREAM_FILELIST:
 			
-			if(stopped)
+			if(m_stopped)
 				m_frames.m_inFrame = cv::imread(m_filesToStream[m_currentFileIndex]);
 			else
 			{
-				m_frames.m_inFrame = m_bufferThread->grabNextFrame();
+				//m_frames.m_inFrame = m_bufferThread->grabNextFrame();
 
 				m_currentFileIndex = m_currentFileIndex + m_sequenceStep;
 			}
@@ -355,18 +366,20 @@ bool CVThread::grabNextFrame()
             
         case STREAM_IP_CAM:
 			
-			if(stopped)
+			if(m_stopped)
 				loadFrameFromIpCamera();
 			else
-				m_frames.m_inFrame = m_bufferThread->grabNextFrame();
+				;//m_frames.m_inFrame = m_bufferThread->grabNextFrame();
 			break ;
-
+            
+        #ifdef KINSKI_FREENECT
         case STREAM_KINECT:
 			
 			m_kinectDevice->getVideo(m_frames.m_inFrame,m_kinectUseIR);
             m_kinectDevice->getDepth(m_frames.m_depthMap,m_frames.m_inFrame);
             
 			break ;
+        #endif
             
 		case NO_STREAM:
 			success = false ;
@@ -379,21 +392,21 @@ bool CVThread::grabNextFrame()
 	return success;
 }
 
-void CVThread::run()
+void CVThread::operator()()
 {	
-	stopped=false;
+	m_stopped=false;
 	
 	// measure elapsed time with these
-	clock_util timer,otherTimer;
+	//clock_util timer,otherTimer;
 	
-	double elapsedTime,sleepTime;
+	//double elapsedTime,sleepTime;
 	
 	// gets next frame, which will be hold inside m_procImage
-	while( !stopped )
+	while( !m_stopped )
 	{
 		//restart timer
-		timer.reset();
-		otherTimer.reset();
+//		timer.reset();
+//		otherTimer.reset();
 		
 		// fetch frame, cancel loop when not possible
 		// this call is supposed to be fast and not block the thread too long
@@ -402,32 +415,36 @@ void CVThread::run()
 		//skip iteration when invalid frame is returned (eg. from camera)
 		if(m_frames.m_inFrame.empty()) continue;
 		
-		m_lastGrabTime = otherTimer.getElapsedTime();
-		otherTimer.reset();
+//		m_lastGrabTime = otherTimer.getElapsedTime();
+//		otherTimer.reset();
 		
 		// image processing
-		if(m_doProcessing)
-		{ 
-            m_frames.m_result = doProcessing(m_frames);
+        {
+            Mat procResult = doProcessing(m_frames);
+            
+            boost::mutex::scoped_lock lock(m_mutex);
+            
+            if(m_doProcessing)
+                m_frames.m_result = procResult;
+            else
+                m_frames.m_result = m_frames.m_inFrame;
+            
+            m_newFrame = true;
 		}
-		else
-			m_frames.m_result = m_frames.m_inFrame;
-		
-		m_lastProcessTime = otherTimer.getElapsedTime();
-		otherTimer.reset();
-		
-		// emit signal for other objects/threads to be notified
-		emit imageChanged();
-		
-		elapsedTime = timer.getElapsedTime();
-		
-		sleepTime = (1000.0 / m_captureFPS - elapsedTime);
-		sleepTime = sleepTime > 0 ? sleepTime : 0 ;
+        
+//		m_lastProcessTime = otherTimer.getElapsedTime();
+//		otherTimer.reset();
+        
+//		elapsedTime = timer.getElapsedTime();
+//		
+//		sleepTime = (1000.0 / m_captureFPS - elapsedTime);
+//		sleepTime = sleepTime > 0 ? sleepTime : 0 ;
 		
 		//printf("elapsed time: %.2f  -- sleeping: %.2f \n",elapsedTime,sleepTime);
 		
 		// set thread asleep for a time to achieve desired framerate when possible
-		QThread::msleep(sleepTime);
+        boost::posix_time::milliseconds msecs(20);
+        boost::this_thread::sleep(msecs);
 		
 	}
 	
@@ -461,34 +478,41 @@ string CVThread::getCurrentImgPath()
 }
 
 // -- Getter / Setter
-const cv::Mat& CVThread::getImage() const
+bool CVThread::getImage(cv::Mat& img)
 {	
-	QMutexLocker ql(&m_mutex);
-	
-	return m_frames.m_inFrame;
+	boost::mutex::scoped_lock lock(m_mutex);
+    if(m_newFrame)
+    {
+        img = m_frames.m_result;
+        m_newFrame = false;
+        return true;
+    }
+    
+    return false;
 }
 
 void CVThread::setImage(const cv::Mat& img)
 {
+    
 	m_frames.m_result = m_frames.m_inFrame = img.clone();
 	
-	emit imageChanged(); 
+	//emit imageChanged(); 
 }
 
 double CVThread::getLastGrabTime()
 {
-	QMutexLocker ql(&m_mutex);
+	boost::mutex::scoped_lock lock(m_mutex);
 	return m_lastGrabTime;
 }
 
 double CVThread::getLastProcessTime()
 {
-	QMutexLocker ql(&m_mutex);
+	boost::mutex::scoped_lock lock(m_mutex);
 	return m_lastProcessTime;
 }
 
 int CVThread::getCurrentIndex()
 {
-	QMutexLocker ql(&m_mutex);
+	boost::mutex::scoped_lock lock(m_mutex);
 	return m_currentFileIndex;
 }

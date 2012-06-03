@@ -37,23 +37,13 @@ private:
     
     CVThread::Ptr m_cvThread;
     
-    cv::VideoCapture m_capture;
-    
-    void activateCamera(bool b = true)
-    {
-        if(b)
-            m_capture.open(0);
-        else
-            m_capture.release();
-    }
-    
     void buildCanvasVBO()
     {
         //GL_T2F_V3F
         const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
-            1.0,0.0,1.0,0.0,0.0,
-            1.0,1.0,1.0,1.0,0.0,
-            0.0,1.0,0.0,1.0,0.0};
+                                1.0,0.0,1.0,0.0,0.0,
+                                1.0,1.0,1.0,1.0,0.0,
+                                0.0,1.0,0.0,1.0,0.0};
         
         // create VAO to record all VBO calls
         glGenVertexArrays(1, &m_canvasArray);
@@ -179,6 +169,10 @@ public:
         m_lightColor = _Property<vec4>::create("lightColor", vec4(1));
         
         m_viewMatrix = _Property<mat4>::create("viewMatrix", mat4());
+
+        //Property::Ptr bla[]={m_distance, m_rotationSpeed};
+        //std::list<Property::Ptr> propList(bla);
+        //std::vector<Property::Ptr> propList(bla);
         
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
@@ -195,26 +189,24 @@ public:
         
         m_lightDir->val(vec3(0.0f, 3.0f, 1.0f));
         
-        activateCamera();
+        m_cvThread->streamUSBCamera(true);
     }
     
     void tearDown()
     {
-        activateCamera(false);
+        m_cvThread->stop();
         
-        printf("ciao camPoo obsolon\n");
+        printf("ciao camPoo lulu\n");
     }
     
     void update(const float timeDelta)
     {
-        m_rotation += degrees(timeDelta * (**m_rotationSpeed) );
+        m_rotation += degrees(timeDelta * (*m_rotationSpeed) );
         
-        if(m_capture.isOpened() && m_capture.grab())
+        cv::Mat camFrame;
+        
+        if(m_cvThread->getImage(camFrame))
         {		
-            cv::Mat camFrame;
-            m_capture.retrieve(camFrame, 0) ;
-            camFrame = camFrame.clone();
-            
             m_texture.update(camFrame.data, GL_BGR, camFrame.cols, camFrame.rows, true);
         }
     }
@@ -234,7 +226,6 @@ public:
                                  vec3(0, 1, 0)));                    // up
         
         mat4 modelViewTmp = m_viewMatrix->val();
-        //modelViewMatrix = translate(modelViewMatrix, vec3(0, 0, -1.5));
         modelViewTmp = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
         
         mat3 normalMatrix = inverseTranspose(mat3(modelViewTmp));
@@ -243,8 +234,8 @@ public:
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewTmp);
         m_shader.uniform("u_normalMatrix", normalMatrix);
-        m_shader.uniform("u_lightDir", **m_lightDir);
-        m_shader.uniform("u_lightColor", **m_lightColor);
+        m_shader.uniform("u_lightDir", m_lightDir->val());
+        m_shader.uniform("u_lightColor", m_lightColor->val());
         
         drawCube();
     }
