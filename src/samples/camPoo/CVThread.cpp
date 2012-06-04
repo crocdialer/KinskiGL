@@ -23,6 +23,8 @@ m_stopped(true), m_newFrame(false), m_captureFPS(25.f)
 {	
     printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
 	
+//    cout<<cv::getBuildInformation()<<"\n";
+    
 //	m_ipCamera = new AxisCamera("217.211.159.251",8080);
 //	m_ipCamera->setFPS(24);
     
@@ -438,13 +440,11 @@ void CVThread::operator()()
         double elapsed_msecs,sleep_msecs;
         
 		elapsed_msecs = threadTimer.elapsed().wall / 1000000.0;
-		sleep_msecs = (1000.0 / m_captureFPS - elapsed_msecs);
+		sleep_msecs = max(0.0, (1000.0 / m_captureFPS - elapsed_msecs));
         
 		// set thread asleep for a time to achieve desired framerate when possible
-        boost::posix_time::milliseconds msecs(20);
+        boost::posix_time::milliseconds msecs(sleep_msecs);
         boost::this_thread::sleep(msecs);
-		
-        //std::cout<<sleep_msecs<<"\n";
 	}
     
     m_stopped = true;
@@ -493,10 +493,9 @@ bool CVThread::getImage(cv::Mat& img)
 
 void CVThread::setImage(const cv::Mat& img)
 {
-    
+    boost::mutex::scoped_lock lock(m_mutex);
 	m_frames.m_result = m_frames.m_inFrame = img.clone();
-	
-	//emit imageChanged(); 
+	m_newFrame = true;
 }
 
 double CVThread::getLastGrabTime()

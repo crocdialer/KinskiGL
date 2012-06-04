@@ -151,9 +151,8 @@ public:
         
         m_cvThread = CVThread::Ptr(new CVThread());
         
-        //m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
-        
         buildCubeVBO();
+        buildCanvasVBO();
         
         m_rotation = 0.f;
         
@@ -166,10 +165,6 @@ public:
         m_lightColor = _Property<vec4>::create("lightColor", vec4(1));
         
         m_viewMatrix = _Property<mat4>::create("viewMatrix", mat4());
-
-        //Property::Ptr bla[]={m_distance, m_rotationSpeed};
-        //std::list<Property::Ptr> propList(bla);
-        //std::vector<Property::Ptr> propList(bla);
         
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
@@ -186,7 +181,10 @@ public:
         
         *m_lightDir = vec3(-1.15, -0.64, -2.88);
         
-        m_cvThread->streamUSBCamera(true);
+        //m_cvThread->streamUSBCamera(true);
+        
+        m_cvThread->streamVideo("/Volumes/CrocData/Users/Fabian/Desktop/" 
+                               "Stay Hungry (1976).avi");
     }
     
     void tearDown()
@@ -203,14 +201,16 @@ public:
         cv::Mat camFrame;
         
         if(m_cvThread->getImage(camFrame))
-        {		
+        {	
             m_texture.update(camFrame.data, GL_BGR, camFrame.cols, camFrame.rows, true);
         }
     }
     
     void draw()
     {
+        glDisable(GL_DEPTH_TEST);
         drawTexture(m_texture);
+        glEnable(GL_DEPTH_TEST);
         
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(m_texture);

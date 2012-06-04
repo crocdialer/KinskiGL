@@ -90,9 +90,12 @@ out vec4 fragData;\n\
 void main()\n\
 {\n\
 vec4 tex = texture(u_textureMap, v_texCoord.xy);\n\
+vec4 invert = vec4(vec3(1.0) - tex.rgb, tex.a);\n\
 \n\
-fragData = nDotL * tex * u_lightColor * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
-//fragData = nDotL * tex * u_lightColor;\n\
+//fragData = nDotL * tex * u_lightColor * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
+fragData = tex * u_lightColor * vec4(v_texCoord.x, v_texCoord.y, -v_texCoord.x, 1.0);\n\
+fragData = mix(fragData, invert, 1.0 - nDotL);\
+\
 }";
 
 #endif //_DATA_H_IS_INCLUDED
