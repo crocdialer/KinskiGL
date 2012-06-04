@@ -9,11 +9,11 @@
 namespace kinski
 {
     
-    class App : public boost::enable_shared_from_this<App>
+    class App : public std::enable_shared_from_this<App>
     {
     public:
-        typedef boost::shared_ptr<App> Ptr;
-        typedef boost::weak_ptr<App> WeakPtr;
+        typedef std::shared_ptr<App> Ptr;
+        typedef std::weak_ptr<App> WeakPtr;
         
         static Ptr getInstance();
         

@@ -25,8 +25,6 @@
 #include <vector>
 #include "Texture.h"
 
-using boost::shared_ptr;
-
 namespace kinski {
 namespace gl {
 
@@ -78,7 +76,7 @@ class Renderbuffer {
 		int					mSamples, mCoverageSamples;
 	};
     
-    typedef shared_ptr<Obj> ObjPtr;
+    typedef std::shared_ptr<Obj> ObjPtr;
 	ObjPtr mObj;
 
   public:
@@ -253,7 +251,7 @@ class Fbo {
 		mutable bool		mNeedsResolve, mNeedsMipmapUpdate;
 	};
  
-    typedef shared_ptr<Obj> ObjPtr;
+    typedef std::shared_ptr<Obj> ObjPtr;
 	ObjPtr	mObj;
 	
 	static GLint			sMaxSamples, sMaxAttachments;

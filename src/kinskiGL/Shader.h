@@ -87,7 +87,7 @@ class Shader {
     const std::string readFile(const std::string &path);
 
 	struct Obj;
-    typedef boost::shared_ptr<Obj> ObjPtr;
+    typedef std::shared_ptr<Obj> ObjPtr;
 	ObjPtr	m_Obj;
 
   public:
