@@ -218,6 +218,12 @@ public:
             return theProp.getValue<T>() / theVal; 
         };
         
+        friend std::ostream& operator<<(std::ostream &os,const _Property<T>& theProp)
+        {
+            os<< theProp.getName()<<": "<<theProp.getValue<T>()<<"\n";
+            return os;
+        }
+        
     private:
         _Property():Property(){};
         _Property(const std::string &theName, const T &theValue):
