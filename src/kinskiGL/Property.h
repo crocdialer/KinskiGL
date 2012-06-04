@@ -56,12 +56,12 @@ public:
     }
     
     template <typename C>
-    bool isOfType() const
+    inline bool isOfType() const
     {
         return m_value.type() == typeid(C);
     }
 
-protected:
+private:
     std::string m_name;
     boost::any m_value;
 	bool m_tweakable;
@@ -99,7 +99,6 @@ public:
         };
         
         inline const T val() const {return getValue<T>();};
-        //inline const T operator*() const {return getValue<T>();};
         
         inline void set(const T &theVal){setValue<T>(theVal);};
         inline void val(const T &theVal){set(theVal);};
@@ -117,10 +116,32 @@ public:
             return *this;
         };
         
+        inline _Property<T>& operator+=(_Property<T> const& otherProp)
+        {
+            *this = getValue<T>() + otherProp.getValue<T>(); 
+            return *this;
+        };
+        
+        inline const T operator+(_Property<T> const& otherProp)
+        {
+            return getValue<T>() + otherProp.getValue<T>(); 
+        };
+        
         inline _Property<T>& operator-=(T const& theVal)
         {
             *this = getValue<T>() - theVal; 
             return *this;
+        };
+        
+        inline _Property<T>& operator-=(_Property<T> const& otherProp)
+        {
+            *this = getValue<T>() - otherProp.getValue<T>(); 
+            return *this;
+        };
+        
+        inline const T operator-(_Property<T> const& otherProp)
+        {
+            return getValue<T>() - otherProp.getValue<T>(); 
         };
         
         inline _Property<T>& operator*=(T const& theVal)
@@ -129,10 +150,32 @@ public:
             return *this;
         };
         
+        inline _Property<T>& operator*=(_Property<T> const& otherProp)
+        {
+            *this = getValue<T>() + otherProp.getValue<T>(); 
+            return *this;
+        };
+        
+        inline const T operator*(_Property<T> const& otherProp)
+        {
+            return getValue<T>() * otherProp.getValue<T>(); 
+        };
+        
         inline _Property<T>& operator/=(T const& theVal)
         {
             *this = getValue<T>() / theVal; 
             return *this;
+        };
+        
+        inline _Property<T>& operator/=(_Property<T> const& otherProp)
+        {
+            *this = getValue<T>() / otherProp.getValue<T>(); 
+            return *this;
+        };
+        
+        inline const T operator/(_Property<T> const& otherProp)
+        {
+            return getValue<T>() / otherProp.getValue<T>(); 
         };
         
         inline friend const T operator+(T theVal, const _Property<T>& theProp)
