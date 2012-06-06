@@ -114,6 +114,12 @@ namespace kinski
                        AntTweakBarConnector::setMat4_pos,
                        AntTweakBarConnector::getMat4_pos,
                        (void*)myPProp, defString.c_str());
+            
+            // arrange group afterwards
+            std::string barName = TwGetBarName(theTweakBar);
+            defString = barName +"/"+ myPropName +" group='"+ theGroup +"'";
+            
+            TwDefine(defString.c_str());
         }   
         else
         {

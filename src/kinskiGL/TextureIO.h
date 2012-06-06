@@ -16,7 +16,7 @@ namespace kinski
         static const gl::Texture loadTexture(const std::string &imgPath);
         static bool saveTexture(const std::string &imgPath, const gl::Texture &texture);
         
-        static void updateTexture(const gl::Texture &theTexture,
+        static void updateTexture(gl::Texture &theTexture,
                                   const cv::Mat &theImage);
     };
 }
