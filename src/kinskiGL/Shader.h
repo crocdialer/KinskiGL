@@ -79,7 +79,7 @@ class Shader {
     void loadFromFile(const std::string &vertPath, const std::string &fragPath,
                       const std::string &geomPath="");
     
-  protected:
+  private:
 	void loadShader( const char *shaderSource, GLint shaderType );
 	void attachShaders();
 	void link();

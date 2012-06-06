@@ -104,7 +104,7 @@ private:
         
     }
     
-    void drawTexture(gl::Texture theTexture)
+    void drawTexture(gl::Texture theTexture, gl::Shader theShader)
     {
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(theTexture);
@@ -123,10 +123,29 @@ private:
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
     
-    void drawCube()
+    void drawCube(gl::Texture theTexture, gl::Shader theShader)
     {
-        m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
-        m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
+        // Texture and Shader bound for this scope
+        gl::scoped_bind<gl::Texture> texBind(theTexture);
+        gl::scoped_bind<gl::Shader> shaderBind(theShader);
+        
+        theShader.uniform("u_textureMap", theTexture.getBoundTextureUnit());
+        theShader.uniform("u_textureMatrix", theTexture.getTextureMatrix());
+        
+        mat4 projectionMatrix = perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
+        
+        mat4 modelViewTmp = m_viewMatrix->val();
+        mat4 rotateMat = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
+        
+        modelViewTmp = rotateMat; 
+        
+        mat3 normalMatrix = inverseTranspose(mat3(modelViewTmp));
+        
+        m_shader.uniform("u_modelViewProjectionMatrix", 
+                         projectionMatrix * modelViewTmp);
+        m_shader.uniform("u_normalMatrix", normalMatrix);
+        m_shader.uniform("u_lightDir", m_lightDir->val());
+        m_shader.uniform("u_lightColor", m_lightColor->val());
         
         glBindVertexArray(m_cubeArray);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -137,6 +156,7 @@ public:
     void setup()
     {
         glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_CULL_FACE);
         glEnable(GL_TEXTURE_2D);
         glClearColor(0, 0, 0, 1);
         
@@ -176,10 +196,15 @@ public:
         
         addPropertyToTweakBar(_Property<cv::Mat>::create("luluMat", cv::Mat()));
         
+        //*m_lightColor -= (*m_lightColor * 3.f);
+        
         // properties can be tweaked at any time
         m_distance->val(2);
+        *m_distance += 1.5 * *m_distance;
+
+        cout<<*m_distance<<*m_infoString;
         
-        *m_lightDir = vec3(-1.15, -0.64, -2.88);
+        *m_lightDir = 0.5f * vec3(-1.15, -0.64, -2.88);
         
         //m_cvThread->streamUSBCamera(true);
         
@@ -198,43 +223,27 @@ public:
     {
         m_rotation += degrees(timeDelta * (*m_rotationSpeed) );
         
-        cv::Mat camFrame;
+        m_viewMatrix->val(lookAt(m_distance->val() * vec3(0, 1, 1), // eye
+                                 vec3(0),                           // lookat
+                                 vec3(0, 1, 0)));                   // up
         
+        cv::Mat camFrame;
         if(m_cvThread->getImage(camFrame))
         {	
-            m_texture.update(camFrame.data, GL_BGR, camFrame.cols, camFrame.rows, true);
+            
+            bool grey = camFrame.channels() < 3;
+            m_texture.update(camFrame.data, grey ? GL_RED:GL_BGR, camFrame.cols, camFrame.rows, true);
         }
+        
     }
     
     void draw()
     {
         glDisable(GL_DEPTH_TEST);
-        drawTexture(m_texture);
+        drawTexture(m_texture, m_shader);
         glEnable(GL_DEPTH_TEST);
-        
-        // Texture and Shader bound for this scope
-        gl::scoped_bind<gl::Texture> texBind(m_texture);
-        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
-        
-        mat4 projectionMatrix = perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
-        
-        m_viewMatrix->val(lookAt(m_distance->val() * vec3(0, 1, 1), // eye
-                                 vec3(0),                           // lookat
-                                 vec3(0, 1, 0)));                    // up
-        
-        mat4 modelViewTmp = m_viewMatrix->val();
-        modelViewTmp = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
-        
-        mat3 normalMatrix = inverseTranspose(mat3(modelViewTmp));
-        
-        
-        m_shader.uniform("u_modelViewProjectionMatrix", 
-                         projectionMatrix * modelViewTmp);
-        m_shader.uniform("u_normalMatrix", normalMatrix);
-        m_shader.uniform("u_lightDir", m_lightDir->val());
-        m_shader.uniform("u_lightColor", m_lightColor->val());
-        
-        drawCube();
+
+        drawCube(m_texture, m_shader);
     }
 };
 

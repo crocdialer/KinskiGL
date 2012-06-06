@@ -2,6 +2,7 @@
 #define _TEXTUREIO_IS_INCLUDED_
 
 #include "Texture.h"
+#include "opencv2/opencv.hpp"
 
 namespace kinski
 {
@@ -14,6 +15,9 @@ namespace kinski
         
         static const gl::Texture loadTexture(const std::string &imgPath);
         static bool saveTexture(const std::string &imgPath, const gl::Texture &texture);
+        
+        static void updateTexture(const gl::Texture &theTexture,
+                                  const cv::Mat &theImage);
     };
 }
 #endif //_TEXTUREIO_IS_INCLUDED_
