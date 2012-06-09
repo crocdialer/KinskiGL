@@ -32,6 +32,8 @@ private:
     _Property<string>::Ptr m_infoString;
     _Property<vec4>::Ptr m_lightColor;
     
+    _Property<bool>::Ptr m_activator;
+    
     CVThread::Ptr m_cvThread;
     
     void buildCanvasVBO()
@@ -181,18 +183,18 @@ public:
         m_lightDir = _Property<vec3>::create("LightDir", vec3(0.0, 1.0, 1.0));
         m_infoString = _Property<string>::create("Info Bla",
                                                  "This is some infoo bla for uu");
-        
         m_lightColor = _Property<vec4>::create("lightColor", vec4(1));
-        
         m_viewMatrix = _Property<mat4>::create("viewMatrix", mat4());
+        m_activator = _Property<bool>::create("Dj Activate Money", true);
         
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
         addPropertyToTweakBar(m_rotationSpeed, "Floats");
         addPropertyToTweakBar(m_lightDir, "Vecs");
-        addPropertyToTweakBar(m_viewMatrix);
+        addPropertyToTweakBar(m_viewMatrix, "TurboSocken");
         addPropertyToTweakBar(m_lightColor);
         addPropertyToTweakBar(m_infoString);
+        addPropertyToTweakBar(m_activator);
         
         addPropertyToTweakBar(_Property<cv::Mat>::create("luluMat", cv::Mat()));
         
@@ -202,11 +204,11 @@ public:
         m_distance->val(2);
         *m_distance += 1.5 * *m_distance;
 
-        cout<<*m_distance<<*m_infoString;
+        cout<<*m_distance<<*m_infoString<<*m_activator;
         
         *m_lightDir = 0.5f * vec3(-1.15, -0.64, -2.88);
         
-        //m_cvThread->streamUSBCamera(true);
+//        m_cvThread->streamUSBCamera(true);
         
         m_cvThread->streamVideo("/Volumes/CrocData/Users/Fabian/Desktop/" 
                                "Stay Hungry (1976).avi");
@@ -230,9 +232,7 @@ public:
         cv::Mat camFrame;
         if(m_cvThread->getImage(camFrame))
         {	
-            
-            bool grey = camFrame.channels() < 3;
-            m_texture.update(camFrame.data, grey ? GL_RED:GL_BGR, camFrame.cols, camFrame.rows, true);
+            TextureIO::updateTexture(m_texture, camFrame);
         }
         
     }
@@ -243,7 +243,7 @@ public:
         drawTexture(m_texture, m_shader);
         glEnable(GL_DEPTH_TEST);
 
-        drawCube(m_texture, m_shader);
+        if(m_activator->val()) drawCube(m_texture, m_shader);
     }
 };
 

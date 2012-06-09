@@ -4,13 +4,14 @@
 #include <sstream>
 
 using namespace glm;
+using namespace std;
 
 namespace kinski
 {
     void
     AntTweakBarConnector::connect(TwBar * theTweakBar,
                                   const Property::Ptr theProperty,
-                                  const std::string &theGroup) {
+                                  const string &theGroup) {
             
         Property* myPProp = theProperty.get();
         if (!theProperty->getIsTweakable()) 
@@ -18,10 +19,10 @@ namespace kinski
             return;
         }
 
-        std::string myPropName = theProperty->getName();
+        string myPropName = theProperty->getName();
         
-        std::string defString = " group='" + theGroup+"'";
-        defString += std::string(" label='") + myPropName + "'";
+        string defString = " group='" + theGroup+"'";
+        defString += string(" label='") + myPropName + "'";
         
         if (theProperty->isOfType<int>()) 
         {
@@ -42,7 +43,7 @@ namespace kinski
                        AntTweakBarConnector::setValue<float>,
                        AntTweakBarConnector::getValue<float>,
                        (void*)myPProp,
-                       std::string(defString + std::string(" step=0.01")).c_str());
+                       string(defString + string(" step=0.01")).c_str());
             
         } else if (theProperty->isOfType<double>()) 
         {
@@ -50,7 +51,7 @@ namespace kinski
                        AntTweakBarConnector::setValue<double>,
                        AntTweakBarConnector::getValue<double>,
                        (void*)myPProp,
-                       std::string(defString + std::string(" step=0.01")).c_str());
+                       string(defString + string(" step=0.01")).c_str());
             
         } else if (theProperty->isOfType<unsigned short>()) 
         {
@@ -67,7 +68,7 @@ namespace kinski
                        AntTweakBarConnector::getValue<bool>,
                        (void*)myPProp, defString.c_str());
             
-        } else if (theProperty->isOfType<std::string>()) 
+        } else if (theProperty->isOfType<string>()) 
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_STDSTRING, 
                        AntTweakBarConnector::setString,
@@ -102,8 +103,8 @@ namespace kinski
             
             defString = " group='" + myPropName +"'";
             
-            std::string rotStr = myPropName+" rotation";
-            std::string posStr = myPropName+" position";
+            string rotStr = myPropName+" rotation";
+            string posStr = myPropName+" position";
             
             TwAddVarCB(theTweakBar, rotStr.c_str(), TW_TYPE_QUAT4F, 
                        AntTweakBarConnector::setMat4_rot,
@@ -116,7 +117,7 @@ namespace kinski
                        (void*)myPProp, defString.c_str());
             
             // arrange group afterwards
-            std::string barName = TwGetBarName(theTweakBar);
+            string barName = TwGetBarName(theTweakBar);
             defString = barName +"/"+ myPropName +" group='"+ theGroup +"'";
             
             TwDefine(defString.c_str());
@@ -150,8 +151,8 @@ namespace kinski
     {
         Property * theProperty = (Property*) clientData;
         
-        std::string *destPtr = static_cast<std::string *>(value);
-        TwCopyStdStringToLibrary(*destPtr, theProperty->getValue<std::string>());
+        string *destPtr = static_cast<string *>(value);
+        TwCopyStdStringToLibrary(*destPtr, theProperty->getValue<string>());
     }
     
     void TW_CALL 
@@ -159,7 +160,7 @@ namespace kinski
     {
         Property * theProperty = (Property*) clientData;
         
-        const std::string *srcPtr = static_cast<const std::string *>(value);
+        const string *srcPtr = static_cast<const string *>(value);
         theProperty->setValue(*srcPtr);
     }
     

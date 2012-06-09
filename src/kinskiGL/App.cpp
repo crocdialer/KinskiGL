@@ -1,5 +1,6 @@
 #include "App.h"
 #include "AntTweakBarConnector.h"
+#include <iostream>
 
 using namespace std;
 
@@ -36,7 +37,7 @@ namespace kinski
         // Initialize GLFW
         if( !glfwInit() )
         {
-            throw std::exception();
+            throw exception();
         }
         
         // request an OpenGl 3.2 Context
@@ -52,7 +53,7 @@ namespace kinski
                             m_fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
         {
             glfwTerminate();
-            throw std::exception();
+            throw exception();
         }
         
         // version
@@ -138,7 +139,7 @@ namespace kinski
 /****************************  TweakBar + Properties **************************/ 
     
     void App::addPropertyToTweakBar(const Property::Ptr propPtr,
-                               const std::string &group)
+                               const string &group)
     {
         m_tweakProperties.push_back(propPtr);
         try {
@@ -148,10 +149,10 @@ namespace kinski
         }
     }
     
-    void App::addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
-                                     const std::string &group)
+    void App::addPropertyListToTweakBar(const list<Property::Ptr> &theProps,
+                                     const string &group)
     {
-        std::list<Property::Ptr>::const_iterator propIt = theProps.begin();
+        list<Property::Ptr>::const_iterator propIt = theProps.begin();
         
         for (; propIt != theProps.end(); propIt++) 
         {   
@@ -160,9 +161,9 @@ namespace kinski
     }
     
     void App::loadPropertiesInShader(gl::Shader theShader,
-                                     const std::list<Property::Ptr> &theProps)
+                                     const list<Property::Ptr> &theProps)
     {
-        std::list<Property::Ptr>::const_iterator propIt = theProps.begin();
+        list<Property::Ptr>::const_iterator propIt = theProps.begin();
         
         for (; propIt != theProps.end(); propIt++) 
         {   

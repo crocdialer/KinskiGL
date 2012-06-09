@@ -420,14 +420,19 @@ void CVThread::operator()()
         m_lastGrabTime = (t.user + t.system) / 1000000000.0;
 		
 		// image processing
-        cpuTimer.start();
-        Mat procResult = doProcessing(m_frames);
-        
-        {    
+        {   
             boost::mutex::scoped_lock lock(m_mutex);
+            cpuTimer.start();
             
             if(m_doProcessing)
+            {   
+                Mat procResult = doProcessing(m_frames);
+//                Mat grey;
+//                cvtColor(procResult, grey, CV_BGR2GRAY);
+//                Canny(procResult, grey, 20, 30);
+                                
                 m_frames.m_result = procResult;
+            }
             else
                 m_frames.m_result = m_frames.m_inFrame;
             
@@ -442,7 +447,7 @@ void CVThread::operator()()
 		elapsed_msecs = threadTimer.elapsed().wall / 1000000.0;
 		sleep_msecs = max(0.0, (1000.0 / m_captureFPS - elapsed_msecs));
         
-		// set thread asleep for a time to achieve desired framerate when possible
+		// set thread asleep for a time to achieve desired framerate
         boost::posix_time::milliseconds msecs(sleep_msecs);
         boost::this_thread::sleep(msecs);
 	}
