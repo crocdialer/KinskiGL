@@ -153,8 +153,6 @@ namespace kinski {
         boost::thread m_thread;
         boost::mutex m_mutex;
         
-        virtual cv::Mat doProcessing(const cv::Mat &img) 
-        {return img;};//= 0;
     };
 } // namespace kinski
 #endif // CHTHREAD_H

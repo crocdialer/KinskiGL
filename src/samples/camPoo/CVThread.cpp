@@ -8,8 +8,9 @@
  */
 
 #include "CVThread.h"
-
 #include <fstream>
+
+#include "Colormap.h"
 
 using namespace std;
 using namespace cv;
@@ -18,8 +19,77 @@ using namespace boost::timer;
 
 namespace kinski {
     
+    class CvCaptureNode : public ISourceNode
+    {
+    public:
+        CvCaptureNode(): m_camID(0){m_capture.open(m_camID);};
+        virtual ~CvCaptureNode(){ m_capture.release();};
+        bool hasImage(){ return m_capture.isOpened();};
+        
+        cv::Mat getNextImage()
+        {
+            Mat capFrame;
+            m_capture.retrieve(capFrame, 0) ;
+            
+            // going safe, have a copy of our own of the data
+            capFrame = capFrame.clone();
+            return capFrame;
+        };
+
+    private:
+        int m_camID;
+        cv::VideoCapture m_capture;
+    };
+    
+    class NoobNode : public IProcessNode
+    {
+        cv::Mat doProcessing(const cv::Mat &img){ return img;};
+    };
+    
+    class BoneNode : public IProcessNode
+    {
+    public:
+        BoneNode():m_colorMap(Colormap::BONE){};
+        
+        cv::Mat doProcessing(const cv::Mat &img)
+        {
+            Mat grayImg,out;
+            cvtColor(img, grayImg, CV_BGR2GRAY);
+            
+            out = m_colorMap.apply(grayImg);
+            
+            return out;
+        };
+        
+    private:
+        Colormap m_colorMap;
+    };
+    
+    class ThreshNode : public IProcessNode
+    {
+    public:
+        ThreshNode():m_colorMap(Colormap::BONE){};
+        
+        cv::Mat doProcessing(const cv::Mat &img)
+        {
+            Mat grayImg, threshImg, out;
+            cvtColor(img, grayImg, CV_BGR2GRAY);
+            threshold(grayImg, threshImg, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+            out = threshImg;
+            
+            return m_colorMap.apply(out);
+        };
+        
+    private:
+        Colormap m_colorMap;
+    };
+    
+
+    
     CVThread::CVThread():m_streamType(NO_STREAM),m_currentFileIndex(0),m_sequenceStep(1),
-    m_stopped(true), m_newFrame(false), m_captureFPS(25.f)
+    m_stopped(true), m_newFrame(false),
+    m_processNode(new ThreshNode),
+    m_captureFPS(25.f)
     {	
         printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
         
@@ -127,9 +197,10 @@ namespace kinski {
                 
                 timer.start();
                 
-                if(m_doProcessing)
+                if(m_doProcessing && m_processNode)
                 {
-                    m_procImage = doProcessing(m_procImage);
+                    m_procImage = m_processNode->doProcessing(m_procImage);
+                    
                     //m_lastProcessTime = timer.getElapsedTime();
                 }
                 
@@ -372,9 +443,10 @@ namespace kinski {
                 boost::mutex::scoped_lock lock(m_mutex);
                 cpuTimer.start();
                 
-                if(m_doProcessing)
+                if(m_doProcessing && m_processNode)
                 {   
-                    Mat procResult = doProcessing(m_procImage);
+                    Mat procResult = m_processNode->doProcessing(m_procImage);
+                    
                     //                Mat grey;
                     //                cvtColor(procResult, grey, CV_BGR2GRAY);
                     //                Canny(procResult, grey, 20, 30);
