@@ -12,13 +12,12 @@ function(addSample theName thePath)
     
     IF( APPLE )
     
-    SET( MACOSX_BUNDLE_ICON_FILE icon.icns)
+    SET( MACOSX_BUNDLE_ICON_FILE ${thePath}/res/icon.icns)
     SET_SOURCE_FILES_PROPERTIES(
         ${thePath}/res/icon.icns
         PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources
     )
-    message("resFiles: ${resFiles}")
     ADD_EXECUTABLE(${theName} MACOSX_BUNDLE ${FOLDER_SOURCES} ${FOLDER_HEADERS}
             ${resFiles})
     ELSE( APPLE )

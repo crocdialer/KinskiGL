@@ -23,20 +23,23 @@
 
 namespace kinski {
     
-    class Node
+    class ISourceNode
     {
     public:
-        boost::shared_ptr<Node> Ptr;
+        typedef boost::shared_ptr<ISourceNode> Ptr;
         
         virtual bool hasImage() = 0;
         virtual cv::Mat getNextImage() = 0;
     };
     
-    class ProcessNode
+    class IBufferedSourceNode : public ISourceNode {};
+    
+    class IProcessNode
     {
-        boost::shared_ptr<ProcessNode> Ptr;
+    public:
+        typedef boost::shared_ptr<IProcessNode> Ptr;
         
-        virtual void inputImage(const cv::Mat &theImg) = 0;
+        virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
     };
     
     class CVThread : public boost::noncopyable
@@ -52,20 +55,6 @@ namespace kinski {
         CVThread();
         virtual ~CVThread();
         
-        class FrameBundle
-        {
-        public:
-            FrameBundle(const cv::Mat &frame=cv::Mat(),
-                        const cv::Mat &depth=cv::Mat())
-            :   m_inFrame(frame),
-            m_depthMap(depth)
-            {}
-            
-            cv::Mat m_inFrame;
-            cv::Mat m_depthMap;
-            cv::Mat m_result;
-        };
-        
         void openImage(const std::string& imgPath);
         void openSequence(const std::vector<std::string>& files);
         
@@ -76,14 +65,12 @@ namespace kinski {
         
         bool saveCurrentFrame(const std::string& savePath);
         
-        void loadFrameFromIpCamera();
-        
         void playPause();
         void jumpToFrame(int index);
         void skipFrames(int num);
         
         void start();
-        void stop(){m_stopped=true;};
+        void stop();
         void operator()();
         
         const std::vector<std::string>& getSeq(){ return m_filesToStream;};
@@ -102,9 +89,6 @@ namespace kinski {
         void setImage(const cv::Mat& img);
         
         bool getImage(cv::Mat& img);
-        bool getDepthImage(cv::Mat& img) const;
-        
-        const FrameBundle& getFrameBundle() const {return m_frames;};
         
         void setDoProcessing(bool b){m_doProcessing=b;};
         bool hasProcessing(){return m_doProcessing;};
@@ -139,8 +123,11 @@ namespace kinski {
         bool grabNextFrame();
         
         //-- OpenCV
-        FrameBundle m_frames;
         cv::VideoCapture m_capture ;
+        
+        IProcessNode::Ptr m_processNode;
+        
+        cv::Mat m_procImage;
         
         // Kinect
 #ifdef KINSKI_FREENECT
@@ -166,8 +153,8 @@ namespace kinski {
         boost::thread m_thread;
         boost::mutex m_mutex;
         
-        virtual cv::Mat doProcessing(const FrameBundle &bundle) 
-        {return bundle.m_inFrame;};//= 0;
+        virtual cv::Mat doProcessing(const cv::Mat &img) 
+        {return img;};//= 0;
     };
 } // namespace kinski
 #endif // CHTHREAD_H
