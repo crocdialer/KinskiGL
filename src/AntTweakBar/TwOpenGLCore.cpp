@@ -15,7 +15,6 @@
 #define GL3_PROTOTYPES 1 ////
 
 #if defined(ANT_OSX)
-  #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
   #include <OpenGL/gl3.h>
 #else
   #include <GL/gl.h>
@@ -691,10 +690,11 @@ void CTwGraphOpenGLCore::BuildText(void *_TextObj, const std::string *_TextLines
           LineBgColor.PushToVector(bgBuffer);
         }
     }
-
-    _glGenVertexArrays(1, &TextObj->m_VArray); CHECK_GL_ERROR;
+    
+    if(!TextObj->m_VArray) _glGenVertexArrays(1, &TextObj->m_VArray); CHECK_GL_ERROR;
     _glBindVertexArray(TextObj->m_VArray); CHECK_GL_ERROR;
-    _glGenBuffers(1, &TextObj->m_Buffer); CHECK_GL_ERROR;
+    
+    if(!TextObj->m_Buffer) _glGenBuffers(1, &TextObj->m_Buffer); CHECK_GL_ERROR;
     _glBindBuffer(GL_ARRAY_BUFFER, TextObj->m_Buffer); CHECK_GL_ERROR;
 
 	if (!textBuffer.empty())
@@ -711,9 +711,10 @@ void CTwGraphOpenGLCore::BuildText(void *_TextObj, const std::string *_TextLines
     _glVertexAttribPointer(2, 4, GL_FLOAT, GL_TRUE, stride, (const GLvoid*)(4 * sizeof(float))); CHECK_GL_ERROR;
     _glEnableVertexAttribArray(2); CHECK_GL_ERROR;
 
-    _glGenVertexArrays(1, &TextObj->m_BgVArray); CHECK_GL_ERROR;
+    if(!TextObj->m_BgVArray) _glGenVertexArrays(1, &TextObj->m_BgVArray); CHECK_GL_ERROR;
     _glBindVertexArray(TextObj->m_BgVArray); CHECK_GL_ERROR;
-    _glGenBuffers(1, &TextObj->m_BgBuffer); CHECK_GL_ERROR;
+    
+    if(!TextObj->m_BgBuffer) _glGenBuffers(1, &TextObj->m_BgBuffer); CHECK_GL_ERROR;
     _glBindBuffer(GL_ARRAY_BUFFER, TextObj->m_BgBuffer); CHECK_GL_ERROR;
 
 	if (!bgBuffer.empty())

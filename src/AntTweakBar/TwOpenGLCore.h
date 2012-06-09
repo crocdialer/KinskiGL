@@ -86,6 +86,9 @@ protected:
         GLuint               m_BgBuffer;
         GLuint               m_VertCount;
         GLuint               m_BgVertCount;
+        
+        CTextObj():m_VArray(0),m_Buffer(0),m_BgVArray(0),
+        m_BgBuffer(0),m_VertCount(0),m_BgVertCount(0){};
     };
 };
 
