@@ -10,7 +10,6 @@
 #ifndef CHTHREAD_H
 #define CHTHREAD_H
 
-#include "opencv2/opencv.hpp"
 #include "opencv2/highgui/highgui.hpp"
 
 #include "boost/shared_ptr.hpp"
@@ -21,26 +20,9 @@
 #include "KinectDevice.h"
 #endif
 
+#include "CVNodes.h"
+
 namespace kinski {
-    
-    class ISourceNode
-    {
-    public:
-        typedef boost::shared_ptr<ISourceNode> Ptr;
-        
-        virtual bool hasImage() = 0;
-        virtual cv::Mat getNextImage() = 0;
-    };
-    
-    class IBufferedSourceNode : public ISourceNode {};
-    
-    class IProcessNode
-    {
-    public:
-        typedef boost::shared_ptr<IProcessNode> Ptr;
-        
-        virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
-    };
     
     class CVThread : public boost::noncopyable
     {
@@ -125,7 +107,8 @@ namespace kinski {
         //-- OpenCV
         cv::VideoCapture m_capture ;
         
-        IProcessNode::Ptr m_processNode;
+        CVSourceNode::Ptr m_sourceNode;
+        CVProcessNode::Ptr m_processNode;
         
         cv::Mat m_procImage;
         
@@ -142,10 +125,6 @@ namespace kinski {
         //number of frames in current videofile from VideoCapture
         int m_numVideoFrames;
         std::string m_videoPath;
-        
-        // handle for IP-camera
-        //	AxisCamera* m_ipCamera;
-        //	bool m_ipCameraActive;
         
         double m_lastGrabTime;
         double m_lastProcessTime;

@@ -19,7 +19,7 @@ using namespace boost::timer;
 
 namespace kinski {
     
-    class CvCaptureNode : public ISourceNode
+    class CvCaptureNode : public CVSourceNode
     {
     public:
         CvCaptureNode(): m_camID(0){m_capture.open(m_camID);};
@@ -41,12 +41,12 @@ namespace kinski {
         cv::VideoCapture m_capture;
     };
     
-    class NoobNode : public IProcessNode
+    class NoobNode : public CVProcessNode
     {
         cv::Mat doProcessing(const cv::Mat &img){ return img;};
     };
     
-    class BoneNode : public IProcessNode
+    class BoneNode : public CVProcessNode
     {
     public:
         BoneNode():m_colorMap(Colormap::BONE){};
@@ -65,10 +65,11 @@ namespace kinski {
         Colormap m_colorMap;
     };
     
-    class ThreshNode : public IProcessNode
+    class ThreshNode : public CVProcessNode
     {
     public:
         ThreshNode():m_colorMap(Colormap::BONE){};
+        virtual ~ThreshNode(){};
         
         cv::Mat doProcessing(const cv::Mat &img)
         {
