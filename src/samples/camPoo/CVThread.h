@@ -20,7 +20,7 @@
 #include "KinectDevice.h"
 #endif
 
-#include "CVNodes.h"
+#include "CVNode.h"
 
 namespace kinski {
     

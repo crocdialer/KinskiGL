@@ -10,6 +10,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "boost/shared_ptr.hpp"
+#include "boost/thread.hpp"
 
 namespace kinski{
     
@@ -43,6 +44,8 @@ public:
     {};
     
 private:
+    
+    boost::thread m_thread;
     CVSourceNode::Ptr m_sourceNode;
 };
 

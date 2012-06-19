@@ -41,30 +41,6 @@ namespace kinski {
         cv::VideoCapture m_capture;
     };
     
-    class NoobNode : public CVProcessNode
-    {
-        cv::Mat doProcessing(const cv::Mat &img){ return img;};
-    };
-    
-    class BoneNode : public CVProcessNode
-    {
-    public:
-        BoneNode():m_colorMap(Colormap::BONE){};
-        
-        cv::Mat doProcessing(const cv::Mat &img)
-        {
-            Mat grayImg,out;
-            cvtColor(img, grayImg, CV_BGR2GRAY);
-            
-            out = m_colorMap.apply(grayImg);
-            
-            return out;
-        };
-        
-    private:
-        Colormap m_colorMap;
-    };
-    
     class ThreshNode : public CVProcessNode
     {
     public:
