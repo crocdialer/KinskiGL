@@ -212,6 +212,8 @@ public:
         
 //        m_cvThread->streamVideo("/Volumes/CrocData/Users/Fabian/Desktop/" 
 //                               "Stay Hungry (1976).avi");
+        
+        cout<<"CVThread source: "<<m_cvThread->getCurrentImgPath()<<"\n";
     }
     
     void tearDown()

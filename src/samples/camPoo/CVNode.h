@@ -29,7 +29,7 @@ public:
     typedef boost::shared_ptr<CVSourceNode> Ptr;
     
     // inherited from INode
-    virtual std::string getName(){return "Instance of ISourceNode";};
+    virtual std::string getName(){return "Instance of CVSourceNode";};
     virtual std::string getDescription(){return "Generic Input-source";};
     
     virtual bool hasImage() = 0;
@@ -56,7 +56,7 @@ public:
     typedef boost::shared_ptr<CVProcessNode> Ptr;
     
     // inherited from INode
-    virtual std::string getName(){return "Instance of IProcessNode";};
+    virtual std::string getName(){return "Instance of CVProcessNode";};
     virtual std::string getDescription(){return "Generic processing node";};
     
     virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
@@ -65,24 +65,19 @@ public:
 class CvCaptureNode : public CVSourceNode
 {
 public:
-    CvCaptureNode(const int camId){m_capture.open(camId);};
-    CvCaptureNode(const std::string &movieFile){m_capture.open(movieFile);};
+    CvCaptureNode(const int camId);
+    CvCaptureNode(const std::string &movieFile);
+    virtual ~CvCaptureNode();
     
-    virtual ~CvCaptureNode(){ m_capture.release();};
-    bool hasImage(){ return m_capture.isOpened() && m_capture.grab();};
+    virtual std::string getName();
+    virtual std::string getDescription();
     
-    cv::Mat getNextImage()
-    {
-        cv::Mat capFrame;
-        m_capture.retrieve(capFrame, 0) ;
-        
-        // going safe, have a copy of our own of the data
-        capFrame = capFrame.clone();
-        return capFrame;
-    };
+    bool hasImage();
+    cv::Mat getNextImage();
     
 private:
     cv::VideoCapture m_capture;
+    std::string m_description;
 };
     
 }// namespace kinski

@@ -18,9 +18,7 @@ using namespace cv;
 using namespace boost::timer;
 
 namespace kinski {
-    
-    
-    
+
     class ThreshNode : public CVProcessNode
     {
     public:
@@ -41,18 +39,13 @@ namespace kinski {
         Colormap m_colorMap;
     };
     
-
-    
-    CVThread::CVThread():m_streamType(NO_STREAM),m_currentFileIndex(0),m_sequenceStep(1),
+    CVThread::CVThread():m_currentFileIndex(0),m_sequenceStep(1),
     m_stopped(true), m_newFrame(false),
-    m_processNode(new ThreshNode),
+    //m_processNode(new ThreshNode),
     m_captureFPS(25.f)
     {	
         printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
-        
         //    cout<<cv::getBuildInformation()<<"\n";
-        
-        m_doProcessing = true;
     }
     
     CVThread::~CVThread()
@@ -78,8 +71,6 @@ namespace kinski {
     void CVThread::openImage(const std::string& imgPath)
     {	
         setImage(imread(imgPath));
-        m_streamType = NO_STREAM ;
-        
     }
     
     void CVThread::playPause()
@@ -92,20 +83,19 @@ namespace kinski {
     
     void CVThread::openSequence(const std::vector<std::string>& files)
     {	
-        streamUSBCamera(false);
-        
-        m_streamType = STREAM_FILELIST ;
         
         m_currentFileIndex = 0 ;
         m_filesToStream = files;
         m_numVideoFrames = files.size();
         
         //m_bufferThread->setSeq(files);
+        
+        //TODO: implement a SequenceSourceNode
     }
     
     bool CVThread::saveCurrentFrame(const std::string& savePath)
     {
-        return imwrite(savePath,m_doProcessing? m_procImage : m_procImage);
+        return imwrite(savePath,hasProcessing()? m_procImage : m_procImage);
         
     }
     
@@ -119,29 +109,29 @@ namespace kinski {
     {	
         m_currentFileIndex = newIndex < 0 ? 0 : newIndex;
         
-        switch (m_streamType) 
-        {
-            case STREAM_VIDEOFILE:
-                
-                if(m_currentFileIndex >= m_numVideoFrames)
-                    m_currentFileIndex = m_numVideoFrames-1;
-                
-                //m_capture.set(CV_CAP_PROP_POS_FRAMES,m_currentFileIndex);
-                
-                break;
-                
-            default:
-            case STREAM_FILELIST:
-                
-                if(m_filesToStream.empty())
-                    return;
-                
-                if(m_currentFileIndex >= (int)m_filesToStream.size())
-                    m_currentFileIndex = m_filesToStream.size()-1;
-                
-                break;
-                
-        }
+//        switch (m_streamType) 
+//        {
+//            case STREAM_VIDEOFILE:
+//                
+//                if(m_currentFileIndex >= m_numVideoFrames)
+//                    m_currentFileIndex = m_numVideoFrames-1;
+//                
+//                //m_capture.set(CV_CAP_PROP_POS_FRAMES,m_currentFileIndex);
+//                
+//                break;
+//                
+//            default:
+//            case STREAM_FILELIST:
+//                
+//                if(m_filesToStream.empty())
+//                    return;
+//                
+//                if(m_currentFileIndex >= (int)m_filesToStream.size())
+//                    m_currentFileIndex = m_filesToStream.size()-1;
+//                
+//                break;
+//                
+//        }
         
         if(m_stopped)
         {	
@@ -155,11 +145,13 @@ namespace kinski {
                 
                 timer.start();
                 
-                if(m_doProcessing && m_processNode)
+                if(hasProcessing())
                 {
                     m_procImage = m_processNode->doProcessing(m_procImage);
                     
-                    //m_lastProcessTime = timer.getElapsedTime();
+                    cpu_times t = timer.elapsed();
+                    t = timer.elapsed();
+                    m_lastProcessTime = (t.user + t.system) / 1000000000.0;
                 }
                 
             }
@@ -169,61 +161,15 @@ namespace kinski {
     
     void CVThread::streamVideo(const std::string& path2Video)
     {
-
         m_sourceNode = CVSourceNode::Ptr(new CvCaptureNode(path2Video));
         start(); 
     }
     
-    void CVThread::streamUSBCamera(bool b,int camId)
+    void CVThread::streamUSBCamera(int camId)
     {
-        if(b)
-        {
-            m_sourceNode = CVSourceNode::Ptr(new CvCaptureNode(0));
-            start();
-        }
-        else
-        {
-            stop();
-            m_sourceNode.reset();
-        }
+        m_sourceNode = CVSourceNode::Ptr(new CvCaptureNode(0));
+        start();
     }
-    
-#ifdef KINSKI_FREENECT
-    void CVThread::streamKinect(bool b)
-    {
-        if(b)
-        {
-            m_freenect = Freenect::Ptr(new Freenect);
-            m_kinectDevice = &(m_freenect->createDevice<KinectDevice>(0));
-            
-            
-            //setKinectUseIR(m_kinectUseIR);
-            m_kinectDevice->startVideo();
-            m_kinectDevice->startDepth();
-            
-            m_streamType = STREAM_KINECT;
-            this->start();
-        }
-        else
-        {
-            
-            m_freenect.reset();
-            m_kinectDevice=NULL;
-            
-            this->stop();
-            m_streamType = NO_STREAM;
-        }
-    }
-    
-    void CVThread::setKinectUseIR(bool b)
-    {
-        m_kinectUseIR = b;
-        
-        if(m_kinectDevice)
-            m_kinectDevice->setVideoFormat(b ?  FREENECT_VIDEO_IR_8BIT : 
-                                           FREENECT_VIDEO_RGB); 
-    }
-#endif
     
     cv::Mat CVThread::grabNextFrame()
     {	
@@ -272,7 +218,7 @@ namespace kinski {
                 boost::mutex::scoped_lock lock(m_mutex);
                 cpuTimer.start();
                 
-                if(m_doProcessing && m_processNode)
+                if(hasProcessing())
                 {   
                     m_procImage = m_processNode->doProcessing(m_procImage);
                 }
@@ -299,27 +245,7 @@ namespace kinski {
     string CVThread::getCurrentImgPath()
     {
         string out;
-        switch (m_streamType) 
-        {
-            case STREAM_FILELIST:
-                
-                out = m_filesToStream[m_currentFileIndex];
-                break;
-                
-            case STREAM_VIDEOFILE:
-                
-                out = getVideoPath();
-                break;
-                
-            case STREAM_CAPTURE:
-            case STREAM_IP_CAM:
-                
-                out = "camera input";
-                break;
-                
-            default:
-                break;
-        }
+        if(m_sourceNode) out = m_sourceNode->getDescription();
         return out;
     }
     

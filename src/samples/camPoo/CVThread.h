@@ -30,10 +30,7 @@ namespace kinski {
     public:
         
         typedef boost::shared_ptr<CVThread> Ptr;
-        
-        enum CVStreamType{NO_STREAM, STREAM_FILELIST,STREAM_IP_CAM,
-            STREAM_CAPTURE,STREAM_KINECT, STREAM_VIDEOFILE};
-        
+             
         CVThread();
         virtual ~CVThread();
         
@@ -41,9 +38,8 @@ namespace kinski {
         void openSequence(const std::vector<std::string>& files);
         
         void streamVideo(const std::string& path2Video);
-        void streamUSBCamera(bool b,int camId = 0);
+        void streamUSBCamera(int camId = 0);
         void streamIPCamera(bool b);
-        void streamKinect(bool b);
         
         bool saveCurrentFrame(const std::string& savePath);
         
@@ -51,6 +47,7 @@ namespace kinski {
         void jumpToFrame(int index);
         void skipFrames(int num);
         
+        // thread management
         void start();
         void stop();
         void operator()();
@@ -61,14 +58,14 @@ namespace kinski {
         bool isKinectActive() const {return m_freenect.use_count() > 0 ;};
         void setKinectUseIR(bool b);
         bool isKinectUseIR(){return m_kinectUseIR;};
+        void streamKinect(bool b);
 #endif
         
         void setImage(const cv::Mat& img);
-        
         bool getImage(cv::Mat& img);
         
-        void setDoProcessing(bool b){m_doProcessing=b;};
-        bool hasProcessing(){return m_doProcessing;};
+        inline bool hasProcessing(){return m_processNode;};
+        void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
         
         int getCurrentIndex();
         inline int getNumFrames(){return m_numVideoFrames;};
@@ -80,21 +77,18 @@ namespace kinski {
         void setFPS(const double& fps){m_captureFPS=fps;};
         double getFPS(){return m_captureFPS;};
         
-        CVStreamType getStreamType(){return m_streamType;};
-        
         std::string getCurrentImgPath();
         
     private:
-        
-        CVStreamType m_streamType;
         
         std::vector<std::string> m_filesToStream ;
         int m_currentFileIndex;
         unsigned int m_sequenceStep;
         
         volatile bool m_stopped;
-        volatile bool m_doProcessing;
         bool m_newFrame;
+        
+        cv::Mat m_procImage;
         
         //-- OpenCV
         CVSourceNode::Ptr m_sourceNode;
@@ -102,9 +96,7 @@ namespace kinski {
         
         // fetch next frame, depending on current sourceNode
         cv::Mat grabNextFrame();
-        
-        cv::Mat m_procImage;
-        
+
         // Kinect
 #ifdef KINSKI_FREENECT
         Freenect::Ptr m_freenect;
