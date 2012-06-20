@@ -19,27 +19,7 @@ using namespace boost::timer;
 
 namespace kinski {
     
-    class CvCaptureNode : public CVSourceNode
-    {
-    public:
-        CvCaptureNode(): m_camID(0){m_capture.open(m_camID);};
-        virtual ~CvCaptureNode(){ m_capture.release();};
-        bool hasImage(){ return m_capture.isOpened();};
-        
-        cv::Mat getNextImage()
-        {
-            Mat capFrame;
-            m_capture.retrieve(capFrame, 0) ;
-            
-            // going safe, have a copy of our own of the data
-            capFrame = capFrame.clone();
-            return capFrame;
-        };
-
-    private:
-        int m_camID;
-        cv::VideoCapture m_capture;
-    };
+    
     
     class ThreshNode : public CVProcessNode
     {
@@ -78,7 +58,6 @@ namespace kinski {
     CVThread::~CVThread()
     {
         stop();
-        m_capture.release();
     }
     
     void CVThread::start()
@@ -147,7 +126,7 @@ namespace kinski {
                 if(m_currentFileIndex >= m_numVideoFrames)
                     m_currentFileIndex = m_numVideoFrames-1;
                 
-                m_capture.set(CV_CAP_PROP_POS_FRAMES,m_currentFileIndex);
+                //m_capture.set(CV_CAP_PROP_POS_FRAMES,m_currentFileIndex);
                 
                 break;
                 
@@ -168,7 +147,9 @@ namespace kinski {
         {	
             cpu_timer timer;
             
-            if(grabNextFrame() && m_procImage.size() != Size(0,0)) 
+            m_procImage = grabNextFrame();
+            
+            if(m_procImage.size() != Size(0,0)) 
             {	
                 //m_lastGrabTime = m_timer.elapsed();
                 
@@ -188,79 +169,23 @@ namespace kinski {
     
     void CVThread::streamVideo(const std::string& path2Video)
     {
-        if(m_capture.isOpened())
-            m_capture.release();
-        
-        if(! m_capture.isOpened())
-        {
-            if(false)
-            {
-                //extracts framecount from an avi-file, since opencv fails at this point	
-                
-                //const char* path2Video = "/Users/Fabian/Desktop/iccv07-data/results/video-iccv07-seq1.avi";
-                unsigned char tempSize[4];
-                
-                // Trying to open the video file
-                std::ifstream videoFile( path2Video.c_str() , std::ios::in | std::ios::binary );
-                // Checking the availablity of the file
-                if ( !videoFile ) 
-                {
-                    std::string errStr = path2Video+"not found (streamVideo)";
-                    
-                    //std::exception e;
-                    throw std::exception();
-                }
-                m_videoPath = path2Video ;
-                
-                // get the number of frames (out of AVI Header)
-                videoFile.seekg( 0x30 , std::ios::beg );
-                videoFile.read( (char*)tempSize , 4 );
-                m_numVideoFrames = tempSize[0] + 0x100 * tempSize[1] + 0x10000 * tempSize[2] + 0x1000000 * tempSize[3];
-                m_currentFileIndex = 0;
-                
-                videoFile.close(  );
-            }
-            m_capture.open(path2Video);
-            
-            //Doesn´t work either :( -> read aviheader once more
-            m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
-            m_numVideoFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
-            printf("%d frames in video - fps: %.2f\n",m_numVideoFrames,m_captureFPS);
-            
-            m_streamType = STREAM_VIDEOFILE ;
-            this->start();
-            
-        }
-        else
-        {	
-            this->stop();
-            m_capture.release();
-            
-            m_streamType = NO_STREAM ;
-        }
-        
+
+        m_sourceNode = CVSourceNode::Ptr(new CvCaptureNode(path2Video));
+        start(); 
     }
     
     void CVThread::streamUSBCamera(bool b,int camId)
     {
-        
-        if(b && ! m_capture.isOpened())
+        if(b)
         {
-            m_capture.open(camId);
-            
-            this->start();
-            
-            m_streamType = STREAM_CAPTURE ;
-            
+            m_sourceNode = CVSourceNode::Ptr(new CvCaptureNode(0));
+            start();
         }
         else
-        {	
-            this->stop();
-            m_capture.release();
-            
-            m_streamType = NO_STREAM ;
+        {
+            stop();
+            m_sourceNode.reset();
         }
-        
     }
     
 #ifdef KINSKI_FREENECT
@@ -300,95 +225,14 @@ namespace kinski {
     }
 #endif
     
-    bool CVThread::grabNextFrame()
+    cv::Mat CVThread::grabNextFrame()
     {	
         //auto_cpu_timer t;
         
-        bool success = true ;
-        
-        switch (m_streamType) 
-        {
-            case STREAM_FILELIST:
-                
-                if(m_stopped)
-                    m_procImage = cv::imread(m_filesToStream[m_currentFileIndex]);
-                else
-                {
-                    //m_frames.m_inFrame = m_bufferThread->grabNextFrame();
-                    
-                    m_currentFileIndex = m_currentFileIndex + m_sequenceStep;
-                }
-                
-                // last frame reached ?
-                if(m_currentFileIndex >= (int)m_filesToStream.size())
-                {
-                    m_currentFileIndex = m_filesToStream.size()-1;
-                    
-                    this->stop();
-                    success = false ;
-                }
-                
-                break;
-                
-            case STREAM_CAPTURE:
-            case STREAM_VIDEOFILE:
-                
-                if(m_capture.isOpened() && m_capture.grab())
-                {		
-                    Mat capFrame;
-                    m_capture.retrieve(capFrame, 0) ;
-                    
-                    // going safe, have a copy of our own of the data
-                    m_procImage = capFrame.clone();
-                    
-                    if(m_streamType==STREAM_VIDEOFILE)
-                    {
-                        // last frame reached ?
-                        if(m_currentFileIndex+1 >= m_numVideoFrames)
-                        {
-                            m_currentFileIndex = m_numVideoFrames-1;
-                            
-                            this->stop();
-                            success = false ;
-                        }
-                        else
-                            m_currentFileIndex = m_capture.get(CV_CAP_PROP_POS_FRAMES);
-                        
-                    }
-                    
-                }
-                
-                else 
-                    success = false ;
-                
-                break;
-                
-//            case STREAM_IP_CAM:
-//                
-//                if(m_stopped)
-//                    loadFrameFromIpCamera();
-//                else
-//                    ;//m_frames.m_inFrame = m_bufferThread->grabNextFrame();
-//                break ;
-                
-#ifdef KINSKI_FREENECT
-            case STREAM_KINECT:
-                
-                m_kinectDevice->getVideo(m_frames.m_inFrame,m_kinectUseIR);
-                m_kinectDevice->getDepth(m_frames.m_depthMap,m_frames.m_inFrame);
-                
-                break ;
-#endif
-                
-            case NO_STREAM:
-                success = false ;
-                break ;
-                
-            default:
-                break;
-        }
-        
-        return success;
+        if(! (m_sourceNode && m_sourceNode->hasImage()) )
+            throw NoInputSourceException();
+
+        return m_sourceNode->getNextImage(); 
     }
     
     void CVThread::operator()()
@@ -407,7 +251,15 @@ namespace kinski {
             
             // fetch frame, cancel loop when not possible
             // this call is supposed to be fast and not block the thread too long
-            if (!grabNextFrame()) break;
+            try 
+            {
+                m_procImage = grabNextFrame();
+            } 
+            catch (NoInputSourceException e) 
+            {
+                std::cerr<<e.what();
+                break;
+            }
             
             //skip iteration when invalid frame is returned (eg. from camera)
             if(m_procImage.empty()) continue;
@@ -422,13 +274,7 @@ namespace kinski {
                 
                 if(m_doProcessing && m_processNode)
                 {   
-                    Mat procResult = m_processNode->doProcessing(m_procImage);
-                    
-                    //                Mat grey;
-                    //                cvtColor(procResult, grey, CV_BGR2GRAY);
-                    //                Canny(procResult, grey, 20, 30);
-                    
-                    m_procImage = procResult;
+                    m_procImage = m_processNode->doProcessing(m_procImage);
                 }
                 
                 m_newFrame = true;

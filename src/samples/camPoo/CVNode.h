@@ -39,13 +39,14 @@ public:
 class CVBufferedSourceNode : public CVSourceNode 
 {    
 public:
-    CVBufferedSourceNode(CVSourceNode::Ptr const srcNode):
+    CVBufferedSourceNode(const CVSourceNode::Ptr srcNode):
     m_sourceNode(srcNode)
     {};
     
 private:
     
     boost::thread m_thread;
+    boost::mutex m_mutex;
     CVSourceNode::Ptr m_sourceNode;
 };
 
@@ -59,6 +60,29 @@ public:
     virtual std::string getDescription(){return "Generic processing node";};
     
     virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
+};
+    
+class CvCaptureNode : public CVSourceNode
+{
+public:
+    CvCaptureNode(const int camId){m_capture.open(camId);};
+    CvCaptureNode(const std::string &movieFile){m_capture.open(movieFile);};
+    
+    virtual ~CvCaptureNode(){ m_capture.release();};
+    bool hasImage(){ return m_capture.isOpened() && m_capture.grab();};
+    
+    cv::Mat getNextImage()
+    {
+        cv::Mat capFrame;
+        m_capture.retrieve(capFrame, 0) ;
+        
+        // going safe, have a copy of our own of the data
+        capFrame = capFrame.clone();
+        return capFrame;
+    };
+    
+private:
+    cv::VideoCapture m_capture;
 };
     
 }// namespace kinski

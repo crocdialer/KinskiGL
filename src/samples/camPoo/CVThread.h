@@ -57,11 +57,6 @@ namespace kinski {
         
         const std::vector<std::string>& getSeq(){ return m_filesToStream;};
         
-        bool isCameraActive(){return isUSBCameraActive() || isIPCameraActive();};
-        
-        bool isUSBCameraActive() const {return m_capture.isOpened();} ;
-        bool isIPCameraActive() const {return false ;} ;
-        
 #ifdef KINSKI_FREENECT
         bool isKinectActive() const {return m_freenect.use_count() > 0 ;};
         void setKinectUseIR(bool b);
@@ -101,14 +96,12 @@ namespace kinski {
         volatile bool m_doProcessing;
         bool m_newFrame;
         
-        // fetch next frame, depending on current m_streamType
-        bool grabNextFrame();
-        
         //-- OpenCV
-        cv::VideoCapture m_capture ;
-        
         CVSourceNode::Ptr m_sourceNode;
         CVProcessNode::Ptr m_processNode;
+        
+        // fetch next frame, depending on current sourceNode
+        cv::Mat grabNextFrame();
         
         cv::Mat m_procImage;
         
@@ -133,5 +126,14 @@ namespace kinski {
         boost::mutex m_mutex;
         
     };
+    
+    class NoInputSourceException : public std::runtime_error
+    {
+    public:
+        NoInputSourceException() : 
+        std::runtime_error(std::string("No input source defined ..."))
+        {}
+    };
+    
 } // namespace kinski
 #endif // CHTHREAD_H
