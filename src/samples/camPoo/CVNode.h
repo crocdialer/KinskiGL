@@ -65,6 +65,8 @@ public:
 class CvCaptureNode : public CVSourceNode
 {
 public:
+    typedef boost::shared_ptr<CvCaptureNode> Ptr;
+    
     CvCaptureNode(const int camId);
     CvCaptureNode(const std::string &movieFile);
     virtual ~CvCaptureNode();
@@ -75,9 +77,15 @@ public:
     bool hasImage();
     cv::Mat getNextImage();
     
+    int getNumFrames();
+    float getFPS();
+    
 private:
     cv::VideoCapture m_capture;
     std::string m_description;
+
+    int m_numFrames;
+    float m_captureFPS;
 };
     
 }// namespace kinski

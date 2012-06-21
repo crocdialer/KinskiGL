@@ -161,7 +161,10 @@ namespace kinski {
     
     void CVThread::streamVideo(const std::string& path2Video)
     {
-        m_sourceNode = CVSourceNode::Ptr(new CvCaptureNode(path2Video));
+        CvCaptureNode::Ptr capNode (new CvCaptureNode(path2Video));
+        m_captureFPS = capNode->getFPS();
+        
+        m_sourceNode = capNode;
         start(); 
     }
     
@@ -188,7 +191,6 @@ namespace kinski {
         // measure elapsed time with these
         boost::timer::cpu_timer threadTimer, cpuTimer;
         
-        // gets next frame, which will be hold inside m_procImage
         while( !m_stopped )
         {
             //restart timer
@@ -242,7 +244,7 @@ namespace kinski {
         m_stopped = true;
     }
     
-    string CVThread::getCurrentImgPath()
+    string CVThread::getSourceInfo()
     {
         string out;
         if(m_sourceNode) out = m_sourceNode->getDescription();

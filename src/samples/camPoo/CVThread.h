@@ -68,8 +68,6 @@ namespace kinski {
         void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
         
         int getCurrentIndex();
-        inline int getNumFrames(){return m_numVideoFrames;};
-        inline const std::string& getVideoPath(){return m_videoPath;};
         
         double getLastGrabTime();
         double getLastProcessTime();
@@ -77,7 +75,7 @@ namespace kinski {
         void setFPS(const double& fps){m_captureFPS=fps;};
         double getFPS(){return m_captureFPS;};
         
-        std::string getCurrentImgPath();
+        std::string getSourceInfo();
         
     private:
         
@@ -97,19 +95,11 @@ namespace kinski {
         // fetch next frame, depending on current sourceNode
         cv::Mat grabNextFrame();
 
-        // Kinect
-#ifdef KINSKI_FREENECT
-        Freenect::Ptr m_freenect;
-        KinectDevice* m_kinectDevice;
-        bool m_kinectUseIR;
-#endif
-        
         //desired capturing / seconds  -> used to time threadmanagment
         double m_captureFPS;
         
         //number of frames in current videofile from VideoCapture
         int m_numVideoFrames;
-        std::string m_videoPath;
         
         double m_lastGrabTime;
         double m_lastProcessTime;

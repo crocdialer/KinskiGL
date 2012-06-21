@@ -208,12 +208,12 @@ public:
         
         *m_lightDir = 0.5f * vec3(-1.15, -0.64, -2.88);
         
-        m_cvThread->streamUSBCamera(true);
+        //m_cvThread->streamUSBCamera(true);
         
-//        m_cvThread->streamVideo("/Volumes/CrocData/Users/Fabian/Desktop/" 
-//                               "Stay Hungry (1976).avi");
+        m_cvThread->streamVideo("/Volumes/CrocData/Users/Fabian/Desktop/" 
+                               "Stay Hungry (1976).avi");
         
-        cout<<"CVThread source: "<<m_cvThread->getCurrentImgPath()<<"\n";
+        cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
     }
     
     void tearDown()

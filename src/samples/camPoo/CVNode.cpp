@@ -7,27 +7,40 @@
 //
 
 #include "CVNode.h"
-#include <sstream>
+#include <boost/format.hpp>
 
 using namespace std;
 using namespace cv;
 
 namespace kinski {
     
-    CvCaptureNode::CvCaptureNode(const int camId)
+    CvCaptureNode::CvCaptureNode(const int camId):
+    m_numFrames(-1)
     {
         m_capture.open(camId);
+        
+        m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
+        m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
+        
         stringstream sstream;
         sstream<<"usb camera ("<<camId<<")";
         m_description = sstream.str();
+        
+        boost::format fmt("usb camera(%d)\n");
+        fmt % camId;
+        m_description = fmt.str();
     }
     
     CvCaptureNode::CvCaptureNode(const std::string &movieFile)
     {
         m_capture.open(movieFile);
-        stringstream sstream;
-        sstream<<"movie file '"<<movieFile<<"'";
-        m_description = sstream.str();
+        
+        m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
+        m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
+        
+        boost::format fmt("movie file '%s'\n# frames: %d\nfps: %.2f\n");
+        fmt % movieFile % m_numFrames % m_captureFPS;
+        m_description = fmt.str();
     }
     
     CvCaptureNode::~CvCaptureNode(){ m_capture.release();};
@@ -47,5 +60,9 @@ namespace kinski {
         capFrame = capFrame.clone();
         return capFrame;
     }
+    
+    int CvCaptureNode::getNumFrames(){return m_numFrames;}
+    
+    float CvCaptureNode::getFPS(){return m_captureFPS;}
 }
 
