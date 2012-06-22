@@ -48,21 +48,26 @@ namespace kinski {
     std::string CvCaptureNode::getName(){return "CvCaptureNode";};
     std::string CvCaptureNode::getDescription(){return m_description;};
     
-    bool CvCaptureNode::hasImage(){ return m_capture.isOpened();};
-    
-    cv::Mat CvCaptureNode::getNextImage()
+    bool CvCaptureNode::getNextImage(cv::Mat &img)
     {
+        if(!m_capture.grab()) return false;
+        
         cv::Mat capFrame;
-        m_capture.grab();
         m_capture.retrieve(capFrame, 0) ;
         
         // going safe, have a copy of our own of the data
-        capFrame = capFrame.clone();
-        return capFrame;
+        img = capFrame.clone();
+        return true;
     }
     
     int CvCaptureNode::getNumFrames(){return m_numFrames;}
     
     float CvCaptureNode::getFPS(){return m_captureFPS;}
+    
+    void CvCaptureNode::jumpToFrame(const unsigned int newIndex)
+    {
+        int clampedIndex = newIndex > m_numFrames ? newIndex : (m_numFrames - 1);
+        m_capture.set(CV_CAP_PROP_POS_FRAMES,clampedIndex);
+    }
 }
 

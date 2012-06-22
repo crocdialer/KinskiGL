@@ -41,33 +41,21 @@ namespace kinski {
         void streamUSBCamera(int camId = 0);
         void streamIPCamera(bool b);
         
+#ifdef KINSKI_FREENECT
+        void streamKinect(bool b);
+#endif
+        
         bool saveCurrentFrame(const std::string& savePath);
         
         void playPause();
         void jumpToFrame(int index);
         void skipFrames(int num);
         
-        // thread management
-        void start();
-        void stop();
-        void operator()();
-        
-        const std::vector<std::string>& getSeq(){ return m_filesToStream;};
-        
-#ifdef KINSKI_FREENECT
-        bool isKinectActive() const {return m_freenect.use_count() > 0 ;};
-        void setKinectUseIR(bool b);
-        bool isKinectUseIR(){return m_kinectUseIR;};
-        void streamKinect(bool b);
-#endif
-        
         void setImage(const cv::Mat& img);
         bool getImage(cv::Mat& img);
         
         inline bool hasProcessing(){return m_processNode;};
         void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
-        
-        int getCurrentIndex();
         
         double getLastGrabTime();
         double getLastProcessTime();
@@ -77,11 +65,12 @@ namespace kinski {
         
         std::string getSourceInfo();
         
-    private:
+        // thread management
+        void start();
+        void stop();
+        void operator()();
         
-        std::vector<std::string> m_filesToStream ;
-        int m_currentFileIndex;
-        unsigned int m_sequenceStep;
+    private:
         
         volatile bool m_stopped;
         bool m_newFrame;
@@ -97,9 +86,6 @@ namespace kinski {
 
         //desired capturing / seconds  -> used to time threadmanagment
         double m_captureFPS;
-        
-        //number of frames in current videofile from VideoCapture
-        int m_numVideoFrames;
         
         double m_lastGrabTime;
         double m_lastProcessTime;

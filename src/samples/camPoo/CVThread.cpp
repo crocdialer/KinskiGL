@@ -39,9 +39,9 @@ namespace kinski {
         Colormap m_colorMap;
     };
     
-    CVThread::CVThread():m_currentFileIndex(0),m_sequenceStep(1),
+    CVThread::CVThread():
     m_stopped(true), m_newFrame(false),
-    //m_processNode(new ThreshNode),
+    m_processNode(new ThreshNode),
     m_captureFPS(25.f)
     {	
         printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
@@ -83,80 +83,13 @@ namespace kinski {
     
     void CVThread::openSequence(const std::vector<std::string>& files)
     {	
-        
-        m_currentFileIndex = 0 ;
-        m_filesToStream = files;
-        m_numVideoFrames = files.size();
-        
-        //m_bufferThread->setSeq(files);
-        
-        //TODO: implement a SequenceSourceNode
+
     }
     
     bool CVThread::saveCurrentFrame(const std::string& savePath)
     {
         return imwrite(savePath,hasProcessing()? m_procImage : m_procImage);
         
-    }
-    
-    void CVThread::skipFrames(int num)
-    {	
-        jumpToFrame( m_currentFileIndex + num );
-        
-    }
-    
-    void CVThread::jumpToFrame(int newIndex)
-    {	
-        m_currentFileIndex = newIndex < 0 ? 0 : newIndex;
-        
-//        switch (m_streamType) 
-//        {
-//            case STREAM_VIDEOFILE:
-//                
-//                if(m_currentFileIndex >= m_numVideoFrames)
-//                    m_currentFileIndex = m_numVideoFrames-1;
-//                
-//                //m_capture.set(CV_CAP_PROP_POS_FRAMES,m_currentFileIndex);
-//                
-//                break;
-//                
-//            default:
-//            case STREAM_FILELIST:
-//                
-//                if(m_filesToStream.empty())
-//                    return;
-//                
-//                if(m_currentFileIndex >= (int)m_filesToStream.size())
-//                    m_currentFileIndex = m_filesToStream.size()-1;
-//                
-//                break;
-//                
-//        }
-        
-        if(m_stopped)
-        {	
-            cpu_timer timer;
-            
-            m_procImage = grabNextFrame();
-            
-            if(m_procImage.size() != Size(0,0)) 
-            {	
-                //m_lastGrabTime = m_timer.elapsed();
-                
-                timer.start();
-                
-                if(hasProcessing())
-                {
-                    m_procImage = m_processNode->doProcessing(m_procImage);
-                    
-                    cpu_times t = timer.elapsed();
-                    t = timer.elapsed();
-                    m_lastProcessTime = (t.user + t.system) / 1000000000.0;
-                }
-                
-            }
-        }
-
     }
     
     void CVThread::streamVideo(const std::string& path2Video)
@@ -177,11 +110,12 @@ namespace kinski {
     cv::Mat CVThread::grabNextFrame()
     {	
         //auto_cpu_timer t;
+        Mat outMat;
         
-        if(! (m_sourceNode && m_sourceNode->hasImage()) )
+        if(! (m_sourceNode && m_sourceNode->getNextImage(outMat)) )
             throw NoInputSourceException();
 
-        return m_sourceNode->getNextImage(); 
+        return outMat; 
     }
     
     void CVThread::operator()()
@@ -282,12 +216,6 @@ namespace kinski {
     {
         boost::mutex::scoped_lock lock(m_mutex);
         return m_lastProcessTime;
-    }
-    
-    int CVThread::getCurrentIndex()
-    {
-        boost::mutex::scoped_lock lock(m_mutex);
-        return m_currentFileIndex;
     }
     
 }// namespace kinski

@@ -32,8 +32,7 @@ public:
     virtual std::string getName(){return "Instance of CVSourceNode";};
     virtual std::string getDescription(){return "Generic Input-source";};
     
-    virtual bool hasImage() = 0;
-    virtual cv::Mat getNextImage() = 0;
+    virtual bool getNextImage(cv::Mat &img) = 0;
 };
 
 class CVBufferedSourceNode : public CVSourceNode 
@@ -74,10 +73,12 @@ public:
     virtual std::string getName();
     virtual std::string getDescription();
     
-    bool hasImage();
-    cv::Mat getNextImage();
+    bool getNextImage(cv::Mat &img);
     
+    // capture interface
     int getNumFrames();
+    void jumpToFrame(const unsigned int newIndex);
+    
     float getFPS();
     
 private:
