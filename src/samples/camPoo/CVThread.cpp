@@ -92,11 +92,12 @@ namespace kinski {
         
     }
     
-    void CVThread::streamVideo(const std::string& path2Video)
+    void CVThread::streamVideo(const std::string& path2Video, bool loop)
     {
         CvCaptureNode::Ptr capNode (new CvCaptureNode(path2Video));
-        m_captureFPS = capNode->getFPS();
+        capNode->setLoop(loop);
         
+        m_captureFPS = capNode->getFPS();
         m_sourceNode = capNode;
         start(); 
     }

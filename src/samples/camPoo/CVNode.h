@@ -78,15 +78,19 @@ public:
     // capture interface
     int getNumFrames();
     void jumpToFrame(const unsigned int newIndex);
+    void setLoop(bool b);
     
     float getFPS();
     
 private:
     cv::VideoCapture m_capture;
+    
+    std::string m_videoSource;
     std::string m_description;
 
     int m_numFrames;
     float m_captureFPS;
+    bool m_loop;
 };
     
 }// namespace kinski

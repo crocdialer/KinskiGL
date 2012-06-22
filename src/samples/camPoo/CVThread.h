@@ -37,7 +37,7 @@ namespace kinski {
         void openImage(const std::string& imgPath);
         void openSequence(const std::vector<std::string>& files);
         
-        void streamVideo(const std::string& path2Video);
+        void streamVideo(const std::string& path2Video, bool loop = false);
         void streamUSBCamera(int camId = 0);
         void streamIPCamera(bool b);
         

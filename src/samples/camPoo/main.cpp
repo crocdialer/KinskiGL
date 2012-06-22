@@ -208,9 +208,10 @@ public:
         
         *m_lightDir = 0.5f * vec3(-1.15, -0.64, -2.88);
         
-        m_cvThread->streamUSBCamera(true);
+        //m_cvThread->streamUSBCamera(true);
         
-        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov");
+        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
+                                true);
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
     }
