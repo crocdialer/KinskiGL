@@ -3,8 +3,8 @@
 #include "kinskiGL/Shader.h"
 #include "Data.h"
 
-#include "TextureIO.h"
-#include "CVThread.h"
+#include "kinskiGL/TextureIO.h"
+#include "kinskiCV/CVThread.h"
 
 using namespace std;
 using namespace kinski;

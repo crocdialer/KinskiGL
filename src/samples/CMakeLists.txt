@@ -31,6 +31,8 @@ function(addSample theName thePath)
 
 endfunction()
 
+INCLUDE_DIRECTORIES("../")
+
 # add our sample(s)
 FILE(GLOB FOLDER_CONTENT *)
 

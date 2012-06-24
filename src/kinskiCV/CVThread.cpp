@@ -1,11 +1,10 @@
-/*
- *  CVThread.cpp
- *  TestoRAma
- *
- *  Created by Fabian on 9/13/10.
- *  Copyright 2010. All rights reserved.
- *
- */
+//
+//  CVThread.cpp
+//  kinskiGL
+//
+//  Created by Fabian Schmidt on 6/12/12.
+//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
+//
 
 #include "CVThread.h"
 #include <fstream>

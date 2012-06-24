@@ -1,3 +1,11 @@
+//
+//  Colormap.h
+//  kinskiCV
+//
+//  Created by Fabian Schmidt on 6/12/12.
+//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
+//
+
 #ifndef COLORMAP_H
 #define COLORMAP_H
 

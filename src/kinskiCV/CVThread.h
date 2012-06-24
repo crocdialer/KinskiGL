@@ -1,11 +1,10 @@
-/*
- *  CVThread.h
- *  TestoRAma
- *
- *  Created by Fabian on 9/13/10.
- *  Copyright 2010 LMU. All rights reserved.
- *
- */
+//
+//  CVThread.h
+//  kinskiGL
+//
+//  Created by Fabian Schmidt on 6/12/12.
+//  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
+//
 
 #ifndef CHTHREAD_H
 #define CHTHREAD_H
