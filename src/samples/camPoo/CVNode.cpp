@@ -23,11 +23,7 @@ namespace kinski {
         
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
-        
-        stringstream sstream;
-        sstream<<"usb camera ("<<camId<<")";
-        m_description = sstream.str();
-        
+    
         boost::format fmt("usb camera(%d)\n");
         fmt % camId;
         m_description = fmt.str();
@@ -58,7 +54,7 @@ namespace kinski {
         if(m_loop)
         {
             int currentFrame = m_capture.get(CV_CAP_PROP_POS_FRAMES);
-            if(currentFrame > (m_numFrames - 2)) 
+            if(currentFrame > std::max(0,m_numFrames - 2)) 
             {
                 //jumpToFrame(0);
                 m_capture.release();

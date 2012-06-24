@@ -12,6 +12,8 @@
 #include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
 
+#include "Colormap.h"
+
 namespace kinski{
     
 class CVNode
@@ -92,5 +94,27 @@ private:
     float m_captureFPS;
     bool m_loop;
 };
+
+class ThreshNode : public CVProcessNode
+{
+public:
+    ThreshNode(const uint32_t theThresh = 50):
+    m_thresh(theThresh),
+    m_colorMap(Colormap::BONE){};
     
+    cv::Mat doProcessing(const cv::Mat &img)
+    {
+        cv::Mat grayImg, threshImg, out;
+        cvtColor(img, grayImg, CV_BGR2GRAY);
+        threshold(grayImg, threshImg, m_thresh, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+        //            Canny(threshImg, threshImg, 20, 120);
+        out = threshImg;
+        
+        return m_colorMap.apply(out);
+    };
+    
+private:
+    uint32_t m_thresh;
+    Colormap m_colorMap;
+};
 }// namespace kinski

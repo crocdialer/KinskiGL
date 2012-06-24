@@ -10,8 +10,6 @@
 #include "CVThread.h"
 #include <fstream>
 
-#include "Colormap.h"
-
 using namespace std;
 using namespace cv;
 
@@ -19,26 +17,6 @@ using namespace boost::timer;
 
 namespace kinski {
 
-    class ThreshNode : public CVProcessNode
-    {
-    public:
-        ThreshNode():m_colorMap(Colormap::BONE){};
-        virtual ~ThreshNode(){};
-        
-        cv::Mat doProcessing(const cv::Mat &img)
-        {
-            Mat grayImg, threshImg, out;
-            cvtColor(img, grayImg, CV_BGR2GRAY);
-            threshold(grayImg, threshImg, 50, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-            out = threshImg;
-            
-            return m_colorMap.apply(out);
-        };
-        
-    private:
-        Colormap m_colorMap;
-    };
-    
     CVThread::CVThread():
     m_stopped(true), m_newFrame(false),
     m_processNode(new ThreshNode),
@@ -138,7 +116,7 @@ namespace kinski {
             {
                 m_procImage = grabNextFrame();
             } 
-            catch (NoInputSourceException e) 
+            catch (std::exception e) 
             {
                 std::cerr<<e.what();
                 break;
