@@ -1,6 +1,6 @@
 //
 //  CVThread.cpp
-//  kinskiGL
+//  kinskiCV
 //
 //  Created by Fabian Schmidt on 6/12/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -18,7 +18,6 @@ namespace kinski {
 
     CVThread::CVThread():
     m_stopped(true), m_newFrame(false),
-    m_processNode(new ThreshNode),
     m_captureFPS(25.f)
     {	
         printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);

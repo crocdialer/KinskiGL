@@ -98,23 +98,24 @@ private:
 class ThreshNode : public CVProcessNode
 {
 public:
-    ThreshNode(const uint32_t theThresh = 50):
+    ThreshNode(const int theThresh = 50):
     m_thresh(theThresh),
     m_colorMap(Colormap::BONE){};
     
     cv::Mat doProcessing(const cv::Mat &img)
     {
-        cv::Mat grayImg, threshImg, out;
+        cv::Mat grayImg, threshImg, outMat;
         cvtColor(img, grayImg, CV_BGR2GRAY);
-        threshold(grayImg, threshImg, m_thresh, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
-        //            Canny(threshImg, threshImg, 20, 120);
-        out = threshImg;
+        uint64_t mode = CV_THRESH_BINARY;
+        if(m_thresh < 0) mode |= CV_THRESH_OTSU;
+        threshold(grayImg, threshImg, m_thresh, 255, mode);
+        outMat = threshImg;
         
-        return m_colorMap.apply(out);
+        return m_colorMap.apply(outMat);
     };
     
 private:
-    uint32_t m_thresh;
+    int m_thresh;
     Colormap m_colorMap;
 };
 }// namespace kinski

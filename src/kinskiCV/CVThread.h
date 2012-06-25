@@ -1,6 +1,6 @@
 //
 //  CVThread.h
-//  kinskiGL
+//  kinskiCV
 //
 //  Created by Fabian Schmidt on 6/12/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -53,8 +53,11 @@ namespace kinski {
         void setImage(const cv::Mat& img);
         bool getImage(cv::Mat& img);
         
-        inline bool hasProcessing(){return m_processNode;};
-        void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
+        void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
+        
+        inline bool hasProcessing(){return m_processing && m_processNode;};
+        inline void setProcessing(bool b){m_processing = b;};
+        inline void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
         
         double getLastGrabTime();
         double getLastProcessTime();
@@ -75,6 +78,8 @@ namespace kinski {
         bool m_newFrame;
         
         cv::Mat m_procImage;
+        
+        bool m_processing;
         
         //-- OpenCV
         CVSourceNode::Ptr m_sourceNode;

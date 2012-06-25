@@ -172,6 +172,7 @@ public:
         }
         
         m_cvThread = CVThread::Ptr(new CVThread());
+        m_cvThread->setProcessingNode(CVProcessNode::Ptr(new ThreshNode(-1)));
         
         buildCubeVBO();
         buildCanvasVBO();
@@ -209,10 +210,7 @@ public:
         *m_lightDir = 0.5f * vec3(-1.15, -0.64, -2.88);
         
         m_cvThread->streamUSBCamera();
-        
-//        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
-//                                true);
-        
+
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
     }
     
