@@ -18,6 +18,7 @@ namespace kinski {
 
     CVThread::CVThread():
     m_stopped(true), m_newFrame(false),
+    m_processing(true),
     m_captureFPS(25.f)
     {	
         printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);

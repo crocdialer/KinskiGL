@@ -4,6 +4,9 @@ ADD_SUBDIRECTORY("AntTweakBar")
 INCLUDE_DIRECTORIES("AntTweakBar")
 SET(LIBS ${LIBS} "AntTweakBar")
 
+ADD_SUBDIRECTORY("core")
+SET(LIBS ${LIBS} "core")
+
 ADD_SUBDIRECTORY("kinskiCV")
 ADD_SUBDIRECTORY("kinskiGL")
 

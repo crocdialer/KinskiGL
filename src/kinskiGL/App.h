@@ -2,8 +2,10 @@
 #define _KINSKI_APP_IS_INCLUDED_
 
 #include "kinskiGL/KinskiGL.h"
-#include "Shader.h"
-#include "Property.h"
+#include "kinskiGL/Shader.h"
+
+#include "core/Property.h"
+#include <map>
 #include <list>
 
 namespace kinski
@@ -45,18 +47,21 @@ namespace kinski
         
         void setTweakBarVisible(bool b){m_displayTweakBar = b;};
         bool isTweaBarVisible(){return m_displayTweakBar;};
-        TwBar* getTweakBar(){return m_tweakBar;};
+        //TwBar* getTweakBar(){return m_tweakBar;};
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,
-                                   const std::string &group = "");
+                                   const std::string &group = "",
+                                   TwBar *theBar = NULL);
         
         void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
-                                       const std::string &group = "");
+                                       const std::string &group = "",
+                                       TwBar *theBar = NULL);
         
         void loadPropertiesInShader(gl::Shader theShader,
                                     const std::list<Property::Ptr> &theProps);
         
-        const std::list<Property::Ptr>& getTweakProperties() const {return m_tweakProperties;};
+        const std::map<TwBar*, Property::Ptr>& 
+        getTweakProperties() const {return m_tweakProperties;};
         
     private:
         
@@ -77,10 +82,10 @@ namespace kinski
         
         bool m_fullscreen;
         
-        TwBar *m_tweakBar;
+        std::list<TwBar*> m_tweakBarList;
         bool m_displayTweakBar;
         
-        std::list<Property::Ptr> m_tweakProperties;
+        std::map<TwBar*, Property::Ptr> m_tweakProperties;
         
     };    
 }

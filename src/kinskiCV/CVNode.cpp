@@ -76,9 +76,11 @@ namespace kinski {
     
     float CvCaptureNode::getFPS(){return m_captureFPS;}
     
-    void CvCaptureNode::jumpToFrame(const unsigned int newIndex)
+    void CvCaptureNode::jumpToFrame(const int newIndex)
     {
-        int clampedIndex = newIndex > m_numFrames ? newIndex : (m_numFrames - 1);
+        int clampedIndex = std::max(0, newIndex);
+        clampedIndex = std::min(clampedIndex ,m_numFrames - 1);
+        
         m_capture.set(CV_CAP_PROP_POS_FRAMES,clampedIndex);
     }
     

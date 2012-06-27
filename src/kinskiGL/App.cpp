@@ -64,7 +64,7 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(m_windowSize[0], m_windowSize[1]);
         
-        m_tweakBar = TwNewBar("KinskiGL");
+        m_tweakBarList.push_back(TwNewBar("KinskiGL"));
         
         // directly redirect GLFW events to AntTweakBar
         glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
@@ -139,24 +139,31 @@ namespace kinski
 /****************************  TweakBar + Properties **************************/ 
     
     void App::addPropertyToTweakBar(const Property::Ptr propPtr,
-                               const string &group)
+                                    const string &group,
+                                    TwBar *theBar)
     {
-        m_tweakProperties.push_back(propPtr);
+        if(!theBar)
+        {   if(m_tweakBarList.size() < 1) return;
+            theBar = m_tweakBarList.front();
+        }
+        m_tweakProperties[theBar] = propPtr;
+        
         try {
-            AntTweakBarConnector::connect(m_tweakBar, propPtr, group);
+            AntTweakBarConnector::connect(theBar, propPtr, group);
         } catch (AntTweakBarConnector::PropertyUnsupportedException &e) {
             cout<<e.getMessage()<<"\n";
         }
     }
     
     void App::addPropertyListToTweakBar(const list<Property::Ptr> &theProps,
-                                     const string &group)
+                                        const string &group,
+                                        TwBar *theBar)
     {
         list<Property::Ptr>::const_iterator propIt = theProps.begin();
         
         for (; propIt != theProps.end(); propIt++) 
         {   
-            addPropertyToTweakBar(*propIt, group);
+            addPropertyToTweakBar(*propIt, group, theBar);
         }
     }
     

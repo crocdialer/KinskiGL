@@ -13,10 +13,11 @@
 #include "boost/thread.hpp"
 
 #include "Colormap.h"
+#include "core/Component.h"
 
 namespace kinski{
     
-class CVNode
+class CVNode : public Component
 {
 public:
     typedef boost::shared_ptr<CVNode> Ptr;
@@ -79,7 +80,7 @@ public:
     
     // capture interface
     int getNumFrames();
-    void jumpToFrame(const unsigned int newIndex);
+    void jumpToFrame(const int newIndex);
     void setLoop(bool b);
     
     float getFPS();

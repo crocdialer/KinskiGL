@@ -21,8 +21,6 @@ private:
     GLuint m_canvasBuffer;
     GLuint m_canvasArray;
     
-    _Property<mat4>::Ptr m_viewMatrix;
-    
     _Property<bool>::Ptr m_activator;
     
     CVThread::Ptr m_cvThread;
@@ -100,14 +98,15 @@ public:
         
         m_cvThread = CVThread::Ptr(new CVThread());
         m_cvThread->setProcessingNode(CVProcessNode::Ptr(new SkySegmentNode));
+        addPropertyListToTweakBar(m_cvThread->getProcessingNode()->getPropertyList(),
+                                  "",
+                                  TwNewBar("SKy Segmenter"));
         
         buildCanvasVBO();
         
-        m_viewMatrix = _Property<mat4>::create("viewMatrix", mat4());
-        m_activator = _Property<bool>::create("Dj Activate Money", true);
+        m_activator = _Property<bool>::create("processing", true);
         
         // add props to tweakbar
-        addPropertyToTweakBar(m_viewMatrix);
         addPropertyToTweakBar(m_activator);
         
         m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",

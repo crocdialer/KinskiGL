@@ -25,7 +25,6 @@ namespace kinski {
     
     class CVThread : public boost::noncopyable
     {
-        
     public:
         
         typedef boost::shared_ptr<CVThread> Ptr;
@@ -57,7 +56,9 @@ namespace kinski {
         
         inline bool hasProcessing(){return m_processing && m_processNode;};
         inline void setProcessing(bool b){m_processing = b;};
+        
         inline void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
+        inline CVProcessNode::Ptr getProcessingNode(){return m_processNode;};
         
         double getLastGrabTime();
         double getLastProcessTime();

@@ -13,7 +13,7 @@
 #include <list>
 #include <boost/shared_ptr.hpp>
 
-#include <iostream>
+//#include <iostream>
 #include <exception>
 #include "Property.h"
 #include "Exception.h"
@@ -27,17 +27,17 @@ namespace kinski
         typedef boost::shared_ptr<Component> Ptr;
         
         Component();
-        virtual ~Component() = 0;    
-        std::list<Property::Ptr> getPropertyList(); 
+        virtual ~Component();    
+        const std::list<Property::Ptr>& getPropertyList() const; 
         Property::Ptr getPropertyByName(const std::string & thePropertyName);
     
     public: 
-        virtual void terminate() = 0;
-        virtual void tic() = 0;
+//        virtual void terminate() = 0;
+//        virtual void tic() = 0;
 
     protected:        
         std::list<Property::Ptr> m_propertyList;
-        Property::Ptr registerProperty(Property * theProperty);
+        void registerProperty(Property::Ptr theProperty);
     };
 
     // Exception definitions. TODO: put those to some neat macros

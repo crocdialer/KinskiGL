@@ -1,12 +1,13 @@
 #include "Component.h"
 
-using namespace kinski;
+namespace kinski{
 
 Component::Component()
 {
 }
 
-Component::~Component() {
+Component::~Component() 
+{
 }
 
 Property::Ptr Component::getPropertyByName(const std::string & thePropertyName) 
@@ -22,18 +23,15 @@ Property::Ptr Component::getPropertyByName(const std::string & thePropertyName)
     throw PropertyNotFoundException(thePropertyName);
 }
 
-std::list<Property::Ptr> 
-Component::getPropertyList() 
+const std::list<Property::Ptr>& 
+Component::getPropertyList() const
 {
-    return std::list<Property::Ptr>(m_propertyList);
+    return m_propertyList;
 }
 
-Property::Ptr
-Component::registerProperty(Property * theProperty) 
+void Component::registerProperty(Property::Ptr theProperty) 
 {
-    Property::Ptr myProperty(theProperty);
-    m_propertyList.push_back(myProperty);
-    
-    return myProperty;
+    m_propertyList.push_back(theProperty);
 }
 
+};
