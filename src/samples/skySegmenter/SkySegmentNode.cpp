@@ -56,6 +56,8 @@ Mat SkySegmentNode::doProcessing(const Mat &img)
     
     Mat workImg;
     Size kernSize = getValidKernSize(m_morphKernSize->val());
+    *m_morphKernSize = kernSize.width;
+    
     cv::dilate(edgeImg,
                workImg,
                cv::getStructuringElement(MORPH_ELLIPSE, kernSize ),
@@ -71,21 +73,52 @@ Mat SkySegmentNode::doProcessing(const Mat &img)
     
     workImg |= threshImg;
     
-    bitwise_not(workImg, skyMask);
-    
     //
     vector<vector<Point> > contours;
     vector<Vec4i> hierarchy;
     vector<vector<Point> > contours0;
     
-    Mat contourImg = skyMask.clone();
+    // find contours on sky image
+    Mat contourImg = workImg.clone();
     findContours( contourImg, contours0, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
     
+    // find contour description ?
+    std::vector<cv::Point> poly;
+    //approxPolyDP(contours0, poly, 5, true);
     
+    int minBound = 250;
+    vector<vector<Point> >::iterator contIt = contours0.begin();
+    for(;contIt != contours0.end();contIt++)
+    {
+        Rect bound = boundingRect(*contIt);
+        if(bound.area() > minBound * minBound)
+        {
+            contours.push_back(*contIt);
+        
+            //rectangle(outMat, bound, Scalar(255, 0, 0), 3);
+        }
+        else
+        {
+            // fill area with black
+            //workImg(bound) = 0.f;
+        }
+    }
+    
+    bitwise_not(workImg, skyMask);
+    cv::cvtColor(workImg, workImg, CV_GRAY2BGR);
     cv::cvtColor(skyMask, skyMask, CV_GRAY2BGR);
     
-    outMat = scaledImg & skyMask;
-    drawContours(outMat, contours0, -1, Scalar(128, 255, 255), 3);
+    {
+        Mat skyImg, foreGrnd;
+        bitwise_not(scaledImg, skyImg);
+        
+        skyImg &= skyMask;
+        foreGrnd = scaledImg & workImg;
+        
+        outMat = skyImg + foreGrnd;
+    }
+    
+    //drawContours(outMat, contours, 0, Scalar(128, 255, 255), 3);
     
     return outMat;
 }
@@ -94,12 +127,12 @@ cv::Mat SkySegmentNode::combineImages(const cv::Mat &img1, const cv::Mat &img2)
 {
     Mat outMat = img1.clone();
     
-    Mat tmpLeft, tmpRight;
-    
     Rect left(0, 0, img1.cols / 2, img1.rows);
     Rect right(img1.cols / 2 , 0, img1.cols / 2, img1.rows);
     
-    outMat(right) = img2(right);
+    Mat tmpLeft = img1(left), tmpRight = img2(right);
+    
+    outMat(right) = tmpRight;
     
     return outMat;
 }

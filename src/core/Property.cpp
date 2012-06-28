@@ -15,8 +15,12 @@ Property::Property() : m_tweakable(true)
 {
 }
 
-Property::Property(const std::string &theName, const boost::any &theValue):
-    m_name(theName), m_value(theValue), m_tweakable(true)
+Property::Property(const std::string &theName, const boost::any &theValue,
+                   const boost::any &min,
+                   const boost::any &max):
+    m_name(theName), m_value(theValue),
+    m_min(min), m_max(max),
+    m_tweakable(true)
 {
 } 
 

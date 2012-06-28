@@ -133,7 +133,7 @@ public:
         // trigger processing
         m_cvThread->setProcessing(m_activator->val());
         
-        printf("processing: %.2f ms\n", m_cvThread->getLastProcessTime() * 1000.);
+        //printf("processing: %.2f ms\n", m_cvThread->getLastProcessTime() * 1000.);
     }
     
     void draw()

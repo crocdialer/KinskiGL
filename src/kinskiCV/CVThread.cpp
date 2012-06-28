@@ -125,10 +125,11 @@ namespace kinski {
             if(m_procImage.empty()) continue;
             
             cpu_times t = cpuTimer.elapsed();
-            m_lastGrabTime = (t.user + t.system) / 1000000000.0;
+            m_lastGrabTime = (t.wall) / 1000000000.0;
             
             // image processing
             {   
+                //auto_cpu_timer autoTimer;
                 boost::mutex::scoped_lock lock(m_mutex);
                 cpuTimer.start();
                 
@@ -140,7 +141,7 @@ namespace kinski {
                 m_newFrame = true;
                 
                 t = cpuTimer.elapsed();
-                m_lastProcessTime = (t.user + t.system) / 1000000000.0;
+                m_lastProcessTime = (t.wall) / 1000000000.0;
             }
             
             double elapsed_msecs,sleep_msecs;
