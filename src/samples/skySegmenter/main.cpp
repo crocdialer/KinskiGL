@@ -97,10 +97,10 @@ public:
         }
         
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_cvThread->setProcessingNode(CVProcessNode::Ptr(new SkySegmentNode));
-        addPropertyListToTweakBar(m_cvThread->getProcessingNode()->getPropertyList(),
-                                  "",
-                                  TwNewBar("SKy Segmenter"));
+        CVProcessNode::Ptr procNode(new SkySegmentNode);
+        m_cvThread->setProcessingNode(procNode);
+        
+        addPropertyListToTweakBar(procNode->getPropertyList());
         
         buildCanvasVBO();
         
@@ -132,6 +132,8 @@ public:
         
         // trigger processing
         m_cvThread->setProcessing(m_activator->val());
+        
+        printf("processing: %.2f ms\n", m_cvThread->getLastProcessTime() * 1000.);
     }
     
     void draw()
