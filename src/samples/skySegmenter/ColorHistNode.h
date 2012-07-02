@@ -12,6 +12,21 @@
 
 class ColorHistNode : public kinski::CVProcessNode
 {
+private:
+    
+    // histogram related variables
+    
+    /*!
+     * number of histogram bins
+     */
+    int m_histSize[1];
+    
+    float m_hueRanges[2];
+    const float *m_ranges;
+    int channels[1];
+    
+    cv::Mat m_colorHist;
+    
 public:
     
     ColorHistNode();
@@ -19,10 +34,8 @@ public:
     
     cv::Mat doProcessing(const cv::Mat &img);
     
-    void extractHist(const cv::Mat &roi);
+    cv::Mat extractHist(const cv::Mat &roi);
     
-private:
 
-    cv::Mat m_colorHist;
 };
 

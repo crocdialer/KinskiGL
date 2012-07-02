@@ -125,13 +125,18 @@ Mat SkySegmentNode::doProcessing(const Mat &img)
 
 cv::Mat SkySegmentNode::combineImages(const cv::Mat &img1, const cv::Mat &img2)
 {
-    Mat outMat = img1.clone();
+    Mat outMat = Mat(img1.size(), CV_8UC1);
     
     Rect left(0, 0, img1.cols / 2, img1.rows);
     Rect right(img1.cols / 2 , 0, img1.cols / 2, img1.rows);
     
     Mat tmpLeft = img1(left), tmpRight = img2(right);
     
+    if(tmpLeft.channels() == 1) cvtColor(tmpLeft, tmpLeft, CV_GRAY2BGR);
+    
+    if(tmpRight.channels() == 1) cvtColor(tmpRight, tmpRight, CV_GRAY2BGR);
+    
+    outMat(left) = tmpLeft;
     outMat(right) = tmpRight;
     
     return outMat;

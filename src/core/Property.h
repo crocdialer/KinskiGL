@@ -21,7 +21,9 @@ public:
     typedef boost::shared_ptr<Property> Ptr;
     
     Property(); // default constructor
-    Property(const std::string &theName, const boost::any &theValue);
+    Property(const std::string &theName, const boost::any &theValue,
+             const boost::any &min = boost::any(),
+             const boost::any &max = boost::any());
    
     boost::any getValue() const;
     const std::string& getName() const;
@@ -64,6 +66,9 @@ public:
 private:
     std::string m_name;
     boost::any m_value;
+    
+    boost::any m_min, m_max;
+    
 	bool m_tweakable;
 
 public:
@@ -77,14 +82,21 @@ public:
         {}
     }; 
     
-    // define exceptions
     class WrongTypeGetException : public Exception
     {
     public:
         WrongTypeGetException(std::string thePropertyName) : 
             Exception(std::string("Wrong type in getValue for Property: ") + thePropertyName)
         {}
-    }; 
+    };
+    
+    class BadBoundsException : public Exception
+    {
+    public:
+        BadBoundsException(std::string thePropertyName) : 
+        Exception(std::string("Bad bounds set for Property: ") + thePropertyName)
+        {}
+    };
 };
     template<typename T>
     class _Property : public Property
@@ -92,9 +104,11 @@ public:
     public:
         typedef boost::shared_ptr< _Property<T> > Ptr;
         
-        static Ptr create(const std::string &theName, const T &theValue)
+        static Ptr create(const std::string &theName, const T &theValue,
+                          const T &min = T(),
+                          const T &max = T())
         {
-            Ptr outPtr (new _Property(theName, theValue));
+            Ptr outPtr (new _Property(theName, theValue, min, max));
             return outPtr;
         };
         
@@ -226,8 +240,9 @@ public:
         
     private:
         _Property():Property(){};
-        _Property(const std::string &theName, const T &theValue):
-        Property(theName, theValue){};
+        _Property(const std::string &theName, const T &theValue,
+                  const T &min = T(), const T &max = T()):
+        Property(theName, theValue, min, max){};
         
     };
 

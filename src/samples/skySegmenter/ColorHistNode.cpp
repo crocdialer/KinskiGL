@@ -13,46 +13,62 @@ using namespace kinski;
 
 ColorHistNode::ColorHistNode()
 {
-
+    m_histSize[0] = 16;
+    
+    m_hueRanges[0] = 0; 
+    m_hueRanges[1] = 180;
+    
+    channels[0] = 0;
+    
+    m_ranges = m_hueRanges;
+    
+    
 }
 
 ColorHistNode::~ColorHistNode()
 {
-
+    
 }
 
 Mat ColorHistNode::doProcessing(const Mat &img)
 {
-    Mat outMat = img.clone(), centerRoi;
+    // check for correct type (3 channel 8U)
+    //TODO: implement check here
+    assert(img.channels() == 3 &&
+           img.type() & CV_8U);
     
+    Mat outMat, hsvImg, backProj, roiImg;
+    
+    //convert colorspace to hsv
+    cvtColor(img, hsvImg, CV_BGR2HSV);
+    
+    if(m_colorHist.empty())
     {
         int rectWidth = 50;
         Point centerPoint = Point(img.cols / 2, img.rows/ 2);
         Rect centerRect = Rect(centerPoint - Point(rectWidth, rectWidth),
                                centerPoint + Point(rectWidth, rectWidth));
         
-        centerRoi = outMat(centerRect);
+        roiImg = hsvImg(centerRect);
+        
+        m_colorHist = extractHist(roiImg);
     }
     
-    if(m_colorHist.empty())
-        extractHist(img);
-    
     // back projection
-    //calcBackProject(<#InputArrayOfArrays images#>, <#const vector<int> &channels#>, <#InputArray hist#>, <#OutputArray dst#>, <#const vector<float> &ranges#>, <#double scale#>)
+    calcBackProject(&img, 1, channels, m_colorHist, backProj, &m_ranges);
     
     return outMat;
 }
 
-void ColorHistNode::extractHist(const cv::Mat &img)
+Mat ColorHistNode::extractHist(const cv::Mat &hsvImg)
 {
-    Mat hsvImg, outMat;
+    Mat outMat;
     
-    cvtColor(img, hsvImg, CV_BGR2HSV);
+    // extract 1 dimensional histogram
+    calcHist(&hsvImg, 1, channels, Mat(), outMat, 1, m_histSize, &m_ranges);
     
-    int hsize = 16;
-    float hranges[] = {0,180};
-    const float* phranges = hranges;
+    cv::normalize(outMat, outMat, 0, 255, NORM_MINMAX);
     
-    calcHist(&hsvImg, 1, 0, Mat(), m_colorHist, 1, &hsize, &phranges);
+    return outMat;
     
 }

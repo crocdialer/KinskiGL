@@ -5,7 +5,9 @@
 
 #include "kinskiGL/TextureIO.h"
 #include "kinskiCV/CVThread.h"
+
 #include "SkySegmentNode.h"
+#include "ColorHistNode.h"
 
 using namespace std;
 using namespace kinski;
@@ -97,8 +99,11 @@ public:
         }
         
         m_cvThread = CVThread::Ptr(new CVThread());
-        CVProcessNode::Ptr procNode(new SkySegmentNode);
+        //CVProcessNode::Ptr procNode(new SkySegmentNode);
+        CVProcessNode::Ptr procNode(new ColorHistNode);
+        
         m_cvThread->setProcessingNode(procNode);
+        
         
         addPropertyListToTweakBar(procNode->getPropertyList());
         
