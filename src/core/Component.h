@@ -13,7 +13,6 @@
 #include <list>
 #include <boost/shared_ptr.hpp>
 
-//#include <iostream>
 #include <exception>
 #include "Property.h"
 #include "Exception.h"

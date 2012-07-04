@@ -49,11 +49,12 @@ Texture::Format::Format()
     
 struct Texture::Obj {
     Obj() : m_Width( -1 ), m_Height( -1 ), m_CleanWidth( -1 ),
-    m_CleanHeight( -1 ), m_InternalFormat( -1 ), m_TextureID( 0 ),
-    m_Flipped( false ), m_DeallocatorFunc( 0 ) {};
+    m_CleanHeight( -1 ), m_InternalFormat( -1 ), m_dataType(-1),
+    m_TextureID( 0 ), m_Flipped( false ), m_DeallocatorFunc( 0 ) {};
     
     Obj( int aWidth, int aHeight ) : m_Width( aWidth ), m_Height( aHeight ),
     m_CleanWidth( aWidth ), m_CleanHeight( aHeight ), m_InternalFormat( -1 ),
+    m_dataType(-1),
     m_TextureID( 0 ), m_Flipped( false ), m_boundTextureUnit(-1), 
     m_DeallocatorFunc( 0 )  {};
     
@@ -71,6 +72,7 @@ struct Texture::Obj {
     mutable GLint	m_Width, m_Height, m_CleanWidth, m_CleanHeight;
     float			mMaxU, mMaxV;
     mutable GLint	m_InternalFormat;
+    GLenum          m_dataType;
     GLenum			m_Target;
     GLuint			m_TextureID;
     glm::mat4       m_textureMatrix;
@@ -93,7 +95,8 @@ Texture::Texture( int aWidth, int aHeight, Format format )
 		format.m_InternalFormat = GL_RGBA;
 	m_Obj->m_InternalFormat = format.m_InternalFormat;
 	m_Obj->m_Target = format.m_Target;
-	init( (unsigned char*)0, 0, GL_RGBA, GL_UNSIGNED_BYTE, format );
+    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
+	init( (unsigned char*)0, GL_RGBA, format, 0);
 }
 
 Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format )
@@ -103,7 +106,8 @@ Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHe
 		format.m_InternalFormat = GL_RGBA;
 	m_Obj->m_InternalFormat = format.m_InternalFormat;
 	m_Obj->m_Target = format.m_Target;
-	init( data, 0, dataFormat, GL_UNSIGNED_BYTE, format );
+    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
+	init( data, dataFormat, format );
 }	
 
 Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose )
@@ -124,7 +128,8 @@ Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bo
 	}
 }
 
-void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format )
+void Texture::init(const unsigned char *data, GLenum dataFormat,
+                   const Format &format, int unpackRowLength)
 {
 	m_Obj->m_DoNotDispose = false;
     
@@ -159,7 +164,9 @@ void Texture::init( const unsigned char *data, int unpackRowLength, GLenum dataF
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, unpackRowLength );
 #endif
     
-	glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat, type, data );
+	glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
+                 m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
+                 GL_UNSIGNED_BYTE, data );
     
 #if ! defined( KINSKI_GLES )
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
@@ -206,20 +213,40 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 
 void Texture::update( const unsigned char *data,GLenum format, int theWidth, int theHeight, bool flipped )
 {   
-    if(m_Obj->m_Width == theWidth && m_Obj->m_Height == theHeight)
+    update(data, GL_UNSIGNED_BYTE, format, theWidth, theHeight, flipped);
+}
+    
+void Texture::update( const float *data,GLenum format, int theWidth, int theHeight, bool flipped )
+{
+    update(data, GL_FLOAT, format, theWidth, theHeight, flipped);
+}
+    
+void Texture::update(const void *data,
+                     GLenum dataType,GLenum format,
+                     int theWidth, int theHeight,
+                     bool flipped )
+{
+    if(m_Obj->m_Width == theWidth && 
+       m_Obj->m_Height == theHeight &&
+       m_Obj->m_dataType == dataType)
     {
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-        glTexSubImage2D( m_Obj->m_Target, 0, 0, 0, m_Obj->m_Width, m_Obj->m_Height, format, GL_UNSIGNED_BYTE, data );
+        glTexSubImage2D( m_Obj->m_Target, 0, 0, 0, m_Obj->m_Width, m_Obj->m_Height, format, dataType, data );
     }
     else 
     {
         m_Obj->m_Target = GL_TEXTURE_2D;
+        m_Obj->m_dataType = dataType;
         m_Obj->m_InternalFormat = GL_RGBA;
         m_Obj->m_CleanWidth = m_Obj->m_Width = theWidth;
         m_Obj->m_CleanHeight = m_Obj->m_Height = theHeight;
         setFlipped(flipped);
         
-        init(data, 0, format, GL_UNSIGNED_BYTE, Format());
+        if(dataType == GL_UNSIGNED_BYTE)
+            init((unsigned char*)data, format, Format());
+        else if(dataType == GL_FLOAT)
+            init((float*) data, format, Format());
+            
     }
 }
     

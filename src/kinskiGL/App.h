@@ -2,7 +2,6 @@
 #define _KINSKI_APP_IS_INCLUDED_
 
 #include "kinskiGL/KinskiGL.h"
-#include "kinskiGL/Shader.h"
 
 #include "core/Property.h"
 #include <map>
@@ -56,9 +55,6 @@ namespace kinski
         void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
                                        const std::string &group = "",
                                        TwBar *theBar = NULL);
-        
-        void loadPropertiesInShader(gl::Shader theShader,
-                                    const std::list<Property::Ptr> &theProps);
         
         const std::map<TwBar*, Property::Ptr>& 
         getTweakProperties() const {return m_tweakProperties;};

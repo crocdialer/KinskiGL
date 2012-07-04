@@ -1,6 +1,8 @@
 #include "kinskiGL/App.h"
+
 #include "kinskiGL/Texture.h"
-//#include "kinskiGL/Shader.h"
+#include "kinskiGL/Shader.h"
+
 #include "Data.h"
 
 #include "kinskiGL/TextureIO.h"
@@ -66,8 +68,8 @@ private:
                      const vec2 &theSize = vec2(0))
     {
         vec2 sz = theSize == vec2(0) ? theTexture.getSize() : theSize;
-        
-        drawTexture(theTexture, theTl[0], theTl[1], (theTl+sz)[0], theTl[1]-sz[1]);
+        vec2 tl = theTl == vec2(0) ? vec2(0, getHeight()) : theTl;
+        drawTexture(theTexture, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
     
@@ -99,8 +101,9 @@ public:
     
     void setup()
     {
-        glEnable(GL_DEPTH_TEST);
+        //glEnable(GL_DEPTH_TEST);
         //glEnable(GL_CULL_FACE);
+        
         glEnable(GL_TEXTURE_2D);
         glClearColor(0, 0, 0, 1);
         
@@ -158,12 +161,8 @@ public:
     
     void draw()
     {
-        glDisable(GL_DEPTH_TEST);
-        
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
         drawTexture(m_texture, vec2(0, getHeight()), getWindowSize());
-        
-        glEnable(GL_DEPTH_TEST);
     }
 };
 

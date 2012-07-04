@@ -97,6 +97,14 @@ namespace gl
         //! Replaces the pixels of a texture with \a data
         void update( const unsigned char *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
         
+        //! Replaces the pixels of a texture with \a data
+        void update( const float *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
+        
+        void update(const void *data,
+                             GLenum dataType,GLenum format,
+                             int theWidth, int theHeight,
+                    bool flipped = false);
+        
         //! the width of the texture in pixels
         GLint getWidth() const;
         //! the height of the texture in pixels
@@ -246,8 +254,9 @@ namespace gl
             friend class Texture;
         };
         
-    protected:
-        void	init( const unsigned char *data, int unpackRowLength, GLenum dataFormat, GLenum type, const Format &format );	
+    private:
+        void	init(const unsigned char *data, GLenum dataFormat,
+                     const Format &format, int unpackRowLength = 0);	
         void	init( const float *data, GLint dataFormat, const Format &format );
         
         // forward declared Implementation object
