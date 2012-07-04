@@ -111,9 +111,10 @@ namespace kinski {
             
             // fetch frame, cancel loop when not possible
             // this call is supposed to be fast and not block the thread too long
+            Mat inFrame;
             try 
             {
-                m_procImage = grabNextFrame();
+                inFrame = grabNextFrame();
             } 
             catch (std::exception e) 
             {
@@ -122,7 +123,7 @@ namespace kinski {
             }
             
             //skip iteration when invalid frame is returned (eg. from camera)
-            if(m_procImage.empty()) continue;
+            if(inFrame.empty()) continue;
             
             cpu_times t = cpuTimer.elapsed();
             m_lastGrabTime = (t.wall) / 1000000000.0;
@@ -130,18 +131,19 @@ namespace kinski {
             // image processing
             {   
                 //auto_cpu_timer autoTimer;
-                boost::mutex::scoped_lock lock(m_mutex);
                 cpuTimer.start();
                 
                 if(hasProcessing())
                 {   
-                    m_procImage = m_processNode->doProcessing(m_procImage);
+                    inFrame = m_processNode->doProcessing(inFrame);
                 }
-                
-                m_newFrame = true;
                 
                 t = cpuTimer.elapsed();
                 m_lastProcessTime = (t.wall) / 1000000000.0;
+                
+                boost::mutex::scoped_lock lock(m_mutex);
+                m_newFrame = true;
+                m_procImage = inFrame;
             }
             
             double elapsed_msecs,sleep_msecs;
