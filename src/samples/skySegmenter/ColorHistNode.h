@@ -27,15 +27,15 @@ private:
     
     cv::Mat m_colorHist;
     
+    int m_roiWidth;
+    
+    cv::Mat extractHueHistogram(const cv::Mat &roi);
+    
 public:
     
     ColorHistNode();
     virtual ~ColorHistNode();
     
     cv::Mat doProcessing(const cv::Mat &img);
-    
-    cv::Mat extractHist(const cv::Mat &roi);
-    
-
 };
 

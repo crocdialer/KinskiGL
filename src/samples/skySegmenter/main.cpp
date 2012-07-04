@@ -61,20 +61,26 @@ private:
         
     }
     
-    void drawTexture(gl::Texture theTexture, gl::Shader theShader)
+    void drawTexture(gl::Texture theTexture, float x0, float y0, float x1, float y1)
     {
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(theTexture);
-        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
         
         // orthographic projection with a [0,1] coordinate space
         mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        
+        mat4 modelViewMatrix;
+        float scaleX = (x0 - x1) / getWidth();
+        float scaleY = (y0 - y1) / getHeight();
+        
+        glm::scale(modelViewMatrix, vec3(scaleX, scaleY, 1));
+        //modelViewMatrix[3] = vec4(x0, y0 , 0, 1);
         
         m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
         m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
-                         projectionMatrix);
+                         projectionMatrix * modelViewMatrix);
         
         glBindVertexArray(m_canvasArray);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -98,25 +104,25 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
+        buildCanvasVBO();
+        
+        m_activator = _Property<bool>::create("processing", true);
+        
+        // add component-props to tweakbar
+        addPropertyToTweakBar(m_activator);
+        
+        // CV stuff 
+        
         m_cvThread = CVThread::Ptr(new CVThread());
         //CVProcessNode::Ptr procNode(new SkySegmentNode);
         CVProcessNode::Ptr procNode(new ColorHistNode);
         
         m_cvThread->setProcessingNode(procNode);
         
-        
         addPropertyListToTweakBar(procNode->getPropertyList());
-        
-        buildCanvasVBO();
-        
-        m_activator = _Property<bool>::create("processing", true);
-        
-        // add props to tweakbar
-        addPropertyToTweakBar(m_activator);
         
         m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
                                 true);
-        
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
     }
     
@@ -144,7 +150,10 @@ public:
     void draw()
     {
         glDisable(GL_DEPTH_TEST);
-        drawTexture(m_texture, m_shader);
+        
+        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
+        drawTexture(m_texture, 0, getHeight(), 0, getWidth());
+        
         glEnable(GL_DEPTH_TEST);
     }
 };

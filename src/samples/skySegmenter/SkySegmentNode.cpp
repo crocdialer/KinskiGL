@@ -14,7 +14,7 @@ using namespace kinski;
 SkySegmentNode::SkySegmentNode():
 m_cannyLow(_Property<uint32_t>::create("Canny Low", 71)),
 m_cannyHigh(_Property<uint32_t>::create("Cany High", 208)),
-m_morphKernSize(_Property<uint32_t>::create("Morph kernel size", 9)),
+m_morphKernSize(_Property<uint32_t>::create("Morph kernel size", 7)),
 m_threshVal(_Property<uint32_t>::create("Intesity threshold", 140)),
 m_minPathLength(_Property<uint32_t>::create("Minimal path length", 200))
 {
