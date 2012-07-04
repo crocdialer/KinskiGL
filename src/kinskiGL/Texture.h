@@ -284,8 +284,8 @@ namespace gl
         m_obj(NULL),m_isBound(false)
         {}
         
-        explicit scoped_bind(T &theObj):
-        m_obj(&theObj),m_isBound(false)
+        explicit scoped_bind(const T &theObj):
+        m_obj(const_cast<T*>(&theObj)),m_isBound(false)
         {
             bind();
         }

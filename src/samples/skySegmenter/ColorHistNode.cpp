@@ -96,7 +96,7 @@ Mat ColorHistNode::doProcessing(const Mat &img)
         // calculate mixture image
         backProj.convertTo(tmpProj, CV_32F, 1.0 / 255.0);
         
-        return tmpProj;
+        //return tmpProj;
         
         //split hsv image
         vector<Mat> hsvSplit;

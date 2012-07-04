@@ -35,7 +35,7 @@ namespace kinski
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
-        inline const glm::ivec2 getWindowSize(){return m_windowSize;};
+        inline const glm::vec2 getWindowSize(){return m_windowSize;};
         
         inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::ivec2(w, h));};
         inline void setWindowSize(const glm::ivec2 size){m_windowSize = size;};
@@ -77,8 +77,7 @@ namespace kinski
         double m_lastTimeStamp;
         uint64_t m_framesDrawn;
         
-        //int m_width, m_height;
-        glm::ivec2 m_windowSize;
+        glm::vec2 m_windowSize;
         
         bool m_fullscreen;
         

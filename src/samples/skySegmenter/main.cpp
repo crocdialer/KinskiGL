@@ -1,6 +1,6 @@
 #include "kinskiGL/App.h"
 #include "kinskiGL/Texture.h"
-#include "kinskiGL/Shader.h"
+//#include "kinskiGL/Shader.h"
 #include "Data.h"
 
 #include "kinskiGL/TextureIO.h"
@@ -61,20 +61,29 @@ private:
         
     }
     
-    void drawTexture(gl::Texture theTexture, float x0, float y0, float x1, float y1)
+    void drawTexture(gl::Texture theTexture,
+                     const vec2 &theTl = vec2(0),
+                     const vec2 &theSize = vec2(0))
+    {
+        vec2 sz = theSize == vec2(0) ? theTexture.getSize() : theSize;
+        
+        drawTexture(theTexture, theTl[0], theTl[1], (theTl+sz)[0], theTl[1]-sz[1]);
+    }
+    
+    
+    void drawTexture(const gl::Texture &theTexture, float x0, float y0, float x1, float y1)
     {
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(theTexture);
         
         // orthographic projection with a [0,1] coordinate space
-        mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
         
-        mat4 modelViewMatrix;
-        float scaleX = (x0 - x1) / getWidth();
+        float scaleX = (x1 - x0) / getWidth();
         float scaleY = (y0 - y1) / getHeight();
         
-        glm::scale(modelViewMatrix, vec3(scaleX, scaleY, 1));
-        //modelViewMatrix[3] = vec4(x0, y0 , 0, 1);
+        mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
+        modelViewMatrix[3] = vec4(x0 / getWidth(), y1 / getHeight() , 0, 1);
         
         m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
         m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
@@ -152,7 +161,7 @@ public:
         glDisable(GL_DEPTH_TEST);
         
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
-        drawTexture(m_texture, 0, getHeight(), 0, getWidth());
+        drawTexture(m_texture, vec2(0, getHeight()), getWindowSize());
         
         glEnable(GL_DEPTH_TEST);
     }
