@@ -48,9 +48,9 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
     //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
     //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     
-    GLenum dataFormat = (theImage.type() & CV_32F) ? GL_FLOAT : GL_UNSIGNED_BYTE;
+    GLenum dataType = (theImage.type() & CV_32F) ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
-    theTexture.update(theImage.data, dataFormat, 
+    theTexture.update(theImage.data, dataType, 
                       format, theImage.cols, theImage.rows, true);
     
 }

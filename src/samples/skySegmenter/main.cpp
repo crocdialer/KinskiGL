@@ -155,8 +155,9 @@ public:
         
         // trigger processing
         m_cvThread->setProcessing(m_activator->val());
-        
         //printf("processing: %.2f ms\n", m_cvThread->getLastProcessTime() * 1000.);
+        
+        //glm::simplex(glm::vec3(1 / 16.f, 1 / 16.f, 0.5f));
     }
     
     void draw()

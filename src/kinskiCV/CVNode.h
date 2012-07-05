@@ -62,6 +62,7 @@ public:
     virtual std::string getDescription(){return "Generic processing node";};
     
     virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
+    
 };
     
 class CvCaptureNode : public CVSourceNode
