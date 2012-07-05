@@ -100,13 +100,5 @@ namespace kinski {
         
     };
     
-    class NoInputSourceException : public std::runtime_error
-    {
-    public:
-        NoInputSourceException() : 
-        std::runtime_error(std::string("No input source defined ..."))
-        {}
-    };
-    
 } // namespace kinski
 #endif // CHTHREAD_H

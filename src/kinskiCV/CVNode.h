@@ -10,6 +10,7 @@
 
 #include "opencv2/opencv.hpp"
 #include "boost/shared_ptr.hpp"
+
 #include "boost/thread.hpp"
 
 #include "Colormap.h"
@@ -37,6 +38,15 @@ public:
     
     virtual bool getNextImage(cv::Mat &img) = 0;
 };
+    
+class BadInputSourceException : public std::runtime_error
+{
+public:
+    BadInputSourceException(const CVSourceNode::Ptr srcPtr=CVSourceNode::Ptr()): 
+    std::runtime_error(std::string("Bad source node: ")
+                       + (srcPtr ? srcPtr->getName() : std::string("Null")))
+    {}
+};
 
 class CVBufferedSourceNode : public CVSourceNode 
 {    
@@ -49,6 +59,12 @@ private:
     
     boost::thread m_thread;
     boost::mutex m_mutex;
+    
+    /*!
+     * the number of frames the buffer can hold
+     */
+    uint32_t m_bufferSize;
+    
     CVSourceNode::Ptr m_sourceNode;
 };
 

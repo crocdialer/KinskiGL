@@ -91,7 +91,7 @@ namespace kinski {
         Mat outMat;
         
         if(! (m_sourceNode && m_sourceNode->getNextImage(outMat)) )
-            throw NoInputSourceException();
+            throw BadInputSourceException(m_sourceNode);
 
         return outMat; 
     }
