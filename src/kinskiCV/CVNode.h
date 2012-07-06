@@ -42,8 +42,11 @@ public:
 class BadInputSourceException : public std::runtime_error
 {
 public:
+    BadInputSourceException(const std::string &msg): 
+    std::runtime_error(std::string("BadInputSourceException: ") + msg)
+    {}
     BadInputSourceException(const CVSourceNode::Ptr srcPtr=CVSourceNode::Ptr()): 
-    std::runtime_error(std::string("Bad source node: ")
+    std::runtime_error(std::string("BadInputSourceException: ")
                        + (srcPtr ? srcPtr->getName() : std::string("Null")))
     {}
 };

@@ -41,20 +41,17 @@ FOREACH(folderItem ${FOLDER_CONTENT})
 
         STRING(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" itemName ${folderItem})
                 
+        MESSAGE("adding sample: '${itemName}'")
+
         # include optional CMakeLists.txt in sample folder
         FILE(GLOB CMAKELISTS_EXIST "${folderItem}/CMakeLists.txt")
-        
         if(CMAKELISTS_EXIST)
             message("using CMakeLists.txt for sample '${itemName}'")
             ADD_SUBDIRECTORY(${folderItem})
-            GET_DIRECTORY_PROPERTY(SAMPLE_INCLUDES DIRECTORY ${folderItem} INCLUDE_DIRECTORIES)
-            INCLUDE_DIRECTORIES(${SAMPLE_INCLUDES})
+        else(CMAKELISTS_EXIST)
+            addSample(${itemName} ${folderItem})
         endif()
 
-        #MESSAGE("includes for sample '${itemName}': ${SAMPLE_INCLUDES}")
-         
-        MESSAGE("adding sample: ${itemName}")
-        addSample(${itemName} ${folderItem})
     ENDIF()
 ENDFOREACH(folderItem)
 
