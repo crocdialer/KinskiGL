@@ -14,7 +14,7 @@
 #include "boost/thread.hpp"
 
 #include "Colormap.h"
-#include "core/Component.h"
+#include "kinskiCore/Component.h"
 
 namespace kinski{
     

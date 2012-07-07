@@ -1,9 +1,9 @@
 #ifndef _KINSKI_APP_IS_INCLUDED_
 #define _KINSKI_APP_IS_INCLUDED_
 
-#include "kinskiGL/KinskiGL.h"
+#include "KinskiGL.h"
+#include "kinskiCore/Property.h"
 
-#include "core/Property.h"
 #include <map>
 #include <list>
 

@@ -1,5 +1,5 @@
 #include <AntTweakBar.h>
-#include "core/Property.h"
+#include "kinskiCore/Property.h"
 
 namespace kinski 
 {
