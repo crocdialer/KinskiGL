@@ -5,9 +5,10 @@
 //  Created by Fabian Schmidt on 6/12/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
+#include <fstream>
+#include <boost/timer/timer.hpp>
 
 #include "CVThread.h"
-#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -60,7 +61,7 @@ namespace kinski {
     
     void CVThread::openSequence(const std::vector<std::string>& files)
     {	
-
+        
     }
     
     bool CVThread::saveCurrentFrame(const std::string& savePath)

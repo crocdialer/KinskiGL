@@ -13,7 +13,6 @@
 
 #include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
-#include <boost/timer/timer.hpp>
 
 #ifdef KINSKI_FREENECT
 #include "KinectDevice.h"
