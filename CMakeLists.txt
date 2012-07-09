@@ -32,7 +32,7 @@ SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 
 ##### BOOST
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED COMPONENTS thread system chrono timer)
+find_package(Boost REQUIRED COMPONENTS thread system timer chrono)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####
