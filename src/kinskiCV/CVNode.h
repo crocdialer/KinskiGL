@@ -35,7 +35,11 @@ public:
     virtual std::string getName(){return "Instance of CVSourceNode";};
     virtual std::string getDescription(){return "Generic Input-source";};
     
+    //virtual float getFramerate() = 0;
+    
     virtual bool getNextImage(cv::Mat &img) = 0;
+    
+    
 };
     
 class BadInputSourceException : public std::runtime_error

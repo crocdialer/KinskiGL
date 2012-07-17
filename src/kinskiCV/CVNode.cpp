@@ -31,7 +31,7 @@ namespace kinski {
     
     CvCaptureNode::CvCaptureNode(const std::string &movieFile):
     m_videoSource(movieFile),
-    m_loop(false)
+    m_loop(true)
     {
         if(!m_capture.open(movieFile))
             throw std::runtime_error("could not open capture");
@@ -51,22 +51,18 @@ namespace kinski {
     
     bool CvCaptureNode::getNextImage(cv::Mat &img)
     {
-        if(m_loop)
-        {
-            int currentFrame = m_capture.get(CV_CAP_PROP_POS_FRAMES);
-            if(currentFrame > std::max(0,m_numFrames - 2)) 
-            {
-                //jumpToFrame(0);
-                m_capture.release();
-                m_capture.open(m_videoSource);
-            }
-        }
-        
-        if(!m_capture.grab()) return false;
-        
         cv::Mat capFrame;
-        m_capture.retrieve(capFrame, 0) ;
+        m_capture >> capFrame;
         
+        if(capFrame.empty())
+        {
+            if(m_loop)
+                m_capture.set(CV_CAP_PROP_POS_FRAMES,0);
+            else
+                return false;
+            
+        }
+    
         // going safe, have a copy of our own of the data
         img = capFrame.clone();
         return true;

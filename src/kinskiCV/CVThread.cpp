@@ -119,7 +119,7 @@ namespace kinski {
             } 
             catch (std::exception e) 
             {
-                std::cerr<<e.what();
+                std::cerr<<"CVThread: "<<e.what();
                 break;
             }
             
