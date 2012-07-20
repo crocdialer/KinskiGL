@@ -13,7 +13,7 @@ using namespace kinski;
 
 ColorHistNode::ColorHistNode()
 {
-    m_histSize[0] = 24;
+    m_histSize[0] = 12;
     
     m_hueRanges[0] = 0; 
     m_hueRanges[1] = 180;

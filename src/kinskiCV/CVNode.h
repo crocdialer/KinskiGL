@@ -30,7 +30,7 @@ class CVSourceNode : public CVNode
 public:
     typedef boost::shared_ptr<CVSourceNode> Ptr;
     
-    // inherited from INode
+    // inherited from CVNode
     virtual std::string getName(){return "Instance of CVSourceNode";};
     virtual std::string getDescription(){return "Generic Input-source";};
     
@@ -40,39 +40,58 @@ public:
     
     
 };
-    
-class BadInputSourceException : public std::runtime_error
-{
-public:
-    BadInputSourceException(const std::string &msg): 
-    std::runtime_error(std::string("BadInputSourceException: ") + msg)
-    {}
-    BadInputSourceException(const CVSourceNode::Ptr srcPtr=CVSourceNode::Ptr()): 
-    std::runtime_error(std::string("BadInputSourceException: ")
-                       + (srcPtr ? srcPtr->getName() : std::string("Null")))
-    {}
-};
 
 class CVBufferedSourceNode : public CVSourceNode 
 {    
 public:
-    CVBufferedSourceNode(const CVSourceNode::Ptr srcNode):
-    m_sourceNode(srcNode)
-    {};
+    CVBufferedSourceNode(const CVSourceNode::Ptr srcNode, int bufSize = 20);
+    virtual ~CVBufferedSourceNode();
+    
+    void operator()();
+    
+    // override
+    
+    bool getNextImage(cv::Mat &img);
+    
+    std::string getName();
+    std::string getDescription();
     
 private:
-    
+
     boost::thread m_thread;
     boost::mutex m_mutex;
+    boost::condition_variable m_conditionVar;
+    
+    volatile bool m_running;
+
+    /*!
+     * the wrapped source node. we simply buffer its output in our thread
+     */
+    CVSourceNode::Ptr m_sourceNode;
     
     /*!
      * the number of frames the buffer can hold
      */
     uint32_t m_bufferSize;
     
-    CVSourceNode::Ptr m_sourceNode;
+    /*!
+     * our buffer
+     */
+    std::list<cv::Mat> m_imgBuffer;
 };
 
+class BadInputSourceException : public std::runtime_error
+{
+public:
+    BadInputSourceException(const std::string &msg):
+    std::runtime_error(std::string("BadInputSourceException: ") + msg)
+    {}
+    BadInputSourceException(const CVSourceNode::Ptr srcPtr=CVSourceNode::Ptr()):
+    std::runtime_error(std::string("BadInputSourceException: ")
+                       + (srcPtr ? srcPtr->getName() : std::string("Null")))
+    {}
+};
+    
 class CVProcessNode : public CVNode
 {
 public:

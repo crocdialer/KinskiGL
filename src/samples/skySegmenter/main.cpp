@@ -11,8 +11,6 @@
 #include "SkySegmentNode.h"
 #include "ColorHistNode.h"
 
-#include "opencv2/ocl/ocl.hpp"
-
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -103,14 +101,6 @@ public:
     
     void setup()
     {
-        vector<cv::ocl::Info> oclInfo;
-        
-        cv::ocl::getDevice(oclInfo);
-        
-        
-        //glEnable(GL_DEPTH_TEST);
-        //glEnable(GL_CULL_FACE);
-        
         glEnable(GL_TEXTURE_2D);
         glClearColor(0, 0, 0, 1);
         
@@ -140,8 +130,16 @@ public:
         
         addPropertyListToTweakBar(procNode->getPropertyList());
         
-        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
-                                true);
+        CVSourceNode::Ptr sourceNode(new CVCaptureNode("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov"));
+        
+        sourceNode = CVSourceNode::Ptr(new CVBufferedSourceNode(sourceNode));
+        
+//        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
+//                                true);
+        
+        m_cvThread->setSourceNode(sourceNode);
+        m_cvThread->start();
+        
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
     }
     
@@ -158,8 +156,6 @@ public:
         
         if(m_cvThread->getImage(camFrame))
         {
-            cv::ocl::oclMat oclMat(camFrame);
-            
             TextureIO::updateTexture(m_texture, camFrame);
         }
         
