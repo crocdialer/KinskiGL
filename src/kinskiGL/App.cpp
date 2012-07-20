@@ -151,7 +151,7 @@ namespace kinski
         try {
             AntTweakBarConnector::connect(theBar, propPtr, group);
         } catch (AntTweakBarConnector::PropertyUnsupportedException &e) {
-            cout<<e.getMessage()<<"\n";
+            cout<<e.what()<<"\n";
         }
     }
     
@@ -166,41 +166,4 @@ namespace kinski
             addPropertyToTweakBar(*propIt, group, theBar);
         }
     }
-    
-//    void App::loadPropertiesInShader(gl::Shader theShader,
-//                                     const list<Property::Ptr> &theProps)
-//    {
-//        list<Property::Ptr>::const_iterator propIt = theProps.begin();
-//        
-//        for (; propIt != theProps.end(); propIt++) 
-//        {   
-//            const Property::Ptr &aProp = *propIt;
-//            
-//            if (aProp->isOfType<int>()) 
-//            {
-//                theShader.uniform(aProp->getName(), aProp->getValue<int>());
-//            }
-//            else if (aProp->isOfType<float>()) 
-//            {
-//                theShader.uniform(aProp->getName(), aProp->getValue<float>());
-//            }
-//            else if (aProp->isOfType<glm::vec3>()) 
-//            {
-//                theShader.uniform(aProp->getName(), aProp->getValue<glm::vec3>());
-//            }
-//            else if (aProp->isOfType<glm::vec4>()) 
-//            {
-//                theShader.uniform(aProp->getName(), aProp->getValue<glm::vec4>());
-//            }
-//            else if (aProp->isOfType<glm::mat3>()) 
-//            {
-//                theShader.uniform(aProp->getName(), aProp->getValue<glm::mat3>());
-//            }
-//            else if (aProp->isOfType<glm::mat4>()) 
-//            {
-//                theShader.uniform(aProp->getName(), aProp->getValue<glm::mat4>());
-//            }
-//
-//        }
-//    }
 }

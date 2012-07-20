@@ -12,7 +12,6 @@
 #include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
 
-#include "Colormap.h"
 #include "kinskiCore/Component.h"
 
 namespace kinski{
@@ -87,14 +86,14 @@ public:
     
 };
     
-class CvCaptureNode : public CVSourceNode
+class CVCaptureNode : public CVSourceNode
 {
 public:
-    typedef boost::shared_ptr<CvCaptureNode> Ptr;
+    typedef boost::shared_ptr<CVCaptureNode> Ptr;
     
-    CvCaptureNode(const int camId);
-    CvCaptureNode(const std::string &movieFile);
-    virtual ~CvCaptureNode();
+    CVCaptureNode(const int camId = 0);
+    CVCaptureNode(const std::string &movieFile);
+    virtual ~CVCaptureNode();
     
     virtual std::string getName();
     virtual std::string getDescription();
@@ -119,27 +118,4 @@ private:
     bool m_loop;
 };
 
-class ThreshNode : public CVProcessNode
-{
-public:
-    ThreshNode(const int theThresh = 50):
-    m_thresh(theThresh),
-    m_colorMap(Colormap::BONE){};
-    
-    cv::Mat doProcessing(const cv::Mat &img)
-    {
-        cv::Mat grayImg, threshImg, outMat;
-        cvtColor(img, grayImg, CV_BGR2GRAY);
-        uint64_t mode = CV_THRESH_BINARY;
-        if(m_thresh < 0) mode |= CV_THRESH_OTSU;
-        threshold(grayImg, threshImg, m_thresh, 255, mode);
-        outMat = threshImg;
-        
-        return m_colorMap.apply(outMat);
-    };
-    
-private:
-    int m_thresh;
-    Colormap m_colorMap;
-};
 }// namespace kinski

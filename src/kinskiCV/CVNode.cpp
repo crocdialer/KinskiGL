@@ -14,7 +14,7 @@ using namespace cv;
 
 namespace kinski {
     
-    CvCaptureNode::CvCaptureNode(const int camId):
+    CVCaptureNode::CVCaptureNode(const int camId):
     m_numFrames(-1),
     m_loop(false)
     {
@@ -29,7 +29,7 @@ namespace kinski {
         m_description = fmt.str();
     }
     
-    CvCaptureNode::CvCaptureNode(const std::string &movieFile):
+    CVCaptureNode::CVCaptureNode(const std::string &movieFile):
     m_videoSource(movieFile),
     m_loop(true)
     {
@@ -44,12 +44,12 @@ namespace kinski {
         m_description = fmt.str();
     }
     
-    CvCaptureNode::~CvCaptureNode(){ m_capture.release();};
+    CVCaptureNode::~CVCaptureNode(){ m_capture.release();};
     
-    std::string CvCaptureNode::getName(){return "CvCaptureNode";};
-    std::string CvCaptureNode::getDescription(){return m_description;};
+    std::string CVCaptureNode::getName(){return "CVCaptureNode";};
+    std::string CVCaptureNode::getDescription(){return m_description;};
     
-    bool CvCaptureNode::getNextImage(cv::Mat &img)
+    bool CVCaptureNode::getNextImage(cv::Mat &img)
     {
         cv::Mat capFrame;
         m_capture >> capFrame;
@@ -68,11 +68,11 @@ namespace kinski {
         return true;
     }
     
-    int CvCaptureNode::getNumFrames(){return m_numFrames;}
+    int CVCaptureNode::getNumFrames(){return m_numFrames;}
     
-    float CvCaptureNode::getFPS(){return m_captureFPS;}
+    float CVCaptureNode::getFPS(){return m_captureFPS;}
     
-    void CvCaptureNode::jumpToFrame(const int newIndex)
+    void CVCaptureNode::jumpToFrame(const int newIndex)
     {
         int clampedIndex = std::max(0, newIndex);
         clampedIndex = std::min(clampedIndex ,m_numFrames - 1);
@@ -80,6 +80,6 @@ namespace kinski {
         m_capture.set(CV_CAP_PROP_POS_FRAMES,clampedIndex);
     }
     
-    void CvCaptureNode::setLoop(bool b){m_loop = b;};
+    void CVCaptureNode::setLoop(bool b){m_loop = b;};
 }
 

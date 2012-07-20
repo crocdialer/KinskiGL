@@ -11,6 +11,8 @@
 #include "SkySegmentNode.h"
 #include "ColorHistNode.h"
 
+#include "opencv2/ocl/ocl.hpp"
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -101,6 +103,11 @@ public:
     
     void setup()
     {
+        vector<cv::ocl::Info> oclInfo;
+        
+        cv::ocl::getDevice(oclInfo);
+        
+        
         //glEnable(GL_DEPTH_TEST);
         //glEnable(GL_CULL_FACE);
         
@@ -148,22 +155,26 @@ public:
     void update(const float timeDelta)
     {
         cv::Mat camFrame;
+        
         if(m_cvThread->getImage(camFrame))
-        {	
+        {
+            cv::ocl::oclMat oclMat(camFrame);
+            
             TextureIO::updateTexture(m_texture, camFrame);
         }
         
         // trigger processing
         m_cvThread->setProcessing(m_activator->val());
-        //printf("processing: %.2f ms\n", m_cvThread->getLastProcessTime() * 1000.);
-        
-        //glm::simplex(glm::vec3(1 / 16.f, 1 / 16.f, 0.5f));
     }
     
     void draw()
     {
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
         drawTexture(m_texture, vec2(0, getHeight()), getWindowSize());
+        
+        drawTexture(m_texture,
+                    vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 20),
+                    getWindowSize()/5.f);
     }
 };
 

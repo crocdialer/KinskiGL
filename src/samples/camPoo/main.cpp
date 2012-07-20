@@ -4,7 +4,9 @@
 #include "Data.h"
 
 #include "kinskiGL/TextureIO.h"
+
 #include "kinskiCV/CVThread.h"
+#include "ThreshNode.h"
 
 using namespace std;
 using namespace kinski;
@@ -250,6 +252,9 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new CamPoo);
+    
+//    theApp->setWindowSize(1920, 1080);
+//    theApp->setFullSceen();
     
     return theApp->run();
 }
