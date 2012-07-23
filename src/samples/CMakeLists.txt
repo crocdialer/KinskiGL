@@ -14,7 +14,7 @@ function(addSample theName thePath)
     
     SET( MACOSX_BUNDLE_ICON_FILE ${thePath}/res/icon.icns)
     SET_SOURCE_FILES_PROPERTIES(
-        ${thePath}/res/icon.icns
+        ${resFiles}
         PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources
     )

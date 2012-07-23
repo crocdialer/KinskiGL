@@ -50,6 +50,7 @@ namespace kinski {
         
         void setImage(const cv::Mat& img);
         bool getImage(cv::Mat& img);
+        std::vector<cv::Mat> getImages();
         
         void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
         
@@ -78,6 +79,7 @@ namespace kinski {
         bool m_newFrame;
         
         cv::Mat m_procImage;
+        std::vector<cv::Mat> m_images;
         
         bool m_processing;
         

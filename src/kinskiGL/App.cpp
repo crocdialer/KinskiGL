@@ -56,6 +56,8 @@ namespace kinski
             throw exception();
         }
         
+        glfwSwapInterval(1);
+        
         // version
         printf("OpenGL: %s\n", glGetString(GL_VERSION));
         printf("GLSL: %s\n",glGetString(GL_SHADING_LANGUAGE_VERSION));

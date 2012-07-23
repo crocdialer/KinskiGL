@@ -117,7 +117,7 @@ namespace kinski {
             {
                 inFrame = grabNextFrame();
             } 
-            catch (std::exception e) 
+            catch (std::exception &e)
             {
                 std::cerr<<"CVThread: "<<e.what();
                 break;
@@ -145,6 +145,7 @@ namespace kinski {
                 boost::mutex::scoped_lock lock(m_mutex);
                 m_newFrame = true;
                 m_procImage = inFrame;
+                m_images = m_processNode->getImages();
             }
             
             double elapsed_msecs,sleep_msecs;
@@ -186,6 +187,13 @@ namespace kinski {
         boost::mutex::scoped_lock lock(m_mutex);
         m_procImage = img.clone();
         m_newFrame = true;
+    }
+    
+    std::vector<cv::Mat> CVThread::getImages()
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+ 
+        return m_images;
     }
     
     double CVThread::getLastGrabTime()

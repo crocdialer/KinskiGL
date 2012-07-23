@@ -20,6 +20,8 @@ class SkySegmenter : public App
 private:
     
     gl::Texture m_texture;
+    gl::Texture m_texture_thumb;
+    
     gl::Shader m_shader;
     
     GLuint m_canvasBuffer;
@@ -28,6 +30,8 @@ private:
     _Property<bool>::Ptr m_activator;
     
     CVThread::Ptr m_cvThread;
+    
+    CVProcessNode::Ptr m_processNode;
     
     void buildCanvasVBO()
     {
@@ -87,8 +91,8 @@ private:
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
         modelViewMatrix[3] = vec4(x0 / getWidth(), y1 / getHeight() , 0, 1);
         
-        m_shader.uniform("u_textureMap", m_texture.getBoundTextureUnit());
-        m_shader.uniform("u_textureMatrix", m_texture.getTextureMatrix());
+        m_shader.uniform("u_textureMap[0]", theTexture.getBoundTextureUnit());
+        m_shader.uniform("u_textureMatrix", theTexture.getTextureMatrix());
         
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewMatrix);
@@ -106,11 +110,12 @@ public:
         
         try 
         {
-            //m_shader.loadFromFile("texShader.vsh", "texShader.fsh");
-            m_shader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
+            m_shader.loadFromFile("applyMap.vert", "applyMap.frag");
+            //m_shader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
         }catch (std::exception &e) 
         {
             fprintf(stderr, "%s\n",e.what());
+            exit(EXIT_FAILURE);
         }
         
         buildCanvasVBO();
@@ -123,21 +128,20 @@ public:
         // CV stuff 
         
         m_cvThread = CVThread::Ptr(new CVThread());
-        //CVProcessNode::Ptr procNode(new SkySegmentNode);
-        CVProcessNode::Ptr procNode(new ColorHistNode);
+        m_processNode = CVProcessNode::Ptr (new ColorHistNode);
         
-        m_cvThread->setProcessingNode(procNode);
+        m_cvThread->setProcessingNode(m_processNode);
         
-        addPropertyListToTweakBar(procNode->getPropertyList());
+        addPropertyListToTweakBar(m_processNode->getPropertyList());
         
-        CVSourceNode::Ptr sourceNode(new CVCaptureNode("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov"));
+        CVSourceNode::Ptr sourceNode(new CVCaptureNode);
         
-        sourceNode = CVSourceNode::Ptr(new CVBufferedSourceNode(sourceNode));
+        //sourceNode = CVSourceNode::Ptr(new CVBufferedSourceNode(sourceNode));
         
-//        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
-//                                true);
+        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
+                                true);
         
-        m_cvThread->setSourceNode(sourceNode);
+        //m_cvThread->setSourceNode(sourceNode);
         m_cvThread->start();
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
@@ -156,7 +160,13 @@ public:
         
         if(m_cvThread->getImage(camFrame))
         {
-            TextureIO::updateTexture(m_texture, camFrame);
+            vector<cv::Mat> images = m_cvThread->getImages();
+            
+            TextureIO::updateTexture(m_texture, images[0]);
+            TextureIO::updateTexture(m_texture_thumb,
+                                     images[1]);
+            
+            
         }
         
         // trigger processing
@@ -166,9 +176,13 @@ public:
     void draw()
     {
         gl::scoped_bind<gl::Shader> shaderBind(m_shader);
+        
+        m_texture_thumb.bind(1);
+        m_shader.uniform("u_textureMap[1]", m_texture_thumb.getBoundTextureUnit());
+        
         drawTexture(m_texture, vec2(0, getHeight()), getWindowSize());
         
-        drawTexture(m_texture,
+        drawTexture(m_texture_thumb,
                     vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 20),
                     getWindowSize()/5.f);
     }

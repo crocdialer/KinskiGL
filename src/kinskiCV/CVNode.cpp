@@ -144,7 +144,9 @@ namespace kinski {
     {
         boost::mutex::scoped_lock lock(m_mutex);
         
-        while (m_imgBuffer.empty() && m_running)
+        if(!m_running) return false;
+        
+        while (m_imgBuffer.empty())
             m_conditionVar.wait(lock);
         
         img = m_imgBuffer.front();

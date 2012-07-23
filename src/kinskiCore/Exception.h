@@ -24,7 +24,10 @@ public:
         return m_message; 
     };
     
-    inline void log() {};
+    inline void log()
+    {
+        //TODO: implement logging
+    };
     
 };
 } // namespace kinski

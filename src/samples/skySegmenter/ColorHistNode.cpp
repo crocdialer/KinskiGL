@@ -40,13 +40,16 @@ ColorHistNode::~ColorHistNode()
 
 Mat ColorHistNode::doProcessing(const Mat &img)
 {
+    flush();
+    
     // check for correct type (3 channel 8U)
     //TODO: implement check here
     assert(img.type() == CV_8UC3);
     
     Mat outMat, hsvImg, backProj, roiImg, scaledImg;
     
-    float scale = 0.35f;
+    int maxWidth = 800;
+    float scale = (float)maxWidth / img.cols;
     
     // scale down input image
     cv::resize(img, scaledImg, Size(0,0), scale, scale);
@@ -89,45 +92,31 @@ Mat ColorHistNode::doProcessing(const Mat &img)
     }
     
     blur(backProj, backProj, Size(5, 5));
-    
-    if(true)
-    {
-        Mat tmpProj, tmpSat;
-        // calculate mixture image
-        backProj.convertTo(tmpProj, CV_32F, 1.0 / 255.0);
-        
-        //return tmpProj;
-        
-        //split hsv image
-        vector<Mat> hsvSplit;
-        cv::split(hsvImg, hsvSplit);
-        hsvSplit[1].convertTo(tmpSat, CV_32F);
-        
-        multiply(tmpSat, tmpProj, tmpSat);
-        
-        tmpSat.convertTo(hsvSplit[1], CV_8U);
-        
-        merge(hsvSplit, outMat);
-        cvtColor(outMat, outMat, CV_HSV2BGR);
-    }
-    else
-    {
-        MatIterator_<Vec3b> hsvIt = hsvImg.begin<Vec3b>(), 
-        hsvEnd = hsvImg.end<Vec3b>();
-        
-        MatIterator_<char> projIt = backProj.begin<char>();
-        
-        for (; hsvIt != hsvEnd; hsvIt++, projIt++) 
-        {
-            (*hsvIt)[1] *= (float) (*projIt) / 255.f;
-        }
-        
-        cvtColor(hsvImg, outMat, CV_HSV2BGR);
-    }
-    
-    cv::resize(outMat, outMat, Size(0,0), 1.f / scale, 1.f / scale);
+
+//    Mat tmpProj, tmpSat;
+//    // calculate mixture image
+//    backProj.convertTo(tmpProj, CV_32F, 1.0 / 255.0);
+//    
+//    //return tmpProj;
+//    
+//    //split hsv image
+//    vector<Mat> hsvSplit;
+//    cv::split(hsvImg, hsvSplit);
+//    hsvSplit[1].convertTo(tmpSat, CV_32F);
+//    
+//    multiply(tmpSat, tmpProj, tmpSat);
+//    
+//    tmpSat.convertTo(hsvSplit[1], CV_8U);
+//    
+//    merge(hsvSplit, outMat);
+//    cvtColor(outMat, outMat, CV_HSV2BGR);
+//    cv::resize(outMat, outMat, Size(0,0), 1.f / scale, 1.f / scale);
     
     //cvtColor(backProj, outMat, CV_GRAY2BGR);
+    
+    addImage(img);
+    addImage(backProj);
+    addImage(outMat);
     
     return outMat;
 }

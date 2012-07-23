@@ -94,6 +94,10 @@ public:
     
 class CVProcessNode : public CVNode
 {
+private:
+    
+    std::vector<cv::Mat> m_images;
+    
 public:
     typedef boost::shared_ptr<CVProcessNode> Ptr;
     
@@ -102,6 +106,10 @@ public:
     virtual std::string getDescription(){return "Generic processing node";};
     
     virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
+    
+    void flush(){m_images.clear();};
+    void addImage(const cv::Mat &img){m_images.push_back(img);};
+    const std::vector<cv::Mat>& getImages(){return m_images;};
     
 };
     
