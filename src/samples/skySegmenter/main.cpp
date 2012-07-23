@@ -20,9 +20,11 @@ class SkySegmenter : public App
 private:
     
     gl::Texture m_texture;
-    gl::Texture m_texture_thumb;
+    gl::Texture m_texture_conf;
+    gl::Texture m_texture_histImg;
     
-    gl::Shader m_shader;
+    gl::Shader m_texShader;
+    gl::Shader m_applyMapShader;
     
     GLuint m_canvasBuffer;
     GLuint m_canvasArray;
@@ -51,12 +53,12 @@ private:
         
         GLsizei stride = 5 * sizeof(GLfloat);
         
-        GLuint positionAttribLocation = m_shader.getAttribLocation("a_position");
+        GLuint positionAttribLocation = m_texShader.getAttribLocation("a_position");
         glEnableVertexAttribArray(positionAttribLocation);
         glVertexAttribPointer(positionAttribLocation, 3, GL_FLOAT, GL_FALSE,
                               stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
         
-        GLuint texCoordAttribLocation = m_shader.getAttribLocation("a_texCoord");
+        GLuint texCoordAttribLocation = m_texShader.getAttribLocation("a_texCoord");
         glEnableVertexAttribArray(texCoordAttribLocation);
         glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                               stride, BUFFER_OFFSET(0));
@@ -68,19 +70,23 @@ private:
     }
     
     void drawTexture(gl::Texture theTexture,
+                     gl::Shader theShader,
                      const vec2 &theTl = vec2(0),
                      const vec2 &theSize = vec2(0))
     {
         vec2 sz = theSize == vec2(0) ? theTexture.getSize() : theSize;
         vec2 tl = theTl == vec2(0) ? vec2(0, getHeight()) : theTl;
-        drawTexture(theTexture, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+        drawTexture(theTexture, theShader, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
     
-    void drawTexture(const gl::Texture &theTexture, float x0, float y0, float x1, float y1)
+    void drawTexture(const gl::Texture &theTexture,
+                     gl::Shader theShader,
+                     float x0, float y0, float x1, float y1)
     {
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(theTexture);
+        gl::scoped_bind<gl::Shader> shaderBind(theShader);
         
         // orthographic projection with a [0,1] coordinate space
         static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
@@ -91,10 +97,10 @@ private:
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
         modelViewMatrix[3] = vec4(x0 / getWidth(), y1 / getHeight() , 0, 1);
         
-        m_shader.uniform("u_textureMap[0]", theTexture.getBoundTextureUnit());
-        m_shader.uniform("u_textureMatrix", theTexture.getTextureMatrix());
+        theShader.uniform("u_textureMap[0]", theTexture.getBoundTextureUnit());
+        theShader.uniform("u_textureMatrix", theTexture.getTextureMatrix());
         
-        m_shader.uniform("u_modelViewProjectionMatrix", 
+        theShader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewMatrix);
         
         glBindVertexArray(m_canvasArray);
@@ -110,8 +116,9 @@ public:
         
         try 
         {
-            m_shader.loadFromFile("applyMap.vert", "applyMap.frag");
-            //m_shader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
+            m_applyMapShader.loadFromFile("applyMap.vert", "applyMap.frag");
+            m_texShader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
+            
         }catch (std::exception &e) 
         {
             fprintf(stderr, "%s\n",e.what());
@@ -133,16 +140,15 @@ public:
         m_cvThread->setProcessingNode(m_processNode);
         
         addPropertyListToTweakBar(m_processNode->getPropertyList());
-        
-        CVSourceNode::Ptr sourceNode(new CVCaptureNode);
-        
+
         //sourceNode = CVSourceNode::Ptr(new CVBufferedSourceNode(sourceNode));
         
         m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
                                 true);
         
+        //CVSourceNode::Ptr sourceNode(new CVCaptureNode);
         //m_cvThread->setSourceNode(sourceNode);
-        m_cvThread->start();
+        //m_cvThread->start();
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
     }
@@ -163,9 +169,8 @@ public:
             vector<cv::Mat> images = m_cvThread->getImages();
             
             TextureIO::updateTexture(m_texture, images[0]);
-            TextureIO::updateTexture(m_texture_thumb,
-                                     images[1]);
-            
+            TextureIO::updateTexture(m_texture_conf, images[1]);
+            TextureIO::updateTexture(m_texture_histImg, images[2]);
             
         }
         
@@ -175,16 +180,23 @@ public:
     
     void draw()
     {
-        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
+
+        m_texture_conf.bind(1);
+        m_applyMapShader.bind();
+        m_applyMapShader.uniform("u_textureMap[1]", m_texture_conf.getBoundTextureUnit());
         
-        m_texture_thumb.bind(1);
-        m_shader.uniform("u_textureMap[1]", m_texture_thumb.getBoundTextureUnit());
-        
-        drawTexture(m_texture, vec2(0, getHeight()), getWindowSize());
-        
-        drawTexture(m_texture_thumb,
+        drawTexture(m_texture, m_applyMapShader, vec2(0, getHeight()), getWindowSize());
+
+        drawTexture(m_texture_conf,
+                    m_texShader,
                     vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 20),
                     getWindowSize()/5.f);
+        
+        drawTexture(m_texture_histImg,
+                    m_texShader,
+                    vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 160),
+                    getWindowSize()/5.f);
+       
     }
 };
 

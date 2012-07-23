@@ -145,7 +145,7 @@ namespace kinski {
                 boost::mutex::scoped_lock lock(m_mutex);
                 m_newFrame = true;
                 m_procImage = inFrame;
-                m_images = m_processNode->getImages();
+                if(hasProcessing()) m_images = m_processNode->getImages();
             }
             
             double elapsed_msecs,sleep_msecs;

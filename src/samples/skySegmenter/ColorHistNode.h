@@ -26,10 +26,12 @@ private:
     int channels[1];
     
     cv::Mat m_colorHist;
+    cv::Mat m_histImage;
     
     int m_roiWidth;
     
     cv::Mat extractHueHistogram(const cv::Mat &roi);
+    cv::Mat createHistImage();
     
 public:
     

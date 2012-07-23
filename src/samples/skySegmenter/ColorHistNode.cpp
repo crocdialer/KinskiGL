@@ -30,6 +30,7 @@ ColorHistNode::ColorHistNode()
     cvtColor(testPatch, patchHSV, CV_BGR2HSV);
     
     m_colorHist = extractHueHistogram(patchHSV);
+    m_histImage = createHistImage();
     
 }
 
@@ -46,7 +47,7 @@ Mat ColorHistNode::doProcessing(const Mat &img)
     //TODO: implement check here
     assert(img.type() == CV_8UC3);
     
-    Mat outMat, hsvImg, backProj, roiImg, scaledImg;
+    Mat hsvImg, backProj, roiImg, scaledImg;
     
     int maxWidth = 800;
     float scale = (float)maxWidth / img.cols;
@@ -67,6 +68,7 @@ Mat ColorHistNode::doProcessing(const Mat &img)
         roiImg = hsvImg(centerRect);
         
         m_colorHist = extractHueHistogram(roiImg);
+        m_histImage = createHistImage();
     }
     
     // back projection
@@ -116,9 +118,9 @@ Mat ColorHistNode::doProcessing(const Mat &img)
     
     addImage(img);
     addImage(backProj);
-    addImage(outMat);
+    addImage(m_histImage);
     
-    return outMat;
+    return backProj;
 }
 
 Mat ColorHistNode::extractHueHistogram(const cv::Mat &hsvImg)
@@ -132,4 +134,28 @@ Mat ColorHistNode::extractHueHistogram(const cv::Mat &hsvImg)
     
     return outMat;
     
+}
+
+Mat ColorHistNode::createHistImage()
+{
+    Mat histImg(300, 400, CV_8UC3);//m_histSize[0]
+    
+    histImg = Scalar::all(0);
+    int binW = histImg.cols / m_histSize[0];
+    Mat buf(1, m_histSize[0], CV_8UC3);
+    
+    for( int i = 0; i < m_histSize[0]; i++ )
+        buf.at<Vec3b>(i) = Vec3b(saturate_cast<uchar>(i*180./m_histSize[0]), 255, 255);
+    
+    cvtColor(buf, buf, CV_HSV2BGR);
+    
+    for( int i = 0; i < m_histSize[0]; i++ )
+    {
+        int val = saturate_cast<int>(m_colorHist.at<float>(i)*histImg.rows/255);
+        rectangle( histImg, Point(i*binW,histImg.rows),
+                  Point((i+1)*binW,histImg.rows - val),
+                  Scalar(buf.at<Vec3b>(i)), -1, 8 );
+    }
+    
+    return histImg;
 }
