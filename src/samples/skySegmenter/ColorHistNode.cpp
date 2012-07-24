@@ -17,10 +17,9 @@ ColorHistNode::ColorHistNode()
     
     m_hueRanges[0] = 0; 
     m_hueRanges[1] = 180;
+    m_ranges = m_hueRanges;
     
     channels[0] = 0;
-    
-    m_ranges = m_hueRanges;
     
     m_roiWidth = 50;
     
@@ -39,9 +38,9 @@ ColorHistNode::~ColorHistNode()
     
 }
 
-Mat ColorHistNode::doProcessing(const Mat &img)
+vector<Mat> ColorHistNode::doProcessing(const Mat &img)
 {
-    flush();
+    vector<Mat> outMats;
     
     // check for correct type (3 channel 8U)
     //TODO: implement check here
@@ -94,33 +93,12 @@ Mat ColorHistNode::doProcessing(const Mat &img)
     }
     
     blur(backProj, backProj, Size(5, 5));
-
-//    Mat tmpProj, tmpSat;
-//    // calculate mixture image
-//    backProj.convertTo(tmpProj, CV_32F, 1.0 / 255.0);
-//    
-//    //return tmpProj;
-//    
-//    //split hsv image
-//    vector<Mat> hsvSplit;
-//    cv::split(hsvImg, hsvSplit);
-//    hsvSplit[1].convertTo(tmpSat, CV_32F);
-//    
-//    multiply(tmpSat, tmpProj, tmpSat);
-//    
-//    tmpSat.convertTo(hsvSplit[1], CV_8U);
-//    
-//    merge(hsvSplit, outMat);
-//    cvtColor(outMat, outMat, CV_HSV2BGR);
-//    cv::resize(outMat, outMat, Size(0,0), 1.f / scale, 1.f / scale);
     
-    //cvtColor(backProj, outMat, CV_GRAY2BGR);
+    outMats.push_back(img);
+    outMats.push_back(backProj);
+    outMats.push_back(m_histImage);
     
-    addImage(img);
-    addImage(backProj);
-    addImage(m_histImage);
-    
-    return backProj;
+    return outMats;
 }
 
 Mat ColorHistNode::extractHueHistogram(const cv::Mat &hsvImg)

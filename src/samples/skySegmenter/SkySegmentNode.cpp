@@ -9,6 +9,7 @@
 #include "SkySegmentNode.h"
 
 using namespace cv;
+using namespace std;
 using namespace kinski;
 
 SkySegmentNode::SkySegmentNode():
@@ -30,8 +31,11 @@ SkySegmentNode::~SkySegmentNode()
 
 }
 
-Mat SkySegmentNode::doProcessing(const Mat &img)
+vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
 {
+    vector<Mat> outMats;
+    outMats.push_back(img);
+    
     Mat scaledImg, grayImg, threshImg,
     edgeImg, skyMask, outMat;
     
@@ -119,8 +123,9 @@ Mat SkySegmentNode::doProcessing(const Mat &img)
     }
     
     //drawContours(outMat, contours, 0, Scalar(128, 255, 255), 3);
+    outMats.push_back(outMat);
     
-    return outMat;
+    return outMats;
 }
 
 cv::Mat SkySegmentNode::combineImages(const cv::Mat &img1, const cv::Mat &img2)

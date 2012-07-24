@@ -32,8 +32,8 @@ namespace kinski {
         virtual ~CVThread();
         
         void openImage(const std::string& imgPath);
-        void openSequence(const std::vector<std::string>& files);
         
+        void streamImageSequence(const std::vector<std::string>& files);
         void streamVideo(const std::string& path2Video, bool loop = false);
         void streamUSBCamera(int camId = 0);
         void streamIPCamera(bool b);
@@ -49,7 +49,7 @@ namespace kinski {
         void skipFrames(int num);
         
         void setImage(const cv::Mat& img);
-        bool getImage(cv::Mat& img);
+        bool hasImage();
         std::vector<cv::Mat> getImages();
         
         void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
@@ -77,8 +77,7 @@ namespace kinski {
         
         volatile bool m_stopped;
         bool m_newFrame;
-        
-        cv::Mat m_procImage;
+
         std::vector<cv::Mat> m_images;
         
         bool m_processing;

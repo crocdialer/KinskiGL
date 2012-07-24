@@ -231,11 +231,12 @@ public:
         m_viewMatrix->val(lookAt(m_distance->val() * vec3(0, 1, 1), // eye
                                  vec3(0),                           // lookat
                                  vec3(0, 1, 0)));                   // up
-        
-        cv::Mat camFrame;
-        if(m_cvThread->getImage(camFrame))
-        {	
-            TextureIO::updateTexture(m_texture, camFrame);
+
+        if(m_cvThread->hasImage())
+        {
+            vector<cv::Mat> images = m_cvThread->getImages();
+
+            TextureIO::updateTexture(m_texture, images.back());
         }
         
     }

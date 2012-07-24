@@ -17,7 +17,7 @@ public:
     SkySegmentNode();
     virtual ~SkySegmentNode();
     
-    cv::Mat doProcessing(const cv::Mat &img);
+    std::vector<cv::Mat> doProcessing(const cv::Mat &img);
     
 private:
     

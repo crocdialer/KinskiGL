@@ -105,12 +105,7 @@ public:
     virtual std::string getName(){return "Instance of CVProcessNode";};
     virtual std::string getDescription(){return "Generic processing node";};
     
-    virtual cv::Mat doProcessing(const cv::Mat &img) = 0;
-    
-    void flush(){m_images.clear();};
-    void addImage(const cv::Mat &img){m_images.push_back(img);};
-    const std::vector<cv::Mat>& getImages(){return m_images;};
-    
+    virtual std::vector<cv::Mat> doProcessing(const cv::Mat &img) = 0;
 };
     
 class CVCaptureNode : public CVSourceNode

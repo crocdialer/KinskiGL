@@ -161,15 +161,12 @@ public:
     
     void update(const float timeDelta)
     {
-        cv::Mat camFrame;
-        
-        if(m_cvThread->getImage(camFrame))
+        if(m_cvThread->hasImage())
         {
             vector<cv::Mat> images = m_cvThread->getImages();
             
             for(int i=0;i<images.size();i++)
                 TextureIO::updateTexture(m_textures[i], images[i]);
-            
         }
         
         // trigger processing
@@ -197,7 +194,8 @@ public:
         
         drawTexture(m_textures[2],
                     m_texShader,
-                    vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 160),
+                    vec2(getWidth() - getWidth()/5.f - 20,
+                         getHeight() - (1.2 * getHeight()/5.f) ),
                     getWindowSize()/5.f);
        
     }

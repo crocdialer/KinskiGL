@@ -12,7 +12,8 @@
 using namespace std;
 using namespace cv;
 
-namespace kinski {
+namespace kinski
+{
     
     CVCaptureNode::CVCaptureNode(const int camId):
     m_numFrames(-1),
@@ -102,7 +103,7 @@ namespace kinski {
     std::string CVBufferedSourceNode::getName()
     {
         stringstream ss;
-        ss << "CVBufferedSourceNode ("<<m_sourceNode->getDescription()<<")\n";
+        ss << "CVBufferedSourceNode ("<<m_sourceNode->getName()<<")\n";
         return ss.str();
     }
     

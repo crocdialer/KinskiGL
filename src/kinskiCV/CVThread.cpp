@@ -59,14 +59,8 @@ namespace kinski {
             stop();
     }
     
-    void CVThread::openSequence(const std::vector<std::string>& files)
+    void CVThread::streamImageSequence(const std::vector<std::string>& files)
     {	
-        
-    }
-    
-    bool CVThread::saveCurrentFrame(const std::string& savePath)
-    {
-        return imwrite(savePath,hasProcessing()? m_procImage : m_procImage);
         
     }
     
@@ -136,7 +130,7 @@ namespace kinski {
                 
                 if(hasProcessing())
                 {   
-                    inFrame = m_processNode->doProcessing(inFrame);
+                    m_images = m_processNode->doProcessing(inFrame);
                 }
                 
                 t = cpuTimer.elapsed();
@@ -144,8 +138,6 @@ namespace kinski {
                 
                 boost::mutex::scoped_lock lock(m_mutex);
                 m_newFrame = true;
-                m_procImage = inFrame;
-                if(hasProcessing()) m_images = m_processNode->getImages();
             }
             
             double elapsed_msecs,sleep_msecs;
@@ -169,30 +161,27 @@ namespace kinski {
     }
     
     // -- Getter / Setter
-    bool CVThread::getImage(cv::Mat& img)
+    bool CVThread::hasImage()
     {	
         boost::mutex::scoped_lock lock(m_mutex);
-        if(m_newFrame)
-        {
-            img = m_procImage;
-            m_newFrame = false;
-            return true;
-        }
-        
-        return false;
+        return m_newFrame;
     }
     
     void CVThread::setImage(const cv::Mat& img)
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        m_procImage = img.clone();
+        if(hasProcessing())
+            m_images = m_processNode->doProcessing(img);
+        
         m_newFrame = true;
     }
     
     std::vector<cv::Mat> CVThread::getImages()
     {
         boost::mutex::scoped_lock lock(m_mutex);
- 
+        if(m_newFrame)
+            m_newFrame = false;
+        
         return m_images;
     }
     

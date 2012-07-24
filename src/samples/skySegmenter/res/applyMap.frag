@@ -1,7 +1,7 @@
 #version 150 core
 
 uniform sampler2D   u_textureMap[2];
-in vec4        v_texCoord;
+in vec4             v_texCoord;
 
 out vec4 fragData;
 
