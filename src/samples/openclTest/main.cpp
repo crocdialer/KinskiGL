@@ -137,7 +137,8 @@ public:
         
         // OpenCL
         
-        try {
+        try
+        {
             // Get available platforms
             vector<cl::Platform> platforms;
             cl::Platform::get(&platforms);
@@ -158,9 +159,9 @@ public:
             
             // Read source file
             std::ifstream sourceFile("vector_add_kernel.cl");
-            std::string sourceCode(
-                                   std::istreambuf_iterator<char>(sourceFile),
+            std::string sourceCode(std::istreambuf_iterator<char>(sourceFile),
                                    (std::istreambuf_iterator<char>()));
+            
             cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()+1));
             
             // Make program of the source code in the context

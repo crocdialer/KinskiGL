@@ -59,9 +59,9 @@ Mat ColorHistNode::doProcessing(const Mat &img)
     //convert colorspace to hsv
     cvtColor(scaledImg, hsvImg, CV_BGR2HSV);
     
-    if(m_colorHist.empty())
+    //if(m_colorHist.empty())
     {
-        Point centerPoint = Point(img.cols / 2, img.rows/ 2);
+        Point centerPoint = Point(hsvImg.cols / 2, hsvImg.rows/ 2);
         Rect centerRect = Rect(centerPoint - Point(m_roiWidth/2, m_roiWidth/2),
                                centerPoint + Point(m_roiWidth/2, m_roiWidth/2));
         

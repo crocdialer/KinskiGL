@@ -39,6 +39,11 @@ public:
     {
         if (!isOfType<T>()) {throw WrongTypeSetException(m_name);}
         
+        // check range
+//        if( (! m_min.empty() && (boost::any_cast<T>(m_min) > theValue)) ||
+//            (! m_max.empty() && (boost::any_cast<T>(m_max) < theValue)) )
+//            throw BadBoundsException(m_name);
+        
         m_value = theValue;
     }
    

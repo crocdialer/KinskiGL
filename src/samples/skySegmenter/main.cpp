@@ -19,9 +19,7 @@ class SkySegmenter : public App
 {
 private:
     
-    gl::Texture m_texture;
-    gl::Texture m_texture_conf;
-    gl::Texture m_texture_histImg;
+    gl::Texture m_textures[3];
     
     gl::Shader m_texShader;
     gl::Shader m_applyMapShader;
@@ -143,8 +141,9 @@ public:
 
         //sourceNode = CVSourceNode::Ptr(new CVBufferedSourceNode(sourceNode));
         
-        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
-                                true);
+//        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
+//                                true);
+        m_cvThread->streamUSBCamera();
         
         //CVSourceNode::Ptr sourceNode(new CVCaptureNode);
         //m_cvThread->setSourceNode(sourceNode);
@@ -168,9 +167,8 @@ public:
         {
             vector<cv::Mat> images = m_cvThread->getImages();
             
-            TextureIO::updateTexture(m_texture, images[0]);
-            TextureIO::updateTexture(m_texture_conf, images[1]);
-            TextureIO::updateTexture(m_texture_histImg, images[2]);
+            for(int i=0;i<images.size();i++)
+                TextureIO::updateTexture(m_textures[i], images[i]);
             
         }
         
@@ -180,19 +178,24 @@ public:
     
     void draw()
     {
-
-        m_texture_conf.bind(1);
         m_applyMapShader.bind();
-        m_applyMapShader.uniform("u_textureMap[1]", m_texture_conf.getBoundTextureUnit());
+        char buf[128];
         
-        drawTexture(m_texture, m_applyMapShader, vec2(0, getHeight()), getWindowSize());
+        for(int i=0;i<3;i++)
+        {
+            m_textures[i].bind(i);
+            sprintf(buf, "u_textureMap[%d]", i);
+            m_applyMapShader.uniform(buf, m_textures[i].getBoundTextureUnit());
+        }
 
-        drawTexture(m_texture_conf,
+        drawTexture(m_textures[0], m_applyMapShader, vec2(0, getHeight()), getWindowSize());
+
+        drawTexture(m_textures[1],
                     m_texShader,
                     vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 20),
                     getWindowSize()/5.f);
         
-        drawTexture(m_texture_histImg,
+        drawTexture(m_textures[2],
                     m_texShader,
                     vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 160),
                     getWindowSize()/5.f);
