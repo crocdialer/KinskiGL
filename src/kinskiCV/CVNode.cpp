@@ -211,7 +211,7 @@ namespace kinski
             
             outMats.insert(outMats.end(), tmpMats.begin(), tmpMats.end());
             
-            procImg = tmpMats.back();
+            procImg = tmpMats.empty() ? img : tmpMats.back();
         }
         
         return outMats;
