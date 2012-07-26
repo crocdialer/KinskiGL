@@ -117,28 +117,37 @@ namespace kinski {
                 break;
             }
             
+            cpu_times grabTimes = cpuTimer.elapsed();
+            
             //skip iteration when invalid frame is returned (eg. from camera)
             if(inFrame.empty()) continue;
             
-            cpu_times t = cpuTimer.elapsed();
-            m_lastGrabTime = (t.wall) / 1000000000.0;
-            
+            vector<Mat> tmpImages;
+
             // image processing
-            {   
+            
+            cpuTimer.start();
+            
+            if(hasProcessing())
+            {
                 //auto_cpu_timer autoTimer;
-                cpuTimer.start();
-                
-                if(hasProcessing())
-                {   
-                    m_images = m_processNode->doProcessing(inFrame);
-                }
-                
-                t = cpuTimer.elapsed();
-                m_lastProcessTime = (t.wall) / 1000000000.0;
-                
+                tmpImages = m_processNode->doProcessing(inFrame);
+            }
+            else
+                tmpImages.push_back(inFrame);
+            
+            cpu_times processTimes = cpuTimer.elapsed();
+
+            // locked scope
+            {
                 boost::mutex::scoped_lock lock(m_mutex);
+                m_lastGrabTime = (grabTimes.wall) / 1000000000.0;
+                m_lastProcessTime = (processTimes.wall) / 1000000000.0;
+                m_images = tmpImages;
                 m_newFrame = true;
             }
+            
+            // thread timing
             
             double elapsed_msecs,sleep_msecs;
             

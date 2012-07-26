@@ -185,12 +185,12 @@ namespace kinski
         return ss.str();
     }
     
-    void CVCombinedProcessNode::combineWith(const CVProcessNode::Ptr &one)
+    void CVCombinedProcessNode::addNode(const CVProcessNode::Ptr &theNode)
     {
-        m_processNodes.push_back(one);
+        m_processNodes.push_back(theNode);
         
-        list<Property::Ptr>::const_iterator it = one->getPropertyList().begin(),
-        end = one->getPropertyList().end();
+        list<Property::Ptr>::const_iterator it = theNode->getPropertyList().begin(),
+        end = theNode->getPropertyList().end();
         
         for (; it != end; it++)
         {
@@ -222,8 +222,8 @@ namespace kinski
     {
         CVCombinedProcessNode::Ptr outPtr(new CVCombinedProcessNode);
 
-        outPtr->combineWith(one);
-        outPtr->combineWith(other);
+        outPtr->addNode(one);
+        outPtr->addNode(other);
         
         return outPtr;
     }

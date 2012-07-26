@@ -12,7 +12,8 @@ private:
     std::string m_message;
     
 public:
-    explicit Exception(const std::string &msg): std::runtime_error(msg), m_message(msg) 
+    explicit Exception(const std::string &msg): std::runtime_error(msg),
+    m_message(msg)
     {
         log();
     };
@@ -32,4 +33,4 @@ public:
 };
 } // namespace kinski
 
-#endif // __ATS_EXCEPTION_INCLUDED__
+#endif // __KINSKI_EXCEPTION_INCLUDED__

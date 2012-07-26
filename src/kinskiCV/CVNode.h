@@ -80,18 +80,25 @@ private:
     std::list<cv::Mat> m_imgBuffer;
 };
 
-class BadInputSourceException : public std::runtime_error
+/*!
+ * thrown to indicate a bad input source
+ */
+class BadInputSourceException : public Exception
 {
 public:
     BadInputSourceException(const std::string &msg):
-    std::runtime_error(std::string("BadInputSourceException: ") + msg)
+    Exception(std::string("BadInputSourceException: ") + msg)
     {}
     BadInputSourceException(const CVSourceNode::Ptr srcPtr=CVSourceNode::Ptr()):
-    std::runtime_error(std::string("BadInputSourceException: ")
+    Exception(std::string("BadInputSourceException: ")
                        + (srcPtr ? srcPtr->getName() : std::string("Null")))
     {}
 };
-    
+
+/*!
+ * Basic interface for classes serving as ProcessNodes,
+ * meaning delegates doing images processing.
+ */
 class CVProcessNode : public CVNode
 {
 public:
@@ -104,6 +111,10 @@ public:
     virtual std::vector<cv::Mat> doProcessing(const cv::Mat &img) = 0;
 };
 
+/*!
+ * CVCombinedProcessNode serves as a wrapper for ProcessNodes,
+ * executing their tasks sequentially and summing up their properties and results.
+ */
 class CVCombinedProcessNode : public CVProcessNode
 {
 public:
@@ -113,7 +124,10 @@ public:
     virtual std::string getName();
     virtual std::string getDescription();
     
-    void combineWith(const CVProcessNode::Ptr &one);
+    /*!
+     * add a ProcessNode to the processing chain
+     */
+    void addNode(const CVProcessNode::Ptr &theNode);
     const std::list<CVProcessNode::Ptr>& getNodes(){return m_processNodes;};
     
     std::vector<cv::Mat> doProcessing(const cv::Mat &img);

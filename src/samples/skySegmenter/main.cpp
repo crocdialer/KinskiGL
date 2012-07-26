@@ -28,10 +28,10 @@ public:
     vector<cv::Mat> doProcessing(const cv::Mat &img)
     {
         vector<cv::Mat> outMats;
-        outMats.push_back(img);
         
         cout<<"PrintHelloNode: "<< m_helloString->val() <<endl;
-        
+
+        // we return an empty vector, since we´re not doing any imaging stuff
         return outMats;
     };
 private:
@@ -170,12 +170,11 @@ public:
 //        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
 //                                true);
         m_cvThread->streamUSBCamera();
-        
-        //CVSourceNode::Ptr sourceNode(new CVCaptureNode);
-        //m_cvThread->setSourceNode(sourceNode);
-        //m_cvThread->start();
+
+        cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
+        
     }
     
     void tearDown()

@@ -145,7 +145,7 @@ namespace kinski
                                     TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBarList.size() < 1) return;
+        {   if(m_tweakBarList.empty()) return;
             theBar = m_tweakBarList.front();
         }
         m_tweakProperties[theBar] = propPtr;
