@@ -94,19 +94,43 @@ public:
     
 class CVProcessNode : public CVNode
 {
-private:
-    
-    std::vector<cv::Mat> m_images;
-    
 public:
     typedef boost::shared_ptr<CVProcessNode> Ptr;
     
-    // inherited from INode
+    // inherited from CVNode
     virtual std::string getName(){return "Instance of CVProcessNode";};
     virtual std::string getDescription(){return "Generic processing node";};
-    
+
     virtual std::vector<cv::Mat> doProcessing(const cv::Mat &img) = 0;
 };
+
+class CVCombinedProcessNode : public CVProcessNode
+{
+public:
+    typedef boost::shared_ptr<CVCombinedProcessNode> Ptr;
+    
+    // inherited from CVNode
+    virtual std::string getName();
+    virtual std::string getDescription();
+    
+    void combineWith(const CVProcessNode::Ptr &one);
+    const std::list<CVProcessNode::Ptr>& getNodes(){return m_processNodes;};
+    
+    std::vector<cv::Mat> doProcessing(const cv::Mat &img);
+
+private:
+    std::list<CVProcessNode::Ptr> m_processNodes;
+};
+    
+CVCombinedProcessNode::Ptr link(const CVProcessNode::Ptr &one,
+                                const CVProcessNode::Ptr &other);
+        
+const CVCombinedProcessNode::Ptr operator<<(const CVProcessNode::Ptr &one,
+                                            const CVProcessNode::Ptr &other);
+    
+const CVCombinedProcessNode::Ptr operator>>(const CVProcessNode::Ptr &one,
+                                            const CVProcessNode::Ptr &other);
+    
     
 class CVCaptureNode : public CVSourceNode
 {

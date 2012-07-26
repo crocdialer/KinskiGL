@@ -157,5 +157,87 @@ namespace kinski
         
         return true;
     }
+
+/************************* CVCombinedProcessNode ******************************/
+
+    string CVCombinedProcessNode::getName()
+    {
+        stringstream ss;
+        
+        ss<<"CVCombinedProcessNode ("<<m_processNodes.size()<<")\n";
+
+        return ss.str();
+    }
+    
+    string CVCombinedProcessNode::getDescription()
+    {
+        stringstream ss;
+        
+        ss<<"CVCombinedProcessNode containing:\n";
+        
+        list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
+        
+        for (; it != m_processNodes.end(); it++)
+        {
+            ss << (*it)->getDescription() << endl;
+        }
+        
+        return ss.str();
+    }
+    
+    void CVCombinedProcessNode::combineWith(const CVProcessNode::Ptr &one)
+    {
+        m_processNodes.push_back(one);
+        
+        list<Property::Ptr>::const_iterator it = one->getPropertyList().begin(),
+        end = one->getPropertyList().end();
+        
+        for (; it != end; it++)
+        {
+            registerProperty(*it);
+        }
+    }
+    
+    vector<Mat> CVCombinedProcessNode::doProcessing(const Mat &img)
+    {
+        vector<Mat> outMats;
+        Mat procImg = img;
+        
+        list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
+        
+        for (; it != m_processNodes.end(); it++)
+        {
+            vector<Mat> tmpMats = (*it)->doProcessing(procImg);
+            
+            outMats.insert(outMats.end(), tmpMats.begin(), tmpMats.end());
+            
+            procImg = tmpMats.back();
+        }
+        
+        return outMats;
+    }
+    
+    CVCombinedProcessNode::Ptr link(const CVProcessNode::Ptr &one,
+                                    const CVProcessNode::Ptr &other)
+    {
+        CVCombinedProcessNode::Ptr outPtr(new CVCombinedProcessNode);
+
+        outPtr->combineWith(one);
+        outPtr->combineWith(other);
+        
+        return outPtr;
+    }
+    
+    const CVCombinedProcessNode::Ptr operator<<(const CVProcessNode::Ptr &one,
+                                                const CVProcessNode::Ptr &other)
+    {
+        return link(one, other);
+    };
+    
+    const CVCombinedProcessNode::Ptr operator>>(const CVProcessNode::Ptr &one,
+                                                const CVProcessNode::Ptr &other)
+    {
+        return link(other, one);
+    };
 }
 

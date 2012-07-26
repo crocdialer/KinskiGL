@@ -15,11 +15,37 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
+class PrintHelloNode : public kinski::CVProcessNode
+{
+public:
+    
+    PrintHelloNode()
+    {
+        m_helloString = _Property<string>::create("HelloString", "doo wop");
+        registerProperty(m_helloString);
+    };
+    
+    vector<cv::Mat> doProcessing(const cv::Mat &img)
+    {
+        vector<cv::Mat> outMats;
+        outMats.push_back(img);
+        
+        cout<<"PrintHelloNode: "<< m_helloString->val() <<endl;
+        
+        return outMats;
+    };
+private:
+    
+    _Property<string>::Ptr m_helloString;
+    cv::VideoWriter m_videoWriter;
+};
+
+
 class SkySegmenter : public App 
 {
 private:
     
-    gl::Texture m_textures[3];
+    gl::Texture m_textures[4];
     
     gl::Shader m_texShader;
     gl::Shader m_applyMapShader;
@@ -67,8 +93,8 @@ private:
         
     }
     
-    void drawTexture(gl::Texture theTexture,
-                     gl::Shader theShader,
+    void drawTexture(gl::Texture &theTexture,
+                     gl::Shader &theShader,
                      const vec2 &theTl = vec2(0),
                      const vec2 &theSize = vec2(0))
     {
@@ -78,8 +104,8 @@ private:
     }
     
     
-    void drawTexture(const gl::Texture &theTexture,
-                     gl::Shader theShader,
+    void drawTexture(gl::Texture &theTexture,
+                     gl::Shader &theShader,
                      float x0, float y0, float x1, float y1)
     {
         // Texture and Shader bound for this scope
@@ -135,11 +161,11 @@ public:
         m_cvThread = CVThread::Ptr(new CVThread());
         m_processNode = CVProcessNode::Ptr (new ColorHistNode);
         
+        m_processNode = m_processNode << CVProcessNode::Ptr (new PrintHelloNode);
+        
         m_cvThread->setProcessingNode(m_processNode);
         
         addPropertyListToTweakBar(m_processNode->getPropertyList());
-
-        //sourceNode = CVSourceNode::Ptr(new CVBufferedSourceNode(sourceNode));
         
 //        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
 //                                true);
@@ -185,9 +211,9 @@ public:
             m_applyMapShader.uniform(buf, m_textures[i].getBoundTextureUnit());
         }
 
-        drawTexture(m_textures[0], m_applyMapShader, vec2(0, getHeight()), getWindowSize());
+        drawTexture(m_textures[1], m_applyMapShader, vec2(0, getHeight()), getWindowSize());
 
-        drawTexture(m_textures[1],
+        drawTexture(m_textures[0],
                     m_texShader,
                     vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 20),
                     getWindowSize()/5.f);
