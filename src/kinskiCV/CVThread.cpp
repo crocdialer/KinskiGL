@@ -15,8 +15,8 @@ using namespace cv;
 
 using namespace boost::timer;
 
-namespace kinski {
-
+namespace kinski
+{
     CVThread::CVThread():
     m_stopped(true), m_newFrame(false),
     m_processing(true),
@@ -42,7 +42,7 @@ namespace kinski {
     
     void CVThread::stop()
     {
-        m_stopped=true;
+        m_stopped = true;
         m_thread.join();
     }
     
@@ -181,11 +181,24 @@ namespace kinski {
     
     void CVThread::setImage(const cv::Mat& img)
     {
-        boost::mutex::scoped_lock lock(m_mutex);
         if(hasProcessing())
-            m_images = m_processNode->doProcessing(img);
-        
-        m_newFrame = true;
+        {
+            vector<Mat> tmpImages, procImages = m_processNode->doProcessing(img);
+            
+            tmpImages.push_back(img);
+            tmpImages.insert(tmpImages.end(),
+                             procImages.begin(),
+                             procImages.end());
+            
+            boost::mutex::scoped_lock lock(m_mutex);
+            m_images = tmpImages;
+            m_newFrame = true;
+        }
+        else
+        {
+            boost::mutex::scoped_lock lock(m_mutex);
+            m_newFrame = true;
+        }
     }
     
     const std::vector<cv::Mat>& CVThread::getImages()

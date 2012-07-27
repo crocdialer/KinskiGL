@@ -20,7 +20,7 @@ namespace kinski
     m_loop(false)
     {
         if(!m_capture.open(camId))
-            throw std::runtime_error("could not open capture");
+            throw BadInputSourceException("could not open capture");
         
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
@@ -35,7 +35,7 @@ namespace kinski
     m_loop(true)
     {
         if(!m_capture.open(movieFile))
-            throw std::runtime_error("could not open capture");
+            throw BadInputSourceException("could not open capture");
         
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);

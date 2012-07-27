@@ -14,10 +14,6 @@
 #include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
 
-#ifdef KINSKI_FREENECT
-#include "KinectDevice.h"
-#endif
-
 #include "CVNode.h"
 
 namespace kinski {
@@ -36,17 +32,8 @@ namespace kinski {
         void streamImageSequence(const std::vector<std::string>& files);
         void streamVideo(const std::string& path2Video, bool loop = false);
         void streamUSBCamera(int camId = 0);
-        void streamIPCamera(bool b);
-        
-#ifdef KINSKI_FREENECT
-        void streamKinect(bool b);
-#endif
-        
-        bool saveCurrentFrame(const std::string& savePath);
         
         void playPause();
-        void jumpToFrame(int index);
-        void skipFrames(int num);
         
         void setImage(const cv::Mat& img);
         bool hasImage();
