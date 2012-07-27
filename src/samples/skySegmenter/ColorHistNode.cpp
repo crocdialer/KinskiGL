@@ -45,8 +45,6 @@ string ColorHistNode::getDescription()
 
 vector<Mat> ColorHistNode::doProcessing(const Mat &img)
 {
-    vector<Mat> outMats;
-    
     // check for correct type (3 channel 8U)
     //TODO: implement check here
     assert(img.type() == CV_8UC3);
@@ -63,7 +61,7 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     //convert colorspace to hsv
     cvtColor(scaledImg, hsvImg, CV_BGR2HSV);
     
-    //if(m_colorHist.empty())
+    if(m_colorHist.empty())
     {
         Point centerPoint = Point(hsvImg.cols / 2, hsvImg.rows/ 2);
         Rect centerRect = Rect(centerPoint - Point(m_roiWidth/2, m_roiWidth/2),
@@ -99,6 +97,7 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     
     blur(backProj, backProj, Size(5, 5));
     
+    vector<Mat> outMats;
     outMats.push_back(backProj);
     outMats.push_back(m_histImage);
     

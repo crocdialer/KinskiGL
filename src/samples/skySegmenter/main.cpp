@@ -16,34 +16,6 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class PrintHelloNode : public kinski::CVProcessNode
-{
-public:
-    
-    PrintHelloNode()
-    {
-        m_helloString = _Property<string>::create("HelloString", "doo wop");
-        registerProperty(m_helloString);
-    };
-    
-    std::string getDescription(){return "PrintHelloNode - a node printing out text";};
-    
-    vector<cv::Mat> doProcessing(const cv::Mat &img)
-    {
-        vector<cv::Mat> outMats;
-        
-        cout<<"PrintHelloNode: "<< m_helloString->val() <<endl;
-
-        // we return an empty vector, since we´re not doing any imaging stuff
-        return outMats;
-    };
-private:
-    
-    _Property<string>::Ptr m_helloString;
-    cv::VideoWriter m_videoWriter;
-};
-
-
 class SkySegmenter : public App 
 {
 private:
@@ -162,19 +134,21 @@ public:
         // CV stuff 
         
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new SalienceNode);
-        
-        m_processNode = m_processNode << CVProcessNode::Ptr(new PrintHelloNode);
+        m_processNode = CVProcessNode::Ptr(new ColorHistNode);
+        //m_processNode = m_processNode << CVProcessNode::Ptr(new CVWriterNode("~/Desktop/lulu.avi"));
         
         m_cvThread->setProcessingNode(m_processNode);
-        
-        addPropertyListToTweakBar(m_processNode->getPropertyList());
-        
-//        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
-//                                true);
-        m_cvThread->streamUSBCamera();
 
-        cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
+        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
+                                true);
+        
+//        m_cvThread->streamUSBCamera();
+
+        if(m_processNode)
+        {
+            addPropertyListToTweakBar(m_processNode->getPropertyList());
+            cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
+        }
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
         
@@ -203,8 +177,9 @@ public:
     
     void draw()
     {
-        m_applyMapShader.bind();
         char buf[128];
+     
+        m_applyMapShader.bind();
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
@@ -213,19 +188,22 @@ public:
             m_applyMapShader.uniform(buf, m_textures[i].getBoundTextureUnit());
         }
 
-        drawTexture(m_textures[1], m_applyMapShader, vec2(0, getHeight()), getWindowSize());
-
-        drawTexture(m_textures[0],
-                    m_texShader,
-                    vec2(getWidth() - getWidth()/5.f - 20, getHeight() - 20),
-                    getWindowSize()/5.f);
+        // draw fullscreen image
+        drawTexture(m_textures[0], m_applyMapShader, vec2(0, getHeight()), getWindowSize());
         
-        drawTexture(m_textures[2],
-                    m_texShader,
-                    vec2(getWidth() - getWidth()/5.f - 20,
-                         getHeight() - (1.2 * getHeight()/5.f) ),
-                    getWindowSize()/5.f);
-       
+        // draw process-results map(s)
+        glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
+        glm::vec2 step(0, - getHeight()/5.f - 10);
+        
+        for(int i=0;i<m_cvThread->getImages().size();i++)
+        {
+            drawTexture(m_textures[i],
+                        m_texShader,
+                        offet,
+                        getWindowSize()/5.f);
+            
+            offet += step;
+        }
     }
 };
 
