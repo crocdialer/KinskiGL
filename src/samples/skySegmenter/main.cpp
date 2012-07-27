@@ -10,6 +10,7 @@
 
 #include "SkySegmentNode.h"
 #include "ColorHistNode.h"
+#include "SalienceNode.h"
 
 using namespace std;
 using namespace kinski;
@@ -24,6 +25,8 @@ public:
         m_helloString = _Property<string>::create("HelloString", "doo wop");
         registerProperty(m_helloString);
     };
+    
+    std::string getDescription(){return "PrintHelloNode - a node printing out text";};
     
     vector<cv::Mat> doProcessing(const cv::Mat &img)
     {
@@ -159,9 +162,9 @@ public:
         // CV stuff 
         
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr (new ColorHistNode);
+        m_processNode = CVProcessNode::Ptr(new SalienceNode);
         
-        m_processNode = m_processNode << CVProcessNode::Ptr (new PrintHelloNode);
+        m_processNode = m_processNode << CVProcessNode::Ptr(new PrintHelloNode);
         
         m_cvThread->setProcessingNode(m_processNode);
         
@@ -203,7 +206,7 @@ public:
         m_applyMapShader.bind();
         char buf[128];
         
-        for(int i=0;i<3;i++)
+        for(int i=0;i<m_cvThread->getImages().size();i++)
         {
             m_textures[i].bind(i);
             sprintf(buf, "u_textureMap[%d]", i);

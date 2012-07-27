@@ -38,6 +38,8 @@ public:
     ColorHistNode();
     virtual ~ColorHistNode();
     
+    std::string getDescription();
+    
     std::vector<cv::Mat> doProcessing(const cv::Mat &img);
 };
 

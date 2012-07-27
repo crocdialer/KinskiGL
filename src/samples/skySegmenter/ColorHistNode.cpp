@@ -38,6 +38,11 @@ ColorHistNode::~ColorHistNode()
     
 }
 
+string ColorHistNode::getDescription()
+{
+    return "ColorHistNode - Histogram Backprojection";
+}
+
 vector<Mat> ColorHistNode::doProcessing(const Mat &img)
 {
     vector<Mat> outMats;
@@ -94,7 +99,6 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     
     blur(backProj, backProj, Size(5, 5));
     
-    outMats.push_back(img);
     outMats.push_back(backProj);
     outMats.push_back(m_histImage);
     

@@ -34,7 +34,6 @@ SkySegmentNode::~SkySegmentNode()
 vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
 {
     vector<Mat> outMats;
-    outMats.push_back(img);
     
     Mat scaledImg, grayImg, threshImg,
     edgeImg, skyMask, outMat;
