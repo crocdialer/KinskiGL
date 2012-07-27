@@ -25,7 +25,7 @@ namespace kinski
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
     
-        boost::format fmt("usb camera(%d)\n");
+        boost::format fmt("CVCaptureNode from usb camera(%d)\n");
         fmt % camId;
         m_description = fmt.str();
     }
@@ -40,14 +40,13 @@ namespace kinski
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
         
-        boost::format fmt("movie file '%s'\n# frames: %d\nfps: %.2f\n");
+        boost::format fmt("CVCaptureNode from movie file '%s'\n# frames: %d\nfps: %.2f\n");
         fmt % movieFile % m_numFrames % m_captureFPS;
         m_description = fmt.str();
     }
     
     CVCaptureNode::~CVCaptureNode(){ m_capture.release();};
     
-    std::string CVCaptureNode::getName(){return "CVCaptureNode";};
     std::string CVCaptureNode::getDescription(){return m_description;};
     
     bool CVCaptureNode::getNextImage(cv::Mat &img)
@@ -98,13 +97,6 @@ namespace kinski
         m_running = false;
         m_conditionVar.notify_all();
         m_thread.join();
-    }
-    
-    std::string CVBufferedSourceNode::getName()
-    {
-        stringstream ss;
-        ss << "CVBufferedSourceNode ("<<m_sourceNode->getName()<<")\n";
-        return ss.str();
     }
     
     std::string CVBufferedSourceNode::getDescription()
@@ -159,21 +151,12 @@ namespace kinski
     }
 
 /************************* CVCombinedProcessNode ******************************/
-
-    string CVCombinedProcessNode::getName()
-    {
-        stringstream ss;
-        
-        ss<<"CVCombinedProcessNode ("<<m_processNodes.size()<<")\n";
-
-        return ss.str();
-    }
     
     string CVCombinedProcessNode::getDescription()
     {
         stringstream ss;
         
-        ss<<"CVCombinedProcessNode containing:\n";
+        ss<<"CVCombinedProcessNode ("<<m_processNodes.size()<<") containing:\n";
         
         list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
         

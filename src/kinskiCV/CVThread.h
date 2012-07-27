@@ -50,7 +50,7 @@ namespace kinski {
         
         void setImage(const cv::Mat& img);
         bool hasImage();
-        std::vector<cv::Mat> getImages();
+        const std::vector<cv::Mat>& getImages();
         
         void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
         

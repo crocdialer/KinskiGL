@@ -123,7 +123,8 @@ namespace kinski {
             if(inFrame.empty()) continue;
             
             vector<Mat> tmpImages;
-
+            tmpImages.push_back(inFrame);
+            
             // image processing
             
             cpuTimer.start();
@@ -131,10 +132,12 @@ namespace kinski {
             if(hasProcessing())
             {
                 //auto_cpu_timer autoTimer;
-                tmpImages = m_processNode->doProcessing(inFrame);
+                vector<Mat> procImages = m_processNode->doProcessing(inFrame);
+                
+                tmpImages.insert(tmpImages.end(),
+                                 procImages.begin(),
+                                 procImages.end());
             }
-            else
-                tmpImages.push_back(inFrame);
             
             cpu_times processTimes = cpuTimer.elapsed();
 
@@ -185,7 +188,7 @@ namespace kinski {
         m_newFrame = true;
     }
     
-    std::vector<cv::Mat> CVThread::getImages()
+    const std::vector<cv::Mat>& CVThread::getImages()
     {
         boost::mutex::scoped_lock lock(m_mutex);
         if(m_newFrame)

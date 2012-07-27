@@ -20,7 +20,6 @@ class CVNode : public Component
 {
 public:
     typedef boost::shared_ptr<CVNode> Ptr;
-    virtual std::string getName() = 0;
     virtual std::string getDescription() = 0;
 };
     
@@ -31,7 +30,6 @@ public:
     typedef boost::shared_ptr<CVSourceNode> Ptr;
     
     // inherited from CVNode
-    virtual std::string getName(){return "Instance of CVSourceNode";};
     virtual std::string getDescription(){return "Generic Input-source";};
     
     //virtual float getFramerate() = 0;
@@ -53,7 +51,6 @@ public:
     
     bool getNextImage(cv::Mat &img);
     
-    std::string getName();
     std::string getDescription();
     
 private:
@@ -91,7 +88,7 @@ public:
     {}
     BadInputSourceException(const CVSourceNode::Ptr srcPtr=CVSourceNode::Ptr()):
     Exception(std::string("BadInputSourceException: ")
-                       + (srcPtr ? srcPtr->getName() : std::string("Null")))
+                       + (srcPtr ? srcPtr->getDescription() : std::string("Null")))
     {}
 };
 
@@ -105,7 +102,6 @@ public:
     typedef boost::shared_ptr<CVProcessNode> Ptr;
     
     // inherited from CVNode
-    virtual std::string getName(){return "Instance of CVProcessNode";};
     virtual std::string getDescription(){return "Generic processing node";};
 
     virtual std::vector<cv::Mat> doProcessing(const cv::Mat &img) = 0;
@@ -121,7 +117,6 @@ public:
     typedef boost::shared_ptr<CVCombinedProcessNode> Ptr;
     
     // inherited from CVNode
-    virtual std::string getName();
     virtual std::string getDescription();
     
     /*!
@@ -155,7 +150,6 @@ public:
     CVCaptureNode(const std::string &movieFile);
     virtual ~CVCaptureNode();
     
-    virtual std::string getName();
     virtual std::string getDescription();
     
     bool getNextImage(cv::Mat &img);
