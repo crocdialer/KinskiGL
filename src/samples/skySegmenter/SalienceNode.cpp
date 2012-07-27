@@ -13,13 +13,14 @@ namespace kinski
 {
     
     SalienceNode::SalienceNode():
-    m_colorMapType(COLORMAP_JET)
+    m_colorMapType(COLORMAP_JET),
+    m_useColor(_Property<bool>::create("Color Contrast (red-green / blue-yellow)", true)),
+    m_useDoB(_Property<bool>::create("Difference of Box (spatial)", true)),
+    m_useDoE(_Property<bool>::create("Difference of Exponential (motion)", true))
     {
-        
-        m_salienceDetect.setUseColorInformation(1);
-        m_salienceDetect.setUseDoBFeatures(1);
-        m_salienceDetect.setUseDoEFeatures(1);
-        m_salienceDetect.setUseGGDistributionParams(1);
+        registerProperty(m_useColor);
+        registerProperty(m_useDoB);
+        registerProperty(m_useDoE);
     }
     
     SalienceNode::~SalienceNode()
@@ -27,9 +28,16 @@ namespace kinski
         
     }
     
+    string SalienceNode::getDescription()
+    {
+        return "SalienceNode - FastSalience algorithm by Butko et al. (2008)";
+    }
+    
     vector<Mat> SalienceNode::doProcessing(const Mat &img)
     {
-        vector<Mat> outMats;
+        m_salienceDetect.setUseColorInformation(m_useColor->val());
+        m_salienceDetect.setUseDoBFeatures(m_useDoB->val());
+        m_salienceDetect.setUseDoEFeatures(m_useDoE->val());
         
         cv::Mat downSized, colorSalience;
         
@@ -38,10 +46,10 @@ namespace kinski
         m_salienceDetect.updateSalience(downSized);
         m_salienceDetect.getSalImage(m_salienceImage);
         
-        //resize(salImg,salImg,inFrame.size(),CV_INTER_LINEAR);
+        m_salienceImage.convertTo(colorSalience, CV_8UC1, 255.0);
+        applyColorMap(colorSalience, colorSalience, m_colorMapType) ;
         
-        applyColorMap(m_salienceImage, colorSalience, m_colorMapType) ;
-        
+        vector<Mat> outMats;
         outMats.push_back(m_salienceImage);
         outMats.push_back(colorSalience);
 

@@ -1,5 +1,5 @@
 //
-//  SkySegmentNode.h
+//  SalienceNode.h
 //  kinskiGL
 //
 //  Created by Fabian Schmidt on 6/25/12.
@@ -25,12 +25,13 @@ namespace kinski
         _Property<bool>::Ptr m_useColor;
         _Property<bool>::Ptr m_useDoB;
         _Property<bool>::Ptr m_useDoE;
-        _Property<bool>::Ptr m_useGGD;
         
     public:
         
         SalienceNode();
         virtual ~SalienceNode();
+        
+        std::string getDescription();
         
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
     };
