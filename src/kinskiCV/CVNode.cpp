@@ -215,13 +215,13 @@ namespace kinski
                                                 const CVProcessNode::Ptr &other)
     {
         return link(one, other);
-    };
+    }
     
     const CVCombinedProcessNode::Ptr operator>>(const CVProcessNode::Ptr &one,
                                                 const CVProcessNode::Ptr &other)
     {
         return link(other, one);
-    };
+    }
     
 /****************************** CVWriterNode **********************************/
     

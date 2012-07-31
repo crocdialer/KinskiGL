@@ -30,6 +30,8 @@ private:
     
     _Property<bool>::Ptr m_activator;
     
+    _RangedProperty<float>::Ptr m_rangedFloat;
+    
     CVThread::Ptr m_cvThread;
     
     CVProcessNode::Ptr m_processNode;
@@ -127,22 +129,29 @@ public:
         buildCanvasVBO();
         
         m_activator = _Property<bool>::create("processing", true);
+        m_rangedFloat = _RangedProperty<float>::create("rangedFloat",
+                                                       1.0, 0, 5.0);
+        
+        //m_rangedFloat->set(-7.f);
+        
+        *m_rangedFloat *= 4.f;
         
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);
+        addPropertyToTweakBar(m_rangedFloat);
         
         // CV stuff 
         
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new ColorHistNode);
+        m_processNode = CVProcessNode::Ptr(new SalienceNode);
         //m_processNode = m_processNode << CVProcessNode::Ptr(new CVWriterNode("~/Desktop/lulu.avi"));
         
         m_cvThread->setProcessingNode(m_processNode);
 
-        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
-                                true);
+//        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.mov",
+//                                true);
         
-//        m_cvThread->streamUSBCamera();
+        m_cvThread->streamUSBCamera();
 
         if(m_processNode)
         {
@@ -189,7 +198,10 @@ public:
         }
 
         // draw fullscreen image
-        drawTexture(m_textures[0], m_applyMapShader, vec2(0, getHeight()), getWindowSize());
+        drawTexture(m_textures[0],
+                    m_activator->val() ? m_applyMapShader : m_texShader,
+                    vec2(0, getHeight()),
+                    getWindowSize());
         
         // draw process-results map(s)
         glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);

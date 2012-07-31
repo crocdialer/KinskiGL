@@ -33,10 +33,8 @@ SkySegmentNode::~SkySegmentNode()
 
 vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
 {
-    vector<Mat> outMats;
-    
     Mat scaledImg, grayImg, threshImg,
-    edgeImg, skyMask, outMat;
+    edgeImg, skyMask;
     
     float scale = 0.5f;
     
@@ -108,21 +106,25 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     }
     
     bitwise_not(workImg, skyMask);
-    cv::cvtColor(workImg, workImg, CV_GRAY2BGR);
-    cv::cvtColor(skyMask, skyMask, CV_GRAY2BGR);
     
-    {
-        Mat skyImg, foreGrnd;
-        bitwise_not(scaledImg, skyImg);
-        
-        skyImg &= skyMask;
-        foreGrnd = scaledImg & workImg;
-        
-        outMat = skyImg + foreGrnd;
-    }
+//    cv::cvtColor(workImg, workImg, CV_GRAY2BGR);
+//    cv::cvtColor(skyMask, skyMask, CV_GRAY2BGR);
+//    
+//    {
+//        Mat skyImg, foreGrnd;
+//        bitwise_not(scaledImg, skyImg);
+//        
+//        skyImg &= skyMask;
+//        foreGrnd = scaledImg & workImg;
+//        
+//        outMat = skyImg + foreGrnd;
+//    }
     
     //drawContours(outMat, contours, 0, Scalar(128, 255, 255), 3);
-    outMats.push_back(outMat);
+    vector<Mat> outMats;
+    
+    outMats.push_back(edgeImg);
+    outMats.push_back(workImg);
     
     return outMats;
 }

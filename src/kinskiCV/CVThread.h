@@ -16,7 +16,8 @@
 
 #include "CVNode.h"
 
-namespace kinski {
+namespace kinski
+{
     
     class CVThread : public boost::noncopyable
     {

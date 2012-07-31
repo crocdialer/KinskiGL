@@ -6,7 +6,6 @@
 #include "Data.h"
 
 #include "kinskiGL/TextureIO.h"
-#include "kinskiCV/CVThread.h"
 
 #include <fstream>
 
@@ -28,11 +27,7 @@ private:
     
     GLuint m_canvasBuffer;
     GLuint m_canvasArray;
-    
-    _Property<bool>::Ptr m_activator;
-    
-    CVThread::Ptr m_cvThread;
-    
+        
     void buildCanvasVBO()
     {
         //GL_T2F_V3F
@@ -77,7 +72,7 @@ private:
     }
     
     
-    void drawTexture(const gl::Texture &theTexture, float x0, float y0, float x1, float y1)
+    void drawTexture(gl::Texture &theTexture, float x0, float y0, float x1, float y1)
     {
         // Texture and Shader bound for this scope
         gl::scoped_bind<gl::Texture> texBind(theTexture);
@@ -118,25 +113,8 @@ public:
         }
         
         buildCanvasVBO();
-        
-        m_activator = _Property<bool>::create("processing", true);
-        
-        // add component-props to tweakbar
-        addPropertyToTweakBar(m_activator);
-        
-        // CV stuff 
-        m_cvThread = CVThread::Ptr(new CVThread());
-        CVSourceNode::Ptr sourceNode(new CVCaptureNode);
-        CVProcessNode::Ptr procNode;
-        
-        m_cvThread->setSourceNode(sourceNode);
-        m_cvThread->start();
-        
-        if(procNode) addPropertyListToTweakBar(procNode->getPropertyList());
-        cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
-        
+              
         // OpenCL
-        
         try
         {
             // Get available platforms
@@ -208,29 +186,17 @@ public:
     
     void tearDown()
     {
-        m_cvThread->stop();
-        
         printf("ciao openclTest\n");
     }
     
     void update(const float timeDelta)
     {
-        cv::Mat camFrame;
-        
-        if(m_cvThread->getImage(camFrame))
-        {
-            TextureIO::updateTexture(m_texture, camFrame);
-        }
-        
-        // trigger processing
-        m_cvThread->setProcessing(m_activator->val());
+    
     }
     
     void draw()
     {
-        gl::scoped_bind<gl::Shader> shaderBind(m_shader);
-        drawTexture(m_texture, vec2(0, getHeight()), getWindowSize());
-        
+ 
     }
 };
 

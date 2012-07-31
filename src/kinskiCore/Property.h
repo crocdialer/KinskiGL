@@ -98,8 +98,12 @@ public:
     typedef boost::shared_ptr< _Property<T> > Ptr;
     
     _Property():Property(){};
+    
     _Property(const std::string &theName, const T &theValue):
     Property(theName, theValue){};
+    
+    explicit _Property(const _Property<T> &other):
+    Property(other.getName(), other.getValue<T>()){};
     
     static Ptr create(const std::string &theName, const T &theValue)
     {
@@ -109,7 +113,7 @@ public:
     
     inline const T val() const {return getValue<T>();};
     
-    virtual void set(const T &theVal){setValue<T>(theVal);};
+    inline void set(const T &theVal){setValue<T>(theVal);};
     
     inline void val(const T &theVal){set(theVal);};
     inline void operator()(const T &theVal){setValue<T>(theVal);};
@@ -252,6 +256,12 @@ public:
         rangeCheck(theValue);
     };
     
+    inline _RangedProperty<T>& operator=(T const& theVal)
+    {
+        this->set(theVal);
+        return *this;
+    };
+    
     class BadBoundsException : public Exception
     {
     public:
@@ -276,6 +286,12 @@ public:
         
         m_min = min;
         m_max = max;
+    };
+    
+    void getRange(T &min, T &max) const
+    {
+        min = m_min;
+        max = m_max;
     };
 
     bool checkValue(const boost::any &theVal)

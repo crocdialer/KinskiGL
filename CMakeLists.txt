@@ -9,14 +9,15 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules
 #find_package(PkgConfig REQUIRED)
 #####
 
-OPTION (BUILD_SAMPLES "Build Samples" ON)
-
 # Allow the developer to select if Dynamic or Static libraries are built
 OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
 SET (LIB_TYPE SHARED)
 IF (NOT BUILD_SHARED_LIBS)
   SET (LIB_TYPE STATIC)
 ENDIF (NOT BUILD_SHARED_LIBS)
+
+OPTION (BUILD_SAMPLES "Build Samples" ON)
+OPTION (BUILD_TESTS "Build Tests" ON)
 
 ##### OPENGL
 find_package(OpenGL REQUIRED)
@@ -32,7 +33,12 @@ SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 
 ##### BOOST
 set(Boost_USE_STATIC_LIBS ON)
-find_package(Boost REQUIRED COMPONENTS thread system timer chrono)
+set(BOOST_COMPONENTS thread system timer chrono)
+if(BUILD_TESTS)
+    ENABLE_TESTING()
+    set(BOOST_COMPONENTS ${BOOST_COMPONENTS} unit_test_framework)
+endif(BUILD_TESTS)
+find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####

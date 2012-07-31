@@ -9,9 +9,11 @@ void main()
 {
     vec4 color = texture(u_textureMap[0], v_texCoord.xy);
     float confidence = texture(u_textureMap[1], v_texCoord.xy).r;
-
-    vec4 gray = vec4(vec3(dot(color.rgb, vec3(0.299, 0.587, 0.114))), 1.0);
-
-    fragData = mix(gray, color, confidence) ;
+    vec4 colorMapVal = texture(u_textureMap[2], v_texCoord.xy);
+    
+    //vec4 gray = vec4(vec3(dot(color.rgb, vec3(0.299, 0.587, 0.114))), 1.0);
+    
+    
+    fragData = mix(color, colorMapVal, confidence) ;
 }
 

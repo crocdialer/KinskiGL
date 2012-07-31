@@ -12,5 +12,8 @@ SET(LIBS ${LIBS} ${LIB_NAME})
 SOURCE_GROUP("Headers" FILES ${FOLDER_HEADERS})
 SOURCE_GROUP("Sources" FILES ${FOLDER_SOURCES})
 
+#Boost Unit-Tests
+addTestMacro()
+
 install (TARGETS ${LIB_NAME} DESTINATION lib)    
 install (FILES ${FOLDER_HEADERS} DESTINATION "include/${LIB_NAME}")    
