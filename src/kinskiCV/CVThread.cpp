@@ -148,6 +148,7 @@ namespace kinski
                 m_lastProcessTime = (processTimes.wall) / 1000000000.0;
                 m_images = tmpImages;
                 m_newFrame = true;
+                m_conditionVar.notify_all();
             }
             
             // thread timing
@@ -177,6 +178,14 @@ namespace kinski
     {	
         boost::mutex::scoped_lock lock(m_mutex);
         return m_newFrame;
+    }
+    
+    void CVThread::waitForImage()
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        
+        while (!m_newFrame)
+            m_conditionVar.wait(lock);
     }
     
     void CVThread::setImage(const cv::Mat& img)

@@ -38,6 +38,7 @@ namespace kinski
         
         void setImage(const cv::Mat& img);
         bool hasImage();
+        void waitForImage();
         const std::vector<cv::Mat>& getImages();
         
         void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
@@ -85,6 +86,7 @@ namespace kinski
         
         boost::thread m_thread;
         boost::mutex m_mutex;
+        boost::condition_variable m_conditionVar;
         
     };
     
