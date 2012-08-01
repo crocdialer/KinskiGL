@@ -13,11 +13,11 @@ using namespace std;
 using namespace kinski;
 
 SkySegmentNode::SkySegmentNode():
-m_cannyLow(_Property<uint32_t>::create("Canny Low", 71)),
-m_cannyHigh(_Property<uint32_t>::create("Cany High", 208)),
-m_morphKernSize(_Property<uint32_t>::create("Morph kernel size", 7)),
-m_threshVal(_Property<uint32_t>::create("Intesity threshold", 140)),
-m_minPathLength(_Property<uint32_t>::create("Minimal path length", 200))
+m_cannyLow(_RangedProperty<uint32_t>::create("Canny Low", 71, 0, 255)),
+m_cannyHigh(_RangedProperty<uint32_t>::create("Cany High", 208, 0, 255)),
+m_morphKernSize(_RangedProperty<uint32_t>::create("Morph kernel size", 7, 3, 15)),
+m_threshVal(_RangedProperty<uint32_t>::create("Intesity threshold", 140, 0, 255)),
+m_minPathLength(_RangedProperty<uint32_t>::create("Minimal path length", 200, 0, 1024))
 {
     registerProperty(m_cannyLow);
     registerProperty(m_cannyHigh);
@@ -106,19 +106,6 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     }
     
     bitwise_not(workImg, skyMask);
-    
-//    cv::cvtColor(workImg, workImg, CV_GRAY2BGR);
-//    cv::cvtColor(skyMask, skyMask, CV_GRAY2BGR);
-//    
-//    {
-//        Mat skyImg, foreGrnd;
-//        bitwise_not(scaledImg, skyImg);
-//        
-//        skyImg &= skyMask;
-//        foreGrnd = scaledImg & workImg;
-//        
-//        outMat = skyImg + foreGrnd;
-//    }
     
     //drawContours(outMat, contours, 0, Scalar(128, 255, 255), 3);
     vector<Mat> outMats;

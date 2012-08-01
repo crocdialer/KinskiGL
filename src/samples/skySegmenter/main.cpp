@@ -20,6 +20,8 @@ class SkySegmenter : public App
 {
 private:
     
+    gl::Texture m_iconTexture;
+    
     gl::Texture m_textures[4];
     
     gl::Shader m_texShader;
@@ -113,6 +115,9 @@ public:
     void setup()
     {
         glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
         glClearColor(0, 0, 0, 1);
         
         try 
@@ -129,23 +134,15 @@ public:
         buildCanvasVBO();
         
         m_activator = _Property<bool>::create("processing", true);
-        m_rangedFloat = _RangedProperty<float>::create("rangedFloat",
-                                                       1.0, 0, 5.0);
         
-        cout<< *m_activator << *m_rangedFloat;
-        
-        //m_rangedFloat->set(-7.f);
-        
-        *m_rangedFloat *= 4.f;
+        m_iconTexture = TextureIO::loadTexture("jetbag.png");
         
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);
-        addPropertyToTweakBar(m_rangedFloat);
         
         // CV stuff 
-        
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new SalienceNode);
+        m_processNode = CVProcessNode::Ptr(new SkySegmentNode);
         //m_processNode = m_processNode << CVProcessNode::Ptr(new CVWriterNode("~/Desktop/lulu.avi"));
         
         m_cvThread->setProcessingNode(m_processNode);
@@ -218,6 +215,12 @@ public:
             
             offet += step;
         }
+        
+        drawTexture(m_iconTexture,
+                    m_texShader,
+                    vec2(0, m_iconTexture.getHeight()),
+                    m_iconTexture.getSize());
+        
     }
 };
 

@@ -9,7 +9,7 @@ using namespace gl;
     
 const Texture TextureIO::loadTexture(const string &imgPath)
 {
-    Mat img = imread(imgPath);
+    Mat img = imread(imgPath, -1);
     Texture ret;
     
     updateTexture(ret, img);
@@ -28,6 +28,7 @@ TextureIO::saveTexture(const string &imgPath, const Texture &texture)
 void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
 {
     GLenum format=0;
+    
     switch(theImage.channels()) 
 	{
 		case 1:
