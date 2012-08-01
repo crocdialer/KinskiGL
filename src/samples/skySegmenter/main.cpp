@@ -132,6 +132,8 @@ public:
         m_rangedFloat = _RangedProperty<float>::create("rangedFloat",
                                                        1.0, 0, 5.0);
         
+        cout<< *m_activator << *m_rangedFloat;
+        
         //m_rangedFloat->set(-7.f);
         
         *m_rangedFloat *= 4.f;

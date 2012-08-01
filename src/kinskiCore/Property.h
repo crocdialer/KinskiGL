@@ -253,7 +253,7 @@ public:
     _Property<T>(theName, theValue)
     {
         setRange(min, max);
-        rangeCheck(theValue);
+        checkValue(theValue);
     };
     
     inline _RangedProperty<T>& operator=(T const& theVal)
@@ -296,18 +296,30 @@ public:
 
     bool checkValue(const boost::any &theVal)
     {
+        T v = boost::any_cast<T>(theVal);
         try
         {
-            rangeCheck(boost::any_cast<T>(theVal));
+            rangeCheck(v);
             return true;
         }
         catch(const BadBoundsException &e)
         {
-            std::cerr<<e.what()<<std::endl;
+            v = std::min(v, m_max);
+            v = std::max(v, m_min);
+            this->set(v);
         }
 
         return false;
     };
+    
+    friend std::ostream& operator<<(std::ostream &os,const _RangedProperty<T>& theProp)
+    {
+        T min, max;
+        theProp.getRange(min, max);
+        
+        os<< theProp.getName()<<": "<<theProp.val()<<" ( "<<min<<" - "<<max<<" )\n";
+        return os;
+    }
 
 private:
 
