@@ -1,36 +1,37 @@
 #ifndef __KINSKI_EXCEPTION_INCLUDED__
 #define __KINSKI_EXCEPTION_INCLUDED__
 
+#include <iostream>
 #include <string>
 #include <stdexcept>
 
-namespace kinski 
+namespace kinski
 {
-class Exception : public std::runtime_error
-{
-private:
-    std::string m_message;
-    
-public:
-    explicit Exception(const std::string &msg): std::runtime_error(msg),
-    m_message(msg)
+    class Exception : public std::runtime_error
     {
-        log();
+    public:
+        explicit Exception(const std::string &msg): std::runtime_error(msg),
+        m_message(msg)
+        {
+            log();
+        };
+        
+        virtual ~Exception() throw(){};
+        
+        inline std::string getMessage()
+        {
+            return m_message;
+        };
+        
+        inline void log()
+        {
+            //TODO: implement logging
+            //std::cerr<<m_message<<std::endl;
+        };
+        
+    private:
+        std::string m_message;
     };
-
-    virtual ~Exception() throw(){};
-    
-    inline std::string getMessage() 
-    { 
-        return m_message; 
-    };
-    
-    inline void log()
-    {
-        //TODO: implement logging
-    };
-    
-};
 } // namespace kinski
 
 #endif // __KINSKI_EXCEPTION_INCLUDED__

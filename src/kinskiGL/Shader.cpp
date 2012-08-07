@@ -25,12 +25,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
-#include <stdexcept>
+#include "kinskiCore/Exception.h"
 
 using namespace std;
 
-namespace kinski{
-namespace gl {
+namespace kinski
+{
+namespace gl
+{
 
 //////////////////////////////////////////////////////////////////////////
 // Shader::Obj
@@ -65,7 +67,8 @@ Shader::Shader(const char *vertexShader, const char *fragmentShader,
 	if( fragmentShader )
 		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
     
-	if( geometryShader ) {
+	if( geometryShader )
+    {
 		loadShader( geometryShader, GL_GEOMETRY_SHADER );
         
 //        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
@@ -114,9 +117,8 @@ const string Shader::readFile(const std::string &path)
     if(!inStream.good())
     {
         string err = "file not found: " + path;
-        throw std::runtime_error(err);
+        throw Exception(err);
     }
-    //fprintf(stderr, "file not found: %s\n", path.c_str());
     
     return string ((istreambuf_iterator<char>(inStream)),
                     istreambuf_iterator<char>());

@@ -99,7 +99,8 @@ class Shader {
 	//@}  
 };
 
-class ShaderCompileExc : public std::exception {
+class ShaderCompileExc : public std::exception
+{
  public:	
 	ShaderCompileExc( const std::string &log, GLint aShaderType ) throw();
 	virtual const char* what() const throw()

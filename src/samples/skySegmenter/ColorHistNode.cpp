@@ -11,26 +11,34 @@
 using namespace cv;
 using namespace kinski;
 
-ColorHistNode::ColorHistNode()
+ColorHistNode::ColorHistNode():
+m_histExtraction(_Property<bool>::create("Extract Histogram", false))
 {
     m_histSize[0] = 12;
-    
-    m_hueRanges[0] = 0; 
+    m_hueRanges[0] = 0;
     m_hueRanges[1] = 180;
-    m_ranges = m_hueRanges;
-    
     channels[0] = 0;
-    
+    m_ranges = m_hueRanges;
     m_roiWidth = 50;
     
+    // properties
+    registerProperty(m_histExtraction);
+    
     // testhist
-    Mat testPatch = imread("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/greenCut.png");
-    Mat patchHSV;
-    cvtColor(testPatch, patchHSV, CV_BGR2HSV);
-    
-    m_colorHist = extractHueHistogram(patchHSV);
-    m_histImage = createHistImage();
-    
+    try
+    {
+        Mat testPatch = imread("res/greenCut.png");
+        Mat patchHSV;
+        cvtColor(testPatch, patchHSV, CV_BGR2HSV);
+        
+        m_colorHist = extractHueHistogram(patchHSV);
+        m_histImage = createHistImage();
+    } catch (std::exception &e)
+    {
+        fprintf(stderr,"ColorHistNode: could not initialize histogram: %s\n",
+                e.what());
+    }
+
 }
 
 ColorHistNode::~ColorHistNode()
@@ -47,7 +55,7 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
 {
     // check for correct type (3 channel 8U)
     //TODO: implement check here
-    assert(img.type() == CV_8UC3);
+    //assert(img.type() == CV_8UC3);
     
     Mat hsvImg, backProj, roiImg, scaledImg;
     
@@ -61,7 +69,7 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     //convert colorspace to hsv
     cvtColor(scaledImg, hsvImg, CV_BGR2HSV);
     
-    if(m_colorHist.empty())
+    if(m_histExtraction->val() || m_colorHist.empty())
     {
         Point centerPoint = Point(hsvImg.cols / 2, hsvImg.rows/ 2);
         Rect centerRect = Rect(centerPoint - Point(m_roiWidth/2, m_roiWidth/2),
@@ -139,4 +147,14 @@ Mat ColorHistNode::createHistImage()
     }
     
     return histImg;
+}
+
+void ColorHistNode::setHistExtraction(bool b)
+{
+    m_histExtraction->val(b);
+}
+
+bool ColorHistNode::hasHistExtraction()
+{
+    return m_histExtraction->val();
 }

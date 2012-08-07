@@ -10,9 +10,7 @@ out vec4 v_texCoord;
 
 void main()
 {
-
-v_texCoord =  u_textureMatrix * a_texCoord;
-
-gl_Position = u_modelViewProjectionMatrix * a_position;
+    v_texCoord =  u_textureMatrix * a_texCoord;
+    gl_Position = u_modelViewProjectionMatrix * a_position;
 }
 
