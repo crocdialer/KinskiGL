@@ -15,7 +15,7 @@ vec4 jet(in float val)
 
 float gray(in vec3 color)
 {
-    return dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    return dot(color, vec3(0.299, 0.587, 0.114));
 }
 
 void main()

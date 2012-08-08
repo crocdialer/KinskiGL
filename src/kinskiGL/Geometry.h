@@ -17,9 +17,16 @@ namespace gl
 {
     class Geometry
     {
-        
-        
     public:
+        
+        
+    private:
+        
+        std::vector<glm::vec3> m_vertices;
+        std::vector<glm::vec3> m_normals;
+        std::vector<glm::vec2> m_texCoords;
+        
+        std::vector<glm::ivec3> m_faces;
         
     };
     

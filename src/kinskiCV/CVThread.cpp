@@ -190,24 +190,21 @@ namespace kinski
     
     void CVThread::setImage(const cv::Mat& img)
     {
+        vector<Mat> tmpImages;
+        
         if(hasProcessing())
         {
-            vector<Mat> tmpImages, procImages = m_processNode->doProcessing(img);
+            vector<Mat> procImages = m_processNode->doProcessing(img);
             
             tmpImages.push_back(img);
             tmpImages.insert(tmpImages.end(),
                              procImages.begin(),
                              procImages.end());
-            
-            boost::mutex::scoped_lock lock(m_mutex);
-            m_images = tmpImages;
-            m_newFrame = true;
         }
-        else
-        {
-            boost::mutex::scoped_lock lock(m_mutex);
-            m_newFrame = true;
-        }
+        
+        boost::mutex::scoped_lock lock(m_mutex);
+        m_images = tmpImages;
+        m_newFrame = true;
     }
     
     const std::vector<cv::Mat>& CVThread::getImages()

@@ -105,8 +105,6 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
         }
     }
     
-    bitwise_not(workImg, skyMask);
-    
     //drawContours(outMat, contours, 0, Scalar(128, 255, 255), 3);
     vector<Mat> outMats;
     

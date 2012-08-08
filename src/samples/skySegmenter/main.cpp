@@ -11,6 +11,7 @@
 #include "SkySegmentNode.h"
 #include "ColorHistNode.h"
 #include "SalienceNode.h"
+#include "KeyPointNode.h"
 
 using namespace std;
 using namespace kinski;
@@ -142,8 +143,8 @@ public:
         
         // CV stuff 
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new ColorHistNode);
-        //m_processNode = m_processNode << CVProcessNode::Ptr(new CVWriterNode("~/Desktop/lulu.avi"));
+        m_processNode = CVProcessNode::Ptr(new KeyPointNode);
+        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVWriterNode("Users/Fabian/Desktop/lulu.avi"));
         
         m_cvThread->setProcessingNode(m_processNode);
 
@@ -159,16 +160,6 @@ public:
         }
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
-        
-        vec4 bla [2] = {vec4(0,1,2,3),
-                        vec4(4,5,6,7)};
-        
-        GLfloat *castArray = (GLfloat*) bla;
-        
-        for (int i=0; i<8; i++)
-        {
-            printf("val: %.2f\n",castArray[i]);
-        }
         
     }
     

@@ -49,7 +49,16 @@ namespace kinski
         inline void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
         inline CVProcessNode::Ptr getProcessingNode(){return m_processNode;};
         
+        /*!
+         *  @return the time in ms of the last execution of
+         *  m_sourceNode->getNextImage()
+         */
         double getLastGrabTime();
+        
+        /*!
+         *  @return the time in ms of the last execution of
+         *  m_processNode->doProcessing(...)
+         */
         double getLastProcessTime();
         
         void setFPS(const double& fps){m_captureFPS=fps;};
