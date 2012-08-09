@@ -17,14 +17,18 @@ namespace kinski
     {
     public:
         
-        KeyPointNode();
+        KeyPointNode(const cv::Mat &refImage = cv:Mat());
         std::string getDescription();
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
+        
+        void setReferenceImage(const cv::Mat &theImg);
         
     private:
         
         cv::Ptr<cv::FeatureDetector> m_featureDetect;
         cv::Ptr<cv::FREAK> m_featureExtract;
+        
+        cv::Mat m_referenceImage, m_descriptors;
         
     };
 

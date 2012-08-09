@@ -173,12 +173,12 @@ namespace kinski{
         bool m_loop;
     };
     
-    class CVWriterNode : public CVProcessNode
+    class CVDiskWriterNode : public CVProcessNode
     {
     public:
         
-        CVWriterNode(const std::string &theFile = "");
-        virtual ~CVWriterNode();
+        CVDiskWriterNode(const std::string &theFile = "");
+        virtual ~CVDiskWriterNode();
         
         std::string getDescription();
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);

@@ -225,29 +225,29 @@ namespace kinski
     
 /****************************** CVWriterNode **********************************/
     
-    CVWriterNode::CVWriterNode(const std::string &theFile):
+    CVDiskWriterNode::CVDiskWriterNode(const std::string &theFile):
     m_videoSrc(_Property<string>::create("VideoSrc", theFile)),
     m_codec(CV_FOURCC('X','V','I','D'))
     {
         registerProperty(m_videoSrc);
     }
     
-    CVWriterNode::~CVWriterNode()
+    CVDiskWriterNode::~CVDiskWriterNode()
     {
         m_videoWriter.release();
     }
     
-    string CVWriterNode::getDescription()
+    string CVDiskWriterNode::getDescription()
     {
         stringstream ss;
-        ss << "CVWriterNode - encodes incoming frames and writes to file\n";
+        ss << "CVDiskWriterNode - encodes incoming frames and writes to file\n";
         ss << "file: '"<<m_videoSrc->val()<<"'\n";
         ss << "format: 'x264'\n";
         
         return ss.str();
     }
     
-    vector<Mat> CVWriterNode::doProcessing(const Mat &img)
+    vector<Mat> CVDiskWriterNode::doProcessing(const Mat &img)
     {
         if(!m_videoWriter.isOpened())
         {

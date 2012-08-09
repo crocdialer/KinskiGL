@@ -4,7 +4,7 @@
 #include "kinskiGL/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
-#include "SkySegmentNode.h"
+#include "ColorHistNode.h"
 
 #include "Data.h"
 
@@ -12,7 +12,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class SkySegmenter : public App 
+class ColorHistApp : public App
 {
 private:
     
@@ -26,8 +26,6 @@ private:
     
     _Property<bool>::Ptr m_activator;
     
-    _RangedProperty<float>::Ptr m_rangedFloat;
-    
     CVThread::Ptr m_cvThread;
     
     CVProcessNode::Ptr m_processNode;
@@ -36,9 +34,9 @@ private:
     {
         //GL_T2F_V3F
         const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
-                                1.0,0.0,1.0,0.0,0.0,
-                                1.0,1.0,1.0,1.0,0.0,
-                                0.0,1.0,0.0,1.0,0.0};
+            1.0,0.0,1.0,0.0,0.0,
+            1.0,1.0,1.0,1.0,0.0,
+            0.0,1.0,0.0,1.0,0.0};
         
         // create VAO to record all VBO calls
         glGenVertexArrays(1, &m_canvasArray);
@@ -97,8 +95,8 @@ private:
         theShader.uniform("u_textureMap[0]", theTexture.getBoundTextureUnit());
         theShader.uniform("u_textureMatrix", theTexture.getTextureMatrix());
         
-        theShader.uniform("u_modelViewProjectionMatrix", 
-                         projectionMatrix * modelViewMatrix);
+        theShader.uniform("u_modelViewProjectionMatrix",
+                          projectionMatrix * modelViewMatrix);
         
         glBindVertexArray(m_canvasArray);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -114,12 +112,12 @@ public:
         
         glClearColor(0, 0, 0, 1);
         
-        try 
+        try
         {
             m_applyMapShader.loadFromFile("applyMap.vert", "applyMap.frag");
             m_texShader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
             
-        }catch (std::exception &e) 
+        }catch (std::exception &e)
         {
             fprintf(stderr, "%s\n",e.what());
             exit(EXIT_FAILURE);
@@ -132,14 +130,14 @@ public:
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);
         
-        // CV stuff 
+        // CV stuff
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new SkySegmentNode);
+        m_processNode = CVProcessNode::Ptr(new SalienceNode);
         
         m_cvThread->setProcessingNode(m_processNode);
-
-        m_cvThread->streamVideo("testMovie_00.mov", true);
-
+        
+        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
+        
         
         if(m_processNode)
         {
@@ -175,7 +173,7 @@ public:
     void draw()
     {
         char buf[128];
-     
+        
         m_applyMapShader.bind();
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
@@ -184,7 +182,7 @@ public:
             sprintf(buf, "u_textureMap[%d]", i);
             m_applyMapShader.uniform(buf, m_textures[i].getBoundTextureUnit());
         }
-
+        
         // draw fullscreen image
         drawTexture(m_textures[0],
                     m_activator->val() ? m_applyMapShader : m_texShader,
@@ -210,7 +208,7 @@ public:
 
 int main(int argc, char *argv[])
 {
-    App::Ptr theApp(new SkySegmenter);
+    App::Ptr theApp(new ColorHistApp);
     
     return theApp->run();
 }
