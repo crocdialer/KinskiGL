@@ -132,7 +132,7 @@ public:
         
         // CV stuff
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new SalienceNode);
+        m_processNode = CVProcessNode::Ptr(new ColorHistNode);
         
         m_cvThread->setProcessingNode(m_processNode);
         

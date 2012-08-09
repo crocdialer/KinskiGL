@@ -21,14 +21,7 @@ float gray(in vec3 color)
 void main()
 {
     vec4 color = texture(u_textureMap[0], v_texCoord.xy);
-    float confidence = texture(u_textureMap[1], v_texCoord.xy).r;
-    //vec4 colorMapVal = texture(u_textureMap[2], v_texCoord.xy);
     
-    vec4 gray = vec4(vec3(gray(color.rgb)), 1.0);
-    
-    confidence = confidence > 0.25 ? confidence : 0.0 ;
-    
-    //fragData = mix(color, jet(confidence), confidence) ;
-    fragData = mix(gray, color, confidence) ;
+    fragData = color;
 }
 

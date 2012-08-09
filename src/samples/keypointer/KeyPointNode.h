@@ -17,8 +17,9 @@ namespace kinski
     {
     public:
         
-        KeyPointNode(const cv::Mat &refImage = cv:Mat());
+        KeyPointNode(const cv::Mat &refImage = cv::Mat());
         std::string getDescription();
+        
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
         
         void setReferenceImage(const cv::Mat &theImg);
@@ -26,9 +27,10 @@ namespace kinski
     private:
         
         cv::Ptr<cv::FeatureDetector> m_featureDetect;
-        cv::Ptr<cv::FREAK> m_featureExtract;
+        cv::Ptr<cv::DescriptorExtractor> m_featureExtract;
+        cv::Ptr<cv::DescriptorMatcher> m_matcher;
         
-        cv::Mat m_referenceImage, m_descriptors;
+        cv::Mat m_referenceImage, m_trainDescriptors;
         
     };
 

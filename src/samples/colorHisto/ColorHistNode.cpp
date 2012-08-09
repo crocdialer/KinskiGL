@@ -27,7 +27,7 @@ m_histExtraction(_Property<bool>::create("Extract Histogram", false))
     // testhist
     try
     {
-        Mat testPatch = imread("res/greenCut.png");
+        Mat testPatch = imread("greenCut.png");
         Mat patchHSV;
         cvtColor(testPatch, patchHSV, CV_BGR2HSV);
         

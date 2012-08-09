@@ -4,7 +4,7 @@
 #include "kinskiGL/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
-#include "SkySegmentNode.h"
+#include "KeyPointNode.h"
 
 #include "Data.h"
 
@@ -12,7 +12,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class SkySegmenter : public App 
+class KeypointApp : public App 
 {
 private:
     
@@ -134,12 +134,11 @@ public:
         
         // CV stuff 
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new SkySegmentNode);
+        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread("kinder.jpg")));
         
         m_cvThread->setProcessingNode(m_processNode);
 
-        m_cvThread->streamVideo("testMovie_00.mov", true);
-
+        m_cvThread->streamUSBCamera();
         
         if(m_processNode)
         {
@@ -210,7 +209,7 @@ public:
 
 int main(int argc, char *argv[])
 {
-    App::Ptr theApp(new SkySegmenter);
+    App::Ptr theApp(new KeypointApp);
     
     return theApp->run();
 }

@@ -15,7 +15,8 @@ namespace kinski
 {
     KeyPointNode::KeyPointNode(const cv::Mat &refImage):
     m_featureDetect(FeatureDetector::create("ORB")),
-    m_featureExtract(new FREAK())
+    m_featureExtract(new FREAK()),
+    m_matcher(new BFMatcher(NORM_HAMMING))
     {
         setReferenceImage(refImage);
     }
@@ -28,20 +29,34 @@ namespace kinski
     vector<Mat> KeyPointNode::doProcessing(const Mat &img)
     {
         vector<KeyPoint> keypoints;
+        vector<cv::DMatch> matches;
+        
         Mat descriptors;
         
         m_featureDetect->detect(img, keypoints);
         m_featureExtract->compute(img, keypoints, descriptors);
+        m_matcher->match(descriptors, m_trainDescriptors, matches);
         
         Mat outImg = img.clone();
-        
-        vector<KeyPoint>::const_iterator it = keypoints.begin();
-        for (; it != keypoints.end(); it++)
+        for (int i=0; i<matches.size(); i++)
         {
-            circle(outImg, it->pt, it->size, Scalar(1,0,0));
+            const DMatch &m = matches[i];
+            
+            if(m.distance < 40)
+            {
+                KeyPoint &kp = keypoints[m.queryIdx];
+                circle(outImg, kp.pt, kp.size, Scalar(0,255,0));
+            }
         }
         
+//        vector<KeyPoint>::const_iterator it = keypoints.begin();
+//        for (; it != keypoints.end(); it++)
+//        {
+//            circle(outImg, it->pt, it->size, Scalar(0,255,0));
+//        }
+        
         vector<Mat> outMats;
+        outMats.push_back(m_referenceImage);
         outMats.push_back(outImg);
         
         return outMats;
@@ -54,6 +69,6 @@ namespace kinski
         vector<KeyPoint> keypoints;
         
         m_featureDetect->detect(m_referenceImage, keypoints);
-        m_featureExtract->compute(m_referenceImage, keypoints, m_descriptors);
+        m_featureExtract->compute(m_referenceImage, keypoints, m_trainDescriptors);
     }
 }
