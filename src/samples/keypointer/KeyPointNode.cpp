@@ -15,9 +15,12 @@ namespace kinski
 {
     KeyPointNode::KeyPointNode(const cv::Mat &refImage):
     m_featureDetect(FeatureDetector::create("ORB")),
-    m_featureExtract(new FREAK()),
-    m_matcher(new BFMatcher(NORM_HAMMING))
+    m_featureExtract(DescriptorExtractor::create("ORB")),
+    m_matcher(new BFMatcher(NORM_HAMMING)),
+    m_maxFeatureDist(_RangedProperty<uint32_t>::create("Max feature distance",
+                                                       50, 0, 150))
     {
+        registerProperty(m_maxFeatureDist);
         setReferenceImage(refImage);
     }
     
@@ -42,18 +45,12 @@ namespace kinski
         {
             const DMatch &m = matches[i];
             
-            if(m.distance < 40)
+            if(m.distance < m_maxFeatureDist->val())
             {
                 KeyPoint &kp = keypoints[m.queryIdx];
                 circle(outImg, kp.pt, kp.size, Scalar(0,255,0));
             }
         }
-        
-//        vector<KeyPoint>::const_iterator it = keypoints.begin();
-//        for (; it != keypoints.end(); it++)
-//        {
-//            circle(outImg, it->pt, it->size, Scalar(0,255,0));
-//        }
         
         vector<Mat> outMats;
         outMats.push_back(m_referenceImage);

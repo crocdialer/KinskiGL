@@ -82,6 +82,12 @@ namespace kinski
         setup();
     }
     
+    void App::setWindowSize(const glm::ivec2 size)
+    {
+        if(glm::vec2(size) != m_windowSize)
+            glfwSetWindowSize(size[0], size[1]);
+    }
+    
     void App::resize(const int w,const int h)
     {
         m_windowSize = glm::ivec2(w, h);

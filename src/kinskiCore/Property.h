@@ -286,6 +286,8 @@ public:
         
         m_min = min;
         m_max = max;
+        
+        checkValue(this->getValue());
     };
     
     void getRange(T &min, T &max) const

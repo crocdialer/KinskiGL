@@ -106,8 +106,8 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     blur(backProj, backProj, Size(5, 5));
     
     vector<Mat> outMats;
-    outMats.push_back(backProj);
     outMats.push_back(m_histImage);
+    outMats.push_back(backProj);
     
     return outMats;
 }

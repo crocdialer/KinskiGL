@@ -37,7 +37,7 @@ namespace kinski
         inline const glm::vec2 getWindowSize(){return m_windowSize;};
         
         inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::ivec2(w, h));};
-        inline void setWindowSize(const glm::ivec2 size){m_windowSize = size;};
+        void setWindowSize(const glm::ivec2 size);
         
         inline bool isFullSceen(){return m_fullscreen;};
         inline void setFullSceen(bool b = true){m_fullscreen = b;};

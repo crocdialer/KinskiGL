@@ -32,6 +32,8 @@ namespace kinski
         
         cv::Mat m_referenceImage, m_trainDescriptors;
         
+        _RangedProperty<uint32_t>::Ptr m_maxFeatureDist;
+        
     };
 
 }

@@ -74,36 +74,35 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     
     workImg |= threshImg;
     
-    //
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    vector<vector<Point> > contours0;
-    
-    // find contours on sky image
-    Mat contourImg = workImg.clone();
-    findContours( contourImg, contours0, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
-    
-    // find contour description ?
-    std::vector<cv::Point> poly;
-    //approxPolyDP(contours0, poly, 5, true);
-    
-    int minBound = 250;
-    vector<vector<Point> >::iterator contIt = contours0.begin();
-    for(;contIt != contours0.end();contIt++)
-    {
-        Rect bound = boundingRect(*contIt);
-        if(bound.area() > minBound * minBound)
-        {
-            contours.push_back(*contIt);
-        
-            //rectangle(outMat, bound, Scalar(255, 0, 0), 3);
-        }
-        else
-        {
-            // fill area with black
-            //workImg(bound) = 0.f;
-        }
-    }
+//    vector<vector<Point> > contours;
+//    vector<Vec4i> hierarchy;
+//    vector<vector<Point> > contours0;
+//    
+//    // find contours on sky image
+//    Mat contourImg = workImg.clone();
+//    findContours( contourImg, contours0, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
+//    
+//    // find contour description ?
+//    std::vector<cv::Point> poly;
+//    //approxPolyDP(contours0, poly, 5, true);
+//    
+//    int minBound = 250;
+//    vector<vector<Point> >::iterator contIt = contours0.begin();
+//    for(;contIt != contours0.end();contIt++)
+//    {
+//        Rect bound = boundingRect(*contIt);
+//        if(bound.area() > minBound * minBound)
+//        {
+//            contours.push_back(*contIt);
+//        
+//            //rectangle(outMat, bound, Scalar(255, 0, 0), 3);
+//        }
+//        else
+//        {
+//            // fill area with black
+//            //workImg(bound) = 0.f;
+//        }
+//    }
     
     //drawContours(outMat, contours, 0, Scalar(128, 255, 255), 3);
     vector<Mat> outMats;
