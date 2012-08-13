@@ -141,7 +141,8 @@ public:
         
         m_cvThread->setProcessingNode(m_processNode);
 
-        m_cvThread->streamUSBCamera();
+        //m_cvThread->streamUSBCamera();
+        m_cvThread->streamVideo("kinderFeat.mov", true);
         
         if(m_processNode)
         {

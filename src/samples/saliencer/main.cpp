@@ -138,7 +138,8 @@ public:
         
         m_cvThread->setProcessingNode(m_processNode);
         
-        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
+        //m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
+        m_cvThread->streamUSBCamera();
         
         
         if(m_processNode)
