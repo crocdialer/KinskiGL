@@ -30,10 +30,16 @@ namespace kinski
         cv::Ptr<cv::DescriptorExtractor> m_featureExtract;
         cv::Ptr<cv::DescriptorMatcher> m_matcher;
         
+        std::vector<cv::KeyPoint> m_trainKeypoints;
         cv::Mat m_referenceImage, m_trainDescriptors;
         
         _RangedProperty<uint32_t>::Ptr m_maxFeatureDist;
         
+        void matches2points(const std::vector<cv::KeyPoint>& train,
+                       const std::vector<cv::KeyPoint>& query,
+                       const std::vector<cv::DMatch>& matches,
+                       std::vector<cv::Point2f>& pts_train,
+                       std::vector<cv::Point2f>& pts_query);
     };
 
 }

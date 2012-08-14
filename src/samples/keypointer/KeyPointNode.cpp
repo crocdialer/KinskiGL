@@ -7,18 +7,20 @@
 //
 
 #include "KeyPointNode.h"
+#include "boost/timer/timer.hpp"
 
 using namespace std;
 using namespace cv;
+using namespace boost::timer;
 
 namespace kinski
 {
-    KeyPointNode::KeyPointNode(const cv::Mat &refImage):
+    KeyPointNode::KeyPointNode(const Mat &refImage):
     m_featureDetect(FeatureDetector::create("ORB")),
     m_featureExtract(DescriptorExtractor::create("ORB")),
     m_matcher(new BFMatcher(NORM_HAMMING)),
     m_maxFeatureDist(_RangedProperty<uint32_t>::create("Max feature distance",
-                                                       30, 0, 150))
+                                                       35, 0, 150))
     {
         registerProperty(m_maxFeatureDist);
         setReferenceImage(refImage);
@@ -32,12 +34,12 @@ namespace kinski
     vector<Mat> KeyPointNode::doProcessing(const Mat &img)
     {
         vector<KeyPoint> keypoints;
-        vector<cv::DMatch> matches;
+        vector<DMatch> matches;
         Mat descriptors_scene;
         
-        m_featureDetect->detect(img, keypoints);
-        m_featureExtract->compute(img, keypoints, descriptors_scene);
-        m_matcher->match(descriptors_scene, m_trainDescriptors, matches);
+        {/*auto_cpu_timer t;*/ m_featureDetect->detect(img, keypoints);}
+        {/*auto_cpu_timer t;*/ m_featureExtract->compute(img, keypoints, descriptors_scene);}
+        {/*auto_cpu_timer t;*/ m_matcher->match(descriptors_scene, m_trainDescriptors, matches);}
         
         Mat outImg = img.clone();
         
@@ -51,14 +53,23 @@ namespace kinski
         }
         
         //-- Leave only "good" matches (i.e. whose distance is less than x * min_dist )
-        std::vector< DMatch > good_matches;
+        vector< DMatch > good_matches;
         
         for( int i = 0; i < matches.size(); i++ )
         {
-            if( matches[i].distance < std::min((double)m_maxFeatureDist->val(),
+            if( matches[i].distance < min((double)m_maxFeatureDist->val(),
                                                2 * min_dist))
                 good_matches.push_back( matches[i]);
         }
+
+        if(good_matches.size() > 16) printf("Detected!! -> %ld\n",
+                                            good_matches.size());
+        
+//        vector<Point2f> pts_train, pts_query;
+//        matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
+//                       pts_query);
+//        
+//        Mat H = findHomography(pts_train, pts_query);
         
         // draw good_matches
         for (int i=0; i<good_matches.size(); i++)
@@ -69,10 +80,8 @@ namespace kinski
             circle(outImg, kp.pt, kp.size, Scalar(0,255,0));
         }
         
-        
 //        printf("close matches: %ld (%.2f)\n",good_matches.size(),
 //               100 * good_matches.size() / (float) matches.size());
-        
         
         vector<Mat> outMats;
         outMats.push_back(m_referenceImage);
@@ -81,18 +90,38 @@ namespace kinski
         return outMats;
     }
     
-    void KeyPointNode::setReferenceImage(const cv::Mat &theImg)
+    void KeyPointNode::setReferenceImage(const Mat &theImg)
     {
         m_referenceImage = theImg;
-        
         
         GaussianBlur(theImg, m_referenceImage, Size(5, 5), 1.5);
         float scale = 640.f / m_referenceImage.cols;
         resize(m_referenceImage, m_referenceImage, Size(), scale, scale);
         
-        vector<KeyPoint> keypoints;
+        m_trainKeypoints.clear();
         
-        m_featureDetect->detect(m_referenceImage, keypoints);
-        m_featureExtract->compute(m_referenceImage, keypoints, m_trainDescriptors);
+        m_featureDetect->detect(m_referenceImage, m_trainKeypoints);
+        m_featureExtract->compute(m_referenceImage, m_trainKeypoints,
+                                  m_trainDescriptors);
+    }
+    
+    void KeyPointNode::matches2points(const vector<KeyPoint>& train,
+                                      const vector<KeyPoint>& query,
+                                      const vector<DMatch>& matches,
+                                      vector<Point2f>& pts_train,
+                                      vector<Point2f>& pts_query)
+    {
+        pts_train.clear();
+        pts_query.clear();
+        pts_train.reserve(matches.size());
+        pts_query.reserve(matches.size());
+        
+        size_t i = 0;
+        for (; i < matches.size(); i++)
+        {
+            const DMatch & dmatch = matches[i];
+            pts_query.push_back(query[dmatch.queryIdx].pt);
+            pts_train.push_back(train[dmatch.trainIdx].pt);
+        }
     }
 }
