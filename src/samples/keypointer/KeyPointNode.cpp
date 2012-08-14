@@ -61,16 +61,21 @@ namespace kinski
                                                2 * min_dist))
                 good_matches.push_back( matches[i]);
         }
+        
+        // a minimum size of matches is needed for calculation of a homography
+        if(good_matches.size() > 5)
+        {
+            vector<Point2f> pts_train, pts_query;
+            matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
+                           pts_query);
+            m_homography = findHomography(pts_train, pts_query, CV_RANSAC);
 
-        if(good_matches.size() > 16) printf("Detected!! -> %ld\n",
-                                            good_matches.size());
-        
-//        vector<Point2f> pts_train, pts_query;
-//        matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
-//                       pts_query);
-//        
-//        Mat H = findHomography(pts_train, pts_query);
-        
+            //TODO: nicer criteria here, remove magic number            
+            if(good_matches.size() > 16)
+                printf("Detected!! -> %ld\n", good_matches.size());
+            
+        }
+
         // draw good_matches
         for (int i=0; i<good_matches.size(); i++)
         {
@@ -80,9 +85,22 @@ namespace kinski
             circle(outImg, kp.pt, kp.size, Scalar(0,255,0));
         }
         
-//        printf("close matches: %ld (%.2f)\n",good_matches.size(),
-//               100 * good_matches.size() / (float) matches.size());
-        
+        // draw outline of object
+        if(!m_homography.empty())
+        {
+            vector<Point2f> objPts, scenePts;
+            objPts.push_back(Point2f(0,0));
+            objPts.push_back(Point2f(0, m_referenceImage.rows));
+            objPts.push_back(Point2f(m_referenceImage.cols, m_referenceImage.rows));
+            objPts.push_back(Point2f(m_referenceImage.cols,0));
+            
+            perspectiveTransform(objPts, scenePts, m_homography);
+            
+            line(outImg, scenePts[0], scenePts[1], Scalar(0, 255, 0));
+            line(outImg, scenePts[1], scenePts[2], Scalar(0, 255, 0));
+            line(outImg, scenePts[2], scenePts[3], Scalar(0, 255, 0));
+            line(outImg, scenePts[3], scenePts[0], Scalar(0, 255, 0));
+        }
         vector<Mat> outMats;
         outMats.push_back(m_referenceImage);
         outMats.push_back(outImg);
@@ -95,7 +113,10 @@ namespace kinski
         m_referenceImage = theImg;
         
         GaussianBlur(theImg, m_referenceImage, Size(5, 5), 1.5);
+
+        // scale down if necessary (ORB did not properly manage large ref-images)
         float scale = 640.f / m_referenceImage.cols;
+        scale = min(scale, 1.f);
         resize(m_referenceImage, m_referenceImage, Size(), scale, scale);
         
         m_trainKeypoints.clear();
@@ -119,7 +140,7 @@ namespace kinski
         size_t i = 0;
         for (; i < matches.size(); i++)
         {
-            const DMatch & dmatch = matches[i];
+            const DMatch &dmatch = matches[i];
             pts_query.push_back(query[dmatch.queryIdx].pt);
             pts_train.push_back(train[dmatch.trainIdx].pt);
         }

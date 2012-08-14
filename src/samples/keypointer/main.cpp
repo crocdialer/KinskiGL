@@ -129,7 +129,7 @@ public:
         
         m_activator = _Property<bool>::create("processing", true);
         m_imageIndex = _RangedProperty<uint32_t>::create("Image Index",
-                                                         0, 0, 0);
+                                                         2, 0, 2);
         
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);

@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __kinskiGL__FeatureDetector__
-#define __kinskiGL__FeatureDetector__
+#ifndef __kinskiGL__KeyPointNode__
+#define __kinskiGL__KeyPointNode__
 
 #include "kinskiCV/CVNode.h"
 
@@ -31,15 +31,17 @@ namespace kinski
         cv::Ptr<cv::DescriptorMatcher> m_matcher;
         
         std::vector<cv::KeyPoint> m_trainKeypoints;
-        cv::Mat m_referenceImage, m_trainDescriptors;
+        cv::Mat m_referenceImage, m_trainDescriptors, m_homography;
         
         _RangedProperty<uint32_t>::Ptr m_maxFeatureDist;
         
+        //Converts matching indices to xy points
         void matches2points(const std::vector<cv::KeyPoint>& train,
                        const std::vector<cv::KeyPoint>& query,
                        const std::vector<cv::DMatch>& matches,
                        std::vector<cv::Point2f>& pts_train,
                        std::vector<cv::Point2f>& pts_query);
+        
     };
 
 }
