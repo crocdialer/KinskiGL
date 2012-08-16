@@ -137,12 +137,15 @@ public:
         
         // CV stuff 
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread("kinder.jpg")));
+        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread("map.png")));
+        
+//        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVDiskWriterNode
+//                                                           ("/Users/Fabian/Desktop/video.avi"));
         
         m_cvThread->setProcessingNode(m_processNode);
 
         //m_cvThread->streamUSBCamera();
-        m_cvThread->streamVideo("kinderFeat.mov", true);
+        m_cvThread->streamVideo("map.mov", true);
         
         if(m_processNode)
         {
@@ -158,7 +161,7 @@ public:
     {
         m_cvThread->stop();
         
-        printf("ciao skySegmenter\n");
+        printf("ciao keypointer\n");
     }
     
     void update(const float timeDelta)

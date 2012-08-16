@@ -242,7 +242,7 @@ namespace kinski
         stringstream ss;
         ss << "CVDiskWriterNode - encodes incoming frames and writes to file\n";
         ss << "file: '"<<m_videoSrc->val()<<"'\n";
-        ss << "format: 'x264'\n";
+        ss << "format: 'xvid'\n";
         
         return ss.str();
     }

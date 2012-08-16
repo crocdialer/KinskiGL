@@ -19,26 +19,38 @@ namespace kinski
     m_featureDetect(FeatureDetector::create("ORB")),
     m_featureExtract(DescriptorExtractor::create("ORB")),
     m_matcher(new BFMatcher(NORM_HAMMING)),
+    m_maxImageWidth(_RangedProperty<uint32_t>::create("Max image width",
+                                                      800, 1, 1900)),
+    m_maxPatchWidth(_RangedProperty<uint32_t>::create("Max patch width",
+                                                      500, 1, 1024)),
     m_maxFeatureDist(_RangedProperty<uint32_t>::create("Max feature distance",
-                                                       35, 0, 150))
+                                                       50, 0, 150))
     {
         registerProperty(m_maxFeatureDist);
+        registerProperty(m_maxImageWidth);
+        registerProperty(m_maxPatchWidth);
+        
         setReferenceImage(refImage);
     }
     
     string KeyPointNode::getDescription()
     {
-        return "KeyPointNode: TODO description";
+        return "KeyPointNode: Object detection and pose estimation "
+        "using stable image features";
     }
     
     vector<Mat> KeyPointNode::doProcessing(const Mat &img)
     {
         vector<KeyPoint> keypoints;
         vector<DMatch> matches;
-        Mat descriptors_scene;
+        Mat descriptors_scene, downSized;
         
-        {/*auto_cpu_timer t;*/ m_featureDetect->detect(img, keypoints);}
-        {/*auto_cpu_timer t;*/ m_featureExtract->compute(img, keypoints, descriptors_scene);}
+        float scale = (float)m_maxImageWidth->val() / img.cols;
+        scale = min(scale, 1.f);
+        resize(img, downSized, Size(), scale, scale);
+        
+        {/*auto_cpu_timer t;*/ m_featureDetect->detect(downSized, keypoints);}
+        {/*auto_cpu_timer t;*/ m_featureExtract->compute(downSized, keypoints, descriptors_scene);}
         {/*auto_cpu_timer t;*/ m_matcher->match(descriptors_scene, m_trainDescriptors, matches);}
         
         Mat outImg = img.clone();
@@ -62,18 +74,35 @@ namespace kinski
                 good_matches.push_back( matches[i]);
         }
         
+        Mat camMatrix;
+        Mat camRotation;
+        Mat camTranslation;
+        
         // a minimum size of matches is needed for calculation of a homography
-        if(good_matches.size() > 5)
+        if(good_matches.size() > 6)
         {
             vector<Point2f> pts_train, pts_query;
             matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
                            pts_query);
             m_homography = findHomography(pts_train, pts_query, CV_RANSAC);
-
-            //TODO: nicer criteria here, remove magic number            
-            if(good_matches.size() > 16)
-                printf("Detected!! -> %ld\n", good_matches.size());
             
+            vector<Point3f> trainPts3;
+            for (int i=0; i<pts_train.size(); i++)
+            {
+                const Point2f p = pts_train[i];
+                trainPts3.push_back(Point3f(p.x, 0, -p.y));
+            }
+            
+            //
+            static float bla[] = { 837.8487443,    0.,     388.558868,
+                            0.,              891.76507372,  305.75884143,
+                            0.,            0.,            1.};
+            
+            camMatrix = Mat(3,3,CV_32FC1, bla);
+            
+            
+            solvePnP(trainPts3, pts_query, camMatrix, noArray(),
+                     camRotation, camTranslation);
         }
 
         // draw good_matches
@@ -82,7 +111,8 @@ namespace kinski
             const DMatch &m = good_matches[i];
 
             KeyPoint &kp = keypoints[m.queryIdx];
-            circle(outImg, kp.pt, kp.size, Scalar(0,255,0));
+            circle(outImg, kp.pt * (1.f / scale),kp.size * (1.f / scale),
+                   Scalar(0,180,255));
         }
         
         // draw outline of object
@@ -96,11 +126,26 @@ namespace kinski
             
             perspectiveTransform(objPts, scenePts, m_homography);
             
-            line(outImg, scenePts[0], scenePts[1], Scalar(0, 255, 0));
-            line(outImg, scenePts[1], scenePts[2], Scalar(0, 255, 0));
-            line(outImg, scenePts[2], scenePts[3], Scalar(0, 255, 0));
-            line(outImg, scenePts[3], scenePts[0], Scalar(0, 255, 0));
+            line(outImg, scenePts[0]* (1.f / scale), scenePts[1]* (1.f / scale),
+                 Scalar(0, 255, 0), 3);
+            line(outImg, scenePts[1]* (1.f / scale), scenePts[2]* (1.f / scale),
+                 Scalar(0, 255, 0), 3);
+            line(outImg, scenePts[2]* (1.f / scale), scenePts[3]* (1.f / scale),
+                 Scalar(0, 255, 0), 3);
+            line(outImg, scenePts[3]* (1.f / scale), scenePts[0]* (1.f / scale),
+                 Scalar(0, 255, 0), 3);
         }
+        
+        // iphone4s scaled
+        //[[ 837.8487443     0.          388.558868  ]
+         //[   0.          891.76507372  305.75884143]
+         //[   0.            0.            1.        ]]
+        
+        //iSight
+        //[[ 468.35129369    0.          543.09378208]
+        //[   0.          465.94360054  323.30103704]
+        //[   0.            0.            1.        ]]
+        
         vector<Mat> outMats;
         outMats.push_back(m_referenceImage);
         outMats.push_back(outImg);
@@ -112,10 +157,10 @@ namespace kinski
     {
         m_referenceImage = theImg;
         
-        GaussianBlur(theImg, m_referenceImage, Size(5, 5), 1.5);
+        GaussianBlur(theImg, m_referenceImage, Size(7, 7), 1.5);
 
         // scale down if necessary (ORB did not properly manage large ref-images)
-        float scale = 640.f / m_referenceImage.cols;
+        float scale = (float)m_maxPatchWidth->val() / m_referenceImage.cols;
         scale = min(scale, 1.f);
         resize(m_referenceImage, m_referenceImage, Size(), scale, scale);
         
