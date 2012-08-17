@@ -22,7 +22,7 @@ namespace kinski
     m_maxImageWidth(_RangedProperty<uint32_t>::create("Max image width",
                                                       800, 1, 1900)),
     m_maxPatchWidth(_RangedProperty<uint32_t>::create("Max patch width",
-                                                      500, 1, 1024)),
+                                                      480, 1, 1024)),
     m_maxFeatureDist(_RangedProperty<uint32_t>::create("Max feature distance",
                                                        50, 0, 150))
     {
@@ -74,17 +74,19 @@ namespace kinski
                 good_matches.push_back( matches[i]);
         }
         
+        m_homography = Mat();
+        
         Mat camMatrix;
         Mat camRotation;
         Mat camTranslation;
         
         // a minimum size of matches is needed for calculation of a homography
-        if(good_matches.size() > 6)
+        if(good_matches.size() > 16)
         {
             vector<Point2f> pts_train, pts_query;
             matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
                            pts_query);
-            m_homography = findHomography(pts_train, pts_query, CV_RANSAC);
+            m_homography = findHomography(pts_train, pts_query, CV_LMEDS);
             
             vector<Point3f> trainPts3;
             for (int i=0; i<pts_train.size(); i++)
@@ -102,7 +104,7 @@ namespace kinski
             
             
             solvePnP(trainPts3, pts_query, camMatrix, noArray(),
-                     camRotation, camTranslation);
+                     camRotation, camTranslation, false, CV_EPNP);
         }
 
         // draw good_matches
