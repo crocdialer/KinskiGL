@@ -9,7 +9,8 @@
 #ifndef __kinskiGL__Geometry__
 #define __kinskiGL__Geometry__
 
-#include "kinskiGL/KinskiGL.h"
+#include <vector>
+#include <glm/glm.hpp>
 
 namespace kinski
 {
@@ -18,7 +19,7 @@ namespace gl
     class Geometry
     {
     public:
-        
+        void addVertex(const glm::vec3 &theVert);
         
     private:
         

@@ -131,13 +131,15 @@ public:
         m_imageIndex = _RangedProperty<uint32_t>::create("Image Index",
                                                          2, 0, 2);
         
+        Property::Ptr bla = boost::static_pointer_cast<Property>(m_imageIndex);
+        
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);
         addPropertyToTweakBar(m_imageIndex);
         
         // CV stuff 
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread("map.png")));
+        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread("kinder.jpg")));
         
 //        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVDiskWriterNode
 //                                                           ("/Users/Fabian/Desktop/video.avi"));
@@ -145,7 +147,7 @@ public:
         m_cvThread->setProcessingNode(m_processNode);
 
         //m_cvThread->streamUSBCamera();
-        m_cvThread->streamVideo("map.mov", true);
+        m_cvThread->streamVideo("kinderFeat.mov", true);
         
         if(m_processNode)
         {

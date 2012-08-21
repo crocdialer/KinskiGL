@@ -21,20 +21,21 @@ class Property
 public:
     typedef boost::shared_ptr<Property> Ptr;
     
-    Property(); // default constructor
-    Property(const std::string &theName, const boost::any &theValue);
+    Property(): m_tweakable(true){}; // default constructor
+    Property(const std::string &theName, const boost::any &theValue):
+    m_name(theName), m_value(theValue), m_tweakable(true){};
    
-    boost::any getValue() const;
-    const std::string& getName() const;
-    void setName(const std::string& theName);
+    inline boost::any getValue() const {return m_value;};
+    inline const std::string& getName() const {return m_name;};
+    inline void setName(const std::string& theName) {m_name = theName;};
 
-	void setIsTweakable(bool isTweakable);
-	bool getIsTweakable() const;
+	inline void setIsTweakable(bool isTweakable) {m_tweakable = isTweakable;};
+	inline bool getIsTweakable() const {return m_tweakable;};
 
-    bool empty() const {return m_value.empty();};
+    inline bool empty() const {return m_value.empty();};
     
     template <typename T> 
-    void setValue(const T& theValue) 
+    inline void setValue(const T& theValue)
     {
         if (!isOfType<T>()) {throw WrongTypeSetException(m_name);}
         if(checkValue(theValue))
@@ -42,7 +43,7 @@ public:
     }
    
     template <typename T>
-    T getValue() const
+    inline T getValue() const
     {
         if (!isOfType<T>()) {throw WrongTypeGetException(m_name);}
         
@@ -62,7 +63,8 @@ public:
         return m_value.type() == typeid(C);
     }
     
-    virtual bool checkValue(const boost::any &theVal){return true;};
+    virtual bool checkValue(const boost::any &theVal)
+    {return theVal.type() == m_value.type();};
 
 private:
     std::string m_name;
@@ -247,15 +249,6 @@ public:
     
     typedef boost::shared_ptr< _RangedProperty<T> > Ptr;
     
-    _RangedProperty():_Property<T>(){};
-    _RangedProperty(const std::string &theName, const T &theValue,
-                    const T &min, const T &max):
-    _Property<T>(theName, theValue)
-    {
-        setRange(min, max);
-        checkValue(theValue);
-    };
-    
     inline _RangedProperty<T>& operator=(T const& theVal)
     {
         this->set(theVal);
@@ -298,11 +291,17 @@ public:
 
     bool checkValue(const boost::any &theVal)
     {
-        T v = boost::any_cast<T>(theVal);
+        T v;
+        
         try
         {
+            v = boost::any_cast<T>(theVal);
             rangeCheck(v);
             return true;
+        }
+        catch (const boost::bad_any_cast &e)
+        {
+            return false;
         }
         catch(const BadBoundsException &e)
         {
@@ -325,6 +324,15 @@ public:
 
 private:
 
+    _RangedProperty():_Property<T>(){};
+    _RangedProperty(const std::string &theName, const T &theValue,
+                    const T &min, const T &max):
+    _Property<T>(theName, theValue)
+    {
+        setRange(min, max);
+        checkValue(theValue);
+    };
+    
     inline void rangeCheck(const T &theValue)
     {
         // check range

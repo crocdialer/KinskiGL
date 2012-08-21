@@ -26,7 +26,7 @@ private:
     
     _Property<bool>::Ptr m_activator;
     
-    _RangedProperty<float>::Ptr m_rangedFloat;
+    _RangedProperty<uint32_t>::Ptr m_imageIndex;
     
     CVThread::Ptr m_cvThread;
     
@@ -128,9 +128,12 @@ public:
         buildCanvasVBO();
         
         m_activator = _Property<bool>::create("processing", true);
+        m_imageIndex = _RangedProperty<uint32_t>::create("Image Index",
+                                                         2, 0, 2);
         
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);
+        addPropertyToTweakBar(m_imageIndex);
         
         // CV stuff
         m_cvThread = CVThread::Ptr(new CVThread());
@@ -167,6 +170,8 @@ public:
             
             for(int i=0;i<images.size();i++)
                 TextureIO::updateTexture(m_textures[i], images[i]);
+            
+            m_imageIndex->setRange(0, images.size() - 1);
         }
         
         // trigger processing
@@ -187,7 +192,7 @@ public:
         }
         
         // draw fullscreen image
-        drawTexture(m_textures[0],
+        drawTexture(m_textures[m_imageIndex->val()],
                     m_activator->val() ? m_applyMapShader : m_texShader,
                     vec2(0, getHeight()),
                     getWindowSize());
