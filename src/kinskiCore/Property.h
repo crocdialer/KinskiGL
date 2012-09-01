@@ -76,6 +76,9 @@ public:
     inline void addObserver(const Observer::Ptr &theObs)
     {m_observers.push_back(theObs);};
     
+    inline void removeObserver(const Observer::Ptr &theObs)
+    {m_observers.remove(theObs);};
+    
     inline void clearObservers(){m_observers.clear();};
     
     inline void notifyObservers()

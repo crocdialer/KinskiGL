@@ -43,7 +43,7 @@ void Component::observeProperties(bool b)
         if (b)
             (*it)->addObserver(shared_from_this());
         else
-            (*it)->clearObservers();
+            (*it)->removeObserver(shared_from_this());
     }
     
 }

@@ -260,5 +260,11 @@ namespace kinski
 
         return vector<Mat>();
     }
+    
+    void CVDiskWriterNode::update(const Property::Ptr &theProperty)
+    {
+        if(theProperty == m_videoSrc)
+            m_videoWriter.release();
+    }
 }
 

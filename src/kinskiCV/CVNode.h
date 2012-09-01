@@ -173,7 +173,7 @@ namespace kinski{
         bool m_loop;
     };
     
-    class CVDiskWriterNode : public CVProcessNode
+    class CVDiskWriterNode : public CVProcessNode, public Property::Observer
     {
     public:
         
@@ -182,6 +182,8 @@ namespace kinski{
         
         std::string getDescription();
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
+        
+        void update(const Property::Ptr &theProperty);
         
     private:
         _Property<std::string>::Ptr m_videoSrc;
