@@ -9,22 +9,27 @@
 #define _KINSKI_PROPERTY_INCLUDED__
 
 #include <string>
+#include <list>
 #include <boost/any.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include "Exception.h"
 
 namespace kinski
 {
 
-class Property 
+class Property : public boost::enable_shared_from_this<Property>
 {
 public:
     typedef boost::shared_ptr<Property> Ptr;
     
-    Property(): m_tweakable(true){}; // default constructor
-    Property(const std::string &theName, const boost::any &theValue):
-    m_name(theName), m_value(theValue), m_tweakable(true){};
-   
+    class Observer
+    {
+    public:
+        typedef boost::shared_ptr<Observer> Ptr;
+        virtual void update(const Property::Ptr &theProperty) = 0;
+    };
+
     inline boost::any getValue() const {return m_value;};
     inline const std::string& getName() const {return m_name;};
     inline void setName(const std::string& theName) {m_name = theName;};
@@ -40,6 +45,8 @@ public:
         if (!isOfType<T>()) {throw WrongTypeSetException(m_name);}
         if(checkValue(theValue))
             m_value = theValue;
+        
+        notifyObservers();
     }
    
     template <typename T>
@@ -65,12 +72,33 @@ public:
     
     virtual bool checkValue(const boost::any &theVal)
     {return theVal.type() == m_value.type();};
+    
+    inline void addObserver(const Observer::Ptr &theObs)
+    {m_observers.push_back(theObs);};
+    
+    inline void clearObservers(){m_observers.clear();};
+    
+    inline void notifyObservers()
+    {
+        std::list<Observer::Ptr>::iterator it = m_observers.begin();
+        for (; it != m_observers.end(); it++)
+        {
+            (*it)->update(shared_from_this());
+        }
+    };
 
+protected:
+    Property(): m_tweakable(true){}; // default constructor
+    Property(const std::string &theName, const boost::any &theValue):
+    m_name(theName), m_value(theValue), m_tweakable(true){};
+    
 private:
     std::string m_name;
     boost::any m_value;
     
 	bool m_tweakable;
+    
+    std::list<Observer::Ptr> m_observers;
 
 public:
     // define exceptions
@@ -98,14 +126,6 @@ class _Property : public Property
 {
 public:
     typedef boost::shared_ptr< _Property<T> > Ptr;
-    
-    _Property():Property(){};
-    
-    _Property(const std::string &theName, const T &theValue):
-    Property(theName, theValue){};
-    
-    explicit _Property(const _Property<T> &other):
-    Property(other.getName(), other.getValue<T>()){};
     
     static Ptr create(const std::string &theName, const T &theValue)
     {
@@ -239,6 +259,16 @@ public:
         os<< theProp.getName()<<": "<<theProp.getValue<T>()<<"\n";
         return os;
     }
+        
+protected:
+    _Property():Property(){};
+    
+    _Property(const std::string &theName, const T &theValue):
+    Property(theName, theValue){};
+    
+    explicit _Property(const _Property<T> &other):
+    Property(other.getName(), other.getValue<T>()){};
+
 };
 
         
@@ -297,7 +327,6 @@ public:
         {
             v = boost::any_cast<T>(theVal);
             rangeCheck(v);
-            return true;
         }
         catch (const boost::bad_any_cast &e)
         {
@@ -308,9 +337,10 @@ public:
             v = std::min(v, m_max);
             v = std::max(v, m_min);
             this->set(v);
+            return false;
         }
-
-        return false;
+        
+        return true;
     };
     
     friend std::ostream& operator<<(std::ostream &os,const _RangedProperty<T>& theProp)

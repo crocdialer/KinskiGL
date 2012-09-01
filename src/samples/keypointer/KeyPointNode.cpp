@@ -86,7 +86,7 @@ namespace kinski
             vector<Point2f> pts_train, pts_query;
             matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
                            pts_query);
-            m_homography = findHomography(pts_train, pts_query, CV_LMEDS);
+            m_homography = findHomography(pts_train, pts_query, CV_RANSAC);
             
             vector<Point3f> trainPts3;
             for (int i=0; i<pts_train.size(); i++)

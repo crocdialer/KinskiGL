@@ -20,7 +20,7 @@
 namespace kinski 
 {
     
-    class Component 
+    class Component : public boost::enable_shared_from_this<Component>
     {
     public:
         typedef boost::shared_ptr<Component> Ptr;

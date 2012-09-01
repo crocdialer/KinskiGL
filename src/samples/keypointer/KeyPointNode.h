@@ -40,10 +40,10 @@ namespace kinski
         
         //Converts matching indices to xy points
         void matches2points(const std::vector<cv::KeyPoint>& train,
-                       const std::vector<cv::KeyPoint>& query,
-                       const std::vector<cv::DMatch>& matches,
-                       std::vector<cv::Point2f>& pts_train,
-                       std::vector<cv::Point2f>& pts_query);
+                            const std::vector<cv::KeyPoint>& query,
+                            const std::vector<cv::DMatch>& matches,
+                            std::vector<cv::Point2f>& pts_train,
+                            std::vector<cv::Point2f>& pts_query);
         
     };
 
