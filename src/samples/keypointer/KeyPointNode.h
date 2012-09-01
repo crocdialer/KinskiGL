@@ -24,6 +24,8 @@ namespace kinski
         
         void setReferenceImage(const cv::Mat &theImg);
         
+        void update(const Property::Ptr &theProperty);
+        
     private:
         
         cv::Ptr<cv::FeatureDetector> m_featureDetect;

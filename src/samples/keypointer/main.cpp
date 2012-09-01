@@ -144,6 +144,9 @@ public:
 //        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVDiskWriterNode
 //                                                           ("/Users/Fabian/Desktop/video.avi"));
         
+        // trigger observer callbacks
+        m_processNode->observeProperties();
+        
         m_cvThread->setProcessingNode(m_processNode);
 
         //m_cvThread->streamUSBCamera();

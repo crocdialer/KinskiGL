@@ -192,4 +192,11 @@ namespace kinski
             pts_train.push_back(train[dmatch.trainIdx].pt);
         }
     }
+    
+    void KeyPointNode::update(const Property::Ptr &theProperty)
+    {
+        if(theProperty == m_maxFeatureDist)
+            printf("max DISTANCE\n");
+    
+    }
 }

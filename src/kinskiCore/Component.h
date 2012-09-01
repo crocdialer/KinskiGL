@@ -20,7 +20,8 @@
 namespace kinski 
 {
     
-    class Component : public boost::enable_shared_from_this<Component>
+    class Component : public boost::enable_shared_from_this<Component>,
+    public Property::Observer
     {
     public:
         typedef boost::shared_ptr<Component> Ptr;
@@ -33,10 +34,14 @@ namespace kinski
     public: 
 //        virtual void terminate() = 0;
 //        virtual void tic() = 0;
-
+        virtual void update(const Property::Ptr &theProperty){};
+        
+        void observeProperties(bool b = true);
+        
     protected:        
         std::list<Property::Ptr> m_propertyList;
         void registerProperty(Property::Ptr theProperty);
+        
     };
 
     // Exception definitions. TODO: put those to some neat macros
