@@ -24,6 +24,7 @@ namespace kinski
         
         void setReferenceImage(const cv::Mat &theImg);
         
+        // Property::Observer::update() overwritten here
         void update(const Property::Ptr &theProperty);
         
     private:

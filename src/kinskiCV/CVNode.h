@@ -173,7 +173,7 @@ namespace kinski{
         bool m_loop;
     };
     
-    class CVDiskWriterNode : public CVProcessNode, public Property::Observer
+    class CVDiskWriterNode : public CVProcessNode
     {
     public:
         

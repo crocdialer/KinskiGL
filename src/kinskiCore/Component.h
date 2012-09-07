@@ -32,10 +32,8 @@ namespace kinski
         Property::Ptr getPropertyByName(const std::string & thePropertyName);
     
     public: 
-//        virtual void terminate() = 0;
-//        virtual void tic() = 0;
-        virtual void update(const Property::Ptr &theProperty){};
-        
+
+        virtual void update(const Property::Ptr &theProperty){};        
         void observeProperties(bool b = true);
         
     protected:        
