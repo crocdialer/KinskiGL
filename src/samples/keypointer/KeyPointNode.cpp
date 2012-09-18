@@ -31,6 +31,8 @@ namespace kinski
         registerProperty(m_maxPatchWidth);
         
         setReferenceImage(refImage);
+        
+        //m_kalmanFilter = KalmanFilter(<#int dynamParams#>, <#int measureParams#>)
     }
     
     string KeyPointNode::getDescription()
@@ -53,7 +55,9 @@ namespace kinski
         {/*auto_cpu_timer t;*/ m_featureExtract->compute(downSized, keypoints, descriptors_scene);}
         {/*auto_cpu_timer t;*/ m_matcher->match(descriptors_scene, m_trainDescriptors, matches);}
         
-        Mat outImg = img.clone();
+        //Mat outImg = img.clone();
+
+        img.copyTo(m_outImg);
         
         //-- Quick calculation of max and min distances between keypoints
         double max_dist = 0; double min_dist = 200;
@@ -106,42 +110,47 @@ namespace kinski
             solvePnP(trainPts3, pts_query, camMatrix, noArray(),
                      camRotation, camTranslation, false, CV_EPNP);
         }
-
-        // draw good_matches
-        for (int i=0; i<good_matches.size(); i++)
-        {
-            const DMatch &m = good_matches[i];
-
-            KeyPoint &kp = keypoints[m.queryIdx];
-            circle(outImg, kp.pt * (1.f / scale),kp.size * (1.f / scale),
-                   Scalar(0,180,255));
-        }
         
-        // draw outline of object
-        if(!m_homography.empty())
+        // draw keypoints and patch-borders
+        if(true)
         {
-            vector<Point2f> objPts, scenePts;
-            objPts.push_back(Point2f(0,0));
-            objPts.push_back(Point2f(0, m_referenceImage.rows));
-            objPts.push_back(Point2f(m_referenceImage.cols, m_referenceImage.rows));
-            objPts.push_back(Point2f(m_referenceImage.cols,0));
+            // draw good_matches
+            for (int i=0; i<good_matches.size(); i++)
+            {
+                const DMatch &m = good_matches[i];
+                
+                KeyPoint &kp = keypoints[m.queryIdx];
+                circle(m_outImg, kp.pt * (1.f / scale),kp.size * (1.f / scale),
+                       Scalar(0,180,255));
+            }
             
-            perspectiveTransform(objPts, scenePts, m_homography);
+            // draw outline of object
+            if(!m_homography.empty())
+            {
+                vector<Point2f> objPts, scenePts;
+                objPts.push_back(Point2f(0,0));
+                objPts.push_back(Point2f(0, m_referenceImage.rows));
+                objPts.push_back(Point2f(m_referenceImage.cols, m_referenceImage.rows));
+                objPts.push_back(Point2f(m_referenceImage.cols,0));
+                
+                perspectiveTransform(objPts, scenePts, m_homography);
+                
+                line(m_outImg, scenePts[0]* (1.f / scale), scenePts[1]* (1.f / scale),
+                     Scalar(0, 255, 0), 3);
+                line(m_outImg, scenePts[1]* (1.f / scale), scenePts[2]* (1.f / scale),
+                     Scalar(0, 255, 0), 3);
+                line(m_outImg, scenePts[2]* (1.f / scale), scenePts[3]* (1.f / scale),
+                     Scalar(0, 255, 0), 3);
+                line(m_outImg, scenePts[3]* (1.f / scale), scenePts[0]* (1.f / scale),
+                     Scalar(0, 255, 0), 3);
+            }
             
-            line(outImg, scenePts[0]* (1.f / scale), scenePts[1]* (1.f / scale),
-                 Scalar(0, 255, 0), 3);
-            line(outImg, scenePts[1]* (1.f / scale), scenePts[2]* (1.f / scale),
-                 Scalar(0, 255, 0), 3);
-            line(outImg, scenePts[2]* (1.f / scale), scenePts[3]* (1.f / scale),
-                 Scalar(0, 255, 0), 3);
-            line(outImg, scenePts[3]* (1.f / scale), scenePts[0]* (1.f / scale),
-                 Scalar(0, 255, 0), 3);
         }
         
         // iphone4s scaled
         //[[ 837.8487443     0.          388.558868  ]
-         //[   0.          891.76507372  305.75884143]
-         //[   0.            0.            1.        ]]
+        //[   0.          891.76507372  305.75884143]
+        //[   0.            0.            1.        ]]
         
         //iSight
         //[[ 468.35129369    0.          543.09378208]
@@ -150,7 +159,7 @@ namespace kinski
         
         vector<Mat> outMats;
         outMats.push_back(m_referenceImage);
-        outMats.push_back(outImg);
+        outMats.push_back(m_outImg);
         
         return outMats;
     }
@@ -197,6 +206,10 @@ namespace kinski
     {
         if(theProperty == m_maxFeatureDist)
             printf("max DISTANCE\n");
+        else if(theProperty == m_maxPatchWidth)
+        {
+            
+        }
     
     }
 }

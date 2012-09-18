@@ -50,13 +50,13 @@ public:
     }
    
     template <typename T>
-    inline T getValue() const
+    inline const T& getValue() const
     {
         if (!isOfType<T>()) {throw WrongTypeGetException(m_name);}
         
         try 
         {
-            return boost::any_cast<T>(m_value);
+            return boost::any_cast<const T&>(m_value);
         }
         catch (const boost::bad_any_cast &theException)
         {
@@ -136,7 +136,7 @@ public:
         return outPtr;
     };
     
-    inline const T val() const {return getValue<T>();};
+    inline const T& val() const {return getValue<T>();};
     
     inline void set(const T &theVal){setValue<T>(theVal);};
     

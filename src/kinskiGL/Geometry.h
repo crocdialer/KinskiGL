@@ -20,6 +20,7 @@ namespace gl
     {
     public:
         void addVertex(const glm::vec3 &theVert);
+        void addVertex(const std::vector<glm::vec3> &theVertList);
         
     private:
         
