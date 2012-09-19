@@ -99,7 +99,7 @@ namespace kinski
         else if (theProperty->isOfType<mat4>()) 
         {
             const _Property<mat4>::Ptr p = 
-            boost::static_pointer_cast<_Property<mat4> >(theProperty);
+            static_pointer_cast<_Property<mat4> >(theProperty);
             
             defString = " group='" + myPropName +"'";
             

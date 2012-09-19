@@ -131,7 +131,7 @@ public:
         m_imageIndex = _RangedProperty<uint32_t>::create("Image Index",
                                                          2, 0, 2);
         
-        Property::Ptr bla = boost::static_pointer_cast<Property>(m_imageIndex);
+        Property::Ptr bla = static_pointer_cast<Property>(m_imageIndex);
         
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);

@@ -13,9 +13,9 @@ using namespace std;
 using namespace kinski;
 
 SkySegmentNode::SkySegmentNode():
-m_cannyLow(_RangedProperty<uint32_t>::create("Canny Low", 71, 0, 255)),
+m_cannyLow(_RangedProperty<uint32_t>::create("Canny Low", 85, 0, 255)),
 m_cannyHigh(_RangedProperty<uint32_t>::create("Cany High", 208, 0, 255)),
-m_morphKernSize(_RangedProperty<uint32_t>::create("Morph kernel size", 7, 3, 15)),
+m_morphKernSize(_RangedProperty<uint32_t>::create("Morph kernel size", 3, 3, 15)),
 m_threshVal(_RangedProperty<uint32_t>::create("Intesity threshold", 140, 0, 255)),
 m_minPathLength(_RangedProperty<uint32_t>::create("Minimal path length", 200, 0, 1024))
 {
@@ -36,7 +36,7 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     Mat scaledImg, grayImg, threshImg,
     edgeImg, skyMask;
     
-    float scale = 0.5f;
+    float scale = 0.2f;
     
     // scale down input image
     cv::resize(img, scaledImg, Size(0,0), scale, scale);
@@ -73,6 +73,22 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
                  2);
     
     workImg |= threshImg;
+    
+    // for all columns
+    for (int i = 0; i < workImg.cols; i++)
+    {
+        Mat col = workImg.col(i);
+        
+        for (int j = 0; j < col.rows; j++)
+        {
+            // iterate pixels in column
+            if( col.at<uint8_t>(j, 0) )
+            {
+                col.rowRange(j, col.rows) = 255.0;
+                break;
+            }
+        }
+    }
     
 //    vector<vector<Point> > contours;
 //    vector<Vec4i> hierarchy;

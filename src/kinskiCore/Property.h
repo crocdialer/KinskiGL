@@ -11,22 +11,22 @@
 #include <string>
 #include <list>
 #include <boost/any.hpp>
-#include <boost/shared_ptr.hpp>
-#include <boost/enable_shared_from_this.hpp>
+
+#include "Definitions.h"
 #include "Exception.h"
 
 namespace kinski
 {
 
-class Property : public boost::enable_shared_from_this<Property>
+class Property : public std::enable_shared_from_this<Property>
 {
 public:
-    typedef boost::shared_ptr<Property> Ptr;
+    typedef std::shared_ptr<Property> Ptr;
     
     class Observer
     {
     public:
-        typedef boost::shared_ptr<Observer> Ptr;
+        typedef std::shared_ptr<Observer> Ptr;
         virtual void update(const Property::Ptr &theProperty) = 0;
     };
 
@@ -128,7 +128,7 @@ template<typename T>
 class _Property : public Property
 {
 public:
-    typedef boost::shared_ptr< _Property<T> > Ptr;
+    typedef std::shared_ptr< _Property<T> > Ptr;
     
     static Ptr create(const std::string &theName, const T &theValue)
     {
@@ -259,7 +259,7 @@ public:
     
     friend std::ostream& operator<<(std::ostream &os,const _Property<T>& theProp)
     {
-        os<< theProp.getName()<<": "<<theProp.getValue<T>()<<"\n";
+        os<< theProp.getName()<<": "<<theProp.getValue<T>()<<std::endl;
         return os;
     }
         
@@ -280,7 +280,7 @@ class _RangedProperty : public _Property<T>
 {
 public:
     
-    typedef boost::shared_ptr< _RangedProperty<T> > Ptr;
+    typedef std::shared_ptr< _RangedProperty<T> > Ptr;
     
     inline _RangedProperty<T>& operator=(T const& theVal)
     {

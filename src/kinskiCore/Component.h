@@ -11,20 +11,19 @@
 
 #include <string>
 #include <list>
-#include <boost/shared_ptr.hpp>
-
 #include <exception>
+
 #include "Property.h"
 #include "Exception.h"
 
 namespace kinski 
 {
     
-    class Component : public boost::enable_shared_from_this<Component>,
+    class Component : public std::enable_shared_from_this<Component>,
     public Property::Observer
     {
     public:
-        typedef boost::shared_ptr<Component> Ptr;
+        typedef std::shared_ptr<Component> Ptr;
         
         Component();
         virtual ~Component();    

@@ -9,7 +9,6 @@
 #pragma once
 
 #include "opencv2/opencv.hpp"
-#include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
 
 #include "kinskiCore/Component.h"
@@ -19,7 +18,7 @@ namespace kinski{
     class CVNode : public Component
     {
     public:
-        typedef boost::shared_ptr<CVNode> Ptr;
+        typedef std::shared_ptr<CVNode> Ptr;
         virtual std::string getDescription() = 0;
     };
     
@@ -27,7 +26,7 @@ namespace kinski{
     class CVSourceNode : public CVNode
     {
     public:
-        typedef boost::shared_ptr<CVSourceNode> Ptr;
+        typedef std::shared_ptr<CVSourceNode> Ptr;
         
         // inherited from CVNode
         virtual std::string getDescription(){return "Generic Input-source";};
@@ -100,7 +99,7 @@ namespace kinski{
     class CVProcessNode : public CVNode
     {
     public:
-        typedef boost::shared_ptr<CVProcessNode> Ptr;
+        typedef std::shared_ptr<CVProcessNode> Ptr;
         
         // inherited from CVNode
         virtual std::string getDescription(){return "Generic processing node";};
@@ -115,7 +114,7 @@ namespace kinski{
     class CVCombinedProcessNode : public CVProcessNode
     {
     public:
-        typedef boost::shared_ptr<CVCombinedProcessNode> Ptr;
+        typedef std::shared_ptr<CVCombinedProcessNode> Ptr;
         
         // inherited from CVNode
         virtual std::string getDescription();
@@ -145,7 +144,7 @@ namespace kinski{
     class CVCaptureNode : public CVSourceNode
     {
     public:
-        typedef boost::shared_ptr<CVCaptureNode> Ptr;
+        typedef std::shared_ptr<CVCaptureNode> Ptr;
         
         CVCaptureNode(const int camId = 0);
         CVCaptureNode(const std::string &movieFile);
