@@ -293,7 +293,7 @@ namespace gl
         m_obj(NULL),m_isBound(false)
         {}
         
-        explicit scoped_bind(T &theObj):
+        explicit scoped_bind(const T &theObj):
         m_obj(&theObj),m_isBound(false)
         {
             bind();
@@ -319,7 +319,7 @@ namespace gl
         
     private:
         
-        T *m_obj;
+        const T *m_obj;
         bool m_isBound;
     };
     

@@ -10,7 +10,7 @@ namespace kinski
 {
     void
     AntTweakBarConnector::connect(TwBar * theTweakBar,
-                                  const Property::Ptr theProperty,
+                                  const Property::Ptr &theProperty,
                                   const string &theGroup) {
             
         Property* myPProp = theProperty.get();
@@ -98,8 +98,8 @@ namespace kinski
         }
         else if (theProperty->isOfType<mat4>()) 
         {
-            const _Property<mat4>::Ptr p = 
-            static_pointer_cast<_Property<mat4> >(theProperty);
+            const Property_<mat4>::Ptr p = 
+            static_pointer_cast<Property_<mat4> >(theProperty);
             
             defString = " group='" + myPropName +"'";
             
@@ -170,7 +170,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getVec3(void *value, void *clientData) 
     {
-        _Property<vec3> * theProperty = (_Property<vec3>*) clientData;
+        Property_<vec3> * theProperty = (Property_<vec3>*) clientData;
         
         memcpy(value, &theProperty->val()[0], 3 * sizeof(float));
     }
@@ -178,7 +178,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::setVec3(const void *value, void *clientData) 
     {
-        _Property<vec3> * theProperty = (_Property<vec3>*) clientData;
+        Property_<vec3> * theProperty = (Property_<vec3>*) clientData;
         const float *v = (float*) value;
         theProperty->val(vec3(v[0], v[1], v[2]));
     }
@@ -186,7 +186,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getVec4(void *value, void *clientData) 
     {
-        _Property<vec4> * theProperty = (_Property<vec4>*) clientData;
+        Property_<vec4> * theProperty = (Property_<vec4>*) clientData;
         
         memcpy(value, &theProperty->val()[0], 4 * sizeof(float));
     }
@@ -194,7 +194,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::setVec4(const void *value, void *clientData) 
     {
-        _Property<vec4> * theProperty = (_Property<vec4>*) clientData;
+        Property_<vec4> * theProperty = (Property_<vec4>*) clientData;
         const float *v = (float*) value;
         theProperty->val(vec4(v[0], v[1], v[2], v[3]));
     }
@@ -202,7 +202,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getQuaternion(void *value, void *clientData) 
     {
-        _Property<mat3> * theProperty = (_Property<mat3>*) clientData;
+        Property_<mat3> * theProperty = (Property_<mat3>*) clientData;
         quat outQuad (theProperty->val());
         
         memcpy(value, &outQuad[0], 4 * sizeof(float));
@@ -212,7 +212,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::setQuaternion(const void *value, void *clientData) 
     {
-        _Property<mat3> * theProperty = (_Property<mat3>*) clientData;
+        Property_<mat3> * theProperty = (Property_<mat3>*) clientData;
         const float *v = (float*) value;
         quat outQuad(v[0], v[1], v[2], v[3]);
         
@@ -222,7 +222,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getMat4_rot(void *value, void *clientData) 
     {
-        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        Property_<mat4> * theProperty = (Property_<mat4>*) clientData;
         
         quat outQuad (theProperty->val());
         memcpy(value, &outQuad[0], 4 * sizeof(float));
@@ -231,7 +231,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::setMat4_rot(const void *value, void *clientData) 
     {
-        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        Property_<mat4> * theProperty = (Property_<mat4>*) clientData;
         const float *v = (float*) value;
         quat tmpQuad(v[0], v[1], v[2], v[3]);
         mat4 outMat = mat4_cast(tmpQuad);
@@ -242,7 +242,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::getMat4_pos(void *value, void *clientData) 
     {
-        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        Property_<mat4> * theProperty = (Property_<mat4>*) clientData;
         
         memcpy(value, &theProperty->val()[3][0], 4 * sizeof(float));
     }
@@ -250,7 +250,7 @@ namespace kinski
     void TW_CALL 
     AntTweakBarConnector::setMat4_pos(const void *value, void *clientData) 
     {
-        _Property<mat4> * theProperty = (_Property<mat4>*) clientData;
+        Property_<mat4> * theProperty = (Property_<mat4>*) clientData;
         const float *v = (float*) value;
         mat4 outMat = theProperty->val();
         outMat[3] = vec4(v[0], v[1], v[2], v[3]);

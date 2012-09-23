@@ -24,9 +24,9 @@ private:
     GLuint m_canvasBuffer;
     GLuint m_canvasArray;
     
-    _Property<bool>::Ptr m_activator;
+    Property_<bool>::Ptr m_activator;
     
-    _RangedProperty<uint32_t>::Ptr m_imageIndex;
+    RangedProperty<uint32_t>::Ptr m_imageIndex;
     
     CVThread::Ptr m_cvThread;
     
@@ -127,8 +127,8 @@ public:
         
         buildCanvasVBO();
         
-        m_activator = _Property<bool>::create("processing", true);
-        m_imageIndex = _RangedProperty<uint32_t>::create("Image Index",
+        m_activator = Property_<bool>::create("processing", true);
+        m_imageIndex = RangedProperty<uint32_t>::create("Image Index",
                                                          2, 0, 2);
         
         // add component-props to tweakbar

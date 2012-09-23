@@ -13,11 +13,11 @@ using namespace std;
 using namespace kinski;
 
 SkySegmentNode::SkySegmentNode():
-m_cannyLow(_RangedProperty<uint32_t>::create("Canny Low", 85, 0, 255)),
-m_cannyHigh(_RangedProperty<uint32_t>::create("Cany High", 208, 0, 255)),
-m_morphKernSize(_RangedProperty<uint32_t>::create("Morph kernel size", 3, 3, 15)),
-m_threshVal(_RangedProperty<uint32_t>::create("Intesity threshold", 140, 0, 255)),
-m_minPathLength(_RangedProperty<uint32_t>::create("Minimal path length", 200, 0, 1024))
+m_cannyLow(RangedProperty<uint32_t>::create("Canny Low", 85, 0, 255)),
+m_cannyHigh(RangedProperty<uint32_t>::create("Cany High", 208, 0, 255)),
+m_morphKernSize(RangedProperty<uint32_t>::create("Morph kernel size", 3, 3, 15)),
+m_threshVal(RangedProperty<uint32_t>::create("Intesity threshold", 140, 0, 255)),
+m_minPathLength(RangedProperty<uint32_t>::create("Minimal path length", 200, 0, 1024))
 {
     registerProperty(m_cannyLow);
     registerProperty(m_cannyHigh);
@@ -74,7 +74,8 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     
     workImg |= threshImg;
     
-    // for all columns
+    // for all columns. when a value != 0 is encountered,
+    // all values from the current row down to the bottom are set to 255
     for (int i = 0; i < workImg.cols; i++)
     {
         Mat col = workImg.col(i);

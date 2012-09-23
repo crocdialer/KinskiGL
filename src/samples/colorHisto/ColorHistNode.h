@@ -35,7 +35,7 @@ namespace kinski
         cv::Mat extractHueHistogram(const cv::Mat &roi);
         cv::Mat createHistImage();
         
-        _Property<bool>::Ptr m_histExtraction;
+        Property_<bool>::Ptr m_histExtraction;
         
     public:
         

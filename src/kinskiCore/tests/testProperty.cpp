@@ -20,25 +20,34 @@ public:
     void update(const Property::Ptr &theProperty){m_triggered = true;};
 };
 
-// most frequently you implement test cases as a free functions with automatic registration
+// test Property::Observer methods and behaviour
 BOOST_AUTO_TEST_CASE( testObserver )
 {
-    _Property<uint32_t>::Ptr intProp(_Property<uint32_t>::create("intProp", 5));
+    Property_<uint32_t>::Ptr intProp(Property_<uint32_t>::create("intProp", 5));
     
-    boost::shared_ptr<TestObserver> obs(new TestObserver);
-    intProp->addObserver(obs);
+    std::shared_ptr<TestObserver> obs1(new TestObserver),
+    obs2(new TestObserver);
     
+    // add 2 observers
+    intProp->addObserver(obs1);
+    intProp->addObserver(obs2);
+    
+    // assign a value
     *intProp = 69;
     
     BOOST_CHECK(intProp->val() == 69);
-    BOOST_CHECK(obs->m_triggered);
+    BOOST_CHECK(obs1->m_triggered);
+    BOOST_CHECK(obs2->m_triggered);
     
-    obs->m_triggered = false;
-    intProp->removeObserver(obs);
+    obs1->m_triggered = false;
+    obs2->m_triggered = false;
+    
+    intProp->removeObserver(obs1);
     
     intProp->val(23);
     BOOST_CHECK(intProp->val() == 23);
-    BOOST_CHECK(!obs->m_triggered);
+    BOOST_CHECK(!obs1->m_triggered);
+    BOOST_CHECK(obs2->m_triggered);
 
     intProp->set(111);
     BOOST_CHECK(intProp->val() == 111);
@@ -46,11 +55,11 @@ BOOST_AUTO_TEST_CASE( testObserver )
 
 //____________________________________________________________________________//
 
-// each test file may contain any number of test cases; each test case has to have unique name
+// test 
 BOOST_AUTO_TEST_CASE( testRangedProp )
 {
-    _RangedProperty<int32_t>::Ptr rangeProp
-        (_RangedProperty<int32_t>::create("rangedProp", 5, -3, 10));
+    RangedProperty<int32_t>::Ptr rangeProp
+        (RangedProperty<int32_t>::create("rangedProp", 5, -3, 10));
 
     *rangeProp = -5;
     BOOST_CHECK_EQUAL( rangeProp->val(), -3 );
@@ -65,7 +74,10 @@ BOOST_AUTO_TEST_CASE( testRangedProp )
     BOOST_CHECK_EQUAL(max, 5000);
     
     rangeProp->set(-999);
-    BOOST_CHECK_EQUAL(rangeProp->val(), -40);
+    BOOST_CHECK_EQUAL(rangeProp->val(), min);
+    
+    rangeProp->set(9999);
+    BOOST_CHECK_EQUAL(rangeProp->val(), max);
 }
 
 //____________________________________________________________________________//

@@ -12,7 +12,7 @@ using namespace cv;
 using namespace kinski;
 
 ColorHistNode::ColorHistNode():
-m_histExtraction(_Property<bool>::create("Extract Histogram", false))
+m_histExtraction(Property_<bool>::create("Extract Histogram", false))
 {
     m_histSize[0] = 12;
     m_hueRanges[0] = 0;

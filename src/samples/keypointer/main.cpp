@@ -24,9 +24,9 @@ private:
     GLuint m_canvasBuffer;
     GLuint m_canvasArray;
     
-    _Property<bool>::Ptr m_activator;
+    Property_<bool>::Ptr m_activator;
     
-    _RangedProperty<uint32_t>::Ptr m_imageIndex;
+    RangedProperty<uint32_t>::Ptr m_imageIndex;
     
     CVThread::Ptr m_cvThread;
     
@@ -77,7 +77,7 @@ private:
     }
     
     
-    void drawTexture(gl::Texture &theTexture,
+    void drawTexture(const gl::Texture &theTexture,
                      gl::Shader &theShader,
                      float x0, float y0, float x1, float y1)
     {
@@ -127,8 +127,8 @@ public:
         
         buildCanvasVBO();
         
-        m_activator = _Property<bool>::create("processing", true);
-        m_imageIndex = _RangedProperty<uint32_t>::create("Image Index",
+        m_activator = Property_<bool>::create("processing", true);
+        m_imageIndex = RangedProperty<uint32_t>::create("Image Index",
                                                          2, 0, 2);
         
         Property::Ptr bla = static_pointer_cast<Property>(m_imageIndex);

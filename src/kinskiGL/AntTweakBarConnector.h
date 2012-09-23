@@ -7,7 +7,7 @@ namespace kinski
 class AntTweakBarConnector {
 public:
     static void connect(TwBar * theTweakBar,
-                        const Property::Ptr theProperty,
+                        const Property::Ptr &theProperty,
                         const std::string &theGroup="");
     
     // define exceptions

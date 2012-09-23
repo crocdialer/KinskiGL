@@ -185,7 +185,7 @@ namespace kinski{
         void update(const Property::Ptr &theProperty);
         
     private:
-        _Property<std::string>::Ptr m_videoSrc;
+        Property_<std::string>::Ptr m_videoSrc;
         int m_codec;
         cv::VideoWriter m_videoWriter;
     };

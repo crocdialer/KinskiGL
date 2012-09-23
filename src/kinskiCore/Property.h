@@ -5,8 +5,8 @@
 //  
 //
 
-#ifndef _KINSKI_PROPERTY_INCLUDED__
-#define _KINSKI_PROPERTY_INCLUDED__
+#ifndef _KINSKIProperty__INCLUDED__
+#define _KINSKIProperty__INCLUDED__
 
 #include <string>
 #include <list>
@@ -60,7 +60,7 @@ public:
         }
         catch (const boost::bad_any_cast &theException)
         {
-            throw theException;
+            throw WrongTypeGetException(m_name);
         }
     }
     
@@ -84,9 +84,10 @@ public:
     inline void notifyObservers()
     {
         std::list<Observer::Ptr>::iterator it = m_observers.begin();
+        Ptr self = shared_from_this();
         for (; it != m_observers.end(); it++)
         {
-            (*it)->update(shared_from_this());
+            (*it)->update(self);
         }
     };
 
@@ -125,14 +126,14 @@ public:
 };
     
 template<typename T>
-class _Property : public Property
+class Property_ : public Property
 {
 public:
-    typedef std::shared_ptr< _Property<T> > Ptr;
+    typedef std::shared_ptr< Property_<T> > Ptr;
     
     static Ptr create(const std::string &theName, const T &theValue)
     {
-        Ptr outPtr (new _Property(theName, theValue));
+        Ptr outPtr (new Property_(theName, theValue));
         return outPtr;
     };
     
@@ -143,146 +144,146 @@ public:
     inline void val(const T &theVal){set(theVal);};
     inline void operator()(const T &theVal){setValue<T>(theVal);};
     
-    inline _Property<T>& operator=(T const& theVal)
+    inline Property_<T>& operator=(T const& theVal)
     {
         set(theVal);
         return *this;
     };
     
-    inline _Property<T>& operator+=(T const& theVal)
+    inline Property_<T>& operator+=(T const& theVal)
     {
         *this = getValue<T>() + theVal; 
         return *this;
     };
     
-    inline _Property<T>& operator+=(_Property<T> const& otherProp)
+    inline Property_<T>& operator+=(Property_<T> const& otherProp)
     {
         *this = getValue<T>() + otherProp.getValue<T>(); 
         return *this;
     };
     
-    inline const T operator+(_Property<T> const& otherProp)
+    inline const T operator+(Property_<T> const& otherProp)
     {
         return getValue<T>() + otherProp.getValue<T>(); 
     };
     
-    inline _Property<T>& operator-=(T const& theVal)
+    inline Property_<T>& operator-=(T const& theVal)
     {
         *this = getValue<T>() - theVal; 
         return *this;
     };
     
-    inline _Property<T>& operator-=(_Property<T> const& otherProp)
+    inline Property_<T>& operator-=(Property_<T> const& otherProp)
     {
         *this = getValue<T>() - otherProp.getValue<T>(); 
         return *this;
     };
     
-    inline const T operator-(_Property<T> const& otherProp)
+    inline const T operator-(Property_<T> const& otherProp)
     {
         return getValue<T>() - otherProp.getValue<T>(); 
     };
     
-    inline _Property<T>& operator*=(T const& theVal)
+    inline Property_<T>& operator*=(T const& theVal)
     {
         *this = getValue<T>() * theVal; 
         return *this;
     };
     
-    inline _Property<T>& operator*=(_Property<T> const& otherProp)
+    inline Property_<T>& operator*=(Property_<T> const& otherProp)
     {
         *this = getValue<T>() + otherProp.getValue<T>(); 
         return *this;
     };
     
-    inline const T operator*(_Property<T> const& otherProp)
+    inline const T operator*(Property_<T> const& otherProp)
     {
         return getValue<T>() * otherProp.getValue<T>(); 
     };
     
-    inline _Property<T>& operator/=(T const& theVal)
+    inline Property_<T>& operator/=(T const& theVal)
     {
         *this = getValue<T>() / theVal; 
         return *this;
     };
     
-    inline _Property<T>& operator/=(_Property<T> const& otherProp)
+    inline Property_<T>& operator/=(Property_<T> const& otherProp)
     {
         *this = getValue<T>() / otherProp.getValue<T>(); 
         return *this;
     };
     
-    inline const T operator/(_Property<T> const& otherProp)
+    inline const T operator/(Property_<T> const& otherProp)
     {
         return getValue<T>() / otherProp.getValue<T>(); 
     };
     
-    inline friend const T operator+(T theVal, const _Property<T>& theProp)
+    inline friend const T operator+(T theVal, const Property_<T>& theProp)
     {
         return theVal + theProp.getValue<T>(); 
     };
     
-    inline friend const T operator+(const _Property<T>& theProp, T theVal)
+    inline friend const T operator+(const Property_<T>& theProp, T theVal)
     {
         return theVal + theProp.getValue<T>(); 
     };
 
-    inline friend const T operator-(T theVal, const _Property<T>& theProp)
+    inline friend const T operator-(T theVal, const Property_<T>& theProp)
     {
         return theVal - theProp.getValue<T>(); 
     };
     
-    inline friend const T operator-(const _Property<T>& theProp, T theVal)
+    inline friend const T operator-(const Property_<T>& theProp, T theVal)
     {
         return theProp.getValue<T>() - theVal; 
     };
     
-    inline friend const T operator*(T theVal, const _Property<T>& theProp)
+    inline friend const T operator*(T theVal, const Property_<T>& theProp)
     {
         return theVal * theProp.getValue<T>(); 
     };
     
-    inline friend const T operator*(const _Property<T>& theProp, T theVal)
+    inline friend const T operator*(const Property_<T>& theProp, T theVal)
     {
         return theVal * theProp.getValue<T>(); 
     };
     
-    inline friend const T operator/(T theVal, const _Property<T>& theProp)
+    inline friend const T operator/(T theVal, const Property_<T>& theProp)
     {
         return theVal / theProp.getValue<T>(); 
     };
     
-    inline friend const T operator/(const _Property<T>& theProp, T theVal)
+    inline friend const T operator/(const Property_<T>& theProp, T theVal)
     {
         return theProp.getValue<T>() / theVal; 
     };
     
-    friend std::ostream& operator<<(std::ostream &os,const _Property<T>& theProp)
+    friend std::ostream& operator<<(std::ostream &os,const Property_<T>& theProp)
     {
         os<< theProp.getName()<<": "<<theProp.getValue<T>()<<std::endl;
         return os;
     }
         
 protected:
-    _Property():Property(){};
+    Property_():Property(){};
     
-    _Property(const std::string &theName, const T &theValue):
+    Property_(const std::string &theName, const T &theValue):
     Property(theName, theValue){};
     
-    explicit _Property(const _Property<T> &other):
+    explicit Property_(const Property_<T> &other):
     Property(other.getName(), other.getValue<T>()){};
 
 };
 
         
 template<typename T>
-class _RangedProperty : public _Property<T>
+class RangedProperty : public Property_<T>
 {
 public:
     
-    typedef std::shared_ptr< _RangedProperty<T> > Ptr;
+    typedef std::shared_ptr< RangedProperty<T> > Ptr;
     
-    inline _RangedProperty<T>& operator=(T const& theVal)
+    inline RangedProperty<T>& operator=(T const& theVal)
     {
         this->set(theVal);
         return *this;
@@ -301,7 +302,7 @@ public:
                       const T &min,
                       const T &max)
     {
-        Ptr outPtr(new _RangedProperty(theName, theValue, min, max));
+        Ptr outPtr(new RangedProperty(theName, theValue, min, max));
         return outPtr;
     };
     
@@ -346,7 +347,7 @@ public:
         return true;
     };
     
-    friend std::ostream& operator<<(std::ostream &os,const _RangedProperty<T>& theProp)
+    friend std::ostream& operator<<(std::ostream &os,const RangedProperty<T>& theProp)
     {
         T min, max;
         theProp.getRange(min, max);
@@ -357,10 +358,10 @@ public:
 
 private:
 
-    _RangedProperty():_Property<T>(){};
-    _RangedProperty(const std::string &theName, const T &theValue,
+    RangedProperty():Property_<T>(){};
+    RangedProperty(const std::string &theName, const T &theValue,
                     const T &min, const T &max):
-    _Property<T>(theName, theValue)
+    Property_<T>(theName, theValue)
     {
         setRange(min, max);
         checkValue(theValue);
@@ -378,4 +379,4 @@ private:
 
 }
 
-#endif // _KINSKI_PROPERTY_INCLUDED__
+#endif // _KINSKIProperty__INCLUDED__

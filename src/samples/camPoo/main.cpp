@@ -27,14 +27,14 @@ private:
     
     float m_rotation;
     
-    _Property<float>::Ptr m_distance;
-    _Property<float>::Ptr m_rotationSpeed;
-    _Property<vec3>::Ptr m_lightDir;
-    _Property<mat4>::Ptr m_viewMatrix;
-    _Property<string>::Ptr m_infoString;
-    _Property<vec4>::Ptr m_lightColor;
+    Property_<float>::Ptr m_distance;
+    Property_<float>::Ptr m_rotationSpeed;
+    Property_<vec3>::Ptr m_lightDir;
+    Property_<mat4>::Ptr m_viewMatrix;
+    Property_<string>::Ptr m_infoString;
+    Property_<vec4>::Ptr m_lightColor;
     
-    _Property<bool>::Ptr m_activator;
+    Property_<bool>::Ptr m_activator;
     
     CVThread::Ptr m_cvThread;
     
@@ -182,14 +182,14 @@ public:
         
         m_rotation = 0.f;
         
-        m_distance = _Property<float>::create("Cam distance", 1);
-        m_rotationSpeed = _Property<float>::create("RotationSpeed", 1.f);
-        m_lightDir = _Property<vec3>::create("LightDir", vec3(0.0, 1.0, 1.0));
-        m_infoString = _Property<string>::create("Info Bla",
+        m_distance = Property_<float>::create("Cam distance", 1);
+        m_rotationSpeed = Property_<float>::create("RotationSpeed", 1.f);
+        m_lightDir = Property_<vec3>::create("LightDir", vec3(0.0, 1.0, 1.0));
+        m_infoString = Property_<string>::create("Info Bla",
                                                  "This is some infoo bla for uu");
-        m_lightColor = _Property<vec4>::create("lightColor", vec4(1));
-        m_viewMatrix = _Property<mat4>::create("viewMatrix", mat4());
-        m_activator = _Property<bool>::create("Dj Activate Money", true);
+        m_lightColor = Property_<vec4>::create("lightColor", vec4(1));
+        m_viewMatrix = Property_<mat4>::create("viewMatrix", mat4());
+        m_activator = Property_<bool>::create("Dj Activate Money", true);
         
         // add props to tweakbar
         addPropertyToTweakBar(m_distance, "Floats");
@@ -200,7 +200,7 @@ public:
         addPropertyToTweakBar(m_infoString);
         addPropertyToTweakBar(m_activator);
         
-        addPropertyToTweakBar(_Property<cv::Mat>::create("luluMat", cv::Mat()));
+        addPropertyToTweakBar(Property_<cv::Mat>::create("luluMat", cv::Mat()));
         
         //*m_lightColor -= (*m_lightColor * 3.f);
         

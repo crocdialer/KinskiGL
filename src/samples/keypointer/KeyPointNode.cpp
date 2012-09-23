@@ -19,11 +19,11 @@ namespace kinski
     m_featureDetect(FeatureDetector::create("ORB")),
     m_featureExtract(DescriptorExtractor::create("ORB")),
     m_matcher(new BFMatcher(NORM_HAMMING)),
-    m_maxImageWidth(_RangedProperty<uint32_t>::create("Max image width",
+    m_maxImageWidth(RangedProperty<uint32_t>::create("Max image width",
                                                       800, 1, 1900)),
-    m_maxPatchWidth(_RangedProperty<uint32_t>::create("Max patch width",
+    m_maxPatchWidth(RangedProperty<uint32_t>::create("Max patch width",
                                                       480, 1, 1024)),
-    m_maxFeatureDist(_RangedProperty<uint32_t>::create("Max feature distance",
+    m_maxFeatureDist(RangedProperty<uint32_t>::create("Max feature distance",
                                                        50, 0, 150))
     {
         registerProperty(m_maxFeatureDist);
@@ -100,9 +100,9 @@ namespace kinski
             }
             
             //
-            static float bla[] = { 837.8487443,    0.,     388.558868,
-                            0.,              891.76507372,  305.75884143,
-                            0.,            0.,            1.};
+            static float bla[] = {  837.8487443,    0.,             388.558868,
+                                    0.,             891.76507372,   305.75884143,
+                                    0.,             0.,             1.};
             
             camMatrix = Mat(3,3,CV_32FC1, bla);
             

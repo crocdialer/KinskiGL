@@ -38,9 +38,9 @@ namespace kinski
         
         cv::KalmanFilter m_kalmanFilter;
         
-        _RangedProperty<uint32_t>::Ptr m_maxImageWidth;
-        _RangedProperty<uint32_t>::Ptr m_maxPatchWidth;
-        _RangedProperty<uint32_t>::Ptr m_maxFeatureDist;
+        RangedProperty<uint32_t>::Ptr m_maxImageWidth;
+        RangedProperty<uint32_t>::Ptr m_maxPatchWidth;
+        RangedProperty<uint32_t>::Ptr m_maxFeatureDist;
         
         
         //Converts matching indices to xy points

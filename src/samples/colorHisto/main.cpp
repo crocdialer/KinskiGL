@@ -24,7 +24,7 @@ private:
     GLuint m_canvasBuffer;
     GLuint m_canvasArray;
     
-    _Property<bool>::Ptr m_activator;
+    Property_<bool>::Ptr m_activator;
     
     CVThread::Ptr m_cvThread;
     
@@ -125,7 +125,7 @@ public:
         
         buildCanvasVBO();
         
-        m_activator = _Property<bool>::create("processing", true);
+        m_activator = Property_<bool>::create("processing", true);
         
         // add component-props to tweakbar
         addPropertyToTweakBar(m_activator);

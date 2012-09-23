@@ -14,9 +14,9 @@ namespace kinski
     
     SalienceNode::SalienceNode():
     m_colorMapType(COLORMAP_JET),
-    m_useColor(_Property<bool>::create("Color Contrast (red-green / blue-yellow)", true)),
-    m_useDoB(_Property<bool>::create("Difference of Box (spatial)", true)),
-    m_useDoE(_Property<bool>::create("Difference of Exponential (motion)", true))
+    m_useColor(Property_<bool>::create("Color Contrast (red-green / blue-yellow)", true)),
+    m_useDoB(Property_<bool>::create("Difference of Box (spatial)", true)),
+    m_useDoE(Property_<bool>::create("Difference of Exponential (motion)", true))
     {
         registerProperty(m_useColor);
         registerProperty(m_useDoB);

@@ -226,7 +226,7 @@ namespace kinski
 /****************************** CVWriterNode **********************************/
     
     CVDiskWriterNode::CVDiskWriterNode(const std::string &theFile):
-    m_videoSrc(_Property<string>::create("VideoSrc", theFile)),
+    m_videoSrc(Property_<string>::create("VideoSrc", theFile)),
     m_codec(CV_FOURCC('X','V','I','D'))
     {
         registerProperty(m_videoSrc);

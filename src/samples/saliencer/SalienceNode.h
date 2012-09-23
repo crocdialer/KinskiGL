@@ -22,9 +22,9 @@ namespace kinski
         
         uint32_t m_colorMapType;
         
-        _Property<bool>::Ptr m_useColor;
-        _Property<bool>::Ptr m_useDoB;
-        _Property<bool>::Ptr m_useDoE;
+        Property_<bool>::Ptr m_useColor;
+        Property_<bool>::Ptr m_useDoB;
+        Property_<bool>::Ptr m_useDoE;
         
     public:
         
