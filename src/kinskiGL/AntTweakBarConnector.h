@@ -15,7 +15,7 @@ public:
     class PropertyUnsupportedException : public Exception
     {
     public:
-        PropertyUnsupportedException(std::string thePropertyName) : 
+        PropertyUnsupportedException(const std::string &thePropertyName) :
         Exception("Could not add property '"+thePropertyName+"' "\
                   "to tweakBar : Type not supported")
         {};
@@ -53,21 +53,7 @@ private:
     // helper to eventually set the range within the tweakbar
     // for instances of RangedProperty
     template <typename T>
-    static void adjustRange(TwBar * theTweakBar, const Property::Ptr &theProperty)
-    {
-        // set range
-        if(typename RangedProperty<T>::Ptr castPtr =
-           std::dynamic_pointer_cast<RangedProperty<T> >(theProperty))
-        {
-            T min, max;
-            castPtr->getRange(min, max);
-            std::stringstream ss;
-            ss << TwGetBarName(theTweakBar) << "/'"
-            << theProperty->getName()<< "' min=" << min << " max=" << max;
-            
-            TwDefine(ss.str().c_str());
-        }
-    }
+    static void adjustRange(TwBar * theTweakBar, const Property::Ptr &theProperty);
 
 };
 };

@@ -8,10 +8,10 @@ using namespace std;
 
 namespace kinski
 {
-    void
-    AntTweakBarConnector::connect(TwBar * theTweakBar,
-                                  const Property::Ptr &theProperty,
-                                  const string &theGroup) {
+    void AntTweakBarConnector::connect(TwBar * theTweakBar,
+                                       const Property::Ptr &theProperty,
+                                       const string &theGroup)
+    {
             
         Property* myPProp = theProperty.get();
         if (!theProperty->isTweakable())
@@ -31,7 +31,10 @@ namespace kinski
                        AntTweakBarConnector::getValue<int>,
                        (void*)myPProp, defString.c_str());
             
-        } else if (theProperty->isOfType<unsigned int>()) 
+            adjustRange<int>(theTweakBar, theProperty);
+            
+        }
+        else if (theProperty->isOfType<unsigned int>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_UINT32, 
                        AntTweakBarConnector::setValue<unsigned int>,
@@ -47,7 +50,9 @@ namespace kinski
                        AntTweakBarConnector::setValue<float>,
                        AntTweakBarConnector::getValue<float>,
                        (void*)myPProp,
-                       (defString + " step=0.01").c_str());
+                       (defString + " step=0.05").c_str());
+            
+            adjustRange<float>(theTweakBar, theProperty);
             
         }
         else if (theProperty->isOfType<double>())
@@ -56,7 +61,9 @@ namespace kinski
                        AntTweakBarConnector::setValue<double>,
                        AntTweakBarConnector::getValue<double>,
                        (void*)myPProp,
-                       (defString + " step=0.01").c_str());
+                       (defString + " step=0.05").c_str());
+            
+            adjustRange<double>(theTweakBar, theProperty);
             
         }
         else if (theProperty->isOfType<unsigned short>())
@@ -66,6 +73,8 @@ namespace kinski
                        AntTweakBarConnector::getValue<unsigned short>,
                        (void*)myPProp,
                        defString.c_str());
+            
+            adjustRange<unsigned short>(theTweakBar, theProperty);
             
         }
         else if (theProperty->isOfType<bool>())
@@ -264,5 +273,22 @@ namespace kinski
         outMat[3] = vec4(v[0], v[1], v[2], v[3]);
         
         theProperty->val(outMat);
+    }
+    
+    template <typename T>
+    void AntTweakBarConnector::adjustRange(TwBar * theTweakBar, const Property::Ptr &theProperty)
+    {
+        // set range
+        if(typename RangedProperty<T>::Ptr castPtr =
+           std::dynamic_pointer_cast<RangedProperty<T> >(theProperty))
+        {
+            T min, max;
+            castPtr->getRange(min, max);
+            std::stringstream ss;
+            ss << TwGetBarName(theTweakBar) << "/'"
+            << theProperty->getName()<< "' min=" << min << " max=" << max;
+            
+            TwDefine(ss.str().c_str());
+        }
     }
 }
