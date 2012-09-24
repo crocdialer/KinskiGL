@@ -34,8 +34,8 @@ public:
     inline const std::string& getName() const {return m_name;};
     inline void setName(const std::string& theName) {m_name = theName;};
 
-	inline void setIsTweakable(bool isTweakable) {m_tweakable = isTweakable;};
-	inline bool getIsTweakable() const {return m_tweakable;};
+	inline void setTweakable(bool isTweakable) {m_tweakable = isTweakable;};
+	inline bool isTweakable() const {return m_tweakable;};
 
     inline bool empty() const {return m_value.empty();};
     

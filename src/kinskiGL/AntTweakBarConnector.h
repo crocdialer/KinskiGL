@@ -1,4 +1,5 @@
 #include <AntTweakBar.h>
+#include <sstream>
 #include "kinskiCore/Property.h"
 
 namespace kinski 
@@ -47,7 +48,26 @@ private:
     static void TW_CALL 
     getMat4_pos(void *value, void *clientData); 
     static void TW_CALL 
-    setMat4_pos(const void *value, void *clientData); 
+    setMat4_pos(const void *value, void *clientData);
+    
+    // helper to eventually set the range within the tweakbar
+    // for instances of RangedProperty
+    template <typename T>
+    static void adjustRange(TwBar * theTweakBar, const Property::Ptr &theProperty)
+    {
+        // set range
+        if(typename RangedProperty<T>::Ptr castPtr =
+           std::dynamic_pointer_cast<RangedProperty<T> >(theProperty))
+        {
+            T min, max;
+            castPtr->getRange(min, max);
+            std::stringstream ss;
+            ss << TwGetBarName(theTweakBar) << "/'"
+            << theProperty->getName()<< "' min=" << min << " max=" << max;
+            
+            TwDefine(ss.str().c_str());
+        }
+    }
 
 };
 };

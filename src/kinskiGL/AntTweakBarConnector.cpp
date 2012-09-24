@@ -14,14 +14,14 @@ namespace kinski
                                   const string &theGroup) {
             
         Property* myPProp = theProperty.get();
-        if (!theProperty->getIsTweakable()) 
+        if (!theProperty->isTweakable())
         {
             return;
         }
 
         string myPropName = theProperty->getName();
         
-        string defString = " group='" + theGroup+"'";
+        string defString = " group='" + theGroup+ "'";
         defString += string(" label='") + myPropName + "'";
         
         if (theProperty->isOfType<int>()) 
@@ -37,23 +37,29 @@ namespace kinski
                        AntTweakBarConnector::setValue<unsigned int>,
                        AntTweakBarConnector::getValue<unsigned int>,
                        (void*)myPProp, defString.c_str());
-        } else if (theProperty->isOfType<float>()) 
+            
+            adjustRange<unsigned int>(theTweakBar, theProperty);
+            
+        }
+        else if (theProperty->isOfType<float>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_FLOAT, 
                        AntTweakBarConnector::setValue<float>,
                        AntTweakBarConnector::getValue<float>,
                        (void*)myPProp,
-                       string(defString + string(" step=0.01")).c_str());
+                       (defString + " step=0.01").c_str());
             
-        } else if (theProperty->isOfType<double>()) 
+        }
+        else if (theProperty->isOfType<double>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_DOUBLE, 
                        AntTweakBarConnector::setValue<double>,
                        AntTweakBarConnector::getValue<double>,
                        (void*)myPProp,
-                       string(defString + string(" step=0.01")).c_str());
+                       (defString + " step=0.01").c_str());
             
-        } else if (theProperty->isOfType<unsigned short>()) 
+        }
+        else if (theProperty->isOfType<unsigned short>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_UINT16, 
                        AntTweakBarConnector::setValue<unsigned short>,
@@ -61,14 +67,16 @@ namespace kinski
                        (void*)myPProp,
                        defString.c_str());
             
-        } else if (theProperty->isOfType<bool>()) 
+        }
+        else if (theProperty->isOfType<bool>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_BOOLCPP, 
                        AntTweakBarConnector::setValue<bool>,
                        AntTweakBarConnector::getValue<bool>,
                        (void*)myPProp, defString.c_str());
             
-        } else if (theProperty->isOfType<string>()) 
+        }
+        else if (theProperty->isOfType<string>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_STDSTRING, 
                        AntTweakBarConnector::setString,
