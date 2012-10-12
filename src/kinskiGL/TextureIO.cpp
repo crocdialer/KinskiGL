@@ -12,7 +12,19 @@ const Texture TextureIO::loadTexture(const string &imgPath)
     Mat img = imread(imgPath, -1);
     Texture ret;
     
-    updateTexture(ret, img);
+    try
+    {
+        if(img.empty())
+            throw TextureNotFoundException(imgPath);
+        
+        updateTexture(ret, img);
+        
+    }
+    catch (const TextureNotFoundException& e)
+    {
+        cout<<e.what();
+    }
+    
     
     return ret;
 }

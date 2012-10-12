@@ -16,5 +16,6 @@
 #include <glm/gtc/noise.hpp>
 
 #include "kinskiCore/Definitions.h"
+#include "kinskiCore/Exception.h"
 
 #endif //_KINSKIGL_H
