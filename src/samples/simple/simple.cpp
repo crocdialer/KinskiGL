@@ -24,7 +24,7 @@ private:
     
     float m_rotation;
     
-    Property_<float>::Ptr m_distance;
+    RangedProperty<float>::Ptr m_distance;
     Property_<float>::Ptr m_rotationSpeed;
     Property_<vec3>::Ptr m_lightDir;
     
@@ -149,13 +149,13 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_texture = TextureIO::loadTexture("/Volumes/CrocData/Users/Fabian/Pictures/leda.jpg");
+        m_texture = TextureIO::loadTexture("leda.jpg");
         
         buildCubeVBO();
         
         m_rotation = 0.f;
         
-        m_distance = Property_<float>::create("Cam distance", 1);
+        m_distance = RangedProperty<float>::create("Cam distance", 1, -20, 20);
         m_rotationSpeed = Property_<float>::create("RotationSpeed", 1.f);
         m_lightDir = Property_<vec3>::create("LightDir", vec3(0.0, 1.0, 1.0));
         m_infoString = Property_<string>::create("Info Bla",
@@ -206,7 +206,6 @@ public:
                                  vec3(0, 1, 0)));                    // up
         
         mat4 modelViewTmp = m_viewMatrix->val();
-        //modelViewMatrix = translate(modelViewMatrix, vec3(0, 0, -1.5));
         modelViewTmp = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
         
         mat3 normalMatrix = inverseTranspose(mat3(modelViewTmp));

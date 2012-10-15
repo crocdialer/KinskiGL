@@ -16,19 +16,22 @@ using namespace boost::timer;
 namespace kinski
 {
     KeyPointNode::KeyPointNode(const Mat &refImage):
-    m_featureDetect(FeatureDetector::create("ORB")),
+    m_featureDetect(new ORB(250, 1.25, 6)),//FeatureDetector::create("ORB")),
     m_featureExtract(DescriptorExtractor::create("ORB")),
     m_matcher(new BFMatcher(NORM_HAMMING)),
     m_maxImageWidth(RangedProperty<uint32_t>::create("Max image width",
-                                                      800, 1, 1900)),
+                                                      800, 100, 1900)),
     m_maxPatchWidth(RangedProperty<uint32_t>::create("Max patch width",
-                                                      480, 1, 1024)),
+                                                      480, 50, 1024)),
     m_maxFeatureDist(RangedProperty<uint32_t>::create("Max feature distance",
-                                                       50, 0, 150))
+                                                       50, 0, 150)),
+    m_minMatchCount(RangedProperty<uint32_t>::create("Minimum match-count",
+                                                                      16, 4, 64))
     {
         registerProperty(m_maxFeatureDist);
         registerProperty(m_maxImageWidth);
         registerProperty(m_maxPatchWidth);
+        registerProperty(m_minMatchCount);
         
         setReferenceImage(refImage);
         
@@ -51,9 +54,21 @@ namespace kinski
         scale = min(scale, 1.f);
         resize(img, downSized, Size(), scale, scale);
         
-        {/*auto_cpu_timer t;*/ m_featureDetect->detect(downSized, keypoints);}
-        {/*auto_cpu_timer t;*/ m_featureExtract->compute(downSized, keypoints, descriptors_scene);}
-        {/*auto_cpu_timer t;*/ m_matcher->match(descriptors_scene, m_trainDescriptors, matches);}
+        {
+//            auto_cpu_timer t;
+//            cout<<"detect: ";
+            m_featureDetect->detect(downSized, keypoints);
+        }
+        {
+//            auto_cpu_timer t;
+//            cout<<"extract: ";
+            m_featureExtract->compute(downSized, keypoints, descriptors_scene);
+        }
+        {
+//            auto_cpu_timer t;
+//            cout<<"match: ";
+            m_matcher->match(descriptors_scene, m_trainDescriptors, matches);
+        }
         
         //Mat outImg = img.clone();
 
@@ -85,7 +100,7 @@ namespace kinski
         Mat camTranslation;
         
         // a minimum size of matches is needed for calculation of a homography
-        if(good_matches.size() > 16)
+        if(good_matches.size() > m_minMatchCount->val())
         {
             vector<Point2f> pts_train, pts_query;
             matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
@@ -205,7 +220,9 @@ namespace kinski
     void KeyPointNode::update(const Property::Ptr &theProperty)
     {
         if(theProperty == m_maxFeatureDist)
-            printf("max DISTANCE\n");
+        {
+            //printf("max DISTANCE\n");
+        }
         else if(theProperty == m_maxPatchWidth)
         {
             

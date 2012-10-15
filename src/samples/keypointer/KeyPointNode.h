@@ -41,6 +41,7 @@ namespace kinski
         RangedProperty<uint32_t>::Ptr m_maxImageWidth;
         RangedProperty<uint32_t>::Ptr m_maxPatchWidth;
         RangedProperty<uint32_t>::Ptr m_maxFeatureDist;
+        RangedProperty<uint32_t>::Ptr m_minMatchCount;
         
         
         //Converts matching indices to xy points

@@ -22,7 +22,7 @@ const Texture TextureIO::loadTexture(const string &imgPath)
     }
     catch (const TextureNotFoundException& e)
     {
-        cout<<e.what();
+        cout<<e.what()<<endl;
     }
     
     

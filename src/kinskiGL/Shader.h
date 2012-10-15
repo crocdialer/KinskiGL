@@ -51,6 +51,8 @@ class Shader {
 	void uniform( const std::string &name, const int *data, int count );		
 	void uniform( const std::string &name, const glm::ivec2 *theArray, int count );	
 	void uniform( const std::string &name, float data );
+    void uniform( const std::string &name, double data ){uniform(name, (float) data);};
+    
 	void uniform( const std::string &name, const glm::vec2 &theVec );
 	void uniform( const std::string &name, const glm::vec3 &theVec );
 
