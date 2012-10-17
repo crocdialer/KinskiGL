@@ -1,12 +1,12 @@
 #include "kinskiGL/App.h"
-#include "kinskiGL/Texture.h"
+
 #include "kinskiGL/Geometry.h"
-#include "kinskiGL/Shader.h"
-#include "Data.h"
+#include "kinskiGL/Material.h"
+#include "kinskiGL/Camera.h"
 
 #include "TextureIO.h"
 
-#include <boost/variant.hpp>
+#include <boost/shared_array.hpp>
 
 using namespace std;
 using namespace kinski;
@@ -16,48 +16,84 @@ class SimpleGeometryApp : public App
 {
 private:
     
-    gl::Shader m_shader;
+    gl::Material m_material;
     
     gl::Geometry m_geometry;
     
-    class InsertUniformVisitor : public boost::static_visitor<>
-    {
-    private:
-        gl::Shader &m_shader;
-        const std::string &m_uniform;
-        
-    public:
-        
-        InsertUniformVisitor(gl::Shader &theShader, const std::string &theUniform)
-        :m_shader(theShader), m_uniform(theUniform){};
-        
-        template <typename T>
-        void operator()( T &value ) const
-        {
-            m_shader.uniform(m_uniform, value);
-        }
-    };
+    gl::PerspectiveCamera m_Camera;
     
-    void drawGeometry(const gl::Geometry &theGeom, gl::Shader &theShader)
+    void drawGeometry(const gl::Geometry &theGeom, gl::Material &theMaterial)
     {
-        typedef boost::variant<GLint, GLfloat, GLdouble, glm::vec2,
-            glm::vec3, glm::vec4, glm::mat3, glm::mat4> UniformValue;
+        theMaterial.apply();
         
-        typedef map<string, UniformValue > UniformMap;
+        gl::Shader &shader = theMaterial.getShader();
         
-        gl::scoped_bind<gl::Shader> scopebind(theShader);
-        UniformMap uniforms;
-        const int four = 4;
-        double trouble = 3.1415;
+        glm::vec3 position (0,0, -50);
         
-        uniforms["u_blaa"] = four;
-        uniforms["u_trouble"] = trouble;
+        // TODO: create interleaved array
+        // GL_T2F_N3F_V3F
+        uint32_t interleavedCount = 8 * 3 * theGeom.getFaces().size();
+        boost::shared_array<GLfloat> interleaved (new GLfloat[interleavedCount]);
         
-        for (UniformMap::iterator it = uniforms.begin(); it != uniforms.end(); it++)
+        uint32_t indexCount = 3 * theGeom.getFaces().size();
+        boost::shared_array<GLuint> indices (new GLuint [indexCount]);
+        GLuint *indexPtr = indices.get();
+        
+        vector<gl::Face3>::const_iterator faceIt = theGeom.getFaces().begin();
+        
+        for (; faceIt != theGeom.getFaces().end(); faceIt++)
         {
-            boost::apply_visitor(InsertUniformVisitor(theShader, it->first), it->second);
+            const gl::Face3 &face = *faceIt;
+            
+            for (int i = 0; i < 3; i++)
+            {
+                const GLuint &idx = face.indices[i];
+
+                // index
+                *(indexPtr++) = idx;
+                
+                // texCoords
+                const glm::vec2 &texCoord = theGeom.getTexCoords()[idx];
+                interleaved[8 * idx ] = texCoord.s;
+                interleaved[8 * idx + 1] = texCoord.t;
+                
+                // normals
+                const glm::vec3 &normal = face.vertexNormals[i];
+                interleaved[8 * idx + 2] = normal.x;
+                interleaved[8 * idx + 3] = normal.y;
+                interleaved[8 * idx + 4] = normal.z;
+                
+                // vertices
+                const glm::vec3 &vert = theGeom.getVertices()[idx];
+                interleaved[8 * idx + 5] = vert.x;
+                interleaved[8 * idx + 6] = vert.y;
+                interleaved[8 * idx + 7] = vert.z;
+            }
         }
         
+        GLuint vertexAttribLocation = shader.getAttribLocation("a_vertex");
+        GLuint normalAttribLocation = shader.getAttribLocation("a_normal");
+        GLuint texCoordAttribLocation = shader.getAttribLocation("a_texCoord");
+        
+        // define attrib pointers
+        GLsizei stride = 8 * sizeof(GLfloat);
+        
+        glEnableVertexAttribArray(texCoordAttribLocation);
+        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
+                              stride,
+                              interleaved.get());
+        
+        glEnableVertexAttribArray(normalAttribLocation);
+        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              stride,
+                              interleaved.get() + 2);
+    
+        glEnableVertexAttribArray(vertexAttribLocation);
+        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              stride,
+                              interleaved.get() + 5);
+        
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, indices.get());
     };
     
     
@@ -71,14 +107,13 @@ public:
         
         try 
         {
-            m_shader.loadFromData(g_vertShaderSrc, g_fragShaderSrc);
+            m_material.getShader().loadFromFile("shader_vert.glsl", "shader_frag.glsl");
         }catch (std::exception &e) 
         {
             fprintf(stderr, "%s\n",e.what());
         }
         
         m_geometry = gl::Plane(100, 100);
-        
     }
     
     void tearDown()
@@ -88,12 +123,17 @@ public:
     
     void update(const float timeDelta)
     {
-    
+        drawGeometry(m_geometry, m_material);
     }
     
     void draw()
     {
         
+    }
+    
+    void resize(int w, int h)
+    {
+        m_Camera.setAspectRatio(getAspectRatio());
     }
 };
 

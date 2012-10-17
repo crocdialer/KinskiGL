@@ -16,8 +16,42 @@ namespace kinski
 {
 namespace gl
 {
-    struct Face3;
-    struct BoundingBox;
+    struct Face3
+    {
+        Face3(uint32_t theA, uint32_t theB, uint32_t theC, glm::vec3 theNormal = glm::vec3(0)):
+        a(theA), b(theB), c(theC), normal(theNormal)
+        {
+            vertexNormals.push_back(glm::vec3(0));
+            vertexNormals.push_back(glm::vec3(0));
+            vertexNormals.push_back(glm::vec3(0));
+        };
+        
+        // vertex indices
+        union
+        {
+            struct{uint32_t a, b, c;};
+            uint32_t indices[3];
+        };
+        
+        // texCoord indices
+        union
+        {
+            struct{uint32_t uv_a, uv_b, uv_c;};
+            uint32_t indices_uv[3];
+        };
+        
+        glm::vec3 normal;
+        std::vector<glm::vec3> vertexNormals;
+    };
+    
+    struct BoundingBox
+    {
+        glm::vec3 min, max;
+        
+        BoundingBox(const glm::vec3 &theMin = glm::vec3(), const glm::vec3 &theMax = glm::vec3()):
+        min(theMin),max(theMax)
+        {};
+    };
     
     class Geometry
     {
@@ -27,12 +61,6 @@ namespace gl
         
         void appendVertices(const std::vector<glm::vec3> &theVerts);
         void appendVertices(const glm::vec3 *theVerts, size_t numVerts);
-        
-        inline void appendNormal(const glm::vec3 &theVert)
-        { m_normals.push_back(theVert); };
-        
-        void appendNormals(const std::vector<glm::vec3> &theVerts);
-        void appendNormals(const glm::vec3 *theVerts, size_t numVerts);
         
         inline void appendTextCoord(float theU, float theV)
         { m_texCoords.push_back(glm::vec2(theU, theV)); };
@@ -46,44 +74,34 @@ namespace gl
         void appendFace(uint32_t a, uint32_t b, uint32_t c);
         void appendFace(const Face3 &theFace);
         
-        std::vector<glm::vec3>& getVertices(){ return m_vertices; };
-        const std::vector<glm::vec3>& getVertices() const { return m_vertices; };
+        void computeBoundingBox();
         
-        std::vector<glm::vec3>& getNormals(){ return m_normals; };
-        const std::vector<glm::vec3>& getNormals() const { return m_normals; };
+        void computeFaceNormals();
         
-        std::vector<glm::vec2>& getTextCoords(){ return m_texCoords; };
-        const std::vector<glm::vec2>& getTextCoords() const { return m_texCoords; };
+        void computeVertexNormals();
         
-        std::vector<Face3>& getFaces(){ return m_faces; };
-        const std::vector<Face3>& getFaces() const { return m_faces; };
+        inline std::vector<glm::vec3>& getVertices(){ return m_vertices; };
+        inline const std::vector<glm::vec3>& getVertices() const { return m_vertices; };
         
-        std::vector<glm::uvec3>& getIndices(){ return m_indices; };
-        const std::vector<glm::uvec3>& getIndices() const { return m_indices; };
+        inline std::vector<glm::vec2>& getTexCoords(){ return m_texCoords; };
+        inline const std::vector<glm::vec2>& getTexCoords() const { return m_texCoords; };
+        
+        inline std::vector<Face3>& getFaces(){ return m_faces; };
+        inline const std::vector<Face3>& getFaces() const { return m_faces; };
+        
+        inline const BoundingBox& getBoundingBox() const { return m_boundingBox; };
         
     private:
         
         std::vector<glm::vec3> m_vertices;
-        std::vector<glm::vec3> m_normals;
         std::vector<glm::vec2> m_texCoords;
         std::vector<Face3> m_faces;
         
-        std::vector<glm::uvec3> m_indices;
+        BoundingBox m_boundingBox;
         
-    };
-    
-    // TODO: check if really needed
-    struct Face3
-    {
-        Face3(uint32_t a, uint32_t b, uint32_t c, glm::vec3 n = glm::vec3(1)):
-        m_a(a), m_b(b), m_c(c), m_normal(n)
-        {};
+        // internal array for vertex normal computation
+        std::vector<glm::vec3> m_tmpVertexNormals;
         
-        // the indices
-        uint32_t m_a, m_b, m_c;
-        
-        glm::vec3 m_normal;
-        std::vector<glm::vec3> m_vertNormals;
     };
     
     // Derived primitives
@@ -97,6 +115,8 @@ namespace gl
     
     class Box : public Geometry
     {
+    public:
+        
         Box();
     };
     

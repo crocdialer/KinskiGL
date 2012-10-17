@@ -88,12 +88,15 @@ namespace kinski
             glfwSetWindowSize(size[0], size[1]);
     }
     
-    void App::resize(const int w,const int h)
+    void App::__resize(int w,int h)
     {
         m_windowSize = glm::ivec2(w, h);
         
         glViewport(0, 0, w, h);
         TwWindowSize(w, h);
+        
+        // user hook
+        resize(w, h);
     }
     
     int App::run()

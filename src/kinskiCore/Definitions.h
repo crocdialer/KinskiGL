@@ -15,8 +15,9 @@
 #define KINSKI_API
 #endif
 
-#include <vector>
 #include <string>
+#include <vector>
+#include <map>
 
 #include <boost/cstdint.hpp>
 #include <boost/version.hpp>

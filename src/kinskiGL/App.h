@@ -21,7 +21,6 @@ namespace kinski
         App(const int width = 800, const int height = 600);
         virtual ~App();
         
-        void resize(const int w, const int h);
         int run();
         
         // you are supposed to implement these in a subclass
@@ -29,6 +28,8 @@ namespace kinski
         virtual void update(const float timeDelta) = 0;
         virtual void draw() = 0;
         
+        // these are optional overrides
+        virtual void resize(int w, int h){};
         virtual void tearDown(){};
         
         inline float getWidth(){return m_windowSize[0];};
@@ -64,7 +65,9 @@ namespace kinski
         static WeakPtr s_instance;
         
         // GLFW static callbacks
-        static void s_resize(int w, int h){getInstance()->resize(w, h);};
+        static void s_resize(int w, int h){getInstance()->__resize(w, h);};
+        
+        void __resize(int w,int h);
         
         // internal initialization. performed when run is invoked
         void init();

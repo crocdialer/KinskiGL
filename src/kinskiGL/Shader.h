@@ -90,7 +90,7 @@ class Shader {
 
 	struct Obj;
     typedef std::shared_ptr<Obj> ObjPtr;
-	ObjPtr	m_Obj;
+	mutable ObjPtr m_Obj;
 
   public:
 	//@{
