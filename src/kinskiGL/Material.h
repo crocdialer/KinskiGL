@@ -43,6 +43,8 @@ namespace kinski { namespace gl {
         
         bool m_depthTest;
         
+        bool m_depthWrite;
+        
     public:
         
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
@@ -66,6 +68,8 @@ namespace kinski { namespace gl {
         void setWireframe(bool b = true) { m_wireFrame = b;};
         
         void setDepthTest(bool b = true) { m_depthTest = b;};
+        
+        void setDepthWrite(bool b = true) { m_depthWrite = b;};
     };
    
 }} // namespace

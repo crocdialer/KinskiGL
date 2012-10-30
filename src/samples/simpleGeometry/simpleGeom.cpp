@@ -23,46 +23,8 @@ private:
     gl::PerspectiveCamera m_Camera;
     
     RangedProperty<float>::Ptr m_distance;
-    
     RangedProperty<float>::Ptr m_textureMix;
-    
-    // test
-    GLuint m_canvasBuffer;
-    GLuint m_canvasArray;
-    
-    void buildCanvasVBO()
-    {
-        //GL_T2F_V3F
-        const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
-                                1.0,0.0,1.0,0.0,0.0,
-                                1.0,1.0,1.0,1.0,0.0,
-                                0.0,1.0,0.0,1.0,0.0};
-        
-        // create VAO to record all VBO calls
-        glGenVertexArrays(1, &m_canvasArray);
-        glBindVertexArray(m_canvasArray);
-        
-        glGenBuffers(1, &m_canvasBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_canvasBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
-        
-        GLsizei stride = 5 * sizeof(GLfloat);
-        
-        GLuint vertexAttribLocation = m_material.getShader().getAttribLocation("a_vertex");
-        glEnableVertexAttribArray(vertexAttribLocation);
-        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
-        
-        GLuint texCoordAttribLocation = m_material.getShader().getAttribLocation("a_texCoord");
-        glEnableVertexAttribArray(texCoordAttribLocation);
-        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                              stride, BUFFER_OFFSET(0));
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        
-        glBindVertexArray(0);
-        
-    }
+
     
     void drawQuad(gl::Material &theMaterial,
                   const vec2 &theSize,
@@ -90,13 +52,53 @@ private:
         
         theMaterial.apply();
         
-        glBindVertexArray(m_canvasArray);
+        static GLuint canvasVAO = 0;
+        
+        if(!canvasVAO)
+        {
+            //GL_T2F_V3F
+            const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
+                                    1.0,0.0,1.0,0.0,0.0,
+                                    1.0,1.0,1.0,1.0,0.0,
+                                    0.0,1.0,0.0,1.0,0.0};
+            
+            // create VAO to record all VBO calls
+            glGenVertexArrays(1, &canvasVAO);
+            glBindVertexArray(canvasVAO);
+            
+            GLuint canvasBuffer;
+            glGenBuffers(1, &canvasBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, canvasBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
+            
+            GLsizei stride = 5 * sizeof(GLfloat);
+            
+            GLuint vertexAttribLocation = theMaterial.getShader().getAttribLocation("a_vertex");
+            glEnableVertexAttribArray(vertexAttribLocation);
+            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                  stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
+            
+            GLuint texCoordAttribLocation = theMaterial.getShader().getAttribLocation("a_texCoord");
+            glEnableVertexAttribArray(texCoordAttribLocation);
+            glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
+                                  stride, BUFFER_OFFSET(0));
+            
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            
+            glBindVertexArray(0);
+        }
+        
+        glBindVertexArray(canvasVAO);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         glBindVertexArray(0);
     }
     
     void drawGeometry(const gl::Geometry &theGeom, gl::Material &theMaterial)
     {
+        theMaterial.uniform("u_modelViewProjectionMatrix",
+                           m_Camera.getProjectionMatrix()
+                           * glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val())));
+        
         theMaterial.apply();
         
         gl::Shader &shader = theMaterial.getShader();
@@ -208,7 +210,6 @@ public:
     
     void setup()
     {
-        glEnable(GL_TEXTURE_2D);
         glClearColor(0, 0, 0, 1);
         
         try 
@@ -219,12 +220,11 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        buildCanvasVBO();
-        
-        m_geometry = gl::Plane(20, 20, 10, 50);
+        m_geometry = gl::Plane(20, 20, 50, 50);
         
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material.setWireframe(true);
         
         m_distance = RangedProperty<float>::create("view distance", 25, -50, 50);
         registerProperty(m_distance);
@@ -234,22 +234,23 @@ public:
         
         // add properties
         addPropertyListToTweakBar(getPropertyList());
-        
+
+        // enable observer mechanism
+        observeProperties();
     }
     
     void update(const float timeDelta)
     {
-        m_material.uniform("u_modelViewProjectionMatrix",
-                           m_Camera.getProjectionMatrix()
-                           * glm::translate( glm::mat4(),
-                                             vec3(0, 0, -m_distance->val())));
-        
         m_material.uniform("u_textureMix", m_textureMix->val());
     }
     
     void draw()
     {
-        //drawQuad(m_material, getWindowSize());
+        gl::Material cloneMat = m_material;
+        
+        cloneMat.setDepthWrite(false);
+        cloneMat.setWireframe(false);
+        drawQuad(cloneMat, getWindowSize());
         
         drawGeometry(m_geometry, m_material);
     }
@@ -262,6 +263,14 @@ public:
     void tearDown()
     {
         printf("ciao simple geometry\n");
+    }
+    
+    void update(const Property::Ptr &theProperty)
+    {
+        // one of our porperties was changed
+        
+        
+    
     }
 };
 

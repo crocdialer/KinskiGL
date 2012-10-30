@@ -38,8 +38,9 @@ namespace kinski { namespace gl {
     m_specular(glm::vec4(1)),
     m_emission(glm::vec4(0)),
     m_polygonMode(GL_FRONT),
-    m_wireFrame(true),
-    m_depthTest(true)
+    m_wireFrame(false),
+    m_depthTest(true),
+    m_depthWrite(true)
     {
     
     }
@@ -57,7 +58,13 @@ namespace kinski { namespace gl {
         if(m_depthTest) glEnable(GL_DEPTH_TEST);
         else glDisable(GL_DEPTH_TEST);
         
+        if(m_depthWrite) glDepthMask(GL_TRUE);
+        else glDepthMask(GL_FALSE);
+        
         //TODO: set uniforms for colors
+        
+        // enable texturing
+        if(!m_textures.empty()) glEnable(GL_TEXTURE_2D);
         
         // texture matrix from first texture, if any
         m_shader.uniform("u_textureMatrix",
