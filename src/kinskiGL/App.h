@@ -2,7 +2,7 @@
 #define _KINSKI_APP_IS_INCLUDED_
 
 #include "KinskiGL.h"
-#include "kinskiCore/Property.h"
+#include "kinskiCore/Component.h"
 
 #include <map>
 #include <list>
@@ -10,7 +10,7 @@
 namespace kinski
 {
     
-    class App : public std::enable_shared_from_this<App>
+    class App : public Component
     {
     public:
         typedef std::shared_ptr<App> Ptr;

@@ -22,14 +22,85 @@ private:
     
     gl::PerspectiveCamera m_Camera;
     
+    RangedProperty<float>::Ptr m_distance;
+    
+    RangedProperty<float>::Ptr m_textureMix;
+    
+    // test
+    GLuint m_canvasBuffer;
+    GLuint m_canvasArray;
+    
+    void buildCanvasVBO()
+    {
+        //GL_T2F_V3F
+        const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
+                                1.0,0.0,1.0,0.0,0.0,
+                                1.0,1.0,1.0,1.0,0.0,
+                                0.0,1.0,0.0,1.0,0.0};
+        
+        // create VAO to record all VBO calls
+        glGenVertexArrays(1, &m_canvasArray);
+        glBindVertexArray(m_canvasArray);
+        
+        glGenBuffers(1, &m_canvasBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_canvasBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
+        
+        GLsizei stride = 5 * sizeof(GLfloat);
+        
+        GLuint vertexAttribLocation = m_material.getShader().getAttribLocation("a_vertex");
+        glEnableVertexAttribArray(vertexAttribLocation);
+        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
+        
+        GLuint texCoordAttribLocation = m_material.getShader().getAttribLocation("a_texCoord");
+        glEnableVertexAttribArray(texCoordAttribLocation);
+        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
+                              stride, BUFFER_OFFSET(0));
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        
+        glBindVertexArray(0);
+        
+    }
+    
+    void drawQuad(gl::Material &theMaterial,
+                  const vec2 &theSize,
+                  const vec2 &theTl = vec2(0))
+    {
+        vec2 sz = theSize;
+        vec2 tl = theTl == vec2(0) ? vec2(0, getHeight()) : theTl;
+        drawQuad(theMaterial, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+    }
+    
+    
+    void drawQuad(gl::Material &theMaterial,
+                  float x0, float y0, float x1, float y1)
+    {
+        // orthographic projection with a [0,1] coordinate space
+        static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        
+        float scaleX = (x1 - x0) / getWidth();
+        float scaleY = (y0 - y1) / getHeight();
+        
+        mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
+        modelViewMatrix[3] = vec4(x0 / getWidth(), y1 / getHeight() , 0, 1);
+        
+        theMaterial.uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
+        
+        theMaterial.apply();
+        
+        glBindVertexArray(m_canvasArray);
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+        glBindVertexArray(0);
+    }
+    
     void drawGeometry(const gl::Geometry &theGeom, gl::Material &theMaterial)
     {
         theMaterial.apply();
         
         gl::Shader &shader = theMaterial.getShader();
-        
-        glm::vec3 position (0,0, -50);
-        
+
         // TODO: create interleaved array
         // GL_T2F_N3F_V3F
         uint32_t interleavedCount = 8 * 3 * theGeom.getFaces().size();
@@ -52,48 +123,84 @@ private:
                 // index
                 *(indexPtr++) = idx;
                 
-                // texCoords
-                const glm::vec2 &texCoord = theGeom.getTexCoords()[idx];
-                interleaved[8 * idx ] = texCoord.s;
-                interleaved[8 * idx + 1] = texCoord.t;
-                
-                // normals
-                const glm::vec3 &normal = face.vertexNormals[i];
-                interleaved[8 * idx + 2] = normal.x;
-                interleaved[8 * idx + 3] = normal.y;
-                interleaved[8 * idx + 4] = normal.z;
-                
-                // vertices
-                const glm::vec3 &vert = theGeom.getVertices()[idx];
-                interleaved[8 * idx + 5] = vert.x;
-                interleaved[8 * idx + 6] = vert.y;
-                interleaved[8 * idx + 7] = vert.z;
+//                // texCoords
+//                const glm::vec2 &texCoord = theGeom.getTexCoords()[idx];
+//                interleaved[8 * idx ] = texCoord.s;
+//                interleaved[8 * idx + 1] = texCoord.t;
+//                
+//                // normals
+//                const glm::vec3 &normal = face.vertexNormals[i];
+//                interleaved[8 * idx + 2] = normal.x;
+//                interleaved[8 * idx + 3] = normal.y;
+//                interleaved[8 * idx + 4] = normal.z;
+//                
+//                // vertices
+//                const glm::vec3 &vert = theGeom.getVertices()[idx];
+//                interleaved[8 * idx + 5] = vert.x;
+//                interleaved[8 * idx + 6] = vert.y;
+//                interleaved[8 * idx + 7] = vert.z;
             }
         }
+      
+        static GLuint vertexArray = 0;
         
-        GLuint vertexAttribLocation = shader.getAttribLocation("a_vertex");
-        GLuint normalAttribLocation = shader.getAttribLocation("a_normal");
-        GLuint texCoordAttribLocation = shader.getAttribLocation("a_texCoord");
+        if(!vertexArray)
+        {
+            glGenVertexArrays(1, &vertexArray);
+            glBindVertexArray(vertexArray);
+            
+            GLuint vertexAttribLocation = shader.getAttribLocation("a_vertex");
+            //GLuint normalAttribLocation = shader.getAttribLocation("a_normal");
+            GLuint texCoordAttribLocation = shader.getAttribLocation("a_texCoord");
+            
+            GLsizei stride = 0;
+            
+            // vertex VBO
+            GLuint vertexBuffer;
+            glGenBuffers(1, &vertexBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * m_geometry.getVertices().size(),
+                         &m_geometry.getVertices()[0], GL_DYNAMIC_DRAW);
+            
+            // define attrib pointer (vertex)
+            glEnableVertexAttribArray(vertexAttribLocation);
+            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                  stride,
+                                  BUFFER_OFFSET(0));
+            
+            // texCoord VBO
+            GLuint texCoordBuffer;
+            glGenBuffers(1, &texCoordBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, texCoordBuffer);
+            glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(GLfloat) * m_geometry.getTexCoords().size(),
+                         &m_geometry.getTexCoords()[0], GL_STATIC_DRAW);
+            
+            // define attrib pointer (texCoord)
+            glEnableVertexAttribArray(texCoordAttribLocation);
+            glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
+                                  stride,
+                                  BUFFER_OFFSET(0));
+
+    //        glEnableVertexAttribArray(normalAttribLocation);
+    //        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
+    //                              stride,
+    //                              interleaved.get() + 2);
+            
+            // index buffer
+            GLuint indexBuffer;
+            glGenBuffers(1, &indexBuffer);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(GLuint), indices.get(),
+                         GL_DYNAMIC_DRAW );
+            
+            glBindVertexArray(0);
+            
+        }
         
-        // define attrib pointers
-        GLsizei stride = 8 * sizeof(GLfloat);
-        
-        glEnableVertexAttribArray(texCoordAttribLocation);
-        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                              stride,
-                              interleaved.get());
-        
-        glEnableVertexAttribArray(normalAttribLocation);
-        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              interleaved.get() + 2);
-    
-        glEnableVertexAttribArray(vertexAttribLocation);
-        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              interleaved.get() + 5);
-        
-        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, indices.get());
+        glBindVertexArray(vertexArray);
+        glDrawElements(GL_TRIANGLES, 3 * theGeom.getFaces().size(),
+                       GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        glBindVertexArray(0);
     };
     
     
@@ -101,7 +208,6 @@ public:
     
     void setup()
     {
-        glEnable(GL_DEPTH_TEST);
         glEnable(GL_TEXTURE_2D);
         glClearColor(0, 0, 0, 1);
         
@@ -113,27 +219,49 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry = gl::Plane(100, 100);
-    }
-    
-    void tearDown()
-    {
-        printf("ciao simple geometry\n");
+        buildCanvasVBO();
+        
+        m_geometry = gl::Plane(20, 20, 10, 50);
+        
+        m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
+        m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        
+        m_distance = RangedProperty<float>::create("view distance", 25, -50, 50);
+        registerProperty(m_distance);
+        
+        m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
+        registerProperty(m_textureMix);
+        
+        // add properties
+        addPropertyListToTweakBar(getPropertyList());
+        
     }
     
     void update(const float timeDelta)
     {
-        drawGeometry(m_geometry, m_material);
+        m_material.uniform("u_modelViewProjectionMatrix",
+                           m_Camera.getProjectionMatrix()
+                           * glm::translate( glm::mat4(),
+                                             vec3(0, 0, -m_distance->val())));
+        
+        m_material.uniform("u_textureMix", m_textureMix->val());
     }
     
     void draw()
     {
+        //drawQuad(m_material, getWindowSize());
         
+        drawGeometry(m_geometry, m_material);
     }
     
     void resize(int w, int h)
     {
         m_Camera.setAspectRatio(getAspectRatio());
+    }
+    
+    void tearDown()
+    {
+        printf("ciao simple geometry\n");
     }
 };
 

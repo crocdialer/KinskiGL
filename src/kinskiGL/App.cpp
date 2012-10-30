@@ -32,7 +32,7 @@ namespace kinski
     
     void App::init()
     {
-        s_instance = shared_from_this();
+        s_instance = dynamic_pointer_cast<App>(shared_from_this());
         
         // Initialize GLFW
         if( !glfwInit() )
@@ -124,7 +124,11 @@ namespace kinski
             draw();
             
             // draw tweakbar
-            if(m_displayTweakBar) TwDraw();
+            if(m_displayTweakBar)
+            {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                TwDraw();
+            }
             
             // Swap front and back rendering buffers
             glfwSwapBuffers();

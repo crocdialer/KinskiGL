@@ -36,7 +36,10 @@ namespace kinski { namespace gl {
     m_diffuse(glm::vec4(1)),
     m_ambient(glm::vec4(1)),
     m_specular(glm::vec4(1)),
-    m_polygonMode(GL_FRONT)
+    m_emission(glm::vec4(0)),
+    m_polygonMode(GL_FRONT),
+    m_wireFrame(true),
+    m_depthTest(true)
     {
     
     }
@@ -47,16 +50,25 @@ namespace kinski { namespace gl {
         
         char buf[512];
         
+        // wireframe ?
+        glPolygonMode(GL_FRONT_AND_BACK, m_wireFrame ? GL_LINE : GL_FILL);
+        
+        // read write depth buffer ?
+        if(m_depthTest) glEnable(GL_DEPTH_TEST);
+        else glDisable(GL_DEPTH_TEST);
+        
+        //TODO: set uniforms for colors
+        
         // texture matrix from first texture, if any
-        if(!m_textures.empty())
-            m_shader.uniform("u_textureMatrix", m_textures.front().getTextureMatrix());
+        m_shader.uniform("u_textureMatrix",
+                         m_textures.empty() ? glm::mat4() : m_textures.front().getTextureMatrix());
         
         // add texturemaps
         for(int i=0;i<m_textures.size();i++)
         {
             m_textures[i].bind(i);
             sprintf(buf, "u_textureMap[%d]", i);
-            m_shader.uniform(buf, m_textures[i].getBoundTextureUnit());
+            m_shader.uniform(buf, i);
         }
         
         // set all other uniform values

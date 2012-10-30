@@ -37,7 +37,7 @@ namespace gl
         union
         {
             struct{uint32_t uv_a, uv_b, uv_c;};
-            uint32_t indices_uv[3];
+            uint32_t uv_indices[3];
         };
         
         glm::vec3 normal;

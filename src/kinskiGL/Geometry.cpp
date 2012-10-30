@@ -175,7 +175,7 @@ namespace kinski{ namespace gl{
                 float y = iz * segment_height - height_half;
         
                 appendVertex( glm::vec3( x, - y, 0) );
-                appendTextCoord(ix / (float)gridX, - iz / (float)gridZ);
+                appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
                 
             }
         }
@@ -186,16 +186,16 @@ namespace kinski{ namespace gl{
         vertNormals.push_back(normal);
         
         // create faces and texcoords
-        for ( uint32_t iz = 0; iz < gridZ1; iz ++ )
+        for ( uint32_t iz = 0; iz < gridZ; iz ++ )
         {
-            for ( uint32_t ix = 0; ix < gridX1; ix ++ )
+            for ( uint32_t ix = 0; ix < gridX; ix ++ )
             {
                 uint32_t a = ix + gridX1 * iz;
                 uint32_t b = ix + gridX1 * ( iz + 1);
                 uint32_t c = ( ix + 1 ) + gridX1 * ( iz + 1 );
                 uint32_t d = ( ix + 1 ) + gridX1 * iz;
                 
-                Face3 f1(a, b, d), f2(b, c, d);
+                Face3 f1(a, b, c), f2(c, d, a);
                 f1.normal = normal;
                 f2.normal = normal;
                 

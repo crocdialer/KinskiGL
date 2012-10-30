@@ -42,7 +42,8 @@ private:
 
 public:
     
-    OrthographicCamera(float left, float right, float top, float bottom, float near, float far);
+    OrthographicCamera(float left = 0, float right = 1, float top = 1, float bottom = 0,
+                       float near = 0, float far = 1000);
     
     void updateProjectionMatrix();
 };

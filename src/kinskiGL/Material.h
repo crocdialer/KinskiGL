@@ -35,8 +35,13 @@ namespace kinski { namespace gl {
         glm::vec4 m_diffuse;
         glm::vec4 m_ambient;
         glm::vec4 m_specular;
+        glm::vec4 m_emission;
         
         GLenum m_polygonMode;
+        
+        bool m_wireFrame;
+        
+        bool m_depthTest;
         
     public:
         
@@ -46,6 +51,9 @@ namespace kinski { namespace gl {
         
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
+        void uniform(const std::string &theName, const UniformValue &theVal)
+        { m_uniforms[theName] = theVal; };
+        
         Shader& getShader() {return m_shader;};
         const Shader& getShader() const {return m_shader;};
         
@@ -54,6 +62,10 @@ namespace kinski { namespace gl {
         
         UniformMap& getUniforms() {return m_uniforms;};
         const UniformMap& getUniforms() const {return m_uniforms;};
+        
+        void setWireframe(bool b = true) { m_wireFrame = b;};
+        
+        void setDepthTest(bool b = true) { m_depthTest = b;};
     };
    
 }} // namespace
