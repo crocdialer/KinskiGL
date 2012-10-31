@@ -45,6 +45,11 @@ namespace kinski { namespace gl {
         
         bool m_depthWrite;
         
+        bool m_blending;
+        
+        GLenum m_blendSrc, m_blendDst;
+        
+        
     public:
         
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
@@ -70,6 +75,15 @@ namespace kinski { namespace gl {
         void setDepthTest(bool b = true) { m_depthTest = b;};
         
         void setDepthWrite(bool b = true) { m_depthWrite = b;};
+        
+        void setBlending(bool b = true) { m_blending = b;};
+        
+        bool isTransparent() { return m_diffuse.a < 1.f ;};
+        
+        void setDiffuse(const glm::vec4 &theColor);
+        void setAmbient(const glm::vec4 &theColor);
+        void setSpecular(const glm::vec4 &theColor);
+        void setEmission(const glm::vec4 &theColor);
     };
    
 }} // namespace

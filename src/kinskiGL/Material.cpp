@@ -40,9 +40,13 @@ namespace kinski { namespace gl {
     m_polygonMode(GL_FRONT),
     m_wireFrame(false),
     m_depthTest(true),
-    m_depthWrite(true)
+    m_depthWrite(true),
+    m_blending(false), m_blendSrc(GL_SRC_ALPHA), m_blendDst(GL_ONE_MINUS_SRC_ALPHA)
     {
-    
+        m_uniforms["u_material.diffuse"] = m_diffuse;
+        m_uniforms["u_material.ambient"] = m_ambient;
+        m_uniforms["u_material.specular"] = m_specular;
+        m_uniforms["u_material.emmission"] = m_emission;
     }
     
     void Material::apply() const
@@ -60,6 +64,14 @@ namespace kinski { namespace gl {
         
         if(m_depthWrite) glDepthMask(GL_TRUE);
         else glDepthMask(GL_FALSE);
+        
+        if(m_blending)
+        {
+            glEnable(GL_BLEND);
+            glBlendFunc(m_blendSrc, m_blendDst);
+        }
+        else
+            glDisable(GL_BLEND);
         
         //TODO: set uniforms for colors
         
@@ -85,5 +97,28 @@ namespace kinski { namespace gl {
         }
     }
     
+    void Material::setDiffuse(const glm::vec4 &theColor)
+    {
+        m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
+        m_uniforms["u_material.diffuse"] = m_diffuse;
+    }
+    
+    void Material::setAmbient(const glm::vec4 &theColor)
+    {
+        m_ambient = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
+        m_uniforms["u_material.ambient"] = m_ambient;
+    }
+    
+    void Material::setSpecular(const glm::vec4 &theColor)
+    {
+        m_specular = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
+        m_uniforms["u_material.specular"] = m_specular;
+    }
+    
+    void Material::setEmission(const glm::vec4 &theColor)
+    {
+        m_emission = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
+        m_uniforms["u_material.emmission"] = m_emission;
+    }
 
 }}// namespace

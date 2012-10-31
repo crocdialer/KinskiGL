@@ -16,7 +16,7 @@ class SimpleGeometryApp : public App
 {
 private:
     
-    gl::Material m_material;
+    gl::Material m_material, m_otherMat;
     
     gl::Geometry m_geometry;
     
@@ -24,7 +24,14 @@ private:
     
     RangedProperty<float>::Ptr m_distance;
     RangedProperty<float>::Ptr m_textureMix;
+    Property_<bool>::Ptr m_wireFrame;
+    
+    Property_<glm::vec4>::Ptr m_color;
 
+    void drawLine(const vec2 &a, const vec2 &b)
+    {
+        
+    }
     
     void drawQuad(gl::Material &theMaterial,
                   const vec2 &theSize,
@@ -97,7 +104,8 @@ private:
     {
         theMaterial.uniform("u_modelViewProjectionMatrix",
                            m_Camera.getProjectionMatrix()
-                           * glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val())));
+                           * glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
+                            * glm::rotate(glm::mat4(),8 * (float) getApplicationTime(), glm::vec3(0,0,1)));
         
         theMaterial.apply();
         
@@ -125,29 +133,37 @@ private:
                 // index
                 *(indexPtr++) = idx;
                 
-//                // texCoords
-//                const glm::vec2 &texCoord = theGeom.getTexCoords()[idx];
-//                interleaved[8 * idx ] = texCoord.s;
-//                interleaved[8 * idx + 1] = texCoord.t;
-//                
-//                // normals
-//                const glm::vec3 &normal = face.vertexNormals[i];
-//                interleaved[8 * idx + 2] = normal.x;
-//                interleaved[8 * idx + 3] = normal.y;
-//                interleaved[8 * idx + 4] = normal.z;
-//                
-//                // vertices
-//                const glm::vec3 &vert = theGeom.getVertices()[idx];
-//                interleaved[8 * idx + 5] = vert.x;
-//                interleaved[8 * idx + 6] = vert.y;
-//                interleaved[8 * idx + 7] = vert.z;
+                // texCoords
+                const glm::vec2 &texCoord = theGeom.getTexCoords()[idx];
+                interleaved[8 * idx ] = texCoord.s;
+                interleaved[8 * idx + 1] = texCoord.t;
+                
+                // normals
+                const glm::vec3 &normal = face.vertexNormals[i];
+                interleaved[8 * idx + 2] = normal.x;
+                interleaved[8 * idx + 3] = normal.y;
+                interleaved[8 * idx + 4] = normal.z;
+                
+                // vertices
+                const glm::vec3 &vert = theGeom.getVertices()[idx];
+                interleaved[8 * idx + 5] = vert.x;
+                interleaved[8 * idx + 6] = vert.y;
+                interleaved[8 * idx + 7] = vert.z;
             }
         }
-      
+        
         static GLuint vertexArray = 0;
         
         if(!vertexArray)
         {
+            GLfloat *ptr = interleaved.get();
+            
+            for (int i = 0; i < interleavedCount; i+=8)
+            {
+                printf("texCoord: (%.2f, %.2f) -- normals: (%.2f, %.2f, %.2f) -- position: (%.2f, %.2f, %.2f)\n",
+                       ptr[i],ptr[i+1],ptr[i+2],ptr[i+3],ptr[i+4],ptr[i+5],ptr[i+6],ptr[i+7]);
+            }
+            
             glGenVertexArrays(1, &vertexArray);
             glBindVertexArray(vertexArray);
             
@@ -220,17 +236,23 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry = gl::Plane(20, 20, 50, 50);
+        m_geometry = gl::Plane(20, 20, 100, 100);
         
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
-        m_material.setWireframe(true);
         
         m_distance = RangedProperty<float>::create("view distance", 25, -50, 50);
         registerProperty(m_distance);
         
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
         registerProperty(m_textureMix);
+        
+        m_wireFrame = Property_<bool>::create("Wireframe", false);
+        registerProperty(m_wireFrame);
+        
+        m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
+        registerProperty(m_color);
+        m_material.setDiffuse(m_color->val());
         
         // add properties
         addPropertyListToTweakBar(getPropertyList());
@@ -246,13 +268,13 @@ public:
     
     void draw()
     {
-        gl::Material cloneMat = m_material;
+        gl::Material cloneMat1 = m_material, cloneMat2 = m_material;
         
-        cloneMat.setDepthWrite(false);
-        cloneMat.setWireframe(false);
-        drawQuad(cloneMat, getWindowSize());
+        cloneMat1.setDepthWrite(false);
         
-        drawGeometry(m_geometry, m_material);
+        drawQuad(cloneMat1, getWindowSize());
+        
+        drawGeometry(m_geometry, cloneMat2);
     }
     
     void resize(int w, int h)
@@ -268,9 +290,10 @@ public:
     void update(const Property::Ptr &theProperty)
     {
         // one of our porperties was changed
-        
-        
-    
+        if(theProperty == m_wireFrame)
+            m_material.setWireframe(m_wireFrame->val());
+        else if(theProperty == m_color)
+            m_material.setDiffuse(m_color->val());
     }
 };
 

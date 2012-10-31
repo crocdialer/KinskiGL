@@ -3,6 +3,15 @@
 uniform sampler2D   u_textureMap[];
 in vec4             v_texCoord;
 
+uniform struct
+{
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec4 emission;
+
+} u_material;
+
 uniform float u_textureMix;
 
 out vec4 fragData;
@@ -25,6 +34,6 @@ void main()
     vec4 color1 = texture(u_textureMap[0], v_texCoord.xy);
     vec4 color2 = texture(u_textureMap[1], v_texCoord.xy);
 
-    fragData = mix(color1, vec4(1) - color1 - color2, u_textureMix);
+    fragData = u_material.diffuse * mix(color1, vec4(1) - color1 - color2, u_textureMix);
 }
 
