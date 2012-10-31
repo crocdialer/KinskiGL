@@ -111,11 +111,6 @@ private:
         
         gl::Shader &shader = theMaterial.getShader();
 
-        // TODO: create interleaved array
-        // GL_T2F_N3F_V3F
-        uint32_t interleavedCount = 8 * theGeom.getVertices().size();
-        boost::shared_array<GLfloat> interleaved (new GLfloat[interleavedCount]);
-        
         uint32_t indexCount = 3 * theGeom.getFaces().size();
         boost::shared_array<GLuint> indices (new GLuint [indexCount]);
         GLuint *indexPtr = indices.get();
@@ -128,31 +123,35 @@ private:
             
             for (int i = 0; i < 3; i++)
             {
-                const GLuint &idx = face.indices[i];
-
                 // index
-                *(indexPtr++) = idx;
+                *(indexPtr++) = face.indices[i];
             }
         }
+        
+        // create interleaved array
+        // GL_T2F_N3F_V3F
+        uint32_t numFloats = 8;
+        uint32_t interleavedCount = numFloats * theGeom.getVertices().size();
+        boost::shared_array<GLfloat> interleaved (new GLfloat[interleavedCount]);
         
         for (int i = 0; i < theGeom.getVertices().size(); i++)
         {
            // texCoords
            const glm::vec2 &texCoord = theGeom.getTexCoords()[i];
-           interleaved[8 * i ] = texCoord.s;
-           interleaved[8 * i + 1] = texCoord.t;
+           interleaved[numFloats * i ] = texCoord.s;
+           interleaved[numFloats * i + 1] = texCoord.t;
           
            // normals
            const glm::vec3 &normal = theGeom.getNormals()[i];
-           interleaved[8 * i + 2] = normal.x;
-           interleaved[8 * i + 3] = normal.y;
-           interleaved[8 * i + 4] = normal.z;
+           interleaved[numFloats * i + 2] = normal.x;
+           interleaved[numFloats * i + 3] = normal.y;
+           interleaved[numFloats * i + 4] = normal.z;
           
            // vertices
            const glm::vec3 &vert = theGeom.getVertices()[i];
-           interleaved[8 * i + 5] = vert.x;
-           interleaved[8 * i + 6] = vert.y;
-           interleaved[8 * i + 7] = vert.z;
+           interleaved[numFloats * i + 5] = vert.x;
+           interleaved[numFloats * i + 6] = vert.y;
+           interleaved[numFloats * i + 7] = vert.z;
         }
 
         
@@ -162,40 +161,33 @@ private:
         {
             GLfloat *ptr = interleaved.get();
             
-            for (int i = 0; i < interleavedCount; i+=8)
-            {
-                printf("texCoord: (%.2f, %.2f) -- normals: (%.2f, %.2f, %.2f) -- position: (%.2f, %.2f, %.2f)\n",
-                       ptr[i],ptr[i+1],ptr[i+2],ptr[i+3],ptr[i+4],ptr[i+5],ptr[i+6],ptr[i+7]);
-            }
+//            for (int i = 0; i < interleavedCount; i+=8)
+//            {
+//                printf("texCoord: (%.2f, %.2f) -- normals: (%.2f, %.2f, %.2f) -- position: (%.2f, %.2f, %.2f)\n",
+//                       ptr[i],ptr[i+1],ptr[i+2],ptr[i+3],ptr[i+4],ptr[i+5],ptr[i+6],ptr[i+7]);
+//            }
             
             glGenVertexArrays(1, &vertexArray);
             glBindVertexArray(vertexArray);
             
             GLuint vertexAttribLocation = shader.getAttribLocation("a_vertex");
-            //GLuint normalAttribLocation = shader.getAttribLocation("a_normal");
+            GLuint normalAttribLocation = shader.getAttribLocation("a_normal");
             GLuint texCoordAttribLocation = shader.getAttribLocation("a_texCoord");
             
-            GLsizei stride = 0;
+            GLsizei stride = numFloats * sizeof(GLfloat);
             
-            // vertex VBO
-            GLuint vertexBuffer;
-            glGenBuffers(1, &vertexBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-            glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * m_geometry.getVertices().size(),
-                         &m_geometry.getVertices()[0], GL_DYNAMIC_DRAW);
+            // interleaved VBO
+            GLuint interleavedBuffer;
+            glGenBuffers(1, &interleavedBuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, interleavedBuffer);
+            glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_geometry.getVertices().size(),
+                         interleaved.get(), GL_DYNAMIC_DRAW);//STREAM
             
             // define attrib pointer (vertex)
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride,
-                                  BUFFER_OFFSET(0));
-            
-            // texCoord VBO
-            GLuint texCoordBuffer;
-            glGenBuffers(1, &texCoordBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, texCoordBuffer);
-            glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(GLfloat) * m_geometry.getTexCoords().size(),
-                         &m_geometry.getTexCoords()[0], GL_STATIC_DRAW);
+                                  BUFFER_OFFSET(5 * sizeof(GLfloat)));
             
             // define attrib pointer (texCoord)
             glEnableVertexAttribArray(texCoordAttribLocation);
@@ -203,11 +195,11 @@ private:
                                   stride,
                                   BUFFER_OFFSET(0));
 
-    //        glEnableVertexAttribArray(normalAttribLocation);
-    //        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
-    //                              stride,
-    //                              interleaved.get() + 2);
-            
+            glEnableVertexAttribArray(normalAttribLocation);
+            glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                  stride,
+                                  BUFFER_OFFSET(2 * sizeof(GLfloat)));
+   
             // index buffer
             GLuint indexBuffer;
             glGenBuffers(1, &indexBuffer);
@@ -240,7 +232,7 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry = gl::Plane(20, 20, 1, 1);
+        m_geometry = gl::Plane(20, 20, 10, 10);
         
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
