@@ -62,6 +62,12 @@ namespace gl
         void appendVertices(const std::vector<glm::vec3> &theVerts);
         void appendVertices(const glm::vec3 *theVerts, size_t numVerts);
         
+        inline void appendNormal(const glm::vec3 &theNormal)
+        { m_normals.push_back(theNormal); };
+        
+        void appendNormals(const std::vector<glm::vec3> &theNormals);
+        void appendNormals(const glm::vec3 *theVerts, size_t numNormals);
+        
         inline void appendTextCoord(float theU, float theV)
         { m_texCoords.push_back(glm::vec2(theU, theV)); };
         
@@ -83,6 +89,9 @@ namespace gl
         inline std::vector<glm::vec3>& getVertices(){ return m_vertices; };
         inline const std::vector<glm::vec3>& getVertices() const { return m_vertices; };
         
+        inline std::vector<glm::vec3>& getNormals(){ return m_normals; };
+        inline const std::vector<glm::vec3>& getNormals() const { return m_normals; };
+        
         inline std::vector<glm::vec2>& getTexCoords(){ return m_texCoords; };
         inline const std::vector<glm::vec2>& getTexCoords() const { return m_texCoords; };
         
@@ -94,13 +103,11 @@ namespace gl
     private:
         
         std::vector<glm::vec3> m_vertices;
+        std::vector<glm::vec3> m_normals;
         std::vector<glm::vec2> m_texCoords;
         std::vector<Face3> m_faces;
         
         BoundingBox m_boundingBox;
-        
-        // internal array for vertex normal computation
-        std::vector<glm::vec3> m_tmpVertexNormals;
         
     };
     

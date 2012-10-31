@@ -73,8 +73,6 @@ namespace kinski { namespace gl {
         else
             glDisable(GL_BLEND);
         
-        //TODO: set uniforms for colors
-        
         // enable texturing
         if(!m_textures.empty()) glEnable(GL_TEXTURE_2D);
         

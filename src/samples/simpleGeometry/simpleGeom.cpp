@@ -113,15 +113,15 @@ private:
 
         // TODO: create interleaved array
         // GL_T2F_N3F_V3F
-        uint32_t interleavedCount = 8 * 3 * theGeom.getFaces().size();
+        uint32_t interleavedCount = 8 * theGeom.getVertices().size();
         boost::shared_array<GLfloat> interleaved (new GLfloat[interleavedCount]);
         
         uint32_t indexCount = 3 * theGeom.getFaces().size();
         boost::shared_array<GLuint> indices (new GLuint [indexCount]);
         GLuint *indexPtr = indices.get();
         
+        // insert indices
         vector<gl::Face3>::const_iterator faceIt = theGeom.getFaces().begin();
-        
         for (; faceIt != theGeom.getFaces().end(); faceIt++)
         {
             const gl::Face3 &face = *faceIt;
@@ -132,25 +132,29 @@ private:
 
                 // index
                 *(indexPtr++) = idx;
-                
-                // texCoords
-                const glm::vec2 &texCoord = theGeom.getTexCoords()[idx];
-                interleaved[8 * idx ] = texCoord.s;
-                interleaved[8 * idx + 1] = texCoord.t;
-                
-                // normals
-                const glm::vec3 &normal = face.vertexNormals[i];
-                interleaved[8 * idx + 2] = normal.x;
-                interleaved[8 * idx + 3] = normal.y;
-                interleaved[8 * idx + 4] = normal.z;
-                
-                // vertices
-                const glm::vec3 &vert = theGeom.getVertices()[idx];
-                interleaved[8 * idx + 5] = vert.x;
-                interleaved[8 * idx + 6] = vert.y;
-                interleaved[8 * idx + 7] = vert.z;
             }
         }
+        
+        for (int i = 0; i < theGeom.getVertices().size(); i++)
+        {
+           // texCoords
+           const glm::vec2 &texCoord = theGeom.getTexCoords()[i];
+           interleaved[8 * i ] = texCoord.s;
+           interleaved[8 * i + 1] = texCoord.t;
+          
+           // normals
+           const glm::vec3 &normal = theGeom.getNormals()[i];
+           interleaved[8 * i + 2] = normal.x;
+           interleaved[8 * i + 3] = normal.y;
+           interleaved[8 * i + 4] = normal.z;
+          
+           // vertices
+           const glm::vec3 &vert = theGeom.getVertices()[i];
+           interleaved[8 * i + 5] = vert.x;
+           interleaved[8 * i + 6] = vert.y;
+           interleaved[8 * i + 7] = vert.z;
+        }
+
         
         static GLuint vertexArray = 0;
         
@@ -236,7 +240,7 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry = gl::Plane(20, 20, 100, 100);
+        m_geometry = gl::Plane(20, 20, 1, 1);
         
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
@@ -292,6 +296,7 @@ public:
         // one of our porperties was changed
         if(theProperty == m_wireFrame)
             m_material.setWireframe(m_wireFrame->val());
+        
         else if(theProperty == m_color)
             m_material.setDiffuse(m_color->val());
     }

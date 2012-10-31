@@ -26,6 +26,20 @@ namespace kinski{ namespace gl{
         m_vertices.insert(m_vertices.end(), theVerts, theVerts + numVerts);
     }
     
+    void Geometry::appendNormals(const std::vector<glm::vec3> &theNormals)
+    {
+        m_normals.reserve(m_normals.size() + theNormals.size());
+        
+        m_normals.insert(m_normals.end(), theNormals.begin(), theNormals.end());
+    }
+    
+    void Geometry::appendNormals(const glm::vec3 *theNormals, size_t numNormals)
+    {
+        m_normals.reserve(m_normals.size() + numNormals);
+        
+        m_normals.insert(m_normals.end(), theNormals, theNormals + numNormals);
+    }
+    
     void Geometry::appendTextCoords(const std::vector<glm::vec2> &theVerts)
     {
         m_texCoords.reserve(m_texCoords.size() + theVerts.size());
@@ -106,19 +120,19 @@ namespace kinski{ namespace gl{
         computeFaceNormals();
         
         // create tmp array, if not yet constructed
-        if(m_tmpVertexNormals.size() != m_vertices.size())
+        if(m_normals.size() != m_vertices.size())
         {
-            m_tmpVertexNormals.clear();
-            m_tmpVertexNormals.reserve(m_vertices.size());
+            m_normals.clear();
+            m_normals.reserve(m_vertices.size());
             
             for (int i = 0; i < m_vertices.size(); i++)
             {
-                m_tmpVertexNormals.push_back(glm::vec3(0));
+                m_normals.push_back(glm::vec3(0));
             }
         }
         else
         {
-            std::fill(m_tmpVertexNormals.begin(), m_tmpVertexNormals.end(), glm::vec3(0));
+            std::fill(m_normals.begin(), m_normals.end(), glm::vec3(0));
         }
         
         // iterate faces and sum normals for all vertices
@@ -127,14 +141,14 @@ namespace kinski{ namespace gl{
         {
             const Face3 &face = *faceIt;
             
-            m_tmpVertexNormals[face.a] += face.normal;
-            m_tmpVertexNormals[face.b] += face.normal;
-            m_tmpVertexNormals[face.c] += face.normal;
+            m_normals[face.a] += face.normal;
+            m_normals[face.b] += face.normal;
+            m_normals[face.c] += face.normal;
         }
         
         // normalize vertexNormals
-        vector<glm::vec3>::iterator normIt = m_tmpVertexNormals.begin();
-        for (; normIt != m_tmpVertexNormals.end(); normIt++)
+        vector<glm::vec3>::iterator normIt = m_normals.begin();
+        for (; normIt != m_normals.end(); normIt++)
         {
             glm::vec3 &vertNormal = *normIt;
             vertNormal = glm::normalize(vertNormal);
@@ -144,9 +158,9 @@ namespace kinski{ namespace gl{
         for (faceIt = m_faces.begin(); faceIt != m_faces.end(); faceIt++)
         {
             Face3 &face = *faceIt;
-            face.vertexNormals[0] = m_tmpVertexNormals[face.a];
-            face.vertexNormals[1] = m_tmpVertexNormals[face.b];
-            face.vertexNormals[2] = m_tmpVertexNormals[face.c];
+            face.vertexNormals[0] = m_normals[face.a];
+            face.vertexNormals[1] = m_normals[face.b];
+            face.vertexNormals[2] = m_normals[face.c];
             
         }
     }
@@ -175,8 +189,8 @@ namespace kinski{ namespace gl{
                 float y = iz * segment_height - height_half;
         
                 appendVertex( glm::vec3( x, - y, 0) );
+                appendNormal(normal);
                 appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
-                
             }
         }
         

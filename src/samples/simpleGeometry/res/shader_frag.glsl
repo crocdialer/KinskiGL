@@ -1,7 +1,6 @@
 #version 150 core
 
 uniform sampler2D   u_textureMap[];
-in vec4             v_texCoord;
 
 uniform struct
 {
@@ -14,6 +13,7 @@ uniform struct
 
 uniform float u_textureMix;
 
+in vec4 v_texCoord;
 out vec4 fragData;
 
 vec4 jet(in float val)
