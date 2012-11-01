@@ -3,10 +3,12 @@
 #include "kinskiGL/Geometry.h"
 #include "kinskiGL/Material.h"
 #include "kinskiGL/Camera.h"
-
 #include "TextureIO.h"
 
+#include "kinskiCV/CVThread.h"
+
 #include <boost/shared_array.hpp>
+
 
 using namespace std;
 using namespace kinski;
@@ -27,6 +29,10 @@ private:
     Property_<bool>::Ptr m_wireFrame;
     
     Property_<glm::vec4>::Ptr m_color;
+    
+    Property_<glm::mat3>::Ptr m_rotation;
+    
+    CVThread::Ptr m_cvThread;
 
     void drawLine(const vec2 &a, const vec2 &b)
     {
@@ -102,63 +108,69 @@ private:
     
     void drawGeometry(const gl::Geometry &theGeom, gl::Material &theMaterial)
     {
+        // TEST: update rotation here
+//        m_rotation->val(glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
+//                        * glm::rotate(glm::mat4(),
+//                                      8 * (float) getApplicationTime(), glm::vec3(0,0,1)));
+        
+        glm::mat4 transform = glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
+                                * glm::mat4(m_rotation->val());
+        
         theMaterial.uniform("u_modelViewProjectionMatrix",
                            m_Camera.getProjectionMatrix()
-                           * glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
-                            * glm::rotate(glm::mat4(),8 * (float) getApplicationTime(), glm::vec3(0,0,1)));
+                           * transform);
         
         theMaterial.apply();
         
         gl::Shader &shader = theMaterial.getShader();
 
-        uint32_t indexCount = 3 * theGeom.getFaces().size();
-        boost::shared_array<GLuint> indices (new GLuint [indexCount]);
-        GLuint *indexPtr = indices.get();
-        
-        // insert indices
-        vector<gl::Face3>::const_iterator faceIt = theGeom.getFaces().begin();
-        for (; faceIt != theGeom.getFaces().end(); faceIt++)
-        {
-            const gl::Face3 &face = *faceIt;
-            
-            for (int i = 0; i < 3; i++)
-            {
-                // index
-                *(indexPtr++) = face.indices[i];
-            }
-        }
-        
-        // create interleaved array
-        // GL_T2F_N3F_V3F
-        uint32_t numFloats = 8;
-        uint32_t interleavedCount = numFloats * theGeom.getVertices().size();
-        boost::shared_array<GLfloat> interleaved (new GLfloat[interleavedCount]);
-        
-        for (int i = 0; i < theGeom.getVertices().size(); i++)
-        {
-           // texCoords
-           const glm::vec2 &texCoord = theGeom.getTexCoords()[i];
-           interleaved[numFloats * i ] = texCoord.s;
-           interleaved[numFloats * i + 1] = texCoord.t;
-          
-           // normals
-           const glm::vec3 &normal = theGeom.getNormals()[i];
-           interleaved[numFloats * i + 2] = normal.x;
-           interleaved[numFloats * i + 3] = normal.y;
-           interleaved[numFloats * i + 4] = normal.z;
-          
-           // vertices
-           const glm::vec3 &vert = theGeom.getVertices()[i];
-           interleaved[numFloats * i + 5] = vert.x;
-           interleaved[numFloats * i + 6] = vert.y;
-           interleaved[numFloats * i + 7] = vert.z;
-        }
-
-        
         static GLuint vertexArray = 0;
         
         if(!vertexArray)
         {
+            uint32_t indexCount = 3 * theGeom.getFaces().size();
+            boost::shared_array<GLuint> indices (new GLuint [indexCount]);
+            GLuint *indexPtr = indices.get();
+            
+            // insert indices
+            vector<gl::Face3>::const_iterator faceIt = theGeom.getFaces().begin();
+            for (; faceIt != theGeom.getFaces().end(); faceIt++)
+            {
+                const gl::Face3 &face = *faceIt;
+                
+                for (int i = 0; i < 3; i++)
+                {
+                    // index
+                    *(indexPtr++) = face.indices[i];
+                }
+            }
+            
+            // create interleaved array
+            // GL_T2F_N3F_V3F
+            uint32_t numFloats = 8;
+            uint32_t interleavedCount = numFloats * theGeom.getVertices().size();
+            boost::shared_array<GLfloat> interleaved (new GLfloat[interleavedCount]);
+            
+            for (int i = 0; i < theGeom.getVertices().size(); i++)
+            {
+                // texCoords
+                const glm::vec2 &texCoord = theGeom.getTexCoords()[i];
+                interleaved[numFloats * i ] = texCoord.s;
+                interleaved[numFloats * i + 1] = texCoord.t;
+                
+                // normals
+                const glm::vec3 &normal = theGeom.getNormals()[i];
+                interleaved[numFloats * i + 2] = normal.x;
+                interleaved[numFloats * i + 3] = normal.y;
+                interleaved[numFloats * i + 4] = normal.z;
+                
+                // vertices
+                const glm::vec3 &vert = theGeom.getVertices()[i];
+                interleaved[numFloats * i + 5] = vert.x;
+                interleaved[numFloats * i + 6] = vert.y;
+                interleaved[numFloats * i + 7] = vert.z;
+            }
+            
             GLfloat *ptr = interleaved.get();
             
 //            for (int i = 0; i < interleavedCount; i+=8)
@@ -181,7 +193,7 @@ private:
             glGenBuffers(1, &interleavedBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, interleavedBuffer);
             glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_geometry.getVertices().size(),
-                         interleaved.get(), GL_DYNAMIC_DRAW);//STREAM
+                         interleaved.get(), GL_STREAM_DRAW);//STREAM
             
             // define attrib pointer (vertex)
             glEnableVertexAttribArray(vertexAttribLocation);
@@ -232,10 +244,11 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry = gl::Plane(20, 20, 10, 10);
+        m_geometry = gl::Plane(20, 20, 100, 100);
         
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material.setTwoSided();
         
         m_distance = RangedProperty<float>::create("view distance", 25, -50, 50);
         registerProperty(m_distance);
@@ -250,16 +263,29 @@ public:
         registerProperty(m_color);
         m_material.setDiffuse(m_color->val());
         
+        m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
+        registerProperty(m_rotation);
+        
         // add properties
         addPropertyListToTweakBar(getPropertyList());
 
         // enable observer mechanism
         observeProperties();
+        
+//        m_cvThread = CVThread::Ptr(new CVThread());
+//        m_cvThread->streamUSBCamera();
     }
     
     void update(const float timeDelta)
     {
         m_material.uniform("u_textureMix", m_textureMix->val());
+        
+//        if(m_cvThread->hasImage())
+//        {
+//            vector<cv::Mat> images = m_cvThread->getImages();
+//            TextureIO::updateTexture(m_material.getTextures()[0], images[0]);
+//        }
+        
     }
     
     void draw()

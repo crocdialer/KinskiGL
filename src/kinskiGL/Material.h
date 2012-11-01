@@ -39,6 +39,8 @@ namespace kinski { namespace gl {
         
         GLenum m_polygonMode;
         
+        bool m_twoSided;
+        
         bool m_wireFrame;
         
         bool m_depthTest;
@@ -69,6 +71,10 @@ namespace kinski { namespace gl {
         
         UniformMap& getUniforms() {return m_uniforms;};
         const UniformMap& getUniforms() const {return m_uniforms;};
+        
+        void setTwoSided(bool b = true) { m_twoSided = b;};
+        
+        bool isTwoSided() { return m_twoSided; };
         
         void setWireframe(bool b = true) { m_wireFrame = b;};
         

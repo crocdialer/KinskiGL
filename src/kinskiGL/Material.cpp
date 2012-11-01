@@ -38,6 +38,7 @@ namespace kinski { namespace gl {
     m_specular(glm::vec4(1)),
     m_emission(glm::vec4(0)),
     m_polygonMode(GL_FRONT),
+    m_twoSided(false),
     m_wireFrame(false),
     m_depthTest(true),
     m_depthWrite(true),
@@ -54,6 +55,14 @@ namespace kinski { namespace gl {
         m_shader.bind();
         
         char buf[512];
+        
+        // twoSided
+        if(m_twoSided) glDisable(GL_CULL_FACE);
+        else
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        }
         
         // wireframe ?
         glPolygonMode(GL_FRONT_AND_BACK, m_wireFrame ? GL_LINE : GL_FILL);
@@ -81,6 +90,7 @@ namespace kinski { namespace gl {
                          m_textures.empty() ? glm::mat4() : m_textures.front().getTextureMatrix());
         
         // add texturemaps
+        m_shader.uniform("u_numTextures", (GLint) m_textures.size());
         for(int i=0;i<m_textures.size();i++)
         {
             m_textures[i].bind(i);

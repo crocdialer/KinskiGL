@@ -1,6 +1,7 @@
 #version 150 core
 
-uniform sampler2D   u_textureMap[];
+uniform int u_numTextures;
+uniform sampler2D u_textureMap[];
 
 uniform struct
 {
