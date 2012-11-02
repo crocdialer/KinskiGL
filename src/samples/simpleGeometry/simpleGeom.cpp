@@ -18,7 +18,7 @@ class SimpleGeometryApp : public App
 {
 private:
     
-    gl::Material m_material, m_otherMat;
+    gl::Material m_material;
     
     gl::Geometry m_geometry;
     
@@ -108,11 +108,6 @@ private:
     
     void drawGeometry(const gl::Geometry &theGeom, gl::Material &theMaterial)
     {
-        // TEST: update rotation here
-//        m_rotation->val(glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
-//                        * glm::rotate(glm::mat4(),
-//                                      8 * (float) getApplicationTime(), glm::vec3(0,0,1)));
-        
         glm::mat4 transform = glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
                                 * glm::mat4(m_rotation->val());
         
@@ -255,6 +250,7 @@ public:
         
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
         registerProperty(m_textureMix);
+        m_material.uniform("u_textureMix", m_textureMix->val());
         
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
@@ -278,8 +274,7 @@ public:
     
     void update(const float timeDelta)
     {
-        m_material.uniform("u_textureMix", m_textureMix->val());
-        
+
 //        if(m_cvThread->hasImage())
 //        {
 //            vector<cv::Mat> images = m_cvThread->getImages();
@@ -317,6 +312,9 @@ public:
         
         else if(theProperty == m_color)
             m_material.setDiffuse(m_color->val());
+        
+        else if(theProperty == m_textureMix)
+            m_material.uniform("u_textureMix", m_textureMix->val());
     }
 };
 

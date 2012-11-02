@@ -68,10 +68,11 @@ namespace kinski
         
         m_tweakBarList.push_back(TwNewBar("KinskiGL"));
         
-        // directly redirect GLFW events to AntTweakBar
-        glfwSetMouseButtonCallback((GLFWmousebuttonfun)TwEventMouseButtonGLFW);
-        glfwSetMousePosCallback((GLFWmouseposfun)TwEventMousePosGLFW);
-        glfwSetMouseWheelCallback((GLFWmousewheelfun)TwEventMouseWheelGLFW);
+
+        glfwSetMouseButtonCallback(&s_mouseButton);
+        glfwSetMousePosCallback(&s_mouseMove);
+        glfwSetMouseWheelCallback(&s_mouseWheel);
+        
         glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
         glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
         
@@ -86,17 +87,6 @@ namespace kinski
     {
         if(glm::vec2(size) != m_windowSize)
             glfwSetWindowSize(size[0], size[1]);
-    }
-    
-    void App::__resize(int w,int h)
-    {
-        m_windowSize = glm::ivec2(w, h);
-        
-        glViewport(0, 0, w, h);
-        TwWindowSize(w, h);
-        
-        // user hook
-        resize(w, h);
     }
     
     int App::run()
@@ -150,8 +140,103 @@ namespace kinski
     {
         return glfwGetTime();
     }
+/****************************  Application Events (internal) **************************/
     
-/****************************  TweakBar + Properties **************************/ 
+    void App::__resize(int w,int h)
+    {
+        m_windowSize = glm::ivec2(w, h);
+        
+        glViewport(0, 0, w, h);
+        TwWindowSize(w, h);
+        
+        // user hook
+        resize(w, h);
+    }
+    
+    void App::__mouseMove(int x,int y)
+    {
+        if(m_displayTweakBar)
+            TwEventMousePosGLFW(x,y);
+        
+        uint32_t buttonModifier = 0;
+        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) )
+            buttonModifier |= MouseEvent::LEFT_DOWN;
+        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) )
+            buttonModifier |= MouseEvent::MIDDLE_DOWN;
+        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) )
+            buttonModifier |= MouseEvent::RIGHT_DOWN;
+            
+        MouseEvent e(0, x, y, buttonModifier, 0);
+        
+        if(buttonModifier)
+            mouseDrag(e);
+        else
+            mouseMove(e);
+    }
+    
+    void App::__mouseButton(int button, int action)
+    {
+        if(m_displayTweakBar)
+            TwEventMouseButtonGLFW(button, action);
+        
+        uint32_t initiator = 0;
+        switch (button)
+        {
+            case GLFW_MOUSE_BUTTON_LEFT:
+                initiator = MouseEvent::LEFT_DOWN;
+                break;
+            case GLFW_MOUSE_BUTTON_MIDDLE:
+                initiator = MouseEvent::MIDDLE_DOWN;
+                break;
+            case GLFW_MOUSE_BUTTON_RIGHT:
+                initiator = MouseEvent::RIGHT_DOWN;
+                break;
+                
+            default:
+                break;
+        }
+        
+        uint32_t keyModifiers = initiator;
+        if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
+            keyModifiers |= MouseEvent::CTRL_DOWN;
+        if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
+            keyModifiers |= MouseEvent::SHIFT_DOWN;
+        if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
+            keyModifiers |= MouseEvent::ALT_DOWN;
+        
+        int posX, posY;
+        glfwGetMousePos(&posX, &posY);
+        
+        MouseEvent e(initiator, posX, posY, keyModifiers, 0);
+        
+        if (action == GLFW_PRESS)
+            mousePress(e);
+        else
+            mouseRelease(e);
+    }
+    
+    void App::__mouseWheel(int pos)
+    {
+        if(m_displayTweakBar)
+            TwEventMouseWheelGLFW(pos);
+        
+        int posX, posY;
+        glfwGetMousePos(&posX, &posY);
+        
+        uint32_t keyModifiers = 0;
+        if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
+            keyModifiers |= MouseEvent::CTRL_DOWN;
+        if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
+            keyModifiers |= MouseEvent::SHIFT_DOWN;
+        if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
+            keyModifiers |= MouseEvent::ALT_DOWN;
+        
+        MouseEvent e(0, posX, posY, keyModifiers, pos);
+        
+        mouseWheel(e);
+    }
+    
+/****************************  TweakBar + Properties **************************/
     
     void App::addPropertyToTweakBar(const Property::Ptr propPtr,
                                     const string &group,
