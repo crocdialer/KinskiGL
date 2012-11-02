@@ -9,8 +9,7 @@
 #ifndef __kinskiGL__Geometry__
 #define __kinskiGL__Geometry__
 
-#include <vector>
-#include <glm/glm.hpp>
+#include "KinskiGL.h"
 
 namespace kinski
 {
@@ -56,6 +55,12 @@ namespace gl
     class Geometry
     {
     public:
+        
+        typedef std::shared_ptr<Geometry> Ptr;
+        
+        Geometry();
+        virtual ~Geometry();
+        
         inline void appendVertex(const glm::vec3 &theVert)
         { m_vertices.push_back(theVert); };
         
@@ -100,6 +105,14 @@ namespace gl
         
         inline const BoundingBox& getBoundingBox() const { return m_boundingBox; };
         
+        GLuint getInterleavedBuffer() {return m_interleavedBuffer;};
+        GLuint getIndexBuffer() {return m_indexBuffer;};
+        
+        //number of float components (per vertex) in interleaved buffer
+        GLuint getNumComponents();
+        
+        void createGLBuffers();
+        
     private:
         
         std::vector<glm::vec3> m_vertices;
@@ -109,6 +122,8 @@ namespace gl
         
         BoundingBox m_boundingBox;
         
+        GLuint m_interleavedBuffer;
+        GLuint m_indexBuffer;
     };
     
     // Derived primitives

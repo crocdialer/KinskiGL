@@ -12,6 +12,22 @@ using namespace std;
 
 namespace kinski{ namespace gl{
     
+    Geometry::Geometry():
+    m_interleavedBuffer(0),
+    m_indexBuffer(0)
+    {
+    
+    }
+    
+    Geometry::~Geometry()
+    {
+        if(m_interleavedBuffer)
+            glDeleteBuffers(1, &m_interleavedBuffer);
+        
+        if(m_indexBuffer)
+            glDeleteBuffers(1, &m_indexBuffer);
+    }
+    
     void Geometry::appendVertices(const std::vector<glm::vec3> &theVerts)
     {
         m_vertices.reserve(m_vertices.size() + theVerts.size());
@@ -163,6 +179,75 @@ namespace kinski{ namespace gl{
             face.vertexNormals[2] = m_normals[face.c];
             
         }
+    }
+    
+    GLuint Geometry::getNumComponents()
+    {
+        //GL_T2F_N3F_V3F alignment in interleaved buffer
+        return 8;
+    }
+    
+    void Geometry::createGLBuffers()
+    {
+        if(!m_interleavedBuffer)
+            glGenBuffers(1, &m_interleavedBuffer);
+        
+        if(!m_indexBuffer)
+            glGenBuffers(1, &m_indexBuffer);
+        
+        uint32_t numFloats = 8;
+        
+        glBindBuffer(GL_ARRAY_BUFFER, m_interleavedBuffer);
+        glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_vertices.size(), NULL,
+                     GL_STREAM_DRAW);//STREAM
+        
+        float *interleaved = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        
+        for (int i = 0; i < m_vertices.size(); i++)
+        {
+            // texCoords
+            const glm::vec2 &texCoord = m_texCoords[i];
+            interleaved[numFloats * i ] = texCoord.s;
+            interleaved[numFloats * i + 1] = texCoord.t;
+            
+            // normals
+            const glm::vec3 &normal = m_normals[i];
+            interleaved[numFloats * i + 2] = normal.x;
+            interleaved[numFloats * i + 3] = normal.y;
+            interleaved[numFloats * i + 4] = normal.z;
+            
+            // vertices
+            const glm::vec3 &vert = m_vertices[i];
+            interleaved[numFloats * i + 5] = vert.x;
+            interleaved[numFloats * i + 6] = vert.y;
+            interleaved[numFloats * i + 7] = vert.z;
+        }
+        
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+        
+        // index buffer
+        glGenBuffers(1, &m_indexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
+                     GL_DYNAMIC_DRAW );
+        
+        GLuint *indexBuffer = (GLuint*) glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+        
+        // insert indices
+        vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
+        for (; faceIt != m_faces.end(); faceIt++)
+        {
+            const gl::Face3 &face = *faceIt;
+            
+            for (int i = 0; i < 3; i++)
+            {
+                // index
+                *(indexBuffer++) = face.indices[i];
+            }
+        }
+        
+        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+    
     }
     
     /********************************* PRIMITIVES ****************************************/

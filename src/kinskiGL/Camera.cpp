@@ -10,10 +10,23 @@
 
 namespace kinski { namespace gl{
     
+    /************************* Camera ************************/
+    
+    glm::mat4 Camera::getViewMatrix() const
+    {
+        return glm::inverse(getTransform());
+    }
+    
+    void Camera::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
+    {
+        setTransform( glm::inverse(glm::lookAt(getPosition(), theLookAt, theUp)) );
+    }
+    
     /****************** OrthographicCamera *******************/
     
     OrthographicCamera::OrthographicCamera(float left, float right, float top, float bottom,
                                            float near, float far):
+    Camera(),
     m_near(near),
     m_far(far),
     m_left(left),
@@ -32,6 +45,7 @@ namespace kinski { namespace gl{
     /****************** PerspectiveCamera *******************/
     
     PerspectiveCamera::PerspectiveCamera(float ascpect, float fov, float near, float far):
+    Camera(),
     m_near(near),
     m_far(far),
     m_fov(fov),

@@ -16,18 +16,22 @@ namespace kinski { namespace gl {
     class Object3D
     {
     public:
-        Object3D(const glm::mat4 &theTransform = glm::mat4());
         
-        uint32_t getID() { return m_id; };
+        typedef std::shared_ptr<Object3D> Ptr;
+        
+        Object3D(const glm::mat4 &theTransform = glm::mat4());
+        virtual ~Object3D(){};
+        
+        uint32_t getID() const { return m_id; };
         inline void setPosition(const glm::vec3 &thePos) { m_worldTransform[3].xyz() = thePos; };
         inline glm::vec3 getPosition() const { return m_worldTransform[3].xyz(); }
         
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
-        
         glm::quat getRotation() const;
         
         inline void setTransform(const glm::mat4 &theTrans){ m_worldTransform = theTrans; };
+        inline glm::mat4& getTransform() { return m_worldTransform; };
         inline const glm::mat4& getTransform() const { return m_worldTransform; };
         
     private:

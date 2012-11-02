@@ -19,17 +19,19 @@ protected:
     
     glm::mat4 m_projectionMatrix;
     
+    virtual void updateProjectionMatrix() = 0;
+    
 public:
     
     typedef std::shared_ptr<Camera> Ptr;
     
-    Camera(){};
+    Camera():Object3D(){};
     
-    virtual void updateProjectionMatrix() = 0;
+    void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0,1,0));
     
     glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;};
     
-    glm::mat4 getViewMatrix() const {return glm::mat4();};
+    glm::mat4 getViewMatrix() const;
     
     virtual ~Camera(){};
 };
@@ -40,12 +42,14 @@ private:
     
     float m_near, m_far, m_left, m_right, m_top, m_bottom;
 
+protected:
+    
+    void updateProjectionMatrix();
+
 public:
     
     OrthographicCamera(float left = 0, float right = 1, float top = 1, float bottom = 0,
                        float near = 0, float far = 1000);
-    
-    void updateProjectionMatrix();
 };
     
 class PerspectiveCamera : public Camera
@@ -57,13 +61,15 @@ private:
     float m_fov;
     
     float m_aspect;
+
+protected:
+    
+    void updateProjectionMatrix();
     
 public:
     
     PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 2000);
-    
-    void updateProjectionMatrix();
-    
+
     void setFov(float theFov);
     float getFov() const {return m_fov;};
     

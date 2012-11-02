@@ -1,8 +1,8 @@
 #include "kinskiGL/App.h"
 
-#include "kinskiGL/Geometry.h"
-#include "kinskiGL/Material.h"
+#include "kinskiGL/Mesh.h"
 #include "kinskiGL/Camera.h"
+
 #include "TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
@@ -18,9 +18,10 @@ class SimpleGeometryApp : public App
 {
 private:
     
-    gl::Material m_material;
+    gl::Material::Ptr m_material;
+    gl::Geometry::Ptr m_geometry;
     
-    gl::Geometry m_geometry;
+    gl::Mesh::Ptr m_mesh;
     
     gl::PerspectiveCamera m_Camera;
     
@@ -108,8 +109,8 @@ private:
     
     void drawGeometry(const gl::Geometry &theGeom, gl::Material &theMaterial)
     {
-        glm::mat4 transform = glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
-                                * glm::mat4(m_rotation->val());
+        glm::mat4 transform = m_Camera.getViewMatrix();//glm::translate( glm::mat4(), vec3(0, 0, -m_distance->val()))
+                              //  * glm::mat4(m_rotation->val());
         
         theMaterial.uniform("u_modelViewProjectionMatrix",
                            m_Camera.getProjectionMatrix()
@@ -187,26 +188,27 @@ private:
             GLuint interleavedBuffer;
             glGenBuffers(1, &interleavedBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, interleavedBuffer);
-            glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_geometry.getVertices().size(),
+            glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * theGeom.getVertices().size(),
                          interleaved.get(), GL_STREAM_DRAW);//STREAM
-            
-            // define attrib pointer (vertex)
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                  stride,
-                                  BUFFER_OFFSET(5 * sizeof(GLfloat)));
             
             // define attrib pointer (texCoord)
             glEnableVertexAttribArray(texCoordAttribLocation);
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                   stride,
                                   BUFFER_OFFSET(0));
-
+            
+            // define attrib pointer (normal)
             glEnableVertexAttribArray(normalAttribLocation);
             glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride,
                                   BUFFER_OFFSET(2 * sizeof(GLfloat)));
    
+            // define attrib pointer (vertex)
+            glEnableVertexAttribArray(vertexAttribLocation);
+            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                  stride,
+                                  BUFFER_OFFSET(5 * sizeof(GLfloat)));
+            
             // index buffer
             GLuint indexBuffer;
             glGenBuffers(1, &indexBuffer);
@@ -231,33 +233,40 @@ public:
     {
         glClearColor(0, 0, 0, 1);
         
-        try 
+        m_material = gl::Material::Ptr(new gl::Material);
+        try
         {
-            m_material.getShader().loadFromFile("shader_vert.glsl", "shader_frag.glsl");
-        }catch (std::exception &e) 
+            m_material->getShader().loadFromFile("shader_vert.glsl", "shader_frag.glsl");
+        }catch (std::exception &e)
         {
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry = gl::Plane(20, 20, 100, 100);
+        m_geometry =  gl::Geometry::Ptr( new gl::Plane(20, 20, 100, 100) );
+        m_geometry->createGLBuffers();
         
-        m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
-        m_material.addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
-        m_material.setTwoSided();
+        m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material));
+
+        m_Camera.setPosition(glm::vec3(0, 0, 60));
+        m_Camera.setLookAt(glm::vec3(0));
+        
+        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
+        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material->setTwoSided();
         
         m_distance = RangedProperty<float>::create("view distance", 25, -50, 50);
         registerProperty(m_distance);
         
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
         registerProperty(m_textureMix);
-        m_material.uniform("u_textureMix", m_textureMix->val());
+        m_material->uniform("u_textureMix", m_textureMix->val());
         
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
         
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
-        m_material.setDiffuse(m_color->val());
+        m_material->setDiffuse(m_color->val());
         
         m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
         registerProperty(m_rotation);
@@ -285,13 +294,13 @@ public:
     
     void draw()
     {
-        gl::Material cloneMat1 = m_material, cloneMat2 = m_material;
+        gl::Material cloneMat1 = *m_material, cloneMat2 = *m_material;
         
         cloneMat1.setDepthWrite(false);
         
         drawQuad(cloneMat1, getWindowSize());
         
-        drawGeometry(m_geometry, cloneMat2);
+        drawGeometry(*m_geometry, cloneMat2);
     }
     
     void resize(int w, int h)
@@ -309,13 +318,13 @@ public:
     {
         // one of our porperties was changed
         if(theProperty == m_wireFrame)
-            m_material.setWireframe(m_wireFrame->val());
+            m_material->setWireframe(m_wireFrame->val());
         
         else if(theProperty == m_color)
-            m_material.setDiffuse(m_color->val());
+            m_material->setDiffuse(m_color->val());
         
         else if(theProperty == m_textureMix)
-            m_material.uniform("u_textureMix", m_textureMix->val());
+            m_material->uniform("u_textureMix", m_textureMix->val());
     }
 };
 
