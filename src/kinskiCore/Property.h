@@ -27,7 +27,7 @@ public:
     {
     public:
         typedef std::shared_ptr<Observer> Ptr;
-        virtual void update(const Property::Ptr &theProperty) = 0;
+        virtual void updateProperty(const Property::Ptr &theProperty) = 0;
     };
 
     inline boost::any getValue() const {return m_value;};
@@ -87,7 +87,7 @@ public:
         Ptr self = shared_from_this();
         for (; it != m_observers.end(); it++)
         {
-            (*it)->update(self);
+            (*it)->updateProperty(self);
         }
     };
 

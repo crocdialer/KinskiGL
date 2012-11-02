@@ -11,8 +11,10 @@ namespace kinski
     App::App(const int width, const int height):
     m_running(GL_FALSE),
     m_lastTimeStamp(0.0), m_framesDrawn(0),
+    m_displayTweakBar(true),
     m_windowSize(glm::ivec2(width, height)),
-    m_fullscreen(false), m_displayTweakBar(true)
+    m_fullscreen(false),
+    m_cursorVisible(true)
     {
         
     }
@@ -55,6 +57,9 @@ namespace kinski
             glfwTerminate();
             throw exception();
         }
+        
+        // show mouse cursor in fullscreen ?
+        if(m_fullscreen && m_cursorVisible) glfwEnable(GLFW_MOUSE_CURSOR);
         
         glfwSwapInterval(1);
         

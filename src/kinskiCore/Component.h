@@ -32,7 +32,7 @@ namespace kinski
     
     public: 
 
-        virtual void update(const Property::Ptr &theProperty){};        
+        virtual void updateProperty(const Property::Ptr &theProperty){};        
         void observeProperties(bool b = true);
         
     protected:        

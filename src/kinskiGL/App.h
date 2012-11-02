@@ -50,6 +50,9 @@ namespace kinski
         inline bool isFullSceen(){return m_fullscreen;};
         inline void setFullSceen(bool b = true){m_fullscreen = b;};
         
+        bool isCursorVisible(){ return m_cursorVisible;};
+        void setCursorVisible(bool b = true){ m_cursorVisible = b;};
+        
         double getApplicationTime();
         
         void setTweakBarVisible(bool b){m_displayTweakBar = b;};
@@ -88,15 +91,18 @@ namespace kinski
         GLint m_running;
         double m_lastTimeStamp;
         uint64_t m_framesDrawn;
-        
-        glm::vec2 m_windowSize;
-        
-        bool m_fullscreen;
-        
+
         std::list<TwBar*> m_tweakBarList;
         bool m_displayTweakBar;
         
         std::map<TwBar*, Property::Ptr> m_tweakProperties;
+        
+        // might go into a settings struct
+        glm::vec2 m_windowSize;
+        
+        bool m_fullscreen;
+        
+        bool m_cursorVisible;
         
     };
     

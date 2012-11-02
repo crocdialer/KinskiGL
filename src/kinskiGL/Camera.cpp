@@ -14,7 +14,8 @@ namespace kinski { namespace gl{
     
     OrthographicCamera::OrthographicCamera(float left, float right, float top, float bottom,
                                            float near, float far):
-    Camera(near, far),
+    m_near(near),
+    m_far(far),
     m_left(left),
     m_right(right),
     m_top(top),
@@ -31,7 +32,8 @@ namespace kinski { namespace gl{
     /****************** PerspectiveCamera *******************/
     
     PerspectiveCamera::PerspectiveCamera(float ascpect, float fov, float near, float far):
-    Camera(near, far),
+    m_near(near),
+    m_far(far),
     m_fov(fov),
     m_aspect(ascpect)
     {

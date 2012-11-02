@@ -304,7 +304,8 @@ public:
         printf("ciao simple geometry\n");
     }
     
-    void update(const Property::Ptr &theProperty)
+    // Property observer callback
+    void updateProperty(const Property::Ptr &theProperty)
     {
         // one of our porperties was changed
         if(theProperty == m_wireFrame)

@@ -9,36 +9,36 @@
 #ifndef __kinskiGL__Camera__
 #define __kinskiGL__Camera__
 
-#include "kinskiGL.h"
+#include "Object3D.h"
 
 namespace kinski { namespace gl{
 
-class Camera
+class Camera : public Object3D
 {
 protected:
     
     glm::mat4 m_projectionMatrix;
     
-    // clipping planes
-    float m_near, m_far;
-    
 public:
     
     typedef std::shared_ptr<Camera> Ptr;
     
-    Camera(float near, float far):m_near(near),
-    m_far(far){};
+    Camera(){};
     
     virtual void updateProjectionMatrix() = 0;
     
     glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;};
+    
+    glm::mat4 getViewMatrix() const {return glm::mat4();};
+    
+    virtual ~Camera(){};
 };
    
 class OrthographicCamera : public Camera
 {
 private:
     
-    float m_left, m_right, m_top, m_bottom;
+    float m_near, m_far, m_left, m_right, m_top, m_bottom;
 
 public:
     
@@ -51,6 +51,8 @@ public:
 class PerspectiveCamera : public Camera
 {
 private:
+    
+    float m_near, m_far;
     
     float m_fov;
     

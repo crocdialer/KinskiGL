@@ -182,7 +182,7 @@ namespace kinski{
         std::string getDescription();
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
         
-        void update(const Property::Ptr &theProperty);
+        void updateProperty(const Property::Ptr &theProperty);
         
     private:
         Property_<std::string>::Ptr m_videoSrc;
