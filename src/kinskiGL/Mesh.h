@@ -24,10 +24,30 @@ namespace kinski { namespace gl {
         Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
         
         const Geometry::Ptr& getGeometry() const { return m_geometry; };
+        Geometry::Ptr& getGeometry() { return m_geometry; };
         
         const Material::Ptr& getMaterial() const { return m_material; };
+        Material::Ptr& getMaterial() { return m_material; };
         
         GLuint getVertexArray(){ return m_vertexArray; };
+        
+        /*!
+         * Set the name under which the attribute will be accessible in the shader.
+         * Defaults to "a_vertex"
+         */
+        void setVertexLocationName(const std::string &theName);
+        
+        /*!
+         * Set the name under which the attribute will be accessible in the shader.
+         * Defaults to "a_normal"
+         */
+        void setNormalLocationName(const std::string &theName);
+        
+        /*!
+         * Set the name under which the attribute will be accessible in the shader.
+         * Defaults to "a_texCoord"
+         */
+        void setTexCoordLocationName(const std::string &theName);
         
     private:
         
@@ -37,6 +57,15 @@ namespace kinski { namespace gl {
         Material::Ptr m_material;
         
         GLuint m_vertexArray;
+        
+        /*!
+         * choose one of GL_TRIANGLES, GL_POINTS here
+         */
+        GLuint m_drawMode;
+        
+        std::string m_vertexLocationName;
+        std::string m_normalLocationName;
+        std::string m_texCoordLocationName;
     };
 }}
 

@@ -195,13 +195,13 @@ namespace kinski{ namespace gl{
         if(!m_indexBuffer)
             glGenBuffers(1, &m_indexBuffer);
         
-        uint32_t numFloats = 8;
+        uint32_t numFloats = getNumComponents();
         
         glBindBuffer(GL_ARRAY_BUFFER, m_interleavedBuffer);
         glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_vertices.size(), NULL,
                      GL_STREAM_DRAW);//STREAM
         
-        float *interleaved = (float*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        GLfloat *interleaved = (GLfloat*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
         
         for (int i = 0; i < m_vertices.size(); i++)
         {
@@ -226,7 +226,6 @@ namespace kinski{ namespace gl{
         glUnmapBuffer(GL_ARRAY_BUFFER);
         
         // index buffer
-        glGenBuffers(1, &m_indexBuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
                      GL_DYNAMIC_DRAW );
@@ -247,7 +246,9 @@ namespace kinski{ namespace gl{
         }
         
         glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-    
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     
     /********************************* PRIMITIVES ****************************************/
@@ -305,7 +306,8 @@ namespace kinski{ namespace gl{
                 appendFace(f2);
             }
         }
-
+        
+        computeBoundingBox();
     }
     
 }}//namespace

@@ -14,7 +14,11 @@ namespace kinski { namespace gl {
     Object3D(),
     m_geometry(theGeom),
     m_material(theMaterial),
-    m_vertexArray(0)
+    m_vertexArray(0),
+    m_drawMode(GL_TRIANGLES),
+    m_vertexLocationName("a_vertex"),
+    m_normalLocationName("a_normal"),
+    m_texCoordLocationName("a_texCoord")
     {
         createVertexArray();
     }
@@ -23,7 +27,7 @@ namespace kinski { namespace gl {
     {
         Shader& shader = m_material->getShader();
         if(!shader)
-            printf("Mesh::createVertexArray() -> empty shader!");
+            throw Exception("No Shader defined in Mesh::createVertexArray()");
         
         if(m_vertexArray)
             glDeleteVertexArrays(1, &m_vertexArray);
@@ -31,9 +35,9 @@ namespace kinski { namespace gl {
         glGenVertexArrays(1, &m_vertexArray);
         glBindVertexArray(m_vertexArray);
         
-        GLuint vertexAttribLocation = shader.getAttribLocation("a_vertex");
-        GLuint normalAttribLocation = shader.getAttribLocation("a_normal");
-        GLuint texCoordAttribLocation = shader.getAttribLocation("a_texCoord");
+        GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
+        GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
+        GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
         
         uint32_t numFloats = m_geometry->getNumComponents();
         GLsizei stride = numFloats * sizeof(GLfloat);
@@ -62,5 +66,23 @@ namespace kinski { namespace gl {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->getIndexBuffer());
         
         glBindVertexArray(0);
+    }
+    
+    void Mesh::setVertexLocationName(const std::string &theName)
+    {
+        m_vertexLocationName = theName;
+        createVertexArray();
+    }
+
+    void Mesh::setNormalLocationName(const std::string &theName)
+    {
+        m_normalLocationName = theName;
+        createVertexArray();
+    }
+
+    void Mesh::setTexCoordLocationName(const std::string &theName)
+    {
+        m_texCoordLocationName = theName;
+        createVertexArray();
     }
 }}

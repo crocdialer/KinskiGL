@@ -34,12 +34,7 @@ namespace kinski { namespace gl{
     m_top(top),
     m_bottom(bottom)
     {
-        updateProjectionMatrix();
-    }
-    
-    void OrthographicCamera::updateProjectionMatrix()
-    {
-        m_projectionMatrix = glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far);
+        setProjectionMatrix(glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far));
     }
     
     /****************** PerspectiveCamera *******************/
@@ -51,24 +46,19 @@ namespace kinski { namespace gl{
     m_fov(fov),
     m_aspect(ascpect)
     {
-    
-    }
-    
-    void PerspectiveCamera::updateProjectionMatrix()
-    {
-        m_projectionMatrix = glm::perspective(m_fov, m_aspect, m_near, m_far);
+        setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
     }
     
     void PerspectiveCamera::setFov(float theFov)
     {
         m_fov = theFov;
-        updateProjectionMatrix();
+        setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
     }
     
     void PerspectiveCamera::setAspectRatio(float theAspect)
     {
         m_aspect = theAspect;
-        updateProjectionMatrix();
+        setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
     }
     
 }}//namespace

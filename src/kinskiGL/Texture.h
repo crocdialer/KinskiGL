@@ -100,9 +100,7 @@ namespace gl
         //! Replaces the pixels of a texture with \a data
         void update( const float *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
         
-        void update(const void *data,
-                             GLenum dataType,GLenum format,
-                             int theWidth, int theHeight,
+        void update(const void *data, GLenum dataType, GLenum format, int theWidth, int theHeight,
                     bool flipped = false);
         
         //! the width of the texture in pixels

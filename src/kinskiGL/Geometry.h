@@ -105,8 +105,8 @@ namespace gl
         
         inline const BoundingBox& getBoundingBox() const { return m_boundingBox; };
         
-        GLuint getInterleavedBuffer() {return m_interleavedBuffer;};
-        GLuint getIndexBuffer() {return m_indexBuffer;};
+        GLuint getInterleavedBuffer() const { return m_interleavedBuffer; };
+        GLuint getIndexBuffer() const { return m_indexBuffer; };
         
         //number of float components (per vertex) in interleaved buffer
         GLuint getNumComponents();
@@ -124,6 +124,8 @@ namespace gl
         
         GLuint m_interleavedBuffer;
         GLuint m_indexBuffer;
+        
+        bool m_needsUpdate;
     };
     
     // Derived primitives

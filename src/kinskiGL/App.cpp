@@ -155,7 +155,7 @@ namespace kinski
         TwWindowSize(w, h);
         
         // user hook
-        resize(w, h);
+        if(m_running) resize(w, h);
     }
     
     void App::__mouseMove(int x,int y)
