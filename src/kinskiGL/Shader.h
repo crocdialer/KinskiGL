@@ -46,28 +46,39 @@ class Shader {
 
 	GLuint			getHandle() const ;
 
-	void uniform( const std::string &name, int data );
-	void uniform( const std::string &name, const glm::vec4 &theVec );
-	void uniform( const std::string &name, const int *data, int count );		
-	void uniform( const std::string &name, const glm::ivec2 *theArray, int count );	
-	void uniform( const std::string &name, float data );
-    void uniform( const std::string &name, double data ){uniform(name, (float) data);};
+	void uniform( const std::string &name, GLint data );
+	void uniform( const std::string &name, GLfloat data );
+    void uniform( const std::string &name, GLdouble data ){ uniform(name, (float) data); };
     
+	void uniform( const std::string &name, const GLint *data, int count );
+	void uniform( const std::string &name, const glm::ivec2 *theArray, int count );	
+
 	void uniform( const std::string &name, const glm::vec2 &theVec );
 	void uniform( const std::string &name, const glm::vec3 &theVec );
-
+    void uniform( const std::string &name, const glm::vec4 &theVec );
 	void uniform( const std::string &name, const glm::mat3 &theMat, bool transpose = false );
 	void uniform( const std::string &name, const glm::mat4 &theMat, bool transpose = false );
     
-	void uniform( const std::string &name, const float *theArray, int count );
+    // uniform array
+	void uniform( const std::string &name, const GLfloat *theArray, int count );
 	void uniform( const std::string &name, const glm::vec2 *theArray, int count );
 	void uniform( const std::string &name, const glm::vec3 *theArray, int count );
 	void uniform( const std::string &name, const glm::vec4 *theArray, int count );
+    void uniform( const std::string &name, const glm::mat3 *theArray, int count,
+                  bool transpose = false );
+    void uniform( const std::string &name, const glm::mat4 *theArray, int count,
+                  bool transpose = false );
     
-    void uniform(   const std::string &name, const glm::mat3 *theArray,
-                    int count, bool transpose );
-    void uniform(   const std::string &name, const glm::mat4 *theArray,
-                    int count, bool transpose );
+    // uniform std::vector
+    void uniform( const std::string &name, const std::vector<GLint> &theArray );
+    void uniform( const std::string &name, const std::vector<GLfloat> &theArray );
+	void uniform( const std::string &name, const std::vector<glm::vec2> &theArray );
+	void uniform( const std::string &name, const std::vector<glm::vec3> &theArray );
+	void uniform( const std::string &name, const std::vector<glm::vec4> &theArray );
+    void uniform( const std::string &name, const std::vector<glm::mat3> &theArray,
+                  bool transpose = false);
+    void uniform( const std::string &name, const std::vector<glm::mat4> &theArray,
+                  bool transpose = false);
     
     void bindFragDataLocation(const std::string &fragLoc);
     
