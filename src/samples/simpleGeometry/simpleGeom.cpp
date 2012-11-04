@@ -18,6 +18,8 @@ private:
     gl::Material::Ptr m_material;
     gl::Geometry::Ptr m_geometry;
     
+    gl::Geometry::Ptr m_straightPlane;
+    
     gl::Mesh::Ptr m_mesh;
     
     gl::PerspectiveCamera::Ptr m_Camera;
@@ -25,16 +27,17 @@ private:
     gl::Scene m_scene;
     
     RangedProperty<float>::Ptr m_distance;
-    
     RangedProperty<float>::Ptr m_textureMix;
     Property_<bool>::Ptr m_wireFrame;
-    
     Property_<glm::vec4>::Ptr m_color;
-    
     Property_<glm::mat3>::Ptr m_rotation;
     RangedProperty<float>::Ptr m_rotationSpeed;
     
+    RangedProperty<float>::Ptr m_simplexDim;
+    RangedProperty<float>::Ptr m_simplexSpeed;
+    
     CVThread::Ptr m_cvThread;
+    vec2 m_clickPos;
 
     void drawLine(const vec2 &a, const vec2 &b)
     {
@@ -131,8 +134,14 @@ public:
         m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
         registerProperty(m_rotation);
         
-        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 40, -100, 100);
+        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
         registerProperty(m_rotationSpeed);
+        
+        m_simplexDim = RangedProperty<float>::create("Simplex Resolution", 1/8.f, 0, 2);
+        registerProperty(m_simplexDim);
+        
+        m_simplexSpeed = RangedProperty<float>::create("Simplex Speed", .5, 0, 5);
+        registerProperty(m_simplexSpeed);
         
         // add properties
         addPropertyListToTweakBar(getPropertyList());
@@ -145,6 +154,10 @@ public:
         m_material = gl::Material::Ptr(new gl::Material);
         m_material->uniform("u_textureMix", m_textureMix->val());
         m_material->setDiffuse(m_color->val());
+        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
+        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material->setTwoSided();
+        m_material->setBlending();
         
         try
         {
@@ -154,7 +167,9 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_geometry =  gl::Geometry::Ptr( new gl::Plane(20, 20, 100, 100) );
+        m_straightPlane = gl::Geometry::Ptr( new gl::Plane(20, 20, 50, 50) );
+        
+        m_geometry =  gl::Geometry::Ptr( new gl::Geometry(*m_straightPlane) );
         m_geometry->createGLBuffers();
         
         m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material));
@@ -162,40 +177,60 @@ public:
         m_scene.addObject(m_mesh);
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
-        m_Camera->setLookAt(glm::vec3(0));
         
-        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
-        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
-        m_material->setTwoSided();
+        m_cvThread = CVThread::Ptr(new CVThread());
+        m_cvThread->streamUSBCamera();
         
-//        m_cvThread = CVThread::Ptr(new CVThread());
-//        m_cvThread->streamUSBCamera();
     }
     
     void update(const float timeDelta)
     {
 
-//        if(m_cvThread->hasImage())
-//        {
-//            vector<cv::Mat> images = m_cvThread->getImages();
-//            TextureIO::updateTexture(m_material->getTextures()[0], images[0]);
-//        }
+        if(m_cvThread->hasImage())
+        {
+            vector<cv::Mat> images = m_cvThread->getImages();
+            TextureIO::updateTexture(m_material->getTextures()[0], images[0]);
+        }
         
         *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
+        
+        // geometry update
+        m_geometry->getVertices() = m_straightPlane->getVertices();
+        vector<vec3>::iterator vertexIt = m_geometry->getVertices().begin();
+        for (; vertexIt != m_geometry->getVertices().end(); vertexIt++)
+        {
+            vec3 &theVert = *vertexIt;
+            theVert.z = 3 * glm::simplex( vec3( m_simplexDim->val() * vec2(theVert.xy()),
+                                                m_simplexSpeed->val() * getApplicationTime()));
+        }
+        m_geometry->createGLBuffers();
     }
     
     void draw()
     {
         gl::Material cloneMat1 = *m_material;
-        
         cloneMat1.setDepthWrite(false);
+        cloneMat1.setBlending(false);
         
         drawQuad(cloneMat1, getWindowSize());
 
         m_scene.render(m_Camera);
+    }
+    
+    void mousePress(const MouseEvent &e)
+    {
+        if(e.isLeft())
+           m_clickPos = vec2(e.getX(), e.getY());
+    }
+    
+    void mouseDrag(const MouseEvent &e)
+    {
+        if(e.isLeft())
+        {
+            vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
+        }
     }
     
     void resize(int w, int h)

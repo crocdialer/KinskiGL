@@ -228,7 +228,7 @@ namespace kinski{ namespace gl{
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
-                     GL_DYNAMIC_DRAW );
+                     GL_STREAM_DRAW );
         
         GLuint *indexBuffer = (GLuint*) glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
         

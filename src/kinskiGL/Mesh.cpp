@@ -29,10 +29,10 @@ namespace kinski { namespace gl {
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
-        if(m_vertexArray)
-            glDeleteVertexArrays(1, &m_vertexArray);
+//        if(m_vertexArray)
+//            glDeleteVertexArrays(1, &m_vertexArray);
         
-        glGenVertexArrays(1, &m_vertexArray);
+        if(!m_vertexArray) glGenVertexArrays(1, &m_vertexArray);
         glBindVertexArray(m_vertexArray);
         
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);

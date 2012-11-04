@@ -286,7 +286,8 @@ namespace kinski
             castPtr->getRange(min, max);
             std::stringstream ss;
             ss << TwGetBarName(theTweakBar) << "/'"
-            << theProperty->getName()<< "' min=" << min << " max=" << max;
+            << theProperty->getName()<< "' min=" << min << " max=" << max <<" step="
+            <<(max-min)/1000.f;
             
             TwDefine(ss.str().c_str());
         }
