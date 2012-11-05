@@ -6,7 +6,7 @@
 
 #include "kinskiCV/CVThread.h"
 
-#include "kinskiCore/Serializer.h"
+#include "kinskiGL/SerializerGL.h"
 
 using namespace std;
 using namespace kinski;
@@ -199,7 +199,7 @@ public:
 //        m_cvThread->streamUSBCamera();
         
         // load state from config file
-        loadComponentState(shared_from_this(), "config.json");
+        Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
     }
     
     void update(const float timeDelta)
@@ -288,7 +288,7 @@ public:
     
     void tearDown()
     {
-        saveComponentState(shared_from_this(), "config.json");
+        Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         printf("ciao simple geometry\n");
     }
 };
