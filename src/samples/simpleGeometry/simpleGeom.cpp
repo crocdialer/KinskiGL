@@ -2,10 +2,11 @@
 
 #include "kinskiGL/Scene.h"
 #include "kinskiGL/Mesh.h"
-
-#include "TextureIO.h"
+#include "kinskiGL/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
+
+#include "kinskiCore/Serializer.h"
 
 using namespace std;
 using namespace kinski;
@@ -197,6 +198,8 @@ public:
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
         
+        // load state from config file
+        loadComponentState(shared_from_this(), "config.json");
     }
     
     void update(const float timeDelta)
@@ -285,6 +288,7 @@ public:
     
     void tearDown()
     {
+        saveComponentState(shared_from_this(), "config.json");
         printf("ciao simple geometry\n");
     }
 };
