@@ -7,7 +7,6 @@
 //
 
 #include "Serializer.h"
-#include "json/json.h"
 #include <fstream>
 
 #define PROPERTY_TYPE         "type"
@@ -39,40 +38,76 @@ namespace kinski {
         return string ((istreambuf_iterator<char>(inStream)),
                        istreambuf_iterator<char>());
     }
-    
-    void setValue(Json::Value &theNode, Component::Ptr &theComponent)
+
+    bool PropertyIO::readPropertyValue(const Property::Ptr &theProperty,
+                                       Json::Value &theJsonValue) const
     {
-        try
-        {
-            std::string myName = theNode[PROPERTY_NAME].asString();
-            Property::Ptr myProperty = theComponent->getPropertyByName(myName);
+        bool success = false;
+        
+        if (theProperty->isOfType<float>()) {
+            theJsonValue[PROPERTY_TYPE]  = PROPERTY_TYPE_FLOAT;
+            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<float>();
+            success = true;
             
-            if (theNode[PROPERTY_TYPE].asString() == PROPERTY_TYPE_FLOAT)
-            {
-                myProperty->setValue<float>(theNode[PROPERTY_VALUE].asDouble());
-                
-            } else if (theNode[PROPERTY_TYPE].asString() == PROPERTY_TYPE_DOUBLE) {
-                myProperty->setValue<double>(theNode[PROPERTY_VALUE].asDouble());
-                
-            } else if (theNode[PROPERTY_TYPE].asString() == PROPERTY_TYPE_INT) {
-                myProperty->setValue<int>(theNode[PROPERTY_VALUE].asInt());
-                
-            } else if (theNode[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING) {
-                myProperty->setValue<std::string>(theNode[PROPERTY_VALUE].asString());
-                
-            } else if (theNode[PROPERTY_TYPE].asString() == PROPERTY_TYPE_BOOLEAN) {
-                myProperty->setValue<bool>(theNode[PROPERTY_VALUE].asBool());
-                
-            } else if (theNode[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN) {
-                // do nothing
-            }
-        } catch (PropertyNotFoundException &myException)
-        {
-            //LOG(WARNING) << myException.getMessage();
-        }
+        } else if (theProperty->isOfType<std::string>()) {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING;
+            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<std::string>();
+            success = true;
+            
+        } else if (theProperty->isOfType<int>()) {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_INT;
+            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<int>();
+            success = true;
+            
+        } else if (theProperty->isOfType<double>()) {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_DOUBLE;
+            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<double>();
+            success = true;
+            
+        } else if (theProperty->isOfType<bool>()) {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_BOOLEAN;
+            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<bool>();
+            success = true;
+            
+        } 
+        
+        return success;
     }
     
-    std::string getState(const Component::Ptr &theComponent)
+    bool PropertyIO::writePropertyValue(Property::Ptr &theProperty,
+                                        const Json::Value &theJsonValue) const
+    {
+        bool success = false;
+        
+        if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_FLOAT)
+        {
+            theProperty->setValue<float>(theJsonValue[PROPERTY_VALUE].asDouble());
+            success = true;
+            
+        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_DOUBLE) {
+            theProperty->setValue<double>(theJsonValue[PROPERTY_VALUE].asDouble());
+            success = true;
+            
+        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_INT) {
+            theProperty->setValue<int>(theJsonValue[PROPERTY_VALUE].asInt());
+            success = true;
+            
+        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING) {
+            theProperty->setValue<std::string>(theJsonValue[PROPERTY_VALUE].asString());
+            success = true;
+            
+        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_BOOLEAN) {
+            theProperty->setValue<bool>(theJsonValue[PROPERTY_VALUE].asBool());
+            success = true;
+            
+        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN) {
+            // do nothing
+        }
+        
+        return success;
+    }
+    
+    std::string serializeComponent(const Component::Ptr &theComponent, const PropertyIO &theIO)
     {
         Json::Value myRoot;
         
@@ -92,30 +127,12 @@ namespace kinski {
             
             myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_NAME] = myPropName;
             
-            if (myProperty->isOfType<float>()) {
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_TYPE]  = PROPERTY_TYPE_FLOAT;
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_VALUE] = myProperty->getValue<float>();
-                
-            } else if (myProperty->isOfType<std::string>()) {
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_TYPE] = PROPERTY_TYPE_STRING;
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_VALUE] = myProperty->getValue<std::string>();
-                
-            } else if (myProperty->isOfType<int>()) {
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_TYPE] = PROPERTY_TYPE_INT;
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_VALUE] = myProperty->getValue<int>();
-                
-            } else if (myProperty->isOfType<double>()) {
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_TYPE] = PROPERTY_TYPE_DOUBLE;
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_VALUE] = myProperty->getValue<double>();
-                
-            } else if (myProperty->isOfType<bool>()) {
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_TYPE] = PROPERTY_TYPE_BOOLEAN;
-                myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_VALUE] = myProperty->getValue<bool>();
-                
-            } else {
+            // delegate reading to PropertyIO object
+            if(! theIO.readPropertyValue(myProperty, myRoot[myIndex][PROPERTIES][myVIndex]))
+            {
                 myRoot[myIndex][PROPERTIES][myVIndex][PROPERTY_TYPE] = PROPERTY_TYPE_UNKNOWN;
             }
-            
+
             myVIndex++;
         }
         
@@ -126,9 +143,10 @@ namespace kinski {
         return myWriter.write(myRoot); 
     }
     
-    void saveComponentState(const Component::Ptr &theComponent, const std::string &theFileName)
+    void saveComponentState(const Component::Ptr &theComponent, const std::string &theFileName,
+                            const PropertyIO &theIO)
     {
-        std::string state = getState(theComponent);
+        std::string state = serializeComponent(theComponent);
         
         std::ofstream myFileOut(theFileName.c_str());
         
@@ -141,7 +159,8 @@ namespace kinski {
         myFileOut.close();
     }
     
-    void loadComponentState(Component::Ptr theComponent, const std::string &theFileName)
+    void loadComponentState(Component::Ptr theComponent, const std::string &theFileName,
+                            const PropertyIO &theIO)
     {
         std::string myConfigString = readFile(theFileName);
         
@@ -160,7 +179,16 @@ namespace kinski {
 
             for (unsigned int i=0; i < myComponentNode[PROPERTIES].size(); i++)
             {
-                setValue(myComponentNode[PROPERTIES][i], theComponent);
+                try
+                {
+                    std::string myName = myComponentNode[PROPERTIES][i][PROPERTY_NAME].asString();
+                    Property::Ptr myProperty = theComponent->getPropertyByName(myName);
+                    theIO.writePropertyValue(myProperty, myComponentNode[PROPERTIES][i]);
+                    
+                } catch (PropertyNotFoundException &myException)
+                {
+                    //LOG(WARNING) << myException.getMessage();
+                }
             }
         }
     }
