@@ -9,12 +9,7 @@
 #ifndef __KINSKI_COMPONENT_INCLUDED__
 #define __KINSKI_COMPONENT_INCLUDED__
 
-#include <string>
-#include <list>
-#include <exception>
-
 #include "Property.h"
-#include "Exception.h"
 
 namespace kinski 
 {

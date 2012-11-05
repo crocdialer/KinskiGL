@@ -158,22 +158,37 @@ namespace kinski
         if(m_running) resize(w, h);
     }
     
+    void App::getModifiers(uint32_t &buttonModifiers, uint32_t &keyModifiers)
+    {
+        buttonModifiers = 0;
+        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) )
+            buttonModifiers |= MouseEvent::LEFT_DOWN;
+        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) )
+            buttonModifiers |= MouseEvent::MIDDLE_DOWN;
+        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) )
+            buttonModifiers |= MouseEvent::RIGHT_DOWN;
+        
+        keyModifiers = 0;
+        if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
+            keyModifiers |= MouseEvent::CTRL_DOWN;
+        if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
+            keyModifiers |= MouseEvent::SHIFT_DOWN;
+        if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
+            keyModifiers |= MouseEvent::ALT_DOWN;
+    }
+    
     void App::__mouseMove(int x,int y)
     {
         if(m_displayTweakBar)
             TwEventMousePosGLFW(x,y);
         
-        uint32_t buttonModifier = 0;
-        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) )
-            buttonModifier |= MouseEvent::LEFT_DOWN;
-        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) )
-            buttonModifier |= MouseEvent::MIDDLE_DOWN;
-        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) )
-            buttonModifier |= MouseEvent::RIGHT_DOWN;
+        uint32_t buttonModifiers, keyModifiers, bothMods;
+        getModifiers(buttonModifiers, keyModifiers);
+        bothMods = buttonModifiers | keyModifiers;
             
-        MouseEvent e(0, x, y, buttonModifier, 0);
+        MouseEvent e(bothMods, x, y, bothMods, 0);
         
-        if(buttonModifier)
+        if(buttonModifiers)
             mouseDrag(e);
         else
             mouseMove(e);
@@ -184,35 +199,14 @@ namespace kinski
         if(m_displayTweakBar)
             TwEventMouseButtonGLFW(button, action);
         
-        uint32_t initiator = 0;
-        switch (button)
-        {
-            case GLFW_MOUSE_BUTTON_LEFT:
-                initiator = MouseEvent::LEFT_DOWN;
-                break;
-            case GLFW_MOUSE_BUTTON_MIDDLE:
-                initiator = MouseEvent::MIDDLE_DOWN;
-                break;
-            case GLFW_MOUSE_BUTTON_RIGHT:
-                initiator = MouseEvent::RIGHT_DOWN;
-                break;
-                
-            default:
-                break;
-        }
-        
-        uint32_t keyModifiers = initiator;
-        if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
-            keyModifiers |= MouseEvent::CTRL_DOWN;
-        if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
-            keyModifiers |= MouseEvent::SHIFT_DOWN;
-        if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
-            keyModifiers |= MouseEvent::ALT_DOWN;
+        uint32_t initiator, keyModifiers, bothMods;
+        getModifiers(initiator, keyModifiers);
+        bothMods = initiator | keyModifiers;
         
         int posX, posY;
         glfwGetMousePos(&posX, &posY);
         
-        MouseEvent e(initiator, posX, posY, keyModifiers, 0);
+        MouseEvent e(initiator, posX, posY, bothMods, 0);
         
         if (action == GLFW_PRESS)
             mousePress(e);

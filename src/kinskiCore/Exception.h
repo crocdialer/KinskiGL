@@ -26,7 +26,7 @@ namespace kinski
         inline void log()
         {
             //TODO: implement logging
-            std::cerr<<m_message<<std::endl;
+            //std::cerr<<m_message<<std::endl;
         };
         
     private:

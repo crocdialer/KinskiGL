@@ -8,8 +8,6 @@
 #ifndef _KINSKIProperty__INCLUDED__
 #define _KINSKIProperty__INCLUDED__
 
-#include <string>
-#include <list>
 #include <boost/any.hpp>
 
 #include "Definitions.h"

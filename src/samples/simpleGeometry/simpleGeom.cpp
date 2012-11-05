@@ -37,7 +37,11 @@ private:
     RangedProperty<float>::Ptr m_simplexSpeed;
     
     CVThread::Ptr m_cvThread;
+    
+    // mouse rotation control
     vec2 m_clickPos;
+    mat4 m_lastTransform;
+    float m_lastDistance;
 
     void drawLine(const vec2 &a, const vec2 &b)
     {
@@ -157,7 +161,6 @@ public:
         m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
         m_material->setTwoSided();
-        m_material->setBlending();
         
         try
         {
@@ -178,19 +181,32 @@ public:
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         
-        m_cvThread = CVThread::Ptr(new CVThread());
-        m_cvThread->streamUSBCamera();
+        {
+            int w = 1024, h = 1024;
+            float data[w * h];
+            
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                {
+                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
+                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
+                }
+            
+            m_material->getTextures()[0].update(data, GL_RED, w, h, true);
+        }
+//        m_cvThread = CVThread::Ptr(new CVThread());
+//        m_cvThread->streamUSBCamera();
         
     }
     
     void update(const float timeDelta)
     {
 
-        if(m_cvThread->hasImage())
-        {
-            vector<cv::Mat> images = m_cvThread->getImages();
-            TextureIO::updateTexture(m_material->getTextures()[0], images[0]);
-        }
+//        if(m_cvThread->hasImage())
+//        {
+//            vector<cv::Mat> images = m_cvThread->getImages();
+//            TextureIO::updateTexture(m_material->getTextures()[0], images[0]);
+//        }
         
         *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
                                         m_rotationSpeed->val() * timeDelta,
@@ -221,26 +237,29 @@ public:
     
     void mousePress(const MouseEvent &e)
     {
-        if(e.isLeft())
-           m_clickPos = vec2(e.getX(), e.getY());
+        m_clickPos = vec2(e.getX(), e.getY());
+        m_lastTransform = mat4(m_rotation->val());
+        m_lastDistance = m_distance->val();
     }
     
     void mouseDrag(const MouseEvent &e)
     {
-        if(e.isLeft())
+        vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
+        if(e.isLeft() && e.isAltDown())
         {
-            vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
+            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.x, vec3(0, 1, 0));
+            mouseRotate = glm::rotate(mouseRotate, mouseDiff.y, vec3(1, 0, 0));
+            *m_rotation = mat3(mouseRotate);
+        }
+        else if(e.isRight())
+        {
+            *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
         }
     }
     
     void resize(int w, int h)
     {
         m_Camera->setAspectRatio(getAspectRatio());
-    }
-    
-    void tearDown()
-    {
-        printf("ciao simple geometry\n");
     }
     
     // Property observer callback
@@ -262,6 +281,11 @@ public:
             m_Camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
             m_Camera->setLookAt(glm::vec3(0));
         }
+    }
+    
+    void tearDown()
+    {
+        printf("ciao simple geometry\n");
     }
 };
 

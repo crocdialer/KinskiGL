@@ -85,6 +85,9 @@ namespace kinski
         void __mouseButton(int button, int action);
         void __mouseWheel(int pos);
         
+        // return the current key and mouse button modifier mask
+        void getModifiers(uint32_t &buttonModifiers, uint32_t &keyModifiers);
+        
         // internal initialization. performed when run is invoked
         void init();
         
