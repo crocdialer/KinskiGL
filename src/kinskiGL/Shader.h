@@ -23,18 +23,17 @@
 #ifndef _KINSKI_SHADER_INCLUDED_
 #define _KINSKI_SHADER_INCLUDED_
 
-#include <exception>
 #include "KinskiGL.h"
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
-namespace kinski{
-namespace gl {
+namespace kinski { namespace gl {
 
 //! Represents an OpenGL GLSL program. \ImplShared
-class Shader {
+class Shader
+{
   public: 
-	Shader() {}
+	Shader(){};
     
 	Shader( const char *vertexShader, const char *fragmentShader,
             const char *geometryShader = 0, GLint geometryInputType = GL_POINTS,
@@ -112,10 +111,10 @@ class Shader {
 	//@}  
 };
 
-class ShaderCompileExc : public std::exception
+class ShaderCompileExc : public Exception
 {
  public:	
-	ShaderCompileExc( const std::string &log, GLint aShaderType ) throw();
+	ShaderCompileExc( const std::string &log, GLint aShaderType );
 	virtual const char* what() const throw()
 	{
 		return m_Message;
@@ -126,15 +125,11 @@ class ShaderCompileExc : public std::exception
 	GLint	m_ShaderType;
 };
 
-class ShaderNullProgramExc : public std::exception {
+class ShaderNullProgramExc : public Exception
+{
  public:	
-	virtual const char* what() const throw()
-	{
-		return "Glsl: Attempt to use null shader";
-	}
-
+    ShaderNullProgramExc(): Exception("GLSL: Attempt to use null shader"){};
 };
 
-}
-}
+}}//namespace
 #endif // _KINSKI_SHADER_INCLUDED_

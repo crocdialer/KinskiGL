@@ -7,7 +7,7 @@ const char *g_vertShaderSrc =
 uniform mat4 u_modelViewProjectionMatrix;\n\
 uniform mat4 u_textureMatrix;\n\
 \n\
-in vec4 a_position;\n\
+in vec4 a_vertex;\n\
 in vec4 a_texCoord;\n\
 \n\
 out vec4 v_texCoord;\n\
@@ -17,7 +17,7 @@ void main()\n\
 \n\
 v_texCoord =  u_textureMatrix * a_texCoord;\n\
 \n\
-gl_Position = u_modelViewProjectionMatrix * a_position;\n\
+gl_Position = u_modelViewProjectionMatrix * a_vertex;\n\
 }";
 
 const char *g_fragShaderSrc =

@@ -1,8 +1,18 @@
 #version 150 core
 
-uniform sampler2D   u_textureMap[];
-in vec4             v_texCoord;
+uniform int u_numTextures;
+uniform sampler2D u_textureMap[];
 
+uniform struct
+{
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec4 emission;
+    
+} u_material;
+
+in vec4 v_texCoord;
 out vec4 fragData;
 
 vec4 jet(in float val)

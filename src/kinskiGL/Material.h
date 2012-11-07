@@ -71,6 +71,8 @@ namespace kinski { namespace gl {
         Shader& getShader() {return m_shader;};
         const Shader& getShader() const {return m_shader;};
         
+        void setShader(const Shader &theShader) { m_shader = theShader; };
+        
         std::vector<Texture>& getTextures() {return m_textures;};
         const std::vector<Texture>& getTextures() const {return m_textures;};
         

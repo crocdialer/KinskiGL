@@ -2,8 +2,8 @@
 #include "kinskiGL/Texture.h"
 #include "kinskiGL/Shader.h"
 #include "Data.h"
-
 #include "kinskiGL/TextureIO.h"
+#include "kinskiGL/SerializerGL.h"
 
 #include "kinskiCV/CVThread.h"
 #include "ThreshNode.h"
@@ -192,15 +192,18 @@ public:
         m_activator = Property_<bool>::create("Dj Activate Money", true);
         
         // add props to tweakbar
-        addPropertyToTweakBar(m_distance, "Floats");
-        addPropertyToTweakBar(m_rotationSpeed, "Floats");
-        addPropertyToTweakBar(m_lightDir, "Vecs");
-        addPropertyToTweakBar(m_viewMatrix, "TurboSocken");
-        addPropertyToTweakBar(m_lightColor);
-        addPropertyToTweakBar(m_infoString);
-        addPropertyToTweakBar(m_activator);
+        registerProperty(m_distance);
+        registerProperty(m_rotationSpeed);
+        registerProperty(m_lightDir);
+        registerProperty(m_viewMatrix);
+        registerProperty(m_lightColor);
+        registerProperty(m_infoString);
+        registerProperty(m_activator);
         
-        addPropertyToTweakBar(Property_<cv::Mat>::create("luluMat", cv::Mat()));
+        registerProperty(Property_<cv::Mat>::create("luluMat", cv::Mat()));
+        addPropertyListToTweakBar(getPropertyList());
+
+        
         
         //*m_lightColor -= (*m_lightColor * 3.f);
         
@@ -215,11 +218,22 @@ public:
         m_cvThread->streamUSBCamera();
 
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
+        
+        // load state from config file
+        try
+        {
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+        }catch(FileNotFoundException &e)
+        {
+            printf("%s\n",e.what());
+        }
     }
     
     void tearDown()
     {
         m_cvThread->stop();
+
+        Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         
         printf("ciao camPoo lulu\n");
     }

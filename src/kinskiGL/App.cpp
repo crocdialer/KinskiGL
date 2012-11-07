@@ -78,8 +78,8 @@ namespace kinski
         glfwSetMousePosCallback(&s_mouseMove);
         glfwSetMouseWheelCallback(&s_mouseWheel);
         
-        glfwSetKeyCallback((GLFWkeyfun)TwEventKeyGLFW);
-        glfwSetCharCallback((GLFWcharfun)TwEventCharGLFW);
+        glfwSetKeyCallback(&s_keyFunc);
+        glfwSetCharCallback(&s_charFunc);
         
         // send window size events to AntTweakBar
         glfwSetWindowSizeCallback(&s_resize);
@@ -170,11 +170,13 @@ namespace kinski
         
         keyModifiers = 0;
         if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
-            keyModifiers |= MouseEvent::CTRL_DOWN;
+            keyModifiers |= KeyEvent::CTRL_DOWN;
         if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
-            keyModifiers |= MouseEvent::SHIFT_DOWN;
+            keyModifiers |= KeyEvent::SHIFT_DOWN;
         if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
-            keyModifiers |= MouseEvent::ALT_DOWN;
+            keyModifiers |= KeyEvent::ALT_DOWN;
+        if( glfwGetKey(GLFW_KEY_LSUPER))
+            keyModifiers |= KeyEvent::META_DOWN;
     }
     
     void App::__mouseMove(int x,int y)
@@ -222,17 +224,44 @@ namespace kinski
         int posX, posY;
         glfwGetMousePos(&posX, &posY);
         
-        uint32_t keyModifiers = 0;
-        if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
-            keyModifiers |= MouseEvent::CTRL_DOWN;
-        if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
-            keyModifiers |= MouseEvent::SHIFT_DOWN;
-        if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
-            keyModifiers |= MouseEvent::ALT_DOWN;
+        uint32_t buttonMod, keyModifiers = 0;
+        getModifiers(buttonMod, keyModifiers);
         
         MouseEvent e(0, posX, posY, keyModifiers, pos);
         
         mouseWheel(e);
+    }
+    
+    void App::__keyFunc(int key, int action)
+    {
+        if(m_displayTweakBar)
+            TwEventKeyGLFW(key, action);
+            
+        uint32_t buttonMod, keyMod;
+        getModifiers(buttonMod, keyMod);
+        
+        KeyEvent e(key, key, keyMod);
+        
+        if(action == GLFW_PRESS)
+            keyPress(e);
+        else
+            keyRelease(e);
+    }
+    
+    void App::__charFunc(int key, int action)
+    {
+        if(m_displayTweakBar)
+            TwEventCharGLFW(key, action);
+        
+        uint32_t buttonMod, keyMod;
+        getModifiers(buttonMod, keyMod);
+        
+        KeyEvent e(key, key, keyMod);
+        
+        if(action == GLFW_PRESS)
+            keyPress(e);
+        else
+            keyRelease(e);
     }
     
 /****************************  TweakBar + Properties **************************/

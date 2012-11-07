@@ -18,7 +18,7 @@ namespace kinski {
     const std::string PropertyIO_GL::PROPERTY_TYPE_MAT4 = "mat4";
     
     bool PropertyIO_GL::readPropertyValue(const Property::Ptr &theProperty,
-                                       Json::Value &theJsonValue) const
+                                          Json::Value &theJsonValue) const
     {
         bool success = PropertyIO::readPropertyValue(theProperty, theJsonValue);
         
@@ -103,7 +103,7 @@ namespace kinski {
     }
     
     bool PropertyIO_GL::writePropertyValue(Property::Ptr &theProperty,
-                                        const Json::Value &theJsonValue) const
+                                           const Json::Value &theJsonValue) const
     {
         bool success = PropertyIO::writePropertyValue(theProperty, theJsonValue);
         

@@ -18,4 +18,22 @@
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
 
+
+namespace kinski { namespace gl {
+
+    class Texture;
+    class Material;
+    
+    void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
+    
+    void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
+                     const glm::vec2 &theTopLeft = glm::vec2(0));
+    
+    void drawQuad(gl::Material &theMaterial, const glm::vec2 &theSize,
+                  const glm::vec2 &theTopLeft = glm::vec2(0));
+    
+    void drawQuad(gl::Material &theMaterial, float x0, float y0, float x1, float y1);
+    
+}}//namespace
+
 #endif //_KINSKIGL_H

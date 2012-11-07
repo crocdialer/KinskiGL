@@ -44,78 +44,6 @@ private:
     mat4 m_lastTransform;
     float m_lastDistance;
 
-    void drawLine(const vec2 &a, const vec2 &b)
-    {
-        
-    }
-    
-    void drawQuad(gl::Material &theMaterial,
-                  const vec2 &theSize,
-                  const vec2 &theTl = vec2(0))
-    {
-        vec2 sz = theSize;
-        vec2 tl = theTl == vec2(0) ? vec2(0, getHeight()) : theTl;
-        drawQuad(theMaterial, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
-    }
-    
-    
-    void drawQuad(gl::Material &theMaterial,
-                  float x0, float y0, float x1, float y1)
-    {
-        // orthographic projection with a [0,1] coordinate space
-        static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-        
-        float scaleX = (x1 - x0) / getWidth();
-        float scaleY = (y0 - y1) / getHeight();
-        
-        mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
-        modelViewMatrix[3] = vec4(x0 / getWidth(), y1 / getHeight() , 0, 1);
-        
-        theMaterial.uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
-        
-        theMaterial.apply();
-        
-        static GLuint canvasVAO = 0;
-        
-        if(!canvasVAO)
-        {
-            //GL_T2F_V3F
-            const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
-                                    1.0,0.0,1.0,0.0,0.0,
-                                    1.0,1.0,1.0,1.0,0.0,
-                                    0.0,1.0,0.0,1.0,0.0};
-            
-            // create VAO to record all VBO calls
-            glGenVertexArrays(1, &canvasVAO);
-            glBindVertexArray(canvasVAO);
-            
-            GLuint canvasBuffer;
-            glGenBuffers(1, &canvasBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, canvasBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
-            
-            GLsizei stride = 5 * sizeof(GLfloat);
-            
-            GLuint vertexAttribLocation = theMaterial.getShader().getAttribLocation("a_vertex");
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                  stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
-            
-            GLuint texCoordAttribLocation = theMaterial.getShader().getAttribLocation("a_texCoord");
-            glEnableVertexAttribArray(texCoordAttribLocation);
-            glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                                  stride, BUFFER_OFFSET(0));
-            
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            
-            glBindVertexArray(0);
-        }
-        
-        glBindVertexArray(canvasVAO);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glBindVertexArray(0);
-    }
-
 public:
     
     void setup()
@@ -199,7 +127,13 @@ public:
 //        m_cvThread->streamUSBCamera();
         
         // load state from config file
-        Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+        try
+        {
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+        }catch(FileNotFoundException &e)
+        {
+            printf("%s\n", e.what());
+        }
     }
     
     void update(const float timeDelta)
@@ -232,8 +166,9 @@ public:
         gl::Material cloneMat1 = *m_material;
         cloneMat1.setDepthWrite(false);
         cloneMat1.setBlending(false);
+        cloneMat1.setWireframe(false);
         
-        drawQuad(cloneMat1, getWindowSize());
+        gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
 
         m_scene.render(m_Camera);
     }
@@ -257,6 +192,27 @@ public:
         else if(e.isRight())
         {
             *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
+        }
+    }
+    
+    void keyPress(const KeyEvent &e)
+    {
+        
+        //if(e.isControlDown())
+        {
+            switch (e.getChar())
+            {
+            case KeyEvent::KEY_s:
+                Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                break;
+                
+            case KeyEvent::KEY_r:
+                Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                break;
+                    
+            default:
+                break;
+            }
         }
     }
     
@@ -288,7 +244,6 @@ public:
     
     void tearDown()
     {
-        Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         printf("ciao simple geometry\n");
     }
 };
