@@ -99,7 +99,7 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_straightPlane = gl::Geometry::Ptr( new gl::Plane(20, 20, 50, 50) );
+        m_straightPlane = gl::Geometry::Ptr( new gl::Plane(20, 13, 50, 50) );
         
         m_geometry =  gl::Geometry::Ptr( new gl::Geometry(*m_straightPlane) );
         m_geometry->createGLBuffers();
@@ -170,7 +170,14 @@ public:
         
         gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
 
-        m_scene.render(m_Camera);
+        //m_scene.render(m_Camera);
+        
+        gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
+        gl::drawPoints(m_mesh->getGeometry()->getVertices());
+        
+        //gl::drawLines(m_mesh->getGeometry()->getVertices(), m_color->val());
+        //gl::drawLine(vec2(0, getHeight() ), vec2(getWidth(), 0));
     }
     
     void mousePress(const MouseEvent &e)

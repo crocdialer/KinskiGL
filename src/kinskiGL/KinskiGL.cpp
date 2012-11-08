@@ -6,14 +6,251 @@
 //
 //
 
+#include <stack>
 #include "KinskiGL.h"
-#include "App.h"
 #include "Material.h"
 
 using namespace glm;
 using namespace std;
 
 namespace kinski { namespace gl {
+    
+    glm::vec2 g_windowDim;
+    std::stack<glm::mat4> g_projectionMatrixStack;
+    std::stack<glm::mat4> g_modelViewMatrixStack;
+    
+    void pushMatrix(const Matrixtype type)
+    {
+        switch (type)
+        {
+            case PROJECTION_MATRIX:
+                g_projectionMatrixStack.push(g_projectionMatrixStack.top());
+                break;
+            case MODEL_VIEW_MATRIX:
+                g_modelViewMatrixStack.push(g_modelViewMatrixStack.top());
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
+    void popMatrix(const Matrixtype type)
+    {
+        switch (type)
+        {
+            case PROJECTION_MATRIX:
+                g_projectionMatrixStack.pop();
+                break;
+            case MODEL_VIEW_MATRIX:
+                g_modelViewMatrixStack.pop();
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
+    void multMatrix(const Matrixtype type, const glm::mat4 &theMatrix)
+    {
+        switch (type)
+        {
+            case PROJECTION_MATRIX:
+                g_projectionMatrixStack.top() *= theMatrix;
+                break;
+            case MODEL_VIEW_MATRIX:
+                g_modelViewMatrixStack.top() *= theMatrix;
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
+    void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix)
+    {
+        switch (type)
+        {
+            case PROJECTION_MATRIX:
+                g_projectionMatrixStack.top() = theMatrix;
+                break;
+            case MODEL_VIEW_MATRIX:
+                g_modelViewMatrixStack.top() = theMatrix;
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
+    void setWindowDimension(const glm::vec2 &theDim)
+    {
+        g_windowDim = theDim;
+        
+        if(g_projectionMatrixStack.empty())
+            g_projectionMatrixStack.push(mat4());
+        
+        if(g_modelViewMatrixStack.empty())
+            g_modelViewMatrixStack.push(mat4());
+    }
+    
+    void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
+    {
+        static vector<vec3> thePoints;
+        thePoints.clear();
+        thePoints.push_back(vec3(a, 0));
+        thePoints.push_back(vec3(b, 0));
+        
+        ScopedMatrixPush pro(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
+        
+        loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_windowDim[0],
+                                                     0.f, g_windowDim[1],
+                                                     0.f, 1000.f));
+        
+        loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
+        
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glEnable(GL_LINE_SMOOTH);
+        
+        drawLines(thePoints, theColor);
+    }
+    
+    void drawLines(const vector<vec3> &thePoints, const vec4 &theColor)
+    {
+        // no effect in OpenGL 3.2 !?
+        // glLineWidth(10.f);
+        static Shader lineShader;
+        
+        //create shader
+        if(!lineShader)
+        {
+            const char *vertSrc =
+            "#version 150 core\n"
+            "uniform mat4 u_modelViewProjectionMatrix;\n"
+            "in vec4 a_vertex;\n"
+            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
+            
+            const char *fragSrc =
+            "#version 150 core\n"
+            "uniform vec4 u_lineColor;\n"
+            "out vec4 fragData;\n"
+            "void main(){fragData = u_lineColor;}\n";
+            
+            try
+            {
+                lineShader.loadFromData(vertSrc, fragSrc);
+            } catch (Exception &e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+        }
+        
+        lineShader.bind();
+        
+        lineShader.uniform("u_modelViewProjectionMatrix",
+                           g_projectionMatrixStack.top()
+                           * g_modelViewMatrixStack.top());
+        
+        lineShader.uniform("u_lineColor", theColor);
+        
+        static GLuint lineVBO = 0;
+        static GLuint lineVAO = 0;
+        
+        if(!lineVAO)
+        {
+            glGenVertexArrays(1, &lineVAO);
+            glBindVertexArray(lineVAO);
+            
+            if(!lineVBO)
+                glGenBuffers(1, &lineVBO);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size(),
+                         NULL, GL_STREAM_DRAW);
+            
+            GLuint vertexAttribLocation = lineShader.getAttribLocation("a_vertex");
+            glEnableVertexAttribArray(vertexAttribLocation);
+            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            
+            glBindVertexArray(0);
+        }
+        
+        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+        glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size() * sizeof(GLfloat),
+                     NULL, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size() * sizeof(GLfloat),
+                     &thePoints[0], GL_STREAM_DRAW);
+        
+        glBindVertexArray(lineVAO);
+        glDrawArrays(GL_LINES, 0, thePoints.size());
+        glBindVertexArray(0);
+    }
+    
+    void drawPoints(const std::vector<glm::vec3> &thePoints)
+    {
+        static Shader pointShader;
+        
+        //create shader
+        if(!pointShader)
+        {
+            const char *vertSrc =
+            "#version 150 core\n"
+            "uniform mat4 u_modelViewProjectionMatrix;\n"
+            "in vec4 a_vertex;\n"
+            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
+            
+            const char *fragSrc =
+            "#version 150 core\n"
+            "out vec4 fragData;\n"
+            "void main(){fragData = vec4(1, 0, 0, 1);}\n";
+            
+            try
+            {
+                pointShader.loadFromData(vertSrc, fragSrc);
+            } catch (Exception &e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+        }
+        
+        pointShader.bind();
+        
+        pointShader.uniform("u_modelViewProjectionMatrix",
+                            g_projectionMatrixStack.top()
+                            * g_modelViewMatrixStack.top());
+        
+        static GLuint lineVBO = 0;
+        static GLuint lineVAO = 0;
+        
+        if(!lineVAO)
+        {
+            glGenVertexArrays(1, &lineVAO);
+            glBindVertexArray(lineVAO);
+            
+            if(!lineVBO)
+                glGenBuffers(1, &lineVBO);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            
+            GLuint vertexAttribLocation = pointShader.getAttribLocation("a_vertex");
+            glEnableVertexAttribArray(vertexAttribLocation);
+            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            
+            glBindVertexArray(0);
+        }
+        
+        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+        glBufferData(GL_ARRAY_BUFFER, 3 * thePoints.size() * sizeof(GLfloat), NULL,
+                     GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, 3 * thePoints.size() * sizeof(GLfloat), &thePoints[0],
+                     GL_STREAM_DRAW);
+
+        
+        glBindVertexArray(lineVAO);
+        glDrawArrays(GL_POINTS, 0, thePoints.size());
+        glBindVertexArray(0);
+    }
     
     void drawTexture(gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
@@ -59,7 +296,7 @@ namespace kinski { namespace gl {
         }
         
         vec2 sz = theSize;
-        vec2 tl = theTopLeft == vec2(0) ? vec2(0, App::getInstance()->getHeight()) : theTopLeft;
+        vec2 tl = theTopLeft == vec2(0) ? vec2(0, g_windowDim[1]) : theTopLeft;
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
@@ -68,7 +305,7 @@ namespace kinski { namespace gl {
                   const vec2 &theTl)
     {
         vec2 sz = theSize;
-        vec2 tl = theTl == vec2(0) ? vec2(0, App::getInstance()->getHeight()) : theTl;
+        vec2 tl = theTl == vec2(0) ? vec2(0, g_windowDim[1]) : theTl;
         drawQuad(theMaterial, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
@@ -79,14 +316,12 @@ namespace kinski { namespace gl {
         // orthographic projection with a [0,1] coordinate space
         static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
         
-        App::Ptr app = App::getInstance();
-        
-        float scaleX = (x1 - x0) / app->getWidth();
-        float scaleY = (y0 - y1) / app->getHeight();
+        float scaleX = (x1 - x0) / g_windowDim[0];
+        float scaleY = (y0 - y1) / g_windowDim[1];
         
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
-        modelViewMatrix[3] = vec4(x0 / app->getWidth(),
-                                  y1 / app->getHeight() , 0, 1);
+        modelViewMatrix[3] = vec4(x0 / g_windowDim[0],
+                                  y1 / g_windowDim[1] , 0, 1);
         
         theMaterial.uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
         
@@ -130,84 +365,6 @@ namespace kinski { namespace gl {
         
         glBindVertexArray(canvasVAO);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glBindVertexArray(0);
-    }
-    
-    void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
-    {
-        // no effect in OpenGL 3.2 !?
-        // glLineWidth(10.f);
-        static Shader lineShader;
-        
-        //create shader
-        if(!lineShader)
-        {
-            const char *vertSrc =
-            "#version 150 core\n"
-            "uniform mat4 u_modelViewProjectionMatrix;\n"
-            "in vec4 a_vertex;\n"
-            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
-            
-            const char *fragSrc =
-            "#version 150 core\n"
-            "uniform vec4 u_lineColor;\n"
-            "out vec4 fragData;\n"
-            "void main(){fragData = u_lineColor;}\n";
-            
-            try
-            {
-                lineShader.loadFromData(vertSrc, fragSrc);
-            } catch (Exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-            }
-        }
-        
-        App::Ptr app = App::getInstance();
-
-        lineShader.bind();
-        
-        lineShader.uniform("u_modelViewProjectionMatrix",
-                            glm::ortho(0.f, app->getWidth(),
-                                       0.f, app->getHeight(),
-                                       0.f, 1000.f));
-    
-        lineShader.uniform("u_lineColor", theColor);
-        
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glEnable(GL_LINE_SMOOTH);
-
-        static GLuint lineVBO = 0;
-        static GLuint lineVAO = 0;
-        
-        if(!lineVAO)
-        {
-            glGenVertexArrays(1, &lineVAO);
-            glBindVertexArray(lineVAO);
-            
-            if(!lineVBO)
-                glGenBuffers(1, &lineVBO);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-            glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-            
-            GLuint vertexAttribLocation = lineShader.getAttribLocation("a_vertex");
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-            
-            glBindVertexArray(0);
-        }
-        
-        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-        glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-        GLfloat *bufferPtr = (GLfloat*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        bufferPtr[0] = a[0]; bufferPtr[1] = a[1];
-        bufferPtr[2] = b[0]; bufferPtr[3] = b[1];
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-        
-        glBindVertexArray(lineVAO);
-        glDrawArrays(GL_LINES, 0, 2);
         glBindVertexArray(0);
     }
     

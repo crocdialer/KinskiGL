@@ -24,7 +24,32 @@ namespace kinski { namespace gl {
     class Texture;
     class Material;
     
+    enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
+    void pushMatrix(const Matrixtype type);
+    void popMatrix(const Matrixtype type);
+    void multMatrix(const glm::mat4 &theMatrix);
+    void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
+    
+    class ScopedMatrixPush
+    {
+    public:
+        ScopedMatrixPush(const Matrixtype type):
+        m_type(type)
+        {pushMatrix(type);}
+        
+        ~ScopedMatrixPush()
+        {popMatrix(m_type);}
+    private:
+        Matrixtype m_type;
+    };
+    
+    void setWindowDimension(const glm::vec2 &theDim);
+    
     void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
+    
+    void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
+    
+    void drawPoints(const std::vector<glm::vec3> &thePoints);
     
     void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
                      const glm::vec2 &theTopLeft = glm::vec2(0));

@@ -151,7 +151,10 @@ namespace kinski
     {
         m_windowSize = glm::ivec2(w, h);
         
+        
         glViewport(0, 0, w, h);
+        gl::setWindowDimension(m_windowSize);
+        
         TwWindowSize(w, h);
         
         // user hook

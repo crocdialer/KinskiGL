@@ -5,7 +5,7 @@
 #include "kinskiCV/CVThread.h"
 #include "SalienceNode.h"
 
-#include "Data.h"
+#include "kinskiGL/SerializerGL.h"
 
 using namespace std;
 using namespace kinski;
@@ -32,18 +32,7 @@ public:
     void setup()
     {
         glClearColor(0, 0, 0, 1);
-        
-        try
-        {
-            //m_material.getShader().loadFromFile("applyMap.vert", "applyMap.frag");
-            m_material.getShader().loadFromFile("applyMap.vert", "applyMap.frag");
-            
-        }catch (std::exception &e)
-        {
-            fprintf(stderr, "%s\n",e.what());
-            exit(EXIT_FAILURE);
-        }
-        
+
         // add 2 empty textures
         m_material.addTexture(m_textures[0]);
         m_material.addTexture(m_textures[1]);
@@ -54,9 +43,11 @@ public:
         m_imageIndex = RangedProperty<uint32_t>::create("Image Index",
                                                          0, 0, 1);
         
+        registerProperty(m_activator);
+        registerProperty(m_imageIndex);
+        
         // add component-props to tweakbar
-        addPropertyToTweakBar(m_activator);
-        addPropertyToTweakBar(m_imageIndex);
+        addPropertyListToTweakBar(getPropertyList());
         
         // CV stuff
         m_cvThread = CVThread::Ptr(new CVThread());
@@ -76,11 +67,26 @@ public:
         
         cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
         
+        try
+        {
+            m_material.getShader().loadFromFile("applyMap.vert", "applyMap.frag");
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            
+        }catch(FileNotFoundException &e)
+        {
+            fprintf(stderr, "%s\n",e.what());
+        }catch (std::exception &e)
+        {
+            fprintf(stderr, "%s\n",e.what());
+            exit(EXIT_FAILURE);
+        }
+        
     }
     
     void tearDown()
     {
         m_cvThread->stop();
+        Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         
         printf("ciao saliencer\n");
     }

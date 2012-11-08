@@ -83,14 +83,17 @@ namespace kinski { namespace gl {
             glDisable(GL_BLEND);
         
         // enable texturing
-        if(!m_textures.empty()) glEnable(GL_TEXTURE_2D);
+        if(!m_textures.empty())
+        {
+            glEnable(GL_TEXTURE_2D);
+            m_shader.uniform("u_numTextures", (GLint) m_textures.size());
+        }
         
         // texture matrix from first texture, if any
         m_shader.uniform("u_textureMatrix",
                          m_textures.empty() ? glm::mat4() : m_textures.front().getTextureMatrix());
         
         // add texturemaps
-        m_shader.uniform("u_numTextures", (GLint) m_textures.size());
         for(int i=0;i<m_textures.size();i++)
         {
             m_textures[i].bind(i);
