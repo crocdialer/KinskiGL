@@ -21,11 +21,8 @@
 */
 
 #include "Shader.h"
-#include <map>
-#include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
-#include "kinskiCore/Exception.h"
 
 using namespace std;
 
@@ -54,6 +51,9 @@ Shader::Obj::~Obj()
 
 //////////////////////////////////////////////////////////////////////////
 // Shader
+
+Shader::Shader(){}
+    
 Shader::Shader(const char *vertexShader, const char *fragmentShader,
                const char *geometryShader, GLint geometryInputType,
                GLint geometryOutputType, GLint geometryOutputVertices)
@@ -68,13 +68,7 @@ Shader::Shader(const char *vertexShader, const char *fragmentShader,
 		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
     
 	if( geometryShader )
-    {
 		loadShader( geometryShader, GL_GEOMETRY_SHADER );
-        
-//        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_INPUT_TYPE_EXT, geometryInputType);
-//        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_OUTPUT_TYPE_EXT, geometryOutputType);
-//        glProgramParameteriEXT(m_Obj->m_Handle, GL_GEOMETRY_VERTICES_OUT_EXT, geometryOutputVertices);
-    }
     
 	link();
 }
@@ -96,18 +90,19 @@ void Shader::loadFromData(const char *vertSrc,
         loadShader(geomSrc, GL_GEOMETRY_SHADER);
     
     link();
-
 }
     
 void Shader::loadFromFile(const std::string &vertPath,
                           const std::string &fragPath,
                           const std::string &geomPath)
 {
-    string vertSrc, fragSrc;
+    string vertSrc, fragSrc, geomSrc;
     vertSrc = readFile(vertPath);
     fragSrc = readFile(fragPath);
+
+    if (!geomPath.empty()) geomSrc = readFile(geomPath);
     
-    loadFromData(vertSrc.c_str(), fragSrc.c_str());
+    loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
 }
     
 const string Shader::readFile(const std::string &path)
@@ -132,7 +127,8 @@ void Shader::loadShader( const char *shaderSource, GLint shaderType )
 	
 	GLint status;
 	glGetShaderiv( (GLuint) handle, GL_COMPILE_STATUS, &status );
-	if( status != GL_TRUE ) {
+	if( status != GL_TRUE )
+    {
 		std::string log = getShaderLog( (GLuint)handle );
 		throw ShaderCompileExc( log, shaderType );
 	}
@@ -141,11 +137,22 @@ void Shader::loadShader( const char *shaderSource, GLint shaderType )
 
 void Shader::link()
 {
-	glLinkProgram( m_Obj->m_Handle );	
+    glLinkProgram( m_Obj->m_Handle );
+    
+    GLint status;
+	glGetProgramiv( m_Obj->m_Handle, GL_LINK_STATUS, &status );
+	if( status != GL_TRUE )
+    {
+		std::string log = getProgramLog();
+		throw ShaderLinkException();
+	}
+    std::string log = getProgramLog();
 }
 
 void Shader::bind() const
 {
+    if(!m_Obj) throw ShaderNullProgramExc();
+    
 	glUseProgram( m_Obj->m_Handle );
 }
 
@@ -175,6 +182,24 @@ std::string Shader::getShaderLog( GLuint handle ) const
 	}
 	
 	return log;
+}
+    
+std::string Shader::getProgramLog() const
+{
+    std::string log;
+    
+    GLchar *debugLog;
+    GLint debugLength = 0, charsWritten = 0;
+    glGetProgramiv( m_Obj->m_Handle, GL_INFO_LOG_LENGTH, &debugLength );
+    
+    if( debugLength > 0 ) {
+        debugLog = new GLchar[debugLength];
+        glGetProgramInfoLog( m_Obj->m_Handle, debugLength, &charsWritten, debugLog );
+        log.append( debugLog, 0, debugLength );
+        delete [] debugLog;
+    }
+    
+    return log;
 }
 
 void Shader::uniform( const std::string &name, GLint data )

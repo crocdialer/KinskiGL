@@ -10,6 +10,9 @@
 #include "KinskiGL.h"
 #include "Material.h"
 
+#include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
+
 using namespace glm;
 using namespace std;
 
@@ -187,45 +190,69 @@ namespace kinski { namespace gl {
         glBindVertexArray(0);
     }
     
-    void drawPoints(const std::vector<glm::vec3> &thePoints)
+    void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
     {
-        static Shader pointShader;
+        static Material::Ptr staticMat;
         
         //create shader
-        if(!pointShader)
+        if(!staticMat)
         {
+            staticMat = gl::Material::Ptr(new gl::Material);
+            
             const char *vertSrc =
             "#version 150 core\n"
             "uniform mat4 u_modelViewProjectionMatrix;\n"
+            "uniform float u_pointSize;\n"
             "in vec4 a_vertex;\n"
-            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
+            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
+            "gl_PointSize = u_pointSize;}\n";
             
             const char *fragSrc =
             "#version 150 core\n"
+            "uniform int u_numTextures;\n"
+            "uniform sampler2D u_textureMap[];\n"
+            "uniform struct{\n"
+            "vec4 diffuse;\n"
+            "vec4 ambient;\n"
+            "vec4 specular;\n"
+            "vec4 emission;\n"
+            "} u_material;\n"
             "out vec4 fragData;\n"
-            "void main(){fragData = vec4(1, 0, 0, 1);}\n";
+            "void main(){\n"
+            "vec4 texColors = vec4(1);\n"
+            "for(int i = 0; i < u_numTextures; i++)\n"
+            "   {texColors *= texture(u_textureMap[0], gl_PointCoord);}\n"
+            "if(texColors.a == 0.0) discard;\n"
+            "fragData = u_material.diffuse * texColors;\n"
+            "}\n";
             
             try
             {
-                pointShader.loadFromData(vertSrc, fragSrc);
+                staticMat->getShader().loadFromData(vertSrc, fragSrc);
+                staticMat->setPointSize(2.f);
             } catch (Exception &e)
             {
                 std::cerr << e.what() << std::endl;
             }
         }
         
-        pointShader.bind();
+        Material::Ptr activeMat = theMaterial ? theMaterial : staticMat;
         
-        pointShader.uniform("u_modelViewProjectionMatrix",
+        if(!activeMat->getShader())
+            activeMat->getShader() = staticMat->getShader();
+            
+        activeMat->uniform("u_modelViewProjectionMatrix",
                             g_projectionMatrixStack.top()
                             * g_modelViewMatrixStack.top());
+        
+        activeMat->apply();
         
         static GLuint lineVBO = 0;
         static GLuint lineVAO = 0;
         
-        if(!lineVAO)
+        if(!lineVAO || (activeMat != staticMat) )
         {
-            glGenVertexArrays(1, &lineVAO);
+            if(!lineVAO) glGenVertexArrays(1, &lineVAO);
             glBindVertexArray(lineVAO);
             
             if(!lineVBO)
@@ -233,7 +260,7 @@ namespace kinski { namespace gl {
             
             glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
             
-            GLuint vertexAttribLocation = pointShader.getAttribLocation("a_vertex");
+            GLuint vertexAttribLocation = activeMat->getShader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
             
@@ -366,6 +393,44 @@ namespace kinski { namespace gl {
         glBindVertexArray(canvasVAO);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
         glBindVertexArray(0);
+    }
+    
+    void drawGrid(float width, float height, int numW, int numH)
+    {
+        static map<boost::tuple<float,float,int,int>, vector<vec3> > theMap;
+        static vec4 colorGrey(.7, .7, .7, 1.0);
+        
+        // incoming key
+        boost::tuple<float,float,int,int> conf (width, height, numW, numH);
+        
+        map<boost::tuple<float,float,int,int>, vector<vec3> >::iterator it = theMap.find(conf);
+        if(it == theMap.end())
+        {
+            vector<vec3> thePoints;
+            
+            float stepX = width / numW, stepZ = height / numH;
+            
+            float w2 = width / 2.f, h2 = height / 2.f;
+            
+            for (int z = 0; z < numH + 1; z++ )
+            {
+                for (int x = 0; x < numW + 1; x ++ )
+                {
+                    // line X
+                    thePoints.push_back(vec3(- w2 + x * stepX, 0.f, -h2));
+                    thePoints.push_back(vec3(- w2 + x * stepX, 0.f, h2));
+                    
+                    // line Z
+                    thePoints.push_back(vec3(- w2 , 0.f, -h2 + z * stepZ));
+                    thePoints.push_back(vec3( w2 , 0.f, -h2 + z * stepZ));
+                }
+            }
+            
+            theMap.clear();
+            theMap[conf] = thePoints;
+        }
+        
+        drawLines(theMap[conf], colorGrey);
     }
     
 }}//namespace

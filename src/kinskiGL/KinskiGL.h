@@ -21,6 +21,7 @@
 
 namespace kinski { namespace gl {
 
+    // forward declarations
     class Texture;
     class Material;
     
@@ -49,7 +50,8 @@ namespace kinski { namespace gl {
     
     void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
     
-    void drawPoints(const std::vector<glm::vec3> &thePoints);
+    void drawPoints(const std::vector<glm::vec3> &thePoints,
+                    const std::shared_ptr<Material> &theMaterial = std::shared_ptr<Material>());
     
     void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
                      const glm::vec2 &theTopLeft = glm::vec2(0));
@@ -58,6 +60,8 @@ namespace kinski { namespace gl {
                   const glm::vec2 &theTopLeft = glm::vec2(0));
     
     void drawQuad(gl::Material &theMaterial, float x0, float y0, float x1, float y1);
+    
+    void drawGrid(float width, float height, int numW = 20, int numH = 20);
     
 }}//namespace
 

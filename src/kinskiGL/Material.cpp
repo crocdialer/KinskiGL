@@ -42,7 +42,8 @@ namespace kinski { namespace gl {
     m_wireFrame(false),
     m_depthTest(true),
     m_depthWrite(true),
-    m_blending(false), m_blendSrc(GL_SRC_ALPHA), m_blendDst(GL_ONE_MINUS_SRC_ALPHA)
+    m_blending(false), m_blendSrc(GL_SRC_ALPHA), m_blendDst(GL_ONE_MINUS_SRC_ALPHA),
+    m_pointSize(0.f)
     {
         m_uniforms["u_material.diffuse"] = m_diffuse;
         m_uniforms["u_material.ambient"] = m_ambient;
@@ -71,7 +72,7 @@ namespace kinski { namespace gl {
         if(m_depthTest) glEnable(GL_DEPTH_TEST);
         else glDisable(GL_DEPTH_TEST);
         
-        if(m_depthWrite) glDepthMask(GL_TRUE);
+        if(m_depthWrite && !m_blending) glDepthMask(GL_TRUE);
         else glDepthMask(GL_FALSE);
         
         if(m_blending)
@@ -82,16 +83,26 @@ namespace kinski { namespace gl {
         else
             glDisable(GL_BLEND);
         
+        if(m_pointSize > 0.f)
+        {
+            glEnable(GL_PROGRAM_POINT_SIZE);
+            m_shader.uniform("u_pointSize", m_pointSize);
+        }
+        
         // enable texturing
         if(!m_textures.empty())
         {
             glEnable(GL_TEXTURE_2D);
-            m_shader.uniform("u_numTextures", (GLint) m_textures.size());
+        }else
+        {
+            glDisable(GL_TEXTURE_2D);
         }
         
         // texture matrix from first texture, if any
         m_shader.uniform("u_textureMatrix",
                          m_textures.empty() ? glm::mat4() : m_textures.front().getTextureMatrix());
+        
+        m_shader.uniform("u_numTextures", (GLint) m_textures.size());
         
         // add texturemaps
         for(int i=0;i<m_textures.size();i++)

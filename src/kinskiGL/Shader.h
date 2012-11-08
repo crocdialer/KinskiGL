@@ -33,7 +33,7 @@ namespace kinski { namespace gl {
 class Shader
 {
   public: 
-	Shader(){};
+	Shader();
     
 	Shader( const char *vertexShader, const char *fragmentShader,
             const char *geometryShader = 0, GLint geometryInputType = GL_POINTS,
@@ -85,6 +85,7 @@ class Shader
 	GLint getAttribLocation( const std::string &name );
 
 	std::string getShaderLog( GLuint handle ) const;
+    std::string getProgramLog() const;
     
     void loadFromData(const char *vertSrc, const char *fragSrc,
                       const char *geomSrc = NULL);
@@ -123,6 +124,12 @@ class ShaderCompileExc : public Exception
  private:
 	char	m_Message[16001];
 	GLint	m_ShaderType;
+};
+    
+class ShaderLinkException : public Exception
+{
+public:
+    ShaderLinkException(): Exception("GLSL: Shader did not link correctly!"){};
 };
 
 class ShaderNullProgramExc : public Exception

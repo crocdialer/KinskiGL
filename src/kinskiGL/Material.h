@@ -56,6 +56,8 @@ namespace kinski { namespace gl {
         
         GLenum m_blendSrc, m_blendDst;
         
+        float m_pointSize;
+        
         
     public:
         
@@ -97,6 +99,8 @@ namespace kinski { namespace gl {
         void setAmbient(const glm::vec4 &theColor);
         void setSpecular(const glm::vec4 &theColor);
         void setEmission(const glm::vec4 &theColor);
+        
+        void setPointSize(float sz){ m_pointSize = sz; };
     };
    
 }} // namespace

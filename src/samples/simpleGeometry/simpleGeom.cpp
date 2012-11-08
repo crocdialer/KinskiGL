@@ -16,15 +16,12 @@ class SimpleGeometryApp : public App
 {
 private:
     
-    gl::Material::Ptr m_material;
+    gl::Material::Ptr m_material, m_pointMaterial;
     gl::Geometry::Ptr m_geometry;
-    
     gl::Geometry::Ptr m_straightPlane;
     
     gl::Mesh::Ptr m_mesh;
-    
     gl::PerspectiveCamera::Ptr m_Camera;
-    
     gl::Scene m_scene;
     
     RangedProperty<float>::Ptr m_distance;
@@ -33,10 +30,10 @@ private:
     Property_<glm::vec4>::Ptr m_color;
     Property_<glm::mat3>::Ptr m_rotation;
     RangedProperty<float>::Ptr m_rotationSpeed;
-    
     RangedProperty<float>::Ptr m_simplexDim;
     RangedProperty<float>::Ptr m_simplexSpeed;
     
+    // opencv interface
     CVThread::Ptr m_cvThread;
     
     // mouse rotation control
@@ -91,6 +88,11 @@ public:
         m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
         m_material->setTwoSided();
         
+        m_pointMaterial = gl::Material::Ptr(new gl::Material);
+        m_pointMaterial->addTexture(TextureIO::loadTexture("smoketex.png"));
+        m_pointMaterial->setPointSize(30.f);
+        m_pointMaterial->setBlending();
+        
         try
         {
             m_material->getShader().loadFromFile("shader_vert.glsl", "shader_frag.glsl");
@@ -110,19 +112,20 @@ public:
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         
-        {
-            int w = 1024, h = 1024;
-            float data[w * h];
-            
-            for (int i = 0; i < h; i++)
-                for (int j = 0; j < w; j++)
-                {
-                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
-                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
-                }
-            
-            m_material->getTextures()[0].update(data, GL_RED, w, h, true);
-        }
+//        {
+//            int w = 1024, h = 1024;
+//            float data[w * h];
+//            
+//            for (int i = 0; i < h; i++)
+//                for (int j = 0; j < w; j++)
+//                {
+//                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
+//                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
+//                }
+//            
+//            m_material->getTextures()[0].update(data, GL_RED, w, h, true);
+//        }
+        
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
         
@@ -159,6 +162,9 @@ public:
                                                 m_simplexSpeed->val() * getApplicationTime()));
         }
         m_geometry->createGLBuffers();
+        
+        // generate normals lineArray
+        
     }
     
     void draw()
@@ -170,11 +176,14 @@ public:
         
         gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
 
+        gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
+        gl::drawGrid(70, 70);
+        
         //m_scene.render(m_Camera);
         
-        gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
-        gl::drawPoints(m_mesh->getGeometry()->getVertices());
+        gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
         
         //gl::drawLines(m_mesh->getGeometry()->getVertices(), m_color->val());
         //gl::drawLine(vec2(0, getHeight() ), vec2(getWidth(), 0));
@@ -236,8 +245,10 @@ public:
             m_material->setWireframe(m_wireFrame->val());
         
         else if(theProperty == m_color)
+        {
             m_material->setDiffuse(m_color->val());
-        
+            m_pointMaterial->setDiffuse(m_color->val());
+        }
         else if(theProperty == m_textureMix)
             m_material->uniform("u_textureMix", m_textureMix->val());
         

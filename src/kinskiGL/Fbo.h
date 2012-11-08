@@ -88,7 +88,7 @@ class Renderbuffer {
 	//@}  	
 };
 
-//! Represents an OpenGL Framebuffer Object. //! Represents an instance of a font at a point size. \ImplShared
+//! Represents an OpenGL Framebuffer Object. \ImplShared
 class Fbo {
  public:
 	struct Format;
