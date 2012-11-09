@@ -26,6 +26,7 @@ private:
     
     RangedProperty<float>::Ptr m_distance;
     RangedProperty<float>::Ptr m_textureMix;
+    Property_<string>::Ptr m_texturePath;
     Property_<bool>::Ptr m_wireFrame;
     Property_<glm::vec4>::Ptr m_color;
     Property_<glm::mat3>::Ptr m_rotation;
@@ -54,6 +55,9 @@ public:
         
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
         registerProperty(m_textureMix);
+        
+        m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
+        registerProperty(m_texturePath);
         
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
@@ -84,12 +88,13 @@ public:
         m_material = gl::Material::Ptr(new gl::Material);
         m_material->uniform("u_textureMix", m_textureMix->val());
         m_material->setDiffuse(m_color->val());
-        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
-        m_material->addTexture(TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
+        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material->setBlending();
         m_material->setTwoSided();
         
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
-        m_pointMaterial->addTexture(TextureIO::loadTexture("smoketex.png"));
+        m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
         m_pointMaterial->setPointSize(30.f);
         m_pointMaterial->setBlending();
         
@@ -153,15 +158,15 @@ public:
                                         vec3(0, 1, .5)));
         
         // geometry update
-        m_geometry->getVertices() = m_straightPlane->getVertices();
-        vector<vec3>::iterator vertexIt = m_geometry->getVertices().begin();
-        for (; vertexIt != m_geometry->getVertices().end(); vertexIt++)
-        {
-            vec3 &theVert = *vertexIt;
-            theVert.z = 3 * glm::simplex( vec3( m_simplexDim->val() * vec2(theVert.xy()),
-                                                m_simplexSpeed->val() * getApplicationTime()));
-        }
-        m_geometry->createGLBuffers();
+//        m_geometry->getVertices() = m_straightPlane->getVertices();
+//        vector<vec3>::iterator vertexIt = m_geometry->getVertices().begin();
+//        for (; vertexIt != m_geometry->getVertices().end(); vertexIt++)
+//        {
+//            vec3 &theVert = *vertexIt;
+//            theVert.z = 3 * glm::simplex( vec3( m_simplexDim->val() * vec2(theVert.xy()),
+//                                                m_simplexSpeed->val() * getApplicationTime()));
+//        }
+//        m_geometry->createGLBuffers();
         
         // generate normals lineArray
         
@@ -180,13 +185,11 @@ public:
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
         gl::drawGrid(70, 70);
         
-        //m_scene.render(m_Camera);
+        m_scene.render(m_Camera);
         
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
         gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
         
-        //gl::drawLines(m_mesh->getGeometry()->getVertices(), m_color->val());
-        //gl::drawLine(vec2(0, getHeight() ), vec2(getWidth(), 0));
     }
     
     void mousePress(const MouseEvent &e)
@@ -257,6 +260,19 @@ public:
         {
             m_Camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
             m_Camera->setLookAt(glm::vec3(0));
+        }
+        else if(theProperty == m_texturePath)
+        {
+            try
+            {
+                m_pointMaterial->getTextures().clear();
+                m_pointMaterial->addTexture( gl::TextureIO::loadTexture(m_texturePath->val()) );
+            } catch (gl::TextureIO::TextureNotFoundException &e)
+            {
+                m_texturePath->removeObserver(shared_from_this());
+                m_texturePath->val("- not found -");
+                m_texturePath->addObserver(shared_from_this());
+            }
         }
     }
     

@@ -3,9 +3,8 @@
 using namespace std;
 using namespace cv;
 
-namespace kinski{
+namespace kinski{ namespace gl{
     
-using namespace gl;
     
 const Texture TextureIO::loadTexture(const string &imgPath)
 {
@@ -58,4 +57,4 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
                       format, theImage.cols, theImage.rows, true);
     
 }
-}
+}}//namespace

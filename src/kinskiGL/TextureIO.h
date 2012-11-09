@@ -4,8 +4,8 @@
 #include "Texture.h"
 #include "opencv2/opencv.hpp"
 
-namespace kinski
-{
+namespace kinski{ namespace gl{
+
     class TextureIO 
     {
     private:
@@ -26,5 +26,5 @@ namespace kinski
             :Exception("Texture not found: " + thePath){};
         };
     };
-}
+}}
 #endif //_TEXTUREIO_IS_INCLUDED_

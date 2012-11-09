@@ -7,11 +7,12 @@
 //
 
 #include <stack>
-#include "KinskiGL.h"
-#include "Material.h"
-
 #include <boost/tuple/tuple.hpp>
 #include <boost/tuple/tuple_comparison.hpp>
+
+#include "KinskiGL.h"
+#include "Material.h"
+#include "Mesh.h"
 
 using namespace glm;
 using namespace std;
@@ -43,10 +44,10 @@ namespace kinski { namespace gl {
         switch (type)
         {
             case PROJECTION_MATRIX:
-                g_projectionMatrixStack.pop();
+                if(g_projectionMatrixStack.size() > 1) g_projectionMatrixStack.pop();
                 break;
             case MODEL_VIEW_MATRIX:
-                g_modelViewMatrixStack.pop();
+                if(g_modelViewMatrixStack.size() > 1) g_modelViewMatrixStack.pop();
                 break;
                 
             default:
@@ -79,6 +80,22 @@ namespace kinski { namespace gl {
                 break;
             case MODEL_VIEW_MATRIX:
                 g_modelViewMatrixStack.top() = theMatrix;
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
+    void getMatrix(const Matrixtype type, glm::mat4 &theMatrix)
+    {
+        switch (type)
+        {
+            case PROJECTION_MATRIX:
+                theMatrix = g_projectionMatrixStack.top();
+                break;
+            case MODEL_VIEW_MATRIX:
+                theMatrix = g_modelViewMatrixStack.top();
                 break;
                 
             default:
@@ -431,6 +448,26 @@ namespace kinski { namespace gl {
         }
         
         drawLines(theMap[conf], colorGrey);
+    }
+    
+    void drawMesh(const std::shared_ptr<Mesh> &theMesh)
+    {
+        theMesh->getMaterial()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
+        
+        theMesh->getMaterial()->uniform("u_normalMatrix",
+                                        glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
+        
+        theMesh->getMaterial()->uniform("u_modelViewProjectionMatrix",
+                                        g_projectionMatrixStack.top()
+                                        * g_modelViewMatrixStack.top());
+        
+        theMesh->getMaterial()->apply();
+        
+        glBindVertexArray(theMesh->getVertexArray());
+        glDrawElements(GL_TRIANGLES, 3 * theMesh->getGeometry()->getFaces().size(),
+                       GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+        glBindVertexArray(0);
+    
     }
     
 }}//namespace

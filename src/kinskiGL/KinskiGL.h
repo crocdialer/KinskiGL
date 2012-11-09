@@ -24,12 +24,15 @@ namespace kinski { namespace gl {
     // forward declarations
     class Texture;
     class Material;
+    class Geometry;
+    class Mesh;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     void pushMatrix(const Matrixtype type);
     void popMatrix(const Matrixtype type);
     void multMatrix(const glm::mat4 &theMatrix);
     void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
+    void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
     
     class ScopedMatrixPush
     {
@@ -62,6 +65,8 @@ namespace kinski { namespace gl {
     void drawQuad(gl::Material &theMaterial, float x0, float y0, float x1, float y1);
     
     void drawGrid(float width, float height, int numW = 20, int numH = 20);
+    
+    void drawMesh(const std::shared_ptr<Mesh> &theMesh);
     
 }}//namespace
 
