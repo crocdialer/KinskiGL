@@ -8,6 +8,10 @@
 
 #include "kinskiGL/SerializerGL.h"
 
+#include <assimp/assimp.hpp>
+#include "assimp/aiScene.h"
+
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -42,6 +46,66 @@ private:
     mat4 m_lastTransform;
     float m_lastDistance;
 
+    gl::Material::Ptr createMaterial(const aiMaterial *mtl)
+    {
+        gl::Material::Ptr theMaterial(new gl::Material);
+        
+        int ret1, ret2;
+        struct aiColor4D diffuse;
+        struct aiColor4D specular;
+        struct aiColor4D ambient;
+        struct aiColor4D emission;
+        float shininess, strength;
+        int two_sided;
+        int wireframe;
+        
+        glm::vec4 color;
+        
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
+        {
+            color.r = diffuse.r; color.g = diffuse.g; color.b = diffuse.b; color.a = diffuse.a;
+            theMaterial->setDiffuse(color);
+        }
+
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular))
+        {
+            color.r = specular.r; color.g = specular.g; color.b = specular.b; color.a = specular.a;
+            theMaterial->setSpecular(color);
+        }
+        
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient))
+        {
+            color.r = ambient.r; color.g = ambient.g; color.b = ambient.b; color.a = ambient.a;
+            theMaterial->setAmbient(color);
+        }
+        
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &emission))
+        {
+            color.r = emission.r; color.g = emission.g; color.b = emission.b; color.a = emission.a;
+            theMaterial->setEmission(color);
+        }
+        
+        ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
+        
+        ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
+        
+        if((ret1 == AI_SUCCESS) && (ret2 == AI_SUCCESS))
+            theMaterial->setShinyness(shininess * strength);
+        else
+        {
+            theMaterial->setShinyness(0.f);
+            theMaterial->setSpecular(vec4(0));
+        }
+        
+        if(AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_ENABLE_WIREFRAME, &wireframe))
+            theMaterial->setWireframe(wireframe);
+        
+        if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
+            theMaterial->setTwoSided(two_sided);
+        
+        return theMaterial;
+    }
+
 public:
     
     void setup()
@@ -50,7 +114,7 @@ public:
         
         /*********** init our application properties ******************/
         
-        m_distance = RangedProperty<float>::create("view distance", 25, -50, 50);
+        m_distance = RangedProperty<float>::create("view distance", 25, -500, 500);
         registerProperty(m_distance);
         
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
@@ -79,6 +143,9 @@ public:
         
         // add properties
         addPropertyListToTweakBar(getPropertyList());
+        
+        setBarColor(vec4(0, 0 ,0 , .5));
+        setBarSize(ivec2(250, 500));
 
         // enable observer mechanism
         observeProperties();
@@ -90,8 +157,8 @@ public:
         m_material->setDiffuse(m_color->val());
         m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
         m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
-        m_material->setBlending();
-        m_material->setTwoSided();
+        //m_material->setBlending();
+        //m_material->setTwoSided();
         
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
         m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
@@ -111,9 +178,8 @@ public:
         m_geometry =  gl::Geometry::Ptr( new gl::Geometry(*m_straightPlane) );
         m_geometry->createGLBuffers();
         
-        m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material));
-        
-        m_scene.addObject(m_mesh);
+//        m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material));
+//        m_scene.addObject(m_mesh);
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         
@@ -142,6 +208,60 @@ public:
         {
             printf("%s\n", e.what());
         }
+        
+        Assimp::Importer importer;
+        
+        const aiScene *theScene = importer.ReadFile("duck.dae", 0);
+        
+        if (theScene)
+        {
+            // aiNode *root = theScene->mRootNode;
+            aiMesh *aMesh = theScene->mMeshes[0];
+            
+            gl::Geometry::Ptr geom (new gl::Geometry);
+            
+            geom->getVertices().reserve(aMesh->mNumVertices);
+            geom->getVertices().insert(geom->getVertices().end(), (glm::vec3*)aMesh->mVertices,
+                                       (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
+            
+
+            if(aMesh->HasTextureCoords(0))
+            {
+                geom->getTexCoords().reserve(aMesh->mNumVertices);
+            
+                for (int i = 0; i < aMesh->mNumVertices; i++)
+                {
+                    geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
+                }
+            }
+            
+            for(int i = 0; i < aMesh->mNumFaces; i++)
+            {
+                const aiFace &f = aMesh->mFaces[i];
+                geom->appendFace(f.mIndices[0], f.mIndices[1], f.mIndices[2]);
+            }
+            
+            if(aMesh->mNormals)
+            {
+                geom->getNormals().reserve(aMesh->mNumVertices);
+                geom->getNormals().insert(geom->getNormals().end(), (glm::vec3*)aMesh->mNormals,
+                                          (glm::vec3*) aMesh->mNormals + aMesh->mNumVertices);
+            }
+            else
+            {
+                geom->computeVertexNormals();
+            }
+
+            m_geometry = geom;
+            m_geometry->createGLBuffers();
+            m_geometry->computeBoundingBox();
+            m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material ));
+            //m_mesh->setRotation( mat3(glm::rotate(mat4(), -90.f, vec3(1, 0, 0))) );
+            
+            m_scene.addObject(m_mesh);
+        }
+    
+        
     }
     
     void update(const float timeDelta)
@@ -188,7 +308,11 @@ public:
         m_scene.render(m_Camera);
         
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
-        gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
+        gl::drawAxes(m_mesh);
+        gl::drawBoundingBox(m_mesh);
+        gl::drawNormals(m_mesh);
+        
+        //gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
         
     }
     
@@ -269,6 +393,8 @@ public:
                 m_pointMaterial->addTexture( gl::TextureIO::loadTexture(m_texturePath->val()) );
             } catch (gl::TextureIO::TextureNotFoundException &e)
             {
+                cout<<"WARNING: "<< e.what() << endl;
+                
                 m_texturePath->removeObserver(shared_from_this());
                 m_texturePath->val("- not found -");
                 m_texturePath->addObserver(shared_from_this());

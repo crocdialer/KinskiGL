@@ -42,6 +42,8 @@ namespace kinski { namespace gl {
         glm::vec4 m_specular;
         glm::vec4 m_emission;
         
+        float m_shinyness;
+        
         GLenum m_polygonMode;
         
         bool m_twoSided;
@@ -57,7 +59,6 @@ namespace kinski { namespace gl {
         GLenum m_blendSrc, m_blendDst;
         
         float m_pointSize;
-        
         
     public:
         
@@ -99,6 +100,8 @@ namespace kinski { namespace gl {
         void setAmbient(const glm::vec4 &theColor);
         void setSpecular(const glm::vec4 &theColor);
         void setEmission(const glm::vec4 &theColor);
+        
+        void setShinyness(float s) { m_shinyness = s;};
         
         void setPointSize(float sz){ m_pointSize = sz; };
     };

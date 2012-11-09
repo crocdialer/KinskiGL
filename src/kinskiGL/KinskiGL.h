@@ -66,7 +66,13 @@ namespace kinski { namespace gl {
     
     void drawGrid(float width, float height, int numW = 20, int numH = 20);
     
+    void drawAxes(const std::shared_ptr<Mesh> &theMesh);
+    
     void drawMesh(const std::shared_ptr<Mesh> &theMesh);
+    
+    void drawBoundingBox(const std::shared_ptr<Mesh> &theMesh);
+    
+    void drawNormals(const std::shared_ptr<Mesh> &theMesh);
     
 }}//namespace
 

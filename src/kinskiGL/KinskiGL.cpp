@@ -239,7 +239,6 @@ namespace kinski { namespace gl {
             "vec4 texColors = vec4(1);\n"
             "for(int i = 0; i < u_numTextures; i++)\n"
             "   {texColors *= texture(u_textureMap[0], gl_PointCoord);}\n"
-            "if(texColors.a == 0.0) discard;\n"
             "fragData = u_material.diffuse * texColors;\n"
             "}\n";
             
@@ -450,6 +449,21 @@ namespace kinski { namespace gl {
         drawLines(theMap[conf], colorGrey);
     }
     
+    void drawAxes(const std::shared_ptr<Mesh> &theMesh)
+    {
+        BoundingBox bb = theMesh->getGeometry()->getBoundingBox();
+        vector<vec3> thePoints;
+        thePoints.push_back(vec3(0));
+        thePoints.push_back(vec3(bb.max.x, 0, 0));
+        drawLines(thePoints, vec4(1, 0 ,0, 1));
+        
+        thePoints[1] = vec3(0, bb.max.x, 0);
+        drawLines(thePoints, vec4(0, 1, 0, 1));
+        
+        thePoints[1] = vec3(0, 0, bb.max.x);
+        drawLines(thePoints, vec4(0, 0, 1, 1));
+    }
+    
     void drawMesh(const std::shared_ptr<Mesh> &theMesh)
     {
         theMesh->getMaterial()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
@@ -468,6 +482,82 @@ namespace kinski { namespace gl {
                        GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         glBindVertexArray(0);
     
+    }
+    
+    void drawBoundingBox(const std::shared_ptr<Mesh> &theMesh)
+    {
+        BoundingBox bb = theMesh->getGeometry()->getBoundingBox();
+        
+        static map<Mesh::Ptr, vector<vec3> > theMap;
+        
+        if(theMap.find(theMesh) == theMap.end())
+        {
+            vector<vec3> thePoints;
+            // bottom
+            thePoints.push_back(bb.min);
+            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
+            
+            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
+            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.max.z));
+            
+            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.max.z));
+            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
+            
+            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
+            thePoints.push_back(bb.min);
+            
+            // top
+            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.min.z));
+            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.max.z));
+            
+            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.max.z));
+            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.max.z));
+            
+            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.max.z));
+            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
+            
+            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
+            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.min.z));
+            
+            //sides
+            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.min.z));
+            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.min.z));
+            
+            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
+            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.max.z));
+            
+            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.max.z));
+            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.max.z));
+            
+            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
+            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
+            
+            theMap[theMesh] = thePoints;
+        }
+        
+        gl::drawLines(theMap[theMesh], vec4(1));
+    }
+
+    void drawNormals(const std::shared_ptr<Mesh> &theMesh)
+    {
+        static map<Mesh::Ptr, vector<vec3> > theMap;
+        
+        if(theMap.find(theMesh) == theMap.end())
+        {
+            vector<vec3> thePoints;
+            const vector<vec3> &vertices = theMesh->getGeometry()->getVertices();
+            const vector<vec3> &normals = theMesh->getGeometry()->getNormals();
+            
+            for (int i = 0; i < vertices.size(); i++)
+            {
+                thePoints.push_back(vertices[i]);
+                thePoints.push_back(vertices[i] + normals[i] * 10.f);
+            }
+            
+            theMap[theMesh] = thePoints;
+        }
+        
+        gl::drawLines(theMap[theMesh], vec4(.7));
     }
     
 }}//namespace

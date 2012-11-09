@@ -73,7 +73,8 @@ namespace kinski
         
         m_tweakBarList.push_back(TwNewBar("KinskiGL"));
         
-
+        m_tweakBarList.push_back(TwNewBar("Eberhardt"));
+        
         glfwSetMouseButtonCallback(&s_mouseButton);
         glfwSetMousePosCallback(&s_mouseMove);
         glfwSetMouseWheelCallback(&s_mouseWheel);
@@ -297,5 +298,51 @@ namespace kinski
         {   
             addPropertyToTweakBar(*propIt, group, theBar);
         }
+    }
+    
+    void App::setBarPosition(const glm::ivec2 &thePos, TwBar *theBar)
+    {
+        if(!theBar)
+        {   if(m_tweakBarList.empty()) return;
+            theBar = m_tweakBarList.front();
+        }
+        
+        std::stringstream ss;
+        
+        ss << TwGetBarName(theBar) << " position='" <<thePos.x
+        <<" " << thePos.y <<"'";
+        
+        TwDefine(ss.str().c_str());
+    }
+    
+    void App::setBarSize(const glm::ivec2 &theSize, TwBar *theBar)
+    {
+        if(!theBar)
+        {   if(m_tweakBarList.empty()) return;
+            theBar = m_tweakBarList.front();
+        }
+        
+        std::stringstream ss;
+        
+        ss << TwGetBarName(theBar) << " size='" <<theSize.x
+        <<" " << theSize.y <<"'";
+        
+        TwDefine(ss.str().c_str());
+    }
+    
+    void App::setBarColor(const glm::vec4 &theColor, TwBar *theBar)
+    {
+        if(!theBar)
+        {   if(m_tweakBarList.empty()) return;
+            theBar = m_tweakBarList.front();
+        }
+        
+        std::stringstream ss;
+        glm::ivec4 color(theColor * 255);
+        
+        ss << TwGetBarName(theBar) << " color='" <<color.r
+        <<" " << color.g << " " << color.b <<"' alpha="<<color.a;
+        
+        TwDefine(ss.str().c_str());
     }
 }
