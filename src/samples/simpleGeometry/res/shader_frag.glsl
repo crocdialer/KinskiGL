@@ -13,7 +13,10 @@ uniform struct
 } u_material;
 
 uniform float u_textureMix;
+uniform vec3 u_lightDir;
 
+//in float nDotL;
+in vec3 v_normal;
 in vec4 v_texCoord;
 out vec4 fragData;
 
@@ -34,7 +37,12 @@ void main()
 {
     vec4 color1 = texture(u_textureMap[0], v_texCoord.xy);
     vec4 color2 = texture(u_textureMap[1], v_texCoord.xy);
+    
+    float nDotL = max(0.0, dot(v_normal, normalize(-u_lightDir)));
 
-    fragData = u_material.diffuse * mix(color1, vec4(1) - color1 - color2, u_textureMix);
+    fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), jet(nDotL), u_textureMix);
+    //u_material.diffuse * mix(color1, vec4(1) - color1 - color2, u_textureMix);
+    
+    //fragData = u_material.diffuse * mix(color1, vec4(1) - color1 - color2, u_textureMix * nDotL);
 }
 

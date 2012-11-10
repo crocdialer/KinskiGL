@@ -47,7 +47,7 @@ namespace gl
     {
         glm::vec3 min, max;
         
-        BoundingBox(const glm::vec3 &theMin = glm::vec3(), const glm::vec3 &theMax = glm::vec3()):
+        BoundingBox(const glm::vec3 &theMin, const glm::vec3 &theMax):
         min(theMin),max(theMax)
         {};
     };

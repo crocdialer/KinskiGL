@@ -32,6 +32,9 @@ private:
     RangedProperty<float>::Ptr m_textureMix;
     Property_<string>::Ptr m_texturePath;
     Property_<bool>::Ptr m_wireFrame;
+    Property_<bool>::Ptr m_drawNormals;
+    Property_<glm::vec3>::Ptr m_lightDir;
+    
     Property_<glm::vec4>::Ptr m_color;
     Property_<glm::mat3>::Ptr m_rotation;
     RangedProperty<float>::Ptr m_rotationSpeed;
@@ -58,6 +61,7 @@ private:
         float shininess, strength;
         int two_sided;
         int wireframe;
+        aiString texPath;
         
         glm::vec4 color;
         
@@ -103,7 +107,54 @@ private:
         if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
             theMaterial->setTwoSided(two_sided);
         
+        if(AI_SUCCESS == mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texPath))
+        {
+            theMaterial->addTexture(gl::TextureIO::loadTexture(string(texPath.data)));
+        }
+        
         return theMaterial;
+    }
+    
+    gl::Geometry::Ptr createGeometry(const aiMesh *aMesh)
+    {
+        gl::Geometry::Ptr geom (new gl::Geometry);
+        
+        geom->getVertices().reserve(aMesh->mNumVertices);
+        geom->getVertices().insert(geom->getVertices().end(), (glm::vec3*)aMesh->mVertices,
+                                   (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
+        
+        
+        if(aMesh->HasTextureCoords(0))
+        {
+            geom->getTexCoords().reserve(aMesh->mNumVertices);
+            
+            for (int i = 0; i < aMesh->mNumVertices; i++)
+            {
+                geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
+            }
+        }
+        
+        for(int i = 0; i < aMesh->mNumFaces; i++)
+        {
+            const aiFace &f = aMesh->mFaces[i];
+            geom->appendFace(f.mIndices[0], f.mIndices[1], f.mIndices[2]);
+        }
+        
+        if(aMesh->mNormals)
+        {
+            geom->getNormals().reserve(aMesh->mNumVertices);
+            geom->getNormals().insert(geom->getNormals().end(), (glm::vec3*)aMesh->mNormals,
+                                      (glm::vec3*) aMesh->mNormals + aMesh->mNumVertices);
+        }
+        else
+        {
+            geom->computeVertexNormals();
+        }
+        
+        geom->computeBoundingBox();
+        geom->createGLBuffers();
+        
+        return geom;
     }
 
 public:
@@ -125,6 +176,12 @@ public:
         
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
+        
+        m_drawNormals = Property_<bool>::create("Normals", false);
+        registerProperty(m_drawNormals);
+        
+        m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
+        registerProperty(m_lightDir);
         
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
@@ -200,6 +257,25 @@ public:
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
         
+        Assimp::Importer importer;
+        const aiScene *theScene = importer.ReadFile("duck.dae", 0);
+        
+        if (theScene)
+        {
+            // aiNode *root = theScene->mRootNode;
+            aiMesh *aMesh = theScene->mMeshes[0];
+            
+            m_geometry = createGeometry(aMesh);
+            
+            gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
+            mat->getShader() = m_material->getShader();
+            
+            m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, mat ));
+            //m_mesh->setRotation( mat3(glm::rotate(mat4(), -90.f, vec3(1, 0, 0))) );
+            
+            m_scene.addObject(m_mesh);
+        }
+        
         // load state from config file
         try
         {
@@ -208,60 +284,6 @@ public:
         {
             printf("%s\n", e.what());
         }
-        
-        Assimp::Importer importer;
-        
-        const aiScene *theScene = importer.ReadFile("duck.dae", 0);
-        
-        if (theScene)
-        {
-            // aiNode *root = theScene->mRootNode;
-            aiMesh *aMesh = theScene->mMeshes[0];
-            
-            gl::Geometry::Ptr geom (new gl::Geometry);
-            
-            geom->getVertices().reserve(aMesh->mNumVertices);
-            geom->getVertices().insert(geom->getVertices().end(), (glm::vec3*)aMesh->mVertices,
-                                       (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
-            
-
-            if(aMesh->HasTextureCoords(0))
-            {
-                geom->getTexCoords().reserve(aMesh->mNumVertices);
-            
-                for (int i = 0; i < aMesh->mNumVertices; i++)
-                {
-                    geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
-                }
-            }
-            
-            for(int i = 0; i < aMesh->mNumFaces; i++)
-            {
-                const aiFace &f = aMesh->mFaces[i];
-                geom->appendFace(f.mIndices[0], f.mIndices[1], f.mIndices[2]);
-            }
-            
-            if(aMesh->mNormals)
-            {
-                geom->getNormals().reserve(aMesh->mNumVertices);
-                geom->getNormals().insert(geom->getNormals().end(), (glm::vec3*)aMesh->mNormals,
-                                          (glm::vec3*) aMesh->mNormals + aMesh->mNumVertices);
-            }
-            else
-            {
-                geom->computeVertexNormals();
-            }
-
-            m_geometry = geom;
-            m_geometry->createGLBuffers();
-            m_geometry->computeBoundingBox();
-            m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material ));
-            //m_mesh->setRotation( mat3(glm::rotate(mat4(), -90.f, vec3(1, 0, 0))) );
-            
-            m_scene.addObject(m_mesh);
-        }
-    
-        
     }
     
     void update(const float timeDelta)
@@ -270,7 +292,7 @@ public:
 //        if(m_cvThread->hasImage())
 //        {
 //            vector<cv::Mat> images = m_cvThread->getImages();
-//            TextureIO::updateTexture(m_material->getTextures()[0], images[0]);
+//            gl::TextureIO::updateTexture(m_mesh->getMaterial()->getTextures().back(), images[0]);
 //        }
         
         *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
@@ -288,8 +310,6 @@ public:
 //        }
 //        m_geometry->createGLBuffers();
         
-        // generate normals lineArray
-        
     }
     
     void draw()
@@ -303,14 +323,14 @@ public:
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
-        gl::drawGrid(70, 70);
+        gl::drawGrid(500, 500);
         
         m_scene.render(m_Camera);
         
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
         gl::drawAxes(m_mesh);
         gl::drawBoundingBox(m_mesh);
-        gl::drawNormals(m_mesh);
+        if(m_drawNormals->val()) gl::drawNormals(m_mesh);
         
         //gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
         
@@ -369,7 +389,12 @@ public:
     {
         // one of our porperties was changed
         if(theProperty == m_wireFrame)
-            m_material->setWireframe(m_wireFrame->val());
+            m_mesh->getMaterial()->setWireframe(m_wireFrame->val());
+        
+        else if(theProperty == m_lightDir)
+        {
+            m_mesh->getMaterial()->uniform("u_lightDir", m_lightDir->val());
+        }
         
         else if(theProperty == m_color)
         {

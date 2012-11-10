@@ -73,6 +73,7 @@ namespace kinski
         void setBarPosition(const glm::ivec2 &thePos, TwBar *theBar = NULL);
         void setBarSize(const glm::ivec2 &theSize, TwBar *theBar = NULL);
         void setBarColor(const glm::vec4 &theColor, TwBar *theBar = NULL);
+        void setBarTitle(const std::string &theTitle, TwBar *theBar = NULL);
         
         const std::map<TwBar*, Property::Ptr>& 
         getTweakProperties() const {return m_tweakProperties;};

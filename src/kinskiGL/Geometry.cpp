@@ -13,6 +13,7 @@ using namespace std;
 namespace kinski{ namespace gl{
     
     Geometry::Geometry():
+    m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0))),
     m_interleavedBuffer(0),
     m_indexBuffer(0)
     {
@@ -83,7 +84,8 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeBoundingBox()
     {
-        m_boundingBox = BoundingBox();
+        m_boundingBox = BoundingBox(glm::vec3(numeric_limits<float>::infinity() ),
+                                    glm::vec3(-numeric_limits<float>::infinity() ));
      
         vector<glm::vec3>::const_iterator it = m_vertices.begin();
         for (; it != m_vertices.end(); it++)

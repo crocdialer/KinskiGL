@@ -544,6 +544,8 @@ namespace kinski { namespace gl {
         
         if(theMap.find(theMesh) == theMap.end())
         {
+            if(theMesh->getGeometry()->getNormals().empty()) return;
+            
             vector<vec3> thePoints;
             const vector<vec3> &vertices = theMesh->getGeometry()->getVertices();
             const vector<vec3> &normals = theMesh->getGeometry()->getNormals();
