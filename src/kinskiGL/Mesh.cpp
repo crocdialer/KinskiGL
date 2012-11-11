@@ -23,6 +23,11 @@ namespace kinski { namespace gl {
         createVertexArray();
     }
     
+    Mesh::~Mesh()
+    {
+        if(m_vertexArray) glDeleteVertexArrays(1, &m_vertexArray);
+    }
+    
     void Mesh::createVertexArray()
     {
         Shader& shader = m_material->getShader();

@@ -449,9 +449,12 @@ namespace kinski { namespace gl {
         drawLines(theMap[conf], colorGrey);
     }
     
-    void drawAxes(const std::shared_ptr<Mesh> &theMesh)
+    void drawAxes(const std::weak_ptr<Mesh> &theMesh)
     {
-        BoundingBox bb = theMesh->getGeometry()->getBoundingBox();
+        Mesh::Ptr m = theMesh.lock();
+        if(!m) return;
+        
+        BoundingBox bb = m->getGeometry()->getBoundingBox();
         vector<vec3> thePoints;
         thePoints.push_back(vec3(0));
         thePoints.push_back(vec3(bb.max.x, 0, 0));
@@ -484,14 +487,17 @@ namespace kinski { namespace gl {
     
     }
     
-    void drawBoundingBox(const std::shared_ptr<Mesh> &theMesh)
+    void drawBoundingBox(const std::weak_ptr<Mesh> &weakMesh)
     {
-        BoundingBox bb = theMesh->getGeometry()->getBoundingBox();
+        static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
         
-        static map<Mesh::Ptr, vector<vec3> > theMap;
-        
-        if(theMap.find(theMesh) == theMap.end())
+        if(theMap.find(weakMesh) == theMap.end())
         {
+            Mesh::Ptr theMesh = weakMesh.lock();
+            if(!theMesh) return;
+            
+            BoundingBox bb = theMesh->getGeometry()->getBoundingBox();
+            
             vector<vec3> thePoints;
             // bottom
             thePoints.push_back(bb.min);
@@ -532,23 +538,25 @@ namespace kinski { namespace gl {
             thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
             thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
             
-            theMap[theMesh] = thePoints;
+            theMap[weakMesh] = thePoints;
         }
         
-        gl::drawLines(theMap[theMesh], vec4(1));
+        gl::drawLines(theMap[weakMesh], vec4(1));
     }
 
-    void drawNormals(const std::shared_ptr<Mesh> &theMesh)
+    void drawNormals(const std::weak_ptr<Mesh> &theMesh)
     {
-        static map<Mesh::Ptr, vector<vec3> > theMap;
+        static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
         
         if(theMap.find(theMesh) == theMap.end())
         {
-            if(theMesh->getGeometry()->getNormals().empty()) return;
+            Mesh::Ptr m = theMesh.lock();
+            
+            if(m->getGeometry()->getNormals().empty()) return;
             
             vector<vec3> thePoints;
-            const vector<vec3> &vertices = theMesh->getGeometry()->getVertices();
-            const vector<vec3> &normals = theMesh->getGeometry()->getNormals();
+            const vector<vec3> &vertices = m->getGeometry()->getVertices();
+            const vector<vec3> &normals = m->getGeometry()->getNormals();
             
             for (int i = 0; i < vertices.size(); i++)
             {

@@ -23,6 +23,8 @@ namespace kinski { namespace gl {
         
         Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
         
+        virtual ~Mesh();
+        
         const Geometry::Ptr& getGeometry() const { return m_geometry; };
         Geometry::Ptr& getGeometry() { return m_geometry; };
         

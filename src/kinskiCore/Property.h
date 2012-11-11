@@ -72,16 +72,16 @@ public:
     {return theVal.type() == m_value.type();};
     
     inline void addObserver(const Observer::Ptr &theObs)
-    {m_observers.push_back(theObs);};
+    {m_observers.insert(theObs);};
     
     inline void removeObserver(const Observer::Ptr &theObs)
-    {m_observers.remove(theObs);};
+    {m_observers.erase(theObs);};
     
     inline void clearObservers(){m_observers.clear();};
     
     inline void notifyObservers()
     {
-        std::list<Observer::Ptr>::iterator it = m_observers.begin();
+        std::set<Observer::Ptr>::iterator it = m_observers.begin();
         Ptr self = shared_from_this();
         for (; it != m_observers.end(); it++)
         {
@@ -100,7 +100,7 @@ private:
     
 	bool m_tweakable;
     
-    std::list<Observer::Ptr> m_observers;
+    std::set<Observer::Ptr> m_observers;
 
 public:
     // define exceptions

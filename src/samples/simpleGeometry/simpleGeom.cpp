@@ -30,7 +30,7 @@ private:
     
     RangedProperty<float>::Ptr m_distance;
     RangedProperty<float>::Ptr m_textureMix;
-    Property_<string>::Ptr m_texturePath;
+    Property_<string>::Ptr m_modelPath;
     Property_<bool>::Ptr m_wireFrame;
     Property_<bool>::Ptr m_drawNormals;
     Property_<glm::vec3>::Ptr m_lightDir;
@@ -49,6 +49,35 @@ private:
     mat4 m_lastTransform;
     float m_lastDistance;
 
+    gl::Mesh::Ptr loadModel(const std::string &theModelPath)
+    {
+        Assimp::Importer importer;
+        const aiScene *theScene = importer.ReadFile(theModelPath, 0);
+        
+        if (theScene)
+        {
+            // aiNode *root = theScene->mRootNode;
+            aiMesh *aMesh = theScene->mMeshes[0];
+            
+            
+            gl::Geometry::Ptr geom( createGeometry(aMesh) );
+            gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
+            mat->getShader() = m_material->getShader();
+            
+            gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat ));
+            
+            //m_mesh->setRotation( mat3(glm::rotate(mat4(), -90.f, vec3(1, 0, 0))) );
+
+            importer.FreeScene();
+            
+            return mesh;
+        }
+        else
+        {
+            throw Exception("could not load model: "+ theModelPath);
+        }
+    }
+    
     gl::Material::Ptr createMaterial(const aiMaterial *mtl)
     {
         gl::Material::Ptr theMaterial(new gl::Material);
@@ -127,10 +156,15 @@ private:
         if(aMesh->HasTextureCoords(0))
         {
             geom->getTexCoords().reserve(aMesh->mNumVertices);
-            
             for (int i = 0; i < aMesh->mNumVertices; i++)
             {
                 geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
+            }
+        }else
+        {
+            for (int i = 0; i < aMesh->mNumVertices; i++)
+            {
+                geom->appendTextCoord(0, 0);
             }
         }
         
@@ -161,8 +195,6 @@ public:
     
     void setup()
     {
-        glClearColor(0, 0, 0, 1);
-        
         /*********** init our application properties ******************/
         
         m_distance = RangedProperty<float>::create("view distance", 25, -500, 500);
@@ -171,8 +203,8 @@ public:
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
         registerProperty(m_textureMix);
         
-        m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
-        registerProperty(m_texturePath);
+        m_modelPath = Property_<string>::create("Model path", "duck.dae");
+        registerProperty(m_modelPath);
         
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
@@ -230,13 +262,7 @@ public:
             fprintf(stderr, "%s\n",e.what());
         }
         
-        m_straightPlane = gl::Geometry::Ptr( new gl::Plane(20, 13, 50, 50) );
-        
-        m_geometry =  gl::Geometry::Ptr( new gl::Geometry(*m_straightPlane) );
-        m_geometry->createGLBuffers();
-        
-//        m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, m_material));
-//        m_scene.addObject(m_mesh);
+        //if(m_mesh) m_scene.addObject(m_mesh);
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         
@@ -256,25 +282,6 @@ public:
         
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
-        
-        Assimp::Importer importer;
-        const aiScene *theScene = importer.ReadFile("duck.dae", 0);
-        
-        if (theScene)
-        {
-            // aiNode *root = theScene->mRootNode;
-            aiMesh *aMesh = theScene->mMeshes[0];
-            
-            m_geometry = createGeometry(aMesh);
-            
-            gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
-            mat->getShader() = m_material->getShader();
-            
-            m_mesh = gl::Mesh::Ptr(new gl::Mesh(m_geometry, mat ));
-            //m_mesh->setRotation( mat3(glm::rotate(mat4(), -90.f, vec3(1, 0, 0))) );
-            
-            m_scene.addObject(m_mesh);
-        }
         
         // load state from config file
         try
@@ -319,7 +326,8 @@ public:
         cloneMat1.setBlending(false);
         cloneMat1.setWireframe(false);
         
-        gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
+        //gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
+        gl::drawTexture(cloneMat1.getTextures()[0], getWindowSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
@@ -327,13 +335,14 @@ public:
         
         m_scene.render(m_Camera);
         
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
-        gl::drawAxes(m_mesh);
-        gl::drawBoundingBox(m_mesh);
-        if(m_drawNormals->val()) gl::drawNormals(m_mesh);
-        
+        if(m_mesh)
+        {
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
+            gl::drawAxes(m_mesh);
+            gl::drawBoundingBox(m_mesh);
+            if(m_drawNormals->val()) gl::drawNormals(m_mesh);
+        }
         //gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
-        
     }
     
     void mousePress(const MouseEvent &e)
@@ -360,22 +369,18 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
-        
-        //if(e.isControlDown())
+        switch (e.getChar())
         {
-            switch (e.getChar())
-            {
-            case KeyEvent::KEY_s:
-                Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                break;
+        case KeyEvent::KEY_s:
+            Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            break;
+            
+        case KeyEvent::KEY_r:
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            break;
                 
-            case KeyEvent::KEY_r:
-                Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                break;
-                    
-            default:
-                break;
-            }
+        default:
+            break;
         }
     }
     
@@ -389,11 +394,12 @@ public:
     {
         // one of our porperties was changed
         if(theProperty == m_wireFrame)
-            m_mesh->getMaterial()->setWireframe(m_wireFrame->val());
-        
+        {
+            if(m_mesh) m_mesh->getMaterial()->setWireframe(m_wireFrame->val());
+        }
         else if(theProperty == m_lightDir)
         {
-            m_mesh->getMaterial()->uniform("u_lightDir", m_lightDir->val());
+            if(m_mesh) m_mesh->getMaterial()->uniform("u_lightDir", m_lightDir->val());
         }
         
         else if(theProperty == m_color)
@@ -402,27 +408,33 @@ public:
             m_pointMaterial->setDiffuse(m_color->val());
         }
         else if(theProperty == m_textureMix)
-            m_material->uniform("u_textureMix", m_textureMix->val());
-        
+        {
+            if(m_mesh) m_mesh->getMaterial()->uniform("u_textureMix", m_textureMix->val());
+        }
         else if(theProperty == m_distance ||
                 theProperty == m_rotation)
         {
             m_Camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
             m_Camera->setLookAt(glm::vec3(0));
         }
-        else if(theProperty == m_texturePath)
+        else if(theProperty == m_modelPath)
         {
             try
             {
-                m_pointMaterial->getTextures().clear();
-                m_pointMaterial->addTexture( gl::TextureIO::loadTexture(m_texturePath->val()) );
-            } catch (gl::TextureIO::TextureNotFoundException &e)
+                m_modelPath->val();
+                gl::Mesh::Ptr m = loadModel(m_modelPath->val());
+                
+                m_scene.removeObject(m_mesh);
+                m_mesh = m;
+                m_scene.addObject(m);
+                
+            } catch (Exception &e)
             {
                 cout<<"WARNING: "<< e.what() << endl;
                 
-                m_texturePath->removeObserver(shared_from_this());
-                m_texturePath->val("- not found -");
-                m_texturePath->addObserver(shared_from_this());
+                m_modelPath->removeObserver(shared_from_this());
+                m_modelPath->val("- not found -");
+                m_modelPath->addObserver(shared_from_this());
             }
         }
     }

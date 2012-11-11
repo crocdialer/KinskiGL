@@ -62,6 +62,7 @@ namespace kinski
         if(m_fullscreen && m_cursorVisible) glfwEnable(GLFW_MOUSE_CURSOR);
         
         glfwSwapInterval(1);
+        glClearColor(0, 0, 0, 1);
         
         // version
         printf("OpenGL: %s\n", glGetString(GL_VERSION));
@@ -85,6 +86,9 @@ namespace kinski
         
         // call user defined setup callback
         setup();
+        
+        // activate property observer mechanism
+        observeProperties();
     }
     
     void App::setWindowSize(const glm::ivec2 size)
