@@ -114,6 +114,39 @@ namespace kinski { namespace gl {
             g_modelViewMatrixStack.push(mat4());
     }
     
+    template<class T>
+    GLuint createVBO(const std::vector<T> &theVec, GLenum target, GLenum usage)
+    {
+        GLsizei numBytes = theVec.size() * sizeof(T);
+        
+        GLuint outObj = createVBO(numBytes, target, usage);
+        glBindBuffer(target, outObj);
+        glBufferData(target, numBytes, &theVec[0], usage);
+        glBindBuffer(target, 0);
+        
+        return outObj;
+    }
+    
+    GLuint createVBO(GLsizei numBytes, GLenum target, GLenum usage, bool initWithZeros)
+    {
+        GLuint outObj = 0;
+        
+        glGenBuffers(1, &outObj);
+        glBindBuffer(target, outObj);
+        glBufferData(target, numBytes, NULL, usage);
+        
+        if(initWithZeros)
+        {
+            GLfloat *ptr = (GLfloat*) glMapBuffer(target, GL_WRITE_ONLY);
+            memset(ptr, 0, numBytes);
+            glUnmapBuffer(target);
+        }
+        
+        glBindBuffer(target, 0);
+        
+        return outObj;
+    }
+    
     void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
     {
         static vector<vec3> thePoints;
@@ -207,9 +240,11 @@ namespace kinski { namespace gl {
         glBindVertexArray(0);
     }
     
-    void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
+    void drawPoints(GLuint thePointVBO, GLsizei theCount, const Material::Ptr &theMaterial,
+                    GLsizei stride, GLsizei offset)
     {
         static Material::Ptr staticMat;
+        static GLuint pointVAO = 0;
         
         //create shader
         if(!staticMat)
@@ -256,43 +291,49 @@ namespace kinski { namespace gl {
         
         if(!activeMat->getShader())
             activeMat->getShader() = staticMat->getShader();
-            
+        
         activeMat->uniform("u_modelViewProjectionMatrix",
-                            g_projectionMatrixStack.top()
-                            * g_modelViewMatrixStack.top());
+                           g_projectionMatrixStack.top()
+                           * g_modelViewMatrixStack.top());
         
         activeMat->apply();
         
-        static GLuint lineVBO = 0;
-        static GLuint lineVAO = 0;
-        
-        if(!lineVAO || (activeMat != staticMat) )
+        if(!pointVAO || (activeMat != staticMat) )
         {
-            if(!lineVAO) glGenVertexArrays(1, &lineVAO);
-            glBindVertexArray(lineVAO);
+            if(!pointVAO) glGenVertexArrays(1, &pointVAO);
+            glBindVertexArray(pointVAO);
             
-            if(!lineVBO)
-                glGenBuffers(1, &lineVBO);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
             
             GLuint vertexAttribLocation = activeMat->getShader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                  stride, BUFFER_OFFSET(offset));
             
             glBindVertexArray(0);
         }
         
-        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-        glBufferData(GL_ARRAY_BUFFER, 3 * thePoints.size() * sizeof(GLfloat), NULL,
+        glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
+        
+        glBindVertexArray(pointVAO);
+        glDrawArrays(GL_POINTS, 0, theCount);
+        glBindVertexArray(0);
+    }
+    
+    void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
+    {
+        static GLuint pointVBO = 0;
+        
+        if(!pointVBO)
+            glGenBuffers(1, &pointVBO);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, pointVBO);
+        glBufferData(GL_ARRAY_BUFFER, thePoints.size() * sizeof(vec3), NULL,
                      GL_STREAM_DRAW);
-        glBufferData(GL_ARRAY_BUFFER, 3 * thePoints.size() * sizeof(GLfloat), &thePoints[0],
+        glBufferData(GL_ARRAY_BUFFER, thePoints.size() * sizeof(vec3), &thePoints[0],
                      GL_STREAM_DRAW);
 
-        
-        glBindVertexArray(lineVAO);
-        glDrawArrays(GL_POINTS, 0, thePoints.size());
-        glBindVertexArray(0);
+        drawPoints(pointVBO, thePoints.size(), theMaterial);
     }
     
     void drawTexture(gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)

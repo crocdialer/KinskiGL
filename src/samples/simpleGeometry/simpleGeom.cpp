@@ -342,7 +342,12 @@ public:
             gl::drawBoundingBox(m_mesh);
             if(m_drawNormals->val()) gl::drawNormals(m_mesh);
         }
-        //gl::drawPoints(m_mesh->getGeometry()->getVertices(), m_pointMaterial);
+        
+        gl::drawPoints(m_mesh->getGeometry()->getInterleavedBuffer(),
+                       m_mesh->getGeometry()->getVertices().size(),
+                       m_pointMaterial,
+                       8 * sizeof(GLfloat),
+                       5 * sizeof(GLfloat));
     }
     
     void mousePress(const MouseEvent &e)

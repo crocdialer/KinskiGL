@@ -1,5 +1,8 @@
 #include "kinskiGL/App.h"
 #include "kinskiGL/TextureIO.h"
+#include "kinskiGL/Material.h"
+#include "kinskiGL/Camera.h"
+
 #include "kinskiGL/SerializerGL.h"
 #include <fstream>
 
@@ -19,14 +22,36 @@ class OpenCLTest : public App
 {
 private:
     
+    RangedProperty<float>::Ptr m_distance;
+    Property_<glm::mat3>::Ptr m_rotation;
+    
+    RangedProperty<float>::Ptr m_rotationSpeed;
+    
     Property_<string>::Ptr m_texturePath;
     gl::Texture m_texture;
     
-    //OpenCL members
+    gl::Material::Ptr m_pointMaterial;
+    gl::PerspectiveCamera::Ptr m_camera;
+    
+    // mouse rotation control
+    vec2 m_clickPos;
+    mat4 m_lastTransform;
+    float m_lastDistance;
+    
+    
+    GLuint m_vboPos, m_vboCol;
+    
+    //OpenCL standard stuff
     cl::Context m_context;
     cl::Device m_device;
     cl::CommandQueue m_queue;
     cl::Program m_program;
+    
+    // particle system related
+    GLsizei m_numParticles;
+    cl::Kernel m_particleKernel;
+    cl::Buffer m_velocities, m_positionGen, m_velocityGen;
+    cl::BufferGL m_positions;
     
     void initOpenCL()
     {
@@ -76,7 +101,7 @@ private:
             m_queue = cl::CommandQueue(m_context, devices[0]);
             
             // Read source file
-            std::ifstream sourceFile("vector_add_kernel.cl");
+            std::ifstream sourceFile("kernels.cl");
             std::string sourceCode(std::istreambuf_iterator<char>(sourceFile),
                                    (std::istreambuf_iterator<char>()));
             
@@ -87,6 +112,8 @@ private:
             
             // Build program for these specific devices
             m_program.build();
+            
+            m_particleKernel = cl::Kernel(m_program, "updateParticles");
         }
         catch(cl::Error &error)
         {
@@ -94,47 +121,35 @@ private:
         }
     }
     
-    void runOpenCL()
+    void updateParticles(float timeDelta)
     {
-        // OpenCL
         try
         {
-            // Make kernel
-            cl::Kernel kernel(m_program, "vector_add");
+            vector<cl::Memory> glBuffers;
+            glBuffers.push_back(m_positions);
             
-            // Create memory buffers
-            const int LIST_SIZE = 100;
-            cl::Buffer bufferA = cl::Buffer(m_context, CL_MEM_READ_ONLY, LIST_SIZE * sizeof(int));
-            cl::Buffer bufferB = cl::Buffer(m_context, CL_MEM_READ_ONLY, LIST_SIZE * sizeof(int));
-            cl::Buffer bufferC = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, LIST_SIZE * sizeof(int));
+            //this will update our system by calculating new velocity and updating the positions of our particles
+            //Make sure OpenGL is done using our VBOs
+            glFinish();
             
-            // Copy lists A and B to the memory buffers
-            int A[LIST_SIZE];
-            int B[LIST_SIZE];
-            for(int i = 0; i < LIST_SIZE; i++)
-            {
-                A[i] = i;
-                B[i] = LIST_SIZE - i;
-            }
-            m_queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, LIST_SIZE * sizeof(int), A);
-            m_queue.enqueueWriteBuffer(bufferB, CL_TRUE, 0, LIST_SIZE * sizeof(int), B);
+            // map OpenGL buffer object for writing from OpenCL
+            // this passes in the vector of VBO buffer objects (position and color)
+            m_queue.enqueueAcquireGLObjects(&glBuffers);
             
-            // Set arguments to kernel
-            kernel.setArg(0, bufferA);
-            kernel.setArg(1, bufferB);
-            kernel.setArg(2, bufferC);
+            //m_queue.finish();
             
-            // Run the kernel on specific ND range
-            cl::NDRange global(LIST_SIZE);
-            //cl::NDRange local(1);
-            m_queue.enqueueNDRangeKernel(kernel, cl::NullRange, global);
+            m_particleKernel.setArg(4, timeDelta); //pass in the timestep
             
-            // Read buffer C into a local list
-            int C [LIST_SIZE];
-            m_queue.enqueueReadBuffer(bufferC, CL_TRUE, 0, LIST_SIZE * sizeof(int), C);
+            //execute the kernel
+            m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
+                                         cl::NullRange);
             
-            for(int i = 0; i < LIST_SIZE; i ++)
-                std::cout << A[i] << " + " << B[i] << " = " << C[i] << std::endl;
+            //m_queue.finish();
+            
+            //Release the VBOs so OpenGL can play with them
+            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+
+            m_queue.finish();
         }
         catch(cl::Error &error)
         {
@@ -146,11 +161,31 @@ public:
     
     void setup()
     {
+        m_distance = RangedProperty<float>::create("view distance", 25, -500, 500);
+        registerProperty(m_distance);
+        
+        m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
+        registerProperty(m_rotation);
+        
+        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
+        registerProperty(m_rotationSpeed);
+        
         m_texturePath = Property_<string>::create("Texture path", "");
         registerProperty(m_texturePath);
-
+        
         addPropertyListToTweakBar(getPropertyList());
         observeProperties();
+        
+        m_pointMaterial = gl::Material::Ptr(new gl::Material);
+        m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
+        m_pointMaterial->setPointSize(9.f);
+        m_pointMaterial->setDiffuse(vec4(.9, .7, 0, 1.f));
+        m_pointMaterial->setBlending();
+        
+        m_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
+        
+        m_camera->setPosition(vec3(0, 50, 100));
+        m_camera->setLookAt(vec3(0));
         
         // load state from config file
         try
@@ -162,7 +197,54 @@ public:
         }
         
         initOpenCL();
-        runOpenCL();
+        
+        m_numParticles = 50000;
+        GLsizei numBytes = m_numParticles * sizeof(vec4);
+        
+        m_vboPos = gl::createVBO(numBytes, GL_ARRAY_BUFFER, GL_STREAM_DRAW, true);
+        
+        try
+        {
+            // shared position buffer for OpenGL / OpenCL
+            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_vboPos);
+            
+            //create the OpenCL only arrays
+            m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_positionGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_velocityGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            
+            srand(clock());
+            
+            vector<vec4> posGen, velGen;
+            for (int i = 0; i < m_numParticles; i++)
+            {
+                posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
+                
+                vec2 tmp = glm::linearRand(vec2(-1), vec2(1));
+                
+                float life = 2 + 3 * (rand() / (float) RAND_MAX);
+                velGen.push_back(vec4(tmp.x, 1.f, tmp.y, life));
+            }
+            
+            
+            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes,
+                                       &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes,
+                                       &posGen[0]);
+            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes,
+                                       &velGen[0]);
+            
+            m_particleKernel.setArg(0, m_positions);
+            //m_particleKernel.setArg(1, m_positions);//colors
+            
+            m_particleKernel.setArg(1, m_velocities);
+            m_particleKernel.setArg(2, m_positionGen);
+            m_particleKernel.setArg(3, m_velocityGen);
+        }
+        catch(cl::Error &error)
+        {
+            std::cout << error.what() << "(" << error.err() << ")" << std::endl;
+        }
     }
     
     void tearDown()
@@ -172,12 +254,23 @@ public:
     
     void update(const float timeDelta)
     {
-    
+        updateParticles(timeDelta);
+        
+        *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
+                                        m_rotationSpeed->val() * timeDelta,
+                                        vec3(0, 1, .5)));
     }
     
     void draw()
     {
-        gl::drawTexture(m_texture, getWindowSize());
+        gl::loadMatrix(gl::PROJECTION_MATRIX, m_camera->getProjectionMatrix());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_camera->getViewMatrix());
+        
+        gl::drawGrid(200, 200);
+        
+        //gl::drawTexture(m_texture, getWindowSize());
+        
+        gl::drawPoints(m_vboPos, m_numParticles, m_pointMaterial, sizeof(vec4));
     }
     
     void updateProperty(const Property::Ptr &theProperty)
@@ -196,6 +289,34 @@ public:
                 m_texturePath->val("- not found -");
                 m_texturePath->addObserver(shared_from_this());
             }
+        }
+        else if(theProperty == m_distance ||
+                 theProperty == m_rotation)
+        {
+            m_camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
+            m_camera->setLookAt(glm::vec3(0));
+        }
+    }
+    
+    void mousePress(const MouseEvent &e)
+    {
+        m_clickPos = vec2(e.getX(), e.getY());
+        m_lastTransform = mat4(m_rotation->val());
+        m_lastDistance = m_distance->val();
+    }
+    
+    void mouseDrag(const MouseEvent &e)
+    {
+        vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
+        if(e.isLeft() && e.isAltDown())
+        {
+            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.x, vec3(0, 1, 0));
+            mouseRotate = glm::rotate(mouseRotate, mouseDiff.y, vec3(1, 0, 0));
+            *m_rotation = mat3(mouseRotate);
+        }
+        else if(e.isRight())
+        {
+            *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
         }
     }
     

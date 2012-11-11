@@ -7,7 +7,7 @@ __kernel void vector_add(__global const int *A, __global const int *B, __global 
     C[i] = A[i] + B[i];
 }
 
-__kernel void updateParticles(__global float4* pos, __global float4* color, __global float4* vel,
+__kernel void updateParticles(__global float4* pos,/* __global float4* color,*/ __global float4* vel,
                     __global float4* pos_gen, __global float4* vel_gen, float dt)
 {
     //get our index in the array
@@ -22,19 +22,22 @@ __kernel void updateParticles(__global float4* pos, __global float4* color, __gl
     float life = vel[i].w;
     //decrease the life by the time step (this value could be adjusted to lengthen or shorten particle life
     life -= dt;
+    
     //if the life is 0 or less we reset the particle's values back to the original values and set life to 1
     if(life <= 0)
     {
         p = pos_gen[i];
         v = vel_gen[i];
-        life = 1.0;
+        life = vel_gen[i].w;
     }
     
     //we use a first order euler method to integrate the velocity and position (i'll expand on this in another tutorial)
     //update the velocity to be affected by "gravity" in the z direction
-    v.z -= 9.8*dt;
+    v.y -= 2.f * dt;
+    
     //update the position with the new velocity
-    p.z += v.z*dt;
+    p.xyz += v.xyz * dt;
+    
     //store the updated life in the velocity array
     v.w = life;
     
@@ -44,5 +47,5 @@ __kernel void updateParticles(__global float4* pos, __global float4* color, __gl
     
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
-    color[i].w = life;
+    //color[i].w = life;
 }

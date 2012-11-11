@@ -14,6 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/noise.hpp>
+#include <glm/gtc/random.hpp>
 
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
@@ -49,9 +50,21 @@ namespace kinski { namespace gl {
     
     void setWindowDimension(const glm::vec2 &theDim);
     
+    template<class T> GLuint createVBO(const std::vector<T> &theVec, GLenum target, GLenum usage);
+    
+    GLuint createVBO(GLsizei numBytes, GLenum target, GLenum usage, bool initWithZeros = false);
+    
+    
+    /********************************* Drawing Functions *****************************************/
+    
     void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
     
     void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
+    
+    void drawPoints(GLuint thePointVBO, GLsizei theCount,
+                    const std::shared_ptr<Material> &theMaterial = std::shared_ptr<Material>(),
+                    GLsizei stride = 0,
+                    GLsizei offset = 0);
     
     void drawPoints(const std::vector<glm::vec3> &thePoints,
                     const std::shared_ptr<Material> &theMaterial = std::shared_ptr<Material>());
