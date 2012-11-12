@@ -165,7 +165,7 @@ public:
             vector<cv::Mat> images = m_cvThread->getImages();
             
             for(int i=0;i<images.size();i++)
-                TextureIO::updateTexture(m_textures[i], images[i]);
+                gl::TextureIO::updateTexture(m_textures[i], images[i]);
         }
         
         // trigger processing

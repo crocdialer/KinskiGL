@@ -170,7 +170,7 @@ public:
         m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
         registerProperty(m_rotationSpeed);
         
-        m_texturePath = Property_<string>::create("Texture path", "");
+        m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
         
         addPropertyListToTweakBar(getPropertyList());
@@ -225,6 +225,11 @@ public:
                 float life = 2 + 3 * (rand() / (float) RAND_MAX);
                 velGen.push_back(vec4(tmp.x, 1.f, tmp.y, life));
             }
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_vboPos);
+            vec4 *bufPtr = (vec4*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+            memcpy(bufPtr, &posGen[0], sizeof(vec4) * posGen.size());
+            glUnmapBuffer(GL_ARRAY_BUFFER);
             
             
             m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes,
@@ -296,6 +301,11 @@ public:
             m_camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
             m_camera->setLookAt(glm::vec3(0));
         }
+    }
+    
+    void resize(int w, int h)
+    {
+        m_camera->setAspectRatio(getAspectRatio());
     }
     
     void mousePress(const MouseEvent &e)

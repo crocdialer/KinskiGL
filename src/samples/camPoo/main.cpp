@@ -250,7 +250,7 @@ public:
         {
             vector<cv::Mat> images = m_cvThread->getImages();
 
-            TextureIO::updateTexture(m_texture, images.back());
+            gl::TextureIO::updateTexture(m_texture, images.back());
         }
         
     }

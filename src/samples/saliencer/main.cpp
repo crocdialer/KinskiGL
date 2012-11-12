@@ -98,7 +98,7 @@ public:
             vector<cv::Mat> images = m_cvThread->getImages();
             
             for(int i=0;i<images.size();i++)
-                TextureIO::updateTexture(m_textures[i], images[i]);
+                gl::TextureIO::updateTexture(m_textures[i], images[i]);
             
             m_imageIndex->setRange(0, images.size() - 1);
         }
@@ -127,8 +127,6 @@ public:
             
             offset += step;
         }
-        
-        // gl::drawLine(vec2(0, getHeight() ), vec2(getWidth(), 0));
     }
 };
 
