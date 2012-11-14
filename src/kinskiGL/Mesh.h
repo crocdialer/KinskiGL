@@ -47,6 +47,12 @@ namespace kinski { namespace gl {
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.
+         * Defaults to "a_tangent"
+         */
+        void setTangentLocationName(const std::string &theName);
+        
+        /*!
+         * Set the name under which the attribute will be accessible in the shader.
          * Defaults to "a_texCoord"
          */
         void setTexCoordLocationName(const std::string &theName);
@@ -67,6 +73,7 @@ namespace kinski { namespace gl {
         
         std::string m_vertexLocationName;
         std::string m_normalLocationName;
+        std::string m_tangentLocationName;
         std::string m_texCoordLocationName;
     };
 }}

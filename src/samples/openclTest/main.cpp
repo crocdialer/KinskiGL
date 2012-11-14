@@ -13,6 +13,7 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
 
+#define RAND(min, max) min + (max - min) * (rand() / (float) RAND_MAX)
 
 using namespace std;
 using namespace kinski;
@@ -220,10 +221,12 @@ public:
             {
                 posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
                 
-                vec2 tmp = glm::linearRand(vec2(-1), vec2(1));
+                vec2 tmp = glm::linearRand(vec2(-10), vec2(10));
                 
                 float life = 2 + 3 * (rand() / (float) RAND_MAX);
-                velGen.push_back(vec4(tmp.x, 1.f, tmp.y, life));
+                float yVel = RAND(5, 15);
+                
+                velGen.push_back(vec4(tmp.x, yVel, tmp.y, life)); 
             }
             
             glBindBuffer(GL_ARRAY_BUFFER, m_vboPos);

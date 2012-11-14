@@ -9,6 +9,7 @@ namespace kinski
     App::WeakPtr App::s_instance;
     
     App::App(const int width, const int height):
+    Component("KinskiGL"),
     m_running(GL_FALSE),
     m_lastTimeStamp(0.0), m_framesDrawn(0),
     m_displayTweakBar(true),
@@ -72,7 +73,7 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(m_windowSize[0], m_windowSize[1]);
         
-        m_tweakBarList.push_back(TwNewBar("KinskiGL"));
+        m_tweakBarList.push_back(TwNewBar(getName().c_str()));
         
         glfwSetMouseButtonCallback(&s_mouseButton);
         glfwSetMousePosCallback(&s_mouseMove);

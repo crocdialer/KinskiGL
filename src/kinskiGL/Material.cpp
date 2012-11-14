@@ -58,7 +58,7 @@ namespace kinski { namespace gl {
         char buf[512];
         
         // twoSided
-        if(m_twoSided) glDisable(GL_CULL_FACE);
+        if(m_twoSided || m_wireFrame) glDisable(GL_CULL_FACE);
         else
         {
             glEnable(GL_CULL_FACE);

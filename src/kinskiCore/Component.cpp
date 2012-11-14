@@ -2,8 +2,10 @@
 
 namespace kinski{
 
-Component::Component()
+Component::Component(const std::string &theName):
+m_name(theName)
 {
+    
 }
 
 Component::~Component() 

@@ -65,6 +65,7 @@ public:
     
     void setAspectRatio(float theAspect);
     float getAspectRatio() const {return m_aspect;};
+    void setClippingPlanes(float near, float far);
     
 private:
     

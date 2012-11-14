@@ -10,6 +10,7 @@
 
 #include <assimp/assimp.hpp>
 #include "assimp/aiScene.h"
+#include <assimp/aiPostProcess.h>
 
 
 using namespace std;
@@ -52,7 +53,10 @@ private:
     gl::Mesh::Ptr loadModel(const std::string &theModelPath)
     {
         Assimp::Importer importer;
-        const aiScene *theScene = importer.ReadFile(theModelPath, 0);
+        importer.ReadFile(theModelPath, 0);
+        const aiScene *theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
+                                                               | aiProcess_GenSmoothNormals
+                                                               | aiProcess_CalcTangentSpace);
         
         if (theScene)
         {
@@ -66,8 +70,6 @@ private:
             
             gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat ));
             
-            //m_mesh->setRotation( mat3(glm::rotate(mat4(), -90.f, vec3(1, 0, 0))) );
-
             importer.FreeScene();
             
             return mesh;
@@ -174,7 +176,7 @@ private:
             geom->appendFace(f.mIndices[0], f.mIndices[1], f.mIndices[2]);
         }
         
-        if(aMesh->mNormals)
+        if(aMesh->HasNormals())
         {
             geom->getNormals().reserve(aMesh->mNumVertices);
             geom->getNormals().insert(geom->getNormals().end(), (glm::vec3*)aMesh->mNormals,
@@ -183,6 +185,17 @@ private:
         else
         {
             geom->computeVertexNormals();
+        }
+        
+        if(aMesh->HasTangentsAndBitangents())
+        {
+            geom->getTangents().reserve(aMesh->mNumVertices);
+            geom->getTangents().insert(geom->getTangents().end(), (glm::vec3*)aMesh->mTangents,
+                                      (glm::vec3*) aMesh->mTangents + aMesh->mNumVertices);
+        }
+        else
+        {
+            // compute tangents
         }
         
         geom->computeBoundingBox();
@@ -197,7 +210,7 @@ public:
     {
         /*********** init our application properties ******************/
         
-        m_distance = RangedProperty<float>::create("view distance", 25, -500, 500);
+        m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);
         registerProperty(m_distance);
         
         m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
@@ -265,6 +278,7 @@ public:
         //if(m_mesh) m_scene.addObject(m_mesh);
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
+        m_Camera->setClippingPlanes(.1, 5000);
         
 //        {
 //            int w = 1024, h = 1024;
@@ -342,11 +356,11 @@ public:
             gl::drawBoundingBox(m_mesh);
             if(m_drawNormals->val()) gl::drawNormals(m_mesh);
             
-            gl::drawPoints(m_mesh->getGeometry()->getInterleavedBuffer(),
-                           m_mesh->getGeometry()->getVertices().size(),
-                           m_pointMaterial,
-                           8 * sizeof(GLfloat),
-                           5 * sizeof(GLfloat));
+//            gl::drawPoints(m_mesh->getGeometry()->getInterleavedBuffer(),
+//                           m_mesh->getGeometry()->getVertices().size(),
+//                           m_pointMaterial,
+//                           8 * sizeof(GLfloat),
+//                           5 * sizeof(GLfloat));
         }
     }
     
@@ -362,8 +376,8 @@ public:
         vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
         if(e.isLeft() && e.isAltDown())
         {
-            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.x, vec3(0, 1, 0));
-            mouseRotate = glm::rotate(mouseRotate, mouseDiff.y, vec3(1, 0, 0));
+            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.x, vec3(m_lastTransform[1]) );
+            mouseRotate = glm::rotate(mouseRotate, mouseDiff.y, vec3(m_lastTransform[0]) );
             *m_rotation = mat3(mouseRotate);
         }
         else if(e.isRight())
@@ -381,7 +395,13 @@ public:
             break;
             
         case KeyEvent::KEY_r:
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            try
+            {
+                Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            }catch(FileNotFoundException &e)
+            {
+                printf("%s\n", e.what());
+            }
             break;
                 
         default:

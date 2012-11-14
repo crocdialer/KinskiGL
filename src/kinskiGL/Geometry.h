@@ -97,6 +97,9 @@ namespace gl
         inline std::vector<glm::vec3>& getNormals(){ return m_normals; };
         inline const std::vector<glm::vec3>& getNormals() const { return m_normals; };
         
+        inline std::vector<glm::vec3>& getTangents(){ return m_tangents; };
+        inline const std::vector<glm::vec3>& getTangents() const { return m_tangents; };
+        
         inline std::vector<glm::vec2>& getTexCoords(){ return m_texCoords; };
         inline const std::vector<glm::vec2>& getTexCoords() const { return m_texCoords; };
         
@@ -117,6 +120,8 @@ namespace gl
         
         std::vector<glm::vec3> m_vertices;
         std::vector<glm::vec3> m_normals;
+        std::vector<glm::vec3> m_tangents;
+        
         std::vector<glm::vec2> m_texCoords;
         std::vector<Face3> m_faces;
         

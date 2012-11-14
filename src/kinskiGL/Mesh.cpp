@@ -18,6 +18,7 @@ namespace kinski { namespace gl {
     m_drawMode(GL_TRIANGLES),
     m_vertexLocationName("a_vertex"),
     m_normalLocationName("a_normal"),
+    m_tangentLocationName("a_tangent"),
     m_texCoordLocationName("a_texCoord")
     {
         createVertexArray();
@@ -40,6 +41,7 @@ namespace kinski { namespace gl {
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
         GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
         GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
+        GLuint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
         
         uint32_t numFloats = m_geometry->getNumComponents();
         GLsizei stride = numFloats * sizeof(GLfloat);
@@ -64,6 +66,12 @@ namespace kinski { namespace gl {
                               stride,
                               BUFFER_OFFSET(5 * sizeof(GLfloat)));
         
+        // define attrib pointer (vertex)
+        glEnableVertexAttribArray(vertexAttribLocation);
+        glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              stride,
+                              BUFFER_OFFSET(8 * sizeof(GLfloat)));
+        
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->getIndexBuffer());
         
@@ -82,6 +90,12 @@ namespace kinski { namespace gl {
         createVertexArray();
     }
 
+    void Mesh::setTangentLocationName(const std::string &theName)
+    {
+        m_tangentLocationName = theName;
+        createVertexArray();
+    }
+    
     void Mesh::setTexCoordLocationName(const std::string &theName)
     {
         m_texCoordLocationName = theName;

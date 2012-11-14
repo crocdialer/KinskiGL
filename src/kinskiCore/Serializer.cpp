@@ -114,7 +114,7 @@ namespace kinski {
         int myIndex = 0;
         int myVIndex = 0;
         
-        std::string myName = "component";
+        std::string myName = theComponent->getName();
         
         myRoot[myIndex][PropertyIO::PROPERTY_NAME] = myName;
         
@@ -144,6 +144,41 @@ namespace kinski {
         return myWriter.write(myRoot); 
     }
     
+    void Serializer::applyStateToComponent(const Component::Ptr &theComponent,
+                                           const std::string &theState,
+                                           const PropertyIO &theIO)
+    {
+        Json::Reader myReader;
+        Json::Value myRoot;
+        
+        bool myParsingSuccessful = myReader.parse(theState, myRoot);
+        if (!myParsingSuccessful)
+        {
+            throw ParsingException(theState);
+        }
+        
+        for (unsigned int i=0; i<myRoot.size(); i++)
+        {
+            Json::Value myComponentNode = myRoot[i];
+            
+            for (unsigned int i=0; i < myComponentNode[PropertyIO::PROPERTIES].size(); i++)
+            {
+                try
+                {
+                    std::string myName =
+                    myComponentNode[PropertyIO::PROPERTIES][i][PropertyIO::PROPERTY_NAME].asString();
+                    
+                    Property::Ptr myProperty = theComponent->getPropertyByName(myName);
+                    theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][i]);
+                    
+                } catch (PropertyNotFoundException &myException)
+                {
+                    //LOG(WARNING) << myException.getMessage();
+                }
+            }
+        }
+    }
+    
     void Serializer::saveComponentState(const Component::Ptr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
@@ -165,37 +200,8 @@ namespace kinski {
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
-        std::string myConfigString = readFile(theFileName);
-        
-        Json::Reader myReader;
-        Json::Value myRoot;
-        
-        bool myParsingSuccessful = myReader.parse(myConfigString, myRoot);
-        if (!myParsingSuccessful)
-        {
-            throw ParsingException(myConfigString);
-        }
-        
-        for (unsigned int i=0; i<myRoot.size(); i++)
-        {
-            Json::Value myComponentNode = myRoot[i];
-
-            for (unsigned int i=0; i < myComponentNode[PropertyIO::PROPERTIES].size(); i++)
-            {
-                try
-                {
-                    std::string myName =
-                    myComponentNode[PropertyIO::PROPERTIES][i][PropertyIO::PROPERTY_NAME].asString();
-                    
-                    Property::Ptr myProperty = theComponent->getPropertyByName(myName);
-                    theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][i]);
-                    
-                } catch (PropertyNotFoundException &myException)
-                {
-                    //LOG(WARNING) << myException.getMessage();
-                }
-            }
-        }
+        std::string myState = readFile(theFileName);
+        applyStateToComponent(theComponent, myState, theIO);
     }
 
 }//namespace

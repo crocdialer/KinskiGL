@@ -20,19 +20,24 @@ namespace kinski
     public:
         typedef std::shared_ptr<Component> Ptr;
         
-        Component();
-        virtual ~Component();    
-        const std::list<Property::Ptr>& getPropertyList() const; 
+        Component(const std::string &theName = "Component");
+        virtual ~Component();
+        
+        const std::string& getName() const { return m_name; };
+        const std::list<Property::Ptr>& getPropertyList() const;
         Property::Ptr getPropertyByName(const std::string & thePropertyName);
-    
-    public: 
 
         virtual void updateProperty(const Property::Ptr &theProperty){};        
         void observeProperties(bool b = true);
         
     protected:        
-        std::list<Property::Ptr> m_propertyList;
+        
         void registerProperty(Property::Ptr theProperty);
+
+    private:
+        
+        std::string m_name;
+        std::list<Property::Ptr> m_propertyList;
         
     };
 

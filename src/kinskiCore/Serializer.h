@@ -65,7 +65,15 @@ namespace kinski
          * Supported Property types are determined by theIO object
          */
         static std::string serializeComponent(const Component::Ptr &theComponent,
-                                       const PropertyIO &theIO = PropertyIO());
+                                              const PropertyIO &theIO = PropertyIO());
+        
+        /*!
+         * Read a component´s state from a string in json-format
+         * Supported Property types are determined by theIO object
+         */
+        static void applyStateToComponent(const Component::Ptr &theComponent,
+                                          const std::string &theState,
+                                          const PropertyIO &theIO = PropertyIO());
         
         class ParsingException: public Exception
         {

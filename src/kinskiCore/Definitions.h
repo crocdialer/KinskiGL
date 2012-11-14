@@ -40,7 +40,8 @@ namespace kinski
     using boost::uint32_t;
     using boost::int64_t;
     using boost::uint64_t;
-    
+}
+
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 #define KINSKI_MSW
 #elif defined(linux) || defined(__linux) || defined(__linux__)
@@ -59,10 +60,8 @@ namespace kinski
 #error "kinski compile error: Unknown platform"
 #endif
     
-}
-
 // compiler has C++11 stdlib
-#if __cplusplus > 199711L
+#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)
 #include <memory>
 #elif defined( KINSKI_COCOA )
 #include <tr1/memory>

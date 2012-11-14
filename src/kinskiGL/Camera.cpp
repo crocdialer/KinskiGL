@@ -61,4 +61,11 @@ namespace kinski { namespace gl{
         setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
     }
     
+    void PerspectiveCamera::setClippingPlanes(float near, float far)
+    {
+        m_near = near;
+        m_far = far;
+        setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
+    }
+    
 }}//namespace

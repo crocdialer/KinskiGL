@@ -186,7 +186,7 @@ namespace kinski{ namespace gl{
     GLuint Geometry::getNumComponents()
     {
         //GL_T2F_N3F_V3F alignment in interleaved buffer
-        return 8;
+        return 11;
     }
     
     void Geometry::createGLBuffers()
@@ -223,6 +223,12 @@ namespace kinski{ namespace gl{
             interleaved[numFloats * i + 5] = vert.x;
             interleaved[numFloats * i + 6] = vert.y;
             interleaved[numFloats * i + 7] = vert.z;
+            
+            // tangents
+            const glm::vec3 &tangent = m_tangents[i];
+            interleaved[numFloats * i + 8] = tangent.x;
+            interleaved[numFloats * i + 9] = tangent.y;
+            interleaved[numFloats * i + 10] = tangent.z;
         }
         
         glUnmapBuffer(GL_ARRAY_BUFFER);
