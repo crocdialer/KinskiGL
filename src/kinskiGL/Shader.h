@@ -129,7 +129,8 @@ class ShaderCompileExc : public Exception
 class ShaderLinkException : public Exception
 {
 public:
-    ShaderLinkException(): Exception("GLSL: Shader did not link correctly!"){};
+    ShaderLinkException(const std::string &linkLog):
+        Exception("GLSL: Shader did not link correctly:\n"){};
 };
 
 class ShaderNullProgramExc : public Exception

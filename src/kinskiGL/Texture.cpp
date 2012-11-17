@@ -296,7 +296,7 @@ void Texture::setDoNotDispose( bool aDoNotDispose )
     m_Obj->m_DoNotDispose = aDoNotDispose; 
 }
 
-    void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
+void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
 {
     m_Obj->m_textureMatrix = theMatrix;
 }

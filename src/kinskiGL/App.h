@@ -4,8 +4,10 @@
 #include "KinskiGL.h"
 #include "kinskiCore/Component.h"
 
-#include <map>
-#include <list>
+#define GLFW_INCLUDE_GL3
+#define GLFW_NO_GLU
+#include <GL/glfw.h>
+#include <AntTweakBar.h>
 
 namespace kinski
 {

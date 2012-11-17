@@ -1,12 +1,32 @@
 #ifndef _KINSKIGL_H
 #define _KINSKIGL_H
 
-//#define KINSKI_GLES
-#define GLFW_INCLUDE_GL3
-#define GLFW_NO_GLU
+#include "kinskiCore/Definitions.h"
+#include "kinskiCore/Exception.h"
 
-#include <GL/glfw.h>
-#include <AntTweakBar.h>
+#ifdef KINSKI_COCOA
+#include <OpenGL/gl3.h>
+#elif defined(KINSKI_COCOA_TOUCH)
+#import <OpenGLES/EAGL.h>
+#import <OpenGLES/ES2/gl.h>
+#import <OpenGLES/ES2/glext.h>
+#else
+#include <GL3/gl3.h>
+#endif
+
+#ifdef KINSKI_COCOA_TOUCH
+#define KINSKI_GLES
+#endif
+
+// Convenience macro to append either nothing or "EXT"
+// appropriately to a symbol based on OGLES vs. OGL
+#if defined( KINSKI_GLES )
+#define GL_SUFFIX(sym) sym##OES
+#define GL_ENUM(sym) sym##_OES
+#else
+#define GL_SUFFIX(sym) sym
+#define GL_ENUM(sym) sym
+#endif
 
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
@@ -15,10 +35,6 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/noise.hpp>
 #include <glm/gtc/random.hpp>
-
-#include "kinskiCore/Definitions.h"
-#include "kinskiCore/Exception.h"
-
 
 namespace kinski { namespace gl {
 

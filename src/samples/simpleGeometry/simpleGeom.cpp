@@ -21,6 +21,8 @@ class SimpleGeometryApp : public App
 {
 private:
     
+    gl::Texture m_noiseTexture;
+    
     gl::Material::Ptr m_material, m_pointMaterial;
     gl::Geometry::Ptr m_geometry;
     gl::Geometry::Ptr m_straightPlane;
@@ -280,19 +282,19 @@ public:
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
         
-//        {
-//            int w = 1024, h = 1024;
-//            float data[w * h];
-//            
-//            for (int i = 0; i < h; i++)
-//                for (int j = 0; j < w; j++)
-//                {
-//                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
-//                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
-//                }
-//            
-//            m_material->getTextures()[0].update(data, GL_RED, w, h, true);
-//        }
+        {
+            int w = 1024, h = 1024;
+            float data[w * h];
+            
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                {
+                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
+                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
+                }
+            
+            m_noiseTexture.update(data, GL_RED, w, h, true);
+        }
         
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
@@ -359,7 +361,7 @@ public:
 //            gl::drawPoints(m_mesh->getGeometry()->getInterleavedBuffer(),
 //                           m_mesh->getGeometry()->getVertices().size(),
 //                           m_pointMaterial,
-//                           8 * sizeof(GLfloat),
+//                           m_mesh->getGeometry()->getNumComponents() * sizeof(GLfloat),
 //                           5 * sizeof(GLfloat));
         }
     }
@@ -429,6 +431,7 @@ public:
         
         else if(theProperty == m_color)
         {
+            if(m_mesh) m_mesh->getMaterial()->setDiffuse(m_color->val());
             m_material->setDiffuse(m_color->val());
             m_pointMaterial->setDiffuse(m_color->val());
         }
@@ -451,6 +454,13 @@ public:
                 
                 m_scene.removeObject(m_mesh);
                 m_mesh = m;
+                
+                m_mesh->getMaterial()->addTexture(gl::TextureIO::loadTexture("stone.png"));
+                
+                //m_mesh->getMaterial()->addTexture(m_noiseTexture);
+                m_mesh->getMaterial()->addTexture(gl::TextureIO::loadTexture("asteroid_normal.png"));
+                m_mesh->getMaterial()->setBlending();
+                
                 m_scene.addObject(m);
                 
             } catch (Exception &e)

@@ -26,7 +26,7 @@ namespace kinski { namespace gl {
     
     Mesh::~Mesh()
     {
-        if(m_vertexArray) glDeleteVertexArrays(1, &m_vertexArray);
+        if(m_vertexArray) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArray);
     }
     
     void Mesh::createVertexArray()
@@ -35,8 +35,8 @@ namespace kinski { namespace gl {
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
-        if(!m_vertexArray) glGenVertexArrays(1, &m_vertexArray);
-        glBindVertexArray(m_vertexArray);
+        if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
+        GL_SUFFIX(glBindVertexArray)(m_vertexArray);
         
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
         GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
@@ -67,7 +67,7 @@ namespace kinski { namespace gl {
                               BUFFER_OFFSET(5 * sizeof(GLfloat)));
         
         // define attrib pointer (vertex)
-        glEnableVertexAttribArray(vertexAttribLocation);
+        glEnableVertexAttribArray(tangentAttribLocation);
         glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
                               stride,
                               BUFFER_OFFSET(8 * sizeof(GLfloat)));
@@ -75,7 +75,7 @@ namespace kinski { namespace gl {
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->getIndexBuffer());
         
-        glBindVertexArray(0);
+        GL_SUFFIX(glBindVertexArray)(0);
     }
     
     void Mesh::setVertexLocationName(const std::string &theName)

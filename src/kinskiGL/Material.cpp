@@ -72,7 +72,7 @@ namespace kinski { namespace gl {
         if(m_depthTest) glEnable(GL_DEPTH_TEST);
         else glDisable(GL_DEPTH_TEST);
         
-        if(m_depthWrite && !m_blending) glDepthMask(GL_TRUE);
+        if(m_depthWrite) glDepthMask(GL_TRUE);
         else glDepthMask(GL_FALSE);
         
         if(m_blending)

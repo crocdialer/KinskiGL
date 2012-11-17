@@ -30,15 +30,6 @@ namespace gl {
 GLint Fbo::sMaxSamples = -1;
 GLint Fbo::sMaxAttachments = -1;
 
-// Convenience macro to append either OES or EXT appropriately to a symbol based on OGLES vs. OGL
-#if defined( KINSKI_GLES )
-	#define GL_SUFFIX(sym) sym##OES
-    #define GL_ENUM(sym) sym##_OES
-#else
-	#define GL_SUFFIX(sym) sym
-    #define GL_ENUM(sym) sym
-#endif
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // RenderBuffer::Obj
 Renderbuffer::Obj::Obj()

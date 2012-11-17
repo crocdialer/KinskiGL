@@ -144,7 +144,7 @@ void Shader::link()
 	if( status != GL_TRUE )
     {
 		std::string log = getProgramLog();
-		throw ShaderLinkException();
+		throw ShaderLinkException(log);
 	}
     std::string log = getProgramLog();
 }

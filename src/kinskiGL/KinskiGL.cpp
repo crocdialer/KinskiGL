@@ -212,8 +212,8 @@ namespace kinski { namespace gl {
         
         if(!lineVAO)
         {
-            glGenVertexArrays(1, &lineVAO);
-            glBindVertexArray(lineVAO);
+            GL_SUFFIX(glGenVertexArrays)(1, &lineVAO);
+            GL_SUFFIX(glBindVertexArray)(lineVAO);
             
             if(!lineVBO)
                 glGenBuffers(1, &lineVBO);
@@ -226,7 +226,7 @@ namespace kinski { namespace gl {
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
             
-            glBindVertexArray(0);
+            GL_SUFFIX(glBindVertexArray)(0);
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
@@ -235,9 +235,9 @@ namespace kinski { namespace gl {
         glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size() * sizeof(GLfloat),
                      &thePoints[0], GL_STREAM_DRAW);
         
-        glBindVertexArray(lineVAO);
+        GL_SUFFIX(glBindVertexArray)(lineVAO);
         glDrawArrays(GL_LINES, 0, thePoints.size());
-        glBindVertexArray(0);
+        GL_SUFFIX(glBindVertexArray)(0);
     }
     
     void drawPoints(GLuint thePointVBO, GLsizei theCount, const Material::Ptr &theMaterial,
@@ -300,8 +300,8 @@ namespace kinski { namespace gl {
         
         if(!pointVAO || (activeMat != staticMat) )
         {
-            if(!pointVAO) glGenVertexArrays(1, &pointVAO);
-            glBindVertexArray(pointVAO);
+            if(!pointVAO) GL_SUFFIX(glGenVertexArrays)(1, &pointVAO);
+            GL_SUFFIX(glBindVertexArray)(pointVAO);
             
             glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
             
@@ -310,14 +310,14 @@ namespace kinski { namespace gl {
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(offset));
             
-            glBindVertexArray(0);
+            GL_SUFFIX(glBindVertexArray)(0);
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
         
-        glBindVertexArray(pointVAO);
+        GL_SUFFIX(glBindVertexArray)(pointVAO);
         glDrawArrays(GL_POINTS, 0, theCount);
-        glBindVertexArray(0);
+        GL_SUFFIX(glBindVertexArray)(0);
     }
     
     void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
@@ -422,8 +422,8 @@ namespace kinski { namespace gl {
                                     0.0,1.0,0.0,1.0,0.0};
             
             // create VAO to record all VBO calls
-            glGenVertexArrays(1, &canvasVAO);
-            glBindVertexArray(canvasVAO);
+            GL_SUFFIX(glGenVertexArrays)(1, &canvasVAO);
+            GL_SUFFIX(glBindVertexArray)(canvasVAO);
             
             GLuint canvasBuffer;
             glGenBuffers(1, &canvasBuffer);
@@ -444,12 +444,12 @@ namespace kinski { namespace gl {
             
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             
-            glBindVertexArray(0);
+            GL_SUFFIX(glBindVertexArray)(0);
         }
         
-        glBindVertexArray(canvasVAO);
+        GL_SUFFIX(glBindVertexArray)(canvasVAO);
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glBindVertexArray(0);
+        GL_SUFFIX(glBindVertexArray)(0);
     }
     
     void drawGrid(float width, float height, int numW, int numH)
@@ -521,10 +521,10 @@ namespace kinski { namespace gl {
         
         theMesh->getMaterial()->apply();
         
-        glBindVertexArray(theMesh->getVertexArray());
+        GL_SUFFIX(glBindVertexArray)(theMesh->getVertexArray());
         glDrawElements(GL_TRIANGLES, 3 * theMesh->getGeometry()->getFaces().size(),
                        GL_UNSIGNED_INT, BUFFER_OFFSET(0));
-        glBindVertexArray(0);
+        GL_SUFFIX(glBindVertexArray)(0);
     
     }
     
@@ -599,10 +599,13 @@ namespace kinski { namespace gl {
             const vector<vec3> &vertices = m->getGeometry()->getVertices();
             const vector<vec3> &normals = m->getGeometry()->getNormals();
             
+            float length = (m->getGeometry()->getBoundingBox().max -
+                            m->getGeometry()->getBoundingBox().min).length() * 5;
+            
             for (int i = 0; i < vertices.size(); i++)
             {
                 thePoints.push_back(vertices[i]);
-                thePoints.push_back(vertices[i] + normals[i] * 10.f);
+                thePoints.push_back(vertices[i] + normals[i] * length);
             }
             
             theMap[theMesh] = thePoints;
