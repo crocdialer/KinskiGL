@@ -179,6 +179,16 @@ namespace kinski { namespace gl {
         //create shader
         if(!lineShader)
         {
+#ifdef KINSKI_GLES
+            const char *vertSrc =
+            "uniform mat4 u_modelViewProjectionMatrix;\n"
+            "attribute vec4 a_vertex;\n"
+            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
+            
+            const char *fragSrc =
+            "uniform vec4 u_lineColor;\n"
+            "void main(){gl_FragColor = u_lineColor;}\n";
+#else
             const char *vertSrc =
             "#version 150 core\n"
             "uniform mat4 u_modelViewProjectionMatrix;\n"
@@ -190,7 +200,7 @@ namespace kinski { namespace gl {
             "uniform vec4 u_lineColor;\n"
             "out vec4 fragData;\n"
             "void main(){fragData = u_lineColor;}\n";
-            
+#endif
             try
             {
                 lineShader.loadFromData(vertSrc, fragSrc);
@@ -251,7 +261,30 @@ namespace kinski { namespace gl {
         if(!staticMat)
         {
             staticMat = gl::Material::Ptr(new gl::Material);
+#ifdef KINSKI_GLES
+            const char *vertSrc =
+            "uniform mat4 u_modelViewProjectionMatrix;\n"
+            "uniform float u_pointSize;\n"
+            "attribute vec4 a_vertex;\n"
+            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
+            "gl_PointSize = u_pointSize;}\n";
             
+            const char *fragSrc =
+            "uniform int u_numTextures;\n"
+            "uniform sampler2D u_textureMap[];\n"
+            "uniform struct{\n"
+            "vec4 diffuse;\n"
+            "vec4 ambient;\n"
+            "vec4 specular;\n"
+            "vec4 emission;\n"
+            "} u_material;\n"
+            "void main(){\n"
+            "vec4 texColors = vec4(1);\n"
+            "for(int i = 0; i < u_numTextures; i++)\n"
+            "   {texColors *= texture2D(u_textureMap[0], gl_PointCoord);}\n"
+            "gl_FragColor = u_material.diffuse * texColors;\n"
+            "}\n";
+#else
             const char *vertSrc =
             "#version 150 core\n"
             "uniform mat4 u_modelViewProjectionMatrix;\n"
@@ -277,7 +310,7 @@ namespace kinski { namespace gl {
             "   {texColors *= texture(u_textureMap[0], gl_PointCoord);}\n"
             "fragData = u_material.diffuse * texColors;\n"
             "}\n";
-            
+#endif
             try
             {
                 staticMat->getShader().loadFromData(vertSrc, fragSrc);
@@ -348,6 +381,26 @@ namespace kinski { namespace gl {
         //create shader
         if(!material.getShader())
         {
+#ifdef KINSKI_GLES
+            const char *vertSrc =
+            "uniform mat4 u_modelViewProjectionMatrix;\n"
+            "uniform mat4 u_textureMatrix;\n"
+            "attribute vec4 a_vertex;\n"
+            "attribute vec4 a_texCoord;\n"
+            "varying vec4 v_texCoord;\n"
+            "void main(){\n"
+            "v_texCoord =  u_textureMatrix * a_texCoord;\n"
+            "gl_Position = u_modelViewProjectionMatrix * a_vertex;"
+            "}\n";
+            
+            const char *fragSrc =
+            "precision mediump float;\n"
+            "precision lowp int;\n"
+            "uniform int u_numTextures;\n"
+            "uniform sampler2D u_textureMap[];\n"
+            "varying vec4 v_texCoord;\n"
+            "void main(){gl_FragColor = texture2D(u_textureMap[0], v_texCoord.xy);}\n";
+#else
             const char *vertSrc =
             "#version 150 core\n"
             "uniform mat4 u_modelViewProjectionMatrix;\n"
@@ -367,7 +420,7 @@ namespace kinski { namespace gl {
             "in vec4 v_texCoord;\n"
             "out vec4 fragData;\n"
             "void main(){fragData = texture(u_textureMap[0], v_texCoord.xy);}\n";
-            
+#endif
             try
             {
                 material.getShader().loadFromData(vertSrc, fragSrc);
@@ -535,7 +588,7 @@ namespace kinski { namespace gl {
         static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
         
         
-        // if(theMap.find(weakMesh) == theMap.end())
+        if(theMap.find(weakMesh) == theMap.end())
         {
             Mesh::Ptr theMesh = weakMesh.lock();
             if(!theMesh) return;
