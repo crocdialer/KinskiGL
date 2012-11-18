@@ -137,9 +137,9 @@ namespace kinski { namespace gl {
         
         if(initWithZeros)
         {
-            GLfloat *ptr = (GLfloat*) glMapBuffer(target, GL_WRITE_ONLY);
+            GLfloat *ptr = (GLfloat*) GL_SUFFIX(glMapBuffer)(target, GL_ENUM(GL_WRITE_ONLY));
             memset(ptr, 0, numBytes);
-            glUnmapBuffer(target);
+            GL_SUFFIX(glUnmapBuffer)(target);
         }
         
         glBindBuffer(target, 0);
@@ -164,8 +164,9 @@ namespace kinski { namespace gl {
         
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
+#ifndef KINSKI_GLES
         glEnable(GL_LINE_SMOOTH);
-        
+#endif
         drawLines(thePoints, theColor);
     }
     
@@ -530,9 +531,11 @@ namespace kinski { namespace gl {
     
     void drawBoundingBox(const std::weak_ptr<Mesh> &weakMesh)
     {
+#ifndef KINSKI_GLES
         static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
         
-        if(theMap.find(weakMesh) == theMap.end())
+        
+        // if(theMap.find(weakMesh) == theMap.end())
         {
             Mesh::Ptr theMesh = weakMesh.lock();
             if(!theMesh) return;
@@ -583,10 +586,12 @@ namespace kinski { namespace gl {
         }
         
         gl::drawLines(theMap[weakMesh], vec4(1));
+#endif
     }
 
     void drawNormals(const std::weak_ptr<Mesh> &theMesh)
     {
+#ifndef KINSKI_GLES
         static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
         
         if(theMap.find(theMesh) == theMap.end())
@@ -612,6 +617,7 @@ namespace kinski { namespace gl {
         }
         
         gl::drawLines(theMap[theMesh], vec4(.7));
+#endif
     }
     
 }}//namespace

@@ -204,8 +204,19 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat, GL_FLOAT, data );
 	}
 	else
+    {
+        GLuint mode;
+    
+#ifdef KINSKI_GLES
+        mode = GL_LUMINANCE;
+#else 
+        mode = GL_RED;
+#endif
         // init to black...
-		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, GL_RED, GL_FLOAT, 0 );  
+		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0,
+                     mode,
+                     GL_FLOAT, 0 );
+    }
     
     if( format.m_Mipmapping )
         glGenerateMipmap(m_Obj->m_Target);
@@ -267,9 +278,10 @@ bool Texture::dataFormatHasAlpha( GLint dataFormat )
 
 bool Texture::dataFormatHasColor( GLint dataFormat )
 {
+    
 	switch( dataFormat ) {
 		case GL_ALPHA:
-		case GL_RED:
+        //case GL_LUMINANCE:
 			return false;
 		break;
 	}

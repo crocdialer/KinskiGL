@@ -67,8 +67,10 @@ Shader::Shader(const char *vertexShader, const char *fragmentShader,
 	if( fragmentShader )
 		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
     
+#ifndef KINSKI_GLES
 	if( geometryShader )
 		loadShader( geometryShader, GL_GEOMETRY_SHADER );
+#endif
     
 	link();
 }
@@ -86,8 +88,10 @@ void Shader::loadFromData(const char *vertSrc,
     loadShader( vertSrc, GL_VERTEX_SHADER );
 	loadShader( fragSrc, GL_FRAGMENT_SHADER );
 
+#ifndef KINSKI_GLES
     if(geomSrc) 
         loadShader(geomSrc, GL_GEOMETRY_SHADER);
+#endif
     
     link();
 }
@@ -336,7 +340,9 @@ void Shader::uniform( const std::string &name, const std::vector<glm::mat4> &the
 
 void Shader::bindFragDataLocation(const std::string &fragLoc)
 {
+#ifndef KINSKI_GLES
     glBindFragDataLocation(m_Obj->m_Handle, 0, fragLoc.c_str());
+#endif
 }
     
 GLint Shader::getUniformLocation( const std::string &name )
@@ -366,8 +372,10 @@ ShaderCompileExc::ShaderCompileExc( const std::string &log, GLint aShaderType ):
 		strncpy( m_Message, "VERTEX: ", 1000 );
 	else if( m_ShaderType == GL_FRAGMENT_SHADER )
 		strncpy( m_Message, "FRAGMENT: ", 1000 );
+#ifndef KINSKI_GLES
 	else if( m_ShaderType == GL_GEOMETRY_SHADER )
 		strncpy( m_Message, "GEOMETRY: ", 1000 );
+#endif
 	else
 		strncpy( m_Message, "UNKNOWN: ", 1000 );
 	strncat( m_Message, log.c_str(), 15000 );

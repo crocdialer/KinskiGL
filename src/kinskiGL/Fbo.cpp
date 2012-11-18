@@ -51,7 +51,7 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 
 	//GL_SUFFIX(glGenRenderbuffers)( 1, &mId );
 #if defined( KINSKI_GLES )
-    glGenRenderbuffersOES( 1, &mId );
+    glGenRenderbuffers( 1, &mId );
 #else
     glGenRenderbuffers( 1, &mId );
 #endif
@@ -62,11 +62,7 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 	if( ! csaaSupported )
 		mCoverageSamples = 0;
 
-#if defined( KINSKI_GLES )
-    glBindRenderbufferOES( GL_RENDERBUFFER_OES, mId );
-#else
     glBindRenderbuffer( GL_RENDERBUFFER, mId );
-#endif
 
 #if ! defined( KINSKI_GLES )
   #if defined( CINDER_MSW )
@@ -79,14 +75,14 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 	else
 #endif
 
-    GL_SUFFIX(glRenderbufferStorage)( GL_ENUM(GL_RENDERBUFFER), mInternalFormat, mWidth, mHeight );
+    glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
 
 }
 
 Renderbuffer::Obj::~Obj()
 {
 	if( mId )
-		GL_SUFFIX(glDeleteRenderbuffers)( 1, &mId );
+		glDeleteRenderbuffers( 1, &mId );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -119,9 +115,9 @@ Fbo::Obj::Obj( int width, int height )
 Fbo::Obj::~Obj()
 {
 	if( mId )
-		GL_SUFFIX(glDeleteFramebuffers)( 1, &mId );
+		glDeleteFramebuffers( 1, &mId );
 	if( mResolveFramebufferId )
-		GL_SUFFIX(glDeleteFramebuffers)( 1, &mResolveFramebufferId );
+		glDeleteFramebuffers( 1, &mResolveFramebufferId );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,9 +185,9 @@ void Fbo::init()
 		useMSAA = false;
 
 	// allocate the framebuffer itself
-	GL_SUFFIX(glGenFramebuffers)( 1, &mObj->mId );
+	glGenFramebuffers( 1, &mObj->mId );
     
-    GL_SUFFIX(glBindFramebuffer)( GL_ENUM(GL_FRAMEBUFFER), mObj->mId );
+    glBindFramebuffer(GL_FRAMEBUFFER, mObj->mId );
 
 	Texture::Format textureFormat;
 	textureFormat.setTarget( getTarget() );
@@ -217,9 +213,9 @@ void Fbo::init()
 		// attach all the textures to the framebuffer
 		vector<GLenum> drawBuffers;
 		for( size_t c = 0; c < mObj->mColorTextures.size(); ++c ) {
-			GL_SUFFIX(glFramebufferTexture2D)( GL_ENUM(GL_FRAMEBUFFER),
-             GL_ENUM(GL_COLOR_ATTACHMENT0) + c, getTarget(), mObj->mColorTextures[c].getId(), 0 );
-			drawBuffers.push_back( GL_ENUM(GL_COLOR_ATTACHMENT0) + c );
+			glFramebufferTexture2D( GL_FRAMEBUFFER,
+             GL_COLOR_ATTACHMENT0 + c, getTarget(), mObj->mColorTextures[c].getId(), 0 );
+			drawBuffers.push_back( GL_COLOR_ATTACHMENT0 + c );
 		}
 #if ! defined( KINSKI_GLES )
 		if( ! drawBuffers.empty() )
@@ -249,7 +245,7 @@ void Fbo::init()
 			}
 			else if( mObj->mFormat.mDepthBuffer ) { // implement depth buffer as RenderBuffer
 				mObj->mDepthRenderbuffer = Renderbuffer( mObj->mWidth, mObj->mHeight, mObj->mFormat.getDepthInternalFormat() );
-				GL_SUFFIX(glFramebufferRenderbuffer)( GL_ENUM(GL_FRAMEBUFFER), GL_ENUM(GL_DEPTH_ATTACHMENT), GL_ENUM(GL_RENDERBUFFER), mObj->mDepthRenderbuffer.getId() );
+				glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mObj->mDepthRenderbuffer.getId() );
 			}
 		}
 
@@ -408,10 +404,10 @@ void Fbo::updateMipmaps( bool bindFirst, int attachment ) const
 	if( bindFirst ) 
     {
 		mObj->mColorTextures[attachment].bind();
-		GL_SUFFIX(glGenerateMipmap)( getTarget() );
+		glGenerateMipmap( getTarget() );
 	}
 	else {
-		GL_SUFFIX(glGenerateMipmap)( getTarget() );
+		glGenerateMipmap( getTarget() );
 	}
 
 	mObj->mNeedsMipmapUpdate = false;
@@ -419,7 +415,7 @@ void Fbo::updateMipmaps( bool bindFirst, int attachment ) const
 
 void Fbo::bindFramebuffer()
 {
-	GL_SUFFIX(glBindFramebuffer)( GL_ENUM(GL_FRAMEBUFFER), mObj->mId );
+	glBindFramebuffer( GL_FRAMEBUFFER, mObj->mId );
 	if( mObj->mResolveFramebufferId ) {
 		mObj->mNeedsResolve = true;
 	}
@@ -430,23 +426,23 @@ void Fbo::bindFramebuffer()
 
 void Fbo::unbindFramebuffer()
 {
-	GL_SUFFIX(glBindFramebuffer)( GL_ENUM(GL_FRAMEBUFFER), 0 );
+	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
 }
 
 bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
 {
 	GLenum status;
-	status = (GLenum) GL_SUFFIX(glCheckFramebufferStatus)( GL_ENUM(GL_FRAMEBUFFER) );
+	status = (GLenum) glCheckFramebufferStatus( GL_FRAMEBUFFER );
 	switch( status ) {
-		case GL_ENUM(GL_FRAMEBUFFER_COMPLETE):
+		case GL_FRAMEBUFFER_COMPLETE:
 		break;
-		case GL_ENUM(GL_FRAMEBUFFER_UNSUPPORTED):
+		case GL_FRAMEBUFFER_UNSUPPORTED:
 			*resultExc = FboExceptionInvalidSpecification( "Unsupported framebuffer format" );
 		return false;
-		case GL_ENUM(GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT):
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: missing attachment" );
 		return false;
-		case GL_ENUM(GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT):
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
 			*resultExc = FboExceptionInvalidSpecification( "Framebuffer incomplete: duplicate attachment" );
 		return false;
 

@@ -4,18 +4,18 @@
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
 
-#ifdef KINSKI_COCOA
-#include <OpenGL/gl3.h>
-#elif defined(KINSKI_COCOA_TOUCH)
-#import <OpenGLES/EAGL.h>
-#import <OpenGLES/ES2/gl.h>
-#import <OpenGLES/ES2/glext.h>
-#else
-#include <GL3/gl3.h>
+#ifdef KINSKI_COCOA_TOUCH
+#define KINSKI_GLES
 #endif
 
 #ifdef KINSKI_COCOA_TOUCH
-#define KINSKI_GLES
+//#import <OpenGLES/EAGL.h>
+#import <OpenGLES/ES2/gl.h>
+#import <OpenGLES/ES2/glext.h>
+#elif defined(KINSKI_COCOA)
+#include <OpenGL/gl3.h>
+#else
+#include <GL3/gl3.h>
 #endif
 
 // Convenience macro to append either nothing or "EXT"

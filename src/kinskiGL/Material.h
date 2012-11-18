@@ -22,7 +22,7 @@ namespace kinski { namespace gl {
         
         typedef std::shared_ptr<Material> Ptr;
         
-        typedef boost::variant<GLint, GLfloat, GLdouble, glm::vec2, glm::vec3, glm::vec4,
+        typedef boost::variant<GLint, GLfloat, double, glm::vec2, glm::vec3, glm::vec4,
         glm::mat3, glm::mat4,
         std::vector<GLint>, std::vector<GLfloat>,
         std::vector<glm::vec2>, std::vector<glm::vec3>, std::vector<glm::vec4>,

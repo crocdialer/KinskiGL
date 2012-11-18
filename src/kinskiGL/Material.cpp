@@ -66,8 +66,9 @@ namespace kinski { namespace gl {
         }
         
         // wireframe ?
+#ifndef KINSKI_GLES
         glPolygonMode(GL_FRONT_AND_BACK, m_wireFrame ? GL_LINE : GL_FILL);
-        
+#endif
         // read write depth buffer ?
         if(m_depthTest) glEnable(GL_DEPTH_TEST);
         else glDisable(GL_DEPTH_TEST);
@@ -85,7 +86,9 @@ namespace kinski { namespace gl {
         
         if(m_pointSize > 0.f)
         {
+#ifndef KINSKI_GLES
             glEnable(GL_PROGRAM_POINT_SIZE);
+#endif
             m_shader.uniform("u_pointSize", m_pointSize);
         }
         

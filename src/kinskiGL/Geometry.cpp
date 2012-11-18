@@ -203,7 +203,7 @@ namespace kinski{ namespace gl{
         glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_vertices.size(), NULL,
                      GL_STREAM_DRAW);//STREAM
         
-        GLfloat *interleaved = (GLfloat*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+        GLfloat *interleaved = (GLfloat*) GL_SUFFIX(glMapBuffer)(GL_ARRAY_BUFFER, GL_ENUM(GL_WRITE_ONLY));
         
         for (int i = 0; i < m_vertices.size(); i++)
         {
@@ -231,14 +231,15 @@ namespace kinski{ namespace gl{
             interleaved[numFloats * i + 10] = tangent.z;
         }
         
-        glUnmapBuffer(GL_ARRAY_BUFFER);
+        GL_SUFFIX(glUnmapBuffer)(GL_ARRAY_BUFFER);
         
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
                      GL_STREAM_DRAW );
         
-        GLuint *indexBuffer = (GLuint*) glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+        GLuint *indexBuffer = (GLuint*) GL_SUFFIX(glMapBuffer)(GL_ELEMENT_ARRAY_BUFFER,
+                                                               GL_ENUM(GL_WRITE_ONLY));
         
         // insert indices
         vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
@@ -253,7 +254,7 @@ namespace kinski{ namespace gl{
             }
         }
         
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+        GL_SUFFIX(glUnmapBuffer)(GL_ELEMENT_ARRAY_BUFFER);
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -285,6 +286,7 @@ namespace kinski{ namespace gl{
                 appendVertex( glm::vec3( x, - y, 0) );
                 appendNormal(normal);
                 appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
+                getTangents().push_back(glm::vec3(0));
             }
         }
         
