@@ -527,7 +527,5 @@ FboExceptionInvalidSpecification::FboExceptionInvalidSpecification( const string
 	strncpy( mMessage, message.c_str(), 255 );
 }
 
-#undef GL_SUFFIX
-
 }// namespace gl
 }

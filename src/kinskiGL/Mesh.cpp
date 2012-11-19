@@ -66,7 +66,7 @@ namespace kinski { namespace gl {
                               stride,
                               BUFFER_OFFSET(5 * sizeof(GLfloat)));
         
-        // define attrib pointer (vertex)
+        // define attrib pointer (tangent)
         glEnableVertexAttribArray(tangentAttribLocation);
         glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
                               stride,
