@@ -1,6 +1,7 @@
-#include "kinskiGL/App.h"
+#include "kinskiApp/App.h"
+#include "kinskiApp/TextureIO.h"
+
 #include "kinskiGL/Material.h"
-#include "kinskiGL/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
 #include "SalienceNode.h"

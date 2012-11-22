@@ -49,12 +49,7 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 	static bool csaaSupported = false;
 #endif
 
-	//GL_SUFFIX(glGenRenderbuffers)( 1, &mId );
-#if defined( KINSKI_GLES )
     glGenRenderbuffers( 1, &mId );
-#else
-    glGenRenderbuffers( 1, &mId );
-#endif
 
 	if( mSamples > Fbo::getMaxSamples() )
 		mSamples = Fbo::getMaxSamples();
@@ -234,8 +229,10 @@ void Fbo::init()
 				glTexParameteri( getTarget(), GL_TEXTURE_MAG_FILTER, mObj->mFormat.mMagFilter );
 				glTexParameteri( getTarget(), GL_TEXTURE_WRAP_S, mObj->mFormat.mWrapS );
 				glTexParameteri( getTarget(), GL_TEXTURE_WRAP_T, mObj->mFormat.mWrapT );
+                
                 //TODO: check for correctness
-//				glTexParameteri( getTarget(), GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE ); 
+//				glTexParameteri( getTarget(), GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
+                
 				mObj->mDepthTexture = Texture( getTarget(), depthTextureId, mObj->mWidth, mObj->mHeight, true );
 
 				glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, getTarget(), mObj->mDepthTexture.getId(), 0 );

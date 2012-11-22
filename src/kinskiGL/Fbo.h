@@ -122,7 +122,7 @@ class Fbo {
 	//! Returns a reference to the depth texture of the FBO.
 	Texture&		getDepthTexture();	
 	
-	//! Binds the color texture associated with an Fbo to its target. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. Optionally binds to a multitexturing unit when \a textureUnit is non-zero. \a attachment specifies which color buffer in the case of multiple attachments.
+	//! Binds the color texture associated with an Fbo to its target. Optionally binds to a multitexturing unit when \a textureUnit is non-zero.  \a attachment specifies which color buffer in the case of multiple attachments.
 	void 			bindTexture( int textureUnit = 0, int attachment = 0 );
 	//! Unbinds the texture associated with an Fbo's target
 	void			unbindTexture();

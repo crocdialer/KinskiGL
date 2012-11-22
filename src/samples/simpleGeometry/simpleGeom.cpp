@@ -1,15 +1,15 @@
-#include "kinskiGL/App.h"
-
-#include "kinskiGL/Scene.h"
-#include "kinskiGL/Mesh.h"
-#include "kinskiGL/TextureIO.h"
+#include "kinskiApp/App.h"
+#include "kinskiApp/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
 
 #include "kinskiGL/SerializerGL.h"
+#include "kinskiGL/Scene.h"
+#include "kinskiGL/Mesh.h"
+#include "kinskiGL/Fbo.h"
 
 #include <assimp/assimp.hpp>
-#include "assimp/aiScene.h"
+#include <assimp/aiScene.h>
 #include <assimp/aiPostProcess.h>
 
 

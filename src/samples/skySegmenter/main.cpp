@@ -1,7 +1,7 @@
-#include "kinskiGL/App.h"
-#include "kinskiGL/Texture.h"
+#include "kinskiApp/App.h"
+#include "kinskiApp/TextureIO.h"
+
 #include "kinskiGL/Shader.h"
-#include "kinskiGL/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
 #include "SkySegmentNode.h"
