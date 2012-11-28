@@ -43,7 +43,13 @@ namespace kinski
     void CVThread::stop()
     {
         m_stopped = true;
-        m_thread.join();
+        try
+        {
+            m_thread.join();
+        }catch(std::exception &e)
+        {
+            cerr<<"CVThread: "<<e.what()<<endl;
+        }
     }
     
     void CVThread::openImage(const std::string& imgPath)
@@ -144,8 +150,8 @@ namespace kinski
             // locked scope
             {
                 boost::mutex::scoped_lock lock(m_mutex);
-                m_lastGrabTime = (grabTimes.wall) / 1000000000.0;
-                m_lastProcessTime = (processTimes.wall) / 1000000000.0;
+                m_lastGrabTime = (grabTimes.wall) / 1.0e9;
+                m_lastProcessTime = (processTimes.wall) / 1.0e9;
                 m_images = tmpImages;
                 m_newFrame = true;
                 m_conditionVar.notify_all();

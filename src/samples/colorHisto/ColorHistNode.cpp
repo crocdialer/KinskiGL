@@ -59,7 +59,7 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     
     Mat hsvImg, backProj, roiImg, scaledImg;
     
-    int maxWidth = 800;
+    int maxWidth = 400;
     float scale = (float)maxWidth / img.cols;
     
     // scale down input image

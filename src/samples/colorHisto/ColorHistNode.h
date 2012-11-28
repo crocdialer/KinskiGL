@@ -12,9 +12,21 @@
 
 namespace kinski
 {
-    class ColorHistNode : public kinski::CVProcessNode
+    class ColorHistNode : public CVProcessNode
     {
-    private:
+    public:
+        
+        ColorHistNode();
+        virtual ~ColorHistNode();
+        
+        std::string getDescription();
+        
+        std::vector<cv::Mat> doProcessing(const cv::Mat &img);
+        
+        void setHistExtraction(bool b);
+        bool hasHistExtraction();
+        
+     private:
         
         // histogram related variables
         
@@ -36,18 +48,6 @@ namespace kinski
         cv::Mat createHistImage();
         
         Property_<bool>::Ptr m_histExtraction;
-        
-    public:
-        
-        ColorHistNode();
-        virtual ~ColorHistNode();
-        
-        std::string getDescription();
-        
-        std::vector<cv::Mat> doProcessing(const cv::Mat &img);
-        
-        void setHistExtraction(bool b);
-        bool hasHistExtraction();
     };
 }//kinski
 

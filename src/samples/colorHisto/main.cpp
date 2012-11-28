@@ -34,6 +34,7 @@ public:
             m_material->getShader().loadFromFile("applyMap.vert", "applyMap.frag");
             m_material->addTexture(m_textures[0]);
             m_material->addTexture(m_textures[1]);
+            m_material->addTexture(m_textures[2]);
             
         }catch (std::exception &e)
         {
@@ -69,7 +70,7 @@ public:
     {
         m_cvThread->stop();
         
-        printf("ciao skySegmenter\n");
+        printf("ciao colorHisto\n");
     }
     
     void update(const float timeDelta)
@@ -99,14 +100,14 @@ public:
         }
         
         // draw process-results map(s)
-        glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
+        glm::vec2 offset(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
         glm::vec2 step(0, - getHeight()/5.f - 10);
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
-            drawTexture(m_textures[i], getWindowSize()/5.f, offet);
+            drawTexture(m_textures[i], getWindowSize()/5.f, offset);
             
-            offet += step;
+            offset += step;
         }
         
     }

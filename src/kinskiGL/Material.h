@@ -29,39 +29,7 @@ namespace kinski { namespace gl {
         std::vector<glm::mat3>, std::vector<glm::mat4> > UniformValue;
         
         typedef std::map<std::string, UniformValue> UniformMap;
-     
-    private:
-        
-        mutable Shader m_shader;
-        UniformMap m_uniforms;
-        
-        std::vector<Texture> m_textures;
-        
-        glm::vec4 m_diffuse;
-        glm::vec4 m_ambient;
-        glm::vec4 m_specular;
-        glm::vec4 m_emission;
-        
-        float m_shinyness;
-        
-        GLenum m_polygonMode;
-        
-        bool m_twoSided;
-        
-        bool m_wireFrame;
-        
-        bool m_depthTest;
-        
-        bool m_depthWrite;
-        
-        bool m_blending;
-        
-        GLenum m_blendSrc, m_blendDst;
-        
-        float m_pointSize;
-        
-    public:
-        
+
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
         
         void apply() const;
@@ -104,6 +72,36 @@ namespace kinski { namespace gl {
         void setShinyness(float s) { m_shinyness = s;};
         
         void setPointSize(float sz){ m_pointSize = sz; };
+        
+    private:
+        
+        mutable Shader m_shader;
+        UniformMap m_uniforms;
+        
+        std::vector<Texture> m_textures;
+        
+        glm::vec4 m_diffuse;
+        glm::vec4 m_ambient;
+        glm::vec4 m_specular;
+        glm::vec4 m_emission;
+        
+        float m_shinyness;
+        
+        GLenum m_polygonMode;
+        
+        bool m_twoSided;
+        
+        bool m_wireFrame;
+        
+        bool m_depthTest;
+        
+        bool m_depthWrite;
+        
+        bool m_blending;
+        
+        GLenum m_blendSrc, m_blendDst;
+        
+        float m_pointSize;
     };
    
 }} // namespace
