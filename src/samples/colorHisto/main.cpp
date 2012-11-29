@@ -68,8 +68,6 @@ public:
     
     void tearDown()
     {
-        m_cvThread->stop();
-        
         printf("ciao colorHisto\n");
     }
     
