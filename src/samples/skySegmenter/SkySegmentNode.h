@@ -24,11 +24,11 @@ private:
     cv::Mat combineImages(const cv::Mat &img1, const cv::Mat &img2);
     cv::Size getValidKernSize(const uint32_t s);
     
-    kinski::RangedProperty<uint32_t>::Ptr m_cannyLow;
-    kinski::RangedProperty<uint32_t>::Ptr m_cannyHigh;
-    kinski::RangedProperty<uint32_t>::Ptr m_morphKernSize;
-    kinski::RangedProperty<uint32_t>::Ptr m_threshVal;
-    kinski::RangedProperty<uint32_t>::Ptr m_minPathLength;
+    kinski::RangedProperty<int>::Ptr m_cannyLow;
+    kinski::RangedProperty<int>::Ptr m_cannyHigh;
+    kinski::RangedProperty<int>::Ptr m_morphKernSize;
+    kinski::RangedProperty<int>::Ptr m_threshVal;
+    kinski::RangedProperty<int>::Ptr m_minPathLength;
     
 };
 

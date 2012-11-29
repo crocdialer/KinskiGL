@@ -25,6 +25,6 @@ void main()
 
     vec4 gray = vec4(gray(color.rgb), 1);
     
-    fragData = mix(color, gray, confidence) ;
+    fragData = mix(color, jet(confidence), 0.2) ;
 }
 

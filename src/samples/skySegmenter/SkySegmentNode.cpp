@@ -13,11 +13,11 @@ using namespace std;
 using namespace kinski;
 
 SkySegmentNode::SkySegmentNode():
-m_cannyLow(RangedProperty<uint32_t>::create("Canny Low", 85, 0, 255)),
-m_cannyHigh(RangedProperty<uint32_t>::create("Cany High", 208, 0, 255)),
-m_morphKernSize(RangedProperty<uint32_t>::create("Morph kernel size", 3, 3, 15)),
-m_threshVal(RangedProperty<uint32_t>::create("Intesity threshold", 140, 0, 255)),
-m_minPathLength(RangedProperty<uint32_t>::create("Minimal path length", 200, 0, 1024))
+m_cannyLow(RangedProperty<int>::create("Canny Low", 85, 0, 255)),
+m_cannyHigh(RangedProperty<int>::create("Cany High", 208, 0, 255)),
+m_morphKernSize(RangedProperty<int>::create("Morph kernel size", 3, 3, 15)),
+m_threshVal(RangedProperty<int>::create("Intesity threshold", 140, 0, 255)),
+m_minPathLength(RangedProperty<int>::create("Minimal path length", 200, 0, 1024))
 {
     registerProperty(m_cannyLow);
     registerProperty(m_cannyHigh);
@@ -53,12 +53,42 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     threshImg &= tmpThresh;
     
     // edge detection
+    cv::blur(grayImg, grayImg, cv::Size(3, 3));
     cv::Canny(grayImg, edgeImg, m_cannyLow->val(), m_cannyHigh->val());
     
     Mat workImg;
     Size kernSize = getValidKernSize(m_morphKernSize->val());
     *m_morphKernSize = kernSize.width;
     
+    // for all columns. when a value != 0 is encountered,
+    // all values from the current row down to the bottom are set to 255
+    for (int i = 0; i < edgeImg.cols; i++)
+    {
+        Mat col = edgeImg.col(i);
+        
+        int hitCount = 0;
+        
+        for (int j = 0; j < col.rows; j++)
+        {
+            // iterate pixels in column
+            if( col.at<uint8_t>(j, 0) )
+            {
+                if(!hitCount)
+                {
+                    col.rowRange(0, j) = 0.0;
+                }
+                
+                ++hitCount;
+                
+                if(hitCount > 5)
+                {
+                    
+                    col.rowRange(j, col.rows) = 255.0;
+                    break;
+                }
+            }
+        }
+    }
     cv::dilate(edgeImg,
                workImg,
                cv::getStructuringElement(MORPH_ELLIPSE, kernSize ),
@@ -74,22 +104,7 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     
     workImg |= threshImg;
     
-    // for all columns. when a value != 0 is encountered,
-    // all values from the current row down to the bottom are set to 255
-    for (int i = 0; i < workImg.cols; i++)
-    {
-        Mat col = workImg.col(i);
-        
-        for (int j = 0; j < col.rows; j++)
-        {
-            // iterate pixels in column
-            if( col.at<uint8_t>(j, 0) )
-            {
-                col.rowRange(j, col.rows) = 255.0;
-                break;
-            }
-        }
-    }
+    
     
 //    vector<vector<Point> > contours;
 //    vector<Vec4i> hierarchy;
