@@ -15,6 +15,7 @@ namespace kinski{ namespace gl{
     Geometry::Geometry():
     m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0))),
     m_interleavedBuffer(0),
+    m_boneBuffer(0),
     m_indexBuffer(0)
     {
     
@@ -27,6 +28,9 @@ namespace kinski{ namespace gl{
         
         if(m_indexBuffer)
             glDeleteBuffers(1, &m_indexBuffer);
+        
+        if(m_boneBuffer)
+            glDeleteBuffers(1, &m_boneBuffer);
     }
     
     void Geometry::appendVertices(const std::vector<glm::vec3> &theVerts)
@@ -243,7 +247,7 @@ namespace kinski{ namespace gl{
         
         // insert indices
         vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
-        for (; faceIt != m_faces.end(); faceIt++)
+        for (; faceIt != m_faces.end(); ++faceIt)
         {
             const gl::Face3 &face = *faceIt;
             
@@ -255,6 +259,17 @@ namespace kinski{ namespace gl{
         }
         
         GL_SUFFIX(glUnmapBuffer)(GL_ELEMENT_ARRAY_BUFFER);
+        
+        // insert bone indices and weights
+        if(hasBones())
+        {
+            if(!m_boneBuffer)
+                glGenBuffers(1, &m_boneBuffer);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_boneBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(BoneVertexData) * m_vertices.size(),
+                         &m_boneData[0], GL_STREAM_DRAW);//STREAM
+        }
         
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

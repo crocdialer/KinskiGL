@@ -271,7 +271,7 @@ namespace kinski { namespace gl {
             
             const char *fragSrc =
             "uniform int u_numTextures;\n"
-            "uniform sampler2D u_textureMap[];\n"
+            "uniform sampler2D u_textureMap[16];\n"
             "uniform struct{\n"
             "vec4 diffuse;\n"
             "vec4 ambient;\n"
@@ -281,7 +281,7 @@ namespace kinski { namespace gl {
             "void main(){\n"
             "vec4 texColors = vec4(1);\n"
             "for(int i = 0; i < u_numTextures; i++)\n"
-            "   {texColors *= texture2D(u_textureMap[0], gl_PointCoord);}\n"
+            "   {texColors *= texture2D(u_textureMap[i], gl_PointCoord);}\n"
             "gl_FragColor = u_material.diffuse * texColors;\n"
             "}\n";
 #else
@@ -296,7 +296,7 @@ namespace kinski { namespace gl {
             const char *fragSrc =
             "#version 150 core\n"
             "uniform int u_numTextures;\n"
-            "uniform sampler2D u_textureMap[];\n"
+            "uniform sampler2D u_textureMap[16];\n"
             "uniform struct{\n"
             "vec4 diffuse;\n"
             "vec4 ambient;\n"
@@ -307,7 +307,7 @@ namespace kinski { namespace gl {
             "void main(){\n"
             "vec4 texColors = vec4(1);\n"
             "for(int i = 0; i < u_numTextures; i++)\n"
-            "   {texColors *= texture(u_textureMap[0], gl_PointCoord);}\n"
+            "   {texColors *= texture(u_textureMap[i], gl_PointCoord);}\n"
             "fragData = u_material.diffuse * texColors;\n"
             "}\n";
 #endif
@@ -572,6 +572,11 @@ namespace kinski { namespace gl {
         theMesh->getMaterial()->uniform("u_modelViewProjectionMatrix",
                                         g_projectionMatrixStack.top()
                                         * g_modelViewMatrixStack.top());
+        
+        if(theMesh->getGeometry()->hasBones())
+        {
+            theMesh->getMaterial()->uniform("u_bones", theMesh->getGeometry()->getBoneMatrices());
+        }
         
         theMesh->getMaterial()->apply();
         

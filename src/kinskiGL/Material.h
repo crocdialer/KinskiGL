@@ -69,7 +69,7 @@ namespace kinski { namespace gl {
         void setSpecular(const glm::vec4 &theColor);
         void setEmission(const glm::vec4 &theColor);
         
-        void setShinyness(float s) { m_shinyness = s;};
+        void setShinyness(float s);
         
         void setPointSize(float sz){ m_pointSize = sz; };
         

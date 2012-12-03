@@ -6,10 +6,6 @@
 #include "kinskiGL/SerializerGL.h"
 #include <fstream>
 
-//#include <OpenCL/opencl.h>
-//#pragma OPENCL EXTENSION CL_APPLE_gl_sharing : enable
-//#pragma OPENCL EXTENSION CL_KHR_gl_sharing : enable
-
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
 

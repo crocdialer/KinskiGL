@@ -22,8 +22,7 @@ __kernel void updateParticles(__global float4* pos,/* __global float4* color,*/ 
         life = vel_gen[i].w;
     }
     
-    //we use a first order euler method to integrate the velocity and position (i'll expand on this in another tutorial)
-    //update the velocity to be affected by "gravity" in the z direction
+    //update velocities
     v.y -= 2.f * dt;
     
     //update the position with the new velocity

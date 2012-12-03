@@ -62,10 +62,10 @@ SET (CMAKE_C_FLAGS_RELEASE        "-O4 -DNDEBUG")
 SET (CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g")
 
 SET (CMAKE_CXX_COMPILER             "/usr/bin/clang++")
-SET (CMAKE_CXX_FLAGS_DEBUG          "-g -stdlib=libc++")
+SET (CMAKE_CXX_FLAGS_DEBUG          "-g -std=c++11")
 SET (CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
 SET (CMAKE_CXX_FLAGS_RELEASE        "-O4 -DNDEBUG")
-SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -stdlib=libc++")
+SET (CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -std=c++11")
 
 SET (CMAKE_AS      "${DEVROOT}/usr/bin/as")
 SET (CMAKE_LINKER  "${DEVROOT}/usr/bin/ld")

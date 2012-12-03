@@ -51,7 +51,14 @@ private:
     vec2 m_clickPos;
     mat4 m_lastTransform;
     float m_lastDistance;
-
+    
+    glm::mat4 aiMatrixToGlmMat(aiMatrix4x4 theMat)
+    {
+        glm::mat4 ret;
+        memcpy(&ret[0][0], theMat.Transpose()[0], 16 * sizeof(float));
+        return ret;
+    }
+    
     gl::Mesh::Ptr loadModel(const std::string &theModelPath)
     {
         Assimp::Importer importer;
@@ -62,15 +69,15 @@ private:
         
         if (theScene)
         {
-            // aiNode *root = theScene->mRootNode;
+            //aiNode *root = theScene->mRootNode;
+            
             aiMesh *aMesh = theScene->mMeshes[0];
             
-            
-            gl::Geometry::Ptr geom( createGeometry(aMesh) );
+            gl::Geometry::Ptr geom( createGeometry(aMesh, theScene) );
             gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             mat->getShader() = m_material->getShader();
             
-            gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat ));
+            gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
             
             importer.FreeScene();
             
@@ -79,6 +86,85 @@ private:
         else
         {
             throw Exception("could not load model: "+ theModelPath);
+        }
+    }
+    
+    void traverseNodes(const aiAnimation *theAnimation,
+                       int frameIndex,
+                       const aiNode *theNode,
+                       const glm::mat4 &parentTransform,
+                       const map<std::string, pair<int, mat4> > &boneMap,
+                       shared_ptr<gl::Animation> &outAnim)
+    {
+        string nodeName(theNode->mName.data);
+        
+        glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
+        
+        const aiNodeAnim* nodeAnim = NULL;
+        float timeStamp = 0.0f;
+        
+        for (int i = 0; i < theAnimation->mNumChannels; i++)
+        {
+            aiNodeAnim *ptr = theAnimation->mChannels[i];
+            
+            if(string(ptr->mNodeName.data) == nodeName)
+            {
+                nodeAnim = ptr;
+                break;
+            }
+        }
+        
+        if(nodeAnim)
+        {
+//            printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+//                   nodeAnim->mNodeName.data,
+//                   nodeAnim->mNumPositionKeys,
+//                   nodeAnim->mNumRotationKeys,
+//                   nodeAnim->mNumScalingKeys);
+            
+            outAnim->frames.reserve(nodeAnim->mNumRotationKeys);
+            
+            timeStamp = nodeAnim->mRotationKeys[frameIndex].mTime;
+            
+            assert(timeStamp == nodeAnim->mPositionKeys[frameIndex].mTime &&
+                   timeStamp == nodeAnim->mScalingKeys[frameIndex].mTime);
+            
+            aiVector3D pos = nodeAnim->mPositionKeys[frameIndex].mValue;
+            mat4 translate = glm::translate(mat4(), vec3(pos.x, pos.y, pos.z));
+            
+            aiQuaternion rot = nodeAnim->mRotationKeys[frameIndex].mValue;
+            mat4 rotate = glm::mat4_cast(glm::quat(rot.w, rot.x, rot.y, rot.z));
+            
+            aiVector3D scaleTmp = nodeAnim->mScalingKeys[frameIndex].mValue;
+            mat4 scale = glm::scale(mat4(), vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z));
+            
+            nodeTransform = translate * rotate * scale;
+        }
+        
+        mat4 globalTransform = parentTransform * nodeTransform;
+        
+        map<std::string, pair<int, mat4> >::const_iterator it = boneMap.find(nodeName);
+        if (it != boneMap.end())
+        {
+            int boneIndex = it->second.first;
+            const mat4 &offset = it->second.second;
+            
+            while (outAnim->frames.size() <= frameIndex)
+                outAnim->frames.push_back(gl::AnimationFrame());
+            
+            gl::AnimationFrame &animFrame = outAnim->frames[frameIndex];
+            animFrame.time = timeStamp;
+            
+            while (animFrame.boneTransforms.size() <= boneIndex)
+                animFrame.boneTransforms.push_back(mat4());
+            
+            animFrame.boneTransforms[boneIndex] = globalTransform * offset;
+        }
+
+        for (int i = 0 ; i < theNode->mNumChildren ; i++)
+        {
+            traverseNodes(theAnimation, frameIndex, theNode->mChildren[i],
+                          globalTransform, boneMap, outAnim);
         }
     }
     
@@ -140,15 +226,18 @@ private:
         if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
             theMaterial->setTwoSided(two_sided);
         
-        if(AI_SUCCESS == mtl->GetTexture(aiTextureType_DIFFUSE, 0, &texPath))
+        for (int i = 0; i < 10; i++)
         {
-            theMaterial->addTexture(gl::TextureIO::loadTexture(string(texPath.data)));
+            if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
+            {
+                theMaterial->addTexture(gl::TextureIO::loadTexture(string(texPath.data)));
+            }
         }
         
         return theMaterial;
     }
     
-    gl::Geometry::Ptr createGeometry(const aiMesh *aMesh)
+    gl::Geometry::Ptr createGeometry(const aiMesh *aMesh, const aiScene *theScene = NULL)
     {
         gl::Geometry::Ptr geom (new gl::Geometry);
         
@@ -200,8 +289,66 @@ private:
             // compute tangents
         }
         
+        
+        if(aMesh->HasBones())
+        {
+            typedef map<uint32_t, list< pair<uint32_t, float> > > WeightMap;
+            WeightMap weightMap;
+            
+            map<std::string, pair<int, mat4> > boneMap;
+            
+            for (int i = 0; i < aMesh->mNumBones; ++i)
+            {
+                aiBone* bone = aMesh->mBones[i];
+                
+                boneMap[bone->mName.data] = std::make_pair(i, aiMatrixToGlmMat(bone->mOffsetMatrix));
+                
+                for (int j = 0; j < bone->mNumWeights; ++j)
+                {
+                    const aiVertexWeight &w = bone->mWeights[j];
+                    weightMap[w.mVertexId].push_back( std::make_pair(i, w.mWeight) );
+                }
+            }
+            
+            // generate empty indices and weights
+            for (int i = 0; i < geom->getVertices().size(); ++i)
+            {
+                geom->getBoneData().push_back(gl::BoneVertexData());
+            }
+            
+            for (WeightMap::iterator it = weightMap.begin(); it != weightMap.end(); ++it)
+            {
+                int i = 0;
+                gl::BoneVertexData &boneData = geom->getBoneData()[it->first];
+                list< pair<uint32_t, float> >::iterator pairIt = it->second.begin();
+                for (; pairIt != it->second.end(); ++pairIt)
+                {
+                    boneData.indices[i] = pairIt->first;
+                    boneData.weights[i] = pairIt->second;
+                    i++;
+                }
+            }
+            
+            if(theScene)
+            {
+                aiAnimation *assimpAnimation = theScene->mAnimations[0];
+                shared_ptr<gl::Animation> anim(new gl::Animation);
+                anim->duration = assimpAnimation->mDuration;
+                anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
+                
+                int numFrames = assimpAnimation->mChannels[0]->mNumRotationKeys;
+                for (int i = 0; i < numFrames; ++i)
+                {
+                    // traverse aiScene and construct final transforms
+                    traverseNodes(assimpAnimation, i, theScene->mRootNode, mat4(),
+                                  boneMap, anim);
+                }
+                
+                geom->setAnimation(anim);
+                geom->getBoneMatrices() = anim->frames[20].boneTransforms;
+            }
+        }
         geom->computeBoundingBox();
-        geom->createGLBuffers();
         
         return geom;
     }
@@ -271,30 +418,28 @@ public:
         
         try
         {
-            m_material->getShader().loadFromFile("shader_vert.glsl", "shader_frag.glsl");
+            m_material->getShader().loadFromFile("shader_phong_skin.vert", "shader_phong.frag");
         }catch (std::exception &e)
         {
             fprintf(stderr, "%s\n",e.what());
         }
         
-        //if(m_mesh) m_scene.addObject(m_mesh);
-        
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
         
-        {
-            int w = 1024, h = 1024;
-            float data[w * h];
-            
-            for (int i = 0; i < h; i++)
-                for (int j = 0; j < w; j++)
-                {
-                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
-                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
-                }
-            
-            m_noiseTexture.update(data, GL_RED, w, h, true);
-        }
+//        {
+//            int w = 1024, h = 1024;
+//            float data[w * h];
+//            
+//            for (int i = 0; i < h; i++)
+//                for (int j = 0; j < w; j++)
+//                {
+//                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
+//                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
+//                }
+//            
+//            m_noiseTexture.update(data, GL_RED, w, h, true);
+//        }
         
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
@@ -311,28 +456,9 @@ public:
     
     void update(const float timeDelta)
     {
-
-//        if(m_cvThread->hasImage())
-//        {
-//            vector<cv::Mat> images = m_cvThread->getImages();
-//            gl::TextureIO::updateTexture(m_mesh->getMaterial()->getTextures().back(), images[0]);
-//        }
-        
         *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
-        
-        // geometry update
-//        m_geometry->getVertices() = m_straightPlane->getVertices();
-//        vector<vec3>::iterator vertexIt = m_geometry->getVertices().begin();
-//        for (; vertexIt != m_geometry->getVertices().end(); vertexIt++)
-//        {
-//            vec3 &theVert = *vertexIt;
-//            theVert.z = 3 * glm::simplex( vec3( m_simplexDim->val() * vec2(theVert.xy()),
-//                                                m_simplexSpeed->val() * getApplicationTime()));
-//        }
-//        m_geometry->createGLBuffers();
-        
     }
     
     void draw()
@@ -363,6 +489,15 @@ public:
 //                           m_pointMaterial,
 //                           m_mesh->getGeometry()->getNumComponents() * sizeof(GLfloat),
 //                           5 * sizeof(GLfloat));
+            
+//            vector<vec3> points;
+//            vector<mat4>::iterator it = m_mesh->getGeometry()->getBoneMatrices().begin();
+//            for (; it != m_mesh->getGeometry()->getBoneMatrices().end(); ++it)
+//            {
+//                points.push_back((*it)[0].xyz());
+//            }
+//            
+//            gl::drawPoints(points);
         }
     }
     
@@ -431,9 +566,16 @@ public:
         
         else if(theProperty == m_color)
         {
-            if(m_mesh) m_mesh->getMaterial()->setDiffuse(m_color->val());
+            if(m_mesh)
+            {
+                m_mesh->getMaterial()->setDiffuse(m_color->val());
+                m_mesh->getMaterial()->setBlending(m_color->val().a < 1.0f);
+            }
             m_material->setDiffuse(m_color->val());
             m_pointMaterial->setDiffuse(m_color->val());
+            
+//            m_pointMaterial->setBlending();
+//            m_pointMaterial->setDepthWrite(false);
         }
         else if(theProperty == m_textureMix)
         {
@@ -443,7 +585,7 @@ public:
                 theProperty == m_rotation)
         {
             m_Camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
-            m_Camera->setLookAt(glm::vec3(0));
+            m_Camera->setLookAt(glm::vec3(0, 100, 0));
         }
         else if(theProperty == m_modelPath)
         {
@@ -455,11 +597,11 @@ public:
                 m_scene.removeObject(m_mesh);
                 m_mesh = m;
                 
-                m_mesh->getMaterial()->addTexture(gl::TextureIO::loadTexture("stone.png"));
-                
-                //m_mesh->getMaterial()->addTexture(m_noiseTexture);
-                m_mesh->getMaterial()->addTexture(gl::TextureIO::loadTexture("asteroid_normal.png"));
-                m_mesh->getMaterial()->setBlending();
+//                m_mesh->getMaterial()->addTexture(gl::TextureIO::loadTexture("stone.png"));
+//                
+//                //m_mesh->getMaterial()->addTexture(m_noiseTexture);
+//                m_mesh->getMaterial()->addTexture(gl::TextureIO::loadTexture("asteroid_normal.png"));
+//                m_mesh->getMaterial()->setBlending();
                 
                 m_scene.addObject(m);
                 

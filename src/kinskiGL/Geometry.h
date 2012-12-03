@@ -52,6 +52,30 @@ namespace gl
         {};
     };
     
+    // each vertex can reference up to 4 bones
+    struct BoneVertexData
+    {
+        glm::ivec4 indices;
+        glm::vec4 weights;
+        
+        BoneVertexData():
+        indices(glm::ivec4(0)),
+        weights(glm::vec4(0)){};
+    };
+    
+    struct AnimationFrame
+    {
+        float time;
+        std::vector<glm::mat4> boneTransforms;
+    };
+    
+    struct Animation
+    {
+        float duration;
+        float ticksPerSec;
+        std::vector<AnimationFrame> frames;
+    };
+    
     class Geometry
     {
     public:
@@ -106,9 +130,19 @@ namespace gl
         inline std::vector<Face3>& getFaces(){ return m_faces; };
         inline const std::vector<Face3>& getFaces() const { return m_faces; };
         
+        std::vector<glm::mat4>& getBoneMatrices(){ return m_boneMatrices; };
+        const std::vector<glm::mat4>& getBoneMatrices() const { return m_boneMatrices; };
+        
+        std::vector<BoneVertexData>& getBoneData(){ return m_boneData; };
+        const std::vector<BoneVertexData>& getBoneData() const { return m_boneData; };
+        
+        bool hasBones() const { return m_vertices.size() == m_boneData.size(); };
+        void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
+        
         inline const BoundingBox& getBoundingBox() const { return m_boundingBox; };
         
         GLuint getInterleavedBuffer() const { return m_interleavedBuffer; };
+        GLuint getBoneBuffer() const { return m_boneBuffer; };
         GLuint getIndexBuffer() const { return m_indexBuffer; };
         
         //number of float components (per vertex) in interleaved buffer
@@ -125,9 +159,16 @@ namespace gl
         std::vector<glm::vec2> m_texCoords;
         std::vector<Face3> m_faces;
         
+        // skeletal animations stuff
+        std::vector<glm::mat4> m_boneMatrices;
+        std::vector<BoneVertexData> m_boneData;
+        std::shared_ptr<Animation> m_animation;
+        
+        
         BoundingBox m_boundingBox;
         
         GLuint m_interleavedBuffer;
+        GLuint m_boneBuffer;
         GLuint m_indexBuffer;
         
         bool m_needsUpdate;

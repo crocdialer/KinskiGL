@@ -19,7 +19,9 @@ namespace kinski { namespace gl {
     m_vertexLocationName("a_vertex"),
     m_normalLocationName("a_normal"),
     m_tangentLocationName("a_tangent"),
-    m_texCoordLocationName("a_texCoord")
+    m_texCoordLocationName("a_texCoord"),
+    m_boneIDsLocationName("a_boneIds"),
+    m_boneWeightsLocationName("a_boneWeights")
     {
         createVertexArray();
     }
@@ -46,6 +48,10 @@ namespace kinski { namespace gl {
         uint32_t numFloats = m_geometry->getNumComponents();
         GLsizei stride = numFloats * sizeof(GLfloat);
         
+        // create VBOs if not yet existing
+        if(!m_geometry->getInterleavedBuffer())
+            m_geometry->createGLBuffers();
+            
         glBindBuffer(GL_ARRAY_BUFFER, m_geometry->getInterleavedBuffer());
         
         // define attrib pointer (texCoord)
@@ -71,6 +77,27 @@ namespace kinski { namespace gl {
         glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
                               stride,
                               BUFFER_OFFSET(8 * sizeof(GLfloat)));
+        
+        if(m_geometry->hasBones())
+        {
+            GLuint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
+            GLuint boneWeightsAttribLocation = shader.getAttribLocation(m_boneWeightsLocationName);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->getBoneBuffer());
+            
+            // define attrib pointer (boneIDs)
+            glEnableVertexAttribArray(boneIdsAttribLocation);
+            glVertexAttribIPointer(boneIdsAttribLocation, 4, GL_INT,
+                                  sizeof(gl::BoneVertexData),
+                                  BUFFER_OFFSET(0));
+            
+            // define attrib pointer (boneWeights)
+            glEnableVertexAttribArray(boneWeightsAttribLocation);
+            glVertexAttribPointer(boneWeightsAttribLocation, 4, GL_FLOAT, GL_FALSE,
+                                  sizeof(gl::BoneVertexData),
+                                  BUFFER_OFFSET(sizeof(glm::ivec4)));
+            
+        }
         
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->getIndexBuffer());

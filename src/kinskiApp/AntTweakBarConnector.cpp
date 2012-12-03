@@ -198,6 +198,8 @@ namespace kinski
         Property_<vec3> * theProperty = (Property_<vec3>*) clientData;
         const float *v = (float*) value;
         theProperty->val(vec3(v[0], v[1], v[2]));
+        
+        //memcpy(&theProperty->val()[0], value, 3 * sizeof(float));
     }
     
     void TW_CALL 

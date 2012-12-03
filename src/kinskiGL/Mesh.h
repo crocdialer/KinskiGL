@@ -75,6 +75,8 @@ namespace kinski { namespace gl {
         std::string m_normalLocationName;
         std::string m_tangentLocationName;
         std::string m_texCoordLocationName;
+        std::string m_boneIDsLocationName;
+        std::string m_boneWeightsLocationName;
     };
 }}
 

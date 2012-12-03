@@ -37,6 +37,7 @@ namespace kinski { namespace gl {
     m_ambient(glm::vec4(1)),
     m_specular(glm::vec4(1)),
     m_emission(glm::vec4(0)),
+    m_shinyness(0.0f),
     m_polygonMode(GL_FRONT),
     m_twoSided(false),
     m_wireFrame(false),
@@ -49,6 +50,7 @@ namespace kinski { namespace gl {
         m_uniforms["u_material.ambient"] = m_ambient;
         m_uniforms["u_material.specular"] = m_specular;
         m_uniforms["u_material.emmission"] = m_emission;
+        m_uniforms["u_material.shinyness"] = m_shinyness;
     }
     
     void Material::apply() const
@@ -144,6 +146,12 @@ namespace kinski { namespace gl {
     {
         m_emission = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_uniforms["u_material.emmission"] = m_emission;
+    }
+    
+    void Material::setShinyness(float s)
+    {
+        m_shinyness = s;
+        m_uniforms["u_material.shinyness"] = s;
     }
 
 }}// namespace
