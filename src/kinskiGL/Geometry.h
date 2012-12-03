@@ -130,8 +130,8 @@ namespace gl
         inline std::vector<Face3>& getFaces(){ return m_faces; };
         inline const std::vector<Face3>& getFaces() const { return m_faces; };
         
-        std::vector<glm::mat4>& getBoneMatrices(){ return m_boneMatrices; };
-        const std::vector<glm::mat4>& getBoneMatrices() const { return m_boneMatrices; };
+        std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
+        const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
         
         std::vector<BoneVertexData>& getBoneData(){ return m_boneData; };
         const std::vector<BoneVertexData>& getBoneData() const { return m_boneData; };
@@ -149,6 +149,8 @@ namespace gl
         GLuint getNumComponents();
         
         void createGLBuffers();
+        
+        void updateAnimation(float time);
         
     private:
         

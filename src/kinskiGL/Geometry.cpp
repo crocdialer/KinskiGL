@@ -275,6 +275,31 @@ namespace kinski{ namespace gl{
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
     
+    void Geometry::updateAnimation(float time)
+    {
+        if(m_animation)
+        {
+            float t = fmod(time, m_animation->duration);
+            
+            float frac = t / m_animation->duration;
+            
+            int numFrames = m_animation->frames.size();
+            int index = static_cast<int>( frac * (numFrames - 1) );
+            
+            m_boneMatrices = m_animation->frames[index].boneTransforms;
+            
+//            for (int i = 0; i < m_animation->frames[index].boneTransforms.size() - 1; i++)
+//            {
+//                const glm::mat4 &boneTrans = m_animation->frames[index].boneTransforms[i];
+//                const glm::mat4 &nextBoneTrans = m_animation->frames[(index + 1)
+//                                                                     % numFrames].boneTransforms[i];
+//                
+//                m_boneMatrices[i] = glm::interpolate(boneTrans, nextBoneTrans, frac);
+//            }
+        }
+    
+    }
+    
     /********************************* PRIMITIVES ****************************************/
     
     Plane::Plane(float width, float height,

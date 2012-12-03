@@ -345,7 +345,7 @@ private:
                 }
                 
                 geom->setAnimation(anim);
-                geom->getBoneMatrices() = anim->frames[20].boneTransforms;
+                geom->boneMatrices() = anim->frames[0].boneTransforms;
             }
         }
         geom->computeBoundingBox();
@@ -459,6 +459,11 @@ public:
         *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
+        
+        if(m_mesh)
+        {
+            m_mesh->getGeometry()->updateAnimation(getApplicationTime());
+        }
     }
     
     void draw()

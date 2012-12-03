@@ -575,7 +575,7 @@ namespace kinski { namespace gl {
         
         if(theMesh->getGeometry()->hasBones())
         {
-            theMesh->getMaterial()->uniform("u_bones", theMesh->getGeometry()->getBoneMatrices());
+            theMesh->getMaterial()->uniform("u_bones", theMesh->getGeometry()->boneMatrices());
         }
         
         theMesh->getMaterial()->apply();
