@@ -47,8 +47,8 @@ namespace kinski { namespace gl {
         std::vector<Texture>& getTextures() {return m_textures;};
         const std::vector<Texture>& getTextures() const {return m_textures;};
         
-        UniformMap& getUniforms() {return m_uniforms;};
-        const UniformMap& getUniforms() const {return m_uniforms;};
+        UniformMap& uniforms() {return m_uniforms;};
+        const UniformMap& uniforms() const {return m_uniforms;};
         
         void setTwoSided(bool b = true) { m_twoSided = b;};
         
@@ -64,13 +64,17 @@ namespace kinski { namespace gl {
         
         bool isTransparent() { return m_diffuse.a < 1.f ;};
         
+        const glm::vec4& diffuse() const { return m_diffuse; };
+        const glm::vec4& ambient() const { return m_ambient; };
+        const glm::vec4& specular() const { return m_specular; };
+        const glm::vec4& emission() const { return m_emission; };
+        const float shinyness() const { return m_shinyness; };
+        
         void setDiffuse(const glm::vec4 &theColor);
         void setAmbient(const glm::vec4 &theColor);
         void setSpecular(const glm::vec4 &theColor);
         void setEmission(const glm::vec4 &theColor);
-        
         void setShinyness(float s);
-        
         void setPointSize(float sz){ m_pointSize = sz; };
         
     private:
@@ -84,19 +88,14 @@ namespace kinski { namespace gl {
         glm::vec4 m_ambient;
         glm::vec4 m_specular;
         glm::vec4 m_emission;
-        
         float m_shinyness;
         
         GLenum m_polygonMode;
         
         bool m_twoSided;
-        
         bool m_wireFrame;
-        
         bool m_depthTest;
-        
         bool m_depthWrite;
-        
         bool m_blending;
         
         GLenum m_blendSrc, m_blendDst;
