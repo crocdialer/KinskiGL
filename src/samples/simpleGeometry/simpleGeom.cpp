@@ -34,6 +34,8 @@ private:
     RangedProperty<float>::Ptr m_distance;
     RangedProperty<float>::Ptr m_textureMix;
     Property_<string>::Ptr m_modelPath;
+    RangedProperty<float>::Ptr m_animationTime;
+    
     Property_<bool>::Ptr m_wireFrame;
     Property_<bool>::Ptr m_drawNormals;
     Property_<glm::vec3>::Ptr m_lightDir;
@@ -89,19 +91,18 @@ private:
         }
     }
     
-    void traverseNodes(const aiAnimation *theAnimation,
-                       int frameIndex,
+    std::shared_ptr<gl::Bone> traverseNodes(const aiAnimation *theAnimation,
                        const aiNode *theNode,
                        const glm::mat4 &parentTransform,
                        const map<std::string, pair<int, mat4> > &boneMap,
-                       shared_ptr<gl::Animation> &outAnim)
+                       shared_ptr<gl::Animation> &outAnim,
+                       shared_ptr<gl::Bone> parentBone = shared_ptr<gl::Bone>())
     {
+        std::shared_ptr<gl::Bone> currentBone = parentBone;
         string nodeName(theNode->mName.data);
-        
         glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
-        
+
         const aiNodeAnim* nodeAnim = NULL;
-        float timeStamp = 0.0f;
         
         for (int i = 0; i < theAnimation->mNumChannels; i++)
         {
@@ -113,59 +114,91 @@ private:
                 break;
             }
         }
-        
-        if(nodeAnim)
-        {
-//            printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
-//                   nodeAnim->mNodeName.data,
-//                   nodeAnim->mNumPositionKeys,
-//                   nodeAnim->mNumRotationKeys,
-//                   nodeAnim->mNumScalingKeys);
-            
-            outAnim->frames.reserve(nodeAnim->mNumRotationKeys);
-            
-            timeStamp = nodeAnim->mRotationKeys[frameIndex].mTime;
-            
-            assert(timeStamp == nodeAnim->mPositionKeys[frameIndex].mTime &&
-                   timeStamp == nodeAnim->mScalingKeys[frameIndex].mTime);
-            
-            aiVector3D pos = nodeAnim->mPositionKeys[frameIndex].mValue;
-            mat4 translate = glm::translate(mat4(), vec3(pos.x, pos.y, pos.z));
-            
-            aiQuaternion rot = nodeAnim->mRotationKeys[frameIndex].mValue;
-            mat4 rotate = glm::mat4_cast(glm::quat(rot.w, rot.x, rot.y, rot.z));
-            
-            aiVector3D scaleTmp = nodeAnim->mScalingKeys[frameIndex].mValue;
-            mat4 scale = glm::scale(mat4(), vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z));
-            
-            nodeTransform = translate * rotate * scale;
-        }
-        
+          
         mat4 globalTransform = parentTransform * nodeTransform;
         
         map<std::string, pair<int, mat4> >::const_iterator it = boneMap.find(nodeName);
+        
+        // we have a Bone node
         if (it != boneMap.end())
         {
-            int boneIndex = it->second.first;
+            //int boneIndex = it->second.first;
             const mat4 &offset = it->second.second;
             
-            while (outAnim->frames.size() <= frameIndex)
-                outAnim->frames.push_back(gl::AnimationFrame());
+//            while (outAnim->frames.size() <= frameIndex)
+//                outAnim->frames.push_back(gl::AnimationFrame());
+//            
+//            gl::AnimationFrame &animFrame = outAnim->frames[frameIndex];
+//            animFrame.time = timeStamp;
+//            
+//            while (animFrame.boneTransforms.size() <= boneIndex)
+//                animFrame.boneTransforms.push_back(mat4());
+//            
+//            animFrame.boneTransforms[boneIndex] = globalTransform * offset;
             
-            gl::AnimationFrame &animFrame = outAnim->frames[frameIndex];
-            animFrame.time = timeStamp;
-            
-            while (animFrame.boneTransforms.size() <= boneIndex)
-                animFrame.boneTransforms.push_back(mat4());
-            
-            animFrame.boneTransforms[boneIndex] = globalTransform * offset;
+            currentBone = std::shared_ptr<gl::Bone> (new gl::Bone);
+            currentBone->name = nodeName;
+            currentBone->transform = globalTransform;
+            currentBone->offset = offset;
+
+            if(nodeAnim)
+            {
+                //            printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+                //                   nodeAnim->mNodeName.data,
+                //                   nodeAnim->mNumPositionKeys,
+                //                   nodeAnim->mNumRotationKeys,
+                //                   nodeAnim->mNumScalingKeys);
+                
+                gl::AnimationKeys animKeys;
+                
+                glm::vec3 bonePosition;
+                glm::vec3 boneScale;
+                glm::quat boneRotation;
+                
+                for (int i = 0; i < nodeAnim->mNumRotationKeys; i++)
+                {
+                    aiQuaternion rot = nodeAnim->mRotationKeys[i].mValue;
+                    boneRotation = glm::quat(rot.w, rot.x, rot.y, rot.z);
+                    animKeys.rotationkeys.push_back(gl::Key<glm::quat>(nodeAnim->mRotationKeys[i].mTime,
+                                                                       boneRotation));
+                }
+                
+                for (int i = 0; i < nodeAnim->mNumPositionKeys; i++)
+                {
+                    aiVector3D pos = nodeAnim->mPositionKeys[i].mValue;
+                    bonePosition = vec3(pos.x, pos.y, pos.z);
+                    animKeys.positionkeys.push_back(gl::Key<glm::vec3>(nodeAnim->mPositionKeys[i].mTime,
+                                                                       bonePosition));
+                }
+                
+                for (int i = 0; i < nodeAnim->mNumScalingKeys; i++)
+                {
+                    aiVector3D scaleTmp = nodeAnim->mScalingKeys[i].mValue;
+                    boneScale = vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z);
+                    
+                    animKeys.scalekeys.push_back(gl::Key<glm::vec3>(nodeAnim->mScalingKeys[i].mTime,
+                                                                    boneScale));
+                }
+                //nodeTransform = translate * rotate * scale;
+                
+                outAnim->boneKeys[currentBone] = animKeys;
+            }
+
         }
 
         for (int i = 0 ; i < theNode->mNumChildren ; i++)
         {
-            traverseNodes(theAnimation, frameIndex, theNode->mChildren[i],
-                          globalTransform, boneMap, outAnim);
+            std::shared_ptr<gl::Bone> child = traverseNodes(theAnimation, theNode->mChildren[i],
+                                                            globalTransform, boneMap, outAnim,
+                                                            currentBone);
+            
+            if(currentBone)
+                currentBone->children.push_back(child);
+            else
+                currentBone = child;
         }
+        
+        return currentBone;
     }
     
     gl::Material::Ptr createMaterial(const aiMaterial *mtl)
@@ -313,13 +346,13 @@ private:
             // generate empty indices and weights
             for (int i = 0; i < geom->getVertices().size(); ++i)
             {
-                geom->getBoneData().push_back(gl::BoneVertexData());
+                geom->boneVertexData().push_back(gl::BoneVertexData());
             }
             
             for (WeightMap::iterator it = weightMap.begin(); it != weightMap.end(); ++it)
             {
                 int i = 0;
-                gl::BoneVertexData &boneData = geom->getBoneData()[it->first];
+                gl::BoneVertexData &boneData = geom->boneVertexData()[it->first];
                 list< pair<uint32_t, float> >::iterator pairIt = it->second.begin();
                 for (; pairIt != it->second.end(); ++pairIt)
                 {
@@ -336,16 +369,23 @@ private:
                 anim->duration = assimpAnimation->mDuration;
                 anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
                 
-                int numFrames = assimpAnimation->mChannels[0]->mNumRotationKeys;
-                for (int i = 0; i < numFrames; ++i)
-                {
-                    // traverse aiScene and construct final transforms
-                    traverseNodes(assimpAnimation, i, theScene->mRootNode, mat4(),
-                                  boneMap, anim);
-                }
+//                int numFrames = assimpAnimation->mChannels[0]->mNumRotationKeys;
+//                for (int i = 0; i < numFrames; ++i)
+//                {
+//                    // traverse aiScene and construct final transforms
+//                    traverseNodes(assimpAnimation, i, theScene->mRootNode, mat4(),
+//                                  boneMap, anim);
+//                }
+                
+                
+                std::shared_ptr<gl::Bone> rootBone = traverseNodes(assimpAnimation,
+                                                                   theScene->mRootNode, mat4(),
+                                                                   boneMap, anim);
                 
                 geom->setAnimation(anim);
-                geom->boneMatrices() = anim->frames[0].boneTransforms;
+                geom->rootBone() = rootBone;
+                
+                //geom->boneMatrices() = anim->frames[0].boneTransforms;
             }
         }
         geom->computeBoundingBox();
@@ -367,6 +407,9 @@ public:
         
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
+        
+        m_animationTime = RangedProperty<float>::create("Animation time", 0, 0, 1);
+        registerProperty(m_animationTime);
         
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
@@ -460,9 +503,11 @@ public:
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
         
-        if(m_mesh)
+        if(m_mesh && m_mesh->getGeometry()->hasBones())
         {
-            m_mesh->getGeometry()->updateAnimation(getApplicationTime());
+            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 10.0f);
+//            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
+//                                                   m_mesh->getGeometry()->animation()->duration);
         }
     }
     

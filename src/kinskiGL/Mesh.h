@@ -57,6 +57,12 @@ namespace kinski { namespace gl {
          */
         void setTexCoordLocationName(const std::string &theName);
         
+        /*!
+         * Set the name under which the attribute will be accessible in the shader.
+         * Defaults to "a_texCoord"
+         */
+        void setColorLocationName(const std::string &theName);
+        
     private:
         
         void createVertexArray();
@@ -75,6 +81,7 @@ namespace kinski { namespace gl {
         std::string m_normalLocationName;
         std::string m_tangentLocationName;
         std::string m_texCoordLocationName;
+        std::string m_colorLocationName;
         std::string m_boneIDsLocationName;
         std::string m_boneWeightsLocationName;
     };

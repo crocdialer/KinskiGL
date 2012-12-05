@@ -20,6 +20,7 @@ namespace kinski { namespace gl {
     m_normalLocationName("a_normal"),
     m_tangentLocationName("a_tangent"),
     m_texCoordLocationName("a_texCoord"),
+    m_colorLocationName("a_color"),
     m_boneIDsLocationName("a_boneIds"),
     m_boneWeightsLocationName("a_boneWeights")
     {
@@ -77,6 +78,17 @@ namespace kinski { namespace gl {
         glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
                               stride,
                               BUFFER_OFFSET(8 * sizeof(GLfloat)));
+        
+        if(m_geometry->hasColors())
+        {
+            GLuint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->getColorBuffer());
+            
+            // define attrib pointer (colors)
+            glEnableVertexAttribArray(colorAttribLocation);
+            glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        }
         
         if(m_geometry->hasBones())
         {

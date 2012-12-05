@@ -16,6 +16,7 @@ namespace kinski{ namespace gl{
     m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0))),
     m_interleavedBuffer(0),
     m_boneBuffer(0),
+    m_colorBuffer(0),
     m_indexBuffer(0)
     {
     
@@ -25,12 +26,15 @@ namespace kinski{ namespace gl{
     {
         if(m_interleavedBuffer)
             glDeleteBuffers(1, &m_interleavedBuffer);
-        
-        if(m_indexBuffer)
-            glDeleteBuffers(1, &m_indexBuffer);
-        
+
         if(m_boneBuffer)
             glDeleteBuffers(1, &m_boneBuffer);
+
+        if(m_colorBuffer)
+            glDeleteBuffers(1, &m_colorBuffer);
+        
+        if(m_indexBuffer)
+            glDeleteBuffers(1, &m_indexBuffer); 
     }
     
     void Geometry::appendVertices(const std::vector<glm::vec3> &theVerts)
@@ -237,6 +241,28 @@ namespace kinski{ namespace gl{
         
         GL_SUFFIX(glUnmapBuffer)(GL_ARRAY_BUFFER);
         
+        // insert bone indices and weights
+        if(hasColors())
+        {
+            if(!m_colorBuffer)
+                glGenBuffers(1, &m_colorBuffer);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_colorBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * m_vertices.size(),
+                         &m_colors[0], GL_STREAM_DRAW);//STREAM
+        }
+        
+        // insert bone indices and weights
+        if(hasBones())
+        {
+            if(!m_boneBuffer)
+                glGenBuffers(1, &m_boneBuffer);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_boneBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(BoneVertexData) * m_vertices.size(),
+                         &m_boneVertexData[0], GL_STREAM_DRAW);//STREAM
+        }
+        
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
@@ -259,18 +285,7 @@ namespace kinski{ namespace gl{
         }
         
         GL_SUFFIX(glUnmapBuffer)(GL_ELEMENT_ARRAY_BUFFER);
-        
-        // insert bone indices and weights
-        if(hasBones())
-        {
-            if(!m_boneBuffer)
-                glGenBuffers(1, &m_boneBuffer);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, m_boneBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(BoneVertexData) * m_vertices.size(),
-                         &m_boneData[0], GL_STREAM_DRAW);//STREAM
-        }
-        
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
@@ -283,19 +298,12 @@ namespace kinski{ namespace gl{
             
             float frac = t / m_animation->duration;
             
-            int numFrames = m_animation->frames.size();
-            int index = static_cast<int>( frac * (numFrames - 1) );
+            //m_animation->boneKeys
             
-            m_boneMatrices = m_animation->frames[index].boneTransforms;
-            
-//            for (int i = 0; i < m_animation->frames[index].boneTransforms.size() - 1; i++)
-//            {
-//                const glm::mat4 &boneTrans = m_animation->frames[index].boneTransforms[i];
-//                const glm::mat4 &nextBoneTrans = m_animation->frames[(index + 1)
-//                                                                     % numFrames].boneTransforms[i];
-//                
-//                m_boneMatrices[i] = glm::interpolate(boneTrans, nextBoneTrans, frac);
-//            }
+//            int numFrames = m_animation->frames.size();
+//            int index = static_cast<int>( frac * (numFrames - 1) );
+//            
+//            m_boneMatrices = m_animation->frames[index].boneTransforms;
         }
     
     }

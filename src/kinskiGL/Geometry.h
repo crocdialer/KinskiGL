@@ -63,6 +63,31 @@ namespace gl
         weights(glm::vec4(0)){};
     };
     
+    struct Bone
+    {
+        std::string name;
+        
+        glm::mat4 transform;
+        glm::mat4 offset;
+        
+        std::list<std::shared_ptr<Bone> > children;
+    };
+    
+    template<typename T> struct Key
+    {
+        float time;
+        T value;
+        
+        Key(float t, const T &v):time(t), value(v){};
+    };
+    
+    struct AnimationKeys
+    {
+        std::vector< Key<glm::vec3> > positionkeys;
+        std::vector< Key<glm::quat> > rotationkeys;
+        std::vector< Key<glm::vec3> > scalekeys;
+    };
+    
     struct AnimationFrame
     {
         float time;
@@ -74,6 +99,8 @@ namespace gl
         float duration;
         float ticksPerSec;
         std::vector<AnimationFrame> frames;
+        
+        std::map<std::shared_ptr<Bone>, AnimationKeys> boneKeys;
     };
     
     class Geometry
@@ -127,21 +154,32 @@ namespace gl
         inline std::vector<glm::vec2>& getTexCoords(){ return m_texCoords; };
         inline const std::vector<glm::vec2>& getTexCoords() const { return m_texCoords; };
         
+        bool hasColors() const { return m_vertices.size() == m_colors.size(); };
+        std::vector<glm::vec4>& colors(){ return m_colors; };
+        const std::vector<glm::vec4>& colors() const { return m_colors; };
+        
         inline std::vector<Face3>& getFaces(){ return m_faces; };
         inline const std::vector<Face3>& getFaces() const { return m_faces; };
         
         std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
         const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
         
-        std::vector<BoneVertexData>& getBoneData(){ return m_boneData; };
-        const std::vector<BoneVertexData>& getBoneData() const { return m_boneData; };
+        std::shared_ptr<Bone>& rootBone(){ return m_rootBone; };
+        const std::shared_ptr<Bone>& rootBone() const { return m_rootBone; };
         
-        bool hasBones() const { return m_vertices.size() == m_boneData.size(); };
+        bool hasBones() const { return m_vertices.size() == m_boneVertexData.size(); };
+        std::vector<BoneVertexData>& boneVertexData(){ return m_boneVertexData; };
+        const std::vector<BoneVertexData>& boneVertexData() const { return m_boneVertexData; };
+
+        const std::shared_ptr<const Animation> animation() const { return m_animation; };
+        std::shared_ptr<Animation> animation() { return m_animation; };
+        
         void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
         
         inline const BoundingBox& getBoundingBox() const { return m_boundingBox; };
         
         GLuint getInterleavedBuffer() const { return m_interleavedBuffer; };
+        GLuint getColorBuffer() const { return m_colorBuffer; };
         GLuint getBoneBuffer() const { return m_boneBuffer; };
         GLuint getIndexBuffer() const { return m_indexBuffer; };
         
@@ -156,21 +194,23 @@ namespace gl
         
         std::vector<glm::vec3> m_vertices;
         std::vector<glm::vec3> m_normals;
-        std::vector<glm::vec3> m_tangents;
-        
         std::vector<glm::vec2> m_texCoords;
+        std::vector<glm::vec4> m_colors;
+        std::vector<glm::vec3> m_tangents;
         std::vector<Face3> m_faces;
         
         // skeletal animations stuff
         std::vector<glm::mat4> m_boneMatrices;
-        std::vector<BoneVertexData> m_boneData;
+        std::vector<BoneVertexData> m_boneVertexData;
         std::shared_ptr<Animation> m_animation;
+        std::shared_ptr<Bone> m_rootBone;
         
         
         BoundingBox m_boundingBox;
         
         GLuint m_interleavedBuffer;
         GLuint m_boneBuffer;
+        GLuint m_colorBuffer;
         GLuint m_indexBuffer;
         
         bool m_needsUpdate;
