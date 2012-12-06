@@ -91,14 +91,15 @@ private:
         }
     }
     
-    std::shared_ptr<gl::Bone> traverseNodes(const aiAnimation *theAnimation,
-                       const aiNode *theNode,
-                       const glm::mat4 &parentTransform,
-                       const map<std::string, pair<int, mat4> > &boneMap,
-                       shared_ptr<gl::Animation> &outAnim,
-                       shared_ptr<gl::Bone> parentBone = shared_ptr<gl::Bone>())
+    std::shared_ptr<gl::Bone>
+    traverseNodes(const aiAnimation *theAnimation,
+                  const aiNode *theNode,
+                  const glm::mat4 &parentTransform,
+                  const map<std::string, pair<int, mat4> > &boneMap,
+                  shared_ptr<gl::Animation> &outAnim,
+                  shared_ptr<gl::Bone> parentBone = shared_ptr<gl::Bone>())
     {
-        std::shared_ptr<gl::Bone> currentBone = parentBone;
+        std::shared_ptr<gl::Bone> currentBone;
         string nodeName(theNode->mName.data);
         glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
 
@@ -125,29 +126,18 @@ private:
             //int boneIndex = it->second.first;
             const mat4 &offset = it->second.second;
             
-//            while (outAnim->frames.size() <= frameIndex)
-//                outAnim->frames.push_back(gl::AnimationFrame());
-//            
-//            gl::AnimationFrame &animFrame = outAnim->frames[frameIndex];
-//            animFrame.time = timeStamp;
-//            
-//            while (animFrame.boneTransforms.size() <= boneIndex)
-//                animFrame.boneTransforms.push_back(mat4());
-//            
-//            animFrame.boneTransforms[boneIndex] = globalTransform * offset;
-            
             currentBone = std::shared_ptr<gl::Bone> (new gl::Bone);
             currentBone->name = nodeName;
-            currentBone->transform = globalTransform;
+            currentBone->transform = nodeTransform;
             currentBone->offset = offset;
 
             if(nodeAnim)
             {
-                //            printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
-                //                   nodeAnim->mNodeName.data,
-                //                   nodeAnim->mNumPositionKeys,
-                //                   nodeAnim->mNumRotationKeys,
-                //                   nodeAnim->mNumScalingKeys);
+                printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+                       nodeAnim->mNodeName.data,
+                       nodeAnim->mNumPositionKeys,
+                       nodeAnim->mNumRotationKeys,
+                       nodeAnim->mNumScalingKeys);
                 
                 gl::AnimationKeys animKeys;
                 
@@ -179,7 +169,6 @@ private:
                     animKeys.scalekeys.push_back(gl::Key<glm::vec3>(nodeAnim->mScalingKeys[i].mTime,
                                                                     boneScale));
                 }
-                //nodeTransform = translate * rotate * scale;
                 
                 outAnim->boneKeys[currentBone] = animKeys;
             }
@@ -192,9 +181,9 @@ private:
                                                             globalTransform, boneMap, outAnim,
                                                             currentBone);
             
-            if(currentBone)
+            if(currentBone && child)
                 currentBone->children.push_back(child);
-            else
+            else if(child)
                 currentBone = child;
         }
         
@@ -540,14 +529,28 @@ public:
 //                           m_mesh->getGeometry()->getNumComponents() * sizeof(GLfloat),
 //                           5 * sizeof(GLfloat));
             
-//            vector<vec3> points;
-//            vector<mat4>::iterator it = m_mesh->getGeometry()->getBoneMatrices().begin();
-//            for (; it != m_mesh->getGeometry()->getBoneMatrices().end(); ++it)
-//            {
-//                points.push_back((*it)[0].xyz());
-//            }
-//            
-//            gl::drawPoints(points);
+            if(m_mesh->getGeometry()->hasBones())
+            {
+                vector<vec3> points;
+                buildSkeleton(m_mesh->getGeometry()->rootBone(), glm::mat4(), points);
+                gl::drawPoints(points);
+                gl::drawLines(points, vec4(1, 0, 0, 1));
+            }
+        }
+    }
+    
+    void buildSkeleton(std::shared_ptr<gl::Bone> currentBone,glm::mat4 parentTransform,
+                       vector<vec3> &points)
+    {
+        list<shared_ptr<gl::Bone> >::iterator it = currentBone->children.begin();
+        for (; it != currentBone->children.end(); ++it)
+        {
+            mat4 globalTransform = parentTransform * currentBone->transform;
+            mat4 childGlobalTransform = globalTransform * (*it)->transform;
+            points.push_back(globalTransform[3].xyz());
+            points.push_back(childGlobalTransform[3].xyz());
+            
+            buildSkeleton(*it, globalTransform, points);
         }
     }
     

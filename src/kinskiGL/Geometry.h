@@ -87,19 +87,11 @@ namespace gl
         std::vector< Key<glm::quat> > rotationkeys;
         std::vector< Key<glm::vec3> > scalekeys;
     };
-    
-    struct AnimationFrame
-    {
-        float time;
-        std::vector<glm::mat4> boneTransforms;
-    };
-    
+
     struct Animation
     {
         float duration;
         float ticksPerSec;
-        std::vector<AnimationFrame> frames;
-        
         std::map<std::shared_ptr<Bone>, AnimationKeys> boneKeys;
     };
     
@@ -191,6 +183,10 @@ namespace gl
         void updateAnimation(float time);
         
     private:
+        
+        void buildBoneMatrices(float time, std::shared_ptr<Bone> bone,
+                               glm::mat4 parentTransform,
+                               std::vector<glm::mat4> &matrices);
         
         std::vector<glm::vec3> m_vertices;
         std::vector<glm::vec3> m_normals;

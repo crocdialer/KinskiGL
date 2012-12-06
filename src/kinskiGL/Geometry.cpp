@@ -296,16 +296,108 @@ namespace kinski{ namespace gl{
         {
             float t = fmod(time, m_animation->duration);
             
-            float frac = t / m_animation->duration;
-            
-            //m_animation->boneKeys
-            
-//            int numFrames = m_animation->frames.size();
-//            int index = static_cast<int>( frac * (numFrames - 1) );
-//            
-//            m_boneMatrices = m_animation->frames[index].boneTransforms;
+            m_boneMatrices.clear();
+            buildBoneMatrices(t, m_rootBone, glm::mat4(), m_boneMatrices);
         }
     
+    }
+    
+    void Geometry::buildBoneMatrices(float time, std::shared_ptr<Bone> bone,
+                                     glm::mat4 parentTransform,
+                                     std::vector<glm::mat4> &matrices)
+    {
+        const AnimationKeys &bonekeys = m_animation->boneKeys[bone];
+        
+        glm::mat4 boneTransform = bone->transform;
+        
+        // translation
+        glm::mat4 translation;
+        if(!bonekeys.positionkeys.empty())
+        {
+            int i = 0;
+            for (; i < bonekeys.positionkeys.size(); i++)
+            {
+                const Key<glm::vec3> &key = bonekeys.positionkeys[i];
+                if(key.time >= time)
+                {
+                    break;
+                }
+            }
+            // i now holds the correct time index
+            const Key<glm::vec3> &key1 = bonekeys.positionkeys[i],
+            key2 = bonekeys.positionkeys[(i + 1) % bonekeys.positionkeys.size()];
+            
+            float startTime = key1.time;
+            float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
+            float frac = (time - startTime) / (endTime - startTime);
+            glm::vec3 pos = glm::mix(key1.value, key2.value, frac);
+            translation = glm::translate(glm::mat4(), pos);
+        }
+        
+        // rotation
+        glm::mat4 rotation;
+        if(!bonekeys.rotationkeys.empty())
+        {
+            int i = 0;
+            for (; i < bonekeys.rotationkeys.size(); i++)
+            {
+                const Key<glm::quat> &key = bonekeys.rotationkeys[i];
+                if(key.time >= time)
+                {
+                    break;
+                }
+            }
+            // i now holds the correct time index
+            const Key<glm::quat> &key1 = bonekeys.rotationkeys[i],
+            key2 = bonekeys.rotationkeys[(i + 1) % bonekeys.rotationkeys.size()];
+            
+            float startTime = key1.time;
+            float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
+            float frac = (time - startTime) / (endTime - startTime);
+            glm::quat interpolRot = glm::mix(key1.value, key2.value, frac);
+            rotation = glm::mat4_cast(interpolRot);
+        }
+        
+        // scale
+        glm::mat4 scaleMatrix;
+        if(!bonekeys.scalekeys.empty())
+        {
+            int i = 0;
+            for (; i < bonekeys.scalekeys.size(); i++)
+            {
+                const Key<glm::vec3> &key = bonekeys.scalekeys[i];
+                if(key.time >= time)
+                {
+                    break;
+                }
+            }
+            // i now holds the correct time index
+            const Key<glm::vec3> &key1 = bonekeys.scalekeys[i],
+            key2 = bonekeys.scalekeys[(i + 1) % bonekeys.scalekeys.size()];
+            
+            float startTime = key1.time;
+            float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
+            float frac = (time - startTime) / (endTime - startTime);
+            glm::vec3 scale = glm::mix(key1.value, key2.value, frac);
+            scaleMatrix = glm::scale(glm::mat4(), scale);
+            
+            boneTransform = translation * rotation * scaleMatrix;
+        }
+        
+        glm::mat4 globalTransform = parentTransform * boneTransform;
+        
+        // add final transform
+        glm::mat4 finalTransform = globalTransform * bone->offset;
+        matrices.push_back(finalTransform);
+        
+        
+        // recursion through all children
+        list<shared_ptr<gl::Bone> >::iterator it = bone->children.begin();
+        for (; it != bone->children.end(); ++it)
+        {
+            
+            buildBoneMatrices(time, *it, globalTransform, matrices);
+        }
     }
     
     /********************************* PRIMITIVES ****************************************/
