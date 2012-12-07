@@ -288,14 +288,14 @@ namespace kinski{ namespace gl{
             
             m_boneMatrices = m_animation->frames[index].boneTransforms;
             
-//            for (int i = 0; i < m_animation->frames[index].boneTransforms.size() - 1; i++)
-//            {
-//                const glm::mat4 &boneTrans = m_animation->frames[index].boneTransforms[i];
-//                const glm::mat4 &nextBoneTrans = m_animation->frames[(index + 1)
-//                                                                     % numFrames].boneTransforms[i];
-//                
-//                m_boneMatrices[i] = glm::interpolate(boneTrans, nextBoneTrans, frac);
-//            }
+            for (int i = 0; i < m_animation->frames[index].boneTransforms.size() - 1; i++)
+            {
+                const glm::mat4 &boneTrans = m_animation->frames[index].boneTransforms[i];
+                const glm::mat4 &nextBoneTrans = m_animation->frames[(index + 1)
+                                                                     % numFrames].boneTransforms[i];
+                
+                m_boneMatrices[i] = (1 - frac) * boneTrans + frac * nextBoneTrans;
+            }
         }
     
     }

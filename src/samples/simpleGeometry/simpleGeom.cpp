@@ -462,7 +462,7 @@ public:
         
         if(m_mesh)
         {
-            m_mesh->getGeometry()->updateAnimation(getApplicationTime());
+            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 10.f);
         }
     }
     
