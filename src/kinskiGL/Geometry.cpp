@@ -315,9 +315,9 @@ namespace kinski{ namespace gl{
         if(!bonekeys.positionkeys.empty())
         {
             int i = 0;
-            for (; i < bonekeys.positionkeys.size(); i++)
+            for (; i < bonekeys.positionkeys.size() - 1; i++)
             {
-                const Key<glm::vec3> &key = bonekeys.positionkeys[i];
+                const Key<glm::vec3> &key = bonekeys.positionkeys[i + 1];
                 if(key.time >= time)
                 {
                     break;
@@ -329,7 +329,7 @@ namespace kinski{ namespace gl{
             
             float startTime = key1.time;
             float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
-            float frac = (time - startTime) / (endTime - startTime);
+            float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             glm::vec3 pos = glm::mix(key1.value, key2.value, frac);
             translation = glm::translate(glm::mat4(), pos);
         }
@@ -339,9 +339,9 @@ namespace kinski{ namespace gl{
         if(!bonekeys.rotationkeys.empty())
         {
             int i = 0;
-            for (; i < bonekeys.rotationkeys.size(); i++)
+            for (; i < bonekeys.rotationkeys.size() - 1; i++)
             {
-                const Key<glm::quat> &key = bonekeys.rotationkeys[i];
+                const Key<glm::quat> &key = bonekeys.rotationkeys[i+1];
                 if(key.time >= time)
                 {
                     break;
@@ -353,9 +353,12 @@ namespace kinski{ namespace gl{
             
             float startTime = key1.time;
             float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
-            float frac = (time - startTime) / (endTime - startTime);
-            glm::quat interpolRot = glm::mix(key1.value, key2.value, frac);
-            rotation = glm::mat4_cast(interpolRot);
+            float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
+            
+//            glm::quat interpolRot = glm::mix(key1.value, key2.value, frac);
+//            rotation = glm::mat4_cast(interpolRot);
+            
+            rotation = glm::mat4_cast(key1.value) + frac * (glm::mat4_cast(key2.value) - glm::mat4_cast(key1.value));
         }
         
         // scale
@@ -363,9 +366,9 @@ namespace kinski{ namespace gl{
         if(!bonekeys.scalekeys.empty())
         {
             int i = 0;
-            for (; i < bonekeys.scalekeys.size(); i++)
+            for (; i < bonekeys.scalekeys.size() - 1; i++)
             {
-                const Key<glm::vec3> &key = bonekeys.scalekeys[i];
+                const Key<glm::vec3> &key = bonekeys.scalekeys[i + 1];
                 if(key.time >= time)
                 {
                     break;
@@ -377,7 +380,7 @@ namespace kinski{ namespace gl{
             
             float startTime = key1.time;
             float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
-            float frac = (time - startTime) / (endTime - startTime);
+            float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             glm::vec3 scale = glm::mix(key1.value, key2.value, frac);
             scaleMatrix = glm::scale(glm::mat4(), scale);
             

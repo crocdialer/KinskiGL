@@ -494,9 +494,9 @@ public:
         
         if(m_mesh && m_mesh->getGeometry()->hasBones())
         {
-            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 10.0f);
-//            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
-//                                                   m_mesh->getGeometry()->animation()->duration);
+//            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 5.0f);
+            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
+                                                   m_mesh->getGeometry()->animation()->duration);
         }
     }
     
