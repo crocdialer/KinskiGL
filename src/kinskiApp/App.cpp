@@ -150,6 +150,20 @@ namespace kinski
     {
         return glfwGetTime();
     }
+    
+    void App::keyPress(const KeyEvent &e)
+    {
+        switch (e.getChar())
+        {
+            case KeyEvent::KEY_SPACE:
+                m_displayTweakBar = !m_displayTweakBar; 
+                break;
+
+            default:
+                break;
+        }
+    }
+    
 /****************************  Application Events (internal) **************************/
     
     void App::__resize(int w,int h)
@@ -260,7 +274,10 @@ namespace kinski
     {
         if(m_displayTweakBar)
             TwEventCharGLFW(key, action);
-        
+
+        if(key == GLFW_KEY_SPACE)
+            return;
+            
         uint32_t buttonMod, keyMod;
         getModifiers(buttonMod, keyMod);
         

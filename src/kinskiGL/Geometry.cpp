@@ -307,13 +307,15 @@ namespace kinski{ namespace gl{
                                      std::vector<glm::mat4> &matrices)
     {
         const AnimationKeys &bonekeys = m_animation->boneKeys[bone];
-        
         glm::mat4 boneTransform = bone->transform;
+        
+        bool boneHasKeys = false;
         
         // translation
         glm::mat4 translation;
         if(!bonekeys.positionkeys.empty())
         {
+            boneHasKeys = true;
             int i = 0;
             for (; i < bonekeys.positionkeys.size() - 1; i++)
             {
@@ -331,13 +333,14 @@ namespace kinski{ namespace gl{
             float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
             float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             glm::vec3 pos = glm::mix(key1.value, key2.value, frac);
-            translation = glm::translate(glm::mat4(), pos);
+            translation = glm::translate(translation, pos);
         }
         
         // rotation
         glm::mat4 rotation;
         if(!bonekeys.rotationkeys.empty())
         {
+            boneHasKeys = true;
             int i = 0;
             for (; i < bonekeys.rotationkeys.size() - 1; i++)
             {
@@ -355,16 +358,19 @@ namespace kinski{ namespace gl{
             float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
             float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             
+            // quaternion interpolation produces glitches
 //            glm::quat interpolRot = glm::mix(key1.value, key2.value, frac);
 //            rotation = glm::mat4_cast(interpolRot);
             
-            rotation = glm::mat4_cast(key1.value) + frac * (glm::mat4_cast(key2.value) - glm::mat4_cast(key1.value));
+            glm::mat4 rot1 = glm::mat4_cast(key1.value), rot2 = glm::mat4_cast(key2.value);
+            rotation = rot1 + frac * (rot2 - rot1);
         }
         
         // scale
         glm::mat4 scaleMatrix;
         if(!bonekeys.scalekeys.empty())
         {
+            boneHasKeys = true;
             int i = 0;
             for (; i < bonekeys.scalekeys.size() - 1; i++)
             {
@@ -382,10 +388,11 @@ namespace kinski{ namespace gl{
             float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
             float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             glm::vec3 scale = glm::mix(key1.value, key2.value, frac);
-            scaleMatrix = glm::scale(glm::mat4(), scale);
-            
-            boneTransform = translation * rotation * scaleMatrix;
+            scaleMatrix = glm::scale(scaleMatrix, scale);
         }
+        
+        if(boneHasKeys)
+            boneTransform = translation * rotation * scaleMatrix;
         
         glm::mat4 globalTransform = parentTransform * boneTransform;
         
@@ -398,7 +405,6 @@ namespace kinski{ namespace gl{
         list<shared_ptr<gl::Bone> >::iterator it = bone->children.begin();
         for (; it != bone->children.end(); ++it)
         {
-            
             buildBoneMatrices(time, *it, globalTransform, matrices);
         }
     }

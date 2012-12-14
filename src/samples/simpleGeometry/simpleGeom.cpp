@@ -494,9 +494,9 @@ public:
         
         if(m_mesh && m_mesh->getGeometry()->hasBones())
         {
-//            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 5.0f);
-            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
-                                                   m_mesh->getGeometry()->animation()->duration);
+            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 5.0f);
+//            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
+//                                                   m_mesh->getGeometry()->animation()->duration);
         }
     }
     
@@ -529,13 +529,13 @@ public:
 //                           m_mesh->getGeometry()->getNumComponents() * sizeof(GLfloat),
 //                           5 * sizeof(GLfloat));
             
-            if(m_mesh->getGeometry()->hasBones())
-            {
-                vector<vec3> points;
-                buildSkeleton(m_mesh->getGeometry()->rootBone(), glm::mat4(), points);
-                gl::drawPoints(points);
-                gl::drawLines(points, vec4(1, 0, 0, 1));
-            }
+//            if(m_mesh->getGeometry()->hasBones())
+//            {
+//                vector<vec3> points;
+//                buildSkeleton(m_mesh->getGeometry()->rootBone(), glm::mat4(), points);
+//                gl::drawPoints(points);
+//                gl::drawLines(points, vec4(1, 0, 0, 1));
+//            }
         }
     }
     
@@ -578,6 +578,8 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
+        App::keyPress(e);
+        
         switch (e.getChar())
         {
         case KeyEvent::KEY_s:
@@ -598,7 +600,7 @@ public:
             break;
         }
     }
-    
+
     void resize(int w, int h)
     {
         m_Camera->setAspectRatio(getAspectRatio());
