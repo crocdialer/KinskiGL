@@ -530,6 +530,8 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
+        App::keyPress(e);
+        
         switch (e.getChar())
         {
         case KeyEvent::KEY_s:
@@ -550,7 +552,7 @@ public:
             break;
         }
     }
-    
+
     void resize(int w, int h)
     {
         m_Camera->setAspectRatio(getAspectRatio());

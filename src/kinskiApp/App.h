@@ -39,7 +39,7 @@ namespace kinski
         virtual void mouseMove(const MouseEvent &e){};
         virtual void mouseDrag(const MouseEvent &e){};
         virtual void mouseWheel(const MouseEvent &e){};
-        virtual void keyPress(const KeyEvent &e){};
+        virtual void keyPress(const KeyEvent &e);
         virtual void keyRelease(const KeyEvent &e){};
         
         virtual void tearDown(){};
@@ -52,17 +52,16 @@ namespace kinski
         inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::ivec2(w, h));};
         void setWindowSize(const glm::ivec2 size);
         
-        inline bool isFullSceen(){return m_fullscreen;};
+        inline bool fullSceen() const {return m_fullscreen;};
         inline void setFullSceen(bool b = true){m_fullscreen = b;};
         
-        bool isCursorVisible(){ return m_cursorVisible;};
+        bool cursorVisible() const { return m_cursorVisible;};
         void setCursorVisible(bool b = true){ m_cursorVisible = b;};
         
         double getApplicationTime();
         
-        void setTweakBarVisible(bool b){m_displayTweakBar = b;};
-        bool isTweaBarVisible(){return m_displayTweakBar;};
-        //TwBar* getTweakBar(){return m_tweakBar;};
+        void setDisplayTweakBar(bool b){m_displayTweakBar = b;};
+        bool displayTweakBar() const {return m_displayTweakBar;};
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "",
