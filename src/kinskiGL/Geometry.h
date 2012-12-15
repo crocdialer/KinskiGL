@@ -11,18 +11,16 @@
 
 #include "KinskiGL.h"
 
-namespace kinski
-{
-namespace gl
-{
+namespace kinski{ namespace gl{
+    
     struct Face3
     {
         Face3(uint32_t theA, uint32_t theB, uint32_t theC, glm::vec3 theNormal = glm::vec3(0)):
         a(theA), b(theB), c(theC), normal(theNormal)
         {
-            vertexNormals.push_back(glm::vec3(0));
-            vertexNormals.push_back(glm::vec3(0));
-            vertexNormals.push_back(glm::vec3(0));
+            vertexNormals.push_back(theNormal);
+            vertexNormals.push_back(theNormal);
+            vertexNormals.push_back(theNormal);
         };
         
         // vertex indices
@@ -68,8 +66,12 @@ namespace gl
         std::string name;
         
         glm::mat4 transform;
+        glm::mat4 worldtransform;
         glm::mat4 offset;
         
+        uint32_t index;
+        
+        std::shared_ptr<Bone> parent;
         std::list<std::shared_ptr<Bone> > children;
     };
     
@@ -134,24 +136,24 @@ namespace gl
         
         void computeVertexNormals();
         
-        inline std::vector<glm::vec3>& getVertices(){ return m_vertices; };
-        inline const std::vector<glm::vec3>& getVertices() const { return m_vertices; };
+        inline std::vector<glm::vec3>& vertices(){ return m_vertices; };
+        inline const std::vector<glm::vec3>& vertices() const { return m_vertices; };
         
-        inline std::vector<glm::vec3>& getNormals(){ return m_normals; };
-        inline const std::vector<glm::vec3>& getNormals() const { return m_normals; };
+        inline std::vector<glm::vec3>& normals(){ return m_normals; };
+        inline const std::vector<glm::vec3>& normals() const { return m_normals; };
         
-        inline std::vector<glm::vec3>& getTangents(){ return m_tangents; };
-        inline const std::vector<glm::vec3>& getTangents() const { return m_tangents; };
+        inline std::vector<glm::vec3>& tangents(){ return m_tangents; };
+        inline const std::vector<glm::vec3>& tangents() const { return m_tangents; };
         
-        inline std::vector<glm::vec2>& getTexCoords(){ return m_texCoords; };
-        inline const std::vector<glm::vec2>& getTexCoords() const { return m_texCoords; };
+        inline std::vector<glm::vec2>& texCoords(){ return m_texCoords; };
+        inline const std::vector<glm::vec2>& texCoords() const { return m_texCoords; };
         
         bool hasColors() const { return m_vertices.size() == m_colors.size(); };
         std::vector<glm::vec4>& colors(){ return m_colors; };
         const std::vector<glm::vec4>& colors() const { return m_colors; };
         
-        inline std::vector<Face3>& getFaces(){ return m_faces; };
-        inline const std::vector<Face3>& getFaces() const { return m_faces; };
+        inline std::vector<Face3>& faces(){ return m_faces; };
+        inline const std::vector<Face3>& faces() const { return m_faces; };
         
         std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
         const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
@@ -168,15 +170,15 @@ namespace gl
         
         void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
         
-        inline const BoundingBox& getBoundingBox() const { return m_boundingBox; };
+        inline const BoundingBox& boundingBox() const { return m_boundingBox; };
         
-        GLuint getInterleavedBuffer() const { return m_interleavedBuffer; };
-        GLuint getColorBuffer() const { return m_colorBuffer; };
-        GLuint getBoneBuffer() const { return m_boneBuffer; };
-        GLuint getIndexBuffer() const { return m_indexBuffer; };
+        GLuint interleavedBuffer() const { return m_interleavedBuffer; };
+        GLuint colorBuffer() const { return m_colorBuffer; };
+        GLuint boneBuffer() const { return m_boneBuffer; };
+        GLuint indexBuffer() const { return m_indexBuffer; };
         
         //number of float components (per vertex) in interleaved buffer
-        GLuint getNumComponents();
+        GLuint numComponents();
         
         void createGLBuffers();
         
@@ -225,7 +227,7 @@ namespace gl
     {
     public:
         
-        Box();
+        Box(glm::vec3 theHalfExtents = glm::vec3(0.5f));
     };
     
 }//gl

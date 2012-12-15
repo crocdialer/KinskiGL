@@ -191,7 +191,7 @@ namespace kinski{ namespace gl{
         }
     }
     
-    GLuint Geometry::getNumComponents()
+    GLuint Geometry::numComponents()
     {
         //GL_T2F_N3F_V3F alignment in interleaved buffer
         return 11;
@@ -205,7 +205,7 @@ namespace kinski{ namespace gl{
         if(!m_indexBuffer)
             glGenBuffers(1, &m_indexBuffer);
         
-        uint32_t numFloats = getNumComponents();
+        uint32_t numFloats = numComponents();
         
         glBindBuffer(GL_ARRAY_BUFFER, m_interleavedBuffer);
         glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_vertices.size(), NULL,
@@ -435,7 +435,7 @@ namespace kinski{ namespace gl{
                 appendVertex( glm::vec3( x, - y, 0) );
                 appendNormal(normal);
                 appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
-                getTangents().push_back(glm::vec3(0));
+                tangents().push_back(glm::vec3(0));
             }
         }
         
@@ -467,6 +467,12 @@ namespace kinski{ namespace gl{
         }
         
         computeBoundingBox();
+    }
+    
+    Box::Box(glm::vec3 theHalfExtents)
+    :Geometry()
+    {
+        
     }
     
 }}//namespace

@@ -123,14 +123,18 @@ private:
         // we have a Bone node
         if (it != boneMap.end())
         {
-            //int boneIndex = it->second.first;
+            int boneIndex = it->second.first;
             const mat4 &offset = it->second.second;
             
             currentBone = std::shared_ptr<gl::Bone> (new gl::Bone);
             currentBone->name = nodeName;
+            currentBone->index = boneIndex;
             currentBone->transform = nodeTransform;
+            currentBone->worldtransform = globalTransform;
             currentBone->offset = offset;
-
+            currentBone->parent = parentBone;
+            
+            // we have animation keys for this bone
             if(nodeAnim)
             {
                 printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
@@ -263,14 +267,14 @@ private:
     {
         gl::Geometry::Ptr geom (new gl::Geometry);
         
-        geom->getVertices().reserve(aMesh->mNumVertices);
-        geom->getVertices().insert(geom->getVertices().end(), (glm::vec3*)aMesh->mVertices,
+        geom->vertices().reserve(aMesh->mNumVertices);
+        geom->vertices().insert(geom->vertices().end(), (glm::vec3*)aMesh->mVertices,
                                    (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
         
         
         if(aMesh->HasTextureCoords(0))
         {
-            geom->getTexCoords().reserve(aMesh->mNumVertices);
+            geom->texCoords().reserve(aMesh->mNumVertices);
             for (int i = 0; i < aMesh->mNumVertices; i++)
             {
                 geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
@@ -291,8 +295,8 @@ private:
         
         if(aMesh->HasNormals())
         {
-            geom->getNormals().reserve(aMesh->mNumVertices);
-            geom->getNormals().insert(geom->getNormals().end(), (glm::vec3*)aMesh->mNormals,
+            geom->normals().reserve(aMesh->mNumVertices);
+            geom->normals().insert(geom->normals().end(), (glm::vec3*)aMesh->mNormals,
                                       (glm::vec3*) aMesh->mNormals + aMesh->mNumVertices);
         }
         else
@@ -302,8 +306,8 @@ private:
         
         if(aMesh->HasTangentsAndBitangents())
         {
-            geom->getTangents().reserve(aMesh->mNumVertices);
-            geom->getTangents().insert(geom->getTangents().end(), (glm::vec3*)aMesh->mTangents,
+            geom->tangents().reserve(aMesh->mNumVertices);
+            geom->tangents().insert(geom->tangents().end(), (glm::vec3*)aMesh->mTangents,
                                       (glm::vec3*) aMesh->mTangents + aMesh->mNumVertices);
         }
         else
@@ -333,7 +337,7 @@ private:
             }
             
             // generate empty indices and weights
-            for (int i = 0; i < geom->getVertices().size(); ++i)
+            for (int i = 0; i < geom->vertices().size(); ++i)
             {
                 geom->boneVertexData().push_back(gl::BoneVertexData());
             }
@@ -492,9 +496,9 @@ public:
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
         
-        if(m_mesh && m_mesh->getGeometry()->hasBones())
+        if(m_mesh && m_mesh->geometry()->hasBones())
         {
-            m_mesh->getGeometry()->updateAnimation(getApplicationTime() / 5.0f);
+            m_mesh->geometry()->updateAnimation(getApplicationTime() / 5.0f);
 //            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
 //                                                   m_mesh->getGeometry()->animation()->duration);
         }
@@ -529,28 +533,27 @@ public:
 //                           m_mesh->getGeometry()->getNumComponents() * sizeof(GLfloat),
 //                           5 * sizeof(GLfloat));
             
-//            if(m_mesh->getGeometry()->hasBones())
-//            {
-//                vector<vec3> points;
-//                buildSkeleton(m_mesh->getGeometry()->rootBone(), glm::mat4(), points);
-//                gl::drawPoints(points);
-//                gl::drawLines(points, vec4(1, 0, 0, 1));
-//            }
+            if(m_mesh->geometry()->hasBones())
+            {
+                vector<vec3> points;
+                buildSkeleton(m_mesh->geometry()->rootBone(), points);
+                gl::drawPoints(points);
+                gl::drawLines(points, vec4(1, 0, 0, 1));
+            }
         }
     }
     
-    void buildSkeleton(std::shared_ptr<gl::Bone> currentBone,glm::mat4 parentTransform,
-                       vector<vec3> &points)
+    void buildSkeleton(std::shared_ptr<gl::Bone> currentBone, vector<vec3> &points)
     {
         list<shared_ptr<gl::Bone> >::iterator it = currentBone->children.begin();
         for (; it != currentBone->children.end(); ++it)
         {
-            mat4 globalTransform = parentTransform * currentBone->transform;
-            mat4 childGlobalTransform = globalTransform * (*it)->transform;
+            mat4 globalTransform = currentBone->worldtransform;
+            mat4 childGlobalTransform = (*it)->worldtransform;
             points.push_back(globalTransform[3].xyz());
             points.push_back(childGlobalTransform[3].xyz());
             
-            buildSkeleton(*it, globalTransform, points);
+            buildSkeleton(*it, points);
         }
     }
     
@@ -612,19 +615,19 @@ public:
         // one of our porperties was changed
         if(theProperty == m_wireFrame)
         {
-            if(m_mesh) m_mesh->getMaterial()->setWireframe(m_wireFrame->val());
+            if(m_mesh) m_mesh->material()->setWireframe(m_wireFrame->val());
         }
         else if(theProperty == m_lightDir)
         {
-            if(m_mesh) m_mesh->getMaterial()->uniform("u_lightDir", m_lightDir->val());
+            if(m_mesh) m_mesh->material()->uniform("u_lightDir", m_lightDir->val());
         }
         
         else if(theProperty == m_color)
         {
             if(m_mesh)
             {
-                m_mesh->getMaterial()->setDiffuse(m_color->val());
-                m_mesh->getMaterial()->setBlending(m_color->val().a < 1.0f);
+                m_mesh->material()->setDiffuse(m_color->val());
+                m_mesh->material()->setBlending(m_color->val().a < 1.0f);
             }
             m_material->setDiffuse(m_color->val());
             m_pointMaterial->setDiffuse(m_color->val());
@@ -634,7 +637,7 @@ public:
         }
         else if(theProperty == m_textureMix)
         {
-            if(m_mesh) m_mesh->getMaterial()->uniform("u_textureMix", m_textureMix->val());
+            if(m_mesh) m_mesh->material()->uniform("u_textureMix", m_textureMix->val());
         }
         else if(theProperty == m_distance ||
                 theProperty == m_rotation)

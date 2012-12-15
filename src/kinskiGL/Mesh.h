@@ -25,13 +25,13 @@ namespace kinski { namespace gl {
         
         virtual ~Mesh();
         
-        const Geometry::Ptr& getGeometry() const { return m_geometry; };
-        Geometry::Ptr& getGeometry() { return m_geometry; };
+        const Geometry::Ptr& geometry() const { return m_geometry; };
+        Geometry::Ptr& geometry() { return m_geometry; };
         
-        const Material::Ptr& getMaterial() const { return m_material; };
-        Material::Ptr& getMaterial() { return m_material; };
+        const Material::Ptr& material() const { return m_material; };
+        Material::Ptr& material() { return m_material; };
         
-        GLuint getVertexArray(){ return m_vertexArray; };
+        GLuint vertexArray(){ return m_vertexArray; };
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.

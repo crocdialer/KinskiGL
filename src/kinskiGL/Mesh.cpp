@@ -46,14 +46,14 @@ namespace kinski { namespace gl {
         GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
         GLuint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
         
-        uint32_t numFloats = m_geometry->getNumComponents();
+        uint32_t numFloats = m_geometry->numComponents();
         GLsizei stride = numFloats * sizeof(GLfloat);
         
         // create VBOs if not yet existing
-        if(!m_geometry->getInterleavedBuffer())
+        if(!m_geometry->interleavedBuffer())
             m_geometry->createGLBuffers();
             
-        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->getInterleavedBuffer());
+        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->interleavedBuffer());
         
         // define attrib pointer (texCoord)
         glEnableVertexAttribArray(texCoordAttribLocation);
@@ -83,7 +83,7 @@ namespace kinski { namespace gl {
         {
             GLuint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->getColorBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->colorBuffer());
             
             // define attrib pointer (colors)
             glEnableVertexAttribArray(colorAttribLocation);
@@ -95,7 +95,7 @@ namespace kinski { namespace gl {
             GLuint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
             GLuint boneWeightsAttribLocation = shader.getAttribLocation(m_boneWeightsLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->getBoneBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->boneBuffer());
             
             // define attrib pointer (boneIDs)
             glEnableVertexAttribArray(boneIdsAttribLocation);
@@ -112,7 +112,7 @@ namespace kinski { namespace gl {
         }
         
         // index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->getIndexBuffer());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer());
         
         GL_SUFFIX(glBindVertexArray)(0);
     }

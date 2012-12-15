@@ -549,7 +549,7 @@ namespace kinski { namespace gl {
         Mesh::Ptr m = theMesh.lock();
         if(!m) return;
         
-        BoundingBox bb = m->getGeometry()->getBoundingBox();
+        BoundingBox bb = m->geometry()->boundingBox();
         vector<vec3> thePoints;
         thePoints.push_back(vec3(0));
         thePoints.push_back(vec3(bb.max.x, 0, 0));
@@ -564,24 +564,24 @@ namespace kinski { namespace gl {
     
     void drawMesh(const std::shared_ptr<Mesh> &theMesh)
     {
-        theMesh->getMaterial()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
+        theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
         
-        theMesh->getMaterial()->uniform("u_normalMatrix",
+        theMesh->material()->uniform("u_normalMatrix",
                                         glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
         
-        theMesh->getMaterial()->uniform("u_modelViewProjectionMatrix",
+        theMesh->material()->uniform("u_modelViewProjectionMatrix",
                                         g_projectionMatrixStack.top()
                                         * g_modelViewMatrixStack.top());
         
-        if(theMesh->getGeometry()->hasBones())
+        if(theMesh->geometry()->hasBones())
         {
-            theMesh->getMaterial()->uniform("u_bones", theMesh->getGeometry()->boneMatrices());
+            theMesh->material()->uniform("u_bones", theMesh->geometry()->boneMatrices());
         }
         
-        theMesh->getMaterial()->apply();
+        theMesh->material()->apply();
         
-        GL_SUFFIX(glBindVertexArray)(theMesh->getVertexArray());
-        glDrawElements(GL_TRIANGLES, 3 * theMesh->getGeometry()->getFaces().size(),
+        GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
+        glDrawElements(GL_TRIANGLES, 3 * theMesh->geometry()->faces().size(),
                        GL_UNSIGNED_INT, BUFFER_OFFSET(0));
         GL_SUFFIX(glBindVertexArray)(0);
     
@@ -598,7 +598,7 @@ namespace kinski { namespace gl {
             Mesh::Ptr theMesh = weakMesh.lock();
             if(!theMesh) return;
             
-            BoundingBox bb = theMesh->getGeometry()->getBoundingBox();
+            BoundingBox bb = theMesh->geometry()->boundingBox();
             
             vector<vec3> thePoints;
             // bottom
@@ -656,14 +656,14 @@ namespace kinski { namespace gl {
         {
             Mesh::Ptr m = theMesh.lock();
             
-            if(m->getGeometry()->getNormals().empty()) return;
+            if(m->geometry()->normals().empty()) return;
             
             vector<vec3> thePoints;
-            const vector<vec3> &vertices = m->getGeometry()->getVertices();
-            const vector<vec3> &normals = m->getGeometry()->getNormals();
+            const vector<vec3> &vertices = m->geometry()->vertices();
+            const vector<vec3> &normals = m->geometry()->normals();
             
-            float length = (m->getGeometry()->getBoundingBox().max -
-                            m->getGeometry()->getBoundingBox().min).length() * 5;
+            float length = (m->geometry()->boundingBox().max -
+                            m->geometry()->boundingBox().min).length() * 5;
             
             for (int i = 0; i < vertices.size(); i++)
             {
