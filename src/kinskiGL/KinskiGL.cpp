@@ -313,7 +313,7 @@ namespace kinski { namespace gl {
 #endif
             try
             {
-                staticMat->getShader().loadFromData(vertSrc, fragSrc);
+                staticMat->shader().loadFromData(vertSrc, fragSrc);
                 staticMat->setPointSize(2.f);
             } catch (Exception &e)
             {
@@ -323,8 +323,8 @@ namespace kinski { namespace gl {
         
         Material::Ptr activeMat = theMaterial ? theMaterial : staticMat;
         
-        if(!activeMat->getShader())
-            activeMat->getShader() = staticMat->getShader();
+        if(!activeMat->shader())
+            activeMat->shader() = staticMat->shader();
         
         activeMat->uniform("u_modelViewProjectionMatrix",
                            g_projectionMatrixStack.top()
@@ -339,7 +339,7 @@ namespace kinski { namespace gl {
             
             glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
             
-            GLuint vertexAttribLocation = activeMat->getShader().getAttribLocation("a_vertex");
+            GLuint vertexAttribLocation = activeMat->shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(offset));
@@ -375,11 +375,11 @@ namespace kinski { namespace gl {
         static gl::Material material;
         
         // add the texture to the material
-        material.getTextures().clear();
+        material.textures().clear();
         material.addTexture(theTexture);
         
         //create shader
-        if(!material.getShader())
+        if(!material.shader())
         {
 #ifdef KINSKI_GLES
             const char *vertSrc =
@@ -423,7 +423,7 @@ namespace kinski { namespace gl {
 #endif
             try
             {
-                material.getShader().loadFromData(vertSrc, fragSrc);
+                material.shader().loadFromData(vertSrc, fragSrc);
             } catch (Exception &e)
             {
                 std::cerr << e.what() << std::endl;
@@ -486,12 +486,12 @@ namespace kinski { namespace gl {
             
             GLsizei stride = 5 * sizeof(GLfloat);
             
-            GLuint vertexAttribLocation = theMaterial.getShader().getAttribLocation("a_vertex");
+            GLuint vertexAttribLocation = theMaterial.shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
             
-            GLuint texCoordAttribLocation = theMaterial.getShader().getAttribLocation("a_texCoord");
+            GLuint texCoordAttribLocation = theMaterial.shader().getAttribLocation("a_texCoord");
             glEnableVertexAttribArray(texCoordAttribLocation);
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(0));

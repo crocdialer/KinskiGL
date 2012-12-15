@@ -31,6 +31,7 @@ namespace kinski { namespace gl {
         const Material::Ptr& material() const { return m_material; };
         Material::Ptr& material() { return m_material; };
         
+        void createVertexArray();
         GLuint vertexArray(){ return m_vertexArray; };
         
         /*!
@@ -64,8 +65,6 @@ namespace kinski { namespace gl {
         void setColorLocationName(const std::string &theName);
         
     private:
-        
-        void createVertexArray();
         
         Geometry::Ptr m_geometry;
         Material::Ptr m_material;

@@ -15,7 +15,7 @@
 
 #include "kinskiGL/KinskiGL.h"
 
-namespace kinski { namespace gl{
+namespace kinski { namespace gl {
 
 class AssimpConnector
 {
@@ -27,7 +27,8 @@ class AssimpConnector
     
     static glm::mat4 aiMatrixToGlmMat(aiMatrix4x4 theMat);
     
-    static std::shared_ptr<Geometry> createGeometry(const aiMesh *aMesh, const aiScene *theScene = NULL);
+    static std::shared_ptr<Geometry> createGeometry(const aiMesh *aMesh,
+                                                    const aiScene *theScene = NULL);
     
     static std::shared_ptr<Material> createMaterial(const aiMaterial *mtl);
     

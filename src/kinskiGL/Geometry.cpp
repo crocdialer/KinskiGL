@@ -15,6 +15,7 @@ namespace kinski{ namespace gl{
     Geometry::Geometry():
     m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0))),
     m_interleavedBuffer(0),
+    m_tangentBuffer(0),
     m_boneBuffer(0),
     m_colorBuffer(0),
     m_indexBuffer(0)
@@ -27,6 +28,9 @@ namespace kinski{ namespace gl{
         if(m_interleavedBuffer)
             glDeleteBuffers(1, &m_interleavedBuffer);
 
+        if(m_tangentBuffer)
+            glDeleteBuffers(1, &m_tangentBuffer);
+        
         if(m_boneBuffer)
             glDeleteBuffers(1, &m_boneBuffer);
 
@@ -40,44 +44,49 @@ namespace kinski{ namespace gl{
     void Geometry::appendVertices(const std::vector<glm::vec3> &theVerts)
     {
         m_vertices.reserve(m_vertices.size() + theVerts.size());
-        
         m_vertices.insert(m_vertices.end(), theVerts.begin(), theVerts.end());
     }
     
     void Geometry::appendVertices(const glm::vec3 *theVerts, size_t numVerts)
     {
         m_vertices.reserve(m_vertices.size() + numVerts);
-        
         m_vertices.insert(m_vertices.end(), theVerts, theVerts + numVerts);
     }
     
     void Geometry::appendNormals(const std::vector<glm::vec3> &theNormals)
     {
         m_normals.reserve(m_normals.size() + theNormals.size());
-        
         m_normals.insert(m_normals.end(), theNormals.begin(), theNormals.end());
     }
     
     void Geometry::appendNormals(const glm::vec3 *theNormals, size_t numNormals)
     {
         m_normals.reserve(m_normals.size() + numNormals);
-        
         m_normals.insert(m_normals.end(), theNormals, theNormals + numNormals);
     }
     
     void Geometry::appendTextCoords(const std::vector<glm::vec2> &theVerts)
     {
         m_texCoords.reserve(m_texCoords.size() + theVerts.size());
-        
         m_texCoords.insert(m_texCoords.end(), theVerts.begin(), theVerts.end());
     }
     
     void Geometry::appendTextCoords(const glm::vec2 *theVerts, size_t numVerts)
     {
         m_texCoords.reserve(m_texCoords.size() + numVerts);
-        
         m_texCoords.insert(m_texCoords.end(), theVerts, theVerts + numVerts);
-
+    }
+    
+    void Geometry::appendColors(const std::vector<glm::vec4> &theColors)
+    {
+        m_colors.reserve(m_colors.size() + theColors.size());
+        m_colors.insert(m_colors.end(), theColors.begin(), theColors.end());
+    }
+    
+    void Geometry::appendColors(const glm::vec4 *theColors, size_t numColors)
+    {
+        m_colors.reserve(m_colors.size() + numColors);
+        m_colors.insert(m_colors.end(), theColors, theColors + numColors);
     }
     
     void Geometry::appendFace(uint32_t a, uint32_t b, uint32_t c)
@@ -187,14 +196,47 @@ namespace kinski{ namespace gl{
             face.vertexNormals[0] = m_normals[face.a];
             face.vertexNormals[1] = m_normals[face.b];
             face.vertexNormals[2] = m_normals[face.c];
+        }
+    }
+    
+    void Geometry::computeTangents()
+    {
+        if(m_texCoords.size() != m_vertices.size()) return;
+        
+        if(m_tangents.size() != m_vertices.size())
+        {
+            m_tangents.clear();
+            m_tangents.reserve(m_vertices.size());
             
+            for (int i = 0; i < m_vertices.size(); i++)
+            {
+                m_tangents.push_back(glm::vec3(0));
+            }
+        }
+        
+        vector<Face3>::iterator faceIt = m_faces.begin();
+        for (; faceIt != m_faces.end(); faceIt++)
+        {
+            Face3 &face = *faceIt;
+            
+            const glm::vec3 &v0 = m_vertices[face.a], &v1 = m_vertices[face.b], &v2 = m_vertices[face.c];
+            const glm::vec2 &t0 = m_texCoords[face.a], &t1 = m_texCoords[face.b], &t2 = m_texCoords[face.c];
+            
+            // calculate tangent vector
+            float det = (t1.x - t0.x) * (t2.y - t0.y) - (t1.y - t0.y) * (t2.x - t0.x);
+            glm::vec3 tangent = ( (t2.y - t0.y) * ( v1 - v0 ) - (t1.y - t0.y) * ( v2 - v0 ) ) / det;
+            face.tangent = glm::normalize(tangent);
+            
+            m_tangents[face.a] = tangent;
+            m_tangents[face.b] = tangent;
+            m_tangents[face.c] = tangent;
         }
     }
     
     GLuint Geometry::numComponents()
     {
         //GL_T2F_N3F_V3F alignment in interleaved buffer
-        return 11;
+        return 8;
     }
     
     void Geometry::createGLBuffers()
@@ -231,24 +273,29 @@ namespace kinski{ namespace gl{
             interleaved[numFloats * i + 5] = vert.x;
             interleaved[numFloats * i + 6] = vert.y;
             interleaved[numFloats * i + 7] = vert.z;
-            
-            // tangents
-            const glm::vec3 &tangent = m_tangents[i];
-            interleaved[numFloats * i + 8] = tangent.x;
-            interleaved[numFloats * i + 9] = tangent.y;
-            interleaved[numFloats * i + 10] = tangent.z;
         }
         
         GL_SUFFIX(glUnmapBuffer)(GL_ARRAY_BUFFER);
         
-        // insert bone indices and weights
+        // insert tangents
+        if(hasTangents())
+        {
+            if(!m_tangentBuffer)
+                glGenBuffers(1, &m_tangentBuffer);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_tangentBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(m_tangents[0]) * m_tangents.size(),
+                         &m_tangents[0], GL_STREAM_DRAW);//STREAM
+        }
+        
+        // insert colors
         if(hasColors())
         {
             if(!m_colorBuffer)
                 glGenBuffers(1, &m_colorBuffer);
             
             glBindBuffer(GL_ARRAY_BUFFER, m_colorBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * m_vertices.size(),
+            glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors[0]) * m_colors.size(),
                          &m_colors[0], GL_STREAM_DRAW);//STREAM
         }
         
@@ -466,13 +513,123 @@ namespace kinski{ namespace gl{
             }
         }
         
+        computeTangents();
+        createGLBuffers();
         computeBoundingBox();
     }
     
     Box::Box(glm::vec3 theHalfExtents)
     :Geometry()
     {
+        glm::vec3 vertices[8] = {   glm::vec3(-theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom left front
+                                    glm::vec3(theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom right front
+                                    glm::vec3(theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom right back
+                                    glm::vec3(-theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom left back
+                                    glm::vec3(-theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top left front
+                                    glm::vec3(theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top right front
+                                    glm::vec3(theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top right back
+                                    glm::vec3(-theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top left back
+        };
+        glm::vec4 colors[6] = { glm::vec4(1, 0, 0, 1), glm::vec4(0, 1, 0, 1), glm::vec4(0, 0 , 1, 1),
+                                glm::vec4(1, 1, 0, 1), glm::vec4(0, 1, 1, 1), glm::vec4(1, 0 , 1, 1)};
         
+        glm::vec2 texCoords[4] = {glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(1, 1), glm::vec2(0, 1)};
+        
+        glm::vec3 normals[6] = {glm::vec3(0, 0, 1), glm::vec3(1, 0, 0), glm::vec3(0, 0, -1),
+                                glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 1, 0)};
+        
+        std::vector<glm::vec3> vertexVec;
+        std::vector<glm::vec4> colorVec;
+        std::vector<glm::vec3> normalsVec;
+        std::vector<glm::vec2> texCoordVec;
+        
+        //front - bottom left - 0
+        vertexVec.push_back(vertices[0]); normalsVec.push_back(normals[0]);
+        texCoordVec.push_back(texCoords[0]); colorVec.push_back(colors[0]);
+        //front - bottom right - 1
+        vertexVec.push_back(vertices[1]); normalsVec.push_back(normals[0]);
+        texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[0]);
+        //front - top right - 2
+        vertexVec.push_back(vertices[5]); normalsVec.push_back(normals[0]);
+        texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[0]);
+        //front - top left - 3
+        vertexVec.push_back(vertices[4]); normalsVec.push_back(normals[0]);
+        texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[0]);
+        //right - bottom left - 4
+        vertexVec.push_back(vertices[1]); normalsVec.push_back(normals[1]);
+        texCoordVec.push_back(texCoords[0]); colorVec.push_back(colors[1]);
+        //right - bottom right - 5
+        vertexVec.push_back(vertices[2]); normalsVec.push_back(normals[1]);
+        texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[1]);
+        //right - top right - 6 
+        vertexVec.push_back(vertices[6]); normalsVec.push_back(normals[1]);
+        texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[1]);
+        //right - top left - 7
+        vertexVec.push_back(vertices[5]); normalsVec.push_back(normals[1]);
+        texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[1]);
+        //back - bottom left - 8
+        vertexVec.push_back(vertices[2]); normalsVec.push_back(normals[2]);
+        texCoordVec.push_back(texCoords[0]); colorVec.push_back(colors[2]);
+        //back - bottom right - 9
+        vertexVec.push_back(vertices[3]); normalsVec.push_back(normals[2]);
+        texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[2]);
+        //back - top right - 10
+        vertexVec.push_back(vertices[7]); normalsVec.push_back(normals[2]);
+        texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[2]);
+        //back - top left - 11
+        vertexVec.push_back(vertices[6]); normalsVec.push_back(normals[2]);
+        texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[2]);
+        //left - bottom left - 12
+        vertexVec.push_back(vertices[3]); normalsVec.push_back(normals[3]);
+        texCoordVec.push_back(texCoords[0]); colorVec.push_back(colors[3]);
+        //left - bottom right - 13
+        vertexVec.push_back(vertices[0]); normalsVec.push_back(normals[3]);
+        texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[3]);
+        //left - top right - 14
+        vertexVec.push_back(vertices[4]); normalsVec.push_back(normals[3]);
+        texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[3]);
+        //left - top left - 15
+        vertexVec.push_back(vertices[7]); normalsVec.push_back(normals[3]);
+        texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[3]);
+        //bottom - bottom left - 16
+        vertexVec.push_back(vertices[3]); normalsVec.push_back(normals[4]);
+        texCoordVec.push_back(texCoords[0]); colorVec.push_back(colors[4]);
+        //bottom - bottom right - 17
+        vertexVec.push_back(vertices[2]); normalsVec.push_back(normals[4]);
+        texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[4]);
+        //bottom - top right - 18
+        vertexVec.push_back(vertices[1]); normalsVec.push_back(normals[4]);
+        texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[4]);
+        //bottom - top left - 19
+        vertexVec.push_back(vertices[0]); normalsVec.push_back(normals[4]);
+        texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[4]);
+        //top - bottom left - 20
+        vertexVec.push_back(vertices[4]); normalsVec.push_back(normals[5]);
+        texCoordVec.push_back(texCoords[0]); colorVec.push_back(colors[5]);
+        //top - bottom right - 21
+        vertexVec.push_back(vertices[5]); normalsVec.push_back(normals[5]);
+        texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[5]);
+        //top - top right - 22
+        vertexVec.push_back(vertices[6]); normalsVec.push_back(normals[5]);
+        texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[5]);
+        //top - top left - 23
+        vertexVec.push_back(vertices[7]); normalsVec.push_back(normals[5]);
+        texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[5]);
+        
+        appendVertices(vertexVec);
+        appendNormals(normalsVec);
+        appendTextCoords(texCoordVec);
+        appendColors(colorVec);
+        
+        for (int i = 0; i < 6; i++)
+        {
+            appendFace(i * 4 + 0, i * 4 + 1, i * 4 + 2);
+            appendFace(i * 4 + 2, i * 4 + 3, i * 4 + 0);
+        }
+        
+        computeTangents();
+        createGLBuffers();
+        computeBoundingBox();
     }
     
 }}//namespace

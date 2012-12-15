@@ -38,6 +38,7 @@ namespace kinski{ namespace gl{
         };
         
         glm::vec3 normal;
+        glm::vec3 tangent;
         std::vector<glm::vec3> vertexNormals;
     };
     
@@ -127,6 +128,12 @@ namespace kinski{ namespace gl{
         void appendTextCoords(const std::vector<glm::vec2> &theVerts);
         void appendTextCoords(const glm::vec2 *theVerts, size_t numVerts);
         
+        inline void appendColor(const glm::vec4 &theColor)
+        { m_colors.push_back(theColor); };
+        
+        void appendColors(const std::vector<glm::vec4> &theColors);
+        void appendColors(const glm::vec4 *theColors, size_t numColors);
+        
         void appendFace(uint32_t a, uint32_t b, uint32_t c);
         void appendFace(const Face3 &theFace);
         
@@ -136,12 +143,15 @@ namespace kinski{ namespace gl{
         
         void computeVertexNormals();
         
+        void computeTangents();
+        
         inline std::vector<glm::vec3>& vertices(){ return m_vertices; };
         inline const std::vector<glm::vec3>& vertices() const { return m_vertices; };
         
         inline std::vector<glm::vec3>& normals(){ return m_normals; };
         inline const std::vector<glm::vec3>& normals() const { return m_normals; };
         
+        bool hasTangents() const { return m_vertices.size() == m_tangents.size(); };
         inline std::vector<glm::vec3>& tangents(){ return m_tangents; };
         inline const std::vector<glm::vec3>& tangents() const { return m_tangents; };
         
@@ -173,6 +183,7 @@ namespace kinski{ namespace gl{
         inline const BoundingBox& boundingBox() const { return m_boundingBox; };
         
         GLuint interleavedBuffer() const { return m_interleavedBuffer; };
+        GLuint tangentBuffer() const { return m_tangentBuffer; };
         GLuint colorBuffer() const { return m_colorBuffer; };
         GLuint boneBuffer() const { return m_boneBuffer; };
         GLuint indexBuffer() const { return m_indexBuffer; };
@@ -207,6 +218,7 @@ namespace kinski{ namespace gl{
         BoundingBox m_boundingBox;
         
         GLuint m_interleavedBuffer;
+        GLuint m_tangentBuffer;
         GLuint m_boneBuffer;
         GLuint m_colorBuffer;
         GLuint m_indexBuffer;

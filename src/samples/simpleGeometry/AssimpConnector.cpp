@@ -32,13 +32,25 @@ namespace kinski { namespace gl{
         
         if (theScene)
         {
-            //aiNode *root = theScene->mRootNode;
-            
             aiMesh *aMesh = theScene->mMeshes[0];
             
             gl::Geometry::Ptr geom( createGeometry(aMesh, theScene) );
             gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
-            mat->getShader().loadFromFile("shader_phong_skin.vert", "shader_phong.frag");;
+            
+            try
+            {
+                if(geom->hasBones())
+                    mat->shader().loadFromFile("shader_phong_skin.vert",
+                                                  "shader_phong.frag");
+                else{
+                    mat->shader().loadFromFile("shader_phong.vert",
+                                                  "shader_phong.frag");
+                }
+                
+            }catch (std::exception &e)
+            {
+                fprintf(stderr, "%s\n",e.what());
+            }
             
             gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
             
@@ -98,11 +110,11 @@ namespace kinski { namespace gl{
             // we have animation keys for this bone
             if(nodeAnim)
             {
-                printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
-                       nodeAnim->mNodeName.data,
-                       nodeAnim->mNumPositionKeys,
-                       nodeAnim->mNumRotationKeys,
-                       nodeAnim->mNumScalingKeys);
+//                printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+//                       nodeAnim->mNodeName.data,
+//                       nodeAnim->mNumPositionKeys,
+//                       nodeAnim->mNumRotationKeys,
+//                       nodeAnim->mNumScalingKeys);
                 
                 gl::AnimationKeys animKeys;
                 

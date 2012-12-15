@@ -31,7 +31,7 @@ public:
         
         try
         {
-            m_material->getShader().loadFromFile("applyMap.vert", "applyMap.frag");
+            m_material->shader().loadFromFile("applyMap.vert", "applyMap.frag");
             m_material->addTexture(m_textures[0]);
             m_material->addTexture(m_textures[1]);
             m_material->addTexture(m_textures[2]);

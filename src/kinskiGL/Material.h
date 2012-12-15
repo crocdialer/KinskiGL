@@ -39,20 +39,20 @@ namespace kinski { namespace gl {
         void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; };
         
-        Shader& getShader() {return m_shader;};
-        const Shader& getShader() const {return m_shader;};
+        Shader& shader() {return m_shader;};
+        const Shader& shader() const {return m_shader;};
         
         void setShader(const Shader &theShader) { m_shader = theShader; };
         
-        std::vector<Texture>& getTextures() {return m_textures;};
-        const std::vector<Texture>& getTextures() const {return m_textures;};
+        std::vector<Texture>& textures() {return m_textures;};
+        const std::vector<Texture>& textures() const {return m_textures;};
         
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
         
         void setTwoSided(bool b = true) { m_twoSided = b;};
         
-        bool isTwoSided() { return m_twoSided; };
+        bool twoSided() const { return m_twoSided; };
         
         void setWireframe(bool b = true) { m_wireFrame = b;};
         
@@ -62,7 +62,7 @@ namespace kinski { namespace gl {
         
         void setBlending(bool b = true) { m_blending = b;};
         
-        bool isTransparent() { return m_diffuse.a < 1.f ;};
+        bool opaque() const { return m_diffuse.a == 1.f ;};
         
         const glm::vec4& diffuse() const { return m_diffuse; };
         const glm::vec4& ambient() const { return m_ambient; };

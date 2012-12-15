@@ -40,8 +40,6 @@ private:
     Property_<glm::vec4>::Ptr m_color;
     Property_<glm::mat3>::Ptr m_rotation;
     RangedProperty<float>::Ptr m_rotationSpeed;
-    RangedProperty<float>::Ptr m_simplexDim;
-    RangedProperty<float>::Ptr m_simplexSpeed;
     
     // opencv interface
     CVThread::Ptr m_cvThread;
@@ -87,12 +85,6 @@ public:
         m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
         registerProperty(m_rotationSpeed);
         
-        m_simplexDim = RangedProperty<float>::create("Simplex Resolution", 1/8.f, 0, 2);
-        registerProperty(m_simplexDim);
-        
-        m_simplexSpeed = RangedProperty<float>::create("Simplex Speed", .5, 0, 5);
-        registerProperty(m_simplexSpeed);
-        
         // add properties
         addPropertyListToTweakBar(getPropertyList());
         
@@ -104,11 +96,31 @@ public:
         
         /********************** construct a simple scene ***********************/
         
+        // create a simplex noise texture
+        {
+            int w = 1024, h = 1024;
+            float data[w * h];
+            
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                {
+                    data[i * h + j] = (glm::simplex( vec3(0.125f * vec2(i, j), 0.025)) + 1) / 2.f;
+                }
+            
+            m_noiseTexture.update(data, GL_RED, w, h, true);
+        }
+        
         m_material = gl::Material::Ptr(new gl::Material);
-        m_material->uniform("u_textureMix", m_textureMix->val());
-        m_material->setDiffuse(m_color->val());
         m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
-        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+//        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        m_material->addTexture(m_noiseTexture);
+        
+        try{
+            m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
+        }catch (std::exception &e){
+            fprintf(stderr, "%s\n",e.what());
+        }
+        
         //m_material->setBlending();
         //m_material->setTwoSided();
         
@@ -117,30 +129,27 @@ public:
         m_pointMaterial->setPointSize(30.f);
         m_pointMaterial->setBlending();
         
-        try
-        {
-            m_material->getShader().loadFromFile("shader_phong_skin.vert", "shader_phong.frag");
-        }catch (std::exception &e)
-        {
-            fprintf(stderr, "%s\n",e.what());
-        }
-        
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
         
-//        {
-//            int w = 1024, h = 1024;
-//            float data[w * h];
-//            
-//            for (int i = 0; i < h; i++)
-//                for (int j = 0; j < w; j++)
-//                {
-//                    data[i * h + j] = (glm::simplex( vec3( m_simplexDim->val() * vec2(i ,j),
-//                                                           m_simplexSpeed->val() * 0.5)) + 1) / 2.f;
-//                }
-//            
-//            m_noiseTexture.update(data, GL_RED, w, h, true);
+        // test box shape
+        gl::Geometry::Ptr myBox(new gl::Box(vec3(50, 100, 50)));
+        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
+        m_scene.addObject(myBoxMesh);
+        
+//        gl::Mesh::Ptr myAsteroid = gl::AssimpConnector::loadModel("asteroid.obj");
+//        myAsteroid->material()->addTexture(gl::TextureIO::loadTexture("stone.png"));
+//        myAsteroid->material()->addTexture(gl::TextureIO::loadTexture("asteroid_normal.png"));
+//        myAsteroid->material()->uniform("u_lightDir", vec3(0.2f, 0.2f, -1));
+//        try{
+//            gl::Shader shader;
+//            shader.loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
+//            myAsteroid->material()->setShader(shader);
+//        }catch (std::exception &e){
+//            fprintf(stderr, "%s\n",e.what());
 //        }
+//        myAsteroid->createVertexArray();
+//        m_scene.addObject(myAsteroid);
         
 //        m_cvThread = CVThread::Ptr(new CVThread());
 //        m_cvThread->streamUSBCamera();
@@ -161,11 +170,20 @@ public:
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
         
-        if(m_mesh && m_mesh->geometry()->hasBones())
+        if(m_mesh)
         {
-            m_mesh->geometry()->updateAnimation(getApplicationTime() / 5.0f);
-//            m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
+            m_mesh->material()->setWireframe(m_wireFrame->val());
+            m_mesh->material()->uniform("u_lightDir", m_lightDir->val());
+            m_mesh->material()->uniform("u_textureMix", m_textureMix->val());
+            m_mesh->material()->setDiffuse(m_color->val());
+            m_mesh->material()->setBlending(m_color->val().a < 1.0f);
+
+            if(m_mesh->geometry()->hasBones())
+            {
+                m_mesh->geometry()->updateAnimation(getApplicationTime() / 5.0f);
+//              m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
 //                                                   m_mesh->getGeometry()->animation()->duration);
+            }
         }
     }
     
@@ -177,7 +195,7 @@ public:
         cloneMat1.setWireframe(false);
         
         //gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
-        gl::drawTexture(cloneMat1.getTextures()[0], getWindowSize());
+        gl::drawTexture(cloneMat1.textures()[0], getWindowSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
@@ -205,6 +223,7 @@ public:
                 gl::drawPoints(points);
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
+            
         }
     }
     
@@ -278,31 +297,15 @@ public:
     void updateProperty(const Property::Ptr &theProperty)
     {
         // one of our porperties was changed
-        if(theProperty == m_wireFrame)
+        if(theProperty == m_color)
         {
-            if(m_mesh) m_mesh->material()->setWireframe(m_wireFrame->val());
-        }
-        else if(theProperty == m_lightDir)
-        {
-            if(m_mesh) m_mesh->material()->uniform("u_lightDir", m_lightDir->val());
-        }
-        
-        else if(theProperty == m_color)
-        {
-            if(m_mesh)
-            {
-                m_mesh->material()->setDiffuse(m_color->val());
-                m_mesh->material()->setBlending(m_color->val().a < 1.0f);
-            }
-            m_material->setDiffuse(m_color->val());
+            //m_material->setDiffuse(m_color->val());
             m_pointMaterial->setDiffuse(m_color->val());
-            
-//            m_pointMaterial->setBlending();
-//            m_pointMaterial->setDepthWrite(false);
         }
-        else if(theProperty == m_textureMix)
+        else if(theProperty == m_lightDir || theProperty == m_textureMix)
         {
-            if(m_mesh) m_mesh->material()->uniform("u_textureMix", m_textureMix->val());
+            m_material->uniform("u_lightDir", m_lightDir->val());
+            m_material->uniform("u_textureMix", m_textureMix->val());
         }
         else if(theProperty == m_distance ||
                 theProperty == m_rotation)

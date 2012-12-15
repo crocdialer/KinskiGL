@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
     
     void Mesh::createVertexArray()
     {
-        Shader& shader = m_material->getShader();
+        Shader& shader = m_material->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
@@ -44,7 +44,6 @@ namespace kinski { namespace gl {
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
         GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
         GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
-        GLuint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
         
         uint32_t numFloats = m_geometry->numComponents();
         GLsizei stride = numFloats * sizeof(GLfloat);
@@ -73,11 +72,16 @@ namespace kinski { namespace gl {
                               stride,
                               BUFFER_OFFSET(5 * sizeof(GLfloat)));
         
-        // define attrib pointer (tangent)
-        glEnableVertexAttribArray(tangentAttribLocation);
-        glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(8 * sizeof(GLfloat)));
+        if(m_geometry->hasTangents())
+        {
+            GLuint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->tangentBuffer());
+            
+            // define attrib pointer (tangent)
+            glEnableVertexAttribArray(tangentAttribLocation);
+            glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        }
         
         if(m_geometry->hasColors())
         {

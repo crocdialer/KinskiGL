@@ -43,8 +43,8 @@ namespace kinski { namespace gl {
     class Material;
     class Geometry;
     class Mesh;
-    class Animation;
-    class Bone;
+    struct Animation;
+    struct Bone;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     void pushMatrix(const Matrixtype type);

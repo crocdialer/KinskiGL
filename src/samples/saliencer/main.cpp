@@ -70,7 +70,7 @@ public:
         
         try
         {
-            m_material.getShader().loadFromFile("applyMap.vert", "applyMap.frag");
+            m_material.shader().loadFromFile("applyMap.vert", "applyMap.frag");
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
             
         }catch(FileNotFoundException &e)
@@ -114,7 +114,7 @@ public:
         if(m_activator->val())
             gl::drawQuad(m_material, getWindowSize());
         else
-            gl::drawTexture(m_material.getTextures()[m_imageIndex->val()], getWindowSize());
+            gl::drawTexture(m_material.textures()[m_imageIndex->val()], getWindowSize());
         
         // draw process-results map(s)
         glm::vec2 offset(getWidth() - getWidth()/5.f - 10, getHeight() - 10);

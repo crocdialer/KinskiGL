@@ -87,12 +87,11 @@ void main()
     
     vec3 n;
     // sample normal map
-    n = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
+    //n = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
     
     // sample bump map
-    //n = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.1);
+    n = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.1);
 
-    
     float nDotL = max(0.0, dot(n, normalize(-v_lightDir)));
 
     fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), jet(nDotL), u_textureMix);
