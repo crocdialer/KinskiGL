@@ -17,8 +17,8 @@
 #include <GL3/gl3.h>
 #endif
 
-// Convenience macro to append either nothing or "EXT"
-// appropriately to a symbol based on OGLES vs. OGL
+// crossplattform helper-macros to append either nothing or "OES"
+// appropriately to a symbol based on either OpenGL3 or OpenGLES2
 #if defined( KINSKI_GLES )
 #define GL_SUFFIX(sym) sym##OES
 #define GL_ENUM(sym) sym##_OES
@@ -43,6 +43,8 @@ namespace kinski { namespace gl {
     class Material;
     class Geometry;
     class Mesh;
+    class Animation;
+    class Bone;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     void pushMatrix(const Matrixtype type);

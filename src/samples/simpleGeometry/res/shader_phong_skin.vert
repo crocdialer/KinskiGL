@@ -4,7 +4,6 @@ uniform mat4 u_modelViewMatrix;
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat3 u_normalMatrix;
 uniform mat4 u_textureMatrix;
-
 uniform mat4 u_bones[25];
 
 in vec4 a_vertex;
@@ -12,7 +11,6 @@ in vec4 a_texCoord;
 in vec3 a_normal;
 in ivec4 a_boneIds;
 in vec4 a_boneWeights;
-
 
 out vec4 v_texCoord;
 out vec3 v_normal;
