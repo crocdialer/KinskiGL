@@ -40,11 +40,9 @@ namespace kinski { namespace gl{
             try
             {
                 if(geom->hasBones())
-                    mat->shader().loadFromFile("shader_phong_skin.vert",
-                                                  "shader_phong.frag");
+                    mat->setShader(gl::createShader(gl::SHADER_PHONG_SKIN));
                 else{
-                    mat->shader().loadFromFile("shader_phong.vert",
-                                                  "shader_phong.frag");
+                    mat->setShader(gl::createShader(gl::SHADER_PHONG));
                 }
                 
             }catch (std::exception &e)

@@ -41,36 +41,37 @@ namespace kinski { namespace gl {
         if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
         GL_SUFFIX(glBindVertexArray)(m_vertexArray);
         
-        GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
-        GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
-        GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
-        
-        uint32_t numFloats = m_geometry->numComponents();
-        GLsizei stride = numFloats * sizeof(GLfloat);
-        
         // create VBOs if not yet existing
-        if(!m_geometry->interleavedBuffer())
+        if(!m_geometry->vertexBuffer())
             m_geometry->createGLBuffers();
-            
-        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->interleavedBuffer());
-        
-        // define attrib pointer (texCoord)
-        glEnableVertexAttribArray(texCoordAttribLocation);
-        glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(0));
-        
-        // define attrib pointer (normal)
-        glEnableVertexAttribArray(normalAttribLocation);
-        glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(2 * sizeof(GLfloat)));
         
         // define attrib pointer (vertex)
+        GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
+        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer());
         glEnableVertexAttribArray(vertexAttribLocation);
-        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              stride,
-                              BUFFER_OFFSET(5 * sizeof(GLfloat)));
+        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        
+        if(m_geometry->hasNormals())
+        {
+            GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer());
+            
+            // define attrib pointer (tangent)
+            glEnableVertexAttribArray(normalAttribLocation);
+            glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        }
+        
+        if(m_geometry->hasTexCoords())
+        {
+            GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer());
+            
+            // define attrib pointer (tangent)
+            glEnableVertexAttribArray(texCoordAttribLocation);
+            glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        }
         
         if(m_geometry->hasTangents())
         {

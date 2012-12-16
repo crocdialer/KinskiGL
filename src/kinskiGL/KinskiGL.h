@@ -41,6 +41,7 @@ namespace kinski { namespace gl {
     // forward declarations
     class Texture;
     class Material;
+    class Shader;
     class Geometry;
     class Mesh;
     struct Animation;
@@ -99,12 +100,17 @@ namespace kinski { namespace gl {
     
     void drawAxes(const std::weak_ptr<Mesh> &theMesh);
     
-    void drawMesh(const std::shared_ptr<Mesh> &theMesh);
+    void drawMesh(const std::shared_ptr<const Mesh> &theMesh);
     
     void drawBoundingBox(const std::weak_ptr<Mesh> &theMesh);
     
     void drawNormals(const std::weak_ptr<Mesh> &theMesh);
     
+    /*********************************** Shader Factory *******************************************/
+    
+    enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};
+    Shader createShader(ShaderType type);
+
 }}//namespace
 
 #endif //_KINSKIGL_H

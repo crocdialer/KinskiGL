@@ -32,7 +32,7 @@ namespace kinski { namespace gl {
         Material::Ptr& material() { return m_material; };
         
         void createVertexArray();
-        GLuint vertexArray(){ return m_vertexArray; };
+        GLuint vertexArray() const { return m_vertexArray; };
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.

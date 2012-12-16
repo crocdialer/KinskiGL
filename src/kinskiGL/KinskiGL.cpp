@@ -13,6 +13,7 @@
 #include "KinskiGL.h"
 #include "Material.h"
 #include "Mesh.h"
+#include "Shader.h"
 
 using namespace glm;
 using namespace std;
@@ -172,6 +173,8 @@ namespace kinski { namespace gl {
     
     void drawLines(const vector<vec3> &thePoints, const vec4 &theColor)
     {
+        if(thePoints.empty()) return;
+        
         // no effect in OpenGL 3.2 !?
         // glLineWidth(10.f);
         static Shader lineShader;
@@ -241,9 +244,9 @@ namespace kinski { namespace gl {
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-        glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size() * sizeof(GLfloat),
+        glBufferData(GL_ARRAY_BUFFER, sizeof(thePoints[0]) * thePoints.size(),
                      NULL, GL_STREAM_DRAW);
-        glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size() * sizeof(GLfloat),
+        glBufferData(GL_ARRAY_BUFFER, sizeof(thePoints[0]) * thePoints.size(),
                      &thePoints[0], GL_STREAM_DRAW);
         
         GL_SUFFIX(glBindVertexArray)(lineVAO);
@@ -381,49 +384,9 @@ namespace kinski { namespace gl {
         //create shader
         if(!material.shader())
         {
-#ifdef KINSKI_GLES
-            const char *vertSrc =
-            "uniform mat4 u_modelViewProjectionMatrix;\n"
-            "uniform mat4 u_textureMatrix;\n"
-            "attribute vec4 a_vertex;\n"
-            "attribute vec4 a_texCoord;\n"
-            "varying vec4 v_texCoord;\n"
-            "void main(){\n"
-            "v_texCoord =  u_textureMatrix * a_texCoord;\n"
-            "gl_Position = u_modelViewProjectionMatrix * a_vertex;"
-            "}\n";
-            
-            const char *fragSrc =
-            "precision mediump float;\n"
-            "precision lowp int;\n"
-            "uniform int u_numTextures;\n"
-            "uniform sampler2D u_textureMap[];\n"
-            "varying vec4 v_texCoord;\n"
-            "void main(){gl_FragColor = texture2D(u_textureMap[0], v_texCoord.xy);}\n";
-#else
-            const char *vertSrc =
-            "#version 150 core\n"
-            "uniform mat4 u_modelViewProjectionMatrix;\n"
-            "uniform mat4 u_textureMatrix;\n"
-            "in vec4 a_vertex;\n"
-            "in vec4 a_texCoord;\n"
-            "out vec4 v_texCoord;\n"
-            "void main(){\n"
-            "v_texCoord =  u_textureMatrix * a_texCoord;\n"
-            "gl_Position = u_modelViewProjectionMatrix * a_vertex;"
-            "}\n";
-            
-            const char *fragSrc =
-            "#version 150 core\n"
-            "uniform int u_numTextures;\n"
-            "uniform sampler2D u_textureMap[];\n"
-            "in vec4 v_texCoord;\n"
-            "out vec4 fragData;\n"
-            "void main(){fragData = texture(u_textureMap[0], v_texCoord.xy);}\n";
-#endif
             try
             {
-                material.shader().loadFromData(vertSrc, fragSrc);
+                material.setShader(createShader(SHADER_UNLIT));
             } catch (Exception &e)
             {
                 std::cerr << e.what() << std::endl;
@@ -562,7 +525,7 @@ namespace kinski { namespace gl {
         drawLines(thePoints, vec4(0, 0, 1, 1));
     }
     
-    void drawMesh(const std::shared_ptr<Mesh> &theMesh)
+    void drawMesh(const std::shared_ptr<const Mesh> &theMesh)
     {
         theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
         
@@ -676,6 +639,154 @@ namespace kinski { namespace gl {
         
         gl::drawLines(theMap[theMesh], vec4(.7));
 #endif
+    }
+    
+/*********************************** Shader Factory *******************************************/
+    
+    Shader createShader(ShaderType type)
+    {
+#ifdef KINSKI_GLES
+        
+#else
+        const char *unlitVertSrc =
+        "#version 150 core\n"
+        "uniform mat4 u_modelViewProjectionMatrix;\n"
+        "uniform mat4 u_textureMatrix;\n"
+        "in vec4 a_vertex;\n"
+        "in vec4 a_texCoord;\n"
+        "out vec4 v_texCoord;\n"
+        "void main()\n"
+        "{\n"
+        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
+        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
+        "}\n";
+        
+        const char *unlitFragSrc =
+        "#version 150 core\n"
+        "uniform int u_numTextures;\n"
+        "uniform sampler2D u_textureMap[16];\n"
+        "uniform struct{\n"
+        "    vec4 diffuse;\n"
+        "    vec4 ambient;\n"
+        "    vec4 specular;\n"
+        "    vec4 emission;\n"
+        "} u_material;\n"
+        "in vec4 v_texCoord;\n"
+        "out vec4 fragData;\n"
+        "void main()\n"
+        "{\n"
+        "    vec4 texColors = vec4(1);\n"
+        "    for(int i = 0; i < u_numTextures; i++)\n"
+        "    {\n"
+        "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
+        "    }\n"
+        "    fragData = u_material.diffuse * texColors;\n"
+        "}\n";
+        
+        const char *phongVertSrc =
+        "#version 150 core\n"
+        "uniform mat4 u_modelViewMatrix;\n"
+        "uniform mat4 u_modelViewProjectionMatrix;\n"
+        "uniform mat3 u_normalMatrix;\n"
+        "uniform mat4 u_textureMatrix;\n"
+        "in vec4 a_vertex;\n"
+        "in vec4 a_texCoord;\n"
+        "in vec3 a_normal;\n"
+        "out vec4 v_texCoord;\n"
+        "out vec3 v_normal;\n"
+        "out vec3 v_eyeVec;\n"
+        "void main()\n"
+        "{\n"
+        "    v_normal = normalize(u_normalMatrix * a_normal);\n"
+        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
+        "    v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;\n"
+        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
+        "}\n";
+        
+        const char *phongVertSrc_skin =
+        "#version 150 core\n"
+        "uniform mat4 u_modelViewMatrix;\n"
+        "uniform mat4 u_modelViewProjectionMatrix;\n"
+        "uniform mat3 u_normalMatrix;\n"
+        "uniform mat4 u_textureMatrix;\n"
+        "uniform mat4 u_bones[25];\n"
+        "in vec4 a_vertex;\n"
+        "in vec4 a_texCoord;\n"
+        "in vec3 a_normal;\n"
+        "in ivec4 a_boneIds;\n"
+        "in vec4 a_boneWeights;\n"
+        "out vec4 v_texCoord;\n"
+        "out vec3 v_normal;\n"
+        "out vec3 v_eyeVec;\n"
+        "void main()\n"
+        "{\n"
+        "    vec4 newVertex = vec4(0);\n"
+        "    vec4 newNormal = vec4(0);\n"
+        "    for (int i = 0; i < 4; i++)\n"
+        "    {\n"
+        "        newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i];\n"
+        "        newNormal += u_bones[a_boneIds[i]] * vec4(a_normal, 0.0) * a_boneWeights[i];\n"
+        "    }\n"
+        "    v_normal = normalize(u_normalMatrix * newNormal.xyz);\n"
+        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
+        "    v_eyeVec = - (u_modelViewMatrix * newVertex).xyz;\n"
+        "    gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);\n"
+        "}\n";
+                
+        const char *phongFragSrc =
+        "#version 150 core\n"
+        "uniform int u_numTextures;\n"
+        "uniform sampler2D u_textureMap[16];\n"
+        "uniform vec3 u_lightDir;\n"
+        "uniform struct\n"
+        "{\n"
+        "    vec4 diffuse;\n"
+        "    vec4 ambient;\n"
+        "    vec4 specular;\n"
+        "    vec4 emission;\n"
+        "    float shinyness;\n"
+        "} u_material;\n"
+        "in vec3 v_normal;\n"
+        "in vec4 v_texCoord;\n"
+        "in vec3 v_eyeVec;\n"
+        "out vec4 fragData;\n"
+        "void main()\n"
+        "{\n"
+        "    vec4 texColors = vec4(1);\n"
+        "    for(int i = 0; i < u_numTextures; i++)\n"
+        "    {\n"
+        "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
+        "    }\n"
+        "    vec3 N = normalize(v_normal);\n"
+        "    vec3 L = normalize(-u_lightDir);\n"
+        "    vec3 E = normalize(v_eyeVec);\n"
+		"    vec3 R = reflect(-L, N);\n"
+        "    float nDotL = max(0.0, dot(N, L));\n"
+        "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
+        "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
+        "    fragData = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0f) ;\n"
+        "}\n";
+#endif
+        
+        Shader ret;
+        switch (type)
+        {
+            case SHADER_UNLIT:
+                ret.loadFromData(unlitVertSrc, unlitFragSrc);
+                break;
+            
+            case SHADER_PHONG:
+                ret.loadFromData(phongVertSrc, phongFragSrc);
+                break;
+                
+            case SHADER_PHONG_SKIN:
+                ret.loadFromData(phongVertSrc_skin, phongFragSrc);
+                break;
+                
+            default:
+                break;
+        }
+        return ret;
     }
     
 }}//namespace

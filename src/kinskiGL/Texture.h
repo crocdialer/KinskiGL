@@ -82,18 +82,6 @@ namespace gl
         const bool isBound() const;
         const GLint getBoundTextureUnit() const;
         
-        //	//! Replaces the pixels of a texture with contents of \a surface. Expects \a surface's size to match the Texture's.
-        //	void			update( const Surface &surface );
-        //	//! Replaces the pixels of a texture with contents of \a surface. Expects \a surface's size to match the Texture's.
-        //	void			update( const Surface32f &surface );
-        //	/** \brief Replaces the pixels of a texture with contents of \a surface. Expects \a area's size to match the Texture's.
-        //		\todo Method for updating a subrectangle with an offset into the source **/
-        //	void			update( const Surface &surface, const Area &area );
-        //	//! Replaces the pixels of a texture with contents of \a channel. Expects \a channel's size to match the Texture's.
-        //	void			update( const Channel32f &channel );
-        //	//! Replaces the pixels of a texture with contents of \a channel. Expects \a area's size to match the Texture's.
-        //	void			update( const Channel8u &channel, const Area &area );
-        
         //! Replaces the pixels of a texture with \a data
         void update( const unsigned char *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
         

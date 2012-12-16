@@ -14,7 +14,9 @@ namespace kinski{ namespace gl{
     
     Geometry::Geometry():
     m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0))),
-    m_interleavedBuffer(0),
+    m_vertexBuffer(0),
+    m_normalBuffer(0),
+    m_texCoordBuffer(0),
     m_tangentBuffer(0),
     m_boneBuffer(0),
     m_colorBuffer(0),
@@ -25,9 +27,15 @@ namespace kinski{ namespace gl{
     
     Geometry::~Geometry()
     {
-        if(m_interleavedBuffer)
-            glDeleteBuffers(1, &m_interleavedBuffer);
-
+        if(m_vertexBuffer)
+            glDeleteBuffers(1, &m_vertexBuffer);
+        
+        if(m_normalBuffer)
+            glDeleteBuffers(1, &m_normalBuffer);
+        
+        if(m_texCoordBuffer)
+            glDeleteBuffers(1, &m_texCoordBuffer);
+        
         if(m_tangentBuffer)
             glDeleteBuffers(1, &m_tangentBuffer);
         
@@ -241,41 +249,34 @@ namespace kinski{ namespace gl{
     
     void Geometry::createGLBuffers()
     {
-        if(!m_interleavedBuffer)
-            glGenBuffers(1, &m_interleavedBuffer);
+        if(!m_vertexBuffer)
+            glGenBuffers(1, &m_vertexBuffer);
         
-        if(!m_indexBuffer)
-            glGenBuffers(1, &m_indexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices[0]) * m_vertices.size(),
+                     &m_vertices[0], GL_STREAM_DRAW);//STREAM
         
-        uint32_t numFloats = numComponents();
-        
-        glBindBuffer(GL_ARRAY_BUFFER, m_interleavedBuffer);
-        glBufferData(GL_ARRAY_BUFFER, numFloats * sizeof(GLfloat) * m_vertices.size(), NULL,
-                     GL_STREAM_DRAW);//STREAM
-        
-        GLfloat *interleaved = (GLfloat*) GL_SUFFIX(glMapBuffer)(GL_ARRAY_BUFFER, GL_ENUM(GL_WRITE_ONLY));
-        
-        for (int i = 0; i < m_vertices.size(); i++)
+        // insert normals
+        if(hasNormals())
         {
-            // texCoords
-            const glm::vec2 &texCoord = m_texCoords[i];
-            interleaved[numFloats * i ] = texCoord.s;
-            interleaved[numFloats * i + 1] = texCoord.t;
+            if(!m_normalBuffer)
+                glGenBuffers(1, &m_normalBuffer);
             
-            // normals
-            const glm::vec3 &normal = m_normals[i];
-            interleaved[numFloats * i + 2] = normal.x;
-            interleaved[numFloats * i + 3] = normal.y;
-            interleaved[numFloats * i + 4] = normal.z;
-            
-            // vertices
-            const glm::vec3 &vert = m_vertices[i];
-            interleaved[numFloats * i + 5] = vert.x;
-            interleaved[numFloats * i + 6] = vert.y;
-            interleaved[numFloats * i + 7] = vert.z;
+            glBindBuffer(GL_ARRAY_BUFFER, m_normalBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(m_normals[0]) * m_normals.size(),
+                         &m_normals[0], GL_STREAM_DRAW);//STREAM
         }
         
-        GL_SUFFIX(glUnmapBuffer)(GL_ARRAY_BUFFER);
+        // insert normals
+        if(hasTexCoords())
+        {
+            if(!m_texCoordBuffer)
+                glGenBuffers(1, &m_texCoordBuffer);
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_texCoordBuffer);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(m_texCoords[0]) * m_texCoords.size(),
+                         &m_texCoords[0], GL_STREAM_DRAW);//STREAM
+        }
         
         // insert tangents
         if(hasTangents())
@@ -311,6 +312,9 @@ namespace kinski{ namespace gl{
         }
         
         // index buffer
+        if(!m_indexBuffer)
+            glGenBuffers(1, &m_indexBuffer);
+        
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
                      GL_STREAM_DRAW );
@@ -442,6 +446,7 @@ namespace kinski{ namespace gl{
             boneTransform = translation * rotation * scaleMatrix;
         
         glm::mat4 globalTransform = parentTransform * boneTransform;
+        bone->worldtransform = globalTransform;
         
         // add final transform
         glm::mat4 finalTransform = globalTransform * bone->offset;

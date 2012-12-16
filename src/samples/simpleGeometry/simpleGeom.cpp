@@ -104,9 +104,10 @@ public:
             for (int i = 0; i < h; i++)
                 for (int j = 0; j < w; j++)
                 {
-                    data[i * h + j] = (glm::simplex( vec3(0.125f * vec2(i, j), 0.025)) + 1) / 2.f;
+                    data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
             
+//            m_noiseTexture.has
             m_noiseTexture.update(data, GL_RED, w, h, true);
         }
         
@@ -117,17 +118,16 @@ public:
         
         try{
             m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
+            //m_material->setShader(gl::createShader(gl::SHADER_PHONG));
         }catch (std::exception &e){
             fprintf(stderr, "%s\n",e.what());
         }
-        
-        //m_material->setBlending();
-        //m_material->setTwoSided();
-        
+
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
         m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
         m_pointMaterial->setPointSize(30.f);
         m_pointMaterial->setBlending();
+        //m_pointMaterial->setDepthWrite(false);
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
@@ -135,6 +135,7 @@ public:
         // test box shape
         gl::Geometry::Ptr myBox(new gl::Box(vec3(50, 100, 50)));
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
+        myBoxMesh->setPosition(vec3(0, -100, 0));
         m_scene.addObject(myBoxMesh);
         
 //        gl::Mesh::Ptr myAsteroid = gl::AssimpConnector::loadModel("asteroid.obj");
@@ -210,11 +211,9 @@ public:
             gl::drawBoundingBox(m_mesh);
             if(m_drawNormals->val()) gl::drawNormals(m_mesh);
             
-//            gl::drawPoints(m_mesh->getGeometry()->getInterleavedBuffer(),
-//                           m_mesh->getGeometry()->getVertices().size(),
-//                           m_pointMaterial,
-//                           m_mesh->getGeometry()->getNumComponents() * sizeof(GLfloat),
-//                           5 * sizeof(GLfloat));
+//            gl::drawPoints(m_mesh->geometry()->vertexBuffer(),
+//                           m_mesh->geometry()->vertices().size(),
+//                           m_pointMaterial);
             
             if(m_mesh->geometry()->hasBones())
             {
@@ -322,6 +321,7 @@ public:
                 
                 m_scene.removeObject(m_mesh);
                 m_mesh = m;
+                m_mesh->material()->setShinyness(0.9);
                 
                 m_scene.addObject(m);
                 

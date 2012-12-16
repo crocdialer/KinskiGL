@@ -148,6 +148,7 @@ namespace kinski{ namespace gl{
         inline std::vector<glm::vec3>& vertices(){ return m_vertices; };
         inline const std::vector<glm::vec3>& vertices() const { return m_vertices; };
         
+        bool hasNormals() const { return m_vertices.size() == m_normals.size(); };
         inline std::vector<glm::vec3>& normals(){ return m_normals; };
         inline const std::vector<glm::vec3>& normals() const { return m_normals; };
         
@@ -155,6 +156,7 @@ namespace kinski{ namespace gl{
         inline std::vector<glm::vec3>& tangents(){ return m_tangents; };
         inline const std::vector<glm::vec3>& tangents() const { return m_tangents; };
         
+        bool hasTexCoords() const { return m_vertices.size() == m_texCoords.size(); };
         inline std::vector<glm::vec2>& texCoords(){ return m_texCoords; };
         inline const std::vector<glm::vec2>& texCoords() const { return m_texCoords; };
         
@@ -182,7 +184,10 @@ namespace kinski{ namespace gl{
         
         inline const BoundingBox& boundingBox() const { return m_boundingBox; };
         
-        GLuint interleavedBuffer() const { return m_interleavedBuffer; };
+        // GL buffers
+        GLuint vertexBuffer() const { return m_vertexBuffer; };
+        GLuint normalBuffer() const { return m_normalBuffer; };
+        GLuint texCoordBuffer() const { return m_texCoordBuffer; };
         GLuint tangentBuffer() const { return m_tangentBuffer; };
         GLuint colorBuffer() const { return m_colorBuffer; };
         GLuint boneBuffer() const { return m_boneBuffer; };
@@ -217,7 +222,9 @@ namespace kinski{ namespace gl{
         
         BoundingBox m_boundingBox;
         
-        GLuint m_interleavedBuffer;
+        GLuint m_vertexBuffer;
+        GLuint m_normalBuffer;
+        GLuint m_texCoordBuffer;
         GLuint m_tangentBuffer;
         GLuint m_boneBuffer;
         GLuint m_colorBuffer;
