@@ -27,7 +27,7 @@ namespace kinski
         const std::list<Property::Ptr>& getPropertyList() const;
         Property::Ptr getPropertyByName(const std::string & thePropertyName);
 
-        virtual void updateProperty(const Property::Ptr &theProperty){};        
+        virtual void updateProperty(const Property::ConstPtr &theProperty){};
         void observeProperties(bool b = true);
         
     protected:        

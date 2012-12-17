@@ -76,14 +76,17 @@ namespace kinski { namespace gl{
         
         const aiNodeAnim* nodeAnim = NULL;
         
-        for (int i = 0; i < theAnimation->mNumChannels; i++)
+        if(theAnimation)
         {
-            aiNodeAnim *ptr = theAnimation->mChannels[i];
-            
-            if(string(ptr->mNodeName.data) == nodeName)
+            for (int i = 0; i < theAnimation->mNumChannels; i++)
             {
-                nodeAnim = ptr;
-                break;
+                aiNodeAnim *ptr = theAnimation->mChannels[i];
+                
+                if(string(ptr->mNodeName.data) == nodeName)
+                {
+                    nodeAnim = ptr;
+                    break;
+                }
             }
         }
         
@@ -257,9 +260,11 @@ namespace kinski { namespace gl{
                 }
             }
             
-            if(theScene)
+            if(theScene && theScene->mNumAnimations > 0)
             {
-                aiAnimation *assimpAnimation = theScene->mAnimations[0];
+                aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
+                theScene->mAnimations[0] : NULL;
+                
                 shared_ptr<gl::Animation> anim(new gl::Animation);
                 anim->duration = assimpAnimation->mDuration;
                 anim->ticksPerSec = assimpAnimation->mTicksPerSecond;

@@ -507,9 +507,9 @@ namespace kinski { namespace gl {
         drawLines(theMap[conf], colorGrey);
     }
     
-    void drawAxes(const std::weak_ptr<Mesh> &theMesh)
+    void drawAxes(const std::weak_ptr<const Mesh> &theMesh)
     {
-        Mesh::Ptr m = theMesh.lock();
+        Mesh::ConstPtr m = theMesh.lock();
         if(!m) return;
         
         BoundingBox bb = m->geometry()->boundingBox();
@@ -550,15 +550,15 @@ namespace kinski { namespace gl {
     
     }
     
-    void drawBoundingBox(const std::weak_ptr<Mesh> &weakMesh)
+    void drawBoundingBox(const std::weak_ptr<const Mesh> &weakMesh)
     {
 #ifndef KINSKI_GLES
-        static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
+        static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
         
         
         if(theMap.find(weakMesh) == theMap.end())
         {
-            Mesh::Ptr theMesh = weakMesh.lock();
+            Mesh::ConstPtr theMesh = weakMesh.lock();
             if(!theMesh) return;
             
             BoundingBox bb = theMesh->geometry()->boundingBox();
@@ -610,14 +610,14 @@ namespace kinski { namespace gl {
 #endif
     }
 
-    void drawNormals(const std::weak_ptr<Mesh> &theMesh)
+    void drawNormals(const std::weak_ptr<const Mesh> &theMesh)
     {
 #ifndef KINSKI_GLES
-        static map<std::weak_ptr<Mesh>, vector<vec3> > theMap;
+        static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
         
         if(theMap.find(theMesh) == theMap.end())
         {
-            Mesh::Ptr m = theMesh.lock();
+            Mesh::ConstPtr m = theMesh.lock();
             
             if(m->geometry()->normals().empty()) return;
             

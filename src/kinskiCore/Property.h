@@ -20,12 +20,13 @@ class Property : public std::enable_shared_from_this<Property>
 {
 public:
     typedef std::shared_ptr<Property> Ptr;
+    typedef std::shared_ptr<const Property> ConstPtr;
     
     class Observer
     {
     public:
         typedef std::shared_ptr<Observer> Ptr;
-        virtual void updateProperty(const Property::Ptr &theProperty) = 0;
+        virtual void updateProperty(const Property::ConstPtr &theProperty) = 0;
     };
 
     inline boost::any getValue() const {return m_value;};
@@ -94,7 +95,7 @@ public:
     {
         std::set<Observer::Ptr>::iterator it = m_observers.begin();
         Ptr self = shared_from_this();
-        for (; it != m_observers.end(); it++)
+        for (; it != m_observers.end(); ++it)
         {
             (*it)->updateProperty(self);
         }

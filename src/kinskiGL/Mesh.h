@@ -20,6 +20,7 @@ namespace kinski { namespace gl {
     public:
         
         typedef std::shared_ptr<Mesh> Ptr;
+        typedef std::shared_ptr<const Mesh> ConstPtr;
         
         Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
         

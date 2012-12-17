@@ -98,13 +98,13 @@ namespace kinski { namespace gl {
     
     void drawGrid(float width, float height, int numW = 20, int numH = 20);
     
-    void drawAxes(const std::weak_ptr<Mesh> &theMesh);
+    void drawAxes(const std::weak_ptr<const Mesh> &theMesh);
     
     void drawMesh(const std::shared_ptr<const Mesh> &theMesh);
     
-    void drawBoundingBox(const std::weak_ptr<Mesh> &theMesh);
+    void drawBoundingBox(const std::weak_ptr<const Mesh> &theMesh);
     
-    void drawNormals(const std::weak_ptr<Mesh> &theMesh);
+    void drawNormals(const std::weak_ptr<const Mesh> &theMesh);
     
     /*********************************** Shader Factory *******************************************/
     

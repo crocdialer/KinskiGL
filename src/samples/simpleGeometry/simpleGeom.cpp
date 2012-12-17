@@ -46,7 +46,7 @@ private:
     
     // mouse rotation control
     vec2 m_clickPos;
-    mat4 m_lastTransform;
+    mat4 m_lastTransform, m_lastViewMatrix;
     float m_lastDistance;
 
 public:
@@ -244,16 +244,18 @@ public:
     {
         m_clickPos = vec2(e.getX(), e.getY());
         m_lastTransform = mat4(m_rotation->val());
+        m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
     }
     
     void mouseDrag(const MouseEvent &e)
     {
         vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
-        if(e.isLeft() && e.isAltDown())
+        if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
         {
-            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.x, vec3(m_lastTransform[1]) );
-            mouseRotate = glm::rotate(mouseRotate, mouseDiff.y, vec3(m_lastTransform[0]) );
+            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.y, vec3(m_lastViewMatrix[0]) );
+            mouseRotate = glm::rotate(mouseRotate, mouseDiff.x, vec3(0 , 1, 0) );
+            
             *m_rotation = mat3(mouseRotate);
         }
         else if(e.isRight())
@@ -293,7 +295,7 @@ public:
     }
     
     // Property observer callback
-    void updateProperty(const Property::Ptr &theProperty)
+    void updateProperty(const Property::ConstPtr &theProperty)
     {
         // one of our porperties was changed
         if(theProperty == m_color)
