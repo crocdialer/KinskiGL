@@ -19,6 +19,7 @@ namespace kinski
     {
     public:
         typedef std::shared_ptr<Component> Ptr;
+        typedef std::shared_ptr<const Component> ConstPtr;
         
         Component(const std::string &theName = "Component");
         virtual ~Component();

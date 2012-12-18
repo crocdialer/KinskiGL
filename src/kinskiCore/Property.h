@@ -94,7 +94,7 @@ public:
     inline void notifyObservers()
     {
         std::set<Observer::Ptr>::iterator it = m_observers.begin();
-        Ptr self = shared_from_this();
+        ConstPtr self = shared_from_this();
         for (; it != m_observers.end(); ++it)
         {
             (*it)->updateProperty(self);

@@ -107,7 +107,6 @@ public:
                     data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
             
-//            m_noiseTexture.has
             m_noiseTexture.update(data, GL_RED, w, h, true);
         }
         

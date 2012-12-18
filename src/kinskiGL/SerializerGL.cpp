@@ -17,7 +17,7 @@ namespace kinski {
     const std::string PropertyIO_GL::PROPERTY_TYPE_MAT3 = "mat3";
     const std::string PropertyIO_GL::PROPERTY_TYPE_MAT4 = "mat4";
     
-    bool PropertyIO_GL::readPropertyValue(const Property::Ptr &theProperty,
+    bool PropertyIO_GL::readPropertyValue(const Property::ConstPtr &theProperty,
                                           Json::Value &theJsonValue) const
     {
         bool success = PropertyIO::readPropertyValue(theProperty, theJsonValue);

@@ -37,7 +37,7 @@ namespace kinski
         static const std::string PROPERTIES;
         
         virtual ~PropertyIO(){};
-        virtual bool readPropertyValue(const Property::Ptr &theProperty,
+        virtual bool readPropertyValue(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const;
         virtual bool writePropertyValue(Property::Ptr &theProperty,
                                         const Json::Value &theJsonValue) const;
@@ -49,7 +49,7 @@ namespace kinski
         /*!
          * Save a component´s state to file using json file formatting
          */
-        static void saveComponentState(const Component::Ptr &theComponent,
+        static void saveComponentState(const Component::ConstPtr &theComponent,
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         
@@ -64,7 +64,7 @@ namespace kinski
          * Serialize a component to a string in json format.
          * Supported Property types are determined by theIO object
          */
-        static std::string serializeComponent(const Component::Ptr &theComponent,
+        static std::string serializeComponent(const Component::ConstPtr &theComponent,
                                               const PropertyIO &theIO = PropertyIO());
         
         /*!

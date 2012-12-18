@@ -38,7 +38,7 @@ namespace kinski {
                        istreambuf_iterator<char>());
     }
 
-    bool PropertyIO::readPropertyValue(const Property::Ptr &theProperty,
+    bool PropertyIO::readPropertyValue(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const
     {
         bool success = false;
@@ -106,7 +106,7 @@ namespace kinski {
         return success;
     }
     
-    std::string Serializer::serializeComponent(const Component::Ptr &theComponent,
+    std::string Serializer::serializeComponent(const Component::ConstPtr &theComponent,
                                                const PropertyIO &theIO)
     {
         Json::Value myRoot;
@@ -179,7 +179,7 @@ namespace kinski {
         }
     }
     
-    void Serializer::saveComponentState(const Component::Ptr &theComponent,
+    void Serializer::saveComponentState(const Component::ConstPtr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {

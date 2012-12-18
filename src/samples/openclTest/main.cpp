@@ -277,7 +277,7 @@ public:
         gl::drawPoints(m_vboPos, m_numParticles, m_pointMaterial, sizeof(vec4));
     }
     
-    void updateProperty(const Property::Ptr &theProperty)
+    void updateProperty(const Property::ConstPtr &theProperty)
     {
         // one of our porperties was changed
         if(theProperty == m_texturePath)

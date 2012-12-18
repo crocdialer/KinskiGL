@@ -29,7 +29,7 @@ namespace kinski
         static const std::string PROPERTY_TYPE_MAT4;
         
         virtual ~PropertyIO_GL(){};
-        virtual bool readPropertyValue(const Property::Ptr &theProperty,
+        virtual bool readPropertyValue(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const;
         virtual bool writePropertyValue(Property::Ptr &theProperty,
                                         const Json::Value &theJsonValue) const;

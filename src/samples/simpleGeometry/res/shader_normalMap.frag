@@ -30,6 +30,72 @@ vec4 jet(in float val)
                 1.0);
 }
 
+vec4 hotIron( in float value )
+{
+    vec4 color8  = vec4( 255.0 / 255.0, 255.0 / 255.0, 204.0 / 255.0, 1.0 );
+    vec4 color7  = vec4( 255.0 / 255.0, 237.0 / 255.0, 160.0 / 255.0, 1.0 );
+    vec4 color6  = vec4( 254.0 / 255.0, 217.0 / 255.0, 118.0 / 255.0, 1.0 );
+    vec4 color5  = vec4( 254.0 / 255.0, 178.0 / 255.0,  76.0 / 255.0, 1.0 );
+    vec4 color4  = vec4( 253.0 / 255.0, 141.0 / 255.0,  60.0 / 255.0, 1.0 );
+    vec4 color3  = vec4( 252.0 / 255.0,  78.0 / 255.0,  42.0 / 255.0, 1.0 );
+    vec4 color2  = vec4( 227.0 / 255.0,  26.0 / 255.0,  28.0 / 255.0, 1.0 );
+    vec4 color1  = vec4( 189.0 / 255.0,   0.0 / 255.0,  38.0 / 255.0, 1.0 );
+    vec4 color0  = vec4( 128.0 / 255.0,   0.0 / 255.0,  38.0 / 255.0, 1.0 );
+    
+    float colorValue = value * 8.0;
+    int sel = int( floor( colorValue ) );
+    
+    if( sel >= 8 )
+    {
+        return color0;
+    }
+    else if( sel < 0 )
+    {
+        return color0;
+    }
+    else
+    {
+        colorValue -= float( sel );
+        
+        if( sel < 1 )
+        {
+            return ( color1 * colorValue + color0 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 2 )
+        {
+            return ( color2 * colorValue + color1 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 3 )
+        {
+            return ( color3 * colorValue + color2 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 4 )
+        {
+            return ( color4 * colorValue + color3 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 5 )
+        {
+            return ( color5 * colorValue + color4 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 6 )
+        {
+            return ( color6 * colorValue + color5 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 7 )
+        {
+            return ( color7 * colorValue + color6 * ( 1.0 - colorValue ) );
+        }
+        else if( sel < 8 )
+        {
+            return ( color8 * colorValue + color7 * ( 1.0 - colorValue ) );
+        }
+        else
+        {
+            return color0;
+        }
+    }
+}
+
 vec3 hsv2rgb(in vec3 hsv) 
 { return mix(vec3(1.),clamp((abs(fract(hsv+vec3(3.,2.,1.)/3.)*6.-3.)-1.),0.,1.),hsv)*hsv; }
 
@@ -94,6 +160,6 @@ void main()
 
     float nDotL = max(0.0, dot(n, normalize(-v_lightDir)));
 
-    fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), jet(nDotL), u_textureMix);
+    fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), hotIron(nDotL), u_textureMix);
 }
 
