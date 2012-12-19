@@ -10,7 +10,6 @@
 
 #include "opencv2/opencv.hpp"
 #include "boost/thread.hpp"
-
 #include "kinskiCore/Component.h"
 
 namespace kinski{

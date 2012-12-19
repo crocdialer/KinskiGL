@@ -118,8 +118,9 @@ public:
         try{
             m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
             //m_material->setShader(gl::createShader(gl::SHADER_PHONG));
-        }catch (std::exception &e){
-            fprintf(stderr, "%s\n",e.what());
+        }catch (std::exception &e)
+        {
+            LOG_WARNING<<e.what();
         }
 
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
@@ -160,7 +161,7 @@ public:
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         }catch(Exception &e)
         {
-            printf("%s\n", e.what());
+            LOG_WARNING << e.what();
         }
     }
     
@@ -279,7 +280,7 @@ public:
                 Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
             }catch(Exception &e)
             {
-                printf("%s\n", e.what());
+                LOG_WARNING << e.what();
             }
             break;
                 
@@ -328,7 +329,7 @@ public:
                 
             } catch (Exception &e)
             {
-                cout<<"WARNING: "<< e.what() << endl;
+                LOG_WARNING<< e.what();
                 
                 m_modelPath->removeObserver(shared_from_this());
                 m_modelPath->val("- not found -");
@@ -339,7 +340,7 @@ public:
     
     void tearDown()
     {
-        printf("ciao simple geometry\n");
+        LOG_PRINT<<"ciao simple geometry";
     }
 };
 

@@ -47,7 +47,7 @@ namespace kinski { namespace gl{
                 
             }catch (std::exception &e)
             {
-                fprintf(stderr, "%s\n",e.what());
+                LOG_WARNING<<e.what();
             }
             
             gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));

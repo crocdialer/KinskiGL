@@ -3,6 +3,7 @@
 
 #include "kinskiGL/KinskiGL.h"
 #include "kinskiCore/Component.h"
+#include "kinskiCore/Logger.h"
 
 #define GLFW_INCLUDE_GL3
 #define GLFW_NO_GLU

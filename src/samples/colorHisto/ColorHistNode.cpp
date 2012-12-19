@@ -5,7 +5,7 @@
 //  Created by Fabian Schmidt on 6/25/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
-
+#include "kinskiCore/Logger.h"
 #include "ColorHistNode.h"
 
 using namespace cv;
@@ -35,8 +35,7 @@ m_histExtraction(Property_<bool>::create("Extract Histogram", false))
         m_histImage = createHistImage();
     } catch (std::exception &e)
     {
-        fprintf(stderr,"ColorHistNode: could not initialize histogram: %s\n",
-                e.what());
+        LOG_WARNING<<"ColorHistNode: could not initialize histogram: " << e.what());
     }
 
 }

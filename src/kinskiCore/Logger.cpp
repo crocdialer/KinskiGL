@@ -1,23 +1,9 @@
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
-//
-// Copyright (C) 1993-2011, ART+COM AG Berlin, Germany <www.artcom.de>
-//
-// It is distributed under the Boost Software License, Version 1.0.
-// (See accompanying file LICENSE_1_0.txt or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
-
 #include "Logger.h"
 #include "Exception.h"
 #include "file_functions.h"
 
 #include <iostream>
 #include <vector>
-//#ifdef iOS
-//    #include <iostream>
-//#elif ANDROID
-//    #include <android/log.h>
-//#endif
 
 namespace kinski {
     
@@ -27,9 +13,9 @@ namespace kinski {
     const char * const LOG_MODULE_VERBOSITY_ENV = "AC_LOG_MODULE_VERBOSITY";
     const char * const LOG_GLOBAL_VERBOSITY_ENV = "AC_LOG_VERBOSITY";
     
-    Logger *s_instance = NULL;
+    Logger *Logger::s_instance = NULL;
     
-    Logger* get()
+    Logger* Logger::get()
     {
         if(!s_instance)
             s_instance = new Logger;
@@ -37,22 +23,26 @@ namespace kinski {
         return s_instance;
     }
     
-    Logger::Logger() : _myTopLevelLogTag("Unset"), _myGlobalSeverity(SEV_WARNING)
+    Logger::Logger():
+    _myTopLevelLogTag(""),
+    _myGlobalSeverity(SEV_INFO)
     {
+        
     }
 
-    Logger::~Logger() {}
-
+    Logger::~Logger()
+    {
+    
+    }
 
     void Logger::setLoggerTopLevelTag(const std::string &theTagString)
     {
         _myTopLevelLogTag = theTagString;
     }
     
-    void
-    Logger::setSeverity(const Severity theSeverity) {
+    void Logger::setSeverity(const Severity theSeverity)
+    {
         _myGlobalSeverity = theSeverity;
-        parseEnvModuleSeverity();
     }
 
     /**
@@ -61,11 +51,14 @@ namespace kinski {
     verbosity settings for an overlapping id region in the same module, the setting for the
     smallest id-range takes precedence.
     */
-    bool
-    Logger::ifLog(Severity theSeverity, const char *theModule, int theId) {
-        if (!_mySeveritySettings.empty()) {
+    bool Logger::ifLog(Severity theSeverity, const char *theModule, int theId)
+    {
+        if (!_mySeveritySettings.empty())
+        {
             Severity mySeverity = _myGlobalSeverity;
-            const std::string myModule(file_string(theModule)); // remove everything before the last backslash
+            const std::string myModule(theModule); // remove everything before the last backslash
+            
+            
             // find all setting for a particular module
             std::multimap<std::string,ModuleSeverity>::const_iterator myLowerBound =
                 _mySeveritySettings.lower_bound(myModule);
@@ -81,9 +74,11 @@ namespace kinski {
                     if (myIter->first == myModule) {
                         int myMinId = myIter->second.myMinId;
                         int myMaxId = myIter->second.myMaxId;
-                        if (theId >= myMinId && theId <= myMaxId) {
+                        if (theId >= myMinId && theId <= myMaxId)
+                        {
                             unsigned int myNewRange = myMaxId - myMinId;
-                            if (myNewRange < myRange) {
+                            if (myNewRange < myRange)
+                            {
                                 mySeverity = myIter->second.mySeverity;
                                 myRange = myNewRange;
                             }
@@ -96,47 +91,43 @@ namespace kinski {
         return theSeverity <= _myGlobalSeverity;
     }
 
-    void
-    Logger::log(Severity theSeverity, const char * theModule, int theId, const std::string & theText) {
+    void Logger::log(Severity theSeverity, const char * theModule, int theId,
+                     const std::string & theText)
+    {
         std::string myLogTag(_myTopLevelLogTag);
-        if (theSeverity == SEV_TESTRESULT) {
-            myLogTag += "/TestResult/";
-        }
         std::ostringstream myText;
         myText << theText;
-        if (theSeverity > SEV_PRINT) {
+        if (theSeverity > SEV_PRINT)
+        {
             myText << " [" << lastFileNamePart(theModule) << " at:" << theId << "]";
         }
 
-        #ifdef iOS
-        switch (theSeverity) {
+        switch (theSeverity)
+        {
             case SEV_TRACE:
-                std::cout << myLogTag << " TRACE: " << myText.str() << "\n";
+                std::cout << "TRACE: " << myText.str() << std::endl;
                 break;
             case SEV_DEBUG:
-                std::cout << myLogTag << " DEBUG: " << myText.str() << "\n";
+                std::cout << "DEBUG: " << myText.str() << std::endl;
                 break;
             case SEV_INFO:
-                std::cout << myLogTag << " INFO: " << myText.str() << "\n";
+                std::cout << "INFO: " << myText.str() << std::endl;
                 break;
             case SEV_WARNING:
-                std::cout << myLogTag << " WARNING: " << myText.str() << "\n";
+                std::cout << "WARNING: " << myText.str() << std::endl;
                 break;
             case SEV_PRINT:
-                std::cout << myLogTag << " LOG: " << myText.str() << "\n";
+                std::cout << myText.str() << std::endl;
                 break;
             case SEV_ERROR:
-                std::cout << myLogTag << " ERROR: " << myText.str() << "\n";
-                break;
-            case SEV_TESTRESULT :
-                std::cout << myLogTag << " TEST: " << myText.str() << "\n";
+                std::cerr << "ERROR: " << myText.str() << std::endl;
                 break;
             default:
                 throw Exception("Unknown logger severity");
                 break;
         }
 
-        #elif ANDROID
+        #if ANDROID
         switch (theSeverity) {
             case SEV_TRACE :
                 __android_log_print(ANDROID_LOG_VERBOSE, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)

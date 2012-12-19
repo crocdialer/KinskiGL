@@ -6,8 +6,8 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 #include <fstream>
+#include "kinskiCore/Logger.h"
 #include <boost/timer/timer.hpp>
-
 #include "CVThread.h"
 
 using namespace std;
@@ -22,8 +22,7 @@ namespace kinski
     m_processing(true),
     m_captureFPS(25.f)
     {	
-        printf("CVThread -> OpenCV-Version: %s\n\n",CV_VERSION);
-        //    cout<<cv::getBuildInformation()<<"\n";
+        LOG_INFO<<"OpenCV-Version: " << CV_VERSION;
     }
     
     CVThread::~CVThread()

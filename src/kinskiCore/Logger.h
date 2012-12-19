@@ -6,17 +6,9 @@
 #include <map>
 
 namespace kinski {
-    enum Severity { SEV_PRINT, SEV_TESTRESULT, SEV_FATAL, SEV_ERROR, SEV_WARNING, SEV_INFO,
+    enum Severity { SEV_PRINT, SEV_FATAL, SEV_ERROR, SEV_WARNING, SEV_INFO,
                     SEV_DEBUG, SEV_TRACE, SEV_DISABLED};
 
-/**
- * Reads the environment variables 'AC_LOG_VERBOSITY' and 'AC_MODULE_VERBOSITY'
- * to initialize the global logging verbosity and the per-module verbosities.
- *
- * Per-module verbosity has the following format:
- * AC_MODULE_VERBOSITY := MODULE_VERBOSITY | AC_MODULE_VERBOSITY:MODULE_VERBOSITY
- * MODULE_VERBOSITY := <LEVEL>/<MODULE>[/<FROMLINE>[/<TOLINE>]]
- */
 class Logger
 {
     struct ModuleSeverity
@@ -31,7 +23,6 @@ class Logger
         int myMaxId;
     };
     public:
-        Logger();
         virtual ~Logger();
     
         static Logger* get();
@@ -51,10 +42,9 @@ class Logger
 
     private:
     
+        Logger();
         static Logger *s_instance;
     
-        Severity getSeverityFromString(const std::string & theString, Severity theDefault) const;
-        void parseEnvModuleSeverity();
         std::string _myTopLevelLogTag;
         Severity _myGlobalSeverity;
         std::multimap<std::string,ModuleSeverity> _mySeveritySettings;
@@ -86,7 +76,7 @@ class MessagePort
     const int myId;
 };
 
-#define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) masl::Logger::get().ifLog(SEVERITY,MODULE,MSGID) \
+#define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->ifLog(SEVERITY,MODULE,MSGID) \
     && (kinski::MessagePort(SEVERITY,MODULE,MSGID).getStream())
 
 #define LOG_INFO KINSKI_LOG_CHECK(kinski::SEV_INFO, __FILE__ ,__LINE__)

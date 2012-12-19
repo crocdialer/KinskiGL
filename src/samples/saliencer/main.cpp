@@ -77,12 +77,7 @@ public:
         }catch(Exception &e)
         {
             fprintf(stderr, "%s\n",e.what());
-        }catch (std::exception &e)
-        {
-            fprintf(stderr, "%s\n",e.what());
-            exit(EXIT_FAILURE);
         }
-        
     }
     
     void tearDown()

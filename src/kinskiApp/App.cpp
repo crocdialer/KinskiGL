@@ -66,8 +66,8 @@ namespace kinski
         glClearColor(0, 0, 0, 1);
         
         // version
-        printf("OpenGL: %s\n", glGetString(GL_VERSION));
-        printf("GLSL: %s\n",glGetString(GL_SHADING_LANGUAGE_VERSION));
+        LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
+        LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
         
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);

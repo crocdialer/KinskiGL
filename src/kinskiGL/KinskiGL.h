@@ -3,6 +3,7 @@
 
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
+#include "kinskiCore/Logger.h"
 
 #ifdef KINSKI_COCOA_TOUCH
 #define KINSKI_GLES
