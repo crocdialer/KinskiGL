@@ -136,8 +136,7 @@ namespace kinski
             m_framesDrawn++;
             
             // Check if ESC key was pressed or window was closed
-            m_running = !glfwGetKey( GLFW_KEY_ESC ) &&
-            glfwGetWindowParam( GLFW_OPENED );
+            m_running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
         }
         
         // manage tearDown, save stuff etc.

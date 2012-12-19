@@ -32,6 +32,7 @@ namespace kinski
     private:
         std::string m_message;
     };
+    
 } // namespace kinski
 
 #endif // __KINSKI_EXCEPTION_INCLUDED__

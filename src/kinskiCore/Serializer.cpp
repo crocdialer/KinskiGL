@@ -6,8 +6,9 @@
 //
 //
 
-#include "Serializer.h"
 #include <fstream>
+#include "file_functions.h"
+#include "Serializer.h"
 
 using namespace std;
 
@@ -25,19 +26,6 @@ namespace kinski {
     const std::string PropertyIO::PROPERTY_NAME = "name";
     const std::string PropertyIO::PROPERTIES = "properties";
     
-    const string readFile(const std::string &path)
-    {
-        
-        ifstream inStream(path.c_str());
-        if(!inStream.good())
-        {
-            throw FileNotFoundException(path);
-        }
-        
-        return string ((istreambuf_iterator<char>(inStream)),
-                       istreambuf_iterator<char>());
-    }
-
     bool PropertyIO::readPropertyValue(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const
     {

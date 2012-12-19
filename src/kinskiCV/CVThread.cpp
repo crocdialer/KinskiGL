@@ -182,7 +182,7 @@ namespace kinski
     // -- Getter / Setter
     bool CVThread::hasImage()
     {	
-        boost::mutex::scoped_lock lock(m_mutex);
+        //boost::mutex::scoped_lock lock(m_mutex);
         return m_newFrame;
     }
     

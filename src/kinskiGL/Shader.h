@@ -96,8 +96,6 @@ class Shader
 	void loadShader( const char *shaderSource, GLint shaderType );
 	void attachShaders();
 	void link();
-    
-    const std::string readFile(const std::string &path);
 
 	struct Obj;
     typedef std::shared_ptr<Obj> ObjPtr;

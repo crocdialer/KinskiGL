@@ -14,8 +14,6 @@
 
 namespace kinski
 {
-    const std::string readFile(const std::string &path);
-    
     /*!
      * Delegate object to handle all known types
      * Can be provided by user to add support for arbitrary data formats
@@ -84,13 +82,6 @@ namespace kinski
     };
     
     /************************ Exceptions ************************/
-    
-    class FileNotFoundException: public Exception
-    {
-    public:
-        FileNotFoundException(const std::string &theFilename) :
-        Exception(std::string("File not found: ") + theFilename) {}
-    };
     
     class FileReadingException: public Exception
     {

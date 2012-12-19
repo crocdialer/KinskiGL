@@ -158,7 +158,7 @@ public:
         try
         {
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(FileNotFoundException &e)
+        }catch(Exception &e)
         {
             printf("%s\n", e.what());
         }
@@ -277,7 +277,7 @@ public:
             try
             {
                 Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            }catch(FileNotFoundException &e)
+            }catch(Exception &e)
             {
                 printf("%s\n", e.what());
             }

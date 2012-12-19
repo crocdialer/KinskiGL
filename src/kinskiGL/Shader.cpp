@@ -20,16 +20,12 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "kinskiCore/file_functions.h"
 #include "Shader.h"
-
-#include <fstream>
 
 using namespace std;
 
-namespace kinski
-{
-namespace gl
-{
+namespace kinski{ namespace gl{
 
 //////////////////////////////////////////////////////////////////////////
 // Shader::Obj
@@ -107,20 +103,6 @@ void Shader::loadFromFile(const std::string &vertPath,
     if (!geomPath.empty()) geomSrc = readFile(geomPath);
     
     loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
-}
-    
-const string Shader::readFile(const std::string &path)
-{
-    
-    ifstream inStream(path.c_str());
-    if(!inStream.good())
-    {
-        string err = "file not found: " + path;
-        throw Exception(err);
-    }
-    
-    return string ((istreambuf_iterator<char>(inStream)),
-                    istreambuf_iterator<char>());
 }
     
 void Shader::loadShader( const char *shaderSource, GLint shaderType )

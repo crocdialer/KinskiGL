@@ -32,7 +32,8 @@ public:
     
     void setup()
     {
-        glClearColor(0, 0, 0, 1);
+        setBarColor(vec4(0, 0 ,0 , .5));
+        setBarSize(ivec2(250, 500));
 
         // add 2 empty textures
         m_material.addTexture(m_textures[0]);
@@ -56,8 +57,8 @@ public:
         
         m_cvThread->setProcessingNode(m_processNode);
         
-        //m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
-        m_cvThread->streamUSBCamera();
+        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
+        //m_cvThread->streamUSBCamera();
         
         
         if(m_processNode)
@@ -73,7 +74,7 @@ public:
             m_material.shader().loadFromFile("applyMap.vert", "applyMap.frag");
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
             
-        }catch(FileNotFoundException &e)
+        }catch(Exception &e)
         {
             fprintf(stderr, "%s\n",e.what());
         }catch (std::exception &e)
