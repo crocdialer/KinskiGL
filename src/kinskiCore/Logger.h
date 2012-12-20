@@ -1,7 +1,6 @@
 #ifndef _kinski_Logger_h_included_
 #define _kinski_Logger_h_included_
 
-#include <string>
 #include <sstream>
 #include <map>
 
@@ -15,12 +14,12 @@ class Logger
     {
         ModuleSeverity() {}
         ModuleSeverity(Severity theSeverity,int theMinId, int myMaxId)
-            : mySeverity(theSeverity), myMinId(theMinId), myMaxId(myMaxId)
+            : m_severity(theSeverity), m_minId(theMinId), m_maxId(myMaxId)
         {}
 
-        Severity mySeverity;
-        int myMinId;
-        int myMaxId;
+        Severity m_severity;
+        int m_minId;
+        int m_maxId;
     };
     public:
         virtual ~Logger();
@@ -46,8 +45,8 @@ class Logger
         static Logger *s_instance;
     
         std::string _myTopLevelLogTag;
-        Severity _myGlobalSeverity;
-        std::multimap<std::string,ModuleSeverity> _mySeveritySettings;
+        Severity m_globalSeverity;
+        std::multimap<std::string,ModuleSeverity> m_severitySettings;
 };
 
 /**
@@ -56,24 +55,23 @@ This class is used to collect the output and deliver it to the Logger on destruc
 class MessagePort
 {
  public:
-    MessagePort(Severity theSeverity, const char * theModule, int theId)
-        : mySeverity(theSeverity), myModule(theModule), myId(theId)
+    MessagePort(Severity theSeverity, const char *theModule, int theId)
+        : m_severity(theSeverity), m_module(theModule), m_Id(theId)
     {}
     ~MessagePort()
     {
-        Logger::get()->log(mySeverity, myModule, myId, stream.str());
+        Logger::get()->log(m_severity, m_module, m_Id, m_stream.str());
     }
 
     inline std::ostringstream& getStream()
     {
-        return stream;
+        return m_stream;
     }
     
-    std::ostringstream stream;
-    
-    const Severity mySeverity;
-    const char *myModule;
-    const int myId;
+    std::ostringstream m_stream;
+    const Severity m_severity;
+    const char *m_module;
+    const int m_Id;
 };
 
 #define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->ifLog(SEVERITY,MODULE,MSGID) \

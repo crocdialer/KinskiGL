@@ -14,10 +14,12 @@ namespace kinski
     
     SalienceNode::SalienceNode():
     m_colorMapType(COLORMAP_JET),
+    m_salienceImageWidth(RangedProperty<uint32_t>::create("Salience map-width", 240, 120, 1024)),
     m_useColor(Property_<bool>::create("Color Contrast (red-green / blue-yellow)", true)),
     m_useDoB(Property_<bool>::create("Difference of Box (spatial)", true)),
     m_useDoE(Property_<bool>::create("Difference of Exponential (motion)", true))
     {
+        registerProperty(m_salienceImageWidth);
         registerProperty(m_useColor);
         registerProperty(m_useDoB);
         registerProperty(m_useDoE);
@@ -35,14 +37,12 @@ namespace kinski
     
     vector<Mat> SalienceNode::doProcessing(const Mat &img)
     {
-        m_salienceDetect.setUseColorInformation(m_useColor->val());
-        m_salienceDetect.setUseDoBFeatures(m_useDoB->val());
-        m_salienceDetect.setUseDoEFeatures(m_useDoE->val());
-        
         cv::Mat downSized, colorSalience;
         
-        double ratio = 240 * 1. / img.cols;
+        float ratio = (float)m_salienceImageWidth->val() / img.cols;
         resize(img, downSized, cv::Size(0,0), ratio, ratio, INTER_LINEAR);
+        
+        blur(downSized, downSized, Size(5, 5));
         m_salienceDetect.updateSalience(downSized);
         m_salienceDetect.getSalImage(m_salienceImage);
         
@@ -56,5 +56,23 @@ namespace kinski
         //outMats.push_back(colorSalience);
 
         return outMats;
+    }
+    
+    // Property observer callback
+    void SalienceNode::updateProperty(const Property::ConstPtr &theProperty)
+    {
+        // one of our porperties was changed
+        if(theProperty == m_useColor)
+        {
+            m_salienceDetect.setUseColorInformation(m_useColor->val());
+        }
+        else if(theProperty == m_useDoB)
+        {
+            m_salienceDetect.setUseDoBFeatures(m_useDoB->val());
+        }
+        else if(theProperty == m_useDoE)
+        {
+            m_salienceDetect.setUseDoEFeatures(m_useDoE->val());
+        }
     }
 }

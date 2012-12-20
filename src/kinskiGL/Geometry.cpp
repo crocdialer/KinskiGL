@@ -241,12 +241,6 @@ namespace kinski{ namespace gl{
         }
     }
     
-    GLuint Geometry::numComponents()
-    {
-        //GL_T2F_N3F_V3F alignment in interleaved buffer
-        return 8;
-    }
-    
     void Geometry::createGLBuffers()
     {
         if(!m_vertexBuffer)
@@ -372,9 +366,7 @@ namespace kinski{ namespace gl{
             {
                 const Key<glm::vec3> &key = bonekeys.positionkeys[i + 1];
                 if(key.time >= time)
-                {
                     break;
-                }
             }
             // i now holds the correct time index
             const Key<glm::vec3> &key1 = bonekeys.positionkeys[i],
@@ -397,9 +389,7 @@ namespace kinski{ namespace gl{
             {
                 const Key<glm::quat> &key = bonekeys.rotationkeys[i+1];
                 if(key.time >= time)
-                {
                     break;
-                }
             }
             // i now holds the correct time index
             const Key<glm::quat> &key1 = bonekeys.rotationkeys[i],
@@ -427,9 +417,7 @@ namespace kinski{ namespace gl{
             {
                 const Key<glm::vec3> &key = bonekeys.scalekeys[i + 1];
                 if(key.time >= time)
-                {
                     break;
-                }
             }
             // i now holds the correct time index
             const Key<glm::vec3> &key1 = bonekeys.scalekeys[i],

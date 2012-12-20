@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include "file_functions.h"
+#include "Logger.h"
 #include "Serializer.h"
 
 using namespace std;
@@ -161,7 +162,7 @@ namespace kinski {
                     
                 } catch (PropertyNotFoundException &myException)
                 {
-                    //LOG(WARNING) << myException.getMessage();
+                    LOG_WARNING << myException.getMessage();
                 }
             }
         }

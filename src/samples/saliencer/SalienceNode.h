@@ -22,6 +22,7 @@ namespace kinski
         
         uint32_t m_colorMapType;
         
+        RangedProperty<uint32_t>::Ptr m_salienceImageWidth;
         Property_<bool>::Ptr m_useColor;
         Property_<bool>::Ptr m_useDoB;
         Property_<bool>::Ptr m_useDoE;
@@ -32,6 +33,7 @@ namespace kinski
         virtual ~SalienceNode();
         
         std::string getDescription();
+        void updateProperty(const Property::ConstPtr &theProperty);
         
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
     };

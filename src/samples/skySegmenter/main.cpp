@@ -37,10 +37,9 @@ public:
             m_material->addTexture(m_textures[1]);
             m_material->addTexture(m_textures[2]);
             
-        }catch (std::exception &e)
+        }catch (Exception &e)
         {
-            fprintf(stderr, "%s\n",e.what());
-            exit(EXIT_FAILURE);
+            LOG_ERROR<<e.what();
         }
         
         m_activator = Property_<bool>::create("processing", true);
@@ -60,10 +59,10 @@ public:
         if(m_processNode)
         {
             addPropertyListToTweakBar(m_processNode->getPropertyList());
-            cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
+            cout<<"CVProcessNode: \n"<<m_processNode->getDescription();
         }
         
-        cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
+        LOG_INFO << "CVThread source: \n"<< m_cvThread->getSourceInfo();
         
         // load state from config file
         try
@@ -71,14 +70,14 @@ public:
             Serializer::loadComponentState(m_processNode, "config.json", PropertyIO_GL());
         }catch(FileNotFoundException &e)
         {
-            printf("%s\n", e.what());
+            LOG_WARNING << e.what();
         }
         
     }
     
     void tearDown()
     {
-        printf("ciao skySegmenter\n");
+        LOG_PRINT<<"ciao skySegmenter";
     }
     
     void update(const float timeDelta)
@@ -134,7 +133,7 @@ public:
                 Serializer::loadComponentState(m_processNode, "config.json", PropertyIO_GL());
             }catch(FileNotFoundException &e)
             {
-                printf("%s\n", e.what());
+                LOG_WARNING<< e.what();
             }
                 break;
                 

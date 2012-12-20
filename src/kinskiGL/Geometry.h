@@ -193,9 +193,6 @@ namespace kinski{ namespace gl{
         GLuint boneBuffer() const { return m_boneBuffer; };
         GLuint indexBuffer() const { return m_indexBuffer; };
         
-        //number of float components (per vertex) in interleaved buffer
-        GLuint numComponents();
-        
         void createGLBuffers();
         
         void updateAnimation(float time);

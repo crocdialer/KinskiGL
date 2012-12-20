@@ -29,7 +29,19 @@
 using namespace std;
 
 namespace kinski {
-
+    
+    std::list<std::string> g_searchPaths;
+    
+    const std::list<std::string>& getSearchPaths()
+    {
+        return g_searchPaths;
+    }
+    
+    void addSearchPath(const std::string &thePath)
+    {
+        g_searchPaths.push_back(thePath);
+    }
+    
     // boosted
 //    int getFileSize(const std::string & theFilename)
 //    {
@@ -39,8 +51,11 @@ namespace kinski {
     /// read a complete file into a string
     const std::string readFile(const std::string & theUTF8Filename)
     {
-        //searchFile(theUTF8Filename, path);
-        string path = theUTF8Filename;
+        string path;
+        if(!searchFile(theUTF8Filename, path))
+        {
+            throw FileNotFoundException(theUTF8Filename);
+        }
          
         ifstream inStream(path.c_str());
         if(!inStream.good())
@@ -55,8 +70,8 @@ namespace kinski {
     bool
     readBinaryFile(const std::string & theUTF8Filename, std::vector<char> & theContent)
     {
-        //searchFile(theUTF8Filename, path);
-        string path = theUTF8Filename;
+        string path;
+        searchFile(theUTF8Filename, path);
         
         ifstream inStream(path.c_str());
         if(!inStream.good())
@@ -104,8 +119,8 @@ namespace kinski {
         return true;
     }
 
-    std::string 
-    getFilenamePart(const std::string & theFileName) {
+    std::string getFilenamePart(const std::string & theFileName)
+    {
         std::string myBaseName;
         if ( ! theFileName.empty()) {
             if (theFileName.at(theFileName.length()-1) == '/') {  // Huh? what's that for??? [DS/MS]
@@ -149,14 +164,15 @@ namespace kinski {
 
     bool searchFile(const std::string &theFileName, std::string &retPath)
     {
-        //const std::vector<std::string> &myIncludeList = masl::AssetProviderSingleton::get().ap()->getIncludePaths();
-//        for (std::vector<std::string>::const_iterator it = myIncludeList.begin(); it != myIncludeList.end(); ++it) {
-//            if (fileExists((*it) + theFileName)) {
-//                retPath = (*it) + theFileName;
-//                return true;
-//            }
-//        }
-
+        std::list<std::string>::const_iterator it = getSearchPaths().begin();
+        for (; it != getSearchPaths().end(); ++it)
+        {
+            if (fileExists((*it) + theFileName))
+            {
+                retPath = (*it) + theFileName;
+                return true;
+            }
+        }
         return false;
     }
 

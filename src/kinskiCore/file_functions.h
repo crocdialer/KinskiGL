@@ -1,15 +1,17 @@
 #ifndef _included_kinski_file_functions_
 #define _included_kinski_file_functions_
 
+#include "Definitions.h"
 #include "Exception.h"
-
-#include <string>
-#include <vector>
 
 namespace kinski {
 
     /// read a complete file into a string
     //int getFileSize(const std::string &theFilename); // boosted
+    
+    // manage known file locations
+    const std::list<std::string>& getSearchPaths();
+    void addSearchPath(const std::string &thePath);
     
     bool fileExists(const std::string &theFilename);
     const std::string readFile(const std::string & theUTF8Filename);

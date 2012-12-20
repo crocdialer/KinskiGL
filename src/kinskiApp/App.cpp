@@ -1,6 +1,6 @@
+#include "kinskiCore/file_functions.h"
 #include "App.h"
 #include "AntTweakBarConnector.h"
-#include <iostream>
 
 using namespace std;
 
@@ -35,6 +35,10 @@ namespace kinski
     
     void App::init()
     {
+        std::time_t time = std::time(NULL);
+        
+        LOG_INFO<< std::asctime(std::localtime(&time));
+
         s_instance = dynamic_pointer_cast<App>(shared_from_this());
         
         // Initialize GLFW
@@ -53,10 +57,10 @@ namespace kinski
         
         // Open an OpenGL window
         if( !glfwOpenWindow( m_windowSize[0], m_windowSize[1], 0, 0, 0, 0, 24, 0,
-                            m_fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
+                             m_fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
         {
             glfwTerminate();
-            throw exception();
+            throw Exception("Could not init OpenGL window");
         }
         
         // show mouse cursor in fullscreen ?
@@ -68,6 +72,11 @@ namespace kinski
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+        
+        // file search paths
+        kinski::addSearchPath("./");
+        kinski::addSearchPath("./res");
+        kinski::addSearchPath("../res");
         
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);

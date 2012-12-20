@@ -32,6 +32,7 @@ public:
     
     void setup()
     {
+        kinski::addSearchPath("/Users/Fabian/Desktop/");
         setBarColor(vec4(0, 0 ,0 , .5));
         setBarSize(ivec2(250, 500));
 
@@ -42,8 +43,7 @@ public:
         m_material.setDepthWrite(false);
         
         m_activator = Property_<bool>::create("processing", true);
-        m_imageIndex = RangedProperty<uint32_t>::create("Image Index",
-                                                         0, 0, 1);
+        m_imageIndex = RangedProperty<uint32_t>::create("Image Index", 0, 0, 1);
         
         registerProperty(m_activator);
         registerProperty(m_imageIndex);
@@ -57,17 +57,21 @@ public:
         
         m_cvThread->setProcessingNode(m_processNode);
         
-        m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
-        //m_cvThread->streamUSBCamera();
+        //m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
+        m_cvThread->streamUSBCamera();
         
-        
+//        string path;
+//        searchFile("fontBla.png", path);
+//        m_cvThread->setImage(cv::imread(path));
+                
         if(m_processNode)
         {
             addPropertyListToTweakBar(m_processNode->getPropertyList());
-            cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
+            m_processNode->observeProperties();
+            LOG_INFO<<"CVProcessNode: \n"<<m_processNode->getDescription();
         }
         
-        cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
+        LOG_INFO<<"CVThread source: \n"<<m_cvThread->getSourceInfo();
         
         try
         {
@@ -76,7 +80,7 @@ public:
             
         }catch(Exception &e)
         {
-            fprintf(stderr, "%s\n",e.what());
+            LOG_WARNING<<e.what();
         }
     }
     
@@ -85,7 +89,7 @@ public:
         m_cvThread->stop();
         Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         
-        printf("ciao saliencer\n");
+        LOG_PRINT<<"ciao saliencer";
     }
     
     void update(const float timeDelta)

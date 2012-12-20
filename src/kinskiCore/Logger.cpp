@@ -7,12 +7,6 @@
 
 namespace kinski {
     
-    const size_t SEVERITIES = 9;
-    const char * SeverityName[] = {"PRINT","TESTRESULT","FATAL", "ERROR", "WARNING", "INFO",
-        "DEBUG", "TRACE", "DISABLED", 0};
-    const char * const LOG_MODULE_VERBOSITY_ENV = "AC_LOG_MODULE_VERBOSITY";
-    const char * const LOG_GLOBAL_VERBOSITY_ENV = "AC_LOG_VERBOSITY";
-    
     Logger *Logger::s_instance = NULL;
     
     Logger* Logger::get()
@@ -25,7 +19,7 @@ namespace kinski {
     
     Logger::Logger():
     _myTopLevelLogTag(""),
-    _myGlobalSeverity(SEV_INFO)
+    m_globalSeverity(SEV_INFO)
     {
         
     }
@@ -42,7 +36,7 @@ namespace kinski {
     
     void Logger::setSeverity(const Severity theSeverity)
     {
-        _myGlobalSeverity = theSeverity;
+        m_globalSeverity = theSeverity;
     }
 
     /**
@@ -53,18 +47,18 @@ namespace kinski {
     */
     bool Logger::ifLog(Severity theSeverity, const char *theModule, int theId)
     {
-        if (!_mySeveritySettings.empty())
+        if (!m_severitySettings.empty())
         {
-            Severity mySeverity = _myGlobalSeverity;
+            Severity mySeverity = m_globalSeverity;
             const std::string myModule(theModule); // remove everything before the last backslash
             
             
             // find all setting for a particular module
             std::multimap<std::string,ModuleSeverity>::const_iterator myLowerBound =
-                _mySeveritySettings.lower_bound(myModule);
-            if (myLowerBound != _mySeveritySettings.end()) {
+                m_severitySettings.lower_bound(myModule);
+            if (myLowerBound != m_severitySettings.end()) {
                 std::multimap<std::string,ModuleSeverity>::const_iterator myUpperBound =
-                    _mySeveritySettings.upper_bound(myModule);
+                    m_severitySettings.upper_bound(myModule);
     
                 // find smallest range containing theId with matching module name
                 unsigned int myRange = std::numeric_limits<unsigned int>::max();
@@ -72,14 +66,14 @@ namespace kinski {
                     myIter != myUpperBound; ++myIter)
                 {
                     if (myIter->first == myModule) {
-                        int myMinId = myIter->second.myMinId;
-                        int myMaxId = myIter->second.myMaxId;
+                        int myMinId = myIter->second.m_minId;
+                        int myMaxId = myIter->second.m_maxId;
                         if (theId >= myMinId && theId <= myMaxId)
                         {
                             unsigned int myNewRange = myMaxId - myMinId;
                             if (myNewRange < myRange)
                             {
-                                mySeverity = myIter->second.mySeverity;
+                                mySeverity = myIter->second.m_severity;
                                 myRange = myNewRange;
                             }
                         }
@@ -88,7 +82,7 @@ namespace kinski {
             }
             return theSeverity <= mySeverity;
         }
-        return theSeverity <= _myGlobalSeverity;
+        return theSeverity <= m_globalSeverity;
     }
 
     void Logger::log(Severity theSeverity, const char * theModule, int theId,
@@ -144,9 +138,6 @@ namespace kinski {
                 break;
             case SEV_ERROR :
                 __android_log_print(ANDROID_LOG_ERROR, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
-                break;
-            case SEV_TESTRESULT :
-                __android_log_print(ANDROID_LOG_INFO, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
                 break;
             default:
                 throw Exception("Unknown logger severity");

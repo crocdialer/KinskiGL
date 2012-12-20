@@ -4,6 +4,7 @@
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
 #include "kinskiCore/Logger.h"
+#include "kinskiCore/file_functions.h"
 
 #ifdef KINSKI_COCOA_TOUCH
 #define KINSKI_GLES
