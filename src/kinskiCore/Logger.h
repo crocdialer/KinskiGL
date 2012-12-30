@@ -67,6 +67,8 @@ class MessagePort
     {
         return m_stream;
     }
+ 
+ private:
     
     std::ostringstream m_stream;
     const Severity m_severity;

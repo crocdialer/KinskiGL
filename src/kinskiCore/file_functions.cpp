@@ -51,8 +51,9 @@ namespace kinski {
     /// read a complete file into a string
     const std::string readFile(const std::string & theUTF8Filename)
     {
-        string path;
-        if(!searchFile(theUTF8Filename, path))
+        string path = searchFile(theUTF8Filename);
+        
+        if(path.empty())
         {
             throw FileNotFoundException(theUTF8Filename);
         }
@@ -70,8 +71,7 @@ namespace kinski {
     bool
     readBinaryFile(const std::string & theUTF8Filename, std::vector<char> & theContent)
     {
-        string path;
-        searchFile(theUTF8Filename, path);
+        string path = searchFile(theUTF8Filename);
         
         ifstream inStream(path.c_str());
         if(!inStream.good())
@@ -91,8 +91,7 @@ namespace kinski {
         const size_t MAX_LENGTH = 1000;
         char buffer[MAX_LENGTH];
         std::string newPart;
-        std::string filepath;
-        searchFile(theUTF8Filename, filepath);
+        std::string filepath = searchFile(theUTF8Filename);
         FILE *file;
         if ((file = fopen(filepath.c_str(), "rb")) == NULL) {
             throw OpenFileFailed("Error opening file " + theUTF8Filename);
@@ -162,18 +161,19 @@ namespace kinski {
         closedir(myDirHandle);
     }
 
-    bool searchFile(const std::string &theFileName, std::string &retPath)
+    std::string searchFile(const std::string &theFileName)
     {
+        std::string retPath;
         std::list<std::string>::const_iterator it = getSearchPaths().begin();
         for (; it != getSearchPaths().end(); ++it)
         {
             if (fileExists((*it) + theFileName))
             {
                 retPath = (*it) + theFileName;
-                return true;
+                return retPath;
             }
         }
-        return false;
+        return "";
     }
 
     std::string getDirectoryPart(const std::string &theFileName)

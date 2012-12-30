@@ -35,7 +35,7 @@ m_histExtraction(Property_<bool>::create("Extract Histogram", false))
         m_histImage = createHistImage();
     } catch (std::exception &e)
     {
-        LOG_WARNING<<"ColorHistNode: could not initialize histogram: " << e.what());
+        LOG_WARNING<<"ColorHistNode: could not initialize histogram: " << e.what();
     }
 
 }

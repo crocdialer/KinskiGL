@@ -8,7 +8,7 @@ namespace kinski{ namespace gl{
     
 const Texture TextureIO::loadTexture(const string &imgPath)
 {
-    Mat img = imread(imgPath, -1);
+    Mat img = imread(searchFile(imgPath) , -1);
     Texture ret;
     
     if(img.empty())

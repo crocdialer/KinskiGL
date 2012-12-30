@@ -36,8 +36,8 @@ TextureDataExc::TextureDataExc( const std::string &log ) throw()
 Texture::Format::Format()
 {
 	m_Target = GL_TEXTURE_2D;
-	m_WrapS = GL_CLAMP_TO_EDGE;
-	m_WrapT = GL_CLAMP_TO_EDGE;
+	m_WrapS = GL_REPEAT;//GL_CLAMP_TO_EDGE;
+	m_WrapT = GL_REPEAT;//GL_CLAMP_TO_EDGE;
 	m_MinFilter = GL_LINEAR;
 	m_MagFilter = GL_LINEAR;
 	m_Mipmapping = false;
@@ -47,13 +47,13 @@ Texture::Format::Format()
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Obj
     
-struct Texture::Obj {
-    Obj() : m_Width( -1 ), m_Height( -1 ), m_CleanWidth( -1 ),
-    m_CleanHeight( -1 ), m_InternalFormat( -1 ), m_dataType(-1),
+struct Texture::Obj
+    {
+    Obj() : m_Width( -1 ), m_Height( -1 ), m_InternalFormat( -1 ), m_dataType(-1),
     m_TextureID( 0 ), m_Flipped( false ), m_DeallocatorFunc( 0 ) {};
     
     Obj( int aWidth, int aHeight ) : m_Width( aWidth ), m_Height( aHeight ),
-    m_CleanWidth( aWidth ), m_CleanHeight( aHeight ), m_InternalFormat( -1 ),
+    m_InternalFormat( -1 ),
     m_dataType(-1),
     m_TextureID( 0 ), m_Flipped( false ), m_boundTextureUnit(-1), 
     m_DeallocatorFunc( 0 )  {};
@@ -69,8 +69,7 @@ struct Texture::Obj {
     }
 
     
-    mutable GLint	m_Width, m_Height, m_CleanWidth, m_CleanHeight;
-    float			mMaxU, mMaxV;
+    mutable GLint	m_Width, m_Height;
     mutable GLint	m_InternalFormat;
     GLenum          m_dataType;
     GLenum			m_Target;
@@ -116,16 +115,9 @@ Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bo
 	m_Obj->m_Target = aTarget;
 	m_Obj->m_TextureID = aTextureID;
 	m_Obj->m_DoNotDispose = aDoNotDispose;
-	m_Obj->m_Width = m_Obj->m_CleanWidth = aWidth;
-	m_Obj->m_Height = m_Obj->m_CleanHeight = aHeight;
+	m_Obj->m_Width = aWidth;
+	m_Obj->m_Height = aHeight;
 
-	if( m_Obj->m_Target == GL_TEXTURE_2D ) {
-		m_Obj->mMaxU = m_Obj->mMaxV = 1.0f;
-	}
-	else {
-		m_Obj->mMaxU = (float)m_Obj->m_Width;
-		m_Obj->mMaxV = (float)m_Obj->m_Height;
-	}
 }
 
 void Texture::init(const unsigned char *data, GLenum dataFormat,
@@ -143,15 +135,6 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
         
-        if( m_Obj->m_Target == GL_TEXTURE_2D ) 
-        {
-            m_Obj->mMaxU = m_Obj->mMaxV = 1.0f;
-        }
-        else 
-        {
-            m_Obj->mMaxU = (float)m_Obj->m_Width;
-            m_Obj->mMaxV = (float)m_Obj->m_Height;
-        }
 	}
     else 
     {
@@ -187,16 +170,6 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
-	
-    if( m_Obj->m_Target == GL_TEXTURE_2D ) 
-    {
-		m_Obj->mMaxU = m_Obj->mMaxV = 1.0f;
-	}
-	else 
-    {
-		m_Obj->mMaxU = (float)m_Obj->m_Width;
-		m_Obj->mMaxV = (float)m_Obj->m_Height;
-	}
 	
 	if( data ) 
     {
@@ -249,8 +222,8 @@ void Texture::update(const void *data,
         m_Obj->m_Target = GL_TEXTURE_2D;
         m_Obj->m_dataType = dataType;
         m_Obj->m_InternalFormat = GL_RGBA;
-        m_Obj->m_CleanWidth = m_Obj->m_Width = theWidth;
-        m_Obj->m_CleanHeight = m_Obj->m_Height = theHeight;
+        m_Obj->m_Width = theWidth;
+        m_Obj->m_Height = theHeight;
         setFlipped(flipped);
         
         if(dataType == GL_UNSIGNED_BYTE)
@@ -380,21 +353,6 @@ void Texture::setMagFilter( GLenum magFilter )
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, magFilter );
 }
 
-void Texture::setCleanTexCoords( float maxU, float maxV )
-{
-	m_Obj->mMaxU = maxU;
-	m_Obj->mMaxV = maxV;
-	
-	if( m_Obj->m_Target == GL_TEXTURE_2D ) {
-		m_Obj->m_CleanWidth = getWidth() * maxU;
-		m_Obj->m_CleanHeight = getHeight() * maxV;
-	}
-	else {
-		m_Obj->m_CleanWidth = (int32_t)maxU;
-		m_Obj->m_CleanHeight = (int32_t)maxV;
-	}
-}
-
 bool Texture::hasAlpha() const
 {
 	switch( m_Obj->m_InternalFormat ) {
@@ -414,17 +372,22 @@ bool Texture::hasAlpha() const
 	
 float Texture::getLeft() const
 {
-	return 0.0f;
+	return (glm::vec4(0, 0, 0, 1) * m_Obj->m_textureMatrix).x;
 }
 
 float Texture::getRight() const
 {
-	return m_Obj->mMaxU;
+	return (glm::vec4(1, 0, 0, 1) * m_Obj->m_textureMatrix).x;
 }
 
 float Texture::getTop() const
 {
-	return ( m_Obj->m_Flipped ) ? getMaxV() : 0.0f;
+	return (glm::vec4(0, 1, 0, 1) * m_Obj->m_textureMatrix).y;
+}
+    
+float Texture::getBottom() const
+{
+    return (glm::vec4(0, 0, 0, 1) * m_Obj->m_textureMatrix).y;
 }
 
 GLint Texture::getInternalFormat() const
@@ -442,12 +405,12 @@ GLint Texture::getInternalFormat() const
 GLint Texture::getWidth() const
 {
 #if ! defined( KINSKI_GLES )
-	if( m_Obj->m_Width == -1 ) {
+	if( m_Obj->m_Width == -1 )
+    {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
-		m_Obj->m_CleanWidth = m_Obj->m_Width;
 	}
-#endif // ! defined( KINSKI_GLES )
+#endif
 
 	return m_Obj->m_Width;
 }
@@ -455,60 +418,13 @@ GLint Texture::getWidth() const
 GLint Texture::getHeight() const
 {
 #if ! defined( KINSKI_GLES )
-	if( m_Obj->m_Height == -1 ) {
-		//TODO: examine in cinder src
-//        gl::SaveTextureBindState( m_Obj->m_Target );
+	if( m_Obj->m_Height == -1 )
+    {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_Height );	
-		m_Obj->m_CleanHeight = m_Obj->m_Height;		
 	}
-#endif // ! defined( KINSKI_GLES )	
+#endif
 	return m_Obj->m_Height;
-}
-
-GLint Texture::getCleanWidth() const
-{
-#if ! defined( KINSKI_GLES )
-	if( m_Obj->m_CleanWidth == -1 ) {
-		bind();
-		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
-		m_Obj->m_CleanWidth = m_Obj->m_Width;
-	}
-
-	return m_Obj->m_CleanWidth;
-#else
-	return m_Obj->m_Width;
-#endif // ! defined( KINSKI_GLES )	
-}
-
-GLint Texture::getCleanHeight() const
-{
-#if ! defined( KINSKI_GLES )
-	if( m_Obj->m_CleanHeight == -1 ) {
-		bind();
-		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_Height );	
-		m_Obj->m_CleanHeight = m_Obj->m_Height;		
-	}
-	
-	return m_Obj->m_CleanHeight;
-#else
-	return m_Obj->m_Height;
-#endif // ! defined( KINSKI_GLES )	
-}
-
-float Texture::getBottom() const
-{
-	return ( m_Obj->m_Flipped ) ? 0.0f : getMaxV();
-}
-
-float Texture::getMaxU() const
-{ 
-	return m_Obj->mMaxU;
-}
-
-float Texture::getMaxV() const
-{
-	return m_Obj->mMaxV;
 }
 
 void Texture::bind( GLuint textureUnit ) const

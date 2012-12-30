@@ -149,7 +149,8 @@ vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
 
 void main()
 {
-    vec4 color1 = texture(u_textureMap[0], v_texCoord.xy);
+    vec2 texCoord = vec2(2,1) * v_texCoord.xy;
+    vec4 color1 = texture(u_textureMap[0], texCoord);
     
     vec3 n;
     // sample normal map

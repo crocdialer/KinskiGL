@@ -49,11 +49,9 @@ namespace kinski
         //threshold(m_salienceImage, m_salienceImage, .5, 1.0, CV_MINMAX);
         
         m_salienceImage.convertTo(colorSalience, CV_8UC1, 255.0);
-        //applyColorMap(colorSalience, colorSalience, m_colorMapType) ;
         
         vector<Mat> outMats;
         outMats.push_back(m_salienceImage);
-        //outMats.push_back(colorSalience);
 
         return outMats;
     }

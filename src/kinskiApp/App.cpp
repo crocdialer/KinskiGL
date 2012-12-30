@@ -74,9 +74,10 @@ namespace kinski
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
         
         // file search paths
+        kinski::addSearchPath("");
         kinski::addSearchPath("./");
-        kinski::addSearchPath("./res");
-        kinski::addSearchPath("../res");
+        kinski::addSearchPath("./res/");
+        kinski::addSearchPath("../Resources/");
         
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);

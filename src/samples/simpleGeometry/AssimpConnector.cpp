@@ -25,7 +25,7 @@ namespace kinski { namespace gl{
     gl::Mesh::Ptr AssimpConnector::loadModel(const std::string &theModelPath)
     {
         Assimp::Importer importer;
-        importer.ReadFile(theModelPath, 0);
+        importer.ReadFile(searchFile(theModelPath), 0);
         const aiScene *theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
                                                                | aiProcess_GenSmoothNormals
                                                                | aiProcess_CalcTangentSpace);
@@ -111,11 +111,13 @@ namespace kinski { namespace gl{
             // we have animation keys for this bone
             if(nodeAnim)
             {
-//                printf("Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
-//                       nodeAnim->mNodeName.data,
-//                       nodeAnim->mNumPositionKeys,
-//                       nodeAnim->mNumRotationKeys,
-//                       nodeAnim->mNumScalingKeys);
+                char buf[1024];
+                sprintf(buf, "Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+                       nodeAnim->mNodeName.data,
+                       nodeAnim->mNumPositionKeys,
+                       nodeAnim->mNumRotationKeys,
+                       nodeAnim->mNumScalingKeys);
+                LOG_TRACE<<buf;
                 
                 gl::AnimationKeys animKeys;
                 

@@ -72,12 +72,9 @@ namespace gl
          * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
         void setMagFilter( GLenum magFilter );
         
-        /** Designed to accommodate texture where not all pixels are "clean", meaning the maximum texture coordinate value may not be 1.0 (or the texture's width in \c GL_TEXTURE_RECTANGLE_ARB) **/
-        void setCleanTexCoords( float maxU, float maxV );
-        
         void setTextureMatrix( const glm::mat4 &theMatrix );
         
-        const glm::mat4 &getTextureMatrix() const;
+        const glm::mat4& getTextureMatrix() const;
         
         const bool isBound() const;
         const GLint getBoundTextureUnit() const;
@@ -95,10 +92,6 @@ namespace gl
         GLint getWidth() const;
         //! the height of the texture in pixels
         GLint getHeight() const;
-        //! the width of the texture in pixels accounting for its "clean" area - \sa getCleanBounds()
-        GLint getCleanWidth() const;
-        //! the height of the texture in pixels accounting for its "clean" area - \sa getCleanBounds()
-        GLint getCleanHeight() const;
         
         //! the size of the texture in pixels
         //const Eigen::Vector2i getSize() const { return Eigen::Vector2i( getWidth(), getHeight() ); }	
@@ -106,11 +99,6 @@ namespace gl
         
         //! the aspect ratio of the texture (width / height)
         float getAspectRatio() const { return getWidth() / (float)getHeight(); }
-        
-        //! the Area defining the Texture's bounds in pixels: [0,0]-[width,height]
-//        Area getBounds() const { return Area( 0, 0, getWidth(), getHeight() ); }
-//        //! the Area defining the Texture's clean pixel bounds in pixels: [0,0]-[width*maxU,height*maxV]
-//        Area getCleanBounds() const { return Area( 0, 0, getCleanWidth(), getCleanHeight() ); }
         
         //! whether the texture has an alpha channel
         bool hasAlpha() const;
@@ -120,10 +108,6 @@ namespace gl
         float getRight() const;	
         float getTop() const;		
         float getBottom() const;
-        
-        //!	These do not correspond to "top" and "right" when the texture is flipped
-        float getMaxU() const;
-        float getMaxV() const;
         
         //	//! Returns the UV coordinates which correspond to the pixels contained in \a area. Does not compensate for clean coordinates. Does compensate for flipping.
         //	Rectf			getAreaTexCoords( const Area &area ) const;

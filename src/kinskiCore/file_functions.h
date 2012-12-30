@@ -21,7 +21,7 @@ namespace kinski {
     void getDirectoryEntries(const std::string &thePath,  std::vector<std::string> &theDirEntries,
                              const std::string &theFilter);
     bool readFileLineByLine(const std::string &theUTF8Filename, std::vector<std::string> &theContent);
-    bool searchFile(const std::string &theFileName, std::string &retPath);
+    std::string searchFile(const std::string &theFileName);
     std::string lastFileNamePart(const char *file_name);
     std::string getExtension(const std::string &thePath);
     std::string removeExtension(const std::string &theFileName);

@@ -3,7 +3,7 @@
 #include "file_functions.h"
 
 #include <iostream>
-#include <vector>
+#include <limits>
 
 namespace kinski {
     
@@ -85,8 +85,8 @@ namespace kinski {
         return theSeverity <= m_globalSeverity;
     }
 
-    void Logger::log(Severity theSeverity, const char * theModule, int theId,
-                     const std::string & theText)
+    void Logger::log(Severity theSeverity, const char *theModule, int theId,
+                     const std::string &theText)
     {
         std::string myLogTag(_myTopLevelLogTag);
         std::ostringstream myText;
