@@ -27,11 +27,13 @@ namespace kinski
     {
         gettimeofday(&m_startTime, NULL);
         
-        LOG_INFO<<"Starting OpenGLES 2.0 App";
-        
         esInitContext ( m_context.get() );
         esCreateWindow ( m_context.get(), getName(), getWidth(), getHeight(),
                         ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH /* | ES_WINDOW_MULTISAMPLE*/);
+        
+        // version
+        LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
+        LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
         
         // file search paths
         kinski::addSearchPath("");

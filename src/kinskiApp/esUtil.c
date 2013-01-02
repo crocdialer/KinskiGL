@@ -173,9 +173,9 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
 //
 void ESUTIL_API esInitContext ( ESContext *esContext )
 {
-#ifdef RPI_NO_X
+//#ifdef RPI_NO_X
    bcm_host_init();
-#endif
+//#endif
    if ( esContext != NULL )
    {
       memset( esContext, 0, sizeof( ESContext) );
