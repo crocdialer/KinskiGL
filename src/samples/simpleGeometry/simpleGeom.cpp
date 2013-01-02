@@ -1,4 +1,4 @@
-#include "kinskiApp/App.h"
+#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
@@ -14,7 +14,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class SimpleGeometryApp : public App
+class SimpleGeometryApp : public GLFW_App
 {
 private:
     
@@ -196,7 +196,7 @@ public:
         cloneMat1.setWireframe(false);
         
         //gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
-        gl::drawTexture(cloneMat1.textures()[0], getWindowSize());
+        gl::drawTexture(cloneMat1.textures()[0], windowSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
@@ -266,7 +266,7 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
-        App::keyPress(e);
+        GLFW_App::keyPress(e);
         
         switch (e.getChar())
         {

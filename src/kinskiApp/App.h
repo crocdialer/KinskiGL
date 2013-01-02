@@ -5,11 +5,6 @@
 #include "kinskiCore/Component.h"
 #include "kinskiCore/Logger.h"
 
-#define GLFW_INCLUDE_GL3
-#define GLFW_NO_GLU
-#include <GL/glfw.h>
-#include <AntTweakBar.h>
-
 namespace kinski
 {
     class MouseEvent;
@@ -21,8 +16,6 @@ namespace kinski
         typedef std::shared_ptr<App> Ptr;
         typedef std::weak_ptr<App> WeakPtr;
         
-        static Ptr getInstance();
-        
         App(const int width = 800, const int height = 600);
         virtual ~App();
         
@@ -32,97 +25,51 @@ namespace kinski
         virtual void setup() = 0;
         virtual void update(const float timeDelta) = 0;
         virtual void draw() = 0;
+        virtual void tearDown(){};
+        
+        virtual void swapBuffers() = 0;
         
         // these are optional overrides
+        virtual void setWindowSize(const glm::ivec2 size){ m_windowSize = size; };
         virtual void resize(int w, int h){};
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};
         virtual void mouseMove(const MouseEvent &e){};
         virtual void mouseDrag(const MouseEvent &e){};
         virtual void mouseWheel(const MouseEvent &e){};
-        virtual void keyPress(const KeyEvent &e);
+        virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
         
-        virtual void tearDown(){};
-        
+
+        bool running(){return m_running;};
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
-        inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
-        inline const glm::vec2 getWindowSize(){return m_windowSize;};
-        
         inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::ivec2(w, h));};
-        void setWindowSize(const glm::ivec2 size);
+        inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
+        inline const glm::vec2 windowSize(){return m_windowSize;};
         
-        inline bool fullSceen() const {return m_fullscreen;};
-        inline void setFullSceen(bool b = true){m_fullscreen = b;};
         
-        bool cursorVisible() const { return m_cursorVisible;};
-        void setCursorVisible(bool b = true){ m_cursorVisible = b;};
+        virtual bool fullSceen() const {return m_fullscreen;};
+        virtual void setFullSceen(bool b = true){m_fullscreen = b;};
         
-        double getApplicationTime();
+        virtual bool cursorVisible() const { return m_cursorVisible;};
+        virtual void setCursorVisible(bool b = true){ m_cursorVisible = b;};
         
-        void setDisplayTweakBar(bool b){m_displayTweakBar = b;};
-        bool displayTweakBar() const {return m_displayTweakBar;};
-        
-        void addPropertyToTweakBar(const Property::Ptr propPtr,
-                                   const std::string &group = "",
-                                   TwBar *theBar = NULL);
-        
-        void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
-                                       const std::string &group = "",
-                                       TwBar *theBar = NULL);
-        
-        void setBarPosition(const glm::ivec2 &thePos, TwBar *theBar = NULL);
-        void setBarSize(const glm::ivec2 &theSize, TwBar *theBar = NULL);
-        void setBarColor(const glm::vec4 &theColor, TwBar *theBar = NULL);
-        void setBarTitle(const std::string &theTitle, TwBar *theBar = NULL);
-        
-        const std::map<TwBar*, Property::Ptr>& 
-        getTweakProperties() const {return m_tweakProperties;};
+        virtual double getApplicationTime() = 0;
         
     private:
         
-        static WeakPtr s_instance;
+        virtual void draw_internal();
+        virtual void init() = 0;
+        virtual bool checkRunning(){return true;};
         
-        // GLFW static callbacks
-        static void s_resize(int w, int h){getInstance()->__resize(w, h);};
-        static void s_mouseMove(int x, int y){getInstance()->__mouseMove(x, y);};
-        static void s_mouseButton(int button, int action){getInstance()->__mouseButton(button, action);};
-        static void s_mouseWheel(int pos){getInstance()->__mouseWheel(pos);};
-        
-        static void s_keyFunc(int key, int action){getInstance()->__keyFunc(key, action);};
-        static void s_charFunc(int key, int action){getInstance()->__charFunc(key, action);};
-        
-        void __resize(int w,int h);
-        void __mouseMove(int x,int y);
-        void __mouseButton(int button, int action);
-        void __mouseWheel(int pos);
-        
-        void __keyFunc(int key, int action);
-        void __charFunc(int key, int action);
-        
-        // return the current key and mouse button modifier mask
-        void getModifiers(uint32_t &buttonModifiers, uint32_t &keyModifiers);
-        
-        // internal initialization. performed when run is invoked
-        void init();
-        
-        GLint m_running;
+        uint32_t m_framesDrawn;
         double m_lastTimeStamp;
-        uint64_t m_framesDrawn;
-
-        std::list<TwBar*> m_tweakBarList;
-        bool m_displayTweakBar;
         
-        std::map<TwBar*, Property::Ptr> m_tweakProperties;
-        
-        // might go into a settings struct
         glm::vec2 m_windowSize;
-        
+        bool m_running;
         bool m_fullscreen;
-        
         bool m_cursorVisible;
-        
     };
     
     //! Base class for all Events

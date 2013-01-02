@@ -1,6 +1,7 @@
 #include "kinskiApp/App.h"
 #include "kinskiApp/TextureIO.h"
 #include "kinskiGL/Material.h"
+#include "kinskiGL/Buffer.h"
 #include "kinskiGL/Camera.h"
 
 #include "kinskiGL/SerializerGL.h"
@@ -36,7 +37,7 @@ private:
     float m_lastDistance;
     
     
-    GLuint m_vboPos, m_vboCol;
+    gl::Buffer m_vboPos, m_vboCol;
     
     //OpenCL standard stuff
     cl::Context m_context;
@@ -114,7 +115,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            std::cout << error.what() << "(" << error.err() << ")" << std::endl;
+            LOG_ERROR << error.what() << "(" << error.err() << ")";
         }
     }
     
@@ -150,7 +151,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            std::cout << error.what() << "(" << error.err() << ")" << std::endl;
+            LOG_ERROR << error.what() << "(" << error.err() << ")";
         }
     }
     
@@ -198,12 +199,13 @@ public:
         m_numParticles = 50000;
         GLsizei numBytes = m_numParticles * sizeof(vec4);
         
-        m_vboPos = gl::createVBO(numBytes, GL_ARRAY_BUFFER, GL_STREAM_DRAW, true);
+        m_vboPos = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
+        m_vboPos.setData(NULL, numBytes);
         
         try
         {
             // shared position buffer for OpenGL / OpenCL
-            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_vboPos);
+            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_vboPos.id());
             
             //create the OpenCL only arrays
             m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
@@ -225,10 +227,7 @@ public:
                 velGen.push_back(vec4(tmp.x, yVel, tmp.y, life)); 
             }
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_vboPos);
-            vec4 *bufPtr = (vec4*) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-            memcpy(bufPtr, &posGen[0], sizeof(vec4) * posGen.size());
-            glUnmapBuffer(GL_ARRAY_BUFFER);
+            m_vboPos.setData(posGen);
             
             
             m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes,
@@ -247,7 +246,7 @@ public:
         }
         catch(cl::Error &error)
         {
-            std::cout << error.what() << "(" << error.err() << ")" << std::endl;
+            LOG_ERROR << error.what() << "(" << error.err() << ")";
         }
     }
     
@@ -274,7 +273,7 @@ public:
         
         //gl::drawTexture(m_texture, getWindowSize());
         
-        gl::drawPoints(m_vboPos, m_numParticles, m_pointMaterial, sizeof(vec4));
+        gl::drawPoints(m_vboPos.id(), m_numParticles, m_pointMaterial, sizeof(vec4));
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)
@@ -287,7 +286,7 @@ public:
                 m_texture = gl::TextureIO::loadTexture(m_texturePath->val());
             } catch (gl::TextureIO::TextureNotFoundException &e)
             {
-                cout<<"WARNING: "<< e.what() << endl;
+                LOG_WARNING << e.what();
                 
                 m_texturePath->removeObserver(shared_from_this());
                 m_texturePath->val("- not found -");

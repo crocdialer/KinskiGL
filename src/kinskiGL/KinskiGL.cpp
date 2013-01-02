@@ -115,39 +115,6 @@ namespace kinski { namespace gl {
             g_modelViewMatrixStack.push(mat4());
     }
     
-    template<class T>
-    GLuint createVBO(const std::vector<T> &theVec, GLenum target, GLenum usage)
-    {
-        GLsizei numBytes = theVec.size() * sizeof(T);
-        
-        GLuint outObj = createVBO(numBytes, target, usage);
-        glBindBuffer(target, outObj);
-        glBufferData(target, numBytes, &theVec[0], usage);
-        glBindBuffer(target, 0);
-        
-        return outObj;
-    }
-    
-    GLuint createVBO(GLsizei numBytes, GLenum target, GLenum usage, bool initWithZeros)
-    {
-        GLuint outObj = 0;
-        
-        glGenBuffers(1, &outObj);
-        glBindBuffer(target, outObj);
-        glBufferData(target, numBytes, NULL, usage);
-        
-        if(initWithZeros)
-        {
-            GLfloat *ptr = (GLfloat*) GL_SUFFIX(glMapBuffer)(target, GL_ENUM(GL_WRITE_ONLY));
-            memset(ptr, 0, numBytes);
-            GL_SUFFIX(glUnmapBuffer)(target);
-        }
-        
-        glBindBuffer(target, 0);
-        
-        return outObj;
-    }
-    
     void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
     {
         static vector<vec3> thePoints;

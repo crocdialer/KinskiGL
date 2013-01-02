@@ -81,11 +81,6 @@ namespace kinski { namespace gl {
     
     void setWindowDimension(const glm::vec2 &theDim);
     
-    template<class T> GLuint createVBO(const std::vector<T> &theVec, GLenum target, GLenum usage);
-    
-    GLuint createVBO(GLsizei numBytes, GLenum target, GLenum usage, bool initWithZeros = false);
-    
-    
     /********************************* Drawing Functions *****************************************/
     
     void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));

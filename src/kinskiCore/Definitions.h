@@ -46,6 +46,10 @@ namespace kinski
 #define KINSKI_MSW
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 #define KINSKI_LINUX
+#ifdef __arm__
+#define KINSKI_RASPI
+#endif
+
 #elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
 #define KINSKI_COCOA
 #include "TargetConditionals.h"
