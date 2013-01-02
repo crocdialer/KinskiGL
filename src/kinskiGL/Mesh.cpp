@@ -47,7 +47,7 @@ namespace kinski { namespace gl {
         
         // define attrib pointer (vertex)
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
-        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer());
+        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer().id());
         glEnableVertexAttribArray(vertexAttribLocation);
         glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
         
@@ -55,7 +55,7 @@ namespace kinski { namespace gl {
         {
             GLuint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer().id());
             
             // define attrib pointer (tangent)
             glEnableVertexAttribArray(normalAttribLocation);
@@ -66,7 +66,7 @@ namespace kinski { namespace gl {
         {
             GLuint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer().id());
             
             // define attrib pointer (tangent)
             glEnableVertexAttribArray(texCoordAttribLocation);
@@ -77,7 +77,7 @@ namespace kinski { namespace gl {
         {
             GLuint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->tangentBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->tangentBuffer().id());
             
             // define attrib pointer (tangent)
             glEnableVertexAttribArray(tangentAttribLocation);
@@ -88,7 +88,7 @@ namespace kinski { namespace gl {
         {
             GLuint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->colorBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->colorBuffer().id());
             
             // define attrib pointer (colors)
             glEnableVertexAttribArray(colorAttribLocation);
@@ -100,7 +100,7 @@ namespace kinski { namespace gl {
             GLuint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
             GLuint boneWeightsAttribLocation = shader.getAttribLocation(m_boneWeightsLocationName);
             
-            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->boneBuffer());
+            glBindBuffer(GL_ARRAY_BUFFER, m_geometry->boneBuffer().id());
             
             // define attrib pointer (boneIDs)
             glEnableVertexAttribArray(boneIdsAttribLocation);
@@ -117,7 +117,7 @@ namespace kinski { namespace gl {
         }
         
         // index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer());
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
         
         GL_SUFFIX(glBindVertexArray)(0);
     }

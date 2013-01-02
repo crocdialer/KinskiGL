@@ -13,40 +13,14 @@ using namespace std;
 namespace kinski{ namespace gl{
     
     Geometry::Geometry():
-    m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0))),
-    m_vertexBuffer(0),
-    m_normalBuffer(0),
-    m_texCoordBuffer(0),
-    m_tangentBuffer(0),
-    m_boneBuffer(0),
-    m_colorBuffer(0),
-    m_indexBuffer(0)
+    m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0)))
     {
     
     }
     
     Geometry::~Geometry()
     {
-        if(m_vertexBuffer)
-            glDeleteBuffers(1, &m_vertexBuffer);
-        
-        if(m_normalBuffer)
-            glDeleteBuffers(1, &m_normalBuffer);
-        
-        if(m_texCoordBuffer)
-            glDeleteBuffers(1, &m_texCoordBuffer);
-        
-        if(m_tangentBuffer)
-            glDeleteBuffers(1, &m_tangentBuffer);
-        
-        if(m_boneBuffer)
-            glDeleteBuffers(1, &m_boneBuffer);
-
-        if(m_colorBuffer)
-            glDeleteBuffers(1, &m_colorBuffer);
-        
-        if(m_indexBuffer)
-            glDeleteBuffers(1, &m_indexBuffer); 
+  
     }
     
     void Geometry::appendVertices(const std::vector<glm::vec3> &theVerts)
@@ -243,78 +217,44 @@ namespace kinski{ namespace gl{
     
     void Geometry::createGLBuffers()
     {
-        if(!m_vertexBuffer)
-            glGenBuffers(1, &m_vertexBuffer);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, m_vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices[0]) * m_vertices.size(),
-                     &m_vertices[0], GL_STREAM_DRAW);//STREAM
+        m_vertexBuffer.setData(m_vertices);
         
         // insert normals
         if(hasNormals())
         {
-            if(!m_normalBuffer)
-                glGenBuffers(1, &m_normalBuffer);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, m_normalBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(m_normals[0]) * m_normals.size(),
-                         &m_normals[0], GL_STREAM_DRAW);//STREAM
+            m_normalBuffer.setData(m_normals);
         }
         
         // insert normals
         if(hasTexCoords())
         {
-            if(!m_texCoordBuffer)
-                glGenBuffers(1, &m_texCoordBuffer);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, m_texCoordBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(m_texCoords[0]) * m_texCoords.size(),
-                         &m_texCoords[0], GL_STREAM_DRAW);//STREAM
+            m_texCoordBuffer.setData(m_texCoords);
         }
         
         // insert tangents
         if(hasTangents())
         {
-            if(!m_tangentBuffer)
-                glGenBuffers(1, &m_tangentBuffer);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, m_tangentBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(m_tangents[0]) * m_tangents.size(),
-                         &m_tangents[0], GL_STREAM_DRAW);//STREAM
+            m_tangentBuffer.setData(m_tangents);
         }
         
         // insert colors
         if(hasColors())
         {
-            if(!m_colorBuffer)
-                glGenBuffers(1, &m_colorBuffer);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, m_colorBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors[0]) * m_colors.size(),
-                         &m_colors[0], GL_STREAM_DRAW);//STREAM
+            m_colorBuffer.setData(m_colors);
         }
         
         // insert bone indices and weights
         if(hasBones())
         {
-            if(!m_boneBuffer)
-                glGenBuffers(1, &m_boneBuffer);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, m_boneBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(BoneVertexData) * m_vertices.size(),
-                         &m_boneVertexData[0], GL_STREAM_DRAW);//STREAM
+            m_boneBuffer.setData(m_boneVertexData);
         }
         
         // index buffer
-        if(!m_indexBuffer)
-            glGenBuffers(1, &m_indexBuffer);
+        m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW);
         
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBuffer);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * m_faces.size() * sizeof(GLuint), NULL,
-                     GL_STREAM_DRAW );
+        m_indexBuffer.setData(NULL, 3 * m_faces.size() * sizeof(GLuint));
         
-        GLuint *indexBuffer = (GLuint*) GL_SUFFIX(glMapBuffer)(GL_ELEMENT_ARRAY_BUFFER,
-                                                               GL_ENUM(GL_WRITE_ONLY));
+        GLuint *indexBuffer = (GLuint*) m_indexBuffer.map();
         
         // insert indices
         vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
@@ -329,10 +269,7 @@ namespace kinski{ namespace gl{
             }
         }
         
-        GL_SUFFIX(glUnmapBuffer)(GL_ELEMENT_ARRAY_BUFFER);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        m_indexBuffer.unmap();
     }
     
     void Geometry::updateAnimation(float time)

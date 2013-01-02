@@ -10,6 +10,7 @@
 #define __kinskiGL__Geometry__
 
 #include "KinskiGL.h"
+#include "Buffer.h"
 
 namespace kinski{ namespace gl{
     
@@ -185,13 +186,13 @@ namespace kinski{ namespace gl{
         inline const BoundingBox& boundingBox() const { return m_boundingBox; };
         
         // GL buffers
-        GLuint vertexBuffer() const { return m_vertexBuffer; };
-        GLuint normalBuffer() const { return m_normalBuffer; };
-        GLuint texCoordBuffer() const { return m_texCoordBuffer; };
-        GLuint tangentBuffer() const { return m_tangentBuffer; };
-        GLuint colorBuffer() const { return m_colorBuffer; };
-        GLuint boneBuffer() const { return m_boneBuffer; };
-        GLuint indexBuffer() const { return m_indexBuffer; };
+        const gl::Buffer& vertexBuffer() const { return m_vertexBuffer; };
+        const gl::Buffer& normalBuffer() const { return m_normalBuffer; };
+        const gl::Buffer& texCoordBuffer() const { return m_texCoordBuffer; };
+        const gl::Buffer& tangentBuffer() const { return m_tangentBuffer; };
+        const gl::Buffer& colorBuffer() const { return m_colorBuffer; };
+        const gl::Buffer& boneBuffer() const { return m_boneBuffer; };
+        const gl::Buffer& indexBuffer() const { return m_indexBuffer; };
         
         void createGLBuffers();
         
@@ -219,13 +220,13 @@ namespace kinski{ namespace gl{
         
         BoundingBox m_boundingBox;
         
-        GLuint m_vertexBuffer;
-        GLuint m_normalBuffer;
-        GLuint m_texCoordBuffer;
-        GLuint m_tangentBuffer;
-        GLuint m_boneBuffer;
-        GLuint m_colorBuffer;
-        GLuint m_indexBuffer;
+        gl::Buffer m_vertexBuffer;
+        gl::Buffer m_normalBuffer;
+        gl::Buffer m_texCoordBuffer;
+        gl::Buffer m_tangentBuffer;
+        gl::Buffer m_boneBuffer;
+        gl::Buffer m_colorBuffer;
+        gl::Buffer m_indexBuffer;
         
         bool m_needsUpdate;
     };

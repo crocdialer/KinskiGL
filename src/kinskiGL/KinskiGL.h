@@ -10,10 +10,19 @@
 #define KINSKI_GLES
 #endif
 
+#ifdef KINSKI_GLES // GLES2
 #ifdef KINSKI_COCOA_TOUCH
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
-#elif defined(KINSKI_COCOA)
+
+#else // general
+#include <ES2/gl.h>
+#import <ES2/glext.h>
+#endif
+
+
+#elif defined(KINSKI_COCOA)// desktop GL3
+
 #include <OpenGL/gl3.h>
 #else
 #include <GL3/gl3.h>
@@ -41,6 +50,7 @@
 namespace kinski { namespace gl {
 
     // forward declarations
+    class Buffer;
     class Texture;
     class Material;
     class Shader;
