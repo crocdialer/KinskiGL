@@ -40,8 +40,7 @@ class Buffer
     
     // map and unmap the buffer to local memory
     char* map();
-    char* map() const;
-    void unmap() const;
+    void unmap();
     
     GLint id() const;
     GLenum target() const;

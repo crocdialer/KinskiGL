@@ -94,7 +94,7 @@ namespace kinski { namespace gl {
             glEnableVertexAttribArray(colorAttribLocation);
             glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
         }
-        
+#ifndef KINSKI_GLES 
         if(m_geometry->hasBones())
         {
             GLuint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
@@ -115,7 +115,7 @@ namespace kinski { namespace gl {
                                   BUFFER_OFFSET(sizeof(glm::ivec4)));
             
         }
-        
+#endif
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
         

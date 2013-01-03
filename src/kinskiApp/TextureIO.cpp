@@ -33,7 +33,22 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
     
     switch(theImage.channels()) 
 	{
+#ifdef KINSKI_RASPI
 		case 1:
+            format = GL_LUMINANCE;
+			break;
+		case 2:
+            format = GL_LUMINANCE_ALPHA;
+			break;
+		case 3:
+			format = GL_RGB;
+			break;
+        case 4:
+			format = GL_RGBA;
+		default:
+			break;
+#else        
+        case 1:
             format = GL_RED;
 			break;
 		case 2:
@@ -46,6 +61,7 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
 			format = GL_BGRA;
 		default:
 			break;
+#endif
 	}
     // requires OpenGL 3.3
     //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};

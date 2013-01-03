@@ -4,7 +4,7 @@
 #include <GLES2/gl2.h>
 #include <EGL/egl.h>
 #include "esUtil.h"
-#include "MiniApp.h"
+#include "Raspi_App.h"
 
 using namespace std;
 

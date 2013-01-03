@@ -234,7 +234,7 @@ namespace kinski
     
     CVDiskWriterNode::~CVDiskWriterNode()
     {
-        m_videoWriter.release();
+        //m_videoWriter.release();
     }
     
     string CVDiskWriterNode::getDescription()
@@ -264,7 +264,10 @@ namespace kinski
     void CVDiskWriterNode::updateProperty(const Property::ConstPtr &theProperty)
     {
         if(theProperty == m_videoSrc)
-            m_videoWriter.release();
+        {
+            m_videoWriter = cv::VideoWriter();
+            //m_videoWriter.release();
+        }
     }
 }
 

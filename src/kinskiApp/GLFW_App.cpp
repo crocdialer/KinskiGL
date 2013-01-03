@@ -1,5 +1,7 @@
-#include "kinskiCore/file_functions.h"
+#include "kinskiGL/KinskiGL.h"
+#ifndef KINSKI_RASPI 
 #include "GLFW_App.h"
+#include "kinskiCore/file_functions.h"
 #include "AntTweakBarConnector.h"
 
 using namespace std;
@@ -361,3 +363,4 @@ namespace kinski
         TwDefine(ss.str().c_str());
     }
 }
+#endif

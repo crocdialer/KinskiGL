@@ -6,7 +6,7 @@
 #include "kinskiCore/Logger.h"
 #include "kinskiCore/file_functions.h"
 
-#ifdef KINSKI_COCOA_TOUCH
+#if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
 #endif
 
@@ -16,8 +16,8 @@
 #import <OpenGLES/ES2/glext.h>
 
 #else // general
-#include <ES2/gl.h>
-#import <ES2/glext.h>
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #endif
 
 
