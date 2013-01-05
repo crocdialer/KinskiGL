@@ -526,8 +526,11 @@ namespace kinski { namespace gl {
         }
         
         theMesh->material()->apply();
+        
 #ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
+#else
+        theMesh->bindVertexPointers();
 #endif
         glDrawElements(GL_TRIANGLES, 3 * theMesh->geometry()->faces().size(),
                        GL_UNSIGNED_INT, BUFFER_OFFSET(0));

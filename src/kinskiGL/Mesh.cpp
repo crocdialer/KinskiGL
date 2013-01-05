@@ -34,16 +34,12 @@ namespace kinski { namespace gl {
 #endif
     }
     
-    void Mesh::createVertexArray()
+    void Mesh::bindVertexPointers()
     {
         Shader& shader = m_material->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
-#ifndef KINSKI_NO_VAO 
-        if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
-        GL_SUFFIX(glBindVertexArray)(m_vertexArray);
-#endif        
         // create VBOs if not yet existing
         if(!m_geometry->vertexBuffer())
             m_geometry->createGLBuffers();
@@ -97,7 +93,7 @@ namespace kinski { namespace gl {
             glEnableVertexAttribArray(colorAttribLocation);
             glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
         }
-#ifndef KINSKI_GLES 
+        
         if(m_geometry->hasBones())
         {
             GLuint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
@@ -107,9 +103,17 @@ namespace kinski { namespace gl {
             
             // define attrib pointer (boneIDs)
             glEnableVertexAttribArray(boneIdsAttribLocation);
-            glVertexAttribIPointer(boneIdsAttribLocation, 4, GL_INT,
-                                  sizeof(gl::BoneVertexData),
-                                  BUFFER_OFFSET(0));
+            
+            // use ivec4 to submit bone-indices on Dekstop GL
+#ifndef KINSKI_GLES
+            glVertexAttribIPointer(boneIdsAttribLocation, 4, GL_INT, sizeof(gl::BoneVertexData),
+                                   BUFFER_OFFSET(0));
+            
+            // else fall back to float vec4 for GLES2
+#else
+            glVertexAttribPointer(boneIdsAttribLocation, 4, GL_INT, GL_FALSE,
+                                  sizeof(gl::BoneVertexData), BUFFER_OFFSET(0));
+#endif
             
             // define attrib pointer (boneWeights)
             glEnableVertexAttribArray(boneWeightsAttribLocation);
@@ -118,14 +122,20 @@ namespace kinski { namespace gl {
                                   BUFFER_OFFSET(sizeof(glm::ivec4)));
             
         }
-#endif
+        
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
-        
-#ifndef KINSKI_NO_VAO 
-        GL_SUFFIX(glBindVertexArray)(0);
-#endif
     }
+
+#ifndef KINSKI_NO_VAO
+    void Mesh::createVertexArray()
+    {
+        if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
+        GL_SUFFIX(glBindVertexArray)(m_vertexArray);
+        bindVertexPointers();
+        GL_SUFFIX(glBindVertexArray)(0);
+    }
+#endif
     
     void Mesh::setVertexLocationName(const std::string &theName)
     {

@@ -49,7 +49,6 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/noise.hpp>
 #include <glm/gtc/random.hpp>
-#include <glm/gtx/matrix_interpolation.hpp>
 
 namespace kinski { namespace gl {
 
