@@ -29,7 +29,9 @@ namespace kinski { namespace gl {
     
     Mesh::~Mesh()
     {
+#ifndef KINSKI_NO_VAO 
         if(m_vertexArray) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArray);
+#endif
     }
     
     void Mesh::createVertexArray()
@@ -38,9 +40,10 @@ namespace kinski { namespace gl {
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
+#ifndef KINSKI_NO_VAO 
         if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
         GL_SUFFIX(glBindVertexArray)(m_vertexArray);
-        
+#endif        
         // create VBOs if not yet existing
         if(!m_geometry->vertexBuffer())
             m_geometry->createGLBuffers();
@@ -94,7 +97,7 @@ namespace kinski { namespace gl {
             glEnableVertexAttribArray(colorAttribLocation);
             glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
         }
-        
+#ifndef KINSKI_GLES 
         if(m_geometry->hasBones())
         {
             GLuint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
@@ -115,11 +118,13 @@ namespace kinski { namespace gl {
                                   BUFFER_OFFSET(sizeof(glm::ivec4)));
             
         }
-        
+#endif
         // index buffer
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
         
+#ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(0);
+#endif
     }
     
     void Mesh::setVertexLocationName(const std::string &theName)

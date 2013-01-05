@@ -15,7 +15,6 @@
 //    OpenGL ES 2.0 Programming Guide.
 //
 
-#ifdef KINSKI_RASPI
 ///
 //  Includes
 //
@@ -173,9 +172,8 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
 //
 void ESUTIL_API esInitContext ( ESContext *esContext )
 {
-//#ifdef RPI_NO_X
    bcm_host_init();
-//#endif
+
    if ( esContext != NULL )
    {
       memset( esContext, 0, sizeof( ESContext) );
@@ -235,4 +233,3 @@ GLboolean ESUTIL_API esCreateWindow ( ESContext *esContext, const char* title, G
 
    return GL_TRUE;
 }
-#endif

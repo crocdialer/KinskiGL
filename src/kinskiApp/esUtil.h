@@ -47,7 +47,7 @@ extern "C" {
 /// esCreateWindow flag - multi-sample buffer
 #define ES_WINDOW_MULTISAMPLE   8
 
-typedef struct
+typedef struct _escontext
 {
    /// Window width
    GLint       width;

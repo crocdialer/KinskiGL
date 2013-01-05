@@ -70,23 +70,15 @@ GLint Buffer::id() const
     return m_Obj->buffer_id;
 }
 
-char* Buffer::map() const
-{
-    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-    char *ptr = (char*) GL_SUFFIX(glMapBuffer)(m_Obj->target, GL_ENUM(GL_READ_ONLY));
-    glBindBuffer(m_Obj->target, 0);
-    return ptr;
-}
-
 char* Buffer::map()
 {
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-    char *ptr = (char*) GL_SUFFIX(glMapBuffer)(m_Obj->target, GL_ENUM(GL_READ_WRITE));
+    char *ptr = (char*) GL_SUFFIX(glMapBuffer)(m_Obj->target, GL_ENUM(GL_WRITE_ONLY));
     glBindBuffer(m_Obj->target, 0);
     return ptr;
 }
 
-void Buffer::unmap() const
+void Buffer::unmap()
 {
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
     GL_SUFFIX(glUnmapBuffer)(m_Obj->target);

@@ -1,4 +1,5 @@
 #include "kinskiGL/KinskiGL.h"
+#ifndef KINSKI_RASPI 
 #include "AntTweakBarConnector.h"
 #include <iostream>
 #include <sstream>
@@ -297,3 +298,4 @@ namespace kinski
         }
     }
 }
+#endif
