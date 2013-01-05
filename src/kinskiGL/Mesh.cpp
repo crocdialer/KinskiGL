@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
 #endif
     }
     
-    void Mesh::bindVertexPointers()
+    void Mesh::bindVertexPointers() const
     {
         Shader& shader = m_material->shader();
         if(!shader)

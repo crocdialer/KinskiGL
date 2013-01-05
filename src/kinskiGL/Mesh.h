@@ -32,7 +32,7 @@ namespace kinski { namespace gl {
         const Material::Ptr& material() const { return m_material; };
         Material::Ptr& material() { return m_material; };
         
-        void bindVertexPointers();
+        void bindVertexPointers() const;
         
 #ifndef KINSKI_NO_VAO
         void createVertexArray();
