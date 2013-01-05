@@ -541,7 +541,7 @@ namespace kinski { namespace gl {
     
     void drawBoundingBox(const std::weak_ptr<const Mesh> &weakMesh)
     {
-#ifndef KINSKI_GLES
+//#ifndef KINSKI_GLES
         static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
         
         
@@ -596,7 +596,7 @@ namespace kinski { namespace gl {
         }
         
         gl::drawLines(theMap[weakMesh], vec4(1));
-#endif
+//#endif
     }
 
     void drawNormals(const std::weak_ptr<const Mesh> &theMesh)

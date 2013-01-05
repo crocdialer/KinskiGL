@@ -35,6 +35,8 @@ namespace kinski
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
         
+        setWindowSize(glm::ivec2(windowSize()));
+
         // file search paths
         kinski::addSearchPath("");
         kinski::addSearchPath("./");
@@ -46,7 +48,11 @@ namespace kinski
     
     void Raspi_App::setWindowSize(const glm::ivec2 size)
     {
-         
+        App::setWindowSize(size);
+        gl::setWindowDimension(glm::vec2(size));
+        
+        glViewport(0, 0, size[0], size[1]);
+        if(running()) resize(size[0], size[1]);
     }
     
     void Raspi_App::swapBuffers()

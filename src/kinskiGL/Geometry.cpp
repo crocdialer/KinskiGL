@@ -250,7 +250,7 @@ namespace kinski{ namespace gl{
         }
         
         // index buffer
-        m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW);
+        m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
         
         m_indexBuffer.setData(NULL, 3 * m_faces.size() * sizeof(GLuint));
         

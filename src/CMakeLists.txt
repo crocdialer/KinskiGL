@@ -24,6 +24,7 @@ SET(LIBS ${LIBS} "kinskiCore")
 
 ADD_SUBDIRECTORY("kinskiGL")
 INCLUDE_DIRECTORIES("kinskiGL")
+SET(LIBS ${LIBS} "kinskiGL")
 
 if(NOT (BUILD_IOS OR KINSKI_RASPI))
 ADD_SUBDIRECTORY("AntTweakBar")
@@ -32,13 +33,14 @@ SET(LIBS ${LIBS} "AntTweakBar")
 endif()
 
 #ADD_SUBDIRECTORY("kinskiCV")
+#SET(LIBS ${LIBS} "kinskiCV")
 
 if(BUILD_APPLIB)
 ADD_SUBDIRECTORY("kinskiApp")
+SET(LIBS ${LIBS} "kinskiApp")
 endif(BUILD_APPLIB)
 
 
-SET(LIBS ${LIBS} "kinskiGL" "kinskiApp")
 
 if(BUILD_SAMPLES)
     if(KINSKI_RASPI)
