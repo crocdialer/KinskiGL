@@ -21,7 +21,7 @@
 
 #else // general
 #include <GLES2/gl2.h>
-#include <GLES2/glext2.h>
+#include <GLES2/gl2ext.h>
 #endif
 
 
