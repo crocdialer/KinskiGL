@@ -127,15 +127,15 @@ namespace kinski { namespace gl {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
     }
 
-#ifndef KINSKI_NO_VAO
     void Mesh::createVertexArray()
     {
+#ifndef KINSKI_NO_VAO
         if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
         GL_SUFFIX(glBindVertexArray)(m_vertexArray);
         bindVertexPointers();
         GL_SUFFIX(glBindVertexArray)(0);
-    }
 #endif
+    }
     
     void Mesh::setVertexLocationName(const std::string &theName)
     {

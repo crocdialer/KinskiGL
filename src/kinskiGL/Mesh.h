@@ -34,9 +34,7 @@ namespace kinski { namespace gl {
         
         void bindVertexPointers() const;
         
-#ifndef KINSKI_NO_VAO
         void createVertexArray();
-#endif
         
         GLuint vertexArray() const { return m_vertexArray; };
         
