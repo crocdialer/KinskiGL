@@ -10,6 +10,10 @@
 #define KINSKI_GLES
 #endif
 
+#if defined(KINSKI_RASPI)
+#define KINSKI_NO_VAO
+#endif
+
 #ifdef KINSKI_GLES // GLES2
 #ifdef KINSKI_COCOA_TOUCH
 #import <OpenGLES/ES2/gl.h>

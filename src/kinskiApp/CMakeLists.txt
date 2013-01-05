@@ -12,8 +12,11 @@ SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 #####
 else()
 #list(REMOVE_ITEM FOLDER_SOURCES "GLFW_App.cpp")
-#list(REMOVE_ITEM FOLDER_HEADERS "GLFW_App.h")
-#message(${FOLDER_SOURCES})
+FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp)
+FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h)
+
+include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads")
+link_directories("/opt/vc/lib")
 endif()
 
 add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})

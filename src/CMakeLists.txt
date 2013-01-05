@@ -31,15 +31,19 @@ INCLUDE_DIRECTORIES("AntTweakBar")
 SET(LIBS ${LIBS} "AntTweakBar")
 endif()
 
-ADD_SUBDIRECTORY("kinskiCV")
+#ADD_SUBDIRECTORY("kinskiCV")
 
 if(BUILD_APPLIB)
 ADD_SUBDIRECTORY("kinskiApp")
 endif(BUILD_APPLIB)
 
 
-SET(LIBS ${LIBS} "kinskiGL" "kinskiCV" "kinskiApp")
+SET(LIBS ${LIBS} "kinskiGL" "kinskiApp")
 
 if(BUILD_SAMPLES)
-ADD_SUBDIRECTORY("samples")
+    if(KINSKI_RASPI)
+    ADD_SUBDIRECTORY("samples_raspi")
+    else()
+    ADD_SUBDIRECTORY("samples")
+    endif(KINSKI_RASPI)
 endif(BUILD_SAMPLES)

@@ -193,9 +193,10 @@ namespace kinski { namespace gl {
         
         if(!lineVAO)
         {
+#ifndef KINSKI_NO_VAO
             GL_SUFFIX(glGenVertexArrays)(1, &lineVAO);
             GL_SUFFIX(glBindVertexArray)(lineVAO);
-            
+#endif            
             if(!lineVBO)
                 glGenBuffers(1, &lineVBO);
             
@@ -207,7 +208,9 @@ namespace kinski { namespace gl {
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
             
+#ifndef KINSKI_NO_VAO
             GL_SUFFIX(glBindVertexArray)(0);
+#endif
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
@@ -216,9 +219,13 @@ namespace kinski { namespace gl {
         glBufferData(GL_ARRAY_BUFFER, sizeof(thePoints[0]) * thePoints.size(),
                      &thePoints[0], GL_STREAM_DRAW);
         
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(lineVAO);
+#endif
         glDrawArrays(GL_LINES, 0, thePoints.size());
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
+#endif
     }
     
     void drawPoints(GLuint thePointVBO, GLsizei theCount, const Material::Ptr &theMaterial,
@@ -303,10 +310,11 @@ namespace kinski { namespace gl {
         activeMat->apply();
         
         if(!pointVAO || (activeMat != staticMat) )
-        {
+        {   
+#ifndef KINSKI_NO_VAO
             if(!pointVAO) GL_SUFFIX(glGenVertexArrays)(1, &pointVAO);
             GL_SUFFIX(glBindVertexArray)(pointVAO);
-            
+#endif            
             glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
             
             GLuint vertexAttribLocation = activeMat->shader().getAttribLocation("a_vertex");
@@ -314,14 +322,20 @@ namespace kinski { namespace gl {
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(offset));
             
+#ifndef KINSKI_NO_VAO
             GL_SUFFIX(glBindVertexArray)(0);
+#endif
         }
         
         glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
         
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(pointVAO);
+#endif
         glDrawArrays(GL_POINTS, 0, theCount);
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
+#endif
     }
     
     void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
@@ -356,7 +370,7 @@ namespace kinski { namespace gl {
                 material.setShader(createShader(SHADER_UNLIT));
             } catch (Exception &e)
             {
-                std::cerr << e.what() << std::endl;
+                LOG_ERROR<<e.what();
             }
             
             material.setDepthTest(false);
@@ -395,7 +409,7 @@ namespace kinski { namespace gl {
         
         theMaterial.apply();
         
-        static GLuint canvasVAO = 0;
+        static GLuint canvasVAO = 0, canvasBuffer = 0;
         
         if(!canvasVAO)
         {
@@ -404,13 +418,13 @@ namespace kinski { namespace gl {
                                     1.0,0.0,1.0,0.0,0.0,
                                     1.0,1.0,1.0,1.0,0.0,
                                     0.0,1.0,0.0,1.0,0.0};
-            
+           
+#ifndef KINSKI_NO_VAO
             // create VAO to record all VBO calls
             GL_SUFFIX(glGenVertexArrays)(1, &canvasVAO);
             GL_SUFFIX(glBindVertexArray)(canvasVAO);
-            
-            GLuint canvasBuffer;
-            glGenBuffers(1, &canvasBuffer);
+#endif 
+            if(!canvasBuffer) glGenBuffers(1, &canvasBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, canvasBuffer);
             glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
             
@@ -426,14 +440,17 @@ namespace kinski { namespace gl {
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(0));
             
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-            
-            GL_SUFFIX(glBindVertexArray)(0);
+            //glBindBuffer(GL_ARRAY_BUFFER, 0); 
+            //GL_SUFFIX(glBindVertexArray)(0);
         }
         
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(canvasVAO);
+#endif 
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
+#endif 
     }
     
     void drawGrid(float width, float height, int numW, int numH)
@@ -509,12 +526,14 @@ namespace kinski { namespace gl {
         }
         
         theMesh->material()->apply();
-        
+#ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
+#endif
         glDrawElements(GL_TRIANGLES, 3 * theMesh->geometry()->faces().size(),
                        GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+#ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(0);
-    
+#endif
     }
     
     void drawBoundingBox(const std::weak_ptr<const Mesh> &weakMesh)
@@ -618,7 +637,7 @@ namespace kinski { namespace gl {
         "uniform mat4 u_textureMatrix;\n"
         "attribute vec4 a_vertex;\n"
         "attribute vec4 a_texCoord;\n"
-        "varying vec4 v_texCoord;\n"
+        "varying lowp vec4 v_texCoord;\n"
         "void main()\n"
         "{\n"
         "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
@@ -626,21 +645,25 @@ namespace kinski { namespace gl {
         "}\n";
         
         const char *unlitFragSrc =
+        "precision mediump float;\n"
+        "precision lowp int;\n"
         "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[16];\n"
-        "uniform struct{\n"
+        "uniform sampler2D u_textureMap[4];\n"
+        "uniform struct\n"
+        "{\n"
         "    vec4 diffuse;\n"
         "    vec4 ambient;\n"
         "    vec4 specular;\n"
         "    vec4 emission;\n"
+        "    float shinyness;\n"
         "} u_material;\n"
         "varying vec4 v_texCoord;\n"
         "void main()\n"
         "{\n"
         "    vec4 texColors = vec4(1.0);\n"
-        "    for(int i = 0; i < u_numTextures; i++)\n"
+        "    for(int i = 0; i < 1; i++)\n"
         "    {\n"
-        "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
+        "        texColors *= texture2D(u_textureMap[i], v_texCoord.st);\n"
         "    }\n"
         "    gl_FragColor = u_material.diffuse * texColors;\n"
         "}\n";
@@ -849,7 +872,8 @@ namespace kinski { namespace gl {
         switch (type)
         {
             case SHADER_UNLIT:
-                ret.loadFromData(unlitVertSrc, unlitFragSrc);
+                //ret.loadFromData(unlitVertSrc, unlitFragSrc);
+                ret.loadFromFile("Shader.vsh", "Shader.fsh");
                 break;
             
             case SHADER_PHONG:
