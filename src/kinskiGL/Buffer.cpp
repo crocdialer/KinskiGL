@@ -74,6 +74,9 @@ char* Buffer::map()
 {
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
     char *ptr = (char*) GL_SUFFIX(glMapBuffer)(m_Obj->target, GL_ENUM(GL_WRITE_ONLY));
+    
+    if(!ptr) throw Exception("Could not map gl::Buffer");
+    
     glBindBuffer(m_Obj->target, 0);
     return ptr;
 }
