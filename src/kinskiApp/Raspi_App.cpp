@@ -29,7 +29,7 @@ namespace kinski
 
         esInitContext ( m_context.get() );
         esCreateWindow ( m_context.get(), getName().c_str(), getWidth(), getHeight(),
-                        ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH /* | ES_WINDOW_MULTISAMPLE*/);
+                        ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH  /*| ES_WINDOW_MULTISAMPLE*/);
 
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);

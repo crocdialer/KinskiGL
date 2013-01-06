@@ -79,9 +79,11 @@ public:
 
         // test box shape
         gl::Geometry::Ptr myBox(new gl::Box(glm::vec3(40, 40, 40)));
+        //gl::Geometry::Ptr myBox(new gl::Plane(50, 50));
         
         gl::Material::Ptr myMaterial(new gl::Material);
-        myMaterial->setDiffuse(vec4(glm::linearRand(vec3(0), vec3(1)), 1.0f) );
+        myMaterial->setTwoSided();
+        //myMaterial->setDiffuse(vec4(glm::linearRand(vec3(0), vec3(1)), 1.0f) );
         myMaterial->shader().loadFromFile("Shader.vert", "Shader.frag");
 
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, myMaterial));
@@ -89,6 +91,7 @@ public:
         m_scene.addObject(myBoxMesh);
        
         m_mesh = myBoxMesh;
+        m_material = myMaterial;
 
         // load state from config file
         try
@@ -112,16 +115,23 @@ public:
     
     void draw()
     {
-        gl::drawTexture(m_textures[0], windowSize());
+        //gl::drawTexture(m_textures[0], windowSize());
+        
+        gl::Material cloneMaterial = *m_material;
+        cloneMaterial.setDepthTest(false);
+        cloneMaterial.setDepthWrite(false);
+        gl::drawQuad(cloneMaterial, windowSize() * .5f);
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
         gl::drawGrid(500, 500);
         
-        m_scene.render(m_Camera);
+        //m_scene.render(m_Camera);
 
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
+        gl::drawMesh(m_mesh);
         gl::drawBoundingBox(m_mesh);
+        gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(), m_mesh->geometry()->vertices().size());
     }
     
     
