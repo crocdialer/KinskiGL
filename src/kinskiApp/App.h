@@ -62,9 +62,12 @@ namespace kinski
         virtual void draw_internal();
         virtual void init() = 0;
         virtual bool checkRunning(){return true;};
+        void timing(double timeStamp);
         
         uint32_t m_framesDrawn;
         double m_lastTimeStamp;
+        double m_lastMeasurementTimeStamp;
+        double m_timingInterval;
         
         glm::vec2 m_windowSize;
         bool m_running;

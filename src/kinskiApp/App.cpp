@@ -8,6 +8,8 @@ namespace kinski
     App::App(const int width, const int height):
     Component("KinskiGL"),
     m_framesDrawn(0),
+    m_lastMeasurementTimeStamp(0.0),
+    m_timingInterval(2.0),
     m_windowSize(glm::ivec2(width, height)),
     m_running(false),
     m_fullscreen(false),
@@ -49,8 +51,6 @@ namespace kinski
             // Swap front and back rendering buffers
             swapBuffers();
             
-            m_framesDrawn++;
-            
             // Check if ESC key was pressed or window was closed or whatever
             m_running = checkRunning();
         }
@@ -65,4 +65,18 @@ namespace kinski
     {
         draw();
     };
+    
+    void App::timing(double timeStamp)
+    {
+        m_framesDrawn++;
+        
+        m_lastMeasurementTimeStamp += timeStamp;
+        
+        if(m_lastMeasurementTimeStamp > m_timingInterval)
+        {
+            float fps = m_framesDrawn / m_lastMeasurementTimeStamp;
+            m_framesDrawn = 0;
+            m_lastMeasurementTimeStamp = 0;
+        }
+    }
 }

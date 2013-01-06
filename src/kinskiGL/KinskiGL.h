@@ -6,6 +6,10 @@
 #include "kinskiCore/Logger.h"
 #include "kinskiCore/file_functions.h"
 
+//triggers checks with glGetError()
+#define KINSKI_GL_REPORT_ERRORS
+
+
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
 #endif
@@ -24,7 +28,6 @@
 #include <GLES2/gl2ext.h>
 #endif
 
-
 #elif defined(KINSKI_COCOA)// desktop GL3
 
 #include <OpenGL/gl3.h>
@@ -40,6 +43,28 @@
 #else
 #define GL_SUFFIX(sym) sym
 #define GL_ENUM(sym) sym
+#endif
+
+#ifdef KINSKI_GL_REPORT_ERRORS
+#define KINSKI_CHECK_GL_ERRORS()\
+while(GLenum error = glGetError()){\
+switch(error){\
+case GL_INVALID_ENUM:\
+LOG_ERROR << "GL_INVALID_ENUM"; break;\
+case GL_INVALID_VALUE:\
+LOG_ERROR << "GL_INVALID_VALUE"; break;\
+case GL_INVALID_OPERATION:\
+LOG_ERROR << "GL_INVALID_OPERATION"; break;\
+case GL_INVALID_FRAMEBUFFER_OPERATION:\
+LOG_ERROR << "GL_INVALID_FRAMEBUFFER_OPERATION"; break;\
+case GL_OUT_OF_MEMORY:\
+LOG_ERROR << "GL_OUT_OF_MEMORY"; break;\
+default:\
+LOG_ERROR << "Unknown GLerror"; break;\
+}\
+}
+#else
+#define KINSKI_CHECK_GL_ERRORS()
 #endif
 
 #define GLM_SWIZZLE
@@ -115,7 +140,7 @@ namespace kinski { namespace gl {
     void drawBoundingBox(const std::weak_ptr<const Mesh> &theMesh);
     
     void drawNormals(const std::weak_ptr<const Mesh> &theMesh);
-    
+        
     /*********************************** Shader Factory *******************************************/
     
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};

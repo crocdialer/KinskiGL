@@ -336,6 +336,8 @@ namespace kinski { namespace gl {
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
+        
+        KINSKI_CHECK_GL_ERRORS();
     }
     
     void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
@@ -451,6 +453,7 @@ namespace kinski { namespace gl {
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
 #endif 
+        KINSKI_CHECK_GL_ERRORS();
     }
     
     void drawGrid(float width, float height, int numW, int numH)
@@ -538,6 +541,8 @@ namespace kinski { namespace gl {
 #ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
+        
+        KINSKI_CHECK_GL_ERRORS();
     }
     
     void drawBoundingBox(const std::weak_ptr<const Mesh> &weakMesh)
@@ -597,6 +602,8 @@ namespace kinski { namespace gl {
         }
         
         gl::drawLines(theMap[weakMesh], vec4(1));
+        
+        KINSKI_CHECK_GL_ERRORS();
 //#endif
     }
 
@@ -628,6 +635,8 @@ namespace kinski { namespace gl {
         }
         
         gl::drawLines(theMap[theMesh], vec4(.7));
+        
+        KINSKI_CHECK_GL_ERRORS();
 //#endif
     }
     
@@ -890,6 +899,8 @@ namespace kinski { namespace gl {
             default:
                 break;
         }
+        KINSKI_CHECK_GL_ERRORS();
+        
         return ret;
     }
     

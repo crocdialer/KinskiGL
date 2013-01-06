@@ -54,7 +54,7 @@ namespace kinski { namespace gl {
     }
     
     void Material::apply() const
-    {
+    {   
         m_shader.bind();
         
         char buf[512];
@@ -67,16 +67,25 @@ namespace kinski { namespace gl {
             glCullFace(GL_BACK);
         }
         
+        KINSKI_CHECK_GL_ERRORS();
+        
         // wireframe ?
 #ifndef KINSKI_GLES
         glPolygonMode(GL_FRONT_AND_BACK, m_wireFrame ? GL_LINE : GL_FILL);
 #endif
+        
+        KINSKI_CHECK_GL_ERRORS();
+        
         // read write depth buffer ?
         if(m_depthTest) glEnable(GL_DEPTH_TEST);
         else glDisable(GL_DEPTH_TEST);
         
+        KINSKI_CHECK_GL_ERRORS();
+        
         if(m_depthWrite) glDepthMask(GL_TRUE);
         else glDepthMask(GL_FALSE);
+        
+        KINSKI_CHECK_GL_ERRORS();
         
         if(m_blending)
         {
@@ -86,21 +95,16 @@ namespace kinski { namespace gl {
         else
             glDisable(GL_BLEND);
         
+        KINSKI_CHECK_GL_ERRORS();
+        
         if(m_pointSize > 0.f)
         {
 #ifndef KINSKI_GLES
             glEnable(GL_PROGRAM_POINT_SIZE);
 #endif
             m_shader.uniform("u_pointSize", m_pointSize);
-        }
-        
-        // enable texturing
-        if(!m_textures.empty())
-        {
-            glEnable(GL_TEXTURE_2D);
-        }else
-        {
-            glDisable(GL_TEXTURE_2D);
+            
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // texture matrix from first texture, if any
@@ -121,6 +125,7 @@ namespace kinski { namespace gl {
         for (UniformMap::const_iterator it = m_uniforms.begin(); it != m_uniforms.end(); it++)
         {
             boost::apply_visitor(InsertUniformVisitor(m_shader, it->first), it->second);
+            KINSKI_CHECK_GL_ERRORS();
         }
     }
     
