@@ -218,43 +218,51 @@ namespace kinski{ namespace gl{
     void Geometry::createGLBuffers()
     {
         m_vertexBuffer.setData(m_vertices);
+        KINSKI_CHECK_GL_ERRORS();
         
         // insert normals
         if(hasNormals())
         {
             m_normalBuffer.setData(m_normals);
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // insert normals
         if(hasTexCoords())
         {
             m_texCoordBuffer.setData(m_texCoords);
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // insert tangents
         if(hasTangents())
         {
             m_tangentBuffer.setData(m_tangents);
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // insert colors
         if(hasColors())
         {
             m_colorBuffer.setData(m_colors);
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // insert bone indices and weights
         if(hasBones())
         {
             m_boneBuffer.setData(m_boneVertexData);
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // index buffer
         m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
         
         m_indexBuffer.setData(NULL, 3 * m_faces.size() * sizeof(GLushort));
+        KINSKI_CHECK_GL_ERRORS();
         
         GLushort *indexBuffer = (GLushort*) m_indexBuffer.map();
+        KINSKI_CHECK_GL_ERRORS();
         
         // insert indices
         vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
@@ -270,6 +278,7 @@ namespace kinski{ namespace gl{
         }
         
         m_indexBuffer.unmap();
+        KINSKI_CHECK_GL_ERRORS();
     }
     
     void Geometry::updateAnimation(float time)

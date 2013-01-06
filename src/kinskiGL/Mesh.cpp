@@ -49,6 +49,7 @@ namespace kinski { namespace gl {
         glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer().id());
         glEnableVertexAttribArray(vertexAttribLocation);
         glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        KINSKI_CHECK_GL_ERRORS();
         
         if(m_geometry->hasNormals())
         {
@@ -59,6 +60,7 @@ namespace kinski { namespace gl {
             // define attrib pointer (tangent)
             glEnableVertexAttribArray(normalAttribLocation);
             glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         if(m_geometry->hasTexCoords())
@@ -70,6 +72,7 @@ namespace kinski { namespace gl {
             // define attrib pointer (tangent)
             glEnableVertexAttribArray(texCoordAttribLocation);
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         if(m_geometry->hasTangents())
@@ -81,6 +84,7 @@ namespace kinski { namespace gl {
             // define attrib pointer (tangent)
             glEnableVertexAttribArray(tangentAttribLocation);
             glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         if(m_geometry->hasColors())
@@ -92,6 +96,7 @@ namespace kinski { namespace gl {
             // define attrib pointer (colors)
             glEnableVertexAttribArray(colorAttribLocation);
             glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         if(m_geometry->hasBones())
@@ -114,13 +119,15 @@ namespace kinski { namespace gl {
             glVertexAttribPointer(boneIdsAttribLocation, 4, GL_INT, GL_FALSE,
                                   sizeof(gl::BoneVertexData), BUFFER_OFFSET(0));
 #endif
+            KINSKI_CHECK_GL_ERRORS();
             
             // define attrib pointer (boneWeights)
             glEnableVertexAttribArray(boneWeightsAttribLocation);
             glVertexAttribPointer(boneWeightsAttribLocation, 4, GL_FLOAT, GL_FALSE,
                                   sizeof(gl::BoneVertexData),
                                   BUFFER_OFFSET(sizeof(glm::ivec4)));
-            
+
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // index buffer

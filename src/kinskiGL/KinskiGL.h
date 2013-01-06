@@ -7,7 +7,7 @@
 #include "kinskiCore/file_functions.h"
 
 //triggers checks with glGetError()
-#define KINSKI_GL_REPORT_ERRORS
+#define KINSKI_GL_REPORT_ERRORS 0
 
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
@@ -45,7 +45,7 @@
 #define GL_ENUM(sym) sym
 #endif
 
-#ifdef KINSKI_GL_REPORT_ERRORS
+#if KINSKI_GL_REPORT_ERRORS
 #define KINSKI_CHECK_GL_ERRORS()\
 while(GLenum error = glGetError()){\
 switch(error){\

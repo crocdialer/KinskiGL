@@ -20,7 +20,7 @@ class Buffer
     typedef std::shared_ptr<Obj> ObjPtr;
     ObjPtr m_Obj;
     
-    void init(GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
+    void init(GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STREAM_DRAW);
     
  public:
     
