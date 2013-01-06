@@ -257,8 +257,8 @@ namespace kinski { namespace gl {
             "} u_material;\n"
             "void main(){\n"
             "vec4 texColors = vec4(1);\n"
-            "for(int i = 0; i < u_numTextures; i++)\n"
-            "   {texColors *= texture2D(u_textureMap[i], gl_PointCoord);}\n"
+            //"for(int i = 0; i < u_numTextures; i++)\n"
+            //"   {texColors *= texture2D(u_textureMap[i], gl_PointCoord);}\n"
             "gl_FragColor = u_material.diffuse * texColors;\n"
             "}\n";
 #else
@@ -294,7 +294,7 @@ namespace kinski { namespace gl {
                 staticMat->setPointSize(2.f);
             } catch (Exception &e)
             {
-                std::cerr << e.what() << std::endl;
+                LOG_ERROR<<e.what();
             }
         }
         
@@ -532,8 +532,9 @@ namespace kinski { namespace gl {
 #else
         theMesh->bindVertexPointers();
 #endif
+
         glDrawElements(GL_TRIANGLES, 3 * theMesh->geometry()->faces().size(),
-                       GL_UNSIGNED_INT, BUFFER_OFFSET(0));
+                       GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
 #ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
@@ -601,7 +602,7 @@ namespace kinski { namespace gl {
 
     void drawNormals(const std::weak_ptr<const Mesh> &theMesh)
     {
-#ifndef KINSKI_GLES
+//#ifndef KINSKI_GLES
         static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
         
         if(theMap.find(theMesh) == theMap.end())
@@ -627,7 +628,7 @@ namespace kinski { namespace gl {
         }
         
         gl::drawLines(theMap[theMesh], vec4(.7));
-#endif
+//#endif
     }
     
 /*********************************** Shader Factory *******************************************/
