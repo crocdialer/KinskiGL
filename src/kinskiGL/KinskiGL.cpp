@@ -674,10 +674,10 @@ namespace kinski { namespace gl {
         "void main()\n"
         "{\n"
         "    vec4 texColors = vec4(1.0);\n"
-        "    for(int i = 0; i < 1; i++)\n"
-        "    {\n"
-        "        texColors *= texture2D(u_textureMap[i], v_texCoord.st);\n"
-        "    }\n"
+        //"    for(int i = 0; i < 1; i++)\n"
+        //"    {\n"
+        "        texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
+        //"    }\n"
         "    gl_FragColor = u_material.diffuse * texColors;\n"
         "}\n";
         

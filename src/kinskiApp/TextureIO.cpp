@@ -13,7 +13,19 @@ const Texture TextureIO::loadTexture(const string &imgPath)
     
     if(img.empty())
         throw TextureNotFoundException(imgPath);
+   
+    //GLint maxSize;
+    //glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);
+    //LOG_INFO<<"maximum texture size: "<< maxSize;
     
+#ifdef KINSKI_GLES
+    if(img.channels() == 3) 
+        cv::cvtColor(img, img, CV_BGR2RGBA);
+#endif
+
+    LOG_TRACE<<"loaded image '"<<searchFile(imgPath)<<"': "<<img.cols<<" x "<<img.rows<<" -- "
+        <<img.channels()<<" channel(s)";
+
     updateTexture(ret, img);
 
     return ret;
@@ -33,7 +45,7 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
     
     switch(theImage.channels()) 
 	{
-#ifdef KINSKI_RASPI
+#ifdef KINSKI_GLES
 		case 1:
             format = GL_LUMINANCE;
 			break;
@@ -58,7 +70,7 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
 			format = GL_BGR;
 			break;
         case 4:
-			format = GL_BGRA;
+			format =  GL_BGRA;
 		default:
 			break;
 #endif

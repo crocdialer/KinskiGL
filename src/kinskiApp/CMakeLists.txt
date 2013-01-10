@@ -13,8 +13,8 @@ FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp TextureIO.cpp AntTweakBarConnector
 FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h TextureIO.h AntTweakBarConnector.h)
 #####
 else()
-FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp)
-FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h)
+FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp TextureIO.cpp)
+FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h TextureIO.h)
 
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads")
 link_directories("/opt/vc/lib")

@@ -1,9 +1,10 @@
 #include "kinskiApp/Raspi_App.h"
-//#include "kinskiApp/TextureIO.h"
+#include "kinskiApp/TextureIO.h"
 
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
 #include "kinskiGL/Mesh.h"
+#include "kinskiGL/Fbo.h"
 
 using namespace std;
 using namespace kinski;
@@ -12,7 +13,8 @@ using namespace glm;
 class SimpleRaspiApp : public Raspi_App
 {
 private:
-    
+   
+    gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
     
     gl::Material::Ptr m_material, m_pointMaterial;
@@ -35,8 +37,12 @@ private:
 
     Property_<glm::vec3>::Ptr m_camPosition;
     
+    Property_<std::string>::Ptr m_imagePath;
+    
 public:
     
+    //SimpleRaspiApp(int width, int height):Raspi_App(width, height){};
+
     void setup()
     {
         /*********** init our application properties ******************/
@@ -65,12 +71,18 @@ public:
         m_camPosition = Property_<glm::vec3>::create("Camera Position", vec3(0, 30, -120));
         registerProperty(m_camPosition);
 
+        m_imagePath = Property_<std::string>::create("Image path", "kinski.jpg");
+        registerProperty(m_imagePath);
+
         // enable observer mechanism
         observeProperties();
         
         /********************** construct a simple scene ***********************/
-        
-        //m_textures[0] = gl::TextureIO::loadTexture("/home/pi/Desktop/kinski.jpg");
+       
+        // init FBO
+        m_frameBuffer = gl::Fbo(800, 600);
+
+        m_textures[0] = gl::TextureIO::loadTexture(m_imagePath->val());
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
         m_Camera->setAspectRatio(getAspectRatio());
@@ -82,9 +94,10 @@ public:
         //gl::Geometry::Ptr myBox(new gl::Plane(50, 50));
         
         gl::Material::Ptr myMaterial(new gl::Material);
-        myMaterial->setTwoSided();
-        //myMaterial->setDiffuse(vec4(glm::linearRand(vec3(0), vec3(1)), 1.0f) );
+        myMaterial->setDiffuse(vec4(1.0f, 1.0f, 1.0f, .75f) );
+        myMaterial->setBlending(true);
         myMaterial->shader().loadFromFile("Shader.vert", "Shader.frag");
+        myMaterial->addTexture(m_textures[1]);
 
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, myMaterial));
         myBoxMesh->setPosition(vec3(0, 0, 0));
@@ -92,6 +105,16 @@ public:
        
         m_mesh = myBoxMesh;
         m_material = myMaterial;
+        
+        GLubyte pixels[4 * 3] =
+        {  
+            255,   0,   0, // Red
+            0, 255,   0, // Green
+            0,   0, 255, // Blue
+            255, 255,   0  // Yellow
+        };
+
+        m_textures[1].update(pixels, GL_UNSIGNED_BYTE, GL_RGB, 2, 2, false);
 
         // load state from config file
         try
@@ -110,28 +133,39 @@ public:
                                          m_rotationSpeed->val() * timeDelta,
                                          vec3(0, 1, .5));
         m_mesh->setTransform(newTrans);
-        
+        m_mesh->material()->uniform("u_time", getApplicationTime()); 
     }
     
     void draw()
     {
-        //gl::drawTexture(m_textures[0], windowSize());
+        // enable FBO
+        m_frameBuffer.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
+
+        gl::drawTexture(m_textures[0], windowSize());
         
-        gl::Material cloneMaterial = *m_material;
-        cloneMaterial.setDepthTest(false);
-        cloneMaterial.setDepthWrite(false);
-        gl::drawQuad(cloneMaterial, windowSize() * .5f);
+        //gl::Material cloneMaterial = *m_material;
+        //cloneMaterial.setDepthTest(false);
+        //cloneMaterial.setDepthWrite(false);
+        //gl::drawQuad(cloneMaterial, windowSize() * .5f);
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
         gl::drawGrid(500, 500);
         
-        //m_scene.render(m_Camera);
+        m_scene.render(m_Camera);
 
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
-        gl::drawMesh(m_mesh);
-        gl::drawBoundingBox(m_mesh);
-        gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(), m_mesh->geometry()->vertices().size());
+        gl::drawNormals(m_mesh);
+        //gl::drawBoundingBox(m_mesh);
+        //gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(), m_mesh->geometry()->vertices().size());
+        
+        m_frameBuffer.unbindFramebuffer();
+        glViewport(0, 0, getWidth(), getHeight());
+       
+        // draw fbo content
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
     }
     
     
@@ -180,6 +214,10 @@ public:
         {
             m_Camera->setPosition( m_camPosition->val() );
             m_Camera->setLookAt(glm::vec3(0, 0, 0));
+        }
+        else if(theProperty == m_imagePath)
+        {
+            m_textures[0] = gl::TextureIO::loadTexture(m_imagePath->val());
         }
     }
     
