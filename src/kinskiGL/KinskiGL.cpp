@@ -910,11 +910,13 @@ namespace kinski { namespace gl {
         
         if(s_extensions.empty())
         {
+#ifndef KINSKI_GLES
             GLint numExtensions = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions) ;
             for (int i = 0; i < numExtensions; ++i) {
                 s_extensions.insert((char*)glGetStringi(GL_EXTENSIONS, i)) ;
             }
+#endif
         }
         
         return s_extensions;
