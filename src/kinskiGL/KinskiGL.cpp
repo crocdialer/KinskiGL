@@ -904,4 +904,25 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    const std::set<std::string>& getExtensions()
+    {
+        static std::set<std::string> s_extensions;
+        
+        if(s_extensions.empty())
+        {
+            GLint numExtensions = 0;
+            glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions) ;
+            for (int i = 0; i < numExtensions; ++i) {
+                s_extensions.insert((char*)glGetStringi(GL_EXTENSIONS, i)) ;
+            }
+        }
+        
+        return s_extensions;
+    }
+    
+    bool isExtensionSupported(const std::string &theName)
+    {
+        return getExtensions().find(theName) != getExtensions().end();
+    }
+    
 }}//namespace

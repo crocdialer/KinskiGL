@@ -145,6 +145,9 @@ namespace kinski { namespace gl {
     
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};
     Shader createShader(ShaderType type);
+    
+    const std::set<std::string>& getExtensions();
+    bool isExtensionSupported(const std::string &theName);
 
 }}//namespace
 

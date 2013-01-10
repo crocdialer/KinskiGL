@@ -78,10 +78,11 @@ namespace kinski
         
         if(diff > m_timingInterval)
         {
-            //LOG_INFO<< m_framesDrawn / diff << "fps -- "<<getApplicationTime()<<" sec running ...";
             m_framesPerSec = m_framesDrawn / diff;
             m_framesDrawn = 0;
             m_lastMeasurementTimeStamp = timeStamp;
+            
+            LOG_TRACE<< m_framesPerSec << "fps -- "<<getApplicationTime()<<" sec running ...";
         }
     }
 }

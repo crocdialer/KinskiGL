@@ -143,23 +143,6 @@ public:
         myBoxMesh->setPosition(vec3(0, -100, 0));
         m_scene.addObject(myBoxMesh);
         
-//        gl::Mesh::Ptr myAsteroid = gl::AssimpConnector::loadModel("asteroid.obj");
-//        myAsteroid->material()->addTexture(gl::TextureIO::loadTexture("stone.png"));
-//        myAsteroid->material()->addTexture(gl::TextureIO::loadTexture("asteroid_normal.png"));
-//        myAsteroid->material()->uniform("u_lightDir", vec3(0.2f, 0.2f, -1));
-//        try{
-//            gl::Shader shader;
-//            shader.loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
-//            myAsteroid->material()->setShader(shader);
-//        }catch (std::exception &e){
-//            fprintf(stderr, "%s\n",e.what());
-//        }
-//        myAsteroid->createVertexArray();
-//        m_scene.addObject(myAsteroid);
-        
-//        m_cvThread = CVThread::Ptr(new CVThread());
-//        m_cvThread->streamUSBCamera();
-        
         // load state from config file
         try
         {
@@ -220,7 +203,7 @@ public:
             gl::drawBoundingBox(m_mesh);
             if(m_drawNormals->val()) gl::drawNormals(m_mesh);
             
-//            gl::drawPoints(m_mesh->geometry()->vertexBuffer(),
+//            gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(),
 //                           m_mesh->geometry()->vertices().size(),
 //                           m_pointMaterial);
             
@@ -237,8 +220,8 @@ public:
         m_frameBuffer.unbindFramebuffer();
         glViewport(0, 0, getWidth(), getHeight());
         
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
-        //gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() / 2.0f);
+        gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
     }
     
     void buildSkeleton(std::shared_ptr<gl::Bone> currentBone, vector<vec3> &points)
@@ -307,7 +290,9 @@ public:
     void resize(int w, int h)
     {
         m_Camera->setAspectRatio(getAspectRatio());
-        m_frameBuffer = gl::Fbo(w, h);
+        gl::Fbo::Format fboFormat;
+        //fboFormat.setSamples(4);
+        m_frameBuffer = gl::Fbo(w, h, fboFormat);
     }
     
     // Property observer callback
