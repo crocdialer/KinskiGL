@@ -18,6 +18,7 @@ class SimpleGeometryApp : public GLFW_App
 {
 private:
     
+    gl::Fbo m_frameBuffer;
     gl::Texture m_noiseTexture;
     
     gl::Material::Ptr m_material, m_pointMaterial;
@@ -95,6 +96,10 @@ public:
         observeProperties();
         
         /********************** construct a simple scene ***********************/
+        
+        gl::Fbo::Format fboFormat;
+        //fboFormat.setSamples(4);
+        m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
         
         // create a simplex noise texture
         {
@@ -190,6 +195,10 @@ public:
     
     void draw()
     {
+        m_frameBuffer.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
+        
         gl::Material cloneMat1 = *m_material;
         cloneMat1.setDepthWrite(false);
         cloneMat1.setBlending(false);
@@ -224,6 +233,12 @@ public:
             }
             
         }
+        
+        m_frameBuffer.unbindFramebuffer();
+        glViewport(0, 0, getWidth(), getHeight());
+        
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
+        //gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
     }
     
     void buildSkeleton(std::shared_ptr<gl::Bone> currentBone, vector<vec3> &points)
@@ -292,6 +307,7 @@ public:
     void resize(int w, int h)
     {
         m_Camera->setAspectRatio(getAspectRatio());
+        m_frameBuffer = gl::Fbo(w, h);
     }
     
     // Property observer callback

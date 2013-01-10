@@ -265,7 +265,9 @@ class Fbo {
 	//@}  	
 };
 
-    class FboException : public std::exception {
+    class FboException : public Exception {
+     public:
+        FboException():Exception("FboException"){};
 };
 
 class FboExceptionInvalidSpecification : public FboException {

@@ -57,16 +57,19 @@ namespace kinski
         
         virtual double getApplicationTime() = 0;
         
+        float framesPerSec() const {return m_framesPerSec;};
+        
     private:
         
-        virtual void draw_internal();
         virtual void init() = 0;
-        virtual bool checkRunning(){return true;};
         void timing(double timeStamp);
+        virtual void draw_internal();
+        virtual bool checkRunning(){return true;};
         
         uint32_t m_framesDrawn;
         double m_lastTimeStamp;
         double m_lastMeasurementTimeStamp;
+        float m_framesPerSec;
         double m_timingInterval;
         
         glm::vec2 m_windowSize;

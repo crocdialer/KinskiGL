@@ -146,6 +146,8 @@ namespace kinski{ namespace gl{
         
         void computeTangents();
         
+        inline GLenum primitiveType() const {return m_primitiveType;};
+        
         inline std::vector<glm::vec3>& vertices(){ return m_vertices; };
         inline const std::vector<glm::vec3>& vertices() const { return m_vertices; };
         
@@ -203,6 +205,9 @@ namespace kinski{ namespace gl{
         void buildBoneMatrices(float time, std::shared_ptr<Bone> bone,
                                glm::mat4 parentTransform,
                                std::vector<glm::mat4> &matrices);
+        
+        // defaults to GL_TRIANGLES
+        GLenum m_primitiveType;
         
         std::vector<glm::vec3> m_vertices;
         std::vector<glm::vec3> m_normals;

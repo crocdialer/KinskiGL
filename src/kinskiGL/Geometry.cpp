@@ -13,6 +13,7 @@ using namespace std;
 namespace kinski{ namespace gl{
     
     Geometry::Geometry():
+    m_primitiveType(GL_TRIANGLES),
     m_boundingBox(BoundingBox(glm::vec3(0), glm::vec3(0)))
     {
     

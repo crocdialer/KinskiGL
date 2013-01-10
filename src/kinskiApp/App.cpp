@@ -9,7 +9,8 @@ namespace kinski
     Component("KinskiGL"),
     m_framesDrawn(0),
     m_lastMeasurementTimeStamp(0.0),
-    m_timingInterval(30.0),
+    m_framesPerSec(0.f),
+    m_timingInterval(1.0),
     m_windowSize(glm::ivec2(width, height)),
     m_running(false),
     m_fullscreen(false),
@@ -77,7 +78,8 @@ namespace kinski
         
         if(diff > m_timingInterval)
         {
-            LOG_INFO<< m_framesDrawn / diff << "fps -- "<<getApplicationTime()<<" sec running ...";
+            //LOG_INFO<< m_framesDrawn / diff << "fps -- "<<getApplicationTime()<<" sec running ...";
+            m_framesPerSec = m_framesDrawn / diff;
             m_framesDrawn = 0;
             m_lastMeasurementTimeStamp = timeStamp;
         }
