@@ -203,8 +203,12 @@ void Fbo::init()
 		glReadBuffer( GL_NONE );	
 	}
 #endif
-		
-	if( ( ( ! useCSAA ) && ( ! useMSAA ) ) || ( ! initMultisample( useCSAA ) ) ) { // if we don't need any variety of multisampling or it failed to initialize
+    
+    bool useAA = (useCSAA || useMSAA);
+    if(useAA)
+        useAA = initMultisample( useCSAA );
+    
+	if( !useAA ) { // if we don't need any variety of multisampling or it failed to initialize
 		// attach all the textures to the framebuffer
 		vector<GLenum> drawBuffers;
 		for( size_t c = 0; c < mObj->mColorTextures.size(); ++c ) {

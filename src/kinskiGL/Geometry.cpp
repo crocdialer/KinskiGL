@@ -8,6 +8,12 @@
 
 #include "Geometry.h"
 
+#ifdef KINSKI_GLES
+typedef GLushort index_type;
+#else
+typedef GLuint index_type;
+#endif
+
 using namespace std;
 
 namespace kinski{ namespace gl{
@@ -72,6 +78,18 @@ namespace kinski{ namespace gl{
         m_colors.insert(m_colors.end(), theColors, theColors + numColors);
     }
     
+    void Geometry::appendIndices(const std::vector<uint32_t> &theIndices)
+    {
+        m_indices.reserve(m_indices.size() + theIndices.size());
+        m_indices.insert(m_indices.end(), theIndices.begin(), theIndices.end());
+    }
+    
+    void Geometry::appendIndices(const uint32_t *theIndices, size_t numIndices)
+    {
+        m_indices.reserve(m_indices.size() + numIndices);
+        m_indices.insert(m_indices.end(), theIndices, theIndices + numIndices);
+    }
+    
     void Geometry::appendFace(uint32_t a, uint32_t b, uint32_t c)
     {
         appendFace(Face3(a, b, c));
@@ -80,6 +98,7 @@ namespace kinski{ namespace gl{
     void Geometry::appendFace(const Face3 &theFace)
     {
         m_faces.push_back(theFace);
+        appendIndices(theFace.indices, 3);
     }
     
     void Geometry::computeBoundingBox()
@@ -134,6 +153,8 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeVertexNormals()
     {
+        if(m_faces.empty()) return;
+        
         // compute face normals first
         computeFaceNormals();
         
@@ -184,6 +205,8 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeTangents()
     {
+        if(m_faces.empty()) return;
+        
         if(m_texCoords.size() != m_vertices.size()) return;
         
         if(m_tangents.size() != m_vertices.size())
@@ -256,30 +279,66 @@ namespace kinski{ namespace gl{
             KINSKI_CHECK_GL_ERRORS();
         }
         
-        // index buffer
-        m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
-        
-        m_indexBuffer.setData(NULL, 3 * m_faces.size() * sizeof(GLushort));
-        KINSKI_CHECK_GL_ERRORS();
-        
-        GLushort *indexBuffer = (GLushort*) m_indexBuffer.map();
-        KINSKI_CHECK_GL_ERRORS();
-        
-        // insert indices
-        vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
-        for (; faceIt != m_faces.end(); ++faceIt)
+        if(!m_faces.empty())
         {
-            const gl::Face3 &face = *faceIt;
+            m_primitiveType = GL_TRIANGLES;
             
-            for (int i = 0; i < 3; i++)
+            // index buffer
+            m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
+            
+            m_indexBuffer.setData(NULL, m_indices.size() * sizeof(index_type));
+            KINSKI_CHECK_GL_ERRORS();
+            
+            index_type *indexBuffer = (index_type*) m_indexBuffer.map();
+            KINSKI_CHECK_GL_ERRORS();
+            
+            // insert indices
+            vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
+            for (; faceIt != m_faces.end(); ++faceIt)
             {
-                // index
-                *(indexBuffer++) = face.indices[i];
+                const gl::Face3 &face = *faceIt;
+                
+                for (int i = 0; i < 3; i++)
+                {
+                    // index
+                    *(indexBuffer++) = face.indices[i];
+                }
             }
+            
+            m_indexBuffer.unmap();
+            KINSKI_CHECK_GL_ERRORS();
         }
-        
-        m_indexBuffer.unmap();
-        KINSKI_CHECK_GL_ERRORS();
+        else if(hasIndices())
+        {
+            // index buffer
+            m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
+            
+            m_indexBuffer.setData(NULL, m_indices.size() * sizeof(index_type));
+            KINSKI_CHECK_GL_ERRORS();
+            
+            index_type *indexBuffer = (index_type*) m_indexBuffer.map();
+            KINSKI_CHECK_GL_ERRORS();
+            
+            // insert indices
+            vector<uint32_t>::const_iterator indexIt = m_indices.begin();
+            for (; indexIt != m_indices.end(); ++indexIt)
+            {
+                *indexBuffer++ = *indexIt;
+            }
+            
+            m_indexBuffer.unmap();
+            KINSKI_CHECK_GL_ERRORS();
+        }
+    }
+    
+    GLenum Geometry::indexType()
+    {
+#if defined(KINSKI_GLES)
+        GLenum ret = GL_UNSIGNED_SHORT;
+#else
+        GLenum ret = GL_UNSIGNED_INT;
+#endif
+        return ret;
     }
     
     void Geometry::updateAnimation(float time)
@@ -398,10 +457,11 @@ namespace kinski{ namespace gl{
     
     /********************************* PRIMITIVES ****************************************/
     
-    Plane::Plane(float width, float height,
-                 uint32_t numSegments_W, uint32_t numSegments_H)
-    :Geometry()
+    Geometry::Ptr createPlane(float width, float height,
+                              uint32_t numSegments_W , uint32_t numSegments_H)
     {
+        Geometry::Ptr geom (new Geometry);
+        
         float width_half = width / 2, height_half = height / 2;
         float segment_width = width / numSegments_W, segment_height = height / numSegments_H;
         
@@ -412,17 +472,17 @@ namespace kinski{ namespace gl{
         // create vertices
         for ( uint32_t iz = 0; iz < gridZ1; iz ++ )
         {
-        
+            
             for ( uint32_t ix = 0; ix < gridX1; ix ++ )
             {
-        
+                
                 float x = ix * segment_width - width_half;
                 float y = iz * segment_height - height_half;
-        
-                appendVertex( glm::vec3( x, - y, 0) );
-                appendNormal(normal);
-                appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
-                tangents().push_back(glm::vec3(0));
+                
+                geom->appendVertex( glm::vec3( x, - y, 0) );
+                geom->appendNormal(normal);
+                geom->appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
+                geom->tangents().push_back(glm::vec3(0));
             }
         }
         
@@ -448,35 +508,38 @@ namespace kinski{ namespace gl{
                 f1.vertexNormals = vertNormals;
                 f2.vertexNormals = vertNormals;
                 
-                appendFace(f1);
-                appendFace(f2);
+                geom->appendFace(f1);
+                geom->appendFace(f2);
             }
         }
         
-        computeTangents();
-        createGLBuffers();
-        computeBoundingBox();
+        geom->computeTangents();
+        geom->createGLBuffers();
+        geom->computeBoundingBox();
+        
+        return geom;
     }
     
-    Box::Box(glm::vec3 theHalfExtents)
-    :Geometry()
+    Geometry::Ptr createBox(const glm::vec3 &theHalfExtents)
     {
+        Geometry::Ptr geom (new Geometry);
+        
         glm::vec3 vertices[8] = {   glm::vec3(-theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom left front
-                                    glm::vec3(theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom right front
-                                    glm::vec3(theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom right back
-                                    glm::vec3(-theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom left back
-                                    glm::vec3(-theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top left front
-                                    glm::vec3(theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top right front
-                                    glm::vec3(theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top right back
-                                    glm::vec3(-theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top left back
+            glm::vec3(theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom right front
+            glm::vec3(theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom right back
+            glm::vec3(-theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom left back
+            glm::vec3(-theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top left front
+            glm::vec3(theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top right front
+            glm::vec3(theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top right back
+            glm::vec3(-theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top left back
         };
         glm::vec4 colors[6] = { glm::vec4(1, 0, 0, 1), glm::vec4(0, 1, 0, 1), glm::vec4(0, 0 , 1, 1),
-                                glm::vec4(1, 1, 0, 1), glm::vec4(0, 1, 1, 1), glm::vec4(1, 0 , 1, 1)};
+            glm::vec4(1, 1, 0, 1), glm::vec4(0, 1, 1, 1), glm::vec4(1, 0 , 1, 1)};
         
         glm::vec2 texCoords[4] = {glm::vec2(0, 0), glm::vec2(1, 0), glm::vec2(1, 1), glm::vec2(0, 1)};
         
         glm::vec3 normals[6] = {glm::vec3(0, 0, 1), glm::vec3(1, 0, 0), glm::vec3(0, 0, -1),
-                                glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 1, 0)};
+            glm::vec3(-1, 0, 0), glm::vec3(0, -1, 0), glm::vec3(0, 1, 0)};
         
         std::vector<glm::vec3> vertexVec;
         std::vector<glm::vec4> colorVec;
@@ -501,7 +564,7 @@ namespace kinski{ namespace gl{
         //right - bottom right - 5
         vertexVec.push_back(vertices[2]); normalsVec.push_back(normals[1]);
         texCoordVec.push_back(texCoords[1]); colorVec.push_back(colors[1]);
-        //right - top right - 6 
+        //right - top right - 6
         vertexVec.push_back(vertices[6]); normalsVec.push_back(normals[1]);
         texCoordVec.push_back(texCoords[2]); colorVec.push_back(colors[1]);
         //right - top left - 7
@@ -556,20 +619,110 @@ namespace kinski{ namespace gl{
         vertexVec.push_back(vertices[7]); normalsVec.push_back(normals[5]);
         texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[5]);
         
-        appendVertices(vertexVec);
-        appendNormals(normalsVec);
-        appendTextCoords(texCoordVec);
-        appendColors(colorVec);
+        geom->appendVertices(vertexVec);
+        geom->appendNormals(normalsVec);
+        geom->appendTextCoords(texCoordVec);
+        geom->appendColors(colorVec);
         
         for (int i = 0; i < 6; i++)
         {
-            appendFace(i * 4 + 0, i * 4 + 1, i * 4 + 2);
-            appendFace(i * 4 + 2, i * 4 + 3, i * 4 + 0);
+            geom->appendFace(i * 4 + 0, i * 4 + 1, i * 4 + 2);
+            geom->appendFace(i * 4 + 2, i * 4 + 3, i * 4 + 0);
         }
         
-        computeTangents();
-        createGLBuffers();
-        computeBoundingBox();
+        geom->computeTangents();
+        geom->createGLBuffers();
+        geom->computeBoundingBox();
+        
+        return geom;
     }
     
+    Geometry::Ptr createSphere(float radius, int numSlices)
+    {
+        #define ES_PI  (3.14159265f)
+        
+        Geometry::Ptr geom (new Geometry);
+        
+        
+        int i;
+        int j;
+        int numParallels = numSlices / 2;
+        int numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
+        int numIndices = numParallels * numSlices * 6;
+        float angleStep = (2.0f * ES_PI) / ((float) numSlices);
+        
+        
+        // Allocate memory for buffers
+        GLfloat vertices[3 * numVertices];
+        
+        GLfloat normals[3 * numVertices];
+       
+        GLfloat texCoords[2 * numVertices];
+        
+        GLuint indices[numIndices];
+        
+        for ( i = 0; i < numParallels + 1; i++ )
+        {
+            for ( j = 0; j < numSlices + 1; j++ )
+            {
+                int vertex = ( i * (numSlices + 1) + j ) * 3;
+                
+                if ( vertices )
+                {
+                    vertices[vertex + 0] = radius * sinf ( angleStep * (float)i ) *
+                    sinf ( angleStep * (float)j );
+                    vertices[vertex + 1] = radius * cosf ( angleStep * (float)i );
+                    vertices[vertex + 2] = radius * sinf ( angleStep * (float)i ) *
+                    cosf ( angleStep * (float)j );
+                }
+                
+                if ( normals )
+                {
+                    normals[vertex + 0] = vertices[vertex + 0] / radius;
+                    normals[vertex + 1] = vertices[vertex + 1] / radius;
+                    normals[vertex + 2] = vertices[vertex + 2] / radius;
+                }
+                
+                if ( texCoords )
+                {
+                    int texIndex = ( i * (numSlices + 1) + j ) * 2;
+                    texCoords[texIndex + 0] = (float) j / (float) numSlices;
+                    texCoords[texIndex + 1] = ( 1.0f - (float) i ) / (float) (numParallels - 1 );
+                }
+            }
+        }
+        
+        // Generate the indices (GL_TRIANGLE_STRIP)
+        if ( indices != NULL )
+        {
+            GLuint *indexBuf = indices;
+            for ( i = 0; i < numParallels ; i++ )
+            {
+                for ( j = 0; j < numSlices; j++ )
+                {
+                    *indexBuf++  = i * ( numSlices + 1 ) + j;
+                    *indexBuf++ = ( i + 1 ) * ( numSlices + 1 ) + j;
+                    *indexBuf++ = ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 );
+                    
+                    *indexBuf++ = i * ( numSlices + 1 ) + j;
+                    *indexBuf++ = ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 );
+                    *indexBuf++ = i * ( numSlices + 1 ) + ( j + 1 );
+                }
+            }
+        }
+
+        geom->appendVertices((glm::vec3*) vertices, numVertices);
+        geom->appendNormals((glm::vec3*) normals, numVertices);
+        geom->appendTextCoords((glm::vec2*) texCoords, numVertices);
+        geom->appendIndices(indices, numIndices);
+        
+        geom->setPrimitiveType(GL_TRIANGLE_STRIP);
+        
+        geom->computeTangents();
+        geom->createGLBuffers();
+        geom->computeBoundingBox();
+
+        return geom;
+    }
+
 }}//namespace

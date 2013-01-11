@@ -135,6 +135,12 @@ namespace kinski{ namespace gl{
         void appendColors(const std::vector<glm::vec4> &theColors);
         void appendColors(const glm::vec4 *theColors, size_t numColors);
         
+        inline void appendIndex(uint32_t theIndex)
+        { m_indices.push_back(theIndex); };
+        
+        void appendIndices(const std::vector<uint32_t> &theIndices);
+        void appendIndices(const uint32_t *theIndices, size_t numIndices);
+        
         void appendFace(uint32_t a, uint32_t b, uint32_t c);
         void appendFace(const Face3 &theFace);
         
@@ -147,6 +153,7 @@ namespace kinski{ namespace gl{
         void computeTangents();
         
         inline GLenum primitiveType() const {return m_primitiveType;};
+        void setPrimitiveType(GLenum type){ m_primitiveType = type; };
         
         inline std::vector<glm::vec3>& vertices(){ return m_vertices; };
         inline const std::vector<glm::vec3>& vertices() const { return m_vertices; };
@@ -167,6 +174,10 @@ namespace kinski{ namespace gl{
         std::vector<glm::vec4>& colors(){ return m_colors; };
         const std::vector<glm::vec4>& colors() const { return m_colors; };
         
+        bool hasIndices() const { return !m_indices.empty(); };
+        std::vector<uint32_t>& indices(){ return m_indices; };
+        const std::vector<uint32_t>& indices() const { return m_indices; };
+        
         inline std::vector<Face3>& faces(){ return m_faces; };
         inline const std::vector<Face3>& faces() const { return m_faces; };
         
@@ -174,7 +185,7 @@ namespace kinski{ namespace gl{
         const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
         
         std::shared_ptr<Bone>& rootBone(){ return m_rootBone; };
-        const std::shared_ptr<Bone>& rootBone() const { return m_rootBone; };
+        const std::shared_ptr<const Bone> rootBone() const { return m_rootBone; };
         
         bool hasBones() const { return m_vertices.size() == m_boneVertexData.size(); };
         std::vector<BoneVertexData>& boneVertexData(){ return m_boneVertexData; };
@@ -197,6 +208,7 @@ namespace kinski{ namespace gl{
         const gl::Buffer& indexBuffer() const { return m_indexBuffer; };
         
         void createGLBuffers();
+        GLenum indexType();
         
         void updateAnimation(float time);
         
@@ -214,6 +226,8 @@ namespace kinski{ namespace gl{
         std::vector<glm::vec2> m_texCoords;
         std::vector<glm::vec4> m_colors;
         std::vector<glm::vec3> m_tangents;
+        std::vector<uint32_t> m_indices;
+        
         std::vector<Face3> m_faces;
         
         // skeletal animations stuff
@@ -236,21 +250,13 @@ namespace kinski{ namespace gl{
         bool m_needsUpdate;
     };
     
-    // Derived primitives
-    class Plane : public Geometry
-    {
-    public:
-        
-        Plane(float width, float height,
-              uint32_t numSegments_W = 1, uint32_t numSegments_H = 1);
-    };
+    Geometry::Ptr createPlane(float width, float height,
+                            uint32_t numSegments_W = 1,
+                            uint32_t numSegments_H = 1);
     
-    class Box : public Geometry
-    {
-    public:
-        
-        Box(glm::vec3 theHalfExtents = glm::vec3(0.5f));
-    };
+    Geometry::Ptr createBox(const glm::vec3 &theHalfExtents = glm::vec3(0.5f));
+    
+    Geometry::Ptr createSphere(float radius, int numSlices);
     
 }//gl
 }//kinski

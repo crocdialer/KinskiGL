@@ -32,8 +32,8 @@ INCLUDE_DIRECTORIES("AntTweakBar")
 SET(LIBS ${LIBS} "AntTweakBar")
 endif()
 
-#ADD_SUBDIRECTORY("kinskiCV")
-#SET(LIBS ${LIBS} "kinskiCV")
+ADD_SUBDIRECTORY("kinskiCV")
+SET(LIBS ${LIBS} "kinskiCV")
 
 if(BUILD_APPLIB)
 ADD_SUBDIRECTORY("kinskiApp")

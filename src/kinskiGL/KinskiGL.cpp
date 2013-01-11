@@ -176,7 +176,7 @@ namespace kinski { namespace gl {
                 lineShader.loadFromData(vertSrc, fragSrc);
             } catch (Exception &e)
             {
-                std::cerr << e.what() << std::endl;
+                LOG_ERROR << e.what();
             }
         }
         
@@ -536,8 +536,8 @@ namespace kinski { namespace gl {
         theMesh->bindVertexPointers();
 #endif
 
-        glDrawElements(GL_TRIANGLES, 3 * theMesh->geometry()->faces().size(),
-                       GL_UNSIGNED_SHORT, BUFFER_OFFSET(0));
+        glDrawElements(theMesh->geometry()->primitiveType(), theMesh->geometry()->indices().size(),
+                       theMesh->geometry()->indexType(), BUFFER_OFFSET(0));
 #ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(0);
 #endif

@@ -102,10 +102,12 @@ namespace kinski
         // a minimum size of matches is needed for calculation of a homography
         if(good_matches.size() > m_minMatchCount->val())
         {
+            Mat inliers;
+            
             vector<Point2f> pts_train, pts_query;
             matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
                            pts_query);
-            m_homography = findHomography(pts_train, pts_query, CV_RANSAC);
+            m_homography = findHomography(pts_train, pts_query, CV_RANSAC, 3, inliers);
             
             vector<Point3f> trainPts3;
             for (int i=0; i<pts_train.size(); i++)

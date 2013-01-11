@@ -25,7 +25,7 @@ private:
     gl::Geometry::Ptr m_geometry;
     gl::Geometry::Ptr m_straightPlane;
     
-    gl::Mesh::Ptr m_mesh;
+    gl::Mesh::Ptr m_mesh, m_mesh2;
     gl::PerspectiveCamera::Ptr m_Camera;
     gl::Scene m_scene;
     
@@ -98,6 +98,7 @@ public:
         /********************** construct a simple scene ***********************/
         
         gl::Fbo::Format fboFormat;
+        //TODO: mulitsampling fails
         //fboFormat.setSamples(4);
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
         
@@ -138,8 +139,11 @@ public:
         m_Camera->setClippingPlanes(.1, 5000);
         
         // test box shape
-        gl::Geometry::Ptr myBox(new gl::Box(vec3(50, 100, 50)));
+        gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
+        //gl::Geometry::Ptr myBox(gl::createSphere(200, 36));
+        
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
+        m_mesh2 = myBoxMesh;
         myBoxMesh->setPosition(vec3(0, -100, 0));
         m_scene.addObject(myBoxMesh);
         
@@ -203,8 +207,8 @@ public:
             gl::drawBoundingBox(m_mesh);
             if(m_drawNormals->val()) gl::drawNormals(m_mesh);
             
-//            gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(),
-//                           m_mesh->geometry()->vertices().size(),
+//            gl::drawPoints(m_mesh2->geometry()->vertexBuffer().id(),
+//                           m_mesh2->geometry()->vertices().size(),
 //                           m_pointMaterial);
             
             if(m_mesh->geometry()->hasBones())
@@ -220,8 +224,9 @@ public:
         m_frameBuffer.unbindFramebuffer();
         glViewport(0, 0, getWidth(), getHeight());
         
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() / 2.0f);
-        gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
+        
+        //gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
     }
     
     void buildSkeleton(std::shared_ptr<gl::Bone> currentBone, vector<vec3> &points)
@@ -291,6 +296,7 @@ public:
     {
         m_Camera->setAspectRatio(getAspectRatio());
         gl::Fbo::Format fboFormat;
+        //TODO: mulitsampling fails
         //fboFormat.setSamples(4);
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
     }

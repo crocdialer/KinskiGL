@@ -1,4 +1,4 @@
-#include "kinskiApp/App.h"
+#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
@@ -10,7 +10,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class KeypointApp : public App 
+class KeypointApp : public GLFW_App
 {
 private:
     
@@ -39,7 +39,7 @@ public:
         
         // CV stuff 
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread("kinder.jpg")));
+        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread( searchFile("kinder.jpg") )));
         
 //        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVDiskWriterNode
 //                                                           ("/Users/Fabian/Desktop/video.avi"));
@@ -55,10 +55,10 @@ public:
         if(m_processNode)
         {
             addPropertyListToTweakBar(m_processNode->getPropertyList());
-            cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
+            LOG_INFO<<"CVProcessNode: "<<m_processNode->getDescription();
         }
         
-        cout<<"CVThread source: \n"<<m_cvThread->getSourceInfo()<<"\n";
+        LOG_INFO<<"CVThread source: "<<m_cvThread->getSourceInfo();
         
     }
     
@@ -66,7 +66,7 @@ public:
     {
         m_cvThread->stop();
         
-        printf("ciao keypointer\n");
+        LOG_PRINT<<"ciao keypointer";
     }
     
     void update(const float timeDelta)
@@ -76,7 +76,7 @@ public:
             vector<cv::Mat> images = m_cvThread->getImages();
             
             float imgAspect = images.front().cols/(float)images.front().rows;
-            setWindowSize(getWidth(), getWidth() / imgAspect);
+            setWindowSize( ivec2(getWidth(), getWidth() / imgAspect) );
             
             
             for(int i=0;i<images.size();i++)
@@ -92,7 +92,7 @@ public:
     void draw()
     {
         // draw fullscreen image
-        gl::drawTexture(m_textures[m_imageIndex->val()], getWindowSize());
+        gl::drawTexture(m_textures[m_imageIndex->val()], windowSize());
         
         // draw process-results map(s)
         glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
@@ -100,7 +100,7 @@ public:
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
-            drawTexture(m_textures[i], getWindowSize()/5.f, offet);
+            drawTexture(m_textures[i], windowSize()/5.f, offet);
             
             offet += step;
         }

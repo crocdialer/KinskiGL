@@ -131,7 +131,8 @@ namespace kinski { namespace gl {
         }
         
         // index buffer
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
+        if(!m_geometry->faces().empty())
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
     }
 
     void Mesh::createVertexArray()

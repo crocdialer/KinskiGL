@@ -107,9 +107,7 @@ namespace kinski
     void GLFW_App::setWindowSize(const glm::ivec2 size)
     {
         App::setWindowSize(size);
-        
-        if(glm::vec2(size) != windowSize())
-            glfwSetWindowSize(size[0], size[1]);
+        glfwSetWindowSize(size[0], size[1]);
     }
     
     void GLFW_App::draw_internal()
