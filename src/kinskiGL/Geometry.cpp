@@ -692,21 +692,23 @@ namespace kinski{ namespace gl{
             }
         }
         
-        // Generate the indices (GL_TRIANGLE_STRIP)
-        if ( indices != NULL )
-        {
-            GLuint *indexBuf = indices;
+        // Generate the indices (GL_TRIANGLES)
+        //if ( indices != NULL )
+        {   
             for ( i = 0; i < numParallels ; i++ )
             {
                 for ( j = 0; j < numSlices; j++ )
                 {
-                    *indexBuf++  = i * ( numSlices + 1 ) + j;
-                    *indexBuf++ = ( i + 1 ) * ( numSlices + 1 ) + j;
-                    *indexBuf++ = ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 );
+                    Face3 face1(i * ( numSlices + 1 ) + j,
+                                ( i + 1 ) * ( numSlices + 1 ) + j,
+                                ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 ));
                     
-                    *indexBuf++ = i * ( numSlices + 1 ) + j;
-                    *indexBuf++ = ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 );
-                    *indexBuf++ = i * ( numSlices + 1 ) + ( j + 1 );
+                    Face3 face2(i * ( numSlices + 1 ) + j,
+                                ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 ),
+                                i * ( numSlices + 1 ) + ( j + 1 ));
+                    
+                    geom->appendFace(face1);
+                    geom->appendFace(face2);
                 }
             }
         }
@@ -714,9 +716,8 @@ namespace kinski{ namespace gl{
         geom->appendVertices((glm::vec3*) vertices, numVertices);
         geom->appendNormals((glm::vec3*) normals, numVertices);
         geom->appendTextCoords((glm::vec2*) texCoords, numVertices);
-        geom->appendIndices(indices, numIndices);
         
-        geom->setPrimitiveType(GL_TRIANGLE_STRIP);
+        geom->setPrimitiveType(GL_TRIANGLES);
         
         geom->computeTangents();
         geom->createGLBuffers();

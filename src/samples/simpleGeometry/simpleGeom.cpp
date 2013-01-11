@@ -139,8 +139,8 @@ public:
         m_Camera->setClippingPlanes(.1, 5000);
         
         // test box shape
-        gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
-        //gl::Geometry::Ptr myBox(gl::createSphere(200, 36));
+        //gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
+        gl::Geometry::Ptr myBox(gl::createSphere(200, 36));
         
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
         m_mesh2 = myBoxMesh;

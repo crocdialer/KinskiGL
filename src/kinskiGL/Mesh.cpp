@@ -131,7 +131,7 @@ namespace kinski { namespace gl {
         }
         
         // index buffer
-        if(!m_geometry->faces().empty())
+        if(m_geometry->hasIndices())
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
     }
 
