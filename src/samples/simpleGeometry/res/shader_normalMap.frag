@@ -1,5 +1,6 @@
 #version 150 core
 
+uniform float u_time;
 uniform int u_numTextures;
 uniform sampler2D u_textureMap[16];
 
@@ -157,10 +158,14 @@ void main()
     //n = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
     
     // sample bump map
-    n = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.1);
-
+    n = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, .5 + sin(u_time) * .2);
+    
+    float centerDistance = length(v_texCoord.st - vec2(0.5));
+    float distFrac = (sin( u_time + 50.0 * centerDistance * centerDistance / 1.4142) + 1.0) / 2.0;
+    color1.a = distFrac;
+    
     float nDotL = max(0.0, dot(n, normalize(-v_lightDir)));
 
-    fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), hotIron(nDotL), u_textureMix);
+    fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), hotIron(distFrac), u_textureMix);
 }
 

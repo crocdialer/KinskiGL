@@ -144,10 +144,10 @@ namespace kinski { namespace gl {
         
         // no effect in OpenGL 3.2 !?
         // glLineWidth(10.f);
-        static Shader lineShader;
+        static gl::Material material;
         
         //create shader
-        if(!lineShader)
+        if(!material.shader())
         {
 #ifdef KINSKI_GLES
             const char *vertSrc =
@@ -173,20 +173,22 @@ namespace kinski { namespace gl {
 #endif
             try
             {
-                lineShader.loadFromData(vertSrc, fragSrc);
+                material.shader().loadFromData(vertSrc, fragSrc);
             } catch (Exception &e)
             {
                 LOG_ERROR << e.what();
             }
         }
         
-        lineShader.bind();
+        //lineShader.bind();
         
-        lineShader.uniform("u_modelViewProjectionMatrix",
+        material.uniform("u_modelViewProjectionMatrix",
                            g_projectionMatrixStack.top()
                            * g_modelViewMatrixStack.top());
         
-        lineShader.uniform("u_lineColor", theColor);
+        material.uniform("u_lineColor", theColor);
+        
+        material.apply();
         
         static GLuint lineVBO = 0;
         static GLuint lineVAO = 0;
@@ -204,7 +206,7 @@ namespace kinski { namespace gl {
             glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size(),
                          NULL, GL_STREAM_DRAW);
             
-            GLuint vertexAttribLocation = lineShader.getAttribLocation("a_vertex");
+            GLuint vertexAttribLocation = material.shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
             

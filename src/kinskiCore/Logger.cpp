@@ -7,6 +7,18 @@
 
 namespace kinski {
     
+    const std::string currentDateTime()
+    {
+        time_t     now = time(0);
+        struct tm  tstruct;
+        char       buf[80];
+        tstruct = *localtime(&now);
+        
+        strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+        
+        return buf;
+    }
+    
     Logger *Logger::s_instance = NULL;
     
     Logger* Logger::get()
@@ -95,32 +107,38 @@ namespace kinski {
         {
             myText << " [" << lastFileNamePart(theModule) << " at:" << theId << "]";
         }
-
+        
+        std::string currentTimeString = currentDateTime();
+        std::stringstream stream;
+        
         switch (theSeverity)
         {
             case SEV_TRACE:
-                std::cout << "TRACE: " << myText.str() << std::endl;
+                stream << currentTimeString<<" TRACE: " << myText.str() << std::endl;
                 break;
             case SEV_DEBUG:
-                std::cout << "DEBUG: " << myText.str() << std::endl;
+                stream << currentTimeString<<" DEBUG: " << myText.str() << std::endl;
                 break;
             case SEV_INFO:
-                std::cout << "INFO: " << myText.str() << std::endl;
+                stream << currentTimeString<<" INFO: " << myText.str() << std::endl;
                 break;
             case SEV_WARNING:
-                std::cout << "WARNING: " << myText.str() << std::endl;
+                stream << currentTimeString<<" WARNING: " << myText.str() << std::endl;
                 break;
             case SEV_PRINT:
-                std::cout << myText.str() << std::endl;
+                stream << myText.str() << std::endl;
                 break;
             case SEV_ERROR:
-                std::cerr << "ERROR: " << myText.str() << std::endl;
+                stream << currentTimeString<<" ERROR: " << myText.str() << std::endl;
                 break;
             default:
                 throw Exception("Unknown logger severity");
                 break;
         }
-
+        
+        // give log string to outstreams
+        std::cout<<stream.str();
+        
         #if ANDROID
         switch (theSeverity) {
             case SEV_TRACE :

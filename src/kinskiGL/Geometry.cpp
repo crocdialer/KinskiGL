@@ -639,7 +639,7 @@ namespace kinski{ namespace gl{
     
     Geometry::Ptr createSphere(float radius, int numSlices)
     {
-        #define ES_PI  (3.14159265f)
+        //#define ES_PI  (3.14159265f)
         
         Geometry::Ptr geom (new Geometry);
         
@@ -648,8 +648,8 @@ namespace kinski{ namespace gl{
         int j;
         int numParallels = numSlices / 2;
         int numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
-        int numIndices = numParallels * numSlices * 6;
-        float angleStep = (2.0f * ES_PI) / ((float) numSlices);
+        //int numIndices = numParallels * numSlices * 6;
+        float angleStep = (2.0f * M_PI) / ((float) numSlices);
         
         
         // Allocate memory for buffers
@@ -659,7 +659,7 @@ namespace kinski{ namespace gl{
        
         GLfloat texCoords[2 * numVertices];
         
-        GLuint indices[numIndices];
+        //GLuint indices[numIndices];
         
         for ( i = 0; i < numParallels + 1; i++ )
         {
@@ -717,7 +717,7 @@ namespace kinski{ namespace gl{
         geom->appendNormals((glm::vec3*) normals, numVertices);
         geom->appendTextCoords((glm::vec2*) texCoords, numVertices);
         
-        geom->setPrimitiveType(GL_TRIANGLES);
+        //geom->setPrimitiveType(GL_TRIANGLES);
         
         geom->computeTangents();
         geom->createGLBuffers();
