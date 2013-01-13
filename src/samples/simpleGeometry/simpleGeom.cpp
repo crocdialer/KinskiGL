@@ -340,9 +340,9 @@ public:
             {
                 LOG_WARNING<< e.what();
                 
-                m_modelPath->removeObserver(shared_from_this());
-                m_modelPath->val("- not found -");
-                m_modelPath->addObserver(shared_from_this());
+                //m_modelPath->removeObserver(shared_from_this());
+                //m_modelPath->val("- not found -");
+                //m_modelPath->addObserver(shared_from_this());
             }
         }
     }

@@ -258,6 +258,8 @@ void Fbo::init()
 	
 	mObj->mNeedsResolve = false;
 	mObj->mNeedsMipmapUpdate = false;
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool Fbo::initMultisample( bool csaa )
