@@ -1,4 +1,3 @@
-#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 
 #include "kinskiGL/SerializerGL.h"
@@ -11,6 +10,14 @@
 using namespace std;
 using namespace kinski;
 using namespace glm;
+
+#ifdef KINSKI_RASPI
+#include "kinskiApp/Raspi_App.h"
+typedef Raspi_App BaseAppType;
+#else
+#include "kinskiApp/GLFW_App.h"
+typedef GLFW_App BaseAppType;
+#endif
 
 ///create 125 (5x5x5) dynamic object
 #define ARRAY_SIZE_X 5
@@ -54,7 +61,7 @@ namespace kinski { namespace gl {
     };
 }}
 
-class BulletSample : public GLFW_App
+class BulletSample : public BaseAppType
 {
 private:
     
