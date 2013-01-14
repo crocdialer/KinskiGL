@@ -676,10 +676,10 @@ namespace kinski { namespace gl {
         "void main()\n"
         "{\n"
         "    vec4 texColors = vec4(1.0);\n"
-        //"    for(int i = 0; i < 1; i++)\n"
-        //"    {\n"
-        "        texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
-        //"    }\n"
+        "    if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
+        "    if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);\n"
+        "    if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);\n"
+        "    if(u_numTextures > 3) texColors *= texture2D(u_textureMap[3], v_texCoord.st);\n"
         "    gl_FragColor = u_material.diffuse * texColors;\n"
         "}\n";
         
@@ -733,7 +733,7 @@ namespace kinski { namespace gl {
         
         const char *phongFragSrc =
         "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[16];\n"
+        "uniform sampler2D u_textureMap[4];\n"
         "uniform vec3 u_lightDir;\n"
         "uniform struct\n"
         "{\n"
@@ -749,10 +749,10 @@ namespace kinski { namespace gl {
         "void main()\n"
         "{\n"
         "    vec4 texColors = vec4(1);\n"
-        "    for(int i = 0; i < u_numTextures; i++)\n"
-        "    {\n"
-        "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
-        "    }\n"
+        "    if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
+        "    if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);\n"
+        "    if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);\n"
+        "    if(u_numTextures > 3) texColors *= texture2D(u_textureMap[3], v_texCoord.st);\n"
         "    vec3 N = normalize(v_normal);\n"
         "    vec3 L = normalize(-u_lightDir);\n"
         "    vec3 E = normalize(v_eyeVec);\n"
