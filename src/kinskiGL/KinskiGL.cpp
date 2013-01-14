@@ -760,7 +760,7 @@ namespace kinski { namespace gl {
         "    float nDotL = max(0.0, dot(N, L));\n"
         "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
         "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    gl_FragColor = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0f) ;\n"
+        "    gl_FragColor = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0) ;\n"
         "}\n";
 #else
         const char *unlitVertSrc =
