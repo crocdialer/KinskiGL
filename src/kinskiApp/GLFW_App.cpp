@@ -32,10 +32,6 @@ namespace kinski
     
     void GLFW_App::init()
     {
-        std::time_t time = std::time(NULL);
-        
-        LOG_INFO<< std::asctime(std::localtime(&time));
-
         s_instance = dynamic_pointer_cast<GLFW_App>(shared_from_this());
         
         // Initialize GLFW

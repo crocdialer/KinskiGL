@@ -532,14 +532,24 @@ namespace kinski { namespace gl {
         
         theMesh->material()->apply();
         
-#ifndef KINSKI_NO_VAO 
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
 #else
         theMesh->bindVertexPointers();
 #endif
-
-        glDrawElements(theMesh->geometry()->primitiveType(), theMesh->geometry()->indices().size(),
-                       theMesh->geometry()->indexType(), BUFFER_OFFSET(0));
+        
+        if(theMesh->geometry()->hasIndices())
+        {
+            glDrawElements(theMesh->geometry()->primitiveType(),
+                           theMesh->geometry()->indices().size(), theMesh->geometry()->indexType(),
+                           BUFFER_OFFSET(0));
+        }
+        else
+        {
+            glDrawArrays(theMesh->geometry()->primitiveType(), 0,
+                         theMesh->geometry()->vertices().size());
+        }
+        
 #ifndef KINSKI_NO_VAO 
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
@@ -769,9 +779,12 @@ namespace kinski { namespace gl {
         "uniform mat4 u_textureMatrix;\n"
         "in vec4 a_vertex;\n"
         "in vec4 a_texCoord;\n"
+        "in vec4 a_color;\n"//
+        "out vec4 v_color;\n"//
         "out vec4 v_texCoord;\n"
         "void main()\n"
         "{\n"
+        "    v_color = a_color;\n"
         "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
         "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
         "}\n";
@@ -786,11 +799,12 @@ namespace kinski { namespace gl {
         "    vec4 specular;\n"
         "    vec4 emission;\n"
         "} u_material;\n"
-        "in vec4 v_texCoord;\n"
+        "in vec4 v_color;\n"//
+        "in vec4 v_texCoord;\n"//
         "out vec4 fragData;\n"
         "void main()\n"
         "{\n"
-        "    vec4 texColors = vec4(1);\n"
+        "    vec4 texColors = vec4(1);\n"//v_color == vec4(0) ? vec4(1) : v_color;\n"//
         "    for(int i = 0; i < u_numTextures; i++)\n"
         "    {\n"
         "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"

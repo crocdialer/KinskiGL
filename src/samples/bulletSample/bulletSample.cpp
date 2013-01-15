@@ -20,9 +20,9 @@ typedef GLFW_App BaseAppType;
 #endif
 
 ///create 125 (5x5x5) dynamic object
-#define ARRAY_SIZE_X 5
-#define ARRAY_SIZE_Y 5
-#define ARRAY_SIZE_Z 5
+#define ARRAY_SIZE_X 4
+#define ARRAY_SIZE_Y 32
+#define ARRAY_SIZE_Z 4
 
 //maximum number of objects (and allow user to shoot additional boxes)
 #define MAX_PROXIES (ARRAY_SIZE_X*ARRAY_SIZE_Y*ARRAY_SIZE_Z + 1024)
@@ -37,15 +37,23 @@ namespace kinski { namespace gl {
 
     class BulletDebugDrawer : public btIDebugDraw
     {
-    public:
+     public:
+        
+        BulletDebugDrawer()
+        {
+            gl::Material::Ptr mat(new gl::Material);
+            mat->setShader(gl::createShader(gl::SHADER_UNLIT));
+            gl::Geometry::Ptr geom(new gl::Geometry);
+            m_mesh = gl::Mesh::Ptr(new gl::Mesh(geom, mat));
+            m_mesh->geometry()->setPrimitiveType(GL_LINES);
+        };
         
         virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
         {
-            vector<vec3> points;
-            points.push_back(vec3(from.x(), from.y(), from.z()));
-            points.push_back(vec3(to.x(), to.y(), to.z()));
-            
-            gl::drawLines(points, vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh->geometry()->appendVertex(vec3(from.x(), from.y(), from.z()));
+            m_mesh->geometry()->appendVertex(vec3(to.x(), to.y(), to.z()));
+            m_mesh->geometry()->appendColor(vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh->geometry()->appendColor(vec4(color.x(), color.y(), color.z(), 1.0f));
         }
         
         virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,
@@ -58,7 +66,25 @@ namespace kinski { namespace gl {
         virtual void setDebugMode(int debugMode){}
         
         virtual int	getDebugMode() const {return 1;}
+        
+        void flush()
+        {
+            m_mesh->geometry()->createGLBuffers();
+            m_mesh->createVertexArray();
+            
+            gl::drawMesh(m_mesh);
+            
+            m_mesh->geometry()->vertices().clear();
+            m_mesh->geometry()->colors().clear();
+        };
+        
+     private:
+        
+        gl::Mesh::Ptr m_mesh;
     };
+    
+
+    
 }}
 
 class BulletSample : public BaseAppType
@@ -96,12 +122,14 @@ private:
     shared_ptr<btDefaultCollisionConfiguration> m_collisionConfiguration;
     shared_ptr<btDynamicsWorld> m_dynamicsWorld;
     
-    kinski::gl::BulletDebugDrawer m_debugDrawer;
+    std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
 
 public:
     
     void initPhysics()
     {
+        LOG_INFO<<"initializing physics";
+        
         ///collision configuration contains default setup for memory, collision setup
         m_collisionConfiguration = shared_ptr<btDefaultCollisionConfiguration>(
             new btDefaultCollisionConfiguration());
@@ -120,9 +148,10 @@ public:
                                                                                   m_broadphase.get(),
                                                                                   m_solver.get(),
                                                                                   m_collisionConfiguration.get()));
-        m_dynamicsWorld->setDebugDrawer(&m_debugDrawer);
+        m_debugDrawer = std::shared_ptr<kinski::gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
+        m_dynamicsWorld->setDebugDrawer(m_debugDrawer.get());
         
-        m_dynamicsWorld->setGravity(btVector3(0,-10,0));
+        m_dynamicsWorld->setGravity(btVector3(0,-500,0));
         
         //////////////////////////////////////////////////////////////
         
@@ -205,6 +234,7 @@ public:
                 }
             }
         }
+        LOG_INFO<<"created dynamicsworld with "<<m_dynamicsWorld->getNumCollisionObjects()<<" rigidbodies";
     }
     
     void setup()
@@ -251,6 +281,7 @@ public:
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
+        m_Camera->setAspectRatio(getAspectRatio());
         
         // test box shape
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
@@ -302,8 +333,11 @@ public:
         
         m_scene.render(m_Camera);
         
-        if (m_dynamicsWorld)
+        if (m_dynamicsWorld && m_wireFrame->val())
+        {
             m_dynamicsWorld->debugDrawWorld();
+            m_debugDrawer->flush();
+        }
         
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
@@ -336,7 +370,7 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
-        GLFW_App::keyPress(e);
+        BaseAppType::keyPress(e);
         
         switch (e.getChar())
         {
