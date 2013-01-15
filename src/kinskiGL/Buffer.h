@@ -47,6 +47,9 @@ class Buffer
     GLenum usage() const;
     GLsizei numBytes() const;
     
+    void setTarget(GLenum theTarget);
+    void setUsage(GLenum theUsage);
+    
     void setData(char *theData, GLsizei numBytes);
     
     template <class T>

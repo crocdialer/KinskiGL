@@ -45,28 +45,6 @@
 #define GL_ENUM(sym) sym
 #endif
 
-#if KINSKI_GL_REPORT_ERRORS
-#define KINSKI_CHECK_GL_ERRORS()\
-while(GLenum error = glGetError()){\
-switch(error){\
-case GL_INVALID_ENUM:\
-LOG_ERROR << "GL_INVALID_ENUM"; break;\
-case GL_INVALID_VALUE:\
-LOG_ERROR << "GL_INVALID_VALUE"; break;\
-case GL_INVALID_OPERATION:\
-LOG_ERROR << "GL_INVALID_OPERATION"; break;\
-case GL_INVALID_FRAMEBUFFER_OPERATION:\
-LOG_ERROR << "GL_INVALID_FRAMEBUFFER_OPERATION"; break;\
-case GL_OUT_OF_MEMORY:\
-LOG_ERROR << "GL_OUT_OF_MEMORY"; break;\
-default:\
-LOG_ERROR << "Unknown GLerror"; break;\
-}\
-}
-#else
-#define KINSKI_CHECK_GL_ERRORS()
-#endif
-
 #define GLM_SWIZZLE
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -149,6 +127,28 @@ namespace kinski { namespace gl {
     const std::set<std::string>& getExtensions();
     bool isExtensionSupported(const std::string &theName);
 
+    #if KINSKI_GL_REPORT_ERRORS
+    #define KINSKI_CHECK_GL_ERRORS()\
+    while(GLenum error = glGetError()){\
+    switch(error){\
+    case GL_INVALID_ENUM:\
+    LOG_ERROR << "GL_INVALID_ENUM"; break;\
+    case GL_INVALID_VALUE:\
+    LOG_ERROR << "GL_INVALID_VALUE"; break;\
+    case GL_INVALID_OPERATION:\
+    LOG_ERROR << "GL_INVALID_OPERATION"; break;\
+    case GL_INVALID_FRAMEBUFFER_OPERATION:\
+    LOG_ERROR << "GL_INVALID_FRAMEBUFFER_OPERATION"; break;\
+    case GL_OUT_OF_MEMORY:\
+    LOG_ERROR << "GL_OUT_OF_MEMORY"; break;\
+    default:\
+    LOG_ERROR << "Unknown GLerror"; break;\
+    }\
+    }
+    #else
+    #define KINSKI_CHECK_GL_ERRORS()
+    #endif
+    
 }}//namespace
 
 #endif //_KINSKIGL_H

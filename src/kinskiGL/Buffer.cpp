@@ -36,21 +36,18 @@ struct Buffer::Obj
     
 };
     
-Buffer::Buffer():
-m_Obj(new Obj)
+Buffer::Buffer()
 {
 
 }
     
-Buffer::Buffer(GLenum target, GLenum usage):
-m_Obj(new Obj)
+Buffer::Buffer(GLenum target, GLenum usage)
 {
     init(target, usage);
 }
     
 template <class T>
-Buffer::Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage):
-m_Obj(new Obj)
+Buffer::Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage)
 {
     init(target, usage);
     setData(theVec);
@@ -63,7 +60,7 @@ Buffer::~Buffer()
 
 void Buffer::init(GLenum target, GLenum usage)
 {
-    //m_Obj = ObjPtr(new Obj);
+    m_Obj = ObjPtr(new Obj);
     m_Obj->target = target;
     m_Obj->usage = usage;
 }
@@ -106,13 +103,23 @@ GLsizei Buffer::numBytes() const
     return m_Obj->numBytes;
 }
 
+void Buffer::setTarget(GLenum theTarget)
+{
+    if(m_Obj) m_Obj->target = theTarget;
+}
+    
+void Buffer::setUsage(GLenum theUsage)
+{
+    if(m_Obj) m_Obj->usage = theUsage;
+}
+    
 void Buffer::setData(char *theData, GLsizei numBytes)
 {
-    if(!m_Obj->target)
+    if(!m_Obj)
     {
         init();
     }
-    else if(numBytes == m_Obj->numBytes)
+    else
     {
         //orphan buffer
         glBindBuffer(m_Obj->target, m_Obj->buffer_id);
