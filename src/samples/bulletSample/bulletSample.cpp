@@ -70,7 +70,8 @@ namespace kinski { namespace gl {
         void flush()
         {
             m_mesh->geometry()->createGLBuffers();
-            m_mesh->createVertexArray();
+
+            if(!m_mesh->vertexArray()) m_mesh->createVertexArray();
             
             gl::drawMesh(m_mesh);
             
@@ -116,6 +117,8 @@ private:
     
     // bullet
     shared_ptr<btCollisionShape> m_collisionShape;
+    shared_ptr<btBoxShape> m_boxCollisionShape;
+    
     shared_ptr<btBroadphaseInterface> m_broadphase;
     shared_ptr<btCollisionDispatcher> m_dispatcher;
     shared_ptr<btConstraintSolver> m_solver;
@@ -190,7 +193,7 @@ public:
             //create a few dynamic rigidbodies
             // Re-using the same collision is better for memory usage and performance
             
-            btBoxShape* colShape = new btBoxShape(btVector3(SCALING*1,SCALING*1,SCALING*1));
+            m_boxCollisionShape = shared_ptr<btBoxShape>(new btBoxShape(btVector3(SCALING*1,SCALING*1,SCALING*1)));
             //btCollisionShape* colShape = new btSphereShape(btScalar(1.));
             //m_collisionShapes.push_back(colShape);
             
@@ -205,7 +208,7 @@ public:
             
             btVector3 localInertia(0,0,0);
             if (isDynamic)
-                colShape->calculateLocalInertia(mass,localInertia);
+                m_boxCollisionShape->calculateLocalInertia(mass,localInertia);
             
             float start_x = START_POS_X - ARRAY_SIZE_X/2;
             float start_y = START_POS_Y;
@@ -225,7 +228,7 @@ public:
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
                         btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-                        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,colShape,localInertia);
+                        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,m_boxCollisionShape.get(),localInertia);
                         btRigidBody* body = new btRigidBody(rbInfo);
                         
                         
@@ -235,6 +238,22 @@ public:
             }
         }
         LOG_INFO<<"created dynamicsworld with "<<m_dynamicsWorld->getNumCollisionObjects()<<" rigidbodies";
+    }
+    
+    void teardown_physics()
+    {
+        int i;
+        for (i=m_dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
+        {
+            btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
+            btRigidBody* body = btRigidBody::upcast(obj);
+            if (body && body->getMotionState())
+            {
+                delete body->getMotionState();
+            }
+            m_dynamicsWorld->removeCollisionObject( obj );
+            delete obj;
+        }
     }
     
     void setup()
@@ -262,12 +281,13 @@ public:
         m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
         registerProperty(m_rotationSpeed);
         
+#ifndef KINSKI_RASPI
         // add properties
         addPropertyListToTweakBar(getPropertyList());
-        
         setBarColor(vec4(0, 0 ,0 , .5));
         setBarSize(ivec2(250, 500));
-
+#endif
+        
         // enable observer mechanism
         observeProperties();
         
@@ -354,6 +374,7 @@ public:
     
     void mouseDrag(const MouseEvent &e)
     {
+#ifndef KINSKI_RASPI
         vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
         if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
         {
@@ -366,6 +387,7 @@ public:
         {
             *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
         }
+#endif
     }
     
     void keyPress(const KeyEvent &e)
@@ -382,6 +404,8 @@ public:
             try
             {
                 Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                teardown_physics();
+                initPhysics();
             }catch(Exception &e)
             {
                 LOG_WARNING << e.what();

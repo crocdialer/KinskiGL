@@ -137,7 +137,7 @@ namespace kinski { namespace gl {
 
     void Mesh::createVertexArray()
     {
-        if(!m_geometry->vertexBuffer()) return;
+        if(m_geometry->vertices().empty()) return;
         
 #ifndef KINSKI_NO_VAO
         if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);

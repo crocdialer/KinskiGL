@@ -36,18 +36,21 @@ struct Buffer::Obj
     
 };
     
-Buffer::Buffer()
+Buffer::Buffer():
+m_Obj(new Obj)
 {
 
 }
     
-Buffer::Buffer(GLenum target, GLenum usage)
+Buffer::Buffer(GLenum target, GLenum usage):
+m_Obj(new Obj)
 {
     init(target, usage);
 }
     
 template <class T>
-Buffer::Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage)
+Buffer::Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage):
+m_Obj(new Obj)
 {
     init(target, usage);
     setData(theVec);
@@ -60,7 +63,7 @@ Buffer::~Buffer()
 
 void Buffer::init(GLenum target, GLenum usage)
 {
-    m_Obj = ObjPtr(new Obj);
+    //m_Obj = ObjPtr(new Obj);
     m_Obj->target = target;
     m_Obj->usage = usage;
 }
@@ -105,7 +108,7 @@ GLsizei Buffer::numBytes() const
 
 void Buffer::setData(char *theData, GLsizei numBytes)
 {
-    if(!m_Obj) init();
+    if(!m_Obj->target) init();
     
     m_Obj->numBytes = numBytes;
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
