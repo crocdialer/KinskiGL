@@ -108,7 +108,16 @@ GLsizei Buffer::numBytes() const
 
 void Buffer::setData(char *theData, GLsizei numBytes)
 {
-    if(!m_Obj->target) init();
+    if(!m_Obj->target)
+    {
+        init();
+    }
+    else if(numBytes == m_Obj->numBytes)
+    {
+        //orphan buffer
+        glBindBuffer(m_Obj->target, m_Obj->buffer_id);
+        glBufferData(m_Obj->target, numBytes, NULL, m_Obj->usage);
+    }
     
     m_Obj->numBytes = numBytes;
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
