@@ -104,6 +104,7 @@ private:
     RangedProperty<float>::Ptr m_distance;
     Property_<bool>::Ptr m_wireFrame;
     Property_<bool>::Ptr m_drawNormals;
+    Property_<bool>::Ptr m_stepPhysics;
     Property_<glm::vec3>::Ptr m_lightDir;
     
     Property_<glm::vec4>::Ptr m_color;
@@ -268,6 +269,9 @@ public:
         
         m_drawNormals = Property_<bool>::create("Normals", false);
         registerProperty(m_drawNormals);
+    
+        m_stepPhysics = Property_<bool>::create("Step Physics", true);
+        registerProperty(m_stepPhysics);
         
         m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
         registerProperty(m_lightDir);
@@ -335,7 +339,7 @@ public:
         
         m_material->uniform("u_time",getApplicationTime());
         
-        if (m_dynamicsWorld)
+        if (m_dynamicsWorld && m_stepPhysics->val())
         {
             m_dynamicsWorld->stepSimulation(timeDelta);
         }
@@ -396,6 +400,10 @@ public:
         
         switch (e.getChar())
         {
+        case KeyEvent::KEY_p:
+                m_stepPhysics->val() = !m_stepPhysics->val();
+            break;
+                
         case KeyEvent::KEY_s:
             Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
             break;
