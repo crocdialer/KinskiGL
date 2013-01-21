@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
         list<Object3D::Ptr>::const_iterator objIt = m_objects.begin();
         for (; objIt != m_objects.end(); objIt++)
         {
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, viewMatrix * (*objIt)->getTransform());
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, viewMatrix * (*objIt)->transform());
             
             if(const Mesh::Ptr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
             {

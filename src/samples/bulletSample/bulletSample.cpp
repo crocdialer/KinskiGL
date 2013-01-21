@@ -5,7 +5,8 @@
 #include "kinskiGL/Mesh.h"
 #include "kinskiGL/Fbo.h"
 
-#include "btBulletDynamicsCommon.h"
+#include "physics_context.h"
+
 
 using namespace std;
 using namespace kinski;
@@ -19,19 +20,6 @@ typedef Raspi_App BaseAppType;
 typedef GLFW_App BaseAppType;
 #endif
 
-///create 125 (5x5x5) dynamic object
-#define ARRAY_SIZE_X 4
-#define ARRAY_SIZE_Y 32
-#define ARRAY_SIZE_Z 4
-
-//maximum number of objects (and allow user to shoot additional boxes)
-#define MAX_PROXIES (ARRAY_SIZE_X*ARRAY_SIZE_Y*ARRAY_SIZE_Z + 1024)
-
-///scaling of the objects (0.1 = 20 centimeter boxes )
-#define SCALING 8.
-#define START_POS_X -5
-#define START_POS_Y -5
-#define START_POS_Z -3
 
 namespace kinski { namespace gl {
 
@@ -85,7 +73,40 @@ namespace kinski { namespace gl {
     };
     
 
-    
+    ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
+    {
+        gl::Object3D::Ptr m_object;
+        
+        btTransform m_graphicsWorldTrans;
+        btTransform	m_centerOfMassOffset;
+        
+        BT_DECLARE_ALIGNED_ALLOCATOR();
+        
+        MotionState(const gl::Object3D::Ptr& theObject3D,
+                    const btTransform& centerOfMassOffset = btTransform::getIdentity()):
+		m_object(theObject3D),
+        m_centerOfMassOffset(centerOfMassOffset)
+        {
+            m_graphicsWorldTrans.setFromOpenGLMatrix(&theObject3D->transform()[0][0]);
+        }
+        
+        ///synchronizes world transform from user to physics
+        virtual void getWorldTransform(btTransform& centerOfMassWorldTrans ) const
+        {
+			centerOfMassWorldTrans = m_centerOfMassOffset.inverse() * m_graphicsWorldTrans ;
+        }
+        
+        ///synchronizes world transform from physics to user
+        ///Bullet only calls the update of worldtransform for active objects
+        virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans)
+        {
+			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
+            glm::mat4 transform;
+            m_graphicsWorldTrans.getOpenGLMatrix(&transform[0][0]);
+            m_object->setTransform(transform);
+        }
+        
+    };
 }}
 
 class BulletSample : public BaseAppType
@@ -116,59 +137,35 @@ private:
     mat4 m_lastTransform, m_lastViewMatrix;
     float m_lastDistance;
     
-    // bullet
-    shared_ptr<btCollisionShape> m_collisionShape;
-    shared_ptr<btBoxShape> m_boxCollisionShape;
-    
-    shared_ptr<btBroadphaseInterface> m_broadphase;
-    shared_ptr<btCollisionDispatcher> m_dispatcher;
-    shared_ptr<btConstraintSolver> m_solver;
-    shared_ptr<btDefaultCollisionConfiguration> m_collisionConfiguration;
-    shared_ptr<btDynamicsWorld> m_dynamicsWorld;
-    
+    kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
+    
 
 public:
     
-    void initPhysics()
+    void create_cube_stack(int size_x, int size_y, int size_z)
     {
-        LOG_INFO<<"initializing physics";
+        m_scene.objects().clear();
         
-        ///collision configuration contains default setup for memory, collision setup
-        m_collisionConfiguration = shared_ptr<btDefaultCollisionConfiguration>(
-            new btDefaultCollisionConfiguration());
-        
-        //m_collisionConfiguration->setConvexConvexMultipointIterations();
-        
-        ///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
-        m_dispatcher = shared_ptr<btCollisionDispatcher>(new btCollisionDispatcher(m_collisionConfiguration.get()));
-        
-        m_broadphase = shared_ptr<btBroadphaseInterface>(new btDbvtBroadphase());
-        
-        ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
-        m_solver = shared_ptr<btConstraintSolver>(new btSequentialImpulseConstraintSolver);
-        
-        m_dynamicsWorld = shared_ptr<btDynamicsWorld>(new btDiscreteDynamicsWorld(m_dispatcher.get(),
-                                                                                  m_broadphase.get(),
-                                                                                  m_solver.get(),
-                                                                                  m_collisionConfiguration.get()));
-        m_debugDrawer = std::shared_ptr<kinski::gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
-        m_dynamicsWorld->setDebugDrawer(m_debugDrawer.get());
-        
-        m_dynamicsWorld->setGravity(btVector3(0,-500,0));
-        
-        //////////////////////////////////////////////////////////////
+        float scaling = 8.0f;
+        float start_pox_x = -5;
+        float start_pox_y = -5;
+        float start_pox_z = -3;
         
         ///create a few basic rigid bodies
-        m_collisionShape = shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
-                                                                                 btScalar(50.),
-                                                                                 btScalar(50.))));
+        m_physics_context.collisionShapes().push_back(shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
+                                                                                        btScalar(50.),
+                                                                                        btScalar(50.)))));
+        gl::Mesh::Ptr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), m_material));
+        m_scene.addObject(groundShape);
+        groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
+        
         //groundShape->initializePolyhedralFeatures();
         //	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0,1,0),50);
         
-        btTransform groundTransform;
-        groundTransform.setIdentity();
-        groundTransform.setOrigin(btVector3(0,-50,0));
+//        btTransform groundTransform;
+//        groundTransform.setIdentity();
+//        groundTransform.setOrigin(btVector3(0,-50,0));
         
         {
             btScalar mass(0.);
@@ -178,23 +175,26 @@ public:
             
             btVector3 localInertia(0,0,0);
             if (isDynamic)
-                m_collisionShape->calculateLocalInertia(mass,localInertia);
+                m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-            btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
-            btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState,
-                                                            m_collisionShape.get(),localInertia);
+            gl::MotionState* myMotionState = new gl::MotionState(groundShape);
+            btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,
+                                                            myMotionState,
+                                                            m_physics_context.collisionShapes().back().get(),
+                                                            localInertia);
             btRigidBody* body = new btRigidBody(rbInfo);
-            
             //add the body to the dynamics world
-            m_dynamicsWorld->addRigidBody(body);
+            m_physics_context.dynamicsWorld()->addRigidBody(body);
         }
         
         {
             //create a few dynamic rigidbodies
             // Re-using the same collision is better for memory usage and performance
             
-            m_boxCollisionShape = shared_ptr<btBoxShape>(new btBoxShape(btVector3(SCALING*1,SCALING*1,SCALING*1)));
+            m_physics_context.collisionShapes().push_back(shared_ptr<btBoxShape>(new btBoxShape(btVector3(scaling * 1,
+                                                                                        scaling * 1,
+                                                                                        scaling * 1))));
             //btCollisionShape* colShape = new btSphereShape(btScalar(1.));
             //m_collisionShapes.push_back(colShape);
             
@@ -209,54 +209,50 @@ public:
             
             btVector3 localInertia(0,0,0);
             if (isDynamic)
-                m_boxCollisionShape->calculateLocalInertia(mass,localInertia);
+                m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
-            float start_x = START_POS_X - ARRAY_SIZE_X/2;
-            float start_y = START_POS_Y;
-            float start_z = START_POS_Z - ARRAY_SIZE_Z/2;
+            // geometry
+            gl::Geometry::Ptr geom = gl::createBox(glm::vec3(scaling * 1));
             
-            for (int k=0;k<ARRAY_SIZE_Y;k++)
+            float start_x = start_pox_x - size_x/2;
+            float start_y = start_pox_y;
+            float start_z = start_pox_z - size_z/2;
+            
+            for (int k=0;k<size_y;k++)
             {
-                for (int i=0;i<ARRAY_SIZE_X;i++)
+                for (int i=0;i<size_x;i++)
                 {
-                    for(int j = 0;j<ARRAY_SIZE_Z;j++)
+                    for(int j = 0;j<size_z;j++)
                     {
-                        startTransform.setOrigin(SCALING*btVector3(
+                        startTransform.setOrigin(scaling * btVector3(
                                                                    btScalar(2.0*i + start_x),
                                                                    btScalar(20+2.0*k + start_y),
                                                                    btScalar(2.0*j + start_z)));
                         
+                        gl::Mesh::Ptr mesh(new gl::Mesh(geom, m_material));
+                        m_scene.addObject(mesh);
+                        glm::mat4 mat;
+                        startTransform.getOpenGLMatrix(&mat[0][0]);
+                        mesh->setTransform(mat);
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-                        btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-                        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,m_boxCollisionShape.get(),localInertia);
+                        gl::MotionState* myMotionState = new gl::MotionState(mesh);
+                        
+                        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,
+                                                                        m_physics_context.collisionShapes().back().get(),
+                                                                        localInertia);
                         btRigidBody* body = new btRigidBody(rbInfo);
                         
                         
-                        m_dynamicsWorld->addRigidBody(body);
+                        m_physics_context.dynamicsWorld()->addRigidBody(body);
                     }
                 }
             }
         }
-        LOG_INFO<<"created dynamicsworld with "<<m_dynamicsWorld->getNumCollisionObjects()<<" rigidbodies";
+        LOG_INFO<<"created dynamicsworld with "<<
+            m_physics_context.dynamicsWorld()->getNumCollisionObjects()<<" rigidbodies";
     }
-    
-    void teardown_physics()
-    {
-        int i;
-        for (i=m_dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
-        {
-            btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
-            btRigidBody* body = btRigidBody::upcast(obj);
-            if (body && body->getMotionState())
-            {
-                delete body->getMotionState();
-            }
-            m_dynamicsWorld->removeCollisionObject( obj );
-            delete obj;
-        }
-    }
-    
+
     void setup()
     {
         /*********** init our application properties ******************/
@@ -313,6 +309,7 @@ public:
         
         m_material = gl::Material::Ptr(new gl::Material);
         m_material->setShader(gl::createShader(gl::SHADER_PHONG));
+        //m_material->addTexture(m_textures[0]);
         
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
         myBoxMesh->setPosition(vec3(0, -100, 0));
@@ -328,7 +325,11 @@ public:
         }
         
         // init physics pipeline
-        initPhysics();
+        m_physics_context.initPhysics();
+        m_debugDrawer = shared_ptr<gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
+        m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
+        
+        create_cube_stack(4, 32, 4);
     }
     
     void update(const float timeDelta)
@@ -339,10 +340,11 @@ public:
         
         m_material->uniform("u_time",getApplicationTime());
         
-        if (m_dynamicsWorld && m_stepPhysics->val())
+        if (m_physics_context.dynamicsWorld() && m_stepPhysics->val())
         {
-            m_dynamicsWorld->stepSimulation(timeDelta);
+            m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
         }
+        
     }
     
     void draw()
@@ -357,11 +359,11 @@ public:
         
         m_scene.render(m_Camera);
         
-        if (m_dynamicsWorld && m_wireFrame->val())
-        {
-            m_dynamicsWorld->debugDrawWorld();
-            m_debugDrawer->flush();
-        }
+//        if (m_physics_context.dynamicsWorld() && m_wireFrame->val())
+//        {
+//            m_physics_context.dynamicsWorld()->debugDrawWorld();
+//            m_debugDrawer->flush();
+//        }
         
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
@@ -412,8 +414,9 @@ public:
             try
             {
                 Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                teardown_physics();
-                initPhysics();
+                m_physics_context.teardown_physics();
+                create_cube_stack(4, 32, 4);
+                
             }catch(Exception &e)
             {
                 LOG_WARNING << e.what();
@@ -441,6 +444,10 @@ public:
         if(theProperty == m_color)
         {
             m_material->setDiffuse(m_color->val());
+        }
+        else if(theProperty == m_wireFrame)
+        {
+            m_material->setWireframe(m_wireFrame->val());
         }
         else if(theProperty == m_lightDir)
         {

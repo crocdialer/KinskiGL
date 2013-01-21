@@ -14,7 +14,7 @@ namespace kinski { namespace gl{
     
     glm::mat4 Camera::getViewMatrix() const
     {
-        return glm::inverse(getTransform());
+        return glm::inverse(transform());
     }
     
     void Camera::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)

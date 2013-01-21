@@ -118,6 +118,7 @@ void Buffer::setData(char *theData, GLsizei numBytes)
     if(!m_Obj)
     {
         init();
+        glBindBuffer(m_Obj->target, m_Obj->buffer_id);
     }
     else
     {
@@ -127,7 +128,6 @@ void Buffer::setData(char *theData, GLsizei numBytes)
     }
     
     m_Obj->numBytes = numBytes;
-    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
     glBufferData(m_Obj->target, numBytes, theData, m_Obj->usage);
     glBindBuffer(m_Obj->target, 0);
 }

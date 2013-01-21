@@ -204,7 +204,7 @@ public:
         
         if(m_mesh)
         {
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->transform());
             gl::drawAxes(m_mesh);
             gl::drawBoundingBox(m_mesh);
             if(m_drawNormals->val()) gl::drawNormals(m_mesh);

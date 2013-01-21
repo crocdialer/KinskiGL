@@ -279,36 +279,7 @@ namespace kinski{ namespace gl{
             KINSKI_CHECK_GL_ERRORS();
         }
         
-        if(!m_faces.empty())
-        {
-            m_primitiveType = GL_TRIANGLES;
-            
-            // index buffer
-            m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
-            
-            m_indexBuffer.setData(NULL, m_indices.size() * sizeof(index_type));
-            KINSKI_CHECK_GL_ERRORS();
-            
-            index_type *indexBuffer = (index_type*) m_indexBuffer.map();
-            KINSKI_CHECK_GL_ERRORS();
-            
-            // insert indices
-            vector<gl::Face3>::const_iterator faceIt = m_faces.begin();
-            for (; faceIt != m_faces.end(); ++faceIt)
-            {
-                const gl::Face3 &face = *faceIt;
-                
-                for (int i = 0; i < 3; i++)
-                {
-                    // index
-                    *(indexBuffer++) = face.indices[i];
-                }
-            }
-            
-            m_indexBuffer.unmap();
-            KINSKI_CHECK_GL_ERRORS();
-        }
-        else if(hasIndices())
+        if(hasIndices())
         {
             // index buffer
             m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
@@ -316,14 +287,14 @@ namespace kinski{ namespace gl{
             m_indexBuffer.setData(NULL, m_indices.size() * sizeof(index_type));
             KINSKI_CHECK_GL_ERRORS();
             
-            index_type *indexBuffer = (index_type*) m_indexBuffer.map();
+            index_type *indexPtr = (index_type*) m_indexBuffer.map();
             KINSKI_CHECK_GL_ERRORS();
             
             // insert indices
             vector<uint32_t>::const_iterator indexIt = m_indices.begin();
             for (; indexIt != m_indices.end(); ++indexIt)
             {
-                *indexBuffer++ = *indexIt;
+                *indexPtr++ = *indexIt;
             }
             
             m_indexBuffer.unmap();
@@ -716,8 +687,6 @@ namespace kinski{ namespace gl{
         geom->appendVertices((glm::vec3*) vertices, numVertices);
         geom->appendNormals((glm::vec3*) normals, numVertices);
         geom->appendTextCoords((glm::vec2*) texCoords, numVertices);
-        
-        //geom->setPrimitiveType(GL_TRIANGLES);
         
         geom->computeTangents();
         geom->createGLBuffers();

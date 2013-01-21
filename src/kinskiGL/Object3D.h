@@ -28,11 +28,11 @@ namespace kinski { namespace gl {
         
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
-        glm::quat getRotation() const;
+        glm::quat rotation() const;
         
         inline void setTransform(const glm::mat4 &theTrans){ m_worldTransform = theTrans; };
-        inline glm::mat4& getTransform() { return m_worldTransform; };
-        inline const glm::mat4& getTransform() const { return m_worldTransform; };
+        inline glm::mat4& transform() { return m_worldTransform; };
+        inline const glm::mat4& transform() const { return m_worldTransform; };
         
     private:
         

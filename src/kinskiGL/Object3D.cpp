@@ -32,7 +32,7 @@ namespace kinski { namespace gl {
         m_worldTransform[3] = tmp;
     }
     
-    glm::quat Object3D::getRotation() const
+    glm::quat Object3D::rotation() const
     {
         return glm::quat_cast(m_worldTransform);
     }
