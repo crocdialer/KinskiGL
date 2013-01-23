@@ -21,11 +21,14 @@ namespace kinski { namespace gl {
         void removeObject(const Object3D::Ptr &theObject);
         
         void render(const Camera::Ptr &theCamera) const;
+        void update(float timestep);
         
         inline const std::list<Object3D::Ptr>& objects() const {return m_objects;};
         inline std::list<Object3D::Ptr>& objects() {return m_objects;};
         
     private:
+        
+        bool isVisible(const Camera::Ptr &theCamera, const Object3D::Ptr theObject);
         
         std::list<Object3D::Ptr> m_objects;
     };

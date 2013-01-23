@@ -7,6 +7,7 @@
 
 #include "physics_context.h"
 
+#include "kinskiCV/CVThread.h"
 
 using namespace std;
 using namespace kinski;
@@ -140,6 +141,7 @@ private:
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
     
+    CVThread::Ptr m_cvThread;
 
 public:
     
@@ -213,6 +215,10 @@ public:
             
             // geometry
             gl::Geometry::Ptr geom = gl::createBox(glm::vec3(scaling * 1));
+            
+            // material
+//            gl::Material::Ptr material(new gl::Material);
+//            material->setShader(gl::createShader(gl::SHADER_PHONG));
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -309,7 +315,7 @@ public:
         
         m_material = gl::Material::Ptr(new gl::Material);
         m_material->setShader(gl::createShader(gl::SHADER_PHONG));
-        //m_material->addTexture(m_textures[0]);
+        m_material->addTexture(m_textures[0]);
         
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
         myBoxMesh->setPosition(vec3(0, -100, 0));
@@ -323,6 +329,10 @@ public:
         {
             LOG_WARNING << e.what();
         }
+        
+        // camera input
+        m_cvThread = CVThread::Ptr(new CVThread());
+        m_cvThread->streamUSBCamera();
         
         // init physics pipeline
         m_physics_context.initPhysics();
@@ -345,6 +355,14 @@ public:
             m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
         }
         
+        if(m_cvThread->hasImage())
+        {
+            vector<cv::Mat> images = m_cvThread->getImages();
+            
+            for(int i=0;i<images.size();i++)
+                gl::TextureIO::updateTexture(m_textures[i], images[i]);
+            
+        }
     }
     
     void draw()

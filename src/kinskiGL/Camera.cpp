@@ -19,7 +19,7 @@ namespace kinski { namespace gl{
     
     void Camera::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
     {
-        setTransform( glm::inverse(glm::lookAt(getPosition(), theLookAt, theUp)) );
+        setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
     }
     
     /****************** OrthographicCamera *******************/

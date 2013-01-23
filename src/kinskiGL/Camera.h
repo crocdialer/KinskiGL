@@ -46,6 +46,14 @@ public:
     
     OrthographicCamera(float left = 0, float right = 1, float top = 1, float bottom = 0,
                        float near = 0, float far = 1000);
+    
+    inline float near() const {return m_near;};
+    inline float far() const {return m_far;};
+    inline float left() const {return m_left;};
+    inline float right() const {return m_right;};
+    inline float bottom() const {return m_bottom;};
+    inline float top() const {return m_top;};
+    
 private:
     
     float m_near, m_far, m_left, m_right, m_top, m_bottom;
@@ -61,11 +69,15 @@ public:
     PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 2000);
 
     void setFov(float theFov);
-    float getFov() const {return m_fov;};
+    float fov() const {return m_fov;};
     
     void setAspectRatio(float theAspect);
-    float getAspectRatio() const {return m_aspect;};
+    float aspectRatio() const {return m_aspect;};
+    
     void setClippingPlanes(float near, float far);
+    
+    float near() const {return m_near;};
+    float far() const {return m_far;};
     
 private:
     

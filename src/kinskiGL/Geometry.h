@@ -18,11 +18,7 @@ namespace kinski{ namespace gl{
     {
         Face3(uint32_t theA, uint32_t theB, uint32_t theC, glm::vec3 theNormal = glm::vec3(0)):
         a(theA), b(theB), c(theC), normal(theNormal)
-        {
-            vertexNormals.push_back(theNormal);
-            vertexNormals.push_back(theNormal);
-            vertexNormals.push_back(theNormal);
-        };
+        {}
         
         // vertex indices
         union
@@ -31,16 +27,7 @@ namespace kinski{ namespace gl{
             uint32_t indices[3];
         };
         
-        // texCoord indices
-        union
-        {
-            struct{uint32_t uv_a, uv_b, uv_c;};
-            uint32_t uv_indices[3];
-        };
-        
         glm::vec3 normal;
-        glm::vec3 tangent;
-        std::vector<glm::vec3> vertexNormals;
     };
     
     struct BoundingBox

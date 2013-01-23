@@ -144,10 +144,6 @@ namespace kinski{ namespace gl{
 			const glm::vec3 &vC = m_vertices[ face.c ];
             
 			face.normal = glm::normalize(glm::cross(vB - vA, vC - vA));
-            
-            face.vertexNormals[0] = face.normal;
-            face.vertexNormals[1] = face.normal;
-            face.vertexNormals[2] = face.normal;
         }
     }
     
@@ -192,15 +188,6 @@ namespace kinski{ namespace gl{
             glm::vec3 &vertNormal = *normIt;
             vertNormal = glm::normalize(vertNormal);
         }
-        
-        // iterate faces again to fill in normals
-        for (faceIt = m_faces.begin(); faceIt != m_faces.end(); faceIt++)
-        {
-            Face3 &face = *faceIt;
-            face.vertexNormals[0] = m_normals[face.a];
-            face.vertexNormals[1] = m_normals[face.b];
-            face.vertexNormals[2] = m_normals[face.c];
-        }
     }
     
     void Geometry::computeTangents()
@@ -231,7 +218,7 @@ namespace kinski{ namespace gl{
             // calculate tangent vector
             float det = (t1.x - t0.x) * (t2.y - t0.y) - (t1.y - t0.y) * (t2.x - t0.x);
             glm::vec3 tangent = ( (t2.y - t0.y) * ( v1 - v0 ) - (t1.y - t0.y) * ( v2 - v0 ) ) / det;
-            face.tangent = glm::normalize(tangent);
+            tangent = glm::normalize(tangent);
             
             m_tangents[face.a] = tangent;
             m_tangents[face.b] = tangent;
@@ -475,9 +462,6 @@ namespace kinski{ namespace gl{
                 Face3 f1(a, b, c), f2(c, d, a);
                 f1.normal = normal;
                 f2.normal = normal;
-                
-                f1.vertexNormals = vertNormals;
-                f2.vertexNormals = vertNormals;
                 
                 geom->appendFace(f1);
                 geom->appendFace(f2);
