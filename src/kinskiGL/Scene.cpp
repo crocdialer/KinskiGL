@@ -62,16 +62,15 @@ namespace kinski { namespace gl {
             
             if(const Mesh::Ptr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
             {
-                gl::AABB boundingBox;
-                boundingBox.min = glm::vec3((*objIt)->transform()[3].xyz())
-                                    + theMesh->geometry()->boundingBox().min;
-                boundingBox.min = glm::vec3((*objIt)->transform()[3].xyz())
-                + theMesh->geometry()->boundingBox().min;
+//                gl::AABB boundingBox;
+//                boundingBox.min = theMesh->geometry()->boundingBox().min;
+//                boundingBox.max = theMesh->geometry()->boundingBox().max;
                 
-                boundingBox.max = glm::vec3((*objIt)->transform()[3].xyz())
-                + theMesh->geometry()->boundingBox().max;
+                gl::Sphere boundingSphere (theMesh->position(),
+                                           std::max(theMesh->geometry()->boundingBox().min.length(),
+                                                    theMesh->geometry()->boundingBox().max.length()));
                 
-                if (frustum.intersect(boundingBox))
+                if (frustum.intersect(boundingSphere))
                 {
                     gl::drawMesh(theMesh);
                     counter++;
@@ -82,7 +81,7 @@ namespace kinski { namespace gl {
             }
 
         }
-        LOG_INFO<<counter;
+        //LOG_INFO<<counter;
     }
     
     bool isVisible(const Camera::Ptr &theCamera, const Object3D::Ptr theObject)

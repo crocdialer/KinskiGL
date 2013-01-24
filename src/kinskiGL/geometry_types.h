@@ -55,10 +55,10 @@ struct Sphere
 	glm::vec3 center;
 	float radius;
 
-	Sphere(glm::vec3 c = glm::vec3(0,0,0),float r = 1.f)
+	Sphere(glm::vec3 c,float r)
 	{
-		center=c;
-		radius=r;
+		center = c;
+		radius = r;
 	};
 };
 
@@ -130,6 +130,21 @@ struct AABB
 		return ret;
 	}
 	
+    inline AABB& transform(const glm::mat4& t)
+	{
+//        glm::vec3 theCenter = center(), theHalfextents = halfExtents();
+//        
+//		theCenter += t[3].xyz();
+//		theHalfextents = glm::mat3(t) * theHalfextents;
+//        
+//        min = theCenter - theHalfextents;
+//		max = theCenter + theHalfextents;
+        
+        //TODO: implement correct transform algorithm
+
+		return *this;
+	}
+    
 	unsigned int intersect(const Triangle& t);
 };
 

@@ -62,6 +62,8 @@ namespace kinski { namespace gl {
     class Shader;
     class Geometry;
     class Mesh;
+    struct AABB;
+    struct Sphere;
     struct Animation;
     struct Bone;
     

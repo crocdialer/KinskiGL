@@ -30,24 +30,25 @@ normal(n)
 Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
 {
     glm::mat4 t;
-    glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz();
+    glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz(),
+    side = transform[0].xyz(), up = transform[1].xyz();
     
-    float angle = 90.0f - fov/2.f;
+    float angle = 90.0f - fov;
 
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
 
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
 
-    t = glm::rotate(glm::mat4(), -angle, glm::vec3(1, 0, 0));
+    t = glm::rotate(glm::mat4(), angle, up);
 	planes[2] = Plane(eyePos, lookAt).transform(t); // left plane
 
-    t = glm::rotate(glm::mat4(), angle, glm::vec3(1, 0, 0));
+    t = glm::rotate(glm::mat4(), -angle, up);
 	planes[3] = Plane(eyePos, lookAt).transform(t); // right plane
 
-    t = glm::rotate(glm::mat4(), -angle, glm::vec3(0, 1, 0));
+    t = glm::rotate(glm::mat4(), -angle, side);
 	planes[4] = Plane(eyePos, lookAt).transform(t); // top plane
 
-    t = glm::rotate(glm::mat4(), -angle, glm::vec3(0, 1, 0));
+    t = glm::rotate(glm::mat4(), angle, side);
 	planes[5] = Plane(eyePos, lookAt).transform(t); // bottom plane
 }
 
