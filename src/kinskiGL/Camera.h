@@ -20,6 +20,7 @@ public:
     typedef std::shared_ptr<Camera> Ptr;
     
     Camera():Object3D(){};
+    virtual ~Camera(){};
     
     void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0,1,0));
     
@@ -27,7 +28,7 @@ public:
     
     glm::mat4 getViewMatrix() const;
     
-    virtual ~Camera(){};
+    virtual gl::Frustum frustum() const = 0;
 
 protected:
 
@@ -46,6 +47,8 @@ public:
     
     OrthographicCamera(float left = 0, float right = 1, float top = 1, float bottom = 0,
                        float near = 0, float far = 1000);
+    
+    virtual gl::Frustum frustum() const;
     
     inline float near() const {return m_near;};
     inline float far() const {return m_far;};
@@ -68,6 +71,8 @@ public:
     
     PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 2000);
 
+    virtual gl::Frustum frustum() const;
+    
     void setFov(float theFov);
     float fov() const {return m_fov;};
     

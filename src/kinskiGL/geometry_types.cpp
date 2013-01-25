@@ -27,6 +27,45 @@ foot(f),
 normal(n)
 {}
 
+AABB& AABB::transform(const glm::mat4& t)
+{
+    glm::vec3 aMin, aMax;
+    float     a, b;
+    int     i, j;
+    
+    // Copy box A into min and max array.
+    aMin = min;
+    aMax = max;
+    
+    // Begin at T.
+    min = max = t[3].xyz();
+    
+    // Find extreme points by considering product of
+    // min and max with each component of t.
+    
+    for( j=0; j<3; j++ )
+    {
+        for( i=0; i<3; i++ )
+        {
+            a = t[i][j] * aMin[i];
+            b = t[i][j] * aMax[i];
+
+            if( a < b )
+            {
+                min[j] += a;
+                max[j] += b;
+            }
+            else
+            {
+                min[j] += b;
+                max[j] += a;
+            }
+        }
+    }
+    
+    return *this;
+}
+    
 Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
 {
     glm::mat4 t;
@@ -309,33 +348,6 @@ int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3])
 	
 	return 1;   /* box and triangle overlaps */
 	
-}
-
-void transposeOpenGLMatrix(float src [16],float dst[16])
-{	
-	//row 1
-	dst[0]=src[0];
-	dst[4]=src[1];
-	dst[8]=src[2];
-	dst[12]=src[3];
-	
-	//row 2
-	dst[1]=src[4];
-	dst[5]=src[5];
-	dst[9]=src[6];
-	dst[13]=src[7];
-	
-	//row 3
-	dst[2]=src[8];
-	dst[6]=src[9];
-	dst[10]=src[10];
-	dst[14]=src[11];
-	
-	//row 4
-	dst[3]=src[12];
-	dst[7]=src[13];
-	dst[11]=src[14];
-	dst[15]=src[15];
 }
 
 }}//namespace

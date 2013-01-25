@@ -64,6 +64,7 @@ namespace kinski { namespace gl {
     class Mesh;
     struct AABB;
     struct Sphere;
+    struct Frustum;
     struct Animation;
     struct Bone;
     

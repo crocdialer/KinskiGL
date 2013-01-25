@@ -7,6 +7,7 @@
 //
 
 #include "Camera.h"
+#include "geometry_types.h"
 
 namespace kinski { namespace gl{
     
@@ -37,6 +38,12 @@ namespace kinski { namespace gl{
         setProjectionMatrix(glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far));
     }
     
+    gl::Frustum OrthographicCamera::frustum() const
+    {
+        return gl::Frustum(transform(), left(), right(), bottom(),
+                    top(), near(), far());
+    }
+    
     /****************** PerspectiveCamera *******************/
     
     PerspectiveCamera::PerspectiveCamera(float ascpect, float fov, float near, float far):
@@ -47,6 +54,11 @@ namespace kinski { namespace gl{
     m_aspect(ascpect)
     {
         setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
+    }
+    
+    gl::Frustum PerspectiveCamera::frustum() const
+    {
+        return gl::Frustum(transform(), fov(), near(), far());
     }
     
     void PerspectiveCamera::setFov(float theFov)

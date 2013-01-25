@@ -10,15 +10,12 @@
 
 #include "KinskiGL.h"
 
-#define OUTSIDE 0
-#define INTERSECT 1
-#define INSIDE 2
-
 namespace kinski { namespace gl {
+    
+enum intersection_type {OUTSIDE = 0, INTERSECT = 1, INSIDE = 2};
     
 struct Plane
 {
-
     glm::vec3 foot;
 	glm::vec3 normal;
 	Plane();
@@ -130,20 +127,7 @@ struct AABB
 		return ret;
 	}
 	
-    inline AABB& transform(const glm::mat4& t)
-	{
-//        glm::vec3 theCenter = center(), theHalfextents = halfExtents();
-//        
-//		theCenter += t[3].xyz();
-//		theHalfextents = glm::mat3(t) * theHalfextents;
-//        
-//        min = theCenter - theHalfextents;
-//		max = theCenter + theHalfextents;
-        
-        //TODO: implement correct transform algorithm
-
-		return *this;
-	}
+    AABB& transform(const glm::mat4& t);
     
 	unsigned int intersect(const Triangle& t);
 };
@@ -167,7 +151,7 @@ struct Frustum
 		return *this;
 	}
 	
-	inline unsigned int intersect(const Sphere& s)
+	inline uint32_t intersect(const Sphere& s)
 	{	
 		Plane* end = planes+6 ;
 		for (Plane *p = planes; p < end; p++)
@@ -179,9 +163,9 @@ struct Frustum
 		return INSIDE;
 	};
 	
-	inline unsigned int intersect(const AABB& aabb)
+	inline uint32_t intersect(const AABB& aabb)
 	{	
-		unsigned int ret = INSIDE ;
+		uint32_t ret = INSIDE ;
 
 		Plane* end = planes+6 ;
 		for (Plane *p = planes; p < end; p++)
@@ -202,8 +186,6 @@ struct Frustum
 
 /* fast AABB <-> Triangle test from Tomas Akenine-Möller */
 int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);
-
-void transposeOpenGLMatrix(float src [16],float dst[16]);
 
 }}//namespace
 

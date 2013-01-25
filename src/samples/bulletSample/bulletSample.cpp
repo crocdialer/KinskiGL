@@ -133,6 +133,8 @@ private:
     Property_<glm::mat3>::Ptr m_rotation;
     RangedProperty<float>::Ptr m_rotationSpeed;
     
+    Property_<uint32_t>::Ptr m_num_visible_objects;
+    
     // mouse rotation control
     vec2 m_clickPos;
     mat4 m_lastTransform, m_lastViewMatrix;
@@ -287,9 +289,12 @@ public:
         m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
         registerProperty(m_rotationSpeed);
         
+        m_num_visible_objects = Property_<uint32_t>::create("Num visible objects", 0);
+        
 #ifndef KINSKI_RASPI
         // add properties
         addPropertyListToTweakBar(getPropertyList());
+        addPropertyToTweakBar(m_num_visible_objects);
         setBarColor(vec4(0, 0 ,0 , .5));
         setBarSize(ivec2(250, 500));
 #endif
@@ -306,7 +311,7 @@ public:
 
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setClippingPlanes(.1, 5000);
+        m_Camera->setClippingPlanes(.1, 500);
         m_Camera->setAspectRatio(getAspectRatio());
         
         // test box shape
@@ -315,7 +320,9 @@ public:
         
         m_material = gl::Material::Ptr(new gl::Material);
         m_material->setShader(gl::createShader(gl::SHADER_PHONG));
+        //m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
         m_material->addTexture(m_textures[0]);
+        //m_material->addTexture(m_textures[1]);
         
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
         myBoxMesh->setPosition(vec3(0, -100, 0));
@@ -340,6 +347,20 @@ public:
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
         create_cube_stack(4, 32, 4);
+        
+        // create a simplex noise texture
+        {
+            int w = 1024, h = 1024;
+            float data[w * h];
+            
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                {
+                    data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
+                }
+            
+            m_textures[1].update(data, GL_RED, w, h, true);
+        }
     }
     
     void update(const float timeDelta)
@@ -376,6 +397,7 @@ public:
         gl::drawGrid(500, 500);
         
         m_scene.render(m_Camera);
+        m_num_visible_objects->val(m_scene.num_visible_objects());
         
 //        if (m_physics_context.dynamicsWorld() && m_wireFrame->val())
 //        {

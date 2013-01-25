@@ -117,7 +117,7 @@ public:
         }
         
         m_material = gl::Material::Ptr(new gl::Material);
-        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/artOfNoise.png"));
+        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Desktop/Earth-Color4096.jpg"));
 //        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
         m_material->addTexture(m_noiseTexture);
         
@@ -184,9 +184,9 @@ public:
     
     void draw()
     {
-        m_frameBuffer.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
+//        m_frameBuffer.bindFramebuffer();
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
         gl::Material cloneMat1 = *m_material;
         cloneMat1.setDepthWrite(false);
@@ -223,10 +223,9 @@ public:
             
         }
         
-        m_frameBuffer.unbindFramebuffer();
-        glViewport(0, 0, getWidth(), getHeight());
-        
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
+//        m_frameBuffer.unbindFramebuffer();
+//        glViewport(0, 0, getWidth(), getHeight());
+//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
         
         //gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
     }
