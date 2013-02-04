@@ -1,4 +1,4 @@
-#include "kinskiApp/App.h"
+#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 #include "kinskiGL/Material.h"
 #include "kinskiGL/Buffer.h"
@@ -16,7 +16,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class OpenCLTest : public App
+class OpenCLTest : public GLFW_App
 {
 private:
     

@@ -263,6 +263,8 @@ public:
 
     void setup()
     {
+        glClearColor(1.0, 1.0, 1.0, 1.0);
+        
         /*********** init our application properties ******************/
         
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);
@@ -322,7 +324,9 @@ public:
         m_material->setShader(gl::createShader(gl::SHADER_PHONG));
         //m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
         m_material->addTexture(m_textures[0]);
-        //m_material->addTexture(m_textures[1]);
+//        m_material->addTexture(m_textures[1]);
+//        m_textures[1].setWrapS(GL_CLAMP_TO_EDGE);
+//        m_textures[1].setWrapT(GL_CLAMP_TO_EDGE);
         
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
         myBoxMesh->setPosition(vec3(0, -100, 0));
@@ -398,12 +402,6 @@ public:
         
         m_scene.render(m_Camera);
         m_num_visible_objects->val(m_scene.num_visible_objects());
-        
-//        if (m_physics_context.dynamicsWorld() && m_wireFrame->val())
-//        {
-//            m_physics_context.dynamicsWorld()->debugDrawWorld();
-//            m_debugDrawer->flush();
-//        }
         
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
