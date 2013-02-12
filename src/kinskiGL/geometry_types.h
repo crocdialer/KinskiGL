@@ -18,11 +18,12 @@ struct Plane
 {
     glm::vec3 foot;
 	glm::vec3 normal;
+    
 	Plane();
 	Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
 	Plane(const glm::vec3& f, const glm::vec3& n);
 	
-	inline float distance(const glm::vec3& p)
+	inline float distance(const glm::vec3& p) const
 	{
 		return glm::dot(foot - p, normal);
 	};
@@ -32,6 +33,12 @@ struct Plane
 		foot += t[3].xyz();
 		normal = glm::mat3(t) * normal;
 		return *this;
+	};
+    
+    inline Plane transform(const glm::mat4& t) const
+	{
+        Plane ret = *this;
+		return ret.transform(t);
 	};
 };
 
@@ -44,6 +51,20 @@ struct Triangle
 	Triangle(const glm::vec3& _v1, const glm::vec3& _v2, const glm::vec3& _v3)
 	:v1(_v1),v2(_v2),v3(_v3)
 	{}
+    
+    inline Triangle& transform(const glm::mat4& t)
+	{
+		v1 = (glm::vec4(v1, 1.0f) * t).xyz();
+		v1 = (glm::vec4(v2, 1.0f) * t).xyz();
+        v1 = (glm::vec4(v3, 1.0f) * t).xyz();
+		return *this;
+	};
+    
+    inline Triangle transform(const glm::mat4& t) const
+	{
+        Triangle ret = *this;
+		return ret.transform(t);
+	};
 };
 
 struct Sphere
@@ -56,6 +77,18 @@ struct Sphere
 	{
 		center = c;
 		radius = r;
+	};
+    
+    inline Sphere& transform(const glm::mat4& t)
+	{
+		center = (glm::vec4(center, 1.0f) * t).xyz();;
+		return *this;
+	};
+    
+    inline Sphere transform(const glm::mat4& t) const
+	{
+        Sphere ret = *this;
+		return ret.transform(t);
 	};
 };
 
@@ -128,6 +161,12 @@ struct AABB
 	}
 	
     AABB& transform(const glm::mat4& t);
+    
+    inline AABB transform(const glm::mat4& t) const
+    {
+        AABB ret = *this;
+        return ret.transform(t);
+    }
     
 	unsigned int intersect(const Triangle& t);
 };

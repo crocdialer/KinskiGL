@@ -66,6 +66,16 @@ AABB& AABB::transform(const glm::mat4& t)
     return *this;
 }
     
+unsigned int AABB::intersect(const Triangle& t)
+{
+    float triVerts [3][3] =	{	{t.v1[0],t.v1[1],t.v1[2]},
+        {t.v2[0],t.v2[1],t.v2[2]},
+        {t.v3[0],t.v3[1],t.v3[2]}
+    };
+    
+    return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
+}
+    
 Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
 {
     glm::mat4 t;
@@ -111,16 +121,6 @@ Frustum::Frustum(const glm::mat4 &transform, float left, float right,float botto
 	planes[5] = Plane(eyePos + (bottom * -up), up); // bottom plane
 }
     
-unsigned int AABB::intersect(const Triangle& t)
-{	
-	float triVerts [3][3] =	{	{t.v1[0],t.v1[1],t.v1[2]},
-								{t.v2[0],t.v2[1],t.v2[2]},
-								{t.v3[0],t.v3[1],t.v3[2]}
-							};
-	
-	return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
-}
-
 /********************************************************/
 
 /* AABB-triangle overlap test code                      */
