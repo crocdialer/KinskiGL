@@ -15,13 +15,14 @@ namespace kinski { namespace gl {
     Texture createTextureFromFile(const std::string &theFileName)
     {
         Texture ret;
-        std::string path = kinski::searchFile(theFileName);
-        if(path.empty())
+        std::vector<unsigned char> dataVec = kinski::readBinaryFile(theFileName);
+        if(dataVec.empty())
             return ret;
         
         int width, height, num_components;
         
-        unsigned char *data = stbi_load(path.c_str(), &width, &height, &num_components, 0);
+        unsigned char *data = stbi_load_from_memory(&dataVec[0], dataVec.size(),
+                                                    &width, &height, &num_components, 0);
         
         if(data)
         {

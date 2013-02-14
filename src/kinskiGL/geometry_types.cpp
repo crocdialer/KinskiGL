@@ -9,7 +9,7 @@
 #define PI 3.14159265359f
 
 namespace kinski { namespace gl {
-    
+
 Plane::Plane()
 {
 	foot = glm::vec3(0);
@@ -65,13 +65,22 @@ AABB& AABB::transform(const glm::mat4& t)
     
     return *this;
 }
+
+uint32_t intersect(const Ray& theRay)
+{
+//    float t_min = std::numeric_limits<float>::min();
+//    float t_max = std::numeric_limits<float>::max();
+    //TODO: implement!
     
-unsigned int AABB::intersect(const Triangle& t)
+    return INTERSECT;
+}
+    
+uint32_t AABB::intersect(const Triangle& t)
 {
     float triVerts [3][3] =	{	{t.v1[0],t.v1[1],t.v1[2]},
-        {t.v2[0],t.v2[1],t.v2[2]},
-        {t.v3[0],t.v3[1],t.v3[2]}
-    };
+                                {t.v2[0],t.v2[1],t.v2[2]},
+                                {t.v3[0],t.v3[1],t.v3[2]}
+                            };
     
     return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
 }
@@ -326,27 +335,27 @@ int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3])
 	
 	FINDMINMAX(v0[X],v1[X],v2[X],min,max);
 	
-	if(min>boxhalfsize[X] || max<-boxhalfsize[X]) return 0;
+	if(min>boxhalfsize[X] || max<-boxhalfsize[X]) return REJECT;
 
 	/* test in Y-direction */	
 	FINDMINMAX(v0[Y],v1[Y],v2[Y],min,max);
 	
-	if(min>boxhalfsize[Y] || max<-boxhalfsize[Y]) return 0;
+	if(min>boxhalfsize[Y] || max<-boxhalfsize[Y]) return REJECT;
 	
 	/* test in Z-direction */
 	
 	FINDMINMAX(v0[Z],v1[Z],v2[Z],min,max);
 	
-	if(min>boxhalfsize[Z] || max<-boxhalfsize[Z]) return 0;
+	if(min>boxhalfsize[Z] || max<-boxhalfsize[Z]) return REJECT;
 	
 	/* Bullet 2: */	
 	/*  test if the box intersects the plane of the triangle */	
 	/*  compute plane equation of triangle: normal*x+d=0 */	
 	CROSS(normal,e0,e1);	
 	// -NJMP- (line removed here)	
-	if(!planeBoxOverlap(normal,v0,boxhalfsize)) return 0;	// -NJMP-
+	if(!planeBoxOverlap(normal,v0,boxhalfsize)) return REJECT;	// -NJMP-
 	
-	return 1;   /* box and triangle overlaps */
+	return INTERSECT;   /* box and triangle overlaps */
 	
 }
 

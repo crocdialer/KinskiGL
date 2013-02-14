@@ -8,8 +8,6 @@
 
 #include "Scene.h"
 #include "Mesh.h"
-#include <boost/tuple/tuple.hpp>
-#include <boost/tuple/tuple_comparison.hpp>
 #include "geometry_types.h"
 
 using namespace std;

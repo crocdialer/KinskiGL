@@ -12,7 +12,39 @@
 
 namespace kinski { namespace gl {
     
-enum intersection_type {OUTSIDE = 0, INTERSECT = 1, INSIDE = 2};
+enum intersection_type {REJECT = 0, INTERSECT = 1, INSIDE = 2};
+
+struct Ray
+{
+    glm::vec3 origin;
+	glm::vec3 direction;
+    
+    Ray(const glm::vec3& theOrigin, const glm::vec3& theDir):
+    origin(theOrigin), direction(glm::normalize(theDir)){}
+    
+    inline Ray& transform(const glm::mat4& t)
+	{
+		origin += t[3].xyz();
+		direction = glm::mat3(t) * direction;
+		return *this;
+	};
+    
+    inline Ray transform(const glm::mat4& t) const
+	{
+        Ray ret = *this;
+		return ret.transform(t);
+	};
+    
+    inline friend glm::vec3 operator*(const Ray &theRay, float t)
+    {
+        return theRay.origin + t * theRay.direction;
+    }
+    
+    inline friend glm::vec3 operator*(float t, const Ray &theRay)
+    {
+        return theRay.origin + t * theRay.direction;
+    }
+};
     
 struct Plane
 {
@@ -90,6 +122,25 @@ struct Sphere
         Sphere ret = *this;
 		return ret.transform(t);
 	};
+    
+    inline uint32_t intersect(const Ray &theRay)
+    {
+        glm::vec3 l = center - theRay.origin;
+        float s = glm::dot(l, theRay.direction);
+        float l2 = glm::dot(l, l);
+        float r2 = radius * radius;
+        if(s < 0 && l2 > r2) return REJECT;
+        float m2 = l2 - s * s;
+        if(m2 > r2) return REJECT;
+        /*
+        float q = sqrtf(r2 - m2);
+        float t;
+        if(l2 > r2) t = s - q;
+        else t = s + q;
+        glm::vec3 intersect_point = theRay * t;
+        */
+        return INTERSECT;
+    }
 };
 
 /*
@@ -168,7 +219,9 @@ struct AABB
         return ret.transform(t);
     }
     
-	unsigned int intersect(const Triangle& t);
+    uint32_t intersect(const Ray& theRay);
+    
+	uint32_t intersect(const Triangle& t);
 };
 
 struct Frustum
@@ -195,9 +248,8 @@ struct Frustum
 		Plane* end = planes+6 ;
 		for (Plane *p = planes; p < end; p++)
 		{
-			
 			if (p->distance(s.center) > s.radius)
-				return OUTSIDE;
+				return REJECT;
 		}
 		return INSIDE;
 	};
@@ -211,7 +263,7 @@ struct Frustum
 		{
 			//positive vertex outside ?
 			if (p->distance(aabb.posVertex(p->normal) ) > 0)
-				return OUTSIDE ;
+				return REJECT ;
 			
 			//negative vertex outside ?
 			else if(p->distance(aabb.negVertex(p->normal) ) > 0)
