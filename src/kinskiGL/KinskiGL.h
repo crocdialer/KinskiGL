@@ -121,7 +121,11 @@ namespace kinski { namespace gl {
     void drawBoundingBox(const std::weak_ptr<const Mesh> &theMesh);
     
     void drawNormals(const std::weak_ptr<const Mesh> &theMesh);
-        
+    
+    /*********************************** inbuilt Texture loading **********************************/
+    
+    Texture createTextureFromFile(const std::string &theFileName);
+    
     /*********************************** Shader Factory *******************************************/
     
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};
