@@ -92,7 +92,7 @@ namespace kinski{
     
     /*!
      * Basic interface for classes serving as processing Nodes,
-     * meaning delegates doing images processing or arbitrary stuff 
+     * meaning delegates doing image processing or arbitrary stuff 
      * like communicating results over network or writing images to disk, etc.
      */
     class CVProcessNode : public CVNode

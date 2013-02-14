@@ -73,7 +73,7 @@ namespace kinski
         
     private:
         
-        volatile bool m_stopped;
+        bool m_stopped;
         bool m_newFrame;
 
         std::vector<cv::Mat> m_images;
@@ -96,7 +96,6 @@ namespace kinski
         boost::thread m_thread;
         boost::mutex m_mutex;
         boost::condition_variable m_conditionVar;
-        
     };
     
 } // namespace kinski
