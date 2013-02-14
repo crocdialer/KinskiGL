@@ -68,7 +68,7 @@ namespace kinski {
                        istreambuf_iterator<char>());
     }
 
-    std::vector<char> readBinaryFile(const std::string & theUTF8Filename)
+    std::vector<unsigned char> readBinaryFile(const std::string & theUTF8Filename)
     {
         string path = searchFile(theUTF8Filename);
         
@@ -78,7 +78,7 @@ namespace kinski {
             throw OpenFileFailed(path);
         }
         
-        std::vector<char> content;
+        std::vector<uint8_t> content;
         content.insert(content.end(), (istreambuf_iterator<char>(inStream)),
                        istreambuf_iterator<char>());
         
