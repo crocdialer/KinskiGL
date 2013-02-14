@@ -117,8 +117,15 @@ public:
         }
         
         m_material = gl::Material::Ptr(new gl::Material);
-        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Desktop/Earth-Color4096.jpg"));
-//        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        try
+        {
+            m_material->addTexture(gl::createTextureFromFile("/Users/anrikavelychko/Pictures/PICT0170.jpg"));
+            //        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
+        }catch(Exception &e)
+        {
+            LOG_WARNING<<e.what();
+        }
+        
         m_material->addTexture(m_noiseTexture);
         
         try{
@@ -130,7 +137,7 @@ public:
         }
 
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
-        m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
+        //m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
         m_pointMaterial->setPointSize(30.f);
         m_pointMaterial->setBlending();
         //m_pointMaterial->setDepthWrite(false);

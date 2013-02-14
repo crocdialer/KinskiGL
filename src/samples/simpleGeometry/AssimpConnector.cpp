@@ -8,7 +8,6 @@
 
 #include "AssimpConnector.h"
 #include "kinskiGL/Mesh.h"
-#include "kinskiApp/TextureIO.h"
 
 using namespace std;
 using namespace glm;
@@ -25,10 +24,14 @@ namespace kinski { namespace gl{
     gl::Mesh::Ptr AssimpConnector::loadModel(const std::string &theModelPath)
     {
         Assimp::Importer importer;
-        importer.ReadFile(searchFile(theModelPath), 0);
-        const aiScene *theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
-                                                               | aiProcess_GenSmoothNormals
-                                                               | aiProcess_CalcTangentSpace);
+        const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
+        
+        if(false)
+        {
+            theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
+                                                | aiProcess_GenSmoothNormals
+                                                | aiProcess_CalcTangentSpace);
+        }
         
         if (theScene)
         {
@@ -346,7 +349,7 @@ namespace kinski { namespace gl{
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
             {
-                theMaterial->addTexture(gl::TextureIO::loadTexture(string(texPath.data)));
+                theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data)));
             }
         }
         
