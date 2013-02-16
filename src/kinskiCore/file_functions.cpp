@@ -75,7 +75,7 @@ namespace kinski {
         ifstream inStream(path.c_str());
         if(!inStream.good())
         {
-            throw OpenFileFailed(path);
+            throw OpenFileFailed(theUTF8Filename);
         }
         
         std::vector<uint8_t> content;

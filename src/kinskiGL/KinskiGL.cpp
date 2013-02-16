@@ -501,7 +501,7 @@ namespace kinski { namespace gl {
         Mesh::ConstPtr m = theMesh.lock();
         if(!m) return;
         
-        BoundingBox bb = m->geometry()->boundingBox();
+        AABB bb = m->geometry()->boundingBox();
         vector<vec3> thePoints;
         thePoints.push_back(vec3(0));
         thePoints.push_back(vec3(bb.max.x, 0, 0));
@@ -568,7 +568,7 @@ namespace kinski { namespace gl {
             Mesh::ConstPtr theMesh = weakMesh.lock();
             if(!theMesh) return;
             
-            BoundingBox bb = theMesh->geometry()->boundingBox();
+            AABB bb = theMesh->geometry()->boundingBox();
             
             vector<vec3> thePoints;
             // bottom

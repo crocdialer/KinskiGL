@@ -120,10 +120,9 @@ public:
         try
         {
             m_material->addTexture(gl::createTextureFromFile("/Users/anrikavelychko/Pictures/PICT0170.jpg"));
-            //        m_material->addTexture(gl::TextureIO::loadTexture("/Users/Fabian/Pictures/David_Jien_02.png"));
         }catch(Exception &e)
         {
-            LOG_WARNING<<e.what();
+            LOG_ERROR<<e.what();
         }
         
         m_material->addTexture(m_noiseTexture);
@@ -133,7 +132,7 @@ public:
             //m_material->setShader(gl::createShader(gl::SHADER_PHONG));
         }catch (std::exception &e)
         {
-            LOG_WARNING<<e.what();
+            LOG_ERROR<<e.what();
         }
 
         m_pointMaterial = gl::Material::Ptr(new gl::Material);

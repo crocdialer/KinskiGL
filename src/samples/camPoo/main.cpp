@@ -1,4 +1,4 @@
-#include "kinskiApp/App.h"
+#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 
 #include "kinskiGL/Shader.h"
@@ -12,7 +12,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class CamPoo : public App 
+class CamPoo : public GLFW_App
 {
 private:
     

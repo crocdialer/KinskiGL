@@ -6,13 +6,14 @@ using namespace cv;
 namespace kinski{ namespace gl{
     
     
-const Texture TextureIO::loadTexture(const string &imgPath)
+const Texture TextureIO::loadTexture(const string &imgName)
 {
-    Mat img = imread(searchFile(imgPath) , -1);
+    string imgPath = searchFile(imgName);
+    Mat img = imread(imgPath , -1);
     Texture ret;
     
     if(img.empty())
-        throw TextureNotFoundException(imgPath);
+        throw TextureNotFoundException(imgName);
    
     //GLint maxSize;
     //glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);

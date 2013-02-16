@@ -185,7 +185,7 @@ namespace kinski {
         myFileOut.close();
     }
     
-    void Serializer::loadComponentState(Component::Ptr theComponent,
+    void Serializer::loadComponentState(const Component::Ptr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {

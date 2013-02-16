@@ -10,6 +10,7 @@
 #define __kinskiGL__Geometry__
 
 #include "KinskiGL.h"
+#include "geometry_types.h"
 #include "Buffer.h"
 
 namespace kinski{ namespace gl{
@@ -28,15 +29,6 @@ namespace kinski{ namespace gl{
         };
         
         glm::vec3 normal;
-    };
-    
-    struct BoundingBox
-    {
-        glm::vec3 min, max;
-        
-        BoundingBox(const glm::vec3 &theMin, const glm::vec3 &theMax):
-        min(theMin),max(theMax)
-        {};
     };
     
     // each vertex can reference up to 4 bones
@@ -183,7 +175,7 @@ namespace kinski{ namespace gl{
         
         void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
         
-        inline const BoundingBox& boundingBox() const { return m_boundingBox; };
+        inline const AABB& boundingBox() const { return m_boundingBox; };
         
         // GL buffers
         const gl::Buffer& vertexBuffer() const { return m_vertexBuffer; };
@@ -224,7 +216,7 @@ namespace kinski{ namespace gl{
         std::shared_ptr<Bone> m_rootBone;
         
         
-        BoundingBox m_boundingBox;
+        AABB m_boundingBox;
         
         gl::Buffer m_vertexBuffer;
         gl::Buffer m_normalBuffer;

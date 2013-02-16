@@ -243,17 +243,10 @@ namespace gl
         //@}  
     };
     
-    class TextureDataExc : public std::exception {
+    class TextureDataExc : public Exception
+    {
     public:	
-        TextureDataExc( const std::string &log ) throw();
-        virtual const char* what() const throw()
-        {
-            return mMessage;
-        }
-        
-    private:
-        char	mMessage[16001];
-        GLint	mShaderType;
+        TextureDataExc( const std::string &log ):Exception("TextureData Error: " + log){};
     };
     
     template<typename T> class scoped_bind

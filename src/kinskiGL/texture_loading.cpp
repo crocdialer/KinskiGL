@@ -15,7 +15,7 @@ namespace kinski { namespace gl {
     Texture createTextureFromFile(const std::string &theFileName)
     {
         Texture ret;
-        std::vector<unsigned char> dataVec = kinski::readBinaryFile(theFileName);
+        std::vector<uint8_t> dataVec = kinski::readBinaryFile(theFileName);
         if(dataVec.empty())
             return ret;
         

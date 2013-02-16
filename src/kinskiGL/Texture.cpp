@@ -27,9 +27,6 @@ using namespace std;
 namespace kinski{
 namespace gl {
     
-TextureDataExc::TextureDataExc( const std::string &log ) throw()
-{ strncpy( mMessage, log.c_str(), 16000 ); }
-
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Format
     

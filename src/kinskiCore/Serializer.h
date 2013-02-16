@@ -54,7 +54,7 @@ namespace kinski
         /*!
          * Read a component´s state from a json-file
          */
-        static void loadComponentState(Component::Ptr theComponent,
+        static void loadComponentState(const Component::Ptr &theComponent,
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         

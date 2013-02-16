@@ -15,7 +15,7 @@ namespace kinski {
     
     bool fileExists(const std::string &theFilename);
     const std::string readFile(const std::string & theUTF8Filename);
-    std::vector<unsigned char> readBinaryFile(const std::string &theUTF8Filename);
+    std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename);
     std::string getFilenamePart(const std::string &theFileName);
     std::string getDirectoryPart(const std::string &theFileName);
     void getDirectoryEntries(const std::string &thePath,  std::vector<std::string> &theDirEntries,
@@ -38,8 +38,8 @@ namespace kinski {
     class OpenDirectoryFailed: public Exception
     {
     public:
-        OpenDirectoryFailed(const std::string &theFilename) :
-        Exception(std::string("File not found: ") + theFilename) {}
+        OpenDirectoryFailed(const std::string &theDir) :
+        Exception(std::string("Could not open directory: ") + theDir) {}
     };
     
     class OpenFileFailed: public Exception

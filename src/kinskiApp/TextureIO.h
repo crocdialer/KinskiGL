@@ -18,13 +18,6 @@ namespace kinski{ namespace gl{
         
         static void updateTexture(gl::Texture &theTexture,
                                   const cv::Mat &theImage);
-        
-        class TextureNotFoundException : public Exception
-        {
-        public:
-            TextureNotFoundException(const std::string &thePath = "")
-            :Exception("Texture not found: " + thePath){};
-        };
     };
 }}
 #endif //_TEXTUREIO_IS_INCLUDED_
