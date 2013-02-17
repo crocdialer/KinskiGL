@@ -22,7 +22,7 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#include <boost/filesystem.hpp>
+//#include <boost/filesystem.hpp>
 
 #define STAT64 stat
 
@@ -30,7 +30,34 @@ using namespace std;
 
 namespace kinski {
     
+    /////////// implemantation internal /////////////
+    
     std::list<std::string> g_searchPaths;
+    
+    std::string expand_user(std::string path)
+    {
+        if (not path.empty() and path[0] == '~')
+        {
+            //assert(path.size() == 1 or path[1] == '/');  // or other error handling
+            if(path.size() != 1 && path[1] != '/') return path;
+            char const* home = getenv("HOME");
+            if (home or ((home = getenv("USERPROFILE"))))
+            {
+                path.replace(0, 1, home);
+            }else
+            {
+                char const *hdrive = getenv("HOMEDRIVE"),
+                *hpath = getenv("HOMEPATH");
+//                assert(hdrive);  // or other error handling
+//                assert(hpath);
+                if(!(hdrive && hpath)) return path;
+                path.replace(0, 1, std::string(hdrive) + hpath);
+            }
+        }
+        return path;
+    }
+    
+    /////////// end implemantation internal /////////////
     
     const std::list<std::string>& getSearchPaths()
     {
@@ -52,12 +79,7 @@ namespace kinski {
     const std::string readFile(const std::string & theUTF8Filename)
     {
         string path = searchFile(theUTF8Filename);
-        
-        if(path.empty())
-        {
-            throw FileNotFoundException(theUTF8Filename);
-        }
-         
+
         ifstream inStream(path.c_str());
         if(!inStream.good())
         {
@@ -163,17 +185,17 @@ namespace kinski {
 
     std::string searchFile(const std::string &theFileName)
     {
-        std::string retPath;
+        std::string retPath, expanded_name = expand_user(theFileName);
         std::list<std::string>::const_iterator it = getSearchPaths().begin();
         for (; it != getSearchPaths().end(); ++it)
         {
-            if (fileExists((*it) + theFileName))
+            if (fileExists((*it) + expanded_name))
             {
-                retPath = (*it) + theFileName;
+                retPath = (*it) + expanded_name;
                 return retPath;
             }
         }
-        return "";
+        throw FileNotFoundException(theFileName);
     }
 
     std::string getDirectoryPart(const std::string &theFileName)
