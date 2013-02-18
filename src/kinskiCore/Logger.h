@@ -46,7 +46,7 @@ class Logger
     
         std::string _myTopLevelLogTag;
         Severity m_globalSeverity;
-        std::multimap<std::string,ModuleSeverity> m_severitySettings;
+        std::multimap<std::string, ModuleSeverity> m_severitySettings;
 };
 
 /**

@@ -25,7 +25,6 @@ namespace kinski {
     std::string lastFileNamePart(const char *file_name);
     std::string getExtension(const std::string &thePath);
     std::string removeExtension(const std::string &theFileName);
-    std::string file_string(const char* file_name);
     /************************ Exceptions ************************/
     
     class FileNotFoundException: public Exception

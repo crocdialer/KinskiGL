@@ -66,7 +66,7 @@ namespace kinski {
     
     void addSearchPath(const std::string &thePath)
     {
-        g_searchPaths.push_back(thePath);
+        g_searchPaths.push_back(getDirectoryPart(expand_user(thePath)));
     }
     
     // boosted
