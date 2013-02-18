@@ -64,7 +64,6 @@ namespace kinski {
             Severity mySeverity = m_globalSeverity;
             const std::string myModule(theModule); // remove everything before the last backslash
             
-            
             // find all setting for a particular module
             std::multimap<std::string,ModuleSeverity>::const_iterator myLowerBound =
                 m_severitySettings.lower_bound(myModule);

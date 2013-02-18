@@ -192,6 +192,7 @@ namespace kinski {
             if (fileExists((*it) + expanded_name))
             {
                 retPath = (*it) + expanded_name;
+                LOG_TRACE<<"found '"<<theFileName<<"' as: "<<expanded_name;
                 return retPath;
             }
         }
