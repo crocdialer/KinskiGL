@@ -19,7 +19,7 @@ class SimpleGeometryApp : public GLFW_App
 private:
     
     gl::Fbo m_frameBuffer;
-    gl::Texture m_noiseTexture;
+    gl::Texture m_textures[4];
     
     gl::Material::Ptr m_material, m_pointMaterial;
     gl::Geometry::Ptr m_geometry;
@@ -54,6 +54,10 @@ public:
     
     void setup()
     {
+        /******************** add search paths ************************/
+        kinski::addSearchPath("~/Desktop/");
+        kinski::addSearchPath("~/Pictures/");
+        
         /*********** init our application properties ******************/
         
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);
@@ -113,22 +117,24 @@ public:
                     data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
             
-            m_noiseTexture.update(data, GL_RED, w, h, true);
+            m_textures[1].update(data, GL_RED, w, h, true);
         }
         
         m_material = gl::Material::Ptr(new gl::Material);
         try
         {
-            m_material->addTexture(gl::createTextureFromFile("/Users/anrikavelychko/Pictures/PICT0170.jpg"));
+            m_textures[0] = gl::createTextureFromFile("Earth2.jpg");
+            m_material->addTexture(m_textures[0]);
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
         }
         
-        m_material->addTexture(m_noiseTexture);
+        m_material->addTexture(m_textures[1]);
         
         try{
-            m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
+            m_material->setShader(gl::createShaderFromFile("shader_normalMap.vert",
+                                                           "shader_normalMap.frag"));
             //m_material->setShader(gl::createShader(gl::SHADER_PHONG));
         }catch (std::exception &e)
         {
@@ -194,13 +200,7 @@ public:
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
-        gl::Material cloneMat1 = *m_material;
-        cloneMat1.setDepthWrite(false);
-        cloneMat1.setBlending(false);
-        cloneMat1.setWireframe(false);
-        
-        //gl::drawQuad(cloneMat1, getWindowSize() / 1.2f);
-        gl::drawTexture(cloneMat1.textures()[0], windowSize());
+        gl::drawTexture(m_textures[0], windowSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
@@ -343,7 +343,7 @@ public:
                 
             } catch (Exception &e)
             {
-                LOG_WARNING<< e.what();
+                LOG_ERROR<< e.what();
                 
                 //m_modelPath->removeObserver(shared_from_this());
                 //m_modelPath->val("- not found -");

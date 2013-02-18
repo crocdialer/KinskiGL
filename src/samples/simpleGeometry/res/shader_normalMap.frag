@@ -17,6 +17,7 @@ uniform float u_textureMix;
 
 
 in vec3 v_normal;
+in vec3 v_eye;
 in vec3 v_lightDir;
 in vec4 v_texCoord;
 

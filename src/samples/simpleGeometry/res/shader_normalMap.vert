@@ -23,7 +23,7 @@ void main()
 	vec3 b = cross(v_normal, t);
     
     mat3 tbnMatrix = mat3(t,b, v_normal);
-    v_eye = - (u_modelViewMatrix * a_vertex).xyz;
+    v_eye = normalize(- (u_modelViewMatrix * a_vertex).xyz);
     v_eye *= tbnMatrix;
     
     v_lightDir = u_lightDir;

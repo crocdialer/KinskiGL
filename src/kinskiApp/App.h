@@ -26,7 +26,6 @@ namespace kinski
         virtual void update(const float timeDelta) = 0;
         virtual void draw() = 0;
         virtual void tearDown(){};
-        
         virtual void swapBuffers() = 0;
         
         // these are optional overrides
