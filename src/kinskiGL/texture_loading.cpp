@@ -24,53 +24,53 @@ namespace kinski { namespace gl {
         unsigned char *data = stbi_load_from_memory(&dataVec[0], dataVec.size(),
                                                     &width, &height, &num_components, 0);
         
-        if(data)
+        if(!data) throw ImageLoadException(theFileName);
+        
+    
+        // ... process data if not NULL ...
+        // ... x = width, y = height, n = # 8-bit components per pixel ...
+        // ... replace '0' with '1'..'4' to force that many components per pixel
+        // ... but 'n' will always be the number that it would have been if you said 0
+        
+        GLenum format=0;
+        
+        switch(num_components)
         {
-            // ... process data if not NULL ...
-            // ... x = width, y = height, n = # 8-bit components per pixel ...
-            // ... replace '0' with '1'..'4' to force that many components per pixel
-            // ... but 'n' will always be the number that it would have been if you said 0
-            
-            GLenum format=0;
-            
-            switch(num_components)
-            {
 #ifdef KINSKI_GLES
-                case 1:
-                    format = GL_LUMINANCE;
-                    break;
-                case 2:
-                    format = GL_LUMINANCE_ALPHA;
-                    break;
-                case 3:
-                    format = GL_RGB;
-                    break;
-                case 4:
-                    format = GL_RGBA;
-                default:
-                    break;
+            case 1:
+                format = GL_LUMINANCE;
+                break;
+            case 2:
+                format = GL_LUMINANCE_ALPHA;
+                break;
+            case 3:
+                format = GL_RGB;
+                break;
+            case 4:
+                format = GL_RGBA;
+            default:
+                break;
 #else
-                case 1:
-                    format = GL_RED;
-                    break;
-                case 2:
-                    format = GL_RG;
-                    break;
-                case 3:
-                    format = GL_RGB;
-                    break;
-                case 4:
-                    format =  GL_RGBA;
-                default:
-                    break;
+            case 1:
+                format = GL_RED;
+                break;
+            case 2:
+                format = GL_RG;
+                break;
+            case 3:
+                format = GL_RGB;
+                break;
+            case 4:
+                format =  GL_RGBA;
+            default:
+                break;
 #endif
-            }
-            // requires OpenGL 3.3
-            //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-            //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-
-            ret.update(data, GL_UNSIGNED_BYTE, format, width, height, true);
         }
+        // requires OpenGL 3.3
+        //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+        //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+
+        ret.update(data, GL_UNSIGNED_BYTE, format, width, height, true);
 
         stbi_image_free(data);
         

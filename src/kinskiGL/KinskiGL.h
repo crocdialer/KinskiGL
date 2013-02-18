@@ -126,17 +126,19 @@ namespace kinski { namespace gl {
     
     Texture createTextureFromFile(const std::string &theFileName);
     
-    class TextureNotFoundException : public Exception
+    class ImageLoadException : public Exception
     {
     public:
-        TextureNotFoundException(const std::string &thePath = "")
-        :Exception("Texture not found: " + thePath){};
+        ImageLoadException(const std::string &thePath)
+        :Exception("Got trouble with image file: " + thePath){};
     };
     
-    /*********************************** Shader Factory *******************************************/
+    /*********************************** Shader loading *******************************************/
     
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};
     Shader createShader(ShaderType type);
+    Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
+                                const std::string &geomPath="");
     
     const std::set<std::string>& getExtensions();
     bool isExtensionSupported(const std::string &theName);

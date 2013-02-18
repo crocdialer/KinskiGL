@@ -153,11 +153,13 @@ struct AABB
 	glm::vec3 max;
 	
     AABB():min(glm::vec3(0)), max(glm::vec3(0)){};
-	AABB(const glm::vec3& center,
-         const glm::vec3& halfExtents)
+	AABB(const glm::vec3& theMin,
+         const glm::vec3& theMax):
+    min(theMin),
+    max(theMax)
 	{
-		min = center - halfExtents;
-		max = center + halfExtents;
+//		min = center - halfExtents;
+//		max = center + halfExtents;
 	}
 
 	inline float width() const
