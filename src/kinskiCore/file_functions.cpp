@@ -1,13 +1,12 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-// Copyright (C) 1993-2011, ART+COM AG Berlin, Germany <www.artcom.de>
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
 // It is distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-// own header
 #include "file_functions.h"
 #include "Exception.h"
 
@@ -220,14 +219,14 @@ namespace kinski {
         return myDirName;
     }
 
-    std::string lastFileNamePart(const char* file_name)
+    std::string lastFileNamePart(const std::string &theFileName)
     {
-        std::string myFilename(file_name);
-        std::string::size_type mySlash = myFilename.find_last_of("/\\");
+        std::string ret;
+        std::string::size_type mySlash = theFileName.find_last_of("/\\");
         if (mySlash != std::string::npos) {
-            myFilename = myFilename.substr(mySlash+1);
+            ret = theFileName.substr(mySlash+1);
         }
-        return myFilename;
+        return ret;
     }
 
     std::string getExtension(const std::string & thePath)

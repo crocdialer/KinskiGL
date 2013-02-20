@@ -1,5 +1,14 @@
-#ifndef _KINSKIGL_H
-#define _KINSKIGL_H
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+//
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+
+#ifndef KINSKI_GL_KINSKIGL_H_
+#define KINSKI_GL_KINSKIGL_H_
 
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
@@ -107,10 +116,11 @@ namespace kinski { namespace gl {
     void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
                      const glm::vec2 &theTopLeft = glm::vec2(0));
     
-    void drawQuad(gl::Material &theMaterial, const glm::vec2 &theSize,
+    void drawQuad(const std::shared_ptr<Material> &theMaterial, const glm::vec2 &theSize,
                   const glm::vec2 &theTopLeft = glm::vec2(0));
     
-    void drawQuad(gl::Material &theMaterial, float x0, float y0, float x1, float y1);
+    void drawQuad(const std::shared_ptr<Material> &theMaterial,
+                  float x0, float y0, float x1, float y1);
     
     void drawGrid(float width, float height, int numW = 20, int numH = 20);
     

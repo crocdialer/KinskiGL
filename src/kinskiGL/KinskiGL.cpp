@@ -1,10 +1,11 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  KinskiGL.cpp
-//  kinskiGL
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
-//  Created by Fabian on 11/6/12.
-//
-//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include <stack>
 #include <boost/tuple/tuple.hpp>
@@ -360,33 +361,32 @@ namespace kinski { namespace gl {
     
     void drawTexture(gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
-        static gl::Material material;
+        static gl::Material::Ptr material;
         
-        // add the texture to the material
-        material.textures().clear();
-        material.addTexture(theTexture);
-        
-        //create shader
-        if(!material.shader())
+        //create shader, if not yet here
+        if(!material)
         {
             try
             {
-                material.setShader(createShader(SHADER_UNLIT));
+                material = gl::Material::Ptr(new gl::Material);
+                material->setShader(createShader(SHADER_UNLIT));
             } catch (Exception &e)
             {
                 LOG_ERROR<<e.what();
             }
-            
-            material.setDepthTest(false);
-            material.setDepthWrite(false);
+            material->setDepthTest(false);
+            material->setDepthWrite(false);
         }
+        // add the texture to the material
+        material->textures().clear();
+        material->addTexture(theTexture);
         
         vec2 sz = theSize;
         vec2 tl = theTopLeft == vec2(0) ? vec2(0, g_windowDim[1]) : theTopLeft;
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
-    void drawQuad(gl::Material &theMaterial,
+    void drawQuad(const gl::Material::Ptr &theMaterial,
                   const vec2 &theSize,
                   const vec2 &theTl)
     {
@@ -396,7 +396,7 @@ namespace kinski { namespace gl {
     }
     
     
-    void drawQuad(gl::Material &theMaterial,
+    void drawQuad(const gl::Material::Ptr &theMaterial,
                   float x0, float y0, float x1, float y1)
     {
         // orthographic projection with a [0,1] coordinate space
@@ -409,9 +409,9 @@ namespace kinski { namespace gl {
         modelViewMatrix[3] = vec4(x0 / g_windowDim[0],
                                   y1 / g_windowDim[1] , 0, 1);
         
-        theMaterial.uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
+        theMaterial->uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
         
-        theMaterial.apply();
+        theMaterial->apply();
         
         static GLuint canvasVAO = 0, canvasBuffer = 0;
         
@@ -434,12 +434,12 @@ namespace kinski { namespace gl {
             
             GLsizei stride = 5 * sizeof(GLfloat);
             
-            GLuint vertexAttribLocation = theMaterial.shader().getAttribLocation("a_vertex");
+            GLuint vertexAttribLocation = theMaterial->shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
             
-            GLuint texCoordAttribLocation = theMaterial.shader().getAttribLocation("a_texCoord");
+            GLuint texCoordAttribLocation = theMaterial->shader().getAttribLocation("a_texCoord");
             glEnableVertexAttribArray(texCoordAttribLocation);
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(0));

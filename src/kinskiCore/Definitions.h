@@ -1,10 +1,11 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  Definitions.h
-//  kinskiGL
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
-//  Created by Fabian on 9/19/12.
-//
-//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #ifndef kinskiGL_Definitions_h
 #define kinskiGL_Definitions_h

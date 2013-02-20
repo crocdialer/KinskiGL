@@ -1,9 +1,11 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  Property.h
-//  KINSKIGL
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
-//  
-//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #ifndef _KINSKIProperty__INCLUDED__
 #define _KINSKIProperty__INCLUDED__

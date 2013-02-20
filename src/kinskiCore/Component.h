@@ -1,10 +1,11 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  COMPONENT.h
-//  ATS
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
-//  Created by Sebastian Heymann on 8/11/11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
-//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #ifndef __KINSKI_COMPONENT_INCLUDED__
 #define __KINSKI_COMPONENT_INCLUDED__

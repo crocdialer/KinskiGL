@@ -1,10 +1,11 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  shader_loading.cpp
-//  kinskiGL
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
-//  Created by Fabian on 2/18/13.
-//
-//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "KinskiGL.h"
 #include "Shader.h"

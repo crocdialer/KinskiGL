@@ -1,31 +1,17 @@
-/*
-Copyright (c) 2010, The Barbarian Group
- All rights reserved.
-
- Redistribution and use in source and binary forms, with or without modification, are permitted provided that
- the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-	the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-	the following disclaimer in the documentation and/or other materials provided with the distribution.
-
- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
- WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
- PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
- ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- POSSIBILITY OF SUCH DAMAGE.
-*/
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+//
+// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt)
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "Fbo.h"
 
 using namespace std;
 
-namespace kinski {
-namespace gl {
+namespace kinski { namespace gl {
 
 GLint Fbo::sMaxSamples = -1;
 GLint Fbo::sMaxAttachments = -1;
@@ -43,28 +29,17 @@ Renderbuffer::Obj::Obj()
 Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples, int coverageSamples )
 	: mWidth( aWidth ), mHeight( aHeight ), mInternalFormat( internalFormat ), mSamples( msaaSamples ), mCoverageSamples( coverageSamples )
 {
-#if defined( CINDER_MSW )
-	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
-#else
-	static bool csaaSupported = false;
-#endif
-
     glGenRenderbuffers( 1, &mId );
 
 	if( mSamples > Fbo::getMaxSamples() )
 		mSamples = Fbo::getMaxSamples();
 
-	if( ! csaaSupported )
-		mCoverageSamples = 0;
-
     glBindRenderbuffer( GL_RENDERBUFFER, mId );
 
 #if ! defined( KINSKI_GLES )
-  #if defined( CINDER_MSW )
-	if( mCoverageSamples ) // create a CSAA buffer
-		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER_EXT, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
-	else
-  #endif
+//	if( mCoverageSamples ) // create a CSAA buffer
+//		glRenderbufferStorageMultisampleCoverageNV( GL_RENDERBUFFER_EXT, mCoverageSamples, mSamples, mInternalFormat, mWidth, mHeight );
+    
 	if( mSamples ) // create a regular MSAA buffer
 		glRenderbufferStorageMultisample( GL_RENDERBUFFER, mSamples, mInternalFormat, mWidth, mHeight );
 	else
