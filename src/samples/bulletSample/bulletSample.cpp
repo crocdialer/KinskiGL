@@ -400,9 +400,15 @@ public:
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
         gl::drawGrid(500, 500);
         
-        m_scene.render(m_Camera);
-        m_num_visible_objects->val(m_scene.num_visible_objects());
-        
+        if(m_wireFrame->val())
+        {
+            m_physics_context.dynamicsWorld()->debugDrawWorld();
+            m_debugDrawer->flush();
+        }else
+        {
+            m_scene.render(m_Camera);
+            m_num_visible_objects->val(m_scene.num_visible_objects());
+        }
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
 //        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );

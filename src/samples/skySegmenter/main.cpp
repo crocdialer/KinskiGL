@@ -1,4 +1,4 @@
-#include "kinskiApp/App.h"
+#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 #include "kinskiGL/Material.h"
 #include "kinskiGL/SerializerGL.h"
@@ -10,7 +10,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class SkySegmenter : public App
+class SkySegmenter : public GLFW_App
 {
 private:
     
@@ -32,7 +32,7 @@ public:
         
         try
         {
-            m_material->shader().loadFromFile("applyMap.vert", "applyMap.frag");
+            m_material->setShader(gl::createShaderFromFile("applyMap.vert", "applyMap.frag"));
             m_material->addTexture(m_textures[0]);
             m_material->addTexture(m_textures[1]);
             m_material->addTexture(m_textures[2]);
@@ -99,11 +99,11 @@ public:
         // draw fullscreen image
         if(m_activator->val())
         {
-            gl::drawQuad(*m_material, getWindowSize());
+            gl::drawQuad(m_material, windowSize());
         }
         else
         {
-            gl::drawTexture(m_textures[0], getWindowSize());
+            gl::drawTexture(m_textures[0], windowSize());
         }
         
         // draw process-results map(s)
@@ -112,7 +112,7 @@ public:
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
-            drawTexture(m_textures[i], getWindowSize()/5.f, offset);
+            drawTexture(m_textures[i], windowSize()/5.f, offset);
             
             offset += step;
         }

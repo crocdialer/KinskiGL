@@ -444,6 +444,8 @@ namespace kinski { namespace gl {
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(0));
             
+            GLuint colorAttribLocation = theMaterial->shader().getAttribLocation("a_color");
+            glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
             //glBindBuffer(GL_ARRAY_BUFFER, 0); 
             //GL_SUFFIX(glBindVertexArray)(0);
         }

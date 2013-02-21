@@ -76,8 +76,6 @@ class Shader
     
     void loadFromData(const char *vertSrc, const char *fragSrc,
                       const char *geomSrc = NULL);
-    void loadFromFile(const std::string &vertPath, const std::string &fragPath,
-                      const std::string &geomPath="");
     
   private:
 	void loadShader( const char *shaderSource, GLint shaderType );

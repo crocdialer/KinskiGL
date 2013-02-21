@@ -283,8 +283,8 @@ public:
         {
             try
             {
-                m_texture = gl::TextureIO::loadTexture(m_texturePath->val());
-            } catch (gl::TextureIO::TextureNotFoundException &e)
+                m_texture = gl::createTextureFromFile(m_texturePath->val());
+            } catch (kinski::Exception &e)
             {
                 LOG_WARNING << e.what();
                 

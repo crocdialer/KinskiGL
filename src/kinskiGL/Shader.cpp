@@ -78,20 +78,7 @@ void Shader::loadFromData(const char *vertSrc,
     
     link();
 }
-    
-void Shader::loadFromFile(const std::string &vertPath,
-                          const std::string &fragPath,
-                          const std::string &geomPath)
-{
-    string vertSrc, fragSrc, geomSrc;
-    vertSrc = readFile(vertPath);
-    fragSrc = readFile(fragPath);
-
-    if (!geomPath.empty()) geomSrc = readFile(geomPath);
-    
-    loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
-}
-    
+        
 void Shader::loadShader( const char *shaderSource, GLint shaderType )
 {
 	GLuint handle = glCreateShader( shaderType );

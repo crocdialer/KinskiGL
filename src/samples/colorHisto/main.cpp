@@ -31,7 +31,7 @@ public:
         
         try
         {
-            m_material->shader().loadFromFile("applyMap.vert", "applyMap.frag");
+            m_material->setShader(gl::createShaderFromFile("applyMap.vert", "applyMap.frag"));
             m_material->addTexture(m_textures[0]);
             m_material->addTexture(m_textures[1]);
             m_material->addTexture(m_textures[2]);
@@ -90,7 +90,7 @@ public:
         // draw fullscreen image
         if(m_activator->val())
         {
-            gl::drawQuad(*m_material, windowSize());
+            gl::drawQuad(m_material, windowSize());
         }
         else
         {

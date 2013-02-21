@@ -1,4 +1,4 @@
-#include "kinskiApp/App.h"
+#include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/TextureIO.h"
 
 #include "kinskiGL/Material.h"
@@ -12,13 +12,13 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class Saliencer : public App
+class Saliencer : public GLFW_App
 {
 private:
     
     gl::Texture m_textures[4];
     
-    gl::Material m_material;
+    gl::Material::Ptr m_material;
     
     Property_<bool>::Ptr m_activator;
     
@@ -37,10 +37,11 @@ public:
         setBarSize(ivec2(250, 500));
 
         // add 2 empty textures
-        m_material.addTexture(m_textures[0]);
-        m_material.addTexture(m_textures[1]);
-        m_material.setDepthTest(false);
-        m_material.setDepthWrite(false);
+        m_material = gl::Material::Ptr(new gl::Material);
+        m_material->addTexture(m_textures[0]);
+        m_material->addTexture(m_textures[1]);
+        m_material->setDepthTest(false);
+        m_material->setDepthWrite(false);
         
         m_activator = Property_<bool>::create("processing", true);
         m_imageIndex = RangedProperty<uint32_t>::create("Image Index", 0, 0, 1);
@@ -73,7 +74,7 @@ public:
         
         try
         {
-            m_material.shader().loadFromFile("applyMap.vert", "applyMap.frag");
+            m_material->setShader(gl::createShaderFromFile("applyMap.vert", "applyMap.frag"));
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
             
         }catch(Exception &e)
@@ -110,9 +111,9 @@ public:
     {
         // draw fullscreen image
         if(m_activator->val())
-            gl::drawQuad(m_material, getWindowSize());
+            gl::drawQuad(m_material, windowSize());
         else
-            gl::drawTexture(m_material.textures()[m_imageIndex->val()], getWindowSize());
+            gl::drawTexture(m_material->textures()[m_imageIndex->val()], windowSize());
         
         // draw process-results map(s)
         glm::vec2 offset(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
@@ -121,7 +122,7 @@ public:
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
             gl::drawTexture(m_textures[i],
-                            getWindowSize()/5.f,
+                            windowSize()/5.f,
                             offset);
             
             offset += step;
