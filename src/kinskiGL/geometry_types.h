@@ -132,6 +132,14 @@ struct Sphere
 		return ret.transform(t);
 	};
     
+    inline uint32_t intersect(const glm::vec3 &thePoint)
+    {
+        if((center - thePoint).length() > radius)
+            return REJECT;
+        
+        return INSIDE;
+    }
+    
     inline ray_intersection intersect(const Ray &theRay)
     {
         glm::vec3 l = center - theRay.origin;
@@ -156,8 +164,7 @@ struct Sphere
  *simple Axis aligned bounding box (AABB) structure
  */
 struct AABB
-{
-	
+{	
 	glm::vec3 min;
 	glm::vec3 max;
 	
@@ -165,32 +172,13 @@ struct AABB
 	AABB(const glm::vec3& theMin,
          const glm::vec3& theMax):
     min(theMin),
-    max(theMax)
-	{
-//		min = center - halfExtents;
-//		max = center + halfExtents;
-	}
-
-	inline float width() const
-	{
-		return max.x - min.x;
-	}
-	inline float height() const
-	{
-		return max.y - min.y;
-	}
-	inline float depth() const
-	{
-		return max.z - min.z;
-	}
-	inline glm::vec3 halfExtents() const
-	{
-		return (max - min) / 2.f ;
-	}
-	inline glm::vec3 center() const
-	{
-		return max - halfExtents() ;
-	}
+    max(theMax){}
+    
+	inline float width() const { return max.x - min.x; }
+	inline float height() const	{ return max.y - min.y; }
+	inline float depth() const { return max.z - min.z; }
+	inline glm::vec3 halfExtents() const { return (max - min) / 2.f; }
+	inline glm::vec3 center() const	{ return max - halfExtents(); }
 	
 	/* used for fast AABB <-> Plane intersection test */
 	inline glm::vec3 posVertex(const glm::vec3& dir) const
@@ -230,9 +218,32 @@ struct AABB
         return ret.transform(t);
     }
     
+    inline uint32_t intersect(const glm::vec3 &thePoint)
+    {
+        if(thePoint.x < min.x || thePoint.x > max.x)
+            return REJECT;
+        if(thePoint.y < min.y || thePoint.y > max.y)
+            return REJECT;
+        if(thePoint.z < min.z || thePoint.z > max.z)
+            return REJECT;
+        
+        return INSIDE;
+    }
+    
     ray_intersection intersect(const Ray& theRay) const;
     
 	uint32_t intersect(const Triangle& t) const ;
+};
+    
+struct OBB
+{
+    glm::vec3 center;
+    glm::vec3 axis[3];
+    float half_lengths[3];
+    
+    OBB(const AABB &theAABB, const glm::mat4 &t);
+    
+    ray_intersection intersect(const Ray& theRay) const;
 };
 
 struct Frustum
@@ -283,8 +294,6 @@ struct Frustum
 		return ret;
 	};
 };
-
-/******************** Utility Section *******************/
 
 /* fast AABB <-> Triangle test from Tomas Akenine-Möller */
 int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);

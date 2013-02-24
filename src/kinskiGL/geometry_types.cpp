@@ -33,6 +33,51 @@ foot(f),
 normal(n)
 {}
 
+OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
+{
+    center = theAABB.center() + t[3].xyz();
+    axis[0] = t[0].xyz();
+    axis[1] = t[1].xyz();
+    axis[2] = t[2].xyz();
+    glm::vec3 half_extents = theAABB.halfExtents();
+    half_lengths[0] = half_extents[0];
+    half_lengths[1] = half_extents[1];
+    half_lengths[2] = half_extents[2];
+}
+    
+ray_intersection OBB::intersect(const Ray& theRay) const
+{
+    float t_min = std::numeric_limits<float>::min();
+    float t_max = std::numeric_limits<float>::max();
+    glm::vec3 p = center - theRay.origin;
+    
+    for (int i = 0; i < 3; i++)
+    {
+        float e = glm::dot(axis[i], p);
+        float f = glm::dot(axis[i], theRay.direction);
+        
+        // this test avoids overflow from division
+        if(std::abs(f) > std::numeric_limits<float>::epsilon()){
+            float t1 = (e + half_lengths[i]) / f;
+            float t2 = (e - half_lengths[i]) / f;
+            
+            if(t1 > t2) std::swap(t1, t2);
+            if(t1 > t_min) t_min = t1;
+            if(t2 < t_max) t_max = t2;
+            if(t_min > t_max) return REJECT;
+            if(t_max < 0) return REJECT;
+        }
+        else if( (-e - half_lengths[i]) > 0 || (-e + half_lengths[i]) < 0 ){
+            return REJECT;
+        }
+    }
+    
+    if(t_min > 0)
+        return ray_intersection(INTERSECT, t_min);
+    else
+        return ray_intersection(INTERSECT, t_max);
+}
+    
 AABB& AABB::transform(const glm::mat4& t)
 {
     glm::vec3 aMin, aMax;
@@ -74,40 +119,8 @@ AABB& AABB::transform(const glm::mat4& t)
 
 ray_intersection AABB::intersect(const Ray& theRay) const
 {
-    float t_min = std::numeric_limits<float>::min();
-    float t_max = std::numeric_limits<float>::max();
-    glm::vec3 p = center() - theRay.origin;
-    
-    // since this is an AABB the special OBB-case boils down to this one
-    static glm::vec3 sides[3] = {glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, -1)};
-    glm::vec3 half_length = halfExtents();
-    
-    for (int i = 0; i < 3; i++)
-    {
-        const glm::vec3 &side = sides[i];
-        float e = glm::dot(side, p);
-        float f = glm::dot(side, theRay.direction);
-        
-        // this test avoids overflow from division
-        if(std::abs(f) > std::numeric_limits<float>::epsilon()){
-            float t1 = (e + half_length[i]) / f;
-            float t2 = (e - half_length[i]) / f;
-            
-            if(t1 > t2) std::swap(t1, t2);
-            if(t1 > t_min) t_min = t1;
-            if(t2 < t_max) t_max = t2;
-            if(t_min > t_max) return REJECT;
-            if(t_max < 0) return REJECT;
-        }
-        else if( (-e - half_length[i]) > 0 || (-e + half_length[i]) < 0 ){
-            return REJECT;
-        }
-    }
-    
-    if(t_min > 0)
-        return ray_intersection(INTERSECT, t_min);
-    else
-        return ray_intersection(INTERSECT, t_max);
+    OBB obb(*this, glm::mat4());
+    return obb.intersect(theRay);
 }
     
 uint32_t AABB::intersect(const Triangle& t) const

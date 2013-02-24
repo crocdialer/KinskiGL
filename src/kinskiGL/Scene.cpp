@@ -171,13 +171,10 @@ namespace kinski { namespace gl {
         {
             if(const Mesh::Ptr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
             {
-                gl::AABB boundingBox = theMesh->geometry()->boundingBox();
-                boundingBox.transform(theMesh->transform());
-                //gl::Sphere s(theMesh->position(), boundingBox.halfExtents().length());
+                gl::OBB boundingBox (theMesh->geometry()->boundingBox(), theMesh->transform());
                 
                 if (ray_intersection ray_hit = boundingBox.intersect(ray))
                 {
-                    //LOG_INFO<<"ray hit object (id: "<<theMesh->getID()<<")";
                     clicked_items.push_back(range_item_t(theMesh, ray_hit.distance));
                 }
             }
