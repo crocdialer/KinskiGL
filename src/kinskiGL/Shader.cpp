@@ -18,7 +18,7 @@ namespace kinski{ namespace gl{
 // Shader::Obj
 struct Shader::Obj 
 {
-    Obj() : m_Handle( 0 ) {}
+    Obj() : m_Handle(glCreateProgram()) {}
     ~Obj();
     
     GLuint						m_Handle;
@@ -42,8 +42,6 @@ Shader::Shader(const char *vertexShader, const char *fragmentShader,
                GLint geometryOutputType, GLint geometryOutputVertices)
 : m_Obj( ObjPtr( new Obj ) )
 {
-	m_Obj->m_Handle = glCreateProgram();
-	
 	if ( vertexShader )
 		loadShader( vertexShader, GL_VERTEX_SHADER );
     
@@ -62,11 +60,7 @@ void Shader::loadFromData(const char *vertSrc,
                           const char *fragSrc,
                           const char *geomSrc)
 {
-    if(!m_Obj)
-    {
-        m_Obj = ObjPtr(new Obj);
-        m_Obj->m_Handle = glCreateProgram();
-    }
+    m_Obj = ObjPtr(new Obj);
     
     loadShader( vertSrc, GL_VERTEX_SHADER );
 	loadShader( fragSrc, GL_FRAGMENT_SHADER );
@@ -93,6 +87,7 @@ void Shader::loadShader( const char *shaderSource, GLint shaderType )
 		throw ShaderCompileExc( log, shaderType );
 	}
 	glAttachShader( m_Obj->m_Handle, handle );
+    glDeleteShader(handle);
 }
 
 void Shader::link()

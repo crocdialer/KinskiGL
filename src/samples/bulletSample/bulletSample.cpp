@@ -77,7 +77,7 @@ namespace kinski { namespace gl {
 
     ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
     {
-        gl::Object3D::Ptr m_object;
+        gl::Object3DPtr m_object;
         
         btTransform m_graphicsWorldTrans;
         btTransform	m_centerOfMassOffset;
@@ -118,7 +118,9 @@ private:
     gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
     
-    gl::Material::Ptr m_material;
+    gl::Material::Ptr m_material[4];
+    
+    gl::MeshPtr m_selected_mesh;
     
     gl::Mesh::Ptr m_mesh;
     gl::PerspectiveCamera::Ptr m_Camera;
@@ -161,7 +163,7 @@ public:
         m_physics_context.collisionShapes().push_back(shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
                                                                                         btScalar(50.),
                                                                                         btScalar(50.)))));
-        gl::Mesh::Ptr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), m_material));
+        gl::Mesh::Ptr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), m_material[0]));
         m_scene.addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
         
@@ -238,7 +240,7 @@ public:
                                                                    btScalar(20+2.0*k + start_y),
                                                                    btScalar(2.0*j + start_z)));
                         
-                        gl::Mesh::Ptr mesh(new gl::Mesh(geom, m_material));
+                        gl::Mesh::Ptr mesh(new gl::Mesh(geom, m_material[0]));
                         m_scene.addObject(mesh);
                         glm::mat4 mat;
                         startTransform.getOpenGLMatrix(&mat[0][0]);
@@ -264,7 +266,7 @@ public:
 
     void setup()
     {
-        glClearColor(1.0, 1.0, 1.0, 1.0);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
         
         /*********** init our application properties ******************/
         
@@ -314,22 +316,27 @@ public:
 
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setClippingPlanes(.1, 500);
+        m_Camera->setClippingPlanes(.1, 5000);
         m_Camera->setAspectRatio(getAspectRatio());
         
         // test box shape
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         //gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         
-        m_material = gl::Material::Ptr(new gl::Material);
-        m_material->setShader(gl::createShader(gl::SHADER_PHONG));
-        //m_material->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
-        m_material->addTexture(m_textures[0]);
-//        m_material->addTexture(m_textures[1]);
+        m_material[0] = gl::Material::Ptr(new gl::Material);
+        m_material[1] = gl::Material::Ptr(new gl::Material);
+        
+        m_material[0]->setShader(gl::createShader(gl::SHADER_PHONG));
+        //m_material[0]->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
+        m_material[0]->addTexture(m_textures[0]);
+//        m_material[0]->addTexture(m_textures[1]);
 //        m_textures[1].setWrapS(GL_CLAMP_TO_EDGE);
 //        m_textures[1].setWrapT(GL_CLAMP_TO_EDGE);
         
-        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
+        *m_material[1] = *m_material[0];
+        m_material[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
+        
+        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material[0]));
         myBoxMesh->setPosition(vec3(0, -100, 0));
         //m_scene.addObject(myBoxMesh);
         
@@ -374,7 +381,7 @@ public:
                                         m_rotationSpeed->val() * timeDelta,
                                         vec3(0, 1, .5)));
         
-        m_material->uniform("u_time",getApplicationTime());
+        m_material[0]->uniform("u_time",getApplicationTime());
         
         if (m_physics_context.dynamicsWorld() && m_stepPhysics->val())
         {
@@ -410,6 +417,14 @@ public:
             m_scene.render(m_Camera);
             m_num_visible_objects->val(m_scene.num_visible_objects());
         }
+        
+        if(m_selected_mesh)
+        {
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_selected_mesh->transform());
+            gl::drawAxes(m_selected_mesh);
+            gl::drawBoundingBox(m_selected_mesh);
+            if(m_drawNormals->val()) gl::drawNormals(m_selected_mesh);
+        }
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
 //        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
@@ -422,8 +437,28 @@ public:
         m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
         
-        if(gl::Object3DPtr picked_object = m_scene.pick(m_Camera, e.getX(), e.getY())){
-            LOG_INFO<<"picked id: "<< picked_object->getID();
+        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY())))
+        {
+            LOG_TRACE<<"picked id: "<< picked_obj->getID();
+            
+            if( gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(picked_obj)){
+                
+                if(m_selected_mesh != m)
+                {
+                    if(m_selected_mesh){ m_selected_mesh->material() = m_material[0]; }
+                    
+                    m_selected_mesh = m;
+                    m_material[0] = m_selected_mesh->material();
+                    m_material[1]->shader() = m_material[0]->shader();
+                    m_selected_mesh->material() = m_material[1];
+                }
+            }
+        }
+        else{
+            if(m_selected_mesh){
+                m_selected_mesh->material() = m_material[0];
+                m_selected_mesh.reset();
+            }
         }
     }
     
@@ -465,6 +500,7 @@ public:
                 Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                 m_physics_context.teardown_physics();
                 create_cube_stack(4, 32, 4);
+                m_selected_mesh.reset();
                 
             }catch(Exception &e)
             {
@@ -492,15 +528,15 @@ public:
         // one of our porperties was changed
         if(theProperty == m_color)
         {
-            m_material->setDiffuse(m_color->val());
+            m_material[0]->setDiffuse(m_color->val());
         }
         else if(theProperty == m_wireFrame)
         {
-            m_material->setWireframe(m_wireFrame->val());
+            m_material[0]->setWireframe(m_wireFrame->val());
         }
         else if(theProperty == m_lightDir)
         {
-            m_material->uniform("u_lightDir", m_lightDir->val());
+            m_material[0]->uniform("u_lightDir", m_lightDir->val());
         }
         else if(theProperty == m_distance ||
                 theProperty == m_rotation)

@@ -22,11 +22,11 @@ private:
     gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
     
-    gl::Material::Ptr m_material, m_pointMaterial;
+    gl::Material::Ptr m_material[4], m_pointMaterial;
     gl::Geometry::Ptr m_geometry;
     gl::Geometry::Ptr m_straightPlane;
     
-    gl::Mesh::Ptr m_mesh, m_mesh2;
+    gl::MeshPtr m_mesh, m_selected_mesh;
     gl::PerspectiveCamera::Ptr m_Camera;
     gl::Scene m_scene;
     
@@ -121,23 +121,17 @@ public:
             m_textures[1].update(data, GL_RED, w, h, true);
         }
         
-        m_material = gl::Material::Ptr(new gl::Material);
+        m_material[0] = gl::Material::Ptr(new gl::Material);
+        m_material[1] = gl::Material::Ptr(new gl::Material);
+        m_material[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
         try
         {
             m_textures[0] = gl::createTextureFromFile("Earth2.jpg");
-            m_material->addTexture(m_textures[0]);
+            m_material[0]->addTexture(m_textures[0]);
+            m_material[0]->addTexture(m_textures[1]);
+            m_material[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert",
+                                                              "shader_normalMap.frag"));
         }catch(Exception &e)
-        {
-            LOG_ERROR<<e.what();
-        }
-        
-        m_material->addTexture(m_textures[1]);
-        
-        try{
-            m_material->setShader(gl::createShaderFromFile("shader_normalMap.vert",
-                                                           "shader_normalMap.frag"));
-            //m_material->setShader(gl::createShader(gl::SHADER_PHONG));
-        }catch (std::exception &e)
         {
             LOG_ERROR<<e.what();
         }
@@ -155,8 +149,7 @@ public:
         //gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         
-        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material));
-        m_mesh2 = myBoxMesh;
+        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material[0]));
         myBoxMesh->setPosition(vec3(0, -100, 0));
         m_scene.addObject(myBoxMesh);
         
@@ -192,7 +185,7 @@ public:
             }
         }
         
-        m_material->uniform("u_time",getApplicationTime());
+        m_material[0]->uniform("u_time",getApplicationTime());
     }
     
     void draw()
@@ -209,21 +202,21 @@ public:
         
         m_scene.render(m_Camera);
         
-        if(m_mesh)
+        if(m_selected_mesh)
         {
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->transform());
-            gl::drawAxes(m_mesh);
-            gl::drawBoundingBox(m_mesh);
-            if(m_drawNormals->val()) gl::drawNormals(m_mesh);
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_selected_mesh->transform());
+            gl::drawAxes(m_selected_mesh);
+            gl::drawBoundingBox(m_selected_mesh);
+            if(m_drawNormals->val()) gl::drawNormals(m_selected_mesh);
             
 //            gl::drawPoints(m_mesh2->geometry()->vertexBuffer().id(),
 //                           m_mesh2->geometry()->vertices().size(),
 //                           m_pointMaterial);
             
-            if(m_mesh->geometry()->hasBones())
+            if(m_selected_mesh->geometry()->hasBones())
             {
                 vector<vec3> points;
-                buildSkeleton(m_mesh->geometry()->rootBone(), points);
+                buildSkeleton(m_selected_mesh->geometry()->rootBone(), points);
                 gl::drawPoints(points);
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
@@ -258,7 +251,29 @@ public:
         m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
         
-        m_scene.pick(m_Camera, e.getX(), e.getY());
+        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY())))
+        {
+            LOG_TRACE<<"picked id: "<< picked_obj->getID();
+            
+            if( gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(picked_obj)){
+                
+                if(m_selected_mesh != m)
+                {
+                    if(m_selected_mesh){ m_selected_mesh->material() = m_material[0]; }
+                    
+                    m_selected_mesh = m;
+                    m_material[0] = m_selected_mesh->material();
+                    m_material[1]->shader() = m_material[0]->shader();
+                    m_selected_mesh->material() = m_material[1];
+                }
+            }
+        }
+        else{
+            if(m_selected_mesh){
+                m_selected_mesh->material() = m_material[0];
+                m_selected_mesh.reset();
+            }
+        }
     }
     
     void mouseDrag(const MouseEvent &e)
@@ -317,13 +332,12 @@ public:
         // one of our porperties was changed
         if(theProperty == m_color)
         {
-            //m_material->setDiffuse(m_color->val());
-            m_pointMaterial->setDiffuse(m_color->val());
+            if(m_selected_mesh) m_selected_mesh->material()->setDiffuse(m_color->val());
         }
         else if(theProperty == m_lightDir || theProperty == m_textureMix)
         {
-            m_material->uniform("u_lightDir", m_lightDir->val());
-            m_material->uniform("u_textureMix", m_textureMix->val());
+            m_material[0]->uniform("u_lightDir", m_lightDir->val());
+            m_material[0]->uniform("u_textureMix", m_textureMix->val());
         }
         else if(theProperty == m_distance ||
                 theProperty == m_rotation)
@@ -341,9 +355,7 @@ public:
                 m_scene.removeObject(m_mesh);
                 m_mesh = m;
                 m_mesh->material()->setShinyness(0.9);
-                
-                m_scene.addObject(m);
-                
+                m_scene.addObject(m_mesh);
             } catch (Exception &e)
             {
                 LOG_ERROR<< e.what();

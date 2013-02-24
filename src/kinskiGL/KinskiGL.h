@@ -73,6 +73,7 @@ namespace kinski { namespace gl {
     class Object3D;
     class Mesh;
     class Camera;
+    struct Ray;
     struct AABB;
     struct OBB;
     struct Sphere;
@@ -109,6 +110,8 @@ namespace kinski { namespace gl {
 
     const glm::vec2& windowDimension();
     void setWindowDimension(const glm::vec2 &theDim);
+    
+    gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y);
     
     /********************************* Drawing Functions *****************************************/
     

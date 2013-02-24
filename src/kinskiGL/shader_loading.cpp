@@ -177,7 +177,7 @@ namespace kinski { namespace gl {
         "out vec4 fragData;\n"
         "void main()\n"
         "{\n"
-        "    vec4 texColors = vec4(1);\n"//v_color == vec4(0) ? vec4(1) : v_color;\n"//
+        "    vec4 texColors = v_color;\n"//
         "    for(int i = 0; i < u_numTextures; i++)\n"
         "    {\n"
         "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"

@@ -13,6 +13,7 @@
 
 #include "KinskiGL.h"
 #include "Material.h"
+#include "Camera.h"
 #include "Mesh.h"
 #include "Shader.h"
 
@@ -118,6 +119,39 @@ namespace kinski { namespace gl {
             g_modelViewMatrixStack.push(mat4());
     }
     
+    gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y)
+    {
+        glm::vec3 cam_pos = theCamera->position();
+        glm::vec3 lookAt = theCamera->lookAt(),
+        side = theCamera->side(), up = theCamera->up();
+        float near = theCamera->near();
+        // bring click_pos to range -1, 1
+        glm::vec2 offset (gl::windowDimension() / 2.0f);
+        glm::vec2 click_2D(x, y);
+        click_2D -= offset;
+        click_2D /= offset;
+        click_2D.y = - click_2D.y;
+        glm::vec3 click_world_pos;
+        
+        if(PerspectiveCamera::Ptr cam = dynamic_pointer_cast<PerspectiveCamera>(theCamera) )
+        {
+            // convert fovy to radians
+            float rad = glm::radians(cam->fov());
+            float vLength = tan( rad / 2) * near;
+            float hLength = vLength * cam->aspectRatio();
+            
+            click_world_pos = cam_pos + lookAt * near
+            + side * hLength * click_2D.x
+            + up * vLength * click_2D.y;
+            
+        }else if (OrthographicCamera::Ptr cam = dynamic_pointer_cast<OrthographicCamera>(theCamera))
+        {
+            click_world_pos = cam_pos + lookAt * near + side * click_2D.x + up  * click_2D.y;
+        }
+        LOG_DEBUG<<"clicked_world: ("<<click_world_pos.x<<",  "<<click_world_pos.y<<",  "<<click_world_pos.z<<")";
+        return Ray(click_world_pos, click_world_pos - cam_pos);
+    }
+    
     void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
     {
         static vector<vec3> thePoints;
@@ -147,11 +181,12 @@ namespace kinski { namespace gl {
         
         // no effect in OpenGL 3.2 !?
         // glLineWidth(10.f);
-        static gl::Material material;
+        static gl::MaterialPtr material;
         
         //create shader
-        if(!material.shader())
+        if(!material)
         {
+            material = gl::MaterialPtr(new gl::Material);
 #ifdef KINSKI_GLES
             const char *vertSrc =
             "uniform mat4 u_modelViewProjectionMatrix;\n"
@@ -176,7 +211,7 @@ namespace kinski { namespace gl {
 #endif
             try
             {
-                material.shader().loadFromData(vertSrc, fragSrc);
+                material->shader().loadFromData(vertSrc, fragSrc);
             } catch (Exception &e)
             {
                 LOG_ERROR << e.what();
@@ -185,13 +220,13 @@ namespace kinski { namespace gl {
         
         //lineShader.bind();
         
-        material.uniform("u_modelViewProjectionMatrix",
+        material->uniform("u_modelViewProjectionMatrix",
                            g_projectionMatrixStack.top()
                            * g_modelViewMatrixStack.top());
         
-        material.uniform("u_lineColor", theColor);
+        material->uniform("u_lineColor", theColor);
         
-        material.apply();
+        material->apply();
         
         static GLuint lineVBO = 0;
         static GLuint lineVAO = 0;
@@ -209,7 +244,7 @@ namespace kinski { namespace gl {
             glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size(),
                          NULL, GL_STREAM_DRAW);
             
-            GLuint vertexAttribLocation = material.shader().getAttribLocation("a_vertex");
+            GLuint vertexAttribLocation = material->shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
             

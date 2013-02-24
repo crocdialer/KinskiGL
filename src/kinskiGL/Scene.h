@@ -22,19 +22,17 @@ namespace kinski { namespace gl {
         void removeObject(const Object3DPtr &theObject);
         
         void render(const CameraPtr &theCamera) const;
-        Object3DPtr pick(const CameraPtr &theCamera, uint32_t x, uint32_t y) const;
-        
         void update(float timestep);
         
+        Object3DPtr pick(const Ray &ray) const;
+    
         inline const std::list<Object3DPtr>& objects() const {return m_objects;};
         inline std::list<Object3DPtr>& objects() {return m_objects;};
-        
         uint32_t num_visible_objects() const {return m_num_visible_objects;};
         
     private:
         
         mutable uint32_t m_num_visible_objects;
-        
         std::list<Object3DPtr> m_objects;
     };
     
