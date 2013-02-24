@@ -19,6 +19,7 @@ class Camera : public Object3D
 public:
     
     typedef std::shared_ptr<Camera> Ptr;
+    typedef std::shared_ptr<const Camera> ConstPtr;
     
     Camera():Object3D(){};
     virtual ~Camera(){};
@@ -26,11 +27,12 @@ public:
     void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0,1,0));
     
     glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;};
-    
     glm::mat4 getViewMatrix() const;
     
     virtual gl::Frustum frustum() const = 0;
-
+    virtual float near() const = 0;
+    virtual float far() const = 0;
+    
 protected:
 
     void setProjectionMatrix(const glm::mat4 &theMatrix) { m_projectionMatrix = theMatrix; };
@@ -51,8 +53,8 @@ public:
     
     virtual gl::Frustum frustum() const;
     
-    inline float near() const {return m_near;};
-    inline float far() const {return m_far;};
+    float near() const {return m_near;};
+    float far() const {return m_far;};
     inline float left() const {return m_left;};
     inline float right() const {return m_right;};
     inline float bottom() const {return m_bottom;};
@@ -69,6 +71,7 @@ class PerspectiveCamera : public Camera
 public:
     
     typedef std::shared_ptr<PerspectiveCamera> Ptr;
+    typedef std::shared_ptr<const PerspectiveCamera> ConstPtr;
     
     PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 2000);
 

@@ -2,6 +2,7 @@
 
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
+#include "kinskiGL/Camera.h"
 #include "kinskiGL/Mesh.h"
 #include "kinskiGL/Fbo.h"
 
@@ -420,6 +421,10 @@ public:
         m_lastTransform = mat4(m_rotation->val());
         m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
+        
+        if(gl::Object3DPtr picked_object = m_scene.pick(m_Camera, e.getX(), e.getY())){
+            LOG_INFO<<"picked id: "<< picked_object->getID();
+        }
     }
     
     void mouseDrag(const MouseEvent &e)

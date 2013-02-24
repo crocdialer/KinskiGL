@@ -9,9 +9,6 @@
 
 #include "geometry_types.h"
 
-#define DEGTORAD(degree) ((degree) * 0.017453292522222 ) //(3.141592654f / 180.0f)
-#define RADTODEG(radian) ((radian) * 57.295779513082322 )//(180.0f / 3.141592654f)
-
 #define MIN3(a,b,c) ((((a)<(b))&&((a)<(c))) ? (a) : (((b)<(c)) ? (b) : (c)))
 #define MAX3(a,b,c) ((((a)>(b))&&((a)>(c))) ? (a) : (((b)>(c)) ? (b) : (c)))
 
@@ -75,22 +72,50 @@ AABB& AABB::transform(const glm::mat4& t)
     return *this;
 }
 
-uint32_t intersect(const Ray& theRay)
+ray_intersection AABB::intersect(const Ray& theRay) const
 {
-//    float t_min = std::numeric_limits<float>::min();
-//    float t_max = std::numeric_limits<float>::max();
-    //TODO: implement!
+    float t_min = std::numeric_limits<float>::min();
+    float t_max = std::numeric_limits<float>::max();
+    glm::vec3 p = center() - theRay.origin;
     
-    return INTERSECT;
+    // since this is an AABB the special OBB-case boils down to this one
+    static glm::vec3 sides[3] = {glm::vec3(1, 0, 0), glm::vec3(0, 1, 0), glm::vec3(0, 0, -1)};
+    glm::vec3 half_length = halfExtents();
+    
+    for (int i = 0; i < 3; i++)
+    {
+        const glm::vec3 &side = sides[i];
+        float e = glm::dot(side, p);
+        float f = glm::dot(side, theRay.direction);
+        
+        // this test avoids overflow from division
+        if(std::abs(f) > std::numeric_limits<float>::epsilon()){
+            float t1 = (e + half_length[i]) / f;
+            float t2 = (e - half_length[i]) / f;
+            
+            if(t1 > t2) std::swap(t1, t2);
+            if(t1 > t_min) t_min = t1;
+            if(t2 < t_max) t_max = t2;
+            if(t_min > t_max) return REJECT;
+            if(t_max < 0) return REJECT;
+        }
+        else if( (-e - half_length[i]) > 0 || (-e + half_length[i]) < 0 ){
+            return REJECT;
+        }
+    }
+    
+    if(t_min > 0)
+        return ray_intersection(INTERSECT, t_min);
+    else
+        return ray_intersection(INTERSECT, t_max);
 }
     
-uint32_t AABB::intersect(const Triangle& t)
+uint32_t AABB::intersect(const Triangle& t) const
 {
     float triVerts [3][3] =	{	{t.v1[0],t.v1[1],t.v1[2]},
                                 {t.v2[0],t.v2[1],t.v2[2]},
                                 {t.v3[0],t.v3[1],t.v3[2]}
                             };
-    
     return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
 }
     
@@ -99,11 +124,8 @@ Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
     glm::mat4 t;
     glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz(),
     side = transform[0].xyz(), up = transform[1].xyz();
-    
     float angle = 90.0f - fov;
-
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
-
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
 
     t = glm::rotate(glm::mat4(), angle, up);
@@ -124,18 +146,11 @@ Frustum::Frustum(const glm::mat4 &transform, float left, float right,float botto
 {
     glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz(),
     side = transform[0].xyz(), up = transform[1].xyz();
-    
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
-    
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
-    
 	planes[2] = Plane(eyePos + (left * -side), side); // left plane
-    
     planes[3] = Plane(eyePos + (right * side), -side); // right plane
-    
-    
 	planes[4] = Plane(eyePos + (top * up), -up); // top plane
-    
 	planes[5] = Plane(eyePos + (bottom * -up), up); // bottom plane
 }
     

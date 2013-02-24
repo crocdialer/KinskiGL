@@ -1,11 +1,9 @@
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
-//
-// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
-//
-// It is distributed under the Boost Software License, Version 1.0.
-// (See accompanying file LICENSE_1_0.txt or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+/*
+ * Geometry.h
+ *
+ *  Created on: Sep 21, 2008
+ *      Author: Fabian
+ */
 
 #ifndef KINSKI_GL_GEOMETRY_TYPES_H_
 #define KINSKI_GL_GEOMETRY_TYPES_H_
@@ -15,6 +13,7 @@
 namespace kinski { namespace gl {
     
 enum intersection_type {REJECT = 0, INTERSECT = 1, INSIDE = 2};
+
 
 struct Ray
 {
@@ -38,14 +37,22 @@ struct Ray
 	};
     
     inline friend glm::vec3 operator*(const Ray &theRay, float t)
-    {
-        return theRay.origin + t * theRay.direction;
-    }
+    { return theRay.origin + t * theRay.direction; }
     
     inline friend glm::vec3 operator*(float t, const Ray &theRay)
-    {
-        return theRay.origin + t * theRay.direction;
-    }
+    { return theRay.origin + t * theRay.direction; }
+};
+/*!
+ * Encapsulates type of intersection and distance along the ray
+ */
+struct ray_intersection
+{
+    intersection_type type;
+    float distance;
+    
+    ray_intersection(intersection_type theType, float theDistance = 0.0f):
+    type(theType), distance(theDistance){}
+    operator intersection_type() const { return type; }
 };
     
 struct Plane
@@ -125,7 +132,7 @@ struct Sphere
 		return ret.transform(t);
 	};
     
-    inline uint32_t intersect(const Ray &theRay)
+    inline ray_intersection intersect(const Ray &theRay)
     {
         glm::vec3 l = center - theRay.origin;
         float s = glm::dot(l, theRay.direction);
@@ -134,14 +141,14 @@ struct Sphere
         if(s < 0 && l2 > r2) return REJECT;
         float m2 = l2 - s * s;
         if(m2 > r2) return REJECT;
-        /*
+        
         float q = sqrtf(r2 - m2);
         float t;
         if(l2 > r2) t = s - q;
         else t = s + q;
-        glm::vec3 intersect_point = theRay * t;
-        */
-        return INTERSECT;
+        //glm::vec3 intersect_point = theRay * t;
+        
+        return ray_intersection(INTERSECT, t);
     }
 };
 
@@ -223,9 +230,9 @@ struct AABB
         return ret.transform(t);
     }
     
-    uint32_t intersect(const Ray& theRay);
+    ray_intersection intersect(const Ray& theRay) const;
     
-	uint32_t intersect(const Triangle& t);
+	uint32_t intersect(const Triangle& t) const ;
 };
 
 struct Frustum

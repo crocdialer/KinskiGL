@@ -10,7 +10,7 @@
 #ifndef __kinskiGL__Scene__
 #define __kinskiGL__Scene__
 
-#include "Camera.h"
+#include "KinskiGL.h"
 
 namespace kinski { namespace gl {
     
@@ -18,14 +18,16 @@ namespace kinski { namespace gl {
     {
     public:
         
-        void addObject(const Object3D::Ptr &theObject);
-        void removeObject(const Object3D::Ptr &theObject);
+        void addObject(const Object3DPtr &theObject);
+        void removeObject(const Object3DPtr &theObject);
         
-        void render(const Camera::Ptr &theCamera) const;
+        void render(const CameraPtr &theCamera) const;
+        Object3DPtr pick(const CameraPtr &theCamera, uint32_t x, uint32_t y) const;
+        
         void update(float timestep);
         
-        inline const std::list<Object3D::Ptr>& objects() const {return m_objects;};
-        inline std::list<Object3D::Ptr>& objects() {return m_objects;};
+        inline const std::list<Object3DPtr>& objects() const {return m_objects;};
+        inline std::list<Object3DPtr>& objects() {return m_objects;};
         
         uint32_t num_visible_objects() const {return m_num_visible_objects;};
         
@@ -33,7 +35,7 @@ namespace kinski { namespace gl {
         
         mutable uint32_t m_num_visible_objects;
         
-        std::list<Object3D::Ptr> m_objects;
+        std::list<Object3DPtr> m_objects;
     };
     
 }}//namespace

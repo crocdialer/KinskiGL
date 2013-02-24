@@ -105,6 +105,8 @@ namespace kinski { namespace gl {
         }
     }
     
+    const glm::vec2& windowDimension(){ return g_windowDim; }
+
     void setWindowDimension(const glm::vec2 &theDim)
     {
         g_windowDim = theDim;
@@ -231,10 +233,10 @@ namespace kinski { namespace gl {
 #endif
     }
     
-    void drawPoints(GLuint thePointVBO, GLsizei theCount, const Material::Ptr &theMaterial,
+    void drawPoints(GLuint thePointVBO, GLsizei theCount, const MaterialPtr &theMaterial,
                     GLsizei stride, GLsizei offset)
     {
-        static Material::Ptr staticMat;
+        static MaterialPtr staticMat;
         static GLuint pointVAO = 0;
         
         //create shader
@@ -301,7 +303,7 @@ namespace kinski { namespace gl {
             }
         }
         
-        Material::Ptr activeMat = theMaterial ? theMaterial : staticMat;
+        MaterialPtr activeMat = theMaterial ? theMaterial : staticMat;
         
         if(!activeMat->shader())
             activeMat->shader() = staticMat->shader();
@@ -386,7 +388,7 @@ namespace kinski { namespace gl {
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
-    void drawQuad(const gl::Material::Ptr &theMaterial,
+    void drawQuad(const gl::MaterialPtr &theMaterial,
                   const vec2 &theSize,
                   const vec2 &theTl)
     {
@@ -396,7 +398,7 @@ namespace kinski { namespace gl {
     }
     
     
-    void drawQuad(const gl::Material::Ptr &theMaterial,
+    void drawQuad(const gl::MaterialPtr &theMaterial,
                   float x0, float y0, float x1, float y1)
     {
         // orthographic projection with a [0,1] coordinate space
@@ -498,7 +500,7 @@ namespace kinski { namespace gl {
         drawLines(theMap[conf], colorGrey);
     }
     
-    void drawAxes(const std::weak_ptr<const Mesh> &theMesh)
+    void drawAxes(const MeshWeakPtr &theMesh)
     {
         Mesh::ConstPtr m = theMesh.lock();
         if(!m) return;
@@ -516,7 +518,7 @@ namespace kinski { namespace gl {
         drawLines(thePoints, vec4(0, 0, 1, 1));
     }
     
-    void drawMesh(const std::shared_ptr<const Mesh> &theMesh)
+    void drawMesh(const MeshPtr &theMesh)
     {
         theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
         
@@ -559,7 +561,7 @@ namespace kinski { namespace gl {
         KINSKI_CHECK_GL_ERRORS();
     }
     
-    void drawBoundingBox(const std::weak_ptr<const Mesh> &weakMesh)
+    void drawBoundingBox(const MeshWeakPtr &weakMesh)
     {
 //#ifndef KINSKI_GLES
         static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
@@ -621,7 +623,7 @@ namespace kinski { namespace gl {
 //#endif
     }
 
-    void drawNormals(const std::weak_ptr<const Mesh> &theMesh)
+    void drawNormals(const MeshWeakPtr &theMesh)
     {
 //#ifndef KINSKI_GLES
         static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;

@@ -25,8 +25,11 @@ namespace kinski { namespace gl {
         
         uint32_t getID() const { return m_id; };
         inline void setPosition(const glm::vec3 &thePos) { m_worldTransform[3].xyz() = thePos; };
+        
         inline glm::vec3 position() const { return m_worldTransform[3].xyz(); }
-        inline glm::vec3 lookAt() const { return -m_worldTransform[2].xyz(); }
+        inline glm::vec3 lookAt() const { return glm::normalize(-m_worldTransform[2].xyz()); }
+        inline glm::vec3 side() const { return glm::normalize(m_worldTransform[0].xyz()); }
+        inline glm::vec3 up() const { return glm::normalize(m_worldTransform[1].xyz()); }
         
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);

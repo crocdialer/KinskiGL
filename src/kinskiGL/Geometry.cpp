@@ -594,8 +594,6 @@ namespace kinski{ namespace gl{
     
     Geometry::Ptr createSphere(float radius, int numSlices)
     {
-        //#define ES_PI  (3.14159265f)
-        
         Geometry::Ptr geom (new Geometry);
         
         

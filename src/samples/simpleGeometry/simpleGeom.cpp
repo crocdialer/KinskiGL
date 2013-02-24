@@ -5,6 +5,7 @@
 
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
+#include "kinskiGL/Camera.h"
 #include "kinskiGL/Mesh.h"
 #include "kinskiGL/Fbo.h"
 
@@ -148,7 +149,7 @@ public:
         //m_pointMaterial->setDepthWrite(false);
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setClippingPlanes(.1, 5000);
+        m_Camera->setClippingPlanes(1, 5000);
         
         // test box shape
         //gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
@@ -256,6 +257,8 @@ public:
         m_lastTransform = mat4(m_rotation->val());
         m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
+        
+        m_scene.pick(m_Camera, e.getX(), e.getY());
     }
     
     void mouseDrag(const MouseEvent &e)

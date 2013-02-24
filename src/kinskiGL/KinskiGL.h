@@ -1,14 +1,14 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
+// Copyright (C) 2012-2013, Fabian Schmidt <crocdialer@googlemail.com>
 //
 // It is distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef KINSKI_GL_KINSKIGL_H_
-#define KINSKI_GL_KINSKIGL_H_
+#ifndef _KINSKIGL_H
+#define _KINSKIGL_H
 
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Exception.h"
@@ -70,12 +70,21 @@ namespace kinski { namespace gl {
     class Material;
     class Shader;
     class Geometry;
+    class Object3D;
     class Mesh;
+    class Camera;
     struct AABB;
     struct Sphere;
     struct Frustum;
     struct Animation;
     struct Bone;
+    
+    typedef std::shared_ptr<Material> MaterialPtr;
+    typedef std::shared_ptr<Geometry> GeometryPtr;
+    typedef std::shared_ptr<Object3D> Object3DPtr;
+    typedef std::shared_ptr<Mesh> MeshPtr;
+    typedef std::weak_ptr<const Mesh> MeshWeakPtr;
+    typedef std::shared_ptr<Camera> CameraPtr;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     void pushMatrix(const Matrixtype type);
@@ -96,7 +105,8 @@ namespace kinski { namespace gl {
     private:
         Matrixtype m_type;
     };
-    
+
+    const glm::vec2& windowDimension();
     void setWindowDimension(const glm::vec2 &theDim);
     
     /********************************* Drawing Functions *****************************************/
@@ -106,31 +116,31 @@ namespace kinski { namespace gl {
     void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
     
     void drawPoints(GLuint thePointVBO, GLsizei theCount,
-                    const std::shared_ptr<Material> &theMaterial = std::shared_ptr<Material>(),
+                    const MaterialPtr &theMaterial = std::shared_ptr<Material>(),
                     GLsizei stride = 0,
                     GLsizei offset = 0);
     
     void drawPoints(const std::vector<glm::vec3> &thePoints,
-                    const std::shared_ptr<Material> &theMaterial = std::shared_ptr<Material>());
+                    const MaterialPtr &theMaterial = std::shared_ptr<Material>());
     
     void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
                      const glm::vec2 &theTopLeft = glm::vec2(0));
     
-    void drawQuad(const std::shared_ptr<Material> &theMaterial, const glm::vec2 &theSize,
+    void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
                   const glm::vec2 &theTopLeft = glm::vec2(0));
     
-    void drawQuad(const std::shared_ptr<Material> &theMaterial,
+    void drawQuad(const MaterialPtr &theMaterial,
                   float x0, float y0, float x1, float y1);
     
     void drawGrid(float width, float height, int numW = 20, int numH = 20);
     
-    void drawAxes(const std::weak_ptr<const Mesh> &theMesh);
+    void drawAxes(const MeshWeakPtr &theMesh);
     
-    void drawMesh(const std::shared_ptr<const Mesh> &theMesh);
+    void drawMesh(const MeshPtr &theMesh);
     
-    void drawBoundingBox(const std::weak_ptr<const Mesh> &theMesh);
+    void drawBoundingBox(const MeshWeakPtr &theMesh);
     
-    void drawNormals(const std::weak_ptr<const Mesh> &theMesh);
+    void drawNormals(const MeshWeakPtr &theMesh);
     
     /*********************************** inbuilt Texture loading **********************************/
     

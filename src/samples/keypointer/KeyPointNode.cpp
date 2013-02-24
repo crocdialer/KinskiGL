@@ -8,6 +8,7 @@
 
 #include "KeyPointNode.h"
 #include "boost/timer/timer.hpp"
+#include "kinskiCore/Logger.h"
 
 using namespace std;
 using namespace cv;
@@ -54,21 +55,11 @@ namespace kinski
         scale = min(scale, 1.f);
         resize(img, downSized, Size(), scale, scale);
         
-        {
-//            auto_cpu_timer t;
-//            cout<<"detect: ";
-            m_featureDetect->detect(downSized, keypoints);
-        }
-        {
-//            auto_cpu_timer t;
-//            cout<<"extract: ";
-            m_featureExtract->compute(downSized, keypoints, descriptors_scene);
-        }
-        {
-//            auto_cpu_timer t;
-//            cout<<"match: ";
-            m_matcher->match(descriptors_scene, m_trainDescriptors, matches);
-        }
+        { auto_cpu_timer t(LOG_TRACE<<"DETECT: "); m_featureDetect->detect(downSized, keypoints);}
+        { auto_cpu_timer t(LOG_INFO<<"EXTRACT: "); m_featureExtract->compute(downSized, keypoints,
+                                                                             descriptors_scene);}
+        { auto_cpu_timer t(LOG_TRACE<<"MATCH: "); m_matcher->match(descriptors_scene,
+                                                                  m_trainDescriptors, matches);}
         
         //Mat outImg = img.clone();
 
