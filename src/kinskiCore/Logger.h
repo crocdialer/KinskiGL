@@ -11,13 +11,13 @@
 #define _kinski_Logger_h_included_
 
 #include <sstream>
-#include <map>
+#include "Definitions.h"
 
 namespace kinski {
     enum Severity { SEV_PRINT, SEV_FATAL, SEV_ERROR, SEV_WARNING, SEV_INFO,
                     SEV_DEBUG, SEV_TRACE, SEV_DISABLED};
 
-class Logger
+class KINSKI_API Logger
 {
     struct ModuleSeverity
     {

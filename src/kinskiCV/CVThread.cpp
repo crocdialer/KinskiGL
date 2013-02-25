@@ -188,7 +188,6 @@ namespace kinski
     void CVThread::waitForImage()
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        
         while (!m_newFrame)
             m_conditionVar.wait(lock);
     }
@@ -206,7 +205,6 @@ namespace kinski
                              procImages.begin(),
                              procImages.end());
         }
-        
         boost::mutex::scoped_lock lock(m_mutex);
         m_images = tmpImages;
         m_newFrame = true;
@@ -223,13 +221,11 @@ namespace kinski
     
     double CVThread::getLastGrabTime()
     {
-        boost::mutex::scoped_lock lock(m_mutex);
         return m_lastGrabTime;
     }
     
     double CVThread::getLastProcessTime()
     {
-        boost::mutex::scoped_lock lock(m_mutex);
         return m_lastProcessTime;
     }
     

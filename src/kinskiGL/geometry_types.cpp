@@ -33,6 +33,24 @@ foot(f),
 normal(n)
 {}
 
+ray_intersection Triangle::intersect(const Ray &theRay) const
+{
+    glm::vec3 e1 = v1 - v0, e2 = v2 - v0;
+    glm::vec3 q = glm::cross(theRay.direction, e2);
+    float a = glm::dot(e1, q);
+    static float epsilon = 10.0e-5;
+    if(a > -epsilon && a < epsilon) return REJECT;
+    float f = 1.0f / a;
+    glm::vec3 s = theRay.origin - v0;
+    float u = f * glm::dot(s, q);
+    if(u < 0.0f) return REJECT;
+    glm::vec3 r = glm::cross(s, e1);
+    float v = f * glm::dot(theRay.direction, r);
+    if(v < 0.0f || (u + v) > 1.0f) return REJECT;
+
+    return ray_intersection(INTERSECT, f * glm::dot(e2, q));
+}
+    
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
 {
     center = theAABB.center() + t[3].xyz();
@@ -125,9 +143,9 @@ ray_intersection AABB::intersect(const Ray& theRay) const
     
 uint32_t AABB::intersect(const Triangle& t) const
 {
-    float triVerts [3][3] =	{	{t.v1[0],t.v1[1],t.v1[2]},
-                                {t.v2[0],t.v2[1],t.v2[2]},
-                                {t.v3[0],t.v3[1],t.v3[2]}
+    float triVerts [3][3] =	{	{t.v0[0],t.v0[1],t.v0[2]},
+                                {t.v1[0],t.v1[1],t.v1[2]},
+                                {t.v2[0],t.v2[1],t.v2[2]}
                             };
     return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
 }

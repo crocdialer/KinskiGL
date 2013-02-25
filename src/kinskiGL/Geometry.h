@@ -46,13 +46,10 @@ namespace kinski{ namespace gl{
     struct Bone
     {
         std::string name;
-        
         glm::mat4 transform;
         glm::mat4 worldtransform;
         glm::mat4 offset;
-        
         uint32_t index;
-        
         std::shared_ptr<Bone> parent;
         std::list<std::shared_ptr<Bone> > children;
     };
@@ -79,7 +76,7 @@ namespace kinski{ namespace gl{
         std::map<std::shared_ptr<Bone>, AnimationKeys> boneKeys;
     };
     
-    class Geometry
+    class KINSKI_API Geometry
     {
     public:
         
@@ -230,13 +227,13 @@ namespace kinski{ namespace gl{
         bool m_needsUpdate;
     };
     
-    Geometry::Ptr createPlane(float width, float height,
+    GeometryPtr createPlane(float width, float height,
                             uint32_t numSegments_W = 1,
                             uint32_t numSegments_H = 1);
     
-    Geometry::Ptr createBox(const glm::vec3 &theHalfExtents = glm::vec3(0.5f));
+    GeometryPtr createBox(const glm::vec3 &theHalfExtents = glm::vec3(0.5f));
     
-    Geometry::Ptr createSphere(float radius, int numSlices);
+    GeometryPtr createSphere(float radius, int numSlices);
     
 }//gl
 }//kinski

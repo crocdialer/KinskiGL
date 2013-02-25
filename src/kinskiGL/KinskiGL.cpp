@@ -152,6 +152,11 @@ namespace kinski { namespace gl {
         return Ray(click_world_pos, click_world_pos - cam_pos);
     }
     
+    void clearColor(const glm::vec4 &theColor)
+    {
+        glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);
+    }
+    
     void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
     {
         static vector<vec3> thePoints;
@@ -178,94 +183,32 @@ namespace kinski { namespace gl {
     void drawLines(const vector<vec3> &thePoints, const vec4 &theColor)
     {
         if(thePoints.empty()) return;
-        
-        // no effect in OpenGL 3.2 !?
-        // glLineWidth(10.f);
-        static gl::MaterialPtr material;
+
+        static gl::MeshPtr mesh;
         
         //create shader
-        if(!material)
+        if(!mesh)
         {
-            material = gl::MaterialPtr(new gl::Material);
-#ifdef KINSKI_GLES
-            const char *vertSrc =
-            "uniform mat4 u_modelViewProjectionMatrix;\n"
-            "attribute vec4 a_vertex;\n"
-            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
-            
-            const char *fragSrc =
-            "uniform vec4 u_lineColor;\n"
-            "void main(){gl_FragColor = u_lineColor;}\n";
-#else
-            const char *vertSrc =
-            "#version 150 core\n"
-            "uniform mat4 u_modelViewProjectionMatrix;\n"
-            "in vec4 a_vertex;\n"
-            "void main(){gl_Position = u_modelViewProjectionMatrix * a_vertex;}\n";
-            
-            const char *fragSrc =
-            "#version 150 core\n"
-            "uniform vec4 u_lineColor;\n"
-            "out vec4 fragData;\n"
-            "void main(){fragData = u_lineColor;}\n";
-#endif
-            try
-            {
-                material->shader().loadFromData(vertSrc, fragSrc);
-            } catch (Exception &e)
-            {
-                LOG_ERROR << e.what();
-            }
+            gl::Material::Ptr mat(new gl::Material);
+            mat->setShader(gl::createShader(gl::SHADER_UNLIT));
+            gl::Geometry::Ptr geom(new gl::Geometry);
+            mesh = gl::Mesh::Ptr(new gl::Mesh(geom, mat));
+            mesh->geometry()->setPrimitiveType(GL_LINES);
         }
         
-        //lineShader.bind();
-        
-        material->uniform("u_modelViewProjectionMatrix",
-                           g_projectionMatrixStack.top()
-                           * g_modelViewMatrixStack.top());
-        
-        material->uniform("u_lineColor", theColor);
-        
-        material->apply();
-        
-        static GLuint lineVBO = 0;
-        static GLuint lineVAO = 0;
-        
-        if(!lineVAO)
+        vector<vec3>::const_iterator it = thePoints.begin();
+        for (; it < thePoints.end(); ++it)
         {
-#ifndef KINSKI_NO_VAO
-            GL_SUFFIX(glGenVertexArrays)(1, &lineVAO);
-            GL_SUFFIX(glBindVertexArray)(lineVAO);
-#endif            
-            if(!lineVBO)
-                glGenBuffers(1, &lineVBO);
-            
-            glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-            glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(GLfloat) * thePoints.size(),
-                         NULL, GL_STREAM_DRAW);
-            
-            GLuint vertexAttribLocation = material->shader().getAttribLocation("a_vertex");
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-            
-#ifndef KINSKI_NO_VAO
-            GL_SUFFIX(glBindVertexArray)(0);
-#endif
+            const glm::vec3 &v = *it;
+            mesh->geometry()->appendVertex(v);
+            mesh->geometry()->appendColor(theColor);
         }
+        mesh->geometry()->createGLBuffers();
+        if(!mesh->vertexArray()) mesh->createVertexArray();
+        gl::drawMesh(mesh);
         
-        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(thePoints[0]) * thePoints.size(),
-                     NULL, GL_STREAM_DRAW);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(thePoints[0]) * thePoints.size(),
-                     &thePoints[0], GL_STREAM_DRAW);
-        
-#ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(lineVAO);
-#endif
-        glDrawArrays(GL_LINES, 0, thePoints.size());
-#ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(0);
-#endif
+        mesh->geometry()->vertices().clear();
+        mesh->geometry()->colors().clear();
     }
     
     void drawPoints(GLuint thePointVBO, GLsizei theCount, const MaterialPtr &theMaterial,
@@ -406,7 +349,6 @@ namespace kinski { namespace gl {
             try
             {
                 material = gl::Material::Ptr(new gl::Material);
-                material->setShader(createShader(SHADER_UNLIT));
             } catch (Exception &e)
             {
                 LOG_ERROR<<e.what();
@@ -427,9 +369,8 @@ namespace kinski { namespace gl {
                   const vec2 &theSize,
                   const vec2 &theTl)
     {
-        vec2 sz = theSize;
         vec2 tl = theTl == vec2(0) ? vec2(0, g_windowDim[1]) : theTl;
-        drawQuad(theMaterial, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+        drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1]);
     }
     
     
@@ -483,8 +424,6 @@ namespace kinski { namespace gl {
             
             GLuint colorAttribLocation = theMaterial->shader().getAttribLocation("a_color");
             glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-            //glBindBuffer(GL_ARRAY_BUFFER, 0); 
-            //GL_SUFFIX(glBindVertexArray)(0);
         }
         
 #ifndef KINSKI_NO_VAO
@@ -499,40 +438,57 @@ namespace kinski { namespace gl {
     
     void drawGrid(float width, float height, int numW, int numH)
     {
-        static map<boost::tuple<float,float,int,int>, vector<vec3> > theMap;
-        static vec4 colorGrey(.7, .7, .7, 1.0);
+        static map<boost::tuple<float,float,int,int>, MeshPtr> theMap;
+        static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
-        // incoming key
+        // search for incoming key
         boost::tuple<float,float,int,int> conf (width, height, numW, numH);
-        
-        map<boost::tuple<float,float,int,int>, vector<vec3> >::iterator it = theMap.find(conf);
+        map<boost::tuple<float,float,int,int>, MeshPtr>::iterator it = theMap.find(conf);
         if(it == theMap.end())
         {
-            vector<vec3> thePoints;
+            GeometryPtr geom(new gl::Geometry);
+            geom->setPrimitiveType(GL_LINES);
+            gl::MaterialPtr mat(new gl::Material);
+            MeshPtr mesh (new gl::Mesh(geom, mat));
+            
+            vector<vec3> &points = geom->vertices();
+            vector<vec4> &colors = geom->colors();
             
             float stepX = width / numW, stepZ = height / numH;
-            
             float w2 = width / 2.f, h2 = height / 2.f;
             
+            glm::vec4 *color;
+            for (int x = 0; x < numW + 1; x ++ )
+            {
+                if(x == 0) color = &colorBlue;
+                else color = &colorGrey;
+                
+                // line Z
+                points.push_back(vec3(- w2 + x * stepX, 0.f, -h2));
+                points.push_back(vec3(- w2 + x * stepX, 0.f, h2));
+                colors.push_back(*color);
+                colors.push_back(*color);
+            }
             for (int z = 0; z < numH + 1; z++ )
             {
-                for (int x = 0; x < numW + 1; x ++ )
-                {
-                    // line X
-                    thePoints.push_back(vec3(- w2 + x * stepX, 0.f, -h2));
-                    thePoints.push_back(vec3(- w2 + x * stepX, 0.f, h2));
-                    
-                    // line Z
-                    thePoints.push_back(vec3(- w2 , 0.f, -h2 + z * stepZ));
-                    thePoints.push_back(vec3( w2 , 0.f, -h2 + z * stepZ));
-                }
+                if(z == 0) color = &colorRed;
+                else color = &colorGrey;
+                
+                // line X
+                points.push_back(vec3(- w2 , 0.f, -h2 + z * stepZ));
+                points.push_back(vec3( w2 , 0.f, -h2 + z * stepZ));
+                colors.push_back(*color);
+                colors.push_back(*color);
             }
             
             theMap.clear();
-            theMap[conf] = thePoints;
+            
+            geom->createGLBuffers();
+            mesh->createVertexArray();
+            
+            theMap[conf] = mesh;
         }
-        
-        drawLines(theMap[conf], colorGrey);
+        drawMesh(theMap[conf]);
     }
     
     void drawAxes(const MeshWeakPtr &theMesh)

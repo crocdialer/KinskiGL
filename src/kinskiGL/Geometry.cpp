@@ -103,8 +103,8 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeBoundingBox()
     {
-        m_boundingBox = AABB(glm::vec3(numeric_limits<float>::infinity() ),
-                                    glm::vec3(-numeric_limits<float>::infinity() ));
+        m_boundingBox = AABB(glm::vec3(numeric_limits<float>::max() ),
+                             glm::vec3(numeric_limits<float>::min() ));
      
         vector<glm::vec3>::const_iterator it = m_vertices.begin();
         for (; it != m_vertices.end(); it++)

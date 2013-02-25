@@ -14,7 +14,7 @@
 
 namespace kinski { namespace gl {
 
-    class Object3D
+    class KINSKI_API Object3D
     {
     public:
         

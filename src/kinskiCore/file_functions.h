@@ -54,7 +54,7 @@ namespace kinski {
     {
     public:
         OpenFileFailed(const std::string &theFilename) :
-        Exception(std::string("File not found: ") + theFilename) {}
+        Exception(std::string("Could not open file: ") + theFilename) {}
     };
 }
 

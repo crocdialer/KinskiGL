@@ -16,7 +16,7 @@
 
 namespace kinski { namespace gl {
     
-    class Mesh : public Object3D
+    class KINSKI_API Mesh : public Object3D
     {
     public:
         

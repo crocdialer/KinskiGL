@@ -17,7 +17,7 @@ namespace kinski {
 namespace gl {
 
 //! Represents an OpenGL Renderbuffer, used primarily in conjunction with FBOs. Supported on OpenGL ES but multisampling is currently ignored. \ImplShared
-class Renderbuffer {
+class KINSKI_API Renderbuffer {
   public:
 	//! Creates a NULL Renderbuffer
 	Renderbuffer() {}
@@ -77,7 +77,8 @@ class Renderbuffer {
 };
 
 //! Represents an OpenGL Framebuffer Object. \ImplShared
-class Fbo {
+class KINSKI_API Fbo
+{
  public:
 	struct Format;
 
@@ -141,7 +142,7 @@ class Fbo {
 	//! Returns the maximum number of color attachments the graphics card is capable of using for an Fbo
 	static GLint	getMaxAttachments();
 	
-	struct Format {
+	struct KINSKI_API Format {
 	  public:
 		//! Default constructor, sets the target to \c GL_TEXTURE_2D with an 8-bit color+alpha, a 24-bit depth texture, and no multisampling or mipmapping
 		Format();
@@ -253,9 +254,9 @@ class Fbo {
 	//@}  	
 };
 
-    class FboException : public Exception {
-     public:
-        FboException():Exception("FboException"){};
+class FboException : public Exception {
+ public:
+    FboException():Exception("FboException"){};
 };
 
 class FboExceptionInvalidSpecification : public FboException {

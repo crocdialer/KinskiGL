@@ -19,7 +19,7 @@ namespace kinski
     class MouseEvent;
     class KeyEvent;
     
-    class App : public Component
+    class KINSKI_API App : public Component
     {
     public:
         typedef std::shared_ptr<App> Ptr;
@@ -96,7 +96,8 @@ namespace kinski
     };
     
     //! Represents a mouse event
-    class MouseEvent : public Event {
+    class KINSKI_API MouseEvent : public Event
+    {
     public:
         MouseEvent() : Event() {}
         MouseEvent( int aInitiator, int aX, int aY, unsigned int aModifiers, int aWheelIncrement )
@@ -156,7 +157,7 @@ namespace kinski
     };
     
     //! Represents a keyboard event
-    class KeyEvent : public Event
+    class KINSKI_API KeyEvent : public Event
     {
     public:
         KeyEvent( int aCode, char aChar, unsigned int aModifiers)

@@ -132,7 +132,7 @@ private:
     Property_<bool>::Ptr m_stepPhysics;
     Property_<glm::vec3>::Ptr m_lightDir;
     
-    Property_<glm::vec4>::Ptr m_color;
+    Property_<glm::vec4>::Ptr m_color, m_clear_color;
     Property_<glm::mat3>::Ptr m_rotation;
     RangedProperty<float>::Ptr m_rotationSpeed;
     
@@ -266,7 +266,7 @@ public:
 
     void setup()
     {
-        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClearColor(1.0, 1.0, 1.0, 1.0);
         
         /*********** init our application properties ******************/
         
@@ -284,6 +284,9 @@ public:
         
         m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
         registerProperty(m_lightDir);
+        
+        m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
+        registerProperty(m_clear_color);
         
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
@@ -312,8 +315,8 @@ public:
         gl::Fbo::Format fboFormat;
         //TODO: mulitsampling fails
         //fboFormat.setSamples(4);
-        m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
-
+//        m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
+//        m_textures[0] = m_frameBuffer.getTexture();
         
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
@@ -520,13 +523,19 @@ public:
         //TODO: mulitsampling fails
         //fboFormat.setSamples(4);
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
+        
+//        m_textures[0] = m_frameBuffer.getTexture();
     }
     
     // Property observer callback
     void updateProperty(const Property::ConstPtr &theProperty)
     {
         // one of our porperties was changed
-        if(theProperty == m_color)
+        if(theProperty == m_clear_color)
+        {
+            gl::clearColor(m_clear_color->val());
+        }
+        else if(theProperty == m_color)
         {
             m_material[0]->setDiffuse(m_color->val());
         }

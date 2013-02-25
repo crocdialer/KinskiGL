@@ -15,7 +15,7 @@
 namespace kinski 
 {
     
-    class Component : public std::enable_shared_from_this<Component>,
+    class KINSKI_API Component : public std::enable_shared_from_this<Component>,
     public Property::Observer
     {
     public:

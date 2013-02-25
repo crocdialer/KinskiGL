@@ -19,7 +19,7 @@ namespace kinski
      * Delegate object to handle all known types
      * Can be provided by user to add support for arbitrary data formats
      */
-    class PropertyIO
+    class KINSKI_API PropertyIO
     {
     public:
         
@@ -42,7 +42,7 @@ namespace kinski
                                         const Json::Value &theJsonValue) const;
     };
     
-    class Serializer
+    class KINSKI_API Serializer
     {
     public:
         /*!

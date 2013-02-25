@@ -19,7 +19,7 @@ namespace kinski
      * Delegate object to handle all known types
      * Can be provided by user to add support for arbitrary data formats
      */
-    class PropertyIO_GL : public PropertyIO
+    class KINSKI_API PropertyIO_GL : public PropertyIO
     {
     public:
         static const std::string PROPERTY_TYPE_VEC2;

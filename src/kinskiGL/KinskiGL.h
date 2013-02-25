@@ -89,11 +89,11 @@ namespace kinski { namespace gl {
     typedef std::shared_ptr<Camera> CameraPtr;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
-    void pushMatrix(const Matrixtype type);
-    void popMatrix(const Matrixtype type);
-    void multMatrix(const glm::mat4 &theMatrix);
-    void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
-    void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
+    KINSKI_API void pushMatrix(const Matrixtype type);
+    KINSKI_API void popMatrix(const Matrixtype type);
+    KINSKI_API void multMatrix(const glm::mat4 &theMatrix);
+    KINSKI_API void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
+    KINSKI_API void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
     
     class ScopedMatrixPush
     {
@@ -108,47 +108,37 @@ namespace kinski { namespace gl {
         Matrixtype m_type;
     };
 
-    const glm::vec2& windowDimension();
-    void setWindowDimension(const glm::vec2 &theDim);
+    KINSKI_API const glm::vec2& windowDimension();
+    KINSKI_API void setWindowDimension(const glm::vec2 &theDim);
     
-    gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y);
+    KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y);
     
     /********************************* Drawing Functions *****************************************/
     
-    void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
-    
-    void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
-    
-    void drawPoints(GLuint thePointVBO, GLsizei theCount,
-                    const MaterialPtr &theMaterial = std::shared_ptr<Material>(),
-                    GLsizei stride = 0,
-                    GLsizei offset = 0);
-    
-    void drawPoints(const std::vector<glm::vec3> &thePoints,
-                    const MaterialPtr &theMaterial = std::shared_ptr<Material>());
-    
-    void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
+    KINSKI_API void clearColor(const glm::vec4 &theColor);
+    KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
+    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
+    KINSKI_API void drawPoints(GLuint thePointVBO, GLsizei theCount,
+                               const MaterialPtr &theMaterial = std::shared_ptr<Material>(),
+                               GLsizei stride = 0,
+                               GLsizei offset = 0);
+    KINSKI_API void drawPoints(const std::vector<glm::vec3> &thePoints,
+                               const MaterialPtr &theMaterial = std::shared_ptr<Material>());
+    KINSKI_API void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
                      const glm::vec2 &theTopLeft = glm::vec2(0));
-    
-    void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
-                  const glm::vec2 &theTopLeft = glm::vec2(0));
-    
-    void drawQuad(const MaterialPtr &theMaterial,
-                  float x0, float y0, float x1, float y1);
-    
-    void drawGrid(float width, float height, int numW = 20, int numH = 20);
-    
-    void drawAxes(const MeshWeakPtr &theMesh);
-    
-    void drawMesh(const MeshPtr &theMesh);
-    
-    void drawBoundingBox(const MeshWeakPtr &theMesh);
-    
-    void drawNormals(const MeshWeakPtr &theMesh);
+    KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
+                             const glm::vec2 &theTopLeft = glm::vec2(0));
+    KINSKI_API void drawQuad(const MaterialPtr &theMaterial,
+                             float x0, float y0, float x1, float y1);
+    KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
+    KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
+    KINSKI_API void drawMesh(const MeshPtr &theMesh);
+    KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
+    KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    Texture createTextureFromFile(const std::string &theFileName);
+    KINSKI_API Texture createTextureFromFile(const std::string &theFileName);
     
     class ImageLoadException : public Exception
     {
@@ -160,12 +150,12 @@ namespace kinski { namespace gl {
     /*********************************** Shader loading *******************************************/
     
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};
-    Shader createShader(ShaderType type);
-    Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
+    KINSKI_API Shader createShader(ShaderType type);
+    KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
                                 const std::string &geomPath="");
     
-    const std::set<std::string>& getExtensions();
-    bool isExtensionSupported(const std::string &theName);
+    KINSKI_API const std::set<std::string>& getExtensions();
+    KINSKI_API bool isExtensionSupported(const std::string &theName);
 
     #if KINSKI_GL_REPORT_ERRORS
     #define KINSKI_CHECK_GL_ERRORS()\

@@ -17,7 +17,7 @@
 
 namespace kinski { namespace gl {
     
-    class Material
+    class KINSKI_API Material
     {
     public:
         

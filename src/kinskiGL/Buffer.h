@@ -14,7 +14,7 @@
 
 namespace kinski{ namespace gl{
 
-class Buffer
+class KINSKI_API Buffer
 {
  private:
     struct Obj;

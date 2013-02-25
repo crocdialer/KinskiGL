@@ -20,7 +20,8 @@ namespace gl
     typedef unsigned int GLenum;
     
     /** \brief Represents an OpenGL Texture. \ImplShared*/
-    class Texture {
+    class KINSKI_API Texture
+    {
     public:
         struct Format;
         

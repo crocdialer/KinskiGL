@@ -15,7 +15,7 @@ namespace kinski { namespace gl {
 enum intersection_type {REJECT = 0, INTERSECT = 1, INSIDE = 2};
 
 
-struct Ray
+struct KINSKI_API Ray
 {
     glm::vec3 origin;
 	glm::vec3 direction;
@@ -45,7 +45,7 @@ struct Ray
 /*!
  * Encapsulates type of intersection and distance along the ray
  */
-struct ray_intersection
+struct KINSKI_API ray_intersection
 {
     intersection_type type;
     float distance;
@@ -55,7 +55,7 @@ struct ray_intersection
     operator intersection_type() const { return type; }
 };
     
-struct Plane
+struct KINSKI_API Plane
 {
     glm::vec3 foot;
 	glm::vec3 normal;
@@ -83,21 +83,21 @@ struct Plane
 	};
 };
 
-struct Triangle
+struct KINSKI_API Triangle
 {
+	glm::vec3 v0 ;
 	glm::vec3 v1 ;
 	glm::vec3 v2 ;
-	glm::vec3 v3 ;
 	
-	Triangle(const glm::vec3& _v1, const glm::vec3& _v2, const glm::vec3& _v3)
-	:v1(_v1),v2(_v2),v3(_v3)
+	Triangle(const glm::vec3& _v0, const glm::vec3& _v1, const glm::vec3& _v2)
+	:v0(_v0),v1(_v1),v2(_v2)
 	{}
     
     inline Triangle& transform(const glm::mat4& t)
 	{
+		v0 = (glm::vec4(v0, 1.0f) * t).xyz();
 		v1 = (glm::vec4(v1, 1.0f) * t).xyz();
-		v1 = (glm::vec4(v2, 1.0f) * t).xyz();
-        v1 = (glm::vec4(v3, 1.0f) * t).xyz();
+        v2 = (glm::vec4(v2, 1.0f) * t).xyz();
 		return *this;
 	};
     
@@ -106,9 +106,11 @@ struct Triangle
         Triangle ret = *this;
 		return ret.transform(t);
 	};
+    
+    ray_intersection intersect(const Ray &theRay) const;
 };
 
-struct Sphere
+struct KINSKI_API Sphere
 {
 
 	glm::vec3 center;
@@ -132,7 +134,7 @@ struct Sphere
 		return ret.transform(t);
 	};
     
-    inline uint32_t intersect(const glm::vec3 &thePoint)
+    inline uint32_t intersect(const glm::vec3 &thePoint) const
     {
         if((center - thePoint).length() > radius)
             return REJECT;
@@ -140,7 +142,7 @@ struct Sphere
         return INSIDE;
     }
     
-    inline ray_intersection intersect(const Ray &theRay)
+    inline ray_intersection intersect(const Ray &theRay) const
     {
         glm::vec3 l = center - theRay.origin;
         float s = glm::dot(l, theRay.direction);
@@ -163,7 +165,7 @@ struct Sphere
 /*
  *simple Axis aligned bounding box (AABB) structure
  */
-struct AABB
+struct KINSKI_API AABB
 {	
 	glm::vec3 min;
 	glm::vec3 max;
@@ -235,7 +237,7 @@ struct AABB
 	uint32_t intersect(const Triangle& t) const ;
 };
     
-struct OBB
+struct KINSKI_API OBB
 {
     glm::vec3 center;
     glm::vec3 axis[3];
@@ -246,7 +248,7 @@ struct OBB
     ray_intersection intersect(const Ray& theRay) const;
 };
 
-struct Frustum
+struct KINSKI_API Frustum
 {
 
 	Plane planes [6];
@@ -296,7 +298,7 @@ struct Frustum
 };
 
 /* fast AABB <-> Triangle test from Tomas Akenine-Möller */
-int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);
+KINSKI_API int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);
 
 }}//namespace
 

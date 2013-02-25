@@ -89,7 +89,7 @@ namespace kinski {
                        istreambuf_iterator<char>());
     }
 
-    std::vector<unsigned char> readBinaryFile(const std::string & theUTF8Filename)
+    std::vector<uint8_t> readBinaryFile(const std::string & theUTF8Filename)
     {
         string path = searchFile(theUTF8Filename);
         

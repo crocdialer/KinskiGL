@@ -17,7 +17,7 @@
 namespace kinski { namespace gl {
 
 //! Represents an OpenGL GLSL program. \ImplShared
-class Shader
+class KINSKI_API Shader
 {
   public: 
 	Shader();

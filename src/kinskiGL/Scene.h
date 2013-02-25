@@ -14,7 +14,7 @@
 
 namespace kinski { namespace gl {
     
-    class Scene
+    class KINSKI_API Scene
     {
     public:
         
