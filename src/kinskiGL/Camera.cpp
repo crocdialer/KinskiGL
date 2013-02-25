@@ -24,6 +24,11 @@ namespace kinski { namespace gl{
         setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
     }
     
+    AABB Camera::boundingBox() const
+    {
+        return AABB(glm::vec3(-0.5f), glm::vec3(0.5f));
+    }
+    
     /****************** OrthographicCamera *******************/
     
     OrthographicCamera::OrthographicCamera(float left, float right, float top, float bottom,

@@ -34,10 +34,10 @@ namespace kinski { namespace gl {
         Material::Ptr& material() { return m_material; };
         
         void bindVertexPointers() const;
-        
         void createVertexArray();
-        
         GLuint vertexArray() const { return m_vertexArray; };
+        
+        AABB boundingBox() const;
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.

@@ -98,6 +98,9 @@ namespace kinski { namespace gl {
             glEnableVertexAttribArray(colorAttribLocation);
             glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
             KINSKI_CHECK_GL_ERRORS();
+        }else{
+            GLuint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
+            glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
         }
         
         if(m_geometry->hasBones())
@@ -146,6 +149,11 @@ namespace kinski { namespace gl {
         bindVertexPointers();
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
+    }
+    
+    AABB Mesh::boundingBox() const
+    {
+        return m_geometry->boundingBox();
     }
     
     void Mesh::setVertexLocationName(const std::string &theName)

@@ -125,33 +125,47 @@ namespace kinski { namespace gl {
         
     }
     
-    Object3D::Ptr Scene::pick(const Ray &ray) const
+    Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
     {
         Object3DPtr ret;
-        //Ray ray = gl::calculateRay(theCamera, x, y);
-        
-        //LOG_INFO<<"ray_dir: "<<ray.direction.x<<"  "<<ray.direction.y<<"  "<<ray.direction.z;
         std::list<range_item_t> clicked_items;
-        list<Object3D::Ptr>::const_iterator objIt = m_objects.begin();
+        list<Object3DPtr>::const_iterator objIt = m_objects.begin();
         for (; objIt != m_objects.end(); objIt++)
         {
-            if(const Mesh::Ptr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
+            const Object3DPtr &theObj = *objIt;
+            gl::OBB boundingBox (theObj->boundingBox(), theObj->transform());
+
+            if (ray_intersection ray_hit = boundingBox.intersect(ray))
             {
-                gl::OBB boundingBox (theMesh->geometry()->boundingBox(), theMesh->transform());
-                
-                if (ray_intersection ray_hit = boundingBox.intersect(ray))
+                if(high_precision)
                 {
-                    clicked_items.push_back(range_item_t(theMesh, ray_hit.distance));
+                    if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(theObj))
+                    {
+                        gl::Ray ray_in_object_space = ray.transform(glm::inverse(theObj->transform()));
+                        
+                        const std::vector<glm::vec3>& vertices = m->geometry()->vertices();
+                        std::vector<gl::Face3>::const_iterator it = m->geometry()->faces().begin();
+                        for (; it != m->geometry()->faces().end(); ++it)
+                        {
+                            const Face3 &f = *it;
+                            gl::Triangle t(vertices[f.a], vertices[f.b], vertices[f.c]);
+                            
+                            if((ray_hit = t.intersect(ray_in_object_space)))
+                            {
+                                clicked_items.push_back(range_item_t(theObj, ray_hit.distance));
+                            }
+                        }
+                        
+                    }
                 }
+                else clicked_items.push_back(range_item_t(theObj, ray_hit.distance));
             }
         }
-        
         LOG_DEBUG<<"ray hit "<<clicked_items.size()<<" objects";
         if(!clicked_items.empty()){
             clicked_items.sort(range_item_t());
             ret = clicked_items.front().object;
         }
-        
         return ret;
     }
     

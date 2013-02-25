@@ -103,9 +103,9 @@ namespace kinski { namespace gl {
         {
 #ifndef KINSKI_GLES
             glEnable(GL_PROGRAM_POINT_SIZE);
+            glPointSize(m_pointSize);
 #endif
             m_shader.uniform("u_pointSize", m_pointSize);
-            
             KINSKI_CHECK_GL_ERRORS();
         }
         

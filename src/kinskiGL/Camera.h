@@ -28,6 +28,7 @@ public:
     
     glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;};
     glm::mat4 getViewMatrix() const;
+    AABB boundingBox() const;
     
     virtual gl::Frustum frustum() const = 0;
     virtual float near() const = 0;

@@ -251,7 +251,8 @@ public:
         m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
         
-        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY())))
+        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY()),
+                                                     true))
         {
             LOG_TRACE<<"picked id: "<< picked_obj->getID();
             

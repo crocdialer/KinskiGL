@@ -30,19 +30,17 @@ namespace kinski { namespace gl {
         inline glm::vec3 lookAt() const { return glm::normalize(-m_worldTransform[2].xyz()); }
         inline glm::vec3 side() const { return glm::normalize(m_worldTransform[0].xyz()); }
         inline glm::vec3 up() const { return glm::normalize(m_worldTransform[1].xyz()); }
-        
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
         glm::quat rotation() const;
-        
         inline void setTransform(const glm::mat4 &theTrans){ m_worldTransform = theTrans; };
         inline glm::mat4& transform() { return m_worldTransform; };
         inline const glm::mat4& transform() const { return m_worldTransform; };
         
+        virtual AABB boundingBox() const = 0;
     private:
         
         static uint32_t s_idPool;
-        
         uint32_t m_id;
         glm::mat4 m_worldTransform;
     };

@@ -24,7 +24,7 @@ namespace kinski { namespace gl {
         void render(const CameraPtr &theCamera) const;
         void update(float timestep);
         
-        Object3DPtr pick(const Ray &ray) const;
+        Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
     
         inline const std::list<Object3DPtr>& objects() const {return m_objects;};
         inline std::list<Object3DPtr>& objects() {return m_objects;};

@@ -66,9 +66,9 @@ namespace kinski
 #endif
     
 // compiler has C++11 stdlib
-#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)
-#include <memory>
-#elif defined( KINSKI_COCOA )
+//#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)
+//#include <memory>
+#if defined( KINSKI_COCOA )
 #include <tr1/memory>
 namespace std
 {

@@ -491,22 +491,58 @@ namespace kinski { namespace gl {
         drawMesh(theMap[conf]);
     }
     
-    void drawAxes(const MeshWeakPtr &theMesh)
+    void drawAxes(const MeshWeakPtr &weakMesh)
     {
-        Mesh::ConstPtr m = theMesh.lock();
-        if(!m) return;
+        static map<MeshWeakPtr, MeshPtr > theMap;
+        static vec4 colorRed(1.0, 0, 0 ,1.0), colorGreen(0, 1.0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
-        AABB bb = m->geometry()->boundingBox();
-        vector<vec3> thePoints;
-        thePoints.push_back(vec3(0));
-        thePoints.push_back(vec3(bb.max.x, 0, 0));
-        drawLines(thePoints, vec4(1, 0 ,0, 1));
+        if(theMap.find(weakMesh) == theMap.end())
+        {
+            Mesh::ConstPtr m = weakMesh.lock();
+            if(!m) return;
+            
+            GeometryPtr geom(new gl::Geometry);
+            geom->setPrimitiveType(GL_LINES);
+            gl::MaterialPtr mat(new gl::Material);
+            MeshPtr line_mesh (new gl::Mesh(geom, mat));
+            
+            AABB bb = m->boundingBox();
+            
+            vector<vec3> &thePoints = geom->vertices();
+            vector<vec4> &theColors = geom->colors();
+            
+            float axis_length = std::max(bb.width(), bb.height());
+            axis_length = std::max(axis_length, bb.depth());
+            
+            thePoints.push_back(vec3(0));
+            thePoints.push_back(vec3(axis_length, 0, 0));
+            theColors.push_back(colorRed);
+            theColors.push_back(colorRed);
+            
+            thePoints.push_back(vec3(0));
+            thePoints.push_back(vec3(0, axis_length, 0));
+            theColors.push_back(colorGreen);
+            theColors.push_back(colorGreen);
+            
+            thePoints.push_back(vec3(0));
+            thePoints.push_back(vec3(0, 0, axis_length));
+            theColors.push_back(colorBlue);
+            theColors.push_back(colorBlue);
+            
+            geom->createGLBuffers();
+            line_mesh->createVertexArray();
+            
+            theMap[weakMesh] = line_mesh;
+        }
+        gl::drawMesh(theMap[weakMesh]);
         
-        thePoints[1] = vec3(0, bb.max.x, 0);
-        drawLines(thePoints, vec4(0, 1, 0, 1));
-        
-        thePoints[1] = vec3(0, 0, bb.max.x);
-        drawLines(thePoints, vec4(0, 0, 1, 1));
+        // cleanup
+        map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
+        for (; meshIt != theMap.end(); ++meshIt)
+        {
+            if(! meshIt->first.lock() )
+                theMap.erase(meshIt);
+        }
     }
     
     void drawMesh(const MeshPtr &theMesh)
@@ -554,18 +590,24 @@ namespace kinski { namespace gl {
     
     void drawBoundingBox(const MeshWeakPtr &weakMesh)
     {
-//#ifndef KINSKI_GLES
-        static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
-        
+        static map<MeshWeakPtr, MeshPtr > theMap;
+        static vec4 colorWhite(1.0), colorRed(1.0, 0, 0 ,1.0);
         
         if(theMap.find(weakMesh) == theMap.end())
         {
-            Mesh::ConstPtr theMesh = weakMesh.lock();
-            if(!theMesh) return;
+            Mesh::ConstPtr m = weakMesh.lock();
+            if(!m) return;
             
-            AABB bb = theMesh->geometry()->boundingBox();
+            GeometryPtr geom(new gl::Geometry);
+            geom->setPrimitiveType(GL_LINES);
+            gl::MaterialPtr mat(new gl::Material);
+            MeshPtr line_mesh (new gl::Mesh(geom, mat));
             
-            vector<vec3> thePoints;
+            AABB bb = m->boundingBox();
+            
+            vector<vec3> &thePoints = geom->vertices();
+            vector<vec4> &theColors = geom->colors();
+            
             // bottom
             thePoints.push_back(bb.min);
             thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
@@ -605,27 +647,42 @@ namespace kinski { namespace gl {
             thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
             thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
             
-            theMap[weakMesh] = thePoints;
+            for (int i = 0; i < 24; i++)
+                theColors.push_back(colorWhite);
+                
+            geom->createGLBuffers();
+            line_mesh->createVertexArray();
+            
+            theMap[weakMesh] = line_mesh;
         }
+        gl::drawMesh(theMap[weakMesh]);
         
-        gl::drawLines(theMap[weakMesh], vec4(1));
-        
-        KINSKI_CHECK_GL_ERRORS();
-//#endif
+        // cleanup
+        map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
+        for (; meshIt != theMap.end(); ++meshIt)
+        {
+            if(! meshIt->first.lock() )
+                theMap.erase(meshIt);
+        }
     }
 
     void drawNormals(const MeshWeakPtr &theMesh)
     {
-//#ifndef KINSKI_GLES
-        static map<std::weak_ptr<const Mesh>, vector<vec3> > theMap;
-        
+        static map<MeshWeakPtr, MeshPtr> theMap;
+
+        static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         if(theMap.find(theMesh) == theMap.end())
         {
             Mesh::ConstPtr m = theMesh.lock();
-            
             if(m->geometry()->normals().empty()) return;
             
-            vector<vec3> thePoints;
+            GeometryPtr geom(new gl::Geometry);
+            geom->setPrimitiveType(GL_LINES);
+            gl::MaterialPtr mat(new gl::Material);
+            MeshPtr line_mesh (new gl::Mesh(geom, mat));
+            
+            vector<vec3> &thePoints = geom->vertices();
+            vector<vec4> &theColors = geom->colors();
             const vector<vec3> &vertices = m->geometry()->vertices();
             const vector<vec3> &normals = m->geometry()->normals();
             
@@ -636,15 +693,22 @@ namespace kinski { namespace gl {
             {
                 thePoints.push_back(vertices[i]);
                 thePoints.push_back(vertices[i] + normals[i] * length);
+                theColors.push_back(colorGrey);
+                theColors.push_back(colorRed);
             }
-            
-            theMap[theMesh] = thePoints;
+            geom->createGLBuffers();
+            line_mesh->createVertexArray();
+            theMap[theMesh] = line_mesh;
         }
+        gl::drawMesh(theMap[theMesh]);
         
-        gl::drawLines(theMap[theMesh], vec4(.7));
-        
-        KINSKI_CHECK_GL_ERRORS();
-//#endif
+        // cleanup
+        map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
+        for (; meshIt != theMap.end(); ++meshIt)
+        {
+            if(! meshIt->first.lock() )
+                theMap.erase(meshIt);
+        }
     }
     
     const std::set<std::string>& getExtensions()

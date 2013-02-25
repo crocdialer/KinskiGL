@@ -182,6 +182,29 @@ struct KINSKI_API AABB
 	inline glm::vec3 halfExtents() const { return (max - min) / 2.f; }
 	inline glm::vec3 center() const	{ return max - halfExtents(); }
 	
+    const AABB operator+(const AABB &theAABB) const
+    {
+        AABB ret(*this);
+        ret += theAABB;
+        return ret;
+    }
+    
+    AABB& operator+=(const AABB &theAABB)
+    {
+        min.x = std::min(min.x, theAABB.min.x);
+        min.y = std::min(min.y, theAABB.min.y);
+        min.z = std::min(min.z, theAABB.min.z);
+        max.x = std::max(max.x, theAABB.max.x);
+        max.y = std::max(max.y, theAABB.max.y);
+        max.z = std::max(max.z, theAABB.max.z);
+        return *this;
+    }
+    
+    inline bool operator==(const AABB &theAABB) const
+    {
+        return min == theAABB.min && max == theAABB.max;
+    }
+    
 	/* used for fast AABB <-> Plane intersection test */
 	inline glm::vec3 posVertex(const glm::vec3& dir) const
 	{
