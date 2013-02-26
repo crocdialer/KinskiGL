@@ -140,7 +140,7 @@ private:
     
     // mouse rotation control
     vec2 m_clickPos;
-    mat4 m_lastTransform, m_lastViewMatrix;
+    mat4 m_lastTransform;
     float m_lastDistance;
     
     kinski::physics::physics_context m_physics_context;
@@ -437,7 +437,6 @@ public:
     {
         m_clickPos = vec2(e.getX(), e.getY());
         m_lastTransform = mat4(m_rotation->val());
-        m_lastViewMatrix = m_Camera->getViewMatrix();
         m_lastDistance = m_distance->val();
         
         if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY())))
@@ -468,18 +467,19 @@ public:
     void mouseDrag(const MouseEvent &e)
     {
 #ifndef KINSKI_RASPI
+      
         vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
         if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
         {
-            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.y, vec3(m_lastViewMatrix[0]) );
-            mouseRotate = glm::rotate(mouseRotate, mouseDiff.x, vec3(0 , 1, 0) );
-            
+            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.y, vec3(1, 0, 0) );
+            mouseRotate = glm::rotate(mouseRotate, mouseDiff.x, vec3(0, 1, 0) );
             *m_rotation = mat3(mouseRotate);
         }
         else if(e.isRight())
         {
             *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
         }
+
 #endif
     }
     
@@ -547,11 +547,15 @@ public:
         {
             m_material[0]->uniform("u_lightDir", m_lightDir->val());
         }
-        else if(theProperty == m_distance ||
-                theProperty == m_rotation)
+        else if(theProperty == m_distance || theProperty == m_rotation)
         {
-            m_Camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
-            m_Camera->setLookAt(glm::vec3(0, 0, 0));
+            vec3 look_at;
+            if(m_selected_mesh)
+                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
+            
+            mat4 tmp = glm::mat4(m_rotation->val());
+            tmp[3] = vec4(look_at + m_rotation->val()[2] * m_distance->val(), 1.0f);
+            m_Camera->transform() = tmp;
         }
     }
     
