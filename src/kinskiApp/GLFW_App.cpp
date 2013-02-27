@@ -21,6 +21,7 @@ namespace kinski
     
     GLFW_App::GLFW_App(const int width, const int height):
     App(width, height),
+    m_lastWheelPos(0),
     m_displayTweakBar(true)
     {
         
@@ -231,13 +232,11 @@ namespace kinski
         
         int posX, posY;
         glfwGetMousePos(&posX, &posY);
-        
         uint32_t buttonMod, keyModifiers = 0;
         getModifiers(buttonMod, keyModifiers);
-        
-        MouseEvent e(0, posX, posY, keyModifiers, pos);
-        
-        mouseWheel(e);
+        MouseEvent e(0, posX, posY, keyModifiers, pos - m_lastWheelPos);
+        m_lastWheelPos = pos;
+        if(running()) mouseWheel(e);
     }
     
     void GLFW_App::__keyFunc(int key, int action)
@@ -290,7 +289,7 @@ namespace kinski
         try {
             AntTweakBarConnector::connect(theBar, propPtr, group);
         } catch (AntTweakBarConnector::PropertyUnsupportedException &e) {
-            cout<<e.what()<<"\n";
+            LOG_ERROR<<e.what();
         }
     }
     
@@ -312,12 +311,9 @@ namespace kinski
         {   if(m_tweakBarList.empty()) return;
             theBar = m_tweakBarList.front();
         }
-        
         std::stringstream ss;
-        
         ss << TwGetBarName(theBar) << " position='" <<thePos.x
         <<" " << thePos.y <<"'";
-        
         TwDefine(ss.str().c_str());
     }
     
@@ -327,12 +323,9 @@ namespace kinski
         {   if(m_tweakBarList.empty()) return;
             theBar = m_tweakBarList.front();
         }
-        
         std::stringstream ss;
-        
         ss << TwGetBarName(theBar) << " size='" <<theSize.x
         <<" " << theSize.y <<"'";
-        
         TwDefine(ss.str().c_str());
     }
     
@@ -348,7 +341,6 @@ namespace kinski
         
         ss << TwGetBarName(theBar) << " color='" <<color.r
         <<" " << color.g << " " << color.b <<"' alpha="<<color.a;
-        
         TwDefine(ss.str().c_str());
     }
     
@@ -358,11 +350,8 @@ namespace kinski
         {   if(m_tweakBarList.empty()) return;
             theBar = m_tweakBarList.front();
         }
-        
         std::stringstream ss;
-        
         ss << TwGetBarName(theBar) << " label='" << theTitle <<"'";
-        
         TwDefine(ss.str().c_str());
     }
 }

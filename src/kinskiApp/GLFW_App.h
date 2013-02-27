@@ -62,8 +62,6 @@ namespace kinski
         
     private:
         
-        static WeakPtr s_instance;
-        
         // internal initialization. performed when run is invoked
         void init();
         void draw_internal();
@@ -88,6 +86,9 @@ namespace kinski
         
         // return the current key and mouse button modifier mask
         void getModifiers(uint32_t &buttonModifiers, uint32_t &keyModifiers);
+        
+        int m_lastWheelPos;
+        static WeakPtr s_instance;
         
         std::list<TwBar*> m_tweakBarList;
         bool m_displayTweakBar;

@@ -140,8 +140,7 @@ private:
     
     // mouse rotation control
     vec2 m_clickPos;
-    mat4 m_lastTransform;
-    float m_lastDistance;
+    mat3 m_lastTransform;
     
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
@@ -436,8 +435,7 @@ public:
     void mousePress(const MouseEvent &e)
     {
         m_clickPos = vec2(e.getX(), e.getY());
-        m_lastTransform = mat4(m_rotation->val());
-        m_lastDistance = m_distance->val();
+        m_lastTransform = m_rotation->val();
         
         if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY())))
         {
@@ -457,7 +455,7 @@ public:
             }
         }
         else{
-            if(m_selected_mesh){
+            if(e.isRight() && m_selected_mesh){
                 m_selected_mesh->material() = m_material[0];
                 m_selected_mesh.reset();
             }
@@ -466,21 +464,18 @@ public:
     
     void mouseDrag(const MouseEvent &e)
     {
-#ifndef KINSKI_RASPI
-      
         vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
         if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
         {
-            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.y, vec3(1, 0, 0) );
-            mouseRotate = glm::rotate(mouseRotate, mouseDiff.x, vec3(0, 1, 0) );
-            *m_rotation = mat3(mouseRotate);
+            *m_rotation = mat3_cast(glm::quat(m_lastTransform) *
+                                    glm::quat(vec3(glm::radians(-mouseDiff.y),
+                                                   glm::radians(mouseDiff.x), 0)));
         }
-        else if(e.isRight())
-        {
-            *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
-        }
-
-#endif
+    }
+    
+    void mouseWheel(const MouseEvent &e)
+    {
+        *m_distance -= e.getWheelIncrement();
     }
     
     void keyPress(const KeyEvent &e)
