@@ -7,6 +7,7 @@
 //
 
 #include "CVNode.h"
+#include "kinskiCore/file_functions.h"
 #include <boost/format.hpp>
 
 using namespace std;
@@ -34,7 +35,7 @@ namespace kinski
     m_videoSource(movieFile),
     m_loop(true)
     {
-        if(!m_capture.open(movieFile))
+        if(!m_capture.open(kinski::searchFile(movieFile)))
             throw BadInputSourceException("could not open capture");
         
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
@@ -102,7 +103,7 @@ namespace kinski
     std::string CVBufferedSourceNode::getDescription()
     {
         stringstream ss;
-        ss << "CVBufferedSourceNode (bufSize: "<<m_bufferSize<<") containing:\n";
+        ss << "CVBufferedSourceNode (bufSize: "<<m_bufferSize<<") containing:"<<std::endl;
         ss << m_sourceNode->getDescription();
         return ss.str();
     }
@@ -126,17 +127,14 @@ namespace kinski
 //                m_imgBuffer.pop_front();
             
             m_imgBuffer.push_back(nextImg);
-
             m_conditionVar.notify_one();
         }
-        
         m_running = false;
     }
     
     bool CVBufferedSourceNode::getNextImage(cv::Mat &img)
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        
         if(!m_running) return false;
         
         while (m_imgBuffer.empty())
@@ -144,9 +142,7 @@ namespace kinski
         
         img = m_imgBuffer.front();
         m_imgBuffer.pop_front();
-
         m_conditionVar.notify_one();
-        
         return true;
     }
 
@@ -155,23 +151,19 @@ namespace kinski
     string CVCombinedProcessNode::getDescription()
     {
         stringstream ss;
-        
-        ss<<"CVCombinedProcessNode ("<<m_processNodes.size()<<") containing:\n";
-        
+        ss<<"CVCombinedProcessNode ("<<m_processNodes.size()<<") containing:"<<std::endl;
         list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
         
         for (; it != m_processNodes.end(); it++)
         {
             ss << (*it)->getDescription() << endl;
         }
-        
         return ss.str();
     }
     
     void CVCombinedProcessNode::addNode(const CVProcessNode::Ptr &theNode)
     {
         m_processNodes.push_back(theNode);
-        
         list<Property::Ptr>::const_iterator it = theNode->getPropertyList().begin(),
         end = theNode->getPropertyList().end();
         
@@ -185,18 +177,14 @@ namespace kinski
     {
         vector<Mat> outMats;
         Mat procImg = img;
-        
         list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
         
         for (; it != m_processNodes.end(); it++)
         {
             vector<Mat> tmpMats = (*it)->doProcessing(procImg);
-            
             outMats.insert(outMats.end(), tmpMats.begin(), tmpMats.end());
-            
             procImg = tmpMats.empty() ? img : tmpMats.back();
         }
-        
         return outMats;
     }
     
@@ -204,10 +192,8 @@ namespace kinski
                                     const CVProcessNode::Ptr &other)
     {
         CVCombinedProcessNode::Ptr outPtr(new CVCombinedProcessNode);
-
         outPtr->addNode(one);
         outPtr->addNode(other);
-        
         return outPtr;
     }
     
@@ -234,16 +220,15 @@ namespace kinski
     
     CVDiskWriterNode::~CVDiskWriterNode()
     {
-        //m_videoWriter.release();
+        m_videoWriter.release();
     }
     
     string CVDiskWriterNode::getDescription()
     {
         stringstream ss;
-        ss << "CVDiskWriterNode - encodes incoming frames and writes to file\n";
-        ss << "file: '"<<m_videoSrc->value()<<"'\n";
-        ss << "format: 'xvid'\n";
-        
+        ss << "CVDiskWriterNode - encodes incoming frames and writes to file"<<std::endl;
+        ss << "file: '"<<*m_videoSrc<<"'"<<std::endl;
+        ss << "format: 'xvid'";
         return ss.str();
     }
     
@@ -251,13 +236,11 @@ namespace kinski
     {
         if(!m_videoWriter.isOpened())
         {
-            m_videoWriter.open(m_videoSrc->value(),
+            m_videoWriter.open(kinski::searchFile(*m_videoSrc),
                                m_codec,
                                25, img.size());
         }
-        
         m_videoWriter << img;
-
         return vector<Mat>();
     }
     
@@ -265,8 +248,7 @@ namespace kinski
     {
         if(theProperty == m_videoSrc)
         {
-            m_videoWriter = cv::VideoWriter();
-            //m_videoWriter.release();
+            m_videoWriter.release();
         }
     }
 }

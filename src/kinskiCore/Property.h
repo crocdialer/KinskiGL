@@ -49,17 +49,7 @@ public:
     }
    
     template <typename T>
-    inline const T& getValue() const
-    {
-        try 
-        {
-            return *boost::any_cast<T>(&m_value);
-        }
-        catch (const boost::bad_any_cast &theException)
-        {
-            throw WrongTypeGetException(m_name);
-        }
-    }
+    inline const T& getValue() const { return getValue<T>(); }
     
     template <typename T>
     inline T& getValue()
@@ -119,7 +109,7 @@ public:
     class WrongTypeSetException : public Exception
     {
     public:
-        WrongTypeSetException(std::string thePropertyName) : 
+        WrongTypeSetException(const std::string &thePropertyName) :
             Exception(std::string("Wrong type in setValue for Property: ") + thePropertyName 
                 + std::string(" - Only the original type can be set."))
         {}
@@ -128,7 +118,7 @@ public:
     class WrongTypeGetException : public Exception
     {
     public:
-        WrongTypeGetException(std::string thePropertyName) : 
+        WrongTypeGetException(const std::string & thePropertyName) : 
             Exception(std::string("Wrong type in getValue for Property: ") + thePropertyName)
         {}
     };
@@ -162,7 +152,7 @@ public:
     
     friend std::ostream& operator<<(std::ostream &os,const Property_<T>& theProp)
     {
-        os<< theProp.getName()<<": "<<theProp.getValue<T>()<<std::endl;
+        os<< theProp.getName()<<": "<<theProp.getValue<T>();
         return os;
     }
         
@@ -252,7 +242,7 @@ public:
     {
         T min, max;
         theProp.getRange(min, max);
-        os<< theProp.getName()<<": "<<theProp.value()<<" ( "<<min<<" - "<<max<<" )\n";
+        os<< theProp.getName()<<": "<<theProp.value()<<" ( "<<min<<" - "<<max<<" )";
         return os;
     }
 

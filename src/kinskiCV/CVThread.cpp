@@ -5,10 +5,9 @@
 //  Created by Fabian Schmidt on 6/12/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
-#include <fstream>
+#include "CVThread.h"
 #include "kinskiCore/Logger.h"
 #include <boost/timer/timer.hpp>
-#include "CVThread.h"
 
 using namespace std;
 using namespace cv;
@@ -116,9 +115,9 @@ namespace kinski
             {
                 inFrame = grabNextFrame();
             } 
-            catch (std::exception &e)
+            catch (Exception &e)
             {
-                std::cerr<<"CVThread: "<<e.what();
+                LOG_ERROR<<e.what();
                 break;
             }
             
@@ -210,7 +209,7 @@ namespace kinski
         m_newFrame = true;
     }
     
-    const std::vector<cv::Mat>& CVThread::getImages()
+    std::vector<cv::Mat> CVThread::getImages()
     {
         boost::mutex::scoped_lock lock(m_mutex);
         if(m_newFrame)
@@ -219,12 +218,12 @@ namespace kinski
         return m_images;
     }
     
-    double CVThread::getLastGrabTime()
+    float CVThread::getLastGrabTime() const
     {
         return m_lastGrabTime;
     }
     
-    double CVThread::getLastProcessTime()
+    float CVThread::getLastProcessTime() const
     {
         return m_lastProcessTime;
     }

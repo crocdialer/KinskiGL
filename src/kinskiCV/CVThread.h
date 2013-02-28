@@ -39,30 +39,30 @@ namespace kinski
         void setImage(const cv::Mat& img);
         bool hasImage();
         void waitForImage();
-        const std::vector<cv::Mat>& getImages();
+        std::vector<cv::Mat> getImages();
         
         void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
         
-        inline bool hasProcessing(){return m_processing && m_processNode;};
+        inline bool hasProcessing() const {return m_processing && m_processNode;};
         inline void setProcessing(bool b){m_processing = b;};
         
         inline void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
-        inline CVProcessNode::Ptr getProcessingNode(){return m_processNode;};
+        inline CVProcessNode::Ptr getProcessingNode() const {return m_processNode;};
         
         /*!
          *  @return the time in ms of the last execution of
          *  m_sourceNode->getNextImage()
          */
-        double getLastGrabTime();
+        float getLastGrabTime() const;
         
         /*!
          *  @return the time in ms of the last execution of
          *  m_processNode->doProcessing(...)
          */
-        double getLastProcessTime();
+        float getLastProcessTime() const;
         
         void setFPS(const double& fps){m_captureFPS=fps;};
-        double getFPS(){return m_captureFPS;};
+        double getFPS() const {return m_captureFPS;};
         
         std::string getSourceInfo();
         
@@ -75,9 +75,7 @@ namespace kinski
         
         bool m_stopped;
         bool m_newFrame;
-
         std::vector<cv::Mat> m_images;
-        
         bool m_processing;
         
         //-- OpenCV
@@ -90,8 +88,8 @@ namespace kinski
         //desired capturing / seconds  -> used to time threadmanagment
         double m_captureFPS;
         
-        double m_lastGrabTime;
-        double m_lastProcessTime;
+        float m_lastGrabTime;
+        float m_lastProcessTime;
         
         boost::thread m_thread;
         boost::mutex m_mutex;
