@@ -68,7 +68,7 @@ vector<Mat> ColorHistNode::doProcessing(const Mat &img)
     //convert colorspace to hsv
     cvtColor(scaledImg, hsvImg, CV_BGR2HSV);
     
-    if(m_histExtraction->val() || m_colorHist.empty())
+    if(*m_histExtraction || m_colorHist.empty())
     {
         Point centerPoint = Point(hsvImg.cols / 2, hsvImg.rows/ 2);
         Rect centerRect = Rect(centerPoint - Point(m_roiWidth/2, m_roiWidth/2),
@@ -150,10 +150,10 @@ Mat ColorHistNode::createHistImage()
 
 void ColorHistNode::setHistExtraction(bool b)
 {
-    m_histExtraction->val(b);
+    *m_histExtraction = b;
 }
 
 bool ColorHistNode::hasHistExtraction()
 {
-    return m_histExtraction->val();
+    return *m_histExtraction;
 }

@@ -82,13 +82,13 @@ public:
         }
         
         // trigger processing
-        m_cvThread->setProcessing(m_activator->val());
+        m_cvThread->setProcessing(*m_activator);
     }
     
     void draw()
     {
         // draw fullscreen image
-        if(m_activator->val())
+        if(*m_activator)
         {
             gl::drawQuad(m_material, windowSize());
         }

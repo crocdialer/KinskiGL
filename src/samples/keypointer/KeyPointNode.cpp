@@ -51,7 +51,7 @@ namespace kinski
         vector<DMatch> matches;
         Mat descriptors_scene, downSized;
         
-        float scale = (float)m_maxImageWidth->val() / img.cols;
+        float scale = (float)*m_maxImageWidth / img.cols;
         scale = min(scale, 1.f);
         resize(img, downSized, Size(), scale, scale);
         
@@ -79,7 +79,7 @@ namespace kinski
         
         for( int i = 0; i < matches.size(); i++ )
         {
-            if( matches[i].distance < min((double)m_maxFeatureDist->val(),
+            if( matches[i].distance < min((double)*m_maxFeatureDist,
                                                2 * min_dist))
                 good_matches.push_back( matches[i]);
         }
@@ -91,7 +91,7 @@ namespace kinski
         Mat camTranslation;
         
         // a minimum size of matches is needed for calculation of a homography
-        if(good_matches.size() > m_minMatchCount->val())
+        if(good_matches.size() > *m_minMatchCount)
         {
             Mat inliers;
             
@@ -179,7 +179,7 @@ namespace kinski
         GaussianBlur(theImg, m_referenceImage, Size(7, 7), 1.5);
 
         // scale down if necessary (ORB did not properly manage large ref-images)
-        float scale = (float)m_maxPatchWidth->val() / m_referenceImage.cols;
+        float scale = (float)*m_maxPatchWidth / m_referenceImage.cols;
         scale = min(scale, 1.f);
         resize(m_referenceImage, m_referenceImage, Size(), scale, scale);
         

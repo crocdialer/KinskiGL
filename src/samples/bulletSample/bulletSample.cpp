@@ -379,13 +379,13 @@ public:
     
     void update(const float timeDelta)
     {
-        *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
-                                        m_rotationSpeed->val() * timeDelta,
+        *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
+                                        *m_rotationSpeed * timeDelta,
                                         vec3(0, 1, .5)));
         
         m_material[0]->uniform("u_time",getApplicationTime());
         
-        if (m_physics_context.dynamicsWorld() && m_stepPhysics->val())
+        if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
             m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
         }
@@ -410,14 +410,14 @@ public:
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
         gl::drawGrid(500, 500);
         
-        if(m_wireFrame->val())
+        if(*m_wireFrame)
         {
             m_physics_context.dynamicsWorld()->debugDrawWorld();
             m_debugDrawer->flush();
         }else
         {
             m_scene.render(m_Camera);
-            m_num_visible_objects->val(m_scene.num_visible_objects());
+            *m_num_visible_objects = m_scene.num_visible_objects();
         }
         
         if(m_selected_mesh)
@@ -425,7 +425,7 @@ public:
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_selected_mesh->transform());
             gl::drawAxes(m_selected_mesh);
             gl::drawBoundingBox(m_selected_mesh);
-            if(m_drawNormals->val()) gl::drawNormals(m_selected_mesh);
+            if(*m_drawNormals) gl::drawNormals(m_selected_mesh);
         }
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
@@ -435,30 +435,33 @@ public:
     void mousePress(const MouseEvent &e)
     {
         m_clickPos = vec2(e.getX(), e.getY());
-        m_lastTransform = m_rotation->val();
+        m_lastTransform = *m_rotation;
         
-        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY())))
+        if(e.isLeft())
         {
-            LOG_TRACE<<"picked id: "<< picked_obj->getID();
-            
-            if( gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(picked_obj)){
-                
-                if(m_selected_mesh != m)
+            gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera,
+                                                                       e.getX(), e.getY()));
+            if(picked_obj)
+            {
+                LOG_TRACE<<"picked id: "<< picked_obj->getID();
+                if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(picked_obj))
                 {
-                    if(m_selected_mesh){ m_selected_mesh->material() = m_material[0]; }
-                    
-                    m_selected_mesh = m;
-                    m_material[0] = m_selected_mesh->material();
-                    m_material[1]->shader() = m_material[0]->shader();
-                    m_selected_mesh->material() = m_material[1];
+                    if(m_selected_mesh != m)
+                    {
+                        if(m_selected_mesh){ m_selected_mesh->material() = m_material[0]; }
+                        
+                        m_selected_mesh = m;
+                        m_material[0] = m_selected_mesh->material();
+                        m_material[1]->shader() = m_material[0]->shader();
+                        m_selected_mesh->material() = m_material[1];
+                    }
                 }
             }
         }
-        else{
-            if(e.isRight() && m_selected_mesh){
-                m_selected_mesh->material() = m_material[0];
-                m_selected_mesh.reset();
-            }
+        else if(e.isRight() && m_selected_mesh)
+        {
+            m_selected_mesh->material() = m_material[0];
+            m_selected_mesh.reset();
         }
     }
     
@@ -485,7 +488,7 @@ public:
         switch (e.getChar())
         {
         case KeyEvent::KEY_p:
-                m_stepPhysics->val() = !m_stepPhysics->val();
+                *m_stepPhysics = !*m_stepPhysics;
             break;
                 
         case KeyEvent::KEY_s:
@@ -528,19 +531,19 @@ public:
         // one of our porperties was changed
         if(theProperty == m_clear_color)
         {
-            gl::clearColor(m_clear_color->val());
+            gl::clearColor(*m_clear_color);
         }
         else if(theProperty == m_color)
         {
-            m_material[0]->setDiffuse(m_color->val());
+            m_material[0]->setDiffuse(*m_color);
         }
         else if(theProperty == m_wireFrame)
         {
-            m_material[0]->setWireframe(m_wireFrame->val());
+            m_material[0]->setWireframe(*m_wireFrame);
         }
         else if(theProperty == m_lightDir)
         {
-            m_material[0]->uniform("u_lightDir", m_lightDir->val());
+            m_material[0]->uniform("u_lightDir", *m_lightDir);
         }
         else if(theProperty == m_distance || theProperty == m_rotation)
         {
@@ -548,8 +551,8 @@ public:
             if(m_selected_mesh)
                 look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
             
-            mat4 tmp = glm::mat4(m_rotation->val());
-            tmp[3] = vec4(look_at + m_rotation->val()[2] * m_distance->val(), 1.0f);
+            mat4 tmp = glm::mat4(m_rotation->value());
+            tmp[3] = vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
             m_Camera->transform() = tmp;
         }
     }

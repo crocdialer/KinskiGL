@@ -259,8 +259,8 @@ public:
     {
         updateParticles(timeDelta);
         
-        *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
-                                        m_rotationSpeed->val() * timeDelta,
+        *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
+                                        *m_rotationSpeed * timeDelta,
                                         vec3(0, 1, .5)));
     }
     
@@ -283,20 +283,20 @@ public:
         {
             try
             {
-                m_texture = gl::createTextureFromFile(m_texturePath->val());
+                m_texture = gl::createTextureFromFile(*m_texturePath);
             } catch (kinski::Exception &e)
             {
                 LOG_WARNING << e.what();
                 
                 m_texturePath->removeObserver(shared_from_this());
-                m_texturePath->val("- not found -");
+                *m_texturePath = "- not found -";
                 m_texturePath->addObserver(shared_from_this());
             }
         }
         else if(theProperty == m_distance ||
                  theProperty == m_rotation)
         {
-            m_camera->setPosition( m_rotation->val() * glm::vec3(0, 0, m_distance->val()) );
+            m_camera->setPosition( m_rotation->value() * glm::vec3(0, 0, *m_distance) );
             m_camera->setLookAt(glm::vec3(0));
         }
     }
@@ -309,8 +309,8 @@ public:
     void mousePress(const MouseEvent &e)
     {
         m_clickPos = vec2(e.getX(), e.getY());
-        m_lastTransform = mat4(m_rotation->val());
-        m_lastDistance = m_distance->val();
+        m_lastTransform = mat4(m_rotation->value());
+        m_lastDistance = *m_distance;
     }
     
     void mouseDrag(const MouseEvent &e)

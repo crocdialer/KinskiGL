@@ -34,10 +34,8 @@ public:
     inline boost::any getValue() const {return m_value;};
     inline const std::string& getName() const {return m_name;};
     inline void setName(const std::string& theName) {m_name = theName;};
-
 	inline void setTweakable(bool isTweakable) {m_tweakable = isTweakable;};
 	inline bool isTweakable() const {return m_tweakable;};
-
     inline bool empty() const {return m_value.empty();};
     
     template <typename T> 
@@ -149,127 +147,17 @@ public:
         return outPtr;
     };
     
-    inline const T& val() const {return getValue<T>();};
-    
-    inline T& val() {return getValue<T>();};
-    
+    inline const T& value() const {return getValue<T>();};
+    inline T& value() {return getValue<T>();};
     inline void set(const T &theVal){setValue<T>(theVal);};
-    
-    inline void val(const T &theVal){set(theVal);};
-    inline void operator()(const T &theVal){setValue<T>(theVal);};
+    inline void value(const T &theVal){set(theVal);};
+    operator T&() { return value(); }
+    operator const T&() const { return value(); }
     
     inline Property_<T>& operator=(T const& theVal)
     {
         set(theVal);
         return *this;
-    };
-    
-    inline Property_<T>& operator+=(T const& theVal)
-    {
-        *this = getValue<T>() + theVal; 
-        return *this;
-    };
-    
-    inline Property_<T>& operator+=(Property_<T> const& otherProp)
-    {
-        *this = getValue<T>() + otherProp.getValue<T>(); 
-        return *this;
-    };
-    
-    inline const T operator+(Property_<T> const& otherProp)
-    {
-        return getValue<T>() + otherProp.getValue<T>(); 
-    };
-    
-    inline Property_<T>& operator-=(T const& theVal)
-    {
-        *this = getValue<T>() - theVal; 
-        return *this;
-    };
-    
-    inline Property_<T>& operator-=(Property_<T> const& otherProp)
-    {
-        *this = getValue<T>() - otherProp.getValue<T>(); 
-        return *this;
-    };
-    
-    inline const T operator-(Property_<T> const& otherProp)
-    {
-        return getValue<T>() - otherProp.getValue<T>(); 
-    };
-    
-    inline Property_<T>& operator*=(T const& theVal)
-    {
-        *this = getValue<T>() * theVal; 
-        return *this;
-    };
-    
-    inline Property_<T>& operator*=(Property_<T> const& otherProp)
-    {
-        *this = getValue<T>() + otherProp.getValue<T>(); 
-        return *this;
-    };
-    
-    inline const T operator*(Property_<T> const& otherProp)
-    {
-        return getValue<T>() * otherProp.getValue<T>(); 
-    };
-    
-    inline Property_<T>& operator/=(T const& theVal)
-    {
-        *this = getValue<T>() / theVal; 
-        return *this;
-    };
-    
-    inline Property_<T>& operator/=(Property_<T> const& otherProp)
-    {
-        *this = getValue<T>() / otherProp.getValue<T>(); 
-        return *this;
-    };
-    
-    inline const T operator/(Property_<T> const& otherProp)
-    {
-        return getValue<T>() / otherProp.getValue<T>(); 
-    };
-    
-    inline friend const T operator+(T theVal, const Property_<T>& theProp)
-    {
-        return theVal + theProp.getValue<T>(); 
-    };
-    
-    inline friend const T operator+(const Property_<T>& theProp, T theVal)
-    {
-        return theVal + theProp.getValue<T>(); 
-    };
-
-    inline friend const T operator-(T theVal, const Property_<T>& theProp)
-    {
-        return theVal - theProp.getValue<T>(); 
-    };
-    
-    inline friend const T operator-(const Property_<T>& theProp, T theVal)
-    {
-        return theProp.getValue<T>() - theVal; 
-    };
-    
-    inline friend const T operator*(T theVal, const Property_<T>& theProp)
-    {
-        return theVal * theProp.getValue<T>(); 
-    };
-    
-    inline friend const T operator*(const Property_<T>& theProp, T theVal)
-    {
-        return theVal * theProp.getValue<T>(); 
-    };
-    
-    inline friend const T operator/(T theVal, const Property_<T>& theProp)
-    {
-        return theVal / theProp.getValue<T>(); 
-    };
-    
-    inline friend const T operator/(const Property_<T>& theProp, T theVal)
-    {
-        return theProp.getValue<T>() / theVal; 
     };
     
     friend std::ostream& operator<<(std::ostream &os,const Property_<T>& theProp)
@@ -357,7 +245,6 @@ public:
             this->set(v);
             return false;
         }
-        
         return true;
     };
     
@@ -365,8 +252,7 @@ public:
     {
         T min, max;
         theProp.getRange(min, max);
-        
-        os<< theProp.getName()<<": "<<theProp.val()<<" ( "<<min<<" - "<<max<<" )\n";
+        os<< theProp.getName()<<": "<<theProp.value()<<" ( "<<min<<" - "<<max<<" )\n";
         return os;
     }
 
@@ -383,7 +269,6 @@ private:
     
     inline void rangeCheck(const T &theValue)
     {
-        // check range
         if( m_min > theValue || m_max < theValue )
             throw BadBoundsException(this->getName());
     }

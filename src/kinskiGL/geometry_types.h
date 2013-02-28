@@ -264,7 +264,7 @@ struct KINSKI_API OBB
 {
     glm::vec3 center;
     glm::vec3 axis[3];
-    float half_lengths[3];
+    glm::vec3 half_lengths;
     
     OBB(const AABB &theAABB, const glm::mat4 &t);
     

@@ -241,7 +241,7 @@ namespace kinski
     {
         stringstream ss;
         ss << "CVDiskWriterNode - encodes incoming frames and writes to file\n";
-        ss << "file: '"<<m_videoSrc->val()<<"'\n";
+        ss << "file: '"<<m_videoSrc->value()<<"'\n";
         ss << "format: 'xvid'\n";
         
         return ss.str();
@@ -251,7 +251,7 @@ namespace kinski
     {
         if(!m_videoWriter.isOpened())
         {
-            m_videoWriter.open(m_videoSrc->val(),
+            m_videoWriter.open(m_videoSrc->value(),
                                m_codec,
                                25, img.size());
         }

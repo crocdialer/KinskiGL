@@ -45,19 +45,19 @@ vector<Mat> SkySegmentNode::doProcessing(const Mat &img)
     
     // compute dynamic and static thresholds
     Mat tmpThresh;
-    cv::threshold(grayImg, threshImg, m_threshVal->val(), 255,
+    cv::threshold(grayImg, threshImg, *m_threshVal, 255,
                   THRESH_BINARY_INV | THRESH_OTSU);
-    cv::threshold(grayImg, tmpThresh, m_threshVal->val(), 255,
+    cv::threshold(grayImg, tmpThresh, *m_threshVal, 255,
                   THRESH_BINARY_INV);
     
     threshImg &= tmpThresh;
     
     // edge detection
     cv::blur(grayImg, grayImg, cv::Size(3, 3));
-    cv::Canny(grayImg, edgeImg, m_cannyLow->val(), m_cannyHigh->val());
+    cv::Canny(grayImg, edgeImg, *m_cannyLow, *m_cannyHigh);
     
     Mat workImg;
-    Size kernSize = getValidKernSize(m_morphKernSize->val());
+    Size kernSize = getValidKernSize(*m_morphKernSize);
     *m_morphKernSize = kernSize.width;
     
     // for all columns. when a value != 0 is encountered,

@@ -138,7 +138,7 @@ private:
         
         mat4 projectionMatrix = perspective(65.0f, getAspectRatio(), 0.1f, 100.0f);
         
-        mat4 modelViewTmp = m_viewMatrix->val();
+        mat4 modelViewTmp = *m_viewMatrix;
         mat4 rotateMat = rotate(modelViewTmp, m_rotation, vec3(1, 1, 1));
         
         modelViewTmp = rotateMat; 
@@ -148,8 +148,8 @@ private:
         m_shader.uniform("u_modelViewProjectionMatrix", 
                          projectionMatrix * modelViewTmp);
         m_shader.uniform("u_normalMatrix", normalMatrix);
-        m_shader.uniform("u_lightDir", m_lightDir->val());
-        m_shader.uniform("u_lightColor", m_lightColor->val());
+        m_shader.uniform("u_lightDir", *m_lightDir);
+        m_shader.uniform("u_lightColor", *m_lightColor);
         
         glBindVertexArray(m_cubeArray);
         glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -208,7 +208,7 @@ public:
         //*m_lightColor -= (*m_lightColor * 3.f);
         
         // properties can be tweaked at any time
-        m_distance->val(2);
+        m_distance->value(2);
         *m_distance += 1.5 * *m_distance;
 
         cout<<*m_distance<<*m_infoString<<*m_activator;
@@ -242,9 +242,9 @@ public:
     {
         m_rotation += degrees(timeDelta * (*m_rotationSpeed) );
         
-        m_viewMatrix->val(lookAt(m_distance->val() * vec3(0, 1, 1), // eye
-                                 vec3(0),                           // lookat
-                                 vec3(0, 1, 0)));                   // up
+        m_viewMatrix->value(lookAt(m_distance->value() * vec3(0, 1, 1), // eye
+                                   vec3(0),                     // lookat
+                                   vec3(0, 1, 0)));             // up
 
         if(m_cvThread->hasImage())
         {
@@ -261,7 +261,7 @@ public:
         drawTexture(m_texture, m_shader);
         glEnable(GL_DEPTH_TEST);
 
-        if(m_activator->val()) drawCube(m_texture, m_shader);
+        if(*m_activator) drawCube(m_texture, m_shader);
     }
 };
 

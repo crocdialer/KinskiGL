@@ -164,17 +164,17 @@ public:
     
     void update(const float timeDelta)
     {
-        *m_rotation = mat3( glm::rotate(mat4(m_rotation->val()),
-                                        m_rotationSpeed->val() * timeDelta,
+        *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
+                                        m_rotationSpeed->value() * timeDelta,
                                         vec3(0, 1, .5)));
         
         if(m_mesh)
         {
-            m_mesh->material()->setWireframe(m_wireFrame->val());
-            m_mesh->material()->uniform("u_lightDir", m_lightDir->val());
-            m_mesh->material()->uniform("u_textureMix", m_textureMix->val());
-            m_mesh->material()->setDiffuse(m_color->val());
-            m_mesh->material()->setBlending(m_color->val().a < 1.0f);
+            m_mesh->material()->setWireframe(m_wireFrame->value());
+            m_mesh->material()->uniform("u_lightDir", m_lightDir->value());
+            m_mesh->material()->uniform("u_textureMix", m_textureMix->value());
+            m_mesh->material()->setDiffuse(m_color->value());
+            m_mesh->material()->setBlending(m_color->value().a < 1.0f);
 
             if(m_mesh->geometry()->hasBones())
             {
@@ -206,7 +206,7 @@ public:
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_selected_mesh->transform());
             gl::drawAxes(m_selected_mesh);
             gl::drawBoundingBox(m_selected_mesh);
-            if(m_drawNormals->val()) gl::drawNormals(m_selected_mesh);
+            if(*m_drawNormals) gl::drawNormals(m_selected_mesh);
             
 //            gl::drawPoints(m_mesh2->geometry()->vertexBuffer().id(),
 //                           m_mesh2->geometry()->vertices().size(),
@@ -246,7 +246,7 @@ public:
     void mousePress(const MouseEvent &e)
     {
         m_clickPos = vec2(e.getX(), e.getY());
-        m_lastTransform = m_rotation->val();
+        m_lastTransform = *m_rotation;
         
         if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY()),
                                                      true))
@@ -330,12 +330,12 @@ public:
         // one of our porperties was changed
         if(theProperty == m_color)
         {
-            if(m_selected_mesh) m_selected_mesh->material()->setDiffuse(m_color->val());
+            if(m_selected_mesh) m_selected_mesh->material()->setDiffuse(*m_color);
         }
         else if(theProperty == m_lightDir || theProperty == m_textureMix)
         {
-            m_material[0]->uniform("u_lightDir", m_lightDir->val());
-            m_material[0]->uniform("u_textureMix", m_textureMix->val());
+            m_material[0]->uniform("u_lightDir", *m_lightDir);
+            m_material[0]->uniform("u_textureMix", *m_textureMix);
         }
         else if(theProperty == m_distance || theProperty == m_rotation)
         {
@@ -343,15 +343,15 @@ public:
             if(m_selected_mesh)
                 look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
             
-            mat4 tmp = glm::mat4(m_rotation->val());
-            tmp[3] = vec4(look_at + m_rotation->val()[2] * m_distance->val(), 1.0f);
+            mat4 tmp = glm::mat4(m_rotation->value());
+            tmp[3] = vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
             m_Camera->transform() = tmp;
         }
         else if(theProperty == m_modelPath)
         {
             try
             {
-                gl::Mesh::Ptr m = gl::AssimpConnector::loadModel(m_modelPath->val());
+                gl::Mesh::Ptr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 
                 m_scene.removeObject(m_mesh);
                 m_mesh = m;
@@ -361,7 +361,7 @@ public:
             {
                 LOG_ERROR<< e.what();
                 m_modelPath->removeObserver(shared_from_this());
-                m_modelPath->val("- not found -");
+                *m_modelPath = "- not found -";
                 m_modelPath->addObserver(shared_from_this());
             }
         }

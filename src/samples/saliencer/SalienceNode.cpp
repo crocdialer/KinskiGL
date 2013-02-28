@@ -39,7 +39,7 @@ namespace kinski
     {
         cv::Mat downSized, colorSalience;
         
-        float ratio = (float)m_salienceImageWidth->val() / img.cols;
+        float ratio = (float)*m_salienceImageWidth / img.cols;
         resize(img, downSized, cv::Size(0,0), ratio, ratio, INTER_LINEAR);
         
         blur(downSized, downSized, Size(5, 5));
@@ -62,15 +62,15 @@ namespace kinski
         // one of our porperties was changed
         if(theProperty == m_useColor)
         {
-            m_salienceDetect.setUseColorInformation(m_useColor->val());
+            m_salienceDetect.setUseColorInformation(*m_useColor);
         }
         else if(theProperty == m_useDoB)
         {
-            m_salienceDetect.setUseDoBFeatures(m_useDoB->val());
+            m_salienceDetect.setUseDoBFeatures(*m_useDoB);
         }
         else if(theProperty == m_useDoE)
         {
-            m_salienceDetect.setUseDoEFeatures(m_useDoE->val());
+            m_salienceDetect.setUseDoEFeatures(*m_useDoE);
         }
     }
 }

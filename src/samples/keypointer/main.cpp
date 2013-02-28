@@ -86,13 +86,13 @@ public:
         }
         
         // trigger processing
-        m_cvThread->setProcessing(m_activator->val());
+        m_cvThread->setProcessing(*m_activator);
     }
     
     void draw()
     {
         // draw fullscreen image
-        gl::drawTexture(m_textures[m_imageIndex->val()], windowSize());
+        gl::drawTexture(m_textures[*m_imageIndex], windowSize());
         
         // draw process-results map(s)
         glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);

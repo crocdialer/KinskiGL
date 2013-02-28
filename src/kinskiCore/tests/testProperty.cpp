@@ -35,7 +35,8 @@ BOOST_AUTO_TEST_CASE( testObserver )
     // assign a value
     *intProp = 69;
     
-    BOOST_CHECK(intProp->val() == 69);
+    BOOST_CHECK(intProp->value() == 69);
+    BOOST_CHECK(*intProp == 69);
     BOOST_CHECK(obs1->m_triggered);
     BOOST_CHECK(obs2->m_triggered);
     
@@ -44,13 +45,27 @@ BOOST_AUTO_TEST_CASE( testObserver )
     
     intProp->removeObserver(obs1);
     
-    intProp->val(23);
-    BOOST_CHECK(intProp->val() == 23);
+    intProp->value(23);
+    BOOST_CHECK(intProp->value() == 23);
+    
+    *intProp = 30 - 7;
+    BOOST_CHECK(*intProp == 23);
+    
+    *intProp = 30;
+    *intProp += 10;
+    *intProp -= 17;
+    BOOST_CHECK(*intProp == 23);
+    
+    *intProp = 5;
+    *intProp *= 3;
+    *intProp /= 5;
+    BOOST_CHECK(*intProp == 3);
+    
     BOOST_CHECK(!obs1->m_triggered);
     BOOST_CHECK(obs2->m_triggered);
 
     intProp->set(111);
-    BOOST_CHECK(intProp->val() == 111);
+    BOOST_CHECK(intProp->value() == 111);
 }
 
 //____________________________________________________________________________//
@@ -62,10 +77,10 @@ BOOST_AUTO_TEST_CASE( testRangedProp )
         (RangedProperty<int32_t>::create("rangedProp", 5, -3, 10));
 
     *rangeProp = -5;
-    BOOST_CHECK_EQUAL( rangeProp->val(), -3 );
+    BOOST_CHECK_EQUAL( *rangeProp, -3 );
 
     *rangeProp = 1001;
-    BOOST_CHECK_EQUAL( rangeProp->val(), 10 );
+    BOOST_CHECK_EQUAL( rangeProp->value(), 10 );
     
     rangeProp->setRange(-40, 5000);
     int min, max;
@@ -74,10 +89,10 @@ BOOST_AUTO_TEST_CASE( testRangedProp )
     BOOST_CHECK_EQUAL(max, 5000);
     
     rangeProp->set(-999);
-    BOOST_CHECK_EQUAL(rangeProp->val(), min);
+    BOOST_CHECK_EQUAL(*rangeProp, min);
     
     rangeProp->set(9999);
-    BOOST_CHECK_EQUAL(rangeProp->val(), max);
+    BOOST_CHECK_EQUAL(*rangeProp, max);
 }
 
 //____________________________________________________________________________//

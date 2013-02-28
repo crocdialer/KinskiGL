@@ -57,10 +57,7 @@ OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
     axis[0] = t[0].xyz();
     axis[1] = t[1].xyz();
     axis[2] = t[2].xyz();
-    glm::vec3 half_extents = theAABB.halfExtents();
-    half_lengths[0] = half_extents[0];
-    half_lengths[1] = half_extents[1];
-    half_lengths[2] = half_extents[2];
+    half_lengths = theAABB.halfExtents();
 }
     
 ray_intersection OBB::intersect(const Ray& theRay) const
