@@ -74,7 +74,7 @@ public:
     typedef std::shared_ptr<PerspectiveCamera> Ptr;
     typedef std::shared_ptr<const PerspectiveCamera> ConstPtr;
     
-    PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 2000);
+    PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 5000);
 
     virtual gl::Frustum frustum() const;
     

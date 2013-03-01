@@ -1,13 +1,5 @@
 #include "kinskiApp/TextureIO.h"
-
-#include "kinskiGL/SerializerGL.h"
-#include "kinskiGL/Scene.h"
-#include "kinskiGL/Camera.h"
-#include "kinskiGL/Mesh.h"
-#include "kinskiGL/Fbo.h"
-
 #include "physics_context.h"
-
 #include "kinskiCV/CVThread.h"
 
 using namespace std;
@@ -18,8 +10,8 @@ using namespace glm;
 #include "kinskiApp/Raspi_App.h"
 typedef Raspi_App BaseAppType;
 #else
-#include "kinskiApp/GLFW_App.h"
-typedef GLFW_App BaseAppType;
+#include "kinskiApp/ViewerApp.h"
+typedef ViewerApp BaseAppType;
 #endif
 
 
@@ -115,32 +107,12 @@ class BulletSample : public BaseAppType
 {
 private:
     
-    gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
-    
-    gl::Material::Ptr m_material[4];
-    
-    gl::MeshPtr m_selected_mesh;
-    
-    gl::Mesh::Ptr m_mesh;
-    gl::PerspectiveCamera::Ptr m_Camera;
-    gl::Scene m_scene;
-    
-    RangedProperty<float>::Ptr m_distance;
-    Property_<bool>::Ptr m_wireFrame;
-    Property_<bool>::Ptr m_drawNormals;
+
     Property_<bool>::Ptr m_stepPhysics;
-    Property_<glm::vec3>::Ptr m_lightDir;
-    
-    Property_<glm::vec4>::Ptr m_color, m_clear_color;
-    Property_<glm::mat3>::Ptr m_rotation;
-    RangedProperty<float>::Ptr m_rotationSpeed;
+    Property_<glm::vec4>::Ptr m_color;
     
     Property_<uint32_t>::Ptr m_num_visible_objects;
-    
-    // mouse rotation control
-    vec2 m_clickPos;
-    mat3 m_lastTransform;
     
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
@@ -151,7 +123,7 @@ public:
     
     void create_cube_stack(int size_x, int size_y, int size_z)
     {
-        m_scene.objects().clear();
+        scene().objects().clear();
         
         float scaling = 8.0f;
         float start_pox_x = -5;
@@ -162,8 +134,8 @@ public:
         m_physics_context.collisionShapes().push_back(shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
                                                                                         btScalar(50.),
                                                                                         btScalar(50.)))));
-        gl::MeshPtr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), m_material[0]));
-        m_scene.addObject(groundShape);
+        gl::MeshPtr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), materials()[0]));
+        scene().addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
         
         //groundShape->initializePolyhedralFeatures();
@@ -218,10 +190,6 @@ public:
             // geometry
             gl::Geometry::Ptr geom = gl::createBox(glm::vec3(scaling * 1));
             
-            // material
-//            gl::Material::Ptr material(new gl::Material);
-//            material->setShader(gl::createShader(gl::SHADER_PHONG));
-            
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
             float start_z = start_pox_z - size_z/2;
@@ -237,8 +205,8 @@ public:
                                                                    btScalar(20+2.0*k + start_y),
                                                                    btScalar(2.0*j + start_z)));
                         
-                        gl::Mesh::Ptr mesh(new gl::Mesh(geom, m_material[0]));
-                        m_scene.addObject(mesh);
+                        gl::Mesh::Ptr mesh(new gl::Mesh(geom, materials()[0]));
+                        scene().addObject(mesh);
                         glm::mat4 mat;
                         startTransform.getOpenGLMatrix(&mat[0][0]);
                         mesh->setTransform(mat);
@@ -263,36 +231,15 @@ public:
 
     void setup()
     {
-        glClearColor(1.0, 1.0, 1.0, 1.0);
+        BaseAppType::setup();
         
         /*********** init our application properties ******************/
         
-        m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);
-        registerProperty(m_distance);
-        
-        m_wireFrame = Property_<bool>::create("Wireframe", false);
-        registerProperty(m_wireFrame);
-        
-        m_drawNormals = Property_<bool>::create("Normals", false);
-        registerProperty(m_drawNormals);
-    
         m_stepPhysics = Property_<bool>::create("Step Physics", true);
         registerProperty(m_stepPhysics);
         
-        m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
-        registerProperty(m_lightDir);
-        
-        m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
-        registerProperty(m_clear_color);
-        
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
-        
-        m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
-        registerProperty(m_rotation);
-        
-        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
-        registerProperty(m_rotationSpeed);
         
         m_num_visible_objects = Property_<uint32_t>::create("Num visible objects", 0);
         
@@ -300,8 +247,6 @@ public:
         // add properties
         addPropertyListToTweakBar(getPropertyList());
         addPropertyToTweakBar(m_num_visible_objects);
-        setBarColor(vec4(0, 0 ,0 , .5));
-        setBarSize(ivec2(250, 500));
 #endif
         
         // enable observer mechanism
@@ -309,32 +254,11 @@ public:
         
         /********************** construct a simple scene ***********************/
         
-        gl::Fbo::Format fboFormat;
-        //TODO: mulitsampling fails
-        //fboFormat.setSamples(4);
-//        m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
-//        m_textures[0] = m_frameBuffer.getTexture();
-        
-        m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setClippingPlanes(.1, 5000);
-        m_Camera->setAspectRatio(getAspectRatio());
-        
         // test box shape
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         
-        m_material[0] = gl::Material::Ptr(new gl::Material);
-        m_material[1] = gl::Material::Ptr(new gl::Material);
-        
-        m_material[0]->setShader(gl::createShader(gl::SHADER_PHONG));
-        m_material[0]->addTexture(m_textures[0]);
-        
-        *m_material[1] = *m_material[0];
-        m_material[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
-        
-        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, m_material[0]));
-        myBoxMesh->setPosition(vec3(0, -100, 0));
-        //m_scene.addObject(myBoxMesh);
-        
+        materials()[0]->addTexture(m_textures[0]);
+    
         // load state from config file
         try
         {
@@ -373,11 +297,7 @@ public:
     
     void update(const float timeDelta)
     {
-        *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
-                                        *m_rotationSpeed * timeDelta,
-                                        vec3(0, 1, .5)));
-        
-        m_material[0]->uniform("u_time",getApplicationTime());
+        BaseAppType::update(timeDelta);
         
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
@@ -392,87 +312,34 @@ public:
                 gl::TextureIO::updateTexture(m_textures[i], images[i]);
             
         }
+        
+        materials()[0]->uniform("u_time",getApplicationTime());
+        materials()[0]->uniform("u_lightDir", light_direction());
     }
     
     void draw()
     {
-//        m_frameBuffer.bindFramebuffer();
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
-
-        gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
+        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
         gl::drawGrid(500, 500);
         
-        if(*m_wireFrame)
+        if(wireframe())
         {
             m_physics_context.dynamicsWorld()->debugDrawWorld();
             m_debugDrawer->flush();
         }else
         {
-            m_scene.render(m_Camera);
-            *m_num_visible_objects = m_scene.num_visible_objects();
+            scene().render(camera());
+            *m_num_visible_objects = scene().num_visible_objects();
         }
         
-        if(m_selected_mesh)
+        if(selected_mesh())
         {
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_selected_mesh->transform());
-            gl::drawAxes(m_selected_mesh);
-            gl::drawBoundingBox(m_selected_mesh);
-            if(*m_drawNormals) gl::drawNormals(m_selected_mesh);
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * selected_mesh()->transform());
+            gl::drawAxes(selected_mesh());
+            gl::drawBoundingBox(selected_mesh());
+            if(normals()) gl::drawNormals(selected_mesh());
         }
-//        m_frameBuffer.unbindFramebuffer();
-//        glViewport(0, 0, getWidth(), getHeight());
-//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
-    }
-    
-    void mousePress(const MouseEvent &e)
-    {
-        m_clickPos = vec2(e.getX(), e.getY());
-        m_lastTransform = *m_rotation;
-        
-        if(e.isLeft())
-        {
-            gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera,
-                                                                       e.getX(), e.getY()));
-            if(picked_obj)
-            {
-                LOG_TRACE<<"picked id: "<< picked_obj->getID();
-                if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(picked_obj))
-                {
-                    if(m_selected_mesh != m)
-                    {
-                        if(m_selected_mesh){ m_selected_mesh->material() = m_material[0]; }
-                        
-                        m_selected_mesh = m;
-                        m_material[0] = m_selected_mesh->material();
-                        m_material[1]->shader() = m_material[0]->shader();
-                        m_selected_mesh->material() = m_material[1];
-                    }
-                }
-            }
-        }
-        else if(e.isRight() && m_selected_mesh)
-        {
-            m_selected_mesh->material() = m_material[0];
-            m_selected_mesh.reset();
-        }
-    }
-    
-    void mouseDrag(const MouseEvent &e)
-    {
-        vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
-        if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
-        {
-            *m_rotation = mat3_cast(glm::quat(m_lastTransform) *
-                                    glm::quat(vec3(glm::radians(-mouseDiff.y),
-                                                   glm::radians(mouseDiff.x), 0)));
-        }
-    }
-    
-    void mouseWheel(const MouseEvent &e)
-    {
-        *m_distance -= e.getWheelIncrement();
     }
     
     void keyPress(const KeyEvent &e)
@@ -482,72 +349,28 @@ public:
         switch (e.getChar())
         {
         case KeyEvent::KEY_p:
-                *m_stepPhysics = !*m_stepPhysics;
+            *m_stepPhysics = !*m_stepPhysics;
             break;
                 
-        case KeyEvent::KEY_s:
-            Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            break;
-            
         case KeyEvent::KEY_r:
-            try
-            {
-                Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                m_physics_context.teardown_physics();
-                create_cube_stack(4, 32, 4);
-                m_selected_mesh.reset();
-                
-            }catch(Exception &e)
-            {
-                LOG_WARNING << e.what();
-            }
+            m_physics_context.teardown_physics();
+            create_cube_stack(4, 32, 4);
+            selected_mesh().reset();
             break;
                 
         default:
             break;
         }
     }
-
-    void resize(int w, int h)
-    {
-        m_Camera->setAspectRatio(getAspectRatio());
-        gl::Fbo::Format fboFormat;
-        //TODO: mulitsampling fails
-        //fboFormat.setSamples(4);
-        m_frameBuffer = gl::Fbo(w, h, fboFormat);
-        
-//        m_textures[0] = m_frameBuffer.getTexture();
-    }
     
     // Property observer callback
     void updateProperty(const Property::ConstPtr &theProperty)
     {
-        // one of our porperties was changed
-        if(theProperty == m_clear_color)
+        BaseAppType::updateProperty(theProperty);
+        
+        if(theProperty == m_color)
         {
-            gl::clearColor(*m_clear_color);
-        }
-        else if(theProperty == m_color)
-        {
-            m_material[0]->setDiffuse(*m_color);
-        }
-        else if(theProperty == m_wireFrame)
-        {
-            m_material[0]->setWireframe(*m_wireFrame);
-        }
-        else if(theProperty == m_lightDir)
-        {
-            m_material[0]->uniform("u_lightDir", *m_lightDir);
-        }
-        else if(theProperty == m_distance || theProperty == m_rotation)
-        {
-            vec3 look_at;
-            if(m_selected_mesh)
-                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
-            
-            mat4 tmp = glm::mat4(m_rotation->value());
-            tmp[3] = vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
-            m_Camera->transform() = tmp;
+            materials()[0]->setDiffuse(*m_color);
         }
     }
     

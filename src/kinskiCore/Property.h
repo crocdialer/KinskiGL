@@ -252,7 +252,7 @@ public:
     {
         T min, max;
         theProp.getRange(min, max);
-        os<< theProp.getName()<<": "<<theProp.value()<<" ( "<<min<<" - "<<max<<" )";
+        os<< theProp.getName()<<": "<<theProp.value()<<" ("<<min<<" - "<<max<<")";
         return os;
     }
 
