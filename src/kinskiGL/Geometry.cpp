@@ -103,32 +103,7 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeBoundingBox()
     {
-        m_boundingBox = AABB(glm::vec3(numeric_limits<float>::max() ),
-                             glm::vec3(numeric_limits<float>::min() ));
-     
-        vector<glm::vec3>::const_iterator it = m_vertices.begin();
-        for (; it != m_vertices.end(); it++)
-        {
-            const glm::vec3 &vertex = *it;
-            
-            // X
-            if(vertex.x < m_boundingBox.min.x)
-                m_boundingBox.min.x = vertex.x;
-            else if(vertex.x > m_boundingBox.max.x)
-                m_boundingBox.max.x = vertex.x;
-            
-            // Y
-            if(vertex.y < m_boundingBox.min.y)
-                m_boundingBox.min.y = vertex.y;
-            else if(vertex.y > m_boundingBox.max.y)
-                m_boundingBox.max.y = vertex.y;
-            
-            // Z
-            if(vertex.z < m_boundingBox.min.z)
-                m_boundingBox.min.z = vertex.z;
-            else if(vertex.z > m_boundingBox.max.z)
-                m_boundingBox.max.z = vertex.z;
-        }
+        m_boundingBox = gl::calculateAABB(m_vertices);
     }
     
     void Geometry::computeFaceNormals()
@@ -211,7 +186,6 @@ namespace kinski{ namespace gl{
         for (; faceIt != m_faces.end(); faceIt++)
         {
             Face3 &face = *faceIt;
-            
             const glm::vec3 &v0 = m_vertices[face.a], &v1 = m_vertices[face.b], &v2 = m_vertices[face.c];
             const glm::vec2 &t0 = m_texCoords[face.a], &t1 = m_texCoords[face.b], &t2 = m_texCoords[face.c];
             
@@ -219,7 +193,6 @@ namespace kinski{ namespace gl{
             float det = (t1.x - t0.x) * (t2.y - t0.y) - (t1.y - t0.y) * (t2.x - t0.x);
             glm::vec3 tangent = ( (t2.y - t0.y) * ( v1 - v0 ) - (t1.y - t0.y) * ( v2 - v0 ) ) / det;
             tangent = glm::normalize(tangent);
-            
             m_tangents[face.a] = tangent;
             m_tangents[face.b] = tangent;
             m_tangents[face.c] = tangent;

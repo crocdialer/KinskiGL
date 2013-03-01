@@ -49,7 +49,17 @@ public:
     }
    
     template <typename T>
-    inline const T& getValue() const { return getValue<T>(); }
+    inline const T& getValue() const
+    {
+        try
+        {
+            return *boost::any_cast<T>(&m_value);
+        }
+        catch (const boost::bad_any_cast &theException)
+        {
+            throw WrongTypeGetException(m_name);
+        }
+    }
     
     template <typename T>
     inline T& getValue()

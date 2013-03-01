@@ -55,11 +55,9 @@ namespace kinski
         scale = min(scale, 1.f);
         resize(img, downSized, Size(), scale, scale);
         
-        { auto_cpu_timer t(LOG_TRACE<<"DETECT: "); m_featureDetect->detect(downSized, keypoints);}
-        { auto_cpu_timer t(LOG_INFO<<"EXTRACT: "); m_featureExtract->compute(downSized, keypoints,
-                                                                             descriptors_scene);}
-        { auto_cpu_timer t(LOG_TRACE<<"MATCH: "); m_matcher->match(descriptors_scene,
-                                                                  m_trainDescriptors, matches);}
+        m_featureDetect->detect(downSized, keypoints);
+        m_featureExtract->compute(downSized, keypoints,descriptors_scene);
+        m_matcher->match(descriptors_scene, m_trainDescriptors, matches);
         
         //Mat outImg = img.clone();
 
@@ -79,8 +77,7 @@ namespace kinski
         
         for( int i = 0; i < matches.size(); i++ )
         {
-            if( matches[i].distance < min((double)*m_maxFeatureDist,
-                                               2 * min_dist))
+            if( matches[i].distance < min((double) *m_maxFeatureDist, 2 * min_dist))
                 good_matches.push_back( matches[i]);
         }
         

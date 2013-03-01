@@ -59,6 +59,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtx/norm.hpp>
 #include <glm/gtc/noise.hpp>
 #include <glm/gtc/random.hpp>
 
@@ -110,8 +111,8 @@ namespace kinski { namespace gl {
 
     KINSKI_API const glm::vec2& windowDimension();
     KINSKI_API void setWindowDimension(const glm::vec2 &theDim);
-    
     KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y);
+    KINSKI_API gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices);
     
     /********************************* Drawing Functions *****************************************/
     

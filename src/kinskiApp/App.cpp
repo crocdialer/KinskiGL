@@ -36,9 +36,7 @@ namespace kinski
     int App::run()
     {
         init();
-        
         m_running = GL_TRUE;
-        
         double timeStamp = 0.0;
         
         // Main loop

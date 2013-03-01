@@ -15,6 +15,50 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
+    template <typename T>
+    class MovingAverage
+    {
+    public:
+        explicit MovingAverage(uint32_t sz = 5):m_size(sz){}
+        inline void push(const T &theValue)
+        {
+            m_values.push_back(theValue);
+            if(m_values.size() > m_size) m_values.pop_front();
+        }
+        void foo()
+        {
+//            glm::vec2 average;
+//            std::list<glm::vec2>::const_iterator it;
+//            for (it = m_mouse_positions.begin() ; it != m_mouse_positions.end(); ++it)
+//                average += *it;
+//            average /= m_mouse_positions.size();
+//            
+//            float sum_nominator = 0.0f, sum_denominator = 0.0f;
+//            for (it = m_mouse_positions.begin() ; it != m_mouse_positions.end(); ++it)
+//            {
+//                sum_nominator += (it->x - average.x) * (it->y - average.y);
+//                sum_denominator += (it->x - average.x) * (it->x - average.x);
+//            }
+//            float a1 = sum_nominator / sum_denominator;
+            //float a0 =
+        }
+        
+        const T filter()
+        {
+            T ret;
+            typename std::list<T>::const_iterator it = m_values.begin();
+            for ( ; it != m_values.end(); ++it)
+                ret += *it;
+            ret /= (float)m_values.size();
+            m_values.clear();
+            return ret;
+        }
+
+    private:
+        std::list<T> m_values;
+        uint32_t m_size;
+    };
+
 class SimpleGeometryApp : public GLFW_App
 {
 private:
@@ -47,13 +91,18 @@ private:
     CVThread::Ptr m_cvThread;
     
     // mouse rotation control
-    vec2 m_clickPos;
+    vec2 m_clickPos, m_dragPos, m_inertia;
+    float m_rotation_damping;
+    bool  m_mouse_down;
     mat3 m_lastTransform;
+    MovingAverage<glm::vec2> m_avg_filter;
 
 public:
     
     void setup()
     {
+        m_rotation_damping = .9;
+        
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop/");
         kinski::addSearchPath("~/Pictures/");
@@ -68,7 +117,7 @@ public:
         
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
-        
+
         m_animationTime = RangedProperty<float>::create("Animation time", 0, 0, 1);
         registerProperty(m_animationTime);
         
@@ -164,9 +213,22 @@ public:
     
     void update(const float timeDelta)
     {
-        *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
-                                        m_rotationSpeed->value() * timeDelta,
-                                        vec3(0, 1, .5)));
+        m_avg_filter.push(glm::vec2(0));
+        m_inertia *= m_rotation_damping;
+        
+        if(!m_mouse_down && glm::length2(m_inertia) > 0.0025)
+        {
+            *m_rotation = mat3_cast(glm::quat(*m_rotation) *
+                                    glm::quat(vec3(glm::radians(-m_inertia.y),
+                                                   glm::radians(-m_inertia.x), 0)));
+        }
+        else if(!m_mouse_down || displayTweakBar())
+        {
+            *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
+                                            *m_rotationSpeed * timeDelta,
+                                            vec3(0, 1, .5)));
+        }
+
         
         if(m_mesh)
         {
@@ -197,7 +259,7 @@ public:
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
-        gl::drawGrid(500, 500);
+        gl::drawGrid(500, 500, 100, 100);
         
         m_scene.render(m_Camera);
         
@@ -247,6 +309,7 @@ public:
     {
         m_clickPos = vec2(e.getX(), e.getY());
         m_lastTransform = *m_rotation;
+        m_mouse_down = true;
         
         if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_Camera, e.getX(), e.getY()),
                                                      true))
@@ -283,6 +346,15 @@ public:
                                     glm::quat(vec3(glm::radians(-mouseDiff.y),
                                                    glm::radians(-mouseDiff.x), 0)));
         }
+        m_avg_filter.push(vec2(e.getX(), e.getY()) - m_dragPos);
+        m_dragPos = vec2(e.getX(), e.getY());
+    }
+    
+    void mouseRelease(const MouseEvent &e)
+    {
+        m_mouse_down = false;
+        if(!displayTweakBar())
+            m_inertia = m_avg_filter.filter();
     }
     
     void mouseWheel(const MouseEvent &e)
@@ -351,8 +423,7 @@ public:
         {
             try
             {
-                gl::Mesh::Ptr m = gl::AssimpConnector::loadModel(*m_modelPath);
-                
+                gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 m_scene.removeObject(m_mesh);
                 m_mesh = m;
                 m_mesh->material()->setShinyness(0.9);
@@ -376,6 +447,7 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleGeometryApp);
+    theApp->setWindowSize(1024, 600);
     
     return theApp->run();
 }

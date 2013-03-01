@@ -152,6 +152,34 @@ namespace kinski { namespace gl {
         return Ray(click_world_pos, click_world_pos - cam_pos);
     }
     
+    gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices)
+    {
+        AABB ret = AABB(glm::vec3(numeric_limits<float>::max()),
+                        glm::vec3(numeric_limits<float>::min()));
+        
+        vector<glm::vec3>::const_iterator it = theVertices.begin();
+        for (; it != theVertices.end(); it++)
+        {
+            const glm::vec3 &vertex = *it;
+            // X
+            if(vertex.x < ret.min.x)
+                ret.min.x = vertex.x;
+            else if(vertex.x > ret.max.x)
+                ret.max.x = vertex.x;
+            // Y
+            if(vertex.y < ret.min.y)
+                ret.min.y = vertex.y;
+            else if(vertex.y > ret.max.y)
+                ret.max.y = vertex.y;
+            // Z
+            if(vertex.z < ret.min.z)
+                ret.min.z = vertex.z;
+            else if(vertex.z > ret.max.z)
+                ret.max.z = vertex.z;
+        }
+        return ret;
+    }
+    
     void clearColor(const glm::vec4 &theColor)
     {
         glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);

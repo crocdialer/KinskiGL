@@ -162,12 +162,12 @@ public:
         m_physics_context.collisionShapes().push_back(shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
                                                                                         btScalar(50.),
                                                                                         btScalar(50.)))));
-        gl::Mesh::Ptr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), m_material[0]));
+        gl::MeshPtr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), m_material[0]));
         m_scene.addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
         
         //groundShape->initializePolyhedralFeatures();
-        //	btCollisionShape* groundShape = new btStaticPlaneShape(btVector3(0,1,0),50);
+        shared_ptr<btCollisionShape> plane_shape (new btStaticPlaneShape(btVector3(0,1,0),50));
         
 //        btTransform groundTransform;
 //        groundTransform.setIdentity();
@@ -175,10 +175,8 @@ public:
         
         {
             btScalar mass(0.);
-            
             //rigidbody is dynamic if and only if mass is non zero, otherwise static
             bool isDynamic = (mass != 0.f);
-            
             btVector3 localInertia(0,0,0);
             if (isDynamic)
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
@@ -323,17 +321,12 @@ public:
         
         // test box shape
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
-        //gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         
         m_material[0] = gl::Material::Ptr(new gl::Material);
         m_material[1] = gl::Material::Ptr(new gl::Material);
         
         m_material[0]->setShader(gl::createShader(gl::SHADER_PHONG));
-        //m_material[0]->shader().loadFromFile("shader_normalMap.vert", "shader_normalMap.frag");
         m_material[0]->addTexture(m_textures[0]);
-//        m_material[0]->addTexture(m_textures[1]);
-//        m_textures[1].setWrapS(GL_CLAMP_TO_EDGE);
-//        m_textures[1].setWrapT(GL_CLAMP_TO_EDGE);
         
         *m_material[1] = *m_material[0];
         m_material[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
@@ -363,6 +356,7 @@ public:
         create_cube_stack(4, 32, 4);
         
         // create a simplex noise texture
+        if(false)
         {
             int w = 1024, h = 1024;
             float data[w * h];
