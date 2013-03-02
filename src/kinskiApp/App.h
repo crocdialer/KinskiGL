@@ -38,7 +38,7 @@ namespace kinski
         virtual void swapBuffers() = 0;
         
         // these are optional overrides
-        virtual void setWindowSize(const glm::ivec2 size){ m_windowSize = size; };
+        virtual void setWindowSize(const glm::vec2 size){ m_windowSize = size; };
         virtual void resize(int w, int h){};
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};
@@ -52,7 +52,7 @@ namespace kinski
         bool running(){return m_running;};
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
-        inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::ivec2(w, h));};
+        inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::vec2(w, h));};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
         inline const glm::vec2 windowSize(){return m_windowSize;};
         

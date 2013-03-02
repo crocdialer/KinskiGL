@@ -42,27 +42,20 @@ namespace kinski { namespace gl {
                                       btScalar distance,int lifeTime,const btVector3& color){};
         
         virtual void reportErrorWarning(const char* warningString) {LOG_WARNING<<warningString;}
-        
         virtual void draw3dText(const btVector3& location,const char* textString){}
-        
         virtual void setDebugMode(int debugMode){}
-        
         virtual int	getDebugMode() const {return 1;}
         
         void flush()
         {
             m_mesh->geometry()->createGLBuffers();
-
             if(!m_mesh->vertexArray()) m_mesh->createVertexArray();
-            
             gl::drawMesh(m_mesh);
-            
             m_mesh->geometry()->vertices().clear();
             m_mesh->geometry()->colors().clear();
         };
         
      private:
-        
         gl::Mesh::Ptr m_mesh;
     };
     
@@ -70,10 +63,8 @@ namespace kinski { namespace gl {
     ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
     {
         gl::Object3DPtr m_object;
-        
         btTransform m_graphicsWorldTrans;
         btTransform	m_centerOfMassOffset;
-        
         BT_DECLARE_ALIGNED_ALLOCATOR();
         
         MotionState(const gl::Object3D::Ptr& theObject3D,
@@ -108,15 +99,13 @@ class BulletSample : public BaseAppType
 private:
     
     gl::Texture m_textures[4];
-
     Property_<bool>::Ptr m_stepPhysics;
     Property_<glm::vec4>::Ptr m_color;
-    
     Property_<uint32_t>::Ptr m_num_visible_objects;
-    
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
     
+    // opencv interface
     CVThread::Ptr m_cvThread;
 
 public:
@@ -131,9 +120,10 @@ public:
         float start_pox_z = -3;
         
         ///create a few basic rigid bodies
-        m_physics_context.collisionShapes().push_back(shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
-                                                                                        btScalar(50.),
-                                                                                        btScalar(50.)))));
+        m_physics_context.collisionShapes().push_back(
+            shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
+                                                                  btScalar(50.),
+                                                                  btScalar(50.)))));
         gl::MeshPtr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), materials()[0]));
         scene().addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
@@ -232,6 +222,7 @@ public:
     void setup()
     {
         BaseAppType::setup();
+        //set_precise_selection(true);
         
         /*********** init our application properties ******************/
         
@@ -310,7 +301,6 @@ public:
             
             for(int i=0;i<images.size();i++)
                 gl::TextureIO::updateTexture(m_textures[i], images[i]);
-            
         }
         
         materials()[0]->uniform("u_time",getApplicationTime());

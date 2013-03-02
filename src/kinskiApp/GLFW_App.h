@@ -35,13 +35,11 @@ namespace kinski
         virtual ~GLFW_App();
         
         
-        void setWindowSize(const glm::ivec2 size);
+        void setWindowSize(const glm::vec2 size);
         void swapBuffers();
         double getApplicationTime();
         
-        virtual void keyPress(const KeyEvent &e);
-        
-        void setDisplayTweakBar(bool b){m_displayTweakBar = b;};
+        void set_displayTweakBar(bool b){m_displayTweakBar = b;};
         bool displayTweakBar() const {return m_displayTweakBar;};
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,

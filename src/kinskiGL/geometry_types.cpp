@@ -12,8 +12,6 @@
 #define MIN3(a,b,c) ((((a)<(b))&&((a)<(c))) ? (a) : (((b)<(c)) ? (b) : (c)))
 #define MAX3(a,b,c) ((((a)>(b))&&((a)>(c))) ? (a) : (((b)>(c)) ? (b) : (c)))
 
-#define PI 3.14159265359f
-
 namespace kinski { namespace gl {
 
 Plane::Plane()
@@ -247,7 +245,6 @@ int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3])	// -NJMP-
 	float vmin[3],vmax[3],v;	
 	for(q=X;q<=Z;q++)		
 	{
-		
 		v=vert[q];					// -NJMP-		
 		if(normal[q]>0.0f)			
 		{			

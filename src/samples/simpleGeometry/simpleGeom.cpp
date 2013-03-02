@@ -25,6 +25,7 @@ public:
     void setup()
     {
         ViewerApp::setup();
+        set_precise_selection(true);
         
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop/");
@@ -118,7 +119,6 @@ public:
 //                                                   m_mesh->getGeometry()->animation()->duration);
             }
         }
-        
         materials()[0]->uniform("u_time",getApplicationTime());
         materials()[0]->uniform("u_lightDir", light_direction());
         materials()[0]->uniform("u_textureMix", *m_textureMix);

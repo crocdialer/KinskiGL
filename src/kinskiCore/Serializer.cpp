@@ -100,14 +100,10 @@ namespace kinski {
                                                const PropertyIO &theIO)
     {
         Json::Value myRoot;
-        
         int myIndex = 0;
         int myVIndex = 0;
-        
         std::string myName = theComponent->getName();
-        
         myRoot[myIndex][PropertyIO::PROPERTY_NAME] = myName;
-        
         std::list<Property::Ptr> myProperties = theComponent->getPropertyList();
         std::list<Property::Ptr>::const_iterator myPIt;
         
@@ -129,7 +125,6 @@ namespace kinski {
         
         myIndex++;
         myVIndex = 0;
-        
         Json::StyledWriter myWriter;
         return myWriter.write(myRoot); 
     }
@@ -157,7 +152,6 @@ namespace kinski {
                 {
                     std::string myName =
                     myComponentNode[PropertyIO::PROPERTIES][i][PropertyIO::PROPERTY_NAME].asString();
-                    
                     Property::Ptr myProperty = theComponent->getPropertyByName(myName);
                     theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][i]);
                     
@@ -174,14 +168,12 @@ namespace kinski {
                                         const PropertyIO &theIO)
     {
         std::string state = serializeComponent(theComponent, theIO);
-        
         std::ofstream myFileOut(theFileName.c_str());
         
         if(!myFileOut)
         {
             throw OutputFileException(theFileName);
         }
-        
         myFileOut << state;
         myFileOut.close();
     }

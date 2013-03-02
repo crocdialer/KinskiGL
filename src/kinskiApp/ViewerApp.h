@@ -71,13 +71,18 @@ namespace kinski {
         std::vector<gl::MaterialPtr>& materials(){ return m_materials; };
         const gl::Scene& scene() const { return m_scene; };
         gl::Scene& scene() { return m_scene; };
+        bool precise_selection() const { return m_precise_selection; };
+        void set_precise_selection(bool b){ m_precise_selection = b; };
         
     private:
         std::vector<gl::MaterialPtr> m_materials;
         gl::MeshPtr m_selected_mesh;
         gl::PerspectiveCamera::Ptr m_camera;
         gl::Scene m_scene;
+        bool m_precise_selection;
         
+        Property_<bool>::Ptr m_show_tweakbar;
+        Property_<glm::vec2>::Ptr m_window_size;
         RangedProperty<float>::Ptr m_distance;
         Property_<glm::mat3>::Ptr m_rotation;
         RangedProperty<float>::Ptr m_rotationSpeed;

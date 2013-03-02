@@ -18,7 +18,7 @@
 namespace kinski
 {
 
-class Property : public std::enable_shared_from_this<Property>
+class KINSKI_API Property : public std::enable_shared_from_this<Property>
 {
 public:
     typedef std::shared_ptr<Property> Ptr;
@@ -136,7 +136,7 @@ public:
 };
     
 template<typename T>
-class Property_ : public Property
+class KINSKI_API Property_ : public Property
 {
 public:
     typedef std::shared_ptr< Property_<T> > Ptr;
@@ -179,7 +179,7 @@ protected:
 
         
 template<typename T>
-class RangedProperty : public Property_<T>
+class KINSKI_API RangedProperty : public Property_<T>
 {
 public:
     

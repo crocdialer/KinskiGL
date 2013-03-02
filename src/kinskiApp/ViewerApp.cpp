@@ -12,9 +12,18 @@ namespace kinski {
     
     ViewerApp::ViewerApp():GLFW_App(),
     m_camera(new gl::PerspectiveCamera),
+    m_precise_selection(false),
     m_rotation_damping (.9)
     {
         /*********** init our application properties ******************/
+        m_show_tweakbar = Property_<bool>::create("Show Tweakbar", true);
+        m_show_tweakbar->setTweakable(false);
+        registerProperty(m_show_tweakbar);
+        
+        m_window_size = Property_<glm::vec2>::create("Window Size", windowSize()) ;
+        m_window_size->setTweakable(false);
+        registerProperty(m_window_size);
+        
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 500);
         registerProperty(m_distance);
         
@@ -46,11 +55,10 @@ namespace kinski {
     {
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
-        
         m_materials[0]->setShader(gl::createShader(gl::SHADER_PHONG));
         m_materials[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
         
-        setBarColor(glm::vec4(0, 0 ,0 , .5));
+        setBarColor(glm::vec4(0, 0, 0, .5));
         setBarSize(glm::ivec2(250, 500));
         
         // enable observer mechanism
@@ -73,8 +81,8 @@ namespace kinski {
         else if(!m_mouse_down || displayTweakBar())
         {
             *m_rotation = glm::mat3( glm::rotate(glm::mat4(m_rotation->value()),
-                                            *m_rotationSpeed * timeDelta,
-                                            glm::vec3(0, 1, .5)));
+                                                 *m_rotationSpeed * timeDelta,
+                                                 glm::vec3(0, 1, .5)));
         }
         
     }
@@ -86,7 +94,7 @@ namespace kinski {
         m_mouse_down = true;
         
         if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, e.getX(), e.getY()),
-                                                     true))
+                                                     m_precise_selection))
         {
             LOG_TRACE<<"picked id: "<< picked_obj->getID();
             
@@ -142,6 +150,10 @@ namespace kinski {
         
         switch (e.getChar())
         {
+            case KeyEvent::KEY_SPACE:
+                *m_show_tweakbar = !*m_show_tweakbar;
+                break;
+                
             case KeyEvent::KEY_s:
                 Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                 break;
@@ -164,21 +176,31 @@ namespace kinski {
     
     void ViewerApp::resize(int w, int h)
     {
-        //m_camera->setAspectRatio(getAspectRatio());
+        *m_window_size = glm::vec2(w, h);
     }
     
     // Property observer callback
     void ViewerApp::updateProperty(const Property::ConstPtr &theProperty)
     {
-        if(theProperty == m_clear_color)
+        if(theProperty == m_show_tweakbar)
+        {
+            set_displayTweakBar(*m_show_tweakbar);
+        }
+        else if(theProperty == m_window_size)
+        {
+            setWindowSize(*m_window_size);
+            // only set this once
+            m_window_size->removeObserver(shared_from_this());
+        }
+        else if(theProperty == m_clear_color)
         {
             gl::clearColor(*m_clear_color);
         }
         else if(theProperty == m_distance || theProperty == m_rotation)
         {
             glm::vec3 look_at;
-            if(m_selected_mesh)
-                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
+//            if(m_selected_mesh)
+//                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
             
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);

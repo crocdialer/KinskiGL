@@ -153,7 +153,7 @@ namespace kinski { namespace gl {
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_SKIN};
     KINSKI_API Shader createShader(ShaderType type);
     KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
-                                const std::string &geomPath="");
+                                           const std::string &geomPath="");
     
     KINSKI_API const std::set<std::string>& getExtensions();
     KINSKI_API bool isExtensionSupported(const std::string &theName);

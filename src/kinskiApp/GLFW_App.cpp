@@ -110,7 +110,7 @@ namespace kinski
         glfwSwapBuffers();
     }
     
-    void GLFW_App::setWindowSize(const glm::ivec2 size)
+    void GLFW_App::setWindowSize(const glm::vec2 size)
     {
         App::setWindowSize(size);
         glfwSetWindowSize(size[0], size[1]);
@@ -138,29 +138,13 @@ namespace kinski
         return glfwGetTime();
     }
     
-    void GLFW_App::keyPress(const KeyEvent &e)
-    {
-        switch (e.getChar())
-        {
-            case KeyEvent::KEY_SPACE:
-                m_displayTweakBar = !m_displayTweakBar; 
-                break;
-
-            default:
-                break;
-        }
-    }
-    
 /****************************  Application Events (internal) **************************/
     
     void GLFW_App::__resize(int w,int h)
     {
-        setWindowSize(glm::ivec2(w, h));
-        
-        
+        setWindowSize(glm::vec2(w, h));
         glViewport(0, 0, w, h);
         gl::setWindowDimension(windowSize());
-        
         TwWindowSize(w, h);
         
         // user hook
