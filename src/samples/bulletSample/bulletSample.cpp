@@ -30,7 +30,7 @@ namespace kinski { namespace gl {
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
         };
         
-        virtual void drawLine(const btVector3& from,const btVector3& to,const btVector3& color)
+        virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
         {
             m_mesh->geometry()->appendVertex(vec3(from.x(), from.y(), from.z()));
             m_mesh->geometry()->appendVertex(vec3(to.x(), to.y(), to.z()));
@@ -44,7 +44,7 @@ namespace kinski { namespace gl {
         virtual void reportErrorWarning(const char* warningString) {LOG_WARNING<<warningString;}
         virtual void draw3dText(const btVector3& location,const char* textString){}
         virtual void setDebugMode(int debugMode){}
-        virtual int	getDebugMode() const {return 1;}
+        virtual int	getDebugMode() const {return DBG_DrawWireframe;}
         
         void flush()
         {
@@ -53,6 +53,8 @@ namespace kinski { namespace gl {
             gl::drawMesh(m_mesh);
             m_mesh->geometry()->vertices().clear();
             m_mesh->geometry()->colors().clear();
+            m_mesh->geometry()->vertices().reserve(1024);
+            m_mesh->geometry()->colors().reserve(1024);
         };
         
      private:
@@ -222,7 +224,7 @@ public:
     void setup()
     {
         BaseAppType::setup();
-        //set_precise_selection(true);
+        set_precise_selection(true);
         
         /*********** init our application properties ******************/
         
@@ -268,6 +270,7 @@ public:
         m_debugDrawer = shared_ptr<gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
+        // create a physics scene
         create_cube_stack(4, 32, 4);
         
         // create a simplex noise texture
@@ -281,7 +284,6 @@ public:
                 {
                     data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
-            
             m_textures[1].update(data, GL_RED, w, h, true);
         }
     }

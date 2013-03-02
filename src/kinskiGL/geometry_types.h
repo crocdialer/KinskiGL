@@ -25,8 +25,8 @@ struct KINSKI_API Ray
     
     inline Ray& transform(const glm::mat4& t)
 	{
-		origin += t[3].xyz();
-		direction = glm::mat3(t) * direction;
+		origin = (t * glm::vec4(origin, 1.0f)).xyz();
+		direction = glm::normalize(glm::mat3(t) * direction);
 		return *this;
 	};
     
@@ -53,6 +53,15 @@ struct KINSKI_API ray_intersection
     ray_intersection(intersection_type theType, float theDistance = 0.0f):
     type(theType), distance(theDistance){}
     operator intersection_type() const { return type; }
+};
+
+struct KINSKI_API ray_triangle_intersection : public ray_intersection
+{
+    float u, v;
+    
+    ray_triangle_intersection(intersection_type theType, float theDistance = 0.0f,
+                              float theU = 0.0f, float theV = 0.0f)
+    :ray_intersection(theType, theDistance), u(theU), v(theV){}
 };
     
 struct KINSKI_API Plane
@@ -107,7 +116,7 @@ struct KINSKI_API Triangle
 		return ret.transform(t);
 	};
     
-    ray_intersection intersect(const Ray &theRay) const;
+    ray_triangle_intersection intersect(const Ray &theRay) const;
 };
 
 struct KINSKI_API Sphere

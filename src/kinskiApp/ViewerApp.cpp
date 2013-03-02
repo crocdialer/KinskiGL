@@ -148,29 +148,33 @@ namespace kinski {
     {
         GLFW_App::keyPress(e);
         
-        switch (e.getChar())
+        if(e.getChar() == KeyEvent::KEY_SPACE)
         {
-            case KeyEvent::KEY_SPACE:
-                *m_show_tweakbar = !*m_show_tweakbar;
-                break;
-                
-            case KeyEvent::KEY_s:
-                Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                break;
-                
-            case KeyEvent::KEY_r:
-                try
-                {
-                    m_inertia = glm::vec2(0);
-                    Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                }catch(Exception &e)
-                {
-                    LOG_WARNING << e.what();
-                }
-                break;
-                
-            default:
-                break;
+            *m_show_tweakbar = !*m_show_tweakbar;
+        }
+        
+        if(!displayTweakBar())
+        {
+            switch (e.getChar())
+            {
+                case KeyEvent::KEY_s:
+                    Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                    break;
+                    
+                case KeyEvent::KEY_r:
+                    try
+                    {
+                        m_inertia = glm::vec2(0);
+                        Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                    }catch(Exception &e)
+                    {
+                        LOG_WARNING << e.what();
+                    }
+                    break;
+                    
+                default:
+                    break;
+            }
         }
     }
     

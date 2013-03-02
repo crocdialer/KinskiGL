@@ -150,12 +150,12 @@ namespace kinski { namespace gl {
                             const Face3 &f = *it;
                             gl::Triangle t(vertices[f.a], vertices[f.b], vertices[f.c]);
                             
-                            if((ray_hit = t.intersect(ray_in_object_space)))
+                            if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
                             {
-                                clicked_items.push_back(range_item_t(theObj, ray_hit.distance));
+                                clicked_items.push_back(range_item_t(theObj, ray_tri_hit.distance));
+                                LOG_DEBUG<<"hit distance: "<<ray_tri_hit.distance;
                             }
                         }
-                        
                     }
                 }
                 else clicked_items.push_back(range_item_t(theObj, ray_hit.distance));

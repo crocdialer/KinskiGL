@@ -29,7 +29,10 @@ public:
         
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop/");
+        kinski::addSearchPath("~/Desktop/sample/", true);
         kinski::addSearchPath("~/Pictures/");
+        
+        list<string> paths = kinski::getSearchPaths();
         
         /*********** init our application properties ******************/
         
@@ -130,7 +133,7 @@ public:
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
-        gl::drawTexture(m_textures[0], windowSize());
+        //gl::drawTexture(m_textures[0], windowSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
@@ -204,6 +207,7 @@ public:
                 scene().removeObject(m_mesh);
                 m_mesh = m;
                 m_mesh->material()->setShinyness(0.9);
+                m_mesh->transform() = glm::rotate(m_mesh->transform(), 30.0f, vec3(1, 1, 1));
                 scene().addObject(m_mesh);
             } catch (Exception &e)
             {

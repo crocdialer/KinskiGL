@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <dirent.h>
 
-//#include <boost/filesystem.hpp>
+#include <boost/filesystem.hpp>
 
 #define STAT64 stat
 
@@ -63,9 +63,44 @@ namespace kinski {
         return g_searchPaths;
     }
     
-    void addSearchPath(const std::string &thePath)
+    void addSearchPath(const std::string &thePath, bool recursive)
     {
-        g_searchPaths.push_back(getDirectoryPart(expand_user(thePath)));
+        if(recursive)
+        {
+            g_searchPaths.push_back(getDirectoryPart(expand_user(thePath)));
+            boost::filesystem::recursive_directory_iterator it;
+            try
+            {
+                it = boost::filesystem::recursive_directory_iterator(expand_user(thePath));
+                boost::filesystem::recursive_directory_iterator end;
+                
+                while(it != end)
+                {
+                    if(boost::filesystem::is_directory(*it))
+                        g_searchPaths.push_back(it->path().string() +"/");
+                    try{ ++it; }
+                    catch(std::exception& e)
+                    {
+                        // e.g. no permission
+                        LOG_ERROR<<e.what();
+                        it.no_push();
+                        try { ++it; } catch(...)
+                        {
+                            LOG_ERROR << "Got trouble in recursive directory iteration: "<<it->path();
+                            return;
+                        }
+                    }
+                }
+            }
+            catch(boost::filesystem::filesystem_error &e)
+            {
+                LOG_ERROR<<e.what();
+            }
+        }
+        else
+        {
+            g_searchPaths.push_back(getDirectoryPart(expand_user(thePath)));
+        }
     }
     
     // boosted
@@ -173,8 +208,10 @@ namespace kinski {
         }
         struct dirent *dir_entry;
         while((dir_entry = readdir(myDirHandle)) != 0) {
-            if (std::string("..")!= dir_entry->d_name && std::string(".") != dir_entry->d_name) {
-                if (theFilter == "" || string(dir_entry->d_name).find(theFilter) != string::npos) {
+            if (std::string("..")!= dir_entry->d_name && std::string(".") != dir_entry->d_name)
+            {
+                if (theFilter == "" || string(dir_entry->d_name).find(theFilter) != string::npos)
+                {
                     theDirEntries.push_back(dir_entry->d_name);
                 }
             }

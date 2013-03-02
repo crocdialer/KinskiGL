@@ -31,7 +31,7 @@ INCLUDE_DIRECTORIES("/usr/local/include")
 else()
 ##### BOOST
 set(Boost_USE_STATIC_LIBS ON)
-set(BOOST_COMPONENTS thread system timer chrono)
+set(BOOST_COMPONENTS thread system timer chrono filesystem)
 if(BUILD_TESTS)
     ENABLE_TESTING()
     set(BOOST_COMPONENTS ${BOOST_COMPONENTS} unit_test_framework)

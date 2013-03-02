@@ -31,27 +31,27 @@ foot(f),
 normal(n)
 {}
 
-ray_intersection Triangle::intersect(const Ray &theRay) const
+ray_triangle_intersection Triangle::intersect(const Ray &theRay) const
 {
     glm::vec3 e1 = v1 - v0, e2 = v2 - v0;
-    glm::vec3 q = glm::cross(theRay.direction, e2);
-    float a = glm::dot(e1, q);
+    glm::vec3 pvec = glm::cross(theRay.direction, e2);
+    float det = glm::dot(e1, pvec);
     static float epsilon = 10.0e-5;
-    if(a > -epsilon && a < epsilon) return REJECT;
-    float f = 1.0f / a;
-    glm::vec3 s = theRay.origin - v0;
-    float u = f * glm::dot(s, q);
-    if(u < 0.0f) return REJECT;
-    glm::vec3 r = glm::cross(s, e1);
-    float v = f * glm::dot(theRay.direction, r);
+    if(det > -epsilon && det < epsilon) return REJECT;
+    float inv_det = 1.0f / det;
+    glm::vec3 tvec = theRay.origin - v0;
+    float u = inv_det * glm::dot(tvec, pvec);
+    if(u < 0.0f || u > 1.0f) return REJECT;
+    glm::vec3 qvec = glm::cross(tvec, e1);
+    float v = glm::dot(theRay.direction, qvec) * inv_det;
     if(v < 0.0f || (u + v) > 1.0f) return REJECT;
-
-    return ray_intersection(INTERSECT, f * glm::dot(e2, q));
+    float t =  glm::dot(e2, qvec) * inv_det;
+    return ray_triangle_intersection(INTERSECT, t, u, v);
 }
     
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
 {
-    center = theAABB.center() + t[3].xyz();
+    center = (t * glm::vec4(theAABB.center(), 1.0f)).xyz();
     axis[0] = t[0].xyz();
     axis[1] = t[1].xyz();
     axis[2] = t[2].xyz();
@@ -70,7 +70,8 @@ ray_intersection OBB::intersect(const Ray& theRay) const
         float f = glm::dot(axis[i], theRay.direction);
         
         // this test avoids overflow from division
-        if(std::abs(f) > std::numeric_limits<float>::epsilon()){
+        if(std::abs(f) > std::numeric_limits<float>::epsilon())
+        {
             float t1 = (e + half_lengths[i]) / f;
             float t2 = (e - half_lengths[i]) / f;
             
