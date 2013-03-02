@@ -1,11 +1,4 @@
-#include "kinskiApp/GLFW_App.h"
-#include "kinskiApp/TextureIO.h"
-#include "kinskiGL/Material.h"
-#include "kinskiGL/Buffer.h"
-#include "kinskiGL/Camera.h"
-
-#include "kinskiGL/SerializerGL.h"
-#include <fstream>
+#include "kinskiApp/ViewerApp.h"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
@@ -16,27 +9,13 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class OpenCLTest : public GLFW_App
+class OpenCLTest : public ViewerApp
 {
 private:
     
-    RangedProperty<float>::Ptr m_distance;
-    Property_<glm::mat3>::Ptr m_rotation;
-    
-    RangedProperty<float>::Ptr m_rotationSpeed;
-    
     Property_<string>::Ptr m_texturePath;
     gl::Texture m_texture;
-    
     gl::Material::Ptr m_pointMaterial;
-    gl::PerspectiveCamera::Ptr m_camera;
-    
-    // mouse rotation control
-    vec2 m_clickPos;
-    mat4 m_lastTransform;
-    float m_lastDistance;
-    
-    
     gl::Buffer m_vboPos, m_vboCol;
     
     //OpenCL standard stuff
@@ -99,10 +78,7 @@ private:
             m_queue = cl::CommandQueue(m_context, devices[0]);
             
             // Read source file
-            std::ifstream sourceFile("kernels.cl");
-            std::string sourceCode(std::istreambuf_iterator<char>(sourceFile),
-                                   (std::istreambuf_iterator<char>()));
-            
+            std::string sourceCode = kinski::readFile("kernels.cl");
             cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()+1));
             
             // Make program of the source code in the context
@@ -159,14 +135,7 @@ public:
     
     void setup()
     {
-        m_distance = RangedProperty<float>::create("view distance", 25, -500, 500);
-        registerProperty(m_distance);
-        
-        m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
-        registerProperty(m_rotation);
-        
-        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
-        registerProperty(m_rotationSpeed);
+        ViewerApp::setup();
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
@@ -175,30 +144,15 @@ public:
         observeProperties();
         
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
-        m_pointMaterial->addTexture(gl::TextureIO::loadTexture("smoketex.png"));
+        m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
         m_pointMaterial->setDiffuse(vec4(.9, .7, 0, 1.f));
         m_pointMaterial->setBlending();
-        
-        m_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        
-        m_camera->setPosition(vec3(0, 50, 100));
-        m_camera->setLookAt(vec3(0));
-        
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(FileNotFoundException &e)
-        {
-            printf("%s\n", e.what());
-        }
         
         initOpenCL();
         
         m_numParticles = 50000;
         GLsizei numBytes = m_numParticles * sizeof(vec4);
-        
         m_vboPos = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
         m_vboPos.setData(NULL, numBytes);
         
@@ -218,25 +172,16 @@ public:
             for (int i = 0; i < m_numParticles; i++)
             {
                 posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
-                
                 vec2 tmp = glm::linearRand(vec2(-10), vec2(10));
-                
                 float life = 2 + 3 * (rand() / (float) RAND_MAX);
                 float yVel = RAND(5, 15);
-                
                 velGen.push_back(vec4(tmp.x, yVel, tmp.y, life)); 
             }
             
             m_vboPos.setData(posGen);
-            
-            
-            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes,
-                                       &velGen[0]);
-            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes,
-                                       &posGen[0]);
-            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes,
-                                       &velGen[0]);
-            
+            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
+            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
             m_particleKernel.setArg(0, m_positions);
             //m_particleKernel.setArg(1, m_positions);//colors
             
@@ -248,36 +193,40 @@ public:
         {
             LOG_ERROR << error.what() << "(" << error.err() << ")";
         }
+        
+        // load state from config file
+        try
+        {
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+        }catch(Exception &e)
+        {
+            LOG_WARNING << e.what();
+        }
     }
     
     void tearDown()
     {
-        printf("ciao openclTest\n");
+        LOG_INFO<<"ciao openclTest\n";
     }
     
     void update(const float timeDelta)
     {
+        ViewerApp::update(timeDelta);
         updateParticles(timeDelta);
-        
-        *m_rotation = mat3( glm::rotate(mat4(m_rotation->value()),
-                                        *m_rotationSpeed * timeDelta,
-                                        vec3(0, 1, .5)));
     }
     
     void draw()
     {
-        gl::loadMatrix(gl::PROJECTION_MATRIX, m_camera->getProjectionMatrix());
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_camera->getViewMatrix());
-        
+        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
         gl::drawGrid(200, 200);
-        
-        //gl::drawTexture(m_texture, getWindowSize());
-        
         gl::drawPoints(m_vboPos.id(), m_numParticles, m_pointMaterial, sizeof(vec4));
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)
     {
+        ViewerApp::updateProperty(theProperty);
+        
         // one of our porperties was changed
         if(theProperty == m_texturePath)
         {
@@ -287,61 +236,10 @@ public:
             } catch (kinski::Exception &e)
             {
                 LOG_WARNING << e.what();
-                
                 m_texturePath->removeObserver(shared_from_this());
                 *m_texturePath = "- not found -";
                 m_texturePath->addObserver(shared_from_this());
             }
-        }
-        else if(theProperty == m_distance ||
-                 theProperty == m_rotation)
-        {
-            m_camera->setPosition( m_rotation->value() * glm::vec3(0, 0, *m_distance) );
-            m_camera->setLookAt(glm::vec3(0));
-        }
-    }
-    
-    void resize(int w, int h)
-    {
-        m_camera->setAspectRatio(getAspectRatio());
-    }
-    
-    void mousePress(const MouseEvent &e)
-    {
-        m_clickPos = vec2(e.getX(), e.getY());
-        m_lastTransform = mat4(m_rotation->value());
-        m_lastDistance = *m_distance;
-    }
-    
-    void mouseDrag(const MouseEvent &e)
-    {
-        vec2 mouseDiff = vec2(e.getX(), e.getY()) - m_clickPos;
-        if(e.isLeft() && e.isAltDown())
-        {
-            mat4 mouseRotate = glm::rotate(m_lastTransform, mouseDiff.x, vec3(0, 1, 0));
-            mouseRotate = glm::rotate(mouseRotate, mouseDiff.y, vec3(1, 0, 0));
-            *m_rotation = mat3(mouseRotate);
-        }
-        else if(e.isRight())
-        {
-            *m_distance = m_lastDistance + 0.3f * mouseDiff.y;
-        }
-    }
-    
-    void keyPress(const KeyEvent &e)
-    {
-        switch (e.getChar())
-        {
-            case KeyEvent::KEY_s:
-                Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                break;
-                
-            case KeyEvent::KEY_r:
-                Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-                break;
-                
-            default:
-                break;
         }
     }
 };
@@ -349,6 +247,5 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new OpenCLTest);
-    
     return theApp->run();
 }
