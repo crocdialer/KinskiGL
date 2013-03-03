@@ -83,9 +83,7 @@ namespace kinski { namespace gl {
             {
                 m->material()->uniform("u_bones", m->geometry()->boneMatrices());
             }
-            
             m->material()->apply();
-            
 #ifndef KINSKI_NO_VAO
             GL_SUFFIX(glBindVertexArray)(m->vertexArray());
 #else
@@ -96,7 +94,7 @@ namespace kinski { namespace gl {
             for (; transformIt != meshList.end(); ++transformIt)
             {
                 m = *transformIt;
-                
+
                 glm::mat4 modelView = viewMatrix * m->transform();
                 m->material()->shader().uniform("u_modelViewMatrix", modelView);
                 m->material()->shader().uniform("u_normalMatrix",
@@ -116,13 +114,10 @@ namespace kinski { namespace gl {
                                  m->geometry()->vertices().size());
                 }
             }
-            
 #ifndef KINSKI_NO_VAO
             GL_SUFFIX(glBindVertexArray)(0);
 #endif
-            
         }
-        
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
@@ -142,7 +137,6 @@ namespace kinski { namespace gl {
                     if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(theObj))
                     {
                         gl::Ray ray_in_object_space = ray.transform(glm::inverse(theObj->transform()));
-                        
                         const std::vector<glm::vec3>& vertices = m->geometry()->vertices();
                         std::vector<gl::Face3>::const_iterator it = m->geometry()->faces().begin();
                         for (; it != m->geometry()->faces().end(); ++it)
@@ -158,7 +152,10 @@ namespace kinski { namespace gl {
                         }
                     }
                 }
-                else clicked_items.push_back(range_item_t(theObj, ray_hit.distance));
+                else
+                {
+                    clicked_items.push_back(range_item_t(theObj, ray_hit.distance));
+                }
             }
         }
         LOG_DEBUG<<"ray hit "<<clicked_items.size()<<" objects";

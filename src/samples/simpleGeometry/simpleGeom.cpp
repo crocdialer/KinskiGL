@@ -207,7 +207,6 @@ public:
                 scene().removeObject(m_mesh);
                 m_mesh = m;
                 m_mesh->material()->setShinyness(0.9);
-                m_mesh->transform() = glm::rotate(m_mesh->transform(), 30.0f, vec3(1, 1, 1));
                 scene().addObject(m_mesh);
             } catch (Exception &e)
             {

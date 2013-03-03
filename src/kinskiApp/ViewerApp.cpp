@@ -68,16 +68,17 @@ namespace kinski {
     void ViewerApp::update(const float timeDelta)
     {
         m_camera->setAspectRatio(getAspectRatio());
-        
         m_avg_filter.push(glm::vec2(0));
         m_inertia *= m_rotation_damping;
         
+        // rotation from inertia
         if(!m_mouse_down && glm::length2(m_inertia) > 0.0025)
         {
             *m_rotation = glm::mat3_cast(glm::quat(*m_rotation) *
-                                    glm::quat(glm::vec3(glm::radians(-m_inertia.y),
-                                                        glm::radians(-m_inertia.x), 0)));
+                                         glm::quat(glm::vec3(glm::radians(-m_inertia.y),
+                                                             glm::radians(-m_inertia.x), 0)));
         }
+        // rotation from fixed rotationspeed
         else if(!m_mouse_down || displayTweakBar())
         {
             *m_rotation = glm::mat3( glm::rotate(glm::mat4(m_rotation->value()),
@@ -97,13 +98,11 @@ namespace kinski {
                                                      m_precise_selection))
         {
             LOG_TRACE<<"picked id: "<< picked_obj->getID();
-            
-            if( gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj)){
-                
+            if( gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
+            {
                 if(m_selected_mesh != m)
                 {
                     if(m_selected_mesh){ m_selected_mesh->material() = m_materials[0]; }
-                    
                     m_selected_mesh = m;
                     m_materials[0] = m_selected_mesh->material();
                     m_materials[1]->shader() = m_materials[0]->shader();

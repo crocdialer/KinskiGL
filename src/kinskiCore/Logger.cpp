@@ -40,7 +40,7 @@ namespace kinski {
     
     Logger::Logger():
     _myTopLevelLogTag(""),
-    m_globalSeverity(SEV_DEBUG)
+    m_globalSeverity(SEV_INFO)
     {
         
     }

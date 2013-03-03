@@ -45,8 +45,7 @@ ray_triangle_intersection Triangle::intersect(const Ray &theRay) const
     glm::vec3 qvec = glm::cross(tvec, e1);
     float v = glm::dot(theRay.direction, qvec) * inv_det;
     if(v < 0.0f || (u + v) > 1.0f) return REJECT;
-    float t =  glm::dot(e2, qvec) * inv_det;
-    return ray_triangle_intersection(INTERSECT, t, u, v);
+    return ray_triangle_intersection(INTERSECT, glm::dot(e2, qvec) * inv_det, u, v);
 }
     
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)

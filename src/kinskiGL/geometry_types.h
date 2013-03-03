@@ -80,8 +80,8 @@ struct KINSKI_API Plane
 	
 	inline Plane& transform(const glm::mat4& t)
 	{
-		foot += t[3].xyz();
-		normal = glm::mat3(t) * normal;
+        foot = (t * glm::vec4(foot, 1.0f)).xyz();
+		normal = glm::normalize(glm::mat3(t) * normal);
 		return *this;
 	};
     
@@ -145,7 +145,7 @@ struct KINSKI_API Sphere
     
     inline uint32_t intersect(const glm::vec3 &thePoint) const
     {
-        if((center - thePoint).length() > radius)
+        if(glm::length2(center - thePoint) > radius * radius)
             return REJECT;
         
         return INSIDE;

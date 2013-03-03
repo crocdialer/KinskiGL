@@ -38,6 +38,7 @@ private:
             // Get available platforms
             vector<cl::Platform> platforms;
             cl::Platform::get(&platforms);
+            LOG_INFO<<platforms.front().getInfo<CL_PLATFORM_VERSION>();
             
             // context sharing is OS specific
             #if defined (__APPLE__) || defined(MACOSX)
@@ -206,7 +207,7 @@ public:
     
     void tearDown()
     {
-        LOG_INFO<<"ciao openclTest\n";
+        LOG_INFO<<"ciao openclTest";
     }
     
     void update(const float timeDelta)
