@@ -93,6 +93,12 @@ BOOST_AUTO_TEST_CASE( testRangedProp )
     
     rangeProp->set(9999);
     BOOST_CHECK_EQUAL(*rangeProp, max);
+    
+    *rangeProp -= 9999;
+    BOOST_CHECK_EQUAL(*rangeProp, min);
+    
+    *rangeProp += 9999;
+    BOOST_CHECK_EQUAL(*rangeProp, max);
 }
 
 //____________________________________________________________________________//

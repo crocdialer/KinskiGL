@@ -24,7 +24,7 @@ namespace kinski {
         m_window_size->setTweakable(false);
         registerProperty(m_window_size);
         
-        m_distance = RangedProperty<float>::create("view distance", 25, 0, 500);
+        m_distance = RangedProperty<float>::create("view distance", 25, 0, 4500);
         registerProperty(m_distance);
         
         m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());

@@ -151,12 +151,35 @@ public:
     inline T& value() {return getValue<T>();};
     inline void set(const T &theVal){setValue<T>(theVal);};
     inline void value(const T &theVal){set(theVal);};
-    operator T&() { return value(); }
-    operator const T&() const { return value(); }
+    inline operator const T&() const { return value(); }
     
-    inline Property_<T>& operator=(T const& theVal)
+    inline Property_<T>& operator=(const T &theVal)
     {
         set(theVal);
+        return *this;
+    };
+    
+    inline Property_<T>& operator+=(const T &theVal)
+    {
+        set(*this + theVal);
+        return *this;
+    };
+    
+    inline Property_<T>& operator-=(const T &theVal)
+    {
+        set(*this - theVal);
+        return *this;
+    };
+    
+    inline Property_<T>& operator*=(const T &theVal)
+    {
+        set(*this * theVal);
+        return *this;
+    };
+    
+    inline Property_<T>& operator/=(const T &theVal)
+    {
+        set(*this / theVal);
         return *this;
     };
     
