@@ -76,7 +76,7 @@ public:
             vector<cv::Mat> images = m_cvThread->getImages();
             
             float imgAspect = images.front().cols/(float)images.front().rows;
-            setWindowSize( ivec2(getWidth(), getWidth() / imgAspect) );
+            setWindowSize( vec2(getWidth(), getWidth() / imgAspect) );
             
             
             for(int i=0;i<images.size();i++)

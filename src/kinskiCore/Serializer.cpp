@@ -122,7 +122,6 @@ namespace kinski {
 
             myVIndex++;
         }
-        
         myIndex++;
         myVIndex = 0;
         Json::StyledWriter myWriter;
@@ -135,8 +134,8 @@ namespace kinski {
     {
         Json::Reader myReader;
         Json::Value myRoot;
-        
         bool myParsingSuccessful = myReader.parse(theState, myRoot);
+        
         if (!myParsingSuccessful)
         {
             throw ParsingException(theState);

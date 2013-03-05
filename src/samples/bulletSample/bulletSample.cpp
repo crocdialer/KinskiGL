@@ -224,7 +224,7 @@ public:
     void setup()
     {
         BaseAppType::setup();
-        set_precise_selection(true);
+        set_precise_selection(false);
         
         /*********** init our application properties ******************/
         
@@ -347,7 +347,6 @@ public:
         case KeyEvent::KEY_r:
             m_physics_context.teardown_physics();
             create_cube_stack(4, 32, 4);
-            selected_mesh().reset();
             break;
                 
         default:

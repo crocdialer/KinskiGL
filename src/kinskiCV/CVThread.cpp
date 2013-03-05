@@ -11,7 +11,6 @@
 
 using namespace std;
 using namespace cv;
-
 using namespace boost::timer;
 
 namespace kinski
@@ -32,10 +31,8 @@ namespace kinski
     void CVThread::start()
     {
         if(!m_stopped) return;
-        
         m_thread = boost::thread(boost::ref(*this));
         m_stopped = false;
-        
     }
     
     void CVThread::stop()
@@ -72,7 +69,6 @@ namespace kinski
     {
         CVCaptureNode::Ptr capNode (new CVCaptureNode(path2Video));
         capNode->setLoop(loop);
-        
         m_captureFPS = capNode->getFPS();
         m_sourceNode = capNode;
         start(); 
@@ -120,17 +116,15 @@ namespace kinski
                 LOG_ERROR<<e.what();
                 break;
             }
-            
             cpu_times grabTimes = cpuTimer.elapsed();
             
             //skip iteration when invalid frame is returned (eg. from camera)
             if(inFrame.empty()) continue;
-            
+        
             vector<Mat> tmpImages;
             tmpImages.push_back(inFrame);
             
             // image processing
-            
             cpuTimer.start();
             
             if(hasProcessing())
@@ -142,7 +136,6 @@ namespace kinski
                                  procImages.begin(),
                                  procImages.end());
             }
-            
             cpu_times processTimes = cpuTimer.elapsed();
 
             // locked scope
@@ -154,11 +147,8 @@ namespace kinski
                 m_newFrame = true;
                 m_conditionVar.notify_all();
             }
-            
             // thread timing
-            
             double elapsed_msecs,sleep_msecs;
-            
             elapsed_msecs = threadTimer.elapsed().wall / 1000000.0;
             sleep_msecs = max(0.0, (1000.0 / m_captureFPS - elapsed_msecs));
             
@@ -166,7 +156,6 @@ namespace kinski
             boost::posix_time::milliseconds msecs(sleep_msecs);
             boost::this_thread::sleep(msecs);
         }
-        
         m_stopped = true;
     }
     
@@ -198,7 +187,6 @@ namespace kinski
         if(hasProcessing())
         {
             vector<Mat> procImages = m_processNode->doProcessing(img);
-            
             tmpImages.push_back(img);
             tmpImages.insert(tmpImages.end(),
                              procImages.begin(),

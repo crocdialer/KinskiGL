@@ -22,9 +22,7 @@ namespace kinski {
         struct tm  tstruct;
         char       buf[80];
         tstruct = *localtime(&now);
-        
         strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
-        
         return buf;
     }
     
@@ -113,7 +111,7 @@ namespace kinski {
         myText << theText;
         if (theSeverity > SEV_PRINT)
         {
-            myText << " [" << lastFileNamePart(theModule) << " at:" << theId << "]";
+            myText << " [" << getFilenamePart(theModule) << " at:" << theId << "]";
         }
         
         std::string currentTimeString = currentDateTime();

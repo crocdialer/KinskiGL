@@ -77,7 +77,6 @@ namespace kinski
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
         
         // file search paths
-        kinski::addSearchPath("");
         kinski::addSearchPath("./");
         kinski::addSearchPath("./res/");
         kinski::addSearchPath("../Resources/");
@@ -176,11 +175,9 @@ namespace kinski
     {
         if(m_displayTweakBar)
             TwEventMousePosGLFW(x,y);
-        
         uint32_t buttonModifiers, keyModifiers, bothMods;
         getModifiers(buttonModifiers, keyModifiers);
         bothMods = buttonModifiers | keyModifiers;
-            
         MouseEvent e(bothMods, x, y, bothMods, 0);
         
         if(buttonModifiers)

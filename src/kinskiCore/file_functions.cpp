@@ -8,24 +8,13 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "file_functions.h"
-#include "Exception.h"
-
 #include <fstream>
-#include <string>
-#include <stdio.h>
+#include <boost/filesystem.hpp>
+#include "Exception.h"
 #include "Logger.h"
 
-#include <libgen.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-
-#include <boost/filesystem.hpp>
-
-#define STAT64 stat
-
 using namespace std;
+using namespace boost::filesystem;
 
 namespace kinski {
     
@@ -65,19 +54,25 @@ namespace kinski {
     
     void addSearchPath(const std::string &thePath, bool recursive)
     {
+        boost::filesystem::path path_expanded (expand_user(thePath));
+        if (!boost::filesystem::exists(path_expanded))
+        {
+            LOG_DEBUG<<"directory "<<path_expanded<<" not existing";
+            return;
+        }
+            
         if(recursive)
         {
-            g_searchPaths.push_back(getDirectoryPart(expand_user(thePath)));
-            boost::filesystem::recursive_directory_iterator it;
+            g_searchPaths.push_back(getDirectoryPart(path_expanded.string()));
+            recursive_directory_iterator it;
             try
             {
-                it = boost::filesystem::recursive_directory_iterator(expand_user(thePath));
-                boost::filesystem::recursive_directory_iterator end;
+                it = recursive_directory_iterator(path_expanded);
+                recursive_directory_iterator end;
                 
                 while(it != end)
                 {
-                    if(boost::filesystem::is_directory(*it))
-                        g_searchPaths.push_back(it->path().string() +"/");
+                    if(is_directory(*it)) g_searchPaths.push_back(canonical(it->path()).string());
                     try{ ++it; }
                     catch(std::exception& e)
                     {
@@ -99,27 +94,79 @@ namespace kinski {
         }
         else
         {
-            g_searchPaths.push_back(getDirectoryPart(expand_user(thePath)));
+            g_searchPaths.push_back(getDirectoryPart(canonical(path_expanded).string()));
         }
     }
     
-    // boosted
-//    int getFileSize(const std::string & theFilename)
-//    {
-//        return boost::filesystem::file_size(theFilename.c_str());
-//    }
+    list<string> getDirectoryEntries(const std::string &thePath, bool recursive,
+                                     const std::string &theExtension)
+    {
+        list<string> ret;
+        path p (expand_user(thePath));
+        
+        try
+        {
+            if (exists(p))    // does p actually exist?
+            {
+                if(recursive)
+                {
+                    recursive_directory_iterator it(p), end;
+                    while(it != end)
+                    {
+                        if(boost::filesystem::is_regular_file(*it))
+                            ret.push_back(it->path().string());
+                        
+                        try{ ++it; }
+                        catch(std::exception& e)
+                        {
+                            // e.g. no permission
+                            LOG_ERROR<<e.what();
+                            it.no_push();
+                            ++it;
+                        }
+                    }
+                }
+                else
+                {
+                    directory_iterator it(p), end;
+                    while(it != end)
+                    {
+                        if(boost::filesystem::is_regular_file(*it))
+                            ret.push_back(it->path().string());
+                        
+                        try{ ++it; }
+                        catch(std::exception& e)
+                        {
+                            LOG_ERROR<<e.what();
+                        }
+                    }
+                }
+            }
+            else
+                LOG_DEBUG<< p <<" does not exist";
+        }
+        catch (const std::exception& e)
+        {
+            LOG_ERROR<<e.what();
+        }
+        return ret;
+    }
+    
+    int getFileSize(const std::string &theFilename)
+    {
+        return boost::filesystem::file_size(theFilename);
+    }
 
     /// read a complete file into a string
     const std::string readFile(const std::string & theUTF8Filename)
     {
         string path = searchFile(theUTF8Filename);
-
         ifstream inStream(path.c_str());
+        
         if(!inStream.good())
         {
             throw OpenFileFailed(path);
         }
-        
         return string ((istreambuf_iterator<char>(inStream)),
                        istreambuf_iterator<char>());
     }
@@ -127,22 +174,20 @@ namespace kinski {
     std::vector<uint8_t> readBinaryFile(const std::string & theUTF8Filename)
     {
         string path = searchFile(theUTF8Filename);
-        
         ifstream inStream(path.c_str());
+        
         if(!inStream.good())
         {
             throw OpenFileFailed(theUTF8Filename);
         }
-        
         std::vector<uint8_t> content;
         content.insert(content.end(), (istreambuf_iterator<char>(inStream)),
                        istreambuf_iterator<char>());
-        
         return content;
     }
     
     bool
-    readFileLineByLine(const std::string & theUTF8Filename, std::vector<std::string> & theContent)
+    readFileLineByLine(const std::string &theUTF8Filename, std::vector<std::string> &theContent)
     {
         const size_t MAX_LENGTH = 1000;
         char buffer[MAX_LENGTH];
@@ -174,62 +219,27 @@ namespace kinski {
         return true;
     }
 
-    std::string getFilenamePart(const std::string & theFileName)
+    std::string getFilenamePart(const std::string &theFileName)
     {
-        std::string myBaseName;
-        if ( ! theFileName.empty()) {
-            if (theFileName.at(theFileName.length()-1) == '/') {  // Huh? what's that for??? [DS/MS]
-                // return empty string if theFileName ends with "/"
-                return std::string("");
-            }
-
-            char * myBuffer = strdup(theFileName.c_str());
-            myBaseName = basename(myBuffer);
-            free(myBuffer);
-        }
-        return myBaseName;
+        return path(theFileName).filename().string();
     }
 
     bool fileExists(const std::string& theFilename)
     {
-        struct STAT64 myStat;
-        return stat(theFilename.c_str(), &myStat) != -1;
+        return boost::filesystem::exists(theFilename);
     }
-
-    void getDirectoryEntries(const std::string & thePath,  std::vector<std::string> & theDirEntries,
-                             const std::string & theFilter)
-    {
-        if (!fileExists(thePath)) {
-            return;
-        }
-        DIR * myDirHandle = opendir(thePath.c_str());
-        if (!myDirHandle) {
-            throw OpenDirectoryFailed(string("thePath='") + thePath + "'not found");
-        }
-        struct dirent *dir_entry;
-        while((dir_entry = readdir(myDirHandle)) != 0) {
-            if (std::string("..")!= dir_entry->d_name && std::string(".") != dir_entry->d_name)
-            {
-                if (theFilter == "" || string(dir_entry->d_name).find(theFilter) != string::npos)
-                {
-                    theDirEntries.push_back(dir_entry->d_name);
-                }
-            }
-        }
-        closedir(myDirHandle);
-    }
-
+    
     std::string searchFile(const std::string &theFileName)
     {
-        std::string retPath, expanded_name = expand_user(theFileName);
+        std::string expanded_name = expand_user(theFileName);
         std::list<std::string>::const_iterator it = getSearchPaths().begin();
         for (; it != getSearchPaths().end(); ++it)
         {
-            if (fileExists((*it) + expanded_name))
+            boost::filesystem::path ret_path = path(*it) / path(expanded_name);
+            if (boost::filesystem::exists(ret_path))
             {
-                retPath = (*it) + expanded_name;
-                LOG_TRACE<<"found '"<<theFileName<<"' as: "<<expanded_name;
-                return retPath;
+                LOG_DEBUG<<"found '"<<theFileName<<"' as: "<<ret_path.string();
+                return ret_path.string();
             }
         }
         throw FileNotFoundException(theFileName);
@@ -237,53 +247,15 @@ namespace kinski {
 
     std::string getDirectoryPart(const std::string &theFileName)
     {
-        std::string myDirName;
-        if (! theFileName.empty() ) {
-            if (theFileName.at(theFileName.length()-1) == '/')
-            {
-                return theFileName;
-            }
-
-            char * myBuffer = strdup(theFileName.c_str());
-            myDirName = dirname(myBuffer);
-            free(myBuffer);
-            if (!myDirName.empty() && myDirName.at(myDirName.length()-1) != '/')
-            {
-                myDirName += "/";
-            }
-        }
-
-        return myDirName;
-    }
-
-    std::string lastFileNamePart(const std::string &theFileName)
-    {
-        std::string ret;
-        std::string::size_type mySlash = theFileName.find_last_of("/\\");
-        if (mySlash != std::string::npos) {
-            ret = theFileName.substr(mySlash+1);
-        }
-        return ret;
+        if(is_directory(theFileName))
+            return path(theFileName).string();
+        else
+            return path(theFileName).parent_path().string();
     }
 
     std::string getExtension(const std::string & thePath)
     {
-        std::string::size_type myDotPos = thePath.rfind(".");
-        if (myDotPos != std::string::npos) {
-
-            std::string::size_type mySlashPos = thePath.rfind("/");
-            if (mySlashPos == std::string::npos)
-            {
-                mySlashPos = thePath.rfind("\\");
-            }
-            if (mySlashPos != std::string::npos && mySlashPos > myDotPos)
-            {
-                return "";
-            }
-
-            return thePath.substr(myDotPos+1);
-        }
-        return "";
+        return boost::filesystem::extension(thePath);
     }
 
     std::string removeExtension(const std::string & theFileName)

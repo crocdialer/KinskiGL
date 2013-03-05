@@ -28,11 +28,11 @@ public:
         set_precise_selection(true);
         
         /******************** add search paths ************************/
-        kinski::addSearchPath("~/Desktop/");
-        kinski::addSearchPath("~/Desktop/sample/", true);
-        kinski::addSearchPath("~/Pictures/");
+        kinski::addSearchPath("~/Desktop");
+        kinski::addSearchPath("~/Desktop/sample", true);
+        kinski::addSearchPath("~/Pictures");
         
-        list<string> paths = kinski::getSearchPaths();
+        //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true);
         
         /*********** init our application properties ******************/
         

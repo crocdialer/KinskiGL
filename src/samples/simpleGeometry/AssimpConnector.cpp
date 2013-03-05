@@ -26,7 +26,7 @@ namespace kinski { namespace gl{
         Assimp::Importer importer;
         const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
         
-        if(true)
+        if(false)
         {
             theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
                                                 | aiProcess_GenSmoothNormals

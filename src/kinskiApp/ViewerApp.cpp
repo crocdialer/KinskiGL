@@ -12,7 +12,7 @@ namespace kinski {
     
     ViewerApp::ViewerApp():GLFW_App(),
     m_camera(new gl::PerspectiveCamera),
-    m_precise_selection(false),
+    m_precise_selection(true),
     m_rotation_damping (.9)
     {
         /*********** init our application properties ******************/
@@ -164,6 +164,7 @@ namespace kinski {
                     try
                     {
                         m_inertia = glm::vec2(0);
+                        m_selected_mesh.reset();
                         Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                     }catch(Exception &e)
                     {

@@ -407,27 +407,21 @@ namespace kinski { namespace gl {
     {
         // orthographic projection with a [0,1] coordinate space
         static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
-        
         float scaleX = (x1 - x0) / g_windowDim[0];
         float scaleY = (y0 - y1) / g_windowDim[1];
-        
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
-        modelViewMatrix[3] = vec4(x0 / g_windowDim[0],
-                                  y1 / g_windowDim[1] , 0, 1);
-        
+        modelViewMatrix[3] = vec4(x0 / g_windowDim[0], y1 / g_windowDim[1] , 0, 1);
         theMaterial->uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
-        
         theMaterial->apply();
-        
         static GLuint canvasVAO = 0, canvasBuffer = 0;
         
         if(!canvasVAO)
         {
             //GL_T2F_V3F
-            const GLfloat array[] ={0.0,0.0,0.0,0.0,0.0,
-                                    1.0,0.0,1.0,0.0,0.0,
-                                    1.0,1.0,1.0,1.0,0.0,
-                                    0.0,1.0,0.0,1.0,0.0};
+            static const GLfloat array[] ={ 0.0,0.0,0.0,0.0,0.0,
+                                            1.0,0.0,1.0,0.0,0.0,
+                                            1.0,1.0,1.0,1.0,0.0,
+                                            0.0,1.0,0.0,1.0,0.0};
            
 #ifndef KINSKI_NO_VAO
             // create VAO to record all VBO calls
@@ -437,22 +431,19 @@ namespace kinski { namespace gl {
             if(!canvasBuffer) glGenBuffers(1, &canvasBuffer);
             glBindBuffer(GL_ARRAY_BUFFER, canvasBuffer);
             glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
-            
             GLsizei stride = 5 * sizeof(GLfloat);
-            
             GLuint vertexAttribLocation = theMaterial->shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
-            
             GLuint texCoordAttribLocation = theMaterial->shader().getAttribLocation("a_texCoord");
             glEnableVertexAttribArray(texCoordAttribLocation);
             glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(0));
-            
-            GLuint colorAttribLocation = theMaterial->shader().getAttribLocation("a_color");
-            glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
         }
+        // in case no colors are defined, set dafault value
+        GLuint colorAttribLocation = theMaterial->shader().getAttribLocation("a_color");
+        glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
         
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(canvasVAO);
@@ -533,12 +524,9 @@ namespace kinski { namespace gl {
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr line_mesh (new gl::Mesh(geom, mat));
-            
             AABB bb = m->boundingBox();
-            
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
-            
             float axis_length = std::max(bb.width(), bb.height());
             axis_length = std::max(axis_length, bb.depth());
             
@@ -559,7 +547,6 @@ namespace kinski { namespace gl {
             
             geom->createGLBuffers();
             line_mesh->createVertexArray();
-            
             theMap[weakMesh] = line_mesh;
         }
         gl::drawMesh(theMap[weakMesh]);
@@ -576,19 +563,16 @@ namespace kinski { namespace gl {
     void drawMesh(const MeshPtr &theMesh)
     {
         theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
-        
         theMesh->material()->uniform("u_normalMatrix",
                                         glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
-        
         theMesh->material()->uniform("u_modelViewProjectionMatrix",
                                         g_projectionMatrixStack.top()
                                         * g_modelViewMatrixStack.top());
-        
+
         if(theMesh->geometry()->hasBones())
         {
             theMesh->material()->uniform("u_bones", theMesh->geometry()->boneMatrices());
         }
-        
         theMesh->material()->apply();
         
 #ifndef KINSKI_NO_VAO
@@ -630,9 +614,7 @@ namespace kinski { namespace gl {
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr line_mesh (new gl::Mesh(geom, mat));
-            
             AABB bb = m->boundingBox();
-            
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
             
@@ -697,18 +679,16 @@ namespace kinski { namespace gl {
     void drawNormals(const MeshWeakPtr &theMesh)
     {
         static map<MeshWeakPtr, MeshPtr> theMap;
-
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
+        
         if(theMap.find(theMesh) == theMap.end())
         {
             Mesh::ConstPtr m = theMesh.lock();
             if(m->geometry()->normals().empty()) return;
-            
             GeometryPtr geom(new gl::Geometry);
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr line_mesh (new gl::Mesh(geom, mat));
-            
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
             const vector<vec3> &vertices = m->geometry()->vertices();
@@ -753,7 +733,6 @@ namespace kinski { namespace gl {
             }
 #endif
         }
-        
         return s_extensions;
     }
     
