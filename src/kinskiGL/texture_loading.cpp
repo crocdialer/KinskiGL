@@ -20,7 +20,6 @@ namespace kinski { namespace gl {
             return ret;
         
         int width, height, num_components;
-        
         unsigned char *data = stbi_load_from_memory(&dataVec[0], dataVec.size(),
                                                     &width, &height, &num_components, 0);
         
@@ -66,14 +65,11 @@ namespace kinski { namespace gl {
                 break;
 #endif
         }
-        // requires OpenGL 3.3
+        // requires OpenGL 3.3+
         //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
         //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-
         ret.update(data, GL_UNSIGNED_BYTE, format, width, height, true);
-
         stbi_image_free(data);
-        
         return ret;
     }
     

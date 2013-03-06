@@ -14,8 +14,8 @@
 #include "Definitions.h"
 
 namespace kinski {
-    enum Severity { SEV_PRINT, SEV_FATAL, SEV_ERROR, SEV_WARNING, SEV_INFO,
-                    SEV_DEBUG, SEV_TRACE, SEV_DISABLED};
+    enum Severity { SEV_DISABLED = 0, SEV_PRINT = 1, SEV_FATAL = 2, SEV_ERROR = 3, SEV_WARNING = 4,
+                    SEV_INFO = 5, SEV_DEBUG = 6, SEV_TRACE = 7};
 
 class KINSKI_API Logger
 {
@@ -30,23 +30,24 @@ class KINSKI_API Logger
         int m_minId;
         int m_maxId;
     };
-    public:
-        virtual ~Logger();
+ public:
     
-        static Logger* get();
+    virtual ~Logger();
+    static Logger* get();
 
-        /**
-        Used to detect if a message should be logged depending on its severity and the logger severity settings.
-        returns true if theSeverity is higher (numerically smaller) than the verbosity setting
-        a different verbosity can be defined for any id range in any module; if there are different
-        verbosity settings for an overlapping id region in the same module, the setting for the
-        smallest id-range takes precedence.
-        */
-        bool ifLog(Severity theSeverity, const char *theModule, int theId);
-        void log(Severity theSeverity, const char *theModule, int theId, const std::string &theText);
-        void setLoggerTopLevelTag(const std::string & theTagString);
+    /**
+    Used to detect if a message should be logged depending on its severity and the logger severity settings.
+    returns true if theSeverity is higher (numerically smaller) than the verbosity setting
+    a different verbosity can be defined for any id range in any module; if there are different
+    verbosity settings for an overlapping id region in the same module, the setting for the
+    smallest id-range takes precedence.
+    */
+    bool ifLog(Severity theSeverity, const char *theModule, int theId);
+    void log(Severity theSeverity, const char *theModule, int theId, const std::string &theText);
+    void setLoggerTopLevelTag(const std::string & theTagString);
 
-        void setSeverity(const Severity theSeverity);
+    void setSeverity(const Severity theSeverity);
+    Severity getSeverity() const { return m_globalSeverity; };
 
     private:
     

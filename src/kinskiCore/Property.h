@@ -109,9 +109,7 @@ protected:
 private:
     std::string m_name;
     boost::any m_value;
-    
 	bool m_tweakable;
-    
     std::set<Observer::Ptr> m_observers;
 
 public:
@@ -208,12 +206,6 @@ public:
     
     typedef std::shared_ptr< RangedProperty<T> > Ptr;
     
-    inline RangedProperty<T>& operator=(T const& theVal)
-    {
-        this->set(theVal);
-        return *this;
-    };
-    
     class BadBoundsException : public Exception
     {
     public:
@@ -235,10 +227,8 @@ public:
     {
         if( min > max )
             throw BadBoundsException(this->getName());
-        
         m_min = min;
         m_max = max;
-        
         checkValue(this->getValue());
     };
     

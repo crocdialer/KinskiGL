@@ -16,6 +16,10 @@ namespace kinski {
     m_rotation_damping (.9)
     {
         /*********** init our application properties ******************/
+        m_logger_severity = RangedProperty<int>::create("Logger Severity", kinski::SEV_INFO, 0, 7);
+        m_logger_severity->setTweakable(false);
+        registerProperty(m_logger_severity);
+        
         m_show_tweakbar = Property_<bool>::create("Show Tweakbar", true);
         m_show_tweakbar->setTweakable(false);
         registerProperty(m_show_tweakbar);
@@ -186,7 +190,11 @@ namespace kinski {
     // Property observer callback
     void ViewerApp::updateProperty(const Property::ConstPtr &theProperty)
     {
-        if(theProperty == m_show_tweakbar)
+        if(theProperty == m_logger_severity)
+        {
+            Logger::get()->setSeverity(static_cast<Severity>(m_logger_severity->value()));
+        }
+        else if(theProperty == m_show_tweakbar)
         {
             set_displayTweakBar(*m_show_tweakbar);
         }

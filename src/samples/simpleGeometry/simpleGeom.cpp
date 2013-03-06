@@ -32,7 +32,7 @@ public:
         kinski::addSearchPath("~/Desktop/sample", true);
         kinski::addSearchPath("~/Pictures");
         
-        //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true);
+        //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
         
         /*********** init our application properties ******************/
         
@@ -77,11 +77,11 @@ public:
         
         try
         {
-            m_textures[0] = gl::createTextureFromFile("Earth2.jpg");
+            m_textures[0] = gl::createTextureFromFile("smoketex.png");
             materials()[0]->addTexture(m_textures[0]);
             materials()[0]->addTexture(m_textures[1]);
             materials()[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert",
-                                                              "shader_normalMap.frag"));
+                                                               "shader_normalMap.frag"));
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
@@ -148,9 +148,8 @@ public:
             gl::drawBoundingBox(selected_mesh());
             if(normals()) gl::drawNormals(selected_mesh());
             
-//            gl::drawPoints(m_mesh2->geometry()->vertexBuffer().id(),
-//                           m_mesh2->geometry()->vertices().size(),
-//                           m_pointMaterial);
+//            gl::drawPoints(selected_mesh()->geometry()->vertexBuffer().id(),
+//                           selected_mesh()->geometry()->vertices().size());
             
             if(selected_mesh()->geometry()->hasBones())
             {

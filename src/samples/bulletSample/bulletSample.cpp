@@ -1,19 +1,19 @@
+#ifdef KINSKI_RASPI
+#include "kinskiApp/Raspi_App.h"
+typedef kinski::Raspi_App BaseAppType;
+#else
+#include "kinskiApp/ViewerApp.h"
+typedef kinski::ViewerApp BaseAppType;
+#endif
+
 #include "kinskiApp/TextureIO.h"
 #include "physics_context.h"
 #include "kinskiCV/CVThread.h"
+#include "ThreshNode.h"
 
 using namespace std;
 using namespace kinski;
 using namespace glm;
-
-#ifdef KINSKI_RASPI
-#include "kinskiApp/Raspi_App.h"
-typedef Raspi_App BaseAppType;
-#else
-#include "kinskiApp/ViewerApp.h"
-typedef ViewerApp BaseAppType;
-#endif
-
 
 namespace kinski { namespace gl {
 
@@ -92,7 +92,6 @@ namespace kinski { namespace gl {
             m_graphicsWorldTrans.getOpenGLMatrix(&transform[0][0]);
             m_object->setTransform(transform);
         }
-        
     };
 }}
 
@@ -263,6 +262,7 @@ public:
         
         // camera input
         m_cvThread = CVThread::Ptr(new CVThread());
+        m_cvThread->setProcessingNode(CVProcessNode::Ptr(new ThreshNode(-1)));
         m_cvThread->streamUSBCamera();
         
         // init physics pipeline
@@ -300,11 +300,8 @@ public:
         if(m_cvThread->hasImage())
         {
             vector<cv::Mat> images = m_cvThread->getImages();
-            
-            for(int i=0;i<images.size();i++)
-                gl::TextureIO::updateTexture(m_textures[i], images[i]);
+            gl::TextureIO::updateTexture(m_textures[0], images.back());
         }
-        
         materials()[0]->uniform("u_time",getApplicationTime());
         materials()[0]->uniform("u_lightDir", light_direction());
     }

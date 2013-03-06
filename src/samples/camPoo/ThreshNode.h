@@ -21,19 +21,14 @@ public:
     
     std::vector<cv::Mat> doProcessing(const cv::Mat &img)
     {
-        std::vector<cv::Mat> outMats;
-        
         cv::Mat grayImg, threshImg;
         cv::cvtColor(img, grayImg, CV_BGR2GRAY);
         uint64_t mode = CV_THRESH_BINARY;
         if(m_thresh < 0) mode |= CV_THRESH_OTSU;
         threshold(grayImg, threshImg, m_thresh, 255, mode);
-
-        cv::applyColorMap(threshImg, threshImg, cv::COLORMAP_BONE);
-        
-        outMats.push_back(img);
+        //cv::applyColorMap(threshImg, threshImg, cv::COLORMAP_BONE);
+        std::vector<cv::Mat> outMats;
         outMats.push_back(threshImg);
-        
         return outMats;
     };
     

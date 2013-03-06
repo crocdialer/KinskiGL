@@ -24,6 +24,7 @@ namespace kinski { namespace gl{
     gl::Mesh::Ptr AssimpConnector::loadModel(const std::string &theModelPath)
     {
         Assimp::Importer importer;
+        LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
         const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
         
         if(false)
@@ -36,7 +37,7 @@ namespace kinski { namespace gl{
         if (theScene)
         {
             aiMesh *aMesh = theScene->mMeshes[0];
-            
+            LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
             gl::Geometry::Ptr geom( createGeometry(aMesh, theScene) );
             gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             

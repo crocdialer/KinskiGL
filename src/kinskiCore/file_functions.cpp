@@ -26,8 +26,7 @@ namespace kinski {
     {
         if (not path.empty() and path[0] == '~')
         {
-            //assert(path.size() == 1 or path[1] == '/');  // or other error handling
-            if(path.size() != 1 && path[1] != '/') return path;
+            if(path.size() != 1 && path[1] != '/') return path; // or other error handling ?
             char const* home = getenv("HOME");
             if (home or ((home = getenv("USERPROFILE"))))
             {
@@ -36,9 +35,7 @@ namespace kinski {
             {
                 char const *hdrive = getenv("HOMEDRIVE"),
                 *hpath = getenv("HOMEPATH");
-//                assert(hdrive);  // or other error handling
-//                assert(hpath);
-                if(!(hdrive && hpath)) return path;
+                if(!(hdrive && hpath)) return path; // or other error handling ?
                 path.replace(0, 1, std::string(hdrive) + hpath);
             }
         }
@@ -114,7 +111,13 @@ namespace kinski {
                     while(it != end)
                     {
                         if(boost::filesystem::is_regular_file(*it))
-                            ret.push_back(it->path().string());
+                        {
+                            if(theExtension.empty() ||
+                               it->path().extension().string().substr(1) == theExtension)
+                            {
+                                ret.push_back(it->path().string());
+                            }
+                        }
                         
                         try{ ++it; }
                         catch(std::exception& e)
@@ -132,7 +135,13 @@ namespace kinski {
                     while(it != end)
                     {
                         if(boost::filesystem::is_regular_file(*it))
-                            ret.push_back(it->path().string());
+                        {
+                            if(theExtension.empty() ||
+                               it->path().extension().string().substr(1) == theExtension)
+                            {
+                                ret.push_back(it->path().string());
+                            }
+                        }
                         
                         try{ ++it; }
                         catch(std::exception& e)
@@ -238,7 +247,7 @@ namespace kinski {
             boost::filesystem::path ret_path = path(*it) / path(expanded_name);
             if (boost::filesystem::exists(ret_path))
             {
-                LOG_DEBUG<<"found '"<<theFileName<<"' as: "<<ret_path.string();
+                LOG_TRACE<<"found '"<<theFileName<<"' as: "<<ret_path.string();
                 return ret_path.string();
             }
         }
@@ -253,23 +262,14 @@ namespace kinski {
             return path(theFileName).parent_path().string();
     }
 
-    std::string getExtension(const std::string & thePath)
+    std::string getExtension(const std::string &thePath)
     {
         return boost::filesystem::extension(thePath);
     }
 
-    std::string removeExtension(const std::string & theFileName)
+    std::string removeExtension(const std::string &theFileName)
     {
-        std::string::size_type myDotPos = theFileName.rfind(".");
-        if (myDotPos != std::string::npos) {
-            std::string::size_type mySlashPos = theFileName.rfind("/");
-            if (mySlashPos != std::string::npos && mySlashPos > myDotPos)
-            {
-                return theFileName;
-            }
-            return theFileName.substr(0, myDotPos);
-        }
-        return theFileName;
+        return path(theFileName).replace_extension().string();
     }
 
 }

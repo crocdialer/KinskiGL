@@ -14,7 +14,7 @@ class OpenCLTest : public ViewerApp
 private:
     
     Property_<string>::Ptr m_texturePath;
-    gl::Texture m_texture;
+    gl::Texture m_texture[4];
     gl::Material::Ptr m_pointMaterial;
     gl::Buffer m_vboPos, m_vboCol;
     
@@ -148,7 +148,7 @@ public:
         m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
         m_pointMaterial->setDiffuse(vec4(.9, .7, 0, 1.f));
-        m_pointMaterial->setBlending();
+        //m_pointMaterial->setBlending();
         
         initOpenCL();
         
@@ -233,7 +233,7 @@ public:
         {
             try
             {
-                m_texture = gl::createTextureFromFile(*m_texturePath);
+                m_texture[0] = gl::createTextureFromFile(*m_texturePath);
             } catch (kinski::Exception &e)
             {
                 LOG_WARNING << e.what();
