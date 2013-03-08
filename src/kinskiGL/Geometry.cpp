@@ -168,7 +168,7 @@ namespace kinski{ namespace gl{
     void Geometry::computeTangents()
     {
         if(m_faces.empty()) return;
-        
+
         if(m_texCoords.size() != m_vertices.size()) return;
         
         if(m_tangents.size() != m_vertices.size())
@@ -557,19 +557,15 @@ namespace kinski{ namespace gl{
             geom->appendFace(i * 4 + 0, i * 4 + 1, i * 4 + 2);
             geom->appendFace(i * 4 + 2, i * 4 + 3, i * 4 + 0);
         }
-        
         geom->computeTangents();
         geom->createGLBuffers();
         geom->computeBoundingBox();
-        
         return geom;
     }
     
     Geometry::Ptr createSphere(float radius, int numSlices)
     {
         Geometry::Ptr geom (new Geometry);
-        
-        
         int i;
         int j;
         int numParallels = numSlices / 2;
@@ -580,9 +576,7 @@ namespace kinski{ namespace gl{
         
         // Allocate memory for buffers
         GLfloat vertices[3 * numVertices];
-        
         GLfloat normals[3 * numVertices];
-       
         GLfloat texCoords[2 * numVertices];
         
         //GLuint indices[numIndices];
@@ -638,15 +632,12 @@ namespace kinski{ namespace gl{
                 }
             }
         }
-
         geom->appendVertices((glm::vec3*) vertices, numVertices);
         geom->appendNormals((glm::vec3*) normals, numVertices);
         geom->appendTextCoords((glm::vec2*) texCoords, numVertices);
-        
         geom->computeTangents();
         geom->createGLBuffers();
         geom->computeBoundingBox();
-
         return geom;
     }
 

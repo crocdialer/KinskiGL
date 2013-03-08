@@ -7,6 +7,8 @@
 //
 
 #include "AssimpConnector.h"
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
 #include "kinskiGL/Mesh.h"
 
 using namespace std;
@@ -38,8 +40,8 @@ namespace kinski { namespace gl{
         {
             aiMesh *aMesh = theScene->mMeshes[0];
             LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
-            gl::Geometry::Ptr geom( createGeometry(aMesh, theScene) );
-            gl::Material::Ptr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
+            gl::GeometryPtr geom( createGeometry(aMesh, theScene) );
+            gl::MaterialPtr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             
             try
             {
@@ -53,11 +55,8 @@ namespace kinski { namespace gl{
             {
                 LOG_WARNING<<e.what();
             }
-            
             gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
-            
             importer.FreeScene();
-            
             return mesh;
         }
         else
@@ -66,18 +65,17 @@ namespace kinski { namespace gl{
         }
     }
     
-    std::shared_ptr<gl::Bone>
+    BonePtr
     AssimpConnector::traverseNodes(const aiAnimation *theAnimation,
                                    const aiNode *theNode,
                                    const glm::mat4 &parentTransform,
                                    const map<std::string, pair<int, glm::mat4> > &boneMap,
-                                   shared_ptr<gl::Animation> &outAnim,
-                                   shared_ptr<gl::Bone> parentBone)
+                                   AnimationPtr &outAnim,
+                                   BonePtr parentBone)
     {
-        std::shared_ptr<gl::Bone> currentBone;
+        BonePtr currentBone;
         string nodeName(theNode->mName.data);
         glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
-        
         const aiNodeAnim* nodeAnim = NULL;
         
         if(theAnimation)
@@ -95,7 +93,6 @@ namespace kinski { namespace gl{
         }
         
         mat4 globalTransform = parentTransform * nodeTransform;
-        
         map<std::string, pair<int, mat4> >::const_iterator it = boneMap.find(nodeName);
         
         // we have a Bone node
@@ -103,8 +100,7 @@ namespace kinski { namespace gl{
         {
             int boneIndex = it->second.first;
             const mat4 &offset = it->second.second;
-            
-            currentBone = std::shared_ptr<gl::Bone> (new gl::Bone);
+            currentBone = BonePtr(new gl::Bone);
             currentBone->name = nodeName;
             currentBone->index = boneIndex;
             currentBone->transform = nodeTransform;
@@ -124,7 +120,6 @@ namespace kinski { namespace gl{
                 LOG_TRACE<<buf;
                 
                 gl::AnimationKeys animKeys;
-                
                 glm::vec3 bonePosition;
                 glm::vec3 boneScale;
                 glm::quat boneRotation;
@@ -149,14 +144,11 @@ namespace kinski { namespace gl{
                 {
                     aiVector3D scaleTmp = nodeAnim->mScalingKeys[i].mValue;
                     boneScale = vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z);
-                    
                     animKeys.scalekeys.push_back(gl::Key<glm::vec3>(nodeAnim->mScalingKeys[i].mTime,
                                                                     boneScale));
                 }
-                
                 outAnim->boneKeys[currentBone] = animKeys;
             }
-            
         }
         
         for (int i = 0 ; i < theNode->mNumChildren ; i++)
@@ -170,7 +162,6 @@ namespace kinski { namespace gl{
             else if(child)
                 currentBone = child;
         }
-        
         return currentBone;
     }
     
@@ -181,7 +172,6 @@ namespace kinski { namespace gl{
         geom->vertices().reserve(aMesh->mNumVertices);
         geom->vertices().insert(geom->vertices().end(), (glm::vec3*)aMesh->mVertices,
                                 (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
-        
         
         if(aMesh->HasTextureCoords(0))
         {
@@ -224,6 +214,7 @@ namespace kinski { namespace gl{
         else
         {
             // compute tangents
+            geom->computeTangents();
         }
         
         
@@ -231,7 +222,6 @@ namespace kinski { namespace gl{
         {
             typedef map<uint32_t, list< pair<uint32_t, float> > > WeightMap;
             WeightMap weightMap;
-            
             map<std::string, pair<int, mat4> > boneMap;
             
             for (int i = 0; i < aMesh->mNumBones; ++i)
@@ -270,11 +260,9 @@ namespace kinski { namespace gl{
             {
                 aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
                 theScene->mAnimations[0] : NULL;
-                
                 shared_ptr<gl::Animation> anim(new gl::Animation);
                 anim->duration = assimpAnimation->mDuration;
                 anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
-                
                 std::shared_ptr<gl::Bone> rootBone = traverseNodes(assimpAnimation,
                                                                    theScene->mRootNode, mat4(),
                                                                    boneMap, anim);
@@ -291,17 +279,15 @@ namespace kinski { namespace gl{
     gl::Material::Ptr AssimpConnector::createMaterial(const aiMaterial *mtl)
     {
         gl::Material::Ptr theMaterial(new gl::Material);
-        
         int ret1, ret2;
-        struct aiColor4D diffuse;
-        struct aiColor4D specular;
-        struct aiColor4D ambient;
-        struct aiColor4D emission;
+        aiColor4D diffuse;
+        aiColor4D specular;
+        aiColor4D ambient;
+        aiColor4D emission;
         float shininess, strength;
         int two_sided;
         int wireframe;
         aiString texPath;
-        
         glm::vec4 color;
         
         if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
@@ -327,9 +313,7 @@ namespace kinski { namespace gl{
             color.r = emission.r; color.g = emission.g; color.b = emission.b; color.a = emission.a;
             theMaterial->setEmission(color);
         }
-        
         ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
-        
         ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
         
         if((ret1 == AI_SUCCESS) && (ret2 == AI_SUCCESS))
@@ -353,7 +337,6 @@ namespace kinski { namespace gl{
                 theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data)));
             }
         }
-        
         return theMaterial;
     }
 

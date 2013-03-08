@@ -206,6 +206,12 @@ public:
     
     typedef std::shared_ptr< RangedProperty<T> > Ptr;
     
+    inline RangedProperty<T>& operator=(const T &theVal)
+    {
+        this->set(theVal);
+        return *this;
+    };
+    
     class BadBoundsException : public Exception
     {
     public:
