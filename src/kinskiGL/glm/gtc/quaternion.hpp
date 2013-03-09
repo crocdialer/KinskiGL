@@ -22,12 +22,13 @@
 ///
 /// @ref gtc_quaternion
 /// @file glm/gtc/quaternion.hpp
-/// @date 2009-05-21 / 2011-06-05
+/// @date 2009-05-21 / 2012-12-20
 /// @author Christophe Riccio
 ///
 /// @see core (dependence)
 /// @see gtc_half_float (dependence)
-/// 
+/// @see gtc_constants (dependence)
+///
 /// @defgroup gtc_quaternion GLM_GTC_quaternion
 /// @ingroup gtc
 /// 
@@ -42,6 +43,7 @@
 // Dependency:
 #include "../glm.hpp"
 #include "../gtc/half_float.hpp"
+#include "../gtc/constants.hpp"
 
 #if(defined(GLM_MESSAGES) && !defined(glm_ext))
 #	pragma message("GLM: GLM_GTC_quaternion extension included")
@@ -169,15 +171,50 @@ namespace detail
 		detail::tquat<T> const & q1, 
 		detail::tquat<T> const & q2);
 
-	/// Returns a SLERP interpolated quaternion of x and y according a. 
+	/// Spherical linear interpolation of two quaternions.
+	/// The interpolation is oriented and the rotation is performed at constant speed.
+	/// For short path spherical linear interpolation, use the slerp function.
 	/// 
+	/// @param x A quaternion
+	/// @param y A quaternion
+	/// @param a Interpolation factor. The interpolation is defined beyond the range [0, 1].
+	/// @tparam T Value type used to build the quaternion. Supported: half, float or double.
 	/// @see gtc_quaternion
+	/// @see - slerp(detail::tquat<T> const & x, detail::tquat<T> const & y, T const & a) 
 	template <typename T> 
 	detail::tquat<T> mix(
 		detail::tquat<T> const & x, 
 		detail::tquat<T> const & y, 
 		T const & a);
-		
+
+	/// Linear interpolation of two quaternions. 
+	/// The interpolation is oriented.
+	/// 
+	/// @param x A quaternion
+	/// @param y A quaternion
+	/// @param a Interpolation factor. The interpolation is defined in the range [0, 1].
+	/// @tparam T Value type used to build the quaternion. Supported: half, float or double.
+	/// @see gtc_quaternion
+	template <typename T> 
+	detail::tquat<T> lerp(
+		detail::tquat<T> const & x, 
+		detail::tquat<T> const & y, 
+		T const & a);
+
+	/// Spherical linear interpolation of two quaternions.
+	/// The interpolation always take the short path and the rotation is performed at constant speed.
+	/// 
+	/// @param x A quaternion
+	/// @param y A quaternion
+	/// @param a Interpolation factor. The interpolation is defined beyond the range [0, 1].
+	/// @tparam T Value type used to build the quaternion. Supported: half, float or double.
+	/// @see gtc_quaternion
+	template <typename T> 
+	detail::tquat<T> slerp(
+		detail::tquat<T> const & x, 
+		detail::tquat<T> const & y, 
+		T const & a);
+
 	/// Returns the q conjugate. 
 	/// 
 	/// @see gtc_quaternion
@@ -211,6 +248,27 @@ namespace detail
 	template <typename T> 
 	detail::tvec3<T> eulerAngles(
 		detail::tquat<T> const & x);
+
+	/// Returns roll value of euler angles expressed in radians if GLM_FORCE_RADIANS is define or degrees otherwise.
+	///
+	/// @see gtx_quaternion
+	template <typename valType> 
+	valType roll(
+		detail::tquat<valType> const & x);
+
+	/// Returns pitch value of euler angles expressed in radians if GLM_FORCE_RADIANS is define or degrees otherwise.
+	///
+	/// @see gtx_quaternion
+	template <typename valType> 
+	valType pitch(
+		detail::tquat<valType> const & x);
+
+	/// Returns yaw value of euler angles expressed in radians if GLM_FORCE_RADIANS is define or degrees otherwise.
+	///
+	/// @see gtx_quaternion
+	template <typename valType> 
+	valType yaw(
+		detail::tquat<valType> const & x);
 
 	/// Converts a quaternion to a 3 * 3 matrix. 
 	/// 
