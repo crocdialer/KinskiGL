@@ -25,11 +25,11 @@ namespace kinski {
                                                bool recursive = false,
                                                const std::string &theExtension = "");
     bool fileExists(const std::string &theFilename);
-    const std::string readFile(const std::string & theUTF8Filename);
+    const std::string readFile(const std::string &theUTF8Filename);
     std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename);
     std::string getFilenamePart(const std::string &theFileName);
     std::string getDirectoryPart(const std::string &theFileName);
-    bool readFileLineByLine(const std::string &theUTF8Filename, std::vector<std::string> &theContent);
+    std::vector<std::string> readFileLineByLine(const std::string &theUTF8Filename);
     std::string searchFile(const std::string &theFileName);
     std::string getExtension(const std::string &thePath);
     std::string removeExtension(const std::string &theFileName);

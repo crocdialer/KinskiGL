@@ -50,14 +50,15 @@ namespace kinski { namespace gl {
         glm::mat4 viewMatrix = theCamera->getViewMatrix();
         
         gl::Frustum frustum = theCamera->frustum();
+        //gl::Frustum frustum (theCamera->getProjectionMatrix() * theCamera->getViewMatrix());
         
-        map<std::pair<Geometry::Ptr, Material::Ptr>, list<Mesh::Ptr> > meshMap;
+        map<std::pair<GeometryPtr, MaterialPtr>, list<MeshPtr> > meshMap;
         m_num_visible_objects = 0;
         
-        list<Object3D::Ptr>::const_iterator objIt = m_objects.begin();
+        list<Object3DPtr>::const_iterator objIt = m_objects.begin();
         for (; objIt != m_objects.end(); objIt++)
         {
-            if(const Mesh::Ptr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
+            if(const MeshPtr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
             {
                 gl::AABB boundingBox = theMesh->geometry()->boundingBox();
                 boundingBox.transform(theMesh->transform());
@@ -65,8 +66,8 @@ namespace kinski { namespace gl {
                 if (frustum.intersect(boundingBox))
                 {
                     //gl::drawMesh(theMesh);
-                    meshMap[std::pair<Geometry::Ptr, Material::Ptr>(theMesh->geometry(),
-                                                                    theMesh->material())].push_back(theMesh);
+                    meshMap[std::pair<GeometryPtr, MaterialPtr>(theMesh->geometry(),
+                                                                theMesh->material())].push_back(theMesh);
                     m_num_visible_objects++;
                 }
             }

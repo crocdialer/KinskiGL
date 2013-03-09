@@ -9,9 +9,6 @@
 
 #include "geometry_types.h"
 
-#define MIN3(a,b,c) ((((a)<(b))&&((a)<(c))) ? (a) : (((b)<(c)) ? (b) : (c)))
-#define MAX3(a,b,c) ((((a)>(b))&&((a)>(c))) ? (a) : (((b)>(c)) ? (b) : (c)))
-
 namespace kinski { namespace gl {
 
 Plane::Plane()
@@ -36,13 +33,13 @@ Plane::Plane(float theA, float theB, float theC, float theD)
 Plane::Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
 {
     coefficients.xyz() = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-    coefficients.w = glm::dot(v0, glm::vec3(coefficients.xyz()));
+    coefficients.w = -glm::dot(v0, glm::vec3(coefficients.xyz()));
 }
 
 Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
 {
     coefficients.xyz() = glm::normalize(theNormal);
-    coefficients.w = glm::dot(theFoot, glm::vec3(coefficients.xyz()));
+    coefficients.w = -glm::dot(theFoot, glm::vec3(coefficients.xyz()));
 }
 
 ray_triangle_intersection Triangle::intersect(const Ray &theRay) const
@@ -174,7 +171,7 @@ Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
     glm::mat4 t;
     glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz(),
     side = transform[0].xyz(), up = transform[1].xyz();
-    float angle = 90.0f - fov;
+    float angle = 90.0f - fov/2.0f;
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
 

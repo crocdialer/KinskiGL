@@ -180,7 +180,7 @@ namespace kinski {
                        istreambuf_iterator<char>());
     }
 
-    std::vector<uint8_t> readBinaryFile(const std::string & theUTF8Filename)
+    std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename)
     {
         string path = searchFile(theUTF8Filename);
         ifstream inStream(path.c_str());
@@ -195,9 +195,9 @@ namespace kinski {
         return content;
     }
     
-    bool
-    readFileLineByLine(const std::string &theUTF8Filename, std::vector<std::string> &theContent)
+    std::vector<std::string> readFileLineByLine(const std::string &theUTF8Filename)
     {
+        std::vector<std::string> ret;
         const size_t MAX_LENGTH = 1000;
         char buffer[MAX_LENGTH];
         std::string newPart;
@@ -214,10 +214,10 @@ namespace kinski {
             std::string item;
             bool first = true;
             while (std::getline(stream, item, '\n')) {
-                if (first && !endedWithNewLine && theContent.size() >0) {
-                    theContent.back().append(item);
+                if (first && !endedWithNewLine && ret.size() >0) {
+                    ret.back().append(item);
                 } else {
-                    theContent.push_back(item);
+                    ret.push_back(item);
                 }
                 first = false;
             }
@@ -225,7 +225,7 @@ namespace kinski {
             size = fread(buffer, 1, MAX_LENGTH,file);
         }
         fclose(file);
-        return true;
+        return ret;
     }
 
     std::string getFilenamePart(const std::string &theFileName)

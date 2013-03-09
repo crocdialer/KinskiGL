@@ -67,7 +67,6 @@ struct KINSKI_API ray_triangle_intersection : public ray_intersection
 struct KINSKI_API Plane
 {
     // Ax + By + Cz + D = 0
-    
     glm::vec4 coefficients;
     
 	Plane();
@@ -76,7 +75,7 @@ struct KINSKI_API Plane
 	Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
 	Plane(const glm::vec3& f, const glm::vec3& n);
 	
-    inline const glm::vec3 normal() const { return glm::vec3(coefficients); };
+    inline const glm::vec3& normal() { return *((glm::vec3*)(&coefficients[0])); };
     
 	inline float distance(const glm::vec3& p) const
 	{
@@ -108,9 +107,9 @@ struct KINSKI_API Triangle
     
     inline Triangle& transform(const glm::mat4& t)
 	{
-		v0 = (glm::vec4(v0, 1.0f) * t).xyz();
-		v1 = (glm::vec4(v1, 1.0f) * t).xyz();
-        v2 = (glm::vec4(v2, 1.0f) * t).xyz();
+		v0 = (t * glm::vec4(v0, 1.0f)).xyz();
+		v1 = (t * glm::vec4(v1, 1.0f)).xyz();
+        v2 = (t * glm::vec4(v2, 1.0f)).xyz();
 		return *this;
 	};
     
@@ -129,7 +128,7 @@ struct KINSKI_API Sphere
 	glm::vec3 center;
 	float radius;
 
-	Sphere(glm::vec3 c,float r)
+	Sphere(const glm::vec3 &c,float r)
 	{
 		center = c;
 		radius = r;
@@ -137,7 +136,7 @@ struct KINSKI_API Sphere
     
     inline Sphere& transform(const glm::mat4& t)
 	{
-		center = (glm::vec4(center, 1.0f) * t).xyz();;
+		center = (t * glm::vec4(center, 1.0f)).xyz();
 		return *this;
 	};
     
@@ -164,13 +163,10 @@ struct KINSKI_API Sphere
         if(s < 0 && l2 > r2) return REJECT;
         float m2 = l2 - s * s;
         if(m2 > r2) return REJECT;
-        
         float q = sqrtf(r2 - m2);
         float t;
         if(l2 > r2) t = s - q;
         else t = s + q;
-        //glm::vec3 intersect_point = theRay * t;
-        
         return ray_intersection(INTERSECT, t);
     }
 };
@@ -308,7 +304,7 @@ struct KINSKI_API Frustum
 		Plane* end = planes+6 ;
 		for (Plane *p = planes; p < end; p++)
 		{
-			if (p->distance(s.center) > s.radius)
+			if (- p->distance(s.center) > s.radius)
 				return REJECT;
 		}
 		return INSIDE;
@@ -322,11 +318,11 @@ struct KINSKI_API Frustum
 		for (Plane *p = planes; p < end; p++)
 		{
 			//positive vertex outside ?
-			if (p->distance(aabb.posVertex(p->normal()) ) > 0)
+			if (p->distance(aabb.posVertex(p->normal()) ) < 0)
 				return REJECT ;
 			
 			//negative vertex outside ?
-			else if(p->distance(aabb.negVertex(p->normal()) ) > 0)
+			else if(p->distance(aabb.negVertex(p->normal()) ) < 0)
 				ret = INTERSECT ;
 		}
 		return ret;
