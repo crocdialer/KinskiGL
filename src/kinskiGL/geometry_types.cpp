@@ -16,20 +16,34 @@ namespace kinski { namespace gl {
 
 Plane::Plane()
 {
-	foot = glm::vec3(0);
-	normal = glm::vec3(0, 1, 0);
+    coefficients.w = 0;
+    coefficients.xyz() = glm::vec3(0, 1, 0);
+}
+
+Plane::Plane(const glm::vec4 &theCoefficients)
+{
+    float len = glm::length(theCoefficients.xyz());
+    coefficients = theCoefficients / len;
+}
+
+Plane::Plane(float theA, float theB, float theC, float theD)
+{
+    glm::vec4 theCoefficients(theA, theB, theC, theD);
+    float len = glm::length(glm::vec3(theCoefficients.xyz()));
+    coefficients = theCoefficients / len;
 }
 
 Plane::Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
 {
-	foot = v0;
-	normal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    coefficients.xyz() = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    coefficients.w = glm::dot(v0, glm::vec3(coefficients.xyz()));
 }
 
-Plane::Plane(const glm::vec3& f, const glm::vec3& n):
-foot(f),
-normal(n)
-{}
+Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
+{
+    coefficients.xyz() = glm::normalize(theNormal);
+    coefficients.w = glm::dot(theFoot, glm::vec3(coefficients.xyz()));
+}
 
 ray_triangle_intersection Triangle::intersect(const Ray &theRay) const
 {
@@ -143,6 +157,16 @@ uint32_t AABB::intersect(const Triangle& t) const
                                 {t.v2[0],t.v2[1],t.v2[2]}
                             };
     return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
+}
+
+Frustum::Frustum(const glm::mat4 &the_VP_martix)
+{
+    planes[0] = Plane(the_VP_martix[2] + the_VP_martix[3]); // near plane
+    planes[1] = Plane(the_VP_martix[3] - the_VP_martix[2]); // far plane
+    planes[2] = Plane(the_VP_martix[0] + the_VP_martix[3]); // left plane
+    planes[3] = Plane(the_VP_martix[3] - the_VP_martix[0]); // right plane
+    planes[4] = Plane(the_VP_martix[3] - the_VP_martix[1]); // top plane
+    planes[5] = Plane(the_VP_martix[1] + the_VP_martix[3]); // bottom plane
 }
     
 Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
