@@ -19,8 +19,8 @@ namespace kinski { namespace gl {
         Font();
         
         void load(const std::string &thePath);
-        Texture render_text(const std::string &theText);
-        Texture texture() const;
+        Texture render_text(const std::string &theText) const;
+        Texture glyph_texture() const;
         
     private:
         // forward declared Implementation object

@@ -63,7 +63,7 @@ namespace kinski { namespace gl {
         
     }
     
-    Texture Font::texture() const
+    Texture Font::glyph_texture() const
     {
         return m_obj->texture;
     }
@@ -90,7 +90,7 @@ namespace kinski { namespace gl {
         }
     }
     
-    Texture Font::render_text(const std::string &theText)
+    Texture Font::render_text(const std::string &theText) const
     {
         Texture ret;
         float x = 0, y = 0;
@@ -106,8 +106,8 @@ namespace kinski { namespace gl {
             int w = q.x1 - q.x0;
             int h = q.y1 - q.y0;
             
-            Area<uint32_t> src = {  .x = q.s0 * (m_obj->bitmap_width - 1),
-                                    .y = q.t0 * (m_obj->bitmap_height - 1),
+            Area<uint32_t> src = {  .x = q.s0 * (m_obj->bitmap_width),
+                                    .y = q.t0 * (m_obj->bitmap_height),
                                     .width = w, .height = h };
             
             Area<uint32_t> dst = { .x = q.x0, .y = m_obj->font_height + q.y0, .width = w, .height = h };
@@ -116,16 +116,6 @@ namespace kinski { namespace gl {
         }
         ret.update(dst_data, GL_UNSIGNED_BYTE, GL_RED, m_obj->bitmap_width, m_obj->bitmap_height,
                    true);
-        
-//        /* now convert from stbtt_aligned_quad to source/dest SDL_Rects */
-//        
-//        /* width and height are simple */
-//        
-//        /* t0,s0 and t1,s1 are texture-space coordinates, that is floats from
-//         * 0.0-1.0. we have to scale them back to the pixel space used in the
-//         * glyph data bitmap. its a simple as multiplying by the glyph bitmap
-//         * dimensions */
-
         return ret;
     }
     

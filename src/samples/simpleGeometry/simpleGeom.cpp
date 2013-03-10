@@ -34,11 +34,9 @@ public:
         kinski::addSearchPath("~/Desktop/sample", true);
         kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
-
-        
         //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
         
-        m_font.load("Arial.ttf");
+        m_font.load("Chalkduster.ttf");
         
         /*********** init our application properties ******************/
         
@@ -94,7 +92,8 @@ public:
         }
         
         m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo");
-
+        //m_textures[2] = m_font.glyph_texture();
+        
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, materials()[0]));
         myBoxMesh->setPosition(vec3(0, -100, 0));
