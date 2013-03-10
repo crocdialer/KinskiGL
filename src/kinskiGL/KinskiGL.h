@@ -74,6 +74,7 @@ namespace kinski { namespace gl {
     class Object3D;
     class Mesh;
     class Camera;
+    class Font;
     struct Bone;
     struct Ray;
     struct AABB;

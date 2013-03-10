@@ -12,12 +12,16 @@
 
 #include "KinskiGL.h"
 
-namespace kinski
-{
-namespace gl 
-{
+namespace kinski{ namespace gl{
     
     typedef unsigned int GLenum;
+    
+    template<typename T>
+    struct Area
+    {
+        T x, y;
+        T width, height;
+    };
     
     /** \brief Represents an OpenGL Texture. \ImplShared*/
     class KINSKI_API Texture
@@ -69,7 +73,7 @@ namespace gl
         const GLint getBoundTextureUnit() const;
         
         //! Replaces the pixels of a texture with \a data
-        void update( const unsigned char *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
+        void update( const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
         
         //! Replaces the pixels of a texture with \a data
         void update( const float *data,GLenum format, int theWidth, int theHeight, bool flipped = false );

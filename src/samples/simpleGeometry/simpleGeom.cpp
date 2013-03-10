@@ -1,6 +1,7 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiCV/CVThread.h"
 #include "kinskiGL/Fbo.h"
+#include "kinskiGL/Font.h"
 #include "AssimpConnector.h"
 
 using namespace std;
@@ -14,6 +15,7 @@ private:
     gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
     gl::MeshPtr m_mesh;
+    gl::Font m_font;
     
     RangedProperty<float>::Ptr m_textureMix;
     Property_<string>::Ptr m_modelPath;
@@ -31,8 +33,12 @@ public:
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Desktop/sample", true);
         kinski::addSearchPath("~/Pictures");
+        kinski::addSearchPath("/Library/Fonts");
+
         
         //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
+        
+        m_font.load("Arial.ttf");
         
         /*********** init our application properties ******************/
         
@@ -87,6 +93,7 @@ public:
             LOG_ERROR<<e.what();
         }
         
+        m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo");
 
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, materials()[0]));
@@ -133,7 +140,7 @@ public:
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
-        //gl::drawTexture(m_textures[0], windowSize());
+        gl::drawTexture(m_textures[2], m_textures[2].getSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());

@@ -179,7 +179,7 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
         glGenerateMipmap(m_Obj->m_Target);
 }
 
-void Texture::update( const unsigned char *data,GLenum format, int theWidth, int theHeight, bool flipped )
+void Texture::update( const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped )
 {   
     update(data, GL_UNSIGNED_BYTE, format, theWidth, theHeight, flipped);
 }
