@@ -241,10 +241,16 @@ namespace kinski {
     std::string searchFile(const std::string &theFileName)
     {
         std::string expanded_name = expand_user(theFileName);
+        boost::filesystem::path ret_path(expanded_name);
+        
+        if(ret_path.is_absolute() && is_regular_file(ret_path))
+        {
+            return ret_path.string();
+        }
         std::list<std::string>::const_iterator it = getSearchPaths().begin();
         for (; it != getSearchPaths().end(); ++it)
         {
-            boost::filesystem::path ret_path = path(*it) / path(expanded_name);
+            ret_path = path(*it) / path(expanded_name);
             if (boost::filesystem::exists(ret_path))
             {
                 LOG_TRACE<<"found '"<<theFileName<<"' as: "<<ret_path.string();
