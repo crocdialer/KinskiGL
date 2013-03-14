@@ -20,6 +20,7 @@ namespace kinski { namespace gl {
         
         void load(const std::string &thePath);
         Texture render_text(const std::string &theText) const;
+        gl::MeshPtr draw_text(const std::string &theText) const;
         Texture glyph_texture() const;
         
     private:

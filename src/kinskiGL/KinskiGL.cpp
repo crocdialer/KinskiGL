@@ -383,6 +383,7 @@ namespace kinski { namespace gl {
             }
             material->setDepthTest(false);
             material->setDepthWrite(false);
+            material->setBlending(true);
         }
         // add the texture to the material
         material->textures().clear();

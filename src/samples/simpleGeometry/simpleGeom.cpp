@@ -91,7 +91,7 @@ public:
             LOG_ERROR<<e.what();
         }
         
-        m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo");
+        m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo.\nNe neue Zeile ...");
         //m_textures[2] = m_font.glyph_texture();
         
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));

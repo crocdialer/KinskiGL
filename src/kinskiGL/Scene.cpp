@@ -61,6 +61,7 @@ namespace kinski { namespace gl {
             if(const MeshPtr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
             {
                 gl::AABB boundingBox = theMesh->geometry()->boundingBox();
+                //gl::Sphere s(theMesh->position(), glm::length(boundingBox.halfExtents()));
                 boundingBox.transform(theMesh->transform());
                 
                 if (frustum.intersect(boundingBox))

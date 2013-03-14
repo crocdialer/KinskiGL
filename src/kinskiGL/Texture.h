@@ -15,14 +15,7 @@
 namespace kinski{ namespace gl{
     
     typedef unsigned int GLenum;
-    
-    template<typename T>
-    struct Area
-    {
-        T x, y;
-        T width, height;
-    };
-    
+
     /** \brief Represents an OpenGL Texture. \ImplShared*/
     class KINSKI_API Texture
     {
