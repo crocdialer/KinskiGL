@@ -113,8 +113,22 @@ namespace kinski { namespace gl {
                                  m_obj->font_height, m_obj->data, m_obj->bitmap_width,
                                  m_obj->bitmap_height, 32, 96, m_obj->char_data);
             
-            m_obj->texture.update(m_obj->data, GL_UNSIGNED_BYTE, GL_RED, m_obj->bitmap_width,
+            // create RGBA data
+            uint32_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
+            uint8_t rgba_data[num_bytes];
+            uint8_t *dst_ptr = m_obj->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
+            for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
+            {
+                rgba_ptr[0] = 255;
+                rgba_ptr[1] = 255;
+                rgba_ptr[2] = 255;
+                rgba_ptr[3] = *dst_ptr;
+            }
+            
+            m_obj->texture.update(rgba_data, GL_UNSIGNED_BYTE, GL_RGBA, m_obj->bitmap_width,
                                   m_obj->bitmap_height, true);
+            glGenerateMipmap(m_obj->texture.getId());
+            
         } catch (const Exception &e)
         {
             LOG_ERROR<<e.what();
@@ -198,16 +212,19 @@ namespace kinski { namespace gl {
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat(new gl::Material);
         mat->addTexture(glyph_texture());
+        mat->setBlending(true);
         MeshPtr ret (new gl::Mesh(geom, mat));
         
         std::vector<glm::vec3>& vertices = geom->vertices();
         std::vector<glm::vec2>& tex_coords = geom->texCoords();
+        std::vector<glm::vec4>& colors = geom->colors();
         
         float x = 0, y = 0;
+        uint32_t max_y = 0;
         stbtt_aligned_quad q;
-        uint8_t dst_data[m_obj->bitmap_width * m_obj->bitmap_height];
-        std::fill(dst_data, dst_data + m_obj->bitmap_width * m_obj->bitmap_height, 0);
         
+        std::list<stbtt_aligned_quad> quads;
+   
         std::string::const_iterator it = theText.begin();
         for (; it != theText.end(); ++it)
         {
@@ -220,21 +237,54 @@ namespace kinski { namespace gl {
             
             stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
                                *it-32, &x, &y, &q, 1);
-            int w = q.x1 - q.x0;
-            int h = q.y1 - q.y0;
-
             
+            if(max_y < q.y1 + m_obj->font_height) max_y = q.y1 + m_obj->font_height;
             
-            //vertices.push_back(<#const value_type &__x#>)
-            
-//            Area<uint32_t> src = {  .x = q.s0 * (m_obj->bitmap_width),
-//                .y = q.t0 * (m_obj->bitmap_height),
-//                .width = w, .height = h };
-//            Area<uint32_t> dst = { .x = q.x0, .y = m_obj->font_height + q.y0, .width = w, .height = h };
-//            copyArea(m_obj->data, dst_data, src, dst);
+            quads.push_back(q);
         }
-       
         
+        std::list<stbtt_aligned_quad>::const_iterator quad_it = quads.begin();
+        for (; quad_it != quads.end(); ++quad_it)
+        {
+            const stbtt_aligned_quad &quad = *quad_it;
+            
+            int w = quad.x1 - quad.x0;
+            int h = quad.y1 - quad.y0;
+
+            Area<float> tex_Area = {.x1 = quad.s0, .y1 = 1 - quad.t0,
+                                    .x2 = quad.s1, .y2 = 1 - quad.t1};
+            Area<uint32_t> vert_Area = {.x1 = quad.x0,
+                                        .y1 = max_y - (m_obj->font_height + quad.y0),
+                                        .x2 = quad.x0 + w,
+                                        .y2 = max_y - (m_obj->font_height + quad.y0 + h) };
+            
+            // CREATE QUAD
+            // create vertices
+            vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y2, 0));
+            vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y2, 0));
+            vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y1, 0));
+            vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y2, 0));
+            vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y1, 0));
+            vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y1, 0));
+            
+            // create texcoords
+            tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y2));
+            tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y2));
+            tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y1));
+            tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y2));
+            tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y1));
+            tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y1));
+            
+            // create colors
+            for (int i = 0; i < 6; i++)
+            {
+                colors.push_back(glm::vec4(1));
+            }
+        }
+        
+        geom->computeBoundingBox();
+        geom->createGLBuffers();
+        ret->createVertexArray();
         return ret;
     }
     

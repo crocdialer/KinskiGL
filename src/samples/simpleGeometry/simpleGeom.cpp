@@ -91,13 +91,18 @@ public:
             LOG_ERROR<<e.what();
         }
         
-        m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo.\nNe neue Zeile ...");
+        m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo. Kakafaka schackalacka lulubaaaaa\nNe neue Zeile ...");
         //m_textures[2] = m_font.glyph_texture();
+        
+        gl::MeshPtr font_mesh = m_font.draw_text("Meine Pupu-Id ist dooooooooof");
+        scene().addObject(font_mesh);
+        set_precise_selection(false);
         
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, materials()[0]));
         myBoxMesh->setPosition(vec3(0, -100, 0));
         scene().addObject(myBoxMesh);
+        
         
         // load state from config file
         try
@@ -145,6 +150,9 @@ public:
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
         gl::drawGrid(500, 500, 100, 100);
         
+//        gl::drawBoundingBox(font_mesh);
+//        gl::drawMesh(font_mesh);
+        
         scene().render(camera());
         
         if(selected_mesh())
@@ -164,7 +172,6 @@ public:
                 gl::drawPoints(points);
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
-            
         }
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
