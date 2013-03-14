@@ -263,23 +263,24 @@ namespace kinski { namespace gl {
             vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y2, 0));
             vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y2, 0));
             vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y1, 0));
-            vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y2, 0));
-            vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y1, 0));
             vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y1, 0));
             
             // create texcoords
             tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y2));
             tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y2));
             tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y1));
-            tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y2));
-            tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y1));
             tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y1));
             
             // create colors
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 4; i++)
             {
                 colors.push_back(glm::vec4(1));
             }
+        }
+        for (int i = 0; i < vertices.size(); i += 4)
+        {
+            geom->appendFace(i, i + 1, i + 2);
+            geom->appendFace(i, i + 2, i + 3);
         }
         
         geom->computeBoundingBox();

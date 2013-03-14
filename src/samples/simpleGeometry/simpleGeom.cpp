@@ -96,7 +96,6 @@ public:
         
         gl::MeshPtr font_mesh = m_font.draw_text("Meine Pupu-Id ist dooooooooof");
         scene().addObject(font_mesh);
-        set_precise_selection(false);
         
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, materials()[0]));
