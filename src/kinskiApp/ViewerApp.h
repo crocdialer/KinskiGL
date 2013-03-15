@@ -14,6 +14,7 @@
 #include "kinskiGL/Scene.h"
 #include "kinskiGL/Camera.h"
 #include "kinskiGL/Mesh.h"
+#include "kinskiGL/Font.h"
 
 namespace kinski {
     
@@ -79,6 +80,7 @@ namespace kinski {
         gl::MeshPtr m_selected_mesh;
         gl::PerspectiveCamera::Ptr m_camera;
         gl::Scene m_scene;
+        
         bool m_precise_selection;
         
         RangedProperty<int>::Ptr m_logger_severity;

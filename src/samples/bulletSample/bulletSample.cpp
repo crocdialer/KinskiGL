@@ -106,6 +106,9 @@ private:
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
     
+    gl::Font m_font;
+    gl::MeshPtr m_label;
+    
     // opencv interface
     CVThread::Ptr m_cvThread;
 
@@ -223,7 +226,11 @@ public:
     void setup()
     {
         BaseAppType::setup();
-        set_precise_selection(false);
+        
+        kinski::addSearchPath("~/Desktop");
+        kinski::addSearchPath("/Library/Fonts");
+        
+        m_font.load("Chalkduster.ttf", 24);
         
         /*********** init our application properties ******************/
         
@@ -328,6 +335,9 @@ public:
             gl::drawAxes(selected_mesh());
             gl::drawBoundingBox(selected_mesh());
             if(normals()) gl::drawNormals(selected_mesh());
+            
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
+            gl::drawMesh(m_label);
         }
     }
     
@@ -349,6 +359,21 @@ public:
         default:
             break;
         }
+    }
+    
+    void mousePress(const MouseEvent &e)
+    {
+        BaseAppType::mousePress(e);
+        
+        if(selected_mesh())
+        {
+            m_label = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
+            m_label->setPosition(selected_mesh()->position()
+                                 + glm::vec3(0, selected_mesh()->boundingBox().height() / 2.f
+                                             + m_label->boundingBox().height(), 0)
+                                 - m_label->boundingBox().center());
+        }
+        
     }
     
     // Property observer callback

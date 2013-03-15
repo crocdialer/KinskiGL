@@ -1,7 +1,6 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiCV/CVThread.h"
 #include "kinskiGL/Fbo.h"
-#include "kinskiGL/Font.h"
 #include "AssimpConnector.h"
 
 using namespace std;
@@ -14,7 +13,7 @@ private:
     
     gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
-    gl::MeshPtr m_mesh;
+    gl::MeshPtr m_mesh, m_label;
     gl::Font m_font;
     
     RangedProperty<float>::Ptr m_textureMix;
@@ -169,13 +168,9 @@ public:
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
             
-            gl::MeshPtr label_mesh = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
-            label_mesh->setPosition(selected_mesh()->position()
-                                    + glm::vec3(0, selected_mesh()->boundingBox().height() / 2.f
-                                                   + label_mesh->boundingBox().height(), 0)
-                                    - label_mesh->boundingBox().center());
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * label_mesh->transform());
-            gl::drawMesh(label_mesh);
+            
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
+            gl::drawMesh(m_label);
         }
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
@@ -203,6 +198,21 @@ public:
         
         gl::Fbo::Format fboFormat;
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
+    }
+    
+    void mousePress(const MouseEvent &e)
+    {
+        ViewerApp::mousePress(e);
+        
+        if(selected_mesh())
+        {
+            m_label = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
+            m_label->setPosition(selected_mesh()->position()
+                                    + glm::vec3(0, selected_mesh()->boundingBox().height() / 2.f
+                                                + m_label->boundingBox().height(), 0)
+                                    - m_label->boundingBox().center());
+        }
+        
     }
     
     // Property observer callback
