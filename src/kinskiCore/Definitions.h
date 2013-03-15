@@ -17,7 +17,6 @@
 #endif
 
 #include <string>
-#include <sstream>
 #include <vector>
 #include <list>
 #include <set>
@@ -65,14 +64,6 @@ namespace kinski
 #else
 #error "kinski compile error: Unknown platform"
 #endif
-
-template <typename T>
-std::string as_string(const T &theObj)
-{
-    std::stringstream ss;
-    ss << theObj;
-    return ss.str();
-}
 
 // compiler has C++11 stdlib
 //#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)

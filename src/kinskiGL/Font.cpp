@@ -102,17 +102,17 @@ namespace kinski { namespace gl {
         return m_obj->texture;
     }
     
-    void Font::load(const std::string &thePath)
+    void Font::load(const std::string &thePath, size_t theSize)
     {
         //TODO: check extension
         try
         {
+            m_obj->font_height = theSize;
             std::vector<uint8_t> font_file = kinski::readBinaryFile(thePath);
-            
             stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
                                  m_obj->font_height, m_obj->data, m_obj->bitmap_width,
-                                 m_obj->bitmap_height, 32, 96, m_obj->char_data);
-            
+                                 m_obj->bitmap_height, 32, 96, m_obj->char_data);            
+
             // create RGBA data
             uint32_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
             uint8_t rgba_data[num_bytes];
@@ -138,7 +138,7 @@ namespace kinski { namespace gl {
         }
     }
     
-    Texture Font::render_text(const std::string &theText) const
+    Texture Font::create_texture(const std::string &theText, const glm::vec4 &theColor) const
     {
         Texture ret;
         float x = 0, y = 0;
@@ -192,13 +192,14 @@ namespace kinski { namespace gl {
         }
         
         // create RGBA data
+        uint8_t r = 255 * theColor.r, g = 255 * theColor.g, b = 255 * theColor.b;
         uint8_t rgba_data[max_x * max_y * 4];
         uint8_t *dst_ptr = dst_data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + max_x * max_y * 4;
         for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
         {
-            rgba_ptr[0] = 255;
-            rgba_ptr[1] = 255;
-            rgba_ptr[2] = 255;
+            rgba_ptr[0] = r;
+            rgba_ptr[1] = g;
+            rgba_ptr[2] = b;
             rgba_ptr[3] = *dst_ptr;
         }
         
@@ -206,13 +207,15 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    gl::MeshPtr Font::draw_text(const std::string &theText) const
+    gl::MeshPtr Font::create_mesh(const std::string &theText, const glm::vec4 &theColor) const
     {
         GeometryPtr geom(new gl::Geometry);
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat(new gl::Material);
+        mat->setDiffuse(theColor);
         mat->addTexture(glyph_texture());
         mat->setBlending(true);
+        mat->setTwoSided(true);
         MeshPtr ret (new gl::Mesh(geom, mat));
         
         std::vector<glm::vec3>& vertices = geom->vertices();
@@ -242,6 +245,11 @@ namespace kinski { namespace gl {
             
             quads.push_back(q);
         }
+        
+        // reserve memory
+        vertices.reserve(quads.size() * 4);
+        tex_coords.reserve(quads.size() * 4);
+        colors.reserve(quads.size() * 4);
         
         std::list<stbtt_aligned_quad>::const_iterator quad_it = quads.begin();
         for (; quad_it != quads.end(); ++quad_it)

@@ -16,6 +16,14 @@
 
 namespace kinski
 {
+    template <typename T>
+    std::string as_string(const T &theObj)
+    {
+        std::stringstream ss;
+        ss << theObj;
+        return ss.str();
+    }
+    
     class MouseEvent;
     class KeyEvent;
     

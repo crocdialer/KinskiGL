@@ -29,78 +29,7 @@ namespace kinski{ namespace gl{
     {
   
     }
-    
-    void Geometry::appendVertices(const std::vector<glm::vec3> &theVerts)
-    {
-        m_vertices.reserve(m_vertices.size() + theVerts.size());
-        m_vertices.insert(m_vertices.end(), theVerts.begin(), theVerts.end());
-    }
-    
-    void Geometry::appendVertices(const glm::vec3 *theVerts, size_t numVerts)
-    {
-        m_vertices.reserve(m_vertices.size() + numVerts);
-        m_vertices.insert(m_vertices.end(), theVerts, theVerts + numVerts);
-    }
-    
-    void Geometry::appendNormals(const std::vector<glm::vec3> &theNormals)
-    {
-        m_normals.reserve(m_normals.size() + theNormals.size());
-        m_normals.insert(m_normals.end(), theNormals.begin(), theNormals.end());
-    }
-    
-    void Geometry::appendNormals(const glm::vec3 *theNormals, size_t numNormals)
-    {
-        m_normals.reserve(m_normals.size() + numNormals);
-        m_normals.insert(m_normals.end(), theNormals, theNormals + numNormals);
-    }
-    
-    void Geometry::appendTextCoords(const std::vector<glm::vec2> &theVerts)
-    {
-        m_texCoords.reserve(m_texCoords.size() + theVerts.size());
-        m_texCoords.insert(m_texCoords.end(), theVerts.begin(), theVerts.end());
-    }
-    
-    void Geometry::appendTextCoords(const glm::vec2 *theVerts, size_t numVerts)
-    {
-        m_texCoords.reserve(m_texCoords.size() + numVerts);
-        m_texCoords.insert(m_texCoords.end(), theVerts, theVerts + numVerts);
-    }
-    
-    void Geometry::appendColors(const std::vector<glm::vec4> &theColors)
-    {
-        m_colors.reserve(m_colors.size() + theColors.size());
-        m_colors.insert(m_colors.end(), theColors.begin(), theColors.end());
-    }
-    
-    void Geometry::appendColors(const glm::vec4 *theColors, size_t numColors)
-    {
-        m_colors.reserve(m_colors.size() + numColors);
-        m_colors.insert(m_colors.end(), theColors, theColors + numColors);
-    }
-    
-    void Geometry::appendIndices(const std::vector<uint32_t> &theIndices)
-    {
-        m_indices.reserve(m_indices.size() + theIndices.size());
-        m_indices.insert(m_indices.end(), theIndices.begin(), theIndices.end());
-    }
-    
-    void Geometry::appendIndices(const uint32_t *theIndices, size_t numIndices)
-    {
-        m_indices.reserve(m_indices.size() + numIndices);
-        m_indices.insert(m_indices.end(), theIndices, theIndices + numIndices);
-    }
-    
-    void Geometry::appendFace(uint32_t a, uint32_t b, uint32_t c)
-    {
-        appendFace(Face3(a, b, c));
-    }
-    
-    void Geometry::appendFace(const Face3 &theFace)
-    {
-        m_faces.push_back(theFace);
-        appendIndices(theFace.indices, 3);
-    }
-    
+
     void Geometry::computeBoundingBox()
     {
         m_boundingBox = gl::calculateAABB(m_vertices);
@@ -281,7 +210,6 @@ namespace kinski{ namespace gl{
             m_boneMatrices.clear();
             buildBoneMatrices(t, m_rootBone, glm::mat4(), m_boneMatrices);
         }
-    
     }
     
     void Geometry::buildBoneMatrices(float time, std::shared_ptr<Bone> bone,

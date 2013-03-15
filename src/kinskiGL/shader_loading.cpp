@@ -182,6 +182,7 @@ namespace kinski { namespace gl {
         "    {\n"
         "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
         "    }\n"
+        "    if(texColors.a == 0.0) discard;\n"
         "    fragData = u_material.diffuse * texColors;\n"
         "}\n";
         

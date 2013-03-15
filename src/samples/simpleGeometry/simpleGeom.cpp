@@ -36,7 +36,7 @@ public:
         kinski::addSearchPath("/Library/Fonts");
         //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
         
-        m_font.load("Chalkduster.ttf");
+        m_font.load("Chalkduster.ttf", 64);
         
         /*********** init our application properties ******************/
         
@@ -91,12 +91,9 @@ public:
             LOG_ERROR<<e.what();
         }
         
-        m_textures[2] = m_font.render_text("Du bist ein gelber Kakadoo. Kakafaka schackalacka lulubaaaaa\nNe neue Zeile ...");
+        m_textures[2] = m_font.create_texture("Du bist ein gelber Kakadoo. Kakafaka schackalacka lulubaaaaa\nNe neue Zeile ...", glm::vec4(1.0f, .4f, .0f, 1.f));
         //m_textures[2] = m_font.glyph_texture();
-        
-        gl::MeshPtr font_mesh = m_font.draw_text("Meine Pupu-Id ist dooooooooof");
-        scene().addObject(font_mesh);
-        
+
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
         gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, materials()[0]));
         myBoxMesh->setPosition(vec3(0, -100, 0));
@@ -160,7 +157,7 @@ public:
             gl::drawAxes(selected_mesh());
             gl::drawBoundingBox(selected_mesh());
             if(normals()) gl::drawNormals(selected_mesh());
-            
+
 //            gl::drawPoints(selected_mesh()->geometry()->vertexBuffer().id(),
 //                           selected_mesh()->geometry()->vertices().size());
             
@@ -171,6 +168,14 @@ public:
                 gl::drawPoints(points);
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
+            
+            gl::MeshPtr label_mesh = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
+            label_mesh->setPosition(selected_mesh()->position()
+                                    + glm::vec3(0, selected_mesh()->boundingBox().height() / 2.f
+                                                   + label_mesh->boundingBox().height(), 0)
+                                    - label_mesh->boundingBox().center());
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * label_mesh->transform());
+            gl::drawMesh(label_mesh);
         }
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());

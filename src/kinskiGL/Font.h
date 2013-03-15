@@ -18,10 +18,10 @@ namespace kinski { namespace gl {
     public:
         Font();
         
-        void load(const std::string &thePath);
-        Texture render_text(const std::string &theText) const;
-        gl::MeshPtr draw_text(const std::string &theText) const;
+        void load(const std::string &thePath, size_t theSize);
         Texture glyph_texture() const;
+        Texture create_texture(const std::string &theText, const glm::vec4 &theColor = glm::vec4(1)) const;
+        gl::MeshPtr create_mesh(const std::string &theText, const glm::vec4 &theColor = glm::vec4(1)) const;
         
     private:
         // forward declared Implementation object
