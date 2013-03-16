@@ -267,8 +267,88 @@ namespace kinski { namespace gl {
         "    float nDotL = max(0.0, dot(N, L));\n"
         "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
         "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    fragData = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0f) ;\n"
+        "    fragData = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0f) + spec;\n"
         "}\n";
+        
+        const char *phong_normalmap_vertSrc =
+        "#version 150 core\n"
+        "uniform mat4 u_modelViewMatrix;"
+        "uniform mat4 u_modelViewProjectionMatrix;"
+        "uniform mat3 u_normalMatrix;"
+        "uniform mat4 u_textureMatrix;"
+        "uniform vec3 u_lightDir;"
+        
+        "in vec4 a_vertex;"
+        "in vec4 a_texCoord;"
+        "in vec3 a_normal;"
+        "in vec3 a_tangent;"
+        
+        "out vec4 v_texCoord;"
+        "out vec3 v_normal;"
+        "out vec3 v_eye;"
+        "out vec3 v_lightDir;"
+        
+        "void main()"
+        "{"
+        "    v_normal = normalize(u_normalMatrix * a_normal);"
+        "    vec3 t = normalize (u_normalMatrix * a_tangent);"
+        "    vec3 b = cross(v_normal, t);"
+        "    mat3 tbnMatrix = mat3(t,b, v_normal);"
+        "    v_eye = normalize(- (u_modelViewMatrix * a_vertex).xyz);"
+        "    v_eye *= tbnMatrix;"
+        "    v_lightDir = u_lightDir;"
+        "    v_lightDir *= tbnMatrix;"
+        "    v_texCoord =  u_textureMatrix * a_texCoord;"
+        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;"
+        "}";
+        
+        const char *phong_normalmap_fragSrc =
+        "#version 150 core\n"
+        "uniform float u_time;"
+        "uniform int u_numTextures;"
+        "uniform sampler2D u_textureMap[16];"
+        "uniform struct"
+        "{"
+        "    vec4 diffuse;"
+        "    vec4 ambient;"
+        "    vec4 specular;"
+        "    vec4 emission;"
+        "    float shinyness;"
+        "} u_material;"
+        "in vec3 v_normal;"
+        "in vec3 v_eye;"
+        "in vec3 v_lightDir;"
+        "in vec4 v_texCoord;"
+        "out vec4 fragData;\n"
+        "vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)\n"
+        "{\n"
+        "    float center = texture(theMap, theCoords).r ;	 //center bump map sample\n"
+        "    float U = texture(theMap, theCoords + vec2( 0.005, 0)).r ;	//U bump map sample\n"
+        "    float V = texture(theMap, theCoords + vec2(0, 0.005)).r ;	 //V bump map sample\n"
+        "    float dHdU = U - center;	 //create bump map U offset\n"
+        "    float dHdV = V - center;	 //create bump map V offset\n"
+        "    vec3 normal = vec3( -dHdU, dHdV, 0.05 / theStrength);	 //create the tangent space normal\n"
+        "    return normalize(normal);\n"
+        "}\n"
+        
+        "void main()"
+        "{"
+        "    vec2 texCoord = vec2(1,1) * v_texCoord.xy;"
+        "    vec4 texColors = texture(u_textureMap[0], texCoord);"
+        "    vec3 N;"
+        "    // sample normal map\n"
+        "    N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;\n"
+        "    // sample bump map\n"
+        "    //N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);\n"
+        "    vec3 L = normalize(-v_lightDir);\n"
+        "    vec3 E = normalize(v_eye);\n"
+		"    vec3 R = reflect(-L, N);\n"
+        "    float nDotL = max(0.0, dot(N, L));\n"
+        "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
+        "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
+        "    fragData = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0f) + spec;\n"
+        "}"
+        ;
 #endif
         
         Shader ret;
@@ -280,6 +360,10 @@ namespace kinski { namespace gl {
                 
             case SHADER_PHONG:
                 ret.loadFromData(phongVertSrc, phongFragSrc);
+                break;
+            
+            case SHADER_PHONG_NORMALMAP:
+                ret.loadFromData(phong_normalmap_vertSrc, phong_normalmap_fragSrc);
                 break;
                 
             case SHADER_PHONG_SKIN:

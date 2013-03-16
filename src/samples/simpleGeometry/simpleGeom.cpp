@@ -20,6 +20,7 @@ private:
     Property_<string>::Ptr m_modelPath;
     RangedProperty<float>::Ptr m_animationTime;
     Property_<glm::vec4>::Ptr m_color;
+    Property_<float>::Ptr m_shinyness;
 
 public:
     
@@ -50,6 +51,9 @@ public:
         
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
+        
+        m_shinyness = Property_<float>::create("Shinyness", 1.0);
+        registerProperty(m_shinyness);
         
         // add properties
         addPropertyListToTweakBar(getPropertyList());
@@ -90,7 +94,7 @@ public:
             LOG_ERROR<<e.what();
         }
         
-        m_textures[2] = m_font.create_texture("Du bist ein gelber Kakadoo. Kakafaka schackalacka lulubaaaaa\nNe neue Zeile ...", glm::vec4(1.0f, .4f, .0f, 1.f));
+        m_textures[2] = m_font.create_texture("Du musst was an die Tafel schreiben.\nRechne vor der Klasse eine Aufgabe!!");
         //m_textures[2] = m_font.glyph_texture();
 
         gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
@@ -167,9 +171,9 @@ public:
                 gl::drawPoints(points);
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
-            
-            
+            // Label
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
+            m_label->setRotation(glm::mat3(camera()->transform()));
             gl::drawMesh(m_label);
         }
 //        m_frameBuffer.unbindFramebuffer();
@@ -208,11 +212,11 @@ public:
         {
             m_label = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
             m_label->setPosition(selected_mesh()->position()
-                                    + glm::vec3(0, selected_mesh()->boundingBox().height() / 2.f
-                                                + m_label->boundingBox().height(), 0)
-                                    - m_label->boundingBox().center());
+                                 + camera()->up() * (selected_mesh()->boundingBox().height() / 2.f
+                                                     + m_label->boundingBox().height())
+                                 - m_label->boundingBox().center());
+            m_label->setRotation(glm::mat3(camera()->transform()));
         }
-        
     }
     
     // Property observer callback
@@ -225,6 +229,10 @@ public:
         {
             if(selected_mesh()) selected_mesh()->material()->setDiffuse(*m_color);
         }
+        else if(theProperty == m_shinyness)
+        {
+            m_mesh->material()->setShinyness(*m_shinyness);
+        }
         else if(theProperty == m_modelPath)
         {
             try
@@ -232,14 +240,25 @@ public:
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 scene().removeObject(m_mesh);
                 m_mesh = m;
-                m_mesh->material()->setShinyness(0.9);
+                m->material()->setShinyness(*m_shinyness);
+                m->material()->setSpecular(glm::vec4(1));
+                
+//                m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
+//                m->material()->addTexture(gl::createTextureFromFile("stone.png"));
+//                m->material()->addTexture(gl::createTextureFromFile("asteroid_normal.png"));
+                
+                //m->material()->addTexture(m_textures[1]);
+                
                 scene().addObject(m_mesh);
             } catch (Exception &e)
             {
                 LOG_ERROR<< e.what();
-                m_modelPath->removeObserver(shared_from_this());
-                *m_modelPath = "- not found -";
-                m_modelPath->addObserver(shared_from_this());
+                // causes crashes due to undefined behaviour with std::set<shared_ptr<T> >
+                // either boost::shared_ptr or C++11 with std::owner_less would fix it
+                
+//                m_modelPath->removeObserver(shared_from_this());
+//                *m_modelPath = "- not found -";
+//                m_modelPath->addObserver(shared_from_this());
             }
         }
     }

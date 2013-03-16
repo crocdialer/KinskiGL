@@ -337,6 +337,7 @@ public:
             if(normals()) gl::drawNormals(selected_mesh());
             
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
+            m_label->setRotation(glm::mat3(camera()->transform()));
             gl::drawMesh(m_label);
         }
     }
@@ -369,9 +370,10 @@ public:
         {
             m_label = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
             m_label->setPosition(selected_mesh()->position()
-                                 + glm::vec3(0, selected_mesh()->boundingBox().height() / 2.f
-                                             + m_label->boundingBox().height(), 0)
+                                 + camera()->up() * (selected_mesh()->boundingBox().height() / 2.f
+                                                     + m_label->boundingBox().height())
                                  - m_label->boundingBox().center());
+            m_label->setRotation(glm::mat3(camera()->transform()));
         }
         
     }

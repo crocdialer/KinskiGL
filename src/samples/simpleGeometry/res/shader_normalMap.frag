@@ -10,17 +10,14 @@ uniform struct
     vec4 ambient;
     vec4 specular;
     vec4 emission;
-
+    float shinyness;
 } u_material;
 
 uniform float u_textureMix;
-
-
 in vec3 v_normal;
 in vec3 v_eye;
 in vec3 v_lightDir;
 in vec4 v_texCoord;
-
 
 out vec4 fragData;
 

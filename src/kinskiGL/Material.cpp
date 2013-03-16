@@ -38,7 +38,7 @@ namespace kinski { namespace gl {
     m_ambient(glm::vec4(1)),
     m_specular(glm::vec4(1)),
     m_emission(glm::vec4(0)),
-    m_shinyness(0.0f),
+    m_shinyness(10.0f),
     m_polygonMode(GL_FRONT),
     m_twoSided(false),
     m_wireFrame(false),
