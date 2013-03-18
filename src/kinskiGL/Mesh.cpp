@@ -144,10 +144,11 @@ namespace kinski { namespace gl {
         if(m_geometry->vertices().empty()) return;
         
 #ifndef KINSKI_NO_VAO
-        if(!m_vertexArray) GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray);
+        if(!m_vertexArray){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray); }
         GL_SUFFIX(glBindVertexArray)(m_vertexArray);
         bindVertexPointers();
         GL_SUFFIX(glBindVertexArray)(0);
+        m_material_vertex_array_mapping = std::make_pair(m_material, m_vertexArray);
 #endif
     }
     
@@ -155,6 +156,16 @@ namespace kinski { namespace gl {
     {
         return m_geometry->boundingBox();
     }
+    
+    GLuint Mesh::vertexArray() const
+    {
+        if(m_material_vertex_array_mapping.first != m_material)
+        {
+            throw WrongVertexArrayDefinedException(getID());
+        }
+        
+        return m_vertexArray;
+    };
     
     void Mesh::setVertexLocationName(const std::string &theName)
     {

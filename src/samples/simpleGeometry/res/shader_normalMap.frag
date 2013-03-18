@@ -15,7 +15,7 @@ uniform struct
 
 uniform float u_textureMix;
 in vec3 v_normal;
-in vec3 v_eye;
+in vec3 v_eyeVec;
 in vec3 v_lightDir;
 in vec4 v_texCoord;
 
@@ -148,22 +148,27 @@ vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
 
 void main()
 {
-    vec2 texCoord = vec2(2,1) * v_texCoord.xy;
-    vec4 color1 = texture(u_textureMap[0], texCoord);
-    
-    vec3 n;
     // sample normal map
-    //n = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
-    
+    //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
     // sample bump map
-    n = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, .5 + sin(u_time) * .2);
+    //vec3 N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);
     
-    float centerDistance = length(v_texCoord.st - vec2(0.5));
-    float distFrac = (sin( u_time + 50.0 * centerDistance * centerDistance / 1.4142) + 1.0) / 2.0;
-    color1.a = distFrac;
+    float height = texture(u_textureMap[1], v_texCoord.xy).r;
+    // scale and bias
+    height = height * 0.05 - 0.0;
     
-    float nDotL = max(0.0, dot(n, normalize(-v_lightDir)));
-
-    fragData = mix(u_material.diffuse * color1 * vec4(vec3(nDotL), 1.0), hotIron(distFrac), u_textureMix);
+    vec3 N = vec3(0, 0, 1);
+    vec3 L = normalize(-v_lightDir);
+    vec3 E = normalize(v_eyeVec);
+    vec3 R = reflect(-L, N);
+    
+    // calculate parallax offset
+    vec2 newCoords = v_texCoord.xy + (E.xy * height);
+    vec4 texColors = texture(u_textureMap[0], newCoords);
+    
+    float nDotL = max(0.0, dot(N, L));
+    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
+    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
+    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0f)) + spec;
 }
 

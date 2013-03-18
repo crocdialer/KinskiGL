@@ -13,7 +13,7 @@ in vec3 a_tangent;
 
 out vec4 v_texCoord;
 out vec3 v_normal;
-out vec3 v_eye;
+out vec3 v_eyeVec;
 out vec3 v_lightDir;
 
 void main()
@@ -22,8 +22,8 @@ void main()
 	vec3 t = normalize (u_normalMatrix * a_tangent);
 	vec3 b = cross(v_normal, t);
     mat3 tbnMatrix = mat3(t,b, v_normal);
-    v_eye = normalize(- (u_modelViewMatrix * a_vertex).xyz);
-    v_eye *= tbnMatrix;
+    v_eyeVec = normalize(- (u_modelViewMatrix * a_vertex).xyz);
+    v_eyeVec *= tbnMatrix;
     v_lightDir = u_lightDir;
     v_lightDir *= tbnMatrix;
     v_texCoord =  u_textureMatrix * a_texCoord;

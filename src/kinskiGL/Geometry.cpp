@@ -493,76 +493,37 @@ namespace kinski{ namespace gl{
     
     Geometry::Ptr createSphere(float radius, int numSlices)
     {
+        uint32_t rings = numSlices, sectors = numSlices;
         Geometry::Ptr geom (new Geometry);
-        int i;
-        int j;
-        int numParallels = numSlices / 2;
-        int numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
-        //int numIndices = numParallels * numSlices * 6;
-        float angleStep = (2.0f * M_PI) / ((float) numSlices);
+        float const R = 1./(float)(rings-1);
+        float const S = 1./(float)(sectors-1);
+        int r, s;
         
-        
-        // Allocate memory for buffers
-        GLfloat vertices[3 * numVertices];
-        GLfloat normals[3 * numVertices];
-        GLfloat texCoords[2 * numVertices];
-        
-        //GLuint indices[numIndices];
-        
-        for ( i = 0; i < numParallels + 1; i++ )
-        {
-            for ( j = 0; j < numSlices + 1; j++ )
+        geom->vertices().resize(rings * sectors);
+        geom->normals().resize(rings * sectors);
+        geom->texCoords().resize(rings * sectors);
+        std::vector<glm::vec3>::iterator v = geom->vertices().begin();
+        std::vector<glm::vec3>::iterator n = geom->normals().begin();
+        std::vector<glm::vec2>::iterator t = geom->texCoords().begin();
+        for(r = 0; r < rings; r++)
+            for(s = 0; s < sectors; s++, ++v, ++n, ++t)
             {
-                int vertex = ( i * (numSlices + 1) + j ) * 3;
+                float const y = sin( -M_PI_2 + M_PI * r * R );
+                float const x = cos(2*M_PI * s * S) * sin( M_PI * r * R );
+                float const z = sin(2*M_PI * s * S) * sin( M_PI * r * R );
                 
-                if ( vertices )
-                {
-                    vertices[vertex + 0] = radius * sinf ( angleStep * (float)i ) *
-                    sinf ( angleStep * (float)j );
-                    vertices[vertex + 1] = radius * cosf ( angleStep * (float)i );
-                    vertices[vertex + 2] = radius * sinf ( angleStep * (float)i ) *
-                    cosf ( angleStep * (float)j );
-                }
-                
-                if ( normals )
-                {
-                    normals[vertex + 0] = vertices[vertex + 0] / radius;
-                    normals[vertex + 1] = vertices[vertex + 1] / radius;
-                    normals[vertex + 2] = vertices[vertex + 2] / radius;
-                }
-                
-                if ( texCoords )
-                {
-                    int texIndex = ( i * (numSlices + 1) + j ) * 2;
-                    texCoords[texIndex + 0] = (float) j / (float) numSlices;
-                    texCoords[texIndex + 1] = ( 1.0f - (float) i ) / (float) (numParallels - 1 );
-                }
+                *t = glm::vec2(s * S, r * R);
+                *v = glm::vec3(x, y, z) * radius;
+                *n = glm::vec3(x, y, z);
             }
-        }
-        
-        // Generate the indices (GL_TRIANGLES)
-        //if ( indices != NULL )
-        {   
-            for ( i = 0; i < numParallels ; i++ )
+
+        for(r = 0; r < rings-1; r++)
+            for(s = 0; s < sectors-1; s++)
             {
-                for ( j = 0; j < numSlices; j++ )
-                {
-                    Face3 face1(i * ( numSlices + 1 ) + j,
-                                ( i + 1 ) * ( numSlices + 1 ) + j,
-                                ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 ));
-                    
-                    Face3 face2(i * ( numSlices + 1 ) + j,
-                                ( i + 1 ) * ( numSlices + 1 ) + ( j + 1 ),
-                                i * ( numSlices + 1 ) + ( j + 1 ));
-                    
-                    geom->appendFace(face1);
-                    geom->appendFace(face2);
-                }
+                geom->appendFace(r * sectors + s, (r+1) * sectors + (s+1), r * sectors + (s+1));
+                geom->appendFace(r * sectors + s, (r+1) * sectors + s, (r+1) * sectors + (s+1));
             }
-        }
-        geom->appendVertices((glm::vec3*) vertices, numVertices);
-        geom->appendNormals((glm::vec3*) normals, numVertices);
-        geom->appendTextCoords((glm::vec2*) texCoords, numVertices);
+        
         geom->computeTangents();
         geom->createGLBuffers();
         geom->computeBoundingBox();

@@ -23,6 +23,7 @@ namespace kinski { namespace gl {
         
         typedef std::shared_ptr<Material> Ptr;
         typedef std::shared_ptr<const Material> ConstPtr;
+        typedef std::weak_ptr<Material> WeakPtr;
         
         typedef boost::variant<GLint, GLfloat, double, glm::vec2, glm::vec3, glm::vec4,
         glm::mat3, glm::mat4,
@@ -94,6 +95,35 @@ namespace kinski { namespace gl {
         GLenum m_blendSrc, m_blendDst;
         
         float m_pointSize;
+    };
+    
+    class MaterialGroup
+    {
+    public:
+        
+        const std::list<Material::WeakPtr>& materials() const { return m_materials; };
+        std::list<Material::WeakPtr>& materials() { return m_materials; };
+        
+        void uniform(const std::string &theName, const Material::UniformValue &theVal)
+        {
+            std::list<Material::WeakPtr>::iterator it = m_materials.begin();
+            while(it != m_materials.end())
+            {
+                MaterialPtr m = it->lock();
+                if(m)
+                {
+                    m->uniform(theName, theVal);
+                    ++it;
+                }
+                else
+                {
+                    m_materials.erase(it++);
+                }
+            }
+        }
+        
+    private:
+        std::list<Material::WeakPtr> m_materials;
     };
    
 }} // namespace

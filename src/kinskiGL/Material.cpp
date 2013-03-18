@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
     m_shader(theShader),
     m_uniforms(theUniforms),
     m_diffuse(glm::vec4(1)),
-    m_ambient(glm::vec4(1)),
+    m_ambient(glm::vec4(0)),
     m_specular(glm::vec4(1)),
     m_emission(glm::vec4(0)),
     m_shinyness(10.0f),

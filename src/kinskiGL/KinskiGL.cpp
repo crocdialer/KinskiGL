@@ -148,7 +148,7 @@ namespace kinski { namespace gl {
         {
             click_world_pos = cam_pos + lookAt * near + side * click_2D.x + up  * click_2D.y;
         }
-        LOG_DEBUG<<"clicked_world: ("<<click_world_pos.x<<",  "<<click_world_pos.y<<",  "<<click_world_pos.z<<")";
+        LOG_TRACE<<"clicked_world: ("<<click_world_pos.x<<",  "<<click_world_pos.y<<",  "<<click_world_pos.z<<")";
         return Ray(click_world_pos, click_world_pos - cam_pos);
     }
     
@@ -577,7 +577,12 @@ namespace kinski { namespace gl {
         theMesh->material()->apply();
         
 #ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
+        try{GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());}
+        catch(const Exception &e)
+        {
+            theMesh->createVertexArray();
+            GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
+        }
 #else
         theMesh->bindVertexPointers();
 #endif

@@ -82,26 +82,37 @@ public:
             m_textures[1].update(data, GL_RED, w, h, true);
         }
         
+        
+        //m_textures[1] = gl::createTextureFromFile("stone.png");
+        m_textures[2] = m_font.create_texture("Du musst was an die Tafel schreiben.\n"
+                                              "Rechne vor der Klasse eine Aufgabe!!\n\n  1 + 3 = 5");
+        //m_textures[2] = m_font.glyph_texture();
+
+        gl::Geometry::Ptr myBox(gl::createSphere(100, 36));;
+        gl::MaterialPtr mat(new gl::Material);
+        materials().push_back(mat);
+        
         try
         {
-            m_textures[0] = gl::createTextureFromFile("smoketex.png");
-            materials()[0]->addTexture(m_textures[0]);
-            materials()[0]->addTexture(m_textures[1]);
-            materials()[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert",
-                                                               "shader_normalMap.frag"));
+            m_textures[0] = gl::createTextureFromFile("Earth2.jpg");
+            mat->addTexture(m_textures[0]);
+            //mat->addTexture(m_textures[1]);
+            mat->setShinyness(60);
+            mat->setShader(gl::createShader(gl::SHADER_PHONG));
+//            mat->setShader(gl::createShaderFromFile("shader_normalMap.vert",
+//                                                    "shader_normalMap.frag"));
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
         }
-        
-        m_textures[2] = m_font.create_texture("Du musst was an die Tafel schreiben.\nRechne vor der Klasse eine Aufgabe!!");
-        //m_textures[2] = m_font.glyph_texture();
-
-        gl::Geometry::Ptr myBox(gl::createSphere(100, 36));
-        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, materials()[0]));
+        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, mat));
+        myBoxMesh->createVertexArray();
         myBoxMesh->setPosition(vec3(0, -100, 0));
         scene().addObject(myBoxMesh);
         
+        gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
+        kafka_mesh->setPosition(kafka_mesh->position() - kafka_mesh->boundingBox().center());
+        scene().addObject(kafka_mesh);
         
         // load state from config file
         try
@@ -121,7 +132,6 @@ public:
         {
             m_mesh->material()->setWireframe(wireframe());
             m_mesh->material()->uniform("u_lightDir", light_direction());
-            m_mesh->material()->uniform("u_textureMix", m_textureMix->value());
             m_mesh->material()->setDiffuse(m_color->value());
             m_mesh->material()->setBlending(m_color->value().a < 1.0f);
 
@@ -132,9 +142,14 @@ public:
 //                                                   m_mesh->getGeometry()->animation()->duration);
             }
         }
-        materials()[0]->uniform("u_time",getApplicationTime());
-        materials()[0]->uniform("u_lightDir", light_direction());
-        materials()[0]->uniform("u_textureMix", *m_textureMix);
+        for (int i = 0; i < materials().size(); i++)
+        {
+            materials()[i]->uniform("u_time",getApplicationTime());
+            materials()[i]->uniform("u_lightDir", light_direction());
+            materials()[i]->uniform("u_textureMix", *m_textureMix);
+            materials()[i]->setShinyness(*m_shinyness);
+            materials()[i]->setAmbient(0.1 * clear_color());
+        }
     }
     
     void draw()
@@ -199,7 +214,6 @@ public:
     void resize(int w, int h)
     {
         ViewerApp::resize(w, h);
-        
         gl::Fbo::Format fboFormat;
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
     }
@@ -244,10 +258,8 @@ public:
                 m->material()->setSpecular(glm::vec4(1));
                 
 //                m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
-//                m->material()->addTexture(gl::createTextureFromFile("stone.png"));
-//                m->material()->addTexture(gl::createTextureFromFile("asteroid_normal.png"));
-                
-                //m->material()->addTexture(m_textures[1]);
+//                m->createVertexArray();
+//                m->material()->addTexture(m_textures[1]);
                 
                 scene().addObject(m_mesh);
             } catch (Exception &e)

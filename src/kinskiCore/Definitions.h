@@ -17,6 +17,7 @@
 #endif
 
 #include <string>
+#include <sstream>
 #include <vector>
 #include <list>
 #include <set>
@@ -41,6 +42,14 @@ namespace kinski
     using boost::uint32_t;
     using boost::int64_t;
     using boost::uint64_t;
+    
+    template <typename T>
+    std::string as_string(const T &theObj)
+    {
+        std::stringstream ss;
+        ss << theObj;
+        return ss.str();
+    }
 }
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)

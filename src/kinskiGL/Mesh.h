@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
         
         void bindVertexPointers() const;
         void createVertexArray();
-        GLuint vertexArray() const { return m_vertexArray; };
+        GLuint vertexArray() const;
         
         AABB boundingBox() const;
         
@@ -71,10 +71,11 @@ namespace kinski { namespace gl {
         
     private:
         
-        Geometry::Ptr m_geometry;
-        Material::Ptr m_material;
+        GeometryPtr m_geometry;
+        MaterialPtr m_material;
         
         GLuint m_vertexArray;
+        mutable std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
         
         /*!
          * choose one of GL_TRIANGLES, GL_POINTS here
@@ -88,6 +89,13 @@ namespace kinski { namespace gl {
         std::string m_colorLocationName;
         std::string m_boneIDsLocationName;
         std::string m_boneWeightsLocationName;
+    };
+    
+    class WrongVertexArrayDefinedException : public kinski::Exception
+    {
+    public:
+        WrongVertexArrayDefinedException(uint32_t theID):
+        Exception("wrong vertex array defined for object: " + kinski::as_string(theID)){}
     };
 }}
 

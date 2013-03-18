@@ -86,8 +86,15 @@ namespace kinski { namespace gl {
                 m->material()->uniform("u_bones", m->geometry()->boneMatrices());
             }
             m->material()->apply();
+            
 #ifndef KINSKI_NO_VAO
-            GL_SUFFIX(glBindVertexArray)(m->vertexArray());
+            try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
+            catch(const WrongVertexArrayDefinedException &e)
+            {
+                LOG_DEBUG<<e.what();
+                m->createVertexArray();
+                GL_SUFFIX(glBindVertexArray)(m->vertexArray());
+            }
 #else
             m->bindVertexPointers();
 #endif
@@ -149,7 +156,7 @@ namespace kinski { namespace gl {
                             if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
                             {
                                 clicked_items.push_back(range_item_t(theObj, ray_tri_hit.distance));
-                                LOG_DEBUG<<"hit distance: "<<ray_tri_hit.distance;
+                                LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
                             }
                         }
                     }
@@ -160,10 +167,10 @@ namespace kinski { namespace gl {
                 }
             }
         }
-        LOG_DEBUG<<"ray hit "<<clicked_items.size()<<" objects";
         if(!clicked_items.empty()){
             clicked_items.sort(range_item_t());
             ret = clicked_items.front().object;
+            LOG_DEBUG<<"ray hit id "<<ret->getID()<<" ("<<clicked_items.size()<<" total)";
         }
         return ret;
     }

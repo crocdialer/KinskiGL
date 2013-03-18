@@ -92,7 +92,7 @@ namespace kinski { namespace gl {
     };
     
     
-    Font::Font():m_obj(new Obj)
+    Font::Font():m_obj(new Obj())
     {
         
     }
@@ -114,7 +114,7 @@ namespace kinski { namespace gl {
                                  m_obj->bitmap_height, 32, 96, m_obj->char_data);            
 
             // create RGBA data
-            uint32_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
+            size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
             uint8_t rgba_data[num_bytes];
             uint8_t *dst_ptr = m_obj->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
             for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)

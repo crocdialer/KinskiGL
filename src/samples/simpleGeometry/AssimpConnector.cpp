@@ -29,7 +29,7 @@ namespace kinski { namespace gl{
         LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
         const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
         
-        if(false)
+        if(true)
         {
             theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
                                                 | aiProcess_GenSmoothNormals
