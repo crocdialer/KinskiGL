@@ -87,6 +87,9 @@ namespace std
     using std::tr1::dynamic_pointer_cast;
     using std::tr1::const_pointer_cast;
     using std::tr1::enable_shared_from_this;
+    
+    // backwards compatibilty hack
+    template<typename T> struct owner_less : public less<T>{};
 }
 #else
 #include <boost/shared_ptr.hpp>

@@ -513,7 +513,7 @@ namespace kinski { namespace gl {
     
     void drawAxes(const MeshWeakPtr &weakMesh)
     {
-        static map<MeshWeakPtr, MeshPtr > theMap;
+        static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorRed(1.0, 0, 0 ,1.0), colorGreen(0, 1.0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
         if(theMap.find(weakMesh) == theMap.end())
@@ -608,7 +608,7 @@ namespace kinski { namespace gl {
     
     void drawBoundingBox(const MeshWeakPtr &weakMesh)
     {
-        static map<MeshWeakPtr, MeshPtr > theMap;
+        static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorWhite(1.0), colorRed(1.0, 0, 0 ,1.0);
         
         if(theMap.find(weakMesh) == theMap.end())
@@ -684,7 +684,7 @@ namespace kinski { namespace gl {
 
     void drawNormals(const MeshWeakPtr &theMesh)
     {
-        static map<MeshWeakPtr, MeshPtr> theMap;
+        static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
         if(theMap.find(theMesh) == theMap.end())
