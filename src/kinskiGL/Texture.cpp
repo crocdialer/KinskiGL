@@ -20,8 +20,8 @@ namespace gl {
 Texture::Format::Format()
 {
 	m_Target = GL_TEXTURE_2D;
-	m_WrapS = GL_REPEAT;//GL_CLAMP_TO_EDGE;
-	m_WrapT = GL_REPEAT;//GL_CLAMP_TO_EDGE;
+	m_WrapS = GL_CLAMP_TO_EDGE;//GL_REPEAT not working in ios
+	m_WrapT = GL_CLAMP_TO_EDGE;
 	m_MinFilter = GL_LINEAR;
 	m_MagFilter = GL_LINEAR;
 	m_Mipmapping = false;

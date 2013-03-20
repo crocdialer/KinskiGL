@@ -75,9 +75,9 @@ namespace kinski
 #endif
 
 // compiler has C++11 stdlib
-//#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)
-//#include <memory>
-#if defined( KINSKI_COCOA )
+#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)
+#include <memory>
+#elif defined( KINSKI_COCOA )
 #include <tr1/memory>
 namespace std
 {
@@ -88,7 +88,7 @@ namespace std
     using std::tr1::const_pointer_cast;
     using std::tr1::enable_shared_from_this;
     
-    // backwards compatibilty hack
+    // backwards compatibility hack
     template<typename T> struct owner_less : public less<T>{};
 }
 #else

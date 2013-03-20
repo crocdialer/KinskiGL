@@ -35,9 +35,12 @@ namespace kinski { namespace gl {
         "uniform mat4 u_textureMatrix;\n"
         "attribute vec4 a_vertex;\n"
         "attribute vec4 a_texCoord;\n"
+        "attribute vec4 a_color;\n"//
+        "varying lowp vec4 v_color;\n"//
         "varying lowp vec4 v_texCoord;\n"
         "void main()\n"
         "{\n"
+        "    v_color = a_color;\n"
         "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
         "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
         "}\n";
@@ -46,7 +49,7 @@ namespace kinski { namespace gl {
         "precision mediump float;\n"
         "precision lowp int;\n"
         "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[4];\n"
+        "uniform sampler2D u_textureMap[];\n"
         "uniform struct\n"
         "{\n"
         "    vec4 diffuse;\n"
@@ -55,10 +58,11 @@ namespace kinski { namespace gl {
         "    vec4 emission;\n"
         "    float shinyness;\n"
         "} u_material;\n"
+        "varying vec4 v_color;\n"//
         "varying vec4 v_texCoord;\n"
         "void main()\n"
         "{\n"
-        "    vec4 texColors = vec4(1.0);\n"
+        "    vec4 texColors = v_color;\n"//
         "    if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
         "    if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);\n"
         "    if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);\n"
@@ -74,9 +78,9 @@ namespace kinski { namespace gl {
         "attribute vec4 a_vertex;\n"
         "attribute vec4 a_texCoord;\n"
         "attribute vec3 a_normal;\n"
-        "varying vec4 v_texCoord;\n"
-        "varying vec3 v_normal;\n"
-        "varying vec3 v_eyeVec;\n"
+        "varying lowp vec4 v_texCoord;\n"
+        "varying mediump vec3 v_normal;\n"
+        "varying mediump vec3 v_eyeVec;\n"
         "void main()\n"
         "{\n"
         "    v_normal = normalize(u_normalMatrix * a_normal);\n"
@@ -115,8 +119,10 @@ namespace kinski { namespace gl {
         "}\n";
         
         const char *phongFragSrc =
+        "precision mediump float;\n"
+        "precision lowp int;\n"
         "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[4];\n"
+        "uniform sampler2D u_textureMap[];\n"
         "uniform vec3 u_lightDir;\n"
         "uniform struct\n"
         "{\n"
@@ -143,7 +149,7 @@ namespace kinski { namespace gl {
         "    float nDotL = max(0.0, dot(N, L));\n"
         "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
         "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    gl_FragColor = u_material.diffuse * texColors * vec4(vec3(nDotL), 1.0) ;\n"
+        "    gl_FragColor = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
         "}\n";
         
         const char *phong_normalmap_vertSrc =
@@ -216,7 +222,7 @@ namespace kinski { namespace gl {
         "    float nDotL = max(0.0, dot(N, L));\n"
         "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
         "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0f)) + spec;\n"
+        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
         "}"
         ;
 
@@ -342,7 +348,7 @@ namespace kinski { namespace gl {
         "    float nDotL = max(0.0, dot(N, L));\n"
         "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
         "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0f)) + spec;\n"
+        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
         "}\n";
         
         const char *phong_normalmap_vertSrc =
@@ -415,7 +421,7 @@ namespace kinski { namespace gl {
         "    float nDotL = max(0.0, dot(N, L));\n"
         "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
         "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0f)) + spec;\n"
+        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
         "}"
         ;
 #endif
