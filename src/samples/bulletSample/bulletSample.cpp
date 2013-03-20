@@ -42,8 +42,11 @@ namespace kinski { namespace gl {
                                       btScalar distance,int lifeTime,const btVector3& color){};
         
         virtual void reportErrorWarning(const char* warningString) {LOG_WARNING<<warningString;}
-        virtual void draw3dText(const btVector3& location,const char* textString){}
-        virtual void setDebugMode(int debugMode){}
+        virtual void draw3dText(const btVector3& location,const char* textString)
+        {
+            //TODO: font rendering here
+        }
+        virtual void setDebugMode(int debugMode){LOG_WARNING<<"unsupported operation";}
         virtual int	getDebugMode() const {return DBG_DrawWireframe;}
         
         void flush()
@@ -309,8 +312,12 @@ public:
             vector<cv::Mat> images = m_cvThread->getImages();
             gl::TextureIO::updateTexture(m_textures[0], images.back());
         }
-        materials()[0]->uniform("u_time",getApplicationTime());
-        materials()[0]->uniform("u_lightDir", light_direction());
+        for (int i = 0; i < materials().size(); i++)
+        {
+            materials()[i]->uniform("u_time",getApplicationTime());
+            materials()[i]->uniform("u_lightDir", light_direction());
+            materials()[i]->setAmbient(0.2 * clear_color());
+        }
     }
     
     void draw()

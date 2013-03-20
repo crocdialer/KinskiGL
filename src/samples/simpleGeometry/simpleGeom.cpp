@@ -96,11 +96,11 @@ public:
         {
             m_textures[0] = gl::createTextureFromFile("Earth2.jpg");
             mat->addTexture(m_textures[0]);
-            //mat->addTexture(m_textures[1]);
+            mat->addTexture(m_textures[1]);
             mat->setShinyness(60);
-            mat->setShader(gl::createShader(gl::SHADER_PHONG));
-//            mat->setShader(gl::createShaderFromFile("shader_normalMap.vert",
-//                                                    "shader_normalMap.frag"));
+            //mat->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
+            mat->setShader(gl::createShaderFromFile("shader_normalMap.vert",
+                                                    "shader_normalMap.frag"));
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
@@ -146,9 +146,8 @@ public:
         {
             materials()[i]->uniform("u_time",getApplicationTime());
             materials()[i]->uniform("u_lightDir", light_direction());
-            materials()[i]->uniform("u_textureMix", *m_textureMix);
             materials()[i]->setShinyness(*m_shinyness);
-            materials()[i]->setAmbient(0.1 * clear_color());
+            materials()[i]->setAmbient(0.2 * clear_color());
         }
     }
     
