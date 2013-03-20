@@ -150,21 +150,22 @@ void main()
 {
     // sample normal map
     //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
-    // sample bump map
-    //vec3 N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);
     
     float height = texture(u_textureMap[1], v_texCoord.xy).r;
     // scale and bias
-    height = height * 0.05 - 0.0;
+    height = height * 0.08 - 0.0;
     
-    vec3 N = vec3(0, 0, 1);
     vec3 L = normalize(-v_lightDir);
     vec3 E = normalize(v_eyeVec);
-    vec3 R = reflect(-L, N);
     
     // calculate parallax offset
     vec2 newCoords = v_texCoord.xy + (E.xy * height);
     vec4 texColors = texture(u_textureMap[0], newCoords);
+    
+    vec3 N = normalFromHeightMap(u_textureMap[1], newCoords, 0.8);
+    //vec3 N = vec3(0, 0, 1);
+    vec3 R = reflect(-L, N);
+    
     
     float nDotL = max(0.0, dot(N, L));
     float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
