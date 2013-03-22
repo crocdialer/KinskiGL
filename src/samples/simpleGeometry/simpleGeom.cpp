@@ -55,8 +55,7 @@ public:
         m_shinyness = Property_<float>::create("Shinyness", 1.0);
         registerProperty(m_shinyness);
         
-        // add properties
-        addPropertyListToTweakBar(getPropertyList());
+        create_tweakbar_from_component(shared_from_this());
 
         // enable observer mechanism
         observeProperties();
@@ -157,14 +156,12 @@ public:
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
-        gl::drawTexture(m_textures[2], m_textures[2].getSize());
+        //tafel spruch
+        //gl::drawTexture(m_textures[2], m_textures[2].getSize());
 
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
         gl::drawGrid(500, 500, 100, 100);
-        
-//        gl::drawBoundingBox(font_mesh);
-//        gl::drawMesh(font_mesh);
         
         scene().render(camera());
         

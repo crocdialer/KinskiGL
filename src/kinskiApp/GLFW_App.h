@@ -58,6 +58,11 @@ namespace kinski
         const std::map<TwBar*, Property::Ptr>& 
         getTweakProperties() const {return m_tweakProperties;};
         
+        const std::vector<TwBar*>& tweakBars() const { return m_tweakBars; };
+        std::vector<TwBar*>& tweakBars() { return m_tweakBars; };
+        
+        void create_tweakbar_from_component(const Component::Ptr & the_component);
+        
     private:
         
         // internal initialization. performed when run is invoked
@@ -88,7 +93,7 @@ namespace kinski
         int m_lastWheelPos;
         static WeakPtr s_instance;
         
-        std::list<TwBar*> m_tweakBarList;
+        std::vector<TwBar*> m_tweakBars;
         bool m_displayTweakBar;
         
         std::map<TwBar*, Property::Ptr> m_tweakProperties;

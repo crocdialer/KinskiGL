@@ -232,7 +232,7 @@ namespace kinski { namespace gl {
             mesh->geometry()->appendColor(theColor);
         }
         mesh->geometry()->createGLBuffers();
-        if(!mesh->vertexArray()) mesh->createVertexArray();
+        try{ mesh->vertexArray(); }catch(const Exception &e){ mesh->createVertexArray(); }
         gl::drawMesh(mesh);
         
         mesh->geometry()->vertices().clear();

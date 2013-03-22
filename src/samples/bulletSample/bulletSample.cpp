@@ -246,9 +246,7 @@ public:
         m_num_visible_objects = Property_<uint32_t>::create("Num visible objects", 0);
         
 #ifndef KINSKI_RASPI
-        // add properties
-        addPropertyListToTweakBar(getPropertyList());
-        addPropertyToTweakBar(m_num_visible_objects);
+        create_tweakbar_from_component(shared_from_this());
 #endif
         
         // enable observer mechanism
@@ -273,6 +271,7 @@ public:
         // camera input
         m_cvThread = CVThread::Ptr(new CVThread());
         m_cvThread->setProcessingNode(CVProcessNode::Ptr(new ThreshNode(-1)));
+        create_tweakbar_from_component(m_cvThread->getProcessingNode());
         m_cvThread->streamUSBCamera();
         
         // init physics pipeline

@@ -85,7 +85,8 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(getWidth(), getHeight());
         
-        m_tweakBarList.push_back(TwNewBar(getName().c_str()));
+        //m_tweakBars.push_back(TwNewBar(getName().c_str()));
+        //create_tweakbar_from_component(shared_from_this());
         
         glfwSetMouseButtonCallback(&s_mouseButton);
         glfwSetMousePosCallback(&s_mouseMove);
@@ -257,13 +258,22 @@ namespace kinski
     
 /****************************  TweakBar + Properties **************************/
     
+    void GLFW_App::create_tweakbar_from_component(const Component::Ptr &the_component)
+    {
+        if(!the_component) return;
+        m_tweakBars.push_back(TwNewBar(the_component->getName().c_str()));
+        setBarColor(glm::vec4(0, 0, 0, .5), m_tweakBars.back());
+        setBarSize(glm::ivec2(250, 500));
+        addPropertyListToTweakBar(the_component->getPropertyList(), "", m_tweakBars.back());
+    }
+    
     void GLFW_App::addPropertyToTweakBar(const Property::Ptr propPtr,
                                     const string &group,
                                     TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBarList.empty()) return;
-            theBar = m_tweakBarList.front();
+        {   if(m_tweakBars.empty()) return;
+            theBar = m_tweakBars.front();
         }
         m_tweakProperties[theBar] = propPtr;
         
@@ -289,8 +299,8 @@ namespace kinski
     void GLFW_App::setBarPosition(const glm::ivec2 &thePos, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBarList.empty()) return;
-            theBar = m_tweakBarList.front();
+        {   if(m_tweakBars.empty()) return;
+            theBar = m_tweakBars.front();
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " position='" <<thePos.x
@@ -301,8 +311,8 @@ namespace kinski
     void GLFW_App::setBarSize(const glm::ivec2 &theSize, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBarList.empty()) return;
-            theBar = m_tweakBarList.front();
+        {   if(m_tweakBars.empty()) return;
+            theBar = m_tweakBars.front();
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " size='" <<theSize.x
@@ -313,8 +323,8 @@ namespace kinski
     void GLFW_App::setBarColor(const glm::vec4 &theColor, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBarList.empty()) return;
-            theBar = m_tweakBarList.front();
+        {   if(m_tweakBars.empty()) return;
+            theBar = m_tweakBars.front();
         }
         
         std::stringstream ss;
@@ -328,8 +338,8 @@ namespace kinski
     void GLFW_App::setBarTitle(const std::string &theTitle, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBarList.empty()) return;
-            theBar = m_tweakBarList.front();
+        {   if(m_tweakBars.empty()) return;
+            theBar = m_tweakBars.front();
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " label='" << theTitle <<"'";

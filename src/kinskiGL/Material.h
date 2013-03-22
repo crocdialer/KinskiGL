@@ -17,7 +17,7 @@
 
 namespace kinski { namespace gl {
     
-    class KINSKI_API Material
+    class KINSKI_API Material : public std::enable_shared_from_this<Material>
     {
     public:
         
@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
 
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
         
-        void apply() const;
+        void apply();
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
@@ -95,6 +95,8 @@ namespace kinski { namespace gl {
         GLenum m_blendSrc, m_blendDst;
         
         float m_pointSize;
+        
+        static WeakPtr s_last_mat;
     };
     
     class MaterialGroup

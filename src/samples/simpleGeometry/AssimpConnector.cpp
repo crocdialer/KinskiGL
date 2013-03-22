@@ -7,6 +7,7 @@
 //
 
 #include "AssimpConnector.h"
+#include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include "kinskiGL/Mesh.h"
@@ -15,159 +16,26 @@ using namespace std;
 using namespace glm;
 
 namespace kinski { namespace gl{
-
-    glm::mat4 AssimpConnector::aiMatrixToGlmMat(aiMatrix4x4 theMat)
+    
+    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene);
+    gl::MaterialPtr createMaterial(const aiMaterial *mtl);
+    BonePtr traverseNodes(const aiAnimation *theAnimation,
+                          const aiNode *theNode,
+                          const glm::mat4 &parentTransform,
+                          const map<std::string, pair<int, glm::mat4> > &boneMap,
+                          AnimationPtr &outAnim,
+                          BonePtr parentBone = BonePtr());
+    
+    glm::mat4 aiMatrixToGlmMat(aiMatrix4x4 theMat)
     {
         glm::mat4 ret;
         memcpy(&ret[0][0], theMat.Transpose()[0], 16 * sizeof(float));
         return ret;
     }
     
-    gl::Mesh::Ptr AssimpConnector::loadModel(const std::string &theModelPath)
+    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     {
-        Assimp::Importer importer;
-        LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
-        const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
-        
-        if(true)
-        {
-            theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
-                                                | aiProcess_GenSmoothNormals
-                                                | aiProcess_CalcTangentSpace);
-        }
-        
-        if (theScene)
-        {
-            aiMesh *aMesh = theScene->mMeshes[0];
-            LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
-            gl::GeometryPtr geom( createGeometry(aMesh, theScene) );
-            gl::MaterialPtr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
-            
-            try
-            {
-                if(geom->hasBones())
-                    mat->setShader(gl::createShader(gl::SHADER_PHONG_SKIN));
-                else{
-                    mat->setShader(gl::createShader(gl::SHADER_PHONG));
-                }
-                
-            }catch (std::exception &e)
-            {
-                LOG_WARNING<<e.what();
-            }
-            gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
-            importer.FreeScene();
-            return mesh;
-        }
-        else
-        {
-            throw Exception("could not load model: "+ theModelPath);
-        }
-    }
-    
-    BonePtr
-    AssimpConnector::traverseNodes(const aiAnimation *theAnimation,
-                                   const aiNode *theNode,
-                                   const glm::mat4 &parentTransform,
-                                   const map<std::string, pair<int, glm::mat4> > &boneMap,
-                                   AnimationPtr &outAnim,
-                                   BonePtr parentBone)
-    {
-        BonePtr currentBone;
-        string nodeName(theNode->mName.data);
-        glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
-        const aiNodeAnim* nodeAnim = NULL;
-        
-        if(theAnimation)
-        {
-            for (int i = 0; i < theAnimation->mNumChannels; i++)
-            {
-                aiNodeAnim *ptr = theAnimation->mChannels[i];
-                
-                if(string(ptr->mNodeName.data) == nodeName)
-                {
-                    nodeAnim = ptr;
-                    break;
-                }
-            }
-        }
-        
-        mat4 globalTransform = parentTransform * nodeTransform;
-        map<std::string, pair<int, mat4> >::const_iterator it = boneMap.find(nodeName);
-        
-        // we have a Bone node
-        if (it != boneMap.end())
-        {
-            int boneIndex = it->second.first;
-            const mat4 &offset = it->second.second;
-            currentBone = BonePtr(new gl::Bone);
-            currentBone->name = nodeName;
-            currentBone->index = boneIndex;
-            currentBone->transform = nodeTransform;
-            currentBone->worldtransform = globalTransform;
-            currentBone->offset = offset;
-            currentBone->parent = parentBone;
-            
-            // we have animation keys for this bone
-            if(nodeAnim)
-            {
-                char buf[1024];
-                sprintf(buf, "Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
-                       nodeAnim->mNodeName.data,
-                       nodeAnim->mNumPositionKeys,
-                       nodeAnim->mNumRotationKeys,
-                       nodeAnim->mNumScalingKeys);
-                LOG_TRACE<<buf;
-                
-                gl::AnimationKeys animKeys;
-                glm::vec3 bonePosition;
-                glm::vec3 boneScale;
-                glm::quat boneRotation;
-                
-                for (int i = 0; i < nodeAnim->mNumRotationKeys; i++)
-                {
-                    aiQuaternion rot = nodeAnim->mRotationKeys[i].mValue;
-                    boneRotation = glm::quat(rot.w, rot.x, rot.y, rot.z);
-                    animKeys.rotationkeys.push_back(gl::Key<glm::quat>(nodeAnim->mRotationKeys[i].mTime,
-                                                                       boneRotation));
-                }
-                
-                for (int i = 0; i < nodeAnim->mNumPositionKeys; i++)
-                {
-                    aiVector3D pos = nodeAnim->mPositionKeys[i].mValue;
-                    bonePosition = vec3(pos.x, pos.y, pos.z);
-                    animKeys.positionkeys.push_back(gl::Key<glm::vec3>(nodeAnim->mPositionKeys[i].mTime,
-                                                                       bonePosition));
-                }
-                
-                for (int i = 0; i < nodeAnim->mNumScalingKeys; i++)
-                {
-                    aiVector3D scaleTmp = nodeAnim->mScalingKeys[i].mValue;
-                    boneScale = vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z);
-                    animKeys.scalekeys.push_back(gl::Key<glm::vec3>(nodeAnim->mScalingKeys[i].mTime,
-                                                                    boneScale));
-                }
-                outAnim->boneKeys[currentBone] = animKeys;
-            }
-        }
-        
-        for (int i = 0 ; i < theNode->mNumChildren ; i++)
-        {
-            std::shared_ptr<gl::Bone> child = traverseNodes(theAnimation, theNode->mChildren[i],
-                                                            globalTransform, boneMap, outAnim,
-                                                            currentBone);
-            
-            if(currentBone && child)
-                currentBone->children.push_back(child);
-            else if(child)
-                currentBone = child;
-        }
-        return currentBone;
-    }
-    
-    gl::Geometry::Ptr AssimpConnector::createGeometry(const aiMesh *aMesh, const aiScene *theScene)
-    {
-        gl::Geometry::Ptr geom (new gl::Geometry);
+        gl::GeometryPtr geom (new gl::Geometry);
         
         geom->vertices().reserve(aMesh->mNumVertices);
         geom->vertices().insert(geom->vertices().end(), (glm::vec3*)aMesh->mVertices,
@@ -182,10 +50,7 @@ namespace kinski { namespace gl{
             }
         }else
         {
-            for (int i = 0; i < aMesh->mNumVertices; i++)
-            {
-                geom->appendTextCoord(0, 0);
-            }
+            geom->texCoords().resize(aMesh->mNumVertices, glm::vec2(0));
         }
         
         for(int i = 0; i < aMesh->mNumFaces; i++)
@@ -276,7 +141,7 @@ namespace kinski { namespace gl{
         return geom;
     }
     
-    gl::Material::Ptr AssimpConnector::createMaterial(const aiMaterial *mtl)
+    gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     {
         gl::Material::Ptr theMaterial(new gl::Material);
         int ret1, ret2;
@@ -338,6 +203,147 @@ namespace kinski { namespace gl{
             }
         }
         return theMaterial;
+    }
+    
+    gl::MeshPtr AssimpConnector::loadModel(const std::string &theModelPath)
+    {
+        Assimp::Importer importer;
+        LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
+        const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
+        
+        if(true)
+        {
+            theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
+                                                    | aiProcess_GenSmoothNormals
+                                                    | aiProcess_CalcTangentSpace);
+        }
+        
+        if (theScene)
+        {
+            aiMesh *aMesh = theScene->mMeshes[0];
+            LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
+            gl::GeometryPtr geom( createGeometry(aMesh, theScene) );
+            gl::MaterialPtr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
+            
+            try
+            {
+                if(geom->hasBones())
+                    mat->setShader(gl::createShader(gl::SHADER_PHONG_SKIN));
+                else{
+                    mat->setShader(gl::createShader(gl::SHADER_PHONG));
+                }
+                
+            }catch (std::exception &e)
+            {
+                LOG_WARNING<<e.what();
+            }
+            gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
+            importer.FreeScene();
+            return mesh;
+        }
+        else
+        {
+            throw Exception("could not load model: "+ theModelPath);
+        }
+    }
+    
+    BonePtr traverseNodes(const aiAnimation *theAnimation,
+                          const aiNode *theNode,
+                          const glm::mat4 &parentTransform,
+                          const map<std::string, pair<int, glm::mat4> > &boneMap,
+                          AnimationPtr &outAnim,
+                          BonePtr parentBone)
+    {
+        BonePtr currentBone;
+        string nodeName(theNode->mName.data);
+        glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
+        const aiNodeAnim* nodeAnim = NULL;
+        
+        if(theAnimation)
+        {
+            for (int i = 0; i < theAnimation->mNumChannels; i++)
+            {
+                aiNodeAnim *ptr = theAnimation->mChannels[i];
+                
+                if(string(ptr->mNodeName.data) == nodeName)
+                {
+                    nodeAnim = ptr;
+                    break;
+                }
+            }
+        }
+        
+        mat4 globalTransform = parentTransform * nodeTransform;
+        map<std::string, pair<int, mat4> >::const_iterator it = boneMap.find(nodeName);
+        
+        // we have a Bone node
+        if (it != boneMap.end())
+        {
+            int boneIndex = it->second.first;
+            const mat4 &offset = it->second.second;
+            currentBone = BonePtr(new gl::Bone);
+            currentBone->name = nodeName;
+            currentBone->index = boneIndex;
+            currentBone->transform = nodeTransform;
+            currentBone->worldtransform = globalTransform;
+            currentBone->offset = offset;
+            currentBone->parent = parentBone;
+            
+            // we have animation keys for this bone
+            if(nodeAnim)
+            {
+                char buf[1024];
+                sprintf(buf, "Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+                        nodeAnim->mNodeName.data,
+                        nodeAnim->mNumPositionKeys,
+                        nodeAnim->mNumRotationKeys,
+                        nodeAnim->mNumScalingKeys);
+                LOG_TRACE<<buf;
+                
+                gl::AnimationKeys animKeys;
+                glm::vec3 bonePosition;
+                glm::vec3 boneScale;
+                glm::quat boneRotation;
+                
+                for (int i = 0; i < nodeAnim->mNumRotationKeys; i++)
+                {
+                    aiQuaternion rot = nodeAnim->mRotationKeys[i].mValue;
+                    boneRotation = glm::quat(rot.w, rot.x, rot.y, rot.z);
+                    animKeys.rotationkeys.push_back(gl::Key<glm::quat>(nodeAnim->mRotationKeys[i].mTime,
+                                                                       boneRotation));
+                }
+                
+                for (int i = 0; i < nodeAnim->mNumPositionKeys; i++)
+                {
+                    aiVector3D pos = nodeAnim->mPositionKeys[i].mValue;
+                    bonePosition = vec3(pos.x, pos.y, pos.z);
+                    animKeys.positionkeys.push_back(gl::Key<glm::vec3>(nodeAnim->mPositionKeys[i].mTime,
+                                                                       bonePosition));
+                }
+                
+                for (int i = 0; i < nodeAnim->mNumScalingKeys; i++)
+                {
+                    aiVector3D scaleTmp = nodeAnim->mScalingKeys[i].mValue;
+                    boneScale = vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z);
+                    animKeys.scalekeys.push_back(gl::Key<glm::vec3>(nodeAnim->mScalingKeys[i].mTime,
+                                                                    boneScale));
+                }
+                outAnim->boneKeys[currentBone] = animKeys;
+            }
+        }
+        
+        for (int i = 0 ; i < theNode->mNumChildren ; i++)
+        {
+            std::shared_ptr<gl::Bone> child = traverseNodes(theAnimation, theNode->mChildren[i],
+                                                            globalTransform, boneMap, outAnim,
+                                                            currentBone);
+            
+            if(currentBone && child)
+                currentBone->children.push_back(child);
+            else if(child)
+                currentBone = child;
+        }
+        return currentBone;
     }
 
 }}//namespace

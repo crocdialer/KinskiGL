@@ -62,9 +62,6 @@ namespace kinski {
         m_materials[0]->setShader(gl::createShader(gl::SHADER_PHONG));
         m_materials[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
         
-        setBarColor(glm::vec4(0, 0, 0, .5));
-        setBarSize(glm::ivec2(250, 500));
-        
         // enable observer mechanism
         observeProperties();
     }
