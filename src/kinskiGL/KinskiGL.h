@@ -98,7 +98,7 @@ namespace kinski { namespace gl {
     KINSKI_API void multMatrix(const glm::mat4 &theMatrix);
     KINSKI_API void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
     KINSKI_API void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
-    
+
     class ScopedMatrixPush
     {
     public:
@@ -139,6 +139,10 @@ namespace kinski { namespace gl {
     KINSKI_API void drawMesh(const MeshPtr &theMesh);
     KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
+
+    /*********************************** lazy state changing **********************************/
+    
+    KINSKI_API void apply_material(const MaterialPtr &the_mat, bool force_apply = false);
     
     /*********************************** inbuilt Texture loading **********************************/
     

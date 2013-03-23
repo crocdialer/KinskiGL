@@ -141,7 +141,7 @@ public:
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
         
-        addPropertyListToTweakBar(getPropertyList());
+        create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
         m_pointMaterial = gl::Material::Ptr(new gl::Material);
@@ -221,7 +221,7 @@ public:
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
         gl::drawGrid(200, 200);
-        gl::drawPoints(m_vboPos.id(), m_numParticles, m_pointMaterial, sizeof(vec4));
+        gl::drawPoints(m_vboPos.id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)

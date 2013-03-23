@@ -78,6 +78,10 @@ public:
                     data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
             
+            gl::Texture::Format fmt;
+            fmt.setInternalFormat(GL_RED);
+            m_textures[1] = gl::Texture (w, h, fmt);
+            //m_textures[1].setFlipped();
             m_textures[1].update(data, GL_RED, w, h, true);
         }
         

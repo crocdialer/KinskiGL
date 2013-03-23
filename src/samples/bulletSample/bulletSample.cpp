@@ -258,16 +258,7 @@ public:
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         
         materials()[0]->addTexture(m_textures[0]);
-    
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-        }
-        
+
         // camera input
         m_cvThread = CVThread::Ptr(new CVThread());
         m_cvThread->setProcessingNode(CVProcessNode::Ptr(new ThreshNode(-1)));
@@ -294,6 +285,16 @@ public:
                     data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
             m_textures[1].update(data, GL_RED, w, h, true);
+        }
+        
+        // load state from config file
+        try
+        {
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            Serializer::loadComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
+        }catch(Exception &e)
+        {
+            LOG_WARNING << e.what();
         }
     }
     
@@ -359,9 +360,14 @@ public:
             break;
                 
         case KeyEvent::KEY_r:
+            Serializer::loadComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
             m_physics_context.teardown_physics();
             create_cube_stack(4, 32, 4);
             break;
+                
+            case KeyEvent::KEY_s:
+                Serializer::saveComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
+                break;
                 
         default:
             break;

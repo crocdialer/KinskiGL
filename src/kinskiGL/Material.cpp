@@ -13,26 +13,6 @@ using namespace std;
 
 namespace kinski { namespace gl {
     
-    Material::WeakPtr Material::s_last_mat;
-    
-    class InsertUniformVisitor : public boost::static_visitor<>
-    {
-    private:
-        gl::Shader &m_shader;
-        const std::string &m_uniform;
-        
-    public:
-        
-        InsertUniformVisitor(gl::Shader &theShader, const std::string &theUniform)
-        :m_shader(theShader), m_uniform(theUniform){};
-        
-        template <typename T>
-        void operator()( T &value ) const
-        {
-            m_shader.uniform(m_uniform, value);
-        }
-    };
-    
     Material::Material(const Shader &theShader, const UniformMap &theUniforms):
     m_shader(theShader),
     m_uniforms(theUniforms),
@@ -56,98 +36,7 @@ namespace kinski { namespace gl {
         m_uniforms["u_material.shinyness"] = m_shinyness;
         m_shader = gl::createShader(gl::SHADER_UNLIT);
     }
-    
-    void Material::apply()
-    {
-        MaterialPtr last_mat(s_last_mat.lock());
-        
-        m_shader.bind();
-        
-        char buf[512];
-        
-        // twoSided
-        if(!last_mat || (last_mat->m_twoSided != m_twoSided || last_mat->m_wireFrame != m_wireFrame))
-        {
-            if(m_twoSided || m_wireFrame) { glDisable(GL_CULL_FACE); }
-            else
-            {
-                glEnable(GL_CULL_FACE);
-                glCullFace(GL_BACK);
-            }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-        
-        // wireframe ?
-#ifndef KINSKI_GLES
-        if(!last_mat || last_mat->m_wireFrame != m_wireFrame)
-            glPolygonMode(GL_FRONT_AND_BACK, m_wireFrame ? GL_LINE : GL_FILL);
-#endif
-        
-        KINSKI_CHECK_GL_ERRORS();
-        
-        // read write depth buffer ?
-        if(!last_mat || last_mat->m_depthTest != m_depthTest)
-        {
-            if(m_depthTest) { glEnable(GL_DEPTH_TEST); }
-            else { glDisable(GL_DEPTH_TEST); }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-        
-        if(!last_mat || last_mat->m_depthWrite != m_depthWrite)
-        {
-            if(m_depthWrite) glDepthMask(GL_TRUE);
-            else glDepthMask(GL_FALSE);
-        }
-        KINSKI_CHECK_GL_ERRORS();
-        
-        if(!last_mat || last_mat->m_blending != m_blending)
-        {
-            if(m_blending)
-            {
-                glEnable(GL_BLEND);
-                glBlendFunc(m_blendSrc, m_blendDst);
-            }
-            else
-                glDisable(GL_BLEND);
-        }
-        KINSKI_CHECK_GL_ERRORS();
-        
-        if(!last_mat || last_mat->m_pointSize != m_pointSize)
-        {
-            if(m_pointSize > 0.f)
-            {
-#ifndef KINSKI_GLES
-                glEnable(GL_PROGRAM_POINT_SIZE);
-                glPointSize(m_pointSize);
-#endif
-                m_shader.uniform("u_pointSize", m_pointSize);
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }
-        // texture matrix from first texture, if any
-        m_shader.uniform("u_textureMatrix",
-                         m_textures.empty() ? glm::mat4() : m_textures.front().getTextureMatrix());
-        
-        m_shader.uniform("u_numTextures", (GLint) m_textures.size());
-        
-        // add texturemaps
-        for(int i=0;i<m_textures.size();i++)
-        {
-            m_textures[i].bind(i);
-            sprintf(buf, "u_textureMap[%d]", i);
-            m_shader.uniform(buf, i);
-        }
-        
-        // set all other uniform values
-        for (UniformMap::const_iterator it = m_uniforms.begin(); it != m_uniforms.end(); it++)
-        {
-            boost::apply_visitor(InsertUniformVisitor(m_shader, it->first), it->second);
-            KINSKI_CHECK_GL_ERRORS();
-        }
-        
-        s_last_mat = shared_from_this();
-    }
-    
+
     void Material::setDiffuse(const glm::vec4 &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));

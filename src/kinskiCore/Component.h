@@ -25,6 +25,7 @@ namespace kinski
         Component(const std::string &theName = "Component");
         virtual ~Component();
         
+        void set_name(const std::string &n) { m_name = n; };
         const std::string& getName() const { return m_name; };
         const std::list<Property::Ptr>& getPropertyList() const;
         Property::Ptr getPropertyByName(const std::string & thePropertyName);

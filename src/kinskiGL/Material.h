@@ -17,7 +17,7 @@
 
 namespace kinski { namespace gl {
     
-    class KINSKI_API Material : public std::enable_shared_from_this<Material>
+    class KINSKI_API Material
     {
     public:
         
@@ -34,8 +34,7 @@ namespace kinski { namespace gl {
         typedef std::map<std::string, UniformValue> UniformMap;
 
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
-        
-        void apply();
+
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
@@ -53,10 +52,18 @@ namespace kinski { namespace gl {
         void setTwoSided(bool b = true) { m_twoSided = b;};
         bool twoSided() const { return m_twoSided; };
         void setWireframe(bool b = true) { m_wireFrame = b;};
+        bool wireframe() const { return m_wireFrame; };
         void setDepthTest(bool b = true) { m_depthTest = b;};
         void setDepthWrite(bool b = true) { m_depthWrite = b;};
         void setBlending(bool b = true) { m_blending = b;};
-        bool opaque() const { return m_diffuse.a == 1.f ;};
+        bool blending() const { return m_blending; };
+        GLenum blendSrc() const { return m_blendSrc; };
+        GLenum blendDst() const { return m_blendDst; };
+        
+        bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
+        bool depthTest() const { return m_depthTest; };
+        bool depthWrite() const { return m_depthWrite; };
+        float pointSize() const { return m_pointSize; };
         
         const glm::vec4& diffuse() const { return m_diffuse; };
         const glm::vec4& ambient() const { return m_ambient; };
@@ -85,18 +92,13 @@ namespace kinski { namespace gl {
         float m_shinyness;
         
         GLenum m_polygonMode;
-        
         bool m_twoSided;
         bool m_wireFrame;
         bool m_depthTest;
         bool m_depthWrite;
         bool m_blending;
-        
         GLenum m_blendSrc, m_blendDst;
-        
         float m_pointSize;
-        
-        static WeakPtr s_last_mat;
     };
     
     class MaterialGroup
@@ -126,6 +128,24 @@ namespace kinski { namespace gl {
         
     private:
         std::list<Material::WeakPtr> m_materials;
+    };
+    
+    class InsertUniformVisitor : public boost::static_visitor<>
+    {
+    private:
+        gl::Shader &m_shader;
+        const std::string &m_uniform;
+        
+    public:
+        
+        InsertUniformVisitor(gl::Shader &theShader, const std::string &theUniform)
+        :m_shader(theShader), m_uniform(theUniform){};
+        
+        template <typename T>
+        void operator()( T &value ) const
+        {
+            m_shader.uniform(m_uniform, value);
+        }
     };
    
 }} // namespace

@@ -13,18 +13,19 @@
 
 #include "KinskiGL.h"
 #include "Material.h"
+#include "Shader.h"
+#include "Texture.h"
 #include "Camera.h"
 #include "Mesh.h"
-#include "Shader.h"
 
 using namespace glm;
 using namespace std;
 
 namespace kinski { namespace gl {
     
-    glm::vec2 g_windowDim;
-    std::stack<glm::mat4> g_projectionMatrixStack;
-    std::stack<glm::mat4> g_modelViewMatrixStack;
+    static glm::vec2 g_windowDim;
+    static std::stack<glm::mat4> g_projectionMatrixStack;
+    static std::stack<glm::mat4> g_modelViewMatrixStack;
     
     void pushMatrix(const Matrixtype type)
     {
@@ -227,8 +228,7 @@ namespace kinski { namespace gl {
         vector<vec3>::const_iterator it = thePoints.begin();
         for (; it < thePoints.end(); ++it)
         {
-            const glm::vec3 &v = *it;
-            mesh->geometry()->appendVertex(v);
+            mesh->geometry()->appendVertex(*it);
             mesh->geometry()->appendColor(theColor);
         }
         mesh->geometry()->createGLBuffers();
@@ -268,8 +268,10 @@ namespace kinski { namespace gl {
             "} u_material;\n"
             "void main(){\n"
             "vec4 texColors = vec4(1);\n"
-            //"for(int i = 0; i < u_numTextures; i++)\n"
-            //"   {texColors *= texture2D(u_textureMap[i], gl_PointCoord);}\n"
+            "for(int i = 0; i < u_numTextures; i++)\n"
+            "{\n"
+            "texColors *= texture2D(u_textureMap[i], gl_PointCoord);\n"
+            "}\n"
             "gl_FragColor = u_material.diffuse * texColors;\n"
             "}\n";
 #else
@@ -318,7 +320,7 @@ namespace kinski { namespace gl {
                            g_projectionMatrixStack.top()
                            * g_modelViewMatrixStack.top());
         
-        activeMat->apply();
+        apply_material(activeMat);
         
         if(!pointVAO || (activeMat != staticMat) )
         {   
@@ -407,53 +409,22 @@ namespace kinski { namespace gl {
                   float x0, float y0, float x1, float y1)
     {
         // orthographic projection with a [0,1] coordinate space
+        static MeshPtr quad_mesh;
         static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
+        
+        if(!quad_mesh)
+        {
+            quad_mesh = MeshPtr(new Mesh(createPlane(1, 1), MaterialPtr(new gl::Material)));
+            quad_mesh->setPosition(glm::vec3(0.5f, 0.5f , 0.f));
+        }
+        quad_mesh->material() = theMaterial;
         float scaleX = (x1 - x0) / g_windowDim[0];
         float scaleY = (y0 - y1) / g_windowDim[1];
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
         modelViewMatrix[3] = vec4(x0 / g_windowDim[0], y1 / g_windowDim[1] , 0, 1);
-        theMaterial->uniform("u_modelViewProjectionMatrix", projectionMatrix * modelViewMatrix);
-        theMaterial->apply();
-        static GLuint canvasVAO = 0, canvasBuffer = 0;
-        
-        if(!canvasVAO)
-        {
-            //GL_T2F_V3F
-            static const GLfloat array[] ={ 0.0,0.0,0.0,0.0,0.0,
-                                            1.0,0.0,1.0,0.0,0.0,
-                                            1.0,1.0,1.0,1.0,0.0,
-                                            0.0,1.0,0.0,1.0,0.0};
-           
-#ifndef KINSKI_NO_VAO
-            // create VAO to record all VBO calls
-            GL_SUFFIX(glGenVertexArrays)(1, &canvasVAO);
-            GL_SUFFIX(glBindVertexArray)(canvasVAO);
-#endif 
-            if(!canvasBuffer) glGenBuffers(1, &canvasBuffer);
-            glBindBuffer(GL_ARRAY_BUFFER, canvasBuffer);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(array), array, GL_STATIC_DRAW);
-            GLsizei stride = 5 * sizeof(GLfloat);
-            GLuint vertexAttribLocation = theMaterial->shader().getAttribLocation("a_vertex");
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                  stride, BUFFER_OFFSET(2 * sizeof(GLfloat)));
-            GLuint texCoordAttribLocation = theMaterial->shader().getAttribLocation("a_texCoord");
-            glEnableVertexAttribArray(texCoordAttribLocation);
-            glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                                  stride, BUFFER_OFFSET(0));
-        }
-        // in case no colors are defined, set dafault value
-        GLuint colorAttribLocation = theMaterial->shader().getAttribLocation("a_color");
-        glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-        
-#ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(canvasVAO);
-#endif 
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-#ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(0);
-#endif 
-        KINSKI_CHECK_GL_ERRORS();
+        gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
+        drawMesh(quad_mesh);
     }
     
     void drawGrid(float width, float height, int numW, int numH)
@@ -564,8 +535,11 @@ namespace kinski { namespace gl {
     void drawMesh(const MeshPtr &theMesh)
     {
         theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
-        theMesh->material()->uniform("u_normalMatrix",
-                                        glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
+        if(theMesh->geometry()->hasNormals())
+        {
+            theMesh->material()->uniform("u_normalMatrix",
+                                         glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
+        }
         theMesh->material()->uniform("u_modelViewProjectionMatrix",
                                         g_projectionMatrixStack.top()
                                         * g_modelViewMatrixStack.top());
@@ -574,7 +548,7 @@ namespace kinski { namespace gl {
         {
             theMesh->material()->uniform("u_bones", theMesh->geometry()->boneMatrices());
         }
-        theMesh->material()->apply();
+        gl::apply_material(theMesh->material());
         
 #ifndef KINSKI_NO_VAO
         try{GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());}
@@ -723,6 +697,100 @@ namespace kinski { namespace gl {
             if(! meshIt->first.lock() )
                 theMap.erase(meshIt);
         }
+    }
+    
+    void apply_material(const MaterialPtr &the_mat, bool force_apply)
+    {
+        static Material::WeakPtr weak_last;
+        MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
+        
+        the_mat->shader().bind();
+        
+        char buf[512];
+        
+        // twoSided
+        if(!last_mat || (last_mat->twoSided() != the_mat->twoSided() ||
+                         last_mat->wireframe() != the_mat->wireframe()))
+        {
+            if(the_mat->twoSided() || the_mat->wireframe()) { glDisable(GL_CULL_FACE); }
+            else
+            {
+                glEnable(GL_CULL_FACE);
+                glCullFace(GL_BACK);
+            }
+        }
+        KINSKI_CHECK_GL_ERRORS();
+        
+        // wireframe ?
+#ifndef KINSKI_GLES
+        if(!last_mat || last_mat->wireframe() != the_mat->wireframe())
+            glPolygonMode(GL_FRONT_AND_BACK, the_mat->wireframe() ? GL_LINE : GL_FILL);
+#endif
+        
+        KINSKI_CHECK_GL_ERRORS();
+        
+        // read write depth buffer ?
+        if(!last_mat || last_mat->depthTest() != the_mat->depthTest())
+        {
+            if(the_mat->depthTest()) { glEnable(GL_DEPTH_TEST); }
+            else { glDisable(GL_DEPTH_TEST); }
+        }
+        KINSKI_CHECK_GL_ERRORS();
+        
+        if(!last_mat || last_mat->depthWrite() != the_mat->depthWrite())
+        {
+            if(the_mat->depthWrite()) glDepthMask(GL_TRUE);
+            else glDepthMask(GL_FALSE);
+        }
+        KINSKI_CHECK_GL_ERRORS();
+        
+        if(!last_mat || last_mat->blending() != the_mat->blending())
+        {
+            if(the_mat->blending())
+            {
+                glEnable(GL_BLEND);
+                glBlendFunc(the_mat->blendSrc(), the_mat->blendDst());
+            }
+            else
+                glDisable(GL_BLEND);
+        }
+        KINSKI_CHECK_GL_ERRORS();
+        
+        if(!last_mat || last_mat->pointSize() != the_mat->pointSize())
+        {
+            if(the_mat->pointSize() > 0.f)
+            {
+#ifndef KINSKI_GLES
+                glEnable(GL_PROGRAM_POINT_SIZE);
+                glPointSize(the_mat->pointSize());
+#endif
+                the_mat->shader().uniform("u_pointSize", the_mat->pointSize());
+                KINSKI_CHECK_GL_ERRORS();
+            }
+        }
+        // texture matrix from first texture, if any
+        the_mat->shader().uniform("u_textureMatrix",
+                         the_mat->textures().empty() ? glm::mat4() : the_mat->textures().front().getTextureMatrix());
+        
+        the_mat->shader().uniform("u_numTextures", (GLint) the_mat->textures().size());
+        
+        // add texturemaps
+        for(int i=0;i<the_mat->textures().size();i++)
+        {
+            the_mat->textures()[i].bind(i);
+            sprintf(buf, "u_textureMap[%d]", i);
+            the_mat->shader().uniform(buf, i);
+        }
+        
+        // set all other uniform values
+        Material::UniformMap::const_iterator it = the_mat->uniforms().begin();
+        for (; it != the_mat->uniforms().end(); it++)
+        {
+            boost::apply_visitor(InsertUniformVisitor(the_mat->shader(), it->first), it->second);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        
+        weak_last = the_mat;
     }
     
     const std::set<std::string>& getExtensions()
