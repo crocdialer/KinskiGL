@@ -37,6 +37,9 @@ namespace kinski {
         m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
         registerProperty(m_rotationSpeed);
         
+        m_draw_grid = Property_<bool>::create("Draw grid", true);
+        registerProperty(m_draw_grid);
+        
         m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
         

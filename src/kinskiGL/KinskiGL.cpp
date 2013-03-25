@@ -313,7 +313,7 @@ namespace kinski { namespace gl {
         
         MaterialPtr activeMat = theMaterial ? theMaterial : staticMat;
         
-        if(!activeMat->shader())
+        //if(!activeMat->shader())
             activeMat->shader() = staticMat->shader();
         
         activeMat->uniform("u_modelViewProjectionMatrix",
@@ -552,7 +552,7 @@ namespace kinski { namespace gl {
         
 #ifndef KINSKI_NO_VAO
         try{GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());}
-        catch(const Exception &e)
+        catch(const WrongVertexArrayDefinedException &e)
         {
             theMesh->createVertexArray();
             GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());

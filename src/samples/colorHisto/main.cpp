@@ -50,15 +50,12 @@ public:
         // CV stuff
         m_cvThread = CVThread::Ptr(new CVThread());
         m_processNode = CVProcessNode::Ptr(new ColorHistNode);
-        
         m_cvThread->setProcessingNode(m_processNode);
-        
         m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
-        
         
         if(m_processNode)
         {
-            addPropertyListToTweakBar(m_processNode->getPropertyList());
+            create_tweakbar_from_component(m_processNode);
             cout<<"CVProcessNode: \n"<<m_processNode->getDescription()<<"\n";
         }
         

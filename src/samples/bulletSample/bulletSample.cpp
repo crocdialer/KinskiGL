@@ -52,7 +52,6 @@ namespace kinski { namespace gl {
         void flush()
         {
             m_mesh->geometry()->createGLBuffers();
-            if(!m_mesh->vertexArray()) m_mesh->createVertexArray();
             gl::drawMesh(m_mesh);
             m_mesh->geometry()->vertices().clear();
             m_mesh->geometry()->colors().clear();
@@ -311,6 +310,7 @@ public:
         {
             vector<cv::Mat> images = m_cvThread->getImages();
             gl::TextureIO::updateTexture(m_textures[0], images.back());
+            glGenerateMipmap(m_textures[0].getId());
         }
         for (int i = 0; i < materials().size(); i++)
         {
@@ -324,7 +324,11 @@ public:
     {
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
-        gl::drawGrid(500, 500);
+        
+        if(draw_grid())
+        {
+            gl::drawGrid(500, 500);
+        }
         
         if(wireframe())
         {
@@ -365,9 +369,9 @@ public:
             create_cube_stack(4, 32, 4);
             break;
                 
-            case KeyEvent::KEY_s:
-                Serializer::saveComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
-                break;
+        case KeyEvent::KEY_s:
+            Serializer::saveComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
+            break;
                 
         default:
             break;

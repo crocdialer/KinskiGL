@@ -14,6 +14,8 @@ using namespace kinski;
 ColorHistNode::ColorHistNode():
 m_histExtraction(Property_<bool>::create("Extract Histogram", false))
 {
+    set_name("ColorHistogram");
+    
     m_histSize[0] = 12;
     m_hueRanges[0] = 0;
     m_hueRanges[1] = 180;

@@ -264,6 +264,8 @@ namespace kinski
         m_tweakBars.push_back(TwNewBar(the_component->getName().c_str()));
         setBarColor(glm::vec4(0, 0, 0, .5), m_tweakBars.back());
         setBarSize(glm::ivec2(250, 500));
+        glm::ivec2 offset(10);
+        setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), m_tweakBars.back());
         addPropertyListToTweakBar(the_component->getPropertyList(), "", m_tweakBars.back());
     }
     

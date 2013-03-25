@@ -162,10 +162,13 @@ public:
         
         //tafel spruch
         //gl::drawTexture(m_textures[2], m_textures[2].getSize());
-
-        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
-        gl::drawGrid(500, 500, 100, 100);
+        
+        if(draw_grid())
+        {
+            gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
+            gl::drawGrid(500, 500, 100, 100);
+        }
         
         scene().render(camera());
         
@@ -224,7 +227,7 @@ public:
         
         if(selected_mesh())
         {
-            m_label = m_font.create_mesh("My Id is " + kinski::as_string(selected_mesh()->getID()));
+            m_label = m_font.create_mesh("Du liest Kafka: " + kinski::as_string(selected_mesh()->getID()));
             m_label->setPosition(selected_mesh()->position()
                                  + camera()->up() * (selected_mesh()->boundingBox().height() / 2.f
                                                      + m_label->boundingBox().height())
