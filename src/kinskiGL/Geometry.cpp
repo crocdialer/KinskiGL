@@ -62,12 +62,7 @@ namespace kinski{ namespace gl{
         if(m_normals.size() != m_vertices.size())
         {
             m_normals.clear();
-            m_normals.reserve(m_vertices.size());
-            
-            for (int i = 0; i < m_vertices.size(); i++)
-            {
-                m_normals.push_back(glm::vec3(0));
-            }
+            m_normals.resize(m_vertices.size(), glm::vec3(0));
         }
         else
         {
@@ -103,12 +98,7 @@ namespace kinski{ namespace gl{
         if(m_tangents.size() != m_vertices.size())
         {
             m_tangents.clear();
-            m_tangents.reserve(m_vertices.size());
-            
-            for (int i = 0; i < m_vertices.size(); i++)
-            {
-                m_tangents.push_back(glm::vec3(0));
-            }
+            m_tangents.resize(m_vertices.size(), glm::vec3(0));
         }
         
         vector<Face3>::iterator faceIt = m_faces.begin();
@@ -334,21 +324,13 @@ namespace kinski{ namespace gl{
             
             for ( uint32_t ix = 0; ix < gridX1; ix ++ )
             {
-                
                 float x = ix * segment_width - width_half;
                 float y = iz * segment_height - height_half;
-                
                 geom->appendVertex( glm::vec3( x, - y, 0) );
                 geom->appendNormal(normal);
                 geom->appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
-                geom->tangents().push_back(glm::vec3(0));
             }
         }
-        
-        std::vector<glm::vec3> vertNormals;
-        vertNormals.push_back(normal);
-        vertNormals.push_back(normal);
-        vertNormals.push_back(normal);
         
         // create faces and texcoords
         for ( uint32_t iz = 0; iz < gridZ; iz ++ )
@@ -368,11 +350,9 @@ namespace kinski{ namespace gl{
                 geom->appendFace(f2);
             }
         }
-        
         geom->computeTangents();
         geom->createGLBuffers();
         geom->computeBoundingBox();
-        
         return geom;
     }
     

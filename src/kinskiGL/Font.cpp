@@ -291,6 +291,7 @@ namespace kinski { namespace gl {
             geom->appendFace(i, i + 2, i + 3);
         }
         
+        geom->computeVertexNormals();
         geom->computeBoundingBox();
         geom->createGLBuffers();
         ret->createVertexArray();

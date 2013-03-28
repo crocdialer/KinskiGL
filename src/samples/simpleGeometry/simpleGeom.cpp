@@ -163,12 +163,10 @@ public:
         //tafel spruch
         //gl::drawTexture(m_textures[2], m_textures[2].getSize());
         
-        if(draw_grid())
-        {
-            gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
-            gl::drawGrid(500, 500, 100, 100);
-        }
+        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
+        
+        if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }
         
         scene().render(camera());
         
@@ -200,9 +198,9 @@ public:
         //gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
     }
     
-    void buildSkeleton(std::shared_ptr<gl::Bone> currentBone, vector<vec3> &points)
+    void buildSkeleton(gl::BonePtr currentBone, vector<vec3> &points)
     {
-        list<shared_ptr<gl::Bone> >::iterator it = currentBone->children.begin();
+        list<gl::BonePtr>::iterator it = currentBone->children.begin();
         for (; it != currentBone->children.end(); ++it)
         {
             mat4 globalTransform = currentBone->worldtransform;

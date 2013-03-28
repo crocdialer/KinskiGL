@@ -702,6 +702,7 @@ namespace kinski { namespace gl {
     void apply_material(const MaterialPtr &the_mat, bool force_apply)
     {
         static Material::WeakPtr weak_last;
+        if(!the_mat) return;
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
         
         the_mat->shader().bind();
