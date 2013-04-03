@@ -36,7 +36,7 @@ public:
         kinski::addSearchPath("/Library/Fonts");
         //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
         
-        m_font.load("Chalkduster.ttf", 64);
+        m_font.load("Chalkduster.ttf", 32);
         
         /*********** init our application properties ******************/
         
