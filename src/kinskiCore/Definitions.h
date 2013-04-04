@@ -102,6 +102,9 @@ namespace std
     using boost::dynamic_pointer_cast;
     using boost::const_pointer_cast;
     using boost::enable_shared_from_this;
+    
+    // backwards compatibility hack
+    template<typename T> struct owner_less : public less<T>{};
 }
 #endif
 
