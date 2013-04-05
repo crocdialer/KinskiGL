@@ -50,6 +50,12 @@ namespace kinski
         ss << theObj;
         return ss.str();
     }
+    
+    template <typename T>
+    inline T random(T min, T max)
+    {
+        return min + (max - min) * (rand() / (float) RAND_MAX);
+    }
 }
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)

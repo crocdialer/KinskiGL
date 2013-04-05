@@ -20,7 +20,9 @@ namespace kinski { namespace gl {
     public:
         T x1, y1, x2, y2;
         
-        //Area():x1(0), y1(0), x2(0), y2(0){};
+        Area():x1(0), y1(0), x2(0), y2(0){};
+        Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
+        x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
         
         // does not seem to work in std::map
         bool operator<(const Area<T> &other) const
@@ -149,7 +151,7 @@ namespace kinski { namespace gl {
             std::vector<uint8_t> font_file = kinski::readBinaryFile(thePath);
             stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
                                  m_obj->font_height, m_obj->data, m_obj->bitmap_width,
-                                 m_obj->bitmap_height, 32, 256, m_obj->char_data);
+                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
 
             // create RGBA data
             size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
@@ -204,14 +206,14 @@ namespace kinski { namespace gl {
             if(max_x < q.x1) max_x = q.x1;
             if(max_y < q.y1 + m_obj->font_height) max_y = q.y1 + m_obj->font_height;
             
-            Area<uint32_t> src = {  .x1 = static_cast<uint32_t>(q.s0 * (m_obj->bitmap_width)),
-                                    .y1 = static_cast<uint32_t>(q.t0 * (m_obj->bitmap_height)),
-                                    .x2 = static_cast<uint32_t>(q.s0 * (m_obj->bitmap_width) + w),
-                                    .y2 = static_cast<uint32_t>(q.t0 * (m_obj->bitmap_height) + h) };
-            Area<uint32_t> dst = {  .x1 = static_cast<uint32_t>(q.x0),
-                                    .y1 = static_cast<uint32_t>(m_obj->font_height + q.y0),
-                                    .x2 = static_cast<uint32_t>(q.x0 + w),
-                                    .y2 = static_cast<uint32_t>(m_obj->font_height + q.y0 + h) };
+            Area<uint32_t> src (static_cast<uint32_t>(q.s0 * m_obj->bitmap_width),
+                                static_cast<uint32_t>(q.t0 * m_obj->bitmap_height),
+                                static_cast<uint32_t>(q.s0 * m_obj->bitmap_width + w),
+                                static_cast<uint32_t>(q.t0 * m_obj->bitmap_height + h));
+            Area<uint32_t> dst (static_cast<uint32_t>(q.x0),
+                                static_cast<uint32_t>(m_obj->font_height + q.y0),
+                                static_cast<uint32_t>(q.x0 + w),
+                                static_cast<uint32_t>(m_obj->font_height + q.y0 + h));
 
             area_pairs.push_back(std::make_pair(src, dst));
         }
@@ -301,12 +303,11 @@ namespace kinski { namespace gl {
             int w = quad.x1 - quad.x0;
             int h = quad.y1 - quad.y0;
 
-            Area<float> tex_Area = {.x1 = quad.s0, .y1 = 1 - quad.t0,
-                                    .x2 = quad.s1, .y2 = 1 - quad.t1};
-            Area<uint32_t> vert_Area = {.x1 = static_cast<uint32_t>(quad.x0),
-                                        .y1 = static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0)),
-                                        .x2 = static_cast<uint32_t>(quad.x0 + w),
-                                        .y2 = static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0 + h)) };
+            Area<float> tex_Area (quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
+            Area<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0),
+                                      static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0)),
+                                      static_cast<uint32_t>(quad.x0 + w),
+                                      static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0 + h)));
             
             // CREATE QUAD
             // create vertices

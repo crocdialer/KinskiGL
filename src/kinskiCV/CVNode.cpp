@@ -8,6 +8,7 @@
 
 #include "CVNode.h"
 #include "kinskiCore/file_functions.h"
+#include "kinskiCore/Logger.h"
 #include <boost/format.hpp>
 
 using namespace std;
@@ -148,6 +149,11 @@ namespace kinski
 
 /************************* CVCombinedProcessNode ******************************/
     
+    std::string CVCombinedProcessNode::getName()
+    {
+        return "CVCombinedProcessNode (" + as_string(m_processNodes.size())+")";
+    }
+    
     string CVCombinedProcessNode::getDescription()
     {
         stringstream ss;
@@ -167,7 +173,7 @@ namespace kinski
         list<Property::Ptr>::const_iterator it = theNode->getPropertyList().begin(),
         end = theNode->getPropertyList().end();
         
-        for (; it != end; it++)
+        for (; it != end; ++it)
         {
             registerProperty(*it);
         }

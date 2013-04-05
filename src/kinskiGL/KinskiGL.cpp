@@ -369,7 +369,7 @@ namespace kinski { namespace gl {
         drawPoints(pointVBO, thePoints.size(), theMaterial);
     }
     
-    void drawTexture(gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
+    void drawTexture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
         static gl::Material::Ptr material;
         

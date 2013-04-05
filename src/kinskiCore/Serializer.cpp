@@ -99,6 +99,8 @@ namespace kinski {
     std::string Serializer::serializeComponent(const Component::ConstPtr &theComponent,
                                                const PropertyIO &theIO)
     {
+        if(!theComponent) throw Exception("Could not serialize empty component");
+        
         Json::Value myRoot;
         int myIndex = 0;
         int myVIndex = 0;
@@ -181,6 +183,7 @@ namespace kinski {
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
+        if(!theComponent) return;
         std::string myState = readFile(theFileName);
         applyStateToComponent(theComponent, myState, theIO);
     }

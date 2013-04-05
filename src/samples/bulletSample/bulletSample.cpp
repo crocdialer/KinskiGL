@@ -10,6 +10,7 @@ typedef kinski::ViewerApp BaseAppType;
 #include "physics_context.h"
 #include "kinskiCV/CVThread.h"
 #include "ThreshNode.h"
+#include "DopeRecorder.h"
 
 using namespace std;
 using namespace kinski;
@@ -260,7 +261,14 @@ public:
 
         // camera input
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_cvThread->setProcessingNode(CVProcessNode::Ptr(new ThreshNode(-1)));
+        CVProcessNode::Ptr thresh_node(new ThreshNode(-1)), record_node(new DopeRecorder(5000));
+        CVCombinedProcessNode::Ptr combi_node = thresh_node >> record_node;
+        combi_node->observeProperties();
+        
+        LOG_INFO<<combi_node->getDescription();
+        
+        m_cvThread->setProcessingNode(combi_node);
+        
         create_tweakbar_from_component(m_cvThread->getProcessingNode());
         m_cvThread->streamUSBCamera();
         
@@ -370,7 +378,10 @@ public:
             break;
                 
         case KeyEvent::KEY_s:
-            Serializer::saveComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
+            try
+            {
+                Serializer::saveComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
+            }catch(const Exception &e){ LOG_ERROR<<e.what(); }
             break;
                 
         default:

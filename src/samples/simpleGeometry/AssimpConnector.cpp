@@ -26,7 +26,7 @@ namespace kinski { namespace gl{
                           AnimationPtr &outAnim,
                           BonePtr parentBone = BonePtr());
     
-    glm::mat4 aiMatrixToGlmMat(aiMatrix4x4 theMat)
+    inline glm::mat4 aimatrix_to_glm_mat4(aiMatrix4x4 theMat)
     {
         glm::mat4 ret;
         memcpy(&ret[0][0], theMat.Transpose()[0], 16 * sizeof(float));
@@ -93,7 +93,7 @@ namespace kinski { namespace gl{
             {
                 aiBone* bone = aMesh->mBones[i];
                 
-                boneMap[bone->mName.data] = std::make_pair(i, aiMatrixToGlmMat(bone->mOffsetMatrix));
+                boneMap[bone->mName.data] = std::make_pair(i, aimatrix_to_glm_mat4(bone->mOffsetMatrix));
                 
                 for (int j = 0; j < bone->mNumWeights; ++j)
                 {
@@ -256,7 +256,7 @@ namespace kinski { namespace gl{
     {
         BonePtr currentBone;
         string nodeName(theNode->mName.data);
-        glm::mat4 nodeTransform = aiMatrixToGlmMat(theNode->mTransformation);
+        glm::mat4 nodeTransform = aimatrix_to_glm_mat4(theNode->mTransformation);
         const aiNodeAnim* nodeAnim = NULL;
         
         if(theAnimation)

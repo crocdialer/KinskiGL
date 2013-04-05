@@ -113,7 +113,8 @@ public:
         myBoxMesh->setPosition(vec3(0, -100, 0));
         scene().addObject(myBoxMesh);
         
-        gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
+        //gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
+        gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");
         kafka_mesh->setPosition(kafka_mesh->position() - kafka_mesh->boundingBox().center());
         scene().addObject(kafka_mesh);
         
@@ -161,7 +162,7 @@ public:
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
         //tafel spruch
-        //gl::drawTexture(m_textures[2], m_textures[2].getSize());
+        gl::drawTexture(m_font.glyph_texture(), m_font.glyph_texture().getSize());
         
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());

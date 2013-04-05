@@ -128,8 +128,8 @@ namespace kinski { namespace gl {
                                GLsizei offset = 0);
     KINSKI_API void drawPoints(const std::vector<glm::vec3> &thePoints,
                                const MaterialPtr &theMaterial = std::shared_ptr<Material>());
-    KINSKI_API void drawTexture(gl::Texture &theTexture, const glm::vec2 &theSize,
-                     const glm::vec2 &theTopLeft = glm::vec2(0));
+    KINSKI_API void drawTexture(const gl::Texture &theTexture, const glm::vec2 &theSize,
+                                const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
                              const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial,

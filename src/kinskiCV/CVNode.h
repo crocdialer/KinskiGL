@@ -115,7 +115,10 @@ namespace kinski{
     public:
         typedef std::shared_ptr<CVCombinedProcessNode> Ptr;
         
+        CVCombinedProcessNode(){ set_name("CVCombinedProcessNode"); };
+        
         // inherited from CVNode
+        virtual std::string getName();
         virtual std::string getDescription();
         
         /*!
@@ -132,10 +135,8 @@ namespace kinski{
     
     CVCombinedProcessNode::Ptr link(const CVProcessNode::Ptr &one,
                                     const CVProcessNode::Ptr &other);
-    
     const CVCombinedProcessNode::Ptr operator<<(const CVProcessNode::Ptr &one,
                                                 const CVProcessNode::Ptr &other);
-    
     const CVCombinedProcessNode::Ptr operator>>(const CVProcessNode::Ptr &one,
                                                 const CVProcessNode::Ptr &other);
     
