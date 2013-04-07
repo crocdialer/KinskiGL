@@ -127,6 +127,8 @@ namespace kinski{
         void addNode(const CVProcessNode::Ptr &theNode);
         const std::list<CVProcessNode::Ptr>& getNodes(){return m_processNodes;};
         
+        void updateProperty(const Property::ConstPtr &theProperty);
+        
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
         
     private:

@@ -179,6 +179,16 @@ namespace kinski
         }
     }
     
+    void CVCombinedProcessNode::updateProperty(const Property::ConstPtr &theProperty)
+    {
+        list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
+        
+        for (; it != m_processNodes.end(); it++)
+        {
+            (*it)->updateProperty(theProperty);
+        }
+    }
+    
     vector<Mat> CVCombinedProcessNode::doProcessing(const Mat &img)
     {
         vector<Mat> outMats;

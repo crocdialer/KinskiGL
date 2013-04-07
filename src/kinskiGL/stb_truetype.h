@@ -337,6 +337,7 @@ int main(int arg, char **argv)
 ////   of C library functions used by stb_truetype.
 
 #ifdef STB_TRUETYPE_IMPLEMENTATION
+#include <stdexcept>
 // #define your own (u)stbtt_int8/16/32 before including to override this
 #ifndef stbtt_uint8
 typedef unsigned char   stbtt_uint8;
@@ -966,7 +967,8 @@ int stbtt_FindGlyphIndex(const stbtt_fontinfo *info, int unicode_codepoint)
         return 0; // not found
     }
     // @TODO
-    STBTT_assert(0);
+    //STBTT_assert(0);
+    throw std::runtime_error("could not find glyph index");
     return 0;
 }
 

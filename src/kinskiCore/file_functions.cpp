@@ -112,10 +112,15 @@ namespace kinski {
                     {
                         if(boost::filesystem::is_regular_file(*it))
                         {
-                            if(theExtension.empty() ||
-                               it->path().extension().string().substr(1) == theExtension)
+                            if(theExtension.empty())
                             {
                                 ret.push_back(it->path().string());
+                            }
+                            else
+                            {
+                                string ext = it->path().extension().string();
+                                if(!ext.empty()) ext = ext.substr(1);
+                                if(theExtension == ext){ ret.push_back(it->path().string()); }
                             }
                         }
                         
@@ -136,10 +141,15 @@ namespace kinski {
                     {
                         if(boost::filesystem::is_regular_file(*it))
                         {
-                            if(theExtension.empty() ||
-                               it->path().extension().string().substr(1) == theExtension)
+                            if(theExtension.empty())
                             {
                                 ret.push_back(it->path().string());
+                            }
+                            else
+                            {
+                                string ext = it->path().extension().string();
+                                if(!ext.empty()) ext = ext.substr(1);
+                                if(theExtension == ext){ ret.push_back(it->path().string()); }
                             }
                         }
                         

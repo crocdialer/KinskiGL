@@ -172,9 +172,9 @@ namespace kinski { namespace gl {
         } catch (const Exception &e)
         {
             LOG_ERROR<<e.what();
-        } catch (...)
+        } catch (const std::exception &e)
         {
-            LOG_ERROR<<"Unknown Error loading Font: '"<<thePath<<"'";
+            LOG_ERROR<<"Unknown error loading font '"<<thePath<<"': "<<e.what();
         }
     }
     

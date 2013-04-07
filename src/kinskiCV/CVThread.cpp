@@ -15,11 +15,22 @@ using namespace boost::timer;
 
 namespace kinski
 {
+    CVThread::Ptr CVThread::create()
+    {
+        CVThread::Ptr ret(new CVThread());
+        ret->observeProperties();
+        return ret;
+    }
+    
     CVThread::CVThread():
-    m_stopped(true), m_newFrame(false),
-    m_processing(true),
+    m_running(false),
+    m_running_toggle(Property_<bool>::create("Running", false)),
+    m_processing(Property_<bool>::create("Processing", true)),
+    m_newFrame(false),
     m_captureFPS(25.f)
-    {	
+    {
+        registerProperty(m_running_toggle);
+        registerProperty(m_processing);
         LOG_INFO<<"OpenCV-Version: " << CV_VERSION;
     }
     
@@ -30,14 +41,14 @@ namespace kinski
     
     void CVThread::start()
     {
-        if(!m_stopped) return;
+        if(m_running) return;
         m_thread = boost::thread(boost::ref(*this));
-        m_stopped = false;
+        m_running = true;
     }
     
     void CVThread::stop()
     {
-        m_stopped = true;
+        m_running = false;
         try
         {
             m_thread.join();
@@ -54,7 +65,7 @@ namespace kinski
     
     void CVThread::playPause()
     {
-        if(m_stopped)
+        if(!m_running)
             start();
         else 
             stop();
@@ -93,12 +104,12 @@ namespace kinski
     
     void CVThread::operator()()
     {	
-        m_stopped=false;
+        m_running = true;
         
         // measure elapsed time with these
         boost::timer::cpu_timer threadTimer, cpuTimer;
         
-        while( !m_stopped )
+        while(m_running)
         {
             //restart timer
             threadTimer.start();        
@@ -156,7 +167,7 @@ namespace kinski
             boost::posix_time::milliseconds msecs(sleep_msecs);
             boost::this_thread::sleep(msecs);
         }
-        m_stopped = true;
+        m_running = false;
     }
     
     string CVThread::getSourceInfo()
@@ -214,6 +225,15 @@ namespace kinski
     float CVThread::getLastProcessTime() const
     {
         return m_lastProcessTime;
+    }
+    
+    void CVThread::updateProperty(const Property::ConstPtr &theProperty)
+    {
+        if(theProperty == m_running_toggle)
+        {
+            if(*m_running_toggle){ start(); }
+            else { stop(); }
+        }
     }
     
 }// namespace kinski

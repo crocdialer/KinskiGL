@@ -9,24 +9,22 @@
 #ifndef CHTHREAD_H
 #define CHTHREAD_H
 
-#include "opencv2/highgui/highgui.hpp"
-
-#include "boost/shared_ptr.hpp"
 #include "boost/thread.hpp"
-
 #include "CVNode.h"
 
 namespace kinski
 {
     
-    class CVThread : public boost::noncopyable
+    class CVThread : public Component
     {
     public:
         
-        typedef boost::shared_ptr<CVThread> Ptr;
+        typedef std::shared_ptr<CVThread> Ptr;
              
         CVThread();
         virtual ~CVThread();
+        
+        static Ptr create();
         
         void openImage(const std::string& imgPath);
         
@@ -43,8 +41,8 @@ namespace kinski
         
         void setSourceNode(const CVSourceNode::Ptr sn){m_sourceNode = sn;};
         
-        inline bool hasProcessing() const {return m_processing && m_processNode;};
-        inline void setProcessing(bool b){m_processing = b;};
+        inline bool hasProcessing() const {return *m_processing && m_processNode;};
+        inline void setProcessing(bool b){*m_processing = b;};
         
         inline void setProcessingNode(const CVProcessNode::Ptr pn){m_processNode = pn;};
         inline CVProcessNode::Ptr getProcessingNode() const {return m_processNode;};
@@ -71,12 +69,15 @@ namespace kinski
         void stop();
         void operator()();
         
+        void updateProperty(const Property::ConstPtr &theProperty);
+        
     private:
         
-        bool m_stopped;
+        bool m_running;
+        Property_<bool>::Ptr m_running_toggle;
+        Property_<bool>::Ptr m_processing;
         bool m_newFrame;
         std::vector<cv::Mat> m_images;
-        bool m_processing;
         
         //-- OpenCV
         CVSourceNode::Ptr m_sourceNode;

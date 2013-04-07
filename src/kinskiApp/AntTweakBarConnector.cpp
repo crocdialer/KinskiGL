@@ -160,7 +160,6 @@ namespace kinski
     AntTweakBarConnector::getValue(void *value, void *clientData) 
     {
         Property * theProperty = (Property*) clientData;
-        
         *(T *)value = theProperty->getValue<T>(); 
     }
     
@@ -169,7 +168,6 @@ namespace kinski
     AntTweakBarConnector::setValue(const void *value, void *clientData) 
     {
         Property * theProperty = (Property*) clientData;
-        
         theProperty->setValue( *(const T *)value );
     }
     
@@ -177,7 +175,6 @@ namespace kinski
     AntTweakBarConnector::getString(void *value, void *clientData) 
     {
         Property * theProperty = (Property*) clientData;
-        
         string *destPtr = static_cast<string *>(value);
         TwCopyStdStringToLibrary(*destPtr, theProperty->getValue<string>());
     }
@@ -186,7 +183,6 @@ namespace kinski
     AntTweakBarConnector::setString(const void *value, void *clientData) 
     {
         Property * theProperty = (Property*) clientData;
-        
         const string *srcPtr = static_cast<const string *>(value);
         theProperty->setValue(*srcPtr);
     }

@@ -103,6 +103,8 @@ class BulletSample : public BaseAppType
 private:
     
     gl::Texture m_textures[4];
+    Property_<string>::Ptr m_font_name;
+    Property_<int>::Ptr m_font_size;
     Property_<bool>::Ptr m_stepPhysics;
     Property_<glm::vec4>::Ptr m_color;
     Property_<uint32_t>::Ptr m_num_visible_objects;
@@ -110,6 +112,7 @@ private:
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
     
     gl::Font m_font;
+    std::list<std::string> m_font_paths;
     gl::MeshPtr m_label;
     
     // opencv interface
@@ -232,10 +235,16 @@ public:
         
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("/Library/Fonts");
-        
-        m_font.load("Chalkduster.ttf", 24);
+        m_font_paths = kinski::getDirectoryEntries(getSearchPaths().back(), false, "ttf");
+        m_font.load("Arial.ttf", 24);
         
         /*********** init our application properties ******************/
+        
+        m_font_name = Property_<string>::create("Font Name", "Arial.ttf");
+        registerProperty(m_font_name);
+        
+        m_font_size = Property_<int>::create("Font Size", 24);
+        registerProperty(m_font_size);
         
         m_stepPhysics = Property_<bool>::create("Step Physics", true);
         registerProperty(m_stepPhysics);
@@ -244,11 +253,7 @@ public:
         registerProperty(m_color);
         
         m_num_visible_objects = Property_<uint32_t>::create("Num visible objects", 0);
-        
-#ifndef KINSKI_RASPI
-        create_tweakbar_from_component(shared_from_this());
-#endif
-        
+            
         // enable observer mechanism
         observeProperties();
         
@@ -260,16 +265,12 @@ public:
         materials()[0]->addTexture(m_textures[0]);
 
         // camera input
-        m_cvThread = CVThread::Ptr(new CVThread());
+        m_cvThread = CVThread::create();
         CVProcessNode::Ptr thresh_node(new ThreshNode(-1)), record_node(new DopeRecorder(5000));
         CVCombinedProcessNode::Ptr combi_node = thresh_node >> record_node;
         combi_node->observeProperties();
-        
-        LOG_INFO<<combi_node->getDescription();
-        
         m_cvThread->setProcessingNode(combi_node);
         
-        create_tweakbar_from_component(m_cvThread->getProcessingNode());
         m_cvThread->streamUSBCamera();
         
         // init physics pipeline
@@ -303,6 +304,12 @@ public:
         {
             LOG_WARNING << e.what();
         }
+#ifndef KINSKI_RASPI
+        create_tweakbar_from_component(shared_from_this());
+        create_tweakbar_from_component(m_cvThread);
+        addPropertyListToTweakBar(m_cvThread->getProcessingNode()->getPropertyList(),
+                                  "", tweakBars().back());
+#endif
     }
     
     void update(const float timeDelta)
@@ -413,6 +420,10 @@ public:
         if(theProperty == m_color)
         {
             materials()[0]->setDiffuse(*m_color);
+        }
+        else if(theProperty == m_font_name || theProperty == m_font_size)
+        {
+            m_font.load(*m_font_name, *m_font_size);
         }
     }
     
