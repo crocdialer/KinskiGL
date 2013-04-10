@@ -37,8 +37,8 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeFaceNormals()
     {
+        m_normals.resize(m_vertices.size());
         std::vector<Face3>::iterator it = m_faces.begin();
-        
         for (; it != m_faces.end(); it++)
         {
             Face3 &face = *it;
@@ -46,18 +46,15 @@ namespace kinski{ namespace gl{
             const glm::vec3 &vA = m_vertices[ face.a ];
 			const glm::vec3 &vB = m_vertices[ face.b ];
 			const glm::vec3 &vC = m_vertices[ face.c ];
-            
-			face.normal = glm::normalize(glm::cross(vB - vA, vC - vA));
+            glm::vec3 normal = glm::normalize(glm::cross(vB - vA, vC - vA));
+            m_normals[face.a] = m_normals[face.b] = m_normals[face.c] = normal;
         }
     }
     
     void Geometry::computeVertexNormals()
     {
         if(m_faces.empty()) return;
-        
-        // compute face normals first
-        computeFaceNormals();
-        
+
         // create tmp array, if not yet constructed
         if(m_normals.size() != m_vertices.size())
         {
@@ -74,10 +71,13 @@ namespace kinski{ namespace gl{
         for (; faceIt != m_faces.end(); faceIt++)
         {
             const Face3 &face = *faceIt;
-            
-            m_normals[face.a] += face.normal;
-            m_normals[face.b] += face.normal;
-            m_normals[face.c] += face.normal;
+            const glm::vec3 &vA = m_vertices[ face.a ];
+			const glm::vec3 &vB = m_vertices[ face.b ];
+			const glm::vec3 &vC = m_vertices[ face.c ];
+            glm::vec3 normal = glm::normalize(glm::cross(vB - vA, vC - vA));
+            m_normals[face.a] += normal;
+            m_normals[face.b] += normal;
+            m_normals[face.c] += normal;
         }
         
         // normalize vertexNormals
@@ -92,7 +92,6 @@ namespace kinski{ namespace gl{
     void Geometry::computeTangents()
     {
         if(m_faces.empty()) return;
-
         if(m_texCoords.size() != m_vertices.size()) return;
         
         if(m_tangents.size() != m_vertices.size())
@@ -191,14 +190,14 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
-    void Geometry::updateAnimation(float time)
+    void Geometry::updateAnimation(float time_delta)
     {
         if(m_animation)
         {
-            float t = fmod(time, m_animation->duration);
-            
+            m_animation->current_time = fmod(m_animation->current_time + time_delta * m_animation->ticksPerSec,
+                                             m_animation->duration);
             m_boneMatrices.clear();
-            buildBoneMatrices(t, m_rootBone, glm::mat4(), m_boneMatrices);
+            buildBoneMatrices(m_animation->current_time, m_rootBone, glm::mat4(), m_boneMatrices);
         }
     }
     
@@ -342,10 +341,7 @@ namespace kinski{ namespace gl{
                 uint32_t c = ( ix + 1 ) + gridX1 * ( iz + 1 );
                 uint32_t d = ( ix + 1 ) + gridX1 * iz;
                 
-                Face3 f1(a, b, c), f2(c, d, a);
-                f1.normal = normal;
-                f2.normal = normal;
-                
+                Face3 f1(a, b, c), f2(c, d, a);                
                 geom->appendFace(f1);
                 geom->appendFace(f2);
             }

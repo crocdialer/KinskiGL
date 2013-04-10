@@ -775,6 +775,8 @@ namespace kinski { namespace gl {
         
         the_mat->shader().uniform("u_numTextures", (GLint) the_mat->textures().size());
         
+        if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
+        
         // add texturemaps
         for(int i=0;i<the_mat->textures().size();i++)
         {

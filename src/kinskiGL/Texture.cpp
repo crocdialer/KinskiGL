@@ -112,7 +112,6 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     if(!m_Obj->m_TextureID)
     {
         glGenTextures( 1, &m_Obj->m_TextureID );
-
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
@@ -140,7 +139,9 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
 #endif	
     
     if( format.m_Mipmapping )
+    {
         glGenerateMipmap(m_Obj->m_Target);
+    }
 }
 
 void Texture::init( const float *data, GLint dataFormat, const Format &format )
@@ -176,7 +177,9 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     }
     
     if( format.m_Mipmapping )
+    {
         glGenerateMipmap(m_Obj->m_Target);
+    }
 }
 
 void Texture::update( const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped )
@@ -200,6 +203,7 @@ void Texture::update(const void *data,
     {
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
         glTexSubImage2D( m_Obj->m_Target, 0, 0, 0, m_Obj->m_Width, m_Obj->m_Height, format, dataType, data );
+        //if()
     }
     else 
     {

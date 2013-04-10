@@ -37,7 +37,6 @@ namespace kinski { namespace gl{
     {
         gl::GeometryPtr geom (new gl::Geometry);
         
-        geom->vertices().reserve(aMesh->mNumVertices);
         geom->vertices().insert(geom->vertices().end(), (glm::vec3*)aMesh->mVertices,
                                 (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
         
@@ -56,6 +55,10 @@ namespace kinski { namespace gl{
         for(int i = 0; i < aMesh->mNumFaces; i++)
         {
             const aiFace &f = aMesh->mFaces[i];
+            if(f.mNumIndices == 3)
+            {
+            
+            }
             geom->appendFace(f.mIndices[0], f.mIndices[1], f.mIndices[2]);
         }
         

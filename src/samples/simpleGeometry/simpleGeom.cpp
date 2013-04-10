@@ -31,10 +31,10 @@ public:
         
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop");
-        kinski::addSearchPath("~/Desktop/sample", true);
+        kinski::addSearchPath("~/Desktop/creatures", true);
         kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
-        //list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
+        list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
         
         m_font.load("Courier New Bold.ttf", 24);
         
@@ -97,7 +97,7 @@ public:
         
         try
         {
-            m_textures[0] = gl::createTextureFromFile("Earth2.jpg");
+            m_textures[0] = gl::createTextureFromFile("Earth2.jpg", true);
             mat->addTexture(m_textures[0]);
             mat->addTexture(m_textures[1]);
             mat->setShinyness(60);
@@ -139,12 +139,6 @@ public:
             m_mesh->material()->setDiffuse(m_color->value());
             m_mesh->material()->setBlending(m_color->value().a < 1.0f);
 
-            if(m_mesh->geometry()->hasBones())
-            {
-                m_mesh->geometry()->updateAnimation(getApplicationTime() / 5.0f);
-//              m_mesh->getGeometry()->updateAnimation(m_animationTime->val() *
-//                                                   m_mesh->getGeometry()->animation()->duration);
-            }
         }
         for (int i = 0; i < materials().size(); i++)
         {
@@ -162,7 +156,7 @@ public:
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
         //tafel spruch
-        gl::drawTexture(m_font.glyph_texture(), m_font.glyph_texture().getSize());
+        gl::drawTexture(m_textures[0], windowSize());
         
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
@@ -258,22 +252,8 @@ public:
                 m_mesh = m;
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
-                
-//                m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
-//                m->createVertexArray();
-//                m->material()->addTexture(m_textures[1]);
-                
                 scene().addObject(m_mesh);
-            } catch (Exception &e)
-            {
-                LOG_ERROR<< e.what();
-                // causes crashes due to undefined behaviour with std::set<shared_ptr<T> >
-                // either boost::shared_ptr or C++11 with std::owner_less would fix it
-                
-//                m_modelPath->removeObserver(shared_from_this());
-//                *m_modelPath = "- not found -";
-//                m_modelPath->addObserver(shared_from_this());
-            }
+            } catch (Exception &e){ LOG_ERROR<< e.what(); }
         }
     }
     

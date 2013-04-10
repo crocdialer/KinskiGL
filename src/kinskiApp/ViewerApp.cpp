@@ -89,7 +89,7 @@ namespace kinski {
                                                  *m_rotationSpeed * timeDelta,
                                                  glm::vec3(0, 1, .5)));
         }
-        
+        m_scene.update(timeDelta);
     }
     
     void ViewerApp::mousePress(const MouseEvent &e)

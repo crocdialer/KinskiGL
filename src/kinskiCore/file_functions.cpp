@@ -91,7 +91,7 @@ namespace kinski {
         }
         else
         {
-            g_searchPaths.push_back(getDirectoryPart(canonical(path_expanded).string()));
+            g_searchPaths.push_back(canonical(path_expanded).string());
         }
     }
     

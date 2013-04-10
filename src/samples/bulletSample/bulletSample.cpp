@@ -262,7 +262,10 @@ public:
         // test box shape
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         
+        materials()[0]->setShader(gl::createShader(gl::SHADER_PHONG));
+        //materials()[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
         materials()[0]->addTexture(m_textures[0]);
+        //materials()[0]->addTexture(m_textures[1]);
 
         // camera input
         m_cvThread = CVThread::create();
@@ -282,9 +285,9 @@ public:
         create_cube_stack(4, 32, 4);
         
         // create a simplex noise texture
-        if(false)
+        if(true)
         {
-            int w = 1024, h = 1024;
+            int w = 256, h = 256;
             float data[w * h];
             
             for (int i = 0; i < h; i++)
@@ -293,6 +296,8 @@ public:
                     data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
             m_textures[1].update(data, GL_RED, w, h, true);
+            glGenerateMipmap(m_textures[1].getTarget());
+            KINSKI_CHECK_GL_ERRORS();
         }
         
         // load state from config file
@@ -325,7 +330,8 @@ public:
         {
             vector<cv::Mat> images = m_cvThread->getImages();
             gl::TextureIO::updateTexture(m_textures[0], images.back());
-            glGenerateMipmap(m_textures[0].getId());
+            glGenerateMipmap(m_textures[0].getTarget());
+            KINSKI_CHECK_GL_ERRORS();
         }
         for (int i = 0; i < materials().size(); i++)
         {

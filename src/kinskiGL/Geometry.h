@@ -19,7 +19,7 @@ namespace kinski{ namespace gl{
     struct Face3
     {
         Face3(uint32_t theA, uint32_t theB, uint32_t theC, glm::vec3 theNormal = glm::vec3(0)):
-        a(theA), b(theB), c(theC), normal(theNormal)
+        a(theA), b(theB), c(theC)
         {}
         
         // vertex indices
@@ -28,8 +28,6 @@ namespace kinski{ namespace gl{
             struct{uint32_t a, b, c;};
             uint32_t indices[3];
         };
-        
-        glm::vec3 normal;
     };
     
     // each vertex can reference up to 4 bones
@@ -71,9 +69,11 @@ namespace kinski{ namespace gl{
 
     struct Animation
     {
+        float current_time;
         float duration;
         float ticksPerSec;
         std::map<std::shared_ptr<Bone>, AnimationKeys> boneKeys;
+        Animation():current_time(0), ticksPerSec(1.0f){};
     };
     
     class KINSKI_API Geometry
@@ -232,7 +232,7 @@ namespace kinski{ namespace gl{
         void createGLBuffers();
         GLenum indexType();
         
-        void updateAnimation(float time);
+        void updateAnimation(float time_delta);
         
     private:
         

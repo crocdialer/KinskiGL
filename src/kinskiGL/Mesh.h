@@ -37,6 +37,7 @@ namespace kinski { namespace gl {
         void createVertexArray();
         GLuint vertexArray() const;
         
+        void update(float time_delta);
         AABB boundingBox() const;
         
         /*!

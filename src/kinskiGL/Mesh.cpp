@@ -152,6 +152,11 @@ namespace kinski { namespace gl {
 #endif
     }
     
+    void Mesh::update(float time_delta)
+    {
+        m_geometry->updateAnimation(time_delta);
+    }
+    
     AABB Mesh::boundingBox() const
     {
         return m_geometry->boundingBox();

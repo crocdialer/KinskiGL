@@ -38,10 +38,11 @@
 #endif
 
 #elif defined(KINSKI_COCOA)// desktop GL3
-
 #include <OpenGL/gl3.h>
+#include <OpenGL/gl3ext.h>
 #else
 #include <GL3/gl3.h>
+#include <GL3/gl3ext.h>
 #endif
 
 // crossplattform helper-macros to append either nothing or "OES"
@@ -146,7 +147,8 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API Texture createTextureFromFile(const std::string &theFileName);
+    KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = true,
+                                             bool compress = false);
     
     class ImageLoadException : public Exception
     {

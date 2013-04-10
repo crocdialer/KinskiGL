@@ -37,9 +37,13 @@ namespace kinski { namespace gl {
         m_objects.remove(theObject);
     }
     
-    void Scene::update(float timestep)
+    void Scene::update(float time_delta)
     {
-        
+        list<Object3DPtr>::iterator objIt = m_objects.begin();
+        for (; objIt != m_objects.end(); objIt++)
+        {
+            (*objIt)->update(time_delta);
+        }
     }
     
     void Scene::render(const CameraPtr &theCamera) const

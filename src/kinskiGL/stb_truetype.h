@@ -337,7 +337,6 @@ int main(int arg, char **argv)
 ////   of C library functions used by stb_truetype.
 
 #ifdef STB_TRUETYPE_IMPLEMENTATION
-#include <stdexcept>
 // #define your own (u)stbtt_int8/16/32 before including to override this
 #ifndef stbtt_uint8
 typedef unsigned char   stbtt_uint8;
@@ -374,8 +373,10 @@ typedef char stbtt__check_size16[sizeof(stbtt_int16)==2 ? 1 : -1];
 #endif
 
 #ifndef STBTT_assert
-#include <assert.h>
-#define STBTT_assert(x)    assert(x)
+#include <stdexcept>
+#define STBTT_assert(x) if(!(x)) { throw std::runtime_error("Assertion violated"); }
+//#include <assert.h>
+//#define STBTT_assert(x)    assert(x)
 #endif
 
 #ifndef STBTT_strlen

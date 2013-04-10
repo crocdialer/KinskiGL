@@ -37,6 +37,7 @@ namespace kinski { namespace gl {
         inline glm::mat4& transform() { return m_worldTransform; };
         inline const glm::mat4& transform() const { return m_worldTransform; };
         
+        virtual void update(float time_delta){};
         virtual AABB boundingBox() const = 0;
     private:
         
