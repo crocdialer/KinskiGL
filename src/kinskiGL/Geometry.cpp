@@ -42,7 +42,6 @@ namespace kinski{ namespace gl{
         for (; it != m_faces.end(); it++)
         {
             Face3 &face = *it;
-            
             const glm::vec3 &vA = m_vertices[ face.a ];
 			const glm::vec3 &vB = m_vertices[ face.b ];
 			const glm::vec3 &vC = m_vertices[ face.c ];

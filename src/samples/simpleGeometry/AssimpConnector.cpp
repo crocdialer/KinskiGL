@@ -52,15 +52,15 @@ namespace kinski { namespace gl{
             geom->texCoords().resize(aMesh->mNumVertices, glm::vec2(0));
         }
         
+        std::vector<uint32_t> &indices = geom->indices(); indices.reserve(aMesh->mNumFaces * 3);
         for(int i = 0; i < aMesh->mNumFaces; i++)
         {
             const aiFace &f = aMesh->mFaces[i];
-            if(f.mNumIndices == 3)
-            {
-            
-            }
-            geom->appendFace(f.mIndices[0], f.mIndices[1], f.mIndices[2]);
+            if(f.mNumIndices != 3) throw Exception("Non triangle mesh loaded");
+            indices.insert(indices.end(), f.mIndices, f.mIndices + 3);
         }
+        geom->faces().resize(aMesh->mNumFaces);
+        ::memcpy(&geom->faces()[0], &indices[0], indices.size() * sizeof(uint32_t));
         
         if(aMesh->HasNormals())
         {

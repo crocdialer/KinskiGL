@@ -18,7 +18,8 @@ namespace kinski{ namespace gl{
     
     struct Face3
     {
-        Face3(uint32_t theA, uint32_t theB, uint32_t theC, glm::vec3 theNormal = glm::vec3(0)):
+        Face3(){};
+        Face3(uint32_t theA, uint32_t theB, uint32_t theC):
         a(theA), b(theB), c(theC)
         {}
         
