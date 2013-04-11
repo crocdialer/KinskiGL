@@ -77,9 +77,8 @@ namespace kinski
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
         
         // file search paths
-        kinski::addSearchPath("./");
-        kinski::addSearchPath("./res/");
-        kinski::addSearchPath("../Resources/");
+        kinski::addSearchPath("./res", true);
+        kinski::addSearchPath("../Resources", true);
         
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);
@@ -270,14 +269,14 @@ namespace kinski
     }
     
     void GLFW_App::addPropertyToTweakBar(const Property::Ptr propPtr,
-                                    const string &group,
-                                    TwBar *theBar)
+                                         const string &group,
+                                         TwBar *theBar)
     {
         if(!theBar)
         {   if(m_tweakBars.empty()) return;
             theBar = m_tweakBars.front();
         }
-        m_tweakProperties[theBar] = propPtr;
+        m_tweakProperties[theBar].push_back(propPtr);
         
         try {
             AntTweakBarConnector::connect(theBar, propPtr, group);
@@ -287,15 +286,19 @@ namespace kinski
     }
     
     void GLFW_App::addPropertyListToTweakBar(const list<Property::Ptr> &theProps,
-                                        const string &group,
-                                        TwBar *theBar)
+                                             const string &group,
+                                             TwBar *theBar)
     {
+        if(!theBar)
+        {   if(m_tweakBars.empty()) return;
+            theBar = m_tweakBars.front();
+        }
         list<Property::Ptr>::const_iterator propIt = theProps.begin();
-        
         for (; propIt != theProps.end(); propIt++) 
         {   
             addPropertyToTweakBar(*propIt, group, theBar);
         }
+        TwAddSeparator(theBar, "sep1", NULL);
     }
     
     void GLFW_App::setBarPosition(const glm::ivec2 &thePos, TwBar *theBar)

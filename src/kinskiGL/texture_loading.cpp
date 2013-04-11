@@ -25,7 +25,8 @@ namespace kinski { namespace gl {
         
         if(!data) throw ImageLoadException(theFileName);
         
-    
+        LOG_DEBUG<<"loaded image: "<<theFileName<<" -- "<<width
+            <<" x "<<height<<" ("<<num_components<<" ch)";
         // ... process data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...
         // ... replace '0' with '1'..'4' to force that many components per pixel
@@ -82,6 +83,10 @@ namespace kinski { namespace gl {
         ret = Texture (data, format, width, height, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
+        
+        GLfloat fLargest;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);
         
         // requires OpenGL 3.3+
         //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};

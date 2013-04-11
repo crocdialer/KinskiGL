@@ -106,10 +106,7 @@ namespace kinski { namespace gl{
             }
             
             // generate empty indices and weights
-            for (int i = 0; i < geom->vertices().size(); ++i)
-            {
-                geom->boneVertexData().push_back(gl::BoneVertexData());
-            }
+            geom->boneVertexData().resize(geom->vertices().size());
             
             for (WeightMap::iterator it = weightMap.begin(); it != weightMap.end(); ++it)
             {
@@ -224,7 +221,6 @@ namespace kinski { namespace gl{
         if (theScene)
         {
             aiMesh *aMesh = theScene->mMeshes[0];
-            LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
             gl::GeometryPtr geom( createGeometry(aMesh, theScene) );
             gl::MaterialPtr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             
@@ -241,6 +237,7 @@ namespace kinski { namespace gl{
                 LOG_WARNING<<e.what();
             }
             gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
+            LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
             importer.FreeScene();
             return mesh;
         }

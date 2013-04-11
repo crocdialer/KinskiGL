@@ -24,6 +24,7 @@ namespace kinski {
     const std::string PropertyIO::PROPERTY_TYPE_DOUBLE = "double";
     const std::string PropertyIO::PROPERTY_TYPE_BOOLEAN = "bool";
     const std::string PropertyIO::PROPERTY_TYPE_INT = "int";
+    const std::string PropertyIO::PROPERTY_TYPE_STRING_ARRAY = "string_array";
     const std::string PropertyIO::PROPERTY_TYPE_UNKNOWN = "unknown";
     const std::string PropertyIO::PROPERTY_NAME = "name";
     const std::string PropertyIO::PROPERTIES = "properties";
@@ -58,8 +59,15 @@ namespace kinski {
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<bool>();
             success = true;
             
-        } 
-        
+        } else if (theProperty->isOfType<std::vector<std::string> >()) {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING_ARRAY;
+            const std::vector<std::string>& vals = theProperty->getValue<std::vector<std::string> >();
+            for (int i = 0; i < vals.size(); ++i)
+            {
+                theJsonValue[PROPERTY_VALUE][i] = vals[i];
+            }
+            success = true;
+        }
         return success;
     }
     
@@ -89,7 +97,19 @@ namespace kinski {
             theProperty->setValue<bool>(theJsonValue[PROPERTY_VALUE].asBool());
             success = true;
             
-        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN) {
+        }else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING_ARRAY) {
+            if(theJsonValue[PROPERTY_VALUE].isArray())
+            {
+                std::vector<std::string> vals;
+                for (int i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+                {
+                    vals.push_back(theJsonValue[PROPERTY_VALUE][i].asString());
+                }
+                theProperty->setValue<std::vector<std::string> >(vals);
+            }
+            success = true;
+            
+        }else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN) {
             // do nothing
         }
         

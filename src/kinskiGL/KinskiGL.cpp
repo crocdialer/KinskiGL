@@ -373,7 +373,7 @@ namespace kinski { namespace gl {
     {
         static gl::Material::Ptr material;
         
-        //create shader, if not yet here
+        //create material, if not yet here
         if(!material)
         {
             try

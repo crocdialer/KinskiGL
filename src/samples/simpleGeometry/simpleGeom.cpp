@@ -116,7 +116,7 @@ public:
         //gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
         gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");
         kafka_mesh->setPosition(kafka_mesh->position() - kafka_mesh->boundingBox().center());
-        scene().addObject(kafka_mesh);
+        //scene().addObject(kafka_mesh);
         
         // load state from config file
         try

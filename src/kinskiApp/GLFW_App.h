@@ -55,7 +55,7 @@ namespace kinski
         void setBarColor(const glm::vec4 &theColor, TwBar *theBar = NULL);
         void setBarTitle(const std::string &theTitle, TwBar *theBar = NULL);
         
-        const std::map<TwBar*, Property::Ptr>& 
+        const std::map<TwBar*, std::list<Property::Ptr> >& 
         getTweakProperties() const {return m_tweakProperties;};
         
         const std::vector<TwBar*>& tweakBars() const { return m_tweakBars; };
@@ -96,7 +96,7 @@ namespace kinski
         std::vector<TwBar*> m_tweakBars;
         bool m_displayTweakBar;
         
-        std::map<TwBar*, Property::Ptr> m_tweakProperties;
+        std::map<TwBar*, std::list<Property::Ptr> > m_tweakProperties;
         
     };
 }

@@ -286,19 +286,17 @@ namespace kinski{ namespace gl{
         if(boneHasKeys)
             boneTransform = translation * rotation * scaleMatrix;
         
-        glm::mat4 globalTransform = parentTransform * boneTransform;
-        bone->worldtransform = globalTransform;
+        bone->worldtransform = parentTransform * boneTransform;
         
         // add final transform
-        glm::mat4 finalTransform = globalTransform * bone->offset;
-        matrices.push_back(finalTransform);
+        matrices.push_back(bone->worldtransform * bone->offset);
         
         
         // recursion through all children
         list<shared_ptr<gl::Bone> >::iterator it = bone->children.begin();
         for (; it != bone->children.end(); ++it)
         {
-            buildBoneMatrices(time, *it, globalTransform, matrices);
+            buildBoneMatrices(time, *it, bone->worldtransform, matrices);
         }
     }
     
@@ -487,7 +485,7 @@ namespace kinski{ namespace gl{
                 float const x = cos(2*M_PI * s * S) * sin( M_PI * r * R );
                 float const z = sin(2*M_PI * s * S) * sin( M_PI * r * R );
                 
-                *t = glm::vec2(s * S, r * R);
+                *t = glm::clamp(glm::vec2(1 - s * S, r * R), glm::vec2(0), glm::vec2(1));
                 *v = glm::vec3(x, y, z) * radius;
                 *n = glm::vec3(x, y, z);
             }
