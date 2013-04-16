@@ -107,6 +107,22 @@ namespace kinski { namespace gl {
         }
     }
     
+    void setMatrices( const CameraPtr &cam )
+    {
+        setProjection(cam);
+        setModelView(cam);
+    }
+    
+    void setModelView( const CameraPtr &cam )
+    {
+        loadMatrix(MODEL_VIEW_MATRIX, cam->getViewMatrix());
+    }
+    
+    void setProjection( const CameraPtr &cam )
+    {
+        loadMatrix(PROJECTION_MATRIX, cam->getProjectionMatrix());
+    }
+    
     const glm::vec2& windowDimension(){ return g_windowDim; }
 
     void setWindowDimension(const glm::vec2 &theDim)
@@ -408,6 +424,8 @@ namespace kinski { namespace gl {
     void drawQuad(const gl::MaterialPtr &theMaterial,
                   float x0, float y0, float x1, float y1)
     {
+        gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
+        
         // orthographic projection with a [0,1] coordinate space
         static MeshPtr quad_mesh;
         static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);

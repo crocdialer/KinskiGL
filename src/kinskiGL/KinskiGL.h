@@ -99,8 +99,13 @@ namespace kinski { namespace gl {
     KINSKI_API void multMatrix(const glm::mat4 &theMatrix);
     KINSKI_API void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
     KINSKI_API void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
-
+    
+    KINSKI_API void setMatrices( const CameraPtr &cam );
+    KINSKI_API void setModelView( const CameraPtr &cam );
+    KINSKI_API void setProjection( const CameraPtr &cam );
+    
     class ScopedMatrixPush
+    
     {
     public:
         ScopedMatrixPush(const Matrixtype type):
@@ -148,7 +153,7 @@ namespace kinski { namespace gl {
     /*********************************** inbuilt Texture loading **********************************/
     
     KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = true,
-                                             bool compress = false);
+                                             bool compress = false, GLfloat anisotropic_filter_lvl = 1.f);
     
     class ImageLoadException : public Exception
     {
