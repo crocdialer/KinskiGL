@@ -159,7 +159,7 @@ void main()
     vec3 E = normalize(v_eyeVec);
     
     // calculate parallax offset
-    vec2 newCoords = v_texCoord.xy + (E.xy * height);
+    vec2 newCoords = mod(v_texCoord.xy + (E.xy * height), 1.0);
     vec4 texColors = texture(u_textureMap[0], newCoords);
     
     vec3 N = normalFromHeightMap(u_textureMap[1], newCoords, 0.8);

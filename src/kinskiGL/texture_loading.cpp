@@ -12,7 +12,8 @@
 
 namespace kinski { namespace gl {
   
-    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress)
+    Texture createTextureFromFile(const std::string &theFileName, bool mipmap,
+                                          bool compress, GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
         std::vector<uint8_t> dataVec = kinski::readBinaryFile(theFileName);

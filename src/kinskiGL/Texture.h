@@ -58,6 +58,9 @@ namespace kinski{ namespace gl{
          * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
         void setMagFilter( GLenum magFilter );
         
+        void set_mipmapping( bool b = true );
+        void set_anisotropic_filter(float f);
+        
         void setTextureMatrix( const glm::mat4 &theMatrix );
         
         const glm::mat4& getTextureMatrix() const;
@@ -151,6 +154,9 @@ namespace kinski{ namespace gl{
             //! Enables or disables mipmapping. Default is disabled.
             void enableMipmapping( bool enableMipmapping = true ) { m_Mipmapping = enableMipmapping; }
             
+            //! Enables or disables mipmapping. Default is disabled.
+            void set_anisotropic_filter(float level) { m_anisotropic_filter_level = level; }
+            
             //! Sets the Texture's internal format. A value of -1 implies selecting the best format for the context. 
             void setInternalFormat( GLint internalFormat ) { m_InternalFormat = internalFormat; }
             
@@ -204,6 +210,7 @@ namespace kinski{ namespace gl{
             GLenum			m_Target;
             GLenum			m_WrapS, m_WrapT;
             GLenum			m_MinFilter, m_MagFilter;
+            float           m_anisotropic_filter_level;
             bool			m_Mipmapping;
             GLint			m_InternalFormat;
             

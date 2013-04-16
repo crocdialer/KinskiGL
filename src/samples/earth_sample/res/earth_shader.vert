@@ -19,7 +19,7 @@ void main()
    vec3 b = cross(v_normal, t);
    mat3 tbnMatrix = mat3(t,b, v_normal);
    v_eyeVec = tbnMatrix * normalize(- (u_modelViewMatrix * a_vertex).xyz);
-   v_lightDir = tbnMatrix * u_lightDir;
+   v_lightDir = tbnMatrix * normalize(u_lightDir);
    v_texCoord =  u_textureMatrix * a_texCoord;
     gl_Position = u_modelViewProjectionMatrix * a_vertex;
 }

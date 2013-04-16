@@ -158,8 +158,7 @@ public:
         //tafel spruch
         gl::drawTexture(m_textures[0], windowSize());
         
-        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
+        gl::setMatrices(camera());
         
         if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }
         

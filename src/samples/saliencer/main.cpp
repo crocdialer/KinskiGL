@@ -61,8 +61,6 @@ public:
         //m_cvThread->streamVideo("/Users/Fabian/dev/testGround/python/cvScope/scopeFootage/testMovie_00.MOV", true);
         m_cvThread->streamUSBCamera();
         
-        
-                
         if(m_processNode)
         {
             addPropertyListToTweakBar(m_processNode->getPropertyList());

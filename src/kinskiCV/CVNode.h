@@ -92,8 +92,7 @@ namespace kinski{
     
     /*!
      * Basic interface for classes serving as processing Nodes,
-     * meaning delegates doing image processing or arbitrary stuff 
-     * like communicating results over network or writing images to disk, etc.
+     * e.g. delegates doing image processing or arbitrary stuff 
      */
     class CVProcessNode : public CVNode
     {
@@ -137,9 +136,9 @@ namespace kinski{
     
     CVCombinedProcessNode::Ptr link(const CVProcessNode::Ptr &one,
                                     const CVProcessNode::Ptr &other);
-    const CVCombinedProcessNode::Ptr operator<<(const CVProcessNode::Ptr &one,
+    CVCombinedProcessNode::Ptr operator<<(const CVProcessNode::Ptr &one,
                                                 const CVProcessNode::Ptr &other);
-    const CVCombinedProcessNode::Ptr operator>>(const CVProcessNode::Ptr &one,
+    CVCombinedProcessNode::Ptr operator>>(const CVProcessNode::Ptr &one,
                                                 const CVProcessNode::Ptr &other);
     
     

@@ -35,7 +35,7 @@ void main()
     // sample normal map
     //N = normalize(texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0);
     // sample bump map
-    //N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.3);
+    N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.3);
     vec3 L = normalize(-v_lightDir);
     vec3 E = normalize(v_eyeVec);
     vec3 R = reflect(-L, N);
@@ -49,6 +49,10 @@ void main()
     
     vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
     vec4 day_color = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+    
+    //sample cloud map
+    vec4 cloud_color = texture(u_textureMap[4], v_texCoord.xy);
+    day_color = (1.0 - cloud_color.x) * day_color + cloud_color * cloud_color.x;
     
     fragData = mix(night_color, day_color, nDotL);
 }

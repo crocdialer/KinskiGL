@@ -101,6 +101,6 @@ void main()
     
     //confidence = confidence > 0.25 ? confidence : 0.0 ;
     
-    fragData = mix(color, jet(confidence), confidence) ;
+    fragData = jet(confidence);//mix(color, jet(confidence), confidence) ;
 }
 

@@ -42,7 +42,7 @@ namespace kinski
         }
         
         /********************** construct a simple scene ***********************/
-        gl::Geometry::Ptr sphere(gl::createSphere(100, 36));;
+        gl::Geometry::Ptr sphere(gl::createSphere(100, 32));
         gl::MaterialPtr mat(new gl::Material);
         materials().push_back(mat);
         
@@ -51,7 +51,15 @@ namespace kinski
             std::vector<string>::const_iterator it = m_map_names->value().begin();
             for (; it != m_map_names->value().end(); ++it)
             {
-                m_textures.push_back(gl::createTextureFromFile(*it, true, true));
+                bool mip_map = true, compression = true, anisoptropic_filter = 16.f;
+                // bump
+                if(mat->textures().size() == 1)
+                {
+                    mip_map = false;
+                }
+                
+                m_textures.push_back(gl::createTextureFromFile(*it, mip_map, compression,
+                                                               anisoptropic_filter));
                 mat->addTexture(m_textures.back());
             }
             mat->setShinyness(60);
@@ -61,7 +69,7 @@ namespace kinski
                 mat->setShader(gl::createShaderFromFile(m_shader_names->value()[0],
                                                         m_shader_names->value()[1]));
             }
-            //mat->setShader(gl::createShader(gl::SHADER_UNLIT));
+            //mat->setShader(gl::createShader(gl::SHADER_PHONG));
                            
         }catch(Exception &e)
         {
@@ -86,13 +94,23 @@ namespace kinski
         if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }
         scene().render(camera());
         
-        // draw texture map(s)
-        glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
-        glm::vec2 step(0, - getHeight()/5.f - 10);
-        for(int i = 0;i<m_textures.size();i++)
+        if(selected_mesh())
         {
-            drawTexture(m_textures[i], windowSize()/5.f, offet);
-            offet += step;
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * selected_mesh()->transform());
+            gl::drawAxes(selected_mesh());
+            gl::drawBoundingBox(selected_mesh());
+            if(normals()) gl::drawNormals(selected_mesh());
+        }
+        // draw texture map(s)
+        if(displayTweakBar())
+        {
+            glm::vec2 offet(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
+            glm::vec2 step(0, - getHeight()/6.f - 10);
+            for(int i = 0;i<m_textures.size();i++)
+            {
+                drawTexture(m_textures[i], windowSize()/6.f, offet);
+                offet += step;
+            }
         }
     }
     

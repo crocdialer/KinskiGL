@@ -11,6 +11,7 @@ typedef kinski::ViewerApp BaseAppType;
 #include "kinskiCV/CVThread.h"
 #include "ThreshNode.h"
 #include "DopeRecorder.h"
+#include "FaceFilter.h"
 
 using namespace std;
 using namespace kinski;
@@ -102,6 +103,7 @@ class BulletSample : public BaseAppType
 {
 private:
     
+    //vector<gl::Texture> m_textures;
     gl::Texture m_textures[4];
     Property_<string>::Ptr m_font_name;
     Property_<int>::Ptr m_font_size;
@@ -237,6 +239,7 @@ public:
         kinski::addSearchPath("/Library/Fonts");
         m_font_paths = kinski::getDirectoryEntries(getSearchPaths().back(), false, "ttf");
         m_font.load("Arial.ttf", 24);
+        //m_textures.resize(4);
         
         /*********** init our application properties ******************/
         
@@ -264,13 +267,15 @@ public:
         
         materials()[0]->setShader(gl::createShader(gl::SHADER_PHONG));
         //materials()[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
+        
         materials()[0]->addTexture(m_textures[0]);
         //materials()[0]->addTexture(m_textures[1]);
 
         // camera input
         m_cvThread = CVThread::create();
-        CVProcessNode::Ptr thresh_node(new ThreshNode(-1)), record_node(new DopeRecorder(5000));
-        CVCombinedProcessNode::Ptr combi_node = thresh_node >> record_node;
+        CVProcessNode::Ptr thresh_node(new ThreshNode(-1)), record_node(new DopeRecorder(5000)),
+            face_node(new FaceFilter());
+        CVCombinedProcessNode::Ptr combi_node = face_node >> thresh_node >> record_node;
         combi_node->observeProperties();
         m_cvThread->setProcessingNode(combi_node);
         
@@ -285,7 +290,7 @@ public:
         create_cube_stack(4, 32, 4);
         
         // create a simplex noise texture
-        if(true)
+        if(false)
         {
             int w = 256, h = 256;
             float data[w * h];
@@ -293,10 +298,10 @@ public:
             for (int i = 0; i < h; i++)
                 for (int j = 0; j < w; j++)
                 {
-                    data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
+                    data[i * h + j] = (glm::simplex(vec3(vec2(i/(float)(h-1), j/(float)(w-1)), 0.025)) + 1) / 2.f;
                 }
             m_textures[1].update(data, GL_RED, w, h, true);
-            glGenerateMipmap(m_textures[1].getTarget());
+            //glGenerateMipmap(m_textures[1].getTarget());
             KINSKI_CHECK_GL_ERRORS();
         }
         
@@ -329,9 +334,16 @@ public:
         if(m_cvThread->hasImage())
         {
             vector<cv::Mat> images = m_cvThread->getImages();
+            
+            for(int i = 0;i < images.size();i++)
+            {
+                if(i < 4)
+                {
+                    gl::TextureIO::updateTexture(m_textures[i], images[i]);
+                }
+            }
             gl::TextureIO::updateTexture(m_textures[0], images.back());
-            glGenerateMipmap(m_textures[0].getTarget());
-            KINSKI_CHECK_GL_ERRORS();
+            
         }
         for (int i = 0; i < materials().size(); i++)
         {
@@ -343,8 +355,7 @@ public:
     
     void draw()
     {
-        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
+        gl::setMatrices(camera());
         
         if(draw_grid())
         {
@@ -371,6 +382,17 @@ public:
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
             m_label->setRotation(glm::mat3(camera()->transform()));
             gl::drawMesh(m_label);
+        }
+        // draw texture map(s)
+        if(displayTweakBar())
+        {
+            glm::vec2 offet(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
+            glm::vec2 step(0, - getHeight()/6.f - 10);
+            for(int i = 0;i<4;i++)
+            {
+                drawTexture(m_textures[i], windowSize()/6.f, offet);
+                offet += step;
+            }
         }
     }
     

@@ -34,12 +34,12 @@ Texture::Format::Format()
 struct Texture::Obj
     {
     Obj() : m_Width( -1 ), m_Height( -1 ), m_InternalFormat( -1 ), m_dataType(-1),
-    m_TextureID( 0 ), m_Flipped( false ), m_DeallocatorFunc( 0 ) {};
+    m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_DeallocatorFunc( 0 ) {};
     
     Obj( int aWidth, int aHeight ) : m_Width( aWidth ), m_Height( aHeight ),
     m_InternalFormat( -1 ),
     m_dataType(-1),
-    m_TextureID( 0 ), m_Flipped( false ), m_boundTextureUnit(-1), 
+    m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_boundTextureUnit(-1),
     m_DeallocatorFunc( 0 )  {};
     
     ~Obj()
@@ -62,6 +62,7 @@ struct Texture::Obj
     
     bool			m_DoNotDispose;
     bool			m_Flipped;
+    bool            m_mip_map;
     mutable GLint   m_boundTextureUnit;
     void			(*m_DeallocatorFunc)(void *refcon);
     void			*m_DeallocatorRefcon;			
@@ -333,12 +334,27 @@ void Texture::setWrapT( GLenum wrapT )
 
 void Texture::setMinFilter( GLenum minFilter )
 {
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, minFilter );
+    glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, minFilter );
 }
 
 void Texture::setMagFilter( GLenum magFilter )
 {
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, magFilter );
+    glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, magFilter );
+}
+
+void Texture::set_mipmapping(bool b)
+{
+    m_Obj->m_mip_map = b;
+    
+    if(b)
+    {
+        setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
+        glGenerateMipmap(m_Obj->m_Target);
+    }
+    else
+    {
+        setMagFilter(GL_LINEAR);
+    }
 }
 
 bool Texture::hasAlpha() const

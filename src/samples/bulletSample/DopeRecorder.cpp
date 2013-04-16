@@ -33,15 +33,14 @@ namespace kinski
     
     std::vector<cv::Mat> DopeRecorder::doProcessing(const cv::Mat &img)
     {
+        std::vector<cv::Mat> outMats;
         m_delay->setRange(0, *m_buffer_size);
         
         if(*m_record)
         {
             m_buffer[m_current_index] = img;
-            
         }
         cv::Mat ret;
-        std::vector<cv::Mat> outMats;
         if(*m_randomize)
         {
             ret = m_buffer[random<int>(0, *m_buffer_size - 1)];

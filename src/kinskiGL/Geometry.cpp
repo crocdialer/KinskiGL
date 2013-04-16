@@ -93,26 +93,62 @@ namespace kinski{ namespace gl{
         if(m_faces.empty()) return;
         if(m_texCoords.size() != m_vertices.size()) return;
         
+        vector<glm::vec3> tangents;
         if(m_tangents.size() != m_vertices.size())
         {
             m_tangents.clear();
             m_tangents.resize(m_vertices.size(), glm::vec3(0));
+            tangents.resize(m_vertices.size(), glm::vec3(0));
         }
         
         vector<Face3>::iterator faceIt = m_faces.begin();
         for (; faceIt != m_faces.end(); faceIt++)
         {
             Face3 &face = *faceIt;
-            const glm::vec3 &v0 = m_vertices[face.a], &v1 = m_vertices[face.b], &v2 = m_vertices[face.c];
-            const glm::vec2 &t0 = m_texCoords[face.a], &t1 = m_texCoords[face.b], &t2 = m_texCoords[face.c];
+            const glm::vec3 &v1 = m_vertices[face.a], &v2 = m_vertices[face.b], &v3 = m_vertices[face.c];
+            const glm::vec2 &w1 = m_texCoords[face.a], &w2 = m_texCoords[face.b], &w3 = m_texCoords[face.c];
             
             // calculate tangent vector
-            float det = (t1.x - t0.x) * (t2.y - t0.y) - (t1.y - t0.y) * (t2.x - t0.x);
-            glm::vec3 tangent = ( (t2.y - t0.y) * ( v1 - v0 ) - (t1.y - t0.y) * ( v2 - v0 ) ) / det;
-            tangent = glm::normalize(tangent);
-            m_tangents[face.a] = tangent;
-            m_tangents[face.b] = tangent;
-            m_tangents[face.c] = tangent;
+//            float det = (t1.x - t0.x) * (t2.y - t0.y) - (t1.y - t0.y) * (t2.x - t0.x);
+//            glm::vec3 tangent = ( (t2.y - t0.y) * ( v1 - v0 ) - (t1.y - t0.y) * ( v2 - v0 ) ) / det;
+//            tangent = glm::normalize(tangent);
+//            m_tangents[face.a] = tangent;
+//            m_tangents[face.b] = tangent;
+//            m_tangents[face.c] = tangent;
+            
+            float x1 = v2.x - v1.x;
+            float x2 = v3.x - v1.x;
+            float y1 = v2.y - v1.y;
+            float y2 = v3.y - v1.y;
+            float z1 = v2.z - v1.z;
+            float z2 = v3.z - v1.z;
+            
+            float s1 = w2.x - w1.x;
+            float s2 = w3.x - w1.x;
+            float t1 = w2.y - w1.y;
+            float t2 = w3.y - w1.y;
+            
+            float r = 1.0F / (s1 * t2 - s2 * t1);
+            glm::vec3 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+                          (t2 * z1 - t1 * z2) * r);
+            glm::vec3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+                          (s1 * z2 - s2 * z1) * r);
+            
+            tangents[face.a] += sdir;
+            tangents[face.b] += sdir;
+            tangents[face.c] += sdir;
+        }
+        
+        for (long a = 0; a < m_vertices.size(); a++)
+        {
+            const glm::vec3& n = m_normals[a];
+            const glm::vec3& t = tangents[a];
+            
+            // Gram-Schmidt orthogonalize
+            m_tangents[a] = glm::normalize(t - n * glm::dot(n, t));
+            
+            // Calculate handedness
+            //tangent[a].w = (Dot(Cross(n, t), tan2[a]) < 0.0F) ? -1.0F : 1.0F;
         }
     }
     
