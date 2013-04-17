@@ -142,8 +142,7 @@ namespace kinski { namespace gl {
                              float x0, float y0, float x1, float y1);
     KINSKI_API void drawText2D(const std::string &theText, const gl::Font &theFont,
                                const glm::vec2 &theTopLeft = glm::vec2(0));
-    KINSKI_API void drawText3D(const std::string &theText, const gl::Font &theFont,
-                               const glm::mat4 &theTransform);
+    KINSKI_API void drawText3D(const std::string &theText, const gl::Font &theFont);
     
     KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);

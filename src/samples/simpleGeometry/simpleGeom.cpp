@@ -157,8 +157,7 @@ public:
         
         //background
         gl::drawTexture(m_textures[0], windowSize());
-        gl::drawText2D("Kuckucksuhr", m_font, glm::vec2(100, 100));
-        
+        gl::drawText2D(kinski::as_string(framesPerSec()), m_font, glm::vec2(windowSize().x - 150, 30));
         gl::setMatrices(camera());
         
         if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }

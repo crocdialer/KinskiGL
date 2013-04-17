@@ -448,27 +448,25 @@ namespace kinski { namespace gl {
     
     void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec2 &theTopLeft)
     {
-        if(!theFont.glyph_texture()) return;
         static std::string last_string;
         static MeshPtr string_mesh;
-        static mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
+        if(!theFont.glyph_texture()) return;
+        mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
         
         if(last_string != theText)
         {
             last_string = theText;
             string_mesh = theFont.create_mesh(theText);
         }
-        if(theTopLeft != glm::vec2(string_mesh->position().xy()))
-        {
-            string_mesh->setPosition(glm::vec3(theTopLeft , 0.f));
-        }
+        string_mesh->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y
+                                           - string_mesh->geometry()->boundingBox().height(), 0.f));
+
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, string_mesh->transform());
         drawMesh(string_mesh);
     }
     
-    void drawText3D(const std::string &theText, const gl::Font &theFont,
-                    const glm::mat4 &theTransform)
+    void drawText3D(const std::string &theText, const gl::Font &theFont)
     {
         if(!theFont.glyph_texture()) return;
         static std::string last_string;
