@@ -274,7 +274,7 @@ namespace kinski{ namespace gl{
                             uint32_t numSegments_W = 1,
                             uint32_t numSegments_H = 1);
     
-    GeometryPtr createBox(const glm::vec3 &theHalfExtents = glm::vec3(0.5f));
+    GeometryPtr createBox(const glm::vec3 &theHalfExtents);
     
     GeometryPtr createSphere(float radius, int numSlices);
     

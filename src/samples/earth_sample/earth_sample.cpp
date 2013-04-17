@@ -52,12 +52,6 @@ namespace kinski
             for (; it != m_map_names->value().end(); ++it)
             {
                 bool mip_map = true, compression = true, anisoptropic_filter = 16.f;
-                // bump
-                if(mat->textures().size() == 1)
-                {
-                    mip_map = false;
-                }
-                
                 m_textures.push_back(gl::createTextureFromFile(*it, mip_map, compression,
                                                                anisoptropic_filter));
                 mat->addTexture(m_textures.back());

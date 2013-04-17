@@ -25,10 +25,10 @@ namespace kinski { namespace gl {
         
         BulletDebugDrawer()
         {
-            gl::Material::Ptr mat(new gl::Material);
+            gl::MaterialPtr mat(new gl::Material);
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
-            gl::Geometry::Ptr geom(new gl::Geometry);
-            m_mesh = gl::Mesh::Ptr(new gl::Mesh(geom, mat));
+            gl::GeometryPtr geom(new gl::Geometry);
+            m_mesh = gl::MeshPtr(new gl::Mesh(geom, mat));
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
         };
         
@@ -103,8 +103,8 @@ class BulletSample : public BaseAppType
 {
 private:
     
-    //vector<gl::Texture> m_textures;
-    gl::Texture m_textures[4];
+    vector<gl::Texture> m_textures;
+    //gl::Texture m_textures[4];
     Property_<string>::Ptr m_font_name;
     Property_<int>::Ptr m_font_size;
     Property_<bool>::Ptr m_stepPhysics;
@@ -125,6 +125,7 @@ public:
     void create_cube_stack(int size_x, int size_y, int size_z)
     {
         scene().objects().clear();
+        m_physics_context.collisionShapes().clear();
         
         float scaling = 8.0f;
         float start_pox_x = -5;
@@ -239,7 +240,7 @@ public:
         kinski::addSearchPath("/Library/Fonts");
         m_font_paths = kinski::getDirectoryEntries(getSearchPaths().back(), false, "ttf");
         m_font.load("Arial.ttf", 24);
-        //m_textures.resize(4);
+        for (auto i = 0; i < 4; ++i){ m_textures.push_back(gl::Texture()); }
         
         /*********** init our application properties ******************/
         
@@ -268,8 +269,8 @@ public:
         materials()[0]->setShader(gl::createShader(gl::SHADER_PHONG));
         //materials()[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
         
-        materials()[0]->addTexture(m_textures[0]);
-        //materials()[0]->addTexture(m_textures[1]);
+        materials()[0]->addTexture(m_textures[3]);
+        //materials()[0]->addTexture(m_textures[3]);
 
         // camera input
         m_cvThread = CVThread::create();
@@ -278,7 +279,6 @@ public:
         CVCombinedProcessNode::Ptr combi_node = face_node >> thresh_node >> record_node;
         combi_node->observeProperties();
         m_cvThread->setProcessingNode(combi_node);
-        
         m_cvThread->streamUSBCamera();
         
         // init physics pipeline
@@ -342,7 +342,7 @@ public:
                     gl::TextureIO::updateTexture(m_textures[i], images[i]);
                 }
             }
-            gl::TextureIO::updateTexture(m_textures[0], images.back());
+            //gl::TextureIO::updateTexture(m_textures[0], images.back());
             
         }
         for (int i = 0; i < materials().size(); i++)

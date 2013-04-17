@@ -282,7 +282,7 @@ namespace kinski { namespace gl {
         "void main()\n"
         "{\n"
         "    v_normal = normalize(u_normalMatrix * a_normal);\n"
-        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
+        "    v_texCoord = u_textureMatrix * a_texCoord;\n"
         "    v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;\n"
         "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
         "}\n";

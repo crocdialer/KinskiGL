@@ -126,6 +126,14 @@ public:
             offset += step;
         }
     }
+    
+    void keyPress(const KeyEvent &e)
+    {
+        if(e.getChar() == KeyEvent::KEY_SPACE)
+        {
+            set_displayTweakBar(!displayTweakBar());
+        }
+    }
 };
 
 int main(int argc, char *argv[])

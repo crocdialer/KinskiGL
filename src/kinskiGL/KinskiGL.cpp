@@ -17,6 +17,7 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "Font.h"
 
 using namespace glm;
 using namespace std;
@@ -443,6 +444,41 @@ namespace kinski { namespace gl {
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
         drawMesh(quad_mesh);
+    }
+    
+    void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec2 &theTopLeft)
+    {
+        if(!theFont.glyph_texture()) return;
+        static std::string last_string;
+        static MeshPtr string_mesh;
+        static mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
+        
+        if(last_string != theText)
+        {
+            last_string = theText;
+            string_mesh = theFont.create_mesh(theText);
+        }
+        if(theTopLeft != glm::vec2(string_mesh->position().xy()))
+        {
+            string_mesh->setPosition(glm::vec3(theTopLeft , 0.f));
+        }
+        gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, string_mesh->transform());
+        drawMesh(string_mesh);
+    }
+    
+    void drawText3D(const std::string &theText, const gl::Font &theFont,
+                    const glm::mat4 &theTransform)
+    {
+        if(!theFont.glyph_texture()) return;
+        static std::string last_string;
+        static MeshPtr string_mesh;
+        if(last_string != theText)
+        {
+            last_string = theText;
+            string_mesh = theFont.create_mesh(theText);
+        }
+        drawMesh(string_mesh);
     }
     
     void drawGrid(float width, float height, int numW, int numH)

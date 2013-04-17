@@ -148,9 +148,7 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
 void Texture::init( const float *data, GLint dataFormat, const Format &format )
 {
 	m_Obj->m_DoNotDispose = false;
-
 	glGenTextures( 1, &m_Obj->m_TextureID );
-
 	glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
@@ -376,22 +374,22 @@ bool Texture::hasAlpha() const
 	
 float Texture::getLeft() const
 {
-	return (glm::vec4(0, 0, 0, 1) * m_Obj->m_textureMatrix).x;
+	return (m_Obj->m_textureMatrix * glm::vec4(0, 0, 0, 1)).x;
 }
 
 float Texture::getRight() const
 {
-	return (glm::vec4(1, 0, 0, 1) * m_Obj->m_textureMatrix).x;
+	return (m_Obj->m_textureMatrix * glm::vec4(1, 0, 0, 1)).x;
 }
 
 float Texture::getTop() const
 {
-	return (glm::vec4(0, 1, 0, 1) * m_Obj->m_textureMatrix).y;
+	return (m_Obj->m_textureMatrix * glm::vec4(0, 1, 0, 1)).y;
 }
     
 float Texture::getBottom() const
 {
-    return (glm::vec4(0, 0, 0, 1) * m_Obj->m_textureMatrix).y;
+    return (m_Obj->m_textureMatrix * glm::vec4(0, 0, 0, 1)).y;
 }
 
 GLint Texture::getInternalFormat() const

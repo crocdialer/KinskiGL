@@ -116,7 +116,7 @@ namespace kinski {
         }
         else{
             if(e.isRight() && m_selected_mesh){
-                //m_selected_mesh->material() = m_materials[0];
+                m_selected_mesh->material() = m_materials[0];
                 m_selected_mesh.reset();
             }
         }

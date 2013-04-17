@@ -91,7 +91,7 @@ public:
                                               "Rechne vor der Klasse eine Aufgabe!!\n\n  1 + 3 = 5");
         //m_textures[2] = m_font.glyph_texture();
 
-        gl::Geometry::Ptr myBox(gl::createSphere(100, 36));;
+        gl::Geometry::Ptr myBox(gl::createBox(glm::vec3(50.f)));//(gl::createSphere(100, 36));
         gl::MaterialPtr mat(new gl::Material);
         materials().push_back(mat);
         
@@ -155,8 +155,9 @@ public:
 //        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
-        //tafel spruch
+        //background
         gl::drawTexture(m_textures[0], windowSize());
+        gl::drawText2D("Kuckucksuhr", m_font, glm::vec2(100, 100));
         
         gl::setMatrices(camera());
         

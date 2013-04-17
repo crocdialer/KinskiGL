@@ -27,13 +27,13 @@ namespace kinski
         vector<Mat> outMats;
         vector<Rect> rects;
         
-        int maxWidth = 640;
+        int maxWidth = 480;
         float scale = (float)maxWidth / img.cols;
 
         resize(img, m_small_img, Size(0,0), scale, scale);
         cvtColor(m_small_img, m_small_img, CV_BGR2GRAY);
-        cv::Size min_size = cv::Size(80, 80);
-        m_cascade.detectMultiScale(m_small_img, rects, 1.1, 3, CV_HAAR_DO_ROUGH_SEARCH, min_size);
+        cv::Size min_size = cv::Size(maxWidth / 10.f, maxWidth / 10.f);
+        m_cascade.detectMultiScale(m_small_img, rects, 1.2, 3, 0, min_size);
         
         vector<Rect>::const_iterator it = rects.begin();
         for (; it != rects.end(); ++it)
@@ -43,7 +43,8 @@ namespace kinski
             r.y /= scale;
             r.width /= scale;
             r.height /= scale;
-            if(it->area() > 5000) outMats.push_back(img(r));
+            //if(it->area() > 5000)
+            outMats.push_back(img(r));
         }
 
         return outMats;
