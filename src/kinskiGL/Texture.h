@@ -152,7 +152,7 @@ namespace kinski{ namespace gl{
             //#endif		
             
             //! Enables or disables mipmapping. Default is disabled.
-            void enableMipmapping( bool enableMipmapping = true ) { m_Mipmapping = enableMipmapping; }
+            void set_mipmapping( bool b = true ) { m_Mipmapping = b; }
             
             //! Enables or disables mipmapping. Default is disabled.
             void set_anisotropic_filter(float level) { m_anisotropic_filter_level = level; }

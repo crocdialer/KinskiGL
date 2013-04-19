@@ -448,6 +448,8 @@ namespace kinski { namespace gl {
     
     void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec2 &theTopLeft)
     {
+        gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
+        
         static std::string last_string;
         static MeshPtr string_mesh;
         if(!theFont.glyph_texture()) return;
@@ -458,9 +460,10 @@ namespace kinski { namespace gl {
             last_string = theText;
             string_mesh = theFont.create_mesh(theText);
         }
-        string_mesh->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y
-                                           - string_mesh->geometry()->boundingBox().height(), 0.f));
-
+//        string_mesh->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y
+//                                           - string_mesh->geometry()->boundingBox().height(), 0.f));
+        string_mesh->setPosition(glm::vec3(theTopLeft, 0));
+        
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, string_mesh->transform());
         drawMesh(string_mesh);

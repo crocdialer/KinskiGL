@@ -190,15 +190,20 @@ namespace kinski { namespace gl {
         std::string::const_iterator it = theText.begin();
         for (; it != theText.end(); ++it)
         {
+            uint32_t codepoint;
+            uint32_t state = 0;
+            
+            while (decode(&state, &codepoint, (uint8_t)*it)){ ++it; }
+            
             //new line
-            if(*it == 10)
+            if(codepoint == 10)
             {
                 x = 0;
                 y += m_obj->font_height * 1.1;
             }
             
             stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
-                               *it-32, &x, &y, &q, 1);
+                               codepoint-32, &x, &y, &q, 1);
             
             int w = q.x1 - q.x0;
             int h = q.y1 - q.y0;

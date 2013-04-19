@@ -77,7 +77,7 @@ namespace kinski { namespace gl {
         
         if(mipmap)
         {
-            fmt.enableMipmapping();
+            fmt.set_mipmapping();
             fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         }
         

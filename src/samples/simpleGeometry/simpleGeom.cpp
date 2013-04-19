@@ -80,8 +80,8 @@ public:
             
             gl::Texture::Format fmt;
             fmt.setInternalFormat(GL_RED);
+            fmt.set_mipmapping(true);
             m_textures[1] = gl::Texture (w, h, fmt);
-            //m_textures[1].setFlipped();
             m_textures[1].update(data, GL_RED, w, h, true);
         }
         

@@ -292,17 +292,20 @@ public:
         // create a simplex noise texture
         if(false)
         {
-            int w = 256, h = 256;
+            int w = 512, h = 512;
             float data[w * h];
             
             for (int i = 0; i < h; i++)
                 for (int j = 0; j < w; j++)
                 {
-                    data[i * h + j] = (glm::simplex(vec3(vec2(i/(float)(h-1), j/(float)(w-1)), 0.025)) + 1) / 2.f;
+                    data[i * h + j] = (glm::simplex( vec3(0.0125f * vec2(i, j), 0.025)) + 1) / 2.f;
                 }
+            
+            gl::Texture::Format fmt;
+            fmt.setInternalFormat(GL_RED);
+            fmt.set_mipmapping(true);
+            m_textures[1] = gl::Texture (w, h, fmt);
             m_textures[1].update(data, GL_RED, w, h, true);
-            //glGenerateMipmap(m_textures[1].getTarget());
-            KINSKI_CHECK_GL_ERRORS();
         }
         
         // load state from config file
@@ -342,8 +345,6 @@ public:
                     gl::TextureIO::updateTexture(m_textures[i], images[i]);
                 }
             }
-            //gl::TextureIO::updateTexture(m_textures[0], images.back());
-            
         }
         for (int i = 0; i < materials().size(); i++)
         {
@@ -386,13 +387,20 @@ public:
         // draw texture map(s)
         if(displayTweakBar())
         {
-            glm::vec2 offet(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
+            // draw opencv maps
+            glm::vec2 offset(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
             glm::vec2 step(0, - getHeight()/6.f - 10);
             for(int i = 0;i<4;i++)
             {
-                drawTexture(m_textures[i], windowSize()/6.f, offet);
-                offet += step;
+                drawTexture(m_textures[i], windowSize()/6.f, offset);
+//                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
+//                                    as_string(m_textures[i].getHeight()),
+//                               m_font, offset);
+                offset += step;
             }
+            // draw fps string
+            gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                           glm::vec2(windowSize().x - 110, 10));
         }
     }
     

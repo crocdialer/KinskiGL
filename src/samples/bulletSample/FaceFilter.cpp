@@ -44,7 +44,7 @@ namespace kinski
             r.width /= scale;
             r.height /= scale;
             //if(it->area() > 5000)
-            outMats.push_back(img(r));
+            outMats.push_back(img(r).clone());
         }
 
         return outMats;

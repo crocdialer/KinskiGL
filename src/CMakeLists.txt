@@ -18,6 +18,10 @@ endfunction()
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
+OPTION (BUILD_APPLIB "Build App framework" ON)
+OPTION (BUILD_SAMPLES "Build Samples" ON)
+OPTION (BUILD_TESTS "Build Tests" ON)
+
 ADD_SUBDIRECTORY("kinskiCore")
 SET(LIBS ${LIBS} "kinskiCore")
 

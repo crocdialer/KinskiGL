@@ -165,7 +165,7 @@ void Fbo::init()
 	textureFormat.setWrap( mObj->mFormat.mWrapS, mObj->mFormat.mWrapT );
 	textureFormat.setMinFilter( mObj->mFormat.mMinFilter );
 	textureFormat.setMagFilter( mObj->mFormat.mMagFilter );
-	textureFormat.enableMipmapping( getFormat().hasMipMapping() );
+	textureFormat.set_mipmapping( getFormat().hasMipMapping() );
 
 	// allocate the color buffers
 	for( int c = 0; c < mObj->mFormat.mNumColorBuffers; ++c ) {
