@@ -13,6 +13,7 @@ namespace kinski {
     ViewerApp::ViewerApp():GLFW_App(),
     m_camera(new gl::PerspectiveCamera),
     m_precise_selection(true),
+    m_center_selected(false),
     m_rotation_damping (.9)
     {
         /*********** init our application properties ******************/
@@ -69,7 +70,7 @@ namespace kinski {
         observeProperties();
     }
     
-    void ViewerApp::update(const float timeDelta)
+    void ViewerApp::update(float timeDelta)
     {
         m_camera->setAspectRatio(getAspectRatio());
         m_avg_filter.push(glm::vec2(0));
@@ -160,6 +161,10 @@ namespace kinski {
         {
             switch (e.getChar())
             {
+                case KeyEvent::KEY_c:
+                    m_center_selected = !m_center_selected;
+                    break;
+                    
                 case KeyEvent::KEY_s:
                     Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                     break;
@@ -211,8 +216,8 @@ namespace kinski {
         else if(theProperty == m_distance || theProperty == m_rotation)
         {
             glm::vec3 look_at;
-//            if(m_selected_mesh)
-//                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
+            if(m_selected_mesh && m_center_selected)
+                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
             
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);

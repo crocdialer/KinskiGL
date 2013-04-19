@@ -73,7 +73,7 @@ namespace kinski
         scene().addObject(m_earth_mesh);
     }
     
-    void Earth_App::update(const float timeDelta)
+    void Earth_App::update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
         

@@ -325,7 +325,7 @@ public:
 #endif
     }
     
-    void update(const float timeDelta)
+    void update(float timeDelta)
     {
         BaseAppType::update(timeDelta);
         

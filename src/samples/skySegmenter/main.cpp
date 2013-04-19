@@ -15,13 +15,9 @@ class SkySegmenter : public GLFW_App
 private:
     
     gl::Texture m_textures[4];
-    
     gl::Material::Ptr m_material;
-    
     Property_<bool>::Ptr m_activator;
-    
     CVThread::Ptr m_cvThread;
-    
     CVProcessNode::Ptr m_processNode;
     
 public:
@@ -80,7 +76,7 @@ public:
         LOG_PRINT<<"ciao skySegmenter";
     }
     
-    void update(const float timeDelta)
+    void update(float timeDelta)
     {
         if(m_cvThread->hasImage())
         {

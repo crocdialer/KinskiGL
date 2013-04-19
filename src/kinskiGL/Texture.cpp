@@ -155,10 +155,11 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
 	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
 	
-	if( data ) 
+	if(data) 
     {
-		glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat, GL_FLOAT, data );
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
+                     0, dataFormat, GL_FLOAT, data );
 	}
 	else
     {
@@ -171,8 +172,7 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 #endif
         // init to black...
 		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0,
-                     mode,
-                     GL_FLOAT, 0 );
+                     mode, GL_FLOAT, 0 );
     }
     
     if( format.m_Mipmapping )
@@ -202,7 +202,6 @@ void Texture::update(const void *data,
     {
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
         glTexSubImage2D( m_Obj->m_Target, 0, 0, 0, m_Obj->m_Width, m_Obj->m_Height, format, dataType, data );
-        //if()
     }
     else 
     {
@@ -307,17 +306,14 @@ bool Texture::isFlipped() const
 //!	Marks the texture as being flipped vertically or not
 void Texture::setFlipped( bool aFlipped ) 
 { 
-    m_Obj->m_Flipped = aFlipped;
-    m_Obj->m_textureMatrix = glm::mat4();
-    
-    if(aFlipped) 
+    if(aFlipped != m_Obj->m_Flipped)
     {
         glm::mat4 flipY;
         flipY[1] = glm::vec4(0, -1, 0, 1);// invert y-coords
         flipY[3] = glm::vec4(0, 1, 0, 1); // [-1,0] -> [0,1]
-        
         m_Obj->m_textureMatrix *= flipY;
     }
+    m_Obj->m_Flipped = aFlipped;
 }
     
 void Texture::setWrapS( GLenum wrapS )

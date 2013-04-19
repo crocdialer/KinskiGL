@@ -49,16 +49,18 @@ namespace kinski { namespace gl {
         
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
-        void setTwoSided(bool b = true) { m_twoSided = b;};
+        
         bool twoSided() const { return m_twoSided; };
-        void setWireframe(bool b = true) { m_wireFrame = b;};
         bool wireframe() const { return m_wireFrame; };
-        void setDepthTest(bool b = true) { m_depthTest = b;};
-        void setDepthWrite(bool b = true) { m_depthWrite = b;};
-        void setBlending(bool b = true) { m_blending = b;};
         bool blending() const { return m_blending; };
         GLenum blendSrc() const { return m_blendSrc; };
         GLenum blendDst() const { return m_blendDst; };
+        
+        void setTwoSided(bool b = true) { m_twoSided = b;};
+        void setWireframe(bool b = true) { m_wireFrame = b;};
+        void setBlending(bool b = true) { m_blending = b;};
+        void setDepthTest(bool b = true) { m_depthTest = b;};
+        void setDepthWrite(bool b = true) { m_depthWrite = b;};
         
         bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
         bool depthTest() const { return m_depthTest; };

@@ -16,6 +16,15 @@ using namespace std;
 
 namespace kinski { namespace gl {
     
+    
+    class RenderBin
+    {
+     public:
+        RenderBin(){};
+     private:
+        
+    };
+    
     struct range_item_t
     {
         Object3DPtr object;
@@ -71,8 +80,8 @@ namespace kinski { namespace gl {
                 if (frustum.intersect(boundingBox))
                 {
                     //gl::drawMesh(theMesh);
-                    meshMap[std::pair<GeometryPtr, MaterialPtr>(theMesh->geometry(),
-                                                                theMesh->material())].push_back(theMesh);
+                    meshMap[std::make_pair(theMesh->geometry(),
+                                           theMesh->material())].push_back(theMesh);
                     m_num_visible_objects++;
                 }
             }

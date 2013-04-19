@@ -128,7 +128,7 @@ public:
         }
     }
     
-    void update(const float timeDelta)
+    void update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
         

@@ -210,7 +210,7 @@ public:
         LOG_INFO<<"ciao openclTest";
     }
     
-    void update(const float timeDelta)
+    void update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
         updateParticles(timeDelta);

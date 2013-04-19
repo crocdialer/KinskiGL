@@ -32,7 +32,7 @@ Plane::Plane(float theA, float theB, float theC, float theD)
 
 Plane::Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
 {
-    coefficients.xyz() = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    coefficients.xyz() = glm::normalize(glm::cross(v2 - v0, v1 - v0));
     coefficients.w = -glm::dot(v0, glm::vec3(coefficients.xyz()));
 }
 

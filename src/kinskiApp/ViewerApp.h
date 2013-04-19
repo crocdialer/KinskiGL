@@ -52,7 +52,7 @@ namespace kinski {
         virtual ~ViewerApp();
         
         void setup();
-        void update(const float timeDelta);
+        void update(float timeDelta);
         void mousePress(const MouseEvent &e);
         void mouseDrag(const MouseEvent &e);
         void mouseRelease(const MouseEvent &e);
@@ -84,6 +84,7 @@ namespace kinski {
         gl::Scene m_scene;
         
         bool m_precise_selection;
+        bool m_center_selected;
         
         RangedProperty<int>::Ptr m_logger_severity;
         Property_<bool>::Ptr m_show_tweakbar;

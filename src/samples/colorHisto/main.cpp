@@ -68,7 +68,7 @@ public:
         printf("ciao colorHisto\n");
     }
     
-    void update(const float timeDelta)
+    void update(float timeDelta)
     {
         if(m_cvThread->hasImage())
         {

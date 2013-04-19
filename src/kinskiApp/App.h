@@ -32,7 +32,7 @@ namespace kinski
         
         // you are supposed to implement these in a subclass
         virtual void setup() = 0;
-        virtual void update(const float timeDelta) = 0;
+        virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
         virtual void tearDown(){};
         virtual void swapBuffers() = 0;
@@ -47,7 +47,6 @@ namespace kinski
         virtual void mouseWheel(const MouseEvent &e){};
         virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
-        
 
         bool running(){return m_running;};
         inline float getWidth(){return m_windowSize[0];};
@@ -55,7 +54,6 @@ namespace kinski
         inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::vec2(w, h));};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
         inline const glm::vec2 windowSize(){return m_windowSize;};
-        
         
         virtual bool fullSceen() const {return m_fullscreen;};
         virtual void setFullSceen(bool b = true){m_fullscreen = b;};

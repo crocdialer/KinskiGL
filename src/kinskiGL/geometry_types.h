@@ -75,7 +75,7 @@ struct KINSKI_API Plane
 	Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
 	Plane(const glm::vec3& f, const glm::vec3& n);
 	
-    inline const glm::vec3& normal() { return *((glm::vec3*)(&coefficients[0])); };
+    inline const glm::vec3& normal() const { return *((glm::vec3*)(&coefficients[0])); };
     
 	inline float distance(const glm::vec3& p) const
 	{
@@ -298,6 +298,12 @@ struct KINSKI_API Frustum
 		
 		return *this;
 	}
+    
+    inline Frustum transform(const glm::mat4& t) const
+	{
+        Frustum ret = *this;
+		return ret.transform(t);
+	};
 	
 	inline uint32_t intersect(const Sphere& s)
 	{	

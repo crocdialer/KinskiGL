@@ -69,7 +69,7 @@ public:
         LOG_PRINT<<"ciao keypointer";
     }
     
-    void update(const float timeDelta)
+    void update(float timeDelta)
     {
         if(m_cvThread->hasImage())
         {
