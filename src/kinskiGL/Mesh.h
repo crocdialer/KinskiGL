@@ -23,8 +23,11 @@ namespace kinski { namespace gl {
         typedef std::shared_ptr<Mesh> Ptr;
         typedef std::shared_ptr<const Mesh> ConstPtr;
         
-        Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
-        
+        static Ptr create(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial)
+        {
+            return Ptr(new Mesh(theGeom, theMaterial));
+        }
+
         virtual ~Mesh();
         
         const Geometry::Ptr& geometry() const { return m_geometry; };
@@ -71,6 +74,8 @@ namespace kinski { namespace gl {
         void setColorLocationName(const std::string &theName);
         
     private:
+        
+        Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
         
         GeometryPtr m_geometry;
         MaterialPtr m_material;

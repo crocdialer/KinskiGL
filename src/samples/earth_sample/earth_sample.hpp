@@ -18,7 +18,7 @@ namespace kinski
     public:
         
         void setup();
-        void update(const float timeDelta);
+        void update(float timeDelta);
         void draw();
         void tearDown();
         void updateProperty(const Property::ConstPtr &theProperty);

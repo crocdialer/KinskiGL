@@ -69,7 +69,7 @@ namespace kinski
         {
             LOG_ERROR<<e.what();
         }
-        m_earth_mesh = gl::MeshPtr(new gl::Mesh(sphere, mat));
+        m_earth_mesh = gl::Mesh::create(sphere, mat);
         scene().addObject(m_earth_mesh);
     }
     

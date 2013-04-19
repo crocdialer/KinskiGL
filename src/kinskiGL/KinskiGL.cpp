@@ -238,7 +238,7 @@ namespace kinski { namespace gl {
             gl::Material::Ptr mat(new gl::Material);
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
             gl::Geometry::Ptr geom(new gl::Geometry);
-            mesh = gl::Mesh::Ptr(new gl::Mesh(geom, mat));
+            mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
         
@@ -433,7 +433,7 @@ namespace kinski { namespace gl {
         
         if(!quad_mesh)
         {
-            quad_mesh = MeshPtr(new Mesh(createPlane(1, 1), MaterialPtr(new gl::Material)));
+            quad_mesh = gl::Mesh::create(createPlane(1, 1), Material::create());
             quad_mesh->setPosition(glm::vec3(0.5f, 0.5f , 0.f));
         }
         quad_mesh->material() = theMaterial;
@@ -495,7 +495,7 @@ namespace kinski { namespace gl {
             GeometryPtr geom(new gl::Geometry);
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
-            MeshPtr mesh (new gl::Mesh(geom, mat));
+            MeshPtr mesh (gl::Mesh::create(geom, mat));
             
             vector<vec3> &points = geom->vertices();
             vector<vec4> &colors = geom->colors();
@@ -550,7 +550,7 @@ namespace kinski { namespace gl {
             GeometryPtr geom(new gl::Geometry);
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
-            MeshPtr line_mesh (new gl::Mesh(geom, mat));
+            MeshPtr line_mesh (gl::Mesh::create(geom, mat));
             AABB bb = m->boundingBox();
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
@@ -589,6 +589,8 @@ namespace kinski { namespace gl {
     
     void drawMesh(const MeshPtr &theMesh)
     {
+        if(theMesh->geometry()->vertices().empty()) return;
+        
         theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
         if(theMesh->geometry()->hasNormals())
         {
@@ -610,7 +612,13 @@ namespace kinski { namespace gl {
         catch(const WrongVertexArrayDefinedException &e)
         {
             theMesh->createVertexArray();
-            GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());
+            try{GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());}
+            catch(std::exception &e)
+            {
+                // should not arrive here
+                LOG_ERROR<<e.what();
+                return;
+            }
         }
 #else
         theMesh->bindVertexPointers();
@@ -648,7 +656,7 @@ namespace kinski { namespace gl {
             GeometryPtr geom(new gl::Geometry);
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
-            MeshPtr line_mesh (new gl::Mesh(geom, mat));
+            MeshPtr line_mesh (gl::Mesh::create(geom, mat));
             AABB bb = m->boundingBox();
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
@@ -723,7 +731,7 @@ namespace kinski { namespace gl {
             GeometryPtr geom(new gl::Geometry);
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
-            MeshPtr line_mesh (new gl::Mesh(geom, mat));
+            MeshPtr line_mesh = gl::Mesh::create(geom, mat);
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
             const vector<vec3> &vertices = m->geometry()->vertices();

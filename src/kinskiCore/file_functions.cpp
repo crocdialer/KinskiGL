@@ -269,7 +269,12 @@ namespace kinski {
         }
         throw FileNotFoundException(theFileName);
     }
-
+    
+    std::string get_working_directory()
+    {
+        return boost::filesystem::current_path().string();
+    }
+    
     std::string getDirectoryPart(const std::string &theFileName)
     {
         if(is_directory(theFileName))

@@ -261,7 +261,7 @@ namespace kinski { namespace gl {
         mat->addTexture(glyph_texture());
         mat->setBlending(true);
         mat->setTwoSided(true);
-        MeshPtr ret (new gl::Mesh(geom, mat));
+        MeshPtr ret = gl::Mesh::create(geom, mat);
         
         std::vector<glm::vec3>& vertices = geom->vertices();
         std::vector<glm::vec2>& tex_coords = geom->texCoords();

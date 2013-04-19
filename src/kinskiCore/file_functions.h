@@ -31,6 +31,7 @@ namespace kinski {
     std::string getDirectoryPart(const std::string &theFileName);
     std::vector<std::string> readFileLineByLine(const std::string &theUTF8Filename);
     std::string searchFile(const std::string &theFileName);
+    std::string get_working_directory();
     std::string getExtension(const std::string &thePath);
     std::string removeExtension(const std::string &theFileName);
     /************************ Exceptions ************************/

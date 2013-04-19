@@ -33,6 +33,11 @@ namespace kinski { namespace gl {
         
         typedef std::map<std::string, UniformValue> UniformMap;
 
+        static Ptr create()
+        {
+            return Ptr(new Material());
+        }
+        
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
 
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};

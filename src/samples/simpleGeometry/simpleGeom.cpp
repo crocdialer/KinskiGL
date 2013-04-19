@@ -108,7 +108,7 @@ public:
         {
             LOG_ERROR<<e.what();
         }
-        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, mat));
+        gl::MeshPtr myBoxMesh = gl::Mesh::create(myBox, mat);
         myBoxMesh->createVertexArray();
         myBoxMesh->setPosition(vec3(0, -100, 0));
         scene().addObject(myBoxMesh);

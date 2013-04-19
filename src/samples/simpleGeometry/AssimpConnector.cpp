@@ -236,7 +236,7 @@ namespace kinski { namespace gl{
             {
                 LOG_WARNING<<e.what();
             }
-            gl::Mesh::Ptr mesh(new gl::Mesh(geom, mat));
+            gl::MeshPtr mesh = gl::Mesh::create(geom, mat);
             LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
             importer.FreeScene();
             return mesh;

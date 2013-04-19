@@ -28,7 +28,7 @@ namespace kinski { namespace gl {
             gl::MaterialPtr mat(new gl::Material);
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
             gl::GeometryPtr geom(new gl::Geometry);
-            m_mesh = gl::MeshPtr(new gl::Mesh(geom, mat));
+            m_mesh = gl::Mesh::create(geom, mat);
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
         };
         
@@ -137,7 +137,7 @@ public:
             shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
                                                                   btScalar(50.),
                                                                   btScalar(50.)))));
-        gl::MeshPtr groundShape(new gl::Mesh(gl::createBox(glm::vec3(50.0f)), materials()[0]));
+        gl::MeshPtr groundShape = gl::Mesh::create(gl::createBox(glm::vec3(50.0f)), materials()[0]);
         scene().addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
         
@@ -208,7 +208,7 @@ public:
                                                                    btScalar(20+2.0*k + start_y),
                                                                    btScalar(2.0*j + start_z)));
                         
-                        gl::Mesh::Ptr mesh(new gl::Mesh(geom, materials()[0]));
+                        gl::MeshPtr mesh = gl::Mesh::create(geom, materials()[0]);
                         scene().addObject(mesh);
                         glm::mat4 mat;
                         startTransform.getOpenGLMatrix(&mat[0][0]);

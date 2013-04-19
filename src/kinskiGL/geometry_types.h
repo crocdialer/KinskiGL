@@ -282,7 +282,6 @@ struct KINSKI_API OBB
 
 struct KINSKI_API Frustum
 {
-
 	Plane planes [6];
 
     Frustum(const glm::mat4 &the_VP_martix);
@@ -305,6 +304,17 @@ struct KINSKI_API Frustum
 		return ret.transform(t);
 	};
 	
+    inline uint32_t intersect(const glm::vec3& v)
+	{
+		Plane* end = planes+6 ;
+		for (Plane *p = planes; p < end; p++)
+		{
+			if (p->distance(v) < 0)
+				return REJECT;
+		}
+		return INSIDE;
+	};
+    
 	inline uint32_t intersect(const Sphere& s)
 	{	
 		Plane* end = planes+6 ;

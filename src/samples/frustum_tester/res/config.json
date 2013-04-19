@@ -1,0 +1,72 @@
+[
+   {
+      "name" : "KinskiGL",
+      "properties" : [
+         {
+            "name" : "Logger Severity",
+            "type" : "int",
+            "value" : 5
+         },
+         {
+            "name" : "Show Tweakbar",
+            "type" : "bool",
+            "value" : false
+         },
+         {
+            "name" : "Window Size",
+            "type" : "vec2",
+            "value" : [ 800.0, 600.0 ]
+         },
+         {
+            "name" : "view distance",
+            "type" : "float",
+            "value" : 25.0
+         },
+         {
+            "name" : "Geometry Rotation",
+            "type" : "mat3",
+            "value" : [
+               0.8571672439575195,
+               0.0,
+               -0.5150381326675415,
+               -0.1245990023016930,
+               0.9702957272529602,
+               -0.2073675394058228,
+               0.4997392892837524,
+               0.2419219017028809,
+               0.8317057490348816
+            ]
+         },
+         {
+            "name" : "Rotation Speed",
+            "type" : "float",
+            "value" : 0.0
+         },
+         {
+            "name" : "Draw grid",
+            "type" : "bool",
+            "value" : true
+         },
+         {
+            "name" : "Wireframe",
+            "type" : "bool",
+            "value" : false
+         },
+         {
+            "name" : "Normals",
+            "type" : "bool",
+            "value" : false
+         },
+         {
+            "name" : "Light dir",
+            "type" : "vec3",
+            "value" : [ 1.0, 1.0, 1.0 ]
+         },
+         {
+            "name" : "Clear color",
+            "type" : "vec4",
+            "value" : [ 0.0, 0.0, 0.0, 1.0 ]
+         }
+      ]
+   }
+]
