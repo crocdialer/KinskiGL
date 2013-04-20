@@ -166,25 +166,27 @@ Frustum::Frustum(const glm::mat4 &the_VP_martix)
     planes[5] = Plane(the_VP_martix[1] + the_VP_martix[3]); // bottom plane
 }
     
-Frustum::Frustum(const glm::mat4 &transform,float fov, float near, float far)
+Frustum::Frustum(float aspect, float fov, float near, float far)
 {
     glm::mat4 t;
-    glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz(),
-    side = transform[0].xyz(), up = transform[1].xyz();
-    float angle = 90.0f - fov/2.0f;
+    glm::vec3 lookAt = glm::vec3(0, 0, -1), eyePos = glm::vec3(0),
+    side = glm::vec3(1, 0, 0), up = glm::vec3(0, 1, 0);
+    float angle_y = 90.0f - aspect * fov/2.0f ;
+    float angle_x = 90.0f - (fov/2.0f) ;
+    
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
 
-    t = glm::rotate(glm::mat4(), angle, up);
+    t = glm::rotate(glm::mat4(), angle_y, up);
 	planes[2] = Plane(eyePos, lookAt).transform(t); // left plane
 
-    t = glm::rotate(glm::mat4(), -angle, up);
+    t = glm::rotate(glm::mat4(), -angle_y, up);
 	planes[3] = Plane(eyePos, lookAt).transform(t); // right plane
 
-    t = glm::rotate(glm::mat4(), -angle, side);
+    t = glm::rotate(glm::mat4(), -angle_x, side);
 	planes[4] = Plane(eyePos, lookAt).transform(t); // top plane
 
-    t = glm::rotate(glm::mat4(), angle, side);
+    t = glm::rotate(glm::mat4(), angle_x, side);
 	planes[5] = Plane(eyePos, lookAt).transform(t); // bottom plane
 }
 

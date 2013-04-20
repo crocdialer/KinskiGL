@@ -64,7 +64,8 @@ namespace kinski { namespace gl{
     
     gl::Frustum PerspectiveCamera::frustum() const
     {
-        return gl::Frustum(transform(), fov(), near(), far());
+        return gl::Frustum(aspectRatio(), fov(), near(), far()).transform(transform());
+        //return gl::Frustum(getProjectionMatrix() * getViewMatrix());
     }
     
     void PerspectiveCamera::setFov(float theFov)

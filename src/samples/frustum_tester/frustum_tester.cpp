@@ -74,9 +74,9 @@ namespace kinski
         /********************** construct a simple scene ***********************/
         gl::GeometryPtr points(new gl::Geometry);
         points->setPrimitiveType(GL_POINTS);
-        points->vertices().reserve(10000);
-        points->colors().reserve(10000);
-        for (int i = 0; i < 10000; i++)
+        points->vertices().reserve(30000);
+        points->colors().reserve(30000);
+        for (int i = 0; i < 30000; i++)
         {
             points->vertices().push_back(glm::linearRand(glm::vec3(-100), glm::vec3(100)));
             points->colors().push_back(glm::vec4(1.f));
@@ -86,8 +86,8 @@ namespace kinski
         m_point_mesh = gl::Mesh::create(points, mat);
         
         m_test_cam = gl::CameraPtr(new gl::PerspectiveCamera(16.f/9.f, *m_fov, *m_near, *m_far));
-        //m_test_cam->setPosition(vec3(0, 0, 100));
         //m_test_cam = gl::CameraPtr(new gl::OrthographicCamera(-50, 50, -50, 50, 10, 200));
+        m_test_cam->setPosition(vec3(0, 0, 50));
         
         m_frustum_mesh = create_frustum_mesh(m_test_cam);
     }
@@ -133,6 +133,7 @@ namespace kinski
         {
             m_test_cam = gl::CameraPtr(new gl::PerspectiveCamera(16.f/9.f, *m_fov, *m_near, *m_far));
             m_frustum_mesh = create_frustum_mesh(m_test_cam);
+            m_test_cam->setPosition(vec3(0, 0, 50));
         }
     }
     

@@ -285,7 +285,7 @@ struct KINSKI_API Frustum
 	Plane planes [6];
 
     Frustum(const glm::mat4 &the_VP_martix);
-	Frustum(const glm::mat4 &transform, float fov, float near, float far);
+	Frustum(float aspect, float fov, float near, float far);
     Frustum(const glm::mat4 &transform, float left, float right,float bottom, float top,
             float near, float far);
 	
