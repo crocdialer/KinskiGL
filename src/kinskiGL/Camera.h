@@ -49,7 +49,7 @@ public:
     
     typedef std::shared_ptr<OrthographicCamera> Ptr;
     
-    OrthographicCamera(float left = 0, float right = 1, float top = 1, float bottom = 0,
+    OrthographicCamera(float left = 0, float right = 1, float bottom = 0, float top = 1,
                        float near = 0, float far = 1000);
     
     virtual gl::Frustum frustum() const;
@@ -63,7 +63,7 @@ public:
     
 private:
     
-    float m_near, m_far, m_left, m_right, m_top, m_bottom;
+    float m_left, m_right, m_bottom, m_top, m_near, m_far;
 };
     
 class KINSKI_API PerspectiveCamera : public Camera

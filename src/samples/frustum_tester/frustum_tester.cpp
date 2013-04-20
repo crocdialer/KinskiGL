@@ -32,7 +32,6 @@ namespace kinski
             {
                 geom->indices().push_back(indices[i]);
             }
-            
             gl::MaterialPtr mat = gl::Material::create();
             gl::MeshPtr m = gl::Mesh::create(geom, mat);
             return m;
@@ -49,7 +48,8 @@ namespace kinski
         /*********** init our application properties ******************/
         m_frustum_rotation = Property_<glm::mat3>::create("Frustum rotation", mat3());
         registerProperty(m_frustum_rotation);
-        
+        m_perspective = Property_<bool>::create("Perspective / Ortho", true);
+        registerProperty(m_perspective);
         m_near = RangedProperty<float>::create("Near", 10.f, 0, 100);
         registerProperty(m_near);
         m_far = RangedProperty<float>::create("Far", 60.f, 0, 500);
@@ -85,8 +85,11 @@ namespace kinski
         gl::MaterialPtr mat = gl::Material::create();
         m_point_mesh = gl::Mesh::create(points, mat);
         
-        m_test_cam = gl::CameraPtr(new gl::PerspectiveCamera(16.f/9.f, *m_fov, *m_near, *m_far));
-        //m_test_cam = gl::CameraPtr(new gl::OrthographicCamera(-50, 50, -50, 50, 10, 200));
+        if(*m_perspective)
+            m_test_cam = gl::CameraPtr(new gl::PerspectiveCamera(16.f/9.f, *m_fov, *m_near, *m_far));
+        else
+            m_test_cam = gl::CameraPtr(new gl::OrthographicCamera(-25, 25, -20, 20, *m_near, *m_far));
+        
         m_test_cam->setPosition(vec3(0, 0, 50));
         
         m_frustum_mesh = create_frustum_mesh(m_test_cam);
@@ -129,9 +132,14 @@ namespace kinski
     {
         ViewerApp::updateProperty(theProperty);
         
-        if(theProperty == m_near || theProperty == m_far || theProperty == m_fov)
+        if(theProperty == m_near || theProperty == m_far || theProperty == m_fov ||
+           theProperty == m_perspective)
         {
-            m_test_cam = gl::CameraPtr(new gl::PerspectiveCamera(16.f/9.f, *m_fov, *m_near, *m_far));
+            if(*m_perspective)
+                m_test_cam = gl::CameraPtr(new gl::PerspectiveCamera(16.f/9.f, *m_fov, *m_near, *m_far));
+            else
+                m_test_cam = gl::CameraPtr(new gl::OrthographicCamera(-25, 25, -20, 20, *m_near, *m_far));
+            
             m_frustum_mesh = create_frustum_mesh(m_test_cam);
             m_test_cam->setPosition(vec3(0, 0, 50));
         }

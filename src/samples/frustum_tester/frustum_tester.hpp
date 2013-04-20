@@ -12,6 +12,7 @@ namespace kinski
         gl::Font m_font;
         
         Property_<glm::mat3>::Ptr m_frustum_rotation;
+        Property_<bool>::Ptr m_perspective;
         
         RangedProperty<float>::Ptr m_near;
         RangedProperty<float>::Ptr m_far;

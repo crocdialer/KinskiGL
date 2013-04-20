@@ -25,8 +25,8 @@ Plane::Plane(const glm::vec4 &theCoefficients)
 
 Plane::Plane(float theA, float theB, float theC, float theD)
 {
-    glm::vec4 theCoefficients(theA, theB, theC, theD);
-    float len = glm::length(glm::vec3(theCoefficients.xyz()));
+    const glm::vec4 theCoefficients(theA, theB, theC, theD);
+    float len = glm::length(theCoefficients.xyz());
     coefficients = theCoefficients / len;
 }
 
@@ -169,7 +169,7 @@ Frustum::Frustum(const glm::mat4 &the_VP_martix)
 Frustum::Frustum(float aspect, float fov, float near, float far)
 {
     glm::mat4 t;
-    glm::vec3 lookAt = glm::vec3(0, 0, -1), eyePos = glm::vec3(0),
+    static glm::vec3 lookAt = glm::vec3(0, 0, -1), eyePos = glm::vec3(0),
     side = glm::vec3(1, 0, 0), up = glm::vec3(0, 1, 0);
     float angle_y = 90.0f - aspect * fov/2.0f ;
     float angle_x = 90.0f - (fov/2.0f) ;
@@ -190,17 +190,18 @@ Frustum::Frustum(float aspect, float fov, float near, float far)
 	planes[5] = Plane(eyePos, lookAt).transform(t); // bottom plane
 }
 
-Frustum::Frustum(const glm::mat4 &transform, float left, float right,float bottom, float top,
+Frustum::Frustum(float left, float right,float bottom, float top,
                  float near, float far)
 {
-    glm::vec3 lookAt = -transform[2].xyz(), eyePos = transform[3].xyz(),
-    side = transform[0].xyz(), up = transform[1].xyz();
+    static glm::vec3 lookAt = glm::vec3(0, 0, -1), eyePos = glm::vec3(0),
+    side = glm::vec3(1, 0, 0), up = glm::vec3(0, 1, 0);
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane
-	planes[2] = Plane(eyePos + (left * -side), side); // left plane
+	planes[2] = Plane(eyePos + (left * side), side); // left plane
     planes[3] = Plane(eyePos + (right * side), -side); // right plane
 	planes[4] = Plane(eyePos + (top * up), -up); // top plane
-	planes[5] = Plane(eyePos + (bottom * -up), up); // bottom plane
+	planes[5] = Plane(eyePos + (bottom * up), up); // bottom plane
+    
 }
     
 /********************************************************/
@@ -230,12 +231,8 @@ Frustum::Frustum(const glm::mat4 &transform, float left, float right,float botto
 /********************************************************/
 
 #define X 0
-
 #define Y 1
-
 #define Z 2
-
-
 
 #define CROSS(dest,v1,v2) \
 dest[0]=v1[1]*v2[2]-v1[2]*v2[1]; \
@@ -244,14 +241,10 @@ dest[2]=v1[0]*v2[1]-v1[1]*v2[0];
 
 #define DOT(v1,v2) (v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2])
 
-
-
 #define SUB(dest,v1,v2) \
 dest[0]=v1[0]-v2[0]; \
 dest[1]=v1[1]-v2[1]; \
 dest[2]=v1[2]-v2[2]; 
-
-
 
 #define FINDMINMAX(x0,x1,x2,min,max) \
 min = max = x0;   \
@@ -259,8 +252,6 @@ if(x1<min) min=x1;\
 if(x1>max) max=x1;\
 if(x2<min) min=x2;\
 if(x2>max) max=x2;
-
-
 
 int planeBoxOverlap(float normal[3], float vert[3], float maxbox[3])	// -NJMP-
 {	

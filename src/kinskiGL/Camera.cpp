@@ -31,23 +31,23 @@ namespace kinski { namespace gl{
     
     /****************** OrthographicCamera *******************/
     
-    OrthographicCamera::OrthographicCamera(float left, float right, float top, float bottom,
+    OrthographicCamera::OrthographicCamera(float left, float right, float bottom, float top,
                                            float near, float far):
     Camera(),
-    m_near(near),
-    m_far(far),
     m_left(left),
     m_right(right),
+    m_bottom(bottom),
     m_top(top),
-    m_bottom(bottom)
+    m_near(near),
+    m_far(far)
     {
         setProjectionMatrix(glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far));
     }
     
     gl::Frustum OrthographicCamera::frustum() const
     {
-        return gl::Frustum(transform(), left(), right(), bottom(),
-                    top(), near(), far());
+        return gl::Frustum(left(), right(), bottom(), top(), near(), far()).transform(transform());
+        //return gl::Frustum(getProjectionMatrix()).transform(transform());
     }
     
     /****************** PerspectiveCamera *******************/
@@ -65,7 +65,7 @@ namespace kinski { namespace gl{
     gl::Frustum PerspectiveCamera::frustum() const
     {
         return gl::Frustum(aspectRatio(), fov(), near(), far()).transform(transform());
-        //return gl::Frustum(getProjectionMatrix() * getViewMatrix());
+        //return gl::Frustum(getProjectionMatrix()).transform(transform());
     }
     
     void PerspectiveCamera::setFov(float theFov)

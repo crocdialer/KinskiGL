@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE( test_Plane )
     // test contructors
     
     // foot, normal
-    p = gl::Plane(glm::vec3(0), glm::vec3(0, 1, 0));
+    p = gl::Plane(glm::vec3(99, 0, -69), glm::vec3(0, 1, 0));
     BOOST_CHECK(p.distance(v) == 20);
     
     // coefficients

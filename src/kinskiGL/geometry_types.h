@@ -286,7 +286,7 @@ struct KINSKI_API Frustum
 
     Frustum(const glm::mat4 &the_VP_martix);
 	Frustum(float aspect, float fov, float near, float far);
-    Frustum(const glm::mat4 &transform, float left, float right,float bottom, float top,
+    Frustum(float left, float right,float bottom, float top,
             float near, float far);
 	
 	inline Frustum& transform(const glm::mat4& t)
