@@ -125,6 +125,11 @@ namespace kinski
         
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_test_cam->transform());
         gl::drawMesh(m_frustum_mesh);
+        
+        // draw fps string
+        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       glm::vec2(windowSize().x - 110, 10));
     }
     
     // Property observer callback

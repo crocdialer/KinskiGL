@@ -22,11 +22,27 @@
 using namespace glm;
 using namespace std;
 
+// how many string meshes are hold at max by drawText
+#define STRING_MESH_BUFFER_SIZE 100
+
 namespace kinski { namespace gl {
+    
+    struct string_mesh_container
+    {
+        std::string text;
+        MeshPtr mesh;
+        int counter;
+        string_mesh_container(){};
+        string_mesh_container(const std::string &t, const MeshPtr &m):text(t), mesh(m), counter(0){}
+        bool operator<(const string_mesh_container &other){return counter < other.counter;}
+        bool operator()(const string_mesh_container &lhs,const string_mesh_container &rhs)
+        {return lhs.counter < rhs.counter;}
+    };
     
     static glm::vec2 g_windowDim;
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
+    static std::map<std::string, string_mesh_container> g_string_mesh_map;
     
     void pushMatrix(const Matrixtype type)
     {
@@ -446,40 +462,69 @@ namespace kinski { namespace gl {
         drawMesh(quad_mesh);
     }
     
-    void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec2 &theTopLeft)
+    void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec4 &the_color,
+                    const glm::vec2 &theTopLeft)
     {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         
-        static std::string last_string;
-        static MeshPtr string_mesh;
         if(!theFont.glyph_texture()) return;
         mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
         
-        if(last_string != theText)
+        if(g_string_mesh_map.find(theText) == g_string_mesh_map.end())
         {
-            last_string = theText;
-            string_mesh = theFont.create_mesh(theText);
+            g_string_mesh_map[theText] = string_mesh_container(theText,
+                                                               theFont.create_mesh(theText, the_color));
         }
 //        string_mesh->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y
 //                                           - string_mesh->geometry()->boundingBox().height(), 0.f));
-        string_mesh->setPosition(glm::vec3(theTopLeft, 0));
+        string_mesh_container &item = g_string_mesh_map[theText];
+        item.counter++;
+        gl::MeshPtr m = item.mesh;
+        m->setPosition(glm::vec3(theTopLeft, 0));
         
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, string_mesh->transform());
-        drawMesh(string_mesh);
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
+        drawMesh(m);
+        
+        if(g_string_mesh_map.size() > STRING_MESH_BUFFER_SIZE)
+        {
+            std::list<string_mesh_container> tmp_list;
+            std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
+            for (; it != g_string_mesh_map.end(); ++it)
+            {
+                tmp_list.push_back(it->second);
+            }
+            tmp_list.sort();
+            
+            std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
+            g_string_mesh_map.clear();
+            
+            for (int i = 0; i < tmp_list.size() / 2; i++, ++list_it)
+            {
+                g_string_mesh_map[list_it->text] = *list_it;
+            }
+        }
     }
     
     void drawText3D(const std::string &theText, const gl::Font &theFont)
     {
         if(!theFont.glyph_texture()) return;
-        static std::string last_string;
-        static MeshPtr string_mesh;
-        if(last_string != theText)
+        
+        if(g_string_mesh_map.find(theText) == g_string_mesh_map.end())
         {
-            last_string = theText;
-            string_mesh = theFont.create_mesh(theText);
+            g_string_mesh_map[theText] = string_mesh_container(theText,
+                                                               theFont.create_mesh(theText));
         }
-        drawMesh(string_mesh);
+        string_mesh_container &item = g_string_mesh_map[theText];
+        item.counter++;
+        gl::MeshPtr m = item.mesh;
+        drawMesh(m);
+        
+        if(g_string_mesh_map.size() > STRING_MESH_BUFFER_SIZE)
+        {
+            g_string_mesh_map.clear();
+            // g_string_mesh_map[theText] = m;
+        }
     }
     
     void drawGrid(float width, float height, int numW, int numH)

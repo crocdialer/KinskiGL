@@ -398,8 +398,14 @@ public:
 //                               m_font, offset);
                 offset += step;
             }
+            
+            gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
+                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+                           glm::vec2(windowSize().x - 90, 40));
+            
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                           vec4(vec3(1) - clear_color().xyz(), 1.f),
                            glm::vec2(windowSize().x - 110, 10));
         }
     }

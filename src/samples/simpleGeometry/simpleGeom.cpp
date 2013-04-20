@@ -157,7 +157,6 @@ public:
         
         //background
         gl::drawTexture(m_textures[0], windowSize());
-        gl::drawText2D(kinski::as_string(framesPerSec()), m_font, glm::vec2(windowSize().x - 150, 30));
         gl::setMatrices(camera());
         
         if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }
@@ -186,6 +185,17 @@ public:
             m_label->setRotation(glm::mat3(camera()->transform()));
             gl::drawMesh(m_label);
         }
+        
+        // draw num objects string
+        gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
+                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       glm::vec2(windowSize().x - 90, 40));
+        
+        // draw fps string
+        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       glm::vec2(windowSize().x - 110, 10));
+        
 //        m_frameBuffer.unbindFramebuffer();
 //        glViewport(0, 0, getWidth(), getHeight());
 //        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
