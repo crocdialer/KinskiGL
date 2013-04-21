@@ -16,6 +16,8 @@ private:
     gl::MeshPtr m_mesh, m_label;
     gl::Font m_font;
     
+    gl::MaterialPtr m_draw_depth_material;
+    
     RangedProperty<float>::Ptr m_textureMix;
     Property_<string>::Ptr m_modelPath;
     RangedProperty<float>::Ptr m_animationTime;
@@ -61,11 +63,20 @@ public:
         observeProperties();
         
         /********************** construct a simple scene ***********************/
+        camera()->setClippingPlanes(1.0, 1000);
         
         gl::Fbo::Format fboFormat;
         //TODO: mulitsampling fails
         //fboFormat.setSamples(4);
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
+        m_draw_depth_material = gl::Material::create();
+        m_draw_depth_material->setShader(gl::createShaderFromFile("shader_unlit.vert", "shader_unlit.frag"));
+        m_draw_depth_material->addTexture(m_frameBuffer.getDepthTexture());
+        m_draw_depth_material->setDepthTest(false);
+        m_draw_depth_material->setDepthWrite(false);
+        m_draw_depth_material->setBlending(true);
+        m_draw_depth_material->uniform("u_near", camera()->near());
+        m_draw_depth_material->uniform("u_far", camera()->far());
         
         // create a simplex noise texture
         {
@@ -151,9 +162,9 @@ public:
     
     void draw()
     {
-//        m_frameBuffer.bindFramebuffer();
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
+        m_frameBuffer.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
         //background
         gl::drawTexture(m_textures[0], windowSize());
@@ -186,20 +197,29 @@ public:
             gl::drawMesh(m_label);
         }
         
-        // draw num objects string
-        gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
-                       vec4(vec3(1) - clear_color().xyz(), 1.f),
-                       glm::vec2(windowSize().x - 90, 40));
+        m_frameBuffer.unbindFramebuffer();
+        glViewport(0, 0, getWidth(), getHeight());
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
         
-        // draw fps string
-        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
-                       vec4(vec3(1) - clear_color().xyz(), 1.f),
-                       glm::vec2(windowSize().x - 110, 10));
-        
-//        m_frameBuffer.unbindFramebuffer();
-//        glViewport(0, 0, getWidth(), getHeight());
-//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
-        //gl::drawTexture(m_frameBuffer.getDepthTexture(), windowSize() / 2.0f, windowSize() / 2.0f);
+        // draw texture map(s)
+        if(displayTweakBar())
+        {
+            m_frameBuffer.getTexture().set_mipmapping();
+            
+            glm::vec2 offset(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
+            glm::vec2 step(0, - getHeight()/6.f - 10);
+            drawTexture(m_frameBuffer.getTexture(), windowSize()/6.f, offset);
+            gl::drawQuad(m_draw_depth_material, windowSize()/6.f, offset + step);
+            
+            gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
+                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+                           glm::vec2(windowSize().x - 90, 40));
+            
+            // draw fps string
+            gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+                           glm::vec2(windowSize().x - 110, 10));
+        }
     }
     
     void buildSkeleton(gl::BonePtr currentBone, vector<vec3> &points)

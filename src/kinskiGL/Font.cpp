@@ -167,7 +167,7 @@ namespace kinski { namespace gl {
             
             m_obj->texture.update(rgba_data, GL_UNSIGNED_BYTE, GL_RGBA, m_obj->bitmap_width,
                                   m_obj->bitmap_height, true);
-            glGenerateMipmap(m_obj->texture.getId());
+            m_obj->texture.set_mipmapping(true);
             
         } catch (const Exception &e)
         {
@@ -191,7 +191,7 @@ namespace kinski { namespace gl {
         for (; it != theText.end(); ++it)
         {
             uint32_t codepoint;
-            uint32_t state = 0;
+            uint32_t state = UTF8_ACCEPT;
             
             while (decode(&state, &codepoint, (uint8_t)*it)){ ++it; }
             
@@ -275,8 +275,8 @@ namespace kinski { namespace gl {
         std::string::const_iterator it = theText.begin();
         for (; it != theText.end(); ++it)
         {
-            uint32_t codepoint;
-            uint32_t state = 0;
+            uint32_t codepoint = *it;
+            uint32_t state = UTF8_ACCEPT;
             
             while (decode(&state, &codepoint, (uint8_t)*it)){ ++it; }
             
@@ -286,12 +286,10 @@ namespace kinski { namespace gl {
                 x = 0;
                 y += m_obj->line_height;
             }
-            
             stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
                                codepoint - 32, &x, &y, &q, 1);
             
-            if(max_y < q.y1 + m_obj->font_height) max_y = q.y1 + m_obj->font_height;
-            
+            if(max_y < q.y1 + m_obj->font_height){ max_y = q.y1 + m_obj->font_height;}
             quads.push_back(q);
         }
         

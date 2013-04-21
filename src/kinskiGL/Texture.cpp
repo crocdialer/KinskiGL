@@ -338,17 +338,16 @@ void Texture::setMagFilter( GLenum magFilter )
 
 void Texture::set_mipmapping(bool b)
 {
-    m_Obj->m_mip_map = b;
-    
-    if(b)
+    if(b && !m_Obj->m_mip_map)
     {
         setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         glGenerateMipmap(m_Obj->m_Target);
     }
     else
     {
-        setMagFilter(GL_LINEAR);
+        setMinFilter(GL_LINEAR);
     }
+    m_Obj->m_mip_map = b;
 }
 
 bool Texture::hasAlpha() const

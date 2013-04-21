@@ -271,7 +271,8 @@ public:
         
         materials()[0]->addTexture(m_textures[3]);
         //materials()[0]->addTexture(m_textures[3]);
-
+        materials()[0]->setBlending();
+        
         // camera input
         m_cvThread = CVThread::create();
         CVProcessNode::Ptr thresh_node(new ThreshNode(-1)), record_node(new DopeRecorder(5000)),

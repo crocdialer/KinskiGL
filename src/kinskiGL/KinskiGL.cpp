@@ -22,7 +22,7 @@
 using namespace glm;
 using namespace std;
 
-// how many string meshes are hold at max by drawText
+// how many string meshes are buffered at max
 #define STRING_MESH_BUFFER_SIZE 100
 
 namespace kinski { namespace gl {
@@ -31,12 +31,10 @@ namespace kinski { namespace gl {
     {
         std::string text;
         MeshPtr mesh;
-        int counter;
-        string_mesh_container(){};
+        uint64_t counter;
+        string_mesh_container():counter(0){};
         string_mesh_container(const std::string &t, const MeshPtr &m):text(t), mesh(m), counter(0){}
         bool operator<(const string_mesh_container &other){return counter < other.counter;}
-        bool operator()(const string_mesh_container &lhs,const string_mesh_container &rhs)
-        {return lhs.counter < rhs.counter;}
     };
     
     static glm::vec2 g_windowDim;
@@ -480,20 +478,19 @@ namespace kinski { namespace gl {
         string_mesh_container &item = g_string_mesh_map[theText];
         item.counter++;
         gl::MeshPtr m = item.mesh;
+        m->material()->setDiffuse(the_color);
         m->setPosition(glm::vec3(theTopLeft, 0));
         
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
         drawMesh(m);
         
-        if(g_string_mesh_map.size() > STRING_MESH_BUFFER_SIZE)
+        // free the less frequent used half of our buffered string-meshes
+        if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)
         {
             std::list<string_mesh_container> tmp_list;
             std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
-            for (; it != g_string_mesh_map.end(); ++it)
-            {
-                tmp_list.push_back(it->second);
-            }
+            for (; it != g_string_mesh_map.end(); ++it){tmp_list.push_back(it->second);}
             tmp_list.sort();
             
             std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
