@@ -21,7 +21,7 @@ namespace kinski { namespace gl {
         void render(const CameraPtr &theCamera) const;
         void update(float time_delta);
         Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
-        RenderBinPtr cull(const CameraPtr &theCamera);
+        RenderBinPtr cull(const CameraPtr &theCamera) const;
     
         void addObject(const Object3DPtr &theObject);
         void removeObject(const Object3DPtr &theObject);

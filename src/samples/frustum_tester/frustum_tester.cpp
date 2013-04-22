@@ -5,38 +5,6 @@ using namespace glm;
 
 namespace kinski
 {
-    namespace gl{
-        void draw_plane(const Plane &p)
-        {
-            //static gl::MeshPtr m = createPlane(20, 20);
-            
-        }
-        
-        gl::MeshPtr create_frustum_mesh(const CameraPtr &cam)
-        {
-            glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
-            
-            gl::GeometryPtr geom (new gl::Geometry);
-            geom->setPrimitiveType(GL_LINE_STRIP);
-            static glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
-                                     vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
-            static GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
-            int num_indices = sizeof(indices) / sizeof(GLuint);
-            
-            for (int i = 0; i < 8; i++)
-            {
-                vec4 proj_v = inverse_projection * vec4(vertices[i], 1.f);
-                geom->vertices().push_back(vec3(proj_v) / proj_v.w);
-            }
-            for (int i = 0; i < num_indices; i++)
-            {
-                geom->indices().push_back(indices[i]);
-            }
-            gl::MaterialPtr mat = gl::Material::create();
-            gl::MeshPtr m = gl::Mesh::create(geom, mat);
-            return m;
-        }
-    }
     void Frustum_Tester::setup()
     {
         ViewerApp::setup();
@@ -92,7 +60,7 @@ namespace kinski
         
         m_test_cam->setPosition(vec3(0, 0, 50));
         
-        m_frustum_mesh = create_frustum_mesh(m_test_cam);
+        m_frustum_mesh = gl::createFrustumMesh(m_test_cam);
     }
     
     void Frustum_Tester::update(float timeDelta)
@@ -145,7 +113,7 @@ namespace kinski
             else
                 m_test_cam = gl::CameraPtr(new gl::OrthographicCamera(-25, 25, -20, 20, *m_near, *m_far));
             
-            m_frustum_mesh = create_frustum_mesh(m_test_cam);
+            m_frustum_mesh = gl::createFrustumMesh(m_test_cam);
             m_test_cam->setPosition(vec3(0, 0, 50));
         }
     }

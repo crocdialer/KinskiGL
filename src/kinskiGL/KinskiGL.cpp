@@ -212,6 +212,31 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    gl::MeshPtr createFrustumMesh(const CameraPtr &cam)
+    {
+        glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
+        gl::GeometryPtr geom (new gl::Geometry);
+        geom->setPrimitiveType(GL_LINE_STRIP);
+        static glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
+            vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
+        static GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
+        int num_indices = sizeof(indices) / sizeof(GLuint);
+        
+        for (int i = 0; i < 8; i++)
+        {
+            vec4 proj_v = inverse_projection * vec4(vertices[i], 1.f);
+            geom->vertices().push_back(vec3(proj_v) / proj_v.w);
+        }
+        
+        for (int i = 0; i < num_indices; i++)
+        {
+            geom->indices().push_back(indices[i]);
+        }
+        gl::MaterialPtr mat = gl::Material::create();
+        gl::MeshPtr m = gl::Mesh::create(geom, mat);
+        return m;
+    }
+    
     void clearColor(const glm::vec4 &theColor)
     {
         glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);

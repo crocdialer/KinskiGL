@@ -45,7 +45,7 @@ namespace kinski { namespace gl {
         }
     }
     
-    RenderBinPtr Scene::cull(const CameraPtr &theCamera)
+    RenderBinPtr Scene::cull(const CameraPtr &theCamera) const
     {
         RenderBinPtr ret(new RenderBin(theCamera));
         glm::mat4 viewMatrix = theCamera->getViewMatrix();
@@ -75,87 +75,8 @@ namespace kinski { namespace gl {
     
     void Scene::render(const CameraPtr &theCamera) const
     {
-        ScopedMatrixPush proj(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
-        gl::loadMatrix(gl::PROJECTION_MATRIX, theCamera->getProjectionMatrix());
-        
-        glm::mat4 viewMatrix = theCamera->getViewMatrix();
-        gl::Frustum frustum = theCamera->frustum();
-        
-        map<std::pair<GeometryPtr, MaterialPtr>, list<MeshPtr> > meshMap;
-        m_num_visible_objects = 0;
-        
-        list<Object3DPtr>::const_iterator objIt = m_objects.begin();
-        for (; objIt != m_objects.end(); objIt++)
-        {
-            if(const MeshPtr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
-            {
-                gl::AABB boundingBox = theMesh->geometry()->boundingBox();
-                //gl::Sphere s(theMesh->position(), glm::length(boundingBox.halfExtents()));
-                boundingBox.transform(theMesh->transform());
-                
-                if (frustum.intersect(boundingBox))
-                {
-                    //gl::drawMesh(theMesh);
-                    meshMap[std::make_pair(theMesh->geometry(),
-                                           theMesh->material())].push_back(theMesh);
-                    m_num_visible_objects++;
-                }
-            }
-        }
-        
-        map<std::pair<GeometryPtr, MaterialPtr>, list<MeshPtr> >::const_iterator it = meshMap.begin();
-        
-        for (; it != meshMap.end(); ++it)
-        {
-            const list<Mesh::Ptr>& meshList = it->second;
-            MeshPtr m = meshList.front();
-            
-            if(m->geometry()->hasBones())
-            {
-                m->material()->uniform("u_bones", m->geometry()->boneMatrices());
-            }
-            gl::apply_material(m->material());
-            
-#ifndef KINSKI_NO_VAO
-            try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
-            catch(const WrongVertexArrayDefinedException &e)
-            {
-                LOG_DEBUG<<e.what();
-                m->createVertexArray();
-                GL_SUFFIX(glBindVertexArray)(m->vertexArray());
-            }
-#else
-            m->bindVertexPointers();
-#endif
-            
-            list<Mesh::Ptr>::const_iterator transformIt = meshList.begin();
-            for (; transformIt != meshList.end(); ++transformIt)
-            {
-                m = *transformIt;
-
-                glm::mat4 modelView = viewMatrix * m->transform();
-                m->material()->shader().uniform("u_modelViewMatrix", modelView);
-                m->material()->shader().uniform("u_normalMatrix",
-                                                glm::inverseTranspose( glm::mat3(modelView) ));
-                m->material()->shader().uniform("u_modelViewProjectionMatrix",
-                                                theCamera->getProjectionMatrix() * modelView);
-                
-                if(m->geometry()->hasIndices())
-                {
-                    glDrawElements(m->geometry()->primitiveType(),
-                                   m->geometry()->indices().size(), m->geometry()->indexType(),
-                                   BUFFER_OFFSET(0));
-                }
-                else
-                {
-                    glDrawArrays(m->geometry()->primitiveType(), 0,
-                                 m->geometry()->vertices().size());
-                }
-            }
-#ifndef KINSKI_NO_VAO
-            GL_SUFFIX(glBindVertexArray)(0);
-#endif
-        }
+        gl::Renderer r;
+        r.render(cull(theCamera));
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const

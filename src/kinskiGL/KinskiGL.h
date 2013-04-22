@@ -69,11 +69,7 @@ namespace kinski { namespace gl {
     // forward declarations
     class Buffer;
     class Texture;
-    class Material;
     class Shader;
-    class Geometry;
-    class Object3D;
-    class Mesh;
     class Font;
     struct Ray;
     struct AABB;
@@ -81,10 +77,10 @@ namespace kinski { namespace gl {
     struct Sphere;
     struct Frustum;
     
-    typedef std::shared_ptr<Material> MaterialPtr;
-    typedef std::shared_ptr<Geometry> GeometryPtr;
-    typedef std::shared_ptr<Object3D> Object3DPtr;
-    typedef std::shared_ptr<Mesh> MeshPtr;
+    typedef std::shared_ptr<class Material> MaterialPtr;
+    typedef std::shared_ptr<class Geometry> GeometryPtr;
+    typedef std::shared_ptr<class Object3D> Object3DPtr;
+    typedef std::shared_ptr<class Mesh> MeshPtr;
     typedef std::weak_ptr<const Mesh> MeshWeakPtr;
     typedef std::shared_ptr<class Camera> CameraPtr;
     typedef std::shared_ptr<struct Bone> BonePtr;
@@ -120,6 +116,7 @@ namespace kinski { namespace gl {
     KINSKI_API void setWindowDimension(const glm::vec2 &theDim);
     KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y);
     KINSKI_API gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices);
+    KINSKI_API gl::MeshPtr createFrustumMesh(const CameraPtr &cam);
     
     /********************************* Drawing Functions *****************************************/
     
@@ -142,10 +139,9 @@ namespace kinski { namespace gl {
                                const glm::vec4 &the_color = glm::vec4(1),
                                const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawText3D(const std::string &theText, const gl::Font &theFont);
-    
+    KINSKI_API void drawMesh(const MeshPtr &theMesh);
     KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
-    KINSKI_API void drawMesh(const MeshPtr &theMesh);
     KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
 
