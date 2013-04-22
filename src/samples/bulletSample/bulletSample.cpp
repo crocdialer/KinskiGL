@@ -13,6 +13,8 @@ typedef kinski::ViewerApp BaseAppType;
 #include "DopeRecorder.h"
 #include "FaceFilter.h"
 
+#include "kinskiGL/Renderer.h"
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -109,10 +111,11 @@ private:
     Property_<int>::Ptr m_font_size;
     Property_<bool>::Ptr m_stepPhysics;
     Property_<glm::vec4>::Ptr m_color;
-    Property_<uint32_t>::Ptr m_num_visible_objects;
+    
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
     
+    gl::Renderer m_renderer;
     gl::Font m_font;
     std::list<std::string> m_font_paths;
     gl::MeshPtr m_label;
@@ -255,8 +258,6 @@ public:
         
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
-        
-        m_num_visible_objects = Property_<uint32_t>::create("Num visible objects", 0);
             
         // enable observer mechanism
         observeProperties();
@@ -370,8 +371,9 @@ public:
             m_debugDrawer->flush();
         }else
         {
-            scene().render(camera());
-            *m_num_visible_objects = scene().num_visible_objects();
+            //scene().render(camera());
+            gl::RenderBinPtr bin = scene().cull(camera());
+            m_renderer.render(bin);
         }
         
         if(selected_mesh())

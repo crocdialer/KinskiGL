@@ -807,8 +807,8 @@ namespace kinski { namespace gl {
     void apply_material(const MaterialPtr &the_mat, bool force_apply)
     {
         static Material::WeakPtr weak_last;
-        if(!the_mat) return;
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
+        if(!the_mat) return;
         
         the_mat->shader().bind();
         
@@ -852,13 +852,15 @@ namespace kinski { namespace gl {
         
         if(!last_mat || last_mat->blending() != the_mat->blending())
         {
-            if(the_mat->blending())
+            if(!the_mat->blending())
+            {
+                glDisable(GL_BLEND);
+            }
+            else
             {
                 glEnable(GL_BLEND);
                 glBlendFunc(the_mat->blendSrc(), the_mat->blendDst());
             }
-            else
-                glDisable(GL_BLEND);
         }
         KINSKI_CHECK_GL_ERRORS();
         
@@ -897,7 +899,6 @@ namespace kinski { namespace gl {
             boost::apply_visitor(InsertUniformVisitor(the_mat->shader(), it->first), it->second);
             KINSKI_CHECK_GL_ERRORS();
         }
-        
         weak_last = the_mat;
     }
     

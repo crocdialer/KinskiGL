@@ -74,24 +74,22 @@ namespace kinski { namespace gl {
     class Geometry;
     class Object3D;
     class Mesh;
-    class Camera;
     class Font;
-    struct Bone;
     struct Ray;
     struct AABB;
     struct OBB;
     struct Sphere;
     struct Frustum;
-    struct Animation;
     
     typedef std::shared_ptr<Material> MaterialPtr;
     typedef std::shared_ptr<Geometry> GeometryPtr;
     typedef std::shared_ptr<Object3D> Object3DPtr;
     typedef std::shared_ptr<Mesh> MeshPtr;
     typedef std::weak_ptr<const Mesh> MeshWeakPtr;
-    typedef std::shared_ptr<Camera> CameraPtr;
-    typedef std::shared_ptr<Bone> BonePtr;
-    typedef std::shared_ptr<Animation> AnimationPtr;
+    typedef std::shared_ptr<class Camera> CameraPtr;
+    typedef std::shared_ptr<struct Bone> BonePtr;
+    typedef std::shared_ptr<struct Animation> AnimationPtr;
+    typedef std::shared_ptr<struct RenderBin> RenderBinPtr;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     KINSKI_API void pushMatrix(const Matrixtype type);

@@ -1,0 +1,100 @@
+//
+//  Renderer.cpp
+//  kinskiGL
+//
+//  Created by Fabian on 4/21/13.
+//
+//
+
+#include "Renderer.h"
+#include "Mesh.h"
+#include "Camera.h"
+
+namespace kinski{ namespace gl{
+
+    using std::pair;
+    using std::map;
+    using std::list;
+    
+    void Renderer::render(const RenderBinPtr &theBin)
+    {
+        std::list<RenderBin::item> opaque_items, blended_items;
+        std::list<RenderBin::item>::iterator it = theBin->items.begin();
+        for (; it != theBin->items.end(); ++it)
+        {
+            if(it->mesh->material()->opaque()){opaque_items.push_back(*it);}
+            else{blended_items.push_back(*it);}
+        }
+        //sort by distance to camera
+        opaque_items.sort(RenderBin::sort_items_increasing());
+        blended_items.sort(RenderBin::sort_items_decreasing());
+        
+        draw_sorted_by_material(theBin->camera, opaque_items);
+        draw_sorted_by_material(theBin->camera, blended_items);
+    }
+    
+    void Renderer::draw_sorted_by_material(const CameraPtr &cam, const list<RenderBin::item> &item_list)
+    {
+        glm::mat4 viewMatrix = cam->getViewMatrix();
+        
+        map<pair<GeometryPtr, MaterialPtr>, list<MeshPtr> > meshMap;
+        list<RenderBin::item>::const_iterator item_it = item_list.begin();
+        for (; item_it != item_list.end(); ++item_it)
+        {
+            const MeshPtr &m = item_it->mesh;
+            meshMap[std::make_pair(m->geometry(), m->material())].push_back(m);
+        }
+        map<pair<GeometryPtr, MaterialPtr>, list<MeshPtr> >::const_iterator it = meshMap.begin();
+        for (; it != meshMap.end(); ++it)
+        {
+            const list<Mesh::Ptr>& meshList = it->second;
+            MeshPtr m = meshList.front();
+            
+            if(m->geometry()->hasBones())
+            {
+                m->material()->uniform("u_bones", m->geometry()->boneMatrices());
+            }
+            gl::apply_material(m->material());
+            
+#ifndef KINSKI_NO_VAO
+            try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
+            catch(const WrongVertexArrayDefinedException &e)
+            {
+                LOG_DEBUG<<e.what();
+                m->createVertexArray();
+                GL_SUFFIX(glBindVertexArray)(m->vertexArray());
+            }
+#else
+            m->bindVertexPointers();
+#endif
+            
+            list<Mesh::Ptr>::const_iterator transformIt = meshList.begin();
+            for (; transformIt != meshList.end(); ++transformIt)
+            {
+                m = *transformIt;
+                
+                glm::mat4 modelView = viewMatrix * m->transform();
+                m->material()->shader().uniform("u_modelViewMatrix", modelView);
+                m->material()->shader().uniform("u_normalMatrix",
+                                                glm::inverseTranspose( glm::mat3(modelView) ));
+                m->material()->shader().uniform("u_modelViewProjectionMatrix",
+                                                cam->getProjectionMatrix() * modelView);
+                
+                if(m->geometry()->hasIndices())
+                {
+                    glDrawElements(m->geometry()->primitiveType(),
+                                   m->geometry()->indices().size(), m->geometry()->indexType(),
+                                   BUFFER_OFFSET(0));
+                }
+                else
+                {
+                    glDrawArrays(m->geometry()->primitiveType(), 0,
+                                 m->geometry()->vertices().size());
+                }
+            }
+#ifndef KINSKI_NO_VAO
+            GL_SUFFIX(glBindVertexArray)(0);
+#endif
+        }
+    }
+}}

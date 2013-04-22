@@ -28,6 +28,7 @@ public:
     {
     public:
         typedef std::shared_ptr<Observer> Ptr;
+        typedef std::weak_ptr<Observer> WeakPtr;
         virtual void updateProperty(const Property::ConstPtr &theProperty) = 0;
     };
 

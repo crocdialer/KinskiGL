@@ -190,7 +190,7 @@ namespace kinski { namespace gl {
         std::string::const_iterator it = theText.begin();
         for (; it != theText.end(); ++it)
         {
-            uint32_t codepoint;
+            uint32_t codepoint = 0;
             uint32_t state = UTF8_ACCEPT;
             
             while (decode(&state, &codepoint, (uint8_t)*it)){ ++it; }
@@ -275,7 +275,7 @@ namespace kinski { namespace gl {
         std::string::const_iterator it = theText.begin();
         for (; it != theText.end(); ++it)
         {
-            uint32_t codepoint = *it;
+            uint32_t codepoint = 0;
             uint32_t state = UTF8_ACCEPT;
             
             while (decode(&state, &codepoint, (uint8_t)*it)){ ++it; }

@@ -10,30 +10,20 @@
 #include "Scene.h"
 #include "Mesh.h"
 #include "Camera.h"
+#include "Renderer.h"
 #include "geometry_types.h"
 
 using namespace std;
 
 namespace kinski { namespace gl {
     
-    
-    class RenderBin
-    {
-     public:
-        RenderBin(){};
-     private:
-        
-    };
-    
     struct range_item_t
     {
         Object3DPtr object;
         float distance;
-        
         range_item_t(){}
         range_item_t(Object3DPtr obj, float d):object(obj), distance(d){}
-        bool operator ()(const range_item_t &lhs,const range_item_t &rhs)
-        { return lhs.distance < rhs.distance; }
+        bool operator <(const range_item_t &other){return distance < other.distance;}
     };
     
     void Scene::addObject(const Object3D::Ptr &theObject)
@@ -55,15 +45,41 @@ namespace kinski { namespace gl {
         }
     }
     
+    RenderBinPtr Scene::cull(const CameraPtr &theCamera)
+    {
+        RenderBinPtr ret(new RenderBin(theCamera));
+        glm::mat4 viewMatrix = theCamera->getViewMatrix();
+        gl::Frustum frustum = theCamera->frustum();
+        
+        list<Object3DPtr>::const_iterator objIt = m_objects.begin();
+        for (; objIt != m_objects.end(); objIt++)
+        {
+            if(const MeshPtr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
+            {
+                gl::AABB boundingBox = theMesh->geometry()->boundingBox();
+                //gl::Sphere s(theMesh->position(), glm::length(boundingBox.halfExtents()));
+                boundingBox.transform(theMesh->transform());
+                
+                if (frustum.intersect(boundingBox))
+                {
+                    RenderBin::item item;
+                    item.mesh = theMesh;
+                    item.transform = viewMatrix * theMesh->transform();
+                    ret->items.push_back(item);
+                }
+            }
+        }
+        m_num_visible_objects = ret->items.size();
+        return ret;
+    }
+    
     void Scene::render(const CameraPtr &theCamera) const
     {
         ScopedMatrixPush proj(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
         gl::loadMatrix(gl::PROJECTION_MATRIX, theCamera->getProjectionMatrix());
         
         glm::mat4 viewMatrix = theCamera->getViewMatrix();
-        
         gl::Frustum frustum = theCamera->frustum();
-        //gl::Frustum frustum (theCamera->getProjectionMatrix() * theCamera->getViewMatrix());
         
         map<std::pair<GeometryPtr, MaterialPtr>, list<MeshPtr> > meshMap;
         m_num_visible_objects = 0;
@@ -181,7 +197,7 @@ namespace kinski { namespace gl {
             }
         }
         if(!clicked_items.empty()){
-            clicked_items.sort(range_item_t());
+            clicked_items.sort();
             ret = clicked_items.front().object;
             LOG_DEBUG<<"ray hit id "<<ret->getID()<<" ("<<clicked_items.size()<<" total)";
         }
