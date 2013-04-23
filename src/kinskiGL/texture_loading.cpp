@@ -85,9 +85,7 @@ namespace kinski { namespace gl {
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         
-        GLfloat fLargest;
-        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, fLargest);
+        ret.set_anisotropic_filter(anisotropic_filter_lvl);
         
         // requires OpenGL 3.3+
         //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};

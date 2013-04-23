@@ -8,6 +8,7 @@ typedef kinski::ViewerApp BaseAppType;
 
 #include "kinskiApp/TextureIO.h"
 #include "physics_context.h"
+
 #include "kinskiCV/CVThread.h"
 #include "ThreshNode.h"
 #include "DopeRecorder.h"
@@ -19,94 +20,13 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-namespace kinski { namespace gl {
-
-    class BulletDebugDrawer : public btIDebugDraw
-    {
-     public:
-        
-        BulletDebugDrawer()
-        {
-            gl::MaterialPtr mat(new gl::Material);
-            mat->setShader(gl::createShader(gl::SHADER_UNLIT));
-            gl::GeometryPtr geom(new gl::Geometry);
-            m_mesh = gl::Mesh::create(geom, mat);
-            m_mesh->geometry()->setPrimitiveType(GL_LINES);
-        };
-        
-        virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
-        {
-            m_mesh->geometry()->appendVertex(vec3(from.x(), from.y(), from.z()));
-            m_mesh->geometry()->appendVertex(vec3(to.x(), to.y(), to.z()));
-            m_mesh->geometry()->appendColor(vec4(color.x(), color.y(), color.z(), 1.0f));
-            m_mesh->geometry()->appendColor(vec4(color.x(), color.y(), color.z(), 1.0f));
-        }
-        
-        virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,
-                                      btScalar distance,int lifeTime,const btVector3& color){};
-        
-        virtual void reportErrorWarning(const char* warningString) {LOG_WARNING<<warningString;}
-        virtual void draw3dText(const btVector3& location,const char* textString)
-        {
-            //TODO: font rendering here
-        }
-        virtual void setDebugMode(int debugMode){LOG_WARNING<<"unsupported operation";}
-        virtual int	getDebugMode() const {return DBG_DrawWireframe;}
-        
-        void flush()
-        {
-            m_mesh->geometry()->createGLBuffers();
-            gl::drawMesh(m_mesh);
-            m_mesh->geometry()->vertices().clear();
-            m_mesh->geometry()->colors().clear();
-            m_mesh->geometry()->vertices().reserve(1024);
-            m_mesh->geometry()->colors().reserve(1024);
-        };
-        
-     private:
-        gl::Mesh::Ptr m_mesh;
-    };
-    
-
-    ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
-    {
-        gl::Object3DPtr m_object;
-        btTransform m_graphicsWorldTrans;
-        btTransform	m_centerOfMassOffset;
-        BT_DECLARE_ALIGNED_ALLOCATOR();
-        
-        MotionState(const gl::Object3D::Ptr& theObject3D,
-                    const btTransform& centerOfMassOffset = btTransform::getIdentity()):
-		m_object(theObject3D),
-        m_centerOfMassOffset(centerOfMassOffset)
-        {
-            m_graphicsWorldTrans.setFromOpenGLMatrix(&theObject3D->transform()[0][0]);
-        }
-        
-        ///synchronizes world transform from user to physics
-        virtual void getWorldTransform(btTransform& centerOfMassWorldTrans ) const
-        {
-			centerOfMassWorldTrans = m_centerOfMassOffset.inverse() * m_graphicsWorldTrans ;
-        }
-        
-        ///synchronizes world transform from physics to user
-        ///Bullet only calls the update of worldtransform for active objects
-        virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans)
-        {
-			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
-            glm::mat4 transform;
-            m_graphicsWorldTrans.getOpenGLMatrix(&transform[0][0]);
-            m_object->setTransform(transform);
-        }
-    };
-}}
-
 class BulletSample : public BaseAppType
 {
 private:
     
     vector<gl::Texture> m_textures;
-    //gl::Texture m_textures[4];
+    gl::MaterialPtr m_box_material;
+    
     Property_<string>::Ptr m_font_name;
     Property_<int>::Ptr m_font_size;
     Property_<bool>::Ptr m_stepPhysics;
@@ -125,7 +45,17 @@ private:
 
 public:
     
-    void create_cube_stack(int size_x, int size_y, int size_z)
+    void draw_object_info2D(const gl::MeshPtr &mesh, const glm::vec2 &pos, const glm::vec4 &color)
+    {
+        glm::vec2 offset = pos;
+        glm::vec2 step = vec2(0, m_font.getLineHeight() + 4);
+        gl::drawText2D("id: " + kinski::as_string(mesh->getID()), m_font,
+                       color, offset);
+        gl::drawText2D("faces: " + kinski::as_string(mesh->geometry()->faces().size()), m_font,
+                       color, offset + step);
+    }
+    
+    void create_cube_stack(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
         scene().objects().clear();
         m_physics_context.collisionShapes().clear();
@@ -140,12 +70,15 @@ public:
             shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
                                                                   btScalar(50.),
                                                                   btScalar(50.)))));
-        gl::MeshPtr groundShape = gl::Mesh::create(gl::createBox(glm::vec3(50.0f)), materials()[0]);
+        gl::MeshPtr groundShape = gl::Mesh::create(gl::createBox(glm::vec3(50.0f)), theMat);
         scene().addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
         
         //groundShape->initializePolyhedralFeatures();
-        shared_ptr<btCollisionShape> plane_shape (new btStaticPlaneShape(btVector3(0,1,0),50));
+        shared_ptr<btCollisionShape> plane_shape (new btStaticPlaneShape(btVector3(0,1,0),150));
+        
+        
+        //m_physics_context.dynamicsWorld()->addRigidBody(plane_shape);
         
 //        btTransform groundTransform;
 //        groundTransform.setIdentity();
@@ -177,9 +110,6 @@ public:
             m_physics_context.collisionShapes().push_back(shared_ptr<btBoxShape>(new btBoxShape(btVector3(scaling * 1,
                                                                                         scaling * 1,
                                                                                         scaling * 1))));
-            //btCollisionShape* colShape = new btSphereShape(btScalar(1.));
-            //m_collisionShapes.push_back(colShape);
-            
             /// Create Dynamic Objects
             btTransform startTransform;
             startTransform.setIdentity();
@@ -211,7 +141,7 @@ public:
                                                                    btScalar(20+2.0*k + start_y),
                                                                    btScalar(2.0*j + start_z)));
                         
-                        gl::MeshPtr mesh = gl::Mesh::create(geom, materials()[0]);
+                        gl::MeshPtr mesh = gl::Mesh::create(geom, theMat);
                         scene().addObject(mesh);
                         glm::mat4 mat;
                         startTransform.getOpenGLMatrix(&mat[0][0]);
@@ -267,12 +197,14 @@ public:
         // test box shape
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         
-        materials()[0]->setShader(gl::createShader(gl::SHADER_PHONG));
-        //materials()[0]->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
+        m_box_material = gl::Material::create();
+        //m_box_material->setShader(gl::createShader(gl::SHADER_PHONG));
+        m_box_material->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
         
-        materials()[0]->addTexture(m_textures[3]);
-        //materials()[0]->addTexture(m_textures[3]);
-        materials()[0]->setBlending();
+        m_box_material->addTexture(m_textures[3]);
+        m_textures[3].set_anisotropic_filter(8);
+        materials().push_back(m_box_material);
+        m_box_material->setBlending();
         
         // camera input
         m_cvThread = CVThread::create();
@@ -289,10 +221,10 @@ public:
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
         // create a physics scene
-        create_cube_stack(4, 32, 4);
+        create_cube_stack(4, 32, 4, m_box_material);
         
         // create a simplex noise texture
-        if(false)
+        if(true)
         {
             int w = 512, h = 512;
             float data[w * h];
@@ -304,10 +236,12 @@ public:
                 }
             
             gl::Texture::Format fmt;
-            fmt.setInternalFormat(GL_RED);
+            fmt.setInternalFormat(GL_COMPRESSED_RED_RGTC1);
             fmt.set_mipmapping(true);
-            m_textures[1] = gl::Texture (w, h, fmt);
-            m_textures[1].update(data, GL_RED, w, h, true);
+            gl::Texture noise_tex = gl::Texture (w, h, fmt);
+            noise_tex.update(data, GL_RED, w, h, true);
+            noise_tex.set_anisotropic_filter(8);
+            m_box_material->addTexture(noise_tex);
         }
         
         // load state from config file
@@ -391,25 +325,33 @@ public:
         if(displayTweakBar())
         {
             // draw opencv maps
-            glm::vec2 offset(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
-            glm::vec2 step(0, - getHeight()/6.f - 10);
+            float w = (windowSize()/8.f).x;
+            glm::vec2 offset(getWidth() - w - 10, 10);
             for(int i = 0;i<4;i++)
             {
-                drawTexture(m_textures[i], windowSize()/6.f, offset);
-//                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
-//                                    as_string(m_textures[i].getHeight()),
-//                               m_font, offset);
+                float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
+                glm::vec2 step(0, h + 10);
+                drawTexture(m_textures[i], vec2(w, h), offset);
+                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
+                               as_string(m_textures[i].getHeight()), m_font, glm::vec4(1),
+                               offset);
                 offset += step;
+            }
+            
+            if(selected_mesh())
+            {
+                draw_object_info2D(selected_mesh(), glm::vec2(10, windowSize().y - 120),
+                                   vec4(vec3(1) - clear_color().xyz(), 1.f));
             }
             
             gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 90, 40));
+                           glm::vec2(windowSize().x - 90, windowSize().y - 70));
             
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 110, 10));
+                           glm::vec2(windowSize().x - 110, windowSize().y - 40));
         }
     }
     
@@ -426,7 +368,7 @@ public:
         case KeyEvent::KEY_r:
             Serializer::loadComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
             m_physics_context.teardown_physics();
-            create_cube_stack(4, 32, 4);
+            create_cube_stack(4, 32, 4, m_box_material);
             break;
                 
         case KeyEvent::KEY_s:
@@ -464,7 +406,8 @@ public:
         
         if(theProperty == m_color)
         {
-            materials()[0]->setDiffuse(*m_color);
+            m_box_material->setDiffuse(*m_color);
+            if(m_color->value().a == 1.f) m_box_material->setBlending();
         }
         else if(theProperty == m_font_name || theProperty == m_font_size)
         {

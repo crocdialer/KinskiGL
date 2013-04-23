@@ -23,6 +23,9 @@ namespace kinski { namespace gl {
         Texture create_texture(const std::string &theText, const glm::vec4 &theColor = glm::vec4(1)) const;
         gl::MeshPtr create_mesh(const std::string &theText, const glm::vec4 &theColor = glm::vec4(1)) const;
         
+        uint32_t getFontSize() const;
+        uint32_t getLineHeight() const;
+        
     private:
         // forward declared Implementation object
         struct Obj;

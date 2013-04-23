@@ -141,6 +141,16 @@ namespace kinski { namespace gl {
         return m_obj->texture;
     }
     
+    uint32_t Font::getFontSize() const
+    {
+        return m_obj->font_height;
+    }
+    
+    uint32_t Font::getLineHeight() const
+    {
+        return m_obj->line_height;
+    }
+    
     void Font::load(const std::string &thePath, size_t theSize)
     {
         //TODO: check extension

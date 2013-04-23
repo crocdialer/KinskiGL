@@ -23,7 +23,7 @@ using namespace glm;
 using namespace std;
 
 // how many string meshes are buffered at max
-#define STRING_MESH_BUFFER_SIZE 100
+#define STRING_MESH_BUFFER_SIZE 200
 
 namespace kinski { namespace gl {
     
@@ -448,7 +448,8 @@ namespace kinski { namespace gl {
         material->addTexture(theTexture);
         
         vec2 sz = theSize;
-        vec2 tl = theTopLeft == vec2(0) ? vec2(0, g_windowDim[1]) : theTopLeft;
+        // flip to OpenGL coords
+        vec2 tl = vec2(theTopLeft.x, g_windowDim[1] - theTopLeft.y);
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
@@ -456,7 +457,8 @@ namespace kinski { namespace gl {
                   const vec2 &theSize,
                   const vec2 &theTl)
     {
-        vec2 tl = theTl == vec2(0) ? vec2(0, g_windowDim[1]) : theTl;
+        // flip to OpenGL coords
+        vec2 tl = vec2(theTl.x, g_windowDim[1] - theTl.y);
         drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1]);
     }
     
@@ -498,14 +500,12 @@ namespace kinski { namespace gl {
             g_string_mesh_map[theText] = string_mesh_container(theText,
                                                                theFont.create_mesh(theText, the_color));
         }
-//        string_mesh->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y
-//                                           - string_mesh->geometry()->boundingBox().height(), 0.f));
         string_mesh_container &item = g_string_mesh_map[theText];
         item.counter++;
         gl::MeshPtr m = item.mesh;
         m->material()->setDiffuse(the_color);
-        m->setPosition(glm::vec3(theTopLeft, 0));
-        
+        m->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y -
+                                 m->geometry()->boundingBox().height(), 0.f));
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
         drawMesh(m);

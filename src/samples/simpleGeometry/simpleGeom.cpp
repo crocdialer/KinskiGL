@@ -206,19 +206,22 @@ public:
         {
             m_frameBuffer.getTexture().set_mipmapping();
             
-            glm::vec2 offset(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
-            glm::vec2 step(0, - getHeight()/6.f - 10);
-            drawTexture(m_frameBuffer.getTexture(), windowSize()/6.f, offset);
-            gl::drawQuad(m_draw_depth_material, windowSize()/6.f, offset + step);
+            float w = (windowSize()/8.f).x;
+            float h = m_frameBuffer.getTexture().getHeight() * w / m_frameBuffer.getTexture().getWidth();
+            glm::vec2 offset(getWidth() - w - 10, 10);
+            glm::vec2 step(0, h + 10);
+            
+            drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
+            gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
             
             gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 90, 40));
+                           glm::vec2(windowSize().x - 90, windowSize().y - 100));
             
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 110, 10));
+                           glm::vec2(windowSize().x - 110, windowSize().y - 70));
         }
     }
     

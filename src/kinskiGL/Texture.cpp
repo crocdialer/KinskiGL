@@ -350,6 +350,15 @@ void Texture::set_mipmapping(bool b)
     m_Obj->m_mip_map = b;
 }
 
+void Texture::set_anisotropic_filter(float f)
+{
+    GLfloat fLargest;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+    bind();
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(fLargest, f));
+    unbind();
+}
+    
 bool Texture::hasAlpha() const
 {
 	switch( m_Obj->m_InternalFormat ) {
@@ -440,7 +449,6 @@ void Texture::unbind( GLuint textureUnit ) const
     if(!m_Obj) return;//throw TextureDataExc("Tried to unbind uninitialized texture ...");
     
     m_Obj->m_boundTextureUnit = -1;
-    
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
 	glBindTexture( m_Obj->m_Target, 0 );
 	glActiveTexture( GL_TEXTURE0 );
