@@ -67,7 +67,7 @@ public:
         
         gl::Fbo::Format fboFormat;
         //TODO: mulitsampling fails
-        fboFormat.setSamples(4);
+        //fboFormat.setSamples(4);
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
         //int numsamples = m_frameBuffer.getMaxSamples();//4
         //int numattachments = m_frameBuffer.getMaxAttachments();//8
