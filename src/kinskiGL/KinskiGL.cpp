@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
         uint64_t counter;
         string_mesh_container():counter(0){};
         string_mesh_container(const std::string &t, const MeshPtr &m):text(t), mesh(m), counter(0){}
-        bool operator<(const string_mesh_container &other){return counter < other.counter;}
+        bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
     };
     
     static glm::vec2 g_windowDim;

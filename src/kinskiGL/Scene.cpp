@@ -23,7 +23,7 @@ namespace kinski { namespace gl {
         float distance;
         range_item_t(){}
         range_item_t(Object3DPtr obj, float d):object(obj), distance(d){}
-        bool operator <(const range_item_t &other){return distance < other.distance;}
+        bool operator <(const range_item_t &other) const {return distance < other.distance;}
     };
     
     void Scene::addObject(const Object3D::Ptr &theObject)

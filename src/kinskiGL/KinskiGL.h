@@ -25,6 +25,7 @@
 
 #if defined(KINSKI_RASPI)
 #define KINSKI_NO_VAO
+#define GL_GLEXT_PROTOTYPES
 #endif
 
 #ifdef KINSKI_GLES // GLES2
