@@ -42,8 +42,8 @@ namespace kinski
         }
         
         /********************** construct a simple scene ***********************/
-        gl::Geometry::Ptr sphere(gl::createSphere(100, 32));
-        gl::MaterialPtr mat(new gl::Material);
+        gl::Geometry::Ptr sphere = gl::createSphere(100, 32);
+        gl::MaterialPtr mat = gl::Material::create();
         materials().push_back(mat);
         
         try
@@ -98,13 +98,23 @@ namespace kinski
         // draw texture map(s)
         if(displayTweakBar())
         {
-            glm::vec2 offet(getWidth() - getWidth()/6.f - 10, getHeight() - 10);
-            glm::vec2 step(0, - getHeight()/6.f - 10);
-            for(int i = 0;i<m_textures.size();i++)
+            // draw maps
+            float w = (windowSize()/8.f).x;
+            glm::vec2 offset(getWidth() - w - 10, 10);
+            for(int i = 0;i<4;i++)
             {
-                drawTexture(m_textures[i], windowSize()/6.f, offet);
-                offet += step;
+                float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
+                glm::vec2 step(0, h + 10);
+                drawTexture(m_textures[i], vec2(w, h), offset);
+                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
+                               as_string(m_textures[i].getHeight()), m_font, glm::vec4(1),
+                               offset);
+                offset += step;
             }
+            // draw fps string
+            gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+                           glm::vec2(windowSize().x - 110, windowSize().y - 40));
         }
     }
     

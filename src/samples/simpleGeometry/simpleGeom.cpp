@@ -67,8 +67,11 @@ public:
         
         gl::Fbo::Format fboFormat;
         //TODO: mulitsampling fails
-        //fboFormat.setSamples(4);
+        fboFormat.setSamples(4);
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
+        //int numsamples = m_frameBuffer.getMaxSamples();//4
+        //int numattachments = m_frameBuffer.getMaxAttachments();//8
+        
         m_draw_depth_material = gl::Material::create();
         m_draw_depth_material->setShader(gl::createShaderFromFile("shader_unlit.vert", "shader_unlit.frag"));
         m_draw_depth_material->addTexture(m_frameBuffer.getDepthTexture());
@@ -214,6 +217,10 @@ public:
             drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
             gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
             
+            gl::drawText2D(as_string(m_frameBuffer.getTexture().getWidth()) + std::string(" x ") +
+                           as_string(m_frameBuffer.getTexture().getHeight()), m_font, glm::vec4(1),
+                           offset);
+            
             gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
                            glm::vec2(windowSize().x - 90, windowSize().y - 100));
@@ -244,6 +251,8 @@ public:
         ViewerApp::resize(w, h);
         gl::Fbo::Format fboFormat;
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
+        m_draw_depth_material->textures().clear();
+        m_draw_depth_material->addTexture(m_frameBuffer.getDepthTexture());
     }
     
     void mousePress(const MouseEvent &e)

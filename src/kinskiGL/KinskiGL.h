@@ -16,7 +16,7 @@
 #include "kinskiCore/file_functions.h"
 
 //triggers checks with glGetError()
-#define KINSKI_GL_REPORT_ERRORS 0
+#define KINSKI_GL_REPORT_ERRORS 1
 
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)

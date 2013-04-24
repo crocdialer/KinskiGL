@@ -35,7 +35,8 @@ namespace kinski
     
     int App::run()
     {
-        init();
+        try{init();}
+        catch(std::exception &e){LOG_ERROR<<e.what(); exit(EXIT_FAILURE);}
         m_running = GL_TRUE;
         double timeStamp = 0.0;
         

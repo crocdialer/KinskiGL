@@ -114,11 +114,13 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     {
         glGenTextures( 1, &m_Obj->m_TextureID );
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
+        KINSKI_CHECK_GL_ERRORS();
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
+        KINSKI_CHECK_GL_ERRORS();
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
-        
+        KINSKI_CHECK_GL_ERRORS();
 	}
     else 
     {
@@ -143,6 +145,7 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     {
         glGenerateMipmap(m_Obj->m_Target);
     }
+    KINSKI_CHECK_GL_ERRORS();
 }
 
 void Texture::init( const float *data, GLint dataFormat, const Format &format )

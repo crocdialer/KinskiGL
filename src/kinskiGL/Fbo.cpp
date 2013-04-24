@@ -23,11 +23,11 @@ Renderbuffer::Obj::Obj()
 	mWidth = mHeight = -1;
 	mId = 0;
 	mInternalFormat = 0;
-	mSamples = mCoverageSamples = 0;
+	mSamples = 0;
 }
 
-Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples, int coverageSamples )
-	: mWidth( aWidth ), mHeight( aHeight ), mInternalFormat( internalFormat ), mSamples( msaaSamples ), mCoverageSamples( coverageSamples )
+Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples)
+	: mWidth( aWidth ), mHeight( aHeight ), mInternalFormat( internalFormat ), mSamples( msaaSamples )
 {
     glGenRenderbuffers( 1, &mId );
 
@@ -45,8 +45,7 @@ Renderbuffer::Obj::Obj( int aWidth, int aHeight, GLenum internalFormat, int msaa
 	else
 #endif
 
-    glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
-
+        glRenderbufferStorage( GL_RENDERBUFFER, mInternalFormat, mWidth, mHeight );
 }
 
 Renderbuffer::Obj::~Obj()
@@ -58,11 +57,11 @@ Renderbuffer::Obj::~Obj()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Renderbuffer::Renderbuffer
 Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat )
-	: mObj( new Obj( width, height, internalFormat, 0, 0 ) )
+	: mObj( new Obj( width, height, internalFormat, 0) )
 {
 }
-Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples )
-	: mObj( new Obj( width, height, internalFormat, msaaSamples, coverageSamples ) )
+Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples)
+	: mObj( new Obj( width, height, internalFormat, msaaSamples))
 {
 }
 
@@ -142,21 +141,10 @@ void Fbo::Format::enableDepthBuffer( bool depthBuffer, bool asTexture )
 
 void Fbo::init()
 {
-	//SaveFramebufferBinding bindingSaver;
-	
-#if defined( CINDER_MSW )
-	static bool csaaSupported = ( GLEE_NV_framebuffer_multisample_coverage != 0 );
-#else
-	static bool csaaSupported = false;
-#endif
-	bool useCSAA = csaaSupported && ( mObj->mFormat.mCoverageSamples > mObj->mFormat.mSamples );
-	bool useMSAA = ( mObj->mFormat.mCoverageSamples > 0 ) || ( mObj->mFormat.mSamples > 0 );
-	if( useCSAA )
-		useMSAA = false;
+	bool useAA = mObj->mFormat.mSamples > 0;
 
 	// allocate the framebuffer itself
 	glGenFramebuffers( 1, &mObj->mId );
-    
     glBindFramebuffer(GL_FRAMEBUFFER, mObj->mId );
 
 	Texture::Format textureFormat;
@@ -179,9 +167,8 @@ void Fbo::init()
 	}
 #endif
     
-    bool useAA = (useCSAA || useMSAA);
     if(useAA)
-        useAA = initMultisample( useCSAA );
+        useAA = initMultisample();
     
 	if( !useAA ) { // if we don't need any variety of multisampling or it failed to initialize
 		// attach all the textures to the framebuffer
@@ -202,8 +189,9 @@ void Fbo::init()
 	#if ! defined( KINSKI_GLES )			
 				GLuint depthTextureId;
 				glGenTextures( 1, &depthTextureId );
-				glBindTexture( getTarget(), depthTextureId );
-				glTexImage2D( getTarget(), 0, getFormat().getDepthInternalFormat(), mObj->mWidth, mObj->mHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
+				glBindTexture(getTarget(), depthTextureId);
+				glTexImage2D(getTarget(), 0, getFormat().getDepthInternalFormat(),
+                             mObj->mWidth, mObj->mHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL );
 				glTexParameteri( getTarget(), GL_TEXTURE_MIN_FILTER, mObj->mFormat.mMinFilter );
 				glTexParameteri( getTarget(), GL_TEXTURE_MAG_FILTER, mObj->mFormat.mMagFilter );
 				glTexParameteri( getTarget(), GL_TEXTURE_WRAP_S, mObj->mFormat.mWrapS );
@@ -237,7 +225,7 @@ void Fbo::init()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-bool Fbo::initMultisample( bool csaa )
+bool Fbo::initMultisample()
 {
 #if defined( KINSKI_GLES )
 	return false;
@@ -268,10 +256,11 @@ bool Fbo::initMultisample( bool csaa )
 
 	// setup the multisampled color renderbuffers
 	for( int c = 0; c < mObj->mFormat.mNumColorBuffers; ++c ) {
-		mObj->mMultisampleColorRenderbuffers.push_back( Renderbuffer( mObj->mWidth, mObj->mHeight, mObj->mFormat.mColorInternalFormat, mObj->mFormat.mSamples, mObj->mFormat.mCoverageSamples ) );
+		mObj->mMultisampleColorRenderbuffers.push_back( Renderbuffer( mObj->mWidth, mObj->mHeight, mObj->mFormat.mColorInternalFormat, mObj->mFormat.mSamples));
 
 		// attach the multisampled color buffer
-		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER, mObj->mMultisampleColorRenderbuffers.back().getId() );
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER,
+                                  mObj->mMultisampleColorRenderbuffers.back().getId());
 	}
 	
 	if( ! drawBuffers.empty() )
@@ -279,7 +268,9 @@ bool Fbo::initMultisample( bool csaa )
 
 	if( mObj->mFormat.mDepthBuffer ) {
 		// create the multisampled depth Renderbuffer
-		mObj->mMultisampleDepthRenderbuffer = Renderbuffer( mObj->mWidth, mObj->mHeight, mObj->mFormat.mDepthInternalFormat, mObj->mFormat.mSamples, mObj->mFormat.mCoverageSamples );
+		mObj->mMultisampleDepthRenderbuffer = Renderbuffer(mObj->mWidth, mObj->mHeight,
+                                                           mObj->mFormat.mDepthInternalFormat,
+                                                           mObj->mFormat.mSamples);
 
 		// attach the depth Renderbuffer
 		glFramebufferRenderbuffer( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mObj->mMultisampleDepthRenderbuffer.getId() );
@@ -291,14 +282,14 @@ bool Fbo::initMultisample( bool csaa )
 }
 
 Fbo::Fbo( int width, int height, Format format )
-	: mObj( shared_ptr<Obj>( new Obj( width, height ) ) )
+	: mObj(new Obj( width, height ))
 {
 	mObj->mFormat = format;
 	init();
 }
 
 Fbo::Fbo( int width, int height, bool alpha, bool color, bool depth )
-	: mObj( shared_ptr<Obj>( new Obj( width, height ) ) )
+	: mObj(new Obj( width, height ))
 {
 	Format format;
 #if defined( KINSKI_GLES )
@@ -357,9 +348,10 @@ void Fbo::resolveTextures() const
 			glDrawBuffer( GL_COLOR_ATTACHMENT0 + c );
 			glReadBuffer( GL_COLOR_ATTACHMENT0 + c );
 			GLbitfield bitfield = GL_COLOR_BUFFER_BIT;
-			if( mObj->mDepthTexture )
+			if( mObj->mDepthTexture.getId() )
 				bitfield |= GL_DEPTH_BUFFER_BIT;
 			glBlitFramebuffer( 0, 0, mObj->mWidth, mObj->mHeight, 0, 0, mObj->mWidth, mObj->mHeight, bitfield, GL_NEAREST );
+            KINSKI_CHECK_GL_ERRORS();
 		}
 
 		// restore the draw buffers to the default for the antialiased (non-resolve) framebuffer
@@ -368,6 +360,7 @@ void Fbo::resolveTextures() const
 			drawBuffers.push_back( GL_COLOR_ATTACHMENT0 + c );
 		glBindFramebuffer( GL_FRAMEBUFFER, mObj->mId );
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
+        KINSKI_CHECK_GL_ERRORS();
 	}
 #endif
 
@@ -437,7 +430,7 @@ bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
 		return false;
     }
 	
-    return true;
+    return status == GL_FRAMEBUFFER_COMPLETE;
 }
 
 GLint Fbo::getMaxSamples()

@@ -14,14 +14,19 @@ in vec4 v_texCoord;
 in vec3 v_eyeVec;
 in vec3 v_lightDir;
 out vec4 fragData;
+
 vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
 {
-    float center = texture(theMap, theCoords).r ;	 //center bump map sample
-    float U = textureOffset(theMap, theCoords, ivec2(-1, 0)).r ;	//U bump map sample
-    float V = textureOffset(theMap, theCoords, ivec2(0, -1)).r ;	 //V bump map sample
-    float dHdU = U - center;	 //create bump map U offset
-    float dHdV = V - center;	 //create bump map V offset
-    vec3 normal = vec3( -dHdU, dHdV, 0.05 / theStrength);	 //create the tangent space normal
+    const ivec2 offsetU = ivec2(1, 0);
+    const ivec2 offsetV = ivec2(0, 1);
+    
+    //float center = texture(theMap, theCoords).r ;	 //center bump map sample
+    float U0 = textureOffset(theMap, theCoords, -offsetU).r ;	//U bump map sample
+    float V0 = textureOffset(theMap, theCoords, -offsetV).r ;	 //V bump map sample
+    float U1 = textureOffset(theMap, theCoords, offsetU).r ;
+    float V1 = textureOffset(theMap, theCoords, offsetV).r ;
+    //create bump map UV offsets
+    vec3 normal = vec3( U1 - U0, V1 - V0, 0.05 / theStrength);	 //create the tangent space normal
     return normalize(normal);
 }
 

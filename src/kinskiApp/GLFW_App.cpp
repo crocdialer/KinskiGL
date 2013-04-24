@@ -47,7 +47,7 @@ namespace kinski
         // Initialize GLFW
         if( !glfwInit() )
         {
-            throw exception();
+            throw Exception("GLFW failed to initialize");
         }
         
         // request an OpenGl 3.2 Context
@@ -63,7 +63,7 @@ namespace kinski
                              fullSceen() ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
         {
             glfwTerminate();
-            throw Exception("Could not init OpenGL window");
+            throw Exception("Could not create OpenGL window");
         }
         
         // show mouse cursor in fullscreen ?

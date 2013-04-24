@@ -83,11 +83,6 @@ namespace kinski { namespace gl {
         GLuint m_vertexArray;
         mutable std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
         
-        /*!
-         * choose one of GL_TRIANGLES, GL_POINTS here
-         */
-        GLuint m_drawMode;
-        
         std::string m_vertexLocationName;
         std::string m_normalLocationName;
         std::string m_tangentLocationName;

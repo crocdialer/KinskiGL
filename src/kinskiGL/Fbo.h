@@ -27,8 +27,8 @@ class KINSKI_API Renderbuffer {
 #else
 	Renderbuffer( int width, int height, GLenum internalFormat = GL_RGBA8 );
 #endif
-	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8, MSAA samples \a msaaSamples, and CSAA samples \a coverageSamples
-	Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples, int coverageSamples = 0 );
+	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8, MSAA samples \a msaaSamples
+	Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples);
 
 	//! Returns the width of the Renderbuffer in pixels
 	int		getWidth() const { return mObj->mWidth; }
@@ -50,18 +50,18 @@ class KINSKI_API Renderbuffer {
 	//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling
 	int		getSamples() const { return mObj->mSamples; }
 	//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none.
-	int		getCoverageSamples() const { return mObj->mCoverageSamples; }
+	//int		getCoverageSamples() const { return mObj->mCoverageSamples; }
 
   private:
 	struct Obj {
 		Obj();
-		Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples, int coverageSamples );
+		Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples);
 		~Obj();
 
 		int					mWidth, mHeight;
 		GLuint				mId;
 		GLenum				mInternalFormat;
-		int					mSamples, mCoverageSamples;
+		int					mSamples;
 	};
     
     typedef std::shared_ptr<Obj> ObjPtr;
@@ -218,7 +218,7 @@ class KINSKI_API Fbo
 
  protected:
 	void		init();
-	bool		initMultisample( bool csaa );
+	bool		initMultisample();
 	void		resolveTextures() const;
 	void		updateMipmaps( bool bindFirst, int attachment ) const;
 	bool		checkStatus( class FboExceptionInvalidSpecification *resultExc );
