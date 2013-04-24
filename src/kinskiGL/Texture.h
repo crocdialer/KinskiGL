@@ -63,7 +63,7 @@ namespace kinski{ namespace gl{
         
         void setTextureMatrix( const glm::mat4 &theMatrix );
         
-        const glm::mat4& getTextureMatrix() const;
+        glm::mat4 getTextureMatrix() const;
         
         const bool isBound() const;
         const GLint getBoundTextureUnit() const;
@@ -221,6 +221,8 @@ namespace kinski{ namespace gl{
         void	init(const unsigned char *data, GLenum dataFormat,
                      const Format &format, int unpackRowLength = 0);	
         void	init( const float *data, GLint dataFormat, const Format &format );
+        
+        glm::mat4           m_textureMatrix;
         
         // forward declared Implementation object
         struct Obj;

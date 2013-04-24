@@ -58,7 +58,6 @@ struct Texture::Obj
     GLenum          m_dataType;
     GLenum			m_Target;
     GLuint			m_TextureID;
-    glm::mat4       m_textureMatrix;
     
     bool			m_DoNotDispose;
     bool			m_Flipped;
@@ -70,10 +69,10 @@ struct Texture::Obj
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
-Texture::Texture(): m_Obj( ObjPtr( new Obj )){}
+    Texture::Texture():m_Obj(new Obj){}
     
 Texture::Texture( int aWidth, int aHeight, Format format )
-	: m_Obj( ObjPtr( new Obj( aWidth, aHeight ) ) )
+	: m_Obj(new Obj( aWidth, aHeight))
 {
 	if( format.m_InternalFormat == -1 )
 		format.m_InternalFormat = GL_RGBA;
@@ -84,7 +83,7 @@ Texture::Texture( int aWidth, int aHeight, Format format )
 }
 
 Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format )
-	: m_Obj( ObjPtr( new Obj( aWidth, aHeight ) ) )
+	: m_Obj(new Obj( aWidth, aHeight))
 {
 	if( format.m_InternalFormat == -1 )
 		format.m_InternalFormat = GL_RGBA;
@@ -199,6 +198,8 @@ void Texture::update(const void *data,
                      int theWidth, int theHeight,
                      bool flipped )
 {
+    if(!m_Obj) m_Obj = ObjPtr(new Obj);
+    
     if(m_Obj->m_Width == theWidth && 
        m_Obj->m_Height == theHeight &&
        m_Obj->m_dataType == dataType)
@@ -272,12 +273,20 @@ void Texture::setDoNotDispose( bool aDoNotDispose )
 
 void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
 {
-    m_Obj->m_textureMatrix = theMatrix;
+    m_textureMatrix = theMatrix;
 }
     
-const glm::mat4 &Texture::getTextureMatrix() const 
-{ 
-    return m_Obj->m_textureMatrix; 
+glm::mat4 Texture::getTextureMatrix() const 
+{
+    glm::mat4 ret = m_textureMatrix;//TODO: see if this can be optimized
+    if(m_Obj->m_Flipped)
+    {
+        glm::mat4 flipY;
+        flipY[1] = glm::vec4(0, -1, 0, 1);// invert y-coords
+        flipY[3] = glm::vec4(0, 1, 0, 1); // [-1,0] -> [0,1]
+        ret *= flipY;
+    }
+    return ret;
 }
 
 const bool Texture::isBound() const
@@ -308,14 +317,7 @@ bool Texture::isFlipped() const
 
 //!	Marks the texture as being flipped vertically or not
 void Texture::setFlipped( bool aFlipped ) 
-{ 
-    if(aFlipped != m_Obj->m_Flipped)
-    {
-        glm::mat4 flipY;
-        flipY[1] = glm::vec4(0, -1, 0, 1);// invert y-coords
-        flipY[3] = glm::vec4(0, 1, 0, 1); // [-1,0] -> [0,1]
-        m_Obj->m_textureMatrix *= flipY;
-    }
+{
     m_Obj->m_Flipped = aFlipped;
 }
     
@@ -381,22 +383,22 @@ bool Texture::hasAlpha() const
 	
 float Texture::getLeft() const
 {
-	return (m_Obj->m_textureMatrix * glm::vec4(0, 0, 0, 1)).x;
+	return (m_textureMatrix * glm::vec4(0, 0, 0, 1)).x;
 }
 
 float Texture::getRight() const
 {
-	return (m_Obj->m_textureMatrix * glm::vec4(1, 0, 0, 1)).x;
+	return (m_textureMatrix * glm::vec4(1, 0, 0, 1)).x;
 }
 
 float Texture::getTop() const
 {
-	return (m_Obj->m_textureMatrix * glm::vec4(0, 1, 0, 1)).y;
+	return (m_textureMatrix * glm::vec4(0, 1, 0, 1)).y;
 }
     
 float Texture::getBottom() const
 {
-    return (m_Obj->m_textureMatrix * glm::vec4(0, 0, 0, 1)).y;
+    return (m_textureMatrix * glm::vec4(0, 0, 0, 1)).y;
 }
 
 GLint Texture::getInternalFormat() const
