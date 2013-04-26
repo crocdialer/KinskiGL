@@ -69,7 +69,7 @@ struct Texture::Obj
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
-    Texture::Texture():m_Obj(new Obj){}
+Texture::Texture():m_Obj(new Obj()){}
     
 Texture::Texture( int aWidth, int aHeight, Format format )
 	: m_Obj(new Obj( aWidth, aHeight))
@@ -94,7 +94,7 @@ Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHe
 }	
 
 Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose )
-	: m_Obj( ObjPtr( new Obj ) )
+	: m_Obj( ObjPtr( new Obj() ) )
 {
 	m_Obj->m_Target = aTarget;
 	m_Obj->m_TextureID = aTextureID;
@@ -198,7 +198,7 @@ void Texture::update(const void *data,
                      int theWidth, int theHeight,
                      bool flipped )
 {
-    if(!m_Obj) m_Obj = ObjPtr(new Obj);
+    if(!m_Obj) m_Obj = ObjPtr(new Obj());
     
     if(m_Obj->m_Width == theWidth && 
        m_Obj->m_Height == theHeight &&
