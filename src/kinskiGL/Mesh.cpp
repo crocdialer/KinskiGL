@@ -55,7 +55,7 @@ namespace kinski { namespace gl {
         {
             GLint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
             
-            if(normalAttribLocation > 0)
+            if(normalAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer().id());
                 // define attrib pointer (tangent)
@@ -69,7 +69,7 @@ namespace kinski { namespace gl {
         {
             GLint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
             
-            if(texCoordAttribLocation > 0)
+            if(texCoordAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer().id());
                 // define attrib pointer (tangent)
@@ -83,7 +83,7 @@ namespace kinski { namespace gl {
         {
             GLint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
             
-            if(tangentAttribLocation > 0)
+            if(tangentAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->tangentBuffer().id());
                 // define attrib pointer (tangent)
@@ -97,7 +97,7 @@ namespace kinski { namespace gl {
         {
             GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
             
-            if(colorAttribLocation > 0)
+            if(colorAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->colorBuffer().id());
                 // define attrib pointer (colors)
@@ -107,7 +107,7 @@ namespace kinski { namespace gl {
             }
         }else{
             GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
-            if(colorAttribLocation > 0) glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+            if(colorAttribLocation >= 0) glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
         }
         
         if(m_geometry->hasBones())
@@ -115,7 +115,7 @@ namespace kinski { namespace gl {
             GLint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
             GLint boneWeightsAttribLocation = shader.getAttribLocation(m_boneWeightsLocationName);
             
-            if(boneIdsAttribLocation > 0 && boneWeightsAttribLocation > 0)
+            if(boneIdsAttribLocation >= 0 && boneWeightsAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->boneBuffer().id());
                 // define attrib pointer (boneIDs)
