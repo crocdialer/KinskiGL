@@ -35,6 +35,7 @@ namespace kinski{ namespace gl{
     
     void Renderer::draw_sorted_by_material(const CameraPtr &cam, const list<RenderBin::item> &item_list)
     {
+        KINSKI_CHECK_GL_ERRORS();
         glm::mat4 viewMatrix = cam->getViewMatrix();
         
         map<pair<GeometryPtr, MaterialPtr>, list<MeshPtr> > meshMap;
@@ -67,7 +68,7 @@ namespace kinski{ namespace gl{
 #else
             m->bindVertexPointers();
 #endif
-            
+            KINSKI_CHECK_GL_ERRORS();
             list<Mesh::Ptr>::const_iterator transformIt = meshList.begin();
             for (; transformIt != meshList.end(); ++transformIt)
             {
@@ -91,6 +92,7 @@ namespace kinski{ namespace gl{
                     glDrawArrays(m->geometry()->primitiveType(), 0,
                                  m->geometry()->vertices().size());
                 }
+                KINSKI_CHECK_GL_ERRORS();
             }
 #ifndef KINSKI_NO_VAO
             GL_SUFFIX(glBindVertexArray)(0);

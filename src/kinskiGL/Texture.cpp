@@ -281,9 +281,10 @@ glm::mat4 Texture::getTextureMatrix() const
     glm::mat4 ret = m_textureMatrix;//TODO: see if this can be optimized
     if(m_Obj->m_Flipped)
     {
-        glm::mat4 flipY;
-        flipY[1] = glm::vec4(0, -1, 0, 1);// invert y-coords
-        flipY[3] = glm::vec4(0, 1, 0, 1); // [-1,0] -> [0,1]
+        static glm::mat4 flipY = glm::mat4(glm::vec4(1, 0, 0, 1),
+                                           glm::vec4(0, -1, 0, 1),// invert y-coords
+                                           glm::vec4(0, 0, 1, 1),
+                                           glm::vec4(0, 1, 0, 1));// [-1,0] -> [0,1]
         ret *= flipY;
     }
     return ret;
@@ -357,11 +358,14 @@ void Texture::set_mipmapping(bool b)
 
 void Texture::set_anisotropic_filter(float f)
 {
-    GLfloat fLargest;
-    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
-    bind();
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(fLargest, f));
-    unbind();
+    if(gl::isExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+    {
+        GLfloat fLargest;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
+        bind();
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(fLargest, f));
+        unbind();
+    }
 }
     
 bool Texture::hasAlpha() const

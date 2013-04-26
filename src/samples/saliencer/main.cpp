@@ -114,13 +114,16 @@ public:
             gl::drawTexture(m_material->textures()[*m_imageIndex], windowSize());
         
         // draw process-results map(s)
-        glm::vec2 offset(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
-        glm::vec2 step(0, - getHeight()/5.f - 10);
+        float w = (windowSize()/6.f).x;
+        glm::vec2 offset(getWidth() - w - 10, 10);
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
+            float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
+            glm::vec2 step(0, h + 10);
+            
             gl::drawTexture(m_textures[i],
-                            windowSize()/5.f,
+                            glm::vec2(w, h),
                             offset);
             
             offset += step;

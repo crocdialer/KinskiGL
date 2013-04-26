@@ -198,8 +198,8 @@ public:
         gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
         
         m_box_material = gl::Material::create();
-        m_box_material->setShader(gl::createShader(gl::SHADER_PHONG));
-        //m_box_material->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
+        //m_box_material->setShader(gl::createShader(gl::SHADER_PHONG));
+        m_box_material->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
         
         m_box_material->addTexture(m_textures[3]);
         m_textures[3].set_anisotropic_filter(8);
@@ -224,7 +224,7 @@ public:
         create_cube_stack(4, 32, 4, m_box_material);
         
         // create a simplex noise texture
-        if(false)
+        if(true)
         {
             int w = 512, h = 512;
             float data[w * h];
