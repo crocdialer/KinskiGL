@@ -69,7 +69,7 @@ namespace kinski { namespace gl {
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_texCoord"
+         * Defaults to "a_color"
          */
         void setColorLocationName(const std::string &theName);
         

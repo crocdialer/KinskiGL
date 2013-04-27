@@ -125,7 +125,7 @@ namespace kinski { namespace gl{
             {
                 aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
                 theScene->mAnimations[0] : NULL;
-                shared_ptr<gl::Animation> anim(new gl::Animation);
+                shared_ptr<gl::Animation> anim(new gl::Animation());
                 anim->duration = assimpAnimation->mDuration;
                 anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
                 std::shared_ptr<gl::Bone> rootBone = traverseNodes(assimpAnimation,

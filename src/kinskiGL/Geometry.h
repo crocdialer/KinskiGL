@@ -73,7 +73,7 @@ namespace kinski{ namespace gl{
         float current_time;
         float duration;
         float ticksPerSec;
-        std::map<std::shared_ptr<Bone>, AnimationKeys> boneKeys;
+        std::map<BonePtr, AnimationKeys> boneKeys;
         Animation():current_time(0), ticksPerSec(1.0f){};
     };
     

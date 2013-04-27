@@ -55,7 +55,6 @@ namespace kinski
         glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
         glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        
         glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
         
         // Open an OpenGL window
@@ -135,6 +134,30 @@ namespace kinski
     double GLFW_App::getApplicationTime()
     {
         return glfwGetTime();
+    }
+    
+    void GLFW_App::setFullSceen(bool b)
+    {
+        App::setFullSceen(b);
+        
+        if(running())
+        {
+            glfwCloseWindow();
+            // request an OpenGl 3.2 Context
+            glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
+            glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
+            glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
+            
+            // Open an OpenGL window
+            if( !glfwOpenWindow( getWidth(), getHeight(), 0, 0, 0, 0, 24, 0,
+                                fullSceen() ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
+            {
+                glfwTerminate();
+                throw Exception("Could not create OpenGL window");
+            }
+        }
     }
     
 /****************************  Application Events (internal) **************************/

@@ -63,7 +63,7 @@ public:
         observeProperties();
         
         /********************** construct a simple scene ***********************/
-        camera()->setClippingPlanes(1.0, 1000);
+        camera()->setClippingPlanes(1.0, 5000);
         
         gl::Fbo::Format fboFormat;
         //TODO: mulitsampling fails
@@ -217,7 +217,7 @@ public:
             drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
             gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
             
-            gl::drawText2D(as_string(m_frameBuffer.getTexture().getWidth()) + std::string(" x ") +
+            gl::drawText2D(as_string(m_frameBuffer.getTexture().getWidth()) + " x " +
                            as_string(m_frameBuffer.getTexture().getHeight()), m_font, glm::vec4(1),
                            offset);
             

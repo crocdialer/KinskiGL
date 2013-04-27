@@ -361,6 +361,9 @@ public:
         
         switch (e.getChar())
         {
+        case KeyEvent::KEY_f:
+            setFullSceen(!fullSceen());
+            break;
         case KeyEvent::KEY_p:
             *m_stepPhysics = !*m_stepPhysics;
             break;
@@ -424,7 +427,5 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new BulletSample);
-    theApp->setWindowSize(1024, 600);
-    
     return theApp->run();
 }

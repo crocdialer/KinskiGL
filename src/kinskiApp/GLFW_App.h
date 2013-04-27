@@ -39,6 +39,10 @@ namespace kinski
         void swapBuffers();
         double getApplicationTime();
         
+        void setFullSceen(bool b = true);
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void set_displayTweakBar(bool b){m_displayTweakBar = b;};
         bool displayTweakBar() const {return m_displayTweakBar;};
         
