@@ -42,41 +42,6 @@ namespace kinski{ namespace gl{
         weights(glm::vec4(0)){};
     };
     
-    struct Bone
-    {
-        std::string name;
-        glm::mat4 transform;
-        glm::mat4 worldtransform;
-        glm::mat4 offset;
-        uint32_t index;
-        std::shared_ptr<Bone> parent;
-        std::list<std::shared_ptr<Bone> > children;
-    };
-    
-    template<typename T> struct Key
-    {
-        float time;
-        T value;
-        
-        Key(float t, const T &v):time(t), value(v){};
-    };
-    
-    struct AnimationKeys
-    {
-        std::vector< Key<glm::vec3> > positionkeys;
-        std::vector< Key<glm::quat> > rotationkeys;
-        std::vector< Key<glm::vec3> > scalekeys;
-    };
-
-    struct Animation
-    {
-        float current_time;
-        float duration;
-        float ticksPerSec;
-        std::map<BonePtr, AnimationKeys> boneKeys;
-        Animation():current_time(0), ticksPerSec(1.0f){};
-    };
-    
     class KINSKI_API Geometry
     {
     public:
@@ -168,11 +133,8 @@ namespace kinski{ namespace gl{
         }
         
         void computeBoundingBox();
-        
         void computeFaceNormals();
-        
         void computeVertexNormals();
-        
         void computeTangents();
         
         inline GLenum primitiveType() const {return m_primitiveType;};
@@ -204,20 +166,9 @@ namespace kinski{ namespace gl{
         inline std::vector<Face3>& faces(){ return m_faces; };
         inline const std::vector<Face3>& faces() const { return m_faces; };
         
-        std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
-        const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
-        
-        std::shared_ptr<Bone>& rootBone(){ return m_rootBone; };
-        const std::shared_ptr<const Bone> rootBone() const { return m_rootBone; };
-        
         bool hasBones() const { return m_vertices.size() == m_boneVertexData.size(); };
         std::vector<BoneVertexData>& boneVertexData(){ return m_boneVertexData; };
         const std::vector<BoneVertexData>& boneVertexData() const { return m_boneVertexData; };
-
-        const std::shared_ptr<const Animation> animation() const { return m_animation; };
-        std::shared_ptr<Animation> animation() { return m_animation; };
-        
-        void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
         
         inline const AABB& boundingBox() const { return m_boundingBox; };
         
@@ -237,10 +188,6 @@ namespace kinski{ namespace gl{
         
     private:
         
-        void buildBoneMatrices(float time, std::shared_ptr<Bone> bone,
-                               glm::mat4 parentTransform,
-                               std::vector<glm::mat4> &matrices);
-        
         // defaults to GL_TRIANGLES
         GLenum m_primitiveType;
         
@@ -251,12 +198,7 @@ namespace kinski{ namespace gl{
         std::vector<glm::vec3> m_tangents;
         std::vector<uint32_t> m_indices;
         std::vector<Face3> m_faces;
-        
-        // skeletal animations stuff
-        std::vector<glm::mat4> m_boneMatrices;
         std::vector<BoneVertexData> m_boneVertexData;
-        std::shared_ptr<Animation> m_animation;
-        std::shared_ptr<Bone> m_rootBone;
         
         AABB m_boundingBox;
         gl::Buffer m_vertexBuffer;

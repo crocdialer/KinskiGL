@@ -17,7 +17,9 @@ using namespace glm;
 
 namespace kinski { namespace gl{
     
-    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene);
+    typedef map<std::string, pair<int, mat4> > BoneMap;
+    
+    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene, BoneMap& bonemap);
     gl::MaterialPtr createMaterial(const aiMaterial *mtl);
     BonePtr traverseNodes(const aiAnimation *theAnimation,
                           const aiNode *theNode,
@@ -33,9 +35,9 @@ namespace kinski { namespace gl{
         return ret;
     }
     
-    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
+    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene, BoneMap& bonemap)
     {
-        gl::GeometryPtr geom (new gl::Geometry);
+        gl::GeometryPtr geom (new gl::Geometry());
         
         geom->vertices().insert(geom->vertices().end(), (glm::vec3*)aMesh->mVertices,
                                 (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
@@ -73,6 +75,13 @@ namespace kinski { namespace gl{
             geom->computeVertexNormals();
         }
         
+        if(aMesh->HasVertexColors(0))//TODO: test
+        {
+            geom->colors().reserve(aMesh->mNumVertices);
+            geom->colors().insert(geom->colors().end(), (glm::vec4*)aMesh->mColors,
+                                   (glm::vec4*) aMesh->mColors + aMesh->mNumVertices);
+        }
+        
         if(aMesh->HasTangentsAndBitangents())
         {
             geom->tangents().reserve(aMesh->mNumVertices);
@@ -90,13 +99,11 @@ namespace kinski { namespace gl{
         {
             typedef map<uint32_t, list< pair<uint32_t, float> > > WeightMap;
             WeightMap weightMap;
-            map<std::string, pair<int, mat4> > boneMap;
             
             for (int i = 0; i < aMesh->mNumBones; ++i)
             {
                 aiBone* bone = aMesh->mBones[i];
-                
-                boneMap[bone->mName.data] = std::make_pair(i, aimatrix_to_glm_mat4(bone->mOffsetMatrix));
+                bonemap[bone->mName.data] = std::make_pair(i, aimatrix_to_glm_mat4(bone->mOffsetMatrix));
                 
                 for (int j = 0; j < bone->mNumWeights; ++j)
                 {
@@ -119,21 +126,6 @@ namespace kinski { namespace gl{
                     boneData.weights[i] = pairIt->second;
                     i++;
                 }
-            }
-            
-            if(theScene && theScene->mNumAnimations > 0)
-            {
-                aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
-                theScene->mAnimations[0] : NULL;
-                shared_ptr<gl::Animation> anim(new gl::Animation());
-                anim->duration = assimpAnimation->mDuration;
-                anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
-                std::shared_ptr<gl::Bone> rootBone = traverseNodes(assimpAnimation,
-                                                                   theScene->mRootNode, mat4(),
-                                                                   boneMap, anim);
-                
-                geom->setAnimation(anim);
-                geom->rootBone() = rootBone;
             }
         }
         geom->computeBoundingBox();
@@ -195,6 +187,8 @@ namespace kinski { namespace gl{
         if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
             theMaterial->setTwoSided(two_sided);
         
+        //int num_diffuse = aiGetMaterialTextureCount(mtl, aiTextureType_DIFFUSE);
+        
         for (int i = 0; i < 10; i++)
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
@@ -217,12 +211,39 @@ namespace kinski { namespace gl{
                                                     | aiProcess_GenSmoothNormals
                                                     | aiProcess_CalcTangentSpace);
         }
-        
         if (theScene)
         {
-            aiMesh *aMesh = theScene->mMeshes[0];
-            gl::GeometryPtr geom( createGeometry(aMesh, theScene) );
-            gl::MaterialPtr mat = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
+            std::vector<gl::GeometryPtr> geometries;
+            std::vector<gl::MaterialPtr> materials;
+            uint32_t current_index = 0, current_vertex = 0;
+            BoneMap bonemap;
+            
+            for (int i = 0; i < theScene->mNumMeshes; i++)
+            {
+                aiMesh *aMesh = theScene->mMeshes[i];
+                GeometryPtr g = createGeometry(aMesh, theScene, bonemap);
+                current_index += g->vertices().size();
+                current_vertex += g->indices().size();
+                geometries.push_back(g);
+                materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
+                
+            }
+            gl::GeometryPtr geom = geometries[0];
+            gl::MaterialPtr mat = materials[0];
+            gl::MeshPtr mesh = gl::Mesh::create(geom, mat);
+            if(theScene->mNumAnimations > 0)
+            {
+                aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
+                theScene->mAnimations[0] : NULL;
+                AnimationPtr anim(new gl::Animation());
+                anim->duration = assimpAnimation->mDuration;
+                anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
+                BonePtr rootBone = traverseNodes(assimpAnimation, theScene->mRootNode, mat4(),
+                                                 bonemap, anim);
+                
+                mesh->setAnimation(anim);
+                mesh->rootBone() = rootBone;
+            }
             
             try
             {
@@ -236,8 +257,9 @@ namespace kinski { namespace gl{
             {
                 LOG_WARNING<<e.what();
             }
-            gl::MeshPtr mesh = gl::Mesh::create(geom, mat);
-            LOG_DEBUG<<"loaded model: "<<aMesh->mNumVertices<<" vertices - " <<aMesh->mNumFaces<<" faces";
+            mesh->createVertexArray();
+            LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
+                geom->faces().size()<<" faces";
             importer.FreeScene();
             return mesh;
         }
@@ -334,9 +356,8 @@ namespace kinski { namespace gl{
         
         for (int i = 0 ; i < theNode->mNumChildren ; i++)
         {
-            std::shared_ptr<gl::Bone> child = traverseNodes(theAnimation, theNode->mChildren[i],
-                                                            globalTransform, boneMap, outAnim,
-                                                            currentBone);
+            BonePtr child = traverseNodes(theAnimation, theNode->mChildren[i], globalTransform,
+                                          boneMap, outAnim, currentBone);
             
             if(currentBone && child)
                 currentBone->children.push_back(child);

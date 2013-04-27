@@ -53,7 +53,7 @@ namespace kinski{ namespace gl{
             
             if(m->geometry()->hasBones())
             {
-                m->material()->uniform("u_bones", m->geometry()->boneMatrices());
+                m->material()->uniform("u_bones", m->boneMatrices());
             }
             gl::apply_material(m->material());
             

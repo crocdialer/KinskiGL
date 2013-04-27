@@ -16,9 +16,53 @@
 
 namespace kinski { namespace gl {
     
+    struct Bone
+    {
+        std::string name;
+        glm::mat4 transform;
+        glm::mat4 worldtransform;
+        glm::mat4 offset;
+        uint32_t index;
+        std::shared_ptr<Bone> parent;
+        std::list<std::shared_ptr<Bone> > children;
+    };
+    
+    template<typename T> struct Key
+    {
+        float time;
+        T value;
+        
+        Key(float t, const T &v):time(t), value(v){};
+    };
+    
+    struct AnimationKeys
+    {
+        std::vector< Key<glm::vec3> > positionkeys;
+        std::vector< Key<glm::quat> > rotationkeys;
+        std::vector< Key<glm::vec3> > scalekeys;
+    };
+    
+    struct Animation
+    {
+        float current_time;
+        float duration;
+        float ticksPerSec;
+        std::map<BonePtr, AnimationKeys> boneKeys;
+        Animation():current_time(0), ticksPerSec(1.0f){};
+    };
+    
     class KINSKI_API Mesh : public Object3D
     {
     public:
+        
+        struct Entry
+        {
+            Entry():numdices(0), base_vertex(0), base_index(0), material_index(-1){}
+            uint32_t numdices;
+            uint32_t base_vertex;
+            uint32_t base_index;
+            int material_index;
+        };
         
         typedef std::shared_ptr<Mesh> Ptr;
         typedef std::shared_ptr<const Mesh> ConstPtr;
@@ -42,6 +86,18 @@ namespace kinski { namespace gl {
         
         void update(float time_delta);
         AABB boundingBox() const;
+        
+        const std::vector<Entry>& entries() const {return m_entries;};
+        
+        const AnimationPtr animation() const { return m_animation; };
+        AnimationPtr animation() { return m_animation; };
+        void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
+        
+        std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
+        const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
+        
+        std::shared_ptr<Bone>& rootBone(){ return m_rootBone; };
+        const std::shared_ptr<const Bone> rootBone() const { return m_rootBone; };
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.
@@ -77,11 +133,20 @@ namespace kinski { namespace gl {
         
         Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
         
+        void buildBoneMatrices(float time, BonePtr bone,
+                               glm::mat4 parentTransform,
+                               std::vector<glm::mat4> &matrices);
+        
         GeometryPtr m_geometry;
         MaterialPtr m_material;
-        
+        std::vector<Entry> m_entries;
         GLuint m_vertexArray;
         mutable std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
+        
+        // skeletal animations stuff
+        AnimationPtr m_animation;
+        BonePtr m_rootBone;
+        std::vector<glm::mat4> m_boneMatrices;
         
         std::string m_vertexLocationName;
         std::string m_normalLocationName;

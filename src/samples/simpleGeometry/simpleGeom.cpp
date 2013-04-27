@@ -125,7 +125,7 @@ public:
         gl::MeshPtr myBoxMesh = gl::Mesh::create(myBox, mat);
         myBoxMesh->createVertexArray();
         myBoxMesh->setPosition(vec3(0, -100, 0));
-        scene().addObject(myBoxMesh);
+        //scene().addObject(myBoxMesh);
         
         //gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
         gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");
@@ -190,7 +190,7 @@ public:
             if(selected_mesh()->geometry()->hasBones())
             {
                 vector<vec3> points;
-                buildSkeleton(selected_mesh()->geometry()->rootBone(), points);
+                buildSkeleton(selected_mesh()->rootBone(), points);
                 gl::drawPoints(points);
                 gl::drawLines(points, vec4(1, 0, 0, 1));
             }
