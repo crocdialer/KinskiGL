@@ -35,6 +35,7 @@ public:
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Desktop/creatures", true);
+        kinski::addSearchPath("~/Desktop/doom3_base", true);
         kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
         list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
@@ -215,16 +216,35 @@ public:
             glm::vec2 offset(getWidth() - w - 10, 10);
             glm::vec2 step(0, h + 10);
             
-            drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
-            gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
+            for(int i = 0;i < m_mesh->materials().size();i++)
+            {
+                gl::MaterialPtr m = m_mesh->materials()[i];
+                
+                for (int j = 0; j < m->textures().size(); j++)
+                {
+                    const gl::Texture &t = m->textures()[j];
+                    
+                    float h = t.getHeight() * w / t.getWidth();
+                    glm::vec2 step(0, h + 10);
+                    drawTexture(t, vec2(w, h), offset);
+                    gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                                   as_string(t.getHeight()), m_font, glm::vec4(1),
+                                   offset);
+                    offset += step;
+                }
+                
+            }
             
-            gl::drawText2D(as_string(m_frameBuffer.getTexture().getWidth()) + " x " +
-                           as_string(m_frameBuffer.getTexture().getHeight()), m_font, glm::vec4(1),
-                           offset);
-            
-            gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
-                           vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 90, windowSize().y - 100));
+//            drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
+//            gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
+//            
+//            gl::drawText2D(as_string(m_frameBuffer.getTexture().getWidth()) + " x " +
+//                           as_string(m_frameBuffer.getTexture().getHeight()), m_font, glm::vec4(1),
+//                           offset);
+//            
+//            gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
+//                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+//                           glm::vec2(windowSize().x - 90, windowSize().y - 100));
             
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,

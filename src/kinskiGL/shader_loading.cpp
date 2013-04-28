@@ -293,7 +293,7 @@ namespace kinski { namespace gl {
         "uniform mat4 u_modelViewProjectionMatrix;\n"
         "uniform mat3 u_normalMatrix;\n"
         "uniform mat4 u_textureMatrix;\n"
-        "uniform mat4 u_bones[35];\n"
+        "uniform mat4 u_bones[110];\n"
         "in vec4 a_vertex;\n"
         "in vec4 a_texCoord;\n"
         "in vec3 a_normal;\n"

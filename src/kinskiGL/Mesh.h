@@ -93,12 +93,14 @@ namespace kinski { namespace gl {
         const std::vector<MaterialPtr>& materials() const {return m_materials;};
         std::vector<MaterialPtr>& materials() {return m_materials;};
         
-        const AnimationPtr animation() const { return m_animation; };
-        AnimationPtr animation() { return m_animation; };
-        void setAnimation(const std::shared_ptr<Animation> &theAnim) { m_animation = theAnim; };
+        const std::vector<AnimationPtr>& animations() const { return m_animations; };
+        std::vector<AnimationPtr>& animations() { return m_animations; };
+        void addAnimation(const AnimationPtr &theAnim) { m_animations.push_back(theAnim); };
         
         std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
         const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
+        
+        void initBoneMatrices();
         
         BonePtr& rootBone(){ return m_rootBone; };
         const BonePtr& rootBone() const { return m_rootBone; };
@@ -153,8 +155,9 @@ namespace kinski { namespace gl {
         mutable std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
         
         // skeletal animations stuff
-        AnimationPtr m_animation;
         BonePtr m_rootBone;
+        uint32_t m_animation_index;
+        std::vector<AnimationPtr> m_animations;
         std::vector<glm::mat4> m_boneMatrices;
         
         std::string m_vertexLocationName;

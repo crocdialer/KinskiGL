@@ -6,6 +6,7 @@
 //
 //
 
+#include <boost/bind.hpp>
 #include "AssimpConnector.h"
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
@@ -147,11 +148,19 @@ namespace kinski { namespace gl{
         {
             int i = 0;
             gl::BoneVertexData &boneData = geom->boneVertexData()[it->first];
-            list< pair<uint32_t, float> >::const_iterator pairIt = it->second.begin();
-            for (; pairIt != it->second.end(); ++pairIt)
+            
+            list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
+            tmp_list.sort(boost::bind(&pair<uint32_t, float>::second, _1) >
+                          boost::bind(&pair<uint32_t, float>::second, _2));
+            
+            //if(it->second.size() > boneData.indices.length())
+                
+            list< pair<uint32_t, float> >::const_iterator listIt = tmp_list.begin();
+            for (; listIt != tmp_list.end(); ++listIt)
             {
-                boneData.indices[i] = pairIt->first;
-                boneData.weights[i] = pairIt->second;
+                if(i >= boneData.indices.length()) break;
+                boneData.indices[i] = listIt->first;
+                boneData.weights[i] = listIt->second;
                 i++;
             }
         }
@@ -277,36 +286,46 @@ namespace kinski { namespace gl{
             combined_geom->computeBoundingBox();
             insertBoneData(combined_geom, weightmap);
             
-            gl::GeometryPtr geom = combined_geom;//geometries[0];
+            gl::GeometryPtr geom = combined_geom;
             gl::MaterialPtr mat = materials[0];
             gl::MeshPtr mesh = gl::Mesh::create(geom, mat);
             mesh->entries() = entries;
             mesh->materials() = materials;
             
-            if(theScene->mNumAnimations > 0)
+            AnimationPtr dummy;
+            mesh->rootBone() = traverseNodes(NULL, theScene->mRootNode, mat4(),
+                                             bonemap, dummy);
+            if(mesh->rootBone()) mesh->initBoneMatrices();
+            
+            for (int i = 0; i < theScene->mNumAnimations; i++)
             {
-                aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
-                theScene->mAnimations[0] : NULL;
+                aiAnimation *assimpAnimation = theScene->mAnimations[i];
                 AnimationPtr anim(new gl::Animation());
                 anim->duration = assimpAnimation->mDuration;
                 anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
                 BonePtr rootBone = traverseNodes(assimpAnimation, theScene->mRootNode, mat4(),
                                                  bonemap, anim);
-                mesh->setAnimation(anim);
+                mesh->addAnimation(anim);
                 mesh->rootBone() = rootBone;
             }
             
+            gl::Shader shader;
             try
             {
                 if(geom->hasBones())
-                    mat->setShader(gl::createShader(gl::SHADER_PHONG_SKIN));
+                    shader = gl::createShader(gl::SHADER_PHONG_SKIN);
                 else{
-                    mat->setShader(gl::createShader(gl::SHADER_PHONG));
+                    shader = gl::createShader(gl::SHADER_PHONG);
                 }
                 
             }catch (std::exception &e)
             {
                 LOG_WARNING<<e.what();
+            }
+            
+            for (int i = 0; i < materials.size(); i++)
+            {
+                materials[i]->setShader(shader);
             }
             mesh->createVertexArray();
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
@@ -362,7 +381,8 @@ namespace kinski { namespace gl{
             currentBone->offset = offset;
             currentBone->parent = parentBone;
             
-            LOG_TRACE<<currentBone->name<<": "<<boneIndex;
+//            if(nodeName =="sword")
+//                LOG_DEBUG<<currentBone->name<<" ("<<boneIndex<<") "<<glm::to_string(globalTransform[3]);
             
             // we have animation keys for this bone
             if(nodeAnim)
