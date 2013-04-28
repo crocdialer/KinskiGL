@@ -8,6 +8,8 @@
 
 #include "Renderer.h"
 #include "Mesh.h"
+#include "Geometry.h"
+#include "Material.h"
 #include "Camera.h"
 
 namespace kinski{ namespace gl{
@@ -83,9 +85,29 @@ namespace kinski{ namespace gl{
                 
                 if(m->geometry()->hasIndices())
                 {
-                    glDrawElements(m->geometry()->primitiveType(),
-                                   m->geometry()->indices().size(), m->geometry()->indexType(),
-                                   BUFFER_OFFSET(0));
+#ifndef KINSKI_GLES
+                    if(!m->entries().empty())
+                    {
+                        for (int i = 0; i < m->entries().size(); i++)
+                        {
+                            //TODO: replace with correct material application
+                            if(!m->materials()[i]->textures().empty())
+                                m->materials()[i]->textures().front().bind();
+                            
+                            glDrawElementsBaseVertex(m->geometry()->primitiveType(),
+                                                     m->entries()[i].numdices,
+                                                     m->geometry()->indexType(),
+                                                     BUFFER_OFFSET(m->entries()[i].base_index * sizeof(m->geometry()->indexType())),
+                                                     m->entries()[i].base_vertex);
+                        }
+                    }
+                    else
+#endif
+                    {
+                        glDrawElements(m->geometry()->primitiveType(),
+                                       m->geometry()->indices().size(), m->geometry()->indexType(),
+                                       BUFFER_OFFSET(0));
+                    }
                 }
                 else
                 {

@@ -11,6 +11,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include "kinskiGL/Mesh.h"
+#include "kinskiGL/Geometry.h"
+#include "kinskiGL/Material.h"
 
 using namespace std;
 using namespace glm;
@@ -18,7 +20,9 @@ using namespace glm;
 namespace kinski { namespace gl{
     
     typedef map<std::string, pair<int, mat4> > BoneMap;
+    typedef map<uint32_t, list< pair<uint32_t, float> > > WeightMap;
     
+    void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap);
     gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene, BoneMap& bonemap);
     gl::MaterialPtr createMaterial(const aiMaterial *mtl);
     BonePtr traverseNodes(const aiAnimation *theAnimation,
@@ -97,7 +101,6 @@ namespace kinski { namespace gl{
         
         if(aMesh->HasBones())
         {
-            typedef map<uint32_t, list< pair<uint32_t, float> > > WeightMap;
             WeightMap weightMap;
             
             for (int i = 0; i < aMesh->mNumBones; ++i)
@@ -108,7 +111,7 @@ namespace kinski { namespace gl{
                 for (int j = 0; j < bone->mNumWeights; ++j)
                 {
                     const aiVertexWeight &w = bone->mWeights[j];
-                    weightMap[w.mVertexId].push_back( std::make_pair(i, w.mWeight) );
+                    weightMap[w.mVertexId].push_back( std::make_pair(i, w.mWeight) );//TODO adjust here
                 }
             }
             
@@ -131,6 +134,11 @@ namespace kinski { namespace gl{
         geom->computeBoundingBox();
         
         return geom;
+    }
+    
+    void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap)
+    {
+        
     }
     
     gl::MaterialPtr createMaterial(const aiMaterial *mtl)
@@ -193,10 +201,24 @@ namespace kinski { namespace gl{
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
             {
-                theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data)));
+                try{theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data)));}
+                catch(Exception &e){LOG_ERROR<<e.what();}
             }
         }
         return theMaterial;
+    }
+    
+    void mergeGeometries(GeometryPtr src, GeometryPtr dst)
+    {
+        dst->appendVertices(src->vertices());
+        dst->appendNormals(src->normals());
+        dst->appendColors(src->colors());
+        dst->appendTextCoords(src->texCoords());
+        dst->appendIndices(src->indices());
+        dst->faces().insert(dst->faces().end(), src->faces().begin(), src->faces().end());
+        
+        dst->boneVertexData().insert(dst->boneVertexData().end(), src->boneVertexData().begin(),
+                                     src->boneVertexData().end());
     }
     
     gl::MeshPtr AssimpConnector::loadModel(const std::string &theModelPath)
@@ -217,20 +239,35 @@ namespace kinski { namespace gl{
             std::vector<gl::MaterialPtr> materials;
             uint32_t current_index = 0, current_vertex = 0;
             BoneMap bonemap;
+            GeometryPtr combined_geom = gl::Geometry::create();
+            std::vector<Mesh::Entry> entries;
             
             for (int i = 0; i < theScene->mNumMeshes; i++)
             {
                 aiMesh *aMesh = theScene->mMeshes[i];
                 GeometryPtr g = createGeometry(aMesh, theScene, bonemap);
-                current_index += g->vertices().size();
-                current_vertex += g->indices().size();
-                geometries.push_back(g);
-                materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
+                Mesh::Entry m;
+                m.numdices = g->indices().size();
+                m.base_index = current_index;
+                m.base_vertex = current_vertex;
                 
+                m.material_index = aMesh->mMaterialIndex;
+                entries.push_back(m);
+                
+                geometries.push_back(g);
+                mergeGeometries(g, combined_geom);
+                materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
+                current_vertex += g->vertices().size();
+                current_index += g->indices().size();
             }
-            gl::GeometryPtr geom = geometries[0];
+            combined_geom->computeBoundingBox();
+            
+            gl::GeometryPtr geom = combined_geom;//geometries[0];
             gl::MaterialPtr mat = materials[0];
             gl::MeshPtr mesh = gl::Mesh::create(geom, mat);
+            mesh->entries() = entries;
+            mesh->materials() = materials;
+            
             if(theScene->mNumAnimations > 0)
             {
                 aiAnimation *assimpAnimation = theScene->mNumAnimations > 0 ?
@@ -240,7 +277,6 @@ namespace kinski { namespace gl{
                 anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
                 BonePtr rootBone = traverseNodes(assimpAnimation, theScene->mRootNode, mat4(),
                                                  bonemap, anim);
-                
                 mesh->setAnimation(anim);
                 mesh->rootBone() = rootBone;
             }
@@ -296,7 +332,7 @@ namespace kinski { namespace gl{
         }
         
         mat4 globalTransform = parentTransform * nodeTransform;
-        map<std::string, pair<int, mat4> >::const_iterator it = boneMap.find(nodeName);
+        BoneMap::const_iterator it = boneMap.find(nodeName);
         
         // we have a Bone node
         if (it != boneMap.end())
@@ -311,16 +347,18 @@ namespace kinski { namespace gl{
             currentBone->offset = offset;
             currentBone->parent = parentBone;
             
+            LOG_DEBUG<<currentBone->name<<": "<<boneIndex;
+            
             // we have animation keys for this bone
             if(nodeAnim)
             {
                 char buf[1024];
-                sprintf(buf, "Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys\n",
+                sprintf(buf, "Found animation for %s: %d posKeys -- %d rotKeys -- %d scaleKeys",
                         nodeAnim->mNodeName.data,
                         nodeAnim->mNumPositionKeys,
                         nodeAnim->mNumRotationKeys,
                         nodeAnim->mNumScalingKeys);
-                LOG_TRACE<<buf;
+                LOG_DEBUG<<buf;
                 
                 gl::AnimationKeys animKeys;
                 glm::vec3 bonePosition;

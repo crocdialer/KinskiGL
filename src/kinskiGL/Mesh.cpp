@@ -236,23 +236,30 @@ namespace kinski { namespace gl {
         glm::mat4 scaleMatrix;
         if(!bonekeys.scalekeys.empty())
         {
-            boneHasKeys = true;
-            int i = 0;
-            for (; i < bonekeys.scalekeys.size() - 1; i++)
+            if(bonekeys.scalekeys.size() == 1)
             {
-                const Key<glm::vec3> &key = bonekeys.scalekeys[i + 1];
-                if(key.time >= time)
-                    break;
+                scaleMatrix = glm::scale(scaleMatrix, bonekeys.scalekeys.front().value);
             }
-            // i now holds the correct time index
-            const Key<glm::vec3> &key1 = bonekeys.scalekeys[i],
-            key2 = bonekeys.scalekeys[(i + 1) % bonekeys.scalekeys.size()];
-            
-            float startTime = key1.time;
-            float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
-            float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
-            glm::vec3 scale = glm::mix(key1.value, key2.value, frac);
-            scaleMatrix = glm::scale(scaleMatrix, scale);
+            else
+            {
+                boneHasKeys = true;
+                int i = 0;
+                for (; i < bonekeys.scalekeys.size() - 1; i++)
+                {
+                    const Key<glm::vec3> &key = bonekeys.scalekeys[i + 1];
+                    if(key.time >= time)
+                        break;
+                }
+                // i now holds the correct time index
+                const Key<glm::vec3> &key1 = bonekeys.scalekeys[i],
+                key2 = bonekeys.scalekeys[(i + 1) % bonekeys.scalekeys.size()];
+                
+                float startTime = key1.time;
+                float endTime = key2.time < key1.time ? key2.time + m_animation->duration : key2.time;
+                float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
+                glm::vec3 scale = glm::mix(key1.value, key2.value, frac);
+                scaleMatrix = glm::scale(scaleMatrix, scale);
+            }
         }
         
         if(boneHasKeys)

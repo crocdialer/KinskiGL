@@ -20,8 +20,7 @@ namespace kinski{ namespace gl{
     {
         Face3(){};
         Face3(uint32_t theA, uint32_t theB, uint32_t theC):
-        a(theA), b(theB), c(theC)
-        {}
+        a(theA), b(theB), c(theC){}
         
         // vertex indices
         union
@@ -48,20 +47,20 @@ namespace kinski{ namespace gl{
         
         typedef std::shared_ptr<Geometry> Ptr;
         
+        static Ptr create(){return Ptr(new Geometry());};
+        
         Geometry();
-        virtual ~Geometry();
+        ~Geometry();
         
         inline void appendVertex(const glm::vec3 &theVert)
         { m_vertices.push_back(theVert); };
         
         inline void appendVertices(const std::vector<glm::vec3> &theVerts)
         {
-            m_vertices.reserve(m_vertices.size() + theVerts.size());
             m_vertices.insert(m_vertices.end(), theVerts.begin(), theVerts.end());
         }
         inline void appendVertices(const glm::vec3 *theVerts, size_t numVerts)
         {
-            m_vertices.reserve(m_vertices.size() + numVerts);
             m_vertices.insert(m_vertices.end(), theVerts, theVerts + numVerts);
         }
         
@@ -70,12 +69,10 @@ namespace kinski{ namespace gl{
         
         inline void appendNormals(const std::vector<glm::vec3> &theNormals)
         {
-            m_normals.reserve(m_normals.size() + theNormals.size());
             m_normals.insert(m_normals.end(), theNormals.begin(), theNormals.end());
         }
         inline void appendNormals(const glm::vec3 *theNormals, size_t numNormals)
         {
-            m_normals.reserve(m_normals.size() + numNormals);
             m_normals.insert(m_normals.end(), theNormals, theNormals + numNormals);
         }
         
@@ -87,12 +84,10 @@ namespace kinski{ namespace gl{
         
         inline void appendTextCoords(const std::vector<glm::vec2> &theVerts)
         {
-            m_texCoords.reserve(m_texCoords.size() + theVerts.size());
             m_texCoords.insert(m_texCoords.end(), theVerts.begin(), theVerts.end());
         }
         inline void appendTextCoords(const glm::vec2 *theVerts, size_t numVerts)
         {
-            m_texCoords.reserve(m_texCoords.size() + numVerts);
             m_texCoords.insert(m_texCoords.end(), theVerts, theVerts + numVerts);
         }
         
@@ -101,13 +96,11 @@ namespace kinski{ namespace gl{
         
         inline void appendColors(const std::vector<glm::vec4> &theColors)
         {
-            m_colors.reserve(m_colors.size() + theColors.size());
             m_colors.insert(m_colors.end(), theColors.begin(), theColors.end());
         }
         
         inline void appendColors(const glm::vec4 *theColors, size_t numColors)
         {
-            m_colors.reserve(m_colors.size() + numColors);
             m_colors.insert(m_colors.end(), theColors, theColors + numColors);
         }
         
@@ -116,12 +109,10 @@ namespace kinski{ namespace gl{
         
         inline void appendIndices(const std::vector<uint32_t> &theIndices)
         {
-            m_indices.reserve(m_indices.size() + theIndices.size());
             m_indices.insert(m_indices.end(), theIndices.begin(), theIndices.end());
         }
         inline void appendIndices(const uint32_t *theIndices, size_t numIndices)
         {
-            m_indices.reserve(m_indices.size() + numIndices);
             m_indices.insert(m_indices.end(), theIndices, theIndices + numIndices);
         }
         
@@ -137,6 +128,7 @@ namespace kinski{ namespace gl{
         void computeVertexNormals();
         void computeTangents();
         
+        GLenum indexType();
         inline GLenum primitiveType() const {return m_primitiveType;};
         void setPrimitiveType(GLenum type){ m_primitiveType = type; };
         
@@ -182,9 +174,6 @@ namespace kinski{ namespace gl{
         const gl::Buffer& indexBuffer() const { return m_indexBuffer; };
         
         void createGLBuffers();
-        GLenum indexType();
-        
-        void updateAnimation(float time_delta);
         
     private:
         

@@ -107,22 +107,13 @@ namespace kinski{ namespace gl{
             Face3 &face = *faceIt;
             const glm::vec3 &v1 = m_vertices[face.a], &v2 = m_vertices[face.b], &v3 = m_vertices[face.c];
             const glm::vec2 &w1 = m_texCoords[face.a], &w2 = m_texCoords[face.b], &w3 = m_texCoords[face.c];
-            
-            // calculate tangent vector
-//            float det = (t1.x - t0.x) * (t2.y - t0.y) - (t1.y - t0.y) * (t2.x - t0.x);
-//            glm::vec3 tangent = ( (t2.y - t0.y) * ( v1 - v0 ) - (t1.y - t0.y) * ( v2 - v0 ) ) / det;
-//            tangent = glm::normalize(tangent);
-//            m_tangents[face.a] = tangent;
-//            m_tangents[face.b] = tangent;
-//            m_tangents[face.c] = tangent;
-            
+
             float x1 = v2.x - v1.x;
             float x2 = v3.x - v1.x;
             float y1 = v2.y - v1.y;
             float y2 = v3.y - v1.y;
             float z1 = v2.z - v1.z;
             float z2 = v3.z - v1.z;
-            
             float s1 = w2.x - w1.x;
             float s2 = w3.x - w1.x;
             float t1 = w2.y - w1.y;
