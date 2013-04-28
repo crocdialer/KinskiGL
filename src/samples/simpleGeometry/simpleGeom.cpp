@@ -235,6 +235,7 @@ public:
     
     void buildSkeleton(gl::BonePtr currentBone, vector<vec3> &points)
     {
+        if(!currentBone) return;
         list<gl::BonePtr>::iterator it = currentBone->children.begin();
         for (; it != currentBone->children.end(); ++it)
         {

@@ -103,6 +103,8 @@ namespace kinski { namespace gl {
         BonePtr& rootBone(){ return m_rootBone; };
         const BonePtr& rootBone() const { return m_rootBone; };
         
+        uint32_t get_num_bones(const BonePtr &theRoot);
+        
         /*!
          * Set the name under which the attribute will be accessible in the shader.
          * Defaults to "a_vertex"

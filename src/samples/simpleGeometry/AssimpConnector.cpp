@@ -22,9 +22,11 @@ namespace kinski { namespace gl{
     typedef map<std::string, pair<int, mat4> > BoneMap;
     typedef map<uint32_t, list< pair<uint32_t, float> > > WeightMap;
     
-    void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap);
-    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene, BoneMap& bonemap);
+    void mergeGeometries(GeometryPtr src, GeometryPtr dst);
+    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene);
     gl::MaterialPtr createMaterial(const aiMaterial *mtl);
+    void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap);
+    void insertBoneData(GeometryPtr geom, const WeightMap &weightmap);
     BonePtr traverseNodes(const aiAnimation *theAnimation,
                           const aiNode *theNode,
                           const glm::mat4 &parentTransform,
@@ -39,7 +41,7 @@ namespace kinski { namespace gl{
         return ret;
     }
     
-    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene, BoneMap& bonemap)
+    gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     {
         gl::GeometryPtr geom (new gl::Geometry());
         
@@ -97,48 +99,62 @@ namespace kinski { namespace gl{
             // compute tangents
             geom->computeTangents();
         }
-        
-        
-        if(aMesh->HasBones())
-        {
-            WeightMap weightMap;
-            
-            for (int i = 0; i < aMesh->mNumBones; ++i)
-            {
-                aiBone* bone = aMesh->mBones[i];
-                bonemap[bone->mName.data] = std::make_pair(i, aimatrix_to_glm_mat4(bone->mOffsetMatrix));
-                
-                for (int j = 0; j < bone->mNumWeights; ++j)
-                {
-                    const aiVertexWeight &w = bone->mWeights[j];
-                    weightMap[w.mVertexId].push_back( std::make_pair(i, w.mWeight) );//TODO adjust here
-                }
-            }
-            
-            // generate empty indices and weights
-            geom->boneVertexData().resize(geom->vertices().size());
-            
-            for (WeightMap::iterator it = weightMap.begin(); it != weightMap.end(); ++it)
-            {
-                int i = 0;
-                gl::BoneVertexData &boneData = geom->boneVertexData()[it->first];
-                list< pair<uint32_t, float> >::iterator pairIt = it->second.begin();
-                for (; pairIt != it->second.end(); ++pairIt)
-                {
-                    boneData.indices[i] = pairIt->first;
-                    boneData.weights[i] = pairIt->second;
-                    i++;
-                }
-            }
-        }
         geom->computeBoundingBox();
-        
         return geom;
     }
     
     void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap)
     {
+        static int num_bones = 0;
+        if(base_vertex == 0) num_bones = 0;
         
+        if(aMesh->HasBones())
+        {
+            int bone_index;
+            
+            for (int i = 0; i < aMesh->mNumBones; ++i)
+            {
+                aiBone* bone = aMesh->mBones[i];
+                if(bonemap.find(bone->mName.data) == bonemap.end())
+                {
+                    bonemap[bone->mName.data] = std::make_pair(num_bones,
+                                                               aimatrix_to_glm_mat4(bone->mOffsetMatrix));
+                    bone_index = num_bones;
+                    num_bones++;
+                }
+                else
+                {
+                    bone_index = bonemap[bone->mName.data].first;
+                }
+                
+                for (int j = 0; j < bone->mNumWeights; ++j)
+                {
+                    const aiVertexWeight &w = bone->mWeights[j];
+                    weightmap[w.mVertexId + base_vertex].push_back( std::make_pair(bone_index, w.mWeight) );
+                }
+            }
+        }
+    }
+    
+    void insertBoneData(GeometryPtr geom, const WeightMap &weightmap)
+    {
+        if(weightmap.empty()) return;
+        
+        // allocate storage for indices and weights
+        geom->boneVertexData().resize(geom->vertices().size());
+        
+        for (WeightMap::const_iterator it = weightmap.begin(); it != weightmap.end(); ++it)
+        {
+            int i = 0;
+            gl::BoneVertexData &boneData = geom->boneVertexData()[it->first];
+            list< pair<uint32_t, float> >::const_iterator pairIt = it->second.begin();
+            for (; pairIt != it->second.end(); ++pairIt)
+            {
+                boneData.indices[i] = pairIt->first;
+                boneData.weights[i] = pairIt->second;
+                i++;
+            }
+        }
     }
     
     gl::MaterialPtr createMaterial(const aiMaterial *mtl)
@@ -216,9 +232,6 @@ namespace kinski { namespace gl{
         dst->appendTextCoords(src->texCoords());
         dst->appendIndices(src->indices());
         dst->faces().insert(dst->faces().end(), src->faces().begin(), src->faces().end());
-        
-        dst->boneVertexData().insert(dst->boneVertexData().end(), src->boneVertexData().begin(),
-                                     src->boneVertexData().end());
     }
     
     gl::MeshPtr AssimpConnector::loadModel(const std::string &theModelPath)
@@ -238,29 +251,31 @@ namespace kinski { namespace gl{
             std::vector<gl::GeometryPtr> geometries;
             std::vector<gl::MaterialPtr> materials;
             uint32_t current_index = 0, current_vertex = 0;
-            BoneMap bonemap;
             GeometryPtr combined_geom = gl::Geometry::create();
+            BoneMap bonemap;
+            WeightMap weightmap;
             std::vector<Mesh::Entry> entries;
             
             for (int i = 0; i < theScene->mNumMeshes; i++)
             {
                 aiMesh *aMesh = theScene->mMeshes[i];
-                GeometryPtr g = createGeometry(aMesh, theScene, bonemap);
+                GeometryPtr g = createGeometry(aMesh, theScene);
+                loadBones(aMesh, current_vertex, bonemap, weightmap);
                 Mesh::Entry m;
                 m.numdices = g->indices().size();
                 m.base_index = current_index;
                 m.base_vertex = current_vertex;
-                
                 m.material_index = aMesh->mMaterialIndex;
                 entries.push_back(m);
+                current_vertex += g->vertices().size();
+                current_index += g->indices().size();
                 
                 geometries.push_back(g);
                 mergeGeometries(g, combined_geom);
                 materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
-                current_vertex += g->vertices().size();
-                current_index += g->indices().size();
             }
             combined_geom->computeBoundingBox();
+            insertBoneData(combined_geom, weightmap);
             
             gl::GeometryPtr geom = combined_geom;//geometries[0];
             gl::MaterialPtr mat = materials[0];
@@ -347,7 +362,7 @@ namespace kinski { namespace gl{
             currentBone->offset = offset;
             currentBone->parent = parentBone;
             
-            LOG_DEBUG<<currentBone->name<<": "<<boneIndex;
+            LOG_TRACE<<currentBone->name<<": "<<boneIndex;
             
             // we have animation keys for this bone
             if(nodeAnim)
@@ -358,7 +373,7 @@ namespace kinski { namespace gl{
                         nodeAnim->mNumPositionKeys,
                         nodeAnim->mNumRotationKeys,
                         nodeAnim->mNumScalingKeys);
-                LOG_DEBUG<<buf;
+                LOG_TRACE<<buf;
                 
                 gl::AnimationKeys animKeys;
                 glm::vec3 bonePosition;

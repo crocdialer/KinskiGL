@@ -167,9 +167,20 @@ namespace kinski { namespace gl {
         {
             m_animation->current_time = fmod(m_animation->current_time + time_delta * m_animation->ticksPerSec,
                                              m_animation->duration);
-            m_boneMatrices.clear();
+            m_boneMatrices.resize(get_num_bones(m_rootBone));
             buildBoneMatrices(m_animation->current_time, m_rootBone, glm::mat4(), m_boneMatrices);
         }
+    }
+    
+    uint32_t Mesh::get_num_bones(const BonePtr &theRoot)
+    {
+        uint32_t ret = 1;
+        std::list<BonePtr>::const_iterator it = theRoot->children.begin();
+        for (; it != theRoot->children.end(); ++it)
+        {
+            ret += get_num_bones(*it);
+        }
+        return ret;
     }
     
     void Mesh::buildBoneMatrices(float time, std::shared_ptr<Bone> bone,
@@ -268,7 +279,7 @@ namespace kinski { namespace gl {
         bone->worldtransform = parentTransform * boneTransform;
         
         // add final transform
-        matrices.push_back(bone->worldtransform * bone->offset);
+        matrices[bone->index] = bone->worldtransform * bone->offset;
         
         // recursion through all children
         std::list<BonePtr>::iterator it = bone->children.begin();
