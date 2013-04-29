@@ -16,7 +16,8 @@ private:
     Property_<string>::Ptr m_texturePath;
     gl::Texture m_texture[4];
     gl::Material::Ptr m_pointMaterial;
-    gl::Buffer m_vboPos, m_vboCol;
+    gl::GeometryPtr m_geom;
+    gl::MeshPtr m_mesh;
     
     //OpenCL standard stuff
     cl::Context m_context;
@@ -28,7 +29,7 @@ private:
     GLsizei m_numParticles;
     cl::Kernel m_particleKernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen;
-    cl::BufferGL m_positions;
+    cl::BufferGL m_positions, m_colors;
     
     void initOpenCL()
     {
@@ -113,7 +114,7 @@ private:
             
             //m_queue.finish();
             
-            m_particleKernel.setArg(4, timeDelta); //pass in the timestep
+            m_particleKernel.setArg(5, timeDelta); //pass in the timestep
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
@@ -144,23 +145,30 @@ public:
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
-        m_pointMaterial = gl::Material::Ptr(new gl::Material);
+        m_pointMaterial = gl::Material::create();
         m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
         m_pointMaterial->setDiffuse(vec4(.9, .7, 0, 1.f));
         //m_pointMaterial->setBlending();
+        m_geom = gl::Geometry::create();
+        m_geom->setPrimitiveType(GL_POINTS);
+        m_mesh = gl::Mesh::create(m_geom, gl::Material::create());
+        scene().addObject(m_mesh);
         
         initOpenCL();
         
         m_numParticles = 50000;
         GLsizei numBytes = m_numParticles * sizeof(vec4);
-        m_vboPos = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);
-        m_vboPos.setData(NULL, numBytes);
+        
+        m_geom->vertices().resize(m_numParticles, vec3(0));
+        m_geom->colors().resize(m_numParticles, vec4(1));
+        m_geom->createGLBuffers();
         
         try
         {
             // shared position buffer for OpenGL / OpenCL
-            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_vboPos.id());
+            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
+            m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
             
             //create the OpenCL only arrays
             m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
@@ -178,17 +186,16 @@ public:
                 float yVel = RAND(5, 15);
                 velGen.push_back(vec4(tmp.x, yVel, tmp.y, life)); 
             }
-            
-            m_vboPos.setData(posGen);
+
             m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
             m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
             m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
-            m_particleKernel.setArg(0, m_positions);
-            //m_particleKernel.setArg(1, m_positions);//colors
             
-            m_particleKernel.setArg(1, m_velocities);
-            m_particleKernel.setArg(2, m_positionGen);
-            m_particleKernel.setArg(3, m_velocityGen);
+            m_particleKernel.setArg(0, m_positions);
+            m_particleKernel.setArg(1, m_colors);
+            m_particleKernel.setArg(2, m_velocities);
+            m_particleKernel.setArg(3, m_positionGen);
+            m_particleKernel.setArg(4, m_velocityGen);
         }
         catch(cl::Error &error)
         {
@@ -218,10 +225,11 @@ public:
     
     void draw()
     {
-        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix());
+        gl::setMatrices(camera());
         gl::drawGrid(200, 200);
-        gl::drawPoints(m_vboPos.id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
+        scene().render(camera());
+        
+        //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)

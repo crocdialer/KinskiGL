@@ -1,4 +1,4 @@
-__kernel void updateParticles(__global float4* pos,/* __global float4* color,*/ __global float4* vel,
+__kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
                     __global float4* pos_gen, __global float4* vel_gen, float dt)
 {
     //get our index in the array
@@ -6,7 +6,7 @@ __kernel void updateParticles(__global float4* pos,/* __global float4* color,*/ 
     //copy position and velocity for this iteration to a local variable
     //note: if we were doing many more calculations we would want to have opencl
     //copy to a local memory array to speed up memory access (this will be the subject of a later tutorial)
-    float4 p = pos[i];
+    float3 p = pos[i];
     float4 v = vel[i];
     
     //we've stored the life in the fourth component of our velocity array
@@ -17,7 +17,7 @@ __kernel void updateParticles(__global float4* pos,/* __global float4* color,*/ 
     //if the life is 0 or less we reset the particle's values back to the original values and set life to 1
     if(life <= 0)
     {
-        p = pos_gen[i];
+        p = pos_gen[i].xyz;
         v = vel_gen[i];
         life = vel_gen[i].w;
     }
@@ -37,5 +37,5 @@ __kernel void updateParticles(__global float4* pos,/* __global float4* color,*/ 
     
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
-    //color[i].w = life;
+    color[i].r = life;
 }

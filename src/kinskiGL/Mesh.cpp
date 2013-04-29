@@ -49,7 +49,8 @@ namespace kinski { namespace gl {
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
         glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer().id());
         glEnableVertexAttribArray(vertexAttribLocation);
-        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4),
+                              BUFFER_OFFSET(0));
         KINSKI_CHECK_GL_ERRORS();
         
         if(m_geometry->hasNormals())
