@@ -215,7 +215,7 @@ namespace kinski { namespace gl {
     gl::MeshPtr createFrustumMesh(const CameraPtr &cam)
     {
         glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
-        gl::GeometryPtr geom (new gl::Geometry);
+        gl::GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_LINE_STRIP);
         static glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
             vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
@@ -274,9 +274,9 @@ namespace kinski { namespace gl {
         //create shader
         if(!mesh)
         {
-            gl::Material::Ptr mat(new gl::Material);
+            gl::MaterialPtr mat(new gl::Material);
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
-            gl::Geometry::Ptr geom(new gl::Geometry);
+            gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
@@ -559,7 +559,7 @@ namespace kinski { namespace gl {
         map<boost::tuple<float,float,int,int>, MeshPtr>::iterator it = theMap.find(conf);
         if(it == theMap.end())
         {
-            GeometryPtr geom(new gl::Geometry);
+            GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr mesh (gl::Mesh::create(geom, mat));
@@ -614,7 +614,7 @@ namespace kinski { namespace gl {
             Mesh::ConstPtr m = weakMesh.lock();
             if(!m) return;
             
-            GeometryPtr geom(new gl::Geometry);
+            GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr line_mesh (gl::Mesh::create(geom, mat));
@@ -720,7 +720,7 @@ namespace kinski { namespace gl {
             Mesh::ConstPtr m = weakMesh.lock();
             if(!m) return;
             
-            GeometryPtr geom(new gl::Geometry);
+            GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr line_mesh (gl::Mesh::create(geom, mat));
@@ -795,7 +795,7 @@ namespace kinski { namespace gl {
         {
             Mesh::ConstPtr m = theMesh.lock();
             if(m->geometry()->normals().empty()) return;
-            GeometryPtr geom(new gl::Geometry);
+            GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat(new gl::Material);
             MeshPtr line_mesh = gl::Mesh::create(geom, mat);

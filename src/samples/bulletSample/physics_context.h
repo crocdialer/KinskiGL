@@ -25,7 +25,7 @@ namespace kinski { namespace gl {
         {
             gl::MaterialPtr mat(new gl::Material);
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
-            gl::GeometryPtr geom(new gl::Geometry);
+            gl::GeometryPtr geom = Geometry::create();
             m_mesh = gl::Mesh::create(geom, mat);
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
         };

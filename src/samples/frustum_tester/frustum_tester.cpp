@@ -40,7 +40,7 @@ namespace kinski
         }
         
         /********************** construct a simple scene ***********************/
-        gl::GeometryPtr points(new gl::Geometry);
+        gl::GeometryPtr points = gl::Geometry::create();
         points->setPrimitiveType(GL_POINTS);
         points->vertices().reserve(30000);
         points->colors().reserve(30000);

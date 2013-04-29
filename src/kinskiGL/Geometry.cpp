@@ -221,7 +221,7 @@ namespace kinski{ namespace gl{
     Geometry::Ptr createPlane(float width, float height,
                               uint32_t numSegments_W , uint32_t numSegments_H)
     {
-        Geometry::Ptr geom (new Geometry);
+        GeometryPtr geom = Geometry::create();
         
         float width_half = width / 2, height_half = height / 2;
         float segment_width = width / numSegments_W, segment_height = height / numSegments_H;
@@ -267,7 +267,7 @@ namespace kinski{ namespace gl{
     
     Geometry::Ptr createBox(const glm::vec3 &theHalfExtents)
     {
-        Geometry::Ptr geom (new Geometry);
+        GeometryPtr geom = Geometry::create();
         
         glm::vec3 vertices[8] = {   glm::vec3(-theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom left front
             glm::vec3(theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom right front
@@ -383,7 +383,7 @@ namespace kinski{ namespace gl{
     Geometry::Ptr createSphere(float radius, int numSlices)
     {
         uint32_t rings = numSlices, sectors = numSlices;
-        Geometry::Ptr geom (new Geometry);
+        GeometryPtr geom = Geometry::create();
         float const R = 1./(float)(rings-1);
         float const S = 1./(float)(sectors-1);
         int r, s;

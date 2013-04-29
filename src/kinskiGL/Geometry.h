@@ -48,8 +48,6 @@ namespace kinski{ namespace gl{
         typedef std::shared_ptr<Geometry> Ptr;
         
         static Ptr create(){return Ptr(new Geometry());};
-        
-        Geometry();
         ~Geometry();
         
         inline void appendVertex(const glm::vec3 &theVert)
@@ -177,6 +175,8 @@ namespace kinski{ namespace gl{
         
     private:
         
+        Geometry();
+        
         // defaults to GL_TRIANGLES
         GLenum m_primitiveType;
         
@@ -193,10 +193,10 @@ namespace kinski{ namespace gl{
         gl::Buffer m_vertexBuffer;
         gl::Buffer m_normalBuffer;
         gl::Buffer m_texCoordBuffer;
-        gl::Buffer m_tangentBuffer;
-        gl::Buffer m_boneBuffer;
         gl::Buffer m_colorBuffer;
+        gl::Buffer m_tangentBuffer;
         gl::Buffer m_indexBuffer;
+        gl::Buffer m_boneBuffer;
         
         bool m_needsUpdate;
     };

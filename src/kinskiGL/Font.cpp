@@ -264,7 +264,7 @@ namespace kinski { namespace gl {
     
     gl::MeshPtr Font::create_mesh(const std::string &theText, const glm::vec4 &theColor) const
     {
-        GeometryPtr geom(new gl::Geometry);
+        GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat(new gl::Material);
         mat->setDiffuse(theColor);

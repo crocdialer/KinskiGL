@@ -44,7 +44,7 @@ namespace kinski { namespace gl{
     
     gl::GeometryPtr createGeometry(const aiMesh *aMesh, const aiScene *theScene)
     {
-        gl::GeometryPtr geom (new gl::Geometry());
+        gl::GeometryPtr geom = Geometry::create();
         
         geom->vertices().insert(geom->vertices().end(), (glm::vec3*)aMesh->mVertices,
                                 (glm::vec3*)aMesh->mVertices + aMesh->mNumVertices);
