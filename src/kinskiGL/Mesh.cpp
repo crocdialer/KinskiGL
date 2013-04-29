@@ -14,7 +14,6 @@ namespace kinski { namespace gl {
     Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
     Object3D(),
     m_geometry(theGeom),
-    m_material(theMaterial),
     m_vertexArray(0),
     m_animation_index(0),
     m_vertexLocationName("a_vertex"),
@@ -25,6 +24,7 @@ namespace kinski { namespace gl {
     m_boneIDsLocationName("a_boneIds"),
     m_boneWeightsLocationName("a_boneWeights")
     {
+        m_materials.push_back(theMaterial);
         createVertexArray();
     }
     
@@ -37,7 +37,7 @@ namespace kinski { namespace gl {
     
     void Mesh::bindVertexPointers() const
     {
-        Shader& shader = m_material->shader();
+        Shader& shader = material()->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
@@ -158,7 +158,7 @@ namespace kinski { namespace gl {
         GL_SUFFIX(glBindVertexArray)(m_vertexArray);
         bindVertexPointers();
         GL_SUFFIX(glBindVertexArray)(0);
-        m_material_vertex_array_mapping = std::make_pair(m_material, m_vertexArray);
+        m_material_vertex_array_mapping = std::make_pair(material(), m_vertexArray);
 #endif
     }
     
@@ -307,7 +307,7 @@ namespace kinski { namespace gl {
     
     GLuint Mesh::vertexArray() const
     {
-        if(m_material_vertex_array_mapping.first != m_material)
+        if(m_material_vertex_array_mapping.first != material())
         {
             throw WrongVertexArrayDefinedException(getID());
         }

@@ -77,8 +77,8 @@ namespace kinski { namespace gl {
         const GeometryPtr& geometry() const { return m_geometry; };
         GeometryPtr& geometry() { return m_geometry; };
         
-        const MaterialPtr& material() const { return m_material; };
-        MaterialPtr& material() { return m_material; };
+        const MaterialPtr& material() const { return m_materials.front(); };
+        MaterialPtr& material() { return m_materials.front(); };
         
         void bindVertexPointers() const;
         void createVertexArray();
@@ -146,11 +146,8 @@ namespace kinski { namespace gl {
                                std::vector<glm::mat4> &matrices);
         
         GeometryPtr m_geometry;
-        MaterialPtr m_material;
-        
         std::vector<Entry> m_entries;
         std::vector<MaterialPtr> m_materials;
-        
         GLuint m_vertexArray;
         mutable std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
         
