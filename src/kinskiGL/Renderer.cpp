@@ -57,7 +57,7 @@ namespace kinski{ namespace gl{
             {
                 m->material()->uniform("u_bones", m->boneMatrices());
             }
-            gl::apply_material(m->material());
+            gl::apply_material(m->material(), true);
             
 #ifndef KINSKI_NO_VAO
             try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}

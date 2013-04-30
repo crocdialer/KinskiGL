@@ -1,3 +1,8 @@
+struct Force
+{
+
+};
+
 __kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
                     __global float4* pos_gen, __global float4* vel_gen, float dt)
 {
@@ -22,11 +27,16 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
         life = vel_gen[i].w;
     }
     
-    //update velocities
+    //apply forces
+    //TODO: implement
     v.y -= 2.f * dt;
     
     //update the position with the new velocity
     p.xyz += v.xyz * dt;
+    if(p.y < 0) p.y = 0;
+    
+    //apply contraints
+    //TODO: implement
     
     //store the updated life in the velocity array
     v.w = life;
@@ -37,5 +47,5 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
-    color[i].r = life;
+    //color[i].r = life / 5.0;
 }

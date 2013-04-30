@@ -19,6 +19,7 @@ namespace kinski { namespace gl {
     m_vertexLocationName("a_vertex"),
     m_normalLocationName("a_normal"),
     m_tangentLocationName("a_tangent"),
+    m_pointSizeLocationName("a_pointSize"),
     m_texCoordLocationName("a_texCoord"),
     m_colorLocationName("a_color"),
     m_boneIDsLocationName("a_boneIds"),
@@ -49,8 +50,8 @@ namespace kinski { namespace gl {
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
         glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer().id());
         glEnableVertexAttribArray(vertexAttribLocation);
-        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec4),
-                              BUFFER_OFFSET(0));
+        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              m_geometry->vertexBuffer().stride(), BUFFER_OFFSET(0));
         KINSKI_CHECK_GL_ERRORS();
         
         if(m_geometry->hasNormals())
@@ -62,7 +63,8 @@ namespace kinski { namespace gl {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer().id());
                 // define attrib pointer (tangent)
                 glEnableVertexAttribArray(normalAttribLocation);
-                glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+                glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                      m_geometry->normalBuffer().stride(), BUFFER_OFFSET(0));
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
@@ -76,7 +78,8 @@ namespace kinski { namespace gl {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer().id());
                 // define attrib pointer (tangent)
                 glEnableVertexAttribArray(texCoordAttribLocation);
-                glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+                glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
+                                      m_geometry->texCoordBuffer().stride(), BUFFER_OFFSET(0));
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
@@ -90,9 +93,28 @@ namespace kinski { namespace gl {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->tangentBuffer().id());
                 // define attrib pointer (tangent)
                 glEnableVertexAttribArray(tangentAttribLocation);
-                glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+                glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                      m_geometry->tangentBuffer().stride(), BUFFER_OFFSET(0));
                 KINSKI_CHECK_GL_ERRORS();
             }
+        }
+        
+        if(m_geometry->hasPointSizes())
+        {
+            GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
+            
+            if(pointSizeAttribLocation >= 0)
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->pointSizeBuffer().id());
+                // define attrib pointer (pointsize)
+                glEnableVertexAttribArray(pointSizeAttribLocation);
+                glVertexAttribPointer(pointSizeAttribLocation, 1, GL_FLOAT, GL_FALSE,
+                                      m_geometry->pointSizeBuffer().stride(), BUFFER_OFFSET(0));
+                KINSKI_CHECK_GL_ERRORS();
+            }
+        }else{
+            GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
+            if(pointSizeAttribLocation >= 0) glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
         }
         
         if(m_geometry->hasColors())
@@ -104,7 +126,8 @@ namespace kinski { namespace gl {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->colorBuffer().id());
                 // define attrib pointer (colors)
                 glEnableVertexAttribArray(colorAttribLocation);
-                glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+                glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE,
+                                      m_geometry->colorBuffer().stride(), BUFFER_OFFSET(0));
                 KINSKI_CHECK_GL_ERRORS();
             }
         }else{
@@ -125,20 +148,20 @@ namespace kinski { namespace gl {
                 
                 // use ivec4 to submit bone-indices on Dekstop GL
 #ifndef KINSKI_GLES
-                glVertexAttribIPointer(boneIdsAttribLocation, 4, GL_INT, sizeof(gl::BoneVertexData),
-                                       BUFFER_OFFSET(0));
+                glVertexAttribIPointer(boneIdsAttribLocation, 4, GL_INT,
+                                       m_geometry->boneBuffer().stride(), BUFFER_OFFSET(0));
                 
                 // else fall back to float vec4 for GLES2
 #else
                 glVertexAttribPointer(boneIdsAttribLocation, 4, GL_INT, GL_FALSE,
-                                      sizeof(gl::BoneVertexData), BUFFER_OFFSET(0));
+                                      m_geometry->boneBuffer().stride(), BUFFER_OFFSET(0));
 #endif
                 KINSKI_CHECK_GL_ERRORS();
                 
                 // define attrib pointer (boneWeights)
                 glEnableVertexAttribArray(boneWeightsAttribLocation);
                 glVertexAttribPointer(boneWeightsAttribLocation, 4, GL_FLOAT, GL_FALSE,
-                                      sizeof(gl::BoneVertexData),
+                                      m_geometry->boneBuffer().stride(),
                                       BUFFER_OFFSET(sizeof(glm::ivec4)));
 
                 KINSKI_CHECK_GL_ERRORS();

@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
         m_uniforms["u_material.specular"] = m_specular;
         m_uniforms["u_material.emmission"] = m_emission;
         m_uniforms["u_material.shinyness"] = m_shinyness;
-        m_shader = gl::createShader(gl::SHADER_UNLIT);
+        m_shader = theShader? theShader : gl::createShader(gl::SHADER_UNLIT);
     }
 
     void Material::setDiffuse(const glm::vec4 &theColor)

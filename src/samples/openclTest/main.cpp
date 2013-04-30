@@ -3,8 +3,6 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
 
-#define RAND(min, max) min + (max - min) * (rand() / (float) RAND_MAX)
-
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -14,10 +12,12 @@ class OpenCLTest : public ViewerApp
 private:
     
     Property_<string>::Ptr m_texturePath;
+    Property_<vec4>::Ptr m_point_color;
     gl::Texture m_texture[4];
     gl::Material::Ptr m_pointMaterial;
     gl::GeometryPtr m_geom;
     gl::MeshPtr m_mesh;
+    gl::Font m_font;
     
     //OpenCL standard stuff
     cl::Context m_context;
@@ -81,10 +81,9 @@ private:
             
             // Read source file
             std::string sourceCode = kinski::readFile("kernels.cl");
-            cl::Program::Sources source(1, std::make_pair(sourceCode.c_str(), sourceCode.length()+1));
             
             // Make program of the source code in the context
-            m_program = cl::Program(m_context, source);
+            m_program = cl::Program(m_context, sourceCode);
             
             // Build program for these specific devices
             m_program.build();
@@ -103,6 +102,7 @@ private:
         {
             vector<cl::Memory> glBuffers;
             glBuffers.push_back(m_positions);
+            glBuffers.push_back(m_colors);
             
             //this will update our system by calculating new velocity and updating the positions of our particles
             //Make sure OpenGL is done using our VBOs
@@ -138,22 +138,28 @@ public:
     void setup()
     {
         ViewerApp::setup();
+        kinski::addSearchPath("/Library/Fonts");
+        m_font.load("Courier New Bold.ttf", 30);
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
         
+        m_point_color = Property_<vec4>::create("Point color", vec4(1));
+        registerProperty(m_point_color);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
-        m_pointMaterial = gl::Material::create();
+        m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS));
         m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
-        m_pointMaterial->setDiffuse(vec4(.9, .7, 0, 1.f));
-        //m_pointMaterial->setBlending();
+        m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
+        m_pointMaterial->setBlending();
+        m_pointMaterial->setDepthWrite(false);
+        
         m_geom = gl::Geometry::create();
         m_geom->setPrimitiveType(GL_POINTS);
-        m_mesh = gl::Mesh::create(m_geom, gl::Material::create());
-        scene().addObject(m_mesh);
+        m_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
         
         initOpenCL();
         
@@ -162,8 +168,11 @@ public:
         
         m_geom->vertices().resize(m_numParticles, vec3(0));
         m_geom->colors().resize(m_numParticles, vec4(1));
+        m_geom->point_sizes().resize(m_numParticles, 9.f);
         m_geom->createGLBuffers();
         
+        m_mesh->material()->setPointSize(2.f);
+        scene().addObject(m_mesh);
         try
         {
             // shared position buffer for OpenGL / OpenCL
@@ -182,11 +191,13 @@ public:
             {
                 posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
                 vec2 tmp = glm::linearRand(vec2(-10), vec2(10));
-                float life = 2 + 3 * (rand() / (float) RAND_MAX);
-                float yVel = RAND(5, 15);
-                velGen.push_back(vec4(tmp.x, yVel, tmp.y, life)); 
+                float life = kinski::random(2.f, 5.f);
+                float yVel = kinski::random<float>(5, 15);
+                velGen.push_back(vec4(tmp.x, yVel, tmp.y, life));
+                m_geom->point_sizes()[i] = kinski::random(5.f, 20.f);
             }
-
+            m_geom->createGLBuffers();
+            
             m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
             m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
             m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
@@ -226,10 +237,15 @@ public:
     void draw()
     {
         gl::setMatrices(camera());
-        gl::drawGrid(200, 200);
+        if(draw_grid()) gl::drawGrid(200, 200);
         scene().render(camera());
         
         //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
+        
+        // draw fps string
+        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       glm::vec2(windowSize().x - 110, windowSize().y - 70));
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)
@@ -249,6 +265,10 @@ public:
                 *m_texturePath = "- not found -";
                 m_texturePath->addObserver(shared_from_this());
             }
+        }
+        else if(theProperty == m_point_color)
+        {
+            m_mesh->material()->setDiffuse(*m_point_color);
         }
     }
 };

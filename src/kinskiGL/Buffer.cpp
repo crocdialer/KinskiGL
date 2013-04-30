@@ -14,7 +14,7 @@ namespace kinski{ namespace gl{
 
 struct Buffer::Obj
 {
-    Obj():buffer_id(0), target(0), usage(0), numBytes(0), doNotDispose(false)
+    Obj():buffer_id(0), target(0), usage(0), numBytes(0), stride(0), doNotDispose(false)
     {
         glGenBuffers(1, &buffer_id);
     };
@@ -32,6 +32,7 @@ struct Buffer::Obj
     GLenum target;
     GLenum usage;
     GLsizei numBytes;
+    GLsizei stride;
     
     bool doNotDispose;
     
@@ -104,6 +105,11 @@ GLsizei Buffer::numBytes() const
     return m_Obj->numBytes;
 }
 
+GLsizei Buffer::stride() const
+{
+    return m_Obj->stride;
+}
+    
 void Buffer::setTarget(GLenum theTarget)
 {
     if(m_Obj) m_Obj->target = theTarget;
@@ -112,6 +118,11 @@ void Buffer::setTarget(GLenum theTarget)
 void Buffer::setUsage(GLenum theUsage)
 {
     if(m_Obj) m_Obj->usage = theUsage;
+}
+    
+void Buffer::setStride(GLsizei theStride)
+{
+    m_Obj->stride = theStride;
 }
     
 void Buffer::setData(char *theData, GLsizei numBytes)

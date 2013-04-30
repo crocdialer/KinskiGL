@@ -141,6 +141,10 @@ namespace kinski{ namespace gl{
         inline std::vector<glm::vec3>& tangents(){ return m_tangents; };
         inline const std::vector<glm::vec3>& tangents() const { return m_tangents; };
         
+        bool hasPointSizes() const { return m_vertices.size() == m_point_sizes.size(); };
+        inline std::vector<float>& point_sizes(){ return m_point_sizes; };
+        inline const std::vector<float>& point_sizes() const { return m_point_sizes; };
+        
         bool hasTexCoords() const { return m_vertices.size() == m_texCoords.size(); };
         inline std::vector<glm::vec2>& texCoords(){ return m_texCoords; };
         inline const std::vector<glm::vec2>& texCoords() const { return m_texCoords; };
@@ -167,6 +171,7 @@ namespace kinski{ namespace gl{
         const gl::Buffer& normalBuffer() const { return m_normalBuffer; };
         const gl::Buffer& texCoordBuffer() const { return m_texCoordBuffer; };
         const gl::Buffer& tangentBuffer() const { return m_tangentBuffer; };
+        const gl::Buffer& pointSizeBuffer() const { return m_pointSizeBuffer; };
         const gl::Buffer& colorBuffer() const { return m_colorBuffer; };
         const gl::Buffer& boneBuffer() const { return m_boneBuffer; };
         const gl::Buffer& indexBuffer() const { return m_indexBuffer; };
@@ -185,6 +190,7 @@ namespace kinski{ namespace gl{
         std::vector<glm::vec2> m_texCoords;
         std::vector<glm::vec4> m_colors;
         std::vector<glm::vec3> m_tangents;
+        std::vector<float> m_point_sizes;
         std::vector<uint32_t> m_indices;
         std::vector<Face3> m_faces;
         std::vector<BoneVertexData> m_boneVertexData;
@@ -195,6 +201,7 @@ namespace kinski{ namespace gl{
         gl::Buffer m_texCoordBuffer;
         gl::Buffer m_colorBuffer;
         gl::Buffer m_tangentBuffer;
+        gl::Buffer m_pointSizeBuffer;
         gl::Buffer m_indexBuffer;
         gl::Buffer m_boneBuffer;
         

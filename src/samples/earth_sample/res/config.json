@@ -72,7 +72,7 @@
             "type" : "string_array",
             "value" : [
                "earth_color.jpg",
-               "earth_normal.png",
+               "earth_bump.jpg",
                "earth_spec.png",
                "earth_lights.jpg"
             ]

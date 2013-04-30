@@ -160,6 +160,7 @@ namespace kinski { namespace gl {
         std::string m_vertexLocationName;
         std::string m_normalLocationName;
         std::string m_tangentLocationName;
+        std::string m_pointSizeLocationName;
         std::string m_texCoordLocationName;
         std::string m_colorLocationName;
         std::string m_boneIDsLocationName;

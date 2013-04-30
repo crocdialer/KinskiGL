@@ -26,7 +26,6 @@ class KINSKI_API Buffer
  public:
     
     Buffer();
-    
     Buffer(GLenum target, GLenum usage);
     
     template <class T>
@@ -47,9 +46,11 @@ class KINSKI_API Buffer
     GLenum target() const;
     GLenum usage() const;
     GLsizei numBytes() const;
+    GLsizei stride() const;
     
     void setTarget(GLenum theTarget);
     void setUsage(GLenum theUsage);
+    void setStride(GLsizei theStride);
     
     void setData(char *theData, GLsizei numBytes);
     

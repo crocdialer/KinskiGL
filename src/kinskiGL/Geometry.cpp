@@ -149,11 +149,11 @@ namespace kinski{ namespace gl{
         {
             //m_vertexBuffer.setData(m_vertices);
             m_vertexBuffer.setData(NULL, m_vertices.size() * sizeof(glm::vec4));
+            m_vertexBuffer.setStride(sizeof(glm::vec4));
+            
             glm::vec4 *buf_ptr = (glm::vec4*) m_vertexBuffer.map();
-            if(!buf_ptr) throw Exception("could not map vertex buffer");
-            glm::vec4 *buf_end = buf_ptr + m_vertices.size();
             vector<glm::vec3>::const_iterator it = m_vertices.begin();
-            for (; buf_ptr != buf_end; ++buf_ptr, ++it)
+            for (; it != m_vertices.end(); ++buf_ptr, ++it)
             {
                 *buf_ptr = glm::vec4(*it, 1.f);
             }
@@ -183,6 +183,13 @@ namespace kinski{ namespace gl{
             KINSKI_CHECK_GL_ERRORS();
         }
         
+        // insert point sizes
+        if(hasPointSizes())
+        {
+            m_pointSizeBuffer.setData(m_point_sizes);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        
         // insert colors
         if(hasColors())
         {
@@ -194,6 +201,7 @@ namespace kinski{ namespace gl{
         if(hasBones())
         {
             m_boneBuffer.setData(m_boneVertexData);
+            m_boneBuffer.setStride(sizeof(gl::BoneVertexData));
             KINSKI_CHECK_GL_ERRORS();
         }
         

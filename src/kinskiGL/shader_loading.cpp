@@ -426,6 +426,91 @@ namespace kinski { namespace gl {
         ;
 #endif
         
+#ifdef KINSKI_GLES
+        const char *point_vertSrc =
+        "uniform mat4 u_modelViewProjectionMatrix;\n"
+        "uniform float u_pointSize;\n"
+        "attribute vec4 a_vertex;\n"
+        "attribute vec4 a_color;\n"
+        "attribute float a_pointSize;\n"
+        "varying lowp vec4 v_color;\n"//
+        "void main()\n"
+        "{\n"
+        "   gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
+        "   gl_PointSize = a_pointSize;}\n"
+        "   v_color = a_color;\n";
+        
+        const char *point_fragSrc =
+        "uniform int u_numTextures;\n"
+        "uniform sampler2D u_textureMap[16];\n"
+        "uniform struct{\n"
+        "vec4 diffuse;\n"
+        "vec4 ambient;\n"
+        "vec4 specular;\n"
+        "vec4 emission;\n"
+        "} u_material;\n"
+        "varying vec4 v_color;\n"//
+        "void main(){\n"
+        "vec4 texColors = v_color;\n"
+        "for(int i = 0; i < u_numTextures; i++)\n"
+        "{\n"
+        "texColors *= texture2D(u_textureMap[i], gl_PointCoord);\n"
+        "}\n"
+        "gl_FragColor = u_material.diffuse * texColors;\n"
+        "}\n";
+#else
+        const char *point_vertSrc =
+        "#version 150 core\n"
+        "uniform mat4 u_modelViewProjectionMatrix;\n"
+        "uniform float u_pointSize;\n"
+        "in vec4 a_vertex;\n"
+        "in float a_pointSize;\n"
+        "in vec4 a_color;\n"
+        "out vec4 v_color;\n"
+        "void main()\n"
+        "{\n"
+        "   v_color = a_color;\n"
+        "   gl_PointSize = a_pointSize;\n"
+        "   gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
+        "}\n";
+        
+        const char *point_color_fragSrc =
+        "#version 150 core\n"
+        "uniform int u_numTextures;\n"
+        "uniform sampler2D u_textureMap[16];\n"
+        "uniform struct{\n"
+        "vec4 diffuse;\n"
+        "vec4 ambient;\n"
+        "vec4 specular;\n"
+        "vec4 emission;\n"
+        "} u_material;\n"
+        "in vec4 v_color;\n"
+        "out vec4 fragData;\n"
+        "void main(){\n"
+        "vec4 texColors = v_color;\n"
+        "fragData = u_material.diffuse * texColors;\n"
+        "}\n";
+        
+        const char *point_texture_fragSrc =
+        "#version 150 core\n"
+        "uniform int u_numTextures;\n"
+        "uniform sampler2D u_textureMap[16];\n"
+        "uniform struct{\n"
+        "vec4 diffuse;\n"
+        "vec4 ambient;\n"
+        "vec4 specular;\n"
+        "vec4 emission;\n"
+        "} u_material;\n"
+        "in vec4 v_color;\n"
+        "out vec4 fragData;\n"
+        "void main(){\n"
+        "vec4 texColors = vec4(1);\n"
+        "for(int i = 0; i < u_numTextures; i++)\n"
+        "   {texColors *= texture(u_textureMap[i], gl_PointCoord);}\n"
+        "fragData = u_material.diffuse * texColors;\n"
+        "}\n";
+#endif
+        
         Shader ret;
         switch (type)
         {
@@ -444,7 +529,9 @@ namespace kinski { namespace gl {
             case SHADER_PHONG_SKIN:
                 ret.loadFromData(phongVertSrc_skin, phongFragSrc);
                 break;
-                
+            case SHADER_POINTS:
+                ret.loadFromData(point_vertSrc, point_texture_fragSrc);
+                break;
             default:
                 break;
         }

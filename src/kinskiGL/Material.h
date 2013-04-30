@@ -33,9 +33,9 @@ namespace kinski { namespace gl {
         
         typedef std::map<std::string, UniformValue> UniformMap;
 
-        static Ptr create()
+        static Ptr create(const Shader &theShader = Shader())
         {
-            return Ptr(new Material());
+            return Ptr(new Material(theShader));
         }
         
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
