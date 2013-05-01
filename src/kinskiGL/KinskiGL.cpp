@@ -304,7 +304,7 @@ namespace kinski { namespace gl {
         //create shader
         if(!staticMat)
         {
-            staticMat = gl::Material::create(gl::createShader(gl::SHADER_POINTS));
+            staticMat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_TEXTURE));
             staticMat->setPointSize(2.f);
         }
         

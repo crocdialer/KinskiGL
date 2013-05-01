@@ -11,9 +11,16 @@
 #include "stb_image.c"
 
 namespace kinski { namespace gl {
-  
-    Texture createTextureFromFile(const std::string &theFileName, bool mipmap,
-                                          bool compress, GLfloat anisotropic_filter_lvl)
+    
+    bool isPowerOf2(int v)
+    {
+        int tmp = 1;
+        while (tmp < v) {tmp <<= 1;}
+        return tmp == v;
+    }
+    
+    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress,
+                                  GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
         std::vector<uint8_t> dataVec = kinski::readBinaryFile(theFileName);
@@ -54,15 +61,15 @@ namespace kinski { namespace gl {
 #else
             case 1:
                 format = GL_RED;
-                internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RED;
+                internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
                 break;
             case 2:
                 format = GL_RG;
-                internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RG;
+                internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
                 break;
             case 3:
                 format = GL_RGB;
-                internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGB;
+                internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
                 break;
             case 4:
                 format = GL_RGBA;

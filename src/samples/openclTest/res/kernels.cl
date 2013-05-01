@@ -3,6 +3,16 @@ struct Force
 
 };
 
+__kernel void set_colors_from_image(image2d_t image, __global float3* pos, __global float4* color)
+{
+    unsigned int i = get_global_id(0);
+    int w = get_image_width(image);
+    int h = get_image_height(image);
+    
+    int2 coords = {pos[i].x + w/2, pos[i].z + h/2};
+    color[i] = read_imagef(image, coords);
+}
+
 __kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
                     __global float4* pos_gen, __global float4* vel_gen, float dt)
 {
@@ -47,5 +57,6 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
-    //color[i].r = life / 5.0;
+    
+    //color[i] = (float4)(1.f, 1.f, 0.f, 1.f);//life / 5.0;
 }

@@ -13,7 +13,7 @@ private:
     
     Property_<string>::Ptr m_texturePath;
     Property_<vec4>::Ptr m_point_color;
-    gl::Texture m_texture[4];
+    gl::Texture m_textures[4];
     gl::Material::Ptr m_pointMaterial;
     gl::GeometryPtr m_geom;
     gl::MeshPtr m_mesh;
@@ -27,9 +27,10 @@ private:
     
     // particle system related
     GLsizei m_numParticles;
-    cl::Kernel m_particleKernel;
+    cl::Kernel m_particleKernel, m_imageKernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen;
     cl::BufferGL m_positions, m_colors;
+    cl::Image2DGL m_cl_image;
     
     void initOpenCL()
     {
@@ -89,6 +90,7 @@ private:
             m_program.build();
             
             m_particleKernel = cl::Kernel(m_program, "updateParticles");
+            m_imageKernel = cl::Kernel(m_program, "set_colors_from_image");
         }
         catch(cl::Error &error)
         {
@@ -112,7 +114,6 @@ private:
             // this passes in the vector of VBO buffer objects (position and color)
             m_queue.enqueueAcquireGLObjects(&glBuffers);
             
-            //m_queue.finish();
             
             m_particleKernel.setArg(5, timeDelta); //pass in the timestep
             
@@ -120,11 +121,48 @@ private:
             m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
                                          cl::NullRange);
             
-            //m_queue.finish();
             
             //Release the VBOs so OpenGL can play with them
             m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
 
+            m_queue.finish();
+        }
+        catch(cl::Error &error)
+        {
+            LOG_ERROR << error.what() << "(" << error.err() << ")";
+        }
+    }
+    
+    void setColors()
+    {
+        try
+        {
+            vector<cl::Memory> glBuffers;
+            glBuffers.push_back(m_positions);
+            glBuffers.push_back(m_colors);
+            glBuffers.push_back(m_cl_image);
+            
+            //this will update our system by calculating new velocity and updating the positions of our particles
+            //Make sure OpenGL is done using our VBOs
+            glFinish();
+            
+            // map OpenGL buffer object for writing from OpenCL
+            // this passes in the vector of VBO buffer objects (position and color)
+            m_queue.enqueueAcquireGLObjects(&glBuffers);
+            
+            
+            m_imageKernel.setArg(0, m_cl_image);
+            m_imageKernel.setArg(1, m_positions);
+            m_imageKernel.setArg(2, m_colors);
+            
+            //execute the kernel
+            m_queue.enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(m_numParticles),
+                                         cl::NullRange);
+            
+            
+            //Release the VBOs so OpenGL can play with them
+            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+            
             m_queue.finish();
         }
         catch(cl::Error &error)
@@ -139,6 +177,7 @@ public:
     {
         ViewerApp::setup();
         kinski::addSearchPath("/Library/Fonts");
+        kinski::addSearchPath("~/Pictures");
         m_font.load("Courier New Bold.ttf", 30);
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
@@ -150,12 +189,13 @@ public:
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
-        m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS));
+        glEnable(GL_POINT_FADE_THRESHOLD_SIZE);
+        m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
         m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
-        m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
-        m_pointMaterial->setBlending();
-        m_pointMaterial->setDepthWrite(false);
+        //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
+        //m_pointMaterial->setBlending();
+        //m_pointMaterial->setDepthWrite(false);
         
         m_geom = gl::Geometry::create();
         m_geom->setPrimitiveType(GL_POINTS);
@@ -163,7 +203,7 @@ public:
         
         initOpenCL();
         
-        m_numParticles = 50000;
+        m_numParticles = 100000;
         GLsizei numBytes = m_numParticles * sizeof(vec4);
         
         m_geom->vertices().resize(m_numParticles, vec3(0));
@@ -190,11 +230,11 @@ public:
             for (int i = 0; i < m_numParticles; i++)
             {
                 posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
-                vec2 tmp = glm::linearRand(vec2(-10), vec2(10));
+                vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
                 float life = kinski::random(2.f, 5.f);
                 float yVel = kinski::random<float>(5, 15);
                 velGen.push_back(vec4(tmp.x, yVel, tmp.y, life));
-                m_geom->point_sizes()[i] = kinski::random(5.f, 20.f);
+                m_geom->point_sizes()[i] = kinski::random(5.f, 15.f);
             }
             m_geom->createGLBuffers();
             
@@ -232,6 +272,7 @@ public:
     {
         ViewerApp::update(timeDelta);
         updateParticles(timeDelta);
+        setColors();
     }
     
     void draw()
@@ -242,10 +283,27 @@ public:
         
         //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
         
-        // draw fps string
-        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
-                       vec4(vec3(1) - clear_color().xyz(), 1.f),
-                       glm::vec2(windowSize().x - 110, windowSize().y - 70));
+        if(displayTweakBar())
+        {
+            // draw opencv maps
+            float w = (windowSize()/8.f).x;
+            glm::vec2 offset(getWidth() - w - 10, 10);
+            for(int i = 0;i < 2;i++)
+            {
+                float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
+                glm::vec2 step(0, h + 10);
+                drawTexture(m_textures[i], vec2(w, h), offset);
+                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
+                               as_string(m_textures[i].getHeight()), m_font, glm::vec4(1),
+                               offset);
+                offset += step;
+            }
+            
+            // draw fps string
+            gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+                           glm::vec2(windowSize().x - 115, windowSize().y - 30));
+        }
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)
@@ -257,14 +315,16 @@ public:
         {
             try
             {
-                m_texture[0] = gl::createTextureFromFile(*m_texturePath);
-            } catch (kinski::Exception &e)
-            {
-                LOG_WARNING << e.what();
-                m_texturePath->removeObserver(shared_from_this());
-                *m_texturePath = "- not found -";
-                m_texturePath->addObserver(shared_from_this());
+                m_textures[0] = gl::createTextureFromFile(*m_texturePath);
+                
+                // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
+                m_cl_image = cl::Image2DGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                                           m_textures[0].getId());
+                
+                
             }
+            catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
+            catch (std::exception &e){LOG_WARNING << e.what();}
         }
         else if(theProperty == m_point_color)
         {

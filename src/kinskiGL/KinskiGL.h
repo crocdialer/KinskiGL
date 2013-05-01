@@ -153,7 +153,7 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = true,
+    KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = false,
                                              bool compress = false, GLfloat anisotropic_filter_lvl = 1.f);
     
     class ImageLoadException : public Exception
@@ -166,7 +166,7 @@ namespace kinski { namespace gl {
     /*********************************** Shader loading *******************************************/
     
     enum ShaderType {SHADER_UNLIT, SHADER_PHONG, SHADER_PHONG_NORMALMAP, SHADER_PHONG_SKIN,
-        SHADER_POINTS};
+        SHADER_POINTS_TEXTURE, SHADER_POINTS_COLOR};
     KINSKI_API Shader createShader(ShaderType type);
     KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
                                            const std::string &geomPath="");

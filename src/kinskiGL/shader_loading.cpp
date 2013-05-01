@@ -529,8 +529,11 @@ namespace kinski { namespace gl {
             case SHADER_PHONG_SKIN:
                 ret.loadFromData(phongVertSrc_skin, phongFragSrc);
                 break;
-            case SHADER_POINTS:
+            case SHADER_POINTS_TEXTURE:
                 ret.loadFromData(point_vertSrc, point_texture_fragSrc);
+                break;
+            case SHADER_POINTS_COLOR:
+                ret.loadFromData(point_vertSrc, point_color_fragSrc);
                 break;
             default:
                 break;
