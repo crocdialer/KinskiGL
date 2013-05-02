@@ -167,9 +167,9 @@ public:
     
     void draw()
     {
-        m_frameBuffer.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
+//        m_frameBuffer.bindFramebuffer();
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
         
         //background
         gl::drawTexture(m_textures[0], windowSize());
@@ -202,9 +202,9 @@ public:
             gl::drawMesh(m_label);
         }
         
-        m_frameBuffer.unbindFramebuffer();
-        glViewport(0, 0, getWidth(), getHeight());
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
+//        m_frameBuffer.unbindFramebuffer();
+//        glViewport(0, 0, getWidth(), getHeight());
+//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
         
         // draw texture map(s)
         if(displayTweakBar())

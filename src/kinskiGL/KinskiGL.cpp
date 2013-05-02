@@ -232,8 +232,10 @@ namespace kinski { namespace gl {
         {
             geom->indices().push_back(indices[i]);
         }
+        geom->computeBoundingBox();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
+        m->setTransform(cam->transform());
         return m;
     }
     
@@ -274,21 +276,17 @@ namespace kinski { namespace gl {
         //create shader
         if(!mesh)
         {
-            gl::MaterialPtr mat(new gl::Material);
+            gl::MaterialPtr mat = gl::Material::create();
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
         
-        vector<vec3>::const_iterator it = thePoints.begin();
-        for (; it < thePoints.end(); ++it)
-        {
-            mesh->geometry()->appendVertex(*it);
-            mesh->geometry()->appendColor(theColor);
-        }
+        mesh->geometry()->appendVertices(thePoints);
+        mesh->geometry()->colors().resize(thePoints.size(), theColor);
         mesh->geometry()->createGLBuffers();
-        try{ mesh->vertexArray(); }catch(const Exception &e){ mesh->createVertexArray(); }
+
         gl::drawMesh(mesh);
         
         mesh->geometry()->vertices().clear();
@@ -634,20 +632,41 @@ namespace kinski { namespace gl {
         
         if(theMesh->geometry()->hasIndices())
         {
-            glDrawElements(theMesh->geometry()->primitiveType(),
-                           theMesh->geometry()->indices().size(), theMesh->geometry()->indexType(),
-                           BUFFER_OFFSET(0));
+#ifndef KINSKI_GLES
+            if(!theMesh->entries().empty())
+            {
+                for (int i = 0; i < theMesh->entries().size(); i++)
+                {
+                    if(!theMesh->materials()[i]->textures().empty())
+                        apply_material(theMesh->materials()[i]);
+                    
+                    glDrawElementsBaseVertex(theMesh->geometry()->primitiveType(),
+                                             theMesh->entries()[i].numdices,
+                                             theMesh->geometry()->indexType(),
+                                             BUFFER_OFFSET(theMesh->entries()[i].base_index *
+                                                           sizeof(theMesh->geometry()->indexType())),
+                                             theMesh->entries()[i].base_vertex);
+                }
+            }
+            else
+#endif
+            {
+                glDrawElements(theMesh->geometry()->primitiveType(),
+                               theMesh->geometry()->indices().size(), theMesh->geometry()->indexType(),
+                               BUFFER_OFFSET(0));
+            }
         }
         else
         {
             glDrawArrays(theMesh->geometry()->primitiveType(), 0,
                          theMesh->geometry()->vertices().size());
         }
-        
-#ifndef KINSKI_NO_VAO 
+        KINSKI_CHECK_GL_ERRORS();
+    
+#ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
-        
+    
         KINSKI_CHECK_GL_ERRORS();
     }
     

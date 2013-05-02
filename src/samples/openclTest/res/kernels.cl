@@ -1,11 +1,20 @@
-struct Force
+struct Ball
 {
-
+    float3 position;
 };
+
+inline float3 create_force(float3 pos, float3 pos_particle)
+{
+    float strength = 100000.0;
+    float3 dir = pos_particle - pos;
+    float dist2 = dot(dir, dir);
+    dir = normalize(dir);
+    return strength * dir / dist2;
+}
 
 __kernel void set_colors_from_image(image2d_t image, __global float3* pos, __global float4* color)
 {
-    unsigned int i = get_global_id(0);
+    size_t i = get_global_id(0);
     int w = get_image_width(image);
     int h = get_image_height(image);
     
@@ -17,7 +26,7 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
                     __global float4* pos_gen, __global float4* vel_gen, float dt)
 {
     //get our index in the array
-    unsigned int i = get_global_id(0);
+    size_t i = get_global_id(0);
     //copy position and velocity for this iteration to a local variable
     //note: if we were doing many more calculations we would want to have opencl
     //copy to a local memory array to speed up memory access (this will be the subject of a later tutorial)
@@ -38,12 +47,15 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     }
     
     //apply forces
+//    float3 f = create_force((float3)(50, 0, 50), p);
+//    v.xyz += f * dt;
+    
     //TODO: implement
     v.y -= 2.f * dt;
     
     //update the position with the new velocity
     p.xyz += v.xyz * dt;
-    if(p.y < 0) p.y = 0;
+    //if(p.y < 0) p.y = 0;
     
     //apply contraints
     //TODO: implement

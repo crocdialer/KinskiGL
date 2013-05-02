@@ -1,4 +1,5 @@
 #include "kinskiApp/ViewerApp.h"
+#include "kinskiGL/Fbo.h"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
@@ -31,6 +32,10 @@ private:
     cl::Buffer m_velocities, m_positionGen, m_velocityGen;
     cl::BufferGL m_positions, m_colors;
     cl::Image2DGL m_cl_image;
+    
+    // perspective experiment
+    gl::PerspectiveCamera::Ptr m_free_camera;
+    gl::Fbo m_fbo;
     
     void initOpenCL()
     {
@@ -142,14 +147,8 @@ private:
             glBuffers.push_back(m_colors);
             glBuffers.push_back(m_cl_image);
             
-            //this will update our system by calculating new velocity and updating the positions of our particles
-            //Make sure OpenGL is done using our VBOs
             glFinish();
-            
-            // map OpenGL buffer object for writing from OpenCL
-            // this passes in the vector of VBO buffer objects (position and color)
             m_queue.enqueueAcquireGLObjects(&glBuffers);
-            
             
             m_imageKernel.setArg(0, m_cl_image);
             m_imageKernel.setArg(1, m_positions);
@@ -159,10 +158,7 @@ private:
             m_queue.enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(m_numParticles),
                                          cl::NullRange);
             
-            
-            //Release the VBOs so OpenGL can play with them
             m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
-            
             m_queue.finish();
         }
         catch(cl::Error &error)
@@ -252,6 +248,15 @@ public:
         {
             LOG_ERROR << error.what() << "(" << error.err() << ")";
         }
+        //Scene setup
+        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 800));
+        m_free_camera->setPosition(glm::vec3(0, 550, 0));
+        m_free_camera->setLookAt(glm::vec3(0), glm::vec3(0,0,-1));
+        gl::MeshPtr camMesh = gl::createFrustumMesh(m_free_camera);
+        scene().addObject(camMesh);
+        
+        // FBO
+        m_fbo = gl::Fbo(640, 360);
         
         // load state from config file
         try
@@ -278,13 +283,15 @@ public:
     void draw()
     {
         gl::setMatrices(camera());
-        if(draw_grid()) gl::drawGrid(200, 200);
+        if(draw_grid()) gl::drawGrid(1200, 1200);
         scene().render(camera());
         
         //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
         
         if(displayTweakBar())
         {
+            m_textures[1] = render_to_texture(scene(), m_free_camera);
+            
             // draw opencv maps
             float w = (windowSize()/8.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);
@@ -298,19 +305,18 @@ public:
                                offset);
                 offset += step;
             }
-            
-            // draw fps string
-            gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
-                           vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 115, windowSize().y - 30));
         }
+        // draw fps string
+        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       glm::vec2(windowSize().x - 115, windowSize().y - 30));
     }
     
     void updateProperty(const Property::ConstPtr &theProperty)
     {
         ViewerApp::updateProperty(theProperty);
         
-        // one of our porperties was changed
+        // one of our properties has changed
         if(theProperty == m_texturePath)
         {
             try
@@ -320,8 +326,6 @@ public:
                 // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
                 m_cl_image = cl::Image2DGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                            m_textures[0].getId());
-                
-                
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
             catch (std::exception &e){LOG_WARNING << e.what();}
@@ -330,6 +334,18 @@ public:
         {
             m_mesh->material()->setDiffuse(*m_point_color);
         }
+    }
+    
+    gl::Texture render_to_texture(const gl::Scene &theScene, const gl::CameraPtr theCam)
+    {
+        //FBO render
+        m_fbo.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, m_fbo.getWidth(), m_fbo.getHeight());
+        theScene.render(theCam);
+        m_fbo.unbindFramebuffer();
+        glViewport(0, 0, getWidth(), getHeight());
+        return m_fbo.getTexture();
     }
 };
 
