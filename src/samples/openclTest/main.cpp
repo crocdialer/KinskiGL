@@ -1,8 +1,18 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiGL/Fbo.h"
 
+// OpenCL
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
+
+// OpenNI
+#include <XnOpenNI.h>
+#include <XnCodecIDs.h>
+#include <XnCppWrapper.h>
+#include <XnPropNames.h>
+
+//Syphon
+#include "SyphonConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -36,6 +46,10 @@ private:
     // perspective experiment
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::Fbo m_fbo;
+    
+    // output via Syphon
+    gl::SyphonConnector m_syphon;
+    Property_<bool>::Ptr m_use_syphon;
     
     void initOpenCL()
     {
@@ -182,10 +196,12 @@ public:
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
         registerProperty(m_point_color);
         
+        m_use_syphon = Property_<bool>::create("Use syphon", false);
+        registerProperty(m_use_syphon);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
-        glEnable(GL_POINT_FADE_THRESHOLD_SIZE);
         m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
         m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
@@ -258,6 +274,9 @@ public:
         // FBO
         m_fbo = gl::Fbo(640, 360);
         
+        // syphon
+        m_syphon = gl::SyphonConnector("poodackel");
+        
         // load state from config file
         try
         {
@@ -288,10 +307,21 @@ public:
         
         //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
         
+        m_textures[1] = render_to_texture(scene(), m_free_camera);
+        
+        if(*m_use_syphon)
+        {
+            // not working in OpenGL 3.2
+            //m_syphon.publish_texture(m_textures[0]);
+            
+            m_syphon.publish_framebuffer(m_fbo);
+            
+            // syphon messes with the viewport -> restore
+            glViewport(0, 0, getWidth(), getHeight());
+        }
+        
         if(displayTweakBar())
         {
-            m_textures[1] = render_to_texture(scene(), m_free_camera);
-            
             // draw opencv maps
             float w = (windowSize()/8.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);

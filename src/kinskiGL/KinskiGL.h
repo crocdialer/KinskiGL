@@ -72,6 +72,7 @@ namespace kinski { namespace gl {
     class Buffer;
     class Texture;
     class Shader;
+    class Fbo;
     class Font;
     struct Ray;
     struct AABB;

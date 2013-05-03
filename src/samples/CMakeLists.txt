@@ -1,6 +1,6 @@
 function(addSample theName thePath)
 
-    FILE(GLOB FOLDER_SOURCES "${thePath}/*.c*")
+    FILE(GLOB FOLDER_SOURCES "${thePath}/*.c*" "${thePath}/*.mm")
     FILE(GLOB FOLDER_HEADERS "${thePath}/*.h*")
 
     FILE(GLOB_RECURSE resFiles "${thePath}/res/*")
