@@ -178,7 +178,7 @@ namespace kinski {
                     
                 } catch (PropertyNotFoundException &myException)
                 {
-                    LOG_WARNING << myException.getMessage();
+                    LOG_WARNING << myException.what();
                 }
             }
         }

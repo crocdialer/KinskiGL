@@ -215,11 +215,11 @@ void Texture::update(const void *data,
         m_Obj->m_Width = theWidth;
         m_Obj->m_Height = theHeight;
         setFlipped(flipped);
-        
+        Format f;
         if(dataType == GL_UNSIGNED_BYTE)
-            init((unsigned char*)data, format, Format());
+            init((unsigned char*)data, format, f);
         else if(dataType == GL_FLOAT)
-            init((float*) data, format, Format());
+            init((float*) data, format, f);
             
     }
 }
@@ -278,7 +278,7 @@ void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
     
 glm::mat4 Texture::getTextureMatrix() const 
 {
-    glm::mat4 ret = m_textureMatrix;//TODO: see if this can be optimized
+    glm::mat4 ret = m_textureMatrix;
     if(m_Obj->m_Flipped)
     {
         static glm::mat4 flipY = glm::mat4(glm::vec4(1, 0, 0, 1),

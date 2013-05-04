@@ -69,6 +69,7 @@ class KINSKI_API Shader
     void bindFragDataLocation(const std::string &fragLoc);
     
 	GLint getUniformLocation( const std::string &name );
+    GLint getUniformBlockIndex( const std::string &name );
 	GLint getAttribLocation( const std::string &name ) const;
 
 	std::string getShaderLog( GLuint handle ) const;

@@ -21,11 +21,10 @@ struct Buffer::Obj
     
     ~Obj()
     {
-        if( ( buffer_id > 0 ) && ( ! doNotDispose ) )
+        if(buffer_id && (!doNotDispose))
         {
             glDeleteBuffers(1, &buffer_id);
         }
-        
     };
     
     GLuint buffer_id;
@@ -33,15 +32,8 @@ struct Buffer::Obj
     GLenum usage;
     GLsizei numBytes;
     GLsizei stride;
-    
     bool doNotDispose;
-    
 };
-    
-Buffer::Buffer()
-{
-
-}
     
 Buffer::Buffer(GLenum target, GLenum usage)
 {
@@ -55,10 +47,7 @@ Buffer::Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage)
     setData(theVec);
 }
     
-Buffer::~Buffer()
-{
-    
-}
+Buffer::~Buffer(){}
 
 void Buffer::init(GLenum target, GLenum usage)
 {

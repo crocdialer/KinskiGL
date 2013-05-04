@@ -17,15 +17,8 @@ namespace kinski
     class KINSKI_API Exception : public std::runtime_error
     {
     public:
-        explicit Exception(const std::string &msg): std::runtime_error(msg),
-        m_message(msg){};
-        
+        explicit Exception(const std::string &msg): std::runtime_error(msg){};
         virtual ~Exception() throw(){};
-        
-        inline std::string getMessage(){ return m_message; };
-        
-    private:
-        std::string m_message;
     };
     
 } // namespace kinski

@@ -45,6 +45,7 @@ private:
     
     // perspective experiment
     gl::PerspectiveCamera::Ptr m_free_camera;
+    gl::MeshPtr m_free_camera_mesh;
     gl::Fbo m_fbo;
     Property_<glm::vec2>::Ptr m_fbo_size;
     
@@ -281,8 +282,8 @@ public:
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 800));
         m_free_camera->setPosition(glm::vec3(0, 550, 0));
         m_free_camera->setLookAt(glm::vec3(0), glm::vec3(0,0,-1));
-        gl::MeshPtr camMesh = gl::createFrustumMesh(m_free_camera);
-        scene().addObject(camMesh);
+        m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
+        scene().addObject(m_free_camera_mesh);
         
         // FBO
         m_fbo = gl::Fbo(640, 360);
@@ -386,13 +387,16 @@ public:
         else if(theProperty == m_fbo_size)
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
+            scene().removeObject(m_free_camera_mesh);
+            m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
+            m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
+            scene().addObject(m_free_camera_mesh);
         }
     }
     
     gl::Texture render_to_texture(const gl::Scene &theScene, const gl::CameraPtr theCam)
     {
-        glm::vec2 window_size = gl::windowDimension();
-        
+        gl::SaveViewPort sv;
         gl::setWindowDimension(m_fbo.getSize());
         
         //FBO render
@@ -400,9 +404,6 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         theScene.render(theCam);
         m_fbo.unbindFramebuffer();
-        
-        gl::setWindowDimension(window_size);
-        
         return m_fbo.getTexture();
     }
 };

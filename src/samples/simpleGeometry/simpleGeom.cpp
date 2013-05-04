@@ -108,8 +108,9 @@ public:
         //m_textures[2] = m_font.glyph_texture();
 
         gl::Geometry::Ptr myBox(gl::createBox(glm::vec3(50.f)));//(gl::createSphere(100, 36));
-        gl::MaterialPtr mat(new gl::Material);
+        gl::MaterialPtr mat = gl::Material::create();
         materials().push_back(mat);
+        GLint bla = mat->shader().getUniformBlockIndex("Material");
         
         try
         {

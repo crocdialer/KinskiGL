@@ -47,7 +47,7 @@ namespace kinski{ namespace gl{
         NSSize size = NSMakeSize(theTexture.getWidth(), theTexture.getHeight());
         
         // not working with OpenGL 3.2
-        // using the gl3 branch of this fork helped
+        // using the gl3 branch of this fork helped: git://github.com/GameClay/syphon-framework.git
         [m_obj->m_syphon_server publishFrameTexture:theTexture.getId()
                                 textureTarget:theTexture.getTarget()
                                 imageRegion:rect
@@ -58,6 +58,12 @@ namespace kinski{ namespace gl{
     {
         if(!m_obj) throw SyphonNotRunningException();
         [m_obj->m_syphon_server setName:[NSString stringWithUTF8String:theName.c_str()]];
+    }
+    
+    std::string SyphonConnector::getName()
+    {
+        if(!m_obj) throw SyphonNotRunningException();
+        return [m_obj->m_syphon_server.name UTF8String];
     }
     
 }}//namespace

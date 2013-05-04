@@ -25,7 +25,7 @@ class KINSKI_API Buffer
     
  public:
     
-    Buffer();
+    Buffer(){};
     Buffer(GLenum target, GLenum usage);
     
     template <class T>

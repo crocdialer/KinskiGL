@@ -16,10 +16,10 @@ namespace kinski { namespace gl {
     Material::Material(const Shader &theShader, const UniformMap &theUniforms):
     m_shader(theShader),
     m_uniforms(theUniforms),
-    m_diffuse(glm::vec4(1)),
-    m_ambient(glm::vec4(0)),
-    m_specular(glm::vec4(1)),
-    m_emission(glm::vec4(0)),
+    m_diffuse(Color(1)),
+    m_ambient(Color(0)),
+    m_specular(Color(1)),
+    m_emission(Color(0)),
     m_shinyness(10.0f),
     m_polygonMode(GL_FRONT),
     m_twoSided(false),
@@ -27,7 +27,7 @@ namespace kinski { namespace gl {
     m_depthTest(true),
     m_depthWrite(true),
     m_blending(false), m_blendSrc(GL_SRC_ALPHA), m_blendDst(GL_ONE_MINUS_SRC_ALPHA),
-    m_pointSize(0.f)
+    m_pointSize(1.f)
     {
         m_uniforms["u_material.diffuse"] = m_diffuse;
         m_uniforms["u_material.ambient"] = m_ambient;
@@ -37,25 +37,25 @@ namespace kinski { namespace gl {
         m_shader = theShader? theShader : gl::createShader(gl::SHADER_UNLIT);
     }
 
-    void Material::setDiffuse(const glm::vec4 &theColor)
+    void Material::setDiffuse(const Color &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_uniforms["u_material.diffuse"] = m_diffuse;
     }
     
-    void Material::setAmbient(const glm::vec4 &theColor)
+    void Material::setAmbient(const Color &theColor)
     {
         m_ambient = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_uniforms["u_material.ambient"] = m_ambient;
     }
     
-    void Material::setSpecular(const glm::vec4 &theColor)
+    void Material::setSpecular(const Color &theColor)
     {
         m_specular = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_uniforms["u_material.specular"] = m_specular;
     }
     
-    void Material::setEmission(const glm::vec4 &theColor)
+    void Material::setEmission(const Color &theColor)
     {
         m_emission = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_uniforms["u_material.emmission"] = m_emission;

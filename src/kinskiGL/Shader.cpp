@@ -307,7 +307,16 @@ GLint Shader::getUniformLocation( const std::string &name )
 	else
 		return uniformIt->second;
 }
-
+    
+GLint Shader::getUniformBlockIndex( const std::string &name )
+{
+    GLint ret = -1;
+#ifndef KINSKI_GLES
+    ret = glGetUniformBlockIndex(m_Obj->m_Handle, name.c_str());
+#endif
+    return ret;
+}
+    
 GLint Shader::getAttribLocation( const std::string &name ) const
 {
 	return glGetAttribLocation( m_Obj->m_Handle, name.c_str() );

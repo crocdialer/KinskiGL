@@ -25,10 +25,10 @@ namespace kinski { namespace gl {
         typedef std::shared_ptr<const Material> ConstPtr;
         typedef std::weak_ptr<Material> WeakPtr;
         
-        typedef boost::variant<GLint, GLfloat, double, glm::vec2, glm::vec3, glm::vec4,
+        typedef boost::variant<GLint, GLfloat, double, glm::vec2, glm::vec3, Color,
         glm::mat3, glm::mat4,
         std::vector<GLint>, std::vector<GLfloat>,
-        std::vector<glm::vec2>, std::vector<glm::vec3>, std::vector<glm::vec4>,
+        std::vector<glm::vec2>, std::vector<glm::vec3>, std::vector<Color>,
         std::vector<glm::mat3>, std::vector<glm::mat4> > UniformValue;
         
         typedef std::map<std::string, UniformValue> UniformMap;
@@ -72,16 +72,16 @@ namespace kinski { namespace gl {
         bool depthWrite() const { return m_depthWrite; };
         float pointSize() const { return m_pointSize; };
         
-        const glm::vec4& diffuse() const { return m_diffuse; };
-        const glm::vec4& ambient() const { return m_ambient; };
-        const glm::vec4& specular() const { return m_specular; };
-        const glm::vec4& emission() const { return m_emission; };
+        const Color& diffuse() const { return m_diffuse; };
+        const Color& ambient() const { return m_ambient; };
+        const Color& specular() const { return m_specular; };
+        const Color& emission() const { return m_emission; };
         const float shinyness() const { return m_shinyness; };
         
-        void setDiffuse(const glm::vec4 &theColor);
-        void setAmbient(const glm::vec4 &theColor);
-        void setSpecular(const glm::vec4 &theColor);
-        void setEmission(const glm::vec4 &theColor);
+        void setDiffuse(const Color &theColor);
+        void setAmbient(const Color &theColor);
+        void setSpecular(const Color &theColor);
+        void setEmission(const Color &theColor);
         void setShinyness(float s);
         void setPointSize(float sz){ m_pointSize = sz; };
         
@@ -92,10 +92,10 @@ namespace kinski { namespace gl {
         
         std::vector<Texture> m_textures;
         
-        glm::vec4 m_diffuse;
-        glm::vec4 m_ambient;
-        glm::vec4 m_specular;
-        glm::vec4 m_emission;
+        Color m_diffuse;
+        Color m_ambient;
+        Color m_specular;
+        Color m_emission;
         float m_shinyness;
         
         GLenum m_polygonMode;

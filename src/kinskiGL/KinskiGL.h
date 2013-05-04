@@ -80,6 +80,7 @@ namespace kinski { namespace gl {
     struct Sphere;
     struct Frustum;
     
+    typedef glm::vec4 Color;
     typedef std::shared_ptr<class Material> MaterialPtr;
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;
@@ -175,13 +176,24 @@ namespace kinski { namespace gl {
     KINSKI_API const std::set<std::string>& getExtensions();
     KINSKI_API bool isExtensionSupported(const std::string &theName);
     
-    //! Convenience class which pushes and pops the currently bound framebuffer
-    struct SaveFramebufferBinding
+    //! Convenience class which pushes and pops the current viewport dimension
+    class SaveViewPort
     {
+     public:
+        SaveViewPort(){m_old_value = windowDimension();}
+        ~SaveViewPort(){setWindowDimension(m_old_value);}
+     private:
+        glm::vec2 m_old_value;
+    };
+    
+    //! Convenience class which pushes and pops the currently bound framebuffer
+    class SaveFramebufferBinding
+    {
+     public:
         SaveFramebufferBinding();
         ~SaveFramebufferBinding();
-    private:
-        GLint		m_old_value;
+     private:
+        GLint m_old_value;
     };
 
     #if KINSKI_GL_REPORT_ERRORS

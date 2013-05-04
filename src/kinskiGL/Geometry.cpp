@@ -158,7 +158,6 @@ namespace kinski{ namespace gl{
                 *buf_ptr = glm::vec4(*it, 1.f);
             }
             m_vertexBuffer.unmap();
-            
             KINSKI_CHECK_GL_ERRORS();
         }
         
@@ -208,11 +207,9 @@ namespace kinski{ namespace gl{
         if(hasIndices())
         {
             // index buffer
-            m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW);
-            
+            m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
             m_indexBuffer.setData(NULL, m_indices.size() * sizeof(index_type));
             KINSKI_CHECK_GL_ERRORS();
-            
             index_type *indexPtr = (index_type*) m_indexBuffer.map();
             KINSKI_CHECK_GL_ERRORS();
             
