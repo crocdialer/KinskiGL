@@ -94,7 +94,7 @@ class KINSKI_API Fbo
 	//! Returns the height of the FBO in pixels
 	int				getHeight() const { return mObj->mHeight; }
 	//! Returns the size of the FBO in pixels
-    glm::ivec2  getSize() const { return glm::ivec2( mObj->mWidth, mObj->mHeight ); }
+    glm::vec2  getSize() const { return glm::vec2( mObj->mWidth, mObj->mHeight ); }
     
 	//! Returns the bounding area of the FBO in pixels
 	//Area			getBounds() const { return Area( 0, 0, mObj->mWidth, mObj->mHeight ); }
@@ -133,8 +133,9 @@ class KINSKI_API Fbo
 //	void		blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT ) const;
 //	//! Copies to the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
 //	void		blitToScreen( const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT ) const;
-//	//! Copies from the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-//	void		blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT );
+
+    //! Copies from the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
+    //    void blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT );
 #endif
 
 	//! Returns the maximum number of samples the graphics card is capable of using per pixel in MSAA for an Fbo

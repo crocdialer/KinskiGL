@@ -102,6 +102,17 @@ namespace kinski
                        AntTweakBarConnector::getString,
                        (void*)myPProp, defString.c_str());
         }
+        else if (theProperty->isOfType<vec2>())
+        {
+            TwAddVarCB(theTweakBar, (myPropName + "_X").c_str(), TW_TYPE_FLOAT,
+                       AntTweakBarConnector::setVec2_X,
+                       AntTweakBarConnector::getVec2_X,
+                       (void*)myPProp, defString.c_str());
+            TwAddVarCB(theTweakBar, (myPropName + "_Y").c_str(), TW_TYPE_FLOAT,
+                       AntTweakBarConnector::setVec2_Y,
+                       AntTweakBarConnector::getVec2_Y,
+                       (void*)myPProp, defString.c_str());
+        }
         else if (theProperty->isOfType<vec3>()) 
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_DIR3F, 
@@ -189,6 +200,31 @@ namespace kinski
     
     /**************************************************************************/
     
+    void TW_CALL AntTweakBarConnector::getVec2_X(void *value, void *clientData)
+    {
+        Property_<vec2> *theProperty = (Property_<vec2>*) clientData;
+        *(float*)value = theProperty->value()[0];
+    }
+    
+    void TW_CALL AntTweakBarConnector::setVec2_X(const void *value, void *clientData)
+    {
+        Property_<vec2> *theProperty = (Property_<vec2>*) clientData;
+        const float *v = (float*) value;
+        theProperty->set(vec2(v[0], theProperty->value().y));
+    }
+    
+    void TW_CALL AntTweakBarConnector::getVec2_Y(void *value, void *clientData)
+    {
+        Property_<vec2> *theProperty = (Property_<vec2>*) clientData;
+        *(float*)value = theProperty->value()[1];
+    }
+    
+    void TW_CALL AntTweakBarConnector::setVec2_Y(const void *value, void *clientData)
+    {
+        Property_<vec2> *theProperty = (Property_<vec2>*) clientData;
+        const float *v = (float*) value;
+        theProperty->set(vec2(theProperty->value().x, *v));
+    }
     
     void TW_CALL 
     AntTweakBarConnector::getVec3(void *value, void *clientData) 

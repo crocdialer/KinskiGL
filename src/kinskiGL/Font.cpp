@@ -31,12 +31,11 @@ namespace kinski { namespace gl {
             if ( y1 != other.y1 ) return y1 < other.y1;
             if ( x2 != other.x2 ) return x2 < other.x2;
             if ( y2 != other.y2 ) return y2 < other.y2;
-            
             return false;
         }
         
-        uint32_t width() const { return x2 - x1; };
-        uint32_t height() const { return y2 - y1; };
+        inline uint32_t width() const { return x2 - x1; };
+        inline uint32_t height() const { return y2 - y1; };
     };
     
     struct MiniMat

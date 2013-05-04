@@ -25,39 +25,29 @@ namespace kinski{ namespace gl{
         ~Obj()
         {
             [m_syphon_server stop];
-            //[m_syphon_server release];
-            [m_syphon_server dealloc];
+            [m_syphon_server release];
+            //[m_syphon_server dealloc];
         }
     };
     
-    SyphonConnector::SyphonConnector()
-    {
-    
-    }
-    
-    SyphonConnector::SyphonConnector(const std::string &theName)
-    {
-        setName(theName);
-    }
+    SyphonConnector::SyphonConnector(const std::string &theName):m_obj(new Obj(theName)){}
     
     void SyphonConnector::publish_framebuffer(const Fbo &theFbo)
     {
-        if(!m_obj) throw Exception("no Syphon server running");
-        
+        if(!m_obj) throw SyphonNotRunningException();
         NSRect rect = NSMakeRect(0, 0, theFbo.getWidth(), theFbo.getHeight());
         NSSize size = NSMakeSize(theFbo.getWidth(), theFbo.getHeight());
-        
         [m_obj->m_syphon_server publishFramebuffer:theFbo.getId() imageRegion:rect textureDimensions:size];
     }
     
     void SyphonConnector::publish_texture(const Texture &theTexture)
     {
-        if(!m_obj) throw Exception("no Syphon server running");
-        
+        if(!m_obj) throw SyphonNotRunningException();
         NSRect rect = NSMakeRect(0, 0, theTexture.getWidth(), theTexture.getHeight());
         NSSize size = NSMakeSize(theTexture.getWidth(), theTexture.getHeight());
         
         // not working with OpenGL 3.2
+        // using the gl3 branch of this fork helped
         [m_obj->m_syphon_server publishFrameTexture:theTexture.getId()
                                 textureTarget:theTexture.getTarget()
                                 imageRegion:rect
@@ -66,11 +56,8 @@ namespace kinski{ namespace gl{
     
     void SyphonConnector::setName(const std::string &theName)
     {
-        if(!m_obj){ m_obj = ObjPtr(new Obj(theName));}
-        else
-        {
-            [m_obj->m_syphon_server setName:[NSString stringWithUTF8String:theName.c_str()]];
-        }
+        if(!m_obj) throw SyphonNotRunningException();
+        [m_obj->m_syphon_server setName:[NSString stringWithUTF8String:theName.c_str()]];
     }
     
 }}//namespace

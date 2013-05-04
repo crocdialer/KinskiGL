@@ -37,10 +37,14 @@ namespace kinski { namespace gl {
         bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
     };
     
+///////////////////////////////////////////////////////////////////////////////
+    
     static glm::vec2 g_windowDim;
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
     static std::map<std::string, string_mesh_container> g_string_mesh_map;
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void pushMatrix(const Matrixtype type)
     {
@@ -58,6 +62,8 @@ namespace kinski { namespace gl {
         }
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void popMatrix(const Matrixtype type)
     {
         switch (type)
@@ -73,6 +79,8 @@ namespace kinski { namespace gl {
                 break;
         }
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void multMatrix(const Matrixtype type, const glm::mat4 &theMatrix)
     {
@@ -90,6 +98,8 @@ namespace kinski { namespace gl {
         }
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix)
     {
         switch (type)
@@ -105,6 +115,8 @@ namespace kinski { namespace gl {
                 break;
         }
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void getMatrix(const Matrixtype type, glm::mat4 &theMatrix)
     {
@@ -122,27 +134,38 @@ namespace kinski { namespace gl {
         }
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void setMatrices( const CameraPtr &cam )
     {
         setProjection(cam);
         setModelView(cam);
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void setModelView( const CameraPtr &cam )
     {
         loadMatrix(MODEL_VIEW_MATRIX, cam->getViewMatrix());
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void setProjection( const CameraPtr &cam )
     {
         loadMatrix(PROJECTION_MATRIX, cam->getProjectionMatrix());
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     const glm::vec2& windowDimension(){ return g_windowDim; }
-
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     void setWindowDimension(const glm::vec2 &theDim)
     {
         g_windowDim = theDim;
+        glViewport(0, 0, theDim.x, theDim.y);
         
         if(g_projectionMatrixStack.empty())
             g_projectionMatrixStack.push(mat4());
@@ -150,6 +173,8 @@ namespace kinski { namespace gl {
         if(g_modelViewMatrixStack.empty())
             g_modelViewMatrixStack.push(mat4());
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y)
     {
@@ -184,6 +209,8 @@ namespace kinski { namespace gl {
         return Ray(click_world_pos, click_world_pos - cam_pos);
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices)
     {
         AABB ret = AABB(glm::vec3(numeric_limits<float>::max()),
@@ -212,6 +239,8 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     gl::MeshPtr createFrustumMesh(const CameraPtr &cam)
     {
         glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
@@ -239,10 +268,14 @@ namespace kinski { namespace gl {
         return m;
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void clearColor(const glm::vec4 &theColor)
     {
         glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
     {
@@ -266,6 +299,8 @@ namespace kinski { namespace gl {
 #endif
         drawLines(thePoints, theColor);
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void drawLines(const vector<vec3> &thePoints, const vec4 &theColor)
     {
@@ -292,6 +327,8 @@ namespace kinski { namespace gl {
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void drawPoints(GLuint thePointVBO, GLsizei theCount, const MaterialPtr &theMaterial,
                     GLsizei stride, GLsizei offset)
@@ -347,6 +384,8 @@ namespace kinski { namespace gl {
         
         KINSKI_CHECK_GL_ERRORS();
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
     {
@@ -363,6 +402,8 @@ namespace kinski { namespace gl {
 
         drawPoints(pointVBO, thePoints.size(), theMaterial);
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawTexture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
@@ -391,6 +432,8 @@ namespace kinski { namespace gl {
         vec2 tl = vec2(theTopLeft.x, g_windowDim[1] - theTopLeft.y);
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawQuad(const gl::MaterialPtr &theMaterial,
                   const vec2 &theSize,
@@ -401,6 +444,7 @@ namespace kinski { namespace gl {
         drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1]);
     }
     
+///////////////////////////////////////////////////////////////////////////////
     
     void drawQuad(const gl::MaterialPtr &theMaterial,
                   float x0, float y0, float x1, float y1)
@@ -425,6 +469,8 @@ namespace kinski { namespace gl {
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
         drawMesh(quad_mesh);
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec4 &the_color,
                     const glm::vec2 &theTopLeft)
@@ -466,6 +512,8 @@ namespace kinski { namespace gl {
             }
         }
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawText3D(const std::string &theText, const gl::Font &theFont)
     {
@@ -487,6 +535,8 @@ namespace kinski { namespace gl {
             // g_string_mesh_map[theText] = m;
         }
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     void drawGrid(float width, float height, int numW, int numH)
     {
@@ -543,6 +593,8 @@ namespace kinski { namespace gl {
         drawMesh(theMap[conf]);
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     void drawAxes(const MeshWeakPtr &weakMesh)
     {
         static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
@@ -592,6 +644,8 @@ namespace kinski { namespace gl {
                 theMap.erase(meshIt);
         }
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawMesh(const MeshPtr &theMesh)
     {
@@ -669,6 +723,8 @@ namespace kinski { namespace gl {
     
         KINSKI_CHECK_GL_ERRORS();
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawBoundingBox(const MeshWeakPtr &weakMesh)
     {
@@ -746,6 +802,8 @@ namespace kinski { namespace gl {
         }
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     void drawNormals(const MeshWeakPtr &theMesh)
     {
         static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
@@ -788,6 +846,8 @@ namespace kinski { namespace gl {
                 theMap.erase(meshIt);
         }
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void apply_material(const MaterialPtr &the_mat, bool force_apply)
     {
@@ -887,6 +947,8 @@ namespace kinski { namespace gl {
         weak_last = the_mat;
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     const std::set<std::string>& getExtensions()
     {
         static std::set<std::string> s_extensions;
@@ -903,10 +965,25 @@ namespace kinski { namespace gl {
         }
         return s_extensions;
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     bool isExtensionSupported(const std::string &theName)
     {
         return getExtensions().find(theName) != getExtensions().end();
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    // SaveFramebufferBinding
+    SaveFramebufferBinding::SaveFramebufferBinding()
+    {
+        glGetIntegerv( GL_ENUM(GL_FRAMEBUFFER_BINDING), &m_old_value );
+    }
+    
+    SaveFramebufferBinding::~SaveFramebufferBinding()
+    {
+        glBindFramebuffer( GL_ENUM(GL_FRAMEBUFFER), m_old_value );
     }
     
 }}//namespace

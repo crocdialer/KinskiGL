@@ -174,6 +174,15 @@ namespace kinski { namespace gl {
     
     KINSKI_API const std::set<std::string>& getExtensions();
     KINSKI_API bool isExtensionSupported(const std::string &theName);
+    
+    //! Convenience class which pushes and pops the currently bound framebuffer
+    struct SaveFramebufferBinding
+    {
+        SaveFramebufferBinding();
+        ~SaveFramebufferBinding();
+    private:
+        GLint		m_old_value;
+    };
 
     #if KINSKI_GL_REPORT_ERRORS
     #define KINSKI_CHECK_GL_ERRORS()\

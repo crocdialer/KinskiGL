@@ -40,6 +40,12 @@ private:
     static void TW_CALL getString(void *value, void *clientData);
     static void TW_CALL setString(const void *value, void *clientData);
     
+    static void TW_CALL getVec2_X(void *value, void *clientData);
+    static void TW_CALL setVec2_X(const void *value, void *clientData);
+    
+    static void TW_CALL getVec2_Y(void *value, void *clientData);
+    static void TW_CALL setVec2_Y(const void *value, void *clientData);
+    
     static void TW_CALL getVec3(void *value, void *clientData);
     static void TW_CALL setVec3(const void *value, void *clientData);
     

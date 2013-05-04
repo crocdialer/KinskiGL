@@ -16,7 +16,7 @@
 
 namespace kinski{ namespace gl{
     
-    struct Face3
+    struct KINSKI_API Face3
     {
         Face3(){};
         Face3(uint32_t theA, uint32_t theB, uint32_t theC):
@@ -31,7 +31,7 @@ namespace kinski{ namespace gl{
     };
     
     // each vertex can reference up to 4 bones
-    struct BoneVertexData
+    struct KINSKI_API BoneVertexData
     {
         glm::ivec4 indices;
         glm::vec4 weights;

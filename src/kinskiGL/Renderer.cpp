@@ -63,9 +63,14 @@ namespace kinski{ namespace gl{
             try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
             catch(const WrongVertexArrayDefinedException &e)
             {
-                LOG_DEBUG<<e.what();
                 m->createVertexArray();
-                GL_SUFFIX(glBindVertexArray)(m->vertexArray());
+                try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
+                catch(std::exception &e)
+                {
+                    // should not arrive here
+                    LOG_ERROR<<e.what();
+                    return;
+                }
             }
 #else
             m->bindVertexPointers();

@@ -12,6 +12,8 @@ IF (NOT BUILD_SHARED_LIBS)
   SET (LIB_TYPE STATIC)
 ENDIF (NOT BUILD_SHARED_LIBS)
 
+OPTION (BUILD_TESTS "Build Tests" ON)
+
 ##### BOOST
 set(Boost_USE_STATIC_LIBS ON)
 set(BOOST_COMPONENTS thread system timer chrono filesystem)

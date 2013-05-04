@@ -41,15 +41,18 @@ private:
     cl::Kernel m_particleKernel, m_imageKernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen;
     cl::BufferGL m_positions, m_colors;
-    cl::Image2DGL m_cl_image;
+    cl::ImageGL m_cl_image;
     
     // perspective experiment
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::Fbo m_fbo;
+    Property_<glm::vec2>::Ptr m_fbo_size;
     
     // output via Syphon
     gl::SyphonConnector m_syphon;
+    Property_<bool>::Ptr m_debug_draw;
     Property_<bool>::Ptr m_use_syphon;
+    Property_<std::string>::Ptr m_syphon_server_name;
     
     void initOpenCL()
     {
@@ -187,6 +190,7 @@ public:
     {
         ViewerApp::setup();
         kinski::addSearchPath("/Library/Fonts");
+        kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Pictures");
         m_font.load("Courier New Bold.ttf", 30);
         
@@ -196,8 +200,17 @@ public:
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
         registerProperty(m_point_color);
         
-        m_use_syphon = Property_<bool>::create("Use syphon", false);
+        m_debug_draw = Property_<bool>::create("Enable debug drawing", true);
+        registerProperty(m_debug_draw);
+        
+        m_use_syphon = Property_<bool>::create("Output to Syphon", false);
         registerProperty(m_use_syphon);
+        
+        m_syphon_server_name = Property_<std::string>::create("Syphon server name", "Poodackel");
+        registerProperty(m_syphon_server_name);
+        
+        m_fbo_size = Property_<glm::vec2>::create("FBO size", vec2(640, 360));
+        registerProperty(m_fbo_size);
         
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
@@ -275,7 +288,7 @@ public:
         m_fbo = gl::Fbo(640, 360);
         
         // syphon
-        m_syphon = gl::SyphonConnector("poodackel");
+        m_syphon = gl::SyphonConnector(*m_syphon_server_name);
         
         // load state from config file
         try
@@ -301,23 +314,20 @@ public:
     
     void draw()
     {
-        gl::setMatrices(camera());
-        if(draw_grid()) gl::drawGrid(1200, 1200);
-        scene().render(camera());
-        
-        //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
+        if(*m_debug_draw)
+        {
+            gl::setMatrices(camera());
+            if(draw_grid()) gl::drawGrid(1200, 1200);
+            scene().render(camera());
+            //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
+        }
         
         m_textures[1] = render_to_texture(scene(), m_free_camera);
         
         if(*m_use_syphon)
         {
-            // not working in OpenGL 3.2
-            //m_syphon.publish_texture(m_textures[0]);
-            
-            m_syphon.publish_framebuffer(m_fbo);
-            
-            // syphon messes with the viewport -> restore
-            glViewport(0, 0, getWidth(), getHeight());
+            m_syphon.publish_texture(m_textures[1]);
+            //m_syphon.publish_framebuffer(m_fbo);
         }
         
         if(displayTweakBar())
@@ -354,7 +364,7 @@ public:
                 m_textures[0] = gl::createTextureFromFile(*m_texturePath);
                 
                 // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
-                m_cl_image = cl::Image2DGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                            m_textures[0].getId());
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
@@ -364,17 +374,35 @@ public:
         {
             m_mesh->material()->setDiffuse(*m_point_color);
         }
+        else if(theProperty == m_use_syphon)
+        {
+            //TODO: narrow down cause of error here
+            //m_syphon = *m_use_syphon ? gl::SyphonConnector(*m_syphon_server_name) : gl::SyphonConnector();
+        }
+        else if(theProperty == m_syphon_server_name)
+        {
+            m_syphon.setName(*m_syphon_server_name);
+        }
+        else if(theProperty == m_fbo_size)
+        {
+            m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
+        }
     }
     
     gl::Texture render_to_texture(const gl::Scene &theScene, const gl::CameraPtr theCam)
     {
+        glm::vec2 window_size = gl::windowDimension();
+        
+        gl::setWindowDimension(m_fbo.getSize());
+        
         //FBO render
         m_fbo.bindFramebuffer();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, m_fbo.getWidth(), m_fbo.getHeight());
         theScene.render(theCam);
         m_fbo.unbindFramebuffer();
-        glViewport(0, 0, getWidth(), getHeight());
+        
+        gl::setWindowDimension(window_size);
+        
         return m_fbo.getTexture();
     }
 };
