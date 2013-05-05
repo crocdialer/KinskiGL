@@ -17,7 +17,10 @@ namespace kinski{ namespace gl{
     class OpenNIConnector : public kinski::Component
     {
     public:
+        typedef std::shared_ptr<OpenNIConnector> Ptr;
+        
         OpenNIConnector();
+        void update();
         void updateProperty(const Property::ConstPtr &theProperty);
         
     private:

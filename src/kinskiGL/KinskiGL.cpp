@@ -270,7 +270,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void clearColor(const glm::vec4 &theColor)
+    void clearColor(const Color &theColor)
     {
         glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);
     }

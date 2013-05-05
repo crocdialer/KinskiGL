@@ -110,7 +110,6 @@ public:
         gl::Geometry::Ptr myBox(gl::createBox(glm::vec3(50.f)));//(gl::createSphere(100, 36));
         gl::MaterialPtr mat = gl::Material::create();
         materials().push_back(mat);
-        GLint bla = mat->shader().getUniformBlockIndex("Material");
         
         try
         {
@@ -134,6 +133,9 @@ public:
         gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");
         kafka_mesh->setPosition(kafka_mesh->position() - kafka_mesh->boundingBox().center());
         //scene().addObject(kafka_mesh);
+        
+        // clear with transparent black
+        gl::clearColor(gl::Color(0));
         
         // load state from config file
         try
@@ -168,46 +170,50 @@ public:
     
     void draw()
     {
-//        m_frameBuffer.bindFramebuffer();
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
-        
-        //background
-        gl::drawTexture(m_textures[0], windowSize());
-        gl::setMatrices(camera());
-        
-        if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }
-        
-        gl::drawSolidCircle(windowSize() / 2.f, 320.f);
-        
-        scene().render(camera());
-        
-        if(selected_mesh())
+        // draw block
         {
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * selected_mesh()->transform());
-            gl::drawAxes(selected_mesh());
-            gl::drawBoundingBox(selected_mesh());
-            if(normals()) gl::drawNormals(selected_mesh());
-
-//            gl::drawPoints(selected_mesh()->geometry()->vertexBuffer().id(),
-//                           selected_mesh()->geometry()->vertices().size());
+            gl::SaveFramebufferBinding fb; gl::SaveViewPort vp;
             
-            if(selected_mesh()->geometry()->hasBones())
+            m_frameBuffer.bindFramebuffer();
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            gl::setWindowDimension(m_frameBuffer.getSize());
+            
+            //background
+            //gl::drawTexture(m_textures[0], windowSize());
+            gl::setMatrices(camera());
+            
+            if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
+            
+            //gl::drawSolidCircle(windowSize() / 2.f, 320.f);
+            
+            scene().render(camera());
+            
+            if(selected_mesh())
             {
-                vector<vec3> points;
-                buildSkeleton(selected_mesh()->rootBone(), points);
-                gl::drawPoints(points);
-                gl::drawLines(points, vec4(1, 0, 0, 1));
+                gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * selected_mesh()->transform());
+                gl::drawAxes(selected_mesh());
+                gl::drawBoundingBox(selected_mesh());
+                if(normals()) gl::drawNormals(selected_mesh());
+                
+                //            gl::drawPoints(selected_mesh()->geometry()->vertexBuffer().id(),
+                //                           selected_mesh()->geometry()->vertices().size());
+                
+                if(selected_mesh()->geometry()->hasBones())
+                {
+                    vector<vec3> points;
+                    buildSkeleton(selected_mesh()->rootBone(), points);
+                    gl::drawPoints(points);
+                    gl::drawLines(points, vec4(1, 0, 0, 1));
+                }
+                // Label
+                gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
+                m_label->setRotation(glm::mat3(camera()->transform()));
+                gl::drawMesh(m_label);
             }
-            // Label
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
-            m_label->setRotation(glm::mat3(camera()->transform()));
-            gl::drawMesh(m_label);
-        }
+        }// FBO block
         
-//        m_frameBuffer.unbindFramebuffer();
-//        glViewport(0, 0, getWidth(), getHeight());
-//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
+        gl::drawTexture(m_textures[0], windowSize());
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
         
         // draw texture map(s)
         if(displayTweakBar())

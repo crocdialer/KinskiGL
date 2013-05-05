@@ -123,7 +123,7 @@ namespace kinski { namespace gl {
     
     /********************************* Drawing Functions *****************************************/
     
-    KINSKI_API void clearColor(const glm::vec4 &theColor);
+    KINSKI_API void clearColor(const Color &theColor);
     KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
     KINSKI_API void drawPoints(GLuint thePointVBO, GLsizei theCount,

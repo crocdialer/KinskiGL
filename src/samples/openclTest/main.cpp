@@ -315,6 +315,8 @@ public:
     void update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
+        
+        m_open_ni->update();
         updateParticles(timeDelta);
         setColors();
     }
