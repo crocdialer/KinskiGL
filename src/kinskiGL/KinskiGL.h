@@ -18,7 +18,6 @@
 //triggers checks with glGetError()
 #define KINSKI_GL_REPORT_ERRORS 0
 
-
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
 #endif
@@ -148,6 +147,9 @@ namespace kinski { namespace gl {
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
     KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
+    KINSKI_API void drawSolidCircle(const glm::vec2 &center, float radius,
+                                    const MaterialPtr &theMaterial = MaterialPtr(),
+                                    int numSegments = 0 );
 
     /*********************************** lazy state changing **********************************/
     

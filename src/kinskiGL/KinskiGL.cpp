@@ -525,10 +525,21 @@ namespace kinski { namespace gl {
         gl::MeshPtr m = item.mesh;
         drawMesh(m);
         
-        if(g_string_mesh_map.size() > STRING_MESH_BUFFER_SIZE)
+        // free the less frequent used half of our buffered string-meshes
+        if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)
         {
+            std::list<string_mesh_container> tmp_list;
+            std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
+            for (; it != g_string_mesh_map.end(); ++it){tmp_list.push_back(it->second);}
+            tmp_list.sort();
+            
+            std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
             g_string_mesh_map.clear();
-            // g_string_mesh_map[theText] = m;
+            
+            for (int i = 0; i < tmp_list.size() / 2; i++, ++list_it)
+            {
+                g_string_mesh_map[list_it->text] = *list_it;
+            }
         }
     }
     
@@ -734,8 +745,8 @@ namespace kinski { namespace gl {
             
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
-            gl::MaterialPtr mat(new gl::Material);
-            MeshPtr line_mesh (gl::Mesh::create(geom, mat));
+            gl::MaterialPtr mat = gl::Material::create();
+            MeshPtr line_mesh = gl::Mesh::create(geom, mat);
             AABB bb = m->boundingBox();
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
@@ -841,6 +852,31 @@ namespace kinski { namespace gl {
             if(! meshIt->first.lock() )
                 theMap.erase(meshIt);
         }
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    void drawSolidCircle(const glm::vec2 &center, float radius, const MaterialPtr &theMaterial,
+                         int numSegments)
+    {
+        static gl::MeshPtr circle_mesh;
+        static gl::MaterialPtr default_mat;
+        
+        if(!circle_mesh)
+        {
+            GeometryPtr geom = createSolidUnitCircle(64);
+            default_mat = gl::Material::create();
+            circle_mesh = gl::Mesh::create(geom, default_mat);
+        }
+        circle_mesh->material() = theMaterial ? theMaterial : default_mat;
+        mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
+        mat4 modelView = glm::scale(mat4(), vec3(radius));
+        modelView[3].xyz() = vec3(center, 0);
+        
+        ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
+        loadMatrix(PROJECTION_MATRIX, projectionMatrix);
+        loadMatrix(MODEL_VIEW_MATRIX, modelView);
+        drawMesh(circle_mesh);
     }
 
 ///////////////////////////////////////////////////////////////////////////////

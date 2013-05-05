@@ -178,6 +178,8 @@ public:
         
         if(draw_grid()){ gl::drawGrid(500, 500, 100, 100); }
         
+        gl::drawSolidCircle(windowSize() / 2.f, 320.f);
+        
         scene().render(camera());
         
         if(selected_mesh())

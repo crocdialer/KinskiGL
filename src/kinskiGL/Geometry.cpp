@@ -284,6 +284,33 @@ namespace kinski{ namespace gl{
         return geom;
     }
     
+    GeometryPtr createSolidUnitCircle(int numSegments)
+    {
+        GeometryPtr ret = Geometry::create();
+        ret->setPrimitiveType(GL_TRIANGLE_FAN);
+        std::vector<glm::vec3> &verts = ret->vertices();
+        std::vector<glm::vec2> &texCoords = ret->texCoords();
+        
+        // automatically determine the number of segments from the circumference
+//        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
+//        numSegments = std::max(numSegments, 2);
+        verts.resize((numSegments+2));
+        texCoords.resize((numSegments+2));
+        verts[0] = glm::vec3(0);
+        texCoords[0] = glm::vec2(.5f);
+        
+        for( int s = 0; s <= numSegments; s++ )
+        {
+            float t = s / (float)numSegments * 2.0f * M_PI;
+            verts[s + 1] = glm::vec3(glm::vec2(cos(t), sin(t)), 0);
+            texCoords[s + 1] = (glm::vec2(verts[s +1]) + glm::vec2(1)) / 2.f;
+        }
+        ret->computeVertexNormals();
+        ret->computeTangents();
+        ret->computeBoundingBox();
+        return ret;
+    }
+    
     Geometry::Ptr createBox(const glm::vec3 &theHalfExtents)
     {
         GeometryPtr geom = Geometry::create();

@@ -272,7 +272,6 @@ namespace kinski { namespace gl {
                 // quaternion interpolation produces glitches
                 //            glm::quat interpolRot = glm::mix(key1.value, key2.value, frac);
                 //            rotation = glm::mat4_cast(interpolRot);
-                
                 glm::mat4 rot1 = glm::mat4_cast(key1.value), rot2 = glm::mat4_cast(key2.value);
                 rotation = rot1 + frac * (rot2 - rot1);
             }
@@ -306,11 +305,9 @@ namespace kinski { namespace gl {
                     scaleMatrix = glm::scale(scaleMatrix, scale);
                 }
             }
-            
             if(boneHasKeys)
                 boneTransform = translation * rotation * scaleMatrix;
         }
-        
         bone->worldtransform = parentTransform * boneTransform;
         
         // add final transform
@@ -354,6 +351,12 @@ namespace kinski { namespace gl {
     void Mesh::setTangentLocationName(const std::string &theName)
     {
         m_tangentLocationName = theName;
+        createVertexArray();
+    }
+    
+    void Mesh::setPointSizeLocationName(const std::string &theName)
+    {
+        m_pointSizeLocationName = theName;
         createVertexArray();
     }
     

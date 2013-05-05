@@ -6,10 +6,7 @@
 #include "cl.hpp"
 
 // OpenNI
-#include <XnOpenNI.h>
-#include <XnCodecIDs.h>
-#include <XnCppWrapper.h>
-#include <XnPropNames.h>
+#include "OpenNIConnector.h"
 
 //Syphon
 #include "SyphonConnector.h"
@@ -54,6 +51,9 @@ private:
     Property_<bool>::Ptr m_debug_draw;
     Property_<bool>::Ptr m_use_syphon;
     Property_<std::string>::Ptr m_syphon_server_name;
+    
+    // OpenNI interface
+    gl::OpenNIConnector::Ptr m_open_ni;
     
     void initOpenCL()
     {
@@ -291,6 +291,11 @@ public:
         // syphon
         m_syphon = gl::SyphonConnector(*m_syphon_server_name);
         
+        // OpenNI
+        m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
+        m_open_ni->observeProperties();
+        create_tweakbar_from_component(m_open_ni);
+        
         // load state from config file
         try
         {
@@ -387,8 +392,8 @@ public:
         else if(theProperty == m_fbo_size)
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
-            scene().removeObject(m_free_camera_mesh);
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
+            scene().removeObject(m_free_camera_mesh);
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
             scene().addObject(m_free_camera_mesh);
         }
@@ -396,14 +401,12 @@ public:
     
     gl::Texture render_to_texture(const gl::Scene &theScene, const gl::CameraPtr theCam)
     {
-        gl::SaveViewPort sv;
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::setWindowDimension(m_fbo.getSize());
-        
-        //FBO render
         m_fbo.bindFramebuffer();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         theScene.render(theCam);
-        m_fbo.unbindFramebuffer();
         return m_fbo.getTexture();
     }
 };

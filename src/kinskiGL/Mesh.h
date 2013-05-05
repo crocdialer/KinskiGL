@@ -127,6 +127,12 @@ namespace kinski { namespace gl {
         
         /*!
          * Set the name under which the attribute will be accessible in the shader.
+         * Defaults to "a_pointSize"
+         */
+        void setPointSizeLocationName(const std::string &theName);
+        
+        /*!
+         * Set the name under which the attribute will be accessible in the shader.
          * Defaults to "a_texCoord"
          */
         void setTexCoordLocationName(const std::string &theName);

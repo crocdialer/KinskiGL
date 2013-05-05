@@ -96,5 +96,12 @@ class MessagePort
 #define LOG_ERROR KINSKI_LOG_CHECK(kinski::SEV_ERROR, __FILE__ ,__LINE__)
 #define LOG_WARNING KINSKI_LOG_CHECK(kinski::SEV_WARNING, __FILE__ ,__LINE__)
 
+#define LOG_INFO_IF(b) b && LOG_INFO
+#define LOG_TRACE_IF(b) b && LOG_TRACE
+#define LOG_DEBUG_IF(b) b && LOG_DEBUG
+#define LOG_PRINT_IF(b) b && LOG_PRINT
+#define LOG_ERROR_IF(b) b && LOG_ERROR
+#define LOG_WARNING_IF(b) b && LOG_WARNING
+
 }//namespace
 #endif

@@ -208,13 +208,12 @@ namespace kinski{ namespace gl{
         bool m_needsUpdate;
     };
     
-    GeometryPtr createPlane(float width, float height,
+    KINSKI_API GeometryPtr createPlane(float width, float height,
                             uint32_t numSegments_W = 1,
                             uint32_t numSegments_H = 1);
-    
-    GeometryPtr createBox(const glm::vec3 &theHalfExtents);
-    
-    GeometryPtr createSphere(float radius, int numSlices);
+    KINSKI_API GeometryPtr createSolidUnitCircle(int numSegments);
+    KINSKI_API GeometryPtr createBox(const glm::vec3 &theHalfExtents);
+    KINSKI_API GeometryPtr createSphere(float radius, int numSlices);
     
 }//gl
 }//kinski

@@ -51,7 +51,8 @@ namespace kinski
             std::vector<string>::const_iterator it = m_map_names->value().begin();
             for (; it != m_map_names->value().end(); ++it)
             {
-                bool mip_map = true, compression = true, anisoptropic_filter = 16.f;
+                bool mip_map = true, compression = true;
+                float anisoptropic_filter = 16.f;
                 m_textures.push_back(gl::createTextureFromFile(*it, mip_map, compression,
                                                                anisoptropic_filter));
                 mat->addTexture(m_textures.back());
