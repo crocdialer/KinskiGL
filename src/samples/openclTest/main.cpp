@@ -300,6 +300,7 @@ public:
         try
         {
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
         }catch(Exception &e)
         {
             LOG_WARNING << e.what();
@@ -408,6 +409,18 @@ public:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         theScene.render(theCam);
         return m_fbo.getTexture();
+    }
+    
+    void keyPress(const KeyEvent &e)
+    {
+        ViewerApp::keyPress(e);
+        
+        switch(e.getChar())
+        {
+            case KeyEvent::KEY_s:
+                Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
+                break;
+        }
     }
 };
 
