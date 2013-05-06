@@ -24,7 +24,7 @@ private:
     gl::Texture m_textures[4];
     gl::Material::Ptr m_pointMaterial;
     gl::GeometryPtr m_geom;
-    gl::MeshPtr m_mesh;
+    gl::MeshPtr m_particle_mesh;
     gl::Font m_font;
     
     //OpenCL standard stuff
@@ -45,6 +45,9 @@ private:
     gl::MeshPtr m_free_camera_mesh;
     gl::Fbo m_fbo;
     Property_<glm::vec2>::Ptr m_fbo_size;
+    RangedProperty<float>::Ptr m_fbo_cam_distance;
+    gl::MeshPtr m_user_mesh;
+    std::vector<gl::Color> m_user_id_colors;
     
     // output via Syphon
     gl::SyphonConnector m_syphon;
@@ -54,9 +57,8 @@ private:
     
     // OpenNI interface
     gl::OpenNIConnector::Ptr m_open_ni;
-    
-    std::list<gl::MeshPtr> m_user_meshes;
-    
+    gl::OpenNIConnector::UserList m_user_list;
+
     void initOpenCL()
     {
         // OpenCL
@@ -215,20 +217,21 @@ public:
         m_fbo_size = Property_<glm::vec2>::create("FBO size", vec2(640, 360));
         registerProperty(m_fbo_size);
         
+        m_fbo_cam_distance = RangedProperty<float>::create("FBO cam distance", 550.f, 0, 5000);
+        registerProperty(m_fbo_cam_distance);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
+        // Particle system
         m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
         m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
-        //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
-        //m_pointMaterial->setBlending();
-        //m_pointMaterial->setDepthWrite(false);
-        
         m_geom = gl::Geometry::create();
         m_geom->setPrimitiveType(GL_POINTS);
-        m_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
-        
+        m_particle_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
+        m_particle_mesh->transform() *= glm::rotate(glm::mat4(), 90.f, glm::vec3(1, 0, 0));
+        m_particle_mesh->transform()[3].y = 300;
         initOpenCL();
         
         m_numParticles = 100000;
@@ -239,8 +242,8 @@ public:
         m_geom->point_sizes().resize(m_numParticles, 9.f);
         m_geom->createGLBuffers();
         
-        m_mesh->material()->setPointSize(2.f);
-        scene().addObject(m_mesh);
+        m_particle_mesh->material()->setPointSize(2.f);
+        scene().addObject(m_particle_mesh);
         try
         {
             // shared position buffer for OpenGL / OpenCL
@@ -257,13 +260,17 @@ public:
             vector<vec4> posGen, velGen;
             for (int i = 0; i < m_numParticles; i++)
             {
-                posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
-                vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
-                float life = kinski::random(2.f, 5.f);
-                float yVel = kinski::random<float>(5, 15);
-                velGen.push_back(vec4(tmp.x, yVel, tmp.y, life));
+                vec3 pos = glm::ballRand(20.0f);
+                posGen.push_back( vec4(pos, 1.f) );
+                //vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
+                vec3 vel = glm::vec3(random(-100.f, 100.f), random(0.f, 4.f), random(-30.f, 30.f));
+                float life = kinski::random(2.f, 15.f);
+                velGen.push_back(vec4(vel, life));
                 m_geom->point_sizes()[i] = kinski::random(5.f, 15.f);
+                m_geom->vertices()[i] = pos;
             }
+            m_geom->vertices()[0] = vec3(-1000); m_geom->vertices()[1] = vec3(1000);
+            m_geom->computeBoundingBox();
             m_geom->createGLBuffers();
             
             m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
@@ -281,9 +288,11 @@ public:
             LOG_ERROR << error.what() << "(" << error.err() << ")";
         }
         //Scene setup
+        camera()->setClippingPlanes(.1f, 7500.f);
+        
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 800));
-        m_free_camera->setPosition(glm::vec3(0, 550, 0));
-        m_free_camera->setLookAt(glm::vec3(0), glm::vec3(0,0,-1));
+        m_free_camera->setPosition( m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
+        m_free_camera->setLookAt(m_particle_mesh->position(), glm::vec3(0, 1, 0));
         m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
         scene().addObject(m_free_camera_mesh);
         
@@ -297,6 +306,11 @@ public:
         m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
         m_open_ni->observeProperties();
         create_tweakbar_from_component(m_open_ni);
+        
+        // random user colors
+        m_user_id_colors.resize(50);
+        for (int i= 0; i < m_user_id_colors.size(); ++i)
+        {m_user_id_colors[i] = gl::Color(random(0.f, 1.f), .2f, random(0.f, 1.f), 1.f);}
         
         // load state from config file
         try
@@ -321,6 +335,8 @@ public:
         ViewerApp::update(timeDelta);
         updateParticles(timeDelta);
         setColors();
+        
+        m_user_list = m_open_ni->get_user_positions();
     }
     
     void draw()
@@ -328,8 +344,9 @@ public:
         if(*m_debug_draw)
         {
             gl::setMatrices(camera());
-            if(draw_grid()) gl::drawGrid(1200, 1200);
+            if(draw_grid()) gl::drawGrid(3600, 3600);
             scene().render(camera());
+            draw_user_meshes(m_user_list);
             //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
         }
         
@@ -376,14 +393,14 @@ public:
                 
                 // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
                 m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
-                                           m_textures[0].getId());
+                                         m_textures[0].getId());
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
             catch (std::exception &e){LOG_WARNING << e.what();}
         }
         else if(theProperty == m_point_color)
         {
-            m_mesh->material()->setDiffuse(*m_point_color);
+            m_particle_mesh->material()->setDiffuse(*m_point_color);
         }
         else if(theProperty == m_use_syphon)
         {
@@ -394,10 +411,11 @@ public:
         {
             m_syphon.setName(*m_syphon_server_name);
         }
-        else if(theProperty == m_fbo_size)
+        else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance)
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
+            m_free_camera->setPosition(m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
             scene().removeObject(m_free_camera_mesh);
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
             scene().addObject(m_free_camera_mesh);
@@ -415,6 +433,29 @@ public:
         return m_fbo.getTexture();
     }
     
+    void draw_user_meshes(const gl::OpenNIConnector::UserList &user_list)
+    {
+        if(!m_user_mesh)
+        {
+            m_user_mesh = gl::Mesh::create(gl::createSolidUnitCircle(64), gl::Material::create());
+            m_user_mesh->material()->setTwoSided();
+            //m_user_mesh->material()->setDepthTest(false);
+            m_user_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
+            m_user_mesh->transform() *= glm::scale(glm::mat4(), glm::vec3(100));
+            m_user_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
+        }
+        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
+        gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
+        for (; it != user_list.end(); ++it)
+        {
+            m_user_mesh->setPosition(it->second);
+            m_user_mesh->transform()[3].y = 5;
+            m_user_mesh->material()->setDiffuse(m_user_id_colors[it->first]);
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
+            gl::drawMesh(m_user_mesh);
+        }
+    }
+    
     void keyPress(const KeyEvent &e)
     {
         ViewerApp::keyPress(e);
@@ -423,6 +464,9 @@ public:
         {
             case KeyEvent::KEY_s:
                 Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
+                break;
+            case KeyEvent::KEY_r:
+                Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
                 break;
         }
     }

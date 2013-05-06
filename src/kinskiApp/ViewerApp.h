@@ -76,6 +76,7 @@ namespace kinski {
         gl::Scene& scene() { return m_scene; };
         bool precise_selection() const { return m_precise_selection; };
         void set_precise_selection(bool b){ m_precise_selection = b; };
+        void set_camera(const gl::PerspectiveCamera::Ptr &theCam){m_camera = theCam;};
         
     private:
         std::vector<gl::MaterialPtr> m_materials;

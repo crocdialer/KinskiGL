@@ -19,6 +19,7 @@ namespace kinski{ namespace gl{
     {
     public:
         typedef std::shared_ptr<OpenNIConnector> Ptr;
+        typedef std::list<std::pair<uint32_t, glm::vec3> > UserList;
         
         OpenNIConnector();
         ~OpenNIConnector();
@@ -31,7 +32,7 @@ namespace kinski{ namespace gl{
         //! thread runs here, do not fiddle around
         void operator()();
         
-        std::list<std::pair<uint32_t, glm::vec3> > get_user_positions() const;
+        UserList get_user_positions() const;
         
     private:
         

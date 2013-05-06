@@ -51,7 +51,7 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
 //    v.xyz += f * dt;
     
     //TODO: implement
-    v.y -= 2.f * dt;
+    //v.y -= 2.f * dt;
     
     //update the position with the new velocity
     p.xyz += v.xyz * dt;
