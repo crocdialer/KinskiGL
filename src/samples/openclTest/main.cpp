@@ -55,6 +55,8 @@ private:
     // OpenNI interface
     gl::OpenNIConnector::Ptr m_open_ni;
     
+    std::list<gl::MeshPtr> m_user_meshes;
+    
     void initOpenCL()
     {
         // OpenCL
@@ -309,14 +311,14 @@ public:
     
     void tearDown()
     {
+        LOG_DEBUG<<"waiting for OpenNI to shut down";
+        m_open_ni->stop();
         LOG_INFO<<"ciao openclTest";
     }
     
     void update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
-        
-        m_open_ni->update();
         updateParticles(timeDelta);
         setColors();
     }
