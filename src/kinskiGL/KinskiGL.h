@@ -124,8 +124,8 @@ namespace kinski { namespace gl {
     /********************************* Drawing Functions *****************************************/
     
     KINSKI_API void clearColor(const Color &theColor);
-    KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b, const glm::vec4 &theColor = glm::vec4(1));
-    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor);
+    KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b, const Color &theColor = Color(1));
+    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const Color &theColor);
     KINSKI_API void drawPoints(GLuint thePointVBO, GLsizei theCount,
                                const MaterialPtr &theMaterial = std::shared_ptr<Material>(),
                                GLsizei stride = 0,
@@ -139,7 +139,7 @@ namespace kinski { namespace gl {
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial,
                              float x0, float y0, float x1, float y1);
     KINSKI_API void drawText2D(const std::string &theText, const gl::Font &theFont,
-                               const glm::vec4 &the_color = glm::vec4(1),
+                               const Color &the_color = glm::vec4(1),
                                const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawText3D(const std::string &theText, const gl::Font &theFont);
     KINSKI_API void drawMesh(const MeshPtr &theMesh);

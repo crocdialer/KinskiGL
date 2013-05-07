@@ -3,9 +3,9 @@ struct Ball
     float3 position;
 };
 
-inline float3 create_force(float3 pos, float3 pos_particle)
+inline float3 create_radial_force(float3 pos, float3 pos_particle)
 {
-    float strength = 100000.0;
+    float strength = 10000000.0;
     float3 dir = pos_particle - pos;
     float dist2 = dot(dir, dir);
     dir = normalize(dir);
@@ -18,12 +18,13 @@ __kernel void set_colors_from_image(image2d_t image, __global float3* pos, __glo
     int w = get_image_width(image);
     int h = get_image_height(image);
     
-    int2 coords = {pos[i].x + w/2, pos[i].z + h/2};
+    int2 coords = {pos[i].x + w/2, -pos[i].y + h/2};
     color[i] = read_imagef(image, coords);
 }
 
 __kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
-                    __global float4* pos_gen, __global float4* vel_gen, float dt)
+                              __global float4* pos_gen, __global float4* vel_gen, float dt,
+                              __global float3* user_positions, int num_users)
 {
     //get our index in the array
     size_t i = get_global_id(0);
@@ -46,19 +47,24 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
         life = vel_gen[i].w;
     }
     
+    float3 cumulative_force = (float3)(0, 0, 0);
     //apply forces
-//    float3 f = create_force((float3)(50, 0, 50), p);
-//    v.xyz += f * dt;
+    for(int j = 0; j < num_users; ++j)
+    {
+        cumulative_force += - create_radial_force(user_positions[j], p);
+    }
+    
+    v.xyz += cumulative_force * dt;
     
     //TODO: implement
     //v.y -= 2.f * dt;
     
     //update the position with the new velocity
-    p.xyz += v.xyz * dt;
-    //if(p.y < 0) p.y = 0;
-    
+    p += v.xyz * dt;
+
     //apply contraints
     //TODO: implement
+    if(p.z < -10.0) p.z = -10.0;
     
     //store the updated life in the velocity array
     v.w = life;

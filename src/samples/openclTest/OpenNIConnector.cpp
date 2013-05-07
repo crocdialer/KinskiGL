@@ -276,8 +276,11 @@ namespace kinski{ namespace gl{
                 {
                     m_obj->m_userGenerator.GetCoM(user_ids[i], user_center);
                     glm::vec3 p = glm::make_vec3((float*)&user_center);
-                    m_user_list.push_back(make_pair(user_ids[i], p));
-                    //LOG_DEBUG<<"User "<<user_ids[i]<<" :"<<glm::to_string(p);
+                    // zombie filter
+                    if(p != glm::vec3(0))
+                    {
+                        m_user_list.push_back(make_pair(user_ids[i], p));
+                    }
                 }
             }
         }

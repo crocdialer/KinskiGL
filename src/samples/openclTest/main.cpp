@@ -36,7 +36,7 @@ private:
     // particle system related
     GLsizei m_numParticles;
     cl::Kernel m_particleKernel, m_imageKernel;
-    cl::Buffer m_velocities, m_positionGen, m_velocityGen;
+    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_user_positions;
     cl::BufferGL m_positions, m_colors;
     cl::ImageGL m_cl_image;
     
@@ -129,6 +129,21 @@ private:
     {
         try
         {
+            if(!m_user_list.empty())
+            {
+                mat4 inverse_model_mat = glm::inverse(m_particle_mesh->transform());
+                std::vector<vec4> positions_vector;
+                gl::OpenNIConnector::UserList::const_iterator it = m_user_list.begin();
+                for(;it != m_user_list.end();++it)
+                {
+                    positions_vector.push_back(inverse_model_mat * vec4(it->second, 1.f));
+                }
+                
+                m_queue.enqueueWriteBuffer(m_user_positions, CL_TRUE, 0,
+                                           positions_vector.size() * sizeof(vec4), &positions_vector[0]);
+            }
+            m_particleKernel.setArg(7, m_user_list.size());
+            
             vector<cl::Memory> glBuffers;
             glBuffers.push_back(m_positions);
             glBuffers.push_back(m_colors);
@@ -230,7 +245,6 @@ public:
         m_geom = gl::Geometry::create();
         m_geom->setPrimitiveType(GL_POINTS);
         m_particle_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
-        m_particle_mesh->transform() *= glm::rotate(glm::mat4(), 90.f, glm::vec3(1, 0, 0));
         m_particle_mesh->transform()[3].y = 300;
         initOpenCL();
         
@@ -251,10 +265,10 @@ public:
             m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
             
             //create the OpenCL only arrays
-            m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_positionGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_velocityGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            
+            m_velocities = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_user_positions = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, 200 * sizeof(vec4));
             srand(clock());
             
             vector<vec4> posGen, velGen;
@@ -263,11 +277,10 @@ public:
                 vec3 pos = glm::ballRand(20.0f);
                 posGen.push_back( vec4(pos, 1.f) );
                 //vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
-                vec3 vel = glm::vec3(random(-100.f, 100.f), random(0.f, 4.f), random(-30.f, 30.f));
-                float life = kinski::random(2.f, 15.f);
+                vec3 vel = glm::vec3(random(-100.f, 100.f),random(-28.f, 28.f), random(0.f, 4.f));
+                float life = kinski::random(5.f, 18.f);
                 velGen.push_back(vec4(vel, life));
                 m_geom->point_sizes()[i] = kinski::random(5.f, 15.f);
-                m_geom->vertices()[i] = pos;
             }
             m_geom->vertices()[0] = vec3(-1000); m_geom->vertices()[1] = vec3(1000);
             m_geom->computeBoundingBox();
@@ -282,6 +295,9 @@ public:
             m_particleKernel.setArg(2, m_velocities);
             m_particleKernel.setArg(3, m_positionGen);
             m_particleKernel.setArg(4, m_velocityGen);
+            m_particleKernel.setArg(5, 0.0f);
+            m_particleKernel.setArg(6, m_user_positions);
+            m_particleKernel.setArg(7, 0);
         }
         catch(cl::Error &error)
         {
@@ -333,10 +349,9 @@ public:
     void update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
+        m_user_list = m_open_ni->get_user_positions();
         updateParticles(timeDelta);
         setColors();
-        
-        m_user_list = m_open_ni->get_user_positions();
     }
     
     void draw()
@@ -361,7 +376,7 @@ public:
         if(displayTweakBar())
         {
             // draw opencv maps
-            float w = (windowSize()/8.f).x;
+            float w = (windowSize()/6.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);
             for(int i = 0;i < 2;i++)
             {
@@ -376,7 +391,7 @@ public:
         }
         // draw fps string
         gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
-                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       gl::Color(vec3(1) - clear_color().xyz(), 1.f),
                        glm::vec2(windowSize().x - 115, windowSize().y - 30));
     }
     

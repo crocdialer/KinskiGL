@@ -277,7 +277,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLine(const vec2 &a, const vec2 &b, const vec4 &theColor)
+    void drawLine(const vec2 &a, const vec2 &b, const Color &theColor)
     {
         static vector<vec3> thePoints;
         thePoints.clear();
@@ -468,7 +468,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawText2D(const std::string &theText, const gl::Font &theFont, const glm::vec4 &the_color,
+    void drawText2D(const std::string &theText, const gl::Font &theFont, const Color &the_color,
                     const glm::vec2 &theTopLeft)
     {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
