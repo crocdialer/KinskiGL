@@ -41,6 +41,7 @@ private:
     cl::ImageGL m_cl_image;
     
     // perspective experiment
+    gl::Scene m_debug_scene;
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::MeshPtr m_free_camera_mesh;
     gl::Fbo m_fbo;
@@ -147,6 +148,7 @@ private:
         
         m_particle_mesh->material()->setPointSize(2.f);
         scene().addObject(m_particle_mesh);
+        m_debug_scene.addObject(m_particle_mesh);
         try
         {
             // shared buffers for OpenGL / OpenCL
@@ -209,16 +211,19 @@ private:
             
             if(!m_user_list.empty())
             {
-                mat4 inverse_model_mat;// = glm::inverse(m_particle_mesh->transform());
                 std::vector<vec4> positions_vector;
-                gl::OpenNIConnector::UserList::const_iterator it = m_user_list.begin();
+                gl::OpenNIConnector::UserList::iterator it = m_user_list.begin();
                 for(;it != m_user_list.end();++it)
                 {
-                    positions_vector.push_back(inverse_model_mat * vec4(it->position, 1.f));
+                    positions_vector.push_back(vec4(it->position, 1.f));
                 }
                 
+//                m_queue.enqueueWriteBuffer(m_user_positions, CL_TRUE, 0,
+//                                           m_user_list.size() * sizeof(m_user_list[0]), &m_user_list[0]);
+                
                 m_queue.enqueueWriteBuffer(m_user_positions, CL_TRUE, 0,
-                                           positions_vector.size() * sizeof(vec4), &positions_vector[0]);
+                                           positions_vector.size() * sizeof(positions_vector[0]),
+                                           &positions_vector[0]);
             }
             m_particleKernel.setArg(7, m_user_list.size());
 
@@ -315,7 +320,7 @@ public:
         m_free_camera->setPosition( m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
         m_free_camera->setLookAt(m_particle_mesh->position(), glm::vec3(0, 1, 0));
         m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
-        scene().addObject(m_free_camera_mesh);
+        m_debug_scene.addObject(m_free_camera_mesh);
         
         // FBO
         m_fbo = gl::Fbo(640, 360);
@@ -329,7 +334,11 @@ public:
         create_tweakbar_from_component(m_open_ni);
         
         // the camera used to calibrate depth camera input
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 58.f));
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 2 * 45.f, 100.f, 1200.f));
+        m_depth_cam->setTransform(glm::rotate(mat4(), 180.f, vec3(0, 1, 0)));
+        m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
+        m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
+        m_debug_scene.addObject(m_depth_cam_mesh);
         
         // random user colors
         m_user_id_colors.resize(50);
@@ -360,6 +369,17 @@ public:
         
         // query user positions from OpenNI
         m_user_list = m_open_ni->get_user_positions();
+        
+        // calibrate camera: bring positions to world-coords
+        mat4 inverse_depth_cam_mat;// = glm::inverse(m_depth_cam->transform());
+        mat4 inverse_model_mat;// = glm::inverse(m_particle_mesh->transform());
+        
+        gl::OpenNIConnector::UserList::iterator it = m_user_list.begin();
+        for(;it != m_user_list.end();++it)
+        {
+            vec4 flipped_pos (it->position, 1.f);// flipped_pos.xy() = (-1.f) * vec2(flipped_pos.xy());
+            it->position = (inverse_model_mat * inverse_depth_cam_mat * flipped_pos).xyz();
+        }
         
         // OpenCL updates
         try
@@ -392,7 +412,7 @@ public:
         {
             gl::setMatrices(camera());
             if(draw_grid()) gl::drawGrid(3600, 3600);
-            scene().render(camera());
+            m_debug_scene.render(camera());
             draw_user_meshes(m_user_list);
             //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
         }
@@ -465,13 +485,14 @@ public:
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
             m_free_camera->setPosition(m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
-            scene().removeObject(m_free_camera_mesh);
+            m_debug_scene.removeObject(m_free_camera_mesh);
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
-            scene().addObject(m_free_camera_mesh);
+            m_debug_scene.addObject(m_free_camera_mesh);
         }
         else if(theProperty == m_numParticles)
         {
             scene().removeObject(m_particle_mesh);
+            m_debug_scene.removeObject(m_particle_mesh);
             initParticles(*m_numParticles);
         }
     }

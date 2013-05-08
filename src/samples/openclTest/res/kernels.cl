@@ -1,8 +1,8 @@
-//struct User
-//{
-//    unsigned int id;
-//    float3 position;
-//};
+typedef struct User
+{
+    unsigned int id;
+    float3 position;
+} User;// 16 byte aligned
 
 inline float4 jet(float val)
 {
@@ -33,7 +33,7 @@ __kernel void set_colors_from_image(image2d_t image, __global const float3* pos,
 
 __kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
                               __global const float4* pos_gen, __global const float4* vel_gen, float dt,
-                              __global const float3* user_positions, int num_users)
+                              __constant float3* user_positions, int num_users)
 {
     //__local float values[GROUP_SIZE];
     
@@ -76,9 +76,16 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
             heat = (min_distance2 - dist2) / min_distance2;
             user_color = jet(heat);
         }
+        
+        if(i == 0)
+        {
+            //printf("user id: %d\n", users[j].id);
+            //printf("num_users: %d\n", num_users);
+            //printf("user position: %.2v3f\n", diff);
+        }
     }
 //    if(i == 0)
-//        printf("cumulative_force (%d): %2.2v3hlf\n", 0, cumulative_force);
+//        printf("num_users: %d\n", num_users);
     
     //apply forces
     v.xyz += cumulative_force * dt;
