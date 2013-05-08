@@ -38,7 +38,7 @@ private:
     cl::Kernel m_particleKernel, m_imageKernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
-    cl::ImageGL m_cl_image;
+    cl::ImageGL m_cl_image, m_cl_labels;
     
     // perspective experiment
     gl::Scene m_debug_scene;
@@ -139,8 +139,6 @@ private:
         m_particle_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
         m_particle_mesh->transform()[3].y = 300;
         
-        GLsizei numBytes = num_particles * sizeof(vec4);
-        
         m_geom->vertices().resize(num_particles, vec3(0));
         m_geom->colors().resize(num_particles, vec4(1));
         m_geom->point_sizes().resize(num_particles, 9.f);
@@ -157,9 +155,9 @@ private:
             m_point_sizes = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->pointSizeBuffer().id());
             
             //create the OpenCL only arrays
-            m_velocities = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_velocities = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(vec4) );
+            m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(vec4) );
+            m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(vec4) );
             m_pointsizeGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(float));
             m_user_positions = cl::Buffer(m_context, CL_MEM_WRITE_ONLY,
                                           200 * sizeof(gl::OpenNIConnector::User));
@@ -181,9 +179,9 @@ private:
             m_geom->computeBoundingBox();
             m_geom->createGLBuffers();
             
-            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
-            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
-            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, num_particles * sizeof(vec4), &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, num_particles * sizeof(vec4), &posGen[0]);
+            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_particles * sizeof(vec4), &velGen[0]);
             m_queue.enqueueWriteBuffer(m_pointsizeGen, CL_TRUE, 0, num_particles * sizeof(float),
                                        &m_geom->point_sizes()[0]);
             
@@ -231,7 +229,6 @@ private:
                                            &positions_vector[0]);
             }
             m_particleKernel.setArg(9, m_user_list.size());
-
             m_particleKernel.setArg(7, timeDelta); //pass in the timestep
             
             //execute the kernel
@@ -411,7 +408,7 @@ public:
     void draw()
     {
         // render the output image offscreen
-        m_textures[1] = render_to_texture(scene(), m_free_camera);
+        m_textures[2] = render_to_texture(scene(), m_free_camera);
         
         if(*m_debug_draw)
         {
@@ -423,7 +420,7 @@ public:
         }
         else
         {
-            gl::drawTexture(m_textures[1], windowSize());
+            gl::drawTexture(m_textures[2], windowSize());
         }
 
         if(*m_use_syphon)
@@ -437,7 +434,7 @@ public:
             // draw opencv maps
             float w = (windowSize()/6.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);
-            for(int i = 0;i < 2;i++)
+            for(int i = 0;i < 3;i++)
             {
                 float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
                 glm::vec2 step(0, h + 10);
@@ -464,10 +461,14 @@ public:
             try
             {
                 m_textures[0] = gl::createTextureFromFile(*m_texturePath);
+                m_textures[1] = gl::createTextureFromFile("~/Desktop/IMG_5189_labels.jpg");
                 
                 // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
                 m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                          m_textures[0].getId());
+                
+                m_cl_labels = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                                          m_textures[1].getId());
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
             catch (std::exception &e){LOG_WARNING << e.what();}

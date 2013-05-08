@@ -115,6 +115,6 @@ __kernel void updateParticles(__global float3* pos, // VBO
     pointSizes[i] = point_size;
 
     // mutate color
-//    float4 poo = user_color + (color[i] - user_color) * (1 - heat);
-//    color[i] = poo;
+    float4 poo = user_color + (color[i] - user_color) * (1 - heat);
+    color[i] = poo;
 }
