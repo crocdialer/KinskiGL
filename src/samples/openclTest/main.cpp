@@ -315,7 +315,7 @@ public:
         initParticles(10000);
         
         //Scene setup
-        camera()->setClippingPlanes(.1f, 7500.f);
+        camera()->setClippingPlanes(.1f, 10000.f);
         
         // the camera used for offscreen rendering
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 1500));
@@ -327,17 +327,15 @@ public:
         // FBO
         m_fbo = gl::Fbo(640, 360);
         
-        // syphon
-        //m_syphon = gl::SyphonConnector(*m_syphon_server_name);
-        
         // OpenNI
         m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
         m_open_ni->observeProperties();
         create_tweakbar_from_component(m_open_ni);
         
-        // the camera used to calibrate depth camera input
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 2 * 45.f, 100.f, 1200.f));
+        // the virtual camera used to position depth camera input within the scene
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 2 * 45.f, 100.f, 2200.f));
         m_depth_cam->setTransform(glm::rotate(mat4(), 180.f, vec3(0, 1, 0)));
+        //m_depth_cam->setPosition(vec3(0, 0, 1000));
         m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
         m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
         m_debug_scene.addObject(m_depth_cam_mesh);
@@ -369,17 +367,17 @@ public:
     {
         ViewerApp::update(timeDelta);
         
-        // query user positions from OpenNI
+        // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
         m_user_list = m_open_ni->get_user_positions();
         
         // calibrate camera: bring positions to world-coords
-        mat4 inverse_depth_cam_mat;// = glm::inverse(m_depth_cam->transform());
+        mat4 inverse_depth_cam_mat = glm::inverse(m_depth_cam->transform());
         mat4 inverse_model_mat;// = glm::inverse(m_particle_mesh->transform());
         
         gl::OpenNIConnector::UserList::iterator it = m_user_list.begin();
         for(;it != m_user_list.end();++it)
         {
-            vec4 flipped_pos (it->position, 1.f);// flipped_pos.xy() = (-1.f) * vec2(flipped_pos.xy());
+            vec4 flipped_pos (it->position, 1.f);flipped_pos.z *= - 1.0f;
             it->position = (inverse_model_mat * inverse_depth_cam_mat * flipped_pos).xyz();
         }
         
