@@ -4,6 +4,12 @@ typedef struct User
     float3 position;
 } User;// 16 byte aligned
 
+float4 gray(float4 color)
+{
+    float y_val = dot(color.xyz, (float3)(0.299, 0.587, 0.114));
+    return (float4)(y_val, y_val, y_val, color.w);
+}
+
 inline float4 jet(float val)
 {
     return (float4)(min(4.0 * val - 1.5, -4.0 * val + 4.5),
@@ -29,6 +35,39 @@ __kernel void set_colors_from_image(image2d_t image, __global const float3* pos,
     
     int2 coords = {pos[i].x + w/2, -pos[i].y + h/2};
     color[i] = read_imagef(image, coords);
+}
+
+__kernel void process_user_input(__global float3* positions,/*VBO*/
+                                 __global float4* colors,/*VBO*/
+                                 __global float* pointSizes /*VBO*/,
+                                 image2d_t label_image,
+                                 __constant float3* user_positions,
+                                 int num_users)
+{
+    size_t i = get_global_id(0);
+    float3 pos = positions[i];
+    float4 color = colors[i];
+    float point_size = pointSizes[i];
+    
+    float4 user_color = (float4)(1, 1, 1, 1);
+    float4 color_red = (float4)(1, 0, 0, 1);
+    float heat = 0;
+    
+    for(int j = 0; j < num_users; ++j)
+    {
+        //cumulative_force += create_radial_force(user_positions[j], p);
+        float3 diff = user_positions[j] - pos;
+        float dist2 = dot(diff, diff);
+        
+        float min_distance = 1400, min_distance2 = min_distance * min_distance;
+        if(dist2 < min_distance2)
+        {
+            //user_color = color_red;
+            heat = (min_distance2 - dist2) / min_distance2;
+            user_color = jet(heat);
+            point_size *= 1.0f + 3.0f * heat;
+        }
+    }
 }
 
 __kernel void updateParticles(__global float3* pos, // VBO

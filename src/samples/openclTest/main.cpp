@@ -279,7 +279,7 @@ public:
         ViewerApp::setup();
         kinski::addSearchPath("/Library/Fonts");
         kinski::addSearchPath("~/Desktop");
-        kinski::addSearchPath("~/Pictures");
+        kinski::addSearchPath("~/Desktop/particle_maps");
         m_font.load("Courier New Bold.ttf", 30);
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
@@ -328,7 +328,7 @@ public:
         m_fbo = gl::Fbo(640, 360);
         
         // syphon
-        m_syphon = gl::SyphonConnector(*m_syphon_server_name);
+        //m_syphon = gl::SyphonConnector(*m_syphon_server_name);
         
         // OpenNI
         m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
@@ -352,7 +352,7 @@ public:
         {
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
             Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
-        }catch(Exception &e)
+        }catch(FileNotFoundException &e)
         {
             LOG_WARNING << e.what();
         }
@@ -425,7 +425,7 @@ public:
 
         if(*m_use_syphon)
         {
-            m_syphon.publish_texture(m_textures[1]);
+            m_syphon.publish_texture(m_textures[2]);
             //m_syphon.publish_framebuffer(m_fbo);
         }
         
@@ -460,9 +460,13 @@ public:
         {
             try
             {
-                m_textures[0] = gl::createTextureFromFile(*m_texturePath);
-                m_textures[1] = gl::createTextureFromFile("~/Desktop/IMG_5189_labels.jpg");
+                std::string name = kinski::getFilenamePart(*m_texturePath);
+                std::string ext = kinski::getExtension(*m_texturePath);
+                std::string label_filename = name.substr(0, name.find(ext, 0)) + "_labels" + ext;
                 
+                m_textures[0] = gl::createTextureFromFile(*m_texturePath);
+                m_textures[1] = gl::createTextureFromFile(label_filename);
+
                 // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
                 m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                          m_textures[0].getId());
@@ -479,12 +483,12 @@ public:
         }
         else if(theProperty == m_use_syphon)
         {
-            //TODO: narrow down cause of error here
-            //m_syphon = *m_use_syphon ? gl::SyphonConnector(*m_syphon_server_name) : gl::SyphonConnector();
+            m_syphon = *m_use_syphon ? gl::SyphonConnector(*m_syphon_server_name) : gl::SyphonConnector();
         }
         else if(theProperty == m_syphon_server_name)
         {
-            m_syphon.setName(*m_syphon_server_name);
+            try{m_syphon.setName(*m_syphon_server_name);}
+            catch(gl::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
         }
         else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance)
         {
