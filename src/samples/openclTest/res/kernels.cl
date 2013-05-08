@@ -31,9 +31,16 @@ __kernel void set_colors_from_image(image2d_t image, __global const float3* pos,
     color[i] = read_imagef(image, coords);
 }
 
-__kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
-                              __global const float4* pos_gen, __global const float4* vel_gen, float dt,
-                              __constant float3* user_positions, int num_users)
+__kernel void updateParticles(__global float3* pos, // VBO
+                              __global float4* color, // VBO
+                              __global float* pointSizes, // VBO
+                              __global float4* vel,
+                              __global const float4* pos_gen,
+                              __global const float4* vel_gen,
+                              __global const float* pointSize_gen,
+                              float dt,
+                              __constant float3* user_positions,
+                              int num_users)
 {
     //__local float values[GROUP_SIZE];
     
@@ -44,6 +51,7 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     //copy to a local memory array to speed up memory access
     float3 p = pos[i];
     float4 v = vel[i];
+    float point_size = pointSize_gen[i];
     
     //we've stored the life in the fourth component of our velocity array
     float life = vel[i].w;
@@ -69,12 +77,13 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
         float3 diff = user_positions[j] - p;
         float dist2 = dot(diff, diff);
         
-        float min_distance = 1200, min_distance2 = min_distance * min_distance;
+        float min_distance = 1400, min_distance2 = min_distance * min_distance;
         if(dist2 < min_distance2)
         {
             //user_color = color_red;
             heat = (min_distance2 - dist2) / min_distance2;
             user_color = jet(heat);
+            point_size *= 1.0f + 3.0f * heat;
         }
         
         if(i == 0)
@@ -84,9 +93,6 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
             //printf("user position: %.2v3f\n", diff);
         }
     }
-//    if(i == 0)
-//        printf("num_users: %d\n", num_users);
-    
     //apply forces
     v.xyz += cumulative_force * dt;
     
@@ -106,10 +112,9 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     //update the arrays
     pos[i] = p;
     vel[i] = v;
-    
-    //you can manipulate the color based on properties of the system
-    //here we adjust the alpha
-    
-    //float4 poo = user_color + (color[i] - user_color) * (1 - heat);
-    color[i] *= user_color;
+    pointSizes[i] = point_size;
+
+    // mutate color
+//    float4 poo = user_color + (color[i] - user_color) * (1 - heat);
+//    color[i] = poo;
 }

@@ -15,6 +15,15 @@
 
 using namespace std;
 
+inline float raw_depth_to_meters(int raw_depth)
+{
+    if (raw_depth < 2047)
+    {
+        return 1.0 / (raw_depth * -0.0030711016 + 3.3309495161);
+    }
+    return 0;
+}
+
 namespace kinski{ namespace gl{
     
     struct OpenNIConnector::Obj

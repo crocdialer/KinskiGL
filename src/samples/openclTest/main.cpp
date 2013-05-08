@@ -36,7 +36,7 @@ private:
     // particle system related
     RangedProperty<int>::Ptr m_numParticles;
     cl::Kernel m_particleKernel, m_imageKernel;
-    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_user_positions;
+    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
     cl::ImageGL m_cl_image;
     
@@ -160,6 +160,7 @@ private:
             m_velocities = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
             m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
             m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_pointsizeGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(float));
             m_user_positions = cl::Buffer(m_context, CL_MEM_WRITE_ONLY,
                                           200 * sizeof(gl::OpenNIConnector::User));
             srand(clock());
@@ -183,15 +184,19 @@ private:
             m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
             m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
             m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_pointsizeGen, CL_TRUE, 0, num_particles * sizeof(float),
+                                       &m_geom->point_sizes()[0]);
             
             m_particleKernel.setArg(0, m_positions);
             m_particleKernel.setArg(1, m_colors);
-            m_particleKernel.setArg(2, m_velocities);
-            m_particleKernel.setArg(3, m_positionGen);
-            m_particleKernel.setArg(4, m_velocityGen);
-            m_particleKernel.setArg(5, 0.0f);
-            m_particleKernel.setArg(6, m_user_positions);
-            m_particleKernel.setArg(7, 0);
+            m_particleKernel.setArg(2, m_point_sizes);
+            m_particleKernel.setArg(3, m_velocities);
+            m_particleKernel.setArg(4, m_positionGen);
+            m_particleKernel.setArg(5, m_velocityGen);
+            m_particleKernel.setArg(6, m_pointsizeGen);
+            m_particleKernel.setArg(7, 0.0f);
+            m_particleKernel.setArg(8, m_user_positions);
+            m_particleKernel.setArg(9, 0);
         }
         catch(cl::Error &error)
         {
@@ -225,9 +230,9 @@ private:
                                            positions_vector.size() * sizeof(positions_vector[0]),
                                            &positions_vector[0]);
             }
-            m_particleKernel.setArg(7, m_user_list.size());
+            m_particleKernel.setArg(9, m_user_list.size());
 
-            m_particleKernel.setArg(5, timeDelta); //pass in the timestep
+            m_particleKernel.setArg(7, timeDelta); //pass in the timestep
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(*m_numParticles),
