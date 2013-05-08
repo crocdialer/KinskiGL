@@ -24,9 +24,7 @@ namespace kinski{ namespace gl{
         }
         ~Obj()
         {
-            [m_syphon_server stop];
-            [m_syphon_server release];
-            //[m_syphon_server dealloc];
+            [m_syphon_server dealloc];
         }
     };
     

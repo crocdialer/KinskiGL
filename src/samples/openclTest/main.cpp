@@ -34,10 +34,10 @@ private:
     cl::Program m_program;
     
     // particle system related
-    GLsizei m_numParticles;
+    RangedProperty<int>::Ptr m_numParticles;
     cl::Kernel m_particleKernel, m_imageKernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_user_positions;
-    cl::BufferGL m_positions, m_colors;
+    cl::BufferGL m_positions, m_colors, m_point_sizes;
     cl::ImageGL m_cl_image;
     
     // perspective experiment
@@ -58,6 +58,8 @@ private:
     // OpenNI interface
     gl::OpenNIConnector::Ptr m_open_ni;
     gl::OpenNIConnector::UserList m_user_list;
+    gl::PerspectiveCamera::Ptr m_depth_cam;
+    gl::MeshPtr m_depth_cam_mesh;
 
     void initOpenCL()
     {
@@ -125,49 +127,109 @@ private:
         }
     }
     
+    void initParticles(uint32_t num_particles)
+    {
+        // Particle system
+        m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
+        m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
+        m_pointMaterial->setPointSize(9.f);
+        m_geom = gl::Geometry::create();
+        m_geom->setPrimitiveType(GL_POINTS);
+        m_particle_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
+        m_particle_mesh->transform()[3].y = 300;
+        
+        GLsizei numBytes = num_particles * sizeof(vec4);
+        
+        m_geom->vertices().resize(num_particles, vec3(0));
+        m_geom->colors().resize(num_particles, vec4(1));
+        m_geom->point_sizes().resize(num_particles, 9.f);
+        m_geom->createGLBuffers();
+        
+        m_particle_mesh->material()->setPointSize(2.f);
+        scene().addObject(m_particle_mesh);
+        try
+        {
+            // shared buffers for OpenGL / OpenCL
+            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
+            m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
+            m_point_sizes = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->pointSizeBuffer().id());
+            
+            //create the OpenCL only arrays
+            m_velocities = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_user_positions = cl::Buffer(m_context, CL_MEM_WRITE_ONLY,
+                                          200 * sizeof(gl::OpenNIConnector::User));
+            srand(clock());
+            
+            vector<vec4> posGen, velGen;
+            vec3 image_dim = vec3(m_textures[0].getWidth(), m_textures[0].getHeight(), 0);
+            for (int i = 0; i < num_particles; i++)
+            {
+                vec3 pos = glm::linearRand(-image_dim/2.f, image_dim/2.f);//glm::ballRand(20.0f);
+                posGen.push_back( vec4(pos, 1.f) );
+                //vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
+                vec3 vel = glm::vec3(random(-20.f, 20.f),random(-6.f, 6.f), random(0.f, 4.f));
+                float life = kinski::random(5.f, 18.f);
+                velGen.push_back(vec4(vel, life));
+                m_geom->point_sizes()[i] = kinski::random(5.f, 8.f);
+            }
+            m_geom->vertices()[0] = vec3(-1000); m_geom->vertices()[1] = vec3(1000);
+            m_geom->computeBoundingBox();
+            m_geom->createGLBuffers();
+            
+            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
+            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
+            
+            m_particleKernel.setArg(0, m_positions);
+            m_particleKernel.setArg(1, m_colors);
+            m_particleKernel.setArg(2, m_velocities);
+            m_particleKernel.setArg(3, m_positionGen);
+            m_particleKernel.setArg(4, m_velocityGen);
+            m_particleKernel.setArg(5, 0.0f);
+            m_particleKernel.setArg(6, m_user_positions);
+            m_particleKernel.setArg(7, 0);
+        }
+        catch(cl::Error &error)
+        {
+            LOG_ERROR << error.what() << "(" << error.err() << ")";
+        }
+    }
+    
     void updateParticles(float timeDelta)
     {
         try
         {
+            //            vector<cl::Memory> glBuffers;
+            //            glBuffers.push_back(m_positions);
+            //            glBuffers.push_back(m_colors);
+            //            glFinish();
+            //            m_queue.enqueueAcquireGLObjects(&glBuffers);
+            
             if(!m_user_list.empty())
             {
-                mat4 inverse_model_mat = glm::inverse(m_particle_mesh->transform());
+                mat4 inverse_model_mat;// = glm::inverse(m_particle_mesh->transform());
                 std::vector<vec4> positions_vector;
                 gl::OpenNIConnector::UserList::const_iterator it = m_user_list.begin();
                 for(;it != m_user_list.end();++it)
                 {
-                    positions_vector.push_back(inverse_model_mat * vec4(it->second, 1.f));
+                    positions_vector.push_back(inverse_model_mat * vec4(it->position, 1.f));
                 }
                 
                 m_queue.enqueueWriteBuffer(m_user_positions, CL_TRUE, 0,
                                            positions_vector.size() * sizeof(vec4), &positions_vector[0]);
             }
             m_particleKernel.setArg(7, m_user_list.size());
-            
-            vector<cl::Memory> glBuffers;
-            glBuffers.push_back(m_positions);
-            glBuffers.push_back(m_colors);
-            
-            //this will update our system by calculating new velocity and updating the positions of our particles
-            //Make sure OpenGL is done using our VBOs
-            glFinish();
-            
-            // map OpenGL buffer object for writing from OpenCL
-            // this passes in the vector of VBO buffer objects (position and color)
-            m_queue.enqueueAcquireGLObjects(&glBuffers);
-            
-            
+
             m_particleKernel.setArg(5, timeDelta); //pass in the timestep
             
             //execute the kernel
-            m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
+            m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(*m_numParticles),
                                          cl::NullRange);
             
-            
-            //Release the VBOs so OpenGL can play with them
-            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
-
-            m_queue.finish();
+            //            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+            //            m_queue.finish();
         }
         catch(cl::Error &error)
         {
@@ -179,24 +241,23 @@ private:
     {
         try
         {
-            vector<cl::Memory> glBuffers;
-            glBuffers.push_back(m_positions);
-            glBuffers.push_back(m_colors);
-            glBuffers.push_back(m_cl_image);
-            
-            glFinish();
-            m_queue.enqueueAcquireGLObjects(&glBuffers);
+//            vector<cl::Memory> glBuffers;
+//            glBuffers.push_back(m_positions);
+//            glBuffers.push_back(m_colors);
+//            glBuffers.push_back(m_cl_image);
+//            glFinish();
+//            m_queue.enqueueAcquireGLObjects(&glBuffers);
             
             m_imageKernel.setArg(0, m_cl_image);
             m_imageKernel.setArg(1, m_positions);
             m_imageKernel.setArg(2, m_colors);
             
             //execute the kernel
-            m_queue.enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(m_numParticles),
+            m_queue.enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(*m_numParticles),
                                          cl::NullRange);
             
-            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
-            m_queue.finish();
+//            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+//            m_queue.finish();
         }
         catch(cl::Error &error)
         {
@@ -235,78 +296,22 @@ public:
         m_fbo_cam_distance = RangedProperty<float>::create("FBO cam distance", 550.f, 0, 5000);
         registerProperty(m_fbo_cam_distance);
         
+        m_numParticles = RangedProperty<int>::create("Num particles", 100000, 1, 5000000);
+        registerProperty(m_numParticles);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
-        // Particle system
-        m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
-        m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
-        m_pointMaterial->setPointSize(9.f);
-        m_geom = gl::Geometry::create();
-        m_geom->setPrimitiveType(GL_POINTS);
-        m_particle_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
-        m_particle_mesh->transform()[3].y = 300;
         initOpenCL();
         
-        m_numParticles = 100000;
-        GLsizei numBytes = m_numParticles * sizeof(vec4);
+        // init the particle system
+        initParticles(10000);
         
-        m_geom->vertices().resize(m_numParticles, vec3(0));
-        m_geom->colors().resize(m_numParticles, vec4(1));
-        m_geom->point_sizes().resize(m_numParticles, 9.f);
-        m_geom->createGLBuffers();
-        
-        m_particle_mesh->material()->setPointSize(2.f);
-        scene().addObject(m_particle_mesh);
-        try
-        {
-            // shared position buffer for OpenGL / OpenCL
-            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
-            m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
-            
-            //create the OpenCL only arrays
-            m_velocities = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_user_positions = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, 200 * sizeof(vec4));
-            srand(clock());
-            
-            vector<vec4> posGen, velGen;
-            for (int i = 0; i < m_numParticles; i++)
-            {
-                vec3 pos = glm::ballRand(20.0f);
-                posGen.push_back( vec4(pos, 1.f) );
-                //vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
-                vec3 vel = glm::vec3(random(-100.f, 100.f),random(-28.f, 28.f), random(0.f, 4.f));
-                float life = kinski::random(5.f, 18.f);
-                velGen.push_back(vec4(vel, life));
-                m_geom->point_sizes()[i] = kinski::random(5.f, 15.f);
-            }
-            m_geom->vertices()[0] = vec3(-1000); m_geom->vertices()[1] = vec3(1000);
-            m_geom->computeBoundingBox();
-            m_geom->createGLBuffers();
-            
-            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
-            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
-            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
-            
-            m_particleKernel.setArg(0, m_positions);
-            m_particleKernel.setArg(1, m_colors);
-            m_particleKernel.setArg(2, m_velocities);
-            m_particleKernel.setArg(3, m_positionGen);
-            m_particleKernel.setArg(4, m_velocityGen);
-            m_particleKernel.setArg(5, 0.0f);
-            m_particleKernel.setArg(6, m_user_positions);
-            m_particleKernel.setArg(7, 0);
-        }
-        catch(cl::Error &error)
-        {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
-        }
         //Scene setup
         camera()->setClippingPlanes(.1f, 7500.f);
         
-        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 800));
+        // the camera used for offscreen rendering
+        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 1500));
         m_free_camera->setPosition( m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
         m_free_camera->setLookAt(m_particle_mesh->position(), glm::vec3(0, 1, 0));
         m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
@@ -322,6 +327,9 @@ public:
         m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
         m_open_ni->observeProperties();
         create_tweakbar_from_component(m_open_ni);
+        
+        // the camera used to calibrate depth camera input
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 58.f));
         
         // random user colors
         m_user_id_colors.resize(50);
@@ -349,13 +357,37 @@ public:
     void update(float timeDelta)
     {
         ViewerApp::update(timeDelta);
+        
+        // query user positions from OpenNI
         m_user_list = m_open_ni->get_user_positions();
-        updateParticles(timeDelta);
-        setColors();
+        
+        // OpenCL updates
+        try
+        {
+            vector<cl::Memory> glBuffers;
+            glBuffers.push_back(m_positions);
+            glBuffers.push_back(m_colors);
+            glBuffers.push_back(m_cl_image);
+            glFinish();
+            m_queue.enqueueAcquireGLObjects(&glBuffers);
+            
+            setColors();
+            updateParticles(timeDelta);
+            
+            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+            m_queue.finish();
+        }
+        catch(cl::Error &error)
+        {
+            LOG_ERROR << error.what() << "(" << error.err() << ")";
+        }
     }
     
     void draw()
     {
+        // render the output image offscreen
+        m_textures[1] = render_to_texture(scene(), m_free_camera);
+        
         if(*m_debug_draw)
         {
             gl::setMatrices(camera());
@@ -364,9 +396,11 @@ public:
             draw_user_meshes(m_user_list);
             //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
         }
-        
-        m_textures[1] = render_to_texture(scene(), m_free_camera);
-        
+        else
+        {
+            gl::drawTexture(m_textures[1], windowSize());
+        }
+
         if(*m_use_syphon)
         {
             m_syphon.publish_texture(m_textures[1]);
@@ -435,6 +469,11 @@ public:
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
             scene().addObject(m_free_camera_mesh);
         }
+        else if(theProperty == m_numParticles)
+        {
+            scene().removeObject(m_particle_mesh);
+            initParticles(*m_numParticles);
+        }
     }
     
     gl::Texture render_to_texture(const gl::Scene &theScene, const gl::CameraPtr theCam)
@@ -463,9 +502,9 @@ public:
         gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
         for (; it != user_list.end(); ++it)
         {
-            m_user_mesh->setPosition(it->second);
+            m_user_mesh->setPosition(it->position);
             m_user_mesh->transform()[3].y = 5;
-            m_user_mesh->material()->setDiffuse(m_user_id_colors[it->first]);
+            m_user_mesh->material()->setDiffuse(m_user_id_colors[it->id]);
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
             gl::drawMesh(m_user_mesh);
         }
@@ -477,6 +516,9 @@ public:
         
         switch(e.getChar())
         {
+            case KeyEvent::KEY_d:
+                *m_debug_draw = !*m_debug_draw;
+                break;
             case KeyEvent::KEY_s:
                 Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
                 break;

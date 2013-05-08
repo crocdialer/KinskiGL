@@ -6,7 +6,19 @@ SET(LIB_NAME "kinskiApp")
 
 ##### GLFW
 if(NOT KINSKI_RASPI)
+
+#include(MacroPushRequiredVars)
+#macro_push_variables(CMAKE_FIND_LIBRARY_SUFFIXES)
+#
+#if(TRUE)
+#    # Find only static libraries
+#    set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+#endif()
+#
 find_package(GLFW REQUIRED)
+#MESSAGE("${GLFW_LIBRARIES}")
+#macro_pop_variables(CMAKE_FIND_LIBRARY_SUFFIXES)
+
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp ViewerApp.cpp TextureIO.cpp AntTweakBarConnector.cpp)

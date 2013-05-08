@@ -279,15 +279,16 @@ namespace kinski{ namespace gl{
                     // zombie filter
                     if(p != glm::vec3(0))
                     {
-                        m_user_list.push_back(make_pair(user_ids[i], p));
+                        m_user_list.push_back(User(user_ids[i], p));
                     }
                 }
             }
         }
+        m_user_list.clear();
         m_running = false;
     }
     
-    std::list<std::pair<uint32_t, glm::vec3> > OpenNIConnector::get_user_positions() const
+    OpenNIConnector::UserList OpenNIConnector::get_user_positions() const
     {
         boost::mutex::scoped_lock lock(m_mutex);
         return m_user_list;

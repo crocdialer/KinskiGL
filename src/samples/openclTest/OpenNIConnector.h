@@ -18,8 +18,16 @@ namespace kinski{ namespace gl{
     class OpenNIConnector : public kinski::Component
     {
     public:
+        
+        struct User
+        {
+            uint32_t id;
+            glm::vec3 position;
+            User(uint32_t theID, const glm::vec3 &thePos):id(theID), position(thePos){}
+        };
+        
         typedef std::shared_ptr<OpenNIConnector> Ptr;
-        typedef std::list<std::pair<uint32_t, glm::vec3> > UserList;
+        typedef std::vector<User> UserList;
         
         OpenNIConnector();
         ~OpenNIConnector();
@@ -45,7 +53,7 @@ namespace kinski{ namespace gl{
         operator unspecified_bool_type() const { return ( m_obj.get() == 0 ) ? 0 : &OpenNIConnector::m_obj; }
         void reset() { m_obj.reset(); }
         
-        std::list<std::pair<uint32_t, glm::vec3> > m_user_list;
+        UserList m_user_list;
         bool m_running;
         boost::thread m_thread;
         mutable boost::mutex m_mutex;

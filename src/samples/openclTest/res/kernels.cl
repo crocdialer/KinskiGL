@@ -1,18 +1,27 @@
-struct Ball
+//struct User
+//{
+//    unsigned int id;
+//    float3 position;
+//};
+
+inline float4 jet(float val)
 {
-    float3 position;
-};
+    return (float4)(min(4.0 * val - 1.5, -4.0 * val + 4.5),
+                    min(4.0 * val - 0.5, -4.0 * val + 3.5),
+                    min(4.0 * val + 0.5, -4.0 * val + 2.5),
+                    1.0);
+}
 
 inline float3 create_radial_force(float3 pos, float3 pos_particle)
 {
-    float strength = 10000000.0;
+    float strength = 5000000.0;
     float3 dir = pos_particle - pos;
     float dist2 = dot(dir, dir);
     dir = normalize(dir);
     return strength * dir / dist2;
 }
 
-__kernel void set_colors_from_image(image2d_t image, __global float3* pos, __global float4* color)
+__kernel void set_colors_from_image(image2d_t image, __global const float3* pos, __global float4* color)
 {
     size_t i = get_global_id(0);
     int w = get_image_width(image);
@@ -23,14 +32,16 @@ __kernel void set_colors_from_image(image2d_t image, __global float3* pos, __glo
 }
 
 __kernel void updateParticles(__global float3* pos, __global float4* color, __global float4* vel,
-                              __global float4* pos_gen, __global float4* vel_gen, float dt,
-                              __global float3* user_positions, int num_users)
+                              __global const float4* pos_gen, __global const float4* vel_gen, float dt,
+                              __global const float3* user_positions, int num_users)
 {
+    //__local float values[GROUP_SIZE];
+    
     //get our index in the array
     size_t i = get_global_id(0);
     //copy position and velocity for this iteration to a local variable
     //note: if we were doing many more calculations we would want to have opencl
-    //copy to a local memory array to speed up memory access (this will be the subject of a later tutorial)
+    //copy to a local memory array to speed up memory access
     float3 p = pos[i];
     float4 v = vel[i];
     
@@ -48,12 +59,28 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     }
     
     float3 cumulative_force = (float3)(0, 0, 0);
-    //apply forces
+    float4 user_color = (float4)(1, 1, 1, 1);
+    float4 color_red = (float4)(1, 0, 0, 1);
+    float heat = 0;
+    
     for(int j = 0; j < num_users; ++j)
     {
-        cumulative_force += - create_radial_force(user_positions[j], p);
+        //cumulative_force += create_radial_force(user_positions[j], p);
+        float3 diff = user_positions[j] - p;
+        float dist2 = dot(diff, diff);
+        
+        float min_distance = 1200, min_distance2 = min_distance * min_distance;
+        if(dist2 < min_distance2)
+        {
+            //user_color = color_red;
+            heat = (min_distance2 - dist2) / min_distance2;
+            user_color = jet(heat);
+        }
     }
+//    if(i == 0)
+//        printf("cumulative_force (%d): %2.2v3hlf\n", 0, cumulative_force);
     
+    //apply forces
     v.xyz += cumulative_force * dt;
     
     //TODO: implement
@@ -64,17 +91,18 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
 
     //apply contraints
     //TODO: implement
-    if(p.z < -10.0) p.z = -10.0;
+    if(p.z < -10.0 || p.z > 10.0) p.z = 0.0;
     
     //store the updated life in the velocity array
     v.w = life;
     
-    //update the arrays with our newly computed values
+    //update the arrays
     pos[i] = p;
     vel[i] = v;
     
     //you can manipulate the color based on properties of the system
     //here we adjust the alpha
     
-    //color[i] = (float4)(1.f, 1.f, 0.f, 1.f);//life / 5.0;
+    //float4 poo = user_color + (color[i] - user_color) * (1 - heat);
+    color[i] *= user_color;
 }

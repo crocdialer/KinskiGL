@@ -47,6 +47,7 @@ namespace kinski
         virtual void mouseWheel(const MouseEvent &e){};
         virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
+        virtual void fileDrop(const std::vector<std::string> &files){};
 
         bool running(){return m_running;};
         inline float getWidth(){return m_windowSize[0];};
