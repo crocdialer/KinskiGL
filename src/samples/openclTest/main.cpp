@@ -382,6 +382,9 @@ public:
         // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
         m_user_list = m_open_ni->get_user_positions();
         
+        // get the depth+userID texture
+        m_textures[3] = m_open_ni->get_depth_texture();
+        
         // calibrate camera: bring positions to world-coords
         mat4 inverse_depth_cam_mat = glm::inverse(m_depth_cam->transform());
         mat4 inverse_model_mat;// = glm::inverse(m_particle_mesh->transform());
@@ -444,7 +447,7 @@ public:
             // draw opencv maps
             float w = (windowSize()/6.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);
-            for(int i = 0;i < 3;i++)
+            for(int i = 0;i < 4;i++)
             {
                 float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
                 glm::vec2 step(0, h + 10);

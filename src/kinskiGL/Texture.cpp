@@ -199,6 +199,7 @@ void Texture::update(const void *data,
                      bool flipped )
 {
     if(!m_Obj) m_Obj = ObjPtr(new Obj());
+    setFlipped(flipped);
     
     if(m_Obj->m_Width == theWidth && 
        m_Obj->m_Height == theHeight &&
@@ -214,7 +215,6 @@ void Texture::update(const void *data,
         m_Obj->m_InternalFormat = GL_RGBA;
         m_Obj->m_Width = theWidth;
         m_Obj->m_Height = theHeight;
-        setFlipped(flipped);
         Format f;
         if(dataType == GL_UNSIGNED_BYTE)
             init((unsigned char*)data, format, f);

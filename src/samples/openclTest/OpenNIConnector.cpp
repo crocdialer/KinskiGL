@@ -10,6 +10,7 @@
 #include <XnCodecIDs.h>
 #include <XnCppWrapper.h>
 #include <XnPropNames.h>
+#include "kinskiGL/Texture.h"
 #include <boost/timer/timer.hpp>
 #include "OpenNIConnector.h"
 
@@ -59,6 +60,7 @@ namespace kinski{ namespace gl{
     };
 
     OpenNIConnector::OpenNIConnector():
+    m_depth_texture(new gl::Texture(640, 480, gl::Texture::Format())),
     m_running(false),
     m_live_input(Property_<bool>::create("Live input", false)),
     m_config_path(Property_<string>::create("Config path", "ni_config.xml")),
@@ -280,7 +282,9 @@ namespace kinski{ namespace gl{
             //locked scope
             {
                 boost::mutex::scoped_lock lock(m_mutex);
+                update_depth_texture(depthMD, sceneMD);
                 m_user_list.clear();
+                
                 for (int i = 0; i < num_users; ++i)
                 {
                     m_obj->m_userGenerator.GetCoM(user_ids[i], user_center);
@@ -302,4 +306,125 @@ namespace kinski{ namespace gl{
         boost::mutex::scoped_lock lock(m_mutex);
         return m_user_list;
     }
+    
+    gl::Texture OpenNIConnector::get_depth_texture() const
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        if(!m_pixel_buffer.empty())
+            m_depth_texture->update(&m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
+        return *m_depth_texture;
+    }
+    
+    void OpenNIConnector::update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd)
+    {
+        static unsigned int nZRes = dmd.ZRes();
+        static float* pDepthHist = (float*)malloc(nZRes* sizeof(float));
+        
+        unsigned int nValue = 0;
+        unsigned int nHistValue = 0;
+        unsigned int nIndex = 0;
+        unsigned int nX = 0;
+        unsigned int nY = 0;
+        unsigned int nNumberOfPoints = 0;
+        XnUInt16 x_res = dmd.XRes();
+        XnUInt16 y_res = dmd.YRes();
+        
+        m_pixel_buffer.resize(x_res * y_res * 3);
+        unsigned char* pDestImage = &m_pixel_buffer[0];
+        
+        const XnDepthPixel* pDepth = dmd.Data();
+        const XnLabel* pLabels = smd.Data();
+        
+        // Calculate the accumulative histogram
+        memset(pDepthHist, 0, nZRes*sizeof(float));
+        for (nY=0; nY<y_res; nY++)
+        {
+            for (nX=0; nX<x_res; nX++)
+            {
+                nValue = *pDepth;
+                
+                if (nValue != 0)
+                {
+                    pDepthHist[nValue]++;
+                    nNumberOfPoints++;
+                }
+                
+                pDepth++;
+            }
+        }
+        
+        for (nIndex=1; nIndex<nZRes; nIndex++)
+        {
+            pDepthHist[nIndex] += pDepthHist[nIndex-1];
+        }
+        if (nNumberOfPoints)
+        {
+            for (nIndex=1; nIndex<nZRes; nIndex++)
+            {
+                pDepthHist[nIndex] = (unsigned int)(256 * (1.0f - (pDepthHist[nIndex] / nNumberOfPoints)));
+            }
+        }
+        
+        XnFloat Colors[][3] =
+        {
+            {0,1,1},
+            {0,0,1},
+            {0,1,0},
+            {1,1,0},
+            {1,0,0},
+            {1,.5,0},
+            {.5,1,0},
+            {0,.5,1},
+            {.5,0,1},
+            {1,1,.5},
+            {1,1,1}
+        };
+        XnUInt32 nColors = 10;
+        
+        pDepth = dmd.Data();
+        if (true)//g_bDrawPixels)
+        {
+            XnUInt32 nIndex = 0;
+            // Prepare the texture map
+            for (nY=0; nY<y_res; nY++)
+            {
+                for (nX=0; nX < x_res; nX++, nIndex++)
+                {
+                    
+                    pDestImage[0] = 0;
+                    pDestImage[1] = 0;
+                    pDestImage[2] = 0;
+                    if (/*g_bDrawBackground*/true || *pLabels != 0)
+                    {
+                        nValue = *pDepth;
+                        XnLabel label = *pLabels;
+                        XnUInt32 nColorID = label % nColors;
+                        if (label == 0)
+                        {
+                            nColorID = nColors;
+                        }
+                        
+                        if (nValue != 0)
+                        {
+                            nHistValue = pDepthHist[nValue];
+                            
+                            pDestImage[0] = nHistValue * Colors[nColorID][0]; 
+                            pDestImage[1] = nHistValue * Colors[nColorID][1];
+                            pDestImage[2] = nHistValue * Colors[nColorID][2];
+                        }
+                    }
+                    pDepth++;
+                    pLabels++;
+                    pDestImage+=3;
+                }
+            }
+        }
+        else
+        {
+            //xnOSMemSet(pDepthTexBuf, 0, 3*2*x_res*y_res);
+            std::fill(m_pixel_buffer.begin(), m_pixel_buffer.end(), 0);
+        }
+        //m_depth_texture->update(&pixBuf[0], GL_UNSIGNED_BYTE, GL_RGB, x_res, y_res, true);
+    }
+        
 }}

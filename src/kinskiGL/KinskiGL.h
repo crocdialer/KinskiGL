@@ -69,7 +69,6 @@ namespace kinski { namespace gl {
 
     // forward declarations
     class Buffer;
-    class Texture;
     class Shader;
     class Fbo;
     class Font;
@@ -80,6 +79,7 @@ namespace kinski { namespace gl {
     struct Frustum;
     
     typedef glm::vec4 Color;
+    typedef std::shared_ptr<class Texture> TexturePtr;
     typedef std::shared_ptr<class Material> MaterialPtr;
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;

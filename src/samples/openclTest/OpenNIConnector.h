@@ -13,6 +13,13 @@
 #include "kinskiGL/KinskiGL.h"
 #include "kinskiCore/Component.h"
 
+// forward declare OpenNI stuff to avoid header inclusion
+namespace xn
+{
+    class DepthMetaData;
+    class SceneMetaData;
+}
+
 namespace kinski{ namespace gl{
     
     class OpenNIConnector : public kinski::Component
@@ -41,8 +48,12 @@ namespace kinski{ namespace gl{
         void operator()();
         
         UserList get_user_positions() const;
+        gl::Texture get_depth_texture() const;
         
     private:
+        
+        void update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd);
+        std::vector<uint8_t> m_pixel_buffer;
         
         struct Obj;
         typedef std::shared_ptr<Obj> ObjPtr;
@@ -54,6 +65,8 @@ namespace kinski{ namespace gl{
         void reset() { m_obj.reset(); }
         
         UserList m_user_list;
+        gl::TexturePtr m_depth_texture;
+        
         bool m_running;
         boost::thread m_thread;
         mutable boost::mutex m_mutex;
