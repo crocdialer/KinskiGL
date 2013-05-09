@@ -24,7 +24,7 @@ private:
     gl::Texture m_textures[4];
     gl::Material::Ptr m_pointMaterial;
     gl::GeometryPtr m_geom;
-    gl::MeshPtr m_particle_mesh;
+    gl::MeshPtr m_particle_mesh, m_debug_bill_board;;
     gl::Font m_font;
     
     //OpenCL standard stuff
@@ -35,12 +35,14 @@ private:
     
     // particle system related
     RangedProperty<int>::Ptr m_numParticles;
-    cl::Kernel m_particleKernel, m_imageKernel;
+    cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
     cl::ImageGL m_cl_image, m_cl_labels;
     
     // perspective experiment
+    Property_<bool>::Ptr m_debug_draw;
+    Property_<bool>::Ptr m_use_bill_board;
     gl::Scene m_debug_scene;
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::MeshPtr m_free_camera_mesh;
@@ -52,7 +54,6 @@ private:
     
     // output via Syphon
     gl::SyphonConnector m_syphon;
-    Property_<bool>::Ptr m_debug_draw;
     Property_<bool>::Ptr m_use_syphon;
     Property_<std::string>::Ptr m_syphon_server_name;
     
@@ -61,6 +62,7 @@ private:
     gl::OpenNIConnector::UserList m_user_list;
     gl::PerspectiveCamera::Ptr m_depth_cam;
     gl::MeshPtr m_depth_cam_mesh;
+    Property_<glm::vec2>::Ptr m_depth_cam_xz;
 
     void initOpenCL()
     {
@@ -121,6 +123,8 @@ private:
             
             m_particleKernel = cl::Kernel(m_program, "updateParticles");
             m_imageKernel = cl::Kernel(m_program, "set_colors_from_image");
+            m_user_input_kernel = cl::Kernel(m_program, "process_user_input");
+            
         }
         catch(cl::Error &error)
         {
@@ -291,6 +295,9 @@ public:
         m_debug_draw = Property_<bool>::create("Enable debug drawing", true);
         registerProperty(m_debug_draw);
         
+        m_use_bill_board = Property_<bool>::create("Switch particles / billboard", false);
+        registerProperty(m_use_bill_board);
+        
         m_use_syphon = Property_<bool>::create("Output to Syphon", false);
         registerProperty(m_use_syphon);
         
@@ -306,6 +313,9 @@ public:
         m_numParticles = RangedProperty<int>::create("Num particles", 100000, 1, 5000000);
         registerProperty(m_numParticles);
         
+        m_depth_cam_xz = Property_<glm::vec2>::create("Depth_cam XZ", vec2(0));
+        registerProperty(m_depth_cam_xz);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
@@ -317,12 +327,22 @@ public:
         //Scene setup
         camera()->setClippingPlanes(.1f, 10000.f);
         
+        // init debug billboard
+        m_debug_bill_board = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
+        m_debug_bill_board->setPosition(m_particle_mesh->position());
+        m_debug_bill_board->material()->setTwoSided();
+        m_debug_scene.addObject(m_debug_bill_board);
+        
         // the camera used for offscreen rendering
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 1500));
         m_free_camera->setPosition( m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
         m_free_camera->setLookAt(m_particle_mesh->position(), glm::vec3(0, 1, 0));
         m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
         m_debug_scene.addObject(m_free_camera_mesh);
+        
+        // the virtual camera used to position depth camera input within the scene
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 2 * 45.f, 100.f, 2200.f));
+        *m_depth_cam_xz = vec2(0);
         
         // FBO
         m_fbo = gl::Fbo(640, 360);
@@ -331,14 +351,6 @@ public:
         m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
         m_open_ni->observeProperties();
         create_tweakbar_from_component(m_open_ni);
-        
-        // the virtual camera used to position depth camera input within the scene
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 2 * 45.f, 100.f, 2200.f));
-        m_depth_cam->setTransform(glm::rotate(mat4(), 180.f, vec3(0, 1, 0)));
-        //m_depth_cam->setPosition(vec3(0, 0, 1000));
-        m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
-        m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
-        m_debug_scene.addObject(m_depth_cam_mesh);
         
         // random user colors
         m_user_id_colors.resize(50);
@@ -471,6 +483,11 @@ public:
                 
                 m_cl_labels = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                           m_textures[1].getId());
+                
+                m_debug_bill_board->material()->textures().clear();
+                m_debug_bill_board->material()->addTexture(m_textures[0]);
+                m_debug_bill_board->geometry() = gl::createPlane(m_textures[0].getWidth(),
+                                                                 m_textures[0].getHeight());
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
             catch (std::exception &e){LOG_WARNING << e.what();}
@@ -502,6 +519,32 @@ public:
             scene().removeObject(m_particle_mesh);
             m_debug_scene.removeObject(m_particle_mesh);
             initParticles(*m_numParticles);
+        }
+        else if(theProperty == m_depth_cam_xz)
+        {
+            m_depth_cam->setTransform(glm::rotate(mat4(), 180.f, vec3(0, 1, 0)));
+            m_depth_cam->setPosition(vec3(m_depth_cam_xz->value().x, 0, m_depth_cam_xz->value().y));
+            m_debug_scene.removeObject(m_depth_cam_mesh);
+            m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
+            m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
+            m_debug_scene.addObject(m_depth_cam_mesh);
+        }
+        else if(theProperty == m_use_bill_board)
+        {
+            if(*m_use_bill_board)
+            {
+                scene().removeObject(m_particle_mesh);
+                m_debug_scene.removeObject(m_particle_mesh);
+                scene().addObject(m_debug_bill_board);
+                m_debug_scene.addObject(m_debug_bill_board);
+            }
+            else
+            {
+                scene().removeObject(m_debug_bill_board);
+                m_debug_scene.removeObject(m_debug_bill_board);
+                scene().addObject(m_particle_mesh);
+                m_debug_scene.addObject(m_particle_mesh);
+            }
         }
     }
     
@@ -545,6 +588,9 @@ public:
         
         switch(e.getChar())
         {
+            case KeyEvent::KEY_b:
+                *m_use_bill_board = !*m_use_bill_board;
+                break;
             case KeyEvent::KEY_d:
                 *m_debug_draw = !*m_debug_draw;
                 break;
