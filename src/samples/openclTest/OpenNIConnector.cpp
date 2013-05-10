@@ -309,6 +309,8 @@ namespace kinski{ namespace gl{
     
     gl::Texture OpenNIConnector::get_depth_texture() const
     {
+        // needs OpenGL -> can only be called from main thread
+        // TODO: move or keep !?
         boost::mutex::scoped_lock lock(m_mutex);
         if(!m_pixel_buffer.empty())
             m_depth_texture->update(&m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);

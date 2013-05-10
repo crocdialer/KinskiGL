@@ -4,6 +4,7 @@
 // OpenCL
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
+#include "cl_util.h"
 
 // OpenNI
 #include "OpenNIConnector.h"
@@ -128,7 +129,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -202,7 +203,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -244,7 +245,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -272,7 +273,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -341,7 +342,7 @@ public:
         m_debug_scene.addObject(m_free_camera_mesh);
         
         // the virtual camera used to position depth camera input within the scene
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 2 * 45.f, 100.f, 2200.f));
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 3300.f));
         *m_depth_cam_xz = vec2(0);
         
         // FBO
@@ -381,20 +382,10 @@ public:
         
         // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
         m_user_list = m_open_ni->get_user_positions();
+        adjust_user_positions_with_camera(m_user_list, m_depth_cam);
         
         // get the depth+userID texture
         m_textures[3] = m_open_ni->get_depth_texture();
-        
-        // calibrate camera: bring positions to world-coords
-        mat4 inverse_depth_cam_mat = glm::inverse(m_depth_cam->transform());
-        mat4 inverse_model_mat;// = glm::inverse(m_particle_mesh->transform());
-        
-        gl::OpenNIConnector::UserList::iterator it = m_user_list.begin();
-        for(;it != m_user_list.end();++it)
-        {
-            vec4 flipped_pos (it->position, 1.f);flipped_pos.z *= - 1.0f;
-            it->position = (inverse_model_mat * inverse_depth_cam_mat * flipped_pos).xyz();
-        }
         
         // OpenCL updates
         try
@@ -414,7 +405,7 @@ public:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -492,7 +483,8 @@ public:
                 m_debug_bill_board->geometry() = gl::createPlane(m_textures[0].getWidth(),
                                                                  m_textures[0].getHeight());
             }
-            catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
+            catch(cl::Error &error)
+            {LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";}
             catch (std::exception &e){LOG_WARNING << e.what();}
         }
         else if(theProperty == m_point_color)
@@ -562,6 +554,19 @@ public:
         return m_fbo.getTexture();
     }
     
+    void adjust_user_positions_with_camera(gl::OpenNIConnector::UserList &user_list,
+                                           const gl::CameraPtr &cam)
+    {
+        // calibration camera: bring positions to world-coords
+        mat4 inverse_depth_cam_mat = glm::inverse(cam->transform());
+        
+        gl::OpenNIConnector::UserList::iterator it = user_list.begin();
+        for(;it != user_list.end();++it)
+        {
+            vec4 flipped_pos (it->position, 1.f);flipped_pos.z *= - 1.0f;
+            it->position = (inverse_depth_cam_mat * flipped_pos).xyz();
+        }
+    }
     void draw_user_meshes(const gl::OpenNIConnector::UserList &user_list)
     {
         if(!m_user_mesh)
