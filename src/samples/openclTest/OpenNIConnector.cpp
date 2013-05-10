@@ -34,6 +34,7 @@ namespace kinski{ namespace gl{
         xn::DepthGenerator m_depthGenerator;
         xn::UserGenerator m_userGenerator;
         xn::Player m_player;
+        std::vector<uint8_t> m_pixel_buffer;
         
         Obj(){}
         
@@ -70,6 +71,11 @@ namespace kinski{ namespace gl{
         registerProperty(m_live_input);
         registerProperty(m_config_path);
         registerProperty(m_oni_path);
+        
+        m_user_colors.resize(50);
+        for (int i= 0; i < m_user_colors.size(); ++i)
+        {m_user_colors[i] = gl::Color(random(0.f, 1.f), .2f, random(0.f, 1.f), 1.f);}
+        m_user_colors.push_back(gl::Color(1));
     }
     
     OpenNIConnector::~OpenNIConnector()
@@ -298,6 +304,7 @@ namespace kinski{ namespace gl{
             }
         }
         m_user_list.clear();
+        m_obj->m_pixel_buffer.clear();
         m_running = false;
     }
     
@@ -312,8 +319,8 @@ namespace kinski{ namespace gl{
         // needs OpenGL -> can only be called from main thread
         // TODO: move or keep !?
         boost::mutex::scoped_lock lock(m_mutex);
-        if(!m_pixel_buffer.empty())
-            m_depth_texture->update(&m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
+        if(!m_obj->m_pixel_buffer.empty())
+            m_depth_texture->update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
         return *m_depth_texture;
     }
     
@@ -331,8 +338,8 @@ namespace kinski{ namespace gl{
         XnUInt16 x_res = dmd.XRes();
         XnUInt16 y_res = dmd.YRes();
         
-        m_pixel_buffer.resize(x_res * y_res * 3);
-        unsigned char* pDestImage = &m_pixel_buffer[0];
+        m_obj->m_pixel_buffer.resize(x_res * y_res * 3);
+        unsigned char* pDestImage = &m_obj->m_pixel_buffer[0];
         
         const XnDepthPixel* pDepth = dmd.Data();
         const XnLabel* pLabels = smd.Data();
@@ -367,26 +374,28 @@ namespace kinski{ namespace gl{
             }
         }
         
-        XnFloat Colors[][3] =
-        {
-            {0,1,1},
-            {0,0,1},
-            {0,1,0},
-            {1,1,0},
-            {1,0,0},
-            {1,.5,0},
-            {.5,1,0},
-            {0,.5,1},
-            {.5,0,1},
-            {1,1,.5},
-            {1,1,1}
-        };
-        XnUInt32 nColors = 10;
+//        XnFloat Colors[][3] =
+//        {
+//            {0,1,1},
+//            {0,0,1},
+//            {0,1,0},
+//            {1,1,0},
+//            {1,0,0},
+//            {1,.5,0},
+//            {.5,1,0},
+//            {0,.5,1},
+//            {.5,0,1},
+//            {1,1,.5},
+//            {1,1,1}
+//        };
+//        XnUInt32 nColors = 10;
         
         pDepth = dmd.Data();
         if (true)//g_bDrawPixels)
         {
             XnUInt32 nIndex = 0;
+            int num_colors = m_user_colors.size() - 1;
+            
             // Prepare the texture map
             for (nY=0; nY<y_res; nY++)
             {
@@ -400,19 +409,19 @@ namespace kinski{ namespace gl{
                     {
                         nValue = *pDepth;
                         XnLabel label = *pLabels;
-                        XnUInt32 nColorID = label % nColors;
+                        XnUInt32 nColorID = label % num_colors;
                         if (label == 0)
                         {
-                            nColorID = nColors;
+                            nColorID = num_colors;
                         }
                         
                         if (nValue != 0)
                         {
                             nHistValue = pDepthHist[nValue];
                             
-                            pDestImage[0] = nHistValue * Colors[nColorID][0]; 
-                            pDestImage[1] = nHistValue * Colors[nColorID][1];
-                            pDestImage[2] = nHistValue * Colors[nColorID][2];
+                            pDestImage[0] = nHistValue * m_user_colors[nColorID][0]; 
+                            pDestImage[1] = nHistValue * m_user_colors[nColorID][1];
+                            pDestImage[2] = nHistValue * m_user_colors[nColorID][2];
                         }
                     }
                     pDepth++;
@@ -424,7 +433,7 @@ namespace kinski{ namespace gl{
         else
         {
             //xnOSMemSet(pDepthTexBuf, 0, 3*2*x_res*y_res);
-            std::fill(m_pixel_buffer.begin(), m_pixel_buffer.end(), 0);
+            std::fill(m_obj->m_pixel_buffer.begin(), m_obj->m_pixel_buffer.end(), 0);
         }
         //m_depth_texture->update(&pixBuf[0], GL_UNSIGNED_BYTE, GL_RGB, x_res, y_res, true);
     }

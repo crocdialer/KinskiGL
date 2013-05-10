@@ -50,10 +50,14 @@ namespace kinski{ namespace gl{
         UserList get_user_positions() const;
         gl::Texture get_depth_texture() const;
         
+        const std::vector<gl::Color>& user_colors() const {return m_user_colors;};
+        std::vector<gl::Color>& user_colors() {return m_user_colors;};
+        
     private:
         
         void update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd);
-        std::vector<uint8_t> m_pixel_buffer;
+        
+        std::vector<gl::Color> m_user_colors;
         
         struct Obj;
         typedef std::shared_ptr<Obj> ObjPtr;

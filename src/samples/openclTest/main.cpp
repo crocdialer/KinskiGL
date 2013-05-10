@@ -353,10 +353,8 @@ public:
         m_open_ni->observeProperties();
         create_tweakbar_from_component(m_open_ni);
         
-        // random user colors
-        m_user_id_colors.resize(50);
-        for (int i= 0; i < m_user_id_colors.size(); ++i)
-        {m_user_id_colors[i] = gl::Color(random(0.f, 1.f), .2f, random(0.f, 1.f), 1.f);}
+        // copy user colors
+        m_user_id_colors = m_open_ni->user_colors();
         
         // load state from config file
         try
