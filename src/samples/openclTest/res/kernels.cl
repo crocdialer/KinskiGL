@@ -27,7 +27,7 @@ inline float3 create_radial_force(float3 pos, float3 pos_particle)
     return strength * dir / dist2;
 }
 
-__kernel void set_colors_from_image(image2d_t image, __global const float3* pos, __global float4* color)
+__kernel void set_colors_from_image(__read_only image2d_t image, __global const float3* pos, __global float4* color)
 {
     size_t i = get_global_id(0);
     int w = get_image_width(image);
@@ -40,15 +40,20 @@ __kernel void set_colors_from_image(image2d_t image, __global const float3* pos,
 __kernel void process_user_input(__global float3* positions,/*VBO*/
                                  __global float4* colors,/*VBO*/
                                  __global float* pointSizes /*VBO*/,
-                                 image2d_t label_image,
+                                 __read_only image2d_t label_image,
                                  __constant float3* user_positions,
                                  int num_users)
 {
     size_t i = get_global_id(0);
     float3 pos = positions[i];
+    float4 color = colors[i];
     float point_size = pointSizes[i];
-    
     float heat = 0;
+    
+    int w = get_image_width(label_image);
+    int h = get_image_height(label_image);
+    int2 coords = {pos.x + w/2, -pos.y + h/2};
+    float4 label = read_imagef(label_image, coords);
     
     for(int j = 0; j < num_users; ++j)
     {
@@ -59,17 +64,36 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
         float min_distance = 1200, min_distance2 = min_distance * min_distance;
         if(dist2 < min_distance2)
         {
-            //user_color = color_red;
             heat += (min_distance2 - dist2) / min_distance2;
         }
     }
     heat = min(heat, 1.0f);
-    float4 color = jet(heat);
-    point_size *= 1.0f + 3.0f * heat;
     
+    // red label
+    if(isgreater(label.x, 0.5f))
+    {
+        point_size *= 1.0f + 3.0f * heat;
+    }
+    // green label
+    if(isgreater(label.y, 0.5f))
+    {
+        color = jet(heat);
+    }
+    // blue label
+    if(isgreater(label.z, 0.5f))
+    {
+        point_size *= 1.0f - heat;
+    }
+    // yellow label
+    if(isgreater(label.x, 0.5f) & isgreater(label.y, 0.5f))
+    {
+        
+    }
+    // debug colormap
+    //color = jet(heat);
+    
+    // write back our perturbed values
     pointSizes[i] = point_size;
-    
-    // mutate color
     float4 poo = color + (colors[i] - color) * (1 - heat);
     colors[i] = poo;
 }
@@ -110,33 +134,32 @@ __kernel void updateParticles(__global float3* pos, // VBO
     }
     
     float3 cumulative_force = (float3)(0, 0, 0);
-    float4 user_color = (float4)(1, 1, 1, 1);
-    float4 color_red = (float4)(1, 0, 0, 1);
-    float heat = 0;
-    
-    for(int j = 0; j < num_users; ++j)
-    {
-        //cumulative_force += create_radial_force(user_positions[j], p);
-        float3 diff = user_positions[j] - p;
-        float dist2 = dot(diff, diff);
-        
-        float min_distance = 1200, min_distance2 = min_distance * min_distance;
-        if(dist2 < min_distance2)
-        {
-            //user_color = color_red;
-            heat += (min_distance2 - dist2) / min_distance2;
-        }
-        
-        if(i == 0)
-        {
-            //printf("user id: %d\n", users[j].id);
-            //printf("num_users: %d\n", num_users);
-            //printf("user position: %.2v3f\n", diff);
-        }
-    }
-    heat = min(heat, 1.0f);
-    user_color = jet(heat);
-    point_size *= 1.0f + 3.0f * heat;
+//    float4 user_color = (float4)(1, 1, 1, 1);
+//    float4 color_red = (float4)(1, 0, 0, 1);
+//    float heat = 0;
+//    for(int j = 0; j < num_users; ++j)
+//    {
+//        //cumulative_force += create_radial_force(user_positions[j], p);
+//        float3 diff = user_positions[j] - p;
+//        float dist2 = dot(diff, diff);
+//        
+//        float min_distance = 1200, min_distance2 = min_distance * min_distance;
+//        if(dist2 < min_distance2)
+//        {
+//            //user_color = color_red;
+//            heat += (min_distance2 - dist2) / min_distance2;
+//        }
+//        
+//        if(i == 0)
+//        {
+//            //printf("user id: %d\n", users[j].id);
+//            //printf("num_users: %d\n", num_users);
+//            //printf("user position: %.2v3f\n", diff);
+//        }
+//    }
+//    heat = min(heat, 1.0f);
+//    user_color = jet(heat);
+//    point_size *= 1.0f + 3.0f * heat;
     
     //apply forces
     v.xyz += cumulative_force * dt;
@@ -160,6 +183,6 @@ __kernel void updateParticles(__global float3* pos, // VBO
     pointSizes[i] = point_size;
 
     // mutate color
-    float4 poo = user_color + (colors[i] - user_color) * (1 - heat);
-    colors[i] = poo;
+//    float4 poo = user_color + (colors[i] - user_color) * (1 - heat);
+//    colors[i] = poo;
 }

@@ -200,6 +200,11 @@ private:
             m_particleKernel.setArg(7, 0.0f);
             m_particleKernel.setArg(8, m_user_positions);
             m_particleKernel.setArg(9, 0);
+            
+            m_user_input_kernel.setArg(0, m_positions);
+            m_user_input_kernel.setArg(1, m_colors);
+            m_user_input_kernel.setArg(2, m_point_sizes);
+            m_user_input_kernel.setArg(4, m_user_positions);
         }
         catch(cl::Error &error)
         {
@@ -398,6 +403,13 @@ public:
             setColors();
             updateParticles(timeDelta);
             
+            m_user_input_kernel.setArg(3, m_cl_labels);
+            m_user_input_kernel.setArg(5, m_user_list.size());
+            
+            //execute the kernel
+            m_queue.enqueueNDRangeKernel(m_user_input_kernel, cl::NullRange, cl::NDRange(*m_numParticles),
+                                         cl::NullRange);
+                       
             m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
             m_queue.finish();
         }
@@ -581,7 +593,7 @@ public:
         for (; it != user_list.end(); ++it)
         {
             m_user_mesh->setPosition(it->position);
-            m_user_mesh->transform()[3].y = 5;
+            //m_user_mesh->transform()[3].y = 5;
             m_user_mesh->material()->setDiffuse(m_user_id_colors[it->id]);
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
             gl::drawMesh(m_user_mesh);

@@ -74,7 +74,7 @@ namespace kinski{ namespace gl{
         
         m_user_colors.resize(50);
         for (int i= 0; i < m_user_colors.size(); ++i)
-        {m_user_colors[i] = gl::Color(random(0.f, 1.f), .2f, random(0.f, 1.f), 1.f);}
+        {m_user_colors[i] = gl::Color(random(0.f, 1.f), .2f, random(.2f, 1.f), 1.f);}
         m_user_colors.push_back(gl::Color(1));
     }
     
@@ -319,7 +319,7 @@ namespace kinski{ namespace gl{
         // needs OpenGL -> can only be called from main thread
         // TODO: move or keep !?
         boost::mutex::scoped_lock lock(m_mutex);
-        if(!m_obj->m_pixel_buffer.empty())
+        if(m_obj && !m_obj->m_pixel_buffer.empty())
             m_depth_texture->update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
         return *m_depth_texture;
     }
