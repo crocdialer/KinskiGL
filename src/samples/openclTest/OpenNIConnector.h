@@ -44,6 +44,8 @@ namespace kinski{ namespace gl{
         void start();
         void stop();
         
+        inline bool has_new_frame() const {return m_new_frame;}
+        
         //! thread runs here, do not fiddle around
         void operator()();
         
@@ -57,6 +59,7 @@ namespace kinski{ namespace gl{
         
         void update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd);
         
+        mutable bool m_new_frame;
         std::vector<gl::Color> m_user_colors;
         
         struct Obj;

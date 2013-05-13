@@ -42,7 +42,8 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
                                  __global float* pointSizes /*VBO*/,
                                  __read_only image2d_t label_image,
                                  __constant float3* user_positions,
-                                 int num_users)
+                                 int num_users,
+                                 float min_distance)
 {
     size_t i = get_global_id(0);
     float3 pos = positions[i];
@@ -61,7 +62,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
         float3 diff = user_positions[j] - pos;
         float dist2 = dot(diff, diff);
         
-        float min_distance = 1200, min_distance2 = min_distance * min_distance;
+        float min_distance2 = min_distance * min_distance;
         if(dist2 < min_distance2)
         {
             heat += (min_distance2 - dist2) / min_distance2;
@@ -134,32 +135,6 @@ __kernel void updateParticles(__global float3* pos, // VBO
     }
     
     float3 cumulative_force = (float3)(0, 0, 0);
-//    float4 user_color = (float4)(1, 1, 1, 1);
-//    float4 color_red = (float4)(1, 0, 0, 1);
-//    float heat = 0;
-//    for(int j = 0; j < num_users; ++j)
-//    {
-//        //cumulative_force += create_radial_force(user_positions[j], p);
-//        float3 diff = user_positions[j] - p;
-//        float dist2 = dot(diff, diff);
-//        
-//        float min_distance = 1200, min_distance2 = min_distance * min_distance;
-//        if(dist2 < min_distance2)
-//        {
-//            //user_color = color_red;
-//            heat += (min_distance2 - dist2) / min_distance2;
-//        }
-//        
-//        if(i == 0)
-//        {
-//            //printf("user id: %d\n", users[j].id);
-//            //printf("num_users: %d\n", num_users);
-//            //printf("user position: %.2v3f\n", diff);
-//        }
-//    }
-//    heat = min(heat, 1.0f);
-//    user_color = jet(heat);
-//    point_size *= 1.0f + 3.0f * heat;
     
     //apply forces
     v.xyz += cumulative_force * dt;
@@ -181,8 +156,4 @@ __kernel void updateParticles(__global float3* pos, // VBO
     pos[i] = p;
     vel[i] = v;
     pointSizes[i] = point_size;
-
-    // mutate color
-//    float4 poo = user_color + (colors[i] - user_color) * (1 - heat);
-//    colors[i] = poo;
 }

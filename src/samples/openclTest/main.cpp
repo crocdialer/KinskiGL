@@ -36,6 +36,8 @@ private:
     
     // particle system related
     RangedProperty<int>::Ptr m_numParticles;
+    RangedProperty<float>::Ptr m_particle_size_min, m_particle_size_max;
+    RangedProperty<float>::Ptr m_min_interaction_distance;
     cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
@@ -178,9 +180,9 @@ private:
                 vec3 vel = glm::vec3(random(-20.f, 20.f),random(-6.f, 6.f), random(0.f, 4.f));
                 float life = kinski::random(5.f, 18.f);
                 velGen.push_back(vec4(vel, life));
-                m_geom->point_sizes()[i] = kinski::random(5.f, 8.f);
+                m_geom->point_sizes()[i] = kinski::random<float>(*m_particle_size_min, *m_particle_size_max);
+                m_geom->vertices()[i] = posGen[i].xyz();
             }
-            m_geom->vertices()[0] = vec3(-1000); m_geom->vertices()[1] = vec3(1000);
             m_geom->computeBoundingBox();
             m_geom->createGLBuffers();
             
@@ -316,6 +318,16 @@ public:
         m_fbo_cam_distance = RangedProperty<float>::create("FBO cam distance", 550.f, 0, 5000);
         registerProperty(m_fbo_cam_distance);
         
+        m_particle_size_min = RangedProperty<float>::create("Particle size min", 2.f, 0, 100);
+        registerProperty(m_particle_size_min);
+        
+        m_particle_size_max = RangedProperty<float>::create("Particle size max", 8.f, 0, 200);
+        registerProperty(m_particle_size_max);
+        
+        m_min_interaction_distance = RangedProperty<float>::create("Min interaction distance",
+                                                                   1200.f, 1, 2500);
+        registerProperty(m_min_interaction_distance);
+        
         m_numParticles = RangedProperty<int>::create("Num particles", 100000, 1, 5000000);
         registerProperty(m_numParticles);
         
@@ -383,12 +395,15 @@ public:
     {
         ViewerApp::update(timeDelta);
         
-        // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
-        m_user_list = m_open_ni->get_user_positions();
-        adjust_user_positions_with_camera(m_user_list, m_depth_cam);
-        
-        // get the depth+userID texture
-        m_textures[3] = m_open_ni->get_depth_texture();
+        if(m_open_ni->has_new_frame())
+        {
+            // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
+            m_user_list = m_open_ni->get_user_positions();
+            adjust_user_positions_with_camera(m_user_list, m_depth_cam);
+            
+            // get the depth+userID texture
+            m_textures[3] = m_open_ni->get_depth_texture();
+        }
         
         // OpenCL updates
         try
@@ -405,6 +420,7 @@ public:
             
             m_user_input_kernel.setArg(3, m_cl_labels);
             m_user_input_kernel.setArg(5, m_user_list.size());
+            m_user_input_kernel.setArg(6, m_min_interaction_distance->value());
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_user_input_kernel, cl::NullRange, cl::NDRange(*m_numParticles),
