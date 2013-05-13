@@ -1,0 +1,26 @@
+##### OPENCL
+find_package(OpenCL REQUIRED)
+INCLUDE_DIRECTORIES(${OpenCL_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${OPENCL_LIBRARIES})
+
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+set(LIBS ${LIBS} ${OpenCV_LIBS})
+
+##### OPENNI
+if(WIN32)
+    SET(OPENNI_INCLUDE_DIRS "")
+    SET(OPENNI_LIB_DIR "")
+    SET(OPENNI_LIBRARIES "OpenNI64")
+else(WIN32)
+    SET(OPENNI_INCLUDE_DIRS "/usr/include/ni")
+    SET(OPENNI_LIB_DIR "/usr/lib")
+    SET(OPENNI_LIBRARIES "OpenNI")
+endif(WIN32)
+
+INCLUDE_DIRECTORIES(${OPENNI_INCLUDE_DIRS})
+LINK_DIRECTORIES(${OPENNI_LIB_DIR})
+#set(LIBS ${LIBS} ${OPENNI_LIBRARIES})
+#####
+
+addSample(${itemName} ${folderItem})
