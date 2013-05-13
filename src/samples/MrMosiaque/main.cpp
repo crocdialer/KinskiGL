@@ -207,7 +207,8 @@ private:
             m_user_input_kernel.setArg(0, m_positions);
             m_user_input_kernel.setArg(1, m_colors);
             m_user_input_kernel.setArg(2, m_point_sizes);
-            m_user_input_kernel.setArg(4, m_user_positions);
+            m_user_input_kernel.setArg(3, m_velocities);
+            m_user_input_kernel.setArg(5, m_user_positions);
         }
         catch(cl::Error &error)
         {
@@ -409,9 +410,10 @@ public:
             setColors();
             updateParticles(timeDelta);
             
-            m_user_input_kernel.setArg(3, m_cl_labels);
-            m_user_input_kernel.setArg(5, m_user_list.size());
-            m_user_input_kernel.setArg(6, m_min_interaction_distance->value());
+            m_user_input_kernel.setArg(4, m_cl_labels);
+            m_user_input_kernel.setArg(6, m_user_list.size());
+            m_user_input_kernel.setArg(7, m_min_interaction_distance->value());
+            m_user_input_kernel.setArg(8, timeDelta);
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_user_input_kernel, cl::NullRange, cl::NDRange(*m_numParticles),
@@ -569,7 +571,7 @@ public:
         }
         else if(theProperty == m_min_interaction_distance)
         {
-            //m_user_input_kernel.setArg(6, m_min_interaction_distance->value());
+            //m_user_input_kernel.setArg(7, m_min_interaction_distance->value());
         }
     }
     

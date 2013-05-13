@@ -40,7 +40,7 @@ namespace kinski {
     _myTopLevelLogTag(""),
     m_globalSeverity(SEV_INFO)
     {
-        
+        clear_streams();
     }
 
     Logger::~Logger()
@@ -143,7 +143,11 @@ namespace kinski {
         }
         
         // give log string to outstreams
-        std::cout<<stream.str();
+        std::list<std::ostream*>::iterator stream_it = m_out_streams.begin();
+        for (; stream_it != m_out_streams.end(); ++stream_it)
+        {
+            (**stream_it)<<stream.str();
+        }
         
         #if ANDROID
         switch (theSeverity) {
@@ -169,5 +173,16 @@ namespace kinski {
         }
         #endif
 
+    }
+    
+    void Logger::add_outstream(std::ostream *the_stream)
+    {
+        m_out_streams.push_back(the_stream);
+    }
+    
+    void Logger::clear_streams()
+    {
+        m_out_streams.clear();
+        m_out_streams.push_back(&std::cout);
     }
 };

@@ -20,11 +20,11 @@ inline float4 jet(float val)
 
 inline float3 create_radial_force(float3 pos, float3 pos_particle)
 {
-    float strength = 5000000.0;
+    float strength = 2200.0f;
     float3 dir = pos_particle - pos;
     float dist2 = dot(dir, dir);
     dir = normalize(dir);
-    return strength * dir / dist2;
+    return (strength * strength) * dir / dist2;
 }
 
 __kernel void set_colors_from_image(__read_only image2d_t image, __global const float3* pos, __global float4* color)
@@ -40,6 +40,7 @@ __kernel void set_colors_from_image(__read_only image2d_t image, __global const 
 __kernel void process_user_input(__global float3* positions,/*VBO*/
                                  __global float4* colors,/*VBO*/
                                  __global float* pointSizes /*VBO*/,
+                                 __global float4* vel,
                                  __read_only image2d_t label_image,
                                  __constant float3* user_positions,
                                  int num_users,
@@ -56,9 +57,12 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     int2 coords = {pos.x + w/2, -pos.y + h/2};
     float4 label = read_imagef(label_image, coords);
     
+    float3 cumulative_force = (float3)(0, 0, 0);
+    
     for(int j = 0; j < num_users; ++j)
     {
-        //cumulative_force += create_radial_force(user_positions[j], p);
+        cumulative_force += create_radial_force(user_positions[j], p);
+        
         float3 diff = user_positions[j] - pos;
         float dist2 = dot(diff, diff);
         
@@ -133,9 +137,7 @@ __kernel void updateParticles(__global float3* pos, // VBO
         v = vel_gen[i];
         life = vel_gen[i].w;
     }
-    
-    float3 cumulative_force = (float3)(0, 0, 0);
-    
+
     //apply forces
     v.xyz += cumulative_force * dt;
     

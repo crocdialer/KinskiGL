@@ -48,6 +48,9 @@ class KINSKI_API Logger
 
     void setSeverity(const Severity theSeverity);
     Severity getSeverity() const { return m_globalSeverity; };
+    
+    void add_outstream(std::ostream *the_stream);
+    void clear_streams();
 
     private:
     
@@ -57,6 +60,8 @@ class KINSKI_API Logger
         std::string _myTopLevelLogTag;
         Severity m_globalSeverity;
         std::multimap<std::string, ModuleSeverity> m_severitySettings;
+    
+        std::list<std::ostream*> m_out_streams;
 };
 
 /**
