@@ -20,7 +20,7 @@ inline float4 jet(float val)
 
 inline float3 create_radial_force(float3 pos, float3 pos_particle)
 {
-    float strength = 2200.0f;
+    float strength = 900.0f;
     float3 dir = pos_particle - pos;
     float dist2 = dot(dir, dir);
     dir = normalize(dir);
@@ -45,6 +45,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
                                  __constant float3* user_positions,
                                  int num_users,
                                  float min_distance,
+                                 float force_factor,
                                  float dt)
 {
     size_t i = get_global_id(0);
@@ -62,7 +63,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     
     for(int j = 0; j < num_users; ++j)
     {
-        //cumulative_force += create_radial_force(user_positions[j], pos);
+        cumulative_force += create_radial_force(user_positions[j], pos);
         
         float3 diff = user_positions[j] - pos;
         float dist2 = dot(diff, diff);
@@ -83,13 +84,13 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     // green label
     if(isgreater(label.y, 0.5f))
     {
-        color = jet(heat);
+        color *= jet(heat);
     }
     // blue label
     if(isgreater(label.z, 0.5f))
     {
         point_size *= 1.0f - heat;
-        vel[i] += heat * 200.0f * (float4)(0, -1, 0, 0) * dt;
+        vel[i] += heat * force_factor * (float4)(0, -1, 0, 0) * dt;
     }
     // yellow label
     if(isgreater(label.x, 0.5f) & isgreater(label.y, 0.5f))
@@ -98,6 +99,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     }
     // debug colormap
     //color = jet(heat);
+    vel[i] += heat * force_factor * (float4)(cumulative_force, 0) * dt;
     
     // write back our perturbed values
     pointSizes[i] = point_size;

@@ -37,7 +37,7 @@ private:
     // particle system related
     RangedProperty<int>::Ptr m_numParticles;
     RangedProperty<float>::Ptr m_particle_size_min, m_particle_size_max;
-    RangedProperty<float>::Ptr m_min_interaction_distance;
+    RangedProperty<float>::Ptr m_min_interaction_distance, m_particle_force_factor;
     cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
@@ -67,6 +67,7 @@ private:
     gl::MeshPtr m_depth_cam_mesh;
     RangedProperty<float>::Ptr m_depth_cam_x, m_depth_cam_y, m_depth_cam_z;
     Property_<glm::vec3>::Ptr m_depth_cam_look_dir;
+    RangedProperty<float>::Ptr m_depth_cam_scale;
     
     void initOpenCL()
     {
@@ -313,6 +314,9 @@ public:
         m_numParticles = RangedProperty<int>::create("Num particles", 100000, 1, 5000000);
         registerProperty(m_numParticles);
         
+        m_particle_force_factor = RangedProperty<float>::create("Particle force factor", 200.f, 1, 1000.f);
+        registerProperty(m_particle_force_factor);
+        
         m_depth_cam_x = RangedProperty<float>::create("Depth_cam X", 0, -10000, 10000);
         registerProperty(m_depth_cam_x);
         
@@ -324,6 +328,9 @@ public:
         
         m_depth_cam_look_dir = Property_<vec3>::create("Depth_cam look dir", vec3(0, 0, -1));
         registerProperty(m_depth_cam_look_dir);
+        
+        m_depth_cam_scale = RangedProperty<float>::create("Depth_cam scale", 1.f, .1f, 10.f);
+        registerProperty(m_depth_cam_scale);
         
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
@@ -351,7 +358,7 @@ public:
         m_debug_scene.addObject(m_free_camera_mesh);
         
         // the virtual camera used to position depth camera input within the scene
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 3300.f));
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
         
         // FBO
         m_fbo = gl::Fbo(640, 360);
@@ -413,7 +420,8 @@ public:
             m_user_input_kernel.setArg(4, m_cl_labels);
             m_user_input_kernel.setArg(6, m_user_list.size());
             m_user_input_kernel.setArg(7, m_min_interaction_distance->value());
-            m_user_input_kernel.setArg(8, timeDelta);
+            m_user_input_kernel.setArg(8, m_particle_force_factor->value());
+            m_user_input_kernel.setArg(9, timeDelta);
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_user_input_kernel, cl::NullRange, cl::NDRange(*m_numParticles),
@@ -539,13 +547,12 @@ public:
             initParticles(*m_numParticles);
         }
         else if(theProperty == m_depth_cam_x || theProperty == m_depth_cam_y ||
-                theProperty == m_depth_cam_z || theProperty == m_depth_cam_look_dir)
+                theProperty == m_depth_cam_z || theProperty == m_depth_cam_look_dir ||
+                theProperty == m_depth_cam_scale)
         {
-//            m_depth_cam->setTransform(glm::rotate(mat4(), 180.f, vec3(0, 1, 0)));
-//            m_depth_cam->setPosition(vec3(m_depth_cam_xz->value().x, 0, m_depth_cam_xz->value().y));
-            
             m_depth_cam->setPosition(vec3(m_depth_cam_x->value(), m_depth_cam_y->value(), m_depth_cam_z->value()));
             m_depth_cam->setLookAt(m_depth_cam->position() + m_depth_cam_look_dir->value() );
+            m_depth_cam->setTransform(glm::scale(m_depth_cam->transform(), vec3(*m_depth_cam_scale)));
             
             m_debug_scene.removeObject(m_depth_cam_mesh);
             m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
@@ -601,9 +608,9 @@ public:
     {
         if(!m_user_mesh)
         {
-            m_user_mesh = gl::Mesh::create(gl::createSolidUnitCircle(64), gl::Material::create());
-            m_user_mesh->material()->setTwoSided();
-            //m_user_mesh->material()->setDepthTest(false);
+            //m_user_mesh = gl::Mesh::create(gl::createSolidUnitCircle(64), gl::Material::create());
+            m_user_mesh = gl::Mesh::create(gl::createSphere(1.f, 32), gl::Material::create());
+            //m_user_mesh->material()->setTwoSided();
             m_user_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
             m_user_mesh->transform() *= glm::scale(glm::mat4(), glm::vec3(100));
             m_user_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
