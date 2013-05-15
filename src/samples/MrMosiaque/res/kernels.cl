@@ -1,8 +1,81 @@
 typedef struct User
+{
+    unsigned int id;
+    float3 position;
+} User;// 16 byte aligned
+
+/**
+ * Hot Iron colormap. It fades between red and yellowish colors.
+ *
+ * \param value the scaled value
+ *
+ * \return color.
+ */
+float4 hotIron(float value)
+{
+    float4 color8  = (float4)( 255.0 / 255.0, 255.0 / 255.0, 204.0 / 255.0, 1.0 );
+    float4 color7  = (float4)( 255.0 / 255.0, 237.0 / 255.0, 160.0 / 255.0, 1.0 );
+    float4 color6  = (float4)( 254.0 / 255.0, 217.0 / 255.0, 118.0 / 255.0, 1.0 );
+    float4 color5  = (float4)( 254.0 / 255.0, 178.0 / 255.0,  76.0 / 255.0, 1.0 );
+    float4 color4  = (float4)( 253.0 / 255.0, 141.0 / 255.0,  60.0 / 255.0, 1.0 );
+    float4 color3  = (float4)( 252.0 / 255.0,  78.0 / 255.0,  42.0 / 255.0, 1.0 );
+    float4 color2  = (float4)( 227.0 / 255.0,  26.0 / 255.0,  28.0 / 255.0, 1.0 );
+    float4 color1  = (float4)( 189.0 / 255.0,   0.0 / 255.0,  38.0 / 255.0, 1.0 );
+    float4 color0  = (float4)( 128.0 / 255.0,   0.0 / 255.0,  38.0 / 255.0, 1.0 );
+    
+    float colorValue = value * 8.0f;
+    int sel = (int)( floor( colorValue ) );
+    
+    if( sel >= 8 )
     {
-        unsigned int id;
-        float3 position;
-    } User;// 16 byte aligned
+        return color0;
+    }
+    else if( sel < 0 )
+    {
+        return color0;
+    }
+    else
+    {
+        colorValue -= (float)( sel );
+        
+        if( sel < 1 )
+        {
+            return ( color1 * colorValue + color0 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 2 )
+        {
+            return ( color2 * colorValue + color1 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 3 )
+        {
+            return ( color3 * colorValue + color2 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 4 )
+        {
+            return ( color4 * colorValue + color3 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 5 )
+        {
+            return ( color5 * colorValue + color4 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 6 )
+        {
+            return ( color6 * colorValue + color5 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 7 )
+        {
+            return ( color7 * colorValue + color6 * ( 1.0f - colorValue ) );
+        }
+        else if( sel < 8 )
+        {
+            return ( color8 * colorValue + color7 * ( 1.0 - colorValue ) );
+        }
+        else
+        {
+            return color0;
+        }
+    }
+}
 
 float4 gray(float4 color)
 {
@@ -40,11 +113,12 @@ __kernel void set_colors_from_image(__read_only image2d_t image, __global const 
 __kernel void process_user_input(__global float3* positions,/*VBO*/
                                  __global float4* colors,/*VBO*/
                                  __global float* pointSizes /*VBO*/,
-                                 __global float4* vel,
+                                 __global float4* velocity,
                                  __read_only image2d_t label_image,
                                  __constant float3* user_positions,
                                  int num_users,
                                  float min_distance,
+                                 bool weighted_size,
                                  float force_factor,
                                  float dt)
 {
@@ -52,6 +126,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     float3 pos = positions[i];
     float4 color = colors[i];
     float point_size = pointSizes[i];
+    float4 vel = velocity[i];
     float heat = 0;
     
     int w = get_image_width(label_image);
@@ -74,37 +149,43 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
             heat += (min_distance2 - dist2) / min_distance2;
         }
     }
-    heat = min(heat, 1.0f);
+    heat = min(heat, .99f);
+    cumulative_force.z = 0.f;
+    point_size = weighted_size ? point_size * heat : point_size;
     
     // red label
-    if(isgreater(label.x, 0.5f))
+    if(isgreater(label.x, 0.5f) & isless(label.y, 0.5f))
     {
         point_size *= 1.0f + 3.0f * heat;
     }
     // green label
     if(isgreater(label.y, 0.5f))
     {
-        color *= jet(heat);
+        color = jet(heat);
     }
     // blue label
     if(isgreater(label.z, 0.5f))
     {
-        point_size *= 1.0f - heat;
-        vel[i] += heat * force_factor * (float4)(0, -1, 0, 0) * dt;
+//        point_size *= 1.0f - heat;
+//        velocity[i] += heat * force_factor * (float4)(0, -1, 0, 0) * dt;
+        point_size *= 1.0f + 3.0f * heat;
+        color = gray(color);
     }
     // yellow label
     if(isgreater(label.x, 0.5f) & isgreater(label.y, 0.5f))
     {
-        
+        color = hotIron(heat);
+        //point_size *= 1.0f + 3.0f * heat;
     }
     // debug colormap
-    //color = jet(heat);
-    vel[i] += heat * force_factor * (float4)(cumulative_force, 0) * dt;
+    //color = hotIron(heat);
+    vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
     
     // write back our perturbed values
     pointSizes[i] = point_size;
     float4 poo = color + (colors[i] - color) * (1 - heat);
     colors[i] = poo;
+    velocity[i] = vel;
 }
 
 __kernel void updateParticles(__global float3* pos, // VBO

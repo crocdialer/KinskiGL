@@ -72,7 +72,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
             heat += (min_distance2 - dist2) / min_distance2;
         }
     }
-    heat = min(heat, 1.0f);
+    heat = min(heat, .99f);
     
     // red label
     if(isgreater(label.x, 0.5f))

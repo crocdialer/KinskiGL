@@ -20,7 +20,7 @@ class OpenCLTest : public ViewerApp
 {
 private:
     
-    Property_<string>::Ptr m_texturePath;
+    Property_<string>::Ptr m_texturePath, m_texture_labels_path;;
     Property_<vec4>::Ptr m_point_color;
     gl::Texture m_textures[4];
     gl::Material::Ptr m_pointMaterial;
@@ -38,6 +38,7 @@ private:
     RangedProperty<int>::Ptr m_numParticles;
     RangedProperty<float>::Ptr m_particle_size_min, m_particle_size_max;
     RangedProperty<float>::Ptr m_min_interaction_distance, m_particle_force_factor;
+    Property_<bool>::Ptr m_particle_size_weighted;
     cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
@@ -117,11 +118,20 @@ private:
             // Create a command queue and use the first device
             m_queue = cl::CommandQueue(m_context, devices[0]);
             
-            // Read source file
-            std::string sourceCode = kinski::readFile("kernels.cl");
+            // Read source file(s)
+            cl::Program::Sources sources;
+            std::list<std::string> cl_files = getDirectoryEntries(".", false, "cl");
+            std::list<std::string>::iterator it = cl_files.begin();
+            for (; it != cl_files.end(); ++it)
+            {
+                std::string file_content = kinski::readFile(*it);
+                sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
+            }
+            
+            //std::string sourceCode = kinski::readFile("kernels.cl");
             
             // Make program of the source code in the context
-            m_program = cl::Program(m_context, sourceCode);
+            m_program = cl::Program(m_context, sources);
             
             // Build program for these specific devices
             m_program.build();
@@ -280,6 +290,9 @@ public:
         m_texturePath = Property_<string>::create("Texture path", "IMG_5189.jpg");
         registerProperty(m_texturePath);
         
+        m_texture_labels_path = Property_<string>::create("Label texture path", "IMG_5189_labels.jpg");
+        registerProperty(m_texture_labels_path);
+        
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
         registerProperty(m_point_color);
         
@@ -306,6 +319,9 @@ public:
         
         m_particle_size_max = RangedProperty<float>::create("Particle size max", 8.f, 0, 200);
         registerProperty(m_particle_size_max);
+        
+        m_particle_size_weighted = Property_<bool>::create("Particle size weighted", true);
+        registerProperty(m_particle_size_weighted);
         
         m_min_interaction_distance = RangedProperty<float>::create("Min interaction distance",
                                                                    1200.f, 1, 2500);
@@ -420,8 +436,9 @@ public:
             m_user_input_kernel.setArg(4, m_cl_labels);
             m_user_input_kernel.setArg(6, m_user_list.size());
             m_user_input_kernel.setArg(7, m_min_interaction_distance->value());
-            m_user_input_kernel.setArg(8, m_particle_force_factor->value());
-            m_user_input_kernel.setArg(9, timeDelta);
+            m_user_input_kernel.setArg(8, m_particle_size_weighted->value());
+            m_user_input_kernel.setArg(9, m_particle_force_factor->value());
+            m_user_input_kernel.setArg(10, timeDelta);
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_user_input_kernel, cl::NullRange, cl::NDRange(*m_numParticles),
@@ -492,11 +509,11 @@ public:
             try
             {
                 std::string name = kinski::getFilenamePart(*m_texturePath);
-                std::string ext = kinski::getExtension(*m_texturePath);
-                std::string label_filename = name.substr(0, name.find(ext, 0)) + "_labels" + ext;
+//                std::string ext = kinski::getExtension(*m_texturePath);
+//                std::string label_filename = name.substr(0, name.find(ext, 0)) + "_labels" + ext;
                 
                 m_textures[0] = gl::createTextureFromFile(*m_texturePath);
-                m_textures[1] = gl::createTextureFromFile(label_filename);
+//                m_textures[1] = gl::createTextureFromFile(label_filename);
                 
                 if(m_textures[0].getWidth() > 0 && m_textures[0].getHeight() > 0)
                 {
@@ -504,13 +521,30 @@ public:
                     m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                              m_textures[0].getId());
                     
-                    m_cl_labels = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
-                                              m_textures[1].getId());
+//                    m_cl_labels = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+//                                              m_textures[1].getId());
                     
                     m_debug_bill_board->material()->textures().clear();
                     m_debug_bill_board->material()->addTexture(m_textures[0]);
                     m_debug_bill_board->geometry() = gl::createPlane(m_textures[0].getWidth(),
                                                                      m_textures[0].getHeight());
+                }
+            }
+            catch(cl::Error &error)
+            {LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";}
+            catch (std::exception &e){LOG_WARNING << e.what();}
+        }
+        else if(theProperty == m_texture_labels_path)
+        {
+            try
+            {
+                m_textures[1] = gl::createTextureFromFile(*m_texture_labels_path);
+                
+                if(m_textures[1].getWidth() > 0 && m_textures[1].getHeight() > 0)
+                {
+                    // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
+                    m_cl_labels = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                                              m_textures[1].getId());
                 }
             }
             catch(cl::Error &error)
@@ -563,8 +597,8 @@ public:
         {
             if(*m_use_bill_board)
             {
-                scene().removeObject(m_particle_mesh);
-                m_debug_scene.removeObject(m_particle_mesh);
+                //scene().removeObject(m_particle_mesh);
+                //m_debug_scene.removeObject(m_particle_mesh);
                 scene().addObject(m_debug_bill_board);
                 m_debug_scene.addObject(m_debug_bill_board);
             }
@@ -572,8 +606,8 @@ public:
             {
                 scene().removeObject(m_debug_bill_board);
                 m_debug_scene.removeObject(m_debug_bill_board);
-                scene().addObject(m_particle_mesh);
-                m_debug_scene.addObject(m_particle_mesh);
+                //scene().addObject(m_particle_mesh);
+                //m_debug_scene.addObject(m_particle_mesh);
             }
         }
         else if(theProperty == m_min_interaction_distance)
