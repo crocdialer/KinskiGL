@@ -311,6 +311,26 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
+    GeometryPtr createUnitCircle(int numSegments)
+    {
+        GeometryPtr ret = Geometry::create();
+        ret->setPrimitiveType(GL_LINE_STRIP);
+        std::vector<glm::vec3> &verts = ret->vertices();
+        
+        // automatically determine the number of segments from the circumference
+        //        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
+        //        numSegments = std::max(numSegments, 2);
+        verts.resize(numSegments+1);
+        
+        for(int s = 0; s <= numSegments; s++)
+        {
+            float t = s / (float)numSegments * 2.0f * M_PI;
+            verts[s] = glm::vec3(glm::vec2(cos(t), sin(t)), 0);
+        }
+        ret->computeBoundingBox();
+        return ret;
+    }
+    
     Geometry::Ptr createBox(const glm::vec3 &theHalfExtents)
     {
         GeometryPtr geom = Geometry::create();

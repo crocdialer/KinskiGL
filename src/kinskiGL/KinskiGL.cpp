@@ -856,19 +856,24 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawSolidCircle(const glm::vec2 &center, float radius, const MaterialPtr &theMaterial,
-                         int numSegments)
+    void drawCircle(const glm::vec2 &center, float radius, bool solid,
+                         const MaterialPtr &theMaterial, int numSegments)
     {
-        static gl::MeshPtr circle_mesh;
+        static gl::MeshPtr solid_mesh, line_mesh;
         static gl::MaterialPtr default_mat;
+        gl::MeshPtr our_mesh = solid ? solid_mesh : line_mesh;
         
-        if(!circle_mesh)
+        if(!our_mesh)
         {
-            GeometryPtr geom = createSolidUnitCircle(64);
+            GeometryPtr geom = solid ? createSolidUnitCircle(numSegments) : createUnitCircle(numSegments);
             default_mat = gl::Material::create();
-            circle_mesh = gl::Mesh::create(geom, default_mat);
+            our_mesh = gl::Mesh::create(geom, default_mat);
+            if(solid)
+                solid_mesh = our_mesh;
+            else
+                line_mesh = our_mesh;
         }
-        circle_mesh->material() = theMaterial ? theMaterial : default_mat;
+        our_mesh->material() = theMaterial ? theMaterial : default_mat;
         mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
         mat4 modelView = glm::scale(mat4(), vec3(radius));
         modelView[3].xyz() = vec3(center, 0);
@@ -876,7 +881,7 @@ namespace kinski { namespace gl {
         ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
         loadMatrix(PROJECTION_MATRIX, projectionMatrix);
         loadMatrix(MODEL_VIEW_MATRIX, modelView);
-        drawMesh(circle_mesh);
+        drawMesh(our_mesh);
     }
 
 ///////////////////////////////////////////////////////////////////////////////

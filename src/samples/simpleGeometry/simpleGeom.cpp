@@ -184,7 +184,7 @@ public:
             
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
-            //gl::drawSolidCircle(windowSize() / 2.f, 320.f);
+            gl::drawCircle(windowSize() / 2.f, 320.f, false);
             
             scene().render(camera());
             

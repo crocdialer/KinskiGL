@@ -171,9 +171,10 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     // green label (thermal colors + bigger pixels + gravity)
     if(isgreater(label.y, 0.5f) & isless(label.x, 0.5f))
     {
-        color = jet(heat);
-        point_size *= 1.0f + 3.0f * min(heat, .8f);
+        color = jet(min(heat, .8f));
+        point_size *= 1.0f + 3.0f * heat;
         vel += heat > 0.5 ? 200.f * (float4)(0, -1, 0, 0) * dt : (float4)(0);
+        vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
     }
     // blue label (bigger pixels + gray colors + push away)
     if(isgreater(label.z, 0.5f) & isless(label.x, 0.5f))

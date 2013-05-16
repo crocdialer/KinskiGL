@@ -212,6 +212,7 @@ namespace kinski{ namespace gl{
                             uint32_t numSegments_W = 1,
                             uint32_t numSegments_H = 1);
     KINSKI_API GeometryPtr createSolidUnitCircle(int numSegments);
+    KINSKI_API GeometryPtr createUnitCircle(int numSegments);
     KINSKI_API GeometryPtr createBox(const glm::vec3 &theHalfExtents);
     KINSKI_API GeometryPtr createSphere(float radius, int numSlices);
     

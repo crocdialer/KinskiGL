@@ -147,9 +147,9 @@ namespace kinski { namespace gl {
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
     KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
-    KINSKI_API void drawSolidCircle(const glm::vec2 &center, float radius,
+    KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
                                     const MaterialPtr &theMaterial = MaterialPtr(),
-                                    int numSegments = 0 );
+                                    int numSegments = 32 );
 
     /*********************************** lazy state changing **********************************/
     

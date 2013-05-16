@@ -53,7 +53,7 @@ private:
     gl::Fbo m_fbo;
     Property_<glm::vec2>::Ptr m_fbo_size;
     RangedProperty<float>::Ptr m_fbo_cam_distance;
-    gl::MeshPtr m_user_mesh;
+    gl::MeshPtr m_user_mesh, m_user_radius_mesh;
     std::vector<gl::Color> m_user_id_colors;
     
     // output via Syphon
@@ -653,10 +653,14 @@ public:
         {
             //m_user_mesh = gl::Mesh::create(gl::createSolidUnitCircle(64), gl::Material::create());
             m_user_mesh = gl::Mesh::create(gl::createSphere(1.f, 32), gl::Material::create());
-            //m_user_mesh->material()->setTwoSided();
-            m_user_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
             m_user_mesh->transform() *= glm::scale(glm::mat4(), glm::vec3(100));
             m_user_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
+        }
+        if(!m_user_radius_mesh)
+        {
+            m_user_radius_mesh = gl::Mesh::create(gl::createUnitCircle(64), gl::Material::create());
+            m_user_radius_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
+            //m_user_radius_mesh->transform() *= glm::scale(glm::mat4(), glm::vec3(200));
         }
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
         gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
@@ -667,6 +671,13 @@ public:
             m_user_mesh->material()->setDiffuse(m_user_id_colors[it->id]);
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
             gl::drawMesh(m_user_mesh);
+            
+            m_user_radius_mesh->setPosition(it->position);
+            m_user_radius_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() *
+                           m_user_radius_mesh->transform() * glm::scale(glm::mat4(),
+                                                                        glm::vec3(*m_min_interaction_distance)));
+            gl::drawMesh(m_user_radius_mesh);
         }
     }
     
