@@ -120,9 +120,13 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
                                  float min_distance,
                                  bool weighted_size,
                                  float force_factor,
-                                 float dt)
+                                 float dt,
+                                 __global float *heats)
 {
+    // query array indices
     size_t i = get_global_id(0);
+    //size_t local_i = get_local_id(0);
+    
     float3 pos = positions[i];
     float4 color = colors[i];
     float point_size = pointSizes[i];
@@ -134,7 +138,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     int2 coords = {pos.x + w/2, -pos.y + h/2};
     float4 label = read_imagef(label_image, coords);
     
-    float3 cumulative_force = (float3)(0, 0, 0);
+    float3 cumulative_force = (float3)(0);
     
     for(int j = 0; j < num_users; ++j)
     {
@@ -150,41 +154,57 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
         }
     }
     heat = min(heat, .99f);
+    
+    // if heat is lower than previous value fade out slowly
+    heat = heat < heats[i] ? mix(heat, heats[i], 0.98) : heat;
+    heats[i] = heat;
+    
     cumulative_force.z = 0.f;
     point_size = weighted_size ? point_size * heat : point_size;
     
-    // red label
+    // red label (push away + bigger pixels)
     if(isgreater(label.x, 0.5f) & isless(label.y, 0.5f))
     {
         point_size *= 1.0f + 3.0f * heat;
+        vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
     }
-    // green label
-    if(isgreater(label.y, 0.5f))
+    // green label (thermal colors + bigger pixels + gravity)
+    if(isgreater(label.y, 0.5f) & isless(label.x, 0.5f))
     {
         color = jet(heat);
+        point_size *= 1.0f + 3.0f * min(heat, .8f);
+        vel += heat > 0.5 ? 200.f * (float4)(0, -1, 0, 0) * dt : (float4)(0);
     }
-    // blue label
-    if(isgreater(label.z, 0.5f))
+    // blue label (bigger pixels + gray colors + push away)
+    if(isgreater(label.z, 0.5f) & isless(label.x, 0.5f))
     {
-//        point_size *= 1.0f - heat;
-//        velocity[i] += heat * force_factor * (float4)(0, -1, 0, 0) * dt;
         point_size *= 1.0f + 3.0f * heat;
+        vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
         color = gray(color);
     }
-    // yellow label
+    // yellow label (hot iron colors)
     if(isgreater(label.x, 0.5f) & isgreater(label.y, 0.5f))
     {
         color = hotIron(heat);
-        //point_size *= 1.0f + 3.0f * heat;
+        point_size *= 1.0f + .5f * heat;
     }
+    // magenta label (alpha mask)
+    if(isgreater(label.x, 0.5f) & isgreater(label.z, 0.5f))
+    {
+        point_size *= 1.0f + 2.0f * heat;
+        color *= (float4)(0.f);
+    }
+    
     // debug colormap
     //color = hotIron(heat);
-    vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
+    
+    // global push away
+    //vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
     
     // write back our perturbed values
     pointSizes[i] = point_size;
-    float4 poo = color + (colors[i] - color) * (1 - heat);
-    colors[i] = poo;
+    float4 color_mix = mix(color, colors[i], (float4)(1.f - heat));
+    colors[i] = color_mix;
     velocity[i] = vel;
 }
 

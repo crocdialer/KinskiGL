@@ -306,6 +306,9 @@ public:
         m_use_bill_board = Property_<bool>::create("Switch particles / billboard", false);
         registerProperty(m_use_bill_board);
         
+        m_use_bill_board_phong = Property_<bool>::create("Billboard Unlit / Phong", false);
+        registerProperty(m_use_bill_board_phong);
+        
         m_use_syphon = Property_<bool>::create("Output to Syphon", false);
         registerProperty(m_use_syphon);
         
@@ -566,6 +569,11 @@ public:
                 scene().addObject(m_particle_mesh);
                 m_debug_scene.addObject(m_particle_mesh);
             }
+        }
+        else if(theProperty == m_use_bill_board_phong)
+        {
+            gl::ShaderType type = *m_use_bill_board_phong ? gl::SHADER_PHONG : gl::SHADER_UNLIT;
+            m_debug_bill_board->material()->setShader(gl::createShader(type));
         }
     }
     

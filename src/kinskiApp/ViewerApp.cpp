@@ -109,16 +109,16 @@ namespace kinski {
                 {
                     if(m_selected_mesh){ m_selected_mesh->material() = m_materials[0]; }
                     m_selected_mesh = m;
-                    m_materials[0] = m_selected_mesh->material();
-                    m_materials[1]->shader() = m_materials[0]->shader();
-                    m_selected_mesh->material() = m_materials[1];
+//                    m_materials[0] = m_selected_mesh->material();
+//                    m_materials[1]->shader() = m_materials[0]->shader();
+//                    m_selected_mesh->material() = m_materials[1];
                 }
             }
         }
         else{
             if(e.isRight() && m_selected_mesh){
                 m_selected_mesh->material() = m_materials[0];
-                m_selected_mesh.reset();
+//                m_selected_mesh.reset();
             }
         }
     }

@@ -40,7 +40,7 @@ private:
     RangedProperty<float>::Ptr m_min_interaction_distance, m_particle_force_factor;
     Property_<bool>::Ptr m_particle_size_weighted;
     cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
-    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions;
+    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions, m_heats;
     cl::BufferGL m_positions, m_colors, m_point_sizes;
     cl::ImageGL m_cl_image, m_cl_labels;
     
@@ -114,6 +114,7 @@ private:
             // Get a list of devices on this platform
             vector<cl::Device> devices = m_context.getInfo<CL_CONTEXT_DEVICES>();
             m_device = devices[0];
+            //LOG_INFO<<m_device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();//32768
             
             // Create a command queue and use the first device
             m_queue = cl::CommandQueue(m_context, devices[0]);
@@ -178,6 +179,7 @@ private:
             m_positionGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(vec4) );
             m_velocityGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(vec4) );
             m_pointsizeGen = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(float));
+            m_heats = cl::Buffer(m_context, CL_MEM_WRITE_ONLY, num_particles * sizeof(float));
             m_user_positions = cl::Buffer(m_context, CL_MEM_WRITE_ONLY,
                                           200 * sizeof(gl::OpenNIConnector::User));
             srand(clock());
@@ -204,6 +206,10 @@ private:
             m_queue.enqueueWriteBuffer(m_pointsizeGen, CL_TRUE, 0, num_particles * sizeof(float),
                                        &m_geom->point_sizes()[0]);
             
+            std::vector<float> heat_gen; heat_gen.resize(num_particles, 0.f);
+            m_queue.enqueueWriteBuffer(m_heats, CL_TRUE, 0, num_particles * sizeof(float),
+                                       &heat_gen[0]);
+            
             m_particleKernel.setArg(0, m_positions);
             m_particleKernel.setArg(1, m_colors);
             m_particleKernel.setArg(2, m_point_sizes);
@@ -220,6 +226,9 @@ private:
             m_user_input_kernel.setArg(2, m_point_sizes);
             m_user_input_kernel.setArg(3, m_velocities);
             m_user_input_kernel.setArg(5, m_user_positions);
+            
+            //int work_group_size = m_user_input_kernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE>(m_device);
+            m_user_input_kernel.setArg(11, m_heats);
         }
         catch(cl::Error &error)
         {
