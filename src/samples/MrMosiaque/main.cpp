@@ -47,7 +47,7 @@ private:
     // perspective experiment
     enum DRAW_MODE{DRAW_NOTHING = 0, DRAW_FBO_OUTPUT = 1, DRAW_DEBUG_SCENE = 2};
     RangedProperty<int>::Ptr m_debug_draw_mode;
-    enum BILLBOARD_MODE{BILLBOARD_NONE = 0, BILLBOARD_ONLY = 1, BILLBOARD_BOTH = 2};
+    enum BILLBOARD_MODE{BILLBOARD_NONE = 0, BILLBOARD_ONLY = 1, BILLBOARD_ONLY_DEBUG = 2, BILLBOARD_BOTH = 3};
     RangedProperty<int>::Ptr m_billboard_draw_mode;
     gl::Scene m_debug_scene;
     gl::PerspectiveCamera::Ptr m_free_camera;
@@ -147,6 +147,9 @@ private:
         catch(cl::Error &error)
         {
             LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            LOG_ERROR << "Build Status: " << m_program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(m_device);
+            LOG_ERROR << "Build Options:\t" << m_program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(m_device);
+            LOG_ERROR << "Build Log:\t " << m_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(m_device);
         }
     }
     
@@ -310,7 +313,7 @@ public:
         m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 2);
         registerProperty(m_debug_draw_mode);
         
-        m_billboard_draw_mode = RangedProperty<int>::create("Switch particles / billboard", 2, 0, 2);
+        m_billboard_draw_mode = RangedProperty<int>::create("Switch particles / billboard", 2, 0, 3);
         registerProperty(m_billboard_draw_mode);
         
         m_use_syphon = Property_<bool>::create("Output to Syphon", false);
@@ -627,6 +630,10 @@ public:
                     break;
                 case BILLBOARD_ONLY:
                     scene().addObject(m_debug_bill_board);
+                    m_debug_scene.addObject(m_debug_bill_board);
+                    break;
+                case BILLBOARD_ONLY_DEBUG:
+                    scene().addObject(m_particle_mesh);
                     m_debug_scene.addObject(m_debug_bill_board);
                     break;
                 case BILLBOARD_BOTH:

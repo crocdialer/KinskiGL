@@ -68,7 +68,7 @@ float4 hotIron(float value)
         }
         else if( sel < 8 )
         {
-            return ( color8 * colorValue + color7 * ( 1.0 - colorValue ) );
+            return ( color8 * colorValue + color7 * ( 1.0f - colorValue ) );
         }
         else
         {
@@ -85,10 +85,10 @@ float4 gray(float4 color)
 
 inline float4 jet(float val)
 {
-    return (float4)(min(4.0 * val - 1.5, -4.0 * val + 4.5),
-                    min(4.0 * val - 0.5, -4.0 * val + 3.5),
-                    min(4.0 * val + 0.5, -4.0 * val + 2.5),
-                    1.0);
+    return (float4)(min(4.0f * val - 1.5f, -4.0f * val + 4.5f),
+                    min(4.0f * val - 0.5f, -4.0f * val + 3.5f),
+                    min(4.0f * val + 0.5f, -4.0f * val + 2.5f),
+                    1.0f);
 }
 
 inline float3 create_radial_force(float3 pos, float3 pos_particle)
@@ -107,7 +107,7 @@ __kernel void set_colors_from_image(__read_only image2d_t image, __global const 
     int h = get_image_height(image);
     
     int2 coords = {pos[i].x + w/2, -pos[i].y + h/2};
-    color[i] = read_imagef(image, coords);
+    color[i] = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, coords);
 }
 
 __kernel void process_user_input(__global float3* positions,/*VBO*/
@@ -136,7 +136,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     int w = get_image_width(label_image);
     int h = get_image_height(label_image);
     int2 coords = {pos.x + w/2, -pos.y + h/2};
-    float4 label = read_imagef(label_image, coords);
+    float4 label = read_imagef(label_image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, coords);
     
     float3 cumulative_force = (float3)(0);
     
@@ -156,11 +156,14 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     heat = min(heat, .99f);
     
     // if heat is lower than previous value fade out slowly
-    heat = heat < heats[i] ? mix(heat, heats[i], 0.98) : heat;
+    heat = heat < heats[i] ? mix(heat, heats[i], 0.98f) : heat;
     heats[i] = heat;
     
     cumulative_force.z = 0.f;
-    point_size = weighted_size ? point_size * heat : point_size;
+    point_size = weighted_size ? max(point_size * heat, 1.f) : point_size;
+    //if(isless(point_size, 1.0f))
+        
+        
     
     // red label (push away + bigger pixels)
     if(isgreater(label.x, 0.5f) & isless(label.y, 0.5f))
@@ -173,7 +176,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     {
         color = jet(min(heat, .8f));
         point_size *= 1.0f + 3.0f * heat;
-        vel += heat > 0.5 ? 200.f * (float4)(0, -1, 0, 0) * dt : (float4)(0);
+        vel += heat > 0.5f ? 200.f * (float4)(0, -1, 0, 0) * dt : (float4)(0);
         vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
     }
     // blue label (bigger pixels + gray colors + push away)
@@ -181,6 +184,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     {
         point_size *= 1.0f + 3.0f * heat;
         vel += heat * force_factor * (float4)(cumulative_force, 0) * dt;
+        color = (float4)((float3)(1.0f) - color.xyz, color.w);//gray(color);
         color = gray(color);
     }
     // yellow label (hot iron colors)
