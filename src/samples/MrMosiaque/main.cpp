@@ -45,8 +45,10 @@ private:
     cl::ImageGL m_cl_image, m_cl_labels;
     
     // perspective experiment
-    Property_<bool>::Ptr m_debug_draw;
-    Property_<bool>::Ptr m_use_bill_board;
+    enum DRAW_MODE{DRAW_NOTHING = 0, DRAW_FBO_OUTPUT = 1, DRAW_DEBUG_SCENE = 2};
+    RangedProperty<int>::Ptr m_debug_draw_mode;
+    enum BILLBOARD_MODE{BILLBOARD_NONE = 0, BILLBOARD_ONLY = 1, BILLBOARD_BOTH = 2};
+    RangedProperty<int>::Ptr m_billboard_draw_mode;
     gl::Scene m_debug_scene;
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::MeshPtr m_free_camera_mesh;
@@ -305,11 +307,11 @@ public:
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
         registerProperty(m_point_color);
         
-        m_debug_draw = Property_<bool>::create("Enable debug drawing", true);
-        registerProperty(m_debug_draw);
+        m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 2);
+        registerProperty(m_debug_draw_mode);
         
-        m_use_bill_board = Property_<bool>::create("Switch particles / billboard", false);
-        registerProperty(m_use_bill_board);
+        m_billboard_draw_mode = RangedProperty<int>::create("Switch particles / billboard", 2, 0, 2);
+        registerProperty(m_billboard_draw_mode);
         
         m_use_syphon = Property_<bool>::create("Output to Syphon", false);
         registerProperty(m_use_syphon);
@@ -372,7 +374,7 @@ public:
         m_debug_bill_board = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
         m_debug_bill_board->setPosition(m_particle_mesh->position());
         m_debug_bill_board->material()->setTwoSided();
-        if(*m_use_bill_board)
+        if(*m_billboard_draw_mode)
             m_debug_scene.addObject(m_debug_bill_board);
         
         // the camera used for offscreen rendering
@@ -467,17 +469,25 @@ public:
         // render the output image offscreen
         m_textures[2] = render_to_texture(scene(), m_free_camera);
         
-        if(*m_debug_draw)
+        switch(*m_debug_draw_mode)
         {
-            gl::setMatrices(camera());
-            if(draw_grid()) gl::drawGrid(3600, 3600);
-            m_debug_scene.render(camera());
-            draw_user_meshes(m_user_list);
-            //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
-        }
-        else
-        {
-            gl::drawTexture(m_textures[2], windowSize());
+            case DRAW_DEBUG_SCENE:
+            
+                gl::setMatrices(camera());
+                if(draw_grid()) gl::drawGrid(3600, 3600);
+                m_debug_scene.render(camera());
+                draw_user_meshes(m_user_list);
+                //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
+                break;
+                
+            case DRAW_FBO_OUTPUT:
+            
+                gl::drawTexture(m_textures[2], windowSize());
+                break;
+            
+            case DRAW_NOTHING:
+            default:
+                break;
         }
 
         if(*m_use_syphon)
@@ -602,21 +612,29 @@ public:
             m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
             m_debug_scene.addObject(m_depth_cam_mesh);
         }
-        else if(theProperty == m_use_bill_board)
+        else if(theProperty == m_billboard_draw_mode)
         {
-            if(*m_use_bill_board)
+            scene().removeObject(m_debug_bill_board);
+            m_debug_scene.removeObject(m_debug_bill_board);
+            scene().removeObject(m_particle_mesh);
+            m_debug_scene.removeObject(m_particle_mesh);
+            
+            switch(*m_billboard_draw_mode)
             {
-                //scene().removeObject(m_particle_mesh);
-                //m_debug_scene.removeObject(m_particle_mesh);
-                scene().addObject(m_debug_bill_board);
-                m_debug_scene.addObject(m_debug_bill_board);
-            }
-            else
-            {
-                scene().removeObject(m_debug_bill_board);
-                m_debug_scene.removeObject(m_debug_bill_board);
-                //scene().addObject(m_particle_mesh);
-                //m_debug_scene.addObject(m_particle_mesh);
+                case BILLBOARD_NONE:
+                    scene().addObject(m_particle_mesh);
+                    m_debug_scene.addObject(m_particle_mesh);
+                    break;
+                case BILLBOARD_ONLY:
+                    scene().addObject(m_debug_bill_board);
+                    m_debug_scene.addObject(m_debug_bill_board);
+                    break;
+                case BILLBOARD_BOTH:
+                    scene().addObject(m_debug_bill_board);
+                    m_debug_scene.addObject(m_debug_bill_board);
+                    scene().addObject(m_particle_mesh);
+                    m_debug_scene.addObject(m_particle_mesh);
+                    break;
             }
         }
         else if(theProperty == m_min_interaction_distance)
@@ -684,14 +702,18 @@ public:
     void keyPress(const KeyEvent &e)
     {
         ViewerApp::keyPress(e);
+        int min, max;
         
         switch(e.getChar())
         {
             case KeyEvent::KEY_b:
-                *m_use_bill_board = !*m_use_bill_board;
+                m_billboard_draw_mode->getRange(min, max);
+                *m_billboard_draw_mode = (*m_billboard_draw_mode + 1) % (max + 1);
                 break;
             case KeyEvent::KEY_d:
-                *m_debug_draw = !*m_debug_draw;
+                m_debug_draw_mode->getRange(min, max);
+
+                *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);
                 break;
             case KeyEvent::KEY_s:
                 Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
