@@ -38,6 +38,7 @@ private:
     RangedProperty<int>::Ptr m_numParticles;
     RangedProperty<float>::Ptr m_particle_size_min, m_particle_size_max;
     RangedProperty<float>::Ptr m_min_interaction_distance, m_particle_force_factor;
+    RangedProperty<float>::Ptr m_particle_flow_factor;
     Property_<bool>::Ptr m_particle_size_weighted;
     cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_pointsizeGen, m_user_positions, m_heats;
@@ -196,7 +197,9 @@ private:
                 vec3 pos = glm::linearRand(-image_dim/2.f, image_dim/2.f);//glm::ballRand(20.0f);
                 posGen.push_back( vec4(pos, 1.f) );
                 //vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
-                vec3 vel = glm::vec3(random(-20.f, 20.f),random(-6.f, 6.f), random(0.f, 4.f));
+                vec3 vel = glm::vec3(random(-2.f * *m_particle_flow_factor, 2.f * *m_particle_flow_factor),
+                                     random(-4.f * *m_particle_flow_factor, m_particle_flow_factor->value()),
+                                     random(0.f, 4.f));
                 float life = kinski::random(5.f, 18.f);
                 velGen.push_back(vec4(vel, life));
                 m_geom->point_sizes()[i] = kinski::random<float>(*m_particle_size_min, *m_particle_size_max);
@@ -347,6 +350,9 @@ public:
         m_particle_force_factor = RangedProperty<float>::create("Particle force factor", 200.f, 1, 1000.f);
         registerProperty(m_particle_force_factor);
         
+        m_particle_flow_factor = RangedProperty<float>::create("Particle flow factor", 5.f, 0.f, 100.f);
+        registerProperty(m_particle_flow_factor);
+        
         m_depth_cam_x = RangedProperty<float>::create("Depth_cam X", 0, -10000, 10000);
         registerProperty(m_depth_cam_x);
         
@@ -381,7 +387,7 @@ public:
             m_debug_scene.addObject(m_debug_bill_board);
         
         // the camera used for offscreen rendering
-        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 1500));
+        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(16.f/9, 45.f, 50, 3500));
         m_free_camera->setPosition( m_particle_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
         m_free_camera->setLookAt(m_particle_mesh->position(), glm::vec3(0, 1, 0));
         m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
@@ -596,7 +602,7 @@ public:
             m_debug_scene.addObject(m_free_camera_mesh);
         }
         else if(theProperty == m_numParticles || theProperty == m_particle_size_min ||
-                theProperty == m_particle_size_max)
+                theProperty == m_particle_size_max || theProperty == m_particle_flow_factor)
         {
             scene().removeObject(m_particle_mesh);
             m_debug_scene.removeObject(m_particle_mesh);

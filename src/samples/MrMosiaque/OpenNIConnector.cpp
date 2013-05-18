@@ -152,7 +152,6 @@ namespace kinski{ namespace gl{
         XnFieldOfView fov;
         m_obj->m_depthGenerator.GetFieldOfView(fov);
         LOG_DEBUG<<"Sensor fov: H: "<<glm::degrees(fov.fHFOV)<<" -- V: "<<glm::degrees(fov.fVFOV);
-        
         LOG_DEBUG<<"init complete";
     }
     
