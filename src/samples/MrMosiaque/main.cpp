@@ -37,7 +37,7 @@ private:
     // particle system related
     RangedProperty<int>::Ptr m_numParticles;
     RangedProperty<float>::Ptr m_particle_size_min, m_particle_size_max;
-    RangedProperty<float>::Ptr m_min_interaction_distance, m_particle_force_factor;
+    RangedProperty<float>::Ptr m_min_interaction_distance, m_particle_force_factor, m_user_offset;
     RangedProperty<float>::Ptr m_particle_flow_factor;
     Property_<bool>::Ptr m_particle_size_weighted;
     cl::Kernel m_particleKernel, m_imageKernel, m_user_input_kernel;
@@ -254,7 +254,7 @@ private:
                 gl::OpenNIConnector::UserList::iterator it = m_user_list.begin();
                 for(;it != m_user_list.end();++it)
                 {
-                    positions_vector.push_back(vec4(it->position, 1.f));
+                    positions_vector.push_back(vec4(it->position - vec3(0, 0, 1) * m_user_offset->value(), 1.f));
                 }
                 
 //                m_queue.enqueueWriteBuffer(m_user_positions, CL_TRUE, 0,
@@ -349,6 +349,9 @@ public:
         
         m_particle_force_factor = RangedProperty<float>::create("Particle force factor", 200.f, 1, 1000.f);
         registerProperty(m_particle_force_factor);
+        
+        m_user_offset = RangedProperty<float>::create("User offset", 0.f, 0.f, 1000.f);
+        registerProperty(m_user_offset);
         
         m_particle_flow_factor = RangedProperty<float>::create("Particle flow factor", 5.f, 0.f, 100.f);
         registerProperty(m_particle_flow_factor);
@@ -703,7 +706,7 @@ public:
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
             gl::drawMesh(m_user_mesh);
             
-            m_user_radius_mesh->setPosition(it->position);
+            m_user_radius_mesh->setPosition(it->position - vec3(0, 0, 1) * m_user_offset->value());
             m_user_radius_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() *
                            m_user_radius_mesh->transform() * glm::scale(glm::mat4(),

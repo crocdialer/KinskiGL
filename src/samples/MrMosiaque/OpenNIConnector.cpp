@@ -35,6 +35,7 @@ namespace kinski{ namespace gl{
         xn::UserGenerator m_userGenerator;
         xn::Player m_player;
         std::vector<uint8_t> m_pixel_buffer;
+        std::vector<float> m_histogram_buffer;
         
         Obj(){}
         
@@ -334,8 +335,10 @@ namespace kinski{ namespace gl{
     
     void OpenNIConnector::update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd)
     {
-        static unsigned int nZRes = dmd.ZRes();
-        static float* pDepthHist = (float*)malloc(nZRes* sizeof(float));
+        unsigned int nZRes = dmd.ZRes();
+        m_obj->m_histogram_buffer.resize(nZRes);
+        std::fill(m_obj->m_histogram_buffer.begin(), m_obj->m_histogram_buffer.end(), 0);
+        float* pDepthHist = &m_obj->m_histogram_buffer[0];
         
         unsigned int nValue = 0;
         unsigned int nHistValue = 0;
@@ -353,7 +356,6 @@ namespace kinski{ namespace gl{
         const XnLabel* pLabels = smd.Data();
         
         // Calculate the accumulative histogram
-        memset(pDepthHist, 0, nZRes*sizeof(float));
         for (nY=0; nY<y_res; nY++)
         {
             for (nX=0; nX<x_res; nX++)

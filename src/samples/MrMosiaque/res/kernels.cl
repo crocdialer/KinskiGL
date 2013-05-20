@@ -144,7 +144,9 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     {
         cumulative_force += create_radial_force(user_positions[j], pos);
         
-        float3 diff = user_positions[j] - pos;
+        float3 user_pos = user_positions[j];
+        user_pos.z = max(user_pos.z, 0.0f);
+        float3 diff = user_pos - pos;
         float dist2 = dot(diff, diff);
         
         float min_distance2 = min_distance * min_distance;
@@ -163,8 +165,6 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     point_size = weighted_size ? max(point_size * heat, 1.f) : point_size;
     //if(isless(point_size, 1.0f))
         
-        
-    
     // red label (push away + bigger pixels)
     if(isgreater(label.x, 0.5f) & isless(label.y, 0.5f))
     {
@@ -196,6 +196,7 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     // magenta label (alpha mask)
     if(isgreater(label.x, 0.5f) & isgreater(label.z, 0.5f))
     {
+        heat = min(heat * 2.f, .99f);
         point_size *= 1.0f + 2.0f * heat;
         color *= (float4)(0.f);
     }
