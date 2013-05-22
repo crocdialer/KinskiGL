@@ -144,8 +144,8 @@ __kernel void process_user_input(__global float3* positions,/*VBO*/
     {
         cumulative_force += create_radial_force(user_positions[j], pos);
         
-        float3 user_pos = user_positions[j];
-        user_pos.z = max(user_pos.z, 0.0f);
+	float3 user_pos = user_positions[j];
+	user_pos.z = max(user_pos.z, 0.0f);
         float3 diff = user_pos - pos;
         float dist2 = dot(diff, diff);
         

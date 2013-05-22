@@ -10,6 +10,8 @@
 #include "KinskiGL.h"
 #include "Shader.h"
 
+#define STRINGIFY(A) #A
+
 namespace kinski { namespace gl {
     
     Shader createShaderFromFile(const std::string &vertPath,
@@ -228,128 +230,133 @@ namespace kinski { namespace gl {
 
 #else
         const char *unlitVertSrc =
-        "#version 150 core\n"
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "in vec4 a_vertex;\n"
-        "in vec4 a_texCoord;\n"
-        "in vec4 a_color;\n"//
-        "out vec4 v_color;\n"//
-        "out vec4 v_texCoord;\n"
-        "void main()\n"
-        "{\n"
-        "    v_color = a_color;\n"
-        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
-        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
-        "}\n";
+       "#version 150 core\n"
+       STRINGIFY(
+       uniform mat4 u_modelViewProjectionMatrix;
+       uniform mat4 u_textureMatrix;
+       in vec4 a_vertex;
+       in vec4 a_texCoord;
+       in vec4 a_color;
+       out vec4 v_color;
+       out vec4 v_texCoord;
+       void main()
+       {
+           v_color = a_color;
+           v_texCoord =  u_textureMatrix * a_texCoord;
+           gl_Position = u_modelViewProjectionMatrix * a_vertex;
+       });
         
         const char *unlitFragSrc =
         "#version 150 core\n"
-        "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[16];\n"
-        "uniform struct{\n"
-        "    vec4 diffuse;\n"
-        "    vec4 ambient;\n"
-        "    vec4 specular;\n"
-        "    vec4 emission;\n"
-        "} u_material;\n"
-        "in vec4 v_color;\n"//
-        "in vec4 v_texCoord;\n"//
-        "out vec4 fragData;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 texColors = v_color;\n"//
-        "    for(int i = 0; i < u_numTextures; i++)\n"
-        "    {\n"
-        "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
-        "    }\n"
-        "    if(texColors.a == 0.0) discard;\n"
-        "    fragData = u_material.diffuse * texColors;\n"
-        "}\n";
+        STRINGIFY(
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[16];
+        uniform struct{
+           vec4 diffuse;
+           vec4 ambient;
+           vec4 specular;
+           vec4 emission;
+        } u_material;
+        in vec4 v_color;
+        in vec4 v_texCoord;
+        out vec4 fragData;
+        void main()
+        {
+           vec4 texColors = v_color;
+           for(int i = 0; i < u_numTextures; i++)
+           {
+               texColors *= texture(u_textureMap[i], v_texCoord.st);
+           }
+           if(texColors.a == 0.0) discard;
+           fragData = u_material.diffuse * texColors;
+        });
         
         const char *phongVertSrc =
         "#version 150 core\n"
-        "uniform mat4 u_modelViewMatrix;\n"
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat3 u_normalMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "in vec4 a_vertex;\n"
-        "in vec4 a_texCoord;\n"
-        "in vec3 a_normal;\n"
-        "out vec4 v_texCoord;\n"
-        "out vec3 v_normal;\n"
-        "out vec3 v_eyeVec;\n"
-        "void main()\n"
-        "{\n"
-        "    v_normal = normalize(u_normalMatrix * a_normal);\n"
-        "    v_texCoord = u_textureMatrix * a_texCoord;\n"
-        "    v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;\n"
-        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
-        "}\n";
+        STRINGIFY(
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        in vec4 a_vertex;
+        in vec4 a_texCoord;
+        in vec3 a_normal;
+        out vec4 v_texCoord;
+        out vec3 v_normal;
+        out vec3 v_eyeVec;
+        void main()
+        {
+            v_normal = normalize(u_normalMatrix * a_normal);
+            v_texCoord = u_textureMatrix * a_texCoord;
+            v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;
+            gl_Position = u_modelViewProjectionMatrix * a_vertex;
+        });
         
         const char *phongVertSrc_skin =
         "#version 150 core\n"
-        "uniform mat4 u_modelViewMatrix;\n"
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat3 u_normalMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "uniform mat4 u_bones[110];\n"
-        "in vec4 a_vertex;\n"
-        "in vec4 a_texCoord;\n"
-        "in vec3 a_normal;\n"
-        "in ivec4 a_boneIds;\n"
-        "in vec4 a_boneWeights;\n"
-        "out vec4 v_texCoord;\n"
-        "out vec3 v_normal;\n"
-        "out vec3 v_eyeVec;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 newVertex = vec4(0);\n"
-        "    vec4 newNormal = vec4(0);\n"
-        "    for (int i = 0; i < 4; i++)\n"
-        "    {\n"
-        "        newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i];\n"
-        "        newNormal += u_bones[a_boneIds[i]] * vec4(a_normal, 0.0) * a_boneWeights[i];\n"
-        "    }\n"
-        "    v_normal = normalize(u_normalMatrix * newNormal.xyz);\n"
-        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
-        "    v_eyeVec = - (u_modelViewMatrix * newVertex).xyz;\n"
-        "    gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);\n"
-        "}\n";
+        STRINGIFY(
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        uniform mat4 u_bones[110];
+        in vec4 a_vertex;
+        in vec4 a_texCoord;
+        in vec3 a_normal;
+        in ivec4 a_boneIds;
+        in vec4 a_boneWeights;
+        out vec4 v_texCoord;
+        out vec3 v_normal;
+        out vec3 v_eyeVec;
+        void main()
+        {
+            vec4 newVertex = vec4(0);
+            vec4 newNormal = vec4(0);
+            for (int i = 0; i < 4; i++)
+            {
+                newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i];
+                newNormal += u_bones[a_boneIds[i]] * vec4(a_normal, 0.0) * a_boneWeights[i];
+            }
+            v_normal = normalize(u_normalMatrix * newNormal.xyz);
+            v_texCoord =  u_textureMatrix * a_texCoord;
+            v_eyeVec = - (u_modelViewMatrix * newVertex).xyz;
+            gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
+        });
         
         const char *phongFragSrc =
         "#version 150 core\n"
-        "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[16];\n"
-        "uniform vec3 u_lightDir;\n"
-        "uniform struct\n"
-        "{\n"
-        "    vec4 diffuse;\n"
-        "    vec4 ambient;\n"
-        "    vec4 specular;\n"
-        "    vec4 emission;\n"
-        "    float shinyness;\n"
-        "} u_material;\n"
-        "in vec3 v_normal;\n"
-        "in vec4 v_texCoord;\n"
-        "in vec3 v_eyeVec;\n"
-        "out vec4 fragData;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 texColors = vec4(1);\n"
-        "    for(int i = 0; i < u_numTextures; i++)\n"
-        "    {\n"
-        "        texColors *= texture(u_textureMap[i], v_texCoord.st);\n"
-        "    }\n"
-        "    vec3 N = normalize(v_normal);\n"
-        "    vec3 L = normalize(-u_lightDir);\n"
-        "    vec3 E = normalize(v_eyeVec);\n"
-		"    vec3 R = reflect(-L, N);\n"
-        "    float nDotL = max(0.0, dot(N, L));\n"
-        "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
-        "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
-        "}\n";
+        STRINGIFY(
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[16];
+        uniform vec3 u_lightDir;
+        uniform struct
+        {
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            vec4 emission;
+            float shinyness;
+        } u_material;
+        in vec3 v_normal;
+        in vec4 v_texCoord;
+        in vec3 v_eyeVec;
+        out vec4 fragData;
+        void main()
+        {
+            vec4 texColors = vec4(1);
+            for(int i = 0; i < u_numTextures; i++)
+            {
+                texColors *= texture(u_textureMap[i], v_texCoord.st);
+            }
+            vec3 N = normalize(v_normal);
+            vec3 L = normalize(-u_lightDir);
+            vec3 E = normalize(v_eyeVec);
+		    vec3 R = reflect(-L, N);
+            float nDotL = max(0.0, dot(N, L));
+            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
+            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
+            fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+        });
         
         const char *phong_normalmap_vertSrc =
         "#version 150 core\n"

@@ -123,19 +123,19 @@ private:
             m_queue = cl::CommandQueue(m_context, devices[0]);
             
             // Read source file(s)
-            cl::Program::Sources sources;
-            std::list<std::string> cl_files = getDirectoryEntries(".", false, "cl");
-            std::list<std::string>::iterator it = cl_files.begin();
-            for (; it != cl_files.end(); ++it)
-            {
-                std::string file_content = kinski::readFile(*it);
-                sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
-            }
+//            cl::Program::Sources sources;
+//            std::list<std::string> cl_files = getDirectoryEntries(".", false, "cl");
+//            std::list<std::string>::iterator it = cl_files.begin();
+//            for (; it != cl_files.end(); ++it)
+//            {
+//                std::string file_content = kinski::readFile(*it);
+//                sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
+//            }
             
-            //std::string sourceCode = kinski::readFile("kernels.cl");
+            std::string sourceCode = kinski::readFile("kernels.cl");
             
             // Make program of the source code in the context
-            m_program = cl::Program(m_context, sources);
+            m_program = cl::Program(m_context, sourceCode);
             
             // Build program for these specific devices
             m_program.build();
@@ -728,7 +728,6 @@ public:
                 break;
             case KeyEvent::KEY_d:
                 m_debug_draw_mode->getRange(min, max);
-
                 *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);
                 break;
             case KeyEvent::KEY_s:
