@@ -190,9 +190,9 @@ public:
         observeProperties();
         
         m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
-        m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
+        //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
-        m_pointMaterial->uniform("u_pointRadius", 20.f);
+        m_pointMaterial->uniform("u_pointRadius", 120.f);
         
         //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
         //m_pointMaterial->setBlending();

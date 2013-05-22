@@ -40,17 +40,19 @@ namespace kinski
         }
         
         /********************** construct a simple scene ***********************/
+        int num_points = 40000;
         gl::GeometryPtr points = gl::Geometry::create();
         points->setPrimitiveType(GL_POINTS);
-        points->vertices().reserve(30000);
-        points->colors().reserve(30000);
-        for (int i = 0; i < 30000; i++)
+        points->vertices().reserve(num_points);
+        points->colors().reserve(num_points);
+        for (int i = 0; i < num_points; i++)
         {
             points->vertices().push_back(glm::linearRand(glm::vec3(-100), glm::vec3(100)));
             points->colors().push_back(glm::vec4(1.f));
+            points->point_sizes().push_back(kinski::random(2.f, 3.f));
         }
         
-        gl::MaterialPtr mat = gl::Material::create();
+        gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
         m_point_mesh = gl::Mesh::create(points, mat);
         
         if(*m_perspective)
@@ -59,7 +61,6 @@ namespace kinski
             m_test_cam = gl::CameraPtr(new gl::OrthographicCamera(-25, 25, -20, 20, *m_near, *m_far));
         
         m_test_cam->setPosition(vec3(0, 0, 50));
-        
         m_frustum_mesh = gl::createFrustumMesh(m_test_cam);
     }
     
@@ -82,6 +83,7 @@ namespace kinski
         }
         
         m_point_mesh->geometry()->createGLBuffers();
+        m_point_mesh->material()->uniform("u_lightDir", light_direction());
     }
     
     void Frustum_Tester::draw()

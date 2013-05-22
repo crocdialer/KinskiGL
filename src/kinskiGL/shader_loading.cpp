@@ -475,6 +475,7 @@ namespace kinski { namespace gl {
         const char *point_vertSrc =
         "#version 150 core\n"
         STRINGIFY(
+                  //uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         in vec4 a_vertex;
         in float a_pointSize;
@@ -528,7 +529,7 @@ namespace kinski { namespace gl {
             vec4 texColors = vec4(1);//v_color;
             for(int i = 0; i < u_numTextures; i++)
             {
-                texColors *= texture(u_textureMap[i], gl_PointCoord);
+                texColors *= texture(u_textureMap[i], gl_PointCoord.xy);
             }
             fragData = u_material.diffuse * texColors;
         });
@@ -554,7 +555,11 @@ namespace kinski { namespace gl {
             out vec4 fragData;
             void main()
             {
-                float pointRadius = 10.f;
+                vec4 texColors = v_color;
+//                for(int i = 0; i < u_numTextures; i++)
+//                {
+//                    texColors *= texture(u_textureMap[i], gl_PointCoord);
+//                }
                 
                 // calculate normal from texture coordinates
                 vec3 N;
@@ -564,7 +569,7 @@ namespace kinski { namespace gl {
                 N.z = sqrt(1.0-mag);
                 
                 // point on surface of sphere in eye space
-                vec3 spherePosEye = v_eyeVec + N * pointRadius;
+                vec3 spherePosEye = v_eyeVec + N * u_pointRadius;
                 
                 vec3 L = normalize(-u_lightDir);
                 vec3 E = normalize(v_eyeVec);
@@ -575,7 +580,7 @@ namespace kinski { namespace gl {
                 vec3 h = normalize(u_lightDir + v);
                 float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness);
                 vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
-                fragData = (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+                fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
             });
 #endif
         
@@ -597,15 +602,19 @@ namespace kinski { namespace gl {
             case SHADER_PHONG_SKIN:
                 ret.loadFromData(phongVertSrc_skin, phongFragSrc);
                 break;
+                
             case SHADER_POINTS_TEXTURE:
                 ret.loadFromData(point_vertSrc, point_texture_fragSrc);
                 break;
+                
             case SHADER_POINTS_COLOR:
                 ret.loadFromData(point_vertSrc, point_color_fragSrc);
                 break;
+                
             case SHADER_POINTS_SPHERE:
                 ret.loadFromData(point_vertSrc, point_sphere_fragSrc);
                 break;
+                
             default:
                 break;
         }

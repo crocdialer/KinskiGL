@@ -4,6 +4,12 @@ FILE(GLOB FOLDER_HEADERS *.h)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 SET(LIB_NAME "kinskiGL")
 
+OPTION (REPORT_GL_ERRORS "Compile in checks for GL_ERRORs. Only for debugging, expect performance hit" OFF)
+
+if(REPORT_GL_ERRORS)
+   add_definitions(-DKINSKI_GL_REPORT_ERRORS) 
+endif(REPORT_GL_ERRORS)
+
 if(BUILD_IOS)
 set(LIBS ${LIBS} "-framework OpenGLES")
 elseif(KINSKI_RASPI)

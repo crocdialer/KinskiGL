@@ -188,7 +188,7 @@ namespace kinski { namespace gl {
     
     void Mesh::update(float time_delta)
     {
-        if(m_animations.size())
+        if(!m_animations.empty())
         {
             const AnimationPtr &anim = m_animations[m_animation_index];
             anim->current_time = fmod(anim->current_time + time_delta * anim->ticksPerSec,
