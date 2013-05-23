@@ -16,6 +16,7 @@ elseif(KINSKI_RASPI)
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads")
 link_directories("/opt/vc/lib")
 set(LIBS ${LIBS} "EGL" "GLESv2")
+SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES LINK_FLAGS -Wl,-L/opt/vc/lib)
 else()
 ##### OPENGL
 find_package(OpenGL REQUIRED)
@@ -24,7 +25,6 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 endif()
 
 add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
-SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES LINK_FLAGS -Wl,-L/opt/vc/lib)
 TARGET_LINK_LIBRARIES(${LIB_NAME} ${LIBS})
 
 SET(LIBS ${LIBS} ${LIB_NAME})

@@ -81,7 +81,7 @@ namespace kinski
 #endif
 
 // compiler has C++11 stdlib
-#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH)
+#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
 #include <memory>
 #elif defined( KINSKI_COCOA )
 #include <tr1/memory>

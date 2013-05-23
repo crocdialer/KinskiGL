@@ -1,7 +1,7 @@
 #include "kinskiApp/GLFW_App.h"
-#include "kinskiApp/TextureIO.h"
 
 #include "kinskiCV/CVThread.h"
+#include "kinskiCV/TextureIO.h"
 #include "KeyPointNode.h"
 
 #include "Data.h"

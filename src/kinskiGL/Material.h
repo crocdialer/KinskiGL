@@ -84,6 +84,7 @@ namespace kinski { namespace gl {
         void setEmission(const Color &theColor);
         void setShinyness(float s);
         void setPointSize(float sz){ m_pointSize = sz; };
+        void setPointAttenuation(float constant, float linear, float quadratic);
         
     private:
         
@@ -105,7 +106,16 @@ namespace kinski { namespace gl {
         bool m_depthWrite;
         bool m_blending;
         GLenum m_blendSrc, m_blendDst;
+        
+        // point attributes
         float m_pointSize;
+        struct PointAttenuation
+        {
+            float constant, linear, quadratic;
+            PointAttenuation():constant(1.f), linear(0.f), quadratic(0.f){}
+            PointAttenuation(float c, float l, float q):constant(c), linear(l), quadratic(q)
+            {};
+        } m_point_attenuation;
     };
     
     class MaterialGroup

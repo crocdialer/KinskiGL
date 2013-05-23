@@ -1,11 +1,10 @@
 #include "kinskiApp/GLFW_App.h"
-#include "kinskiApp/TextureIO.h"
-
 #include "kinskiGL/Shader.h"
 #include "Data.h"
 #include "kinskiGL/SerializerGL.h"
 
 #include "kinskiCV/CVThread.h"
+#include "kinskiCV/TextureIO.h"
 #include "ThreshNode.h"
 
 using namespace std;

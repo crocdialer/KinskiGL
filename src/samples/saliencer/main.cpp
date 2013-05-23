@@ -1,9 +1,9 @@
 #include "kinskiApp/GLFW_App.h"
-#include "kinskiApp/TextureIO.h"
 
 #include "kinskiGL/Material.h"
 
 #include "kinskiCV/CVThread.h"
+#include "kinskiCV/TextureIO.h"
 #include "SalienceNode.h"
 
 #include "kinskiGL/SerializerGL.h"

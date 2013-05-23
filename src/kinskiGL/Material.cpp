@@ -34,6 +34,7 @@ namespace kinski { namespace gl {
         m_uniforms["u_material.specular"] = m_specular;
         m_uniforms["u_material.emmission"] = m_emission;
         m_uniforms["u_material.shinyness"] = m_shinyness;
+        setPointAttenuation(1.f, 0.f, 0.f);
         m_shader = theShader? theShader : gl::createShader(gl::SHADER_UNLIT);
     }
 
@@ -66,5 +67,13 @@ namespace kinski { namespace gl {
         m_shinyness = s;
         m_uniforms["u_material.shinyness"] = s;
     }
+    
+    void Material::setPointAttenuation(float constant, float linear, float quadratic)
+    {
+        m_point_attenuation = PointAttenuation(constant, linear, quadratic);
+        m_uniforms["u_point_attenuation.constant"] = constant;
+        m_uniforms["u_point_attenuation.linear"] = linear;
+        m_uniforms["u_point_attenuation.quadratic"] = quadratic;
+    };
 
 }}// namespace

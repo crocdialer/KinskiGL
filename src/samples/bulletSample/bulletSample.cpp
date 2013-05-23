@@ -6,10 +6,10 @@ typedef kinski::Raspi_App BaseAppType;
 typedef kinski::ViewerApp BaseAppType;
 #endif
 
-#include "kinskiApp/TextureIO.h"
 #include "physics_context.h"
 
 #include "kinskiCV/CVThread.h"
+#include "kinskiCV/TextureIO.h"
 #include "ThreshNode.h"
 #include "DopeRecorder.h"
 #include "FaceFilter.h"

@@ -2,6 +2,7 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
+#include "cl_util.h"
 
 using namespace std;
 using namespace kinski;
@@ -12,6 +13,8 @@ class OpenCLTest : public ViewerApp
 private:
     
     Property_<string>::Ptr m_texturePath;
+    RangedProperty<int>::Ptr m_num_particles;
+    RangedProperty<float>::Ptr m_point_size;
     Property_<vec4>::Ptr m_point_color;
     gl::Texture m_textures[4];
     gl::Material::Ptr m_pointMaterial;
@@ -30,7 +33,7 @@ private:
     cl::Kernel m_particleKernel, m_imageKernel;
     cl::Buffer m_velocities, m_positionGen, m_velocityGen;
     cl::BufferGL m_positions, m_colors;
-    cl::Image2DGL m_cl_image;
+    cl::ImageGL m_cl_image;
     
     void initOpenCL()
     {
@@ -94,7 +97,64 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            LOG_ERROR << "Build Status: " << m_program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(m_device);
+            LOG_ERROR << "Build Options:\t" << m_program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(m_device);
+            LOG_ERROR << "Build Log:\t " << m_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(m_device);
+        }
+    }
+    
+    void initParticles(uint32_t num_particles)
+    {
+        m_geom = gl::Geometry::create();
+        m_geom->setPrimitiveType(GL_POINTS);
+        m_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
+        
+        m_numParticles = num_particles;
+        GLsizei numBytes = m_numParticles * sizeof(vec4);
+        
+        m_geom->vertices().resize(m_numParticles, vec3(0));
+        m_geom->colors().resize(m_numParticles, vec4(1));
+        m_geom->point_sizes().resize(m_numParticles, 9.f);
+        m_geom->createGLBuffers();
+        m_mesh->material()->setPointSize(2.f);
+        scene().addObject(m_mesh);
+        try
+        {
+            // shared position buffer for OpenGL / OpenCL
+            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
+            m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
+            
+            //create the OpenCL only arrays
+            m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_positionGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_velocityGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            
+            vector<vec4> posGen, velGen;
+            for (int i = 0; i < m_numParticles; i++)
+            {
+                posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
+                vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
+                float life = kinski::random(2.f, 5.f);
+                float yVel = kinski::random<float>(5, 15);
+                velGen.push_back(vec4(tmp.x, yVel, tmp.y, life));
+                m_geom->point_sizes()[i] = kinski::random(5.f, 15.f);
+            }
+            m_geom->createGLBuffers();
+            
+            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
+            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
+            
+            m_particleKernel.setArg(0, m_positions);
+            m_particleKernel.setArg(1, m_colors);
+            m_particleKernel.setArg(2, m_velocities);
+            m_particleKernel.setArg(3, m_positionGen);
+            m_particleKernel.setArg(4, m_velocityGen);
+        }
+        catch(cl::Error &error)
+        {
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -129,7 +189,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -167,7 +227,7 @@ private:
         }
         catch(cl::Error &error)
         {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
@@ -183,6 +243,12 @@ public:
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
         
+        m_num_particles = RangedProperty<int>::create("Num particles", 100000, 1, 2000000);
+        registerProperty(m_num_particles);
+        
+        m_point_size = RangedProperty<float>::create("Particle size", 3.f, 1.f, 64.f);
+        registerProperty(m_point_size);
+        
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
         registerProperty(m_point_color);
         
@@ -192,67 +258,18 @@ public:
         m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
         //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         m_pointMaterial->setPointSize(9.f);
-        m_pointMaterial->uniform("u_pointRadius", 120.f);
+        m_pointMaterial->setPointAttenuation(0.f, 50.f, 0.f);
+        m_pointMaterial->uniform("u_pointRadius", 50.f);
         
         //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
         //m_pointMaterial->setBlending();
         //m_pointMaterial->setDepthWrite(false);
         
-        m_geom = gl::Geometry::create();
-        m_geom->setPrimitiveType(GL_POINTS);
-        m_mesh = gl::Mesh::create(m_geom, m_pointMaterial);
+        //float vals[2];
+        //glGetFloatv(GL_POINT_SIZE_RANGE, vals);
         
         initOpenCL();
-        
-        m_numParticles = 100000;
-        GLsizei numBytes = m_numParticles * sizeof(vec4);
-        
-        m_geom->vertices().resize(m_numParticles, vec3(0));
-        m_geom->colors().resize(m_numParticles, vec4(1));
-        m_geom->point_sizes().resize(m_numParticles, 9.f);
-        m_geom->createGLBuffers();
-        
-        m_mesh->material()->setPointSize(2.f);
-        scene().addObject(m_mesh);
-        try
-        {
-            // shared position buffer for OpenGL / OpenCL
-            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
-            m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
-            
-            //create the OpenCL only arrays
-            m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_positionGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_velocityGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            
-            srand(clock());
-            
-            vector<vec4> posGen, velGen;
-            for (int i = 0; i < m_numParticles; i++)
-            {
-                posGen.push_back( vec4(glm::ballRand(20.0f), 1.f) );
-                vec2 tmp = glm::linearRand(vec2(-100), vec2(100));
-                float life = kinski::random(2.f, 5.f);
-                float yVel = kinski::random<float>(5, 15);
-                velGen.push_back(vec4(tmp.x, yVel, tmp.y, life));
-                m_geom->point_sizes()[i] = kinski::random(5.f, 15.f);
-            }
-            m_geom->createGLBuffers();
-            
-            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
-            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
-            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
-            
-            m_particleKernel.setArg(0, m_positions);
-            m_particleKernel.setArg(1, m_colors);
-            m_particleKernel.setArg(2, m_velocities);
-            m_particleKernel.setArg(3, m_positionGen);
-            m_particleKernel.setArg(4, m_velocityGen);
-        }
-        catch(cl::Error &error)
-        {
-            LOG_ERROR << error.what() << "(" << error.err() << ")";
-        }
+        initParticles(*m_num_particles);
         
         // load state from config file
         try
@@ -321,13 +338,16 @@ public:
                 m_textures[0] = gl::createTextureFromFile(*m_texturePath);
                 
                 // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
-                m_cl_image = cl::Image2DGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
-                                           m_textures[0].getId());
-                
-                
+                m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                                         m_textures[0].getId());
             }
-            catch(cl::Error &error){LOG_ERROR << error.what() << "(" << error.err() << ")";}
-            catch (std::exception &e){LOG_WARNING << e.what();}
+            catch(cl::Error &error){LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";}
+            catch (FileNotFoundException &e){LOG_WARNING << e.what();}
+        }
+        else if(theProperty == m_num_particles)
+        {
+            scene().removeObject(m_mesh);
+            initParticles(*m_num_particles);
         }
         else if(theProperty == m_point_color)
         {

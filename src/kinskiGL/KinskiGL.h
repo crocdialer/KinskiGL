@@ -16,9 +16,7 @@
 #include "kinskiCore/file_functions.h"
 
 //triggers checks with glGetError()
-#ifndef KINSKI_GL_REPORT_ERRORS
-#define KINSKI_GL_REPORT_ERRORS 0
-#endif
+//#define KINSKI_GL_REPORT_ERRORS
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
@@ -200,7 +198,7 @@ namespace kinski { namespace gl {
         GLint m_old_value;
     };
 
-    #if KINSKI_GL_REPORT_ERRORS
+    #ifdef KINSKI_GL_REPORT_ERRORS
     #define KINSKI_CHECK_GL_ERRORS()\
     while(GLenum error = glGetError()){\
     switch(error){\

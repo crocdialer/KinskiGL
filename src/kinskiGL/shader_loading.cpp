@@ -183,50 +183,50 @@ namespace kinski { namespace gl {
         
         const char *phong_normalmap_fragSrc =
         "#version 150 core\n"
-        "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[16];\n"
-        "uniform struct\n"
-        "{\n"
-        "    vec4 diffuse;\n"
-        "    vec4 ambient;\n"
-        "    vec4 specular;\n"
-        "    vec4 emission;\n"
-        "    float shinyness;\n"
-        "} u_material;\n"
-        "in vec3 v_normal;\n"
-        "in vec4 v_texCoord;\n"
-        "in vec3 v_eyeVec;\n"
-        "in vec3 v_lightDir;\n"
-        "out vec4 fragData;\n"
-        "vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)\n"
-        "{\n"
-        "    float center = texture(theMap, theCoords).r ;	 //center bump map sample\n"
-        "    float U = texture(theMap, theCoords + vec2( 0.005, 0)).r ;	//U bump map sample\n"
-        "    float V = texture(theMap, theCoords + vec2(0, 0.005)).r ;	 //V bump map sample\n"
-        "    float dHdU = U - center;	 //create bump map U offset\n"
-        "    float dHdV = V - center;	 //create bump map V offset\n"
-        "    vec3 normal = vec3( -dHdU, dHdV, 0.05 / theStrength);	 //create the tangent space normal\n"
-        "    return normalize(normal);\n"
-        "}\n"
+        STRINGIFY(
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[16];
+        uniform struct
+        {
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            vec4 emission;
+            float shinyness;
+        } u_material;
+        in vec3 v_normal;
+        in vec4 v_texCoord;
+        in vec3 v_eyeVec;
+        in vec3 v_lightDir;
+        out vec4 fragData;
+        vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
+        {
+            float center = texture(theMap, theCoords).r ;	 //center bump map sample
+            float U = texture(theMap, theCoords + vec2( 0.005, 0)).r ;	//U bump map sample
+            float V = texture(theMap, theCoords + vec2(0, 0.005)).r ;	 //V bump map sample
+            float dHdU = U - center;	 //create bump map U offset
+            float dHdV = V - center;	 //create bump map V offset
+            vec3 normal = vec3( -dHdU, dHdV, 0.05 / theStrength);	 //create the tangent space normal
+            return normalize(normal);
+        }
         
-        "void main()"
-        "{"
-        "    //vec2 texCoord = v_texCoord.xy;\n"
-        "    vec4 texColors = texture(u_textureMap[0], v_texCoord.xy);\n"
-        "    vec3 N;\n"
-        "    // sample normal map\n"
-        "    //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;\n"
-        "    // sample bump map\n"
-        "    N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);\n"
-        "    vec3 L = normalize(-v_lightDir);\n"
-        "    vec3 E = normalize(v_eyeVec);\n"
-		"    vec3 R = reflect(-L, N);\n"
-        "    float nDotL = max(0.0, dot(N, L));\n"
-        "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
-        "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
-        "}"
-        ;
+        void main()
+        {
+            //vec2 texCoord = v_texCoord.xy;
+            vec4 texColors = texture(u_textureMap[0], v_texCoord.xy);
+            vec3 N;
+            // sample normal map
+            //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
+            // sample bump map
+            N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);
+            vec3 L = normalize(-v_lightDir);
+            vec3 E = normalize(v_eyeVec);
+		    vec3 R = reflect(-L, N);
+            float nDotL = max(0.0, dot(N, L));
+            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
+            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
+            fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+        });
 
 #else
         const char *unlitVertSrc =
@@ -475,8 +475,15 @@ namespace kinski { namespace gl {
         const char *point_vertSrc =
         "#version 150 core\n"
         STRINGIFY(
-                  //uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
+        uniform float u_pointSize;
+        uniform struct{
+            float constant;
+            float linear;
+            float quadratic;
+        } u_point_attenuation;
+                  
         in vec4 a_vertex;
         in float a_pointSize;
         in vec4 a_color;
@@ -485,9 +492,13 @@ namespace kinski { namespace gl {
         void main()
         {
             v_color = a_color;
-            gl_PointSize = a_pointSize;
+            v_eyeVec = -(u_modelViewMatrix * a_vertex).xyz;
+            float d = length(v_eyeVec);
+            float attenuation = sqrt(u_point_attenuation.constant +
+                                     u_point_attenuation.linear / d +
+                                     u_point_attenuation.quadratic / (d * d));
+            gl_PointSize = max(a_pointSize, u_pointSize) * attenuation;
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
-            v_eyeVec = gl_Position.xyz;
         });
         
         const char *point_color_fragSrc =
@@ -555,7 +566,7 @@ namespace kinski { namespace gl {
             out vec4 fragData;
             void main()
             {
-                vec4 texColors = v_color;
+                vec4 texColors = vec4(1);//v_color;
 //                for(int i = 0; i < u_numTextures; i++)
 //                {
 //                    texColors *= texture(u_textureMap[i], gl_PointCoord);
@@ -577,7 +588,7 @@ namespace kinski { namespace gl {
                 float nDotL = max(0.0, dot(N, L));
                 
                 vec3 v = normalize(-spherePosEye);
-                vec3 h = normalize(u_lightDir + v);
+                vec3 h = normalize(-u_lightDir + v);
                 float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness);
                 vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
                 fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
