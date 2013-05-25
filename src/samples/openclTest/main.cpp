@@ -4,12 +4,29 @@
 #include "cl.hpp"
 #include "cl_util.h"
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
 
 class OpenCLTest : public ViewerApp
 {
+public:
+    OpenCLTest():ViewerApp(), m_timer(io_service(), boost::posix_time::seconds(1.f))
+    {
+        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this));
+    };
+    
+    void tick()
+    {
+        LOG_DEBUG<<"io_service -> tick...";
+        m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(1.f));
+        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this));
+    };
+    
 private:
     
     Property_<string>::Ptr m_texturePath;
@@ -34,6 +51,8 @@ private:
     cl::Buffer m_velocities, m_positionGen, m_velocityGen;
     cl::BufferGL m_positions, m_colors;
     cl::ImageGL m_cl_image;
+    
+    boost::asio::deadline_timer m_timer;
     
     void initOpenCL()
     {
@@ -174,14 +193,11 @@ private:
             // this passes in the vector of VBO buffer objects (position and color)
             m_queue.enqueueAcquireGLObjects(&glBuffers);
             
-            
             m_particleKernel.setArg(5, timeDelta); //pass in the timestep
             
             //execute the kernel
             m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
                                          cl::NullRange);
-            
-            
             //Release the VBOs so OpenGL can play with them
             m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
 
@@ -246,7 +262,7 @@ public:
         m_num_particles = RangedProperty<int>::create("Num particles", 100000, 1, 2000000);
         registerProperty(m_num_particles);
         
-        m_point_size = RangedProperty<float>::create("Particle size", 3.f, 1.f, 64.f);
+        m_point_size = RangedProperty<float>::create("Point size", 3.f, 1.f, 64.f);
         registerProperty(m_point_size);
         
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
@@ -257,16 +273,16 @@ public:
         
         m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
         //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
-        m_pointMaterial->setPointSize(9.f);
+        float vals[2];
+        glGetFloatv(GL_POINT_SIZE_RANGE, vals);
+        m_point_size->setRange(vals[0], vals[1]);
+        m_pointMaterial->setPointSize(*m_point_size);
         m_pointMaterial->setPointAttenuation(0.f, 50.f, 0.f);
         m_pointMaterial->uniform("u_pointRadius", 50.f);
         
         //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
         //m_pointMaterial->setBlending();
         //m_pointMaterial->setDepthWrite(false);
-        
-        //float vals[2];
-        //glGetFloatv(GL_POINT_SIZE_RANGE, vals);
         
         initOpenCL();
         initParticles(*m_num_particles);
@@ -348,6 +364,10 @@ public:
         {
             scene().removeObject(m_mesh);
             initParticles(*m_num_particles);
+        }
+        else if(theProperty == m_point_size)
+        {
+            m_pointMaterial->setPointSize(*m_point_size);
         }
         else if(theProperty == m_point_color)
         {

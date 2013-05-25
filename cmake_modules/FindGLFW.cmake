@@ -34,8 +34,18 @@ FIND_PATH(GLFW_INCLUDE_DIRS GL/glfw.h DOC "Path to GLFW include directory."
  
 )
 
+if(NOT GLFW_USE_STATIC_LIBS)
+set(GLFW_USE_STATIC_LIBS ON)
+endif()
+
+if (GLFW_USE_STATIC_LIBS)
+    SET(GLFW_LIB_NAMES libglfw.a glfw GLFW.lib)
+else(GLFW_USE_STATIC_LIBS)
+    SET(GLFW_LIB_NAMES glfw GLFW.lib)
+endif(GLFW_USE_STATIC_LIBS)
+
 FIND_LIBRARY(GLFW_LIBRARIES DOC "Absolute path to GLFW library."
-  NAMES glfw GLFW.lib
+  NAMES ${GLFW_LIB_NAMES}
   HINTS
   $ENV{GLFW_ROOT}
   PATH_SUFFIXES lib/win32 #For finding the library file under the root of the glfw expanded archive, typically on Windows.
@@ -44,9 +54,18 @@ FIND_LIBRARY(GLFW_LIBRARIES DOC "Absolute path to GLFW library."
   /usr/lib
   ${GLFW_ROOT_DIR}/lib-msvc100/release # added by ptr
 )
+IF( APPLE AND GLFW_USE_STATIC_LIBS)
+    find_library(IOKIT NAMES IOKit)
+    find_library(COCOA NAMES Cocoa)
+    SET(GLFW_LIBRARIES ${GLFW_LIBRARIES} ${IOKIT} ${COCOA})
+endif( APPLE AND GLFW_USE_STATIC_LIBS )
+#FIND_LIBRARY(GLFW_LIBRARIES "/usr/local/lib/libglfw.a")
+#SET(GLFW_LIBRARIES "/usr/local/lib/libglfw.a")
 
 SET(GLFW_FOUND 0)
-IF(GLFW_LIBRARY AND GLFW_INCLUDE_DIR)
+IF(GLFW_LIBRARIES AND GLFW_INCLUDE_DIRS)
   SET(GLFW_FOUND 1)
-  message(STATUS "GLFW found!")
-ENDIF(GLFW_LIBRARY AND GLFW_INCLUDE_DIR)
+  message(STATUS "Found GLFW " ${GLFW_LIBRARIES})
+ELSE()
+  message(STATUS "GLFW NOT found!")
+ENDIF(GLFW_LIBRARIES AND GLFW_INCLUDE_DIRS)

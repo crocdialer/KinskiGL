@@ -494,6 +494,7 @@ namespace kinski { namespace gl {
         // free the less frequent used half of our buffered string-meshes
         if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)
         {
+            LOG_DEBUG<<"font-mesh buffersize: "<<STRING_MESH_BUFFER_SIZE<<" -> clearing ...";
             std::list<string_mesh_container> tmp_list;
             std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
             for (; it != g_string_mesh_map.end(); ++it){tmp_list.push_back(it->second);}

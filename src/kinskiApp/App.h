@@ -14,6 +14,13 @@
 #include "kinskiCore/Component.h"
 #include "kinskiCore/Logger.h"
 
+namespace boost {
+    class thread;
+    namespace asio {
+        class io_service;
+    }
+}
+
 namespace kinski
 {
     class MouseEvent;
@@ -66,6 +73,8 @@ namespace kinski
         
         float framesPerSec() const {return m_framesPerSec;};
         
+        boost::asio::io_service& io_service(){return *m_io_service;};
+        
     private:
         
         virtual void init() = 0;
@@ -83,6 +92,10 @@ namespace kinski
         bool m_running;
         bool m_fullscreen;
         bool m_cursorVisible;
+        
+        std::shared_ptr<boost::asio::io_service> m_io_service;
+        std::shared_ptr<void> m_io_work;
+        std::shared_ptr<boost::thread> m_io_thread;//optional seperate thread for io handling
     };
     
     //! Base class for all Events

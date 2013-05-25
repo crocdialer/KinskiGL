@@ -8,6 +8,8 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "App.h"
+#include <boost/asio/io_service.hpp>
+#include <boost/thread.hpp>
 
 using namespace std;
 
@@ -23,14 +25,19 @@ namespace kinski
     m_windowSize(glm::ivec2(width, height)),
     m_running(false),
     m_fullscreen(false),
-    m_cursorVisible(true)
+    m_cursorVisible(true),
+    m_io_service(new boost::asio::io_service())
     {
         srand(clock());
+        m_io_work = std::shared_ptr<void>(new boost::asio::io_service::work(*m_io_service));
+        //m_io_thread = std::shared_ptr<boost::thread>(new boost::thread(boost::bind(&boost::asio::io_service::run, m_io_service.get())));
     }
     
     App::~App()
     {
-
+        m_io_work.reset();
+        try{m_io_thread->join();}
+        catch(std::exception &e){LOG_ERROR<<e.what();}
     }
     
     int App::run()
@@ -48,6 +55,9 @@ namespace kinski
             
             // update application time
             timeStamp = getApplicationTime();
+            
+            // update io_service
+            m_io_service->poll();
             
             // call update callback
             update(timeStamp - m_lastTimeStamp);
