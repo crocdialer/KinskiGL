@@ -344,6 +344,8 @@ namespace kinski { namespace gl {
         //if(!activeMat->shader())
         //activeMat->shader() = staticMat->shader();
         
+        activeMat->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
+        
         activeMat->uniform("u_modelViewProjectionMatrix",
                            g_projectionMatrixStack.top()
                            * g_modelViewMatrixStack.top());
@@ -358,10 +360,13 @@ namespace kinski { namespace gl {
 #endif            
             glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
             
-            GLuint vertexAttribLocation = activeMat->shader().getAttribLocation("a_vertex");
+            GLint vertexAttribLocation = activeMat->shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
             glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                   stride, BUFFER_OFFSET(offset));
+            
+            GLint point_size_attribLocation = activeMat->shader().getAttribLocation("a_pointSize");
+            if(point_size_attribLocation >= 0) glVertexAttrib1f(point_size_attribLocation, 1.f);
             
 #ifndef KINSKI_NO_VAO
             GL_SUFFIX(glBindVertexArray)(0);

@@ -83,7 +83,7 @@ namespace kinski { namespace gl {
         void setSpecular(const Color &theColor);
         void setEmission(const Color &theColor);
         void setShinyness(float s);
-        void setPointSize(float sz){ m_pointSize = sz; };
+        void setPointSize(float sz);
         void setPointAttenuation(float constant, float linear, float quadratic);
         
     private:

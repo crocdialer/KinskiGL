@@ -19,6 +19,7 @@ m_name(theName)
 
 Component::~Component() 
 {
+    //observeProperties(false);
 }
 
 Property::Ptr Component::getPropertyByName(const std::string & thePropertyName) 

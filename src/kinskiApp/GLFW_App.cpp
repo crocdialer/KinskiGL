@@ -100,7 +100,7 @@ namespace kinski
         setup();
         
         // activate property observer mechanism
-        observeProperties();
+        //observeProperties();
     }
     
     void GLFW_App::swapBuffers()

@@ -143,9 +143,9 @@ public:
                         
                         gl::MeshPtr mesh = gl::Mesh::create(geom, theMat);
                         scene().addObject(mesh);
-                        glm::mat4 mat;
-                        startTransform.getOpenGLMatrix(&mat[0][0]);
-                        mesh->setTransform(mat);
+                        float mat[16];
+                        startTransform.getOpenGLMatrix(mat);
+                        mesh->setTransform(glm::make_mat4(mat));
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
                         gl::MotionState* myMotionState = new gl::MotionState(mesh);

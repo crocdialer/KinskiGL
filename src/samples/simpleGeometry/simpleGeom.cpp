@@ -75,7 +75,7 @@ public:
         //int numattachments = m_frameBuffer.getMaxAttachments();//8
         
         m_draw_depth_material = gl::Material::create();
-        m_draw_depth_material->setShader(gl::createShaderFromFile("shader_unlit.vert", "shader_unlit.frag"));
+        m_draw_depth_material->setShader(gl::createShaderFromFile("shader_depth.vert", "shader_depth.frag"));
         m_draw_depth_material->addTexture(m_frameBuffer.getDepthTexture());
         m_draw_depth_material->setDepthTest(false);
         m_draw_depth_material->setDepthWrite(false);
@@ -103,8 +103,8 @@ public:
         
         
         //m_textures[1] = gl::createTextureFromFile("stone.png");
-        m_textures[2] = m_font.create_texture("Du musst was an die Tafel schreiben.\n"
-                                              "Rechne vor der Klasse eine Aufgabe!!\n\n  1 + 3 = 5");
+//        m_textures[2] = m_font.create_texture("Du musst was an die Tafel schreiben.\n"
+//                                              "Rechne vor der Klasse eine Aufgabe!!\n\n  1 + 3 = 5");
         //m_textures[2] = m_font.glyph_texture();
 
         gl::Geometry::Ptr myBox(gl::createBox(glm::vec3(50.f)));//(gl::createSphere(100, 36));
@@ -200,9 +200,18 @@ public:
                 
                 if(selected_mesh()->geometry()->hasBones())
                 {
+                    static gl::MaterialPtr point_mat;
+                    if(!point_mat)
+                    {
+                        point_mat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
+                        point_mat->setPointSize(24.f);
+                        point_mat->setPointAttenuation(0.f, 40.f, 0.f);
+                    }
+                    point_mat->uniform("u_lightDir", light_direction());
+                    
                     vector<vec3> points;
                     buildSkeleton(selected_mesh()->rootBone(), points);
-                    gl::drawPoints(points);
+                    gl::drawPoints(points, point_mat);
                     gl::drawLines(points, vec4(1, 0, 0, 1));
                 }
                 // Label
@@ -225,25 +234,27 @@ public:
             glm::vec2 offset(getWidth() - w - 10, 10);
             glm::vec2 step(0, h + 10);
             
-            for(int i = 0;i < m_mesh->materials().size();i++)
+            if(m_mesh)
             {
-                gl::MaterialPtr m = m_mesh->materials()[i];
-                
-                for (int j = 0; j < m->textures().size(); j++)
+                for(int i = 0;i < m_mesh->materials().size();i++)
                 {
-                    const gl::Texture &t = m->textures()[j];
+                    gl::MaterialPtr m = m_mesh->materials()[i];
                     
-                    float h = t.getHeight() * w / t.getWidth();
-                    glm::vec2 step(0, h + 10);
-                    drawTexture(t, vec2(w, h), offset);
-                    gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
-                                   as_string(t.getHeight()), m_font, glm::vec4(1),
-                                   offset);
-                    offset += step;
+                    for (int j = 0; j < m->textures().size(); j++)
+                    {
+                        const gl::Texture &t = m->textures()[j];
+                        
+                        float h = t.getHeight() * w / t.getWidth();
+                        glm::vec2 step(0, h + 10);
+                        drawTexture(t, vec2(w, h), offset);
+                        gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                                       as_string(t.getHeight()), m_font, glm::vec4(1),
+                                       offset);
+                        offset += step;
+                    }
+                    
                 }
-                
             }
-            
 //            drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
 //            gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
 //            

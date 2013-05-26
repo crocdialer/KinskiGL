@@ -73,7 +73,7 @@ namespace kinski
             m_delay->setRange(0, *m_buffer_size - 1);
             m_blur_frames->setRange(1, *m_buffer_size);
             m_buffer.resize(*m_buffer_size);
-            if(*m_blur_frames > *m_buffer_size) *m_blur_frames = *m_buffer_size;
+            if(*m_blur_frames > *m_buffer_size) m_blur_frames->set(*m_buffer_size);
             
         }
         else if(theProperty == m_blur_frames)

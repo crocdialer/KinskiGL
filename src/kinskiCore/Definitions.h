@@ -33,7 +33,6 @@
 
 namespace kinski
 {
-    
     using boost::int8_t;
     using boost::uint8_t;
     using boost::int16_t;
@@ -83,20 +82,6 @@ namespace kinski
 // compiler has C++11 stdlib
 #if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
 #include <memory>
-#elif defined( KINSKI_COCOA )
-#include <tr1/memory>
-namespace std
-{
-    using std::tr1::shared_ptr;
-    using std::tr1::weak_ptr;
-    using std::tr1::static_pointer_cast;
-    using std::tr1::dynamic_pointer_cast;
-    using std::tr1::const_pointer_cast;
-    using std::tr1::enable_shared_from_this;
-    
-    // backwards compatibility hack
-    template<typename T> struct owner_less : public less<T>{};
-}
 #else
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>

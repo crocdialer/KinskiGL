@@ -30,21 +30,25 @@ namespace kinski
     {
         srand(clock());
         m_io_work = std::shared_ptr<void>(new boost::asio::io_service::work(*m_io_service));
-        //m_io_thread = std::shared_ptr<boost::thread>(new boost::thread(boost::bind(&boost::asio::io_service::run, m_io_service.get())));
+        m_io_thread = std::shared_ptr<boost::thread>(new boost::thread(
+            boost::bind(&boost::asio::io_service::run, m_io_service.get())));
     }
     
     App::~App()
     {
         m_io_work.reset();
-        try{m_io_thread->join();}
-        catch(std::exception &e){LOG_ERROR<<e.what();}
+        m_io_service->stop();
+        if(m_io_thread)
+        {
+            try{m_io_thread->join();}
+            catch(std::exception &e){LOG_ERROR<<e.what();}
+        }
     }
     
     int App::run()
     {
-        try{init();}
-        catch(std::exception &e){LOG_ERROR<<e.what(); exit(EXIT_FAILURE);}
-        m_running = GL_TRUE;
+        try{init(); m_running = GL_TRUE;}
+        catch(std::exception &e){LOG_ERROR<<e.what();}
         double timeStamp = 0.0;
         
         // Main loop
@@ -57,7 +61,7 @@ namespace kinski
             timeStamp = getApplicationTime();
             
             // update io_service
-            m_io_service->poll();
+            //m_io_service->poll();
             
             // call update callback
             update(timeStamp - m_lastTimeStamp);

@@ -11,7 +11,7 @@
 #define _KINSKIProperty__INCLUDED__
 
 #include <boost/any.hpp>
-
+#include <boost/signals2.hpp>
 #include "Definitions.h"
 #include "Exception.h"
 
@@ -29,6 +29,7 @@ public:
     public:
         typedef std::shared_ptr<Observer> Ptr;
         typedef std::weak_ptr<Observer> WeakPtr;
+        //inline void operator()(const Property::ConstPtr &theProperty){updateProperty(theProperty);};
         virtual void updateProperty(const Property::ConstPtr &theProperty) = 0;
     };
 
@@ -85,22 +86,17 @@ public:
     {return theVal.type() == m_value.type();};
     
     inline void addObserver(const Observer::Ptr &theObs)
-    {m_observers.insert(theObs);};
+    {
+        m_signal.connect(signal_type::slot_type(&Observer::updateProperty, theObs.get(), _1).track_foreign(theObs));
+    };
     
     inline void removeObserver(const Observer::Ptr &theObs)
-    {m_observers.erase(theObs);};
-    
-    inline void clearObservers(){m_observers.clear();};
-    
-    inline void notifyObservers()
     {
-        std::set<Observer::Ptr>::iterator it = m_observers.begin();
-        ConstPtr self = shared_from_this();
-        for (; it != m_observers.end(); ++it)
-        {
-            (*it)->updateProperty(self);
-        }
+        m_signal.disconnect(boost::bind(&Observer::updateProperty, theObs.get(), _1));
     };
+    
+    inline void clearObservers(){m_signal.disconnect_all_slots();};
+    inline void notifyObservers(){m_signal(shared_from_this());};
 
 protected:
     Property(): m_tweakable(true){}; // default constructor
@@ -111,7 +107,9 @@ private:
     std::string m_name;
     boost::any m_value;
 	bool m_tweakable;
-    std::set<Observer::Ptr> m_observers;
+    
+    typedef boost::signals2::signal<void(const Property::ConstPtr&)> signal_type;
+    signal_type m_signal;
 
 public:
     // define exceptions

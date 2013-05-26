@@ -17,14 +17,17 @@ class OpenCLTest : public ViewerApp
 public:
     OpenCLTest():ViewerApp(), m_timer(io_service(), boost::posix_time::seconds(1.f))
     {
-        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this));
+        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this, _1));
     };
     
-    void tick()
+    void tick(const boost::system::error_code& error)
     {
-        LOG_DEBUG<<"io_service -> tick...";
-        m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(1.f));
-        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this));
+        if(!error)
+        {
+            LOG_DEBUG<<"io_service -> tick...";
+        }
+//        m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(1.f));
+//        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this));
     };
     
 private:
@@ -268,8 +271,8 @@ public:
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
         registerProperty(m_point_color);
         
-        create_tweakbar_from_component(shared_from_this());
         observeProperties();
+        create_tweakbar_from_component(shared_from_this());
         
         m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
         //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
@@ -295,6 +298,9 @@ public:
         {
             LOG_WARNING << e.what();
         }
+        
+        m_point_size->removeObserver(shared_from_this());
+        //m_point_size->clearObservers();
     }
     
     void tearDown()
@@ -368,6 +374,10 @@ public:
         else if(theProperty == m_point_size)
         {
             m_pointMaterial->setPointSize(*m_point_size);
+            
+            m_timer.cancel();
+            m_timer.expires_from_now(boost::posix_time::seconds(2.f));
+            m_timer.async_wait(boost::bind(&OpenCLTest::tick, this, _1));
         }
         else if(theProperty == m_point_color)
         {

@@ -10,6 +10,7 @@
 #include "Logger.h"
 #include "Exception.h"
 #include "file_functions.h"
+#include <boost/thread.hpp>
 
 #include <iostream>
 #include <limits>
@@ -111,7 +112,8 @@ namespace kinski {
         myText << theText;
         if (theSeverity > SEV_PRINT)
         {
-            myText << " [" << getFilenamePart(theModule) << " at:" << theId << "]";
+            myText<<" [" << getFilenamePart(theModule) << " at:" << theId << "]";
+            myText<<" [thread-id: "<<boost::this_thread::get_id() <<"]";
         }
         
         std::string currentTimeString = currentDateTime();
