@@ -277,32 +277,29 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLine(const vec2 &a, const vec2 &b, const Color &theColor)
+    void drawLine(const vec2 &a, const vec2 &b, const Color &theColor, float line_thickness)
     {
         static vector<vec3> thePoints;
         thePoints.clear();
         thePoints.push_back(vec3(a, 0));
         thePoints.push_back(vec3(b, 0));
-        
+        drawLines2D(thePoints, theColor, line_thickness);
+    }
+    
+    void drawLines2D(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
+    {
         ScopedMatrixPush pro(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
         
         loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_windowDim[0],
                                                      0.f, g_windowDim[1],
                                                      0.f, 1000.f));
-        
         loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
-        
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-#ifndef KINSKI_GLES
-        glEnable(GL_LINE_SMOOTH);
-#endif
-        drawLines(thePoints, theColor);
+        drawLines(thePoints, theColor, line_thickness);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLines(const vector<vec3> &thePoints, const vec4 &theColor)
+    void drawLines(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
     {
         if(thePoints.empty()) return;
         static gl::MeshPtr mesh;
@@ -311,11 +308,14 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             gl::MaterialPtr mat = gl::Material::create();
-            mat->setShader(gl::createShader(gl::SHADER_UNLIT));
+            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
+                                                    "shader_line.geom"));
+            mat->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
+        mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);
         mesh->geometry()->createGLBuffers();
@@ -323,7 +323,7 @@ namespace kinski { namespace gl {
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
     }
-    
+
 ///////////////////////////////////////////////////////////////////////////////
     
     void drawPoints(GLuint thePointVBO, GLsizei theCount, const MaterialPtr &theMaterial,

@@ -298,9 +298,6 @@ public:
         {
             LOG_WARNING << e.what();
         }
-        
-        m_point_size->removeObserver(shared_from_this());
-        //m_point_size->clearObservers();
     }
     
     void tearDown()

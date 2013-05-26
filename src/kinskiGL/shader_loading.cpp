@@ -25,7 +25,13 @@ namespace kinski { namespace gl {
         
         if (!geomPath.empty()) geomSrc = readFile(geomPath);
         
-        ret.loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
+        try {
+            ret.loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
+        }
+        catch (Exception &e)
+        {
+            LOG_ERROR<<e.what();
+        }
         return ret;
     }
     
@@ -237,12 +243,14 @@ namespace kinski { namespace gl {
        in vec4 a_vertex;
        in vec4 a_texCoord;
        in vec4 a_color;
-       out vec4 v_color;
-       out vec4 v_texCoord;
+       out VertexData{
+           vec4 color;
+           vec4 texCoord;
+       } vertex_out;
        void main()
        {
-           v_color = a_color;
-           v_texCoord =  u_textureMatrix * a_texCoord;
+           vertex_out.color = a_color;
+           vertex_out.texCoord =  u_textureMatrix * a_texCoord;
            gl_Position = u_modelViewProjectionMatrix * a_vertex;
        });
         
@@ -257,15 +265,18 @@ namespace kinski { namespace gl {
            vec4 specular;
            vec4 emission;
         } u_material;
-        in vec4 v_color;
-        in vec4 v_texCoord;
+        in VertexData{
+           vec4 color;
+           vec4 texCoord;
+        } vertex_in;
+                  
         out vec4 fragData;
         void main()
         {
-           vec4 texColors = v_color;
+           vec4 texColors = vertex_in.color;
            for(int i = 0; i < u_numTextures; i++)
            {
-               texColors *= texture(u_textureMap[i], v_texCoord.st);
+               texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
            }
            if(texColors.a == 0.0) discard;
            fragData = u_material.diffuse * texColors;
@@ -281,14 +292,19 @@ namespace kinski { namespace gl {
         in vec4 a_vertex;
         in vec4 a_texCoord;
         in vec3 a_normal;
-        out vec4 v_texCoord;
-        out vec3 v_normal;
-        out vec3 v_eyeVec;
+
+        out VertexData{
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+        } vertex_out;
+                  
         void main()
         {
-            v_normal = normalize(u_normalMatrix * a_normal);
-            v_texCoord = u_textureMatrix * a_texCoord;
-            v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;
+            vertex_out.normal = normalize(u_normalMatrix * a_normal);
+            vertex_out.texCoord = u_textureMatrix * a_texCoord;
+            vertex_out.eyeVec = - (u_modelViewMatrix * a_vertex).xyz;
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
@@ -305,9 +321,13 @@ namespace kinski { namespace gl {
         in vec3 a_normal;
         in ivec4 a_boneIds;
         in vec4 a_boneWeights;
-        out vec4 v_texCoord;
-        out vec3 v_normal;
-        out vec3 v_eyeVec;
+        out VertexData{
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+        } vertex_out;
+                  
         void main()
         {
             vec4 newVertex = vec4(0);
@@ -317,9 +337,9 @@ namespace kinski { namespace gl {
                 newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i];
                 newNormal += u_bones[a_boneIds[i]] * vec4(a_normal, 0.0) * a_boneWeights[i];
             }
-            v_normal = normalize(u_normalMatrix * newNormal.xyz);
-            v_texCoord =  u_textureMatrix * a_texCoord;
-            v_eyeVec = - (u_modelViewMatrix * newVertex).xyz;
+            vertex_out.normal = normalize(u_normalMatrix * newNormal.xyz);
+            vertex_out.texCoord =  u_textureMatrix * a_texCoord;
+            vertex_out.eyeVec = - (u_modelViewMatrix * newVertex).xyz;
             gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
         });
         
@@ -337,20 +357,23 @@ namespace kinski { namespace gl {
             vec4 emission;
             float shinyness;
         } u_material;
-        in vec3 v_normal;
-        in vec4 v_texCoord;
-        in vec3 v_eyeVec;
+        in VertexData{
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+        } vertex_in;
         out vec4 fragData;
         void main()
         {
             vec4 texColors = vec4(1);
             for(int i = 0; i < u_numTextures; i++)
             {
-                texColors *= texture(u_textureMap[i], v_texCoord.st);
+                texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
             }
-            vec3 N = normalize(v_normal);
+            vec3 N = normalize(vertex_in.normal);
             vec3 L = normalize(-u_lightDir);
-            vec3 E = normalize(v_eyeVec);
+            vec3 E = normalize(vertex_in.eyeVec);
 		    vec3 R = reflect(-L, N);
             float nDotL = max(0.0, dot(N, L));
             float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);

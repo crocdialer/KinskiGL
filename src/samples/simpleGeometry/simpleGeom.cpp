@@ -24,6 +24,8 @@ private:
     RangedProperty<float>::Ptr m_animationTime;
     Property_<glm::vec4>::Ptr m_color;
     Property_<float>::Ptr m_shinyness;
+    
+    vector<vec3> m_points;
 
 public:
     
@@ -137,6 +139,11 @@ public:
         // clear with transparent black
         gl::clearColor(gl::Color(0));
         
+        for (int i = 0; i < 100; i++)
+        {
+            m_points.push_back(glm::linearRand(vec3(-windowSize() / 2.f, 0.f), vec3(windowSize() / 2.f, 0.f)));
+        }
+        
         // load state from config file
         try
         {
@@ -172,11 +179,10 @@ public:
     {
         // draw block
         {
-            gl::SaveFramebufferBinding fb; gl::SaveViewPort vp;
-            
-            m_frameBuffer.bindFramebuffer();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            gl::setWindowDimension(m_frameBuffer.getSize());
+//            gl::SaveFramebufferBinding fb; gl::SaveViewPort vp;
+//            m_frameBuffer.bindFramebuffer();
+//            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//            gl::setWindowDimension(m_frameBuffer.getSize());
             
             //background
             //gl::drawTexture(m_textures[0], windowSize());
@@ -184,7 +190,8 @@ public:
             
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
-            gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
+            //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
+            gl::drawLines2D(m_points, gl::Color(), 50.f);
             
             scene().render(camera());
             
@@ -212,7 +219,7 @@ public:
                     vector<vec3> points;
                     buildSkeleton(selected_mesh()->rootBone(), points);
                     gl::drawPoints(points, point_mat);
-                    gl::drawLines(points, vec4(1, 0, 0, 1));
+                    gl::drawLines(points, vec4(1, 0, 0, 1), 3.f);
                 }
                 // Label
                 gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_label->transform());
@@ -221,8 +228,8 @@ public:
             }
         }// FBO block
         
-        gl::drawTexture(m_textures[0], windowSize());
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
+//        gl::drawTexture(m_textures[0], windowSize());
+//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
         
         // draw texture map(s)
         if(displayTweakBar())

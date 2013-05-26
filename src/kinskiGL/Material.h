@@ -85,6 +85,7 @@ namespace kinski { namespace gl {
         void setShinyness(float s);
         void setPointSize(float sz);
         void setPointAttenuation(float constant, float linear, float quadratic);
+        void setLineThickness(float t);
         
     private:
         

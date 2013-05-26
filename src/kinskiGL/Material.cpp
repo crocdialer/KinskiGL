@@ -82,5 +82,5 @@ namespace kinski { namespace gl {
         m_uniforms["u_point_attenuation.linear"] = linear;
         m_uniforms["u_point_attenuation.quadratic"] = quadratic;
     };
-
+    
 }}// namespace

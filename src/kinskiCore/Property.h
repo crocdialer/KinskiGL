@@ -28,8 +28,6 @@ public:
     {
     public:
         typedef std::shared_ptr<Observer> Ptr;
-        typedef std::weak_ptr<Observer> WeakPtr;
-        //inline void operator()(const Property::ConstPtr &theProperty){updateProperty(theProperty);};
         virtual void updateProperty(const Property::ConstPtr &theProperty) = 0;
     };
 
@@ -88,15 +86,15 @@ public:
     inline void addObserver(const Observer::Ptr &theObs)
     {
         m_signal.connect(signal_type::slot_type(&Observer::updateProperty, theObs.get(), _1).track_foreign(theObs));
-    };
+    }
     
     inline void removeObserver(const Observer::Ptr &theObs)
     {
         m_signal.disconnect(boost::bind(&Observer::updateProperty, theObs.get(), _1));
-    };
+    }
     
-    inline void clearObservers(){m_signal.disconnect_all_slots();};
-    inline void notifyObservers(){m_signal(shared_from_this());};
+    inline void clearObservers(){m_signal.disconnect_all_slots();}
+    inline void notifyObservers(){m_signal(shared_from_this());}
 
 protected:
     Property(): m_tweakable(true){}; // default constructor
