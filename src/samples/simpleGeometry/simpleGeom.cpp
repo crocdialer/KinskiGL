@@ -141,7 +141,7 @@ public:
         
         for (int i = 0; i < 100; i++)
         {
-            m_points.push_back(glm::linearRand(vec3(-windowSize() / 2.f, 0.f), vec3(windowSize() / 2.f, 0.f)));
+            m_points.push_back(glm::linearRand(vec3(-windowSize() / 2.f, -2.f), vec3(windowSize() / 2.f, -2.f)));
         }
         
         // load state from config file

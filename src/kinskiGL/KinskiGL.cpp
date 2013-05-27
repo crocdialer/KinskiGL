@@ -238,6 +238,24 @@ namespace kinski { namespace gl {
         }
         return ret;
     }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+    vec3 calculateCentroid(const vector<vec3> &theVertices)
+    {
+        if(theVertices.empty())
+        {
+            LOG_WARNING << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
+            return vec3(0);
+        }
+        vec3 sum(0);
+        for(unsigned int i = 0; i < theVertices.size(); i++)
+        {
+            sum += theVertices[i];
+        }
+        sum /= theVertices.size();
+        return sum;
+    }
     
 ///////////////////////////////////////////////////////////////////////////////
     

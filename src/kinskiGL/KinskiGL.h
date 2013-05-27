@@ -119,6 +119,7 @@ namespace kinski { namespace gl {
     KINSKI_API void setWindowDimension(const glm::vec2 &theDim);
     KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y);
     KINSKI_API gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices);
+    KINSKI_API glm::vec3 calculateCentroid(const std::vector<glm::vec3> &theVertices);
     KINSKI_API gl::MeshPtr createFrustumMesh(const CameraPtr &cam);
     
     /********************************* Drawing Functions *****************************************/
