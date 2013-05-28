@@ -456,17 +456,18 @@ namespace kinski { namespace gl {
     
     void drawQuad(const gl::MaterialPtr &theMaterial,
                   const vec2 &theSize,
-                  const vec2 &theTl)
+                  const vec2 &theTl,
+                  bool filled)
     {
         // flip to OpenGL coords
         vec2 tl = vec2(theTl.x, g_windowDim[1] - theTl.y);
-        drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1]);
+        drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1], filled);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
     void drawQuad(const gl::MaterialPtr &theMaterial,
-                  float x0, float y0, float x1, float y1)
+                  float x0, float y0, float x1, float y1, bool filled)
     {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         
@@ -476,9 +477,22 @@ namespace kinski { namespace gl {
         
         if(!quad_mesh)
         {
-            quad_mesh = gl::Mesh::create(createPlane(1, 1), Material::create());
+            gl::GeometryPtr geom = gl::Geometry::create();
+            geom->vertices().push_back(glm::vec3(-0.5f, 0.5f, 0.f));
+            geom->vertices().push_back(glm::vec3(-0.5f, -0.5f, 0.f));
+            geom->vertices().push_back(glm::vec3(0.5f, -0.5f, 0.f));
+            geom->vertices().push_back(glm::vec3(0.5f, 0.5f, 0.f));
+            geom->texCoords().push_back(glm::vec2(0.f, 1.f));
+            geom->texCoords().push_back(glm::vec2(0.f, 0.f));
+            geom->texCoords().push_back(glm::vec2(1.f, 0.f));
+            geom->texCoords().push_back(glm::vec2(1.f, 1.f));
+            geom->normals().assign(4, glm::vec3(0, 0, 1));
+            geom->computeBoundingBox();
+            geom->computeTangents();
+            quad_mesh = gl::Mesh::create(geom, Material::create());
             quad_mesh->setPosition(glm::vec3(0.5f, 0.5f , 0.f));
         }
+        quad_mesh->geometry()->setPrimitiveType(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
         quad_mesh->material() = theMaterial;
         float scaleX = (x1 - x0) / g_windowDim[0];
         float scaleY = (y0 - y1) / g_windowDim[1];

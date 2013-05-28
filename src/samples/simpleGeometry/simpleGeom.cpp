@@ -1,5 +1,4 @@
 #include "kinskiApp/ViewerApp.h"
-#include "kinskiCV/CVThread.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 
@@ -191,7 +190,7 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            gl::drawLines2D(m_points, gl::Color(), 50.f);
+            //gl::drawLines2D(m_points, gl::Color(), 50.f);
             
             scene().render(camera());
             

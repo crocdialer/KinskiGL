@@ -141,9 +141,9 @@ namespace kinski { namespace gl {
     KINSKI_API void drawTexture(const gl::Texture &theTexture, const glm::vec2 &theSize,
                                 const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
-                             const glm::vec2 &theTopLeft = glm::vec2(0));
+                             const glm::vec2 &theTopLeft = glm::vec2(0), bool filled = true);
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial,
-                             float x0, float y0, float x1, float y1);
+                             float x0, float y0, float x1, float y1, bool filled = true);
     KINSKI_API void drawText2D(const std::string &theText, const gl::Font &theFont,
                                const Color &the_color = glm::vec4(1),
                                const glm::vec2 &theTopLeft = glm::vec2(0));

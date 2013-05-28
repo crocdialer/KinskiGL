@@ -23,6 +23,7 @@ class KINSKI_API Property : public std::enable_shared_from_this<Property>
 public:
     typedef std::shared_ptr<Property> Ptr;
     typedef std::shared_ptr<const Property> ConstPtr;
+    virtual ~Property(){};
     
     class Observer
     {
@@ -202,6 +203,7 @@ class KINSKI_API RangedProperty : public Property_<T>
 public:
     
     typedef std::shared_ptr< RangedProperty<T> > Ptr;
+    virtual ~RangedProperty<T>(){};
     
     inline RangedProperty<T>& operator=(const T &theVal)
     {
