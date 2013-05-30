@@ -11,6 +11,7 @@
 #include "Shader.h"
 
 #define STRINGIFY(A) #A
+#define GLSL(version, shader)  "#version " #version "\n" #shader
 
 namespace kinski { namespace gl {
     
@@ -38,158 +39,155 @@ namespace kinski { namespace gl {
     Shader createShader(ShaderType type)
     {
 #ifdef KINSKI_GLES
-        const char *unlitVertSrc =
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "attribute vec4 a_vertex;\n"
-        "attribute vec4 a_texCoord;\n"
-        "attribute vec4 a_color;\n"//
-        "varying lowp vec4 v_color;\n"//
-        "varying lowp vec4 v_texCoord;\n"
-        "void main()\n"
-        "{\n"
-        "    v_color = a_color;\n"
-        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
-        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
-        "}\n";
+        const char *unlitVertSrc = GLSL( ,
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat4 u_textureMatrix;
+        attribute vec4 a_vertex;
+        attribute vec4 a_texCoord;
+        attribute vec4 a_color;//
+        varying lowp vec4 v_color;//
+        varying lowp vec4 v_texCoord;
+        void main()
+        {
+            v_color = a_color;
+            v_texCoord =  u_textureMatrix * a_texCoord;
+            gl_Position = u_modelViewProjectionMatrix * a_vertex;
+        });
         
-        const char *unlitFragSrc =
-        "precision mediump float;\n"
-        "precision lowp int;\n"
-        "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[8];\n"
-        "uniform struct\n"
-        "{\n"
-        "    vec4 diffuse;\n"
-        "    vec4 ambient;\n"
-        "    vec4 specular;\n"
-        "    vec4 emission;\n"
-        "    float shinyness;\n"
-        "} u_material;\n"
-        "varying vec4 v_color;\n"//
-        "varying vec4 v_texCoord;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 texColors = v_color;\n"//
-        "    if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
-        "    if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);\n"
-        "    if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);\n"
-        "    if(u_numTextures > 3) texColors *= texture2D(u_textureMap[3], v_texCoord.st);\n"
-        "    gl_FragColor = u_material.diffuse * texColors;\n"
-        "}\n";
+        const char *unlitFragSrc = GLSL( ,
+        precision mediump float;
+        precision lowp int;
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[8];
+        uniform struct
+        {
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            vec4 emission;
+            float shinyness;
+        } u_material;
+        varying vec4 v_color;//
+        varying vec4 v_texCoord;
+        void main()
+        {
+            vec4 texColors = v_color;//
+            if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);
+            if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);
+            if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);
+            if(u_numTextures > 3) texColors *= texture2D(u_textureMap[3], v_texCoord.st);
+            gl_FragColor = u_material.diffuse * texColors;
+        });
         
-        const char *phongVertSrc =
-        "uniform mat4 u_modelViewMatrix;\n"
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat3 u_normalMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "attribute vec4 a_vertex;\n"
-        "attribute vec4 a_texCoord;\n"
-        "attribute vec3 a_normal;\n"
-        "varying lowp vec4 v_texCoord;\n"
-        "varying mediump vec3 v_normal;\n"
-        "varying mediump vec3 v_eyeVec;\n"
-        "void main()\n"
-        "{\n"
-        "    v_normal = normalize(u_normalMatrix * a_normal);\n"
-        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
-        "    v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;\n"
-        "    gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
-        "}\n";
+        const char *phongVertSrc = GLSL( ,
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        attribute vec4 a_vertex;
+        attribute vec4 a_texCoord;
+        attribute vec3 a_normal;
+        varying lowp vec4 v_texCoord;
+        varying mediump vec3 v_normal;
+        varying mediump vec3 v_eyeVec;
+        void main()
+        {
+            v_normal = normalize(u_normalMatrix * a_normal);
+            v_texCoord =  u_textureMatrix * a_texCoord;
+            v_eyeVec = - (u_modelViewMatrix * a_vertex).xyz;
+            gl_Position = u_modelViewProjectionMatrix * a_vertex;
+        });
         
-        const char *phongVertSrc_skin =
-        "uniform mat4 u_modelViewMatrix;\n"
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat3 u_normalMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "uniform mat4 u_bones[18];\n"
-        "attribute vec4 a_vertex;\n"
-        "attribute vec4 a_texCoord;\n"
-        "attribute vec3 a_normal;\n"
-        "attribute vec4 a_boneIds;\n"
-        "attribute vec4 a_boneWeights;\n"
-        "varying vec4 v_texCoord;\n"
-        "varying vec3 v_normal;\n"
-        "varying vec3 v_eyeVec;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 newVertex = vec4(0.0);\n"
-        "    vec4 newNormal = vec4(0.0);\n"
-        "    for (int i = 0; i < 4; i++)\n"
-        "    {\n"
-        "        newVertex += u_bones[int(floor(a_boneIds[i]))] * a_vertex * a_boneWeights[i];\n"
-        "        newNormal += u_bones[int(floor(a_boneIds[i]))] * vec4(a_normal, 0.0) * a_boneWeights[i];\n"
-        "    }\n"
-        "    v_normal = normalize(u_normalMatrix * newNormal.xyz);\n"
-        "    v_texCoord =  u_textureMatrix * a_texCoord;\n"
-        "    v_eyeVec = - (u_modelViewMatrix * newVertex).xyz;\n"
-        "    gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);\n"
-        "}\n";
+        const char *phongVertSrc_skin = GLSL( ,
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        uniform mat4 u_bones[18];
+        attribute vec4 a_vertex;
+        attribute vec4 a_texCoord;
+        attribute vec3 a_normal;
+        attribute vec4 a_boneIds;
+        attribute vec4 a_boneWeights;
+        varying vec4 v_texCoord;
+        varying vec3 v_normal;
+        varying vec3 v_eyeVec;
+        void main()
+        {
+            vec4 newVertex = vec4(0.0);
+            vec4 newNormal = vec4(0.0);
+            for (int i = 0; i < 4; i++)
+            {
+                newVertex += u_bones[int(floor(a_boneIds[i]))] * a_vertex * a_boneWeights[i];
+                newNormal += u_bones[int(floor(a_boneIds[i]))] * vec4(a_normal, 0.0) * a_boneWeights[i];
+            }
+            v_normal = normalize(u_normalMatrix * newNormal.xyz);
+            v_texCoord =  u_textureMatrix * a_texCoord;
+            v_eyeVec = - (u_modelViewMatrix * newVertex).xyz;
+            gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
+        });
         
-        const char *phongFragSrc =
-        "precision mediump float;\n"
-        "precision lowp int;\n"
-        "uniform int u_numTextures;\n"
-        "uniform sampler2D u_textureMap[8];\n"
-        "uniform vec3 u_lightDir;\n"
-        "uniform struct\n"
-        "{\n"
-        "    vec4 diffuse;\n"
-        "    vec4 ambient;\n"
-        "    vec4 specular;\n"
-        "    vec4 emission;\n"
-        "    float shinyness;\n"
-        "} u_material;\n"
-        "varying vec3 v_normal;\n"
-        "varying vec4 v_texCoord;\n"
-        "varying vec3 v_eyeVec;\n"
-        "void main()\n"
-        "{\n"
-        "    vec4 texColors = vec4(1);\n"
-        "    if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);\n"
-        "    if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);\n"
-        "    if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);\n"
-        "    if(u_numTextures > 3) texColors *= texture2D(u_textureMap[3], v_texCoord.st);\n"
-        "    vec3 N = normalize(v_normal);\n"
-        "    vec3 L = normalize(-u_lightDir);\n"
-        "    vec3 E = normalize(v_eyeVec);\n"
-		"    vec3 R = reflect(-L, N);\n"
-        "    float nDotL = max(0.0, dot(N, L));\n"
-        "    float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);\n"
-        "    vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;\n"
-        "    gl_FragColor = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;\n"
-        "}\n";
+        const char *phongFragSrc = GLSL( ,
+        precision mediump float;
+        precision lowp int;
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[8];
+        uniform vec3 u_lightDir;
+        uniform struct
+        {
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            vec4 emission;
+            float shinyness;
+        } u_material;
+        varying vec3 v_normal;
+        varying vec4 v_texCoord;
+        varying vec3 v_eyeVec;
+        void main()
+        {
+            vec4 texColors = vec4(1);
+            if(u_numTextures > 0) texColors *= texture2D(u_textureMap[0], v_texCoord.st);
+            if(u_numTextures > 1) texColors *= texture2D(u_textureMap[1], v_texCoord.st);
+            if(u_numTextures > 2) texColors *= texture2D(u_textureMap[2], v_texCoord.st);
+            if(u_numTextures > 3) texColors *= texture2D(u_textureMap[3], v_texCoord.st);
+            vec3 N = normalize(v_normal);
+            vec3 L = normalize(-u_lightDir);
+            vec3 E = normalize(v_eyeVec);
+		    vec3 R = reflect(-L, N);
+            float nDotL = max(0.0, dot(N, L));
+            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
+            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
+            gl_FragColor = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+        };
         
-        const char *phong_normalmap_vertSrc =
-        "#version 150 core\n"
-        "uniform mat4 u_modelViewMatrix;\n"
-        "uniform mat4 u_modelViewProjectionMatrix;\n"
-        "uniform mat3 u_normalMatrix;\n"
-        "uniform mat4 u_textureMatrix;\n"
-        "uniform vec3 u_lightDir;\n"
-        "in vec4 a_vertex;\n"
-        "in vec4 a_texCoord;\n"
-        "in vec3 a_normal;\n"
-        "in vec3 a_tangent;\n"
-        "out vec4 v_texCoord;\n"
-        "out vec3 v_normal;\n"
-        "out vec3 v_eyeVec;\n"
-        "out vec3 v_lightDir;\n"
-        "void main()\n"
-        "{\n"
-        "   v_normal = normalize(u_normalMatrix * a_normal);\n"
-        "   vec3 t = normalize (u_normalMatrix * a_tangent);\n"
-        "   vec3 b = cross(v_normal, t);\n"
-        "   mat3 tbnMatrix = mat3(t,b, v_normal);\n"
-        "   v_eyeVec = tbnMatrix * normalize(- (u_modelViewMatrix * a_vertex).xyz);\n"
-        "   v_lightDir = tbnMatrix * u_lightDir;\n"
-        "   v_texCoord =  u_textureMatrix * a_texCoord;\n"
-        "   gl_Position = u_modelViewProjectionMatrix * a_vertex;\n"
-        "}\n";
+        const char *phong_normalmap_vertSrc = GLSL(150 core,
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        uniform vec3 u_lightDir;
+        in vec4 a_vertex;
+        in vec4 a_texCoord;
+        in vec3 a_normal;
+        in vec3 a_tangent;
+        out vec4 v_texCoord;
+        out vec3 v_normal;
+        out vec3 v_eyeVec;
+        out vec3 v_lightDir;
+        void main()
+        {
+           v_normal = normalize(u_normalMatrix * a_normal);
+           vec3 t = normalize (u_normalMatrix * a_tangent);
+           vec3 b = cross(v_normal, t);
+           mat3 tbnMatrix = mat3(t,b, v_normal);
+           v_eyeVec = tbnMatrix * normalize(- (u_modelViewMatrix * a_vertex).xyz);
+           v_lightDir = tbnMatrix * u_lightDir;
+           v_texCoord =  u_textureMatrix * a_texCoord;
+           gl_Position = u_modelViewProjectionMatrix * a_vertex;
+        });
         
-        const char *phong_normalmap_fragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *phong_normalmap_fragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct
@@ -235,28 +233,24 @@ namespace kinski { namespace gl {
         });
 
 #else
-        const char *unlitVertSrc =
-       "#version 150 core\n"
-       STRINGIFY(
-       uniform mat4 u_modelViewProjectionMatrix;
-       uniform mat4 u_textureMatrix;
-       in vec4 a_vertex;
-       in vec4 a_texCoord;
-       in vec4 a_color;
-       out VertexData{
+        const char *unlitVertSrc = GLSL(150 core,
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat4 u_textureMatrix;
+        in vec4 a_vertex;
+        in vec4 a_texCoord;
+        in vec4 a_color;
+        out VertexData{
            vec4 color;
            vec4 texCoord;
-       } vertex_out;
-       void main()
-       {
+        } vertex_out;
+        void main()
+        {
            vertex_out.color = a_color;
            vertex_out.texCoord =  u_textureMatrix * a_texCoord;
            gl_Position = u_modelViewProjectionMatrix * a_vertex;
-       });
+        });
         
-        const char *unlitFragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *unlitFragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct{
@@ -282,9 +276,7 @@ namespace kinski { namespace gl {
            fragData = u_material.diffuse * texColors;
         });
         
-        const char *phongVertSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *phongVertSrc = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
@@ -308,9 +300,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *phongVertSrc_skin =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *phongVertSrc_skin = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
@@ -343,9 +333,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
         });
         
-        const char *phongFragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *phongFragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform vec3 u_lightDir;
@@ -381,9 +369,7 @@ namespace kinski { namespace gl {
             fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
         });
         
-        const char *phong_normalmap_vertSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *phong_normalmap_vertSrc = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
@@ -409,9 +395,7 @@ namespace kinski { namespace gl {
            gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *phong_normalmap_fragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *phong_normalmap_fragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct
@@ -495,9 +479,7 @@ namespace kinski { namespace gl {
         gl_FragColor = u_material.diffuse * texColors;
         });
 #else
-        const char *point_vertSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *point_vertSrc = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform float u_pointSize;
@@ -524,9 +506,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *point_color_fragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *point_color_fragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct
@@ -545,9 +525,7 @@ namespace kinski { namespace gl {
             fragData = u_material.diffuse * texColors;
         });
         
-        const char *point_texture_fragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
+        const char *point_texture_fragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[8];
         uniform struct{
@@ -569,54 +547,52 @@ namespace kinski { namespace gl {
         });
         
         // pixel shader for rendering points as shaded spheres
-        const char *point_sphere_fragSrc =
-        "#version 150 core\n"
-        STRINGIFY(
-            uniform float u_pointRadius;  // point size in world space
-            uniform vec3 u_lightDir;
-            uniform int u_numTextures;
-            uniform sampler2D u_textureMap[8];
-            uniform struct
-            {
-              vec4 diffuse;
-              vec4 ambient;
-              vec4 specular;
-              vec4 emission;
-              float shinyness;
-            } u_material;
-            in vec4 v_color;
-            in vec3 v_eyeVec;        // position of center in eye space
-            out vec4 fragData;
-            void main()
-            {
-                vec4 texColors = vec4(1);//v_color;// workaround for ATI gl_PointCoord bug
-                
+        const char *point_sphere_fragSrc = GLSL(150 core,
+        uniform float u_pointRadius;  // point size in world space
+        uniform vec3 u_lightDir;
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[8];
+        uniform struct
+        {
+          vec4 diffuse;
+          vec4 ambient;
+          vec4 specular;
+          vec4 emission;
+          float shinyness;
+        } u_material;
+        in vec4 v_color;
+        in vec3 v_eyeVec;        // position of center in eye space
+        out vec4 fragData;
+        void main()
+        {
+            vec4 texColors = vec4(1);//v_color;// workaround for ATI gl_PointCoord bug
+            
 //                for(int i = 0; i < u_numTextures; i++)
 //                {
 //                    texColors *= texture(u_textureMap[i], gl_PointCoord);
 //                }
-                
-                // calculate normal from texture coordinates
-                vec3 N;
-                N.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
-                float mag = dot(N.xy, N.xy);
-                if (mag > 1.0) discard;   // kill pixels outside circle
-                N.z = sqrt(1.0-mag);
-                
-                // point on surface of sphere in eye space
-                vec3 spherePosEye = v_eyeVec + N * u_pointRadius;
-                
-                vec3 L = normalize(-u_lightDir);
-                vec3 E = normalize(v_eyeVec);
-                //vec3 R = reflect(-L, N);
-                float nDotL = max(0.0, dot(N, L));
-                
-                vec3 v = normalize(-spherePosEye);
-                vec3 h = normalize(-u_lightDir + v);
-                float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness);
-                vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
-                fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
-            });
+            
+            // calculate normal from texture coordinates
+            vec3 N;
+            N.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
+            float mag = dot(N.xy, N.xy);
+            if (mag > 1.0) discard;   // kill pixels outside circle
+            N.z = sqrt(1.0-mag);
+            
+            // point on surface of sphere in eye space
+            vec3 spherePosEye = v_eyeVec + N * u_pointRadius;
+            
+            vec3 L = normalize(-u_lightDir);
+            vec3 E = normalize(v_eyeVec);
+            //vec3 R = reflect(-L, N);
+            float nDotL = max(0.0, dot(N, L));
+            
+            vec3 v = normalize(-spherePosEye);
+            vec3 h = normalize(-u_lightDir + v);
+            float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness);
+            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
+            fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+        });
 #endif
         
         Shader ret;
@@ -654,7 +630,6 @@ namespace kinski { namespace gl {
                 break;
         }
         KINSKI_CHECK_GL_ERRORS();
-        
         return ret;
     }
     
