@@ -102,7 +102,7 @@ namespace kinski
             // draw maps
             float w = (windowSize()/8.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);
-            for(int i = 0;i<4;i++)
+            for(int i = 0;i < m_textures.size();i++)
             {
                 float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
                 glm::vec2 step(0, h + 10);

@@ -5,7 +5,7 @@
          {
             "name" : "Logger Severity",
             "type" : "int",
-            "value" : 5
+            "value" : 6
          },
          {
             "name" : "Show Tweakbar",
@@ -74,7 +74,8 @@
                "earth_color.jpg",
                "earth_bump.jpg",
                "earth_spec.png",
-               "earth_lights.jpg"
+               "earth_lights.jpg",
+               "earth_clouds.png"
             ]
          },
          {

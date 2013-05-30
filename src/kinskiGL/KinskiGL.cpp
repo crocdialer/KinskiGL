@@ -333,6 +333,7 @@ namespace kinski { namespace gl {
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
+        mesh->material()->uniform("u_window_size", windowDimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);

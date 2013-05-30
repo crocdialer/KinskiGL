@@ -32,7 +32,7 @@ Texture::Format::Format()
 // Texture::Obj
     
 struct Texture::Obj
-    {
+{
     Obj() : m_Width( -1 ), m_Height( -1 ), m_InternalFormat( -1 ), m_dataType(-1),
     m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_DeallocatorFunc( 0 ) {};
     

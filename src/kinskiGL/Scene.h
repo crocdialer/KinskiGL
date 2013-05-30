@@ -18,8 +18,8 @@ namespace kinski { namespace gl {
     {
     public:
         
+        virtual void update(float time_delta);
         void render(const CameraPtr &theCamera) const;
-        void update(float time_delta);
         Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
         RenderBinPtr cull(const CameraPtr &theCamera) const;
     

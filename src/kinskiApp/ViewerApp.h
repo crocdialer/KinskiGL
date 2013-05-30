@@ -33,10 +33,8 @@ namespace kinski {
         {
             T ret;
             typename std::list<T>::const_iterator it = m_values.begin();
-            for ( ; it != m_values.end(); ++it)
-                ret += *it;
+            for ( ; it != m_values.end(); ++it){ret += *it;}
             ret /= (float)m_values.size();
-            m_values.clear();
             return ret;
         }
         

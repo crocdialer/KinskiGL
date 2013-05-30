@@ -22,5 +22,10 @@ void main()
       texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
     }
     if(texColors.a == 0.0) discard;
+    
+    //draw pixels if they are every 2 in x or every 4 in y
+//	if( mod(gl_FragCoord.x, 2.0) != 0.5 || mod(gl_FragCoord.y, 4.0) != 0.5 )
+//        discard;
+
     fragData = u_material.diffuse * texColors;
 }

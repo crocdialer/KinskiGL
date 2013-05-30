@@ -204,8 +204,6 @@ namespace kinski{ namespace gl{
         gl::Buffer m_pointSizeBuffer;
         gl::Buffer m_indexBuffer;
         gl::Buffer m_boneBuffer;
-        
-        bool m_needsUpdate;
     };
     
     KINSKI_API GeometryPtr createPlane(float width, float height,

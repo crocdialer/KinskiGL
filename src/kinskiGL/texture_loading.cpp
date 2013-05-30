@@ -8,7 +8,7 @@
 
 #include "KinskiGL.h"
 #include "Texture.h"
-#include "stb_image.c"
+#include "stb_image.inl"
 
 namespace kinski { namespace gl {
     
