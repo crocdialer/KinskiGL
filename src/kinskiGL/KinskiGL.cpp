@@ -326,8 +326,8 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             gl::MaterialPtr mat = gl::Material::create();
-            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
-                                                    "shader_line.geom"));
+//            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
+//                                                    "shader_line.geom"));
             mat->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);

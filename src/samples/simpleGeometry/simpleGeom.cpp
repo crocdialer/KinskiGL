@@ -190,7 +190,7 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            //gl::drawLines2D(m_points, gl::Color(), 50.f);
+            gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
             scene().render(camera());
             
