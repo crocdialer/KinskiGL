@@ -96,7 +96,7 @@ namespace kinski{ namespace physics{
         if(m_maxNumTasks > 1)
             cci.m_defaultMaxPersistentManifoldPoolSize = 32768;
         m_collisionConfiguration = shared_ptr<btDefaultCollisionConfiguration>(
-                                                                               new btDefaultCollisionConfiguration(cci));
+                                                                               new btDefaultCollisionConfiguration());
         
         //m_collisionConfiguration->setConvexConvexMultipointIterations();
         
@@ -143,7 +143,7 @@ namespace kinski{ namespace physics{
         
         //////////////////////////////////////////////////////////////
         
-        //m_dispatcher->setNearCallback(m_nearCallback.);
+        //m_dispatcher->setNearCallback(m_nearCallback);
     }
     
     void physics_context::teardown_physics()
@@ -163,6 +163,91 @@ namespace kinski{ namespace physics{
         
         m_collisionShapes.clear();
     }
+    
+/********************** BulletGeometry (btStridingMeshInterface implementation) *******************/
+    
+    BulletGeometry::BulletGeometry(const gl::GeometryPtr &the_geom):
+    btStridingMeshInterface(),
+    m_geometry(the_geom)
+    {
+        if(!the_geom) throw Exception("tried to init a BulletGeometry from NULL pointer");
+        
+        indices[0] = 0;indices[1] = 1;indices[2] = 2;
+    }
+    
+    void BulletGeometry::getLockedVertexIndexBase(unsigned char **vertexbase,
+                                                  int& numverts,
+                                                  PHY_ScalarType& type,
+                                                  int& stride,
+                                                  unsigned char **indexbase,
+                                                  int & indexstride,
+                                                  int& numfaces,
+                                                  PHY_ScalarType& indicestype,
+                                                  int subpart)
+    {
+        vertexbase[subpart] = reinterpret_cast<unsigned char*>(&m_geometry->vertices()[0]);
+        numverts = m_geometry->vertices().size();
+        type = PHY_FLOAT;
+        stride = sizeof(m_geometry->vertices()[0]);
+        indexbase[subpart] = reinterpret_cast<unsigned char*>(&m_geometry->indices()[0]);
+        indexstride = 3 * sizeof(m_geometry->indices()[0]);
+        numfaces = m_geometry->faces().size();
+        indicestype = PHY_INTEGER;
+    }
+    
+    void BulletGeometry::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
+                                                          int& numverts,
+                                                          PHY_ScalarType& type,
+                                                          int& stride,
+                                                          const unsigned char **indexbase,
+                                                          int & indexstride,
+                                                          int& numfaces,
+                                                          PHY_ScalarType& indicestype,
+                                                          int subpart) const
+    {
+        vertexbase[subpart] = reinterpret_cast<const unsigned char*>(&m_geometry->vertices()[0]);
+        numverts = m_geometry->vertices().size();
+        type = PHY_FLOAT;
+        stride = sizeof(m_geometry->vertices()[0]);
+        indexbase[subpart] = reinterpret_cast<const unsigned char*>(&m_geometry->indices()[0]);
+        indexstride = 3 * sizeof(m_geometry->indices()[0]);
+        numfaces = m_geometry->faces().size();
+        indicestype = PHY_INTEGER;
+    }
+    
+    /// unLockVertexBase finishes the access to a subpart of the triangle mesh
+    /// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
+    void BulletGeometry::unLockVertexBase(int subpart)
+    {
+    
+    }
+    
+    void BulletGeometry::unLockReadOnlyVertexBase(int subpart) const
+    {
+    
+    }
+    
+    
+    /// getNumSubParts returns the number of seperate subparts
+    /// each subpart has a continuous array of vertices and indices
+    int BulletGeometry::getNumSubParts() const
+    {
+        return 1;
+    }
+    
+    void BulletGeometry::preallocateVertices(int numverts)
+    {
+        m_geometry->vertices().resize(numverts);
+    }
+    
+    void BulletGeometry::preallocateIndices(int numindices)
+    {
+        m_geometry->indices().resize(numindices);
+    }
+    
+/**************************************************************************************************/
+    
+    
     
 //    void MyNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
 //                        btDispatcherInfo& dispatchInfo)

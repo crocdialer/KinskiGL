@@ -24,11 +24,13 @@ private:
     Property_<float>::Ptr m_shinyness;
     
     kinski::physics::physics_context m_physics_context;
-    std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
+    std::shared_ptr<kinski::physics::BulletDebugDrawer> m_debugDrawer;
+    
+    btRigidBody *m_ground_body, *m_left_body, *m_right_body;
     
 public:
     
-    void create_sphere_stack(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
+    void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
         scene().objects().clear();
         m_physics_context.collisionShapes().clear();
@@ -43,17 +45,13 @@ public:
         physics::btCollisionShapePtr ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), 0)),
         front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-150)),
         back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -150)),
-        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),-5000)),
-        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), -5000));
+        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),-2000)),
+        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), -2000));
         m_physics_context.collisionShapes().push_back(ground_plane);
         m_physics_context.collisionShapes().push_back(front_plane);
         m_physics_context.collisionShapes().push_back(back_plane);
         m_physics_context.collisionShapes().push_back(left_plane);
         m_physics_context.collisionShapes().push_back(right_plane);
-        
-        gl::MeshPtr plane_mesh = gl::Mesh::create(gl::createPlane(1000, 1000), theMat);
-        plane_mesh->setTransform(glm::rotate(mat4(), -90.f, vec3(1, 0, 0)));
-        scene().addObject(plane_mesh);
 
         for (int i = 0; i < m_physics_context.collisionShapes().size(); ++i)
         {
@@ -63,10 +61,17 @@ public:
                                                             m_physics_context.collisionShapes()[i].get());
             btRigidBody* body = new btRigidBody(rbInfo);
             body->setFriction(2.f);
+            body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+            body->setActivationState(DISABLE_DEACTIVATION);
             
             //add the body to the dynamics world
             m_physics_context.dynamicsWorld()->addRigidBody(body);
         }
+        
+        // assign to members
+        m_ground_body = (btRigidBody*) m_physics_context.dynamicsWorld()->getCollisionObjectArray()[0];
+        m_left_body = (btRigidBody*) m_physics_context.dynamicsWorld()->getCollisionObjectArray()[3];
+        m_right_body = (btRigidBody*) m_physics_context.dynamicsWorld()->getCollisionObjectArray()[4];
 
         {
             //create a few dynamic rigidbodies
@@ -109,7 +114,7 @@ public:
                         mesh->setTransform(glm::make_mat4(mat));
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-                        gl::MotionState* myMotionState = new gl::MotionState(mesh);
+                        physics::MotionState* myMotionState = new physics::MotionState(mesh);
                         
                         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,
                                                                         m_physics_context.collisionShapes().back().get(),
@@ -170,10 +175,10 @@ public:
         
         // init physics pipeline
         m_physics_context.initPhysics();
-        m_debugDrawer = shared_ptr<gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
+        m_debugDrawer = shared_ptr<physics::BulletDebugDrawer>(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
-        create_sphere_stack(25, 50, 1, m_material);
+        create_physics_scene(25, 50, 1, m_material);
         
         // load state from config file
         try
@@ -280,9 +285,6 @@ public:
     {
         ViewerApp::keyPress(e);
         
-        btRigidBody* ground_body = (btRigidBody*)(m_physics_context.dynamicsWorld()->getCollisionObjectArray()[0]);
-        btTransform trans;
-        trans.setOrigin(btVector3(0, 10, 0));
         switch (e.getCode())
         {
             case KeyEvent::KEY_p:
@@ -295,19 +297,45 @@ public:
 
             case KeyEvent::KEY_r:
                 m_physics_context.teardown_physics();
-                create_sphere_stack(25, 50, 1, m_material);
+                create_physics_scene(25, 50, 1, m_material);
                 break;
                 
             case GLFW_KEY_UP:
-                LOG_INFO<<"TILT UP";
-                ground_body->setWorldTransform(trans);
+                LOG_DEBUG<<"TILT UP";
+                m_ground_body->getWorldTransform().setOrigin(btVector3(0, 60, 0));
                 break;
             
-            case GLFW_KEY_DOWN:
-                LOG_INFO<<"TILT DOWN";
+            case GLFW_KEY_LEFT:
+                LOG_DEBUG<<"TILT LEFT";
+                m_left_body->getWorldTransform().setOrigin(btVector3(200, 0, 0));
+                break;
+            
+            case GLFW_KEY_RIGHT:
+                LOG_DEBUG<<"TILT RIGHT";
+                m_right_body->getWorldTransform().setOrigin(btVector3(-200, 0, 0));
                 break;
                 
             default:
+                break;
+        }
+    }
+    
+    void keyRelease(const KeyEvent &e)
+    {
+        ViewerApp::keyRelease(e);
+        
+        switch (e.getCode())
+        {
+            case GLFW_KEY_UP:
+                m_ground_body->getWorldTransform().setOrigin(btVector3(0, 0, 0));
+                break;
+                
+            case GLFW_KEY_LEFT:
+                m_left_body->getWorldTransform().setOrigin(btVector3(0, 0, 0));
+                break;
+                
+            case GLFW_KEY_RIGHT:
+                m_right_body->getWorldTransform().setOrigin(btVector3(0, 0, 0));
                 break;
         }
     }
@@ -336,7 +364,32 @@ public:
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
                 scene().addObject(m_mesh);
-            } catch (Exception &e){ LOG_ERROR<< e.what(); }
+                
+                btStridingMeshInterface *striding_mesh = new physics::BulletGeometry(m->geometry());
+                
+//                btTriangleIndexVertexArray *indexArray = new btTriangleIndexVertexArray(m->geometry()->faces().size(),
+//                                                                                        &m->geometry()->indices()[0],
+//                                                                                        1,
+//                                                                                        m->geometry()->vertices().size(),
+//                                                                                        &m->geometry()->vertices()[0],
+//                                                                                        ;
+                
+                physics::btCollisionShapePtr customShape(new btBvhTriangleMeshShape(striding_mesh, false));
+                m_physics_context.collisionShapes().push_back(customShape);
+                btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f,
+                                                                NULL,
+                                                                customShape.get());
+                btRigidBody* body = new btRigidBody(rbInfo);
+                body->setFriction(2.f);
+                body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+                body->setActivationState(DISABLE_DEACTIVATION);
+                
+                //add the body to the dynamics world
+                m_physics_context.dynamicsWorld()->addRigidBody(body);
+                
+            }
+            catch (Exception &e){ LOG_ERROR<< e.what(); }
+            catch(std::exception& e){LOG_ERROR<<e.what(); }
         }
     }
     

@@ -14,7 +14,9 @@
 #include "btBulletDynamicsCommon.h"
 #include "kinskiGL/Mesh.h"
 
-namespace kinski { namespace gl {
+class btThreadSupportInterface;
+
+namespace kinski{ namespace physics{
     
     class BulletDebugDrawer : public btIDebugDraw
     {
@@ -24,12 +26,12 @@ namespace kinski { namespace gl {
         {
             gl::MaterialPtr mat(new gl::Material);
             mat->setShader(gl::createShader(gl::SHADER_UNLIT));
-            gl::GeometryPtr geom = Geometry::create();
+            gl::GeometryPtr geom = gl::Geometry::create();
             m_mesh = gl::Mesh::create(geom, mat);
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
         };
         
-        virtual void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
+        inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
         {
             m_mesh->geometry()->appendVertex(glm::vec3(from.x(), from.y(), from.z()));
             m_mesh->geometry()->appendVertex(glm::vec3(to.x(), to.y(), to.z()));
@@ -37,18 +39,20 @@ namespace kinski { namespace gl {
             m_mesh->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
         }
         
-        virtual void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,
-                                      btScalar distance,int lifeTime,const btVector3& color){};
+        void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,
+                              btScalar distance,int lifeTime,const btVector3& color){};
         
-        virtual void reportErrorWarning(const char* warningString) {LOG_WARNING<<warningString;}
-        virtual void draw3dText(const btVector3& location,const char* textString)
+        void reportErrorWarning(const char* warningString) {LOG_WARNING<<warningString;}
+        void draw3dText(const btVector3& location,const char* textString)
         {
             //TODO: font rendering here
         }
-        virtual void setDebugMode(int debugMode){LOG_WARNING<<"unsupported operation";}
-        virtual int	getDebugMode() const {return DBG_DrawWireframe;}
+        void setDebugMode(int debugMode){LOG_WARNING<<"unsupported operation";}
+        int	getDebugMode() const {return DBG_DrawWireframe;}
         
-        void flush()
+        //!
+        // issue the actual draw command
+        inline void flush()
         {
             m_mesh->geometry()->createGLBuffers();
             gl::drawMesh(m_mesh);
@@ -94,11 +98,54 @@ namespace kinski { namespace gl {
             m_object->setTransform(transform);
         }
     };
-}}
+    
+    class BulletGeometry : public btStridingMeshInterface
+    {
+    public:
+        BulletGeometry(const gl::GeometryPtr &the_geom);
+        
+        /// get read and write access to a subpart of a triangle mesh
+		/// this subpart has a continuous array of vertices and indices
+		/// in this way the mesh can be handled as chunks of memory with striding
+		/// very similar to OpenGL vertexarray support
+		/// make a call to unLockVertexBase when the read and write access is finished
+		void getLockedVertexIndexBase(unsigned char **vertexbase,
+                                      int& numverts,PHY_ScalarType& type,
+                                      int& stride,unsigned char **indexbase,
+                                      int & indexstride,int& numfaces,
+                                      PHY_ScalarType& indicestype,
+                                      int subpart=0);
+		
+		void getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
+                                              int& numverts,PHY_ScalarType& type,
+                                              int& stride,
+                                              const unsigned char **indexbase,
+                                              int & indexstride,
+                                              int& numfaces,
+                                              PHY_ScalarType& indicestype,
+                                              int subpart=0) const;
+        
+		/// unLockVertexBase finishes the access to a subpart of the triangle mesh
+		/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
+		void unLockVertexBase(int subpart);
+        
+		void unLockReadOnlyVertexBase(int subpart) const;
+        
+        
+		/// getNumSubParts returns the number of seperate subparts
+		/// each subpart has a continuous array of vertices and indices
+		int getNumSubParts() const;
+        
+		void preallocateVertices(int numverts);
+		void preallocateIndices(int numindices);
+        
+    private:
+        
+        float verts[3 * 100];
+        int indices[100];
+        gl::GeometryPtr m_geometry;
+    };
 
-class btThreadSupportInterface;
-
-namespace kinski{ namespace physics{
     
     typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
     typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
@@ -108,7 +155,7 @@ namespace kinski{ namespace physics{
     {
      public:
         
-        physics_context():m_maxNumTasks(4){};
+        physics_context():m_maxNumTasks(1){};
         ~physics_context();
         
         void initPhysics();
