@@ -172,13 +172,13 @@ namespace kinski
     class KINSKI_API KeyEvent : public Event
     {
     public:
-        KeyEvent( int aCode, char aChar, unsigned int aModifiers)
+        KeyEvent( int aCode, uint8_t aChar, unsigned int aModifiers)
 		: Event(), mCode( aCode ), mChar( aChar ), mModifiers( aModifiers ){}
         
         //! Returns the key code associated with the event, which maps into the enum listed below
         int		getCode() const { return mCode; }
         //! Returns the ASCII character associated with the event.
-        char	getChar() const { return mChar; }
+        uint8_t	getChar() const { return mChar; }
         //! Returns whether the Shift key was pressed during the event.
         bool	isShiftDown() const { return (mModifiers & SHIFT_DOWN) ? true : false; }
         //! Returns whether the Alt (or Option) key was pressed during the event.

@@ -96,6 +96,8 @@ namespace kinski { namespace gl {
     };
 }}
 
+class btThreadSupportInterface;
+
 namespace kinski{ namespace physics{
     
     typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
@@ -106,10 +108,13 @@ namespace kinski{ namespace physics{
     {
      public:
         
+        physics_context():m_maxNumTasks(4){};
+        ~physics_context();
+        
         void initPhysics();
         void teardown_physics();
         
-        const btDynamicsWorldConstPtr& dynamicsWorld() const {return m_dynamicsWorld;};
+        const btDynamicsWorldConstPtr dynamicsWorld() const {return m_dynamicsWorld;};
         const btDynamicsWorldPtr& dynamicsWorld() {return m_dynamicsWorld;};
         
         const std::vector<btCollisionShapePtr>& collisionShapes() const {return m_collisionShapes;};
@@ -124,8 +129,12 @@ namespace kinski{ namespace physics{
         std::shared_ptr<btDefaultCollisionConfiguration> m_collisionConfiguration;
         std::shared_ptr<btDynamicsWorld> m_dynamicsWorld;
         
-//        boost::function<void (btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
-//            btDispatcherInfo& dispatchInfo)> m_nearCallback;
+        uint32_t m_maxNumTasks;
+        std::shared_ptr<btThreadSupportInterface> m_threadSupportCollision;
+        std::shared_ptr<btThreadSupportInterface> m_threadSupportSolver;
+        
+        boost::function<void (btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
+            btDispatcherInfo& dispatchInfo)> m_nearCallback;
         
     };
 }}//namespace

@@ -32,71 +32,54 @@ public:
     {
         scene().objects().clear();
         m_physics_context.collisionShapes().clear();
+        m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
         
-        float scaling = 8.0f;
+        float scaling = 40.0f;
         float start_pox_x = -5;
         float start_pox_y = -5;
         float start_pox_z = -3;
         
-        ///create a few basic rigid bodies
-        m_physics_context.collisionShapes().push_back(
-                                                      shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
-                                                                                                            btScalar(50.),
-                                                                                                            btScalar(50.)))));
+        // add static plane boundaries
+        physics::btCollisionShapePtr ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), 0)),
+        front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-150)),
+        back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -150)),
+        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),-5000)),
+        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), -5000));
+        m_physics_context.collisionShapes().push_back(ground_plane);
+        m_physics_context.collisionShapes().push_back(front_plane);
+        m_physics_context.collisionShapes().push_back(back_plane);
+        m_physics_context.collisionShapes().push_back(left_plane);
+        m_physics_context.collisionShapes().push_back(right_plane);
         
-//        gl::MeshPtr groundShape = gl::Mesh::create(gl::createBox(glm::vec3(50.0f)), theMat);
-//        scene().addObject(groundShape);
-//        groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
-        
-        //groundShape->initializePolyhedralFeatures();
-        physics::btCollisionShapePtr plane_shape (new btStaticPlaneShape(btVector3(0,1,0),0));
         gl::MeshPtr plane_mesh = gl::Mesh::create(gl::createPlane(1000, 1000), theMat);
         plane_mesh->setTransform(glm::rotate(mat4(), -90.f, vec3(1, 0, 0)));
-        
-        m_physics_context.collisionShapes().push_back(plane_shape);
-        
-        gl::MotionState* myMotionState = new gl::MotionState(plane_mesh);
-        btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f,
-                                                        NULL,
-                                                        plane_shape.get());
-        btRigidBody* body = new btRigidBody(rbInfo);
-        
-        //add the body to the dynamics world
-        m_physics_context.dynamicsWorld()->addRigidBody(body);
-        
         scene().addObject(plane_mesh);
-        
-//        {
-//            btScalar mass(0.);
-//            //rigidbody is dynamic if and only if mass is non zero, otherwise static
-//            bool isDynamic = (mass != 0.f);
-//            btVector3 localInertia(0,0,0);
-//            if (isDynamic)
-//                m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
-//            
-//            //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-//            myMotionState = new gl::MotionState(groundShape);
-//            rbInfo = btRigidBody::btRigidBodyConstructionInfo(mass,
-//                                                              myMotionState,
-//                                                              m_physics_context.collisionShapes().back().get(),
-//                                                              localInertia);
-//            body = new btRigidBody(rbInfo);
-//            //add the body to the dynamics world
-//            m_physics_context.dynamicsWorld()->addRigidBody(body);
-//        }
-        
+
+        for (int i = 0; i < m_physics_context.collisionShapes().size(); ++i)
+        {
+            //gl::MotionState* myMotionState = new gl::MotionState(plane_mesh);
+            btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f,
+                                                            NULL,
+                                                            m_physics_context.collisionShapes()[i].get());
+            btRigidBody* body = new btRigidBody(rbInfo);
+            body->setFriction(2.f);
+            
+            //add the body to the dynamics world
+            m_physics_context.dynamicsWorld()->addRigidBody(body);
+        }
+
         {
             //create a few dynamic rigidbodies
             // Re-using the same collision is better for memory usage and performance
             
             m_physics_context.collisionShapes().push_back(physics::btCollisionShapePtr(new btSphereShape(scaling)));
-            /// Create Dynamic Objects
+            
+            // Create Dynamic Objects
             btTransform startTransform;
             startTransform.setIdentity();
-            
             btScalar	mass(1.f);
             
-            //rigidbody is dynamic if and only if mass is non zero, otherwise static
+            // rigidbody is dynamic if and only if mass is non zero, otherwise static
             bool isDynamic = (mass != 0.f);
             
             btVector3 localInertia(0,0,0);
@@ -132,6 +115,8 @@ public:
                                                                         m_physics_context.collisionShapes().back().get(),
                                                                         localInertia);
                         btRigidBody* body = new btRigidBody(rbInfo);
+                        //body->setFriction(2.f);
+                        //body->setDamping(0.f, 2.f);
                         m_physics_context.dynamicsWorld()->addRigidBody(body);
                     }
                 }
@@ -176,7 +161,7 @@ public:
         observeProperties();
         
         /********************** construct a simple scene ***********************/
-        camera()->setClippingPlanes(1.0, 5000);
+        camera()->setClippingPlanes(1.0, 15000);
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -188,7 +173,7 @@ public:
         m_debugDrawer = shared_ptr<gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
-        create_sphere_stack(10, 10, 20, m_material);
+        create_sphere_stack(25, 50, 1, m_material);
         
         // load state from config file
         try
@@ -295,7 +280,10 @@ public:
     {
         ViewerApp::keyPress(e);
         
-        switch (e.getChar())
+        btRigidBody* ground_body = (btRigidBody*)(m_physics_context.dynamicsWorld()->getCollisionObjectArray()[0]);
+        btTransform trans;
+        trans.setOrigin(btVector3(0, 10, 0));
+        switch (e.getCode())
         {
             case KeyEvent::KEY_p:
                 *m_stepPhysics = !*m_stepPhysics;
@@ -307,7 +295,16 @@ public:
 
             case KeyEvent::KEY_r:
                 m_physics_context.teardown_physics();
-                create_sphere_stack(5, 50, 5, m_material);
+                create_sphere_stack(25, 50, 1, m_material);
+                break;
+                
+            case GLFW_KEY_UP:
+                LOG_INFO<<"TILT UP";
+                ground_body->setWorldTransform(trans);
+                break;
+            
+            case GLFW_KEY_DOWN:
+                LOG_INFO<<"TILT DOWN";
                 break;
                 
             default:
