@@ -6,6 +6,7 @@
 //
 //
 
+#include <boost/bind.hpp>
 #include "physics_context.h"
 #include "kinskiCore/Exception.h"
 #include "kinskiCore/Logger.h"
@@ -81,6 +82,12 @@ using namespace std;
 
 namespace kinski{ namespace physics{
     
+    btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom)
+    {
+        btStridingMeshInterface *striding_mesh = new physics::Geometry(geom);
+        return physics::btCollisionShapePtr(new btBvhTriangleMeshShape(striding_mesh, false));
+    }
+    
     physics_context::~physics_context()
     {
         teardown_physics();
@@ -143,7 +150,8 @@ namespace kinski{ namespace physics{
         
         //////////////////////////////////////////////////////////////
         
-        //m_dispatcher->setNearCallback(m_nearCallback);
+        //boost::bind(&physics_context::near_callback, this);
+        //m_dynamicsWorld->getPairCache()->setOverlapFilterCallback(filterCallback);
     }
     
     void physics_context::teardown_physics()
@@ -164,18 +172,21 @@ namespace kinski{ namespace physics{
         m_collisionShapes.clear();
     }
     
+    void physics_context::near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
+                                        btDispatcherInfo& dispatchInfo)
+    {
+    
+    }
 /********************** BulletGeometry (btStridingMeshInterface implementation) *******************/
     
-    BulletGeometry::BulletGeometry(const gl::GeometryPtr &the_geom):
+    Geometry::Geometry(const gl::GeometryPtr &the_geom):
     btStridingMeshInterface(),
     m_geometry(the_geom)
     {
         if(!the_geom) throw Exception("tried to init a BulletGeometry from NULL pointer");
-        
-        indices[0] = 0;indices[1] = 1;indices[2] = 2;
     }
     
-    void BulletGeometry::getLockedVertexIndexBase(unsigned char **vertexbase,
+    void Geometry::getLockedVertexIndexBase(unsigned char **vertexbase,
                                                   int& numverts,
                                                   PHY_ScalarType& type,
                                                   int& stride,
@@ -195,7 +206,7 @@ namespace kinski{ namespace physics{
         indicestype = PHY_INTEGER;
     }
     
-    void BulletGeometry::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
+    void Geometry::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
                                                           int& numverts,
                                                           PHY_ScalarType& type,
                                                           int& stride,
@@ -217,12 +228,12 @@ namespace kinski{ namespace physics{
     
     /// unLockVertexBase finishes the access to a subpart of the triangle mesh
     /// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
-    void BulletGeometry::unLockVertexBase(int subpart)
+    void Geometry::unLockVertexBase(int subpart)
     {
     
     }
     
-    void BulletGeometry::unLockReadOnlyVertexBase(int subpart) const
+    void Geometry::unLockReadOnlyVertexBase(int subpart) const
     {
     
     }
@@ -230,17 +241,17 @@ namespace kinski{ namespace physics{
     
     /// getNumSubParts returns the number of seperate subparts
     /// each subpart has a continuous array of vertices and indices
-    int BulletGeometry::getNumSubParts() const
+    int Geometry::getNumSubParts() const
     {
         return 1;
     }
     
-    void BulletGeometry::preallocateVertices(int numverts)
+    void Geometry::preallocateVertices(int numverts)
     {
         m_geometry->vertices().resize(numverts);
     }
     
-    void BulletGeometry::preallocateIndices(int numindices)
+    void Geometry::preallocateIndices(int numindices)
     {
         m_geometry->indices().resize(numindices);
     }

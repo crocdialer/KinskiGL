@@ -9,7 +9,6 @@
 #ifndef __kinskiGL__physics_context__
 #define __kinskiGL__physics_context__
 
-#include <boost/function.hpp>
 #include "kinskiCore/Definitions.h"
 #include "btBulletDynamicsCommon.h"
 #include "kinskiGL/Mesh.h"
@@ -18,14 +17,19 @@ class btThreadSupportInterface;
 
 namespace kinski{ namespace physics{
     
+    typedef std::shared_ptr<btCollisionShape> btCollisionShapePtr;
+    typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
+    typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
+    
+    btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom);
+    
     class BulletDebugDrawer : public btIDebugDraw
     {
     public:
         
         BulletDebugDrawer()
         {
-            gl::MaterialPtr mat(new gl::Material);
-            mat->setShader(gl::createShader(gl::SHADER_UNLIT));
+            gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
             gl::GeometryPtr geom = gl::Geometry::create();
             m_mesh = gl::Mesh::create(geom, mat);
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
@@ -99,10 +103,10 @@ namespace kinski{ namespace physics{
         }
     };
     
-    class BulletGeometry : public btStridingMeshInterface
+    class Geometry : public btStridingMeshInterface
     {
     public:
-        BulletGeometry(const gl::GeometryPtr &the_geom);
+        Geometry(const gl::GeometryPtr &the_geom);
         
         /// get read and write access to a subpart of a triangle mesh
 		/// this subpart has a continuous array of vertices and indices
@@ -141,16 +145,9 @@ namespace kinski{ namespace physics{
         
     private:
         
-        float verts[3 * 100];
-        int indices[100];
         gl::GeometryPtr m_geometry;
     };
 
-    
-    typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
-    typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
-    typedef std::shared_ptr<btCollisionShape> btCollisionShapePtr;
-    
     class physics_context
     {
      public:
@@ -167,6 +164,9 @@ namespace kinski{ namespace physics{
         const std::vector<btCollisionShapePtr>& collisionShapes() const {return m_collisionShapes;};
         std::vector<btCollisionShapePtr>& collisionShapes() {return m_collisionShapes;};
         
+        void near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
+                           btDispatcherInfo& dispatchInfo);
+        
      private:
         
         std::vector<std::shared_ptr<btCollisionShape> > m_collisionShapes;
@@ -180,8 +180,8 @@ namespace kinski{ namespace physics{
         std::shared_ptr<btThreadSupportInterface> m_threadSupportCollision;
         std::shared_ptr<btThreadSupportInterface> m_threadSupportSolver;
         
-        boost::function<void (btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
-            btDispatcherInfo& dispatchInfo)> m_nearCallback;
+//        boost::function<void (btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
+//            btDispatcherInfo& dispatchInfo)> m_nearCallback;
         
     };
 }}//namespace

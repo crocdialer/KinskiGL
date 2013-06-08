@@ -36,7 +36,7 @@ public:
         m_physics_context.collisionShapes().clear();
         m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
         
-        float scaling = 40.0f;
+        float scaling = 20.0f;
         float start_pox_x = -5;
         float start_pox_y = -5;
         float start_pox_z = -3;
@@ -92,7 +92,7 @@ public:
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             // geometry
-            gl::Geometry::Ptr geom = gl::createSphere(scaling, 16);
+            gl::Geometry::Ptr geom = gl::createSphere(scaling, 32);
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -122,6 +122,8 @@ public:
                         btRigidBody* body = new btRigidBody(rbInfo);
                         //body->setFriction(2.f);
                         //body->setDamping(0.f, 2.f);
+                        body->setCcdMotionThreshold(scaling / 4);
+                        body->setCcdSweptSphereRadius(scaling / 4);
                         m_physics_context.dynamicsWorld()->addRigidBody(body);
                     }
                 }
@@ -139,11 +141,8 @@ public:
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Desktop/creatures", true);
-        kinski::addSearchPath("~/Desktop/doom3_base", true);
         kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
-        list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
-        
         m_font.load("Courier New Bold.ttf", 24);
         
         /*********** init our application properties ******************/
@@ -302,7 +301,7 @@ public:
                 
             case GLFW_KEY_UP:
                 LOG_DEBUG<<"TILT UP";
-                m_ground_body->getWorldTransform().setOrigin(btVector3(0, 60, 0));
+                m_ground_body->getWorldTransform().setOrigin(btVector3(0, 50, 0));
                 break;
             
             case GLFW_KEY_LEFT:
@@ -361,24 +360,18 @@ public:
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 scene().removeObject(m_mesh);
                 m_mesh = m;
+                materials().clear();
+                materials().push_back(m->material());
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
+                m->setPosition(m->position() - vec3(0, m->boundingBox().min.y, 0));
                 scene().addObject(m_mesh);
                 
-                btStridingMeshInterface *striding_mesh = new physics::BulletGeometry(m->geometry());
-                
-//                btTriangleIndexVertexArray *indexArray = new btTriangleIndexVertexArray(m->geometry()->faces().size(),
-//                                                                                        &m->geometry()->indices()[0],
-//                                                                                        1,
-//                                                                                        m->geometry()->vertices().size(),
-//                                                                                        &m->geometry()->vertices()[0],
-//                                                                                        ;
-                
-                physics::btCollisionShapePtr customShape(new btBvhTriangleMeshShape(striding_mesh, false));
+                physics::btCollisionShapePtr customShape = physics::createCollisionShape(m->geometry());
                 m_physics_context.collisionShapes().push_back(customShape);
-                btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f,
-                                                                NULL,
-                                                                customShape.get());
+                physics::MotionState *ms = new physics::MotionState(m_mesh);
+                
+                btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
                 btRigidBody* body = new btRigidBody(rbInfo);
                 body->setFriction(2.f);
                 body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
@@ -386,10 +379,8 @@ public:
                 
                 //add the body to the dynamics world
                 m_physics_context.dynamicsWorld()->addRigidBody(body);
-                
             }
             catch (Exception &e){ LOG_ERROR<< e.what(); }
-            catch(std::exception& e){LOG_ERROR<<e.what(); }
         }
     }
     
