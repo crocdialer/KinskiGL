@@ -1,4 +1,5 @@
 #include "kinskiApp/ViewerApp.h"
+#include "kinskiApp/AppServer.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 
@@ -356,6 +357,7 @@ int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleGeometryApp);
     theApp->setWindowSize(1024, 600);
+    AppServer s(theApp);
     
     return theApp->run();
 }
