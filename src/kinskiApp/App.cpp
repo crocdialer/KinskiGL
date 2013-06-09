@@ -30,8 +30,8 @@ namespace kinski
     {
         srand(clock());
         m_io_work = std::shared_ptr<void>(new boost::asio::io_service::work(*m_io_service));
-        m_io_thread = std::shared_ptr<boost::thread>(new boost::thread(
-            boost::bind(&boost::asio::io_service::run, m_io_service.get())));
+//        m_io_thread = std::shared_ptr<boost::thread>(new boost::thread(
+//            boost::bind(&boost::asio::io_service::run, m_io_service.get())));
     }
     
     App::~App()
@@ -61,7 +61,7 @@ namespace kinski
             timeStamp = getApplicationTime();
             
             // update io_service
-            //m_io_service->poll();
+            m_io_service->poll();
             
             // call update callback
             update(timeStamp - m_lastTimeStamp);
