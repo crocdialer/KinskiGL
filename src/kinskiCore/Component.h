@@ -21,6 +21,7 @@ namespace kinski
     public:
         typedef std::shared_ptr<Component> Ptr;
         typedef std::shared_ptr<const Component> ConstPtr;
+        typedef std::weak_ptr<Component> WeakPtr;
         
         Component(const std::string &theName = "Component");
         virtual ~Component();
