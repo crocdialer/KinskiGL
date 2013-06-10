@@ -10,12 +10,14 @@
 #ifndef _KINSKI_APP_IS_INCLUDED_
 #define _KINSKI_APP_IS_INCLUDED_
 
+#include <boost/asio/io_service.hpp>
 #include "kinskiGL/KinskiGL.h"
 #include "kinskiCore/Component.h"
 #include "kinskiCore/Logger.h"
 
 namespace boost {
     class thread;
+    class thread_group;
     namespace asio {
         class io_service;
     }
@@ -74,6 +76,7 @@ namespace kinski
         float framesPerSec() const {return m_framesPerSec;};
         
         boost::asio::io_service& io_service(){return *m_io_service;};
+        void set_num_io_threads(int num);
         
     private:
         
@@ -95,7 +98,10 @@ namespace kinski
         
         std::shared_ptr<boost::asio::io_service> m_io_service;
         std::shared_ptr<void> m_io_work;
-        std::shared_ptr<boost::thread> m_io_thread;//optional seperate thread for io handling
+        
+        //optional threadpool working on io tasks
+        std::shared_ptr<boost::thread_group> m_io_threads;
+        uint32_t m_num_io_threads;
     };
     
     //! Base class for all Events

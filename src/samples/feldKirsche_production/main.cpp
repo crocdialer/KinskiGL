@@ -1,7 +1,12 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
+
+// physics
 #include "physics_context.h"
+
+// Syphon
+#include "SyphonConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -11,7 +16,7 @@ class FeldkirscheApp : public ViewerApp
 {
 private:
     
-    gl::Texture m_textures[4];
+    std::vector<gl::Texture> m_textures;
     gl::MaterialPtr m_material;
     gl::MeshPtr m_mesh;
     gl::Font m_font;
@@ -25,10 +30,12 @@ private:
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::physics::BulletDebugDrawer> m_debugDrawer;
     btRigidBody *m_ground_body, *m_left_body, *m_right_body;
+    RangedProperty<int>::Ptr m_rigid_bodies_num;
+    RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
     
     // offscreen rendering
-    enum DRAW_MODE{DRAW_NOTHING = 0, DRAW_FBO_OUTPUT = 1, DRAW_DEBUG_SCENE = 2};
+    enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
     RangedProperty<int>::Ptr m_debug_draw_mode;
     gl::Scene m_debug_scene;
     gl::PerspectiveCamera::Ptr m_free_camera;
@@ -36,6 +43,12 @@ private:
     gl::Fbo m_fbo;
     Property_<glm::vec2>::Ptr m_fbo_size;
     RangedProperty<float>::Ptr m_fbo_cam_distance;
+    Property_<glm::mat4>::Ptr m_fbo_cam_transform;
+    
+    // output via Syphon
+    gl::SyphonConnector m_syphon;
+    Property_<bool>::Ptr m_use_syphon;
+    Property_<std::string>::Ptr m_syphon_server_name;
     
 public:
     
@@ -159,6 +172,12 @@ public:
         m_stepPhysics = Property_<bool>::create("Step physics", true);
         registerProperty(m_stepPhysics);
         
+        m_rigid_bodies_num = RangedProperty<int>::create("Num bodies", 1000, 0, 50000);
+        registerProperty(m_rigid_bodies_num);
+        
+        m_rigid_bodies_size = RangedProperty<float>::create("Size of bodies", 20.f, .1f, 200.f);
+        registerProperty(m_rigid_bodies_size);
+        
         m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
         registerProperty(m_gravity);
         
@@ -171,12 +190,21 @@ public:
         m_shinyness = Property_<float>::create("Shinyness", 1.0);
         registerProperty(m_shinyness);
         
-        m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 2);
+        m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 1);
         registerProperty(m_debug_draw_mode);
         m_fbo_size = Property_<glm::vec2>::create("Fbo size", vec2(1024));
         registerProperty(m_fbo_size);
         m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 10000.f);
         registerProperty(m_fbo_cam_distance);
+        
+        m_use_syphon = Property_<bool>::create("Use syphon", false);
+        registerProperty(m_use_syphon);
+        m_syphon_server_name = Property_<std::string>::create("Syphon server name", getName());
+        registerProperty(m_syphon_server_name);
+        
+        m_fbo_cam_transform = Property_<glm::mat4>::create("FBO cam transform", mat4());
+        m_fbo_cam_transform->setTweakable(false);
+        registerProperty(m_fbo_cam_transform);
         
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
@@ -186,6 +214,9 @@ public:
         
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, 45.f));
         
+        // setup some blank textures
+        m_textures.resize(1);
+        
         // clear with transparent black
         gl::clearColor(gl::Color(0));
         
@@ -193,10 +224,10 @@ public:
         
         // init physics pipeline
         m_physics_context.initPhysics();
-        m_debugDrawer = shared_ptr<physics::BulletDebugDrawer>(new physics::BulletDebugDrawer);
+        m_debugDrawer.reset(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
-        create_physics_scene(25, 50, 1, m_material);
+        //create_physics_scene(25, 50, 1, m_material);
         
         // load state from config file
         try
@@ -215,6 +246,7 @@ public:
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
             m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
+            //io_service().post(boost::bind(&btDiscreteDynamicsWorld::stepSimulation, m_physics_context.dynamicsWorld().get(), timeDelta));
         }
         
         if(m_material)
@@ -238,23 +270,36 @@ public:
     {
         // draw block
         {
-            //background
-            //gl::drawTexture(m_textures[0], windowSize());
-            gl::setMatrices(camera());
+            m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);
             
-            if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
-            
-            if(wireframe())
+            switch(*m_debug_draw_mode)
             {
-                m_physics_context.dynamicsWorld()->debugDrawWorld();
-                m_debugDrawer->flush();
-            }
-            else
-            {
-                scene().render(camera());
+                case DRAW_DEBUG_SCENE:
+                    
+                    gl::setMatrices(camera());
+                    if(draw_grid()){gl::drawGrid(500, 500, 20, 20);}
+                    //if(wireframe())
+                    {
+                        m_physics_context.dynamicsWorld()->debugDrawWorld();
+                        m_debugDrawer->flush();
+                        m_debug_scene.render(camera());
+                    }
+                    break;
+                    
+                case DRAW_FBO_OUTPUT:
+                    gl::drawTexture(m_textures[0], windowSize());
+                    break;
+                    
+                default:
+                    break;
             }
             
         }// FBO block
+        
+        if(*m_use_syphon)
+        {
+            m_syphon.publish_texture(m_textures[0]);
+        }
         
         // draw texture map(s)
         if(displayTweakBar())
@@ -263,16 +308,13 @@ public:
             float h = m_textures[0].getHeight() * w / m_textures[0].getWidth();
             glm::vec2 offset(getWidth() - w - 10, 10);
             glm::vec2 step(0, h + 10);
-            
+
             if(m_mesh && h > 0)
             {
-                for(int i = 0;i < m_mesh->materials().size();i++)
-                {
-                    gl::MaterialPtr m = m_mesh->materials()[i];
-                    
-                    for (int j = 0; j < m->textures().size(); j++)
+
+                    for (int j = 0; j < m_textures.size(); j++)
                     {
-                        const gl::Texture &t = m->textures()[j];
+                        const gl::Texture &t = m_textures[j];
                         
                         float h = t.getHeight() * w / t.getWidth();
                         glm::vec2 step(0, h + 10);
@@ -282,7 +324,6 @@ public:
                                        offset);
                         offset += step;
                     }
-                }
             }
 
             // draw fps string
@@ -302,43 +343,45 @@ public:
     {
         int min, max;
         
-        switch (e.getCode())
+        if(!e.isShiftDown() && !e.isAltDown())
         {
-            case KeyEvent::KEY_d:
-                m_debug_draw_mode->getRange(min, max);
-                *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);
-                break;
-                
-            case KeyEvent::KEY_p:
-                *m_stepPhysics = !*m_stepPhysics;
-                break;
-                
-            case KeyEvent::KEY_f:
-                setFullSceen(!fullSceen());
-                break;
+            switch (e.getCode())
+            {
+                case KeyEvent::KEY_d:
+                    m_debug_draw_mode->getRange(min, max);
+                    *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);
+                    break;
+                    
+                case KeyEvent::KEY_p:
+                    *m_stepPhysics = !*m_stepPhysics;
+                    break;
+                    
+                case KeyEvent::KEY_f:
+                    setFullSceen(!fullSceen());
+                    break;
 
-            case KeyEvent::KEY_r:
-                m_physics_context.teardown_physics();
-                create_physics_scene(25, 50, 1, m_material);
-                break;
+                case KeyEvent::KEY_r:
+                    m_rigid_bodies_num->set(*m_rigid_bodies_num);
+                    break;
+                    
+                case GLFW_KEY_UP:
+                    LOG_DEBUG<<"TILT UP";
+                    m_ground_body->getWorldTransform().setOrigin(btVector3(0, 50, 0));
+                    break;
                 
-            case GLFW_KEY_UP:
-                LOG_DEBUG<<"TILT UP";
-                m_ground_body->getWorldTransform().setOrigin(btVector3(0, 50, 0));
-                break;
-            
-            case GLFW_KEY_LEFT:
-                LOG_DEBUG<<"TILT LEFT";
-                m_left_body->getWorldTransform().setOrigin(btVector3(200, 0, 0));
-                break;
-            
-            case GLFW_KEY_RIGHT:
-                LOG_DEBUG<<"TILT RIGHT";
-                m_right_body->getWorldTransform().setOrigin(btVector3(-200, 0, 0));
-                break;
+                case GLFW_KEY_LEFT:
+                    LOG_DEBUG<<"TILT LEFT";
+                    m_left_body->getWorldTransform().setOrigin(btVector3(200, 0, 0));
+                    break;
                 
-            default:
-                break;
+                case GLFW_KEY_RIGHT:
+                    LOG_DEBUG<<"TILT RIGHT";
+                    m_right_body->getWorldTransform().setOrigin(btVector3(-200, 0, 0));
+                    break;
+                    
+                default:
+                    break;
+            }
         }
         
         btTransform trans = btTransform::getIdentity();
@@ -363,6 +406,34 @@ public:
                     break;
             }
         }
+        
+        if(e.isAltDown())
+        {
+            float step_size = 10.f;
+            
+            switch (e.getCode())
+            {
+                case GLFW_KEY_LEFT:
+                    m_free_camera->position() += step_size * glm::vec3(-1, 0, 0);
+                    break;
+                    
+                case GLFW_KEY_RIGHT:
+                    m_free_camera->position() += step_size * glm::vec3(1, 0 , 0);
+                    break;
+                
+                case GLFW_KEY_UP:
+                    m_free_camera->position() += step_size * glm::vec3(0, 1, 0);
+                    break;
+                    
+                case GLFW_KEY_DOWN:
+                    m_free_camera->position() += step_size * glm::vec3(0, -1, 0);
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+        
         ViewerApp::keyPress(e);
     }
     
@@ -432,17 +503,40 @@ public:
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
-            if(m_mesh)
-                m_free_camera->setPosition(m_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
             
+            mat4 m = m_fbo_cam_transform->value();
+            m[3].z = *m_fbo_cam_distance;
+            m_fbo_cam_transform->set(m);
+        }
+        else if(theProperty == m_fbo_cam_transform)
+        {
+            m_free_camera->setTransform(*m_fbo_cam_transform);
             m_debug_scene.removeObject(m_free_camera_mesh);
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
             m_debug_scene.addObject(m_free_camera_mesh);
         }
         else if(theProperty == m_gravity)
         {
-            vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
-            m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
+            if(m_physics_context.dynamicsWorld())
+            {
+                vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
+                m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
+            }
+        }
+        else if(theProperty == m_rigid_bodies_num || theProperty == m_rigid_bodies_size)
+        {
+            int num_xy = floor(sqrt((float)*m_rigid_bodies_num));
+            m_physics_context.teardown_physics();
+            create_physics_scene(num_xy, num_xy, 1, m_material);
+        }
+        else if(theProperty == m_use_syphon)
+        {
+            m_syphon = *m_use_syphon ? gl::SyphonConnector(*m_syphon_server_name) : gl::SyphonConnector();
+        }
+        else if(theProperty == m_syphon_server_name)
+        {
+            try{m_syphon.setName(*m_syphon_server_name);}
+            catch(gl::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
         }
     }
     

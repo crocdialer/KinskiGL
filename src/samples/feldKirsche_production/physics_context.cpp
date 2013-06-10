@@ -82,9 +82,10 @@ using namespace std;
 
 namespace kinski{ namespace physics{
     
-    btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom)
+    btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom, const glm::vec3 &the_scale)
     {
         btStridingMeshInterface *striding_mesh = new physics::Geometry(geom);
+        striding_mesh->setScaling(type_cast(the_scale));
         return physics::btCollisionShapePtr(new btBvhTriangleMeshShape(striding_mesh, false));
     }
     

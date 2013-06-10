@@ -27,6 +27,7 @@ namespace kinski { namespace gl {
         inline void setPosition(const glm::vec3 &thePos) { m_worldTransform[3].xyz() = thePos; };
         
         inline glm::vec3 position() const { return m_worldTransform[3].xyz(); }
+        inline glm::vec3& position() { return *reinterpret_cast<glm::vec3*>(&m_worldTransform[3]);}
         inline glm::vec3 lookAt() const { return glm::normalize(-m_worldTransform[2].xyz()); }
         inline glm::vec3 side() const { return glm::normalize(m_worldTransform[0].xyz()); }
         inline glm::vec3 up() const { return glm::normalize(m_worldTransform[1].xyz()); }
