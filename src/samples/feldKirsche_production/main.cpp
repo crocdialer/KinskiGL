@@ -25,6 +25,7 @@ private:
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::physics::BulletDebugDrawer> m_debugDrawer;
     btRigidBody *m_ground_body, *m_left_body, *m_right_body;
+    Property_<glm::vec3>::Ptr m_gravity;
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_NOTHING = 0, DRAW_FBO_OUTPUT = 1, DRAW_DEBUG_SCENE = 2};
@@ -158,6 +159,9 @@ public:
         m_stepPhysics = Property_<bool>::create("Step physics", true);
         registerProperty(m_stepPhysics);
         
+        m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
+        registerProperty(m_gravity);
+        
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
         
@@ -171,12 +175,16 @@ public:
         registerProperty(m_debug_draw_mode);
         m_fbo_size = Property_<glm::vec2>::create("Fbo size", vec2(1024));
         registerProperty(m_fbo_size);
+        m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 10000.f);
+        registerProperty(m_fbo_cam_distance);
         
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
         /********************** construct a simple scene ***********************/
         camera()->setClippingPlanes(1.0, 15000);
+        
+        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, 45.f));
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -274,7 +282,6 @@ public:
                                        offset);
                         offset += step;
                     }
-                    
                 }
             }
 
@@ -293,7 +300,6 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
-        ViewerApp::keyPress(e);
         int min, max;
         
         switch (e.getCode())
@@ -334,6 +340,30 @@ public:
             default:
                 break;
         }
+        
+        btTransform trans = btTransform::getIdentity();
+        
+        if(e.isShiftDown())
+        {
+            switch (e.getCode())
+            {
+                case GLFW_KEY_LEFT:
+                    LOG_DEBUG<<"ROLL LEFT";
+                    trans.setRotation(btQuaternion(0.f, 0.f, glm::radians(10.f)));
+                    m_ground_body->setWorldTransform(trans);
+                    break;
+                    
+                case GLFW_KEY_RIGHT:
+                    LOG_DEBUG<<"ROLL RIGHT";
+                    trans.setRotation(btQuaternion(0.f, 0.f, glm::radians(-10.f)));
+                    m_ground_body->setWorldTransform(trans);
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+        ViewerApp::keyPress(e);
     }
     
     void keyRelease(const KeyEvent &e)
@@ -343,7 +373,7 @@ public:
         switch (e.getCode())
         {
             case GLFW_KEY_UP:
-                m_ground_body->getWorldTransform().setOrigin(btVector3(0, 0, 0));
+                m_ground_body->setWorldTransform(btTransform::getIdentity());
                 break;
                 
             case GLFW_KEY_LEFT:
@@ -402,10 +432,17 @@ public:
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
-            m_free_camera->setPosition(m_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
+            if(m_mesh)
+                m_free_camera->setPosition(m_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
+            
             m_debug_scene.removeObject(m_free_camera_mesh);
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
             m_debug_scene.addObject(m_free_camera_mesh);
+        }
+        else if(theProperty == m_gravity)
+        {
+            vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
+            m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
         }
     }
     

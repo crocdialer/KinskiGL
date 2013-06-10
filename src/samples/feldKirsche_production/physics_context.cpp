@@ -88,6 +88,30 @@ namespace kinski{ namespace physics{
         return physics::btCollisionShapePtr(new btBvhTriangleMeshShape(striding_mesh, false));
     }
     
+    btVector3 type_cast(const glm::vec3 &the_vec)
+    {
+        return btVector3(the_vec[0], the_vec[1], the_vec[2]);
+    }
+    
+    btTransform type_cast(const glm::mat4 &the_transform)
+    {
+        btTransform ret;
+        ret.setFromOpenGLMatrix(&the_transform[0][0]);
+        return ret;
+    }
+    
+    glm::vec3 type_cast(const btVector3 &the_vec)
+    {
+        return glm::vec3(the_vec[0], the_vec[1], the_vec[2]);
+    }
+    
+    glm::mat4 type_cast(const btTransform &the_transform)
+    {
+        float m[16];
+        the_transform.getOpenGLMatrix(m);
+        return glm::make_mat4(m);
+    }
+    
     physics_context::~physics_context()
     {
         teardown_physics();

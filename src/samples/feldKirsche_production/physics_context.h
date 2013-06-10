@@ -21,7 +21,11 @@ namespace kinski{ namespace physics{
     typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
     typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
     
-    btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom);
+    KINSKI_API btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom);
+    KINSKI_API btVector3 type_cast(const glm::vec3 &the_vec);
+    KINSKI_API btTransform type_cast(const glm::mat4 &the_transform);
+    KINSKI_API glm::vec3 type_cast(const btVector3 &the_vec);
+    KINSKI_API glm::mat4 type_cast(const btTransform &the_transform);
     
     class BulletDebugDrawer : public btIDebugDraw
     {
