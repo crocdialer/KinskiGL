@@ -18,6 +18,8 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "Font.h"
+#include "Scene.h"
+#include "Fbo.h"
 
 using namespace glm;
 using namespace std;
@@ -923,6 +925,19 @@ namespace kinski { namespace gl {
         drawMesh(our_mesh);
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
+    KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
+                                             const gl::CameraPtr &theCam)
+    {
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+        gl::setWindowDimension(theFbo.getSize());
+        theFbo.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        theScene.render(theCam);
+        return theFbo.getTexture();
+    }
 ///////////////////////////////////////////////////////////////////////////////
     
     void apply_material(const MaterialPtr &the_mat, bool force_apply)

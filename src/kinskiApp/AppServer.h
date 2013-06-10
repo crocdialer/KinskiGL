@@ -31,8 +31,8 @@ namespace kinski
         
         void start();
         
-        void send();
-        void receive();
+//        void send();
+//        void receive();
         
     private:
         tcp_connection(boost::asio::io_service& io_service, kinski::Component::WeakPtr the_component);

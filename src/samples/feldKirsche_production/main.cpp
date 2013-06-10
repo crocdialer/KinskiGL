@@ -1,8 +1,6 @@
 #include "kinskiApp/ViewerApp.h"
-#include "kinskiCV/CVThread.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
-
 #include "physics_context.h"
 
 using namespace std;
@@ -23,10 +21,20 @@ private:
     Property_<glm::vec4>::Ptr m_color;
     Property_<float>::Ptr m_shinyness;
     
+    // physics
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::physics::BulletDebugDrawer> m_debugDrawer;
-    
     btRigidBody *m_ground_body, *m_left_body, *m_right_body;
+    
+    // offscreen rendering
+    enum DRAW_MODE{DRAW_NOTHING = 0, DRAW_FBO_OUTPUT = 1, DRAW_DEBUG_SCENE = 2};
+    RangedProperty<int>::Ptr m_debug_draw_mode;
+    gl::Scene m_debug_scene;
+    gl::PerspectiveCamera::Ptr m_free_camera;
+    gl::MeshPtr m_free_camera_mesh;
+    gl::Fbo m_fbo;
+    Property_<glm::vec2>::Ptr m_fbo_size;
+    RangedProperty<float>::Ptr m_fbo_cam_distance;
     
 public:
     
@@ -159,9 +167,12 @@ public:
         m_shinyness = Property_<float>::create("Shinyness", 1.0);
         registerProperty(m_shinyness);
         
+        m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 2);
+        registerProperty(m_debug_draw_mode);
+        m_fbo_size = Property_<glm::vec2>::create("Fbo size", vec2(1024));
+        registerProperty(m_fbo_size);
+        
         create_tweakbar_from_component(shared_from_this());
-
-        // enable observer mechanism
         observeProperties();
         
         /********************** construct a simple scene ***********************/
@@ -283,9 +294,15 @@ public:
     void keyPress(const KeyEvent &e)
     {
         ViewerApp::keyPress(e);
+        int min, max;
         
         switch (e.getCode())
         {
+            case KeyEvent::KEY_d:
+                m_debug_draw_mode->getRange(min, max);
+                *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);
+                break;
+                
             case KeyEvent::KEY_p:
                 *m_stepPhysics = !*m_stepPhysics;
                 break;
@@ -370,7 +387,6 @@ public:
                 physics::btCollisionShapePtr customShape = physics::createCollisionShape(m->geometry());
                 m_physics_context.collisionShapes().push_back(customShape);
                 physics::MotionState *ms = new physics::MotionState(m_mesh);
-                
                 btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
                 btRigidBody* body = new btRigidBody(rbInfo);
                 body->setFriction(2.f);
@@ -382,12 +398,22 @@ public:
             }
             catch (Exception &e){ LOG_ERROR<< e.what(); }
         }
+        else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance)
+        {
+            m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
+            m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
+            m_free_camera->setPosition(m_mesh->position() + vec3(0, 0, *m_fbo_cam_distance));
+            m_debug_scene.removeObject(m_free_camera_mesh);
+            m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
+            m_debug_scene.addObject(m_free_camera_mesh);
+        }
     }
     
     void tearDown()
     {
         LOG_PRINT<<"ciao Feldkirsche";
     }
+    
 };
 
 int main(int argc, char *argv[])

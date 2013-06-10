@@ -72,6 +72,7 @@ namespace kinski { namespace gl {
     class Shader;
     class Fbo;
     class Font;
+    class Scene;
     struct Ray;
     struct AABB;
     struct OBB;
@@ -156,6 +157,9 @@ namespace kinski { namespace gl {
     KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
                                     const MaterialPtr &theMaterial = MaterialPtr(),
                                     int numSegments = 32 );
+    
+    KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
+                                             const gl::CameraPtr &theCam);
 
     /*********************************** lazy state changing **********************************/
     
