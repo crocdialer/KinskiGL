@@ -9,6 +9,7 @@
 #ifndef __kinskiGL__physics_context__
 #define __kinskiGL__physics_context__
 
+#include <boost/thread.hpp>
 #include "kinskiCore/Definitions.h"
 #include "btBulletDynamicsCommon.h"
 #include "kinskiGL/Mesh.h"
@@ -161,6 +162,7 @@ namespace kinski{ namespace physics{
         ~physics_context();
         
         void initPhysics();
+        void stepPhysics(float timestep);
         void teardown_physics();
         
         const btDynamicsWorldConstPtr dynamicsWorld() const {return m_dynamicsWorld;};
@@ -185,6 +187,7 @@ namespace kinski{ namespace physics{
         std::shared_ptr<btThreadSupportInterface> m_threadSupportCollision;
         std::shared_ptr<btThreadSupportInterface> m_threadSupportSolver;
         
+        boost::mutex m_mutex;
 //        boost::function<void (btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
 //            btDispatcherInfo& dispatchInfo)> m_nearCallback;
         

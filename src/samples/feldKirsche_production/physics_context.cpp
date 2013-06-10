@@ -179,8 +179,16 @@ namespace kinski{ namespace physics{
         //m_dynamicsWorld->getPairCache()->setOverlapFilterCallback(filterCallback);
     }
     
+    void physics_context::stepPhysics(float timestep)
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        m_dynamicsWorld->stepSimulation(timestep, 1);
+    }
+    
     void physics_context::teardown_physics()
     {
+        boost::mutex::scoped_lock lock(m_mutex);
+        
         int i;
         for (i = m_dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
         {

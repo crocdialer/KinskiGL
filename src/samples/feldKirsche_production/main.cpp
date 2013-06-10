@@ -147,8 +147,8 @@ public:
                         btRigidBody* body = new btRigidBody(rbInfo);
                         //body->setFriction(2.f);
                         //body->setDamping(0.f, 2.f);
-                        body->setCcdMotionThreshold(scaling / 4);
-                        body->setCcdSweptSphereRadius(scaling / 4);
+//                        body->setCcdMotionThreshold(scaling / 4);
+//                        body->setCcdSweptSphereRadius(scaling / 4);
                         m_physics_context.dynamicsWorld()->addRigidBody(body);
                     }
                 }
@@ -249,8 +249,9 @@ public:
         
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
-            m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
-            //io_service().post(boost::bind(&btDiscreteDynamicsWorld::stepSimulation, m_physics_context.dynamicsWorld().get(), timeDelta));
+            //m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
+            auto functor = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
+            io_service().post(functor);
         }
         
         if(m_material)
@@ -375,12 +376,12 @@ public:
                 
                 case GLFW_KEY_LEFT:
                     LOG_DEBUG<<"TILT LEFT";
-                    m_left_body->getWorldTransform().setOrigin(btVector3(200, 0, 0));
+                    m_left_body->getWorldTransform().setOrigin(btVector3(130, 0, 0));
                     break;
                 
                 case GLFW_KEY_RIGHT:
                     LOG_DEBUG<<"TILT RIGHT";
-                    m_right_body->getWorldTransform().setOrigin(btVector3(-200, 0, 0));
+                    m_right_body->getWorldTransform().setOrigin(btVector3(-130, 0, 0));
                     break;
                     
                 default:
