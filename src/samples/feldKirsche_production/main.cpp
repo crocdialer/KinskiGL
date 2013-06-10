@@ -33,6 +33,7 @@ private:
     RangedProperty<int>::Ptr m_rigid_bodies_num;
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
+    RangedProperty<float>::Ptr m_world_width;
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
@@ -58,7 +59,7 @@ public:
         m_physics_context.collisionShapes().clear();
         m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
         
-        float scaling = 20.0f;
+        float scaling = *m_rigid_bodies_size;
         float start_pox_x = -5;
         float start_pox_y = -5;
         float start_pox_z = -3;
@@ -67,13 +68,15 @@ public:
         physics::btCollisionShapePtr ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), 0)),
         front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-150)),
         back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -150)),
-        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),-2000)),
-        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), -2000));
+        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),- *m_world_width/2.f)),
+        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), - *m_world_width/2.f)),
+        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - *m_world_width));
         m_physics_context.collisionShapes().push_back(ground_plane);
         m_physics_context.collisionShapes().push_back(front_plane);
         m_physics_context.collisionShapes().push_back(back_plane);
         m_physics_context.collisionShapes().push_back(left_plane);
         m_physics_context.collisionShapes().push_back(right_plane);
+        m_physics_context.collisionShapes().push_back(top_plane);
 
         for (int i = 0; i < m_physics_context.collisionShapes().size(); ++i)
         {
@@ -181,6 +184,9 @@ public:
         m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
         registerProperty(m_gravity);
         
+        m_world_width = RangedProperty<float>::create("World width", 1000, 100, 5000);
+        registerProperty(m_world_width);
+        
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
         
@@ -227,8 +233,6 @@ public:
         m_debugDrawer.reset(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
-        //create_physics_scene(25, 50, 1, m_material);
-        
         // load state from config file
         try
         {
@@ -270,7 +274,7 @@ public:
     {
         // draw block
         {
-            m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);
+            if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
             switch(*m_debug_draw_mode)
             {
