@@ -7,6 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
+#include "kinskiGL/geometry_types.h"
 #include "Object3D.h"
 
 namespace kinski { namespace gl {
@@ -14,28 +15,67 @@ namespace kinski { namespace gl {
     uint32_t Object3D::s_idPool = 0;
     
     Object3D::Object3D(const glm::mat4 &theTransform):
-    m_worldTransform(theTransform)
+    m_transform(theTransform)
     {
         m_id = s_idPool++;
     }
     
     void Object3D::setRotation(const glm::quat &theRot)
     {
-        glm::vec4 tmp = m_worldTransform[3];
-        m_worldTransform = glm::mat4_cast(theRot);
-        m_worldTransform[3] = tmp;
+        glm::vec4 tmp = m_transform[3];
+        m_transform = glm::mat4_cast(theRot);
+        m_transform[3] = tmp;
     }
     
     void Object3D::setRotation(const glm::mat3 &theRot)
     {
-        glm::vec4 tmp = m_worldTransform[3];
-        m_worldTransform = glm::mat4(theRot);
-        m_worldTransform[3] = tmp;
+        glm::vec4 tmp = m_transform[3];
+        m_transform = glm::mat4(theRot);
+        m_transform[3] = tmp;
     }
     
     glm::quat Object3D::rotation() const
     {
-        return glm::quat_cast(m_worldTransform);
+        return glm::quat_cast(m_transform);
+    }
+    
+    AABB Object3D::boundingBox() const
+    {
+        AABB ret;
+        std::list<Object3DPtr>::const_iterator it = m_children.begin();
+        for (; it != m_children.end(); ++it)
+        {
+            ret += (*it)->boundingBox();
+        }
+        return ret;
+    }
+    
+    Visitor::Visitor()
+    {
+        m_transform_stack.push(glm::mat4());
+    }
+    
+    Visitor::~Visitor()
+    {
+    
+    }
+    
+    void Visitor::visit(const Object3DPtr &theNode)
+    {
+        LOG_DEBUG<<"hello node "<<theNode->getID();
+        
+        std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
+        for (; it != theNode->children().end(); ++it)
+        {
+            m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
+            visit(*it);
+            m_transform_stack.pop();
+        }
+    }
+    
+    void Visitor::visit(const MeshPtr &theNode)
+    {
+        
     }
     
 }}//namespace

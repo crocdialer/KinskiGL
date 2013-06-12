@@ -39,7 +39,7 @@ namespace kinski
     
     void ThreadPool::set_num_threads(int num)
     {
-        if(m_threads && num > 0)
+        if(m_threads && num >= 0)
         {
             try
             {

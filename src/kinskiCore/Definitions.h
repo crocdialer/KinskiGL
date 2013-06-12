@@ -22,6 +22,7 @@
 #include <list>
 #include <set>
 #include <map>
+#include <stack>
 
 #include <boost/cstdint.hpp>
 #include <boost/version.hpp>
