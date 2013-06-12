@@ -26,20 +26,37 @@ namespace kinski { namespace gl {
         bool operator <(const range_item_t &other) const {return distance < other.distance;}
     };
     
+    class UpdateVisitor : public Visitor
+    {
+    public:
+        
+    };
+    
+    Scene::Scene():
+    m_root(new Object3D())
+    {
+    
+    }
+    
     void Scene::addObject(const Object3DPtr &theObject)
     {
-        m_objects.push_back(theObject);
+        m_root->children().push_back(theObject);
     }
     
     void Scene::removeObject(const Object3DPtr &theObject)
     {
-        m_objects.remove(theObject);
+        m_root->children().remove(theObject);
+    }
+    
+    void Scene::clear()
+    {
+        m_root.reset(new Object3D());
     }
     
     void Scene::update(float time_delta)
     {
-        list<Object3DPtr>::iterator objIt = m_objects.begin();
-        for (; objIt != m_objects.end(); objIt++)
+        list<Object3DPtr>::iterator objIt = m_root->children().begin();
+        for (; objIt != m_root->children().end(); objIt++)
         {
             (*objIt)->update(time_delta);
         }
@@ -51,8 +68,8 @@ namespace kinski { namespace gl {
         glm::mat4 viewMatrix = theCamera->getViewMatrix();
         gl::Frustum frustum = theCamera->frustum();
         
-        list<Object3DPtr>::const_iterator objIt = m_objects.begin();
-        for (; objIt != m_objects.end(); objIt++)
+        list<Object3DPtr>::const_iterator objIt = m_root->children().begin();
+        for (; objIt != m_root->children().end(); objIt++)
         {
             if(const MeshPtr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
             {
@@ -83,8 +100,8 @@ namespace kinski { namespace gl {
     {
         Object3DPtr ret;
         std::list<range_item_t> clicked_items;
-        list<Object3DPtr>::const_iterator objIt = m_objects.begin();
-        for (; objIt != m_objects.end(); objIt++)
+        list<Object3DPtr>::const_iterator objIt = m_root->children().begin();
+        for (; objIt != m_root->children().end(); objIt++)
         {
             const Object3DPtr &theObj = *objIt;
             gl::OBB boundingBox (theObj->boundingBox(), theObj->transform());

@@ -57,7 +57,7 @@ public:
     
     void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
-        scene().objects().clear();
+        scene().clear();
         m_physics_context.teardown_physics();
         m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
         
@@ -353,8 +353,14 @@ public:
         
         if(!e.isShiftDown() && !e.isAltDown())
         {
+            gl::Visitor visitor;
+            
             switch (e.getCode())
             {
+                case KeyEvent::KEY_i:
+                    scene().root()->accept(visitor);
+                    break;
+                    
                 case KeyEvent::KEY_d:
                     m_debug_draw_mode->getRange(min, max);
                     *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);

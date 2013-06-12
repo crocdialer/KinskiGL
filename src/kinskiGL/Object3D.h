@@ -14,11 +14,11 @@
 
 namespace kinski { namespace gl {
 
-    class KINSKI_API Object3D
+    class KINSKI_API Object3D : public std::enable_shared_from_this<Object3D>
     {
     public:
         
-        Object3D(const glm::mat4 &theTransform = glm::mat4());
+        Object3D();
         virtual ~Object3D(){};
         
         uint32_t getID() const { return m_id; };
@@ -41,6 +41,8 @@ namespace kinski { namespace gl {
         
         virtual void update(float time_delta){};
         virtual AABB boundingBox() const;
+        
+        void accept(Visitor &theVisitor);
         
     private:
         

@@ -18,6 +18,7 @@ namespace kinski { namespace gl {
     {
     public:
         
+        Scene();
         virtual void update(float time_delta);
         void render(const CameraPtr &theCamera) const;
         Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
@@ -25,14 +26,16 @@ namespace kinski { namespace gl {
     
         void addObject(const Object3DPtr &theObject);
         void removeObject(const Object3DPtr &theObject);
-        inline const std::list<Object3DPtr>& objects() const {return m_objects;};
-        inline std::list<Object3DPtr>& objects() {return m_objects;};
+        void clear();
+        
+        inline const Object3DPtr& root() const {return m_root;};
+        inline Object3DPtr& root() {return m_root;};
         uint32_t num_visible_objects() const {return m_num_visible_objects;};
         
     private:
         
         mutable uint32_t m_num_visible_objects;
-        std::list<Object3DPtr> m_objects;
+        Object3DPtr m_root;
     };
     
 }}//namespace

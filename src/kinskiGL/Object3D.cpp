@@ -14,8 +14,7 @@ namespace kinski { namespace gl {
     
     uint32_t Object3D::s_idPool = 0;
     
-    Object3D::Object3D(const glm::mat4 &theTransform):
-    m_transform(theTransform)
+    Object3D::Object3D()
     {
         m_id = s_idPool++;
     }
@@ -50,6 +49,11 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    void Object3D::accept(Visitor &theVisitor)
+    {
+        theVisitor.visit(shared_from_this());
+    }
+    
     Visitor::Visitor()
     {
         m_transform_stack.push(glm::mat4());
@@ -62,7 +66,8 @@ namespace kinski { namespace gl {
     
     void Visitor::visit(const Object3DPtr &theNode)
     {
-        LOG_DEBUG<<"hello node "<<theNode->getID();
+        LOG_DEBUG<<"hello node "<<theNode->getID() <<"-- pos: "<<
+            glm::to_string( (m_transform_stack.top() * theNode->transform())[3]);
         
         std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
         for (; it != theNode->children().end(); ++it)

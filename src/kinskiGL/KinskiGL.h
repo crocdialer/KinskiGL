@@ -73,6 +73,7 @@ namespace kinski { namespace gl {
     class Fbo;
     class Font;
     class Scene;
+    class Visitor;
     struct Ray;
     struct AABB;
     struct OBB;
