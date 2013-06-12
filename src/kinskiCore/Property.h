@@ -86,12 +86,12 @@ public:
     
     inline void addObserver(const Observer::Ptr &theObs)
     {
-        m_signal.connect(signal_type::slot_type(&Observer::updateProperty, theObs.get(), _1).track_foreign(theObs));
+        m_signal.connect(signal_type::slot_type(&Observer::updateProperty, theObs, _1).track_foreign(theObs));
     }
     
     inline void removeObserver(const Observer::Ptr &theObs)
     {
-        m_signal.disconnect(boost::bind(&Observer::updateProperty, theObs.get(), _1));
+        m_signal.disconnect(boost::bind(&Observer::updateProperty, theObs, _1));
     }
     
     inline void clearObservers(){m_signal.disconnect_all_slots();}

@@ -25,6 +25,7 @@ namespace kinski {
                                                bool recursive = false,
                                                const std::string &theExtension = "");
     bool fileExists(const std::string &theFilename);
+    bool isDirectory(const std::string &theFilename);
     const std::string readFile(const std::string &theUTF8Filename);
     std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename);
     std::string getFilenamePart(const std::string &theFileName);

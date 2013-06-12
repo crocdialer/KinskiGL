@@ -10,18 +10,11 @@
 #ifndef _KINSKI_APP_IS_INCLUDED_
 #define _KINSKI_APP_IS_INCLUDED_
 
-#include <boost/asio/io_service.hpp>
 #include "kinskiGL/KinskiGL.h"
 #include "kinskiCore/Component.h"
 #include "kinskiCore/Logger.h"
-
-namespace boost {
-    class thread;
-    class thread_group;
-    namespace asio {
-        class io_service;
-    }
-}
+#include "kinskiCore/file_functions.h"
+#include "kinskiCore/ThreadPool.h"
 
 namespace kinski
 {
@@ -75,8 +68,7 @@ namespace kinski
         
         float framesPerSec() const {return m_framesPerSec;};
         
-        boost::asio::io_service& io_service(){return *m_io_service;};
-        void set_num_io_threads(int num);
+        boost::asio::io_service& io_service(){return m_thread_pool.io_service();};
         
     private:
         
@@ -96,12 +88,7 @@ namespace kinski
         bool m_fullscreen;
         bool m_cursorVisible;
         
-        std::shared_ptr<boost::asio::io_service> m_io_service;
-        std::shared_ptr<void> m_io_work;
-        
-        //optional threadpool working on io tasks
-        std::shared_ptr<boost::thread_group> m_io_threads;
-        uint32_t m_num_io_threads;
+        kinski::ThreadPool m_thread_pool;
     };
     
     //! Base class for all Events

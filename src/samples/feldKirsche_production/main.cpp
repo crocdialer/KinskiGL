@@ -1,3 +1,5 @@
+#include <boost/asio/io_service.hpp>
+
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
@@ -56,7 +58,7 @@ public:
     void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
         scene().objects().clear();
-        m_physics_context.collisionShapes().clear();
+        m_physics_context.teardown_physics();
         m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
         
         float scaling = *m_rigid_bodies_size;
@@ -147,8 +149,8 @@ public:
                         btRigidBody* body = new btRigidBody(rbInfo);
                         //body->setFriction(2.f);
                         //body->setDamping(0.f, 2.f);
-//                        body->setCcdMotionThreshold(scaling / 4);
-//                        body->setCcdSweptSphereRadius(scaling / 4);
+                        body->setCcdMotionThreshold(scaling * scaling);
+                        body->setCcdSweptSphereRadius(scaling / 4);
                         m_physics_context.dynamicsWorld()->addRigidBody(body);
                     }
                 }
@@ -346,6 +348,7 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
+        ViewerApp::keyPress(e);
         int min, max;
         
         if(!e.isShiftDown() && !e.isAltDown())
@@ -376,12 +379,12 @@ public:
                 
                 case GLFW_KEY_LEFT:
                     LOG_DEBUG<<"TILT LEFT";
-                    m_left_body->getWorldTransform().setOrigin(btVector3(130, 0, 0));
+                    m_left_body->getWorldTransform().setOrigin(btVector3(60, 0, 0));
                     break;
                 
                 case GLFW_KEY_RIGHT:
                     LOG_DEBUG<<"TILT RIGHT";
-                    m_right_body->getWorldTransform().setOrigin(btVector3(-130, 0, 0));
+                    m_right_body->getWorldTransform().setOrigin(btVector3(-60, 0, 0));
                     break;
                     
                 default:
@@ -419,27 +422,29 @@ public:
             switch (e.getCode())
             {
                 case GLFW_KEY_LEFT:
-                    m_free_camera->position() += step_size * glm::vec3(-1, 0, 0);
+                    *m_fbo_cam_transform = glm::translate(m_fbo_cam_transform->value(),
+                                                          step_size * glm::vec3(1, 0, 0));
                     break;
                     
                 case GLFW_KEY_RIGHT:
-                    m_free_camera->position() += step_size * glm::vec3(1, 0 , 0);
+                    *m_fbo_cam_transform = glm::translate(m_fbo_cam_transform->value(),
+                                                          step_size * glm::vec3(-1, 0, 0));
                     break;
                 
                 case GLFW_KEY_UP:
-                    m_free_camera->position() += step_size * glm::vec3(0, 1, 0);
+                    *m_fbo_cam_transform = glm::translate(m_fbo_cam_transform->value(),
+                                                          step_size * glm::vec3(0, -1, 0));
                     break;
                     
                 case GLFW_KEY_DOWN:
-                    m_free_camera->position() += step_size * glm::vec3(0, -1, 0);
+                    *m_fbo_cam_transform = glm::translate(m_fbo_cam_transform->value(),
+                                                          step_size * glm::vec3(0, 1, 0));
                     break;
                     
                 default:
                     break;
             }
         }
-        
-        ViewerApp::keyPress(e);
     }
     
     void keyRelease(const KeyEvent &e)
@@ -482,6 +487,12 @@ public:
             {
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 scene().removeObject(m_mesh);
+                
+                m_rigid_bodies_num->set(*m_rigid_bodies_num);
+                
+                // scale to proper size
+                float scale = 1.f;//350.f / glm::length(m->geometry()->boundingBox().halfExtents());
+                
                 m_mesh = m;
                 materials().clear();
                 materials().push_back(m->material());
@@ -490,7 +501,7 @@ public:
                 m->setPosition(m->position() - vec3(0, m->boundingBox().min.y, 0));
                 scene().addObject(m_mesh);
                 
-                physics::btCollisionShapePtr customShape = physics::createCollisionShape(m->geometry());
+                physics::btCollisionShapePtr customShape = physics::createCollisionShape(m->geometry(), vec3(scale));
                 m_physics_context.collisionShapes().push_back(customShape);
                 physics::MotionState *ms = new physics::MotionState(m_mesh);
                 btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
@@ -501,8 +512,22 @@ public:
                 
                 //add the body to the dynamics world
                 m_physics_context.dynamicsWorld()->addRigidBody(body);
+                
+                m_mesh->transform() = glm::scale(m->transform(), vec3(scale));
             }
-            catch (Exception &e){ LOG_ERROR<< e.what(); }
+            catch (Exception &e)
+            {
+                // check if modelpath is a folder
+                if(kinski::isDirectory(*m_modelPath))
+                {
+                    //TODO load all models
+                    try
+                    {
+                        gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
+                        scene().removeObject(m_mesh);
+                    }catch(Exception &e){LOG_ERROR<< e.what();}
+                }
+            }
         }
         else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance)
         {
@@ -530,9 +555,8 @@ public:
         }
         else if(theProperty == m_rigid_bodies_num || theProperty == m_rigid_bodies_size)
         {
-            int num_xy = floor(sqrt((float)*m_rigid_bodies_num));
-            m_physics_context.teardown_physics();
-            create_physics_scene(num_xy, num_xy, 1, m_material);
+            int num_xy = floor(sqrt(*m_rigid_bodies_num / 2.f));
+            create_physics_scene(num_xy, num_xy, 2, m_material);
         }
         else if(theProperty == m_use_syphon)
         {
@@ -547,7 +571,7 @@ public:
     
     void tearDown()
     {
-        LOG_PRINT<<"ciao Feldkirsche";
+        LOG_INFO<<"ciao Feldkirsche";
     }
     
 };
@@ -555,7 +579,7 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new FeldkirscheApp);
-    theApp->setWindowSize(1024, 768);
+    theApp->setWindowSize(1024, 1024);
     //theApp->setFullSceen();
     return theApp->run();
 }

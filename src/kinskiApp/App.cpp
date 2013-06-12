@@ -9,7 +9,6 @@
 
 #include "App.h"
 #include <boost/asio/io_service.hpp>
-#include <boost/thread.hpp>
 
 using namespace std;
 
@@ -25,25 +24,14 @@ namespace kinski
     m_windowSize(glm::ivec2(width, height)),
     m_running(false),
     m_fullscreen(false),
-    m_cursorVisible(true),
-    m_io_service(new boost::asio::io_service()),
-    m_num_io_threads(1)
+    m_cursorVisible(true)
     {
         srand(clock());
-        m_io_work.reset(new boost::asio::io_service::work(*m_io_service));
-        m_io_threads.reset(new boost::thread_group());
-        set_num_io_threads(m_num_io_threads);
     }
     
     App::~App()
     {
-        m_io_work.reset();
-        //m_io_service->stop();
-        if(m_io_threads)
-        {
-            try{m_io_threads->join_all();}
-            catch(std::exception &e){LOG_ERROR<<e.what();}
-        }
+        
     }
     
     int App::run()
@@ -62,7 +50,7 @@ namespace kinski
             timeStamp = getApplicationTime();
             
             // poll io_service if no seperate worker-threads exist
-            if(!m_num_io_threads) m_io_service->poll();
+            if(!m_thread_pool.get_num_threads()) m_thread_pool.io_service().poll();
             
             // call update callback
             update(timeStamp - m_lastTimeStamp);
@@ -105,21 +93,6 @@ namespace kinski
             m_framesDrawn = 0;
             m_lastMeasurementTimeStamp = timeStamp;
             LOG_TRACE<< m_framesPerSec << "fps -- "<<getApplicationTime()<<" sec running ...";
-        }
-    }
-    
-    void App::set_num_io_threads(int num)
-    {
-        if(m_io_threads && num > 0)
-        {
-            try{m_io_threads->join_all();}
-            catch(std::exception &e){LOG_ERROR<<e.what();}
-            m_num_io_threads = num;
-            
-            for(uint32_t i = 0; i < m_num_io_threads; ++i)
-            {
-                m_io_threads->create_thread(boost::bind(&boost::asio::io_service::run, m_io_service.get()));
-            }
         }
     }
 }

@@ -18,8 +18,6 @@ namespace kinski { namespace gl {
     {
     public:
         
-        typedef std::shared_ptr<Object3D> Ptr;
-        
         Object3D(const glm::mat4 &theTransform = glm::mat4());
         virtual ~Object3D(){};
         

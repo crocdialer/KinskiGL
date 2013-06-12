@@ -242,7 +242,12 @@ namespace kinski {
     {
         return path(theFileName).filename().string();
     }
-
+    
+    bool isDirectory(const std::string &theFilename)
+    {
+        return boost::filesystem::is_directory(theFilename);
+    }
+    
     bool fileExists(const std::string& theFilename)
     {
         return boost::filesystem::exists(theFilename);

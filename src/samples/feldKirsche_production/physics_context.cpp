@@ -121,7 +121,8 @@ namespace kinski{ namespace physics{
     
     void physics_context::initPhysics()
     {
-        LOG_INFO<<"initializing physics";
+        LOG_DEBUG<<"initializing physics";
+        boost::mutex::scoped_lock lock(m_mutex);
         
         ///collision configuration contains default setup for memory, collision setup
         btDefaultCollisionConstructionInfo cci;
@@ -182,7 +183,8 @@ namespace kinski{ namespace physics{
     void physics_context::stepPhysics(float timestep)
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        m_dynamicsWorld->stepSimulation(timestep, 1);
+        if(m_dynamicsWorld)
+            m_dynamicsWorld->stepSimulation(timestep, 1);
     }
     
     void physics_context::teardown_physics()

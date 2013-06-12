@@ -84,7 +84,7 @@ namespace kinski{ namespace physics{
         btTransform	m_centerOfMassOffset;
         BT_DECLARE_ALIGNED_ALLOCATOR();
         
-        MotionState(const gl::Object3D::Ptr& theObject3D,
+        MotionState(const gl::Object3DPtr& theObject3D,
                     const btTransform& centerOfMassOffset = btTransform::getIdentity()):
 		m_object(theObject3D),
         m_centerOfMassOffset(centerOfMassOffset)

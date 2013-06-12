@@ -38,7 +38,7 @@ namespace kinski {
     }
     
     void tcp_connection::handle_read(const boost::system::error_code& error,
-                                      size_t bytes_transferred)
+                                     size_t bytes_transferred)
     {
         if(error)
         {

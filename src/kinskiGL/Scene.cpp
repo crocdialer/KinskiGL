@@ -26,12 +26,12 @@ namespace kinski { namespace gl {
         bool operator <(const range_item_t &other) const {return distance < other.distance;}
     };
     
-    void Scene::addObject(const Object3D::Ptr &theObject)
+    void Scene::addObject(const Object3DPtr &theObject)
     {
         m_objects.push_back(theObject);
     }
     
-    void Scene::removeObject(const Object3D::Ptr &theObject)
+    void Scene::removeObject(const Object3DPtr &theObject)
     {
         m_objects.remove(theObject);
     }
