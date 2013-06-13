@@ -168,7 +168,7 @@ namespace kinski { namespace gl{
     
     gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     {
-        gl::Material::Ptr theMaterial(new gl::Material);
+        gl::MaterialPtr theMaterial = gl::Material::create();
         int ret1, ret2;
         aiColor4D diffuse;
         aiColor4D specular;
@@ -380,9 +380,6 @@ namespace kinski { namespace gl{
             currentBone->worldtransform = globalTransform;
             currentBone->offset = offset;
             currentBone->parent = parentBone;
-            
-//            if(nodeName =="sword")
-//                LOG_DEBUG<<currentBone->name<<" ("<<boneIndex<<") "<<glm::to_string(globalTransform[3]);
             
             // we have animation keys for this bone
             if(nodeAnim)

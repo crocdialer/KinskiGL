@@ -258,8 +258,9 @@ public:
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
             //m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
-            auto functor = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
-            io_service().post(functor);
+            auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
+            //io_service().post(task);
+            thread_pool().submit(task);
         }
         
         if(m_material)

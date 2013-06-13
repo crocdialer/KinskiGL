@@ -365,4 +365,9 @@ namespace kinski { namespace gl {
         m_texCoordLocationName = theName;
         createVertexArray();
     }
+    
+    void Mesh::accept(Visitor &theVisitor)
+    {
+        theVisitor.visit(*this);
+    }
 }}

@@ -9,6 +9,7 @@
 #ifndef __kinskiGL__ThreadPool__
 #define __kinskiGL__ThreadPool__
 
+#include <boost/asio.hpp>
 #include "kinskiCore/Definitions.h"
 
 namespace boost {
@@ -31,7 +32,7 @@ namespace kinski{
         void set_num_threads(int num);
         int get_num_threads();
         
-        //void submit(const boost::function &task);
+        template<class F> void submit(const F &task){m_io_service->post(task);}
         
     private:
         std::shared_ptr<boost::asio::io_service> m_io_service;

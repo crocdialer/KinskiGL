@@ -69,6 +69,8 @@ namespace kinski
         float framesPerSec() const {return m_framesPerSec;};
         
         boost::asio::io_service& io_service(){return m_thread_pool.io_service();};
+        ThreadPool& thread_pool(){return m_thread_pool;}
+        const ThreadPool& thread_pool() const {return m_thread_pool;}
         
     private:
         

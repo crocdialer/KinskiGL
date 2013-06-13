@@ -40,7 +40,7 @@ namespace kinski { namespace gl {
         inline const std::list<Object3DPtr>& children() const {return m_children;}
         virtual AABB boundingBox() const;
         
-        void accept(Visitor &theVisitor);
+        virtual void accept(Visitor &theVisitor);
         
     private:
         
@@ -60,17 +60,17 @@ namespace kinski { namespace gl {
             m_transform_stack.push(glm::mat4());
         }
         
-        virtual void visit(const Object3DPtr &theNode)
+        virtual void visit(Object3D &theNode)
         {
-            std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
-            for (; it != theNode->children().end(); ++it)
+            std::list<Object3DPtr>::const_iterator it = theNode.children().begin();
+            for (; it != theNode.children().end(); ++it)
             {
                 m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
-                visit(*it);
+                (*it)->accept(*this);
                 m_transform_stack.pop();
             }
         }
-        virtual void visit(const gl::MeshPtr &theNode) = 0;
+        virtual void visit(gl::Mesh &theNode) = 0;
         
     private:
         std::stack<glm::mat4> m_transform_stack;

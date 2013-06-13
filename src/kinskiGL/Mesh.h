@@ -143,6 +143,8 @@ namespace kinski { namespace gl {
          */
         void setColorLocationName(const std::string &theName);
         
+        virtual void accept(Visitor &theVisitor);
+        
     private:
         
         Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
