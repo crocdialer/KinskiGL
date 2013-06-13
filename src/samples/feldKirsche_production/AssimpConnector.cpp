@@ -253,6 +253,7 @@ namespace kinski { namespace gl{
         {
             theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
                                                     | aiProcess_GenSmoothNormals
+                                                    | aiProcess_JoinIdenticalVertices
                                                     | aiProcess_CalcTangentSpace);
         }
         if (theScene)
@@ -380,9 +381,6 @@ namespace kinski { namespace gl{
             currentBone->worldtransform = globalTransform;
             currentBone->offset = offset;
             currentBone->parent = parentBone;
-            
-//            if(nodeName =="sword")
-//                LOG_DEBUG<<currentBone->name<<" ("<<boneIndex<<") "<<glm::to_string(globalTransform[3]);
             
             // we have animation keys for this bone
             if(nodeAnim)

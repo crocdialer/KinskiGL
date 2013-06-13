@@ -53,34 +53,5 @@ namespace kinski { namespace gl {
     {
         theVisitor.visit(shared_from_this());
     }
-    
-    Visitor::Visitor()
-    {
-        m_transform_stack.push(glm::mat4());
-    }
-    
-    Visitor::~Visitor()
-    {
-    
-    }
-    
-    void Visitor::visit(const Object3DPtr &theNode)
-    {
-        LOG_DEBUG<<"hello node "<<theNode->getID() <<"-- pos: "<<
-            glm::to_string( (m_transform_stack.top() * theNode->transform())[3]);
-        
-        std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
-        for (; it != theNode->children().end(); ++it)
-        {
-            m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
-            visit(*it);
-            m_transform_stack.pop();
-        }
-    }
-    
-    void Visitor::visit(const MeshPtr &theNode)
-    {
-        
-    }
-    
+
 }}//namespace

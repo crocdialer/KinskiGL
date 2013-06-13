@@ -36,6 +36,8 @@ private:
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
     RangedProperty<float>::Ptr m_world_width;
+    Property_<glm::vec3>::Ptr m_world_pos;
+    
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
@@ -168,6 +170,7 @@ public:
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Desktop/creatures", true);
+        kinski::addSearchPath("~/Desktop/Feldkirsche", true);
         kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
         m_font.load("Courier New Bold.ttf", 24);
@@ -185,6 +188,9 @@ public:
         
         m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
         registerProperty(m_gravity);
+        
+        m_world_pos = Property_<vec3>::create("Level pos", vec3(0));
+        registerProperty(m_world_pos);
         
         m_world_width = RangedProperty<float>::create("World width", 1000, 100, 5000);
         registerProperty(m_world_width);
@@ -353,12 +359,12 @@ public:
         
         if(!e.isShiftDown() && !e.isAltDown())
         {
-            gl::Visitor visitor;
+            //gl::Visitor visitor;
             
             switch (e.getCode())
             {
                 case KeyEvent::KEY_i:
-                    scene().root()->accept(visitor);
+                    //scene().root()->accept(visitor);
                     break;
                     
                 case KeyEvent::KEY_d:
@@ -368,10 +374,6 @@ public:
                     
                 case KeyEvent::KEY_p:
                     *m_stepPhysics = !*m_stepPhysics;
-                    break;
-                    
-                case KeyEvent::KEY_f:
-                    setFullSceen(!fullSceen());
                     break;
 
                 case KeyEvent::KEY_r:
@@ -489,37 +491,18 @@ public:
         }
         else if(theProperty == m_modelPath)
         {
+            scene().removeObject(m_mesh);
+            materials().clear();
+            
             try
             {
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 scene().removeObject(m_mesh);
                 
+                // reset physics scene
                 m_rigid_bodies_num->set(*m_rigid_bodies_num);
                 
-                // scale to proper size
-                float scale = 1.f;//350.f / glm::length(m->geometry()->boundingBox().halfExtents());
-                
-                m_mesh = m;
-                materials().clear();
-                materials().push_back(m->material());
-                m->material()->setShinyness(*m_shinyness);
-                m->material()->setSpecular(glm::vec4(1));
-                m->setPosition(m->position() - vec3(0, m->boundingBox().min.y, 0));
-                scene().addObject(m_mesh);
-                
-                physics::btCollisionShapePtr customShape = physics::createCollisionShape(m->geometry(), vec3(scale));
-                m_physics_context.collisionShapes().push_back(customShape);
-                physics::MotionState *ms = new physics::MotionState(m_mesh);
-                btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
-                btRigidBody* body = new btRigidBody(rbInfo);
-                body->setFriction(2.f);
-                body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-                body->setActivationState(DISABLE_DEACTIVATION);
-                
-                //add the body to the dynamics world
-                m_physics_context.dynamicsWorld()->addRigidBody(body);
-                
-                m_mesh->transform() = glm::scale(m->transform(), vec3(scale));
+                add_mesh(m);
             }
             catch (Exception &e)
             {
@@ -529,8 +512,13 @@ public:
                     //TODO load all models
                     try
                     {
-                        gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
-                        scene().removeObject(m_mesh);
+                        std::list<string> models = kinski::getDirectoryEntries(*m_modelPath, false, "dae");
+                        std::list<string>::const_iterator it = models.begin();
+                        for (; it != models.end(); ++it)
+                        {
+                            add_mesh(gl::AssimpConnector::loadModel(*it));
+                        }
+                        
                     }catch(Exception &e){LOG_ERROR<< e.what();}
                 }
             }
@@ -580,6 +568,36 @@ public:
         LOG_INFO<<"ciao Feldkirsche";
     }
     
+    void add_mesh(const gl::MeshPtr &the_mesh)
+    {
+        // scale to proper size
+        float scale = 7700;//(*m_world_width / 2.f) / glm::length(the_mesh->geometry()->boundingBox().halfExtents());
+        
+        m_mesh = the_mesh;
+        materials().push_back(the_mesh->material());
+        the_mesh->material()->setTwoSided();
+        the_mesh->material()->setShinyness(*m_shinyness);
+        the_mesh->material()->setSpecular(glm::vec4(1));
+        the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
+        the_mesh->position() += m_world_pos->value();
+        
+        scene().addObject(m_mesh);
+        
+        physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh->geometry(),
+                                                                                 vec3(scale));
+        m_physics_context.collisionShapes().push_back(customShape);
+        physics::MotionState *ms = new physics::MotionState(m_mesh);
+        btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
+        btRigidBody* body = new btRigidBody(rbInfo);
+        body->setFriction(2.f);
+        body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        body->setActivationState(DISABLE_DEACTIVATION);
+        
+        //add the body to the dynamics world
+        m_physics_context.dynamicsWorld()->addRigidBody(body);
+        
+        m_mesh->transform() = glm::scale(the_mesh->transform(), vec3(scale));
+    }
 };
 
 int main(int argc, char *argv[])

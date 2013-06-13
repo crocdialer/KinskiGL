@@ -21,25 +21,23 @@ namespace kinski { namespace gl {
         Object3D();
         virtual ~Object3D(){};
         
-        uint32_t getID() const { return m_id; };
-        inline void setPosition(const glm::vec3 &thePos) { m_transform[3].xyz() = thePos; };
-        
-        inline glm::vec3 position() const { return m_transform[3].xyz(); }
-        inline glm::vec3& position() { return *reinterpret_cast<glm::vec3*>(&m_transform[3]);}
-        inline glm::vec3 lookAt() const { return glm::normalize(-m_transform[2].xyz()); }
-        inline glm::vec3 side() const { return glm::normalize(m_transform[0].xyz()); }
-        inline glm::vec3 up() const { return glm::normalize(m_transform[1].xyz()); }
+        uint32_t getID() const {return m_id;};
+        inline void setPosition(const glm::vec3 &thePos) {m_transform[3].xyz() = thePos;};
+        inline glm::vec3 position() const {return m_transform[3].xyz(); }
+        inline glm::vec3& position() {return *reinterpret_cast<glm::vec3*>(&m_transform[3]);}
+        inline glm::vec3 lookAt() const {return glm::normalize(-m_transform[2].xyz());}
+        inline glm::vec3 side() const {return glm::normalize(m_transform[0].xyz());}
+        inline glm::vec3 up() const {return glm::normalize(m_transform[1].xyz());}
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
         glm::quat rotation() const;
-        inline void setTransform(const glm::mat4 &theTrans){ m_transform = theTrans; };
-        inline glm::mat4& transform() { return m_transform; };
-        inline const glm::mat4& transform() const { return m_transform; };
+        inline void setTransform(const glm::mat4 &theTrans) {m_transform = theTrans;}
+        inline glm::mat4& transform() {return m_transform;}
+        inline const glm::mat4& transform() const {return m_transform;};
+        inline void set_parent(const Object3DPtr &the_parent){m_parent = the_parent;}
         inline Object3DPtr parent() const {return m_parent;}
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
-        
-        virtual void update(float time_delta){};
         virtual AABB boundingBox() const;
         
         void accept(Visitor &theVisitor);
@@ -57,10 +55,22 @@ namespace kinski { namespace gl {
     class Visitor
     {
     public:
-        Visitor();
-        virtual ~Visitor();
-        void visit(const gl::Object3DPtr &theNode);
-        void visit(const gl::MeshPtr &theNode);
+        Visitor()
+        {
+            m_transform_stack.push(glm::mat4());
+        }
+        
+        virtual void visit(const Object3DPtr &theNode)
+        {
+            std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
+            for (; it != theNode->children().end(); ++it)
+            {
+                m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
+                visit(*it);
+                m_transform_stack.pop();
+            }
+        }
+        virtual void visit(const gl::MeshPtr &theNode) = 0;
         
     private:
         std::stack<glm::mat4> m_transform_stack;

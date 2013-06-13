@@ -138,6 +138,8 @@ namespace kinski
     
     void GLFW_App::setFullSceen(bool b)
     {
+        throw Exception("not yet supported");
+        
         App::setFullSceen(b);
         
         if(running())
@@ -151,7 +153,7 @@ namespace kinski
             glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
             
             // Open an OpenGL window
-            if( !glfwOpenWindow( getWidth(), getHeight(), 0, 0, 0, 0, 24, 0,
+            if( !glfwOpenWindow( 1280, 800, 0, 0, 0, 0, 24, 0,
                                 fullSceen() ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
             {
                 glfwTerminate();

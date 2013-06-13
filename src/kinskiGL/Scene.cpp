@@ -29,7 +29,10 @@ namespace kinski { namespace gl {
     class UpdateVisitor : public Visitor
     {
     public:
-        
+        UpdateVisitor(float time_step):Visitor(), m_time_step(time_step){};
+        void visit(const MeshPtr &theNode){theNode->update(m_time_step);};
+    private:
+        float m_time_step;
     };
     
     Scene::Scene():
@@ -55,11 +58,8 @@ namespace kinski { namespace gl {
     
     void Scene::update(float time_delta)
     {
-        list<Object3DPtr>::iterator objIt = m_root->children().begin();
-        for (; objIt != m_root->children().end(); objIt++)
-        {
-            (*objIt)->update(time_delta);
-        }
+        UpdateVisitor uv(time_delta);
+        m_root->accept(uv);
     }
     
     RenderBinPtr Scene::cull(const CameraPtr &theCamera) const
