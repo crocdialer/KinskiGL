@@ -82,9 +82,9 @@ using namespace std;
 
 namespace kinski{ namespace physics{
     
-    btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom, const glm::vec3 &the_scale)
+    btCollisionShapePtr createCollisionShape(const gl::MeshPtr &the_mesh, const glm::vec3 &the_scale)
     {
-        btStridingMeshInterface *striding_mesh = new physics::Geometry(geom);
+        btStridingMeshInterface *striding_mesh = new physics::Mesh(the_mesh);
         striding_mesh->setScaling(type_cast(the_scale));
         return physics::btCollisionShapePtr(new btBvhTriangleMeshShape(striding_mesh, false));
     }
@@ -214,14 +214,14 @@ namespace kinski{ namespace physics{
     }
 /********************** BulletGeometry (btStridingMeshInterface implementation) *******************/
     
-    Geometry::Geometry(const gl::GeometryPtr &the_geom):
+    Mesh::Mesh(const gl::MeshPtr &the_mesh):
     btStridingMeshInterface(),
-    m_geometry(the_geom)
+    m_mesh(the_mesh)
     {
-        if(!the_geom) throw Exception("tried to init a BulletGeometry from NULL pointer");
+        if(!the_mesh) throw Exception("tried to init a physics::Mesh from empty gl::Mesh");
     }
     
-    void Geometry::getLockedVertexIndexBase(unsigned char **vertexbase,
+    void Mesh::getLockedVertexIndexBase(unsigned char **vertexbase,
                                                   int& numverts,
                                                   PHY_ScalarType& type,
                                                   int& stride,
@@ -231,17 +231,19 @@ namespace kinski{ namespace physics{
                                                   PHY_ScalarType& indicestype,
                                                   int subpart)
     {
-        vertexbase[subpart] = reinterpret_cast<unsigned char*>(&m_geometry->vertices()[0]);
-        numverts = m_geometry->vertices().size();
+        gl::GeometryPtr &geom = m_mesh->geometry();
+        gl::Mesh::Entry& e = m_mesh->entries()[subpart];
+        *vertexbase = reinterpret_cast<unsigned char*>(&geom->vertices()[e.base_vertex]);
+        numverts = e.num_vertices;
         type = PHY_FLOAT;
-        stride = sizeof(m_geometry->vertices()[0]);
-        indexbase[subpart] = reinterpret_cast<unsigned char*>(&m_geometry->indices()[0]);
-        indexstride = 3 * sizeof(m_geometry->indices()[0]);
-        numfaces = m_geometry->faces().size();
+        stride = sizeof(geom->vertices()[0]);
+        *indexbase = reinterpret_cast<unsigned char*>(&geom->indices()[e.base_index]);
+        indexstride = 3 * sizeof(geom->indices()[0]);
+        numfaces = e.numdices / 3;
         indicestype = PHY_INTEGER;
     }
     
-    void Geometry::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
+    void Mesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
                                                           int& numverts,
                                                           PHY_ScalarType& type,
                                                           int& stride,
@@ -251,24 +253,26 @@ namespace kinski{ namespace physics{
                                                           PHY_ScalarType& indicestype,
                                                           int subpart) const
     {
-        vertexbase[subpart] = reinterpret_cast<const unsigned char*>(&m_geometry->vertices()[0]);
-        numverts = m_geometry->vertices().size();
+        gl::GeometryPtr &geom = m_mesh->geometry();
+        gl::Mesh::Entry& e = m_mesh->entries()[subpart];
+        *vertexbase = reinterpret_cast<const unsigned char*>(&geom->vertices()[e.base_vertex]);
+        numverts = e.num_vertices;
         type = PHY_FLOAT;
-        stride = sizeof(m_geometry->vertices()[0]);
-        indexbase[subpart] = reinterpret_cast<const unsigned char*>(&m_geometry->indices()[0]);
-        indexstride = 3 * sizeof(m_geometry->indices()[0]);
-        numfaces = m_geometry->faces().size();
+        stride = sizeof(geom->vertices()[0]);
+        *indexbase = reinterpret_cast<const unsigned char*>(&geom->indices()[e.base_index]);
+        indexstride = 3 * sizeof(geom->indices()[0]);
+        numfaces = e.numdices / 3;
         indicestype = PHY_INTEGER;
     }
     
     /// unLockVertexBase finishes the access to a subpart of the triangle mesh
     /// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
-    void Geometry::unLockVertexBase(int subpart)
+    void Mesh::unLockVertexBase(int subpart)
     {
     
     }
     
-    void Geometry::unLockReadOnlyVertexBase(int subpart) const
+    void Mesh::unLockReadOnlyVertexBase(int subpart) const
     {
     
     }
@@ -276,19 +280,19 @@ namespace kinski{ namespace physics{
     
     /// getNumSubParts returns the number of seperate subparts
     /// each subpart has a continuous array of vertices and indices
-    int Geometry::getNumSubParts() const
+    int Mesh::getNumSubParts() const
     {
-        return 1;
+        return m_mesh->entries().size();
     }
     
-    void Geometry::preallocateVertices(int numverts)
+    void Mesh::preallocateVertices(int numverts)
     {
-        m_geometry->vertices().resize(numverts);
+        m_mesh->geometry()->vertices().resize(numverts);
     }
     
-    void Geometry::preallocateIndices(int numindices)
+    void Mesh::preallocateIndices(int numindices)
     {
-        m_geometry->indices().resize(numindices);
+        m_mesh->geometry()->indices().resize(numindices);
     }
     
 /**************************************************************************************************/

@@ -576,7 +576,6 @@ public:
         
         m_mesh = the_mesh;
         materials().push_back(the_mesh->material());
-        the_mesh->material()->setTwoSided();
         the_mesh->material()->setShinyness(*m_shinyness);
         the_mesh->material()->setSpecular(glm::vec4(1));
         the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
@@ -584,7 +583,7 @@ public:
         
         scene().addObject(m_mesh);
         
-        physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh->geometry(),
+        physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh,
                                                                                  vec3(scale));
         m_physics_context.collisionShapes().push_back(customShape);
         physics::MotionState *ms = new physics::MotionState(m_mesh);

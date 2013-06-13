@@ -252,6 +252,7 @@ namespace kinski { namespace gl{
         if(true)
         {
             theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
+                                                    | aiProcess_JoinIdenticalVertices
                                                     | aiProcess_GenSmoothNormals
                                                     | aiProcess_CalcTangentSpace);
         }
@@ -265,12 +266,14 @@ namespace kinski { namespace gl{
             WeightMap weightmap;
             std::vector<Mesh::Entry> entries;
             
+            // merge all meshes together
             for (int i = 0; i < theScene->mNumMeshes; i++)
             {
                 aiMesh *aMesh = theScene->mMeshes[i];
                 GeometryPtr g = createGeometry(aMesh, theScene);
                 loadBones(aMesh, current_vertex, bonemap, weightmap);
                 Mesh::Entry m;
+                m.num_vertices = g->vertices().size();
                 m.numdices = g->indices().size();
                 m.base_index = current_index;
                 m.base_vertex = current_vertex;

@@ -26,7 +26,7 @@ namespace kinski{ namespace physics{
     KINSKI_API btTransform type_cast(const glm::mat4 &the_transform);
     KINSKI_API glm::vec3 type_cast(const btVector3 &the_vec);
     KINSKI_API glm::mat4 type_cast(const btTransform &the_transform);
-    KINSKI_API btCollisionShapePtr createCollisionShape(const gl::GeometryPtr &geom,
+    KINSKI_API btCollisionShapePtr createCollisionShape(const gl::MeshPtr &the_mesh,
                                                         const glm::vec3 &the_scale = glm::vec3(1));
     
     class BulletDebugDrawer : public btIDebugDraw
@@ -109,10 +109,10 @@ namespace kinski{ namespace physics{
         }
     };
     
-    class Geometry : public btStridingMeshInterface
+    class Mesh : public btStridingMeshInterface
     {
     public:
-        Geometry(const gl::GeometryPtr &the_geom);
+        Mesh(const gl::MeshPtr &the_mesh);
         
         /// get read and write access to a subpart of a triangle mesh
 		/// this subpart has a continuous array of vertices and indices
@@ -151,7 +151,7 @@ namespace kinski{ namespace physics{
         
     private:
         
-        gl::GeometryPtr m_geometry;
+        gl::MeshPtr m_mesh;
     };
 
     class physics_context

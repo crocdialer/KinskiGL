@@ -72,7 +72,6 @@ namespace kinski { namespace gl {
     class Shader;
     class Fbo;
     class Font;
-    class Scene;
     class Visitor;
     struct Ray;
     struct AABB;
@@ -87,6 +86,7 @@ namespace kinski { namespace gl {
     typedef std::shared_ptr<class Object3D> Object3DPtr;
     typedef std::shared_ptr<class Mesh> MeshPtr;
     typedef std::weak_ptr<const Mesh> MeshWeakPtr;
+    typedef std::shared_ptr<class Scene> ScenePtr;
     typedef std::shared_ptr<class Camera> CameraPtr;
     typedef std::shared_ptr<struct Bone> BonePtr;
     typedef std::shared_ptr<struct Animation> AnimationPtr;

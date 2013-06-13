@@ -31,9 +31,15 @@ namespace kinski { namespace gl {
     public:
         UpdateVisitor(float time_step):Visitor(), m_time_step(time_step){};
 
+        void visit(Object3D &theNode)
+        {
+            Visitor::visit(theNode);
+        }
+        
         void visit(Mesh &theNode)
         {
             theNode.update(m_time_step);
+            visit(static_cast<gl::Object3D&>(theNode));
         };
     private:
         float m_time_step;

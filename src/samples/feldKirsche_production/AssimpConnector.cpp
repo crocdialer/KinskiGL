@@ -272,6 +272,7 @@ namespace kinski { namespace gl{
                 GeometryPtr g = createGeometry(aMesh, theScene);
                 loadBones(aMesh, current_vertex, bonemap, weightmap);
                 Mesh::Entry m;
+                m.num_vertices = g->vertices().size();
                 m.numdices = g->indices().size();
                 m.base_index = current_index;
                 m.base_vertex = current_vertex;

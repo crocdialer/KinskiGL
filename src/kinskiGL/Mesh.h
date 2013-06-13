@@ -59,6 +59,7 @@ namespace kinski { namespace gl {
         {
             Entry():numdices(0), base_vertex(0), base_index(0), material_index(-1){}
             uint32_t numdices;
+            uint32_t num_vertices;
             uint32_t base_vertex;
             uint32_t base_index;
             int material_index;

@@ -32,7 +32,7 @@ namespace kinski{
         void set_num_threads(int num);
         int get_num_threads();
         
-        template<class F> void submit(const F &task){m_io_service->post(task);}
+        template<class F> inline void submit(const F &task){m_io_service->post(task);}
         
     private:
         std::shared_ptr<boost::asio::io_service> m_io_service;
