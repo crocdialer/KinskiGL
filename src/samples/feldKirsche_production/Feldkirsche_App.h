@@ -32,13 +32,14 @@ private:
     gl::MeshPtr m_mesh;
     gl::Font m_font;
     
-    Property_<bool>::Ptr m_stepPhysics;
     Property_<std::string>::Ptr m_modelPath;
     Property_<float>::Ptr m_modelScale;
+    Property_<glm::vec3>::Ptr m_modelOffset;
     Property_<glm::vec4>::Ptr m_color;
     Property_<float>::Ptr m_shinyness;
     
     // physics
+    Property_<bool>::Ptr m_stepPhysics;
     kinski::physics::physics_context m_physics_context;
     std::shared_ptr<kinski::physics::BulletDebugDrawer> m_debugDrawer;
     btRigidBody *m_ground_body, *m_left_body, *m_right_body;
@@ -46,7 +47,6 @@ private:
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
     RangedProperty<float>::Ptr m_world_width;
-    Property_<glm::vec3>::Ptr m_world_pos;
     
     
     // offscreen rendering

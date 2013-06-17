@@ -33,7 +33,7 @@ private:
     Property_<glm::vec4>::Ptr m_color;
     
     kinski::physics::physics_context m_physics_context;
-    std::shared_ptr<kinski::gl::BulletDebugDrawer> m_debugDrawer;
+    std::shared_ptr<kinski::physics::BulletDebugDrawer> m_debugDrawer;
     
     gl::Renderer m_renderer;
     gl::Font m_font;
@@ -57,7 +57,7 @@ public:
     
     void create_cube_stack(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
-        scene().objects().clear();
+        scene().clear();
         m_physics_context.collisionShapes().clear();
         
         float scaling = 8.0f;
@@ -93,7 +93,7 @@ public:
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-            gl::MotionState* myMotionState = new gl::MotionState(groundShape);
+            kinski::physics::MotionState* myMotionState = new kinski::physics::MotionState(groundShape);
             btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,
                                                             myMotionState,
                                                             m_physics_context.collisionShapes().back().get(),
@@ -148,7 +148,7 @@ public:
                         mesh->setTransform(glm::make_mat4(mat));
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-                        gl::MotionState* myMotionState = new gl::MotionState(mesh);
+                        physics::MotionState* myMotionState = new physics::MotionState(mesh);
                         
                         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,
                                                                         m_physics_context.collisionShapes().back().get(),
@@ -217,7 +217,7 @@ public:
         
         // init physics pipeline
         m_physics_context.initPhysics();
-        m_debugDrawer = shared_ptr<gl::BulletDebugDrawer>(new gl::BulletDebugDrawer);
+        m_debugDrawer = shared_ptr<physics::BulletDebugDrawer>(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
         // create a physics scene

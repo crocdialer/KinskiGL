@@ -40,18 +40,19 @@ namespace kinski{ namespace gl{
         KINSKI_CHECK_GL_ERRORS();
         glm::mat4 viewMatrix = cam->getViewMatrix();
         
-        map<pair<GeometryPtr, MaterialPtr>, list<MeshPtr> > meshMap;
+        typedef map<pair<GeometryPtr, MaterialPtr>, list<Mesh*> > MeshMap;
+        MeshMap meshMap;
         list<RenderBin::item>::const_iterator item_it = item_list.begin();
         for (; item_it != item_list.end(); ++item_it)
         {
-            const MeshPtr &m = item_it->mesh;
+            Mesh *m = item_it->mesh;
             meshMap[std::make_pair(m->geometry(), m->material())].push_back(m);
         }
-        map<pair<GeometryPtr, MaterialPtr>, list<MeshPtr> >::const_iterator it = meshMap.begin();
+        MeshMap::iterator it = meshMap.begin();
         for (; it != meshMap.end(); ++it)
         {
-            const list<Mesh::Ptr>& meshList = it->second;
-            MeshPtr m = meshList.front();
+            const list<Mesh*>& meshList = it->second;
+            Mesh *m = meshList.front();
             
             if(m->geometry()->hasBones())
             {
@@ -76,7 +77,7 @@ namespace kinski{ namespace gl{
             m->bindVertexPointers();
 #endif
             KINSKI_CHECK_GL_ERRORS();
-            list<Mesh::Ptr>::const_iterator transformIt = meshList.begin();
+            list<Mesh*>::const_iterator transformIt = meshList.begin();
             for (; transformIt != meshList.end(); ++transformIt)
             {
                 m = *transformIt;

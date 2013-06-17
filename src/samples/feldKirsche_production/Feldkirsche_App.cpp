@@ -52,9 +52,6 @@ namespace kinski{
         m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
         registerProperty(m_gravity);
         
-        m_world_pos = Property_<vec3>::create("Level pos", vec3(0));
-        registerProperty(m_world_pos);
-        
         m_world_width = RangedProperty<float>::create("World width", 1000, 100, 5000);
         registerProperty(m_world_width);
         
@@ -63,6 +60,9 @@ namespace kinski{
         
         m_modelScale = Property_<float>::create("Model scale", 1.f);
         registerProperty(m_modelScale);
+        
+        m_modelOffset = Property_<vec3>::create("Model Offset", vec3(0));
+        registerProperty(m_modelOffset);
         
         m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
@@ -356,7 +356,8 @@ namespace kinski{
         {
             if(m_mesh) m_mesh->material()->setShinyness(*m_shinyness);
         }
-        else if(theProperty == m_modelPath || theProperty == m_modelScale)
+        else if(theProperty == m_modelPath || theProperty == m_modelScale ||
+                theProperty == m_modelOffset)
         {
             scene().removeObject(m_mesh);
             materials().clear();
@@ -445,7 +446,7 @@ namespace kinski{
         the_mesh->material()->setShinyness(*m_shinyness);
         the_mesh->material()->setSpecular(glm::vec4(1));
         the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
-        //the_mesh->position() += m_world_pos->value();
+        the_mesh->position() += m_modelOffset->value();
         
         scene().addObject(m_mesh);
         
@@ -535,11 +536,11 @@ namespace kinski{
             float start_y = start_pox_y;
             float start_z = start_pox_z - size_z/2;
             
-            for (int k=0;k<size_y;k++)
+            for (int k = 0; k < size_y; k++)
             {
-                for (int i=0;i<size_x;i++)
+                for (int i = 0; i < size_x; i++)
                 {
-                    for(int j = 0;j<size_z;j++)
+                    for(int j = 0; j < size_z; j++)
                     {
                         startTransform.setOrigin(scaling * btVector3(btScalar(2.0*i + start_x),
                                                                      btScalar(20+2.0*k + start_y),

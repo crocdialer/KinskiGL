@@ -14,7 +14,7 @@
 
 namespace kinski { namespace gl {
 
-    class KINSKI_API Object3D : public std::enable_shared_from_this<Object3D>
+    class KINSKI_API Object3D
     {
     public:
         
@@ -47,7 +47,6 @@ namespace kinski { namespace gl {
         static uint32_t s_idPool;
         uint32_t m_id;
         glm::mat4 m_transform;
-        
         Object3DPtr m_parent;
         std::list<Object3DPtr> m_children;
     };
@@ -60,17 +59,20 @@ namespace kinski { namespace gl {
             m_transform_stack.push(glm::mat4());
         }
         
-        virtual void visit(Object3D &theNode)
+        inline const std::stack<glm::mat4>& transform_stack() const {return m_transform_stack;};
+        inline std::stack<glm::mat4>& transform_stack() {return m_transform_stack;};
+        
+        virtual void visit(Object3D *theNode)
         {
-            std::list<Object3DPtr>::const_iterator it = theNode.children().begin();
-            for (; it != theNode.children().end(); ++it)
+            std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
+            for (; it != theNode->children().end(); ++it)
             {
                 m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
                 (*it)->accept(*this);
                 m_transform_stack.pop();
             }
         }
-        virtual void visit(gl::Mesh &theNode) = 0;
+        virtual void visit(gl::Mesh *theNode) = 0;
         
     private:
         std::stack<glm::mat4> m_transform_stack;

@@ -19,7 +19,7 @@ namespace kinski{ namespace gl{
         struct item
         {
             //! the items mesh
-            gl::MeshPtr mesh;
+            gl::Mesh *mesh;
             //! the items transform in eye-coords
             glm::mat4 transform;
         };

@@ -41,7 +41,7 @@ SET(LIBS ${LIBS} "kinskiApp")
 endif(BUILD_APPLIB)
 
 ADD_SUBDIRECTORY("kinskiCV")
-#SET(LIBS ${LIBS} "kinskiCV")
+SET(LIBS ${LIBS} "kinskiCV")
 
 if(BUILD_SAMPLES)
     if(KINSKI_RASPI)

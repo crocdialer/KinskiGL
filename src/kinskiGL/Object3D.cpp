@@ -51,7 +51,7 @@ namespace kinski { namespace gl {
     
     void Object3D::accept(Visitor &theVisitor)
     {
-        theVisitor.visit(*this);
+        theVisitor.visit(this);
     }
 
 }}//namespace

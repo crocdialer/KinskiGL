@@ -31,18 +31,52 @@ namespace kinski { namespace gl {
     public:
         UpdateVisitor(float time_step):Visitor(), m_time_step(time_step){};
 
-        void visit(Object3D &theNode)
+        void visit(Object3D *theNode)
         {
             Visitor::visit(theNode);
         }
         
-        void visit(Mesh &theNode)
+        void visit(Mesh *theNode)
         {
-            theNode.update(m_time_step);
-            visit(static_cast<gl::Object3D&>(theNode));
+            theNode->update(m_time_step);
+            visit(static_cast<gl::Object3D*>(theNode));
         };
     private:
         float m_time_step;
+    };
+    
+    class CullVisitor : public Visitor
+    {
+    public:
+        CullVisitor(const CameraPtr &theCamera):Visitor(), m_frustum(theCamera->frustum()),
+        m_render_bin(new gl::RenderBin(theCamera))
+        {
+            transform_stack().push(theCamera->getViewMatrix());
+        }
+        
+        RenderBinPtr get_render_bin() const {return m_render_bin;}
+        
+        void visit(Mesh *theNode)
+        {
+            gl::AABB boundingBox = theNode->geometry()->boundingBox();
+            //gl::Sphere s(theNode.position(), glm::length(boundingBox.halfExtents()));
+            boundingBox.transform(theNode->transform());
+                    
+            if (m_frustum.intersect(boundingBox))
+            {
+                RenderBin::item item;
+                item.mesh = theNode;
+                item.transform = transform_stack().top() * theNode->transform();
+                m_render_bin->items.push_back(item);
+            }
+    
+            // super class provides node traversing and transform accumulation
+            Visitor::visit(static_cast<gl::Object3D*>(theNode));
+        }
+        
+    private:
+        gl::Frustum m_frustum;
+        RenderBinPtr m_render_bin;
     };
     
     Scene::Scene():
@@ -74,28 +108,9 @@ namespace kinski { namespace gl {
     
     RenderBinPtr Scene::cull(const CameraPtr &theCamera) const
     {
-        RenderBinPtr ret(new RenderBin(theCamera));
-        glm::mat4 viewMatrix = theCamera->getViewMatrix();
-        gl::Frustum frustum = theCamera->frustum();
-        
-        list<Object3DPtr>::const_iterator objIt = m_root->children().begin();
-        for (; objIt != m_root->children().end(); objIt++)
-        {
-            if(const MeshPtr &theMesh = dynamic_pointer_cast<Mesh>(*objIt))
-            {
-                gl::AABB boundingBox = theMesh->geometry()->boundingBox();
-                //gl::Sphere s(theMesh->position(), glm::length(boundingBox.halfExtents()));
-                boundingBox.transform(theMesh->transform());
-                
-                if (frustum.intersect(boundingBox))
-                {
-                    RenderBin::item item;
-                    item.mesh = theMesh;
-                    item.transform = viewMatrix * theMesh->transform();
-                    ret->items.push_back(item);
-                }
-            }
-        }
+        CullVisitor cull_visitor(theCamera);
+        m_root->accept(cull_visitor);
+        RenderBinPtr ret = cull_visitor.get_render_bin();
         m_num_visible_objects = ret->items.size();
         return ret;
     }
