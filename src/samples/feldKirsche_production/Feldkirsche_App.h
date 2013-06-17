@@ -21,6 +21,9 @@
 // Syphon
 #include "SyphonConnector.h"
 
+// OpenNI
+#include "OpenNIConnector.h"
+
 namespace kinski{
     
 class Feldkirsche_App : public ViewerApp
@@ -48,11 +51,9 @@ private:
     Property_<glm::vec3>::Ptr m_gravity;
     RangedProperty<float>::Ptr m_world_width;
     
-    
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
     RangedProperty<int>::Ptr m_debug_draw_mode;
-    gl::Scene m_debug_scene;
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::MeshPtr m_free_camera_mesh;
     gl::Fbo m_fbo;
@@ -65,6 +66,20 @@ private:
     Property_<bool>::Ptr m_use_syphon;
     Property_<std::string>::Ptr m_syphon_server_name;
     
+    // OpenNI interface / user interaction
+    gl::OpenNIConnector::Ptr m_open_ni;
+    gl::OpenNIConnector::UserList m_user_list;
+    gl::MeshPtr m_depth_cam_mesh, m_user_mesh, m_user_radius_mesh;
+    std::vector<gl::Color> m_user_id_colors;
+    gl::PerspectiveCamera::Ptr m_depth_cam;
+    RangedProperty<float>::Ptr m_depth_cam_x, m_depth_cam_y, m_depth_cam_z;
+    Property_<glm::vec3>::Ptr m_depth_cam_look_dir;
+    RangedProperty<float>::Ptr m_depth_cam_scale;
+    RangedProperty<float>::Ptr m_min_interaction_distance, m_user_offset;
+    
+    // contains debug-view objects
+    gl::Scene m_debug_scene;
+    
 public:
     
     void setup();
@@ -76,11 +91,21 @@ public:
     void keyPress(const KeyEvent &e);
     void keyRelease(const KeyEvent &e);
     
-    // Property observer callback
+    //! Property observer callback
     void updateProperty(const Property::ConstPtr &theProperty);
     
+    //! add a mesh to our scene and physics-world
     void add_mesh(const gl::MeshPtr &the_mesh, float scale = 1.f);
+    
+    //! reset scene and create a stack of rigidbodys
     void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat);
+    
+    //! bring depth-cam-relative positions to world-coords using a virtual camera
+    void adjust_user_positions_with_camera(gl::OpenNIConnector::UserList &user_list,
+                                           const gl::CameraPtr &cam);
+    
+    //! draws a list of Users as bounding spheres
+    void draw_user_meshes(const gl::OpenNIConnector::UserList &user_list);
 };
 }//namespace
 

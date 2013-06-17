@@ -74,6 +74,8 @@ namespace kinski { namespace gl {
             Visitor::visit(static_cast<gl::Object3D*>(theNode));
         }
         
+        void clear(){m_render_bin->items.clear();}
+        
     private:
         gl::Frustum m_frustum;
         RenderBinPtr m_render_bin;

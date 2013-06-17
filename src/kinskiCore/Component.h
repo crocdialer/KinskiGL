@@ -33,9 +33,7 @@ namespace kinski
 
         virtual void updateProperty(const Property::ConstPtr &theProperty){};
         void observeProperties(bool b = true);
-        
-    protected:        
-        
+        void observeProperties(const std::list<Property::Ptr>& theProps,  bool b = true);
         void registerProperty(Property::Ptr theProperty);
 
     private:

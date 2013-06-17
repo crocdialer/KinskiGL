@@ -34,7 +34,6 @@ namespace kinski{
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Desktop/creatures", true);
         kinski::addSearchPath("~/Desktop/Feldkirsche", true);
-        kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
         m_font.load("Courier New Bold.ttf", 24);
         
@@ -89,13 +88,55 @@ namespace kinski{
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
+        /////////////////////////////////// setup OpenNI interface /////////////////////////////////
+        
+        // OpenNI
+        m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
+        
+        // copy user colors
+        m_user_id_colors = m_open_ni->user_colors();
+        
+        m_depth_cam_x = RangedProperty<float>::create("Depth_cam X", 0, -10000, 10000);
+        m_open_ni->registerProperty(m_depth_cam_x);
+        
+        m_depth_cam_y = RangedProperty<float>::create("Depth_cam Y", 0, -10000, 10000);
+        m_open_ni->registerProperty(m_depth_cam_y);
+        
+        m_depth_cam_z = RangedProperty<float>::create("Depth_cam Z", 0, -10000, 10000);
+        m_open_ni->registerProperty(m_depth_cam_z);
+        
+        m_depth_cam_look_dir = Property_<vec3>::create("Depth_cam look dir", vec3(0, 0, -1));
+        m_open_ni->registerProperty(m_depth_cam_look_dir);
+        
+        m_depth_cam_scale = RangedProperty<float>::create("Depth_cam scale", 1.f, .1f, 10.f);
+        m_open_ni->registerProperty(m_depth_cam_scale);
+        
+        m_user_offset = RangedProperty<float>::create("User offset", 0.f, 0.f, 1000.f);
+        m_open_ni->registerProperty(m_user_offset);
+        
+        m_min_interaction_distance = RangedProperty<float>::create("Min interaction distance",
+                                                                   1200.f, 1, 2500);
+        m_open_ni->registerProperty(m_min_interaction_distance);
+        
+        m_open_ni->observeProperties();
+        create_tweakbar_from_component(m_open_ni);
+        
+        // add our app as open_ni observer
+        observeProperties(m_open_ni->getPropertyList());
+        
         /********************** construct a simple scene ***********************/
         camera()->setClippingPlanes(1.0, 15000);
         
+        // the FBO camera
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, 45.f));
         
+        // the virtual camera used to position depth camera input within the scene
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
+        
         // setup some blank textures
-        m_textures.resize(1);
+//        m_textures.push_back(gl::Texture());
+//        m_textures.push_back(gl::Texture());
+        m_textures.resize(2);
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -111,6 +152,7 @@ namespace kinski{
         try
         {
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
         }catch(Exception &e)
         {
             LOG_WARNING << e.what();
@@ -121,12 +163,24 @@ namespace kinski{
     {
         ViewerApp::update(timeDelta);
         
+        // update physics
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
             //m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
             auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
             //io_service().post(task);
             thread_pool().submit(task);
+        }
+        
+        // update OpenNI
+        if(m_open_ni->has_new_frame())
+        {
+            // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
+            m_user_list = m_open_ni->get_user_positions();
+            adjust_user_positions_with_camera(m_user_list, m_depth_cam);
+            
+            // get the depth+userID texture
+            m_textures[1] = m_open_ni->get_depth_texture();
         }
         
         if(m_material)
@@ -159,11 +213,13 @@ namespace kinski{
                     gl::setMatrices(camera());
                     if(draw_grid()){gl::drawGrid(500, 500, 20, 20);}
                     //if(wireframe())
-                {
-                    m_physics_context.dynamicsWorld()->debugDrawWorld();
-                    m_debugDrawer->flush();
+                    {
+                        m_physics_context.dynamicsWorld()->debugDrawWorld();
+                        m_debugDrawer->flush();
+                        m_debug_scene.render(camera());
+                    }
                     m_debug_scene.render(camera());
-                }
+                    draw_user_meshes(m_user_list);
                     break;
                     
                 case DRAW_FBO_OUTPUT:
@@ -244,9 +300,14 @@ namespace kinski{
                     break;
                     
                 case KeyEvent::KEY_r:
+                    Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
                     m_rigid_bodies_num->set(*m_rigid_bodies_num);
                     break;
                     
+                case KeyEvent::KEY_s:
+                    Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
+                    break;
+
                 case GLFW_KEY_UP:
                     LOG_DEBUG<<"TILT UP";
                     m_ground_body->getWorldTransform().setOrigin(btVector3(0, 50, 0));
@@ -429,10 +490,25 @@ namespace kinski{
             try{m_syphon.setName(*m_syphon_server_name);}
             catch(gl::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
         }
+        else if(theProperty == m_depth_cam_x || theProperty == m_depth_cam_y ||
+                theProperty == m_depth_cam_z || theProperty == m_depth_cam_look_dir ||
+                theProperty == m_depth_cam_scale)
+        {
+            m_depth_cam->setPosition(vec3(m_depth_cam_x->value(), m_depth_cam_y->value(), m_depth_cam_z->value()));
+            m_depth_cam->setLookAt(m_depth_cam->position() + m_depth_cam_look_dir->value() );
+            m_depth_cam->setTransform(glm::scale(m_depth_cam->transform(), vec3(*m_depth_cam_scale)));
+            
+            m_debug_scene.removeObject(m_depth_cam_mesh);
+            m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
+            m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
+            m_debug_scene.addObject(m_depth_cam_mesh);
+        }
     }
     
     void Feldkirsche_App::tearDown()
     {
+        LOG_DEBUG<<"waiting for OpenNI to shut down";
+        m_open_ni->stop();
         LOG_INFO<<"ciao Feldkirsche";
     }
     
@@ -567,7 +643,51 @@ namespace kinski{
                 }
             }
         }
-        LOG_INFO<<"created dynamicsworld with "<<
+        LOG_DEBUG<<"created dynamicsworld with "<<
         m_physics_context.dynamicsWorld()->getNumCollisionObjects()<<" rigidbodies";
+    }
+    
+    //! bring positions to world-coords using a virtual camera
+    void Feldkirsche_App::adjust_user_positions_with_camera(gl::OpenNIConnector::UserList &user_list,
+                                                            const gl::CameraPtr &cam)
+    {
+        gl::OpenNIConnector::UserList::iterator it = user_list.begin();
+        for(;it != user_list.end();++it)
+        {
+            vec4 flipped_pos (it->position, 1.f);flipped_pos.z *= - 1.0f;
+            it->position = (cam->transform() * flipped_pos).xyz();
+        }
+    }
+    
+    void Feldkirsche_App::draw_user_meshes(const gl::OpenNIConnector::UserList &user_list)
+    {
+        if(!m_user_mesh)
+        {
+            m_user_mesh = gl::Mesh::create(gl::createSphere(1.f, 32), gl::Material::create());
+            m_user_mesh->transform() *= glm::scale(glm::mat4(), glm::vec3(100));
+            m_user_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
+        }
+        if(!m_user_radius_mesh)
+        {
+            m_user_radius_mesh = gl::Mesh::create(gl::createUnitCircle(64), gl::Material::create());
+            m_user_radius_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
+        }
+        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
+        gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
+        for (; it != user_list.end(); ++it)
+        {
+            m_user_mesh->setPosition(it->position);
+            //m_user_mesh->transform()[3].y = 5;
+            m_user_mesh->material()->setDiffuse(m_user_id_colors[it->id]);
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
+            gl::drawMesh(m_user_mesh);
+            
+            m_user_radius_mesh->setPosition(it->position - vec3(0, 0, 1) * m_user_offset->value());
+            m_user_radius_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() *
+                           m_user_radius_mesh->transform() * glm::scale(glm::mat4(),
+                                                                        glm::vec3(*m_min_interaction_distance)));
+            gl::drawMesh(m_user_radius_mesh);
+        }
     }
 }

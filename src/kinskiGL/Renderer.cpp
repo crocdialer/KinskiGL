@@ -96,7 +96,6 @@ namespace kinski{ namespace gl{
                     {
                         for (int i = 0; i < m->entries().size(); i++)
                         {
-                            //if(!m->materials()[i]->textures().empty())
                             apply_material(m->materials()[i]);
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),

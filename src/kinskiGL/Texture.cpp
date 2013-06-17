@@ -370,7 +370,10 @@ void Texture::set_anisotropic_filter(float f)
     
 bool Texture::hasAlpha() const
 {
-	switch( m_Obj->m_InternalFormat ) {
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+    
+	switch( m_Obj->m_InternalFormat )
+    {
 #if ! defined( KINSKI_GLES )
 		case GL_RGBA8:
 		case GL_RGBA16:
@@ -407,8 +410,10 @@ float Texture::getBottom() const
 
 GLint Texture::getInternalFormat() const
 {
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
 #if ! defined( KINSKI_GLES )
-	if( m_Obj->m_InternalFormat == -1 ) {
+	if( m_Obj->m_InternalFormat == -1 )
+    {
 		bind();
 		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_Obj->m_InternalFormat );
 	}
@@ -419,6 +424,7 @@ GLint Texture::getInternalFormat() const
 
 GLint Texture::getWidth() const
 {
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
 #if ! defined( KINSKI_GLES )
 	if( m_Obj->m_Width == -1 )
     {
@@ -432,6 +438,7 @@ GLint Texture::getWidth() const
 
 GLint Texture::getHeight() const
 {
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
 #if ! defined( KINSKI_GLES )
 	if( m_Obj->m_Height == -1 )
     {
@@ -444,10 +451,8 @@ GLint Texture::getHeight() const
 
 void Texture::bind( GLuint textureUnit ) const
 {
-    if(!m_Obj) return;//throw TextureDataExc("Tried to bind uninitialized texture ...");
-    
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     m_Obj->m_boundTextureUnit = textureUnit;
-    
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
 	glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
 	glActiveTexture( GL_TEXTURE0 );
@@ -455,8 +460,7 @@ void Texture::bind( GLuint textureUnit ) const
 
 void Texture::unbind( GLuint textureUnit ) const
 {
-    if(!m_Obj) return;//throw TextureDataExc("Tried to unbind uninitialized texture ...");
-    
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     m_Obj->m_boundTextureUnit = -1;
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
 	glBindTexture( m_Obj->m_Target, 0 );
