@@ -17,8 +17,8 @@ class AssimpConnector
 {
  public:
     
-    static MeshPtr loadModel(const std::string &theModelPath);
-    static ScenePtr loadScene(const std::string &theModelPath);
+    static MeshPtr loadModel(const std::string &thePath);
+    static ScenePtr loadScene(const std::string &thePath);
 };
     
 }}//namespace

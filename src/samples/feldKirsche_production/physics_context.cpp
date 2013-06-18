@@ -116,7 +116,6 @@ namespace kinski{ namespace physics{
     physics_context::~physics_context()
     {
         teardown_physics();
-        deleteCollisionLocalStoreMemory();
     }
     
     void physics_context::initPhysics()
@@ -205,6 +204,7 @@ namespace kinski{ namespace physics{
         }
         
         m_collisionShapes.clear();
+        deleteCollisionLocalStoreMemory();
     }
     
     void physics_context::near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
@@ -212,7 +212,8 @@ namespace kinski{ namespace physics{
     {
     
     }
-/********************** BulletGeometry (btStridingMeshInterface implementation) *******************/
+    
+/***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/
     
     Mesh::Mesh(const gl::MeshPtr &the_mesh):
     btStridingMeshInterface(),

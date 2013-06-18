@@ -158,7 +158,7 @@ namespace kinski{ namespace physics{
     {
      public:
         
-        physics_context():m_maxNumTasks(1){};
+        explicit physics_context(int num_tasks = 1):m_maxNumTasks(num_tasks){};
         ~physics_context();
         
         void initPhysics();

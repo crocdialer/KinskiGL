@@ -116,7 +116,7 @@ namespace kinski{ namespace physics{
     physics_context::~physics_context()
     {
         teardown_physics();
-        deleteCollisionLocalStoreMemory();
+        //deleteCollisionLocalStoreMemory();
     }
     
     void physics_context::initPhysics()
@@ -205,6 +205,7 @@ namespace kinski{ namespace physics{
         }
         
         m_collisionShapes.clear();
+        deleteCollisionLocalStoreMemory();
     }
     
     void physics_context::near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,

@@ -32,7 +32,6 @@ namespace kinski{
         
         /******************** add search paths ************************/
         kinski::addSearchPath("~/Desktop");
-        kinski::addSearchPath("~/Desktop/creatures", true);
         kinski::addSearchPath("~/Desktop/Feldkirsche", true);
         kinski::addSearchPath("/Library/Fonts");
         m_font.load("Courier New Bold.ttf", 24);
@@ -144,6 +143,7 @@ namespace kinski{
         m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
         
         // init physics pipeline
+        //m_physics_context = physics::physics_context(2);
         m_physics_context.initPhysics();
         m_debugDrawer.reset(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
@@ -184,7 +184,7 @@ namespace kinski{
         }
         
         // update gravity direction
-        update_gravity(m_user_list, 0.1);
+        update_gravity(m_user_list, 0.05);
         
         if(m_material)
         {
@@ -708,7 +708,7 @@ namespace kinski{
         
             // kill z-component, use factor for mixing new and current directions
             position_avg.z = 0;
-            //position_avg.y = std::min(position_avg.y, 0.f);
+            position_avg.y = std::min(position_avg.y, 0.f);
         }
         *m_gravity = glm::mix(glm::normalize(position_avg), m_gravity->value(), factor);
     }

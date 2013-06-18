@@ -17,6 +17,10 @@ using boost::asio::ip::tcp;
 
 namespace kinski
 {
+    class AppServer;
+    class tcp_connection;
+    class response_delegate;
+    
     class tcp_connection : public boost::enable_shared_from_this<tcp_connection>
     {
     public:
