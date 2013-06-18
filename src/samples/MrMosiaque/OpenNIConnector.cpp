@@ -88,7 +88,7 @@ namespace kinski{ namespace gl{
     void OpenNIConnector::init()
     {
         LOG_DEBUG<<"initializing OpenNI ...";
-        m_obj = ObjPtr(new Obj);
+        m_obj.reset(new Obj);
         XnStatus ni_status = XN_STATUS_OK;
         
         // hook up a attached camera
@@ -420,7 +420,7 @@ namespace kinski{ namespace gl{
                     }
                     pDepth++;
                     pLabels++;
-                    pDestImage+=3;
+                    pDestImage += 3;
                 }
             }
         }

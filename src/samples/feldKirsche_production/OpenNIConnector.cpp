@@ -88,7 +88,7 @@ namespace kinski{ namespace gl{
     void OpenNIConnector::init()
     {
         LOG_DEBUG<<"initializing OpenNI ...";
-        m_obj = ObjPtr(new Obj);
+        m_obj.reset(new Obj);
         XnStatus ni_status = XN_STATUS_OK;
         
         // hook up a attached camera
@@ -367,7 +367,6 @@ namespace kinski{ namespace gl{
                     pDepthHist[nValue]++;
                     nNumberOfPoints++;
                 }
-                
                 pDepth++;
             }
         }
@@ -393,9 +392,8 @@ namespace kinski{ namespace gl{
             // Prepare the texture map
             for (nY=0; nY<y_res; nY++)
             {
-                for (nX=0; nX < x_res; nX++, nIndex++)
+                for (nX = 0; nX < x_res; nX++, nIndex++)
                 {
-                    
                     pDestImage[0] = 0;
                     pDestImage[1] = 0;
                     pDestImage[2] = 0;
@@ -412,7 +410,6 @@ namespace kinski{ namespace gl{
                         if (nValue != 0)
                         {
                             nHistValue = pDepthHist[nValue];
-                            
                             pDestImage[0] = nHistValue * m_user_colors[nColorID][0]; 
                             pDestImage[1] = nHistValue * m_user_colors[nColorID][1];
                             pDestImage[2] = nHistValue * m_user_colors[nColorID][2];

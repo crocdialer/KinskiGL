@@ -36,7 +36,7 @@ private:
     gl::Font m_font;
     
     Property_<std::string>::Ptr m_modelPath;
-    Property_<float>::Ptr m_modelScale;
+    Property_<glm::vec3>::Ptr m_modelScale;
     Property_<glm::vec3>::Ptr m_modelOffset;
     Property_<glm::vec4>::Ptr m_color;
     Property_<float>::Ptr m_shinyness;
@@ -49,7 +49,7 @@ private:
     RangedProperty<int>::Ptr m_rigid_bodies_num;
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
-    RangedProperty<float>::Ptr m_world_width;
+    Property_<glm::vec3>::Ptr m_world_half_extents;
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
@@ -95,7 +95,7 @@ public:
     void updateProperty(const Property::ConstPtr &theProperty);
     
     //! add a mesh to our scene and physics-world
-    void add_mesh(const gl::MeshPtr &the_mesh, float scale = 1.f);
+    void add_mesh(const gl::MeshPtr &the_mesh, glm::vec3 scale = glm::vec3(1.f));
     
     //! reset scene and create a stack of rigidbodys
     void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat);
@@ -106,6 +106,8 @@ public:
     
     //! draws a list of Users as bounding spheres
     void draw_user_meshes(const gl::OpenNIConnector::UserList &user_list);
+    
+    void update_gravity(const gl::OpenNIConnector::UserList &user_list, float factor);
 };
 }//namespace
 

@@ -51,13 +51,13 @@ namespace kinski{
         m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
         registerProperty(m_gravity);
         
-        m_world_width = RangedProperty<float>::create("World width", 1000, 100, 5000);
-        registerProperty(m_world_width);
+        m_world_half_extents = Property_<vec3>::create("World dimensions", vec3(1500, 500, 200));
+        registerProperty(m_world_half_extents);
         
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
         
-        m_modelScale = Property_<float>::create("Model scale", 1.f);
+        m_modelScale = Property_<glm::vec3>::create("Model scale", glm::vec3(1.f));
         registerProperty(m_modelScale);
         
         m_modelOffset = Property_<vec3>::create("Model Offset", vec3(0));
@@ -182,6 +182,9 @@ namespace kinski{
             // get the depth+userID texture
             m_textures[1] = m_open_ni->get_depth_texture();
         }
+        
+        // update gravity direction
+        update_gravity(m_user_list, 0.1);
         
         if(m_material)
         {
@@ -512,7 +515,7 @@ namespace kinski{
         LOG_INFO<<"ciao Feldkirsche";
     }
     
-    void Feldkirsche_App::add_mesh(const gl::MeshPtr &the_mesh, float scale)
+    void Feldkirsche_App::add_mesh(const gl::MeshPtr &the_mesh, vec3 scale)
     {
         // scale to proper size
         //float scale ;//(*m_world_width / 2.f) / glm::length(the_mesh->geometry()->boundingBox().halfExtents());
@@ -523,11 +526,9 @@ namespace kinski{
         the_mesh->material()->setSpecular(glm::vec4(1));
         the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
         the_mesh->position() += m_modelOffset->value();
-        
         scene().addObject(m_mesh);
         
-        physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh,
-                                                                                 vec3(scale));
+        physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh, scale);
         m_physics_context.collisionShapes().push_back(customShape);
         physics::MotionState *ms = new physics::MotionState(m_mesh);
         btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
@@ -539,7 +540,7 @@ namespace kinski{
         //add the body to the dynamics world
         m_physics_context.dynamicsWorld()->addRigidBody(body);
         
-        m_mesh->transform() = glm::scale(the_mesh->transform(), vec3(scale));
+        m_mesh->transform() = glm::scale(the_mesh->transform(), scale);
     }
     
     void Feldkirsche_App::create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
@@ -557,9 +558,9 @@ namespace kinski{
         physics::btCollisionShapePtr ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), 0)),
         front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-150)),
         back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -150)),
-        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),- *m_world_width/2.f)),
-        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), - *m_world_width/2.f)),
-        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - *m_world_width));
+        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),- m_world_half_extents->value()[0])),
+        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), - m_world_half_extents->value()[0])),
+        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - m_world_half_extents->value()[1]));
         m_physics_context.collisionShapes().push_back(ground_plane);
         m_physics_context.collisionShapes().push_back(front_plane);
         m_physics_context.collisionShapes().push_back(back_plane);
@@ -689,5 +690,26 @@ namespace kinski{
                                                                         glm::vec3(*m_min_interaction_distance)));
             gl::drawMesh(m_user_radius_mesh);
         }
+    }
+    
+    void Feldkirsche_App::update_gravity(const gl::OpenNIConnector::UserList &user_list, float factor)
+    {
+        glm::vec3 position_avg(0, -1.f, 0);
+        
+        if(!user_list.empty())
+        {
+            position_avg = glm::vec3(0);
+
+            gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
+            for (; it != user_list.end(); ++it)
+            {
+                position_avg += it->position / glm::length(it->position);
+            }
+        
+            // kill z-component, use factor for mixing new and current directions
+            position_avg.z = 0;
+            //position_avg.y = std::min(position_avg.y, 0.f);
+        }
+        *m_gravity = glm::mix(glm::normalize(position_avg), m_gravity->value(), factor);
     }
 }
