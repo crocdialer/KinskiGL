@@ -368,6 +368,6 @@ namespace kinski { namespace gl {
     
     void Mesh::accept(Visitor &theVisitor)
     {
-        theVisitor.visit(this);
+        theVisitor.visit(*this);
     }
 }}

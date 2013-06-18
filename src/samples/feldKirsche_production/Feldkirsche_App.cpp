@@ -245,7 +245,7 @@ namespace kinski{
             glm::vec2 offset(getWidth() - w - 10, 10);
             glm::vec2 step(0, h + 10);
             
-            if(m_mesh && h > 0)
+            if(h > 0)
             {
                 
                 for (int j = 0; j < m_textures.size(); j++)

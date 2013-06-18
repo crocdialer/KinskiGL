@@ -31,15 +31,15 @@ namespace kinski { namespace gl {
     public:
         UpdateVisitor(float time_step):Visitor(), m_time_step(time_step){};
 
-        void visit(Object3D *theNode)
+        void visit(Object3D &theNode)
         {
             Visitor::visit(theNode);
         }
         
-        void visit(Mesh *theNode)
+        void visit(Mesh &theNode)
         {
-            theNode->update(m_time_step);
-            visit(static_cast<gl::Object3D*>(theNode));
+            theNode.update(m_time_step);
+            visit(static_cast<gl::Object3D&>(theNode));
         };
     private:
         float m_time_step;
@@ -56,22 +56,22 @@ namespace kinski { namespace gl {
         
         RenderBinPtr get_render_bin() const {return m_render_bin;}
         
-        void visit(Mesh *theNode)
+        void visit(Mesh &theNode)
         {
-            gl::AABB boundingBox = theNode->geometry()->boundingBox();
+            gl::AABB boundingBox = theNode.geometry()->boundingBox();
             //gl::Sphere s(theNode.position(), glm::length(boundingBox.halfExtents()));
-            boundingBox.transform(theNode->transform());
+            boundingBox.transform(theNode.transform());
                     
             if (m_frustum.intersect(boundingBox))
             {
                 RenderBin::item item;
-                item.mesh = theNode;
-                item.transform = transform_stack().top() * theNode->transform();
+                item.mesh = &theNode;
+                item.transform = transform_stack().top() * theNode.transform();
                 m_render_bin->items.push_back(item);
             }
     
             // super class provides node traversing and transform accumulation
-            Visitor::visit(static_cast<gl::Object3D*>(theNode));
+            Visitor::visit(static_cast<gl::Object3D&>(theNode));
         }
         
         void clear(){m_render_bin->items.clear();}
@@ -161,7 +161,8 @@ namespace kinski { namespace gl {
                 }
             }
         }
-        if(!clicked_items.empty()){
+        if(!clicked_items.empty())
+        {
             clicked_items.sort();
             ret = clicked_items.front().object;
             LOG_DEBUG<<"ray hit id "<<ret->getID()<<" ("<<clicked_items.size()<<" total)";

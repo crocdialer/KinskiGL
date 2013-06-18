@@ -62,17 +62,17 @@ namespace kinski { namespace gl {
         inline const std::stack<glm::mat4>& transform_stack() const {return m_transform_stack;};
         inline std::stack<glm::mat4>& transform_stack() {return m_transform_stack;};
         
-        virtual void visit(Object3D *theNode)
+        virtual void visit(Object3D &theNode)
         {
-            std::list<Object3DPtr>::const_iterator it = theNode->children().begin();
-            for (; it != theNode->children().end(); ++it)
+            std::list<Object3DPtr>::const_iterator it = theNode.children().begin();
+            for (; it != theNode.children().end(); ++it)
             {
                 m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
                 (*it)->accept(*this);
                 m_transform_stack.pop();
             }
         }
-        virtual void visit(gl::Mesh *theNode) = 0;
+        virtual void visit(gl::Mesh &theNode) = 0;
         
     private:
         std::stack<glm::mat4> m_transform_stack;
