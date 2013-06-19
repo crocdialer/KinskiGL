@@ -223,14 +223,14 @@ namespace kinski{ namespace physics{
     }
     
     void Mesh::getLockedVertexIndexBase(unsigned char **vertexbase,
-                                                  int& numverts,
-                                                  PHY_ScalarType& type,
-                                                  int& stride,
-                                                  unsigned char **indexbase,
-                                                  int & indexstride,
-                                                  int& numfaces,
-                                                  PHY_ScalarType& indicestype,
-                                                  int subpart)
+                                        int& numverts,
+                                        PHY_ScalarType& type,
+                                        int& stride,
+                                        unsigned char **indexbase,
+                                        int & indexstride,
+                                        int& numfaces,
+                                        PHY_ScalarType& indicestype,
+                                        int subpart)
     {
         gl::GeometryPtr &geom = m_mesh->geometry();
         gl::Mesh::Entry& e = m_mesh->entries()[subpart];
@@ -245,14 +245,14 @@ namespace kinski{ namespace physics{
     }
     
     void Mesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
-                                                          int& numverts,
-                                                          PHY_ScalarType& type,
-                                                          int& stride,
-                                                          const unsigned char **indexbase,
-                                                          int & indexstride,
-                                                          int& numfaces,
-                                                          PHY_ScalarType& indicestype,
-                                                          int subpart) const
+                                                int& numverts,
+                                                PHY_ScalarType& type,
+                                                int& stride,
+                                                const unsigned char **indexbase,
+                                                int & indexstride,
+                                                int& numfaces,
+                                                PHY_ScalarType& indicestype,
+                                                int subpart) const
     {
         gl::GeometryPtr &geom = m_mesh->geometry();
         gl::Mesh::Entry& e = m_mesh->entries()[subpart];

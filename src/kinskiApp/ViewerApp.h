@@ -10,6 +10,8 @@
 #define __kinskiGL__ViewerApp__
 
 #include "kinskiApp/GLFW_App.h"
+#include "kinskiApp/Arcball.h"
+
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
 #include "kinskiGL/Camera.h"

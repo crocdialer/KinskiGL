@@ -7,3 +7,22 @@
 //
 
 #include "Light.h"
+
+namespace kinski { namespace gl {
+
+    Light::Light()
+    {
+    
+    }
+    
+    Light::~Light()
+    {
+    
+    }
+    
+    void Light::accept(Visitor &theVisitor)
+    {
+        theVisitor.visit(*this);
+    }
+    
+}}

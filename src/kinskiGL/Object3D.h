@@ -72,7 +72,10 @@ namespace kinski { namespace gl {
                 m_transform_stack.pop();
             }
         }
-        virtual void visit(gl::Mesh &theNode) = 0;
+        
+        //TODO: do we actually need to force implementation of these !? -> correctness vs. simplicity <-
+//        virtual void visit(gl::Mesh &theNode) = 0;
+//        virtual void visit(gl::Light &theNode) = 0;
         
     private:
         std::stack<glm::mat4> m_transform_stack;
