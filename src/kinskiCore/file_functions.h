@@ -20,6 +20,7 @@ namespace kinski {
     // manage known file locations
     const std::list<std::string>& getSearchPaths();
     void addSearchPath(const std::string &thePath, bool recursive = false);
+    void clearSearchPaths();
     
     std::list<std::string> getDirectoryEntries(const std::string &thePath,
                                                bool recursive = false,

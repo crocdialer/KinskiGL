@@ -7,19 +7,20 @@
 //
 
 #include "Feldkirsche_App.h"
-
-namespace kinski{
 #include <boost/asio/io_service.hpp>
-    
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiGL/Fbo.h"
+
+// 3D model loading
 #include "AssimpConnector.h"
-    
-    // physics
+
+// physics
 #include "physics_context.h"
-    
-    // Syphon
+
+// Syphon
 #include "SyphonConnector.h"
+
+namespace kinski{
     
     using namespace std;
     using namespace kinski;
@@ -519,8 +520,7 @@ namespace kinski{
     
     void Feldkirsche_App::add_mesh(const gl::MeshPtr &the_mesh, vec3 scale)
     {
-        // scale to proper size
-        //float scale ;//(*m_world_width / 2.f) / glm::length(the_mesh->geometry()->boundingBox().halfExtents());
+        if(!the_mesh) return;
         
         m_mesh = the_mesh;
         materials().push_back(the_mesh->material());

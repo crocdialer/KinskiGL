@@ -95,6 +95,11 @@ namespace kinski {
         }
     }
     
+    void clearSearchPaths()
+    {
+        g_searchPaths.clear();
+    }
+    
     list<string> getDirectoryEntries(const std::string &thePath, bool recursive,
                                      const std::string &theExtension)
     {
