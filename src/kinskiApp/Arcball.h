@@ -83,7 +83,7 @@ namespace kinski{ namespace gl {
             }
             else
             {
-                result.z = sqrt( 1.0f - mag );
+                result.z = sqrtf( 1.0f - mag );
                 glm::normalize(result);
             }
             return result;
@@ -96,6 +96,7 @@ namespace kinski{ namespace gl {
             float norm;
             glm::vec3 onPlane = loose - axis * glm::dot(axis, loose);
             norm = glm::length2(onPlane);
+            
             if( norm > 0.0f )
             {
                 if( onPlane.z < 0.0f )
@@ -111,7 +112,6 @@ namespace kinski{ namespace gl {
             {
                 onPlane = glm::normalize(glm::vec3(-axis.y, axis.x, 0.0f));
             }
-            
             return onPlane;
         }
         

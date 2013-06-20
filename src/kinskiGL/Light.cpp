@@ -10,7 +10,7 @@
 
 namespace kinski { namespace gl {
 
-    Light::Light()
+    Light::Light():m_attenuation(Attenuation(0, 1.f, 0))
     {
     
     }
@@ -18,6 +18,47 @@ namespace kinski { namespace gl {
     Light::~Light()
     {
     
+    }
+    
+    void Light::set_diffuse(const Color &theColor)
+    {
+        m_diffuse = glm::clamp(theColor, Color(0), Color(1));
+    }
+    
+    void Light::set_ambient(const Color &theColor)
+    {
+        m_ambient = glm::clamp(theColor, Color(0), Color(1));
+    }
+    
+    void Light::set_specular(const Color &theColor)
+    {
+        m_specular = glm::clamp(theColor, Color(0), Color(1));
+    }
+    
+    Light::Attenuation Light::attenuation() const
+    {
+        return m_attenuation;
+    }
+    
+    void Light::set_attenuation(const Attenuation &theAttenuation)
+    {
+        m_attenuation = Attenuation(std::max(theAttenuation.constant, 0.f),
+                                    std::max(theAttenuation.linear, 0.f),
+                                    std::max(theAttenuation.quadratic, 0.f));
+    }
+    
+    void Light::get_attenuation(float &constant, float &linear, float &quadratic) const
+    {
+        constant = m_attenuation.constant;
+        linear = m_attenuation.linear;
+        quadratic = m_attenuation.quadratic;
+    }
+    
+    void Light::set_attenuation(float constant, float linear, float quadratic)
+    {
+        m_attenuation = Attenuation(std::max(constant, 0.f),
+                                    std::max(linear, 0.f),
+                                    std::max(quadratic, 0.f));
     }
     
     void Light::accept(Visitor &theVisitor)

@@ -10,7 +10,9 @@
 #ifndef __kinskiGL__Scene__
 #define __kinskiGL__Scene__
 
-#include "KinskiGL.h"
+#include "Mesh.h"
+#include "Light.h"
+#include "Camera.h"
 
 namespace kinski { namespace gl {
     

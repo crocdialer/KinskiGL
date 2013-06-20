@@ -212,14 +212,16 @@ namespace kinski{
             switch(*m_debug_draw_mode)
             {
                 case DRAW_DEBUG_SCENE:
-                    
                     gl::setMatrices(camera());
                     if(draw_grid()){gl::drawGrid(500, 500, 20, 20);}
                     //if(wireframe())
                     {
+                        gl::clearColor(gl::Color(0, 0, 0, 1));
+                        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                         m_physics_context.dynamicsWorld()->debugDrawWorld();
                         m_debugDrawer->flush();
                         m_debug_scene.render(camera());
+                        gl::clearColor(clear_color());
                     }
                     m_debug_scene.render(camera());
                     draw_user_meshes(m_user_list);
@@ -678,7 +680,6 @@ namespace kinski{
         for (; it != user_list.end(); ++it)
         {
             m_user_mesh->setPosition(it->position);
-            //m_user_mesh->transform()[3].y = 5;
             m_user_mesh->material()->setDiffuse(m_user_id_colors[it->id]);
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
             gl::drawMesh(m_user_mesh);
@@ -694,22 +695,23 @@ namespace kinski{
     
     void Feldkirsche_App::update_gravity(const gl::OpenNIConnector::UserList &user_list, float factor)
     {
-        glm::vec3 position_avg(0, -1.f, 0);
+        glm::vec3 direction_avg(0, -1.f, 0);
         
         if(!user_list.empty())
         {
-            position_avg = glm::vec3(0);
+            direction_avg = glm::vec3(0);
 
             gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
             for (; it != user_list.end(); ++it)
             {
-                position_avg += it->position / glm::length(it->position);
+                direction_avg += glm::normalize(it->position);
             }
         
-            // kill z-component, use factor for mixing new and current directions
-            position_avg.z = 0;
-            position_avg.y = std::min(position_avg.y, 0.f);
+            // kill z-component and assure downward gravity
+            direction_avg.z = 0;
+            direction_avg.y = std::min(direction_avg.y, 0.f);
         }
-        *m_gravity = glm::mix(glm::normalize(position_avg), m_gravity->value(), factor);
+        // use factor for mixing new and current directions
+        *m_gravity = glm::mix(m_gravity->value(), glm::normalize(direction_avg), factor);
     }
 }
