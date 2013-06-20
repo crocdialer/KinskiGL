@@ -486,6 +486,7 @@ namespace kinski{
         {
             int num_xy = floor(sqrt(*m_rigid_bodies_num / 2.f));
             create_physics_scene(num_xy, num_xy, 2, m_material);
+            //add_mesh(m_mesh, *m_modelScale);
         }
         else if(theProperty == m_use_syphon)
         {
@@ -648,6 +649,8 @@ namespace kinski{
         }
         LOG_DEBUG<<"created dynamicsworld with "<<
         m_physics_context.dynamicsWorld()->getNumCollisionObjects()<<" rigidbodies";
+        
+        scene().addObject(gl::Object3DPtr(new gl::Light(gl::Light::POINT)));
     }
     
     //! bring positions to world-coords using a virtual camera
@@ -709,7 +712,7 @@ namespace kinski{
         
             // kill z-component and assure downward gravity
             direction_avg.z = 0;
-            direction_avg.y = std::min(direction_avg.y, 0.f);
+            direction_avg.y = std::min(direction_avg.y, -0.5f);
         }
         // use factor for mixing new and current directions
         *m_gravity = glm::mix(m_gravity->value(), glm::normalize(direction_avg), factor);

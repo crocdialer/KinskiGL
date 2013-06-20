@@ -64,7 +64,19 @@ namespace kinski { namespace gl {
                 item.transform = transform_stack().top() * theNode.transform();
                 m_render_bin->items.push_back(item);
             }
-    
+            // super class provides node traversing and transform accumulation
+            Visitor::visit(static_cast<gl::Object3D&>(theNode));
+        }
+        
+        void visit(Light &theNode)
+        {
+            if (theNode.enabled())
+            {
+                RenderBin::light light_item;
+                light_item.light = &theNode;
+                light_item.transform = transform_stack().top() * theNode.transform();
+                m_render_bin->lights.push_back(light_item);
+            }
             // super class provides node traversing and transform accumulation
             Visitor::visit(static_cast<gl::Object3D&>(theNode));
         }

@@ -27,7 +27,7 @@ namespace kinski { namespace gl {
             Attenuation(float c, float l, float q):constant(c), linear(l), quadratic(q){}
         };
         
-        Light();
+        Light(Type theType);
         virtual ~Light();
         
         const Color& diffuse() const { return m_diffuse; };

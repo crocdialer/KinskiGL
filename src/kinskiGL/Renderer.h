@@ -24,6 +24,14 @@ namespace kinski{ namespace gl{
             glm::mat4 transform;
         };
         
+        struct light
+        {
+            //! a lightsource
+            gl::Light *light;
+            //! the light´s transform in eye-coords
+            glm::mat4 transform;
+        };
+        
         struct sort_items_increasing
         {
             inline bool operator()(const item &lhs, const item &rhs)
@@ -39,6 +47,7 @@ namespace kinski{ namespace gl{
         RenderBin(const CameraPtr &cam): camera(cam){};
         CameraPtr camera;
         std::list<item> items;
+        std::list<light> lights;
     };
     
     class KINSKI_API Renderer
