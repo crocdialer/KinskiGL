@@ -18,7 +18,7 @@ namespace kinski {
     int getFileSize(const std::string &theFilename);
     
     // manage known file locations
-    const std::list<std::string>& getSearchPaths();
+    const std::set<std::string>& getSearchPaths();
     void addSearchPath(const std::string &thePath, bool recursive = false);
     void clearSearchPaths();
     

@@ -38,7 +38,7 @@ namespace kinski { namespace gl {
         void set_ambient(const Color &theColor);
         void set_specular(const Color &theColor);
         
-        Attenuation attenuation() const;
+        const Attenuation& attenuation() const;
         void set_attenuation(const Attenuation &theAttenuation);
         void get_attenuation(float &constant, float &linear, float &quadratic) const;
         void set_attenuation(float constant, float linear, float quadratic);

@@ -35,11 +35,10 @@ public:
         set_precise_selection(true);
         
         /******************** add search paths ************************/
-        kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("~/Desktop/creatures", true);
         kinski::addSearchPath("~/Desktop/doom3_base", true);
-        kinski::addSearchPath("~/Pictures");
         kinski::addSearchPath("/Library/Fonts");
+        
         list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
         
         m_font.load("Courier New Bold.ttf", 24);

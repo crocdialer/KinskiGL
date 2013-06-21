@@ -60,6 +60,7 @@ namespace kinski {
         // Property observer callback
         void updateProperty(const Property::ConstPtr &theProperty);
         
+        Property_<std::vector<std::string> >::Ptr search_paths(){return m_search_paths;}
         bool wireframe() const { return *m_wireFrame; };
         bool draw_grid() const { return *m_draw_grid; };
         bool normals() const { return *m_drawNormals; };
@@ -84,6 +85,7 @@ namespace kinski {
         bool m_precise_selection;
         bool m_center_selected;
         
+        Property_<std::vector<std::string> >::Ptr m_search_paths;
         RangedProperty<int>::Ptr m_logger_severity;
         Property_<bool>::Ptr m_show_tweakbar;
         Property_<glm::vec2>::Ptr m_window_size;

@@ -20,7 +20,7 @@ namespace kinski {
     
     /////////// implemantation internal /////////////
     
-    std::list<std::string> g_searchPaths;
+    std::set<std::string> g_searchPaths;
     
     std::string expand_user(std::string path)
     {
@@ -44,7 +44,7 @@ namespace kinski {
     
     /////////// end implemantation internal /////////////
     
-    const std::list<std::string>& getSearchPaths()
+    const std::set<std::string>& getSearchPaths()
     {
         return g_searchPaths;
     }
@@ -60,7 +60,7 @@ namespace kinski {
             
         if(recursive)
         {
-            g_searchPaths.push_back(getDirectoryPart(path_expanded.string()));
+            g_searchPaths.insert(getDirectoryPart(path_expanded.string()));
             recursive_directory_iterator it;
             try
             {
@@ -69,7 +69,7 @@ namespace kinski {
                 
                 while(it != end)
                 {
-                    if(is_directory(*it)) g_searchPaths.push_back(canonical(it->path()).string());
+                    if(is_directory(*it)) g_searchPaths.insert(canonical(it->path()).string());
                     try{ ++it; }
                     catch(std::exception& e)
                     {
@@ -91,7 +91,7 @@ namespace kinski {
         }
         else
         {
-            g_searchPaths.push_back(canonical(path_expanded).string());
+            g_searchPaths.insert(canonical(path_expanded).string());
         }
     }
     
@@ -267,7 +267,7 @@ namespace kinski {
         {
             return ret_path.string();
         }
-        std::list<std::string>::const_iterator it = getSearchPaths().begin();
+        std::set<std::string>::const_iterator it = getSearchPaths().begin();
         for (; it != getSearchPaths().end(); ++it)
         {
             ret_path = path(*it) / path(expanded_name);

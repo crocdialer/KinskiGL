@@ -17,8 +17,12 @@ namespace kinski {
     m_rotation_damping (.9)
     {
         /*********** init our application properties ******************/
+        m_search_paths = Property_<std::vector<std::string> >::create("File search paths",
+                                                                      std::vector<std::string>());
+        m_search_paths->setTweakable(false);
+        registerProperty(m_search_paths);
+        
         m_logger_severity = RangedProperty<int>::create("Logger Severity", kinski::SEV_INFO, 0, 7);
-        //m_logger_severity->setTweakable(false);
         registerProperty(m_logger_severity);
         
         m_show_tweakbar = Property_<bool>::create("Show Tweakbar", true);
@@ -195,7 +199,15 @@ namespace kinski {
     // Property observer callback
     void ViewerApp::updateProperty(const Property::ConstPtr &theProperty)
     {
-        if(theProperty == m_logger_severity)
+        if(theProperty == m_search_paths)
+        {
+            std::vector<std::string>::const_iterator it = m_search_paths->value().begin();
+            for (; it != m_search_paths->value().end(); ++it)
+            {
+                kinski::addSearchPath(*it);
+            }
+        }
+        else if(theProperty == m_logger_severity)
         {
             Logger::get()->setSeverity(static_cast<Severity>(m_logger_severity->value()));
         }

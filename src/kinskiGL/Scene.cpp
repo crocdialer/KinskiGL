@@ -70,6 +70,7 @@ namespace kinski { namespace gl {
         
         void visit(Light &theNode)
         {
+            //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
             if (theNode.enabled())
             {
                 RenderBin::light light_item;

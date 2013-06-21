@@ -12,7 +12,11 @@ namespace kinski { namespace gl {
 
     Light::Light(Type theType):
     m_type(theType),
-    m_attenuation(Attenuation(0, 1.f, 0))
+    m_attenuation(Attenuation(0, 1.f, 0)),
+    m_ambient(Color(0)),
+    m_diffuse(Color(1)),
+    m_specular(Color(1)),
+    m_enabled(true)
     {
     
     }
@@ -37,7 +41,7 @@ namespace kinski { namespace gl {
         m_specular = glm::clamp(theColor, Color(0), Color(1));
     }
     
-    Light::Attenuation Light::attenuation() const
+    const Light::Attenuation& Light::attenuation() const
     {
         return m_attenuation;
     }

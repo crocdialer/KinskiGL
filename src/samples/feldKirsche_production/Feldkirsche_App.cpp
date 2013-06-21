@@ -60,6 +60,9 @@ namespace kinski{
         m_modelScale = Property_<glm::vec3>::create("Model scale", glm::vec3(1.f));
         registerProperty(m_modelScale);
         
+        m_modelRotationY = Property_<float>::create("Model rotation Y", 0.f);
+        registerProperty(m_modelRotationY);
+        
         m_modelOffset = Property_<vec3>::create("Model Offset", vec3(0));
         registerProperty(m_modelOffset);
         
@@ -543,7 +546,9 @@ namespace kinski{
         //add the body to the dynamics world
         m_physics_context.dynamicsWorld()->addRigidBody(body);
         
-        m_mesh->transform() = glm::scale(the_mesh->transform(), scale);
+        m_mesh->transform() = glm::rotate(the_mesh->transform(),
+                                          m_modelRotationY->value(),
+                                          vec3(0, 1, 0)) * glm::scale(glm::mat4(), scale);
     }
     
     void Feldkirsche_App::create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)

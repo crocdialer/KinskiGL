@@ -38,6 +38,7 @@ private:
     Property_<std::string>::Ptr m_modelPath;
     Property_<glm::vec3>::Ptr m_modelScale;
     Property_<glm::vec3>::Ptr m_modelOffset;
+    Property_<float>::Ptr m_modelRotationY;
     Property_<glm::vec4>::Ptr m_color;
     Property_<float>::Ptr m_shinyness;
     
