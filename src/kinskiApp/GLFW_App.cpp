@@ -53,25 +53,36 @@ namespace kinski
         }
         
         // request an OpenGl 3.2 Context
-        glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );    
-        glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 2 );
-        glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+//        glfwDefaultWindowHints();
+        glfwWindowHint(GLFW_DEPTH_BITS, 24);
+        glfwWindowHint(GLFW_RED_BITS, 8);
+        glfwWindowHint(GLFW_GREEN_BITS, 8);
+        glfwWindowHint(GLFW_BLUE_BITS, 8);
+        
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3 );
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2 );
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        
 //        glfwWindowHint( GLFW_FSAA_SAMPLES, 4);
         
         // create the window
-        m_windows.push_back(GLFW_Window(getWidth(), getHeight(), getName()));
-        glfwSetWindowUserPointer(m_windows.back().handle(), this);
+        m_windows.push_back(GLFW_Window::Ptr(new GLFW_Window(getWidth(), getHeight(), getName())));
+        glfwSetWindowUserPointer(m_windows.back()->handle(), this);
+        
+        gl::setWindowDimension(windowSize());
+        
+        glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         
         // show mouse cursor in fullscreen ?
 //        if(fullSceen() && cursorVisible()) glfwEnable(GLFW_MOUSE_CURSOR);
         
-        glfwSwapInterval(1);
-        glClearColor(0, 0, 0, 1);
-        
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
+        
+        glfwSwapInterval(1);
+        glClearColor(0, 0, 0, 1);
         
         // file search paths
         kinski::addSearchPath("./res", true);
@@ -81,12 +92,12 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(getWidth(), getHeight());
         
-        glfwSetMouseButtonCallback(m_windows.back().handle(), &GLFW_App::s_mouseButton);
-        glfwSetCursorPosCallback(m_windows.back().handle(), &GLFW_App::s_mouseMove);
-        glfwSetScrollCallback(m_windows.back().handle(), &GLFW_App::s_mouseWheel);
-        glfwSetKeyCallback(m_windows.back().handle(), &GLFW_App::s_keyFunc);
-        glfwSetCharCallback(m_windows.back().handle(), &GLFW_App::s_charFunc);
-        glfwSetWindowSizeCallback(m_windows.back().handle(), &GLFW_App::s_resize);
+        glfwSetMouseButtonCallback(m_windows.back()->handle(), &GLFW_App::s_mouseButton);
+        glfwSetCursorPosCallback(m_windows.back()->handle(), &GLFW_App::s_mouseMove);
+        glfwSetScrollCallback(m_windows.back()->handle(), &GLFW_App::s_mouseWheel);
+        glfwSetKeyCallback(m_windows.back()->handle(), &GLFW_App::s_keyFunc);
+        glfwSetCharCallback(m_windows.back()->handle(), &GLFW_App::s_charFunc);
+        glfwSetWindowSizeCallback(m_windows.back()->handle(), &GLFW_App::s_resize);
         
         // call user defined setup callback
         setup();
@@ -99,7 +110,7 @@ namespace kinski
     {
         for(auto window : m_windows)
         {
-            glfwSwapBuffers(window.handle());
+            glfwSwapBuffers(window->handle());
         }
     }
     
@@ -107,7 +118,7 @@ namespace kinski
     {
         App::setWindowSize(size);
         if(!m_windows.empty())
-            glfwSetWindowSize(m_windows.back().handle(), (int)size[0], (int)size[1]);
+            glfwSetWindowSize(m_windows.back()->handle(), (int)size[0], (int)size[1]);
     }
     
     void GLFW_App::draw_internal()
@@ -127,8 +138,8 @@ namespace kinski
     
     bool GLFW_App::checkRunning()
     {
-        return !glfwGetKey(m_windows.back().handle(), KeyEvent::KEY_ESCAPE ) &&
-            !glfwWindowShouldClose( m_windows.back().handle() );
+        return !glfwGetKey(m_windows.back()->handle(), GLFW_KEY_ESCAPE ) &&
+            !glfwWindowShouldClose( m_windows.back()->handle() );
     }
     
     double GLFW_App::getApplicationTime()
@@ -187,10 +198,15 @@ namespace kinski
         
         MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
         
-        if (action == GLFW_PRESS)
-            app->mousePress(e);
-        else
-            app->mouseRelease(e);
+        switch(action)
+        {
+            case GLFW_PRESS:
+            case GLFW_REPEAT:
+                app->mousePress(e);
+                
+            case GLFW_RELEASE:
+                app->mouseRelease(e);
+        }
     }
     
     void GLFW_App::s_mouseWheel(GLFWwindow* window,double offset_x, double offset_y)
@@ -198,7 +214,6 @@ namespace kinski
         GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
         app->m_lastWheelPos -= offset;
-        
         if(app->displayTweakBar())
             TwEventMouseWheelGLFW(app->m_lastWheelPos.x);
         
@@ -229,24 +244,17 @@ namespace kinski
     
     void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
     {
-        //TODO: cleanup here
+        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        if(app->displayTweakBar())
+            TwEventCharGLFW(key, GLFW_PRESS);
         
-//        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-//        if(app->displayTweakBar())
-//            TwEventCharGLFW(key, action);
-//        
-//        if(key == GLFW_KEY_SPACE)
-//            return;
-//        
-//        uint32_t buttonMod, keyMod;
-//        s_getModifiers(window, buttonMod, keyMod);
-//        
-//        KeyEvent e(key, key, keyMod);
-//        
-//        if(action == GLFW_PRESS)
-//            app->keyPress(e);
-//        else
-//            app->keyRelease(e);
+        if(key == GLFW_KEY_SPACE){return;}
+        
+        uint32_t buttonMod, keyMod;
+        s_getModifiers(window, buttonMod, keyMod);
+        
+        KeyEvent e(key, key, keyMod);
+        app->keyPress(e);
     }
     
     void GLFW_App::s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers, uint32_t &keyModifiers)
@@ -308,10 +316,9 @@ namespace kinski
         {   if(m_tweakBars.empty()) return;
             theBar = m_tweakBars.front();
         }
-        list<Property::Ptr>::const_iterator propIt = theProps.begin();
-        for (; propIt != theProps.end(); propIt++) 
+        for (const auto property : theProps)
         {   
-            addPropertyToTweakBar(*propIt, group, theBar);
+            addPropertyToTweakBar(property, group, theBar);
         }
         TwAddSeparator(theBar, "sep1", NULL);
     }

@@ -40,7 +40,7 @@ namespace kinski
         virtual void swapBuffers() = 0;
         
         // these are optional overrides
-        virtual void setWindowSize(const glm::vec2 size){ m_windowSize = size; };
+        virtual void setWindowSize(const glm::vec2 size);
         virtual void resize(int w, int h){};
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};

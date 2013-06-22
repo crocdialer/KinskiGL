@@ -24,6 +24,7 @@ namespace kinski
     class GLFW_Window
     {
     public:
+        typedef std::shared_ptr<GLFW_Window> Ptr;
         GLFW_Window(int width, int height, const std::string &theName = "KinskiGL");
         ~GLFW_Window();
         inline GLFWwindow* handle(){return m_handle;};
@@ -82,7 +83,7 @@ namespace kinski
         
     private:
         
-        std::vector<GLFW_Window> m_windows;
+        std::vector<GLFW_Window::Ptr> m_windows;
         glm::ivec2 m_lastWheelPos;
         
         // internal initialization. performed when run is invoked

@@ -76,6 +76,13 @@ namespace kinski
         return EXIT_SUCCESS;
     }
     
+    void App::setWindowSize(const glm::vec2 size)
+    {
+        m_windowSize = size;
+        if(running())
+            gl::setWindowDimension(size);
+    }
+    
     void App::draw_internal()
     {
         draw();
