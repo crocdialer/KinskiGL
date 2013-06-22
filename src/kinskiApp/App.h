@@ -107,7 +107,7 @@ namespace kinski
     {
     public:
         MouseEvent() : Event() {}
-        MouseEvent( int aInitiator, int aX, int aY, unsigned int aModifiers, int aWheelIncrement )
+        MouseEvent( int aInitiator, int aX, int aY, unsigned int aModifiers, glm::ivec2 aWheelIncrement )
 		: Event(), mInitiator( aInitiator ), mX( aX ), mY( aY ), mModifiers( aModifiers ), mWheelIncrement( aWheelIncrement )
         {}
         
@@ -140,7 +140,7 @@ namespace kinski
         //! Returns whether the accelerator key was pressed during the event. Maps to the Control key on Windows and the Command key on Mac OS X.
         bool		isAccelDown() const { return (mModifiers & ACCEL_DOWN) ? true : false; }
         //! Returns the number of detents the user has wheeled through. Positive values correspond to wheel-up and negative to wheel-down.
-        int		getWheelIncrement() const { return mWheelIncrement; }
+        glm::ivec2 getWheelIncrement() const { return mWheelIncrement; }
         
         enum {	LEFT_DOWN	= 0x0001,
                 RIGHT_DOWN	= 0x0002,
@@ -160,7 +160,7 @@ namespace kinski
         int				mInitiator;
         int				mX, mY;
         unsigned int	mModifiers;
-        int			mWheelIncrement;
+        glm::ivec2		mWheelIncrement;
     };
     
     //! Represents a keyboard event

@@ -6,14 +6,12 @@ SET(LIB_NAME "kinskiApp")
 
 ##### GLFW
 if(NOT KINSKI_RASPI)
-
-OPTION(GLFW_USE_STATIC_LIBS OFF)
-find_package(GLFW REQUIRED)
-
+find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp AppServer.cpp ViewerApp.cpp TextureIO.cpp AntTweakBarConnector.cpp)
 FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h AppServer.h ViewerApp.h TextureIO.h AntTweakBarConnector.h)
+
 ##### RASPI
 else()
 FILE(GLOB FOLDER_SOURCES Raspi_App.cpp AppServer.cpp esUtil.c App.cpp TextureIO.cpp)

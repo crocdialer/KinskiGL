@@ -8,7 +8,6 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "kinskiGL/KinskiGL.h"
-#ifndef KINSKI_RASPI 
 #include "GLFW_App.h"
 #include "kinskiCore/file_functions.h"
 #include "AntTweakBarConnector.h"
@@ -17,7 +16,17 @@ using namespace std;
 
 namespace kinski
 {
-    GLFW_App::WeakPtr GLFW_App::s_instance;
+    GLFW_Window::GLFW_Window(int width, int height, const std::string &theName)
+    {
+        m_handle = glfwCreateWindow(width, height, theName.c_str(), NULL, NULL);
+        if(!m_handle) throw CreateWindowException();
+        glfwMakeContextCurrent(m_handle);
+    }
+    
+    GLFW_Window::~GLFW_Window()
+    {
+        glfwDestroyWindow(m_handle);
+    }
     
     GLFW_App::GLFW_App(const int width, const int height):
     App(width, height),
@@ -35,15 +44,8 @@ namespace kinski
         glfwTerminate();
     }
     
-    GLFW_App::Ptr GLFW_App::getInstance()
-    {
-        return s_instance.lock();
-    }
-    
     void GLFW_App::init()
     {
-        s_instance = dynamic_pointer_cast<GLFW_App>(shared_from_this());
-        
         // Initialize GLFW
         if( !glfwInit() )
         {
@@ -51,22 +53,18 @@ namespace kinski
         }
         
         // request an OpenGl 3.2 Context
-        glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );    
-        glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
-        glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
+        glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );    
+        glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 2 );
+        glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+//        glfwWindowHint( GLFW_FSAA_SAMPLES, 4);
         
-        // Open an OpenGL window
-        if( !glfwOpenWindow( getWidth(), getHeight(), 0, 0, 0, 0, 24, 0,
-                             fullSceen() ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
-        {
-            glfwTerminate();
-            throw Exception("Could not create OpenGL window");
-        }
+        // create the window
+        m_windows.push_back(GLFW_Window(getWidth(), getHeight(), getName()));
+        glfwSetWindowUserPointer(m_windows.back().handle(), this);
         
         // show mouse cursor in fullscreen ?
-        if(fullSceen() && cursorVisible()) glfwEnable(GLFW_MOUSE_CURSOR);
+//        if(fullSceen() && cursorVisible()) glfwEnable(GLFW_MOUSE_CURSOR);
         
         glfwSwapInterval(1);
         glClearColor(0, 0, 0, 1);
@@ -83,18 +81,12 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(getWidth(), getHeight());
         
-        //m_tweakBars.push_back(TwNewBar(getName().c_str()));
-        //create_tweakbar_from_component(shared_from_this());
-        
-        glfwSetMouseButtonCallback(&s_mouseButton);
-        glfwSetMousePosCallback(&s_mouseMove);
-        glfwSetMouseWheelCallback(&s_mouseWheel);
-        
-        glfwSetKeyCallback(&s_keyFunc);
-        glfwSetCharCallback(&s_charFunc);
-        
-        // send window size events to AntTweakBar
-        glfwSetWindowSizeCallback(&s_resize);
+        glfwSetMouseButtonCallback(m_windows.back().handle(), &GLFW_App::s_mouseButton);
+        glfwSetCursorPosCallback(m_windows.back().handle(), &GLFW_App::s_mouseMove);
+        glfwSetScrollCallback(m_windows.back().handle(), &GLFW_App::s_mouseWheel);
+        glfwSetKeyCallback(m_windows.back().handle(), &GLFW_App::s_keyFunc);
+        glfwSetCharCallback(m_windows.back().handle(), &GLFW_App::s_charFunc);
+        glfwSetWindowSizeCallback(m_windows.back().handle(), &GLFW_App::s_resize);
         
         // call user defined setup callback
         setup();
@@ -105,13 +97,17 @@ namespace kinski
     
     void GLFW_App::swapBuffers()
     {
-        glfwSwapBuffers();
+        for(auto window : m_windows)
+        {
+            glfwSwapBuffers(window.handle());
+        }
     }
     
     void GLFW_App::setWindowSize(const glm::vec2 size)
     {
         App::setWindowSize(size);
-        glfwSetWindowSize(size[0], size[1]);
+        if(!m_windows.empty())
+            glfwSetWindowSize(m_windows.back().handle(), (int)size[0], (int)size[1]);
     }
     
     void GLFW_App::draw_internal()
@@ -124,11 +120,15 @@ namespace kinski
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             TwDraw();
         }
+        
+        // trigger input callbacks
+        glfwPollEvents();
     }
     
     bool GLFW_App::checkRunning()
     {
-        return !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
+        return !glfwGetKey(m_windows.back().handle(), KeyEvent::KEY_ESCAPE ) &&
+            !glfwWindowShouldClose( m_windows.back().handle() );
     }
     
     double GLFW_App::getApplicationTime()
@@ -138,146 +138,136 @@ namespace kinski
     
     void GLFW_App::setFullSceen(bool b)
     {
-        throw Exception("not yet supported");
-        
         App::setFullSceen(b);
-        
-        if(running())
-        {
-            glfwCloseWindow();
-            // request an OpenGl 3.2 Context
-            glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
-            glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
-            glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            glfwOpenWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-            glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
-            
-            // Open an OpenGL window
-            if( !glfwOpenWindow( 1280, 800, 0, 0, 0, 0, 24, 0,
-                                fullSceen() ? GLFW_FULLSCREEN : GLFW_WINDOW ) )
-            {
-                glfwTerminate();
-                throw Exception("Could not create OpenGL window");
-            }
-        }
+        throw Exception("not yet supported");
     }
     
 /****************************  Application Events (internal) **************************/
     
-    void GLFW_App::__resize(int w,int h)
+    void GLFW_App::s_resize(GLFWwindow* window, int w, int h)
     {
-        setWindowSize(glm::vec2(w, h));
+        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        app->setWindowSize(glm::vec2(w, h));
         glViewport(0, 0, w, h);
-        gl::setWindowDimension(windowSize());
+        gl::setWindowDimension(app->windowSize());
         TwWindowSize(w, h);
         
         // user hook
-        if(running()) resize(w, h);
+        if(app->running()) app->resize(w, h);
     }
     
-    void GLFW_App::getModifiers(uint32_t &buttonModifiers, uint32_t &keyModifiers)
+    void GLFW_App::s_mouseMove(GLFWwindow* window, double x, double y)
     {
-        buttonModifiers = 0;
-        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_LEFT) )
-            buttonModifiers |= MouseEvent::LEFT_DOWN;
-        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_MIDDLE) )
-            buttonModifiers |= MouseEvent::MIDDLE_DOWN;
-        if( glfwGetMouseButton(GLFW_MOUSE_BUTTON_RIGHT) )
-            buttonModifiers |= MouseEvent::RIGHT_DOWN;
-        
-        keyModifiers = 0;
-        if( glfwGetKey(GLFW_KEY_LCTRL) || glfwGetKey(GLFW_KEY_RCTRL))
-            keyModifiers |= KeyEvent::CTRL_DOWN;
-        if( glfwGetKey(GLFW_KEY_LSHIFT) || glfwGetKey(GLFW_KEY_RSHIFT))
-            keyModifiers |= KeyEvent::SHIFT_DOWN;
-        if( glfwGetKey(GLFW_KEY_LALT) || glfwGetKey(GLFW_KEY_RALT))
-            keyModifiers |= KeyEvent::ALT_DOWN;
-        if( glfwGetKey(GLFW_KEY_LSUPER))
-            keyModifiers |= KeyEvent::META_DOWN;
-    }
-    
-    void GLFW_App::__mouseMove(int x,int y)
-    {
-        if(m_displayTweakBar)
-            TwEventMousePosGLFW(x,y);
+        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        if(app->displayTweakBar())
+            TwEventMousePosGLFW((int)x, (int)y);
         uint32_t buttonModifiers, keyModifiers, bothMods;
-        getModifiers(buttonModifiers, keyModifiers);
+        s_getModifiers(window, buttonModifiers, keyModifiers);
         bothMods = buttonModifiers | keyModifiers;
-        MouseEvent e(bothMods, x, y, bothMods, 0);
+        MouseEvent e(bothMods, (int)x, (int)y, bothMods, glm::ivec2(0));
         
         if(buttonModifiers)
-            mouseDrag(e);
+            app->mouseDrag(e);
         else
-            mouseMove(e);
+            app->mouseMove(e);
     }
     
-    void GLFW_App::__mouseButton(int button, int action)
+    void GLFW_App::s_mouseButton(GLFWwindow* window,int button, int action, int modifier_mask)
     {
-        if(m_displayTweakBar)
+        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        if(app->displayTweakBar())
             TwEventMouseButtonGLFW(button, action);
         
         uint32_t initiator, keyModifiers, bothMods;
-        getModifiers(initiator, keyModifiers);
+        s_getModifiers(window, initiator, keyModifiers);
         bothMods = initiator | keyModifiers;
         
-        int posX, posY;
-        glfwGetMousePos(&posX, &posY);
+        double posX, posY;
+        glfwGetCursorPos(window, &posX, &posY);
         
-        MouseEvent e(initiator, posX, posY, bothMods, 0);
+        MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
         
         if (action == GLFW_PRESS)
-            mousePress(e);
+            app->mousePress(e);
         else
-            mouseRelease(e);
+            app->mouseRelease(e);
     }
     
-    void GLFW_App::__mouseWheel(int pos)
+    void GLFW_App::s_mouseWheel(GLFWwindow* window,double offset_x, double offset_y)
     {
-        if(m_displayTweakBar)
-            TwEventMouseWheelGLFW(pos);
+        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
+        app->m_lastWheelPos -= offset;
         
-        int posX, posY;
-        glfwGetMousePos(&posX, &posY);
+        if(app->displayTweakBar())
+            TwEventMouseWheelGLFW(app->m_lastWheelPos.x);
+        
+        double posX, posY;
+        glfwGetCursorPos(window, &posX, &posY);
         uint32_t buttonMod, keyModifiers = 0;
-        getModifiers(buttonMod, keyModifiers);
-        MouseEvent e(0, posX, posY, keyModifiers, pos - m_lastWheelPos);
-        m_lastWheelPos = pos;
-        if(running()) mouseWheel(e);
+        s_getModifiers(window, buttonMod, keyModifiers);
+        MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
+        if(app->running()) app->mouseWheel(e);
     }
     
-    void GLFW_App::__keyFunc(int key, int action)
+    void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
     {
-        if(m_displayTweakBar)
+        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        if(app->displayTweakBar())
             TwEventKeyGLFW(key, action);
-            
+        
         uint32_t buttonMod, keyMod;
-        getModifiers(buttonMod, keyMod);
+        s_getModifiers(window, buttonMod, keyMod);
         
         KeyEvent e(key, key, keyMod);
         
         if(action == GLFW_PRESS)
-            keyPress(e);
+            app->keyPress(e);
         else
-            keyRelease(e);
+            app->keyRelease(e);
     }
     
-    void GLFW_App::__charFunc(int key, int action)
+    void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
     {
-        if(m_displayTweakBar)
-            TwEventCharGLFW(key, action);
-
-        if(key == GLFW_KEY_SPACE)
-            return;
-            
-        uint32_t buttonMod, keyMod;
-        getModifiers(buttonMod, keyMod);
+        //TODO: cleanup here
         
-        KeyEvent e(key, key, keyMod);
+//        GLFW_App* app = reinterpret_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+//        if(app->displayTweakBar())
+//            TwEventCharGLFW(key, action);
+//        
+//        if(key == GLFW_KEY_SPACE)
+//            return;
+//        
+//        uint32_t buttonMod, keyMod;
+//        s_getModifiers(window, buttonMod, keyMod);
+//        
+//        KeyEvent e(key, key, keyMod);
+//        
+//        if(action == GLFW_PRESS)
+//            app->keyPress(e);
+//        else
+//            app->keyRelease(e);
+    }
+    
+    void GLFW_App::s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers, uint32_t &keyModifiers)
+    {
+        buttonModifiers = 0;
+        if( glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) )
+            buttonModifiers |= MouseEvent::LEFT_DOWN;
+        if( glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE) )
+            buttonModifiers |= MouseEvent::MIDDLE_DOWN;
+        if( glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) )
+            buttonModifiers |= MouseEvent::RIGHT_DOWN;
         
-        if(action == GLFW_PRESS)
-            keyPress(e);
-        else
-            keyRelease(e);
+        keyModifiers = 0;
+        if( glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) || glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL))
+            keyModifiers |= KeyEvent::CTRL_DOWN;
+        if( glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) || glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT))
+            keyModifiers |= KeyEvent::SHIFT_DOWN;
+        if( glfwGetKey(window, GLFW_KEY_LEFT_ALT) || glfwGetKey(window, GLFW_KEY_RIGHT_ALT))
+            keyModifiers |= KeyEvent::ALT_DOWN;
+        if( glfwGetKey(window, GLFW_KEY_LEFT_SUPER) || glfwGetKey(window, GLFW_KEY_RIGHT_SUPER))
+            keyModifiers |= KeyEvent::META_DOWN;
     }
     
 /****************************  TweakBar + Properties **************************/
@@ -374,4 +364,3 @@ namespace kinski
         TwDefine(ss.str().c_str());
     }
 }
-#endif

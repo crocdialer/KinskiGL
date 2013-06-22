@@ -149,7 +149,7 @@ namespace kinski {
     
     void ViewerApp::mouseWheel(const MouseEvent &e)
     {
-        *m_distance -= e.getWheelIncrement();
+        *m_distance -= e.getWheelIncrement().x;
     }
     
     void ViewerApp::keyPress(const KeyEvent &e)
