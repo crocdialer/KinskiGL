@@ -53,17 +53,11 @@ namespace kinski
         }
         
         // request an OpenGl 3.2 Context
-//        glfwWindowHint(GLFW_DEPTH_BITS, 24);
-//        glfwWindowHint(GLFW_RED_BITS, 8);
-//        glfwWindowHint(GLFW_GREEN_BITS, 8);
-//        glfwWindowHint(GLFW_BLUE_BITS, 8);
-        
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3 );
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2 );
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        
-//        glfwWindowHint( GLFW_FSAA_SAMPLES, 4);
+        glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
         m_windows.push_back(GLFW_Window::Ptr(new GLFW_Window(getWidth(), getHeight(), getName())));
@@ -71,9 +65,6 @@ namespace kinski
         
         gl::setWindowDimension(windowSize());
         glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        
-        // show mouse cursor in fullscreen ?
-//        if(fullSceen() && cursorVisible()) glfwEnable(GLFW_MOUSE_CURSOR);
         
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
@@ -168,9 +159,9 @@ namespace kinski
         if(app->displayTweakBar())
             TwEventMousePosGLFW((int)x, (int)y);
         uint32_t buttonModifiers, keyModifiers, bothMods;
-        s_getModifiers(window, buttonModifiers, keyModifiers);
+        s_getModifiers(window, 0, buttonModifiers, keyModifiers);
         bothMods = buttonModifiers | keyModifiers;
-        MouseEvent e(bothMods, (int)x, (int)y, bothMods, glm::ivec2(0));
+        MouseEvent e(buttonModifiers, (int)x, (int)y, bothMods, glm::ivec2(0));
         
         if(buttonModifiers)
             app->mouseDrag(e);
@@ -185,7 +176,7 @@ namespace kinski
             TwEventMouseButtonGLFW(button, action);
         
         uint32_t initiator, keyModifiers, bothMods;
-        s_getModifiers(window, initiator, keyModifiers);
+        s_getModifiers(window, modifier_mask, initiator, keyModifiers);
         bothMods = initiator | keyModifiers;
         
         double posX, posY;
@@ -214,7 +205,7 @@ namespace kinski
         double posX, posY;
         glfwGetCursorPos(window, &posX, &posY);
         uint32_t buttonMod, keyModifiers = 0;
-        s_getModifiers(window, buttonMod, keyModifiers);
+        s_getModifiers(window, 0, buttonMod, keyModifiers);
         MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
         if(app->running()) app->mouseWheel(e);
     }
@@ -226,7 +217,7 @@ namespace kinski
             TwEventKeyGLFW(key, action);
         
         uint32_t buttonMod, keyMod;
-        s_getModifiers(window, buttonMod, keyMod);
+        s_getModifiers(window, modifier_mask, buttonMod, keyMod);
         
         KeyEvent e(key, key, keyMod);
         
@@ -249,14 +240,15 @@ namespace kinski
         
         if(key == GLFW_KEY_SPACE){return;}
         
-        uint32_t buttonMod, keyMod;
-        s_getModifiers(window, buttonMod, keyMod);
+        //uint32_t buttonMod, keyMod;
+        //s_getModifiers(window, buttonMod, keyMod);
         
-        KeyEvent e(key, key, keyMod);
+        KeyEvent e(key, key, 0);
         app->keyPress(e);
     }
     
-    void GLFW_App::s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers, uint32_t &keyModifiers)
+    void GLFW_App::s_getModifiers(GLFWwindow* window, int modifier_mask,
+                                  uint32_t &buttonModifiers, uint32_t &keyModifiers)
     {
         buttonModifiers = 0;
         if( glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) )

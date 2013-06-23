@@ -65,6 +65,7 @@ namespace kinski {
     
     void ViewerApp::setup()
     {
+        
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
         m_materials[0]->setShader(gl::createShader(gl::SHADER_PHONG));
@@ -99,6 +100,8 @@ namespace kinski {
     
     void ViewerApp::mousePress(const MouseEvent &e)
     {
+        m_arcball.mouseDown(e.getPos());
+        
         m_clickPos = glm::vec2(e.getX(), e.getY());
         m_lastTransform = *m_rotation;
         m_mouse_down = true;
@@ -130,11 +133,15 @@ namespace kinski {
     void ViewerApp::mouseDrag(const MouseEvent &e)
     {
         glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
+        
         if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
         {
             *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                          glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
                                                    glm::radians(-mouseDiff.x), 0)));
+            
+//            m_arcball.mouseDrag(e.getPos());
+//            *m_rotation = glm::mat3_cast(m_arcball.getQuat());
         }
         m_avg_filter.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
         m_dragPos = glm::vec2(e.getX(), e.getY());
@@ -194,6 +201,10 @@ namespace kinski {
     void ViewerApp::resize(int w, int h)
     {
         *m_window_size = glm::vec2(w, h);
+        
+        m_arcball.setWindowSize( windowSize() );
+        m_arcball.setCenter( windowSize() / 2.f );
+        m_arcball.setRadius( 150 );
     }
     
     // Property observer callback

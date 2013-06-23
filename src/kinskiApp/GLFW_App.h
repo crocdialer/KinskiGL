@@ -100,7 +100,8 @@ namespace kinski
         static void s_charFunc(GLFWwindow* window, unsigned int key);
 
         // return the current key and mouse button modifier mask
-        static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers, uint32_t &keyModifiers);
+        static void s_getModifiers(GLFWwindow* window, int modifier_mask, uint32_t &buttonModifiers,
+                                   uint32_t &keyModifiers);
         
         std::vector<TwBar*> m_tweakBars;
         bool m_displayTweakBar;

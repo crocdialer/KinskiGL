@@ -111,7 +111,9 @@ namespace kinski {
         }
         else
         {
-            LOG_ERROR<<error.message();
+            if(!boost::asio::error::connection_aborted)
+                LOG_ERROR<<error.message();
+            
             return;
         }
         start_accept();

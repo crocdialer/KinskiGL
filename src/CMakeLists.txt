@@ -3,8 +3,7 @@ if(BUILD_TESTS)
     FILE(GLOB TEST_SOURCES "tests/*.c*")
     FILE(GLOB TEST_HEADERS "tests/*.h")
 
-#SOURCE_GROUP("Unit-Tests" FILES ${TEST_SOURCES} ${TEST_HEADERS})
-
+SOURCE_GROUP("Unit-Tests" FILES ${TEST_SOURCES} ${TEST_HEADERS})
     FOREACH(testFile ${TEST_SOURCES})    
         STRING(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/tests/" "" testName ${testFile})
         STRING(REPLACE ".cpp" "" testName ${testName})
@@ -41,7 +40,7 @@ SET(LIBS ${LIBS} "kinskiApp")
 endif(BUILD_APPLIB)
 
 ADD_SUBDIRECTORY("kinskiCV")
-SET(LIBS ${LIBS} "kinskiCV")
+#SET(LIBS ${LIBS} "kinskiCV")
 
 if(BUILD_SAMPLES)
     if(KINSKI_RASPI)

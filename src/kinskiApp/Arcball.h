@@ -46,15 +46,15 @@ namespace kinski{ namespace gl {
             }
             
             glm::vec3 axis = glm::cross(from, to);
-            m_currentQuat = m_initialQuat * glm::quat( glm::dot(from, to), axis.x, axis.y, axis.z );
-            glm::normalize(m_currentQuat);
+            m_currentQuat = m_initialQuat * glm::quat( axis.x, axis.y, axis.z, glm::dot(from, to) );
+            m_currentQuat = glm::normalize(m_currentQuat);
         }
         
         void	resetQuat() { m_currentQuat = m_initialQuat = glm::quat(); }
         glm::quat	getQuat() { return m_currentQuat; }
         void	setQuat( const glm::quat &quat ) { m_currentQuat = quat; }
         
-        void	setWindowSize( const glm::ivec2 &aWindowSize ) { m_windowSize = aWindowSize; }
+        void	setWindowSize( const glm::vec2 &aWindowSize ) { m_windowSize = aWindowSize; }
         void	setCenter( const glm::vec2 &aCenter ) { m_center = aCenter; }
         glm::vec2	getCenter() const { return m_center; }
         void	setRadius( float aRadius ) { m_radius = aRadius; }
@@ -79,12 +79,12 @@ namespace kinski{ namespace gl {
             float mag = glm::length2(result);
             if( mag > 1.0f )
             {
-                glm::normalize(result);
+                result = glm::normalize(result);
             }
             else
             {
                 result.z = sqrtf( 1.0f - mag );
-                glm::normalize(result);
+                result = glm::normalize(result);
             }
             return result;
         }
@@ -115,7 +115,7 @@ namespace kinski{ namespace gl {
             return onPlane;
         }
         
-        glm::ivec2		m_windowSize;
+        glm::vec2		m_windowSize;
         glm::ivec2		m_initialMousePos;
         glm::vec2		m_center;
         glm::quat		m_currentQuat, m_initialQuat;

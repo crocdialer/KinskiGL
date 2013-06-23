@@ -81,6 +81,7 @@ namespace kinski {
         gl::MeshPtr m_selected_mesh;
         gl::PerspectiveCamera::Ptr m_camera;
         gl::Scene m_scene;
+        gl::Arcball m_arcball;
         
         bool m_precise_selection;
         bool m_center_selected;
