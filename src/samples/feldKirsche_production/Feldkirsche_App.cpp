@@ -217,13 +217,19 @@ namespace kinski{
             {
                 case DRAW_DEBUG_SCENE:
                     gl::setMatrices(camera());
-                    if(draw_grid()){gl::drawGrid(500, 500, 20, 20);}
-                    //if(wireframe())
                     {
                         gl::clearColor(gl::Color(0, 0, 0, 1));
                         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                        m_physics_context.dynamicsWorld()->debugDrawWorld();
-                        m_debugDrawer->flush();
+                        if(draw_grid()){gl::drawGrid(3000, 3000, 20, 20);}
+                        
+                        if(wireframe())
+                        {
+                            m_physics_context.dynamicsWorld()->debugDrawWorld();
+                            m_debugDrawer->flush();
+                        }else
+                        {
+                            scene().render(camera());
+                        }
                         m_debug_scene.render(camera());
                         gl::clearColor(clear_color());
                     }
@@ -295,25 +301,25 @@ namespace kinski{
             
             switch (e.getCode())
             {
-                case KeyEvent::KEY_i:
+                case GLFW_KEY_I:
                     //scene().root()->accept(visitor);
                     break;
                     
-                case KeyEvent::KEY_d:
+                case GLFW_KEY_D:
                     m_debug_draw_mode->getRange(min, max);
                     *m_debug_draw_mode = (*m_debug_draw_mode + 1) % (max + 1);
                     break;
                     
-                case KeyEvent::KEY_p:
+                case GLFW_KEY_P:
                     *m_stepPhysics = !*m_stepPhysics;
                     break;
                     
-                case KeyEvent::KEY_r:
+                case GLFW_KEY_R:
                     Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
                     m_rigid_bodies_num->set(*m_rigid_bodies_num);
                     break;
                     
-                case KeyEvent::KEY_s:
+                case GLFW_KEY_S:
                     Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
                     break;
 
@@ -427,7 +433,7 @@ namespace kinski{
             if(m_mesh) m_mesh->material()->setShinyness(*m_shinyness);
         }
         else if(theProperty == m_modelPath || theProperty == m_modelScale ||
-                theProperty == m_modelOffset)
+                theProperty == m_modelOffset || theProperty == m_modelRotationY)
         {
             scene().removeObject(m_mesh);
             materials().clear();
@@ -530,6 +536,8 @@ namespace kinski{
         materials().push_back(the_mesh->material());
         the_mesh->material()->setShinyness(*m_shinyness);
         the_mesh->material()->setSpecular(glm::vec4(1));
+        the_mesh->transform() *= glm::rotate(glm::mat4(), m_modelRotationY->value(),
+                                             vec3(0, 1, 0));
         the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
         the_mesh->position() += m_modelOffset->value();
         scene().addObject(m_mesh);
@@ -546,9 +554,7 @@ namespace kinski{
         //add the body to the dynamics world
         m_physics_context.dynamicsWorld()->addRigidBody(body);
         
-        m_mesh->transform() = glm::rotate(the_mesh->transform(),
-                                          m_modelRotationY->value(),
-                                          vec3(0, 1, 0)) * glm::scale(glm::mat4(), scale);
+        m_mesh->transform() *= glm::scale(glm::mat4(), scale);
     }
     
     void Feldkirsche_App::create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)

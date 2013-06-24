@@ -52,6 +52,10 @@ namespace kinski
             throw Exception("GLFW failed to initialize");
         }
         
+        glfwWindowHint(GLFW_RED_BITS, 16);
+        glfwWindowHint(GLFW_GREEN_BITS, 16);
+        glfwWindowHint(GLFW_BLUE_BITS, 16);
+        
         // request an OpenGl 3.2 Context
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3 );
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2 );
@@ -81,6 +85,7 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(getWidth(), getHeight());
         
+        // static callbacks
         glfwSetMouseButtonCallback(m_windows.back()->handle(), &GLFW_App::s_mouseButton);
         glfwSetCursorPosCallback(m_windows.back()->handle(), &GLFW_App::s_mouseMove);
         glfwSetScrollCallback(m_windows.back()->handle(), &GLFW_App::s_mouseWheel);
@@ -188,9 +193,11 @@ namespace kinski
         {
             case GLFW_PRESS:
                 app->mousePress(e);
+                break;
                 
             case GLFW_RELEASE:
                 app->mouseRelease(e);
+                break;
         }
     }
     
@@ -226,9 +233,11 @@ namespace kinski
             case GLFW_PRESS:
             case GLFW_REPEAT:
                 app->keyPress(e);
+                break;
                 
             case GLFW_RELEASE:
                 app->keyRelease(e);
+                break;
         }
     }
     
