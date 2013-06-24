@@ -240,10 +240,10 @@ namespace kinski
         
         if(key == GLFW_KEY_SPACE){return;}
         
-        //uint32_t buttonMod, keyMod;
-        //s_getModifiers(window, buttonMod, keyMod);
+        uint32_t buttonMod, keyMod;
+        s_getModifiers(window, 0, buttonMod, keyMod);
         
-        KeyEvent e(key, key, 0);
+        KeyEvent e(0, key, keyMod);
         app->keyPress(e);
     }
     

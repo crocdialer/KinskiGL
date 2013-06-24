@@ -171,7 +171,7 @@ public:
         
         kinski::addSearchPath("~/Desktop");
         kinski::addSearchPath("/Library/Fonts");
-        m_font_paths = kinski::getDirectoryEntries(getSearchPaths().back(), false, "ttf");
+        //m_font_paths = kinski::getDirectoryEntries(getSearchPaths().back(), false, "ttf");
         m_font.load("Arial.ttf", 24);
         for (int i = 0; i < 4; ++i){ m_textures.push_back(gl::Texture()); }
         

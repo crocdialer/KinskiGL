@@ -46,7 +46,7 @@ namespace kinski{ namespace gl {
             }
             
             glm::vec3 axis = glm::cross(from, to);
-            m_currentQuat = m_initialQuat * glm::quat( axis.x, axis.y, axis.z, glm::dot(from, to) );
+            m_currentQuat = m_initialQuat * glm::quat( glm::dot(from, to), axis.x, axis.y, axis.z);
             m_currentQuat = glm::normalize(m_currentQuat);
         }
         
