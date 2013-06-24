@@ -12,7 +12,7 @@ namespace kinski { namespace gl {
 
     Light::Light(Type theType):
     m_type(theType),
-    m_attenuation(Attenuation(0, 1.f, 0)),
+    m_attenuation(Attenuation(1.f, 0, 0)),
     m_ambient(Color(0)),
     m_diffuse(Color(1)),
     m_specular(Color(1)),

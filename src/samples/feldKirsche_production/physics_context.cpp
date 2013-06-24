@@ -189,7 +189,7 @@ namespace kinski{ namespace physics{
     void physics_context::teardown_physics()
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        
+        if(!m_dynamicsWorld) return;
         int i;
         for (i = m_dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
         {

@@ -527,7 +527,7 @@ namespace kinski{
     void Feldkirsche_App::tearDown()
     {
         LOG_DEBUG<<"waiting for OpenNI to shut down";
-        m_open_ni->stop();
+        if(m_open_ni) m_open_ni->stop();
         LOG_INFO<<"ciao Feldkirsche";
     }
     
@@ -665,7 +665,8 @@ namespace kinski{
         m_physics_context.dynamicsWorld()->getNumCollisionObjects()<<" rigidbodies";
         
         gl::LightPtr test_light(new gl::Light(gl::Light::POINT));
-        test_light->setPosition(vec3(300, 600, 400));
+        test_light->setPosition(vec3(900, 600, 400));
+        test_light->set_attenuation(0, .0005f, 0);
         scene().addObject(test_light);
     }
     

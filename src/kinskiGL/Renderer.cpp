@@ -22,11 +22,19 @@ namespace kinski{ namespace gl{
     void Renderer::render(const RenderBinPtr &theBin)
     {
         std::list<RenderBin::item> opaque_items, blended_items;
-        std::list<RenderBin::item>::iterator it = theBin->items.begin();
-        for (; it != theBin->items.end(); ++it)
+        for (auto &item :theBin->items)
         {
-            if(it->mesh->material()->opaque()){opaque_items.push_back(*it);}
-            else{blended_items.push_back(*it);}
+            bool opaque = true;
+            for (const auto &material : item.mesh->materials())
+            {
+                if(!material->opaque())
+                {
+                    opaque = false;
+                    break;
+                }
+            }
+            if(opaque){opaque_items.push_back(item);}
+            else{blended_items.push_back(item);}
         }
         //sort by distance to camera
         opaque_items.sort(RenderBin::sort_items_increasing());
@@ -154,8 +162,17 @@ namespace kinski{ namespace gl{
             sprintf(buf, "u_lights[%d].specular", light_count);
             the_mat->uniform(buf, light.light->specular());
             
+            sprintf(buf, "u_lights[%d].constantAttenuation", light_count);
+            the_mat->uniform(buf, light.light->attenuation().constant);
+            
+            sprintf(buf, "u_lights[%d].linearAttenuation", light_count);
+            the_mat->uniform(buf, light.light->attenuation().linear);
+            
+            sprintf(buf, "u_lights[%d].quadraticAttenuation", light_count);
+            the_mat->uniform(buf, light.light->attenuation().quadratic);
+            
             light_count++;
         }
-        the_mat->uniform("u_numLights", (int)light_list.size());
+        the_mat->uniform("u_numLights", light_count);
     }
 }}

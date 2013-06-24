@@ -350,9 +350,10 @@ namespace kinski { namespace gl {
         
         const char *phongFragSrc = GLSL(150 core,
         uniform int u_numTextures;
+        uniform int u_numLights;
         uniform sampler2D u_textureMap[16];
-        uniform vec3 u_lightDir;
-        uniform struct
+        //uniform vec3 u_lightDir;
+        uniform struct Lightsource
         {
             int type;
             vec3 position;
@@ -361,11 +362,10 @@ namespace kinski { namespace gl {
             vec4 specular;
             float constantAttenuation;
             float linearAttenuation;
-            float quaraticAttenuation;
-        } u_lights[];
-        
-        uniform int u_numLights;
-        uniform struct
+            float quadraticAttenuation;
+        } u_lights[8];
+
+        uniform struct Material
         {
             vec4 diffuse;
             vec4 ambient;
@@ -381,6 +381,30 @@ namespace kinski { namespace gl {
             vec3 eyeVec;
         } vertex_in;
         out vec4 fragData;
+                                        
+        vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)
+        {
+            vec3 lightDir = light.position - eyeVec;
+            vec3 L = normalize(-lightDir);
+            vec3 E = normalize(eyeVec);
+		    vec3 R = reflect(-L, normal);
+            
+            float dist = length(lightDir);
+            float att = 1.0;
+            float nDotL = dot(normal, L);
+            if (nDotL > 0.0)
+            {
+                att = 1.0 / (light.constantAttenuation +
+                             light.linearAttenuation * dist +
+                             light.quadraticAttenuation * dist * dist);
+            }
+            nDotL = max(0.0, nDotL);
+            
+            float specIntesity = pow( max(dot(R, E), 0.0), mat.shinyness);
+            vec4 spec = mat.specular * specIntesity; spec.a = 0.0;
+            return base_color * att * (mat.ambient + mat.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+        }
+                                        
         void main()
         {
             vec4 texColors = vec4(1);
@@ -389,14 +413,36 @@ namespace kinski { namespace gl {
                 texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
             }
             vec3 N = normalize(vertex_in.normal);
-            //vec3 L = normalize(-u_lightDir);
-            vec3 E = normalize(vertex_in.eyeVec);
-            vec3 L = normalize(-u_lights[0].position - E);
-		    vec3 R = reflect(-L, N);
-            float nDotL = max(0.0, dot(N, L));
-            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
-            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
-            fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+            
+            // calculate shading for all lights
+            vec4 shade_color = vec4(0);
+            for(int i = 0; i < u_numLights; i++)
+            {
+                shade_color += shade(u_lights[i], u_material, N, vertex_in.eyeVec, texColors);
+            }
+            
+//            //vec3 L = normalize(-u_lightDir);
+//            vec3 lightDir = u_lights[0].position - vertex_in.eyeVec;
+//            
+//            vec3 L = normalize(-lightDir);
+//            vec3 E = normalize(vertex_in.eyeVec);
+//		    vec3 R = reflect(-L, N);
+//            
+//            float dist = length(lightDir);
+//            float att = 1.0;
+//            float nDotL = dot(N, L);
+//            if (nDotL > 0.0)
+//            {
+//                att = 1.0 / (u_lights[0].constantAttenuation +
+//                             u_lights[0].linearAttenuation * dist +
+//                             u_lights[0].quadraticAttenuation * dist * dist);
+//            }
+//            nDotL = max(0.0, nDotL);
+//                
+//            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
+//            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
+//            fragData = texColors * att * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+            fragData = shade_color;
         });
         
         const char *phong_normalmap_vertSrc = GLSL(150 core,
