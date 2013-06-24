@@ -62,6 +62,7 @@ namespace kinski {
         
         Property_<std::vector<std::string> >::Ptr search_paths(){return m_search_paths;}
         bool wireframe() const { return *m_wireFrame; };
+        void set_wireframe(bool b) { *m_wireFrame = b; };
         bool draw_grid() const { return *m_draw_grid; };
         bool normals() const { return *m_drawNormals; };
         const glm::vec3& light_direction(){ return *m_light_direction; };

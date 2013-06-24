@@ -281,6 +281,20 @@ namespace kinski { namespace gl {
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
         uniform mat4 u_textureMatrix;
+        uniform struct
+        {
+            int type;
+            vec3 position;
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            float constantAttenuation;
+            float linearAttenuation;
+            float quaraticAttenuation;
+        } u_lights[];
+        
+        uniform int u_numLights;
+                                        
         in vec4 a_vertex;
         in vec4 a_texCoord;
         in vec3 a_normal;
@@ -306,6 +320,7 @@ namespace kinski { namespace gl {
         uniform mat3 u_normalMatrix;
         uniform mat4 u_textureMatrix;
         uniform mat4 u_bones[110];
+                                    
         in vec4 a_vertex;
         in vec4 a_texCoord;
         in vec3 a_normal;
@@ -339,12 +354,26 @@ namespace kinski { namespace gl {
         uniform vec3 u_lightDir;
         uniform struct
         {
+            int type;
+            vec3 position;
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            float constantAttenuation;
+            float linearAttenuation;
+            float quaraticAttenuation;
+        } u_lights[];
+        
+        uniform int u_numLights;
+        uniform struct
+        {
             vec4 diffuse;
             vec4 ambient;
             vec4 specular;
             vec4 emission;
             float shinyness;
         } u_material;
+                                        
         in VertexData{
             vec4 color;
             vec4 texCoord;
@@ -360,8 +389,9 @@ namespace kinski { namespace gl {
                 texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
             }
             vec3 N = normalize(vertex_in.normal);
-            vec3 L = normalize(-u_lightDir);
+            //vec3 L = normalize(-u_lightDir);
             vec3 E = normalize(vertex_in.eyeVec);
+            vec3 L = normalize(-u_lights[0].position - E);
 		    vec3 R = reflect(-L, N);
             float nDotL = max(0.0, dot(N, L));
             float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);

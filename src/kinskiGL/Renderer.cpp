@@ -11,6 +11,7 @@
 #include "Geometry.h"
 #include "Material.h"
 #include "Camera.h"
+#include "Light.h"
 
 namespace kinski{ namespace gl{
 
@@ -31,11 +32,12 @@ namespace kinski{ namespace gl{
         opaque_items.sort(RenderBin::sort_items_increasing());
         blended_items.sort(RenderBin::sort_items_decreasing());
         
-        draw_sorted_by_material(theBin->camera, opaque_items);
-        draw_sorted_by_material(theBin->camera, blended_items);
+        draw_sorted_by_material(theBin->camera, opaque_items, theBin->lights);
+        draw_sorted_by_material(theBin->camera, blended_items, theBin->lights);
     }
     
-    void Renderer::draw_sorted_by_material(const CameraPtr &cam, const list<RenderBin::item> &item_list)
+    void Renderer::draw_sorted_by_material(const CameraPtr &cam, const list<RenderBin::item> &item_list,
+                                           const list<RenderBin::light> &light_list)
     {
         KINSKI_CHECK_GL_ERRORS();
         glm::mat4 viewMatrix = cam->getViewMatrix();
@@ -57,6 +59,11 @@ namespace kinski{ namespace gl{
             if(m->geometry()->hasBones())
             {
                 m->material()->uniform("u_bones", m->boneMatrices());
+            }
+            
+            for (auto &material : m->materials())
+            {
+                set_light_uniforms(material, light_list);
             }
             gl::apply_material(m->material(), false);
             
@@ -124,5 +131,31 @@ namespace kinski{ namespace gl{
             GL_SUFFIX(glBindVertexArray)(0);
 #endif
         }
+    }
+    
+    void Renderer::set_light_uniforms(MaterialPtr &the_mat, const list<RenderBin::light> &light_list)
+    {
+        int light_count = 0;
+        char buf[256];
+        for (const auto &light : light_list)
+        {
+            sprintf(buf, "u_lights[%d].type", light_count);
+            the_mat->uniform(buf, (int)light.light->type());
+            
+            sprintf(buf, "u_lights[%d].position", light_count);
+            the_mat->uniform(buf, light.transform[3].xyz());
+            
+            sprintf(buf, "u_lights[%d].diffuse", light_count);
+            the_mat->uniform(buf, light.light->diffuse());
+            
+            sprintf(buf, "u_lights[%d].ambient", light_count);
+            the_mat->uniform(buf, light.light->ambient());
+            
+            sprintf(buf, "u_lights[%d].specular", light_count);
+            the_mat->uniform(buf, light.light->specular());
+            
+            light_count++;
+        }
+        the_mat->uniform("u_numLights", (int)light_list.size());
     }
 }}

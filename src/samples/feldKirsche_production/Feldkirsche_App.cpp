@@ -301,6 +301,10 @@ namespace kinski{
             
             switch (e.getCode())
             {
+                case GLFW_KEY_W:
+                    set_wireframe(!wireframe());
+                    break;
+                    
                 case GLFW_KEY_I:
                     //scene().root()->accept(visitor);
                     break;
@@ -457,10 +461,9 @@ namespace kinski{
                     try
                     {
                         std::list<string> models = kinski::getDirectoryEntries(*m_modelPath, false, "dae");
-                        std::list<string>::const_iterator it = models.begin();
-                        for (; it != models.end(); ++it)
+                        for (const auto &model : models)
                         {
-                            add_mesh(gl::AssimpConnector::loadModel(*it), *m_modelScale);
+                            add_mesh(gl::AssimpConnector::loadModel(model), *m_modelScale);
                         }
                         
                     }catch(Exception &e){LOG_ERROR<< e.what();}
@@ -661,18 +664,19 @@ namespace kinski{
         LOG_DEBUG<<"created dynamicsworld with "<<
         m_physics_context.dynamicsWorld()->getNumCollisionObjects()<<" rigidbodies";
         
-        scene().addObject(gl::Object3DPtr(new gl::Light(gl::Light::POINT)));
+        gl::LightPtr test_light(new gl::Light(gl::Light::POINT));
+        test_light->setPosition(vec3(300, 600, 400));
+        scene().addObject(test_light);
     }
     
     //! bring positions to world-coords using a virtual camera
     void Feldkirsche_App::adjust_user_positions_with_camera(gl::OpenNIConnector::UserList &user_list,
                                                             const gl::CameraPtr &cam)
     {
-        gl::OpenNIConnector::UserList::iterator it = user_list.begin();
-        for(;it != user_list.end();++it)
+        for(auto &user : user_list)
         {
-            vec4 flipped_pos (it->position, 1.f);flipped_pos.z *= - 1.0f;
-            it->position = (cam->transform() * flipped_pos).xyz();
+            vec4 flipped_pos (user.position, 1.f);flipped_pos.z *= - 1.0f;
+            user.position = (cam->transform() * flipped_pos).xyz();
         }
     }
     
@@ -690,15 +694,15 @@ namespace kinski{
             m_user_radius_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
         }
         gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-        gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
-        for (; it != user_list.end(); ++it)
+        
+        for (const auto &user : user_list)
         {
-            m_user_mesh->setPosition(it->position);
-            m_user_mesh->material()->setDiffuse(m_user_id_colors[it->id]);
+            m_user_mesh->setPosition(user.position);
+            m_user_mesh->material()->setDiffuse(m_user_id_colors[user.id]);
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
             gl::drawMesh(m_user_mesh);
             
-            m_user_radius_mesh->setPosition(it->position - vec3(0, 0, 1) * m_user_offset->value());
+            m_user_radius_mesh->setPosition(user.position - vec3(0, 0, 1) * m_user_offset->value());
             m_user_radius_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
             gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() *
                            m_user_radius_mesh->transform() * glm::scale(glm::mat4(),
@@ -715,10 +719,9 @@ namespace kinski{
         {
             direction_avg = glm::vec3(0);
 
-            gl::OpenNIConnector::UserList::const_iterator it = user_list.begin();
-            for (; it != user_list.end(); ++it)
+            for (const auto &user : user_list)
             {
-                direction_avg += glm::normalize(it->position);
+                direction_avg += glm::normalize(user.position);
             }
         
             // kill z-component and assure downward gravity
