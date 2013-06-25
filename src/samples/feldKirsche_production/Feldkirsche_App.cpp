@@ -138,13 +138,14 @@ namespace kinski{
         
         // Lights
         gl::LightPtr point_light(new gl::Light(gl::Light::POINT));
-        point_light->setPosition(vec3(900, 600, 400));
-        point_light->set_attenuation(0, .0005f, 0);
+        point_light->setPosition(vec3(0, 300, 300));
+        point_light->set_attenuation(0, .0009f, 0);
         lights().push_back(point_light);
+        //lights().front()->set_enabled(false);
+        lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
+        lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
         
         // setup some blank textures
-//        m_textures.push_back(gl::Texture());
-//        m_textures.push_back(gl::Texture());
         m_textures.resize(2);
         
         // clear with transparent black
@@ -202,7 +203,6 @@ namespace kinski{
         if(m_material)
         {
             m_material->setWireframe(wireframe());
-            m_material->uniform("u_lightDir", light_direction());
             m_material->setDiffuse(m_color->value());
             m_material->setBlending(m_color->value().a < 1.0f);
             
@@ -210,7 +210,6 @@ namespace kinski{
         for (int i = 0; i < materials().size(); i++)
         {
             materials()[i]->uniform("u_time",getApplicationTime());
-            materials()[i]->uniform("u_lightDir", light_direction());
             materials()[i]->setShinyness(*m_shinyness);
             materials()[i]->setAmbient(0.2 * clear_color());
         }

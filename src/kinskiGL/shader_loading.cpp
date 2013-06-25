@@ -38,6 +38,10 @@ namespace kinski { namespace gl {
     
     Shader createShader(ShaderType type)
     {
+        std::string material_uniform_block;
+        std::string light_uniform_block;
+        std::string shade_phong_block;
+        
 #ifdef KINSKI_GLES
         const char *unlitVertSrc = GLSL( ,
         uniform mat4 u_modelViewProjectionMatrix;
@@ -297,7 +301,7 @@ namespace kinski { namespace gl {
         {
             vertex_out.normal = normalize(u_normalMatrix * a_normal);
             vertex_out.texCoord = u_textureMatrix * a_texCoord;
-            vertex_out.eyeVec = - (u_modelViewMatrix * a_vertex).xyz;
+            vertex_out.eyeVec = (u_modelViewMatrix * a_vertex).xyz;
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
@@ -331,7 +335,7 @@ namespace kinski { namespace gl {
             }
             vertex_out.normal = normalize(u_normalMatrix * newNormal.xyz);
             vertex_out.texCoord =  u_textureMatrix * a_texCoord;
-            vertex_out.eyeVec = - (u_modelViewMatrix * newVertex).xyz;
+            vertex_out.eyeVec = (u_modelViewMatrix * newVertex).xyz;
             gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
         });
         
@@ -339,7 +343,6 @@ namespace kinski { namespace gl {
         uniform int u_numTextures;
         uniform int u_numLights;
         uniform sampler2D u_textureMap[16];
-        uniform vec3 u_lightDir;
         uniform struct Lightsource
         {
             // 0: Directional
@@ -377,9 +380,9 @@ namespace kinski { namespace gl {
         vec4 shade_phong(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
                          in vec4 base_color)
         {
-            vec3 lightDir = light.type > 0 ? light.position - eyeVec : light.position;
-            vec3 L = normalize(-lightDir);
-            vec3 E = normalize(eyeVec);
+            vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : light.position;
+            vec3 L = normalize(lightDir);
+            vec3 E = normalize(-eyeVec);
 		    vec3 R = reflect(-L, normal);
             
             float att = 1.0;

@@ -56,11 +56,6 @@ namespace kinski {
         
         m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
         registerProperty(m_clear_color);
-        
-        // viewer provides a directional light
-        gl::LightPtr dir_light(new gl::Light(gl::Light::DIRECTIONAL));
-        dir_light->setPosition(light_direction());
-        lights().push_back(dir_light);
     }
     
     ViewerApp::~ViewerApp()
@@ -70,6 +65,11 @@ namespace kinski {
     
     void ViewerApp::setup()
     {
+        // viewer provides a directional light
+        gl::LightPtr dir_light(new gl::Light(gl::Light::DIRECTIONAL));
+        dir_light->setPosition(light_direction());
+        lights().push_back(dir_light);
+        scene().addObject(dir_light);
         
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
@@ -239,6 +239,10 @@ namespace kinski {
         else if(theProperty == m_clear_color)
         {
             gl::clearColor(*m_clear_color);
+        }
+        else if(theProperty == m_light_direction)
+        {
+            if(!lights().empty()) lights().front()->position() = m_light_direction->value();
         }
         else if(theProperty == m_distance || theProperty == m_rotation)
         {

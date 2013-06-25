@@ -33,7 +33,7 @@ FIND_PATH(GLFW_INCLUDE_DIRS GLFW/glfw3.h DOC "Path to GLFW include directory."
   ${GLFW_ROOT_DIR}/include/ # added by ptr
 )
 
-SET(GLFW_LIB_NAMES libglfw3.a glfw3 GLFW3.lib)
+SET(GLFW_LIB_NAMES libglfw3.a glfw GLFW3.lib)
 
 FIND_LIBRARY(GLFW_LIBRARIES DOC "Absolute path to GLFW library."
   NAMES ${GLFW_LIB_NAMES}
