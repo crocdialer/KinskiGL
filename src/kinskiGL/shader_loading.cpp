@@ -281,19 +281,6 @@ namespace kinski { namespace gl {
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
         uniform mat4 u_textureMatrix;
-        uniform struct
-        {
-            int type;
-            vec3 position;
-            vec4 diffuse;
-            vec4 ambient;
-            vec4 specular;
-            float constantAttenuation;
-            float linearAttenuation;
-            float quaraticAttenuation;
-        } u_lights[];
-        
-        uniform int u_numLights;
                                         
         in vec4 a_vertex;
         in vec4 a_texCoord;
@@ -352,14 +339,19 @@ namespace kinski { namespace gl {
         uniform int u_numTextures;
         uniform int u_numLights;
         uniform sampler2D u_textureMap[16];
-        //uniform vec3 u_lightDir;
+        uniform vec3 u_lightDir;
         uniform struct Lightsource
         {
+            // 0: Directional
+            // 1: Point
+            // 2: Spot
             int type;
+            // position in eyecoords
             vec3 position;
             vec4 diffuse;
             vec4 ambient;
             vec4 specular;
+            // attenuation
             float constantAttenuation;
             float linearAttenuation;
             float quadraticAttenuation;
@@ -382,18 +374,19 @@ namespace kinski { namespace gl {
         } vertex_in;
         out vec4 fragData;
                                         
-        vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)
+        vec4 shade_phong(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
+                         in vec4 base_color)
         {
-            vec3 lightDir = light.position - eyeVec;
+            vec3 lightDir = light.type > 0 ? light.position - eyeVec : light.position;
             vec3 L = normalize(-lightDir);
             vec3 E = normalize(eyeVec);
 		    vec3 R = reflect(-L, normal);
             
-            float dist = length(lightDir);
             float att = 1.0;
             float nDotL = dot(normal, L);
-            if (nDotL > 0.0)
+            if (light.type > 0 && nDotL > 0.0)
             {
+                float dist = length(lightDir);
                 att = 1.0 / (light.constantAttenuation +
                              light.linearAttenuation * dist +
                              light.quadraticAttenuation * dist * dist);
@@ -401,12 +394,15 @@ namespace kinski { namespace gl {
             nDotL = max(0.0, nDotL);
             
             float specIntesity = pow( max(dot(R, E), 0.0), mat.shinyness);
-            vec4 spec = mat.specular * specIntesity; spec.a = 0.0;
-            return base_color * att * (mat.ambient + mat.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+            vec4 ambient = mat.ambient * light.ambient;
+            vec4 diffuse = mat.diffuse * light.diffuse;
+            vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
+            return base_color * att * (ambient + diffuse * vec4(vec3(nDotL), 1.0)) + spec;
         }
                                         
         void main()
         {
+            // accumulate all texture maps
             vec4 texColors = vec4(1);
             for(int i = 0; i < u_numTextures; i++)
             {
@@ -418,30 +414,8 @@ namespace kinski { namespace gl {
             vec4 shade_color = vec4(0);
             for(int i = 0; i < u_numLights; i++)
             {
-                shade_color += shade(u_lights[i], u_material, N, vertex_in.eyeVec, texColors);
+                shade_color += shade_phong(u_lights[i], u_material, N, vertex_in.eyeVec, texColors);
             }
-            
-//            //vec3 L = normalize(-u_lightDir);
-//            vec3 lightDir = u_lights[0].position - vertex_in.eyeVec;
-//            
-//            vec3 L = normalize(-lightDir);
-//            vec3 E = normalize(vertex_in.eyeVec);
-//		    vec3 R = reflect(-L, N);
-//            
-//            float dist = length(lightDir);
-//            float att = 1.0;
-//            float nDotL = dot(N, L);
-//            if (nDotL > 0.0)
-//            {
-//                att = 1.0 / (u_lights[0].constantAttenuation +
-//                             u_lights[0].linearAttenuation * dist +
-//                             u_lights[0].quadraticAttenuation * dist * dist);
-//            }
-//            nDotL = max(0.0, nDotL);
-//                
-//            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
-//            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
-//            fragData = texColors * att * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
             fragData = shade_color;
         });
         

@@ -75,7 +75,20 @@ namespace kinski { namespace gl {
             {
                 RenderBin::light light_item;
                 light_item.light = &theNode;
-                light_item.transform = transform_stack().top() * theNode.transform();
+                switch (theNode.type())
+                {
+                    case Light::DIRECTIONAL:
+                        light_item.transform =
+                            glm::mat4(glm::inverseTranspose(glm::mat3(transform_stack().top()))) *
+                            theNode.transform();
+                        break;
+                        
+                    case Light::POINT:
+                    case Light::SPOT:
+                        light_item.transform = transform_stack().top() * theNode.transform();
+                        break;
+                }
+                
                 m_render_bin->lights.push_back(light_item);
             }
             // super class provides node traversing and transform accumulation

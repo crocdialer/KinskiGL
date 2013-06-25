@@ -52,10 +52,9 @@ namespace kinski{ namespace gl{
         
         typedef map<pair<GeometryPtr, MaterialPtr>, list<Mesh*> > MeshMap;
         MeshMap meshMap;
-        list<RenderBin::item>::const_iterator item_it = item_list.begin();
-        for (; item_it != item_list.end(); ++item_it)
+        for (auto &item : item_list)
         {
-            Mesh *m = item_it->mesh;
+            Mesh *m = item.mesh;
             meshMap[std::make_pair(m->geometry(), m->material())].push_back(m);
         }
         MeshMap::iterator it = meshMap.begin();

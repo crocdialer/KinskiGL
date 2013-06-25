@@ -56,6 +56,11 @@ namespace kinski {
         
         m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
         registerProperty(m_clear_color);
+        
+        // viewer provides a directional light
+        gl::LightPtr dir_light(new gl::Light(gl::Light::DIRECTIONAL));
+        dir_light->setPosition(light_direction());
+        lights().push_back(dir_light);
     }
     
     ViewerApp::~ViewerApp()
@@ -212,10 +217,9 @@ namespace kinski {
     {
         if(theProperty == m_search_paths)
         {
-            std::vector<std::string>::const_iterator it = m_search_paths->value().begin();
-            for (; it != m_search_paths->value().end(); ++it)
+            for (const auto &search_path : m_search_paths->value())
             {
-                kinski::addSearchPath(*it);
+                kinski::addSearchPath(search_path);
             }
         }
         else if(theProperty == m_logger_severity)

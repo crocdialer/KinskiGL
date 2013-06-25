@@ -18,7 +18,7 @@ namespace kinski { namespace gl {
     public:
         
         //! what it is, what it is
-        enum Type {DIRECTIONAL = 1 << 0, POINT = 1 << 1, SPOT = 1 << 2};
+        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2};
         
         //! Helper struct to bundle the attenuation params
         struct Attenuation

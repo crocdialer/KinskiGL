@@ -136,6 +136,12 @@ namespace kinski{
         // the virtual camera used to position depth camera input within the scene
         m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
         
+        // Lights
+        gl::LightPtr point_light(new gl::Light(gl::Light::POINT));
+        point_light->setPosition(vec3(900, 600, 400));
+        point_light->set_attenuation(0, .0005f, 0);
+        lights().push_back(point_light);
+        
         // setup some blank textures
 //        m_textures.push_back(gl::Texture());
 //        m_textures.push_back(gl::Texture());
@@ -189,6 +195,9 @@ namespace kinski{
         
         // update gravity direction
         update_gravity(m_user_list, 0.05);
+        
+        // light update
+        lights().front()->setPosition(light_direction());
         
         if(m_material)
         {
@@ -263,15 +272,13 @@ namespace kinski{
             if(h > 0)
             {
                 
-                for (int j = 0; j < m_textures.size(); j++)
+                for (auto &tex : m_textures)
                 {
-                    const gl::Texture &t = m_textures[j];
-                    
-                    float h = t.getHeight() * w / t.getWidth();
+                    float h = tex.getHeight() * w / tex.getWidth();
                     glm::vec2 step(0, h + 10);
-                    drawTexture(t, vec2(w, h), offset);
-                    gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
-                                   as_string(t.getHeight()), m_font, glm::vec4(1),
+                    drawTexture(tex, vec2(w, h), offset);
+                    gl::drawText2D(as_string(tex.getWidth()) + std::string(" x ") +
+                                   as_string(tex.getHeight()), m_font, glm::vec4(1),
                                    offset);
                     offset += step;
                 }
@@ -664,10 +671,8 @@ namespace kinski{
         LOG_DEBUG<<"created dynamicsworld with "<<
         m_physics_context.dynamicsWorld()->getNumCollisionObjects()<<" rigidbodies";
         
-        gl::LightPtr test_light(new gl::Light(gl::Light::POINT));
-        test_light->setPosition(vec3(900, 600, 400));
-        test_light->set_attenuation(0, .0005f, 0);
-        scene().addObject(test_light);
+        // add our lights
+        for (auto &light : lights()){scene().addObject(light);}
     }
     
     //! bring positions to world-coords using a virtual camera
