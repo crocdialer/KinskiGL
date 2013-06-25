@@ -415,7 +415,7 @@ namespace kinski { namespace gl {
             
             // calculate shading for all lights
             vec4 shade_color = vec4(0);
-            for(int i = 0; i < u_numLights; i++)
+            for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
             {
                 shade_color += shade_phong(u_lights[i], u_material, N, vertex_in.eyeVec, texColors);
             }

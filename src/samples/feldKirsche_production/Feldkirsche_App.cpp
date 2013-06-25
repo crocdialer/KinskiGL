@@ -88,6 +88,11 @@ namespace kinski{
         m_fbo_cam_transform->setTweakable(false);
         registerProperty(m_fbo_cam_transform);
         
+        m_custom_shader_paths = Property_<std::vector<std::string> >::create("Custom shader paths",
+                                                                             std::vector<std::string>());
+        m_custom_shader_paths->setTweakable(false);
+        registerProperty(m_custom_shader_paths);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
@@ -139,7 +144,7 @@ namespace kinski{
         // Lights
         gl::LightPtr point_light(new gl::Light(gl::Light::POINT));
         point_light->setPosition(vec3(0, 300, 300));
-        point_light->set_attenuation(0, .0009f, 0);
+        point_light->set_attenuation(0, .002f, 0);
         lights().push_back(point_light);
         //lights().front()->set_enabled(false);
         lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
@@ -504,7 +509,6 @@ namespace kinski{
         {
             int num_xy = floor(sqrt(*m_rigid_bodies_num / 2.f));
             create_physics_scene(num_xy, num_xy, 2, m_material);
-            //add_mesh(m_mesh, *m_modelScale);
         }
         else if(theProperty == m_use_syphon)
         {
@@ -528,6 +532,16 @@ namespace kinski{
             m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
             m_debug_scene.addObject(m_depth_cam_mesh);
         }
+        else if(theProperty == m_custom_shader_paths)
+        {
+            if(m_custom_shader_paths->value().size() > 1)
+            {
+                m_custom_shader = gl::createShaderFromFile(m_custom_shader_paths->value()[0],
+                                                           m_custom_shader_paths->value()[1]);
+                
+                if(m_custom_shader) m_material->setShader(m_custom_shader);
+            }
+        }
     }
     
     void Feldkirsche_App::tearDown()
@@ -540,6 +554,14 @@ namespace kinski{
     void Feldkirsche_App::add_mesh(const gl::MeshPtr &the_mesh, vec3 scale)
     {
         if(!the_mesh) return;
+        
+        if(m_custom_shader)
+        {
+            for(auto &material : the_mesh->materials())
+            {
+                material->setShader(m_custom_shader);
+            }
+        }
         
         m_mesh = the_mesh;
         materials().push_back(the_mesh->material());

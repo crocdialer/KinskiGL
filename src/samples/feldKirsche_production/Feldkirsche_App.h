@@ -78,6 +78,10 @@ private:
     RangedProperty<float>::Ptr m_depth_cam_scale;
     RangedProperty<float>::Ptr m_min_interaction_distance, m_user_offset;
     
+    // path for a optional shader to use
+    Property_<std::vector<std::string> >::Ptr m_custom_shader_paths;
+    gl::Shader m_custom_shader;
+    
     // contains debug-view objects
     gl::Scene m_debug_scene;
     

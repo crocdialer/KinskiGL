@@ -100,7 +100,7 @@ namespace kinski
     
     void GLFW_App::swapBuffers()
     {
-        for(auto window : m_windows)
+        for(const auto &window : m_windows)
         {
             glfwSwapBuffers(window->handle());
         }
@@ -317,7 +317,7 @@ namespace kinski
         {   if(m_tweakBars.empty()) return;
             theBar = m_tweakBars.front();
         }
-        for (const auto property : theProps)
+        for (const auto &property : theProps)
         {   
             addPropertyToTweakBar(property, group, theBar);
         }
