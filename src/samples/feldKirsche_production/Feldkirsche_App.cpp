@@ -143,7 +143,7 @@ namespace kinski{
         
         // Lights
         gl::LightPtr point_light(new gl::Light(gl::Light::POINT));
-        point_light->setPosition(vec3(0, 300, 300));
+        point_light->setPosition(vec3(0, 800, 300));
         point_light->set_attenuation(0, .002f, 0);
         lights().push_back(point_light);
         //lights().front()->set_enabled(false);

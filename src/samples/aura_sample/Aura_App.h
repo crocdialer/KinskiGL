@@ -63,7 +63,9 @@ private:
     // contains debug-view objects
     gl::Scene m_debug_scene;
     
-    gl::MeshPtr create_fancy_mesh(int num_vertices);
+    // test mesh creation
+    RangedProperty<int>::Ptr m_num_vertices;
+    gl::MeshPtr create_fancy_cube(int num_vertices);
     
 public:
     

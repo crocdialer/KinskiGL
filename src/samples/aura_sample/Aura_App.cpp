@@ -15,12 +15,12 @@ namespace kinski{
     using namespace kinski;
     using namespace glm;
     
-    gl::MeshPtr Aura_App::create_fancy_mesh(int num_vertices)
+    gl::MeshPtr Aura_App::create_fancy_cube(int num_vertices)
     {
         vec3 half_extents(50);
         
         gl::GeometryPtr geom = gl::Geometry::create();
-        geom->setPrimitiveType(GL_LINES);
+        geom->setPrimitiveType(GL_LINE_LOOP);
         geom->vertices().resize(num_vertices);
         geom->colors().resize(num_vertices);
         
@@ -28,8 +28,11 @@ namespace kinski{
             vertex = glm::linearRand(-half_extents, half_extents);
         
         for (int i = 0; i < num_vertices; i++)
-            geom->colors()[i] = gl::Color(1.f + geom->vertices()[i] / 100.f, 1.f);
-        
+        {
+            gl::Color color(1.f + geom->vertices()[i] / 100.f, 1.f);
+            color.g = color.r - color.b;
+            geom->colors()[i] = color;
+        }
         geom->computeBoundingBox();
         
         gl::MaterialPtr mat = gl::Material::create();
@@ -97,6 +100,10 @@ namespace kinski{
         m_custom_shader_paths->setTweakable(false);
         registerProperty(m_custom_shader_paths);
         
+        // test mesh properties
+        m_num_vertices = RangedProperty<int>::create("Num vertices", 5000, 0, 200000);
+        registerProperty(m_num_vertices);
+        
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
@@ -119,8 +126,6 @@ namespace kinski{
         gl::clearColor(gl::Color(0));
         
         m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
-        m_mesh = create_fancy_mesh(5000);
-        scene().addObject(m_mesh);
 
         // load state from config file
         try
@@ -169,10 +174,7 @@ namespace kinski{
             gl::setMatrices(camera());
             if(draw_grid()) gl::drawGrid(500, 500);
             scene().render(camera());
-            
-            //gl::drawMesh(m_mesh);
-            
-        }// FBO block
+        }
 
         // draw texture map(s)
         if(displayTweakBar())
@@ -405,6 +407,12 @@ namespace kinski{
                 
                 if(m_custom_shader) m_material->setShader(m_custom_shader);
             }
+        }
+        else if (theProperty == m_num_vertices)
+        {
+            scene().removeObject(m_mesh);
+            m_mesh = create_fancy_cube(*m_num_vertices);
+            scene().addObject(m_mesh);
         }
     }
     

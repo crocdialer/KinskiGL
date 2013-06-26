@@ -216,6 +216,7 @@ namespace kinski { namespace gl{
             d.a = opacity;
             theMaterial->setDiffuse(d);
             theMaterial->setBlending();
+            //theMaterial->setDepthWrite(false);
         }
         
         ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);

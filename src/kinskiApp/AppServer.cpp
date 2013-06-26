@@ -54,10 +54,16 @@ namespace kinski {
         
         std::string message = std::string(m_receive_buffer.begin(),
                                           m_receive_buffer.begin() + bytes_transferred);
-        LOG_TRACE<<message;
+        
+        Component::Ptr c = m_component.lock();
+        if(App::Ptr app = std::dynamic_pointer_cast<App>(c))
+        {
+            app->got_message(message);
+        }
+        
         try
         {
-            Serializer::applyStateToComponent(m_component.lock(), message, PropertyIO_GL());
+            //Serializer::applyStateToComponent(m_component.lock(), message, PropertyIO_GL());
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
