@@ -64,16 +64,13 @@ namespace kinski { namespace gl {
         
         virtual void visit(Object3D &theNode)
         {
-            std::list<Object3DPtr>::const_iterator it = theNode.children().begin();
-            for (; it != theNode.children().end(); ++it)
+            for (Object3DPtr &child : theNode.children())
             {
-                m_transform_stack.push(m_transform_stack.top() * (*it)->transform());
-                (*it)->accept(*this);
+                m_transform_stack.push(m_transform_stack.top() * child->transform());
+                child->accept(*this);
                 m_transform_stack.pop();
             }
         }
-        
-        //TODO: do we actually need to force implementation of these !? -> correctness vs. simplicity <-
         virtual void visit(gl::Mesh &theNode){};
         virtual void visit(gl::Light &theNode){};
         

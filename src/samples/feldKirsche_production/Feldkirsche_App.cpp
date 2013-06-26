@@ -465,6 +465,7 @@ namespace kinski{
             }
             catch (Exception &e)
             {
+                LOG_DEBUG<<"model not found, trying in subfolders...";
                 // check if modelpath is a folder
                 if(kinski::isDirectory(*m_modelPath))
                 {
