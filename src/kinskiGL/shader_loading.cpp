@@ -411,13 +411,13 @@ namespace kinski { namespace gl {
             {
                 texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
             }
-            vec3 N = normalize(vertex_in.normal);
+            vec3 normal = normalize(vertex_in.normal);
             
             // calculate shading for all lights
             vec4 shade_color = vec4(0);
             for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
             {
-                shade_color += shade_phong(u_lights[i], u_material, N, vertex_in.eyeVec, texColors);
+                shade_color += shade_phong(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
             }
             fragData = shade_color;
         });

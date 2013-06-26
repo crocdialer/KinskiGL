@@ -13,8 +13,9 @@
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
 //#include <GLFW/glfw3native.h>
-#include <AntTweakBar.h>
 #include "App.h"
+
+struct CTwBar;
 
 namespace kinski
 {
@@ -62,22 +63,22 @@ namespace kinski
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "",
-                                   TwBar *theBar = NULL);
+                                   CTwBar *theBar = NULL);
         
         void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
                                        const std::string &group = "",
-                                       TwBar *theBar = NULL);
+                                       CTwBar *theBar = NULL);
         
-        void setBarPosition(const glm::ivec2 &thePos, TwBar *theBar = NULL);
-        void setBarSize(const glm::ivec2 &theSize, TwBar *theBar = NULL);
-        void setBarColor(const glm::vec4 &theColor, TwBar *theBar = NULL);
-        void setBarTitle(const std::string &theTitle, TwBar *theBar = NULL);
+        void setBarPosition(const glm::ivec2 &thePos, CTwBar *theBar = NULL);
+        void setBarSize(const glm::ivec2 &theSize, CTwBar *theBar = NULL);
+        void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = NULL);
+        void setBarTitle(const std::string &theTitle, CTwBar *theBar = NULL);
         
-        const std::map<TwBar*, std::list<Property::Ptr> >& 
+        const std::map<CTwBar*, std::list<Property::Ptr> >& 
         getTweakProperties() const {return m_tweakProperties;};
         
-        const std::vector<TwBar*>& tweakBars() const { return m_tweakBars; };
-        std::vector<TwBar*>& tweakBars() { return m_tweakBars; };
+        const std::vector<CTwBar*>& tweakBars() const { return m_tweakBars; };
+        std::vector<CTwBar*>& tweakBars() { return m_tweakBars; };
         
         void create_tweakbar_from_component(const Component::Ptr & the_component);
         
@@ -103,10 +104,10 @@ namespace kinski
         static void s_getModifiers(GLFWwindow* window, int modifier_mask, uint32_t &buttonModifiers,
                                    uint32_t &keyModifiers);
         
-        std::vector<TwBar*> m_tweakBars;
+        std::vector<CTwBar*> m_tweakBars;
         bool m_displayTweakBar;
         
-        std::map<TwBar*, std::list<Property::Ptr> > m_tweakProperties;
+        std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
     };
 }
 #endif // _KINSKI_GLFW_APP_IS_INCLUDED_

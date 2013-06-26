@@ -757,5 +757,9 @@ namespace kinski{
         }
         // use factor for mixing new and current directions
         *m_gravity = glm::mix(m_gravity->value(), glm::normalize(direction_avg), factor);
+        
+        vec3 light_dir = *m_gravity;
+        light_dir.z = .5;
+        set_light_direction(glm::normalize(light_dir));
     }
 }
