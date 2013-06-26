@@ -126,6 +126,8 @@ namespace kinski{
         gl::clearColor(gl::Color(0));
         
         m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+        
+        m_test_sound.reset(new audio::Fmod_Sound("test.mp3"));
 
         // load state from config file
         try
@@ -226,6 +228,7 @@ namespace kinski{
                     break;
                     
                 case GLFW_KEY_I:
+                    m_test_sound->play();
                     break;
                     
                 case GLFW_KEY_D:

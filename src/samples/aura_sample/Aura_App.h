@@ -18,6 +18,9 @@
 // physics
 #include "physics_context.h"
 
+// audio
+#include "Fmod_Sound.h"
+
 namespace kinski{
     
 class Aura_App : public ViewerApp
@@ -66,6 +69,8 @@ private:
     // test mesh creation
     RangedProperty<int>::Ptr m_num_vertices;
     gl::MeshPtr create_fancy_cube(int num_vertices);
+    
+    audio::SoundPtr m_test_sound;
     
 public:
     
