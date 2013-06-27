@@ -98,8 +98,8 @@ namespace kinski{ namespace audio{
         unload();
         
         //choose if we want streaming
-        int fmodFlags =  FMOD_SOFTWARE; // FMOD_HARDWARE !?
-        if(stream)fmodFlags =  FMOD_SOFTWARE | FMOD_CREATESTREAM;
+        int fmodFlags =  FMOD_HARDWARE; // FMOD_HARDWARE !?
+        if(stream)fmodFlags =  FMOD_HARDWARE | FMOD_CREATESTREAM;
         
         FMOD_RESULT result;
         result = FMOD_System_CreateSound(g_system, path.c_str(), fmodFlags, NULL, &m_sound);
@@ -108,13 +108,15 @@ namespace kinski{ namespace audio{
 
         FMOD_Sound_GetLength(m_sound, &m_length, FMOD_TIMEUNIT_PCM);
         m_streaming = stream;
+        
+        LOG_DEBUG<<"loaded sound (streaming: "<< (stream ? "on":"off") << "): "<<fileName;
     }
     
     void Fmod_Sound::unload()
     {
         if (loaded())
         {
-            stop();						// try to stop the sound
+            stop();
             if(!m_streaming) FMOD_Sound_Release(m_sound);
             m_sound = NULL;
         }
@@ -156,18 +158,13 @@ namespace kinski{ namespace audio{
     
     void Fmod_Sound::set_pan(float pan)
     {
-        pan = std::min(pan, 1.f);
-        pan = std::max(pan, -1.f);
-        m_pan = pan;
+        m_pan = kinski::clamp(pan, -1.f, 1.f);
         if (playing()){FMOD_Channel_SetPan(m_channel, m_pan);}
     }
     
     void Fmod_Sound::set_speed(float speed)
     {
-        if (playing())
-        {
-			FMOD_Channel_SetFrequency(m_channel, m_internal_freq * speed);
-        }
+        if (playing()){FMOD_Channel_SetFrequency(m_channel, m_internal_freq * speed);}
         m_speed = speed;
     }
     
@@ -182,10 +179,7 @@ namespace kinski{ namespace audio{
     
     void Fmod_Sound::set_loop(bool b)
     {
-        if (playing())
-        {
-            FMOD_Channel_SetMode(m_channel, b ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
-        }
+        if (playing()){FMOD_Channel_SetMode(m_channel, b ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);}
         m_loop = b;
     }
     

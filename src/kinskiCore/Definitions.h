@@ -52,9 +52,18 @@ namespace kinski
     }
     
     template <typename T>
-    inline T random(T min, T max)
+    inline T random(const T &min, const T &max)
     {
         return min + (max - min) * (rand() / (float) RAND_MAX);
+    }
+    
+    template <typename T>
+    inline T clamp(const T &val, const T &min, const T &max)
+    {
+        T ret;
+        ret = std::max(val, min);
+        ret = std::min(val, max);
+        return ret;
     }
 }
 

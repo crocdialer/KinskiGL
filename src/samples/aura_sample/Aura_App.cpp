@@ -29,12 +29,32 @@ namespace kinski{
         
         for (int i = 0; i < num_vertices; i++)
         {
-            gl::Color color(1.f + geom->vertices()[i] / 100.f, 1.f);
+            gl::Color color(.6f + geom->vertices()[i] / 100.f, 1.f);
             color.g = color.r - color.b;
             geom->colors()[i] = color;
         }
         geom->computeBoundingBox();
         
+        gl::MaterialPtr mat = gl::Material::create();
+        return gl::Mesh::create(geom, mat);
+    }
+    
+    gl::MeshPtr Aura_App::create_fancy_lines(int num_x, int num_y)
+    {
+        gl::GeometryPtr geom = gl::Geometry::create();
+        geom->setPrimitiveType(GL_LINE_STRIP);
+        geom->vertices().resize(num_x * num_y);
+        //geom->colors().resize(num_x * num_y);
+        vec2 step(10);
+        
+        for (int i = 0; i < num_y; i++)
+            for (int j = 0; j < num_x; j++)
+            {
+                geom->vertices()[i * num_y + j] = vec3((-num_x/2 + j) * step.x,
+                                                       random(-10.f, 10.f),
+                                                       (-num_y/2 + i) * step.y);
+            }
+        geom->computeBoundingBox();
         gl::MaterialPtr mat = gl::Material::create();
         return gl::Mesh::create(geom, mat);
     }
@@ -413,9 +433,9 @@ namespace kinski{
         }
         else if (theProperty == m_num_vertices)
         {
-            scene().removeObject(m_mesh);
-            m_mesh = create_fancy_cube(*m_num_vertices);
-            scene().addObject(m_mesh);
+            scene().clear();
+            scene().addObject(create_fancy_cube(*m_num_vertices));
+            scene().addObject(create_fancy_lines(100, 100));
         }
     }
     
