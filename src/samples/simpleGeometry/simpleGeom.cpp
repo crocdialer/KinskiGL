@@ -124,20 +124,21 @@ public:
             LOG_ERROR<<e.what();
         }
         
-        gl::LightPtr spot_light(new gl::Light(gl::Light::POINT));
+        gl::LightPtr spot_light(new gl::Light(gl::Light::SPOT));
         //spot_light->transform() = glm::rotate(spot_light->transform(), 0.f, vec3(1, 0, 0));
         spot_light->setPosition(vec3(0, 300, 0));
-        //spot_light->setLookAt(vec3(0), vec3(0, 0 ,-1));
+        spot_light->setLookAt(vec3(0), vec3(1, 0, 0));
         
         spot_light->set_attenuation(0, .006f, 0);
         spot_light->set_specular(gl::Color(0.4));
         lights().push_back(spot_light);
-        spot_light->set_spot_cutoff(28.f);
+        spot_light->set_spot_cutoff(45.f);
+        spot_light->set_spot_exponent(15.f);
         
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
         spot_light->children().push_back(spot_mesh);
         
-        lights().front()->set_enabled(false);
+        //lights().front()->set_enabled(false);
         lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
         lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
         

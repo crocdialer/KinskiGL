@@ -142,14 +142,18 @@ namespace kinski{
         m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
         
         // Lights
-        gl::LightPtr point_light(new gl::Light(gl::Light::POINT));
-        point_light->setPosition(vec3(0, 320, 50));
-        point_light->setLookAt(vec3(0));
-        point_light->set_attenuation(0, .002f, 0);
-        lights().push_back(point_light);
-        point_light->set_spot_cutoff(8.f);
+        gl::LightPtr spot_light(new gl::Light(gl::Light::SPOT));
+        spot_light->setPosition(vec3(-300, 1100, 450));
+        spot_light->setLookAt(vec3(200, 0, 0));
+        spot_light->set_attenuation(0, .0006f, 0);
+        //spot_light->set_specular(gl::Color(0.4));
+        spot_light->set_spot_cutoff(70.f);
+        spot_light->set_spot_exponent(10.f);
+        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
+        spot_light->children().push_back(spot_mesh);
+        lights().push_back(spot_light);
         
-        lights().front()->set_enabled(false);
+        //lights().front()->set_enabled(false);
         lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
         lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
         
