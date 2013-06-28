@@ -15,6 +15,18 @@ namespace kinski{
     using namespace kinski;
     using namespace glm;
     
+    class MaterialVisitor : public gl::Visitor
+    {
+    public:
+        MaterialVisitor(float time):m_time(time){}
+        void visit(gl::Mesh &theNode)
+        {
+            theNode.material()->setDiffuse(gl::Color(0.8f + sin(m_time) / 2.f));
+        }
+    private:
+        float m_time;
+    };
+    
     gl::MeshPtr Aura_App::create_fancy_cube(int num_vertices)
     {
         vec3 half_extents(50);
@@ -25,7 +37,8 @@ namespace kinski{
         geom->colors().resize(num_vertices);
         
         for (auto &vertex : geom->vertices())
-            vertex = glm::linearRand(-half_extents, half_extents);
+            //vertex = glm::linearRand(-half_extents, half_extents);
+            vertex = glm::ballRand(length(half_extents));
         
         for (int i = 0; i < num_vertices; i++)
         {
@@ -54,6 +67,17 @@ namespace kinski{
                                                        random(-10.f, 10.f),
                                                        (-num_y/2 + i) * step.y);
             }
+        geom->computeBoundingBox();
+        gl::MaterialPtr mat = gl::Material::create();
+        return gl::Mesh::create(geom, mat);
+    }
+    
+    gl::MeshPtr Aura_App::create_fancy_ufo(float radius, int num_rings)
+    {
+        gl::GeometryPtr geom = gl::Geometry::create();
+        geom->setPrimitiveType(GL_LINES);
+        geom->vertices().resize(num_rings * 100);
+
         geom->computeBoundingBox();
         gl::MaterialPtr mat = gl::Material::create();
         return gl::Mesh::create(geom, mat);
@@ -187,6 +211,9 @@ namespace kinski{
             materials()[i]->setShinyness(*m_shinyness);
             materials()[i]->setAmbient(0.2 * clear_color());
         }
+        
+        MaterialVisitor visitor (getApplicationTime());
+        scene().root()->accept(visitor);
     }
     
     void Aura_App::draw()

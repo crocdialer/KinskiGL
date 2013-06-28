@@ -11,6 +11,7 @@
 #define __kinskiGL__Object3D__
 
 #include "KinskiGL.h"
+#include "geometry_types.h"
 
 namespace kinski { namespace gl {
 
@@ -31,6 +32,14 @@ namespace kinski { namespace gl {
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
         glm::quat rotation() const;
+        
+        inline glm::vec3 scale(){return glm::vec3(glm::length(m_transform[0]),
+                                                  glm::length(m_transform[1]),
+                                                  glm::length(m_transform[2]));};
+        inline void setScale(const glm::vec3 &s){m_transform = glm::scale(m_transform, s / scale());}
+        
+        void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0, 1, 0));
+        
         inline void setTransform(const glm::mat4 &theTrans) {m_transform = theTrans;}
         inline glm::mat4& transform() {return m_transform;}
         inline const glm::mat4& transform() const {return m_transform;};
@@ -38,7 +47,7 @@ namespace kinski { namespace gl {
         inline Object3DPtr parent() const {return m_parent;}
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
-        virtual AABB boundingBox() const;
+        virtual gl::AABB boundingBox() const;
         
         virtual void accept(Visitor &theVisitor);
         
@@ -64,12 +73,9 @@ namespace kinski { namespace gl {
         
         virtual void visit(Object3D &theNode)
         {
-            for (Object3DPtr &child : theNode.children())
-            {
-                m_transform_stack.push(m_transform_stack.top() * child->transform());
-                child->accept(*this);
-                m_transform_stack.pop();
-            }
+            m_transform_stack.push(m_transform_stack.top() * theNode.transform());
+            for (Object3DPtr &child : theNode.children()){child->accept(*this);}
+            m_transform_stack.pop();
         }
         virtual void visit(gl::Mesh &theNode){};
         virtual void visit(gl::Light &theNode){};

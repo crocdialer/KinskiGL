@@ -16,6 +16,11 @@ namespace kinski{ namespace audio{
     static FMOD_CHANNELGROUP* g_channelgroup = NULL;
     static FMOD_SYSTEM* g_system = NULL;
     
+    int g_max_num_fft_bands = 8192;
+    static std::vector<float> g_fftValues;
+    static std::vector<float> g_fftInterpValues;
+    static std::vector<float> g_fftSpectrum;
+    
     void init_fmod()
     {
         if(!g_system)
@@ -26,6 +31,10 @@ namespace kinski{ namespace audio{
 #endif
             FMOD_System_Init(g_system, 32, FMOD_INIT_NORMAL, NULL);  //do we want just 32 channels?
             FMOD_System_GetMasterChannelGroup(g_system, &g_channelgroup);
+            
+            g_fftValues.assign(g_max_num_fft_bands, 0.f);
+            g_fftInterpValues.assign(g_max_num_fft_bands, 0.f);
+            g_fftSpectrum.assign(g_max_num_fft_bands, 0.f);
         }
     }
     
@@ -53,8 +62,84 @@ namespace kinski{ namespace audio{
     
     float* get_spectrum(int nBands)
     {
-        init_fmod();
-        throw kinski::Exception("not implemented");
+//        init_fmod();
+//        
+//        // 	set to 0
+//        std::fill(g_fftInterpValues.begin(), g_fftInterpValues.end(), 0.f);
+//        
+//        // 	check what the user wants vs. what we can do:
+//        if (nBands > g_max_num_fft_bands)
+//        {
+//            LOG_ERROR<<"error in audio::get_spectrum, the maximum number of bands is 8192";
+//            nBands = g_max_num_fft_bands;
+//        }
+//        else if (nBands <= 0)
+//        {
+//            LOG_ERROR<<"error in audio::get_spectrum, minimum number of bands is 1";
+//            return &g_fftInterpValues[0];
+//        }
+//        
+//        // 	FMOD needs pow2
+//        int nBandsToGet = ofNextPow2(nBands);
+//        if (nBandsToGet < 64) nBandsToGet = 64;  // can't seem to get fft of 32, etc from fmodex
+//        
+//        // 	get the fft
+//        FMOD_System_GetSpectrum(g_system, fftSpectrum_, nBandsToGet, 0, FMOD_DSP_FFT_WINDOW_HANNING);
+//        
+//        // 	convert to db scale
+//        for(int i = 0; i < nBandsToGet; i++){
+//            fftValues_[i] = 10.0f * (float)log10(1 + fftSpectrum_[i]) * 2.0f;
+//        }
+//        
+//        // 	try to put all of the values (nBandsToGet) into (nBands)
+//        //  in a way which is accurate and preserves the data:
+//        //
+//        
+//        if (nBandsToGet == nBands){
+//            
+//            for(int i = 0; i < nBandsToGet; i++){
+//                fftInterpValues_[i] = fftValues_[i];
+//            }
+//            
+//        } else {
+//            
+//            float step 		= (float)nBandsToGet / (float)nBands;
+//            //float pos 		= 0;
+//            // so for example, if nBands = 33, nBandsToGet = 64, step = 1.93f;
+//            int currentBand = 0;
+//            
+//            for(int i = 0; i < nBandsToGet; i++){
+//                
+//                // if I am current band = 0, I care about (0+1) * step, my end pos
+//                // if i > endPos, then split i with me and my neighbor
+//                
+//                if (i >= ((currentBand+1)*step)){
+//                    
+//                    // do some fractional thing here...
+//                    float fraction = ((currentBand+1)*step) - (i-1);
+//                    float one_m_fraction = 1 - fraction;
+//                    fftInterpValues_[currentBand] += fraction * fftValues_[i];
+//                    currentBand++;
+//                    // safety check:
+//                    if (currentBand >= nBands){
+//                        ofLog(OF_LOG_ERROR, "ofFmodSoundGetSpectrum - currentBand >= nBands");
+//                    }
+//                    
+//                    fftInterpValues_[currentBand] += one_m_fraction * fftValues_[i];
+//                    
+//                } else {
+//                    // do normal things
+//                    fftInterpValues_[currentBand] += fftValues_[i];
+//                }
+//            }
+//            
+//            // because we added "step" amount per band, divide to get the mean:
+//            for (int i = 0; i < nBands; i++){
+//                fftInterpValues_[i] /= step;
+//                if (fftInterpValues_[i] > 1)fftInterpValues_[i] = 1; 	// this seems "wrong"
+//            }
+//            
+//        }
         
         return NULL;
     }

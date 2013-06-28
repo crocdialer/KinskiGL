@@ -47,11 +47,23 @@ BOOST_AUTO_TEST_CASE( test_Plane )
 
 }
 
-BOOST_AUTO_TEST_CASE( test_Frustum )
+BOOST_AUTO_TEST_CASE( test_scale )
 {
-//    gl::PerspectiveCamera c;
-//    gl::Frustum f = c.frustum();
-//    
+    gl::Object3DPtr test_object(new gl::Object3D());
+    test_object->transform() = glm::rotate(test_object->transform(), 47.f, glm::vec3(1, 1, 1));
+    test_object->transform() = glm::translate(test_object->transform(), glm::vec3(100, -1221, 1));
+    test_object->transform() = glm::scale(test_object->transform(), glm::vec3(2, 3, 4));
+    
+    glm::vec3 scale = test_object->scale();
+    BOOST_CHECK_CLOSE(scale.x, 2.f, 0.0001f);
+    BOOST_CHECK_CLOSE(scale.y, 3.f, 0.0001f);
+    BOOST_CHECK_CLOSE(scale.z, 4.f, 0.0001f);
+    
+    test_object->setScale(glm::vec3(5));
+    scale = test_object->scale();
+    BOOST_CHECK_CLOSE(scale.x, 5.f, 0.0001f);
+    BOOST_CHECK_CLOSE(scale.y, 5.f, 0.0001f);
+    BOOST_CHECK_CLOSE(scale.z, 5.f, 0.0001f);
 }
 
 //____________________________________________________________________________//

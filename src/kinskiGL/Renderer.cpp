@@ -48,20 +48,17 @@ namespace kinski{ namespace gl{
                                            const list<RenderBin::light> &light_list)
     {
         KINSKI_CHECK_GL_ERRORS();
-        glm::mat4 viewMatrix = cam->getViewMatrix();
-        
-        typedef map<pair<GeometryPtr, MaterialPtr>, list<Mesh*> > MeshMap;
-        MeshMap meshMap;
+        typedef map<pair<Material*, Geometry*>, list<RenderBin::item> > MatMeshMap;
+        MatMeshMap mat_mesh_map;
         for (auto &item : item_list)
         {
-            Mesh *m = item.mesh;
-            meshMap[std::make_pair(m->geometry(), m->material())].push_back(m);
+            mat_mesh_map[std::make_pair(item.mesh->material().get(),
+                                        item.mesh->geometry().get())].push_back(item);
         }
-        MeshMap::iterator it = meshMap.begin();
-        for (; it != meshMap.end(); ++it)
+        for (auto &pair_item : mat_mesh_map)
         {
-            const list<Mesh*>& meshList = it->second;
-            Mesh *m = meshList.front();
+            list<RenderBin::item>& sub_selection = pair_item.second;
+            Mesh *m = sub_selection.front().mesh;
             
             if(m->geometry()->hasBones())
             {
@@ -91,12 +88,12 @@ namespace kinski{ namespace gl{
             m->bindVertexPointers();
 #endif
             KINSKI_CHECK_GL_ERRORS();
-            list<Mesh*>::const_iterator transformIt = meshList.begin();
-            for (; transformIt != meshList.end(); ++transformIt)
+
+            for (const auto &item : sub_selection)
             {
-                m = *transformIt;
+                m = item.mesh;
                 
-                glm::mat4 modelView = viewMatrix * m->transform();
+                glm::mat4 modelView = item.transform;
                 m->material()->shader().uniform("u_modelViewMatrix", modelView);
                 m->material()->shader().uniform("u_normalMatrix",
                                                 glm::inverseTranspose( glm::mat3(modelView) ));
@@ -143,33 +140,32 @@ namespace kinski{ namespace gl{
     void Renderer::set_light_uniforms(MaterialPtr &the_mat, const list<RenderBin::light> &light_list)
     {
         int light_count = 0;
-        char buf[256];
+        
         for (const auto &light : light_list)
         {
-            sprintf(buf, "u_lights[%d].type", light_count);
-            the_mat->uniform(buf, (int)light.light->type());
+            std::string light_str = std::string("u_lights") + "[" + as_string(light_count) + "]";
             
-            sprintf(buf, "u_lights[%d].position", light_count);
-            the_mat->uniform(buf, light.transform[3].xyz());
+            the_mat->uniform(light_str + ".type", (int)light.light->type());
+            the_mat->uniform(light_str + ".position", light.transform[3].xyz());
+            the_mat->uniform(light_str + ".diffuse", light.light->diffuse());
+            the_mat->uniform(light_str + ".ambient", light.light->ambient());
+            the_mat->uniform(light_str + ".specular", light.light->specular());
             
-            sprintf(buf, "u_lights[%d].diffuse", light_count);
-            the_mat->uniform(buf, light.light->diffuse());
-            
-            sprintf(buf, "u_lights[%d].ambient", light_count);
-            the_mat->uniform(buf, light.light->ambient());
-            
-            sprintf(buf, "u_lights[%d].specular", light_count);
-            the_mat->uniform(buf, light.light->specular());
-            
-            sprintf(buf, "u_lights[%d].constantAttenuation", light_count);
-            the_mat->uniform(buf, light.light->attenuation().constant);
-            
-            sprintf(buf, "u_lights[%d].linearAttenuation", light_count);
-            the_mat->uniform(buf, light.light->attenuation().linear);
-            
-            sprintf(buf, "u_lights[%d].quadraticAttenuation", light_count);
-            the_mat->uniform(buf, light.light->attenuation().quadratic);
-            
+            // point + spot
+            if(light.light->type() > 0)
+            {
+                the_mat->uniform(light_str + ".constantAttenuation", light.light->attenuation().constant);
+                the_mat->uniform(light_str + ".linearAttenuation", light.light->attenuation().linear);
+                the_mat->uniform(light_str + ".quadraticAttenuation", light.light->attenuation().quadratic);
+                
+                if(light.light->type() == Light::SPOT)
+                {
+                    the_mat->uniform(light_str + ".spotDirection", glm::normalize(-light.transform[2].xyz()));
+                    the_mat->uniform(light_str + ".spotCutoff", light.light->spot_cutoff());
+                    the_mat->uniform(light_str + ".spotCosCutoff", cosf(glm::radians(light.light->spot_cutoff())));
+                    the_mat->uniform(light_str + ".spotExponent", light.light->spot_exponent());
+                }
+            }
             light_count++;
         }
         the_mat->uniform("u_numLights", light_count);

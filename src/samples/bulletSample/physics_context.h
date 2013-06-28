@@ -89,6 +89,8 @@ namespace kinski{ namespace physics{
 		m_object(theObject3D),
         m_centerOfMassOffset(centerOfMassOffset)
         {
+            glm::vec3 scale = theObject3D->scale();
+            glm::mat4 transform = glm::scale(theObject3D->transform(), 1.f / scale);
             m_graphicsWorldTrans.setFromOpenGLMatrix(&theObject3D->transform()[0][0]);
         }
         

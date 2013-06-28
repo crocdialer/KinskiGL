@@ -143,10 +143,13 @@ namespace kinski{
         
         // Lights
         gl::LightPtr point_light(new gl::Light(gl::Light::POINT));
-        point_light->setPosition(vec3(0, 800, 300));
+        point_light->setPosition(vec3(0, 320, 50));
+        point_light->setLookAt(vec3(0));
         point_light->set_attenuation(0, .002f, 0);
         lights().push_back(point_light);
-        //lights().front()->set_enabled(false);
+        point_light->set_spot_cutoff(8.f);
+        
+        lights().front()->set_enabled(false);
         lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
         lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
         
@@ -572,6 +575,7 @@ namespace kinski{
                                              vec3(0, 1, 0));
         the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
         the_mesh->position() += m_modelOffset->value();
+        the_mesh->setScale(scale);
         scene().addObject(m_mesh);
         
         physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh, scale);
@@ -585,8 +589,6 @@ namespace kinski{
         
         //add the body to the dynamics world
         m_physics_context.dynamicsWorld()->addRigidBody(body);
-        
-        m_mesh->transform() *= glm::scale(glm::mat4(), scale);
     }
     
     void Feldkirsche_App::create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)

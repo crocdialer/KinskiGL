@@ -55,13 +55,14 @@ namespace kinski { namespace gl {
         {
             gl::AABB boundingBox = theNode.geometry()->boundingBox();
             //gl::Sphere s(theNode.position(), glm::length(boundingBox.halfExtents()));
+            glm::mat4 model_view = transform_stack().top() * theNode.transform();
             boundingBox.transform(theNode.transform());
                     
             if (m_frustum.intersect(boundingBox))
             {
                 RenderBin::item item;
                 item.mesh = &theNode;
-                item.transform = transform_stack().top() * theNode.transform();
+                item.transform = model_view;
                 m_render_bin->items.push_back(item);
             }
             // super class provides node traversing and transform accumulation
@@ -71,7 +72,7 @@ namespace kinski { namespace gl {
         void visit(Light &theNode)
         {
             //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
-            if (theNode.enabled())
+            if(theNode.enabled())
             {
                 RenderBin::light light_item;
                 light_item.light = &theNode;
@@ -148,29 +149,25 @@ namespace kinski { namespace gl {
     {
         Object3DPtr ret;
         std::list<range_item_t> clicked_items;
-        list<Object3DPtr>::const_iterator objIt = m_root->children().begin();
-        for (; objIt != m_root->children().end(); objIt++)
+        for (const auto &the_object : m_root->children())
         {
-            const Object3DPtr &theObj = *objIt;
-            gl::OBB boundingBox (theObj->boundingBox(), theObj->transform());
+            gl::OBB boundingBox (the_object->boundingBox(), the_object->transform());
 
             if (ray_intersection ray_hit = boundingBox.intersect(ray))
             {
                 if(high_precision)
                 {
-                    if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(theObj))
+                    if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(the_object))
                     {
-                        gl::Ray ray_in_object_space = ray.transform(glm::inverse(theObj->transform()));
+                        gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->transform()));
                         const std::vector<glm::vec3>& vertices = m->geometry()->vertices();
-                        std::vector<gl::Face3>::const_iterator it = m->geometry()->faces().begin();
-                        for (; it != m->geometry()->faces().end(); ++it)
+                        for (const auto &face : m->geometry()->faces())
                         {
-                            const Face3 &f = *it;
-                            gl::Triangle t(vertices[f.a], vertices[f.b], vertices[f.c]);
+                            gl::Triangle t(vertices[face.a], vertices[face.b], vertices[face.c]);
                             
                             if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
                             {
-                                clicked_items.push_back(range_item_t(theObj, ray_tri_hit.distance));
+                                clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
                                 LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
                             }
                         }
@@ -178,7 +175,7 @@ namespace kinski { namespace gl {
                 }
                 else
                 {
-                    clicked_items.push_back(range_item_t(theObj, ray_hit.distance));
+                    clicked_items.push_back(range_item_t(the_object, ray_hit.distance));
                 }
             }
         }

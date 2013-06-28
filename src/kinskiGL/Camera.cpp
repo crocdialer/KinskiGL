@@ -19,11 +19,6 @@ namespace kinski { namespace gl{
         return glm::inverse(transform());
     }
     
-    void Camera::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
-    {
-        setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
-    }
-    
     AABB Camera::boundingBox() const
     {
         return AABB(glm::vec3(-0.5f), glm::vec3(0.5f));

@@ -33,7 +33,6 @@ namespace kinski { namespace gl {
         const Color& diffuse() const { return m_diffuse; };
         const Color& ambient() const { return m_ambient; };
         const Color& specular() const { return m_specular; };
-        
         void set_diffuse(const Color &theColor);
         void set_ambient(const Color &theColor);
         void set_specular(const Color &theColor);
@@ -46,12 +45,13 @@ namespace kinski { namespace gl {
         float spot_cutoff() const {return m_spot_cutoff;}
         void set_spot_exponent(float f){m_spot_exponent = f;}
         void set_spot_cutoff(float f){m_spot_cutoff = f;}
-        
         Type type() const {return m_type;}
         void set_type(Type theType){m_type = theType;}
-        
         bool enabled() const {return m_enabled;}
         void set_enabled(bool b = true){m_enabled = b;}
+        
+        //! corresponds to the light´s area of effect
+        gl::AABB boundingBox() const;
         
         void accept(Visitor &theVisitor);
         

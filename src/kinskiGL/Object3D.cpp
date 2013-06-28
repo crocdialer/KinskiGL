@@ -38,6 +38,11 @@ namespace kinski { namespace gl {
         return glm::quat_cast(m_transform);
     }
     
+    void Object3D::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
+    {
+        setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
+    }
+    
     AABB Object3D::boundingBox() const
     {
         AABB ret;

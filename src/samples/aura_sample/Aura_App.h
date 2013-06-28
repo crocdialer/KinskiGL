@@ -68,8 +68,10 @@ private:
     
     // test mesh creation
     RangedProperty<int>::Ptr m_num_vertices;
+    
     gl::MeshPtr create_fancy_cube(int num_vertices);
     gl::MeshPtr create_fancy_lines(int num_x, int num_y);
+    gl::MeshPtr create_fancy_ufo(float radius, int num_rings);
     
     audio::SoundPtr m_test_sound;
     

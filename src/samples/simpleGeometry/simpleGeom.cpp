@@ -101,35 +101,48 @@ public:
             m_textures[1] = gl::Texture (w, h, fmt);
             m_textures[1].update(data, GL_RED, w, h, true);
         }
-        
-        
-        //m_textures[1] = gl::createTextureFromFile("stone.png");
-//        m_textures[2] = m_font.create_texture("Du musst was an die Tafel schreiben.\n"
-//                                              "Rechne vor der Klasse eine Aufgabe!!\n\n  1 + 3 = 5");
-        //m_textures[2] = m_font.glyph_texture();
 
-        gl::Geometry::Ptr myBox(gl::createBox(glm::vec3(50.f)));//(gl::createSphere(100, 36));
-        gl::MaterialPtr mat = gl::Material::create();
+        gl::Geometry::Ptr plane_geom(gl::createPlane(1000, 1000));
+        gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+        mat->setTwoSided();
         materials().push_back(mat);
+        gl::MeshPtr ground_plane = gl::Mesh::create(plane_geom, mat);
+        ground_plane->setLookAt(vec3(0, -1, 0), vec3(0, 0, 1));
+        scene().addObject(ground_plane);
         
         try
         {
             m_textures[0] = gl::createTextureFromFile("Earth2.jpg", true);
             mat->addTexture(m_textures[0]);
-            mat->addTexture(m_textures[1]);
+            //mat->addTexture(m_textures[1]);
             mat->setShinyness(60);
-            //mat->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
-            mat->setShader(gl::createShaderFromFile("shader_normalMap.vert",
-                                                    "shader_normalMap.frag"));
+            //mat->setShader(gl::createShader(gl::SHADER_PHONG));
+//            mat->setShader(gl::createShaderFromFile("shader_normalMap.vert",
+//                                                    "shader_normalMap.frag"));
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
         }
-        gl::MeshPtr myBoxMesh = gl::Mesh::create(myBox, mat);
-        myBoxMesh->createVertexArray();
-        myBoxMesh->setPosition(vec3(0, -100, 0));
-        //scene().addObject(myBoxMesh);
         
+        gl::LightPtr spot_light(new gl::Light(gl::Light::POINT));
+        //spot_light->transform() = glm::rotate(spot_light->transform(), 0.f, vec3(1, 0, 0));
+        spot_light->setPosition(vec3(0, 300, 0));
+        //spot_light->setLookAt(vec3(0), vec3(0, 0 ,-1));
+        
+        spot_light->set_attenuation(0, .006f, 0);
+        spot_light->set_specular(gl::Color(0.4));
+        lights().push_back(spot_light);
+        spot_light->set_spot_cutoff(28.f);
+        
+        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
+        spot_light->children().push_back(spot_mesh);
+        
+        lights().front()->set_enabled(false);
+        lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
+        lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
+        
+        for (auto &light : lights()){scene().addObject(light);}
+                                     
         //gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
         gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");
         kafka_mesh->setPosition(kafka_mesh->position() - kafka_mesh->boundingBox().center());

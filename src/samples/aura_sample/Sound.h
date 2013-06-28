@@ -54,18 +54,6 @@ namespace kinski{ namespace audio{
         virtual bool loaded() = 0;
         virtual float position() = 0;
         virtual int position_ms() = 0;
-    
-    protected:
-        // forward declared Implementation object
-        struct Obj;
-        typedef std::shared_ptr<Obj> ObjPtr;
-        ObjPtr m_Obj;
-        
-    public:
-        //! Emulates shared_ptr-like behavior
-        typedef ObjPtr Sound::*unspecified_bool_type;
-        operator unspecified_bool_type() const { return ( m_Obj.get() == 0 ) ? 0 : &Sound::m_Obj; }
-        void reset() { m_Obj.reset(); }
     };
     
     class SoundLoadException: public Exception
@@ -74,6 +62,70 @@ namespace kinski{ namespace audio{
         SoundLoadException(const std::string &theFilename) :
         Exception(std::string("Got trouble loading an audiofile: ") + theFilename){}
     };
+    
+    class SoundInput
+    {
+	public:
+        virtual ~SoundInput() {};
+        
+		virtual void audio_in(float *input, int bufferSize, int nChannels, int deviceID,
+                              long unsigned long tickCount)
+        {
+			//audioIn(input, bufferSize, nChannels);
+		}
+        
+		virtual void audio_in(float *input, int bufferSize, int nChannels )
+        {
+			//audioReceived(input, bufferSize, nChannels);
+		}
+        
+		virtual void audio_received(float *input, int bufferSize, int nChannels ){}
+    };
+    
+    //----------------------------------------------------------
+    //----------------------------------------------------------
+    class SoundOutput
+    {
+	public:
+        virtual ~SoundOutput() {};
+        
+		virtual void audio_out(float *output, int bufferSize, int nChannels, int deviceID,
+                              long unsigned long tickCount)
+        {
+			audio_out(output, bufferSize, nChannels);
+		}
+        
+		virtual void audio_out(float *output, int bufferSize, int nChannels)
+        {
+			audio_requested(output, bufferSize, nChannels);
+		}
+        
+		//legacy
+		virtual void audio_requested( float *output, int bufferSize, int nChannels )
+        {
+            
+		}
+    };
+    
+    class SoundStream
+    {
+	public:
+		virtual ~SoundStream(){}
+		
+		virtual void listDevices() = 0;
+		virtual void setDeviceID(int deviceID) = 0;
+		virtual bool setup(int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers) = 0;
+		//virtual bool setup(ofBaseApp * app, int outChannels, int inChannels, int sampleRate, int bufferSize, int nBuffers) = 0;
+		virtual void setInput(SoundInput * soundInput) = 0;
+		virtual void setOutput(SoundOutput * soundOutput) = 0;
+		
+		virtual void start() = 0;
+		virtual void stop() = 0;
+		virtual void close() = 0;
+        
+		virtual long unsigned long getTickCount() = 0;
+    };
+    
 }}//namespace
 
 #endif /* defined(__kinskiGL__Sound__) */

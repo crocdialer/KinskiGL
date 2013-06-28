@@ -89,13 +89,20 @@ namespace kinski{ namespace physics{
 		m_object(theObject3D),
         m_centerOfMassOffset(centerOfMassOffset)
         {
-            m_graphicsWorldTrans.setFromOpenGLMatrix(&theObject3D->transform()[0][0]);
+            // remove scale from transformation matrix, bullet expects unscaled transforms
+            glm::vec3 scale = theObject3D->scale();
+            glm::mat4 transform = glm::scale(theObject3D->transform(), 1.f / scale);
+            m_graphicsWorldTrans.setFromOpenGLMatrix(&transform[0][0]);
         }
         
         ///synchronizes world transform from user to physics
         virtual void getWorldTransform(btTransform& centerOfMassWorldTrans ) const
         {
-			centerOfMassWorldTrans = m_centerOfMassOffset.inverse() * m_graphicsWorldTrans ;
+            // remove scale from transformation matrix, bullet expects unscaled transforms
+            glm::mat4 transform = glm::scale(m_object->transform(), 1.f / m_object->scale());
+            btTransform t;
+            t.setFromOpenGLMatrix(&transform[0][0]);
+			centerOfMassWorldTrans = m_centerOfMassOffset.inverse() * t ;
         }
         
         ///synchronizes world transform from physics to user
@@ -105,6 +112,7 @@ namespace kinski{ namespace physics{
 			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
             glm::mat4 transform;
             m_graphicsWorldTrans.getOpenGLMatrix(&transform[0][0]);
+            transform = glm::scale(transform, m_object->scale());
             m_object->setTransform(transform);
         }
     };

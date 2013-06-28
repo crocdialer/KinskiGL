@@ -24,8 +24,6 @@ public:
     Camera():Object3D(){};
     virtual ~Camera(){};
     
-    void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0,1,0));
-    
     glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;};
     glm::mat4 getViewMatrix() const;
     AABB boundingBox() const;

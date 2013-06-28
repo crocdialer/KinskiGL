@@ -13,7 +13,7 @@ namespace kinski { namespace gl {
     Light::Light(Type theType):
     m_type(theType),
     m_attenuation(Attenuation(1.f, 0, 0)),
-    m_spot_cutoff(45.f),
+    m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
     m_ambient(Color(0)),
     m_diffuse(Color(1)),
@@ -67,6 +67,28 @@ namespace kinski { namespace gl {
         m_attenuation = Attenuation(std::max(constant, 0.f),
                                     std::max(linear, 0.f),
                                     std::max(quadratic, 0.f));
+    }
+    
+    AABB Light::boundingBox() const
+    {
+        AABB ret;
+        switch (m_type)
+        {
+            case DIRECTIONAL:
+                ret.min = glm::vec3(std::numeric_limits<float>::max());
+                ret.max = glm::vec3(std::numeric_limits<float>::min());
+                break;
+                
+            case POINT:
+                break;
+                
+            case SPOT:
+                break;
+                
+            default:
+                break;
+        }
+        return ret;
     }
     
     void Light::accept(Visitor &theVisitor)
