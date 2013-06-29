@@ -132,6 +132,10 @@ namespace kinski{
         // add our app as open_ni observer
         observeProperties(m_open_ni->getPropertyList());
         
+        // light component
+        m_light_component.reset(new LightComponent());
+        create_tweakbar_from_component(m_light_component);
+        
         /********************** construct a simple scene ***********************/
         camera()->setClippingPlanes(1.0, 15000);
         
@@ -156,6 +160,8 @@ namespace kinski{
         //lights().front()->set_enabled(false);
         lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
         lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
+        
+        m_light_component->set_lights(lights());
         
         // setup some blank textures
         m_textures.resize(2);
@@ -211,6 +217,7 @@ namespace kinski{
         
         // light update
         lights().front()->setPosition(light_direction());
+        m_light_component->set_lights(lights());
         
         if(m_material)
         {

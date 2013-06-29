@@ -116,6 +116,37 @@ namespace kinski {
         return success;
     }
     
+    void Serializer::add_to_json_object(const std::list<Component::ConstPtr> &theComponentList,
+                                        Json::Value &json_val,
+                                        const PropertyIO &theIO)
+    {
+        int myIndex = 0;
+        int myVIndex = 0;
+        
+        for (const auto &theComponent : theComponentList)
+        {
+            std::string myName = theComponent->getName();
+            json_val[myIndex][PropertyIO::PROPERTY_NAME] = myName;
+            
+            for ( const auto &property : theComponent->getPropertyList() )
+            {
+                std::string myPropName = property->getName();
+                
+                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = myPropName;
+                
+                // delegate reading to PropertyIO object
+                if(! theIO.readPropertyValue(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
+                {
+                    json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_TYPE] =
+                    PropertyIO::PROPERTY_TYPE_UNKNOWN;
+                }
+                myVIndex++;
+            }
+            myIndex++;
+            myVIndex = 0;
+        }
+    }
+    
     std::string Serializer::serializeComponent(const Component::ConstPtr &theComponent,
                                                const PropertyIO &theIO)
     {
@@ -146,6 +177,11 @@ namespace kinski {
         }
         myIndex++;
         myVIndex = 0;
+        
+//        Json::Value myRoot;
+//        std::list<Component::ConstPtr> list;
+//        list.push_back(theComponent);
+//        add_to_json_object(list, myRoot);
         Json::StyledWriter myWriter;
         return myWriter.write(myRoot); 
     }

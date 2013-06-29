@@ -11,7 +11,8 @@
 namespace kinski
 {
     LightComponent::LightComponent():
-    m_light_index(RangedProperty<int>::create("Num lights", 0, 0, 8)),
+    m_light_index(RangedProperty<int>::create("index", -1, -1, 256)),
+    m_light_type(RangedProperty<int>::create("light type", 0, 0, 2)),
     m_enabled(Property_<bool>::create("enabled", true)),
     m_position_x(Property_<float>::create("position X", 0)),
     m_position_y(Property_<float>::create("position Y", 0)),
@@ -27,6 +28,7 @@ namespace kinski
     m_spot_exponent(RangedProperty<float>::create("spot exponent, constant", 0, 0, 256.f))
     {
         registerProperty(m_light_index);
+        registerProperty(m_light_type);
         registerProperty(m_enabled);
         registerProperty(m_position_x);
         registerProperty(m_position_y);
@@ -75,11 +77,12 @@ namespace kinski
         gl::LightPtr light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
         if(!light) return;
         
+        *m_light_type = light->type();
         *m_enabled = light->enabled();
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
         *m_position_z = light->position().z;
-        *m_direction = light->type() ? glm::normalize(light->position() - light->lookAt()) : light->position();
+        *m_direction = light->type() ? glm::normalize(light->position() - light->lookAt()) : -light->position();
         
         *m_diffuse = light->diffuse();
         *m_ambient = light->ambient();
@@ -96,16 +99,17 @@ namespace kinski
         gl::LightPtr light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
         if(!light) return;
         
+        light->set_type(gl::Light::Type(m_light_type->value()));
         light->set_enabled(*m_enabled);
         if(light->type() == gl::Light::DIRECTIONAL)
         {
-            light->setPosition(*m_direction);
+            light->setPosition(-m_direction->value());
         }
         else
         {
             light->setPosition(glm::vec3(*m_position_x, *m_position_y, *m_position_z));
-            light->setLookAt(glm::vec3(*m_position_x, *m_position_y, *m_position_z) + m_direction->value());
         }
+        light->setLookAt(glm::vec3(*m_position_x, *m_position_y, *m_position_z) + m_direction->value());
         
         light->set_diffuse(*m_diffuse);
         light->set_ambient(*m_ambient);

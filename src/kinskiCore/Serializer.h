@@ -81,6 +81,10 @@ namespace kinski
             ParsingException(const std::string &theContentString) :
             Exception(std::string("Error while parsing json string: ") + theContentString) {}
         };
+    private:
+        static void add_to_json_object(const std::list<Component::ConstPtr> &theComponentList,
+                                       Json::Value &json_val,
+                                       const PropertyIO &theIO = PropertyIO());
     };
     
     /************************ Exceptions ************************/

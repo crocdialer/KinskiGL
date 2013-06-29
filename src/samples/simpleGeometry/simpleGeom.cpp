@@ -9,6 +9,30 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
+
+class Animator
+{
+public:
+    
+    struct Task
+    {
+        
+    };
+    void update()
+    {
+        for (auto &task : m_tasks){task();}
+    };
+    
+    template<typename F, typename V>
+    void add_animation_task(F functor, const V &from, const V &to, double start_time, double duration)
+    {
+        
+    }
+    
+private:
+    std::list<boost::function<void()> > m_tasks;
+};
+
 class SimpleGeometryApp : public ViewerApp
 {
 private:

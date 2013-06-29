@@ -39,9 +39,133 @@ namespace kinski { namespace gl {
     Shader createShader(ShaderType type)
     {
 #pragma mark MODULE_BLOCKS
-        std::string material_uniform_block;
-        std::string light_uniform_block;
-        std::string shade_phong_block;
+        std::string glsl_header_150 = "#version 150 core\n";
+        std::string material_uniform_block = STRINGIFY(
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[16];
+        uniform struct Material
+        {
+          vec4 diffuse;
+          vec4 ambient;
+          vec4 specular;
+          vec4 emission;
+          float shinyness;
+        } u_material;);
+        
+        std::string light_uniform_block = STRINGIFY(
+        uniform int u_numLights;
+        uniform struct Lightsource
+        {
+            // 0: Directional
+            // 1: Point
+            // 2: Spot
+            int type;
+            // position in eyecoords
+            vec3 position;
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            // attenuation
+            float constantAttenuation;
+            float linearAttenuation;
+            float quadraticAttenuation;
+            // spot params
+            vec3 spotDirection;
+            float spotCosCutoff;
+            float spotExponent;
+        } u_lights[8];);
+        
+        std::string shade_phong_block = STRINGIFY(
+        vec4 shade_phong(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
+                         in vec4 base_color)
+        {
+          vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position;
+          vec3 L = normalize(lightDir);
+          vec3 E = normalize(-eyeVec);
+          vec3 R = reflect(-L, normal);
+          
+          float att = 1.0;
+          float nDotL = dot(normal, L);
+          // point + spot
+          if (light.type > 0 && nDotL > 0.0)
+          {
+              float dist = length(lightDir);
+              att = 1.0 / (light.constantAttenuation +
+                           light.linearAttenuation * dist +
+                           light.quadraticAttenuation * dist * dist);
+              
+              // spot
+              if(light.type > 1)
+              {
+                  float spotEffect = dot(normalize(light.spotDirection), -L);
+                  if (spotEffect < light.spotCosCutoff)
+                      return vec4(0, 0, 0, 1);
+                  
+                  spotEffect = pow(spotEffect, light.spotExponent);
+                  att *= spotEffect;
+              }
+          }
+          nDotL = max(0.0, nDotL);
+          
+          float specIntesity = pow( max(dot(R, E), 0.0), mat.shinyness);
+          vec4 ambient = mat.ambient * light.ambient;
+          vec4 diffuse = mat.diffuse * light.diffuse;
+          vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
+          return base_color * att * (ambient + diffuse * vec4(vec3(nDotL), 1.0) + spec);
+        });
+        
+        std::string vertex_shader_phong = STRINGIFY(
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        
+        in vec4 a_vertex;
+        in vec4 a_texCoord;
+        in vec3 a_normal;
+        
+        out VertexData{
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+        } vertex_out;
+        
+        void main()
+        {
+            vertex_out.normal = normalize(u_normalMatrix * a_normal);
+            vertex_out.texCoord = u_textureMatrix * a_texCoord;
+            vertex_out.eyeVec = (u_modelViewMatrix * a_vertex).xyz;
+            gl_Position = u_modelViewProjectionMatrix * a_vertex;
+        });
+        
+        std::string frag_shader_phong = STRINGIFY(
+        in VertexData
+        {
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+        } vertex_in;
+        out vec4 fragData;
+        void main()
+        {
+            // accumulate all texture maps
+            vec4 texColors = vec4(1);
+            for(int i = 0; i < u_numTextures; i++)
+            {
+                texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
+            }
+            vec3 normal = normalize(vertex_in.normal);
+         
+            // calculate shading for all lights
+            vec4 shade_color = vec4(0);
+            for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
+            {
+                shade_color += shade_phong(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
+            }
+            fragData = shade_color;
+        });
         
 #ifdef KINSKI_GLES
         const char *unlitVertSrc = GLSL( ,
@@ -281,31 +405,6 @@ namespace kinski { namespace gl {
            fragData = u_material.diffuse * texColors;
         });
         
-        const char *phongVertSrc = GLSL(150 core,
-        uniform mat4 u_modelViewMatrix;
-        uniform mat4 u_modelViewProjectionMatrix;
-        uniform mat3 u_normalMatrix;
-        uniform mat4 u_textureMatrix;
-                                        
-        in vec4 a_vertex;
-        in vec4 a_texCoord;
-        in vec3 a_normal;
-
-        out VertexData{
-            vec4 color;
-            vec4 texCoord;
-            vec3 normal;
-            vec3 eyeVec;
-        } vertex_out;
-                  
-        void main()
-        {
-            vertex_out.normal = normalize(u_normalMatrix * a_normal);
-            vertex_out.texCoord = u_textureMatrix * a_texCoord;
-            vertex_out.eyeVec = (u_modelViewMatrix * a_vertex).xyz;
-            gl_Position = u_modelViewProjectionMatrix * a_vertex;
-        });
-        
         const char *phongVertSrc_skin = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
@@ -340,133 +439,35 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
         });
         
-        const char *phongFragSrc = GLSL(150 core,
-        uniform int u_numTextures;
-        uniform int u_numLights;
-        uniform sampler2D u_textureMap[16];
-        uniform struct Lightsource
-        {
-            // 0: Directional
-            // 1: Point
-            // 2: Spot
-            int type;
-            // position in eyecoords
-            vec3 position;
-            vec4 diffuse;
-            vec4 ambient;
-            vec4 specular;
-            // attenuation
-            float constantAttenuation;
-            float linearAttenuation;
-            float quadraticAttenuation;
-            // spot params
-            vec3 spotDirection;
-            float spotCosCutoff;
-            float spotExponent;
-        } u_lights[8];
-
-        uniform struct Material
-        {
-            vec4 diffuse;
-            vec4 ambient;
-            vec4 specular;
-            vec4 emission;
-            float shinyness;
-        } u_material;
-                                        
-        in VertexData{
-            vec4 color;
-            vec4 texCoord;
-            vec3 normal;
-            vec3 eyeVec;
-        } vertex_in;
-        out vec4 fragData;
-                                        
-        vec4 shade_phong(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
-                         in vec4 base_color)
-        {
-            vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position;
-            vec3 L = normalize(lightDir);
-            vec3 E = normalize(-eyeVec);
-		    vec3 R = reflect(-L, normal);
-            
-            float att = 1.0;
-            float nDotL = dot(normal, L);
-            // point + spot
-            if (light.type > 0 && nDotL > 0.0)
-            {
-                float dist = length(lightDir);
-                att = 1.0 / (light.constantAttenuation +
-                             light.linearAttenuation * dist +
-                             light.quadraticAttenuation * dist * dist);
-                
-                // spot
-                if(light.type > 1)
-                {
-                    float spotEffect = dot(normalize(light.spotDirection), -L);
-                    if (spotEffect > light.spotCosCutoff)
-                    {
-                        spotEffect = pow(spotEffect, light.spotExponent);
-                        att *= spotEffect;
-                    }
-                    else
-                    {
-                        // no contribution
-                        return vec4(0, 0, 0, 1);
-                    }
-                }
-            }
-            nDotL = max(0.0, nDotL);
-            
-            float specIntesity = pow( max(dot(R, E), 0.0), mat.shinyness);
-            vec4 ambient = mat.ambient * light.ambient;
-            vec4 diffuse = mat.diffuse * light.diffuse;
-            vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
-            return base_color * att * (ambient + diffuse * vec4(vec3(nDotL), 1.0) + spec);
-        }
-                                        
-        void main()
-        {
-            // accumulate all texture maps
-            vec4 texColors = vec4(1);
-            for(int i = 0; i < u_numTextures; i++)
-            {
-                texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
-            }
-            vec3 normal = normalize(vertex_in.normal);
-            
-            // calculate shading for all lights
-            vec4 shade_color = vec4(0);
-            for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
-            {
-                shade_color += shade_phong(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
-            }
-            fragData = shade_color;
-        });
-        
         const char *phong_normalmap_vertSrc = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
         uniform mat4 u_textureMatrix;
         uniform vec3 u_lightDir;
+                                                   
         in vec4 a_vertex;
         in vec4 a_texCoord;
         in vec3 a_normal;
         in vec3 a_tangent;
-        out vec4 v_texCoord;
-        out vec3 v_normal;
-        out vec3 v_eyeVec;
-        out vec3 v_lightDir;
+                                                   
+        out VertexData{
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+            vec3 lightDir;
+        } vertex_out;
+                                                   
         void main()
         {
-           v_normal = normalize(u_normalMatrix * a_normal);
+           vertex_out.normal = normalize(u_normalMatrix * a_normal);
            vec3 t = normalize (u_normalMatrix * a_tangent);
-           vec3 b = cross(v_normal, t);
-           mat3 tbnMatrix = mat3(t,b, v_normal);
-           v_eyeVec = tbnMatrix * normalize(- (u_modelViewMatrix * a_vertex).xyz);
-           v_lightDir = tbnMatrix * u_lightDir;
-           v_texCoord =  u_textureMatrix * a_texCoord;
+           vec3 b = cross(vertex_out.normal, t);
+           mat3 tbnMatrix = mat3(t,b, vertex_out.normal);
+           vertex_out.eyeVec = tbnMatrix * normalize(- (u_modelViewMatrix * a_vertex).xyz);
+           vertex_out.lightDir = tbnMatrix * u_lightDir;
+           vertex_out.texCoord =  u_textureMatrix * a_texCoord;
            gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
@@ -481,10 +482,13 @@ namespace kinski { namespace gl {
             vec4 emission;
             float shinyness;
         } u_material;
-        in vec3 v_normal;
-        in vec4 v_texCoord;
-        in vec3 v_eyeVec;
-        in vec3 v_lightDir;
+        in VertexData{
+            vec4 color;
+            vec4 texCoord;
+            vec3 normal;
+            vec3 eyeVec;
+            vec3 lightDir;
+        } vertex_in;
         out vec4 fragData;
         vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
         {
@@ -500,14 +504,14 @@ namespace kinski { namespace gl {
         void main()
         {
             //vec2 texCoord = v_texCoord.xy;
-            vec4 texColors = texture(u_textureMap[0], v_texCoord.xy);
+            vec4 texColors = texture(u_textureMap[0], vertex_in.texCoord.xy);
             vec3 N;
             // sample normal map
             //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
             // sample bump map
-            N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);
-            vec3 L = normalize(-v_lightDir);
-            vec3 E = normalize(v_eyeVec);
+            N = normalFromHeightMap(u_textureMap[1], vertex_in.texCoord.xy, 0.8);
+            vec3 L = normalize(-vertex_in.lightDir);
+            vec3 E = normalize(vertex_in.eyeVec);
 		    vec3 R = reflect(-L, N);
             float nDotL = max(0.0, dot(N, L));
             float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
@@ -670,6 +674,8 @@ namespace kinski { namespace gl {
         });
 #endif
         
+        std::string vert_src, geom_src, frag_src;
+                                        
         Shader ret;
         switch (type)
         {
@@ -678,7 +684,13 @@ namespace kinski { namespace gl {
                 break;
                 
             case SHADER_PHONG:
-                ret.loadFromData(phongVertSrc, phongFragSrc);
+                vert_src = glsl_header_150 + vertex_shader_phong;
+                frag_src =  glsl_header_150 +
+                            material_uniform_block +
+                            light_uniform_block +
+                            shade_phong_block +
+                            frag_shader_phong;
+                ret.loadFromData(vert_src.c_str(), frag_src.c_str());
                 break;
             
             case SHADER_PHONG_NORMALMAP:
@@ -686,7 +698,13 @@ namespace kinski { namespace gl {
                 break;
                 
             case SHADER_PHONG_SKIN:
-                ret.loadFromData(phongVertSrc_skin, phongFragSrc);
+                vert_src = glsl_header_150 + vertex_shader_phong;
+                frag_src =  glsl_header_150 +
+                material_uniform_block +
+                light_uniform_block +
+                shade_phong_block +
+                frag_shader_phong;
+                ret.loadFromData(phongVertSrc_skin, frag_src.c_str());
                 break;
                 
             case SHADER_POINTS_TEXTURE:

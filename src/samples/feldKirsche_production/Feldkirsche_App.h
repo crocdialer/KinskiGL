@@ -10,6 +10,10 @@
 #define __kinskiGL__Feldkirsche_App__
 
 #include "kinskiApp/ViewerApp.h"
+
+#include "kinskiApp/LightComponent.h"
+
+// offscreen rendering
 #include "kinskiGL/Fbo.h"
 
 // model loading
@@ -84,6 +88,9 @@ private:
     
     // contains debug-view objects
     gl::Scene m_debug_scene;
+    
+    // Light control
+    LightComponent::Ptr m_light_component;
     
 public:
     
