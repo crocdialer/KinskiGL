@@ -1,5 +1,6 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiApp/AppServer.h"
+#include "kinskiApp/LightComponent.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 
@@ -26,7 +27,9 @@ private:
     Property_<float>::Ptr m_shinyness;
     
     vector<vec3> m_points;
-
+    
+    LightComponent::Ptr m_light_component;
+    
 public:
     
     void setup()
@@ -64,6 +67,10 @@ public:
 
         // enable observer mechanism
         observeProperties();
+        
+        // light component
+        m_light_component.reset(new LightComponent());
+        create_tweakbar_from_component(m_light_component);
         
         /********************** construct a simple scene ***********************/
         camera()->setClippingPlanes(1.0, 5000);
@@ -104,7 +111,6 @@ public:
 
         gl::Geometry::Ptr plane_geom(gl::createPlane(1000, 1000));
         gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
-        mat->setTwoSided();
         materials().push_back(mat);
         gl::MeshPtr ground_plane = gl::Mesh::create(plane_geom, mat);
         ground_plane->setLookAt(vec3(0, -1, 0), vec3(0, 0, 1));
@@ -143,6 +149,7 @@ public:
         lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
         
         for (auto &light : lights()){scene().addObject(light);}
+        m_light_component->set_lights(lights());
                                      
         //gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
         gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");

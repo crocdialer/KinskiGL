@@ -38,6 +38,7 @@ namespace kinski { namespace gl {
     
     Shader createShader(ShaderType type)
     {
+#pragma mark MODULE_BLOCKS
         std::string material_uniform_block;
         std::string light_uniform_block;
         std::string shade_phong_block;

@@ -19,19 +19,15 @@ m_name(theName)
 
 Component::~Component() 
 {
-    //observeProperties(false);
 }
 
 Property::Ptr Component::getPropertyByName(const std::string & thePropertyName) 
 {
-    
-    std::list<Property::Ptr>::iterator it;
-    for ( it = m_propertyList.begin() ; it != m_propertyList.end(); ++it )
+    for (auto &property : m_propertyList )
     {
-        if ((*it)->getName() == thePropertyName) 
-            return (*it);
+        if (property->getName() == thePropertyName) 
+            return property;
     }
-    
     throw PropertyNotFoundException(thePropertyName);
 }
 
@@ -48,14 +44,12 @@ void Component::registerProperty(Property::Ptr theProperty)
 
 void Component::observeProperties(const std::list<Property::Ptr>& theProps,  bool b)
 {
-    std::list<Property::Ptr>::const_iterator it = theProps.begin();
-    
-    for (; it != theProps.end(); ++it)
+    for (const auto &property : theProps)
     {
         if (b)
-            (*it)->addObserver(shared_from_this());
+            property->addObserver(shared_from_this());
         else
-            (*it)->removeObserver(shared_from_this());
+            property->removeObserver(shared_from_this());
     }
 }
     
