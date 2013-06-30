@@ -9,8 +9,8 @@
 #ifndef __kinskiGL__Fmod_Sound__
 #define __kinskiGL__Fmod_Sound__
 
-#include "fmod.h"
-#include "fmod_errors.h"
+#include "fmod.hpp"
+//#include "fmod_errors.h"
 #include "Sound.h"
 
 namespace kinski{ namespace audio{
@@ -26,6 +26,9 @@ namespace kinski{ namespace audio{
         void unload();
         void play();
         void stop();
+        void record();
+        void get_spectrum(float *buffer, int num_buckets);
+        void get_pcm_buffer(float *buffer, int num_samples);
         
         void set_volume(float vol);
         void set_pan(float pan); // -1 = left, 1 = right
@@ -57,8 +60,8 @@ namespace kinski{ namespace audio{
 		float m_speed; // -n to n, 1 = normal, -1 backwards
 		unsigned int m_length; // in samples;
         
-		FMOD_CHANNEL* m_channel;
-		FMOD_SOUND* m_sound;
+        FMOD::Channel *m_channel;
+        FMOD::Sound *m_sound;
         
     };
 }}//namespace

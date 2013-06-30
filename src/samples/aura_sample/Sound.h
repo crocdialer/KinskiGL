@@ -35,6 +35,9 @@ namespace kinski{ namespace audio{
         virtual void unload() = 0;
         virtual void play() = 0;
         virtual void stop() = 0;
+        virtual void record() = 0;
+        virtual void get_spectrum(float *buffer, int num_buckets) = 0;
+        virtual void get_pcm_buffer(float *buffer, int num_samples) = 0;
         
         virtual void set_volume(float vol) = 0;
         virtual void set_pan(float vol) = 0; // -1 = left, 1 = right
@@ -54,6 +57,13 @@ namespace kinski{ namespace audio{
         virtual bool loaded() = 0;
         virtual float position() = 0;
         virtual int position_ms() = 0;
+    };
+    
+    class SystemException: public Exception
+    {
+    public:
+        SystemException() :
+        Exception(std::string("Got trouble with audio system")){}
     };
     
     class SoundLoadException: public Exception

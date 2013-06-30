@@ -395,6 +395,53 @@ public:
     {
         LOG_PRINT<<"ciao simple geometry";
     }
+    
+    void keyPress(const KeyEvent &e)
+    {
+        ViewerApp::keyPress(e);
+        
+        std::list<Component::ConstPtr> components;
+        std::list<Component::Ptr> load_components;
+        for (int i = 0; i < lights().size(); i++)
+        {
+            LightComponent::Ptr tmp(new LightComponent());
+            tmp->set_name("Light " + as_string(i));
+            tmp->set_lights(lights());
+            tmp->set_index(i);
+            components.push_back(tmp);
+            load_components.push_back(tmp);
+        }
+        
+        if(!e.isShiftDown() && !e.isAltDown())
+        {
+            //gl::Visitor visitor;
+            
+            try
+            {
+            switch (e.getCode())
+            {
+                case GLFW_KEY_S:
+                    Serializer::saveComponentState(components, "light_config.json", PropertyIO_GL());
+                break;
+                case GLFW_KEY_R:
+                    Serializer::loadComponentState(load_components, "light_config.json", PropertyIO_GL());
+                    break;
+                case GLFW_KEY_W:
+                    set_wireframe(!wireframe());
+                    break;
+            }
+            }
+            catch(Exception &e)
+            {
+                LOG_ERROR<<e.what();
+            }
+        }
+        
+//        for(const auto &component : load_components)
+//        {
+//            
+//        }
+    }
 };
 
 int main(int argc, char *argv[])

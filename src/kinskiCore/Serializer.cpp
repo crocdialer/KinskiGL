@@ -125,14 +125,11 @@ namespace kinski {
         
         for (const auto &theComponent : theComponentList)
         {
-            std::string myName = theComponent->getName();
-            json_val[myIndex][PropertyIO::PROPERTY_NAME] = myName;
+            json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->getName();
             
             for ( const auto &property : theComponent->getPropertyList() )
             {
-                std::string myPropName = property->getName();
-                
-                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = myPropName;
+                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->getName();
                 
                 // delegate reading to PropertyIO object
                 if(! theIO.readPropertyValue(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
@@ -153,35 +150,9 @@ namespace kinski {
         if(!theComponent) throw Exception("Could not serialize empty component");
         
         Json::Value myRoot;
-        int myIndex = 0;
-        int myVIndex = 0;
-        std::string myName = theComponent->getName();
-        myRoot[myIndex][PropertyIO::PROPERTY_NAME] = myName;
-        std::list<Property::Ptr> myProperties = theComponent->getPropertyList();
-        std::list<Property::Ptr>::const_iterator myPIt;
-        
-        for ( myPIt = myProperties.begin(); myPIt != myProperties.end(); myPIt++ ) {
-            const Property::Ptr &myProperty = *myPIt;
-            std::string myPropName = myProperty->getName();
-            
-            myRoot[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = myPropName;
-            
-            // delegate reading to PropertyIO object
-            if(! theIO.readPropertyValue(myProperty, myRoot[myIndex][PropertyIO::PROPERTIES][myVIndex]))
-            {
-                myRoot[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_TYPE] =
-                    PropertyIO::PROPERTY_TYPE_UNKNOWN;
-            }
-
-            myVIndex++;
-        }
-        myIndex++;
-        myVIndex = 0;
-        
-//        Json::Value myRoot;
-//        std::list<Component::ConstPtr> list;
-//        list.push_back(theComponent);
-//        add_to_json_object(list, myRoot);
+        std::list<Component::ConstPtr> list;
+        list.push_back(theComponent);
+        add_to_json_object(list, myRoot, theIO);
         Json::StyledWriter myWriter;
         return myWriter.write(myRoot); 
     }
@@ -202,6 +173,7 @@ namespace kinski {
         for (unsigned int i=0; i<myRoot.size(); i++)
         {
             Json::Value myComponentNode = myRoot[i];
+            if(myComponentNode[PropertyIO::PROPERTY_NAME] != theComponent->getName()){continue;}
             
             for (unsigned int i=0; i < myComponentNode[PropertyIO::PROPERTIES].size(); i++)
             {
@@ -209,6 +181,7 @@ namespace kinski {
                 {
                     std::string myName =
                     myComponentNode[PropertyIO::PROPERTIES][i][PropertyIO::PROPERTY_NAME].asString();
+                    
                     Property::Ptr myProperty = theComponent->getPropertyByName(myName);
                     theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][i]);
                     
@@ -226,7 +199,24 @@ namespace kinski {
     {
         std::string state = serializeComponent(theComponent, theIO);
         std::ofstream myFileOut(theFileName.c_str());
+        if(!myFileOut)
+        {
+            throw OutputFileException(theFileName);
+        }
+        myFileOut << state;
+        myFileOut.close();
+    }
+    
+    void Serializer::saveComponentState(const std::list<Component::ConstPtr> &theComponentList,
+                                        const std::string &theFileName,
+                                        const PropertyIO &theIO)
+    {
+        Json::Value myRoot;
+        add_to_json_object(theComponentList, myRoot, theIO);
+        Json::StyledWriter myWriter;
+        std::string state = myWriter.write(myRoot);
         
+        std::ofstream myFileOut(theFileName.c_str());
         if(!myFileOut)
         {
             throw OutputFileException(theFileName);
@@ -242,6 +232,16 @@ namespace kinski {
         if(!theComponent) return;
         std::string myState = readFile(theFileName);
         applyStateToComponent(theComponent, myState, theIO);
+    }
+    
+    void Serializer::loadComponentState(std::list<Component::Ptr> &theComponentList,
+                                        const std::string &theFileName,
+                                        const PropertyIO &theIO)
+    {
+        if(theComponentList.empty()) return;
+        std::string myState = readFile(theFileName);
+        
+        for (auto &component : theComponentList){applyStateToComponent(component, myState, theIO);}
     }
 
 }//namespace

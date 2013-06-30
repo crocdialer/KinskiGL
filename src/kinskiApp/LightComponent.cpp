@@ -64,12 +64,21 @@ namespace kinski
         }
     }
     
-    void LightComponent::set_lights(const std::list<gl::LightPtr> &l)
+    void LightComponent::set_index(int index)
+    {
+        *m_light_index = index;
+    }
+    
+    void LightComponent::set_lights(const std::list<gl::LightPtr> &l, bool copy_settings)
     {
         m_lights.assign(l.begin(), l.end());
         m_light_index->setRange(0, l.size() - 1);
-        observeProperties();
-        m_light_index->set(*m_light_index);
+        
+        if(copy_settings)
+        {
+            observeProperties();
+            m_light_index->set(*m_light_index);
+        }
     }
     
     void LightComponent::refresh()
@@ -82,7 +91,7 @@ namespace kinski
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
         *m_position_z = light->position().z;
-        *m_direction = light->type() ? glm::normalize(light->position() - light->lookAt()) : -light->position();
+        *m_direction = light->type() ? glm::normalize(-light->position() + light->lookAt()) : -light->position();
         
         *m_diffuse = light->diffuse();
         *m_ambient = light->ambient();
@@ -103,7 +112,7 @@ namespace kinski
         light->set_enabled(*m_enabled);
         if(light->type() == gl::Light::DIRECTIONAL)
         {
-            light->setPosition(-m_direction->value());
+            light->setPosition(m_direction->value());
         }
         else
         {

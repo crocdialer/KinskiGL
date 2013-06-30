@@ -47,16 +47,27 @@ namespace kinski
     {
     public:
         /*!
-         * Save a component´s state to file using json file formatting
+         * Save a single component´s state to file using json file formatting
          */
         static void saveComponentState(const Component::ConstPtr &theComponent,
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         
         /*!
+         * Save multiple component´s states to file using json file formatting
+         */
+        static void saveComponentState(const std::list<Component::ConstPtr> &theComponentList,
+                                const std::string &theFileName,
+                                const PropertyIO &theIO = PropertyIO());
+        
+        /*!
          * Read a component´s state from a json-file
          */
         static void loadComponentState(const Component::Ptr &theComponent,
+                                       const std::string &theFileName,
+                                       const PropertyIO &theIO = PropertyIO());
+        
+        static void loadComponentState(std::list<Component::Ptr> &theComponentList,
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         

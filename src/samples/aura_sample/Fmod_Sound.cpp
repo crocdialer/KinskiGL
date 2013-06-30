@@ -13,8 +13,8 @@ namespace kinski{ namespace audio{
 
     ////////////////////// implementation internal /////////////////////////////
     
-    static FMOD_CHANNELGROUP* g_channelgroup = NULL;
-    static FMOD_SYSTEM* g_system = NULL;
+    static FMOD::ChannelGroup* g_channelgroup = NULL;
+    static FMOD::System* g_system = NULL;
     
     int g_max_num_fft_bands = 8192;
     static std::vector<float> g_fftValues;
@@ -25,12 +25,16 @@ namespace kinski{ namespace audio{
     {
         if(!g_system)
         {
-            FMOD_System_Create(&g_system);
+            FMOD_RESULT result;
+            result =FMOD::System_Create(&g_system);
+            if(result != FMOD_OK) throw SystemException();
+            
 #ifdef TARGET_LINUX
-			FMOD_System_SetOutput(sys,FMOD_OUTPUTTYPE_ALSA);
+            FMOD::System_SetOutput(sys,FMOD_OUTPUTTYPE_ALSA);
 #endif
-            FMOD_System_Init(g_system, 32, FMOD_INIT_NORMAL, NULL);  //do we want just 32 channels?
-            FMOD_System_GetMasterChannelGroup(g_system, &g_channelgroup);
+            g_system->init(32, FMOD_INIT_NORMAL, NULL);//do we want just 32 channels?
+            
+            g_system->getMasterChannelGroup(&g_channelgroup);
             
             g_fftValues.assign(g_max_num_fft_bands, 0.f);
             g_fftInterpValues.assign(g_max_num_fft_bands, 0.f);
@@ -43,20 +47,20 @@ namespace kinski{ namespace audio{
     void stop_all()
     {
         init_fmod();
-        FMOD_ChannelGroup_Stop(g_channelgroup);
+        g_channelgroup->stop();
     }
     
     void set_volume(float vol)
     {
         init_fmod();
-        FMOD_ChannelGroup_SetVolume(g_channelgroup, vol);
+        g_channelgroup->setVolume(vol);
     }
     
     void update()
     {
         if(g_system)
         {
-            FMOD_System_Update(g_system);
+            g_system->update();
         }
     }
     
@@ -148,7 +152,7 @@ namespace kinski{ namespace audio{
     {
         if(g_system)
         {
-            FMOD_System_Close(g_system);
+            g_system->close();
         }
     }
     
@@ -187,11 +191,11 @@ namespace kinski{ namespace audio{
         if(stream)fmodFlags =  FMOD_HARDWARE | FMOD_CREATESTREAM;
         
         FMOD_RESULT result;
-        result = FMOD_System_CreateSound(g_system, path.c_str(), fmodFlags, NULL, &m_sound);
+        result = g_system->createSound(path.c_str(), fmodFlags, NULL, &m_sound);
         
         if (result != FMOD_OK){throw SoundLoadException(fileName);}
 
-        FMOD_Sound_GetLength(m_sound, &m_length, FMOD_TIMEUNIT_PCM);
+        m_sound->getLength(&m_length, FMOD_TIMEUNIT_PCM);
         m_streaming = stream;
         
         LOG_DEBUG<<"loaded sound (streaming: "<< (stream ? "on":"off") << "): "<<fileName;
@@ -202,7 +206,7 @@ namespace kinski{ namespace audio{
         if (loaded())
         {
             stop();
-            if(!m_streaming) FMOD_Sound_Release(m_sound);
+            if(!m_streaming) m_sound->release();
             m_sound = NULL;
         }
     }
@@ -210,46 +214,61 @@ namespace kinski{ namespace audio{
     void Fmod_Sound::play()
     {
         // if it's a looping sound kill it
-        if (m_loop){FMOD_Channel_Stop(m_channel);}
+        if (m_loop){m_channel->stop();}
         
         // if the sound is not set to multiplay, then stop the current,
         // before we start another
-        if (!m_multiplay){FMOD_Channel_Stop(m_channel);}
+        if (!m_multiplay){m_channel->stop();}
         
-        FMOD_System_PlaySound(g_system, FMOD_CHANNEL_FREE, m_sound, m_paused, &m_channel);
-        FMOD_Channel_GetFrequency(m_channel, &m_internal_freq);
-        FMOD_Channel_SetVolume(m_channel, m_volume);
+        g_system->playSound(FMOD_CHANNEL_FREE, m_sound, m_paused, &m_channel);
+        m_channel->getFrequency(&m_internal_freq);
+        m_channel->setVolume(m_volume);
         set_pan(m_pan);
-        FMOD_Channel_SetFrequency(m_channel, m_internal_freq * m_speed);
-        FMOD_Channel_SetMode(m_channel, m_loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
+        m_channel->setFrequency(m_internal_freq * m_speed);
+        m_channel->setMode(m_loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
         
         //fmod update() should be called every frame - according to the docs.
         //we have been using fmod without calling it at all which resulted in channels not being able
         //to be reused.  we should have some sort of global update function but putting it here
         //solves the channel bug
-        FMOD_System_Update(g_system);
+        g_system->update();
     }
     
     void Fmod_Sound::stop()
     {
-        FMOD_Channel_Stop(m_channel);
+        m_channel->stop();
+    }
+    
+    void Fmod_Sound::record()
+    {
+    
+    }
+    
+    void Fmod_Sound::get_spectrum(float *buffer, int num_buckets)
+    {
+    
+    }
+    
+    void Fmod_Sound::get_pcm_buffer(float *buffer, int num_samples)
+    {
+    
     }
     
     void Fmod_Sound::set_volume(float vol)
     {
-        if (playing()){FMOD_Channel_SetVolume(m_channel, vol);}
+        if (playing()){m_channel->setVolume(vol);}
         m_volume = vol;
     }
     
     void Fmod_Sound::set_pan(float pan)
     {
         m_pan = kinski::clamp(pan, -1.f, 1.f);
-        if (playing()){FMOD_Channel_SetPan(m_channel, m_pan);}
+        if (playing()){m_channel->setPan(m_pan);}
     }
     
     void Fmod_Sound::set_speed(float speed)
     {
-        if (playing()){FMOD_Channel_SetFrequency(m_channel, m_internal_freq * speed);}
+        if (playing()){m_channel->setFrequency(m_internal_freq * speed);}
         m_speed = speed;
     }
     
@@ -257,14 +276,14 @@ namespace kinski{ namespace audio{
     {
         if (playing())
         {
-            FMOD_Channel_SetPaused(m_channel, b);
+            m_channel->setPaused(b);
             m_paused = b;
         }
     }
     
     void Fmod_Sound::set_loop(bool b)
     {
-        if (playing()){FMOD_Channel_SetMode(m_channel, b ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);}
+        if (playing()){m_channel->setMode(b ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);}
         m_loop = b;
     }
     
@@ -278,21 +297,21 @@ namespace kinski{ namespace audio{
         if (playing())
         {
             int sample = (int)(m_length * pct);
-            FMOD_Channel_SetPosition(m_channel, sample, FMOD_TIMEUNIT_PCM);
+            m_channel->setPosition(sample, FMOD_TIMEUNIT_PCM);
         }
     }
     
     void Fmod_Sound::set_positionMS(int ms)
     {
-        if (playing()){FMOD_Channel_SetPosition(m_channel, ms, FMOD_TIMEUNIT_MS);}
+        if (playing()){m_channel->setPosition(ms, FMOD_TIMEUNIT_MS);}
     }
     
     bool Fmod_Sound::playing()
     {
         if (!loaded()) return false;
         
-        int playing = 0;
-        FMOD_Channel_IsPlaying(m_channel, &playing);
+        bool playing = 0;
+        m_channel->isPlaying(&playing);
         return playing;
     }
     
@@ -331,7 +350,7 @@ namespace kinski{ namespace audio{
         if (playing())
         {
             unsigned int sample;
-            FMOD_Channel_GetPosition(m_channel, &sample, FMOD_TIMEUNIT_PCM);
+            m_channel->getPosition(&sample, FMOD_TIMEUNIT_PCM);
             float percent = 0.0f;
             if (m_length > 0)
             {
@@ -347,7 +366,7 @@ namespace kinski{ namespace audio{
         if (playing())
         {
             unsigned int sample;
-            FMOD_Channel_GetPosition(m_channel, &sample, FMOD_TIMEUNIT_MS);
+            m_channel->getPosition(&sample, FMOD_TIMEUNIT_MS);
             return sample;
         }
         return 0;
