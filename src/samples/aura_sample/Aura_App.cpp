@@ -7,6 +7,7 @@
 //
 
 #include "Aura_App.h"
+#include "kinskiCV/TextureIO.h"
 #include <boost/asio/io_service.hpp>
 
 namespace kinski{
@@ -21,7 +22,7 @@ namespace kinski{
         MaterialVisitor(float time):m_time(time){}
         void visit(gl::Mesh &theNode)
         {
-            theNode.material()->setDiffuse(gl::Color(0.8f + sin(m_time) / 2.f));
+            theNode.material()->setDiffuse(gl::Color(0.8f + sin(m_time) / 4.f));
         }
     private:
         float m_time;
@@ -32,7 +33,7 @@ namespace kinski{
         vec3 half_extents(50);
         
         gl::GeometryPtr geom = gl::Geometry::create();
-        geom->setPrimitiveType(GL_LINE_LOOP);
+        geom->setPrimitiveType(GL_LINES);
         geom->vertices().resize(num_vertices);
         geom->colors().resize(num_vertices);
         
@@ -48,28 +49,39 @@ namespace kinski{
         }
         geom->computeBoundingBox();
         
-        gl::MaterialPtr mat = gl::Material::create();
-        return gl::Mesh::create(geom, mat);
+        //gl::MaterialPtr mat = gl::Material::create();
+        return gl::Mesh::create(geom, m_material);
     }
     
-    gl::MeshPtr Aura_App::create_fancy_lines(int num_x, int num_y)
+    gl::MeshPtr Aura_App::create_fancy_lines(int num_x, int num_y, const vec2 &step, const vec3 &noise_params)
     {
         gl::GeometryPtr geom = gl::Geometry::create();
         geom->setPrimitiveType(GL_LINE_STRIP);
         geom->vertices().resize(num_x * num_y);
-        //geom->colors().resize(num_x * num_y);
-        vec2 step(10);
+        geom->colors().resize(num_x * num_y);
+        
+    // create a simplex noise texture
+        float data[num_x * num_y];
+        
+        for (int i = 0; i < num_y; i++)
+            for (int j = 0; j < num_x; j++)
+            {
+                data[i * num_y + j] = glm::simplex( vec3(noise_params.xy() * vec2(i, j), noise_params.z));
+            }
         
         for (int i = 0; i < num_y; i++)
             for (int j = 0; j < num_x; j++)
             {
                 geom->vertices()[i * num_y + j] = vec3((-num_x/2 + j) * step.x,
-                                                       random(-10.f, 10.f),
+                                                       100 * data[i * num_y + j],
                                                        (-num_y/2 + i) * step.y);
+                geom->colors()[i * num_y + j] = gl::Color((data[i * num_y + j] + 1.f) / 2.f,
+                                                          .3, 0, 1.f);
             }
+        
         geom->computeBoundingBox();
-        gl::MaterialPtr mat = gl::Material::create();
-        return gl::Mesh::create(geom, mat);
+        //gl::MaterialPtr mat = gl::Material::create();
+        return gl::Mesh::create(geom, m_material);
     }
     
     gl::MeshPtr Aura_App::create_fancy_ufo(float radius, int num_rings)
@@ -169,18 +181,15 @@ namespace kinski{
         // clear with transparent black
         gl::clearColor(gl::Color(0));
         
-        m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+        m_material = gl::Material::create();
         
         m_test_sound.reset(new audio::Fmod_Sound("test.mp3"));
-
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-        }
+        m_fft_smoothed.reset(new float[8192]);
+        for (int i = 0; i < 8192; i++){m_fft_smoothed[i] = 0;}
+        m_material->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
+                                                       "shader_line.geom"));
+        
+        load_settings();
     }
     
     void Aura_App::update(float timeDelta)
@@ -212,8 +221,34 @@ namespace kinski{
             materials()[i]->setAmbient(0.2 * clear_color());
         }
         
-        MaterialVisitor visitor (getApplicationTime());
-        scene().root()->accept(visitor);
+//        MaterialVisitor visitor (getApplicationTime());
+//        scene().root()->accept(visitor);
+        
+        // audio
+        audio::update();
+        int nBandsToGet = 8;
+        
+        // (5) grab the fft, and put in into a "smoothed" array,
+        //		by taking maximums, as peaks and then smoothing downward
+        float *val = audio::get_spectrum(nBandsToGet);
+        for (int i = 0; i < nBandsToGet; i++)
+        {
+            // let the smoothed calue sink to zero:
+            m_fft_smoothed[i] *= 0.96f;
+            
+            // take the max, either the smoothed or the incoming:
+            if (m_fft_smoothed[i] < val[i]) m_fft_smoothed[i] = val[i];
+        }
+        
+        //LOG_INFO<<as_string(m_fft_smoothed[2]);
+        scene().removeObject(m_fancy_line_mesh);
+        m_fancy_line_mesh = create_fancy_lines(50, 50, vec2(20), vec3(vec2(0.05, 0.05),
+                                                                      m_fft_smoothed[0] + 0.3 * getApplicationTime()));
+        scene().addObject(m_fancy_line_mesh);
+        
+        m_material->uniform("u_window_size", gl::windowDimension());
+        m_material->uniform("u_line_thickness", 3.f);
+        m_material->uniform("u_interlaced", false);
     }
     
     void Aura_App::draw()
@@ -285,6 +320,8 @@ namespace kinski{
                     
                 case GLFW_KEY_P:
                     *m_stepPhysics = !*m_stepPhysics;
+                    m_textures[0] = gl::render_to_texture(scene(), m_fbo, camera());
+                    gl::TextureIO::saveTexture("pupu.jpg", m_textures[0]);
                     break;
                     
                 case GLFW_KEY_R:
@@ -462,7 +499,9 @@ namespace kinski{
         {
             scene().clear();
             scene().addObject(create_fancy_cube(*m_num_vertices));
-            scene().addObject(create_fancy_lines(100, 100));
+            scene().removeObject(m_fancy_line_mesh);
+            m_fancy_line_mesh = create_fancy_lines(100, 100);
+            scene().addObject(m_fancy_line_mesh);
         }
     }
     

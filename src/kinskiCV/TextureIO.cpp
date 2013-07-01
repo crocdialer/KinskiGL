@@ -41,11 +41,11 @@ const Texture TextureIO::loadTexture(const string &imgName)
     return ret;
 }
 
-bool 
-TextureIO::saveTexture(const string &imgPath, const Texture &texture)
+bool TextureIO::saveTexture(const string &imgPath, const Texture &texture)
 {
-    Mat outMat;
-    //TODO: read back data from Textureobject, query format and create cv::Mat
+    Mat outMat(texture.getHeight(), texture.getWidth(), CV_8UC4);
+    texture.bind(); 
+    glGetTexImage( GL_TEXTURE_2D, 0, GL_BGRA, GL_UNSIGNED_BYTE, outMat.data );
     return imwrite(imgPath, outMat);
 }
 

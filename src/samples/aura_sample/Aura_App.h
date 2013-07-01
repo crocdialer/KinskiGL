@@ -21,6 +21,8 @@
 // audio
 #include "Fmod_Sound.h"
 
+#include <boost/shared_array.hpp>
+
 namespace kinski{
     
 class Aura_App : public ViewerApp
@@ -69,11 +71,19 @@ private:
     // test mesh creation
     RangedProperty<int>::Ptr m_num_vertices;
     
+    
+    gl::MeshPtr m_fancy_line_mesh;
+    //gl::Shader m_line_shader;
+    
     gl::MeshPtr create_fancy_cube(int num_vertices);
-    gl::MeshPtr create_fancy_lines(int num_x, int num_y);
+    gl::MeshPtr create_fancy_lines(int num_x, int num_y, const glm::vec2 &step = glm::vec2(10.f),
+                                   const glm::vec3 &noise_params = glm::vec3(0.025));
     gl::MeshPtr create_fancy_ufo(float radius, int num_rings);
     
+    kinski::Component::Ptr m_noise_component;
+    
     audio::SoundPtr m_test_sound;
+    boost::shared_array<float> m_fft_smoothed;
     
 public:
     
