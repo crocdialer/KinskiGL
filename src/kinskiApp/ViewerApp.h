@@ -10,6 +10,7 @@
 #define __kinskiGL__ViewerApp__
 
 #include "kinskiApp/GLFW_App.h"
+#include "kinskiApp/LightComponent.h"
 #include "kinskiApp/Arcball.h"
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
@@ -79,6 +80,9 @@ namespace kinski {
         bool precise_selection() const { return m_precise_selection; };
         void set_precise_selection(bool b){ m_precise_selection = b; };
         void set_camera(const gl::PerspectiveCamera::Ptr &theCam){m_camera = theCam;};
+        
+        virtual void save_settings(const std::string &path = "");
+        virtual void load_settings(const std::string &path = "");
         
     private:
         std::vector<gl::MaterialPtr> m_materials;

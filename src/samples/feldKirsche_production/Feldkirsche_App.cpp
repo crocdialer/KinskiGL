@@ -177,15 +177,22 @@ namespace kinski{
         m_debugDrawer.reset(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-        }
+        // load state from config file(s)
+        load_settings();
+    }
+    
+    void Feldkirsche_App::save_settings(const std::string &path)
+    {
+        ViewerApp::save_settings(path);
+        Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
+    }
+    
+    void Feldkirsche_App::load_settings(const std::string &path)
+    {
+        //m_rigid_bodies_num->set(*m_rigid_bodies_num);
+        ViewerApp::load_settings(path);
+        try{Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());}
+        catch (FileNotFoundException &e){LOG_ERROR<<e.what();}
     }
     
     void Feldkirsche_App::update(float timeDelta)
@@ -341,15 +348,6 @@ namespace kinski{
                     
                 case GLFW_KEY_P:
                     *m_stepPhysics = !*m_stepPhysics;
-                    break;
-                    
-                case GLFW_KEY_R:
-                    Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
-                    m_rigid_bodies_num->set(*m_rigid_bodies_num);
-                    break;
-                    
-                case GLFW_KEY_S:
-                    Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
                     break;
 
                 case GLFW_KEY_UP:

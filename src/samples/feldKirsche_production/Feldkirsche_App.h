@@ -99,6 +99,9 @@ public:
     void draw();
     void tearDown();
     
+    virtual void save_settings(const std::string &path = "");
+    virtual void load_settings(const std::string &path = "");
+    
     void mousePress(const MouseEvent &e);
     void keyPress(const KeyEvent &e);
     void keyRelease(const KeyEvent &e);

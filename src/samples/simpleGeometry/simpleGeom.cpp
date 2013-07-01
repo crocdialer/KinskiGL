@@ -1,6 +1,5 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiApp/AppServer.h"
-#include "kinskiApp/LightComponent.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 
@@ -188,14 +187,8 @@ public:
             m_points.push_back(glm::linearRand(vec3(-windowSize() / 2.f, -2.f), vec3(windowSize() / 2.f, -2.f)));
         }
         
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-        }
+        // load state from config file(s)
+        load_settings();
     }
     
     void update(float timeDelta)
@@ -306,17 +299,6 @@ public:
                     
                 }
             }
-//            drawTexture(m_frameBuffer.getTexture(), vec2(w, h), offset);
-//            gl::drawQuad(m_draw_depth_material, vec2(w, h), offset + step);
-//            
-//            gl::drawText2D(as_string(m_frameBuffer.getTexture().getWidth()) + " x " +
-//                           as_string(m_frameBuffer.getTexture().getHeight()), m_font, glm::vec4(1),
-//                           offset);
-//            
-//            gl::drawText2D(kinski::as_string(scene().num_visible_objects()), m_font,
-//                           vec4(vec3(1) - clear_color().xyz(), 1.f),
-//                           glm::vec2(windowSize().x - 90, windowSize().y - 100));
-            
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
@@ -396,52 +378,6 @@ public:
         LOG_PRINT<<"ciao simple geometry";
     }
     
-    void keyPress(const KeyEvent &e)
-    {
-        ViewerApp::keyPress(e);
-        
-        std::list<Component::ConstPtr> components;
-        std::list<Component::Ptr> load_components;
-        for (int i = 0; i < lights().size(); i++)
-        {
-            LightComponent::Ptr tmp(new LightComponent());
-            tmp->set_name("Light " + as_string(i));
-            tmp->set_lights(lights());
-            tmp->set_index(i);
-            components.push_back(tmp);
-            load_components.push_back(tmp);
-        }
-        
-        if(!e.isShiftDown() && !e.isAltDown())
-        {
-            //gl::Visitor visitor;
-            
-            try
-            {
-            switch (e.getCode())
-            {
-                case GLFW_KEY_S:
-                    Serializer::saveComponentState(components, "light_config.json", PropertyIO_GL());
-                break;
-                case GLFW_KEY_R:
-                    Serializer::loadComponentState(load_components, "light_config.json", PropertyIO_GL());
-                    break;
-                case GLFW_KEY_W:
-                    set_wireframe(!wireframe());
-                    break;
-            }
-            }
-            catch(Exception &e)
-            {
-                LOG_ERROR<<e.what();
-            }
-        }
-        
-//        for(const auto &component : load_components)
-//        {
-//            
-//        }
-    }
 };
 
 int main(int argc, char *argv[])

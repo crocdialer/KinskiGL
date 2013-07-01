@@ -183,6 +183,7 @@ namespace kinski {
                     
                 case KeyEvent::KEY_s:
                     Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                    save_settings();
                     break;
                     
                 case KeyEvent::KEY_r:
@@ -191,6 +192,7 @@ namespace kinski {
                         m_inertia = glm::vec2(0);
                         m_selected_mesh.reset();
                         Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+                        load_settings();
                     }catch(Exception &e)
                     {
                         LOG_WARNING << e.what();
@@ -254,5 +256,45 @@ namespace kinski {
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
             m_camera->transform() = tmp;
         }
+    }
+    
+    void ViewerApp::save_settings(const std::string &path)
+    {
+        std::list<Component::ConstPtr> components;
+        for (int i = 0; i < lights().size(); i++)
+        {
+            LightComponent::Ptr tmp(new LightComponent());
+            tmp->set_name("Light " + as_string(i));
+            tmp->set_lights(lights());
+            tmp->set_index(i);
+            components.push_back(tmp);
+        }
+        try
+        {
+            Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            Serializer::saveComponentState(components, "light_config.json", PropertyIO_GL());
+            
+        }
+        catch(Exception &e){LOG_ERROR<<e.what();}
+    }
+    
+    void ViewerApp::load_settings(const std::string &path)
+    {
+        std::list<Component::Ptr> components;
+        for (int i = 0; i < lights().size(); i++)
+        {
+            LightComponent::Ptr tmp(new LightComponent());
+            tmp->set_name("Light " + as_string(i));
+            tmp->set_lights(lights(), false);
+            tmp->set_index(i);
+            tmp->observeProperties();
+            components.push_back(tmp);
+        }
+        try
+        {
+            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+            Serializer::loadComponentState(components, "light_config.json", PropertyIO_GL());
+        }
+        catch(Exception &e){LOG_ERROR<<e.what();}
     }
 }
