@@ -109,8 +109,11 @@ public:
         // Depth of field post processing
         m_post_process_mat = gl::Material::create();
         m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "shader_dof.frag"));
-        m_post_process_mat->uniform("u_dof_bias", 0.6f);
-        m_post_process_mat->uniform("u_focus", camera()->far() / 3.f);
+        m_post_process_mat->uniform("u_z_near", camera()->near());
+        m_post_process_mat->uniform("u_z_far", camera()->far());
+        m_post_process_mat->uniform("u_focalLength", 25.f);
+        m_post_process_mat->uniform("u_fstop", 2.f);
+        m_post_process_mat->uniform("u_showFocus", false);
         
         // create a simplex noise texture
         {
@@ -136,6 +139,12 @@ public:
         gl::MeshPtr ground_plane = gl::Mesh::create(plane_geom, mat);
         ground_plane->setLookAt(vec3(0, -1, 0), vec3(0, 0, 1));
         scene().addObject(ground_plane);
+        
+        gl::Geometry::Ptr cone_geom(gl::createCone(100, 200, 32));
+        mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+        gl::MeshPtr cone_mesh = gl::Mesh::create(cone_geom, mat);
+        //cone_mesh->setLookAt(vec3(0, -1, 0), vec3(0, 0, 1));
+        scene().addObject(cone_mesh);
         
         try
         {
@@ -221,13 +230,13 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
+            //gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
             
-            //scene().render(camera());
-            gl::render_to_texture(scene(), m_frameBuffer, camera());
+            scene().render(camera());
+            //gl::render_to_texture(scene(), m_frameBuffer, camera());
             //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
-            render_with_post_processing(m_frameBuffer, m_post_process_mat);
+            //render_with_post_processing(m_frameBuffer, m_post_process_mat);
             
             if(selected_mesh())
             {
@@ -378,7 +387,7 @@ public:
         the_post_process_mat->textures().clear();
         the_post_process_mat->addTexture(the_fbo.getTexture());
         the_post_process_mat->addTexture(the_fbo.getDepthTexture());
-        the_post_process_mat->uniform("u_window_size", gl::windowDimension());
+        the_post_process_mat->uniform("u_window_size", the_fbo.getSize());
         gl::drawQuad(the_post_process_mat, gl::windowDimension());
     }
 };

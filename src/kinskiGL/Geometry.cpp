@@ -484,5 +484,32 @@ namespace kinski{ namespace gl{
         geom->computeBoundingBox();
         return geom;
     }
-
+    
+    GeometryPtr createCone(float radius, float height, int numSegments)
+    {
+        GeometryPtr ret = Geometry::create();
+        ret->setPrimitiveType(GL_TRIANGLES);
+        std::vector<glm::vec3> &verts = ret->vertices();
+        
+        verts.resize(numSegments + 2);
+        verts[0] = glm::vec3(0);
+        verts[1] = glm::vec3(0, height, 0);
+        
+        for(int s = 2; s < numSegments + 2; s++)
+        {
+            float t = s / (float)numSegments * 2.0f * M_PI;
+            verts[s] = radius * glm::vec3(cos(t), 0, sin(t));
+            int next_index = (s + 1) > (numSegments + 1) ? (s + 1) % (numSegments + 1) + 1 : s + 1;
+            
+            //mantle
+            ret->appendFace(next_index, s, 1);
+            
+            //bottom
+            ret->appendFace(s, next_index, 0);
+        }
+        ret->computeVertexNormals();
+        ret->computeBoundingBox();
+        return ret;
+    }
+    
 }}//namespace
