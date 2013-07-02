@@ -63,27 +63,37 @@ namespace kinski
             // Create a command queue and use the first device
             m_queue = cl::CommandQueue(m_context, devices[0]);
             
-            // Read source file
-            std::string sourceCode = kinski::readFile("kernels.cl");
-            
-            // Read source file(s)
-//            cl::Program::Sources sources;
-//            std::list<std::string> cl_files = getDirectoryEntries(".", false, "cl");
-//            std::list<std::string>::iterator it = cl_files.begin();
-//            for (; it != cl_files.end(); ++it)
-//            {
-//                std::string file_content = kinski::readFile(*it);
-//                sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
-//            }
+        }
+        catch(cl::Error &error)
+        {
+            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+        }
+    }
+    
+    void cl_context::set_sources(const std::string &path)
+    {
+        try
+        {
+            cl::Program::Sources sources;
+            std::string file_content = kinski::readFile(path);
+            sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
+            set_sources(sources);
+        }
+        catch(FileNotFoundException &e){LOG_ERROR<<e.what();}
+    }
+    
+    void cl_context::set_sources(const cl::Program::Sources &sources)
+    {
+        try
+        {
+            // Create a command queue and use the first device
+            m_queue = cl::CommandQueue(m_context, m_context.getInfo<CL_CONTEXT_DEVICES>()[0]);
             
             // Make program of the source code in the context
-            m_program = cl::Program(m_context, sourceCode);
+            m_program = cl::Program(m_context, sources);
             
             // Build program for these specific devices
             m_program.build();
-            
-//            m_particleKernel = cl::Kernel(m_program, "updateParticles");
-//            m_imageKernel = cl::Kernel(m_program, "set_colors_from_image");
         }
         catch(cl::Error &error)
         {
@@ -92,5 +102,82 @@ namespace kinski
             LOG_ERROR << "Build Options:\t" << m_program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(m_device);
             LOG_ERROR << "Build Log:\t " << m_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(m_device);
         }
+    }
+    
+    const char* oclErrorString(int error)
+    {
+        static const char* errorString[] = {
+            "CL_SUCCESS",
+            "CL_DEVICE_NOT_FOUND",
+            "CL_DEVICE_NOT_AVAILABLE",
+            "CL_COMPILER_NOT_AVAILABLE",
+            "CL_MEM_OBJECT_ALLOCATION_FAILURE",
+            "CL_OUT_OF_RESOURCES",
+            "CL_OUT_OF_HOST_MEMORY",
+            "CL_PROFILING_INFO_NOT_AVAILABLE",
+            "CL_MEM_COPY_OVERLAP",
+            "CL_IMAGE_FORMAT_MISMATCH",
+            "CL_IMAGE_FORMAT_NOT_SUPPORTED",
+            "CL_BUILD_PROGRAM_FAILURE",
+            "CL_MAP_FAILURE",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "CL_INVALID_VALUE",
+            "CL_INVALID_DEVICE_TYPE",
+            "CL_INVALID_PLATFORM",
+            "CL_INVALID_DEVICE",
+            "CL_INVALID_CONTEXT",
+            "CL_INVALID_QUEUE_PROPERTIES",
+            "CL_INVALID_COMMAND_QUEUE",
+            "CL_INVALID_HOST_PTR",
+            "CL_INVALID_MEM_OBJECT",
+            "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR",
+            "CL_INVALID_IMAGE_SIZE",
+            "CL_INVALID_SAMPLER",
+            "CL_INVALID_BINARY",
+            "CL_INVALID_BUILD_OPTIONS",
+            "CL_INVALID_PROGRAM",
+            "CL_INVALID_PROGRAM_EXECUTABLE",
+            "CL_INVALID_KERNEL_NAME",
+            "CL_INVALID_KERNEL_DEFINITION",
+            "CL_INVALID_KERNEL",
+            "CL_INVALID_ARG_INDEX",
+            "CL_INVALID_ARG_VALUE",
+            "CL_INVALID_ARG_SIZE",
+            "CL_INVALID_KERNEL_ARGS",
+            "CL_INVALID_WORK_DIMENSION",
+            "CL_INVALID_WORK_GROUP_SIZE",
+            "CL_INVALID_WORK_ITEM_SIZE",
+            "CL_INVALID_GLOBAL_OFFSET",
+            "CL_INVALID_EVENT_WAIT_LIST",
+            "CL_INVALID_EVENT",
+            "CL_INVALID_OPERATION",
+            "CL_INVALID_GL_OBJECT",
+            "CL_INVALID_BUFFER_SIZE",
+            "CL_INVALID_MIP_LEVEL",
+            "CL_INVALID_GLOBAL_WORK_SIZE",
+        };
+        
+        const int errorCount = sizeof(errorString) / sizeof(errorString[0]);
+        
+        const int index = -error;
+        
+        return (index >= 0 && index < errorCount) ? errorString[index] : "";
+        
     }
 }

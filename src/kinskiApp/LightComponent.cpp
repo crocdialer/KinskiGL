@@ -58,9 +58,58 @@ namespace kinski
             refresh();
             observeProperties(true);
         }
-        else
+        else if(theProperty == m_light_type)
         {
-            set_values();
+            active_light->set_type(gl::Light::Type(m_light_type->value()));
+        }
+        else if(theProperty == m_enabled)
+        {
+            active_light->set_enabled(*m_enabled);
+        }
+        else if(theProperty == m_position_x || theProperty == m_position_y ||
+                theProperty == m_position_z)
+        {
+            if(active_light->type() == gl::Light::DIRECTIONAL)
+            {
+                *m_direction = glm::normalize(-glm::vec3(*m_position_x, *m_position_y, *m_position_z));
+            }
+            else
+            {
+                active_light->setPosition(glm::vec3(*m_position_x, *m_position_y, *m_position_z));
+            }
+        }
+        else if(theProperty == m_direction)
+        {
+            if(active_light->type() == gl::Light::DIRECTIONAL)
+            {
+                active_light->setPosition(m_direction->value());
+            }
+            active_light->setLookAt(glm::vec3(*m_position_x, *m_position_y, *m_position_z) + m_direction->value());
+        }
+        else if(theProperty == m_diffuse)
+        {
+            active_light->set_diffuse(*m_diffuse);
+        }
+        else if(theProperty == m_ambient)
+        {
+            active_light->set_ambient(*m_ambient);
+        }
+        else if(theProperty == m_specular)
+        {
+            active_light->set_specular(*m_specular);
+        }
+        else if(theProperty == m_att_constant || theProperty == m_att_linear ||
+                theProperty == m_att_quadratic)
+        {
+            active_light->set_attenuation(*m_att_constant, *m_att_linear, *m_att_quadratic);
+        }
+        else if(theProperty == m_spot_cutoff)
+        {
+            active_light->set_spot_cutoff(*m_spot_cutoff);
+        }
+        else if(theProperty == m_spot_exponent)
+        {
+            active_light->set_spot_exponent(*m_spot_exponent);
         }
     }
     
@@ -101,30 +150,5 @@ namespace kinski
         *m_att_quadratic = light->attenuation().quadratic;
         *m_spot_cutoff = light->spot_cutoff();
         *m_spot_exponent = light->spot_exponent();
-    }
-    
-    void LightComponent::set_values()
-    {
-        gl::LightPtr light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
-        if(!light) return;
-        
-        light->set_type(gl::Light::Type(m_light_type->value()));
-        light->set_enabled(*m_enabled);
-        if(light->type() == gl::Light::DIRECTIONAL)
-        {
-            light->setPosition(m_direction->value());
-        }
-        else
-        {
-            light->setPosition(glm::vec3(*m_position_x, *m_position_y, *m_position_z));
-        }
-        light->setLookAt(glm::vec3(*m_position_x, *m_position_y, *m_position_z) + m_direction->value());
-        
-        light->set_diffuse(*m_diffuse);
-        light->set_ambient(*m_ambient);
-        light->set_specular(*m_specular);
-        light->set_attenuation(*m_att_constant, *m_att_linear, *m_att_quadratic);
-        light->set_spot_cutoff(*m_spot_cutoff);
-        light->set_spot_exponent(*m_spot_exponent);
     }
 }

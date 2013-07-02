@@ -146,16 +146,16 @@ namespace kinski{
         m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
         
         // Lights
-        gl::LightPtr spot_light(new gl::Light(gl::Light::SPOT));
-        spot_light->setPosition(vec3(-300, 1100, 450));
-        spot_light->setLookAt(vec3(200, 0, 0));
-        spot_light->set_attenuation(0, .0006f, 0);
+        m_spot_light.reset(new gl::Light(gl::Light::SPOT));
+        m_spot_light->setPosition(vec3(-300, 1100, 450));
+        m_spot_light->setLookAt(vec3(200, 0, 0));
+        m_spot_light->set_attenuation(0, .0006f, 0);
         //spot_light->set_specular(gl::Color(0.4));
-        spot_light->set_spot_cutoff(70.f);
-        spot_light->set_spot_exponent(10.f);
+        m_spot_light->set_spot_cutoff(70.f);
+        m_spot_light->set_spot_exponent(10.f);
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
-        spot_light->children().push_back(spot_mesh);
-        lights().push_back(spot_light);
+        m_spot_light->children().push_back(spot_mesh);
+        lights().push_back(m_spot_light);
         
         //lights().front()->set_enabled(false);
         lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
@@ -772,6 +772,9 @@ namespace kinski{
         
         vec3 light_dir = *m_gravity;
         light_dir.z = .5;
-        set_light_direction(glm::normalize(light_dir));
+        
+        //set_light_direction(glm::normalize(light_dir));
+        m_spot_light->setLookAt(glm::dot(vec3(1, 0, 0), m_gravity->value()) *
+                                vec3(m_world_half_extents->value().x, 0.f, 50.f));
     }
 }

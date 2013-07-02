@@ -9,6 +9,7 @@
 #ifndef __kinskiGL__Feldkirsche_App__
 #define __kinskiGL__Feldkirsche_App__
 
+#include <boost/shared_array.hpp>
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiGL/Fbo.h"
 
@@ -20,8 +21,6 @@
 
 // audio
 #include "Fmod_Sound.h"
-
-#include <boost/shared_array.hpp>
 
 namespace kinski{
     

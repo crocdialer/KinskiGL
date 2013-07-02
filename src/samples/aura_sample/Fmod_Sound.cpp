@@ -93,7 +93,7 @@ namespace kinski{ namespace audio{
         
         // 	FMOD needs pow2
         int nBandsToGet = nextPow2(nBands);
-        if (nBandsToGet < 64) nBandsToGet = 64;  // can't seem to get fft of 32, etc from fmodex
+        if (nBandsToGet < 64) nBandsToGet = 64;
         
         // 	get the fft
         g_system->getSpectrum(&g_fftSpectrum[0], nBandsToGet, 0, FMOD_DSP_FFT_WINDOW_HANNING);
@@ -115,7 +115,7 @@ namespace kinski{ namespace audio{
             
         } else {
             
-            float step 		= (float)nBandsToGet / (float)nBands;
+            float step = (float)nBandsToGet / (float)nBands;
             //float pos 		= 0;
             // so for example, if nBands = 33, nBandsToGet = 64, step = 1.93f;
             int currentBand = 0;

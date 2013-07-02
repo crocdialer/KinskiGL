@@ -91,6 +91,7 @@ private:
     
     // Light control
     LightComponent::Ptr m_light_component;
+    gl::LightPtr m_spot_light;
     
 public:
     

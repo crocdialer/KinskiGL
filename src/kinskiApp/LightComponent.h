@@ -24,7 +24,6 @@ namespace kinski
         
         void updateProperty(const Property::ConstPtr &theProperty);
         void set_lights(const std::list<gl::LightPtr> &l, bool copy_settings = true);
-        
         void set_index(int index);
         
     private:
@@ -39,7 +38,6 @@ namespace kinski
         RangedProperty<float>::Ptr m_spot_cutoff, m_spot_exponent;
         
         void refresh();
-        void set_values();
     };
 }
 #endif /* defined(__kinskiGL__LightComponent__) */

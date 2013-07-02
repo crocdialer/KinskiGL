@@ -44,7 +44,7 @@ namespace kinski { namespace gl {
         inline glm::mat4& transform() {return m_transform;}
         inline const glm::mat4& transform() const {return m_transform;};
         inline void set_parent(const Object3DPtr &the_parent){m_parent = the_parent;}
-        inline Object3DPtr parent() const {return m_parent;}
+        inline Object3DPtr parent() const {return m_parent.lock();}
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
         virtual gl::AABB boundingBox() const;
@@ -56,7 +56,7 @@ namespace kinski { namespace gl {
         static uint32_t s_idPool;
         uint32_t m_id;
         glm::mat4 m_transform;
-        Object3DPtr m_parent;
+        std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;
     };
     
@@ -79,6 +79,7 @@ namespace kinski { namespace gl {
         }
         virtual void visit(gl::Mesh &theNode){};
         virtual void visit(gl::Light &theNode){};
+        virtual void visit(gl::Camera &theNode){};
         
     private:
         std::stack<glm::mat4> m_transform_stack;

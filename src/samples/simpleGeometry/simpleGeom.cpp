@@ -52,6 +52,7 @@ private:
     vector<vec3> m_points;
     
     LightComponent::Ptr m_light_component;
+    gl::MaterialPtr m_post_process_mat;
     
 public:
     
@@ -105,14 +106,11 @@ public:
         //int numsamples = m_frameBuffer.getMaxSamples();//4
         //int numattachments = m_frameBuffer.getMaxAttachments();//8
         
-        m_draw_depth_material = gl::Material::create();
-        m_draw_depth_material->setShader(gl::createShaderFromFile("shader_depth.vert", "shader_depth.frag"));
-        m_draw_depth_material->addTexture(m_frameBuffer.getDepthTexture());
-        m_draw_depth_material->setDepthTest(false);
-        m_draw_depth_material->setDepthWrite(false);
-        m_draw_depth_material->setBlending(true);
-        m_draw_depth_material->uniform("u_near", camera()->near());
-        m_draw_depth_material->uniform("u_far", camera()->far());
+        // Depth of field post processing
+        m_post_process_mat = gl::Material::create();
+        m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "shader_dof.frag"));
+        m_post_process_mat->uniform("u_dof_bias", 0.6f);
+        m_post_process_mat->uniform("u_focus", camera()->far() / 3.f);
         
         // create a simplex noise texture
         {
@@ -216,11 +214,6 @@ public:
     {
         // draw block
         {
-//            gl::SaveFramebufferBinding fb; gl::SaveViewPort vp;
-//            m_frameBuffer.bindFramebuffer();
-//            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//            gl::setWindowDimension(m_frameBuffer.getSize());
-            
             //background
             //gl::drawTexture(m_textures[0], windowSize());
             gl::setMatrices(camera());
@@ -230,7 +223,11 @@ public:
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
             gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
-            scene().render(camera());
+            
+            //scene().render(camera());
+            gl::render_to_texture(scene(), m_frameBuffer, camera());
+            //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
+            render_with_post_processing(m_frameBuffer, m_post_process_mat);
             
             if(selected_mesh())
             {
@@ -326,8 +323,6 @@ public:
         ViewerApp::resize(w, h);
         gl::Fbo::Format fboFormat;
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
-        m_draw_depth_material->textures().clear();
-        m_draw_depth_material->addTexture(m_frameBuffer.getDepthTexture());
     }
     
     void mousePress(const MouseEvent &e)
@@ -378,6 +373,14 @@ public:
         LOG_PRINT<<"ciao simple geometry";
     }
     
+    void render_with_post_processing(gl::Fbo &the_fbo, const gl::MaterialPtr &the_post_process_mat)
+    {
+        the_post_process_mat->textures().clear();
+        the_post_process_mat->addTexture(the_fbo.getTexture());
+        the_post_process_mat->addTexture(the_fbo.getDepthTexture());
+        the_post_process_mat->uniform("u_window_size", gl::windowDimension());
+        gl::drawQuad(the_post_process_mat, gl::windowDimension());
+    }
 };
 
 int main(int argc, char *argv[])
