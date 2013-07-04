@@ -19,6 +19,7 @@ class btThreadSupportInterface;
 namespace kinski{ namespace physics{
     
     typedef std::shared_ptr<btCollisionShape> btCollisionShapePtr;
+    typedef std::shared_ptr<btCollisionObject> btCollisionObjectPtr;
     typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
     typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
     
@@ -161,7 +162,14 @@ namespace kinski{ namespace physics{
         
         gl::MeshPtr m_mesh;
     };
-
+    
+    struct physics_object
+    {
+        gl::Object3DPtr graphics_object;
+        btCollisionObjectPtr collision_object;
+        btCollisionShapePtr collision_shape;
+    };
+    
     class physics_context
     {
      public:
@@ -184,12 +192,12 @@ namespace kinski{ namespace physics{
         
      private:
         
-        std::vector<std::shared_ptr<btCollisionShape> > m_collisionShapes;
+        std::vector<btCollisionShapePtr> m_collisionShapes;
         std::shared_ptr<btBroadphaseInterface> m_broadphase;
         std::shared_ptr<btCollisionDispatcher> m_dispatcher;
         std::shared_ptr<btConstraintSolver> m_solver;
         std::shared_ptr<btDefaultCollisionConfiguration> m_collisionConfiguration;
-        std::shared_ptr<btDynamicsWorld> m_dynamicsWorld;
+        btDynamicsWorldPtr m_dynamicsWorld;
         
         uint32_t m_maxNumTasks;
         std::shared_ptr<btThreadSupportInterface> m_threadSupportCollision;

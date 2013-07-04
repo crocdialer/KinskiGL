@@ -99,7 +99,7 @@ namespace kinski { namespace gl {
               {
                   float spotEffect = dot(normalize(light.spotDirection), -L);
                   if (spotEffect < light.spotCosCutoff)
-                      return vec4(0, 0, 0, 1);
+                      att = 0.0;//return vec4(0, 0, 0, 1);
                   
                   spotEffect = pow(spotEffect, light.spotExponent);
                   att *= spotEffect;

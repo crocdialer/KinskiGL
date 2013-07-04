@@ -23,8 +23,9 @@ namespace kinski
         ~LightComponent();
         
         void updateProperty(const Property::ConstPtr &theProperty);
-        void set_lights(const std::list<gl::LightPtr> &l, bool copy_settings = true);
+        void set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings = true);
         void set_index(int index);
+        void refresh();
         
     private:
         std::vector<gl::LightPtr> m_lights;
@@ -36,8 +37,6 @@ namespace kinski
         Property_<gl::Color>::Ptr m_ambient, m_diffuse, m_specular;
         RangedProperty<float>::Ptr m_att_constant, m_att_linear, m_att_quadratic;
         RangedProperty<float>::Ptr m_spot_cutoff, m_spot_exponent;
-        
-        void refresh();
     };
 }
 #endif /* defined(__kinskiGL__LightComponent__) */

@@ -52,7 +52,11 @@ private:
     vector<vec3> m_points;
     
     LightComponent::Ptr m_light_component;
+    
+    // dof test
     gl::MaterialPtr m_post_process_mat;
+    Property_<float>::Ptr m_focal_length, m_focal_depth, m_fstop;
+    Property_<bool>::Ptr m_show_focus;
     
 public:
     
@@ -87,6 +91,15 @@ public:
         m_shinyness = Property_<float>::create("Shinyness", 1.0);
         registerProperty(m_shinyness);
         
+        m_focal_length = Property_<float>::create("Focal length", 25.0);
+        registerProperty(m_focal_length);
+        m_focal_depth = Property_<float>::create("Focal depth", 3.0);
+        registerProperty(m_focal_depth);
+        m_fstop = Property_<float>::create("F-stop", 2.0);
+        registerProperty(m_fstop);
+        m_show_focus = Property_<bool>::create("Show focus", false);
+        registerProperty(m_show_focus);
+        
         create_tweakbar_from_component(shared_from_this());
 
         // enable observer mechanism
@@ -111,9 +124,6 @@ public:
         m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "shader_dof.frag"));
         m_post_process_mat->uniform("u_z_near", camera()->near());
         m_post_process_mat->uniform("u_z_far", camera()->far());
-        m_post_process_mat->uniform("u_focalLength", 25.f);
-        m_post_process_mat->uniform("u_fstop", 2.f);
-        m_post_process_mat->uniform("u_showFocus", false);
         
         // create a simplex noise texture
         {
@@ -132,20 +142,15 @@ public:
             m_textures[1] = gl::Texture (w, h, fmt);
             m_textures[1].update(data, GL_RED, w, h, true);
         }
-
+        
+        // groundplane
         gl::Geometry::Ptr plane_geom(gl::createPlane(1000, 1000));
         gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
         materials().push_back(mat);
         gl::MeshPtr ground_plane = gl::Mesh::create(plane_geom, mat);
         ground_plane->setLookAt(vec3(0, -1, 0), vec3(0, 0, 1));
         scene().addObject(ground_plane);
-        
-        gl::Geometry::Ptr cone_geom(gl::createCone(100, 200, 32));
-        mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
-        gl::MeshPtr cone_mesh = gl::Mesh::create(cone_geom, mat);
-        //cone_mesh->setLookAt(vec3(0, -1, 0), vec3(0, 0, 1));
-        scene().addObject(cone_mesh);
-        
+
         try
         {
             m_textures[0] = gl::createTextureFromFile("Earth2.jpg", true);
@@ -160,42 +165,38 @@ public:
             LOG_ERROR<<e.what();
         }
         
-        gl::LightPtr spot_light(new gl::Light(gl::Light::SPOT));
-        //spot_light->transform() = glm::rotate(spot_light->transform(), 0.f, vec3(1, 0, 0));
+        gl::LightPtr spot_light = lights()[1];
+        spot_light->set_enabled();
         spot_light->setPosition(vec3(0, 300, 0));
         spot_light->setLookAt(vec3(0), vec3(1, 0, 0));
-        
         spot_light->set_attenuation(0, .006f, 0);
         spot_light->set_specular(gl::Color(0.4));
-        lights().push_back(spot_light);
         spot_light->set_spot_cutoff(45.f);
         spot_light->set_spot_exponent(15.f);
         
+        // lightcone
+        gl::Geometry::Ptr cone_geom(gl::createCone(100, 200, 32));
+        gl::MeshPtr cone_mesh = gl::Mesh::create(cone_geom, gl::Material::create());
+        cone_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
+        cone_mesh->material()->setBlending();
+        cone_mesh->material()->setDepthWrite(false);
+        cone_mesh->transform() = glm::rotate(cone_mesh->transform(), 90.f, gl::X_AXIS);
+        cone_mesh->position() += glm::vec3(0, 0, -200);
+        
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
         spot_light->children().push_back(spot_mesh);
-        
-        //lights().front()->set_enabled(false);
-        lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
-        lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
-        
+        spot_light->children().push_back(cone_mesh);
+
         for (auto &light : lights()){scene().addObject(light);}
-        m_light_component->set_lights(lights());
-                                     
-        //gl::MeshPtr kafka_mesh = m_font.create_mesh(kinski::readFile("kafka_short.txt"));
-        gl::MeshPtr kafka_mesh = m_font.create_mesh("Strauß, du hübscher Eiergäggelö!");
-        kafka_mesh->setPosition(kafka_mesh->position() - kafka_mesh->boundingBox().center());
-        //scene().addObject(kafka_mesh);
-        
-        // clear with transparent black
-        gl::clearColor(gl::Color(0));
-        
-        for (int i = 0; i < 100; i++)
-        {
-            m_points.push_back(glm::linearRand(vec3(-windowSize() / 2.f, -2.f), vec3(windowSize() / 2.f, -2.f)));
-        }
-        
+
         // load state from config file(s)
         load_settings();
+        
+        m_light_component->set_lights(lights());
+        m_light_component->refresh();
+        
+        resize(windowSize().x, windowSize().y);
+        create_dof_test(scene());
     }
     
     void update(float timeDelta)
@@ -231,7 +232,6 @@ public:
             
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
             //gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
-            
             
             scene().render(camera());
             //gl::render_to_texture(scene(), m_frameBuffer, camera());
@@ -277,7 +277,7 @@ public:
         // draw texture map(s)
         if(displayTweakBar())
         {
-            m_frameBuffer.getTexture().set_mipmapping();
+            //m_frameBuffer.getTexture().set_mipmapping();
             
             float w = (windowSize()/8.f).x;
             float h = m_frameBuffer.getTexture().getHeight() * w / m_frameBuffer.getTexture().getWidth();
@@ -302,7 +302,6 @@ public:
                                        offset);
                         offset += step;
                     }
-                    
                 }
             }
             // draw fps string
@@ -388,14 +387,34 @@ public:
         the_post_process_mat->addTexture(the_fbo.getTexture());
         the_post_process_mat->addTexture(the_fbo.getDepthTexture());
         the_post_process_mat->uniform("u_window_size", the_fbo.getSize());
+        m_post_process_mat->uniform("u_focalLength", *m_focal_length);
+        m_post_process_mat->uniform("u_focalDepth", *m_focal_depth);
+        m_post_process_mat->uniform("u_fstop", *m_fstop);
+        m_post_process_mat->uniform("u_showFocus", *m_show_focus);
         gl::drawQuad(the_post_process_mat, gl::windowDimension());
+    }
+    
+    void create_dof_test(gl::Scene &the_scene)
+    {
+        gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+        mat->addTexture(gl::createTextureFromFile("stone_color.jpg", true, true));
+        
+        for (int i = 0; i < 30; i++)
+        {
+            gl::MeshPtr box_mesh = gl::Mesh::create(gl::createBox(glm::linearRand(vec3(20), vec3(100))),
+                                                    mat);
+            box_mesh->transform() = glm::rotate(box_mesh->transform(), random(0.f, 180.f), gl::Y_AXIS);
+            box_mesh->setPosition(glm::linearRand(vec3(-900), vec3(900)));
+            box_mesh->position().y = -box_mesh->boundingBox().min.y;
+            the_scene.addObject(box_mesh);
+        } 
     }
 };
 
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleGeometryApp);
-    theApp->setWindowSize(1024, 600);
+    theApp->setWindowSize(1024, 768);
     AppServer s(theApp);
     
     return theApp->run();

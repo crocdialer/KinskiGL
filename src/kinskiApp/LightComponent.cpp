@@ -24,8 +24,8 @@ namespace kinski
     m_att_constant(RangedProperty<float>::create("attenuation, constant", 1, 0, 1)),
     m_att_linear(RangedProperty<float>::create("attenuation, linear", 0, 0, 1.f)),
     m_att_quadratic(RangedProperty<float>::create("attenuation, quadratic", 0, 0, 1.f)),
-    m_spot_cutoff(RangedProperty<float>::create("spot cutoff, constant", 45.f, 0.f, 360.f)),
-    m_spot_exponent(RangedProperty<float>::create("spot exponent, constant", 0, 0, 256.f))
+    m_spot_cutoff(RangedProperty<float>::create("spot cutoff", 45.f, 0.f, 360.f)),
+    m_spot_exponent(RangedProperty<float>::create("spot exponent", 0, 0, 256.f))
     {
         registerProperty(m_light_index);
         registerProperty(m_light_type);
@@ -54,9 +54,7 @@ namespace kinski
         
         if(theProperty == m_light_index)
         {
-            observeProperties(false);
             refresh();
-            observeProperties(true);
         }
         else if(theProperty == m_light_type)
         {
@@ -118,7 +116,7 @@ namespace kinski
         *m_light_index = index;
     }
     
-    void LightComponent::set_lights(const std::list<gl::LightPtr> &l, bool copy_settings)
+    void LightComponent::set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings)
     {
         m_lights.assign(l.begin(), l.end());
         m_light_index->setRange(0, l.size() - 1);
@@ -132,6 +130,8 @@ namespace kinski
     
     void LightComponent::refresh()
     {
+        observeProperties(false);
+        
         gl::LightPtr light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
         if(!light) return;
         
@@ -150,5 +150,7 @@ namespace kinski
         *m_att_quadratic = light->attenuation().quadratic;
         *m_spot_cutoff = light->spot_cutoff();
         *m_spot_exponent = light->spot_exponent();
+        
+        observeProperties(true);
     }
 }

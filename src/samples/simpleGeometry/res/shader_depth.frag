@@ -7,9 +7,9 @@ uniform float u_near, u_far;
 in vec4 v_texCoord;
 out vec4 fragData;
 
-float linearizeDepth(float zoverw, float near, float far)  
+float linearizeDepth(float depth, float near, float far)  
 {  
-    return (2.0 * near) / (far + near - zoverw * (far - near));  
+	return -far * near / (depth * (far - near) - far);
 }
 
 vec4 jet(in float val)

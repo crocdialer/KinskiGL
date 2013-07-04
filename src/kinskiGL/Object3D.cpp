@@ -14,7 +14,8 @@ namespace kinski { namespace gl {
     
     uint32_t Object3D::s_idPool = 0;
     
-    Object3D::Object3D()
+    Object3D::Object3D():
+    m_enabled(true)
     {
         m_id = s_idPool++;
     }
@@ -41,6 +42,24 @@ namespace kinski { namespace gl {
     void Object3D::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
     {
         setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
+    }
+    
+    glm::mat4 Object3D::global_transform() const
+    {
+        glm::mat4 ret = transform();
+        Object3DPtr ancestor = parent();
+        while (ancestor)
+        {
+            ret = ancestor->transform() * ret;
+            ancestor = ancestor->parent();
+        }
+        return ret;
+    }
+    
+    void Object3D::add_child(const Object3DPtr &the_child)
+    {
+        the_child->set_parent(shared_from_this());
+        m_children.push_back(the_child);
     }
     
     AABB Object3D::boundingBox() const

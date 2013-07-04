@@ -55,6 +55,7 @@ private:
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
     Property_<glm::vec3>::Ptr m_world_half_extents;
+    std::list<gl::Object3DPtr> m_water_objects;
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};

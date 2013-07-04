@@ -276,11 +276,8 @@ namespace kinski{ namespace gl{
         }
         
     private:
-        
         const T *m_obj;
         bool m_isBound;
     };
-    
-}
-}
+}}// namespace
 #endif // _KINSKI_TEXTURE_INCLUDED_

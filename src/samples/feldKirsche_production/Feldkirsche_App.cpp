@@ -146,30 +146,40 @@ namespace kinski{
         m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
         
         // Lights
-        m_spot_light.reset(new gl::Light(gl::Light::SPOT));
+        m_spot_light = lights()[1];
+        m_spot_light->set_type(gl::Light::SPOT);
         m_spot_light->setPosition(vec3(-300, 1100, 450));
         m_spot_light->setLookAt(vec3(200, 0, 0));
         m_spot_light->set_attenuation(0, .0006f, 0);
         //spot_light->set_specular(gl::Color(0.4));
         m_spot_light->set_spot_cutoff(70.f);
         m_spot_light->set_spot_exponent(10.f);
-        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
-        m_spot_light->children().push_back(spot_mesh);
-        lights().push_back(m_spot_light);
         
-        //lights().front()->set_enabled(false);
-        lights().front()->set_diffuse(gl::Color(0.f, 0.4f, 0.f, 1.f));
-        lights().front()->set_specular(gl::Color(0.f, 0.4f, 0.f, 1.f));
+        // lightcone
+        gl::Geometry::Ptr cone_geom(gl::createCone(100, 200, 32));
+        gl::MeshPtr cone_mesh = gl::Mesh::create(cone_geom, gl::Material::create());
+        cone_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
+        cone_mesh->material()->setBlending();
+        cone_mesh->material()->setDepthWrite(false);
+        cone_mesh->transform() = glm::rotate(cone_mesh->transform(), 90.f, gl::X_AXIS);
+        cone_mesh->position() += glm::vec3(0, 0, -200);
+        
+        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
+        m_spot_light->add_child(spot_mesh);
+        m_spot_light->add_child(cone_mesh);
+        
         
         m_light_component->set_lights(lights());
         
         // setup some blank textures
-        m_textures.resize(2);
+        m_textures.resize(3);
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
-        
-        m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+
+        m_material = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
+        m_material->addTexture(gl::createTextureFromFile("smoketex.png"));
+        m_material->setDepthTest(false);
         
         // init physics pipeline
         //m_physics_context = physics::physics_context(2);
@@ -179,6 +189,8 @@ namespace kinski{
         
         // load state from config file(s)
         load_settings();
+        
+        m_textures[2] = gl::createTextureFromFile("~/Desktop/skybox/sky_landscape.png");
     }
     
     void Feldkirsche_App::save_settings(const std::string &path)
@@ -208,6 +220,12 @@ namespace kinski{
             thread_pool().submit(task);
         }
         
+        // update water billboard transformations
+//        for(auto &bill_board : m_water_objects)
+//        {
+//            bill_board->setLookAt(bill_board->position() - gl::Z_AXIS);
+//        }
+        
         // update OpenNI
         if(m_open_ni->has_new_frame())
         {
@@ -223,7 +241,6 @@ namespace kinski{
         update_gravity(m_user_list, 0.05);
         
         // light update
-        lights().front()->setPosition(light_direction());
         m_light_component->set_lights(lights());
         
         if(m_material)
@@ -272,6 +289,7 @@ namespace kinski{
                     break;
                     
                 case DRAW_FBO_OUTPUT:
+                    gl::drawTexture(m_textures[2], windowSize());
                     gl::drawTexture(m_textures[0], windowSize());
                     break;
                     
@@ -603,6 +621,8 @@ namespace kinski{
     void Feldkirsche_App::create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
         scene().clear();
+        m_water_objects.clear();
+        
         m_physics_context.teardown_physics();
         m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
         
@@ -613,8 +633,8 @@ namespace kinski{
         
         // add static plane boundaries
         physics::btCollisionShapePtr ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), 0)),
-        front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-150)),
-        back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -150)),
+        front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-m_world_half_extents->value()[2])),
+        back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -m_world_half_extents->value()[2])),
         left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),- m_world_half_extents->value()[0])),
         right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), - m_world_half_extents->value()[0])),
         top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - m_world_half_extents->value()[1]));
@@ -664,7 +684,7 @@ namespace kinski{
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             // geometry
-            gl::Geometry::Ptr geom = gl::createSphere(scaling, 32);
+            gl::Geometry::Ptr geom = gl::createPlane(1.5 * scaling, 1.5 * scaling);//gl::createSphere(scaling, 32);
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -677,10 +697,12 @@ namespace kinski{
                     for(int j = 0; j < size_z; j++)
                     {
                         startTransform.setOrigin(scaling * btVector3(btScalar(2.0*i + start_x),
-                                                                     btScalar(20+2.0*k + start_y),
+                                                                     btScalar(5 + 2.0*k + start_y),
                                                                      btScalar(2.0*j + start_z)));
                         gl::MeshPtr mesh = gl::Mesh::create(geom, theMat);
                         scene().addObject(mesh);
+                        m_water_objects.push_back(mesh);
+                        
                         float mat[16];
                         startTransform.getOpenGLMatrix(mat);
                         mesh->setTransform(glm::make_mat4(mat));

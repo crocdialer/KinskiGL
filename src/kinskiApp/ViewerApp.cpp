@@ -65,11 +65,15 @@ namespace kinski {
     
     void ViewerApp::setup()
     {
+        for (int i = 0; i < 16; i++)
+        {
+            gl::LightPtr light(new gl::Light(gl::Light::POINT));
+            light->set_enabled(false);
+            lights().push_back(light);
+        }
         // viewer provides a directional light
-        gl::LightPtr dir_light(new gl::Light(gl::Light::DIRECTIONAL));
-        dir_light->setPosition(light_direction());
-        lights().push_back(dir_light);
-        scene().addObject(dir_light);
+        lights().front()->set_type(gl::Light::DIRECTIONAL);
+        lights().front()->setPosition(light_direction());
         
         m_materials.push_back(gl::MaterialPtr(new gl::Material));
         m_materials.push_back(gl::MaterialPtr(new gl::Material));

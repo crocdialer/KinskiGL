@@ -33,12 +33,13 @@ Texture::Format::Format()
     
 struct Texture::Obj
 {
-    Obj() : m_Width( -1 ), m_Height( -1 ), m_InternalFormat( -1 ), m_dataType(-1),
+    Obj() : m_Width( -1 ), m_Height( -1 ), m_InternalFormat( -1 ), m_dataType(-1), m_Target(GL_TEXTURE_2D),
     m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_DeallocatorFunc( 0 ) {};
     
     Obj( int aWidth, int aHeight ) : m_Width( aWidth ), m_Height( aHeight ),
     m_InternalFormat( -1 ),
     m_dataType(-1),
+    m_Target(GL_TEXTURE_2D),
     m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_boundTextureUnit(-1),
     m_DeallocatorFunc( 0 )  {};
     
@@ -210,7 +211,6 @@ void Texture::update(const void *data,
     }
     else 
     {
-        m_Obj->m_Target = GL_TEXTURE_2D;
         m_Obj->m_dataType = dataType;
         m_Obj->m_InternalFormat = GL_RGBA;
         m_Obj->m_Width = theWidth;

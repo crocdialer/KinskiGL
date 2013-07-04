@@ -83,17 +83,17 @@ float fdofdist = 3.0; //far dof blur falloff distance
 
 float CoC = 0.03;//circle of confusion size in mm (35mm film = 0.03mm)
 
-bool vignetting = true; //use optical lens vignetting?
+bool vignetting = false; //use optical lens vignetting?
 float vignout = 1.3; //vignetting outer border
 float vignin = 0.0; //vignetting inner border
 float vignfade = 22.0; //f-stops till vignete fades
 
-bool autofocus = true; //use autofocus in shader? disable if you use external u_focalDepth value
+bool autofocus = false; //use autofocus in shader? disable if you use external u_focalDepth value
 vec2 focus = vec2(0.5,0.5); // autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 1.0; //clamp value of max blur (0.0 = no blur,1.0 default)
 
 float threshold = 0.5; //highlight threshold;
-float gain = 2.0; //highlight gain;
+float gain = 0.0; //highlight gain;
 
 float bias = 0.5; //bokeh edge bias
 float fringe = 0.7; //bokeh chromatic aberration/fringing

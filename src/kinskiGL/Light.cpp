@@ -11,14 +11,14 @@
 namespace kinski { namespace gl {
 
     Light::Light(Type theType):
+    Object3D(),
     m_type(theType),
     m_attenuation(Attenuation(1.f, 0, 0)),
     m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
     m_ambient(Color(0)),
     m_diffuse(Color(1)),
-    m_specular(Color(1)),
-    m_enabled(true)
+    m_specular(Color(1))
     {
     
     }

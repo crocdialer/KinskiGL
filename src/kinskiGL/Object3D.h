@@ -15,7 +15,7 @@
 
 namespace kinski { namespace gl {
 
-    class KINSKI_API Object3D
+    class KINSKI_API Object3D : public std::enable_shared_from_this<Object3D>
     {
     public:
         
@@ -23,6 +23,8 @@ namespace kinski { namespace gl {
         virtual ~Object3D(){};
         
         uint32_t getID() const {return m_id;};
+        bool enabled() const {return m_enabled;}
+        void set_enabled(bool b = true){m_enabled = b;}
         inline void setPosition(const glm::vec3 &thePos) {m_transform[3].xyz() = thePos;};
         inline glm::vec3 position() const {return m_transform[3].xyz(); }
         inline glm::vec3& position() {return *reinterpret_cast<glm::vec3*>(&m_transform[3]);}
@@ -43,10 +45,15 @@ namespace kinski { namespace gl {
         inline void setTransform(const glm::mat4 &theTrans) {m_transform = theTrans;}
         inline glm::mat4& transform() {return m_transform;}
         inline const glm::mat4& transform() const {return m_transform;};
+        glm::mat4 global_transform() const;
+        
         inline void set_parent(const Object3DPtr &the_parent){m_parent = the_parent;}
         inline Object3DPtr parent() const {return m_parent.lock();}
+        
+        void add_child(const Object3DPtr &the_child);
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
+        
         virtual gl::AABB boundingBox() const;
         
         virtual void accept(Visitor &theVisitor);
@@ -55,6 +62,7 @@ namespace kinski { namespace gl {
         
         static uint32_t s_idPool;
         uint32_t m_id;
+        bool m_enabled;
         glm::mat4 m_transform;
         std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;
@@ -73,6 +81,7 @@ namespace kinski { namespace gl {
         
         virtual void visit(Object3D &theNode)
         {
+            if(!theNode.enabled()) return;
             m_transform_stack.push(m_transform_stack.top() * theNode.transform());
             for (Object3DPtr &child : theNode.children()){child->accept(*this);}
             m_transform_stack.pop();
