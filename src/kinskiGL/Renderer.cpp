@@ -24,12 +24,12 @@ namespace kinski{ namespace gl{
         std::list<RenderBin::item> opaque_items, blended_items;
         for (auto &item :theBin->items)
         {
-            bool opaque = true;
+            bool opaque = false;
             for (const auto &material : item.mesh->materials())
             {
-                if(!material->opaque())
+                if(material->opaque())
                 {
-                    opaque = false;
+                    opaque = true;
                     break;
                 }
             }

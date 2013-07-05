@@ -174,7 +174,7 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API MiniMat loadImage(const std::string &theFileName);
+    KINSKI_API MiniMat loadImage(const std::string &theFileName, int num_channels = 0);
     KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = false,
                                              bool compress = false, GLfloat anisotropic_filter_lvl = 1.f);
     

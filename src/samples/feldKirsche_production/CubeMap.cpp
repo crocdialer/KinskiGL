@@ -23,12 +23,12 @@ namespace kinski{ namespace gl{
                             const std::string &path_pos_y, const std::string &path_neg_y,
                             const std::string &path_pos_z, const std::string &path_neg_z)
     {
-        MiniMat img_pos_x = loadImage(path_pos_x);
-        MiniMat img_neg_x = loadImage(path_neg_x);
-        MiniMat img_pos_y = loadImage(path_pos_y);
-        MiniMat img_neg_y = loadImage(path_neg_y);
-        MiniMat img_pos_z = loadImage(path_pos_z);
-        MiniMat img_neg_z = loadImage(path_neg_z);
+        MiniMat img_pos_x = loadImage(path_pos_x, 3);
+        MiniMat img_neg_x = loadImage(path_neg_x, 3);
+        MiniMat img_pos_y = loadImage(path_pos_y, 3);
+        MiniMat img_neg_y = loadImage(path_neg_y, 3);
+        MiniMat img_pos_z = loadImage(path_pos_z, 3);
+        MiniMat img_neg_z = loadImage(path_neg_z, 3);
         
         int sz = img_pos_x.cols;
         
@@ -120,17 +120,17 @@ CubeMap::CubeMap(GLsizei texWidth, GLsizei texHeight,
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureObject);
     
 	//assign the images to positions
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data_pos_x);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data_neg_x);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data_pos_y);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data_neg_y);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data_pos_z);
-	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA,
+	glTexImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGB,
                  GL_UNSIGNED_BYTE, data_neg_z);
     
 	//set filtering modes for scaling up and down
@@ -142,6 +142,7 @@ void CubeMap::bindMulti( int pos )
 {
 	glActiveTexture(GL_TEXTURE0 + pos );
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureObject);
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void CubeMap::bind()

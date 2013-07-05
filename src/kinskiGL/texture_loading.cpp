@@ -19,13 +19,13 @@ namespace kinski { namespace gl {
         return tmp == v;
     }
     
-    MiniMat loadImage(const std::string &theFileName)
+    MiniMat loadImage(const std::string &theFileName, int num_channels)
     {
         std::vector<uint8_t> dataVec = kinski::readBinaryFile(theFileName);
         
         int width, height, num_components;
         unsigned char *data = stbi_load_from_memory(&dataVec[0], dataVec.size(),
-                                                    &width, &height, &num_components, 0);
+                                                    &width, &height, &num_components, num_channels);
         
         if(!data) throw ImageLoadException(theFileName);
         

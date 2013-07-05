@@ -226,12 +226,21 @@ namespace kinski{
         // update water billboard transformations
         for(auto &physics_obj : m_water_objects)
         {
+            // TODO: replace with some CullVisitor magic
             physics_obj.graphics_object->setLookAt(physics_obj.graphics_object->position() - gl::Z_AXIS,
                                                    physics_obj.graphics_object->up());
-            //float velocity = physics_obj.rigidbody->getLinearVelocity().length2();
-            //physics_obj.graphics_object->setScale(vec3(random(1.f, 2.f)));
-            //int index = clamp(velocity / 25, 0.f , 2.f);
+            
             physics_obj.graphics_object->material() = m_water_materials[0];
+            
+            btTransform &t = physics_obj.rigidbody->getWorldTransform();
+            if(m_mesh && t.getOrigin().y() < -1000)
+            {
+                //respawn lost particles
+                t.setOrigin(physics::type_cast(m_mesh->position()));
+                physics_obj.rigidbody->setLinearVelocity(btVector3(0, 0, 0));
+                
+            }
+            //physics_obj.rigidbody->getWorldTransform().getOrigin().y
         }
         
         // update OpenNI
@@ -399,23 +408,20 @@ namespace kinski{
                     break;
             }
         }
-        
-        btTransform trans = btTransform::getIdentity();
-        
+
         if(e.isShiftDown())
         {
             switch (e.getCode())
             {
                 case GLFW_KEY_LEFT:
                     LOG_DEBUG<<"ROLL LEFT";
-                    trans.setRotation(btQuaternion(0.f, 0.f, glm::radians(10.f)));
-                    m_ground_body->setWorldTransform(trans);
+                    m_mesh->transform() = glm::rotate(m_mesh->transform(), .5f, glm::vec3(0, 0, 1));
+                    
                     break;
                     
                 case GLFW_KEY_RIGHT:
                     LOG_DEBUG<<"ROLL RIGHT";
-                    trans.setRotation(btQuaternion(0.f, 0.f, glm::radians(-10.f)));
-                    m_ground_body->setWorldTransform(trans);
+                    m_mesh->transform() = glm::rotate(m_mesh->transform(), -.5f, glm::vec3(0, 0, 1));
                     break;
                     
                 default:
@@ -544,8 +550,16 @@ namespace kinski{
         {
             if(m_physics_context.dynamicsWorld())
             {
-                vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
-                m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
+                //vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
+                //m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
+                
+                if(m_mesh)
+                {
+                    float angle = glm::degrees(acos(glm::dot(-m_mesh->up(), m_gravity->value())));
+                    
+//                    angle = sign(m_gravity->value().x) * clamp(angle, -1.f, 1.f);
+//                    m_mesh->transform() = glm::rotate(m_mesh->transform(), angle, glm::vec3(0, 0, 1));
+                }
             }
         }
         else if(theProperty == m_rigid_bodies_num || theProperty == m_rigid_bodies_size)
@@ -651,12 +665,13 @@ namespace kinski{
         float start_pox_z = -3;
         
         // add static plane boundaries
-        physics::btCollisionShapePtr ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), 0)),
+        physics::btCollisionShapePtr
+        ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), - m_world_half_extents->value()[1] / 2.f)),
         front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-m_world_half_extents->value()[2])),
         back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -m_world_half_extents->value()[2])),
         left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),- m_world_half_extents->value()[0])),
         right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), - m_world_half_extents->value()[0])),
-        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - m_world_half_extents->value()[1]));
+        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - m_world_half_extents->value()[1] / 2.f));
         m_physics_context.collisionShapes().push_back(ground_plane);
         m_physics_context.collisionShapes().push_back(front_plane);
         m_physics_context.collisionShapes().push_back(back_plane);
@@ -733,9 +748,10 @@ namespace kinski{
                                                                         m_physics_context.collisionShapes().back().get(),
                                                                         localInertia);
                         btRigidBody* body = new btRigidBody(rbInfo);
-                        //body->setFriction(2.f);
+                        body->setFriction(0.2f);
                         //body->setDamping(0.f, 2.f);
-                        body->setCcdMotionThreshold(scaling * scaling);
+                        
+                        body->setCcdMotionThreshold(10.f);
                         body->setCcdSweptSphereRadius(scaling / 4);
                         
                         m_physics_context.dynamicsWorld()->addRigidBody(body);

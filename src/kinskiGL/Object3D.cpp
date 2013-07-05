@@ -37,7 +37,7 @@ namespace kinski { namespace gl {
     
     glm::quat Object3D::rotation() const
     {
-        return glm::quat_cast(m_transform);
+        return glm::normalize(glm::quat_cast(m_transform));
     }
     
     void Object3D::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
