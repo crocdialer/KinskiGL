@@ -28,6 +28,9 @@
 // OpenNI
 #include "OpenNIConnector.h"
 
+// Enviroment mapping
+#include "CubeMap.h"
+
 namespace kinski{
     
 class Feldkirsche_App : public ViewerApp
@@ -45,6 +48,7 @@ private:
     Property_<float>::Ptr m_modelRotationY;
     Property_<glm::vec4>::Ptr m_color;
     Property_<float>::Ptr m_shinyness;
+    RangedProperty<float>::Ptr m_reflection;
     
     // physics
     Property_<bool>::Ptr m_stepPhysics;
@@ -55,7 +59,9 @@ private:
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
     Property_<glm::vec3>::Ptr m_world_half_extents;
-    std::list<gl::Object3DPtr> m_water_objects;
+    std::list<physics::physics_object> m_water_objects;
+    gl::MaterialPtr m_water_materials[4];
+    btRigidBody *m_bottle_body;
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
@@ -93,6 +99,8 @@ private:
     // Light control
     LightComponent::Ptr m_light_component;
     gl::LightPtr m_spot_light;
+    
+    gl::CubeMap m_cubemap;
     
 public:
     

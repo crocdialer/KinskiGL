@@ -382,11 +382,13 @@ namespace kinski { namespace gl {
         const char *unlitFragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
-        uniform struct{
-           vec4 diffuse;
-           vec4 ambient;
-           vec4 specular;
-           vec4 emission;
+        uniform struct Material
+        {
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            vec4 emission;
+            float shinyness;
         } u_material;
         in VertexData{
            vec4 color;

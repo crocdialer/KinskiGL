@@ -14,40 +14,6 @@
 
 namespace kinski { namespace gl {
     
-    template<typename T>
-    class Area
-    {
-    public:
-        T x1, y1, x2, y2;
-        
-        Area():x1(0), y1(0), x2(0), y2(0){};
-        Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
-        x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
-        
-        // does not seem to work in std::map
-        bool operator<(const Area<T> &other) const
-        {
-            if ( x1 != other.x1 ) return x1 < other.x1;
-            if ( y1 != other.y1 ) return y1 < other.y1;
-            if ( x2 != other.x2 ) return x2 < other.x2;
-            if ( y2 != other.y2 ) return y2 < other.y2;
-            return false;
-        }
-        
-        inline uint32_t width() const { return x2 - x1; };
-        inline uint32_t height() const { return y2 - y1; };
-    };
-    
-    struct MiniMat
-    {
-        uint8_t* data;
-        uint32_t rows, cols;
-        Area<uint32_t> roi;
-        MiniMat(uint8_t* theData, uint32_t theRows, uint32_t theCols,
-                const Area<uint32_t> &theRoi = Area<uint32_t>()):
-        data(theData), rows(theRows), cols(theCols), roi(theRoi){};
-    };
-    
     void copyMat(const MiniMat &src_mat, MiniMat &dst_mat)
     {
         uint32_t bytes_per_pixel = 1;
@@ -343,11 +309,8 @@ namespace kinski { namespace gl {
             geom->appendFace(i, i + 1, i + 2);
             geom->appendFace(i, i + 2, i + 3);
         }
-        
         geom->computeVertexNormals();
         geom->computeBoundingBox();
-        geom->createGLBuffers();
-        ret->createVertexArray();
         return ret;
     }
     

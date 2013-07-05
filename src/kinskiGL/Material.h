@@ -64,6 +64,7 @@ namespace kinski { namespace gl {
         void setTwoSided(bool b = true) { m_twoSided = b;};
         void setWireframe(bool b = true) { m_wireFrame = b;};
         void setBlending(bool b = true) { m_blending = b;};
+        void setBlendValues(GLenum src, GLenum dst) { m_blendSrc = src; m_blendDst = dst;};
         void setDepthTest(bool b = true) { m_depthTest = b;};
         void setDepthWrite(bool b = true) { m_depthWrite = b;};
         

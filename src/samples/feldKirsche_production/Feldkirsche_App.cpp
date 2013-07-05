@@ -7,18 +7,6 @@
 //
 
 #include "Feldkirsche_App.h"
-#include <boost/asio/io_service.hpp>
-#include "kinskiApp/ViewerApp.h"
-#include "kinskiGL/Fbo.h"
-
-// 3D model loading
-#include "AssimpConnector.h"
-
-// physics
-#include "physics_context.h"
-
-// Syphon
-#include "SyphonConnector.h"
 
 namespace kinski{
     
@@ -38,6 +26,11 @@ namespace kinski{
         m_font.load("Courier New Bold.ttf", 24);
         
         /*********** init our application properties ******************/
+        
+        m_custom_shader_paths = Property_<std::vector<std::string> >::create("Custom shader paths",
+                                                                             std::vector<std::string>());
+        m_custom_shader_paths->setTweakable(false);
+        registerProperty(m_custom_shader_paths);
         
         m_stepPhysics = Property_<bool>::create("Step physics", true);
         registerProperty(m_stepPhysics);
@@ -72,6 +65,9 @@ namespace kinski{
         m_shinyness = Property_<float>::create("Shinyness", 1.0);
         registerProperty(m_shinyness);
         
+        m_reflection = RangedProperty<float>::create("Reflection", .5, 0, 1);
+        registerProperty(m_reflection);
+        
         m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 1);
         registerProperty(m_debug_draw_mode);
         m_fbo_size = Property_<glm::vec2>::create("Fbo size", vec2(1024));
@@ -87,12 +83,7 @@ namespace kinski{
         m_fbo_cam_transform = Property_<glm::mat4>::create("FBO cam transform", mat4());
         m_fbo_cam_transform->setTweakable(false);
         registerProperty(m_fbo_cam_transform);
-        
-        m_custom_shader_paths = Property_<std::vector<std::string> >::create("Custom shader paths",
-                                                                             std::vector<std::string>());
-        m_custom_shader_paths->setTweakable(false);
-        registerProperty(m_custom_shader_paths);
-        
+
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
@@ -168,7 +159,6 @@ namespace kinski{
         m_spot_light->add_child(spot_mesh);
         m_spot_light->add_child(cone_mesh);
         
-        
         m_light_component->set_lights(lights());
         
         // setup some blank textures
@@ -176,11 +166,16 @@ namespace kinski{
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
-
-        m_material = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
-        m_material->addTexture(gl::createTextureFromFile("smoketex.png"));
-        m_material->setDepthTest(false);
         
+        m_material = gl::Material::create();
+        
+        for(int i = 0; i < 4; i++)
+        {
+            m_water_materials[i] = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
+            m_water_materials[i]->addTexture(gl::createTextureFromFile("water_tex_0" +  as_string(i) +".png"));
+            m_water_materials[i]->setDepthTest(false);
+        }
+
         // init physics pipeline
         //m_physics_context = physics::physics_context(2);
         m_physics_context.initPhysics();
@@ -191,6 +186,14 @@ namespace kinski{
         load_settings();
         
         m_textures[2] = gl::createTextureFromFile("~/Desktop/skybox/sky_landscape.png");
+        
+        //m_cubemap = gl::create_cube_map("~/Desktop/skybox/sky_debug.png", gl::CubeMap::V_CROSS);
+        m_cubemap = gl::create_cube_map("~/Desktop/skybox/sky_00_pos_x.png",
+                                        "~/Desktop/skybox/sky_00_neg_x.png",
+                                        "~/Desktop/skybox/sky_00_pos_y.png",
+                                        "~/Desktop/skybox/sky_00_neg_y.png",
+                                        "~/Desktop/skybox/sky_00_pos_z.png",
+                                        "~/Desktop/skybox/sky_00_neg_z.png");
     }
     
     void Feldkirsche_App::save_settings(const std::string &path)
@@ -214,17 +217,22 @@ namespace kinski{
         // update physics
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
-            //m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
-            auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
+            m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
+            //auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
             //io_service().post(task);
-            thread_pool().submit(task);
+            //thread_pool().submit(task);
         }
         
         // update water billboard transformations
-//        for(auto &bill_board : m_water_objects)
-//        {
-//            bill_board->setLookAt(bill_board->position() - gl::Z_AXIS);
-//        }
+        for(auto &physics_obj : m_water_objects)
+        {
+            physics_obj.graphics_object->setLookAt(physics_obj.graphics_object->position() - gl::Z_AXIS,
+                                                   physics_obj.graphics_object->up());
+            //float velocity = physics_obj.rigidbody->getLinearVelocity().length2();
+            //physics_obj.graphics_object->setScale(vec3(random(1.f, 2.f)));
+            //int index = clamp(velocity / 25, 0.f , 2.f);
+            physics_obj.graphics_object->material() = m_water_materials[0];
+        }
         
         // update OpenNI
         if(m_open_ni->has_new_frame())
@@ -243,18 +251,20 @@ namespace kinski{
         // light update
         m_light_component->set_lights(lights());
         
-        if(m_material)
+        for (int i = 0; i < 4; i++)
         {
-            m_material->setWireframe(wireframe());
-            m_material->setDiffuse(m_color->value());
-            m_material->setBlending(m_color->value().a < 1.0f);
-            
+            m_water_materials[i]->setWireframe(wireframe());
+            m_water_materials[i]->setDiffuse(m_color->value());
+            m_water_materials[i]->setBlending(m_color->value().a < 1.0f);
+            m_water_materials[i]->uniform("u_time",getApplicationTime());
+            m_water_materials[i]->setShinyness(*m_shinyness);
+            m_water_materials[i]->setAmbient(0.2 * clear_color());
         }
-        for (int i = 0; i < materials().size(); i++)
+        
+        for(auto &material : m_mesh->materials())
         {
-            materials()[i]->uniform("u_time",getApplicationTime());
-            materials()[i]->setShinyness(*m_shinyness);
-            materials()[i]->setAmbient(0.2 * clear_color());
+            material->uniform("u_cubeMap", 5);
+            material->uniform("u_reflect_ratio", *m_reflection);
         }
     }
     
@@ -262,6 +272,8 @@ namespace kinski{
     {
         // draw block
         {
+            m_cubemap.bindMulti(5);
+            
             if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
             switch(*m_debug_draw_mode)
@@ -289,7 +301,7 @@ namespace kinski{
                     break;
                     
                 case DRAW_FBO_OUTPUT:
-                    gl::drawTexture(m_textures[2], windowSize());
+                    //gl::drawTexture(m_textures[2], windowSize());
                     gl::drawTexture(m_textures[0], windowSize());
                     break;
                     
@@ -538,8 +550,8 @@ namespace kinski{
         }
         else if(theProperty == m_rigid_bodies_num || theProperty == m_rigid_bodies_size)
         {
-            int num_xy = floor(sqrt(*m_rigid_bodies_num / 2.f));
-            create_physics_scene(num_xy, num_xy, 2, m_material);
+            int num_xy = floor(sqrt(*m_rigid_bodies_num / 5.f));
+            create_physics_scene(num_xy, num_xy, 5, m_material);
         }
         else if(theProperty == m_use_syphon)
         {
@@ -570,7 +582,11 @@ namespace kinski{
                 m_custom_shader = gl::createShaderFromFile(m_custom_shader_paths->value()[0],
                                                            m_custom_shader_paths->value()[1]);
                 
-                if(m_custom_shader) m_material->setShader(m_custom_shader);
+
+                if(m_custom_shader && m_mesh && m_mesh->materials().size() > 1)
+                {
+                    m_mesh->materials()[1]->setShader(m_custom_shader);
+                }
             }
         }
     }
@@ -592,6 +608,8 @@ namespace kinski{
             {
                 material->setShader(m_custom_shader);
             }
+            
+            //the_mesh->geometry() = gl::createSphere(150, 64);
         }
         
         m_mesh = the_mesh;
@@ -614,6 +632,7 @@ namespace kinski{
         body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         body->setActivationState(DISABLE_DEACTIVATION);
         
+        m_bottle_body = body;
         //add the body to the dynamics world
         m_physics_context.dynamicsWorld()->addRigidBody(body);
     }
@@ -628,7 +647,7 @@ namespace kinski{
         
         float scaling = *m_rigid_bodies_size;
         float start_pox_x = -5;
-        float start_pox_y = -5;
+        float start_pox_y = 0;
         float start_pox_z = -3;
         
         // add static plane boundaries
@@ -684,7 +703,7 @@ namespace kinski{
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             // geometry
-            gl::Geometry::Ptr geom = gl::createPlane(1.5 * scaling, 1.5 * scaling);//gl::createSphere(scaling, 32);
+            gl::Geometry::Ptr geom = gl::createPlane(4 * scaling, 4 * scaling);//gl::createSphere(scaling, 32);
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -701,11 +720,11 @@ namespace kinski{
                                                                      btScalar(2.0*j + start_z)));
                         gl::MeshPtr mesh = gl::Mesh::create(geom, theMat);
                         scene().addObject(mesh);
-                        m_water_objects.push_back(mesh);
                         
                         float mat[16];
                         startTransform.getOpenGLMatrix(mat);
                         mesh->setTransform(glm::make_mat4(mat));
+                        mesh->setScale(vec3(random(2.f, 10.f)));
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
                         physics::MotionState* myMotionState = new physics::MotionState(mesh);
@@ -718,8 +737,14 @@ namespace kinski{
                         //body->setDamping(0.f, 2.f);
                         body->setCcdMotionThreshold(scaling * scaling);
                         body->setCcdSweptSphereRadius(scaling / 4);
+                        
                         m_physics_context.dynamicsWorld()->addRigidBody(body);
-                    }
+
+                        physics::physics_object obj;
+                        obj.graphics_object = mesh.get();
+                        obj.rigidbody = body;
+                        m_water_objects.push_back(obj);
+                    }   
                 }
             }
         }

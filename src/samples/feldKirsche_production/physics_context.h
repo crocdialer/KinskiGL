@@ -165,9 +165,8 @@ namespace kinski{ namespace physics{
     
     struct physics_object
     {
-        gl::Object3DPtr graphics_object;
-        btCollisionObjectPtr collision_object;
-        btCollisionShapePtr collision_shape;
+        gl::Mesh *graphics_object;
+        btRigidBody *rigidbody;
     };
     
     class physics_context

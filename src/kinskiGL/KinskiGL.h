@@ -78,6 +78,7 @@ namespace kinski { namespace gl {
     struct OBB;
     struct Sphere;
     struct Frustum;
+    struct MiniMat;
     
     typedef glm::vec4 Color;
     typedef std::shared_ptr<class Texture> TexturePtr;
@@ -173,6 +174,7 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
+    KINSKI_API MiniMat loadImage(const std::string &theFileName);
     KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = false,
                                              bool compress = false, GLfloat anisotropic_filter_lvl = 1.f);
     

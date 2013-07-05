@@ -25,6 +25,8 @@ namespace kinski { namespace gl {
         uint32_t getID() const {return m_id;};
         bool enabled() const {return m_enabled;}
         void set_enabled(bool b = true){m_enabled = b;}
+        bool billboard() const {return m_billboard;};
+        void set_billboard(bool b) {m_billboard = b;}
         inline void setPosition(const glm::vec3 &thePos) {m_transform[3].xyz() = thePos;};
         inline glm::vec3 position() const {return m_transform[3].xyz(); }
         inline glm::vec3& position() {return *reinterpret_cast<glm::vec3*>(&m_transform[3]);}
@@ -62,7 +64,13 @@ namespace kinski { namespace gl {
         
         static uint32_t s_idPool;
         uint32_t m_id;
+        
+        //! enabled hint, can be used by Visitors
         bool m_enabled;
+        
+        //! billboard hint, can be used by Visitors
+        bool m_billboard;
+        
         glm::mat4 m_transform;
         std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;

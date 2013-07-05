@@ -19,13 +19,9 @@ namespace kinski { namespace gl {
         return tmp == v;
     }
     
-    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress,
-                                  GLfloat anisotropic_filter_lvl)
+    MiniMat loadImage(const std::string &theFileName)
     {
-        Texture ret;
         std::vector<uint8_t> dataVec = kinski::readBinaryFile(theFileName);
-        if(dataVec.empty())
-            return ret;
         
         int width, height, num_components;
         unsigned char *data = stbi_load_from_memory(&dataVec[0], dataVec.size(),
@@ -34,15 +30,25 @@ namespace kinski { namespace gl {
         if(!data) throw ImageLoadException(theFileName);
         
         LOG_DEBUG<<"loaded image: "<<theFileName<<" -- "<<width
-            <<" x "<<height<<" ("<<num_components<<" ch)";
+        <<" x "<<height<<" ("<<num_components<<" ch)";
         // ... process data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
         
+        MiniMat ret(data, height, width, num_components);
+        return ret;
+    }
+    
+    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress,
+                                  GLfloat anisotropic_filter_lvl)
+    {
+        Texture ret;
+        MiniMat img = loadImage(theFileName);
+        
         GLenum format = 0, internal_format = 0;
         
-        switch(num_components)
+        switch(img.bytes_per_pixel)
         {
 #ifdef KINSKI_GLES
             case 1:
@@ -88,7 +94,7 @@ namespace kinski { namespace gl {
             fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         }
         
-        ret = Texture (data, format, width, height, fmt);
+        ret = Texture (img.data, format, img.cols, img.rows, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         
@@ -98,7 +104,7 @@ namespace kinski { namespace gl {
         //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
         //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
         
-        stbi_image_free(data);
+        stbi_image_free(img.data);
         return ret;
     }
     
