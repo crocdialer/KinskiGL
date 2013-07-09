@@ -120,7 +120,7 @@ public:
     void updateProperty(const Property::ConstPtr &theProperty);
     
     //! add a mesh to our scene and physics-world
-    void add_mesh(const gl::MeshPtr &the_mesh, glm::vec3 scale = glm::vec3(1.f));
+    void add_mesh(gl::MeshPtr the_mesh, glm::vec3 scale = glm::vec3(1.f));
     
     //! reset scene and create a stack of rigidbodys
     void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat);

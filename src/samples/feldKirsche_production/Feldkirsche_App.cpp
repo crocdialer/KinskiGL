@@ -239,8 +239,11 @@ namespace kinski{
                 t.setOrigin(physics::type_cast(m_mesh->position()));
                 physics_obj.rigidbody->setLinearVelocity(btVector3(0, 0, 0));
                 
+//                static int count = 0;
+//                count++;
+//                if(!(count % 3))
+//                    set_clear_color(gl::Color(1) - clear_color());
             }
-            //physics_obj.rigidbody->getWorldTransform().getOrigin().y
         }
         
         // update OpenNI
@@ -510,6 +513,7 @@ namespace kinski{
                 m_rigid_bodies_num->set(*m_rigid_bodies_num);
                 
                 add_mesh(m, *m_modelScale);
+                //add_mesh(gl::Mesh::create(gl::createSphere(150, 64), gl::Material::create()), *m_modelScale);
             }
             catch (Exception &e)
             {
@@ -612,8 +616,10 @@ namespace kinski{
         LOG_INFO<<"ciao Feldkirsche";
     }
     
-    void Feldkirsche_App::add_mesh(const gl::MeshPtr &the_mesh, vec3 scale)
+    void Feldkirsche_App::add_mesh(gl::MeshPtr the_mesh, vec3 scale)
     {
+        //the_mesh = gl::Mesh::create(gl::createSphere(150, 64), gl::Material::create());
+        
         if(!the_mesh) return;
         
         if(m_custom_shader)
@@ -622,8 +628,6 @@ namespace kinski{
             {
                 material->setShader(m_custom_shader);
             }
-            
-            //the_mesh->geometry() = gl::createSphere(150, 64);
         }
         
         m_mesh = the_mesh;
