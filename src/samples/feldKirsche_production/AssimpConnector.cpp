@@ -353,7 +353,7 @@ namespace kinski { namespace gl{
                 geom->faces().size()<<" faces";
             
             LOG_DEBUG<<"bounds: " <<glm::to_string(mesh->boundingBox().min)<<" - "<<
-                glm::to_string(mesh->boundingBox().min);
+                glm::to_string(mesh->boundingBox().max);
             
             importer.FreeScene();
             return mesh;

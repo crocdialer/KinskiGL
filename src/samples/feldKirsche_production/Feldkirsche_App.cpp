@@ -87,6 +87,9 @@ namespace kinski{
         m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 10000.f);
         registerProperty(m_fbo_cam_distance);
         
+        m_enable_mask = Property_<bool>::create("Enable masking", true);
+        registerProperty(m_enable_mask);
+        
         m_fbo_cam_fov = RangedProperty<float>::create("Fbo cam FOV", 30.f, 1.f, 90.f);
         registerProperty(m_fbo_cam_fov);
         
@@ -179,7 +182,7 @@ namespace kinski{
         m_spot_mesh->material()->setBlending();
         m_spot_mesh->material()->setDepthWrite(false);
         m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
-        m_spot_mesh->position() += vec3(-770, 330, 0);
+        m_spot_mesh->position() += vec3(-700, 490, 0);
         
         // test spot
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
@@ -189,7 +192,11 @@ namespace kinski{
         m_light_component->set_lights(lights());
         
         // setup some blank textures
-        m_textures.resize(4);
+        for(int i = 0; i < 4; i++){m_textures.push_back(gl::Texture());}
+        //m_textures.resize(4);
+        
+        // background image
+        m_textures[3] = gl::createTextureFromFile("BG_sunset_02.jpg", true, true);
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -282,7 +289,7 @@ namespace kinski{
             adjust_user_positions_with_camera(m_user_list, m_depth_cam);
             
             // get the depth+userID texture
-            m_textures[1] = m_open_ni->get_depth_texture();
+            m_textures[2] = m_open_ni->get_depth_texture();
         }
         
         // update gravity direction
@@ -316,7 +323,17 @@ namespace kinski{
         {
             m_cubemap.bindMulti(5);
             
-            if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
+            if(m_fbo && m_mesh)
+            {
+                m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);
+                if(*m_enable_mask)
+                {
+                    m_textures[1] = create_mask(m_mask_fbo, m_free_camera, m_mesh);
+                    m_textures[0] = apply_mask(m_result_fbo, m_textures[0], m_textures[1]);
+                }
+            }
+            
+            //if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
             // mask output
             
@@ -346,7 +363,7 @@ namespace kinski{
                     
                 case DRAW_FBO_OUTPUT:
                     // background
-                    //gl::drawTexture(m_textures[2], windowSize());
+                    gl::drawTexture(m_textures[3], windowSize());
                     gl::drawTexture(m_textures[0], windowSize());
                     break;
                     
@@ -575,15 +592,7 @@ namespace kinski{
         }
         else if(theProperty == m_enable_debug_ship)
         {
-            if(m_ship_mesh)
-            {
-                m_ship_mesh->set_enabled(*m_enable_debug_ship);
-                
-//                if(*m_enable_debug_ship)
-//                    scene().removeObject(m_ship_mesh);
-//                else
-//                    scene().addObject(m_ship_mesh);
-            }
+            if(m_ship_mesh){m_ship_mesh->set_enabled(*m_enable_debug_ship);}
             else
                 LOG_ERROR<<"ship mesh not loaded";
         }
@@ -591,6 +600,9 @@ namespace kinski{
                 || theProperty == m_fbo_cam_fov)
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
+            m_mask_fbo = gl::Fbo(m_fbo_size->value().x / 4.f, m_fbo_size->value().y / 4.f);
+            m_result_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
+            
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
             m_free_camera->setFov(*m_fbo_cam_fov);
             
@@ -728,7 +740,8 @@ namespace kinski{
         physics::MotionState *ms = new physics::MotionState(the_mesh);
         btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
         btRigidBody* body = new btRigidBody(rbInfo);
-        body->setFriction(2.f);
+        body->setFriction(0.1f);
+        body->setRestitution(0.1f);
         body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         body->setActivationState(DISABLE_DEACTIVATION);
         
@@ -937,5 +950,63 @@ namespace kinski{
         //set_light_direction(glm::normalize(light_dir));
         m_spot_light->setLookAt(glm::dot(vec3(1, 0, 0), m_gravity->value()) *
                                 vec3(m_world_half_extents->value().x, 0.f, 50.f));
+    }
+    
+    gl::Texture Feldkirsche_App::create_mask(gl::Fbo &theFbo, const gl::CameraPtr &cam, const gl::MeshPtr &mesh)
+    {
+        static gl::MeshPtr mask_mesh;
+        if(!mask_mesh)
+        {
+            //mask_mesh = gl::AssimpConnector::loadModel("flaschenmaske_02.dae");//TODO: replace with property
+            mask_mesh = gl::Mesh::create(mesh->geometry(), gl::Material::create());
+        }
+        
+        mask_mesh->transform() = glm::scale(mesh->transform(), vec3(1.05));
+        
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+        gl::setWindowDimension(theFbo.getSize());
+        theFbo.bindFramebuffer();
+        gl::clearColor(gl::Color(0));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if(m_mesh)
+        {
+            gl::setMatrices(cam);
+            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, cam->getViewMatrix() * mask_mesh->transform());
+            gl::drawMesh(mask_mesh);
+        }
+        gl::clearColor(clear_color());
+        
+        return theFbo.getTexture();
+    }
+    
+    gl::Texture Feldkirsche_App::apply_mask(gl::Fbo &theFbo, gl::Texture &image, gl::Texture &mask)
+    {
+        static gl::MaterialPtr mat;
+        if(!mat)
+        {
+            try{
+                mat = gl::Material::create(gl::createShaderFromFile("mask_shader.vert", "mask_shader.frag"));
+                //mat = gl::Material::create();
+            }
+            catch(FileNotFoundException &e){LOG_ERROR<<e.what();}
+            
+            mat->setDepthTest(false);
+            mat->setDepthWrite(false);
+        }
+        mat->textures().clear();
+        mat->addTexture(image);
+        mat->addTexture(mask);
+        
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+        gl::setWindowDimension(theFbo.getSize());
+        theFbo.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // draw fullscreen quad with mask_shader
+        gl::drawQuad(mat, theFbo.getSize());
+        
+        return theFbo.getTexture();
     }
 }

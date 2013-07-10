@@ -233,8 +233,6 @@ public:
             //background
             //gl::drawTexture(m_textures[0], windowSize());
             
-            if(m_mesh)
-                m_textures[1] = create_mask(m_mask_fbo, m_mesh);
             
             gl::setMatrices(camera());
             
@@ -243,11 +241,9 @@ public:
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
             //gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
-            //scene().render(camera());
-            m_textures[0] = gl::render_to_texture(scene(), m_frameBuffer, camera());
+            scene().render(camera());
             
-            m_textures[2] = apply_mask(m_result_fbo, m_textures[0], m_textures[1]);
-            
+            //gl::drawTexture(m_textures[2], windowSize());
             //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
             //render_with_post_processing(m_frameBuffer, m_post_process_mat);
             
@@ -424,60 +420,6 @@ public:
             box_mesh->position().y = -box_mesh->boundingBox().min.y;
             the_scene.addObject(box_mesh);
         } 
-    }
-    
-    gl::Texture create_mask(gl::Fbo &theFbo, const gl::MeshPtr &mesh)
-    {
-        static gl::MeshPtr mask_mesh;
-        if(!mask_mesh)
-        {
-            mask_mesh = gl::Mesh::create(mesh->geometry(), gl::Material::create());
-        }
-        
-        mask_mesh->transform() = mesh->transform();
-        
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(theFbo.getSize());
-        theFbo.bindFramebuffer();
-        gl::clearColor(gl::Color(0));
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        if(m_mesh)
-        {
-            gl::setMatrices(camera());
-            gl::drawMesh(mask_mesh);
-        }
-        gl::clearColor(clear_color());
-        
-        return theFbo.getTexture();
-    }
-    
-    gl::Texture apply_mask(gl::Fbo &theFbo, gl::Texture &image, gl::Texture &mask)
-    {
-        static gl::MaterialPtr mat;
-        if(!mat)
-        {
-            //mat = gl::Material::create(gl::createShaderFromFile("mask_shader.vert", "mask_shader.frag"));
-            mat = gl::Material::create();
-            
-            mat->setDepthTest(false);
-            mat->setDepthWrite(false);
-        }
-        mat->textures().clear();
-        mat->addTexture(image);
-        mat->addTexture(mask);
-        
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(theFbo.getSize());
-        theFbo.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        // draw fullscreen quad with mask_shader
-        gl::drawQuad(mat, theFbo.getSize());
-        //gl::drawTexture(image, theFbo.getSize());
-
-        return theFbo.getTexture();
     }
 };
 

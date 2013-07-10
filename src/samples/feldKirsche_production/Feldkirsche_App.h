@@ -72,11 +72,12 @@ private:
     RangedProperty<int>::Ptr m_debug_draw_mode;
     gl::PerspectiveCamera::Ptr m_free_camera;
     gl::MeshPtr m_free_camera_mesh;
-    gl::Fbo m_fbo;
+    gl::Fbo m_fbo, m_mask_fbo, m_result_fbo;
     Property_<glm::vec2>::Ptr m_fbo_size;
     RangedProperty<float>::Ptr m_fbo_cam_distance;
     RangedProperty<float>::Ptr m_fbo_cam_fov;
     Property_<glm::mat4>::Ptr m_fbo_cam_transform;
+    Property_<bool>::Ptr m_enable_mask;
     
     // output via Syphon
     gl::SyphonConnector m_syphon;
@@ -141,6 +142,9 @@ public:
     void draw_user_meshes(const gl::OpenNIConnector::UserList &user_list);
     
     void update_gravity(const gl::OpenNIConnector::UserList &user_list, float factor);
+    
+    gl::Texture create_mask(gl::Fbo &theFbo, const gl::CameraPtr &cam, const gl::MeshPtr &mesh);
+    gl::Texture apply_mask(gl::Fbo &theFbo, gl::Texture &image, gl::Texture &mask);
     
 };
 }//namespace
