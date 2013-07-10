@@ -189,7 +189,7 @@ namespace kinski{
         m_light_component->set_lights(lights());
         
         // setup some blank textures
-        m_textures.resize(3);
+        m_textures.resize(4);
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -318,6 +318,8 @@ namespace kinski{
             
             if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
+            // mask output
+            
             switch(*m_debug_draw_mode)
             {
                 case DRAW_DEBUG_SCENE:
@@ -343,6 +345,7 @@ namespace kinski{
                     break;
                     
                 case DRAW_FBO_OUTPUT:
+                    // background
                     //gl::drawTexture(m_textures[2], windowSize());
                     gl::drawTexture(m_textures[0], windowSize());
                     break;
@@ -368,7 +371,6 @@ namespace kinski{
             
             if(h > 0)
             {
-                
                 for (auto &tex : m_textures)
                 {
                     float h = tex.getHeight() * w / tex.getWidth();

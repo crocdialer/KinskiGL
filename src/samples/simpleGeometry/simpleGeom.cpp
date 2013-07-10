@@ -36,9 +36,9 @@ class SimpleGeometryApp : public ViewerApp
 {
 private:
     
-    gl::Fbo m_frameBuffer;
+    gl::Fbo m_frameBuffer, m_mask_fbo, m_result_fbo;
     gl::Texture m_textures[4];
-    gl::MeshPtr m_mesh, m_label, m_spot_mesh;
+    gl::MeshPtr m_mesh, m_label;
     gl::Font m_font;
     
     gl::MaterialPtr m_draw_depth_material;
@@ -66,6 +66,7 @@ public:
         set_precise_selection(true);
         
         /******************** add search paths ************************/
+        kinski::addSearchPath("~/Desktop/");
         kinski::addSearchPath("~/Desktop/creatures", true);
         kinski::addSearchPath("~/Desktop/doom3_base", true);
         kinski::addSearchPath("/Library/Fonts");
@@ -118,6 +119,9 @@ public:
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
         //int numsamples = m_frameBuffer.getMaxSamples();//4
         //int numattachments = m_frameBuffer.getMaxAttachments();//8
+        
+        m_mask_fbo = gl::Fbo(getWidth() / 4.f, getHeight() / 4.f, fboFormat);
+        m_result_fbo = gl::Fbo(getWidth(), getHeight(), fboFormat);
         
         // Depth of field post processing
         m_post_process_mat = gl::Material::create();
@@ -198,17 +202,7 @@ public:
         resize(windowSize().x, windowSize().y);
         create_dof_test(scene());
         
-        // lighthouse spot
-        m_spot_mesh = gl::Mesh::create(gl::createCone(150, 700, 32), gl::Material::create());
-        for(auto &vertex : m_spot_mesh->geometry()->vertices()){vertex.y -= 700;}
-        m_spot_mesh->geometry()->createGLBuffers();
-        m_spot_mesh->geometry()->computeBoundingBox();
-        m_spot_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
-        m_spot_mesh->material()->setBlending();
-        m_spot_mesh->material()->setDepthWrite(false);
-        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
         
-        scene().addObject(m_spot_mesh);
     }
     
     void update(float timeDelta)
@@ -230,8 +224,6 @@ public:
             materials()[i]->setShinyness(*m_shinyness);
             materials()[i]->setAmbient(0.2 * clear_color());
         }
-        
-        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 50.f * timeDelta, gl::Z_AXIS);
     }
     
     void draw()
@@ -240,6 +232,10 @@ public:
         {
             //background
             //gl::drawTexture(m_textures[0], windowSize());
+            
+            if(m_mesh)
+                m_textures[1] = create_mask(m_mask_fbo, m_mesh);
+            
             gl::setMatrices(camera());
             
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
@@ -247,8 +243,11 @@ public:
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
             //gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
-            scene().render(camera());
-            //gl::render_to_texture(scene(), m_frameBuffer, camera());
+            //scene().render(camera());
+            m_textures[0] = gl::render_to_texture(scene(), m_frameBuffer, camera());
+            
+            m_textures[2] = apply_mask(m_result_fbo, m_textures[0], m_textures[1]);
+            
             //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
             //render_with_post_processing(m_frameBuffer, m_post_process_mat);
             
@@ -298,15 +297,15 @@ public:
             glm::vec2 offset(getWidth() - w - 10, 10);
             glm::vec2 step(0, h + 10);
             
-            if(m_mesh)
-            {
-                for(int i = 0;i < m_mesh->materials().size();i++)
-                {
-                    gl::MaterialPtr m = m_mesh->materials()[i];
-                    
-                    for (int j = 0; j < m->textures().size(); j++)
+//            if(m_mesh)
+//            {
+//                for(int i = 0;i < m_mesh->materials().size();i++)
+//                {
+//                    gl::MaterialPtr m = m_mesh->materials()[i];
+            
+                    for (int j = 0; j < 4; j++)
                     {
-                        const gl::Texture &t = m->textures()[j];
+                        const gl::Texture &t = m_textures[j];
                         
                         float h = t.getHeight() * w / t.getWidth();
                         glm::vec2 step(0, h + 10);
@@ -316,8 +315,9 @@ public:
                                        offset);
                         offset += step;
                     }
-                }
-            }
+//                }
+//            }
+            
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
@@ -345,6 +345,8 @@ public:
         ViewerApp::resize(w, h);
         gl::Fbo::Format fboFormat;
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
+        m_mask_fbo = gl::Fbo(w / 4.f, h / 4.f, fboFormat);
+        m_result_fbo = gl::Fbo(w, h, fboFormat);
     }
     
     void mousePress(const MouseEvent &e)
@@ -422,6 +424,60 @@ public:
             box_mesh->position().y = -box_mesh->boundingBox().min.y;
             the_scene.addObject(box_mesh);
         } 
+    }
+    
+    gl::Texture create_mask(gl::Fbo &theFbo, const gl::MeshPtr &mesh)
+    {
+        static gl::MeshPtr mask_mesh;
+        if(!mask_mesh)
+        {
+            mask_mesh = gl::Mesh::create(mesh->geometry(), gl::Material::create());
+        }
+        
+        mask_mesh->transform() = mesh->transform();
+        
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+        gl::setWindowDimension(theFbo.getSize());
+        theFbo.bindFramebuffer();
+        gl::clearColor(gl::Color(0));
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if(m_mesh)
+        {
+            gl::setMatrices(camera());
+            gl::drawMesh(mask_mesh);
+        }
+        gl::clearColor(clear_color());
+        
+        return theFbo.getTexture();
+    }
+    
+    gl::Texture apply_mask(gl::Fbo &theFbo, gl::Texture &image, gl::Texture &mask)
+    {
+        static gl::MaterialPtr mat;
+        if(!mat)
+        {
+            //mat = gl::Material::create(gl::createShaderFromFile("mask_shader.vert", "mask_shader.frag"));
+            mat = gl::Material::create();
+            
+            mat->setDepthTest(false);
+            mat->setDepthWrite(false);
+        }
+        mat->textures().clear();
+        mat->addTexture(image);
+        mat->addTexture(mask);
+        
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+        gl::setWindowDimension(theFbo.getSize());
+        theFbo.bindFramebuffer();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        // draw fullscreen quad with mask_shader
+        gl::drawQuad(mat, theFbo.getSize());
+        //gl::drawTexture(image, theFbo.getSize());
+
+        return theFbo.getTexture();
     }
 };
 
