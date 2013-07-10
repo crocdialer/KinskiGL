@@ -53,6 +53,8 @@ namespace kinski { namespace gl {
         
         void visit(Mesh &theNode)
         {
+            if(!theNode.enabled()) return;
+            
             gl::AABB boundingBox = theNode.geometry()->boundingBox();
             //gl::Sphere s(theNode.position(), glm::length(boundingBox.halfExtents()));
             glm::mat4 model_view = transform_stack().top() * theNode.transform();

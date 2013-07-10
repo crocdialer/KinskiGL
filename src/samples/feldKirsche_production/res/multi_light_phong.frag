@@ -96,9 +96,11 @@ void main()
     
     // calculate shading for all lights
     vec4 shade_color = vec4(0);
-    for(int i = 0; i < u_numLights; i++)
+    //for(int i = 0; i < u_numLights; i++)
     {
-        shade_color += shade_phong(u_lights[i], u_material, N, vertex_in.eyeVec, texColors);
+        shade_color += shade_phong(u_lights[0], u_material, N, vertex_in.eyeVec, texColors);
+        shade_color += shade_phong(u_lights[1], u_material, N, vertex_in.eyeVec, texColors);
+        shade_color += shade_phong(u_lights[2], u_material, N, vertex_in.eyeVec, texColors);
     }
     
     // enviroment mapping

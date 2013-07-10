@@ -38,7 +38,7 @@ private:
     
     gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
-    gl::MeshPtr m_mesh, m_label;
+    gl::MeshPtr m_mesh, m_label, m_spot_mesh;
     gl::Font m_font;
     
     gl::MaterialPtr m_draw_depth_material;
@@ -197,6 +197,18 @@ public:
         
         resize(windowSize().x, windowSize().y);
         create_dof_test(scene());
+        
+        // lighthouse spot
+        m_spot_mesh = gl::Mesh::create(gl::createCone(150, 700, 32), gl::Material::create());
+        for(auto &vertex : m_spot_mesh->geometry()->vertices()){vertex.y -= 700;}
+        m_spot_mesh->geometry()->createGLBuffers();
+        m_spot_mesh->geometry()->computeBoundingBox();
+        m_spot_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
+        m_spot_mesh->material()->setBlending();
+        m_spot_mesh->material()->setDepthWrite(false);
+        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
+        
+        scene().addObject(m_spot_mesh);
     }
     
     void update(float timeDelta)
@@ -218,6 +230,8 @@ public:
             materials()[i]->setShinyness(*m_shinyness);
             materials()[i]->setAmbient(0.2 * clear_color());
         }
+        
+        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 50.f * timeDelta, gl::Z_AXIS);
     }
     
     void draw()

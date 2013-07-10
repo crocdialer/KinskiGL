@@ -42,6 +42,7 @@ private:
     gl::MeshPtr m_mesh, m_ship_mesh, m_spot_mesh;
     gl::Font m_font;
     
+    Property_<bool>::Ptr m_enable_debug_ship;
     Property_<std::string>::Ptr m_modelPath;
     Property_<glm::vec3>::Ptr m_modelScale;
     Property_<glm::vec3>::Ptr m_modelOffset;

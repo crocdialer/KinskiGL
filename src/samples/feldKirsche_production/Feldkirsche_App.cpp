@@ -59,6 +59,9 @@ namespace kinski{
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
         
+        m_enable_debug_ship = Property_<bool>::create("Show debug ship", true);
+        registerProperty(m_enable_debug_ship);
+        
         m_modelScale = Property_<glm::vec3>::create("Model scale", glm::vec3(1.f));
         registerProperty(m_modelScale);
         
@@ -170,11 +173,13 @@ namespace kinski{
         // lighthouse spot
         m_spot_mesh = gl::Mesh::create(gl::createCone(150, 700, 32), gl::Material::create());
         for(auto &vertex : m_spot_mesh->geometry()->vertices()){vertex.y -= 700;}
+        m_spot_mesh->geometry()->createGLBuffers();
+        m_spot_mesh->geometry()->computeBoundingBox();
         m_spot_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
         m_spot_mesh->material()->setBlending();
         m_spot_mesh->material()->setDepthWrite(false);
-        //m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
-        //m_spot_mesh->position() += glm::vec3(0, 0, -700);
+        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
+        m_spot_mesh->position() += vec3(-770, 330, 0);
         
         // test spot
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
@@ -287,7 +292,7 @@ namespace kinski{
         m_light_component->set_lights(lights());
         
         // rotate lighthouse cone
-        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f * timeDelta, vec3(0, 0, 1));
+        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 50.f * timeDelta, gl::Z_AXIS);
         
         m_material->setWireframe(wireframe());
         m_material->setDiffuse(m_color->value());
@@ -545,14 +550,7 @@ namespace kinski{
                 //add_mesh_to_simulation(m_ship_mesh);
                 add_mesh(m_ship_mesh, vec3(1), false);
                 
-                //m_mesh->add_child(m_spot_mesh);
-                scene().addObject(m_spot_mesh);
-                
-                // test relative object
-//                gl::MeshPtr test_obj = gl::Mesh::create(gl::createBox(vec3(80)), gl::Material::create());
-//                test_obj->setPosition(vec3(-1000, 0, 0));
-//                m_mesh->add_child(test_obj);                
-                //add_mesh(test_obj, vec3(1), false);
+                m_mesh->add_child(m_spot_mesh);
             }
             catch (Exception &e)
             {
@@ -572,6 +570,20 @@ namespace kinski{
                     }catch(Exception &e){LOG_ERROR<< e.what();}
                 }
             }
+        }
+        else if(theProperty == m_enable_debug_ship)
+        {
+            if(m_ship_mesh)
+            {
+                m_ship_mesh->set_enabled(*m_enable_debug_ship);
+                
+//                if(*m_enable_debug_ship)
+//                    scene().removeObject(m_ship_mesh);
+//                else
+//                    scene().addObject(m_ship_mesh);
+            }
+            else
+                LOG_ERROR<<"ship mesh not loaded";
         }
         else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance
                 || theProperty == m_fbo_cam_fov)
