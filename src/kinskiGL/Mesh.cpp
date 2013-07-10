@@ -26,11 +26,11 @@ namespace kinski { namespace gl {
     m_boneWeightsLocationName("a_boneWeights")
     {
         m_materials.push_back(theMaterial);
-        Entry entry;
-        entry.num_vertices = theGeom->vertices().size();
-        entry.numdices = theGeom->indices().size();
-        entry.base_index = entry.base_vertex = 0;
-        m_entries.push_back(entry);
+//        Entry entry;
+//        entry.num_vertices = theGeom->vertices().size();
+//        entry.numdices = theGeom->indices().size();
+//        entry.base_index = entry.base_vertex = 0;
+//        m_entries.push_back(entry);
         createVertexArray();
     }
     

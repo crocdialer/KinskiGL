@@ -351,6 +351,10 @@ namespace kinski { namespace gl{
             mesh->createVertexArray();
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
                 geom->faces().size()<<" faces";
+            
+            LOG_DEBUG<<"bounds: " <<glm::to_string(mesh->boundingBox().min)<<" - "<<
+                glm::to_string(mesh->boundingBox().min);
+            
             importer.FreeScene();
             return mesh;
         }

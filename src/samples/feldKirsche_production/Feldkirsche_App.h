@@ -39,7 +39,7 @@ private:
     
     std::vector<gl::Texture> m_textures;
     gl::MaterialPtr m_material;
-    gl::MeshPtr m_mesh;
+    gl::MeshPtr m_mesh, m_ship_mesh, m_spot_mesh;
     gl::Font m_font;
     
     Property_<std::string>::Ptr m_modelPath;
@@ -58,10 +58,13 @@ private:
     RangedProperty<int>::Ptr m_rigid_bodies_num;
     RangedProperty<float>::Ptr m_rigid_bodies_size;
     Property_<glm::vec3>::Ptr m_gravity;
+    Property_<float>::Ptr m_gravity_amount;
+    Property_<float>::Ptr m_gravity_smooth;
+    RangedProperty<float>::Ptr m_gravity_max_roll;
+    
     Property_<glm::vec3>::Ptr m_world_half_extents;
     std::list<physics::physics_object> m_water_objects;
     gl::MaterialPtr m_water_materials[4];
-    btRigidBody *m_bottle_body;
     
     // offscreen rendering
     enum DRAW_MODE{DRAW_FBO_OUTPUT = 0, DRAW_DEBUG_SCENE = 1};
@@ -71,6 +74,7 @@ private:
     gl::Fbo m_fbo;
     Property_<glm::vec2>::Ptr m_fbo_size;
     RangedProperty<float>::Ptr m_fbo_cam_distance;
+    RangedProperty<float>::Ptr m_fbo_cam_fov;
     Property_<glm::mat4>::Ptr m_fbo_cam_transform;
     
     // output via Syphon
@@ -120,7 +124,10 @@ public:
     void updateProperty(const Property::ConstPtr &theProperty);
     
     //! add a mesh to our scene and physics-world
-    void add_mesh(gl::MeshPtr the_mesh, glm::vec3 scale = glm::vec3(1.f));
+    void add_mesh(gl::MeshPtr the_mesh, glm::vec3 scale = glm::vec3(1.f), bool use_offsets = true);
+    
+    //! add a mesh to our physics-world only
+    void add_mesh_to_simulation(gl::MeshPtr the_mesh, glm::vec3 scale = glm::vec3(1.f));
     
     //! reset scene and create a stack of rigidbodys
     void create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat);
@@ -133,6 +140,7 @@ public:
     void draw_user_meshes(const gl::OpenNIConnector::UserList &user_list);
     
     void update_gravity(const gl::OpenNIConnector::UserList &user_list, float factor);
+    
 };
 }//namespace
 

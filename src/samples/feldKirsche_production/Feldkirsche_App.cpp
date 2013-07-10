@@ -44,6 +44,15 @@ namespace kinski{
         m_gravity = Property_<vec3>::create("Gravity", vec3(0, -1, 0));
         registerProperty(m_gravity);
         
+        m_gravity_amount = Property_<float>::create("Gravity amount", -987.f);
+        registerProperty(m_gravity_amount);
+        
+        m_gravity_max_roll = RangedProperty<float>::create("Gravity max roll", 0.2, 0, 1);
+        registerProperty(m_gravity_max_roll);
+        
+        m_gravity_smooth = RangedProperty<float>::create("Gravity smooth", 0.03, 0.f, 1.f);
+        registerProperty(m_gravity_smooth);
+        
         m_world_half_extents = Property_<vec3>::create("World dimensions", vec3(1500, 500, 200));
         registerProperty(m_world_half_extents);
         
@@ -74,6 +83,9 @@ namespace kinski{
         registerProperty(m_fbo_size);
         m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 10000.f);
         registerProperty(m_fbo_cam_distance);
+        
+        m_fbo_cam_fov = RangedProperty<float>::create("Fbo cam FOV", 30.f, 1.f, 90.f);
+        registerProperty(m_fbo_cam_fov);
         
         m_use_syphon = Property_<bool>::create("Use syphon", false);
         registerProperty(m_use_syphon);
@@ -131,10 +143,10 @@ namespace kinski{
         camera()->setClippingPlanes(1.0, 15000);
         
         // the FBO camera
-        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, 45.f));
+        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, *m_fbo_cam_fov, 10.f, 10000));
         
         // the virtual camera used to position depth camera input within the scene
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 4600.f));
+        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 5500.f));
         
         // Lights
         m_spot_light = lights()[1];
@@ -147,7 +159,7 @@ namespace kinski{
         m_spot_light->set_spot_exponent(10.f);
         
         // lightcone
-        gl::Geometry::Ptr cone_geom(gl::createCone(100, 200, 32));
+        gl::Geometry::Ptr cone_geom(gl::createCone(150, 200, 32));
         gl::MeshPtr cone_mesh = gl::Mesh::create(cone_geom, gl::Material::create());
         cone_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
         cone_mesh->material()->setBlending();
@@ -155,6 +167,16 @@ namespace kinski{
         cone_mesh->transform() = glm::rotate(cone_mesh->transform(), 90.f, gl::X_AXIS);
         cone_mesh->position() += glm::vec3(0, 0, -200);
         
+        // lighthouse spot
+        m_spot_mesh = gl::Mesh::create(gl::createCone(150, 700, 32), gl::Material::create());
+        for(auto &vertex : m_spot_mesh->geometry()->vertices()){vertex.y -= 700;}
+        m_spot_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
+        m_spot_mesh->material()->setBlending();
+        m_spot_mesh->material()->setDepthWrite(false);
+        //m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
+        //m_spot_mesh->position() += glm::vec3(0, 0, -700);
+        
+        // test spot
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
         m_spot_light->add_child(spot_mesh);
         m_spot_light->add_child(cone_mesh);
@@ -167,14 +189,21 @@ namespace kinski{
         // clear with transparent black
         gl::clearColor(gl::Color(0));
         
-        m_material = gl::Material::create();
+        m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
         
-        for(int i = 0; i < 4; i++)
-        {
-            m_water_materials[i] = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
-            m_water_materials[i]->addTexture(gl::createTextureFromFile("water_tex_0" +  as_string(i) +".png"));
-            m_water_materials[i]->setDepthTest(false);
-        }
+//        for(int i = 0; i < 4; i++)
+//        {
+//            m_water_materials[i] = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
+//            m_water_materials[i]->addTexture(gl::createTextureFromFile("water_tex_0" +  as_string(i) +".png"));
+//            m_water_materials[i]->setDepthTest(false);
+//        }
+        
+        m_cubemap = gl::create_cube_map("sky_00_pos_x.png",
+                                        "sky_00_neg_x.png",
+                                        "sky_00_pos_y.png",
+                                        "sky_00_neg_y.png",
+                                        "sky_00_pos_z.png",
+                                        "sky_00_neg_z.png");
 
         // init physics pipeline
         //m_physics_context = physics::physics_context(2);
@@ -184,21 +213,15 @@ namespace kinski{
         
         // load state from config file(s)
         load_settings();
-        
-        m_textures[2] = gl::createTextureFromFile("~/Desktop/skybox/sky_landscape.png");
-        
-        //m_cubemap = gl::create_cube_map("~/Desktop/skybox/sky_debug.png", gl::CubeMap::V_CROSS);
-        m_cubemap = gl::create_cube_map("~/Desktop/skybox/sky_00_pos_x.png",
-                                        "~/Desktop/skybox/sky_00_neg_x.png",
-                                        "~/Desktop/skybox/sky_00_pos_y.png",
-                                        "~/Desktop/skybox/sky_00_neg_y.png",
-                                        "~/Desktop/skybox/sky_00_pos_z.png",
-                                        "~/Desktop/skybox/sky_00_neg_z.png");
     }
     
     void Feldkirsche_App::save_settings(const std::string &path)
     {
+        m_gravity->removeObserver(shared_from_this());
+        *m_gravity = vec3(0, -1, 0);
         ViewerApp::save_settings(path);
+        m_gravity->addObserver(shared_from_this());
+        
         Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
     }
     
@@ -227,16 +250,16 @@ namespace kinski{
         for(auto &physics_obj : m_water_objects)
         {
             // TODO: replace with some CullVisitor magic
-            physics_obj.graphics_object->setLookAt(physics_obj.graphics_object->position() - gl::Z_AXIS,
-                                                   physics_obj.graphics_object->up());
-            
-            physics_obj.graphics_object->material() = m_water_materials[0];
+//            physics_obj.graphics_object->setLookAt(physics_obj.graphics_object->position() - gl::Z_AXIS,
+//                                                   physics_obj.graphics_object->up());
+//            
+//            physics_obj.graphics_object->material() = m_water_materials[0];
             
             btTransform &t = physics_obj.rigidbody->getWorldTransform();
             if(m_mesh && t.getOrigin().y() < -1000)
             {
                 //respawn lost particles
-                t.setOrigin(physics::type_cast(m_mesh->position()));
+                t.setOrigin(physics::type_cast(m_mesh->position() + vec3(0, 275, 0)));
                 physics_obj.rigidbody->setLinearVelocity(btVector3(0, 0, 0));
                 
 //                static int count = 0;
@@ -258,21 +281,23 @@ namespace kinski{
         }
         
         // update gravity direction
-        update_gravity(m_user_list, 0.05);
+        update_gravity(m_user_list, *m_gravity_smooth);
         
         // light update
         m_light_component->set_lights(lights());
         
-        for (int i = 0; i < 4; i++)
-        {
-            m_water_materials[i]->setWireframe(wireframe());
-            m_water_materials[i]->setDiffuse(m_color->value());
-            m_water_materials[i]->setBlending(m_color->value().a < 1.0f);
-            m_water_materials[i]->uniform("u_time",getApplicationTime());
-            m_water_materials[i]->setShinyness(*m_shinyness);
-            m_water_materials[i]->setAmbient(0.2 * clear_color());
-        }
+        // rotate lighthouse cone
+        m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f * timeDelta, vec3(0, 0, 1));
         
+        m_material->setWireframe(wireframe());
+        m_material->setDiffuse(m_color->value());
+        m_material->setBlending(m_color->value().a < 1.0f);
+        m_material->uniform("u_time",getApplicationTime());
+        m_material->setShinyness(*m_shinyness);
+        
+        m_material->setAmbient(0.2 * clear_color());
+        
+        if(m_mesh)
         for(auto &material : m_mesh->materials())
         {
             material->uniform("u_cubeMap", 5);
@@ -353,7 +378,7 @@ namespace kinski{
             
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
-                           vec4(vec3(1) - clear_color().xyz(), 1.f),
+                           vec4(vec3(1), 1.f),
                            glm::vec2(windowSize().x - 110, windowSize().y - 70));
         }
     }
@@ -419,7 +444,6 @@ namespace kinski{
                 case GLFW_KEY_LEFT:
                     LOG_DEBUG<<"ROLL LEFT";
                     m_mesh->transform() = glm::rotate(m_mesh->transform(), .5f, glm::vec3(0, 0, 1));
-                    
                     break;
                     
                 case GLFW_KEY_RIGHT:
@@ -512,8 +536,23 @@ namespace kinski{
                 // reset physics scene
                 m_rigid_bodies_num->set(*m_rigid_bodies_num);
                 
-                add_mesh(m, *m_modelScale);
-                //add_mesh(gl::Mesh::create(gl::createSphere(150, 64), gl::Material::create()), *m_modelScale);
+                add_mesh(m, *m_modelScale, true);
+                m_mesh = m;
+                
+                try{m_ship_mesh = gl::AssimpConnector::loadModel("schiff_01.dae");}
+                catch(Exception &e){LOG_ERROR<<e.what();}
+                
+                //add_mesh_to_simulation(m_ship_mesh);
+                add_mesh(m_ship_mesh, vec3(1), false);
+                
+                //m_mesh->add_child(m_spot_mesh);
+                scene().addObject(m_spot_mesh);
+                
+                // test relative object
+//                gl::MeshPtr test_obj = gl::Mesh::create(gl::createBox(vec3(80)), gl::Material::create());
+//                test_obj->setPosition(vec3(-1000, 0, 0));
+//                m_mesh->add_child(test_obj);                
+                //add_mesh(test_obj, vec3(1), false);
             }
             catch (Exception &e)
             {
@@ -534,10 +573,12 @@ namespace kinski{
                 }
             }
         }
-        else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance)
+        else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance
+                || theProperty == m_fbo_cam_fov)
         {
             m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
+            m_free_camera->setFov(*m_fbo_cam_fov);
             
             mat4 m = m_fbo_cam_transform->value();
             m[3].z = *m_fbo_cam_distance;
@@ -559,11 +600,28 @@ namespace kinski{
                 
                 if(m_mesh)
                 {
-                    float angle = glm::degrees(acos(glm::dot(-m_mesh->up(), m_gravity->value())));
+                    vec3 scale = m_mesh->scale();
                     
-//                    angle = sign(m_gravity->value().x) * clamp(angle, -1.f, 1.f);
-//                    m_mesh->transform() = glm::rotate(m_mesh->transform(), angle, glm::vec3(0, 0, 1));
+                    glm::mat4 transform = m_mesh->transform();
+                    glm::vec3 x_axis, y_axis = - glm::normalize(m_gravity->value());
+                    y_axis.x = -y_axis.x;
+                    
+                    x_axis = glm::cross(y_axis, gl::Z_AXIS);
+                    
+                    transform[0] = vec4(x_axis, 0.f);
+                    transform[1] = vec4(y_axis, 0.f);
+                    transform[2] = vec4(gl::Z_AXIS, 0.f);
+                    //transform[3] = vec4(m_mesh->position(), 0.f);
+                    transform = glm::scale(transform, scale);
+                    m_mesh->transform() = transform;
                 }
+            }
+        }
+        else if(theProperty == m_gravity_amount)
+        {
+            if(m_physics_context.dynamicsWorld())
+            {
+                m_physics_context.dynamicsWorld()->setGravity(btVector3(0, - *m_gravity_amount, 0));
             }
         }
         else if(theProperty == m_rigid_bodies_num || theProperty == m_rigid_bodies_size)
@@ -601,10 +659,10 @@ namespace kinski{
                                                            m_custom_shader_paths->value()[1]);
                 
 
-                if(m_custom_shader && m_mesh && m_mesh->materials().size() > 1)
-                {
-                    m_mesh->materials()[1]->setShader(m_custom_shader);
-                }
+//                if(m_custom_shader && m_mesh && m_mesh->materials().size() > 1)
+//                {
+//                    m_mesh->materials()[1]->setShader(m_custom_shader);
+//                }
             }
         }
     }
@@ -616,7 +674,7 @@ namespace kinski{
         LOG_INFO<<"ciao Feldkirsche";
     }
     
-    void Feldkirsche_App::add_mesh(gl::MeshPtr the_mesh, vec3 scale)
+    void Feldkirsche_App::add_mesh(gl::MeshPtr the_mesh, vec3 scale, bool use_offsets)
     {
         //the_mesh = gl::Mesh::create(gl::createSphere(150, 64), gl::Material::create());
         
@@ -626,31 +684,40 @@ namespace kinski{
         {
             for(auto &material : the_mesh->materials())
             {
-                material->setShader(m_custom_shader);
+                //if(!material->opaque())
+                    material->setShader(m_custom_shader);
+                material->setAmbient(gl::Color(1));
             }
         }
         
-        m_mesh = the_mesh;
         materials().push_back(the_mesh->material());
         the_mesh->material()->setShinyness(*m_shinyness);
         the_mesh->material()->setSpecular(glm::vec4(1));
-        the_mesh->transform() *= glm::rotate(glm::mat4(), m_modelRotationY->value(),
-                                             vec3(0, 1, 0));
-        the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
-        the_mesh->position() += m_modelOffset->value();
-        the_mesh->setScale(scale);
-        scene().addObject(m_mesh);
         
+        if(use_offsets)
+        {
+            the_mesh->transform() *= glm::rotate(glm::mat4(), m_modelRotationY->value(),
+                                                 vec3(0, 1, 0));
+            the_mesh->setPosition(the_mesh->position() - vec3(0, the_mesh->boundingBox().min.y, 0));
+            the_mesh->position() += m_modelOffset->value();
+            the_mesh->setScale(scale);
+        }
+        
+        scene().addObject(the_mesh);
+        add_mesh_to_simulation(the_mesh, scale);
+    }
+    
+    void Feldkirsche_App::add_mesh_to_simulation(gl::MeshPtr the_mesh, glm::vec3 scale)
+    {
         physics::btCollisionShapePtr customShape = physics::createCollisionShape(the_mesh, scale);
         m_physics_context.collisionShapes().push_back(customShape);
-        physics::MotionState *ms = new physics::MotionState(m_mesh);
+        physics::MotionState *ms = new physics::MotionState(the_mesh);
         btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
         btRigidBody* body = new btRigidBody(rbInfo);
         body->setFriction(2.f);
         body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
         body->setActivationState(DISABLE_DEACTIVATION);
         
-        m_bottle_body = body;
         //add the body to the dynamics world
         m_physics_context.dynamicsWorld()->addRigidBody(body);
     }
@@ -661,10 +728,10 @@ namespace kinski{
         m_water_objects.clear();
         
         m_physics_context.teardown_physics();
-        m_physics_context.dynamicsWorld()->setGravity(btVector3(0, -981.f, 0));
+        m_physics_context.dynamicsWorld()->setGravity(btVector3(0, - *m_gravity_amount, 0));
         
         float scaling = *m_rigid_bodies_size;
-        float start_pox_x = -5;
+        float start_pox_x = 15;
         float start_pox_y = 0;
         float start_pox_z = -3;
         
@@ -722,7 +789,7 @@ namespace kinski{
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             // geometry
-            gl::Geometry::Ptr geom = gl::createPlane(4 * scaling, 4 * scaling);//gl::createSphere(scaling, 32);
+            gl::Geometry::Ptr geom = gl::createSphere(scaling, 32);//gl::createPlane(4 * scaling, 4 * scaling);
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -743,7 +810,7 @@ namespace kinski{
                         float mat[16];
                         startTransform.getOpenGLMatrix(mat);
                         mesh->setTransform(glm::make_mat4(mat));
-                        mesh->setScale(vec3(random(2.f, 10.f)));
+                        //mesh->setScale(vec3(random(2.f, 10.f)));
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
                         physics::MotionState* myMotionState = new physics::MotionState(mesh);
@@ -829,13 +896,26 @@ namespace kinski{
             {
                 direction_avg += glm::normalize(user.position);
             }
-        
+            
+            direction_avg = glm::normalize(direction_avg);
+            
             // kill z-component and assure downward gravity
             direction_avg.z = 0;
-            direction_avg.y = std::min(direction_avg.y, -0.5f);
+            direction_avg.y = std::min(direction_avg.y, -0.7f);
+            //direction_avg.x = clamp(direction_avg.x, - m_gravity_max_roll->value(), m_gravity_max_roll->value());
+            
+            if(direction_avg.x < - *m_gravity_max_roll)
+            {
+                direction_avg.x = - *m_gravity_max_roll;
+            }
+            else if(direction_avg.x > *m_gravity_max_roll)
+            {
+                direction_avg.x = *m_gravity_max_roll;
+            }
+            direction_avg = glm::normalize(direction_avg);
         }
         // use factor for mixing new and current directions
-        *m_gravity = glm::mix(m_gravity->value(), glm::normalize(direction_avg), factor);
+        *m_gravity = glm::mix(m_gravity->value(), direction_avg, factor);
         
         vec3 light_dir = *m_gravity;
         light_dir.z = .5;

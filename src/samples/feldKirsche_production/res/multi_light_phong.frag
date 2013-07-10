@@ -104,5 +104,5 @@ void main()
     // enviroment mapping
     vec3 enviroment_color = texture(u_cubeMap, vertex_in.eyeReflect).rgb;
 
-    fragData = vec4(mix(shade_color.rgb, enviroment_color, u_reflect_ratio), .9/*shade_color.a*/);
+    fragData = vec4(mix(shade_color.rgb, enviroment_color, u_reflect_ratio * (1 - shade_color.a)), .6/*shade_color.a*/);
 }
