@@ -154,9 +154,9 @@ namespace kinski{
         m_spot_mesh->position() = vec3(0, 490, 0);
         
         // test spot
-        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
-        m_spot_light->add_child(spot_mesh);
-        m_spot_light->add_child(cone_mesh);
+//        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
+//        m_spot_light->add_child(spot_mesh);
+//        m_spot_light->add_child(cone_mesh);
         
         m_light_component->set_lights(lights());
         
@@ -170,13 +170,6 @@ namespace kinski{
         gl::clearColor(gl::Color(0));
         
         m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
-        
-        m_cubemap = gl::create_cube_map("sky_00_pos_x.png",
-                                        "sky_00_neg_x.png",
-                                        "sky_00_pos_y.png",
-                                        "sky_00_neg_y.png",
-                                        "sky_00_pos_z.png",
-                                        "sky_00_neg_z.png");
 
         m_physics_context.initPhysics();
         m_debugDrawer.reset(new physics::BulletDebugDrawer);
@@ -214,7 +207,7 @@ namespace kinski{
         }
         
         // light update
-        m_light_component->set_lights(lights());
+        //m_light_component->set_lights(lights());
         
         // rotate lighthouse cone
         m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 50.f * timeDelta, gl::Z_AXIS);
@@ -233,8 +226,6 @@ namespace kinski{
     {
         // draw block
         {
-            m_cubemap.bindMulti(5);
-            
             if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
             // calc texture sizes
@@ -362,17 +353,17 @@ namespace kinski{
 
                 case GLFW_KEY_UP:
                     LOG_DEBUG<<"TILT UP";
-                    m_ground_body->getWorldTransform().setOrigin(btVector3(0, 70, 0));
+                    m_ground_body->getWorldTransform().setOrigin(btVector3(0, 60, 0));
                     break;
                     
                 case GLFW_KEY_LEFT:
                     LOG_DEBUG<<"TILT LEFT";
-                    m_left_body->getWorldTransform().setOrigin(btVector3(30, 0, 0));
+                    m_left_body->getWorldTransform().setOrigin(btVector3(55, 0, 0));
                     break;
                     
                 case GLFW_KEY_RIGHT:
                     LOG_DEBUG<<"TILT RIGHT";
-                    m_right_body->getWorldTransform().setOrigin(btVector3(-30, 0, 0));
+                    m_right_body->getWorldTransform().setOrigin(btVector3(-55, 0, 0));
                     break;
                     
                 default:
@@ -485,7 +476,7 @@ namespace kinski{
                 add_mesh(m, *m_modelScale, true);
                 m_mesh = m;
                 
-                m_mesh->add_child(m_spot_mesh);
+                //m_mesh->add_child(m_spot_mesh);
             }
             catch (Exception &e)
             {
@@ -509,9 +500,12 @@ namespace kinski{
         else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance
                 || theProperty == m_fbo_cam_fov)
         {
-            m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
-            m_mask_fbo = gl::Fbo(m_fbo_size->value().x / 4.f, m_fbo_size->value().y / 4.f);
-            m_result_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y);
+            gl::Fbo::Format fmt;
+            int max_samples = gl::Fbo::getMaxSamples();
+            
+            fmt.setSamples(max_samples);
+            
+            m_fbo = gl::Fbo(m_fbo_size->value().x, m_fbo_size->value().y, fmt);
             
             m_free_camera->setAspectRatio(m_fbo_size->value().x / m_fbo_size->value().y);
             m_free_camera->setFov(*m_fbo_cam_fov);
@@ -639,12 +633,12 @@ namespace kinski{
         
         // add static plane boundaries
         physics::btCollisionShapePtr
-        ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), - m_world_half_extents->value()[1] / 2.f)),
+        ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), - m_world_half_extents->value()[1])),
         front_plane(new btStaticPlaneShape(btVector3(0, 0, -1),-m_world_half_extents->value()[2])),
         back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), -m_world_half_extents->value()[2])),
         left_plane(new btStaticPlaneShape(btVector3(1, 0, 0),- m_world_half_extents->value()[0])),
         right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), - m_world_half_extents->value()[0])),
-        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - m_world_half_extents->value()[1] / 2.f));
+        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), - m_world_half_extents->value()[1]));
         m_physics_context.collisionShapes().push_back(ground_plane);
         m_physics_context.collisionShapes().push_back(front_plane);
         m_physics_context.collisionShapes().push_back(back_plane);

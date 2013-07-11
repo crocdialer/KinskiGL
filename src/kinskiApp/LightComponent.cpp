@@ -82,7 +82,7 @@ namespace kinski
             {
                 active_light->setPosition(-m_direction->value());
             }
-            active_light->setLookAt(glm::vec3(*m_position_x, *m_position_y, *m_position_z) + m_direction->value());
+            active_light->setLookAt(active_light->position() + m_direction->value());
         }
         else if(theProperty == m_diffuse)
         {
@@ -140,7 +140,7 @@ namespace kinski
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
         *m_position_z = light->position().z;
-        *m_direction = light->type() ? glm::normalize(-light->position() + light->lookAt()) : -light->position();
+        *m_direction = light->type() ? light->lookAt() : -light->position();
         
         *m_diffuse = light->diffuse();
         *m_ambient = light->ambient();

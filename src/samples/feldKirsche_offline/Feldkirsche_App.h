@@ -92,8 +92,6 @@ private:
     LightComponent::Ptr m_light_component;
     gl::LightPtr m_spot_light;
     
-    gl::CubeMap m_cubemap;
-    
 public:
     
     void setup();
