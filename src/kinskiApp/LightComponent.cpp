@@ -69,7 +69,7 @@ namespace kinski
         {
             if(active_light->type() == gl::Light::DIRECTIONAL)
             {
-                *m_direction = glm::normalize(-glm::vec3(*m_position_x, *m_position_y, *m_position_z));
+                //*m_direction = glm::normalize(-glm::vec3(*m_position_x, *m_position_y, *m_position_z));
             }
             else
             {
@@ -80,7 +80,7 @@ namespace kinski
         {
             if(active_light->type() == gl::Light::DIRECTIONAL)
             {
-                active_light->setPosition(m_direction->value());
+                active_light->setPosition(-m_direction->value());
             }
             active_light->setLookAt(glm::vec3(*m_position_x, *m_position_y, *m_position_z) + m_direction->value());
         }

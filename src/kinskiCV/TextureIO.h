@@ -23,7 +23,7 @@ namespace kinski{ namespace gl{
     public:
         
         static const gl::Texture loadTexture(const std::string &imgPath);
-        static bool saveTexture(const std::string &imgPath, const gl::Texture &texture);
+        static bool saveTexture(const std::string &imgPath, const gl::Texture &texture, bool flip = false);
         
         static void updateTexture(gl::Texture &theTexture,
                                   const cv::Mat &theImage);

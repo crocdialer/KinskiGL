@@ -7,6 +7,7 @@
 //
 
 #include "Feldkirsche_App.h"
+#include "kinskiCV/TextureIO.h"
 
 namespace kinski{
     
@@ -79,13 +80,15 @@ namespace kinski{
         
         m_debug_draw_mode = RangedProperty<int>::create("Debug draw mode", 0, 0, 1);
         registerProperty(m_debug_draw_mode);
+        
         m_fbo_size = Property_<glm::vec2>::create("Fbo size", vec2(1024));
         registerProperty(m_fbo_size);
+        
         m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 10000.f);
         registerProperty(m_fbo_cam_distance);
         
-        m_enable_mask = Property_<bool>::create("Enable masking", true);
-        registerProperty(m_enable_mask);
+        m_fbo_cam_direction = Property_<vec3>::create("Fbo cam lookat", - gl::Z_AXIS);
+        registerProperty(m_fbo_cam_direction);
         
         m_fbo_cam_fov = RangedProperty<float>::create("Fbo cam FOV", 30.f, 1.f, 90.f);
         registerProperty(m_fbo_cam_fov);
@@ -161,7 +164,7 @@ namespace kinski{
         for(int i = 0; i < 4; i++){m_textures.push_back(gl::Texture());}
         
         // background image
-        m_textures[3] = gl::createTextureFromFile("BG_sunset_02.jpg", true, true);
+        //m_textures[3] = gl::createTextureFromFile("BG_sunset_02.jpg", true, true);
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -193,34 +196,22 @@ namespace kinski{
     
     void Feldkirsche_App::load_settings(const std::string &path)
     {
-        //m_rigid_bodies_num->set(*m_rigid_bodies_num);
         ViewerApp::load_settings(path);
     }
     
     void Feldkirsche_App::update(float timeDelta)
     {
+        timeDelta = 1 / 30.f;
+        
         ViewerApp::update(timeDelta);
         
         // update physics
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
             m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
-            //auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
-            //io_service().post(task);
-            //thread_pool().submit(task);
+//            auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
+//            thread_pool().submit(task);
         }
-        
-        // update water billboard transformations
-//        for(auto &physics_obj : m_water_objects)
-//        {
-//            btTransform &t = physics_obj.rigidbody->getWorldTransform();
-//            if(m_mesh && t.getOrigin().y() < -1000)
-//            {
-//                //respawn lost particles
-//                t.setOrigin(physics::type_cast(m_mesh->position() + vec3(0, 275, 0)));
-//                physics_obj.rigidbody->setLinearVelocity(btVector3(0, 0, 0));
-//            }
-//        }
         
         // light update
         m_light_component->set_lights(lights());
@@ -236,12 +227,6 @@ namespace kinski{
         
         m_material->setAmbient(0.2 * clear_color());
         
-        if(m_mesh)
-        for(auto &material : m_mesh->materials())
-        {
-            material->uniform("u_cubeMap", 5);
-            material->uniform("u_reflect_ratio", *m_reflection);
-        }
     }
     
     void Feldkirsche_App::draw()
@@ -253,9 +238,9 @@ namespace kinski{
             if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
             // calc texture sizes
-            float aspect = m_textures[0].getWidth() / m_textures[0].getHeight();
+            float aspect = m_textures[0].getWidth() / (float)m_textures[0].getHeight();
             float w, h;
-            w = windowSize().y / aspect;
+            w = windowSize().y * aspect;
             h = windowSize().y;
             vec2 offset( (windowSize().x - w) / 2.f, 0);
             
@@ -285,7 +270,7 @@ namespace kinski{
                 case DRAW_FBO_OUTPUT:
                     // background
                     //gl::drawTexture(m_textures[3], windowSize());
-                    gl::drawTexture(m_textures[0], vec2(w, h));
+                    gl::drawTexture(m_textures[0], vec2(w, h), offset);
                     break;
                     
                 default:
@@ -296,8 +281,21 @@ namespace kinski{
         
         if(*m_use_syphon)
         {
-            m_syphon.publish_texture(m_textures[0]);
+            //m_syphon.publish_texture(m_textures[0]);
+            
+            // image sequence
+            {
+                static int frame_count = 0;
+                static char buf[512];
+                sprintf(buf, "/Users/Fabian/Desktop/image_sequence_00/feldkirsche_%04i.png", frame_count);
+                gl::TextureIO::saveTexture(buf, m_textures[0], true);
+                frame_count++;
+                
+                if(!(frame_count % 30)){LOG_INFO<<frame_count / 30<<" sec";}
+            }
         }
+        
+        
         
         // draw texture map(s)
         if(displayTweakBar())
@@ -364,17 +362,17 @@ namespace kinski{
 
                 case GLFW_KEY_UP:
                     LOG_DEBUG<<"TILT UP";
-                    m_ground_body->getWorldTransform().setOrigin(btVector3(0, 50, 0));
+                    m_ground_body->getWorldTransform().setOrigin(btVector3(0, 70, 0));
                     break;
                     
                 case GLFW_KEY_LEFT:
                     LOG_DEBUG<<"TILT LEFT";
-                    m_left_body->getWorldTransform().setOrigin(btVector3(60, 0, 0));
+                    m_left_body->getWorldTransform().setOrigin(btVector3(30, 0, 0));
                     break;
                     
                 case GLFW_KEY_RIGHT:
                     LOG_DEBUG<<"TILT RIGHT";
-                    m_right_body->getWorldTransform().setOrigin(btVector3(-60, 0, 0));
+                    m_right_body->getWorldTransform().setOrigin(btVector3(-30, 0, 0));
                     break;
                     
                 default:
@@ -476,6 +474,9 @@ namespace kinski{
             try
             {
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
+                m->material()->setSpecular(gl::Color(1));
+                m->material()->setShinyness(*m_shinyness);
+                
                 scene().removeObject(m_mesh);
                 
                 // reset physics scene
@@ -518,10 +519,13 @@ namespace kinski{
             mat4 m = m_fbo_cam_transform->value();
             m[3].z = *m_fbo_cam_distance;
             m_fbo_cam_transform->set(m);
+            
         }
-        else if(theProperty == m_fbo_cam_transform)
+        else if(theProperty == m_fbo_cam_transform || theProperty == m_fbo_cam_direction)
         {
             m_free_camera->setTransform(*m_fbo_cam_transform);
+            m_free_camera->setLookAt(m_free_camera->position() + m_fbo_cam_direction->value());
+            
             m_debug_scene.removeObject(m_free_camera_mesh);
             m_free_camera_mesh = gl::createFrustumMesh(m_free_camera);
             m_debug_scene.addObject(m_free_camera_mesh);
@@ -530,26 +534,8 @@ namespace kinski{
         {
             if(m_physics_context.dynamicsWorld())
             {
-                //vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
-                //m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
-                
-                if(m_mesh)
-                {
-                    vec3 scale = m_mesh->scale();
-                    
-                    glm::mat4 transform = m_mesh->transform();
-                    glm::vec3 x_axis, y_axis = - glm::normalize(m_gravity->value());
-                    y_axis.x = -y_axis.x;
-                    
-                    x_axis = glm::cross(y_axis, gl::Z_AXIS);
-                    
-                    transform[0] = vec4(x_axis, 0.f);
-                    transform[1] = vec4(y_axis, 0.f);
-                    transform[2] = vec4(gl::Z_AXIS, 0.f);
-                    //transform[3] = vec4(m_mesh->position(), 0.f);
-                    transform = glm::scale(transform, scale);
-                    m_mesh->transform() = transform;
-                }
+                vec3 gravity_vec = glm::normalize(m_gravity->value()) * m_physics_context.dynamicsWorld()->getGravity().length();
+                m_physics_context.dynamicsWorld()->setGravity(physics::type_cast(gravity_vec));
             }
         }
         else if(theProperty == m_gravity_amount)
@@ -580,12 +566,6 @@ namespace kinski{
             {
                 m_custom_shader = gl::createShaderFromFile(m_custom_shader_paths->value()[0],
                                                            m_custom_shader_paths->value()[1]);
-                
-
-//                if(m_custom_shader && m_mesh && m_mesh->materials().size() > 1)
-//                {
-//                    m_mesh->materials()[1]->setShader(m_custom_shader);
-//                }
             }
         }
     }
@@ -654,7 +634,7 @@ namespace kinski{
         
         float scaling = *m_rigid_bodies_size;
         float start_pox_x = 15;
-        float start_pox_y = 0;
+        float start_pox_y = 10;
         float start_pox_z = -3;
         
         // add static plane boundaries
@@ -679,7 +659,8 @@ namespace kinski{
                                                             NULL,
                                                             m_physics_context.collisionShapes()[i].get());
             btRigidBody* body = new btRigidBody(rbInfo);
-            body->setFriction(2.f);
+            body->setFriction(.1f);
+            body->setRestitution(0);
             body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
             body->setActivationState(DISABLE_DEACTIVATION);
             

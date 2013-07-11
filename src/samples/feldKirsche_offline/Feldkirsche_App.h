@@ -73,7 +73,7 @@ private:
     RangedProperty<float>::Ptr m_fbo_cam_distance;
     RangedProperty<float>::Ptr m_fbo_cam_fov;
     Property_<glm::mat4>::Ptr m_fbo_cam_transform;
-    Property_<bool>::Ptr m_enable_mask;
+    Property_<glm::vec3>::Ptr m_fbo_cam_direction;
     
     // output via Syphon
     gl::SyphonConnector m_syphon;
