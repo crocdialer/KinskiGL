@@ -59,9 +59,6 @@ namespace kinski{
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
         
-        m_enable_debug_ship = Property_<bool>::create("Show debug ship", true);
-        registerProperty(m_enable_debug_ship);
-        
         m_modelScale = Property_<glm::vec3>::create("Model scale", glm::vec3(1.f));
         registerProperty(m_modelScale);
         
@@ -105,41 +102,6 @@ namespace kinski{
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
-        /////////////////////////////////// setup OpenNI interface /////////////////////////////////
-        
-        // OpenNI
-        m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
-        
-        // copy user colors
-        m_user_id_colors = m_open_ni->user_colors();
-        
-        m_depth_cam_x = RangedProperty<float>::create("Depth_cam X", 0, -10000, 10000);
-        m_open_ni->registerProperty(m_depth_cam_x);
-        
-        m_depth_cam_y = RangedProperty<float>::create("Depth_cam Y", 0, -10000, 10000);
-        m_open_ni->registerProperty(m_depth_cam_y);
-        
-        m_depth_cam_z = RangedProperty<float>::create("Depth_cam Z", 0, -10000, 10000);
-        m_open_ni->registerProperty(m_depth_cam_z);
-        
-        m_depth_cam_look_dir = Property_<vec3>::create("Depth_cam look dir", vec3(0, 0, -1));
-        m_open_ni->registerProperty(m_depth_cam_look_dir);
-        
-        m_depth_cam_scale = RangedProperty<float>::create("Depth_cam scale", 1.f, .1f, 10.f);
-        m_open_ni->registerProperty(m_depth_cam_scale);
-        
-        m_user_offset = RangedProperty<float>::create("User offset", 0.f, 0.f, 1000.f);
-        m_open_ni->registerProperty(m_user_offset);
-        
-        m_min_interaction_distance = RangedProperty<float>::create("Min interaction distance",
-                                                                   1200.f, 1, 2500);
-        m_open_ni->registerProperty(m_min_interaction_distance);
-        
-        m_open_ni->observeProperties();
-        create_tweakbar_from_component(m_open_ni);
-        
-        // add our app as open_ni observer
-        observeProperties(m_open_ni->getPropertyList());
         
         // light component
         m_light_component.reset(new LightComponent());
@@ -151,8 +113,6 @@ namespace kinski{
         // the FBO camera
         m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, *m_fbo_cam_fov, 10.f, 10000));
         
-        // the virtual camera used to position depth camera input within the scene
-        m_depth_cam = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(4/3.f, 45.f, 350.f, 5500.f));
         
         // Lights
         m_spot_light = lights()[1];
@@ -186,9 +146,9 @@ namespace kinski{
         m_spot_mesh->geometry()->computeBoundingBox();
         m_spot_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .9f));
         m_spot_mesh->material()->setBlending();
-        m_spot_mesh->material()->setDepthWrite(false);
+        m_spot_mesh->material()->setDepthWrite(true);
         m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
-        m_spot_mesh->position() = vec3(-700, 490, 0);
+        m_spot_mesh->position() = vec3(0, 490, 0);
         
         // test spot
         gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
@@ -199,7 +159,6 @@ namespace kinski{
         
         // setup some blank textures
         for(int i = 0; i < 4; i++){m_textures.push_back(gl::Texture());}
-        //m_textures.resize(4);
         
         // background image
         m_textures[3] = gl::createTextureFromFile("BG_sunset_02.jpg", true, true);
@@ -209,13 +168,6 @@ namespace kinski{
         
         m_material = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
         
-//        for(int i = 0; i < 4; i++)
-//        {
-//            m_water_materials[i] = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
-//            m_water_materials[i]->addTexture(gl::createTextureFromFile("water_tex_0" +  as_string(i) +".png"));
-//            m_water_materials[i]->setDepthTest(false);
-//        }
-        
         m_cubemap = gl::create_cube_map("sky_00_pos_x.png",
                                         "sky_00_neg_x.png",
                                         "sky_00_pos_y.png",
@@ -223,8 +175,6 @@ namespace kinski{
                                         "sky_00_pos_z.png",
                                         "sky_00_neg_z.png");
 
-        // init physics pipeline
-        //m_physics_context = physics::physics_context(2);
         m_physics_context.initPhysics();
         m_debugDrawer.reset(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
@@ -239,16 +189,12 @@ namespace kinski{
         *m_gravity = vec3(0, -1, 0);
         ViewerApp::save_settings(path);
         m_gravity->addObserver(shared_from_this());
-        
-        Serializer::saveComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());
     }
     
     void Feldkirsche_App::load_settings(const std::string &path)
     {
         //m_rigid_bodies_num->set(*m_rigid_bodies_num);
         ViewerApp::load_settings(path);
-        try{Serializer::loadComponentState(m_open_ni, "ni_config.json", PropertyIO_GL());}
-        catch (FileNotFoundException &e){LOG_ERROR<<e.what();}
     }
     
     void Feldkirsche_App::update(float timeDelta)
@@ -265,41 +211,16 @@ namespace kinski{
         }
         
         // update water billboard transformations
-        for(auto &physics_obj : m_water_objects)
-        {
-            // TODO: replace with some CullVisitor magic
-//            physics_obj.graphics_object->setLookAt(physics_obj.graphics_object->position() - gl::Z_AXIS,
-//                                                   physics_obj.graphics_object->up());
-//            
-//            physics_obj.graphics_object->material() = m_water_materials[0];
-            
-            btTransform &t = physics_obj.rigidbody->getWorldTransform();
-            if(m_mesh && t.getOrigin().y() < -1000)
-            {
-                //respawn lost particles
-                t.setOrigin(physics::type_cast(m_mesh->position() + vec3(0, 275, 0)));
-                physics_obj.rigidbody->setLinearVelocity(btVector3(0, 0, 0));
-                
-//                static int count = 0;
-//                count++;
-//                if(!(count % 3))
-//                    set_clear_color(gl::Color(1) - clear_color());
-            }
-        }
-        
-        // update OpenNI
-        if(m_open_ni->has_new_frame())
-        {
-            // query user positions from OpenNI (these are relative to depth_cam and Z inverted)
-            m_user_list = m_open_ni->get_user_positions();
-            adjust_user_positions_with_camera(m_user_list, m_depth_cam);
-            
-            // get the depth+userID texture
-            m_textures[2] = m_open_ni->get_depth_texture();
-        }
-        
-        // update gravity direction
-        update_gravity(m_user_list, *m_gravity_smooth);
+//        for(auto &physics_obj : m_water_objects)
+//        {
+//            btTransform &t = physics_obj.rigidbody->getWorldTransform();
+//            if(m_mesh && t.getOrigin().y() < -1000)
+//            {
+//                //respawn lost particles
+//                t.setOrigin(physics::type_cast(m_mesh->position() + vec3(0, 275, 0)));
+//                physics_obj.rigidbody->setLinearVelocity(btVector3(0, 0, 0));
+//            }
+//        }
         
         // light update
         m_light_component->set_lights(lights());
@@ -329,19 +250,14 @@ namespace kinski{
         {
             m_cubemap.bindMulti(5);
             
-            if(m_fbo && m_mesh)
-            {
-                m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);
-                if(*m_enable_mask)
-                {
-                    m_textures[1] = create_mask(m_mask_fbo, m_free_camera, m_mesh);
-                    m_textures[0] = apply_mask(m_result_fbo, m_textures[0], m_textures[1]);
-                }
-            }
+            if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
             
-            //if(m_fbo){m_textures[0] = gl::render_to_texture(scene(), m_fbo, m_free_camera);}
-            
-            // mask output
+            // calc texture sizes
+            float aspect = m_textures[0].getWidth() / m_textures[0].getHeight();
+            float w, h;
+            w = windowSize().y / aspect;
+            h = windowSize().y;
+            vec2 offset( (windowSize().x - w) / 2.f, 0);
             
             switch(*m_debug_draw_mode)
             {
@@ -364,13 +280,12 @@ namespace kinski{
                         gl::clearColor(clear_color());
                     }
                     m_debug_scene.render(camera());
-                    draw_user_meshes(m_user_list);
                     break;
                     
                 case DRAW_FBO_OUTPUT:
                     // background
-                    gl::drawTexture(m_textures[3], windowSize());
-                    gl::drawTexture(m_textures[0], windowSize());
+                    //gl::drawTexture(m_textures[3], windowSize());
+                    gl::drawTexture(m_textures[0], vec2(w, h));
                     break;
                     
                 default:
@@ -569,12 +484,6 @@ namespace kinski{
                 add_mesh(m, *m_modelScale, true);
                 m_mesh = m;
                 
-                try{m_ship_mesh = gl::AssimpConnector::loadModel("schiff_01.dae");}
-                catch(Exception &e){LOG_ERROR<<e.what();}
-                
-                //add_mesh_to_simulation(m_ship_mesh);
-                add_mesh(m_ship_mesh, vec3(1), false);
-                
                 m_mesh->add_child(m_spot_mesh);
             }
             catch (Exception &e)
@@ -595,12 +504,6 @@ namespace kinski{
                     }catch(Exception &e){LOG_ERROR<< e.what();}
                 }
             }
-        }
-        else if(theProperty == m_enable_debug_ship)
-        {
-            if(m_ship_mesh){m_ship_mesh->set_enabled(*m_enable_debug_ship);}
-            else
-                LOG_ERROR<<"ship mesh not loaded";
         }
         else if(theProperty == m_fbo_size || theProperty == m_fbo_cam_distance
                 || theProperty == m_fbo_cam_fov)
@@ -670,19 +573,7 @@ namespace kinski{
             try{m_syphon.setName(*m_syphon_server_name);}
             catch(gl::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
         }
-        else if(theProperty == m_depth_cam_x || theProperty == m_depth_cam_y ||
-                theProperty == m_depth_cam_z || theProperty == m_depth_cam_look_dir ||
-                theProperty == m_depth_cam_scale)
-        {
-            m_depth_cam->setPosition(vec3(m_depth_cam_x->value(), m_depth_cam_y->value(), m_depth_cam_z->value()));
-            m_depth_cam->setLookAt(m_depth_cam->position() + m_depth_cam_look_dir->value() );
-            m_depth_cam->setTransform(glm::scale(m_depth_cam->transform(), vec3(*m_depth_cam_scale)));
-            
-            m_debug_scene.removeObject(m_depth_cam_mesh);
-            m_depth_cam_mesh = gl::createFrustumMesh(m_depth_cam);
-            m_depth_cam_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
-            m_debug_scene.addObject(m_depth_cam_mesh);
-        }
+        
         else if(theProperty == m_custom_shader_paths)
         {
             if(m_custom_shader_paths->value().size() > 1)
@@ -701,8 +592,6 @@ namespace kinski{
     
     void Feldkirsche_App::tearDown()
     {
-        LOG_DEBUG<<"waiting for OpenNI to shut down";
-        if(m_open_ni) m_open_ni->stop();
         LOG_INFO<<"ciao Feldkirsche";
     }
     
@@ -873,146 +762,5 @@ namespace kinski{
         
         // add our lights
         for (auto &light : lights()){scene().addObject(light);}
-    }
-    
-    //! bring positions to world-coords using a virtual camera
-    void Feldkirsche_App::adjust_user_positions_with_camera(gl::OpenNIConnector::UserList &user_list,
-                                                            const gl::CameraPtr &cam)
-    {
-        for(auto &user : user_list)
-        {
-            vec4 flipped_pos (user.position, 1.f);flipped_pos.z *= - 1.0f;
-            user.position = (cam->transform() * flipped_pos).xyz();
-        }
-    }
-    
-    void Feldkirsche_App::draw_user_meshes(const gl::OpenNIConnector::UserList &user_list)
-    {
-        if(!m_user_mesh)
-        {
-            m_user_mesh = gl::Mesh::create(gl::createSphere(1.f, 32), gl::Material::create());
-            m_user_mesh->transform() *= glm::scale(glm::mat4(), glm::vec3(100));
-            m_user_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
-        }
-        if(!m_user_radius_mesh)
-        {
-            m_user_radius_mesh = gl::Mesh::create(gl::createUnitCircle(64), gl::Material::create());
-            m_user_radius_mesh->transform() *= glm::rotate(glm::mat4(), -90.f, glm::vec3(1, 0, 0));
-        }
-        gl::loadMatrix(gl::PROJECTION_MATRIX, camera()->getProjectionMatrix());
-        
-        for (const auto &user : user_list)
-        {
-            m_user_mesh->setPosition(user.position);
-            m_user_mesh->material()->setDiffuse(m_user_id_colors[user.id]);
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_user_mesh->transform());
-            gl::drawMesh(m_user_mesh);
-            
-            m_user_radius_mesh->setPosition(user.position - vec3(0, 0, 1) * m_user_offset->value());
-            m_user_radius_mesh->material()->setDiffuse(gl::Color(1, 0, 0, 1));
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() *
-                           m_user_radius_mesh->transform() * glm::scale(glm::mat4(),
-                                                                        glm::vec3(*m_min_interaction_distance)));
-            gl::drawMesh(m_user_radius_mesh);
-        }
-    }
-    
-    void Feldkirsche_App::update_gravity(const gl::OpenNIConnector::UserList &user_list, float factor)
-    {
-        glm::vec3 direction_avg(0, -1.f, 0);
-        
-        if(!user_list.empty())
-        {
-            direction_avg = glm::vec3(0);
-
-            for (const auto &user : user_list)
-            {
-                direction_avg += glm::normalize(user.position);
-            }
-            
-            direction_avg = glm::normalize(direction_avg);
-            
-            // kill z-component and assure downward gravity
-            direction_avg.z = 0;
-            direction_avg.y = std::min(direction_avg.y, -0.7f);
-            //direction_avg.x = clamp(direction_avg.x, - m_gravity_max_roll->value(), m_gravity_max_roll->value());
-            
-            if(direction_avg.x < - *m_gravity_max_roll)
-            {
-                direction_avg.x = - *m_gravity_max_roll;
-            }
-            else if(direction_avg.x > *m_gravity_max_roll)
-            {
-                direction_avg.x = *m_gravity_max_roll;
-            }
-            direction_avg = glm::normalize(direction_avg);
-        }
-        // use factor for mixing new and current directions
-        *m_gravity = glm::mix(m_gravity->value(), direction_avg, factor);
-        
-        vec3 light_dir = *m_gravity;
-        light_dir.z = .5;
-        
-        //set_light_direction(glm::normalize(light_dir));
-        m_spot_light->setLookAt(glm::dot(vec3(1, 0, 0), m_gravity->value()) *
-                                vec3(m_world_half_extents->value().x, 0.f, 50.f));
-    }
-    
-    gl::Texture Feldkirsche_App::create_mask(gl::Fbo &theFbo, const gl::CameraPtr &cam, const gl::MeshPtr &mesh)
-    {
-        static gl::MeshPtr mask_mesh;
-        if(!mask_mesh)
-        {
-            //mask_mesh = gl::AssimpConnector::loadModel("flaschenmaske_02.dae");//TODO: replace with property
-            mask_mesh = gl::Mesh::create(mesh->geometry(), gl::Material::create());
-        }
-        
-        mask_mesh->transform() = glm::scale(mesh->transform(), vec3(1.02));
-        
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(theFbo.getSize());
-        theFbo.bindFramebuffer();
-        gl::clearColor(gl::Color(0));
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        if(m_mesh)
-        {
-            gl::setMatrices(cam);
-            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, cam->getViewMatrix() * mask_mesh->transform());
-            gl::drawMesh(mask_mesh);
-        }
-        gl::clearColor(clear_color());
-        
-        return theFbo.getTexture();
-    }
-    
-    gl::Texture Feldkirsche_App::apply_mask(gl::Fbo &theFbo, gl::Texture &image, gl::Texture &mask)
-    {
-        static gl::MaterialPtr mat;
-        if(!mat)
-        {
-            try{
-                mat = gl::Material::create(gl::createShaderFromFile("mask_shader.vert", "mask_shader.frag"));
-                //mat = gl::Material::create();
-            }
-            catch(FileNotFoundException &e){LOG_ERROR<<e.what();}
-            
-            mat->setDepthTest(false);
-            mat->setDepthWrite(false);
-        }
-        mat->textures().clear();
-        mat->addTexture(image);
-        mat->addTexture(mask);
-        
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(theFbo.getSize());
-        theFbo.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        // draw fullscreen quad with mask_shader
-        gl::drawQuad(mat, theFbo.getSize());
-        
-        return theFbo.getTexture();
     }
 }

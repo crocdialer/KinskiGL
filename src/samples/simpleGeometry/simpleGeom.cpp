@@ -384,6 +384,10 @@ public:
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
                 scene().addObject(m_mesh);
+                
+                m_mesh->material() = gl::Material::create();
+                m_mesh->material()->setBlending();
+                
             } catch (Exception &e){ LOG_ERROR<< e.what(); }
         }
     }
