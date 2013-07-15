@@ -37,7 +37,6 @@ namespace kinski
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
         virtual void tearDown(){};
-        virtual void swapBuffers() = 0;
         
         // these are optional overrides
         virtual void setWindowSize(const glm::vec2 size);
@@ -76,6 +75,9 @@ namespace kinski
     private:
         
         virtual void init() = 0;
+        virtual void pollEvents() = 0;
+        virtual void swapBuffers() = 0;
+        
         void timing(double timeStamp);
         virtual void draw_internal();
         virtual bool checkRunning(){return true;};

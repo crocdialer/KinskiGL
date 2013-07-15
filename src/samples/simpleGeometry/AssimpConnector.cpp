@@ -34,6 +34,8 @@ namespace kinski { namespace gl{
                           const map<std::string, pair<int, glm::mat4> > &boneMap,
                           AnimationPtr &outAnim,
                           BonePtr parentBone = BonePtr());
+    void get_node_transform(const aiScene *the_scene, const aiNode *the_node,
+                            glm::mat4 &the_transform, GeometryPtr geom);
     
     inline glm::mat4 aimatrix_to_glm_mat4(aiMatrix4x4 theMat)
     {
@@ -170,10 +172,7 @@ namespace kinski { namespace gl{
     {
         gl::Material::Ptr theMaterial(new gl::Material);
         int ret1, ret2;
-        aiColor4D diffuse;
-        aiColor4D specular;
-        aiColor4D ambient;
-        aiColor4D emission;
+        aiColor4D diffuse, specular, ambient, emission, transparent;
         float shininess, strength;
         int two_sided;
         int wireframe;
@@ -203,6 +202,23 @@ namespace kinski { namespace gl{
             color.r = emission.r; color.g = emission.g; color.b = emission.b; color.a = emission.a;
             theMaterial->setEmission(color);
         }
+        
+        // transperant material
+        if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &transparent))
+        {
+            //TODO: needed ?
+        }
+        float opacity = 1.f;
+        mtl->Get(AI_MATKEY_OPACITY, opacity);
+        if(opacity < 1.f)
+        {
+            Color d = theMaterial->diffuse();
+            d.a = opacity;
+            theMaterial->setDiffuse(d);
+            theMaterial->setBlending();
+            //theMaterial->setDepthWrite(false);
+        }
+        
         ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
         ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
         
@@ -266,6 +282,10 @@ namespace kinski { namespace gl{
             WeightMap weightmap;
             std::vector<Mesh::Entry> entries;
             
+//            mat4 t;
+//            GeometryPtr tmp;
+//            get_node_transform(theScene, theScene->mRootNode, t, tmp);
+            
             for (int i = 0; i < theScene->mNumMeshes; i++)
             {
                 aiMesh *aMesh = theScene->mMeshes[i];
@@ -289,8 +309,7 @@ namespace kinski { namespace gl{
             insertBoneData(combined_geom, weightmap);
             
             gl::GeometryPtr geom = combined_geom;
-            gl::MaterialPtr mat = materials[0];
-            gl::MeshPtr mesh = gl::Mesh::create(geom, mat);
+            gl::MeshPtr mesh = gl::Mesh::create(combined_geom, materials[0]);
             mesh->entries() = entries;
             mesh->materials() = materials;
             
@@ -332,6 +351,10 @@ namespace kinski { namespace gl{
             mesh->createVertexArray();
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
                 geom->faces().size()<<" faces";
+            
+            LOG_DEBUG<<"bounds: " <<glm::to_string(mesh->boundingBox().min)<<" - "<<
+                glm::to_string(mesh->boundingBox().max);
+            
             importer.FreeScene();
             return mesh;
         }
@@ -437,6 +460,37 @@ namespace kinski { namespace gl{
                 currentBone = child;
         }
         return currentBone;
+    }
+    
+    void get_node_transform(const aiScene *the_scene, const aiNode *the_node,
+                            glm::mat4 &the_transform, GeometryPtr geom)
+    {
+        if(!geom) geom = gl::Geometry::create();
+        
+        string nodeName(the_node->mName.data);
+        glm::mat4 nodeTransform = aimatrix_to_glm_mat4(the_node->mTransformation);
+        the_transform *= nodeTransform;
+        glm::mat3 normal_matrix = glm::mat3(glm::inverseTranspose(the_transform));
+        
+        for (int i = 0 ; i < the_node->mNumMeshes ; i++)
+        {
+            //LOG_INFO<<"found mesh";
+            GeometryPtr g = createGeometry(the_scene->mMeshes[the_node->mMeshes[i]], the_scene);
+            for (auto &vertex : g->vertices())
+            {
+                vertex = (the_transform * glm::vec4(vertex, 1.f)).xyz();
+            }
+            for (auto &normal : g->normals())
+            {
+                normal = normal_matrix * normal;
+            }
+            mergeGeometries(g, geom);
+        }
+        
+        for (int i = 0 ; i < the_node->mNumChildren ; i++)
+        {
+            get_node_transform(the_scene, the_node->mChildren[i], the_transform, geom);
+        }
     }
 
 }}//namespace

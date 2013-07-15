@@ -36,14 +36,14 @@ class SimpleGeometryApp : public ViewerApp
 {
 private:
     
-    gl::Fbo m_frameBuffer, m_mask_fbo, m_result_fbo;
+    gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
     gl::MeshPtr m_mesh, m_label;
     gl::Font m_font;
     
     gl::MaterialPtr m_draw_depth_material;
     
-    RangedProperty<float>::Ptr m_textureMix;
+    Property_<bool>::Ptr m_use_fbo;
     Property_<string>::Ptr m_modelPath;
     RangedProperty<float>::Ptr m_animationTime;
     Property_<glm::vec4>::Ptr m_color;
@@ -77,8 +77,8 @@ public:
         
         /*********** init our application properties ******************/
         
-        m_textureMix = RangedProperty<float>::create("texture mix ratio", 0.2, 0, 1);
-        registerProperty(m_textureMix);
+        m_use_fbo = Property_<bool>::create("Use FBO", false);
+        registerProperty(m_use_fbo);
         
         m_modelPath = Property_<string>::create("Model path", "duck.dae");
         registerProperty(m_modelPath);
@@ -113,15 +113,11 @@ public:
         /********************** construct a simple scene ***********************/
         camera()->setClippingPlanes(1.0, 5000);
         
+        // configure fbo
+        int numsamples = m_frameBuffer.getMaxSamples();//4
         gl::Fbo::Format fboFormat;
-        //TODO: mulitsampling fails
-        //fboFormat.setSamples(4);
+        fboFormat.setSamples(numsamples);
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
-        //int numsamples = m_frameBuffer.getMaxSamples();//4
-        //int numattachments = m_frameBuffer.getMaxAttachments();//8
-        
-        m_mask_fbo = gl::Fbo(getWidth() / 4.f, getHeight() / 4.f, fboFormat);
-        m_result_fbo = gl::Fbo(getWidth(), getHeight(), fboFormat);
         
         // Depth of field post processing
         m_post_process_mat = gl::Material::create();
@@ -241,7 +237,18 @@ public:
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
             //gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
-            scene().render(camera());
+            if(*m_use_fbo)
+            {
+                // render to fbo
+                m_textures[0] = gl::render_to_texture(scene(), m_frameBuffer, camera());
+            
+                // draw the fbo output
+                gl::drawTexture(m_textures[0], windowSize());
+            }
+            else
+            {
+                scene().render(camera());
+            }
             
             //gl::drawTexture(m_textures[2], windowSize());
             //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
@@ -278,11 +285,8 @@ public:
                 m_label->setRotation(glm::mat3(camera()->transform()));
                 gl::drawMesh(m_label);
             }
-        }// FBO block
-        
-//        gl::drawTexture(m_textures[0], windowSize());
-//        gl::drawTexture(m_frameBuffer.getTexture(), windowSize() );
-        
+        }
+
         // draw texture map(s)
         if(displayTweakBar())
         {
@@ -293,26 +297,18 @@ public:
             glm::vec2 offset(getWidth() - w - 10, 10);
             glm::vec2 step(0, h + 10);
             
-//            if(m_mesh)
-//            {
-//                for(int i = 0;i < m_mesh->materials().size();i++)
-//                {
-//                    gl::MaterialPtr m = m_mesh->materials()[i];
-            
-                    for (int j = 0; j < 4; j++)
-                    {
-                        const gl::Texture &t = m_textures[j];
-                        
-                        float h = t.getHeight() * w / t.getWidth();
-                        glm::vec2 step(0, h + 10);
-                        drawTexture(t, vec2(w, h), offset);
-                        gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
-                                       as_string(t.getHeight()), m_font, glm::vec4(1),
-                                       offset);
-                        offset += step;
-                    }
-//                }
-//            }
+            for (int j = 0; j < 4; j++)
+            {
+                const gl::Texture &t = m_textures[j];
+                
+                float h = t.getHeight() * w / t.getWidth();
+                glm::vec2 step(0, h + 10);
+                drawTexture(t, vec2(w, h), offset);
+                gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                               as_string(t.getHeight()), m_font, glm::vec4(1),
+                               offset);
+                offset += step;
+            }
             
             // draw fps string
             gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
@@ -340,9 +336,8 @@ public:
     {
         ViewerApp::resize(w, h);
         gl::Fbo::Format fboFormat;
+        fboFormat.setSamples(gl::Fbo::getMaxSamples());
         m_frameBuffer = gl::Fbo(w, h, fboFormat);
-        m_mask_fbo = gl::Fbo(w / 4.f, h / 4.f, fboFormat);
-        m_result_fbo = gl::Fbo(w, h, fboFormat);
     }
     
     void mousePress(const MouseEvent &e)
@@ -383,11 +378,7 @@ public:
                 m_mesh = m;
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
-                scene().addObject(m_mesh);
-                
-                m_mesh->material() = gl::Material::create();
-                m_mesh->material()->setBlending();
-                
+                scene().addObject(m_mesh);                
             } catch (Exception &e){ LOG_ERROR<< e.what(); }
         }
     }

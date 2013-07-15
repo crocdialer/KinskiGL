@@ -80,7 +80,7 @@ namespace kinski
         {
             if(active_light->type() == gl::Light::DIRECTIONAL)
             {
-                active_light->setPosition(-m_direction->value());
+                active_light->setPosition(m_direction->value());
             }
             active_light->setLookAt(active_light->position() + m_direction->value());
         }
@@ -140,7 +140,7 @@ namespace kinski
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
         *m_position_z = light->position().z;
-        *m_direction = light->type() ? light->lookAt() : -light->position();
+        *m_direction = light->type() ? light->lookAt() : light->position();
         
         *m_diffuse = light->diffuse();
         *m_ambient = light->ambient();

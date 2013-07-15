@@ -89,6 +89,7 @@ namespace kinski
         
         // internal initialization. performed when run is invoked
         void init();
+        void pollEvents();
         void draw_internal();
         bool checkRunning();
         

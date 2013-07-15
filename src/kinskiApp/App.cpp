@@ -52,6 +52,9 @@ namespace kinski
             // poll io_service if no seperate worker-threads exist
             if(!m_thread_pool.get_num_threads()) m_thread_pool.io_service().poll();
             
+            // poll input events
+            pollEvents();
+            
             // call update callback
             update(timeStamp - m_lastTimeStamp);
             

@@ -403,7 +403,7 @@ namespace kinski { namespace gl {
            {
                texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
            }
-           if(texColors.a == 0.0) discard;
+            //if(texColors.a == 0.0) discard;
            fragData = u_material.diffuse * texColors;
         });
         

@@ -113,6 +113,11 @@ namespace kinski
             glfwSetWindowSize(m_windows.back()->handle(), (int)size[0], (int)size[1]);
     }
     
+    void GLFW_App::pollEvents()
+    {
+        glfwPollEvents();
+    }
+    
     void GLFW_App::draw_internal()
     {
         draw();
@@ -123,9 +128,6 @@ namespace kinski
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             TwDraw();
         }
-        
-        // trigger input callbacks
-        glfwPollEvents();
     }
     
     bool GLFW_App::checkRunning()
