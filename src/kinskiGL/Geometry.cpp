@@ -214,11 +214,7 @@ namespace kinski{ namespace gl{
             KINSKI_CHECK_GL_ERRORS();
             
             // insert indices
-            vector<uint32_t>::const_iterator indexIt = m_indices.begin();
-            for (; indexIt != m_indices.end(); ++indexIt)
-            {
-                *indexPtr++ = *indexIt;
-            }
+            for (const auto &index : m_indices){ *indexPtr++ = index; }
             
             m_indexBuffer.unmap();
             KINSKI_CHECK_GL_ERRORS();

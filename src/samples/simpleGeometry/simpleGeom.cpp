@@ -55,8 +55,8 @@ private:
     
     // dof test
     gl::MaterialPtr m_post_process_mat;
-    Property_<float>::Ptr m_focal_length, m_focal_depth, m_fstop;
-    Property_<bool>::Ptr m_show_focus;
+    Property_<float>::Ptr m_focal_range, m_focal_depth, m_fstop;
+    Property_<bool>::Ptr m_show_focus, m_auto_focus;
     
 public:
     
@@ -92,14 +92,16 @@ public:
         m_shinyness = Property_<float>::create("Shinyness", 1.0);
         registerProperty(m_shinyness);
         
-        m_focal_length = Property_<float>::create("Focal length", 25.0);
-        registerProperty(m_focal_length);
+        m_focal_range = Property_<float>::create("Focal range", 25.0);
+        registerProperty(m_focal_range);
         m_focal_depth = Property_<float>::create("Focal depth", 3.0);
         registerProperty(m_focal_depth);
         m_fstop = Property_<float>::create("F-stop", 2.0);
-        registerProperty(m_fstop);
+        //registerProperty(m_fstop);
         m_show_focus = Property_<bool>::create("Show focus", false);
         registerProperty(m_show_focus);
+        m_auto_focus = Property_<bool>::create("Auto focus", false);
+        registerProperty(m_auto_focus);
         
         create_tweakbar_from_component(shared_from_this());
 
@@ -121,9 +123,9 @@ public:
         
         // Depth of field post processing
         m_post_process_mat = gl::Material::create();
-        m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "shader_dof.frag"));
-        m_post_process_mat->uniform("u_z_near", camera()->near());
-        m_post_process_mat->uniform("u_z_far", camera()->far());
+        m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "DoF_bokeh_2.2.frag"));
+        m_post_process_mat->uniform("u_znear", camera()->near());
+        m_post_process_mat->uniform("u_zfar", camera()->far());
         
         // create a simplex noise texture
         {
@@ -243,16 +245,14 @@ public:
                 m_textures[0] = gl::render_to_texture(scene(), m_frameBuffer, camera());
             
                 // draw the fbo output
-                gl::drawTexture(m_textures[0], windowSize());
+                //gl::drawTexture(m_textures[0], windowSize());
+                
+                render_with_post_processing(m_frameBuffer, m_post_process_mat);
             }
             else
             {
                 scene().render(camera());
             }
-            
-            //gl::drawTexture(m_textures[2], windowSize());
-            //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
-            //render_with_post_processing(m_frameBuffer, m_post_process_mat);
             
             if(selected_mesh())
             {
@@ -376,6 +376,7 @@ public:
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
                 scene().removeObject(m_mesh);
                 m_mesh = m;
+                m->position().y = -m->boundingBox().min.y;
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
                 scene().addObject(m_mesh);                
@@ -393,11 +394,20 @@ public:
         the_post_process_mat->textures().clear();
         the_post_process_mat->addTexture(the_fbo.getTexture());
         the_post_process_mat->addTexture(the_fbo.getDepthTexture());
-        the_post_process_mat->uniform("u_window_size", the_fbo.getSize());
-        m_post_process_mat->uniform("u_focalLength", *m_focal_length);
-        m_post_process_mat->uniform("u_focalDepth", *m_focal_depth);
         m_post_process_mat->uniform("u_fstop", *m_fstop);
+        
+        the_post_process_mat->uniform("u_window_size", the_fbo.getSize());
+        m_post_process_mat->uniform("u_range", *m_focal_range);
+        m_post_process_mat->uniform("u_autofocus", *m_auto_focus);
         m_post_process_mat->uniform("u_showFocus", *m_show_focus);
+        m_post_process_mat->uniform("u_focalDepth", *m_focal_depth);
+        
+        m_post_process_mat->uniform("bgl_RenderedTexture", 0);
+        m_post_process_mat->uniform("bgl_DepthTexture", 1);
+        m_post_process_mat->uniform("bgl_RenderedTextureWidth", (float)the_fbo.getWidth());
+        m_post_process_mat->uniform("bgl_RenderedTextureHeight", (float)the_fbo.getHeight());
+        
+                                    
         gl::drawQuad(the_post_process_mat, gl::windowDimension());
     }
     
@@ -406,12 +416,12 @@ public:
         gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
         mat->addTexture(gl::createTextureFromFile("stone_color.jpg", true, true));
         
-        for (int i = 0; i < 30; i++)
+        for (int i = 0; i < 90; i++)
         {
             gl::MeshPtr box_mesh = gl::Mesh::create(gl::createBox(glm::linearRand(vec3(20), vec3(100))),
                                                     mat);
             box_mesh->transform() = glm::rotate(box_mesh->transform(), random(0.f, 180.f), gl::Y_AXIS);
-            box_mesh->setPosition(glm::linearRand(vec3(-900), vec3(900)));
+            box_mesh->setPosition(glm::linearRand(vec3(-2900), vec3(2900)));
             box_mesh->position().y = -box_mesh->boundingBox().min.y;
             the_scene.addObject(box_mesh);
         } 

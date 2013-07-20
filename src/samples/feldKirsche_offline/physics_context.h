@@ -29,6 +29,8 @@ namespace kinski{ namespace physics{
     KINSKI_API glm::mat4 type_cast(const btTransform &the_transform);
     KINSKI_API btCollisionShapePtr createCollisionShape(const gl::MeshPtr &the_mesh,
                                                         const glm::vec3 &the_scale = glm::vec3(1));
+    KINSKI_API btCollisionShapePtr createConvexCollisionShape(const gl::MeshPtr &the_mesh,
+                                                              const glm::vec3 &the_scale = glm::vec3(1));
     
     class BulletDebugDrawer : public btIDebugDraw
     {

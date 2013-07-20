@@ -66,7 +66,7 @@ namespace kinski { namespace gl {
             if(normalAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer().id());
-                // define attrib pointer (tangent)
+                // define attrib pointer (normal)
                 glEnableVertexAttribArray(normalAttribLocation);
                 glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
                                       m_geometry->normalBuffer().stride(), BUFFER_OFFSET(0));
@@ -81,7 +81,7 @@ namespace kinski { namespace gl {
             if(texCoordAttribLocation >= 0)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer().id());
-                // define attrib pointer (tangent)
+                // define attrib pointer (texcoord)
                 glEnableVertexAttribArray(texCoordAttribLocation);
                 glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                       m_geometry->texCoordBuffer().stride(), BUFFER_OFFSET(0));

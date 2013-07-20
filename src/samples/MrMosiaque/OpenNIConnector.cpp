@@ -10,7 +10,9 @@
 #include <XnCodecIDs.h>
 #include <XnCppWrapper.h>
 #include <XnPropNames.h>
+
 #include "kinskiGL/Texture.h"
+#include "kinskiGL/Geometry.h"
 #include <boost/timer/timer.hpp>
 #include "OpenNIConnector.h"
 
@@ -255,7 +257,7 @@ namespace kinski{ namespace gl{
     void OpenNIConnector::start()
     {
         if(m_running) return;
-        m_thread = boost::thread(boost::ref(*this));
+        m_thread = boost::thread(boost::bind(&OpenNIConnector::run, this));
         m_running = true;
     }
     
@@ -266,7 +268,7 @@ namespace kinski{ namespace gl{
         catch(std::exception &e){LOG_ERROR<<e.what();}
     }
     
-    void OpenNIConnector::operator()()
+    void OpenNIConnector::run()
     {
         m_running = true; 
         try{init();}
@@ -333,6 +335,25 @@ namespace kinski{ namespace gl{
         return *m_depth_texture;
     }
     
+    void OpenNIConnector::update_depth_buffer(gl::Buffer &the_buffer) const
+    {
+        xn::DepthMetaData depthMD;
+        m_obj->m_depthGenerator.GetMetaData(depthMD);
+        the_buffer.setStride(sizeof(glm::vec4));
+        int xres = depthMD.XRes(), yres = depthMD.YRes();
+        the_buffer.setData(NULL, xres * yres * sizeof(glm::vec4));
+        
+        glm::vec4 *buf_ptr = (glm::vec4*) the_buffer.map();
+        const uint16_t *data = depthMD.Data();
+        
+        for (int y = 0; y < yres; y++)
+            for (int x = 0; x < xres; x++)
+        {
+            *buf_ptr++ = glm::vec4(-xres / 2  + x, yres / 2 - y, -data[x + y * depthMD.XRes()] / 2047.f, 1.f);
+        }
+        the_buffer.unmap();
+    }
+    
     void OpenNIConnector::update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd)
     {
         unsigned int nZRes = dmd.ZRes();
@@ -367,7 +388,6 @@ namespace kinski{ namespace gl{
                     pDepthHist[nValue]++;
                     nNumberOfPoints++;
                 }
-                
                 pDepth++;
             }
         }
@@ -393,9 +413,8 @@ namespace kinski{ namespace gl{
             // Prepare the texture map
             for (nY=0; nY<y_res; nY++)
             {
-                for (nX=0; nX < x_res; nX++, nIndex++)
+                for (nX = 0; nX < x_res; nX++, nIndex++)
                 {
-                    
                     pDestImage[0] = 0;
                     pDestImage[1] = 0;
                     pDestImage[2] = 0;
@@ -412,7 +431,6 @@ namespace kinski{ namespace gl{
                         if (nValue != 0)
                         {
                             nHistValue = pDepthHist[nValue];
-                            
                             pDestImage[0] = nHistValue * m_user_colors[nColorID][0]; 
                             pDestImage[1] = nHistValue * m_user_colors[nColorID][1];
                             pDestImage[2] = nHistValue * m_user_colors[nColorID][2];
@@ -420,7 +438,7 @@ namespace kinski{ namespace gl{
                     }
                     pDepth++;
                     pLabels++;
-                    pDestImage += 3;
+                    pDestImage+=3;
                 }
             }
         }

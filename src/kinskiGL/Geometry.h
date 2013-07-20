@@ -167,6 +167,14 @@ namespace kinski{ namespace gl{
         inline const AABB& boundingBox() const { return m_boundingBox; };
         
         // GL buffers
+        gl::Buffer& vertexBuffer(){ return m_vertexBuffer; };
+        gl::Buffer& normalBuffer(){ return m_normalBuffer; };
+        gl::Buffer& texCoordBuffer(){ return m_texCoordBuffer; };
+        gl::Buffer& tangentBuffer(){ return m_tangentBuffer; };
+        gl::Buffer& pointSizeBuffer(){ return m_pointSizeBuffer; };
+        gl::Buffer& colorBuffer(){ return m_colorBuffer; };
+        gl::Buffer& boneBuffer(){ return m_boneBuffer; };
+        gl::Buffer& indexBuffer(){ return m_indexBuffer; };
         const gl::Buffer& vertexBuffer() const { return m_vertexBuffer; };
         const gl::Buffer& normalBuffer() const { return m_normalBuffer; };
         const gl::Buffer& texCoordBuffer() const { return m_texCoordBuffer; };

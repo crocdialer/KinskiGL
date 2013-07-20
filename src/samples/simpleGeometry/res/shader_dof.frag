@@ -45,13 +45,16 @@ changelog:
 uniform int u_numTextures;
 uniform sampler2D u_textureMap[2];
 uniform vec2 u_window_size;
-uniform float u_z_near;
-uniform float u_z_far;
+uniform float u_znear;
+uniform float u_zfar;
+
+uniform float bgl_RenderedTextureWidth;
+uniform float bgl_RenderedTextureHeight;
 
 #define PI  3.14159265
 
-float width = u_window_size.x; //texture width
-float height = u_window_size.y; //texture height
+float width = bgl_RenderedTextureWidth; //texture width
+float height = bgl_RenderedTextureHeight; //texture height
 
 vec2 texel = vec2(1.0/width,1.0/height);
 
@@ -66,8 +69,8 @@ uniform bool u_showFocus; //show debug focus point and focal range (red = focal 
 make sure that these two values are the same for your camera, otherwise distances will be wrong.
 */
 
-float znear = u_z_near; //camera clipping start
-float zfar = u_z_far; //camera clipping end
+float znear = u_znear; //camera clipping start
+float zfar = u_zfar; //camera clipping end
 
 //------------------------------------------
 //user variables
@@ -88,7 +91,7 @@ float vignout = 1.3; //vignetting outer border
 float vignin = 0.0; //vignetting inner border
 float vignfade = 22.0; //f-stops till vignete fades
 
-bool autofocus = false; //use autofocus in shader? disable if you use external u_focalDepth value
+bool autofocus = true; //use autofocus in shader? disable if you use external u_focalDepth value
 vec2 focus = vec2(0.5,0.5); // autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 1.0; //clamp value of max blur (0.0 = no blur,1.0 default)
 

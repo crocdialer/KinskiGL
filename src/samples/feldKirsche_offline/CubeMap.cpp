@@ -101,10 +101,6 @@ namespace kinski{ namespace gl{
             break;
     }
     
-//    sz = img.cols;
-//    img.roi = Area<uint32_t>(2 * sz, sz, 3 * sz, 2 * sz);
-//    data_pos_x = data_neg_x = data_pos_y = data_neg_y = data_pos_z = data_neg_z = img.data_start_for_roi();;
-    
     CubeMap ret(sz, sz, data_pos_x, data_neg_x, data_pos_y, data_neg_y, data_pos_z, data_neg_z);
     free(img.data);
     return ret;
@@ -138,40 +134,16 @@ CubeMap::CubeMap(GLsizei texWidth, GLsizei texHeight,
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
-void CubeMap::bindMulti( int pos )
+void CubeMap::bind( int pos )
 {
 	glActiveTexture(GL_TEXTURE0 + pos );
 	glBindTexture(GL_TEXTURE_CUBE_MAP, textureObject);
     glActiveTexture(GL_TEXTURE0);
 }
 
-void CubeMap::bind()
-{
-	glBindTexture(GL_TEXTURE_CUBE_MAP, textureObject);
-}
-
 void CubeMap::unbind()
 {
 	glBindTexture(GL_TEXTURE_CUBE_MAP, 0 );
-}
-
-void CubeMap::enableFixedMapping()
-{
-//	glTexGeni( GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP );
-//	glTexGeni( GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP );
-//	glTexGeni( GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP );
-//	glEnable(GL_TEXTURE_GEN_S);
-//	glEnable(GL_TEXTURE_GEN_T);
-//	glEnable(GL_TEXTURE_GEN_R);
-	glEnable( GL_TEXTURE_CUBE_MAP );
-}
-
-void CubeMap::disableFixedMapping()
-{
-//	glDisable(GL_TEXTURE_GEN_S);
-//	glDisable(GL_TEXTURE_GEN_T);
-//	glDisable(GL_TEXTURE_GEN_R);
-	glDisable( GL_TEXTURE_CUBE_MAP );
 }
 
 }}//namespace

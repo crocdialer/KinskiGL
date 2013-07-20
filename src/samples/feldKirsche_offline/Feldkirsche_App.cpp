@@ -6,6 +6,7 @@
 //
 //
 
+#include "kinskiGL/Renderer.h"
 #include "Feldkirsche_App.h"
 #include "kinskiCV/TextureIO.h"
 
@@ -84,7 +85,7 @@ namespace kinski{
         m_fbo_size = Property_<glm::vec2>::create("Fbo size", vec2(1024));
         registerProperty(m_fbo_size);
         
-        m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 10000.f);
+        m_fbo_cam_distance = RangedProperty<float>::create("Fbo cam distance", 200.f, 0.f, 50000.f);
         registerProperty(m_fbo_cam_distance);
         
         m_fbo_cam_direction = Property_<vec3>::create("Fbo cam lookat", - gl::Z_AXIS);
@@ -114,7 +115,7 @@ namespace kinski{
         camera()->setClippingPlanes(1.0, 15000);
         
         // the FBO camera
-        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, *m_fbo_cam_fov, 10.f, 10000));
+        m_free_camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera(1.f, *m_fbo_cam_fov, 1000.f, 50000));
         
         
         // Lights
@@ -153,18 +154,20 @@ namespace kinski{
         m_spot_mesh->transform() = glm::rotate(m_spot_mesh->transform(), 90.f, gl::X_AXIS);
         m_spot_mesh->position() = vec3(0, 490, 0);
         
-        // test spot
-//        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
-//        m_spot_light->add_child(spot_mesh);
-//        m_spot_light->add_child(cone_mesh);
-        
         m_light_component->set_lights(lights());
         
         // setup some blank textures
         for(int i = 0; i < 4; i++){m_textures.push_back(gl::Texture());}
         
         // background image
-        //m_textures[3] = gl::createTextureFromFile("BG_sunset_02.jpg", true, true);
+        //m_textures[3] = gl::createTextureFromFile("maske3000.png", true, true);
+        
+        for(auto &mat: m_color_mats){mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));}
+        m_color_mats[0]->setDiffuse(gl::Color(152 / 255.f, 19 / 255.f, 201 / 255.f, 1.f));
+        m_color_mats[1]->setDiffuse(gl::Color(245 / 255.f, 133 / 255.f, 159 / 255.f, 1.f));
+        m_color_mats[2]->setDiffuse(gl::Color(139 / 255.f, 173 / 255.f, 220 / 255.f, 1.f));
+        m_color_mats[3]->setDiffuse(gl::Color(229 / 255.f, 139 / 255.f, 222 / 255.f, 1.f));
+        m_color_mats[4]->setDiffuse(gl::Color(104 / 255.f, 239 / 255.f, 247 / 255.f, 1.f));
         
         // clear with transparent black
         gl::clearColor(gl::Color(0));
@@ -194,14 +197,16 @@ namespace kinski{
     
     void Feldkirsche_App::update(float timeDelta)
     {
-        timeDelta = 1 / 30.f;
+        //timeDelta = 1 / 30.f;
         
         ViewerApp::update(timeDelta);
         
         // update physics
         if (m_physics_context.dynamicsWorld() && *m_stepPhysics)
         {
-            m_physics_context.dynamicsWorld()->stepSimulation(timeDelta);
+            m_physics_context.dynamicsWorld()->stepSimulation(timeDelta, 1, 1 / 120.f);
+            //m_physics_context.dynamicsWorld()->stepSimulation(timeDelta, 1, 1 / 120.f);
+            
 //            auto task = boost::bind(&physics::physics_context::stepPhysics, &m_physics_context, timeDelta);
 //            thread_pool().submit(task);
         }
@@ -256,12 +261,36 @@ namespace kinski{
                         gl::clearColor(clear_color());
                     }
                     m_debug_scene.render(camera());
+                    for(auto &light : lights())
+                    {
+                        static gl::MeshPtr sphere_mesh;
+                        if(!sphere_mesh)
+                        {
+                            sphere_mesh = gl::Mesh::create(gl::createSphere(30.f, 32), gl::Material::create());
+                        }
+                        
+                        if(light->enabled() && light->type() != gl::Light::DIRECTIONAL)
+                        {
+                            gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * light->global_transform());
+                            gl::drawMesh(sphere_mesh);
+                        }
+                    }
+                    
+
+//                    for(const auto &item : scene().cull(camera())->items)
+//                    {
+//                        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, item.transform);
+//                        //gl::drawBoundingBox(item.mesh);
+//                    }
+                    
                     break;
                     
                 case DRAW_FBO_OUTPUT:
-                    // background
-                    //gl::drawTexture(m_textures[3], windowSize());
                     gl::drawTexture(m_textures[0], vec2(w, h), offset);
+                    
+                    // mask
+                    //gl::drawTexture(m_textures[3], windowSize());
+                    
                     break;
                     
                 default:
@@ -542,7 +571,21 @@ namespace kinski{
         else if(theProperty == m_rigid_bodies_num || theProperty == m_rigid_bodies_size)
         {
             int num_xy = floor(sqrt(*m_rigid_bodies_num / 5.f));
-            create_physics_scene(num_xy, num_xy, 5, m_material);
+            
+            //create_physics_scene(num_xy, num_xy, 5, m_material);
+            
+            
+            if(m_mesh)
+            {
+                for(auto &mat: m_color_mats)
+                {
+                    gl::Color c = mat->diffuse();
+                    *mat = *m_mesh->material();
+                    mat->setDiffuse(c);
+                }
+                create_physics_scene(num_xy, num_xy, 5, m_mesh->material());
+            }
+            
         }
         else if(theProperty == m_use_syphon)
         {
@@ -620,8 +663,14 @@ namespace kinski{
     
     void Feldkirsche_App::create_physics_scene(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
+        if(!m_mesh)
+        {
+            LOG_ERROR<<"no mesh";
+            return;
+        }
+        
         scene().clear();
-        m_water_objects.clear();
+        m_physic_objects.clear();
         
         m_physics_context.teardown_physics();
         m_physics_context.dynamicsWorld()->setGravity(btVector3(0, - *m_gravity_amount, 0));
@@ -671,12 +720,14 @@ namespace kinski{
             //create a few dynamic rigidbodies
             // Re-using the same collision is better for memory usage and performance
             
-            m_physics_context.collisionShapes().push_back(physics::btCollisionShapePtr(new btSphereShape(scaling)));
+            m_physics_context.collisionShapes().push_back(physics::createConvexCollisionShape(m_mesh, vec3(scaling)));
+            
+            //m_physics_context.collisionShapes().push_back(physics::btCollisionShapePtr(new btSphereShape(scaling)));
             
             // Create Dynamic Objects
             btTransform startTransform;
             startTransform.setIdentity();
-            btScalar	mass(1.f);
+            btScalar	mass(10.f);
             
             // rigidbody is dynamic if and only if mass is non zero, otherwise static
             bool isDynamic = (mass != 0.f);
@@ -686,7 +737,8 @@ namespace kinski{
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             // geometry
-            gl::Geometry::Ptr geom = gl::createSphere(scaling, 32);//gl::createPlane(4 * scaling, 4 * scaling);
+            gl::Geometry::Ptr geom = m_mesh->geometry();
+            //gl::Geometry::Ptr geom = gl::createSphere(scaling, 32);//gl::createPlane(4 * scaling, 4 * scaling);
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -701,13 +753,13 @@ namespace kinski{
                         startTransform.setOrigin(scaling * btVector3(btScalar(2.0*i + start_x),
                                                                      btScalar(5 + 2.0*k + start_y),
                                                                      btScalar(2.0*j + start_z)));
-                        gl::MeshPtr mesh = gl::Mesh::create(geom, theMat);
+                        gl::MeshPtr mesh = gl::Mesh::create(geom, m_color_mats[random(0, 4)]);
                         scene().addObject(mesh);
                         
                         float mat[16];
                         startTransform.getOpenGLMatrix(mat);
                         mesh->setTransform(glm::make_mat4(mat));
-                        //mesh->setScale(vec3(random(2.f, 10.f)));
+                        mesh->setScale(vec3(scaling));
                         
                         //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
                         physics::MotionState* myMotionState = new physics::MotionState(mesh);
@@ -727,7 +779,7 @@ namespace kinski{
                         physics::physics_object obj;
                         obj.graphics_object = mesh.get();
                         obj.rigidbody = body;
-                        m_water_objects.push_back(obj);
+                        m_physic_objects.push_back(obj);
                     }   
                 }
             }

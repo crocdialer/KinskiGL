@@ -25,7 +25,7 @@ private:
     gl::Texture m_textures[4];
     gl::Material::Ptr m_pointMaterial;
     gl::GeometryPtr m_geom;
-    gl::MeshPtr m_particle_mesh, m_debug_bill_board;;
+    gl::MeshPtr m_particle_mesh, m_debug_bill_board, m_point_cloud;
     gl::Font m_font;
     
     //OpenCL standard stuff
@@ -407,6 +407,19 @@ public:
         m_open_ni->observeProperties();
         create_tweakbar_from_component(m_open_ni);
         
+        m_point_cloud = gl::Mesh::create(gl::Geometry::create(),
+                                         gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR)));
+        m_point_cloud->geometry()->vertices().resize(640 * 480);
+        m_point_cloud->geometry()->setPrimitiveType(GL_POINTS);
+        m_point_cloud->geometry()->createGLBuffers();
+        m_point_cloud->material()->setPointSize(8.f);
+        m_point_cloud->material()->setPointAttenuation(0.f, 20.f, 0.f);
+        m_point_cloud->position() += vec3(0, 0, 1400);
+        m_point_cloud->setScale(vec3(4.f, 4.f, 800.f));
+        
+        scene().addObject(m_point_cloud);
+        m_debug_scene.addObject(m_point_cloud);
+        
         // copy user colors
         m_user_id_colors = m_open_ni->user_colors();
         
@@ -440,6 +453,11 @@ public:
             
             // get the depth+userID texture
             m_textures[3] = m_open_ni->get_depth_texture();
+            
+            m_open_ni->update_depth_buffer(m_point_cloud->geometry()->vertexBuffer());
+            vec3 s = m_point_cloud->scale();
+            m_point_cloud->setTransform(m_depth_cam->transform());
+            m_point_cloud->setScale(s);
         }
         
         // OpenCL updates
@@ -479,7 +497,7 @@ public:
     void draw()
     {
         // render the output image offscreen
-        m_textures[2] = render_to_texture(scene(), m_free_camera);
+        m_textures[2] = gl::render_to_texture(scene(), m_fbo, m_free_camera);
         
         switch(*m_debug_draw_mode)
         {
@@ -657,17 +675,6 @@ public:
         {
             //m_user_input_kernel.setArg(7, m_min_interaction_distance->value());
         }
-    }
-    
-    gl::Texture render_to_texture(const gl::Scene &theScene, const gl::CameraPtr theCam)
-    {
-        // push framebuffer and viewport states
-        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(m_fbo.getSize());
-        m_fbo.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        theScene.render(theCam);
-        return m_fbo.getTexture();
     }
     
     //! bring positions to world-coords using a virtual camera

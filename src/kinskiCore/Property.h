@@ -39,6 +39,15 @@ public:
 	inline bool isTweakable() const {return m_tweakable;};
     inline bool empty() const {return m_value.empty();};
     
+//    inline void setValue(const boost::any& theValue)
+//    {
+//        if (theValue.type() != m_value.type()) {throw WrongTypeSetException(m_name);}
+//        if(checkValue(theValue))
+//            m_value = theValue;
+//        
+//        notifyObservers();
+//    }
+    
     template <typename T> 
     inline void setValue(const T& theValue)
     {

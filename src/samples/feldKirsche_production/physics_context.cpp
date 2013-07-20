@@ -89,6 +89,17 @@ namespace kinski{ namespace physics{
         return physics::btCollisionShapePtr(new btBvhTriangleMeshShape(striding_mesh, false));
     }
     
+    btCollisionShapePtr createConvexCollisionShape(const gl::MeshPtr &the_mesh,
+                                                   const glm::vec3 &the_scale)
+    {
+        vector<glm::vec3> &vertices = the_mesh->geometry()->vertices();
+        physics::btCollisionShapePtr hull_shape(new btConvexHullShape((btScalar*)&vertices[0],
+                                                                      vertices.size(),
+                                                                      sizeof(vertices[0])));
+        hull_shape->setLocalScaling(type_cast(the_scale));
+        return hull_shape;
+    }
+    
     btVector3 type_cast(const glm::vec3 &the_vec)
     {
         return btVector3(the_vec[0], the_vec[1], the_vec[2]);

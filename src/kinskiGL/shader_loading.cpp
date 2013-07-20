@@ -40,7 +40,7 @@ namespace kinski { namespace gl {
     {
 #pragma mark MODULE_BLOCKS
         std::string glsl_header_150 = "#version 150 core\n";
-        std::string material_uniform_block = STRINGIFY(
+        std::string material_block = STRINGIFY(
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct Material
@@ -52,7 +52,7 @@ namespace kinski { namespace gl {
           float shinyness;
         } u_material;);
         
-        std::string light_uniform_block = STRINGIFY(
+        std::string light_block = STRINGIFY(
         uniform int u_numLights;
         uniform struct Lightsource
         {
@@ -87,7 +87,7 @@ namespace kinski { namespace gl {
           float att = 1.0;
           float nDotL = dot(normal, L);
           // point + spot
-          if (light.type > 0 && nDotL > 0.0)
+          if (light.type > 0)
           {
               float dist = length(lightDir);
               att = 1.0 / (light.constantAttenuation +
@@ -109,9 +109,9 @@ namespace kinski { namespace gl {
           
           float specIntesity = pow( max(dot(R, E), 0.0), mat.shinyness);
           vec4 ambient = mat.ambient * light.ambient;
-          vec4 diffuse = mat.diffuse * light.diffuse;
+          vec4 diffuse = mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0);
           vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
-          return base_color * att * (ambient + diffuse * vec4(vec3(nDotL), 1.0) + spec);
+          return base_color * att * (ambient + diffuse + spec);
         });
         
         std::string vertex_shader_phong = STRINGIFY(
@@ -688,8 +688,8 @@ namespace kinski { namespace gl {
             case SHADER_PHONG:
                 vert_src = glsl_header_150 + vertex_shader_phong;
                 frag_src =  glsl_header_150 +
-                            material_uniform_block +
-                            light_uniform_block +
+                            material_block +
+                            light_block +
                             shade_phong_block +
                             frag_shader_phong;
                 ret.loadFromData(vert_src.c_str(), frag_src.c_str());
@@ -702,8 +702,8 @@ namespace kinski { namespace gl {
             case SHADER_PHONG_SKIN:
                 vert_src = glsl_header_150 + vertex_shader_phong;
                 frag_src =  glsl_header_150 +
-                material_uniform_block +
-                light_uniform_block +
+                material_block +
+                light_block +
                 shade_phong_block +
                 frag_shader_phong;
                 ret.loadFromData(phongVertSrc_skin, frag_src.c_str());

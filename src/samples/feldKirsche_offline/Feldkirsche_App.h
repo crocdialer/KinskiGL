@@ -60,7 +60,7 @@ private:
     RangedProperty<float>::Ptr m_gravity_max_roll;
     
     Property_<glm::vec3>::Ptr m_world_half_extents;
-    std::list<physics::physics_object> m_water_objects;
+    std::list<physics::physics_object> m_physic_objects;
     gl::MaterialPtr m_water_materials[4];
     
     // offscreen rendering
@@ -91,6 +91,9 @@ private:
     // Light control
     LightComponent::Ptr m_light_component;
     gl::LightPtr m_spot_light;
+    
+    // tmp
+    gl::MaterialPtr m_color_mats[5];
     
 public:
     

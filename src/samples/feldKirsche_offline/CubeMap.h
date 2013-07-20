@@ -15,11 +15,8 @@ namespace kinski { namespace gl{
         CubeMap(GLsizei texWidth, GLsizei texHeight, const uint8_t *data_pos_x, const uint8_t *data_neg_x,
                 const uint8_t *data_pos_y, const uint8_t *data_neg_y, const uint8_t *data_pos_z,
                 const uint8_t *data_neg_z);
-        void bind();
-        void bindMulti( int loc );
+        void bind(int loc = 0);
         void unbind();
-        static void enableFixedMapping();
-        static void disableFixedMapping();
     private:
         unsigned int textureObject;
     };

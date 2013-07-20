@@ -47,10 +47,11 @@ namespace kinski{ namespace gl{
         inline bool has_new_frame() const {return m_new_frame;}
         
         //! thread runs here, do not fiddle around
-        void operator()();
+        void run();
         
         UserList get_user_positions() const;
         gl::Texture get_depth_texture() const;
+        void update_depth_buffer(gl::Buffer &the_buffer) const;
         
         const std::vector<gl::Color>& user_colors() const {return m_user_colors;};
         std::vector<gl::Color>& user_colors() {return m_user_colors;};
