@@ -145,6 +145,13 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     {
         glGenerateMipmap(m_Obj->m_Target);
     }
+    
+    if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
+    {
+        GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+    }
+    
     KINSKI_CHECK_GL_ERRORS();
 }
 
@@ -181,6 +188,12 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     if( format.m_Mipmapping )
     {
         glGenerateMipmap(m_Obj->m_Target);
+    }
+    
+    if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
+    {
+        GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
 }
 

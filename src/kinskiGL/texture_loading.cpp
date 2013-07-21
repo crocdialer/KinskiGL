@@ -101,8 +101,8 @@ namespace kinski { namespace gl {
         ret.set_anisotropic_filter(anisotropic_filter_lvl);
         
         // requires OpenGL 3.3+
-        //GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-        //glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
         
         stbi_image_free(img.data);
         return ret;

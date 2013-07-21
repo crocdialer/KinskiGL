@@ -40,21 +40,23 @@ namespace kinski { namespace gl {
     {
 #pragma mark MODULE_BLOCKS
         std::string glsl_header_150 = "#version 150 core\n";
+        std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
+        
         std::string material_block = STRINGIFY(
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
-        uniform struct Material
+        struct Material
         {
           vec4 diffuse;
           vec4 ambient;
           vec4 specular;
           vec4 emission;
           float shinyness;
-        } u_material;);
+        };);
         
         std::string light_block = STRINGIFY(
         uniform int u_numLights;
-        uniform struct Lightsource
+        struct Lightsource
         {
             // 0: Directional
             // 1: Point
@@ -73,7 +75,7 @@ namespace kinski { namespace gl {
             vec3 spotDirection;
             float spotCosCutoff;
             float spotExponent;
-        } u_lights[8];);
+        };);
         
         std::string shade_phong_block = STRINGIFY(
         vec4 shade_phong(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
@@ -121,8 +123,8 @@ namespace kinski { namespace gl {
         uniform mat4 u_textureMatrix;
         
         in vec4 a_vertex;
-        in vec4 a_texCoord;
         in vec3 a_normal;
+        in vec4 a_texCoord;
         
         out VertexData{
             vec4 color;
@@ -130,6 +132,8 @@ namespace kinski { namespace gl {
             vec3 normal;
             vec3 eyeVec;
         } vertex_out;
+                                                    
+        //out Lightsource v_lights[8];
         
         void main()
         {
@@ -140,6 +144,8 @@ namespace kinski { namespace gl {
         });
         
         std::string frag_shader_phong = STRINGIFY(
+        uniform Material u_material;
+                                                  uniform Lightsource u_lights[16];
         in VertexData
         {
             vec4 color;
@@ -147,6 +153,9 @@ namespace kinski { namespace gl {
             vec3 normal;
             vec3 eyeVec;
         } vertex_in;
+                                                  
+        //in Lightsource v_lights[8];
+                                                  
         out vec4 fragData;
         void main()
         {
@@ -686,7 +695,11 @@ namespace kinski { namespace gl {
                 break;
                 
             case SHADER_PHONG:
-                vert_src = glsl_header_150 + vertex_shader_phong;
+                vert_src =  glsl_header_150 +
+                            glsl_define_explicit_layout +
+                            light_block +
+                            vertex_shader_phong;
+                
                 frag_src =  glsl_header_150 +
                             material_block +
                             light_block +

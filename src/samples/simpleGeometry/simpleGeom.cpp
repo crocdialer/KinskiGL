@@ -143,6 +143,8 @@ public:
             fmt.set_mipmapping(true);
             m_textures[1] = gl::Texture (w, h, fmt);
             m_textures[1].update(data, GL_RED, w, h, true);
+//            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
+//            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
         }
         
         // groundplane
