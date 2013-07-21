@@ -26,6 +26,8 @@ namespace kinski
     {
     public:
         typedef std::shared_ptr<GLFW_Window> Ptr;
+        GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
+                    GLFWwindow* share = NULL);
         GLFW_Window(int width, int height, const std::string &theName = "KinskiGL");
         ~GLFW_Window();
         inline GLFWwindow* handle(){return m_handle;};
@@ -82,6 +84,8 @@ namespace kinski
         
         void create_tweakbar_from_component(const Component::Ptr & the_component);
         
+        int get_num_monitors() const;
+        
     private:
         
         std::vector<GLFW_Window::Ptr> m_windows;
@@ -92,6 +96,9 @@ namespace kinski
         void pollEvents();
         void draw_internal();
         bool checkRunning();
+        
+        // GLFW internal
+        void addWindow(const GLFW_Window::Ptr &the_window);
         
         // GLFW static callbacks
         static void s_resize(GLFWwindow* window, int w, int h);

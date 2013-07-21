@@ -3,6 +3,8 @@
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 
+#include "kinskiApp/Object3DComponent.h"
+
 
 using namespace std;
 using namespace kinski;
@@ -52,6 +54,7 @@ private:
     vector<vec3> m_points;
     
     LightComponent::Ptr m_light_component;
+    Object3DComponent::Ptr m_object_component;
     
     // dof test
     gl::MaterialPtr m_post_process_mat;
@@ -112,6 +115,10 @@ public:
         m_light_component.reset(new LightComponent());
         create_tweakbar_from_component(m_light_component);
         
+        // object component
+        m_object_component.reset(new Object3DComponent());
+        create_tweakbar_from_component(m_object_component);
+        
         /********************** construct a simple scene ***********************/
         camera()->setClippingPlanes(1.0, 5000);
         
@@ -143,8 +150,6 @@ public:
             fmt.set_mipmapping(true);
             m_textures[1] = gl::Texture (w, h, fmt);
             m_textures[1].update(data, GL_RED, w, h, true);
-//            GLint swizzleMask[] = {GL_RED, GL_RED, GL_RED, GL_ONE};
-//            glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
         }
         
         // groundplane
@@ -224,6 +229,11 @@ public:
             materials()[i]->setShinyness(*m_shinyness);
             materials()[i]->setAmbient(0.2 * clear_color());
         }
+        
+        if(selected_mesh())
+        {
+            m_object_component->setObject(selected_mesh());
+        }
     }
     
     void draw()
@@ -256,15 +266,14 @@ public:
                 scene().render(camera());
             }
             
+            draw_lights(lights());
+            
             if(selected_mesh())
             {
                 gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * selected_mesh()->transform());
                 gl::drawAxes(selected_mesh());
                 gl::drawBoundingBox(selected_mesh());
                 if(normals()) gl::drawNormals(selected_mesh());
-                
-                //            gl::drawPoints(selected_mesh()->geometry()->vertexBuffer().id(),
-                //                           selected_mesh()->geometry()->vertices().size());
                 
                 if(selected_mesh()->geometry()->hasBones())
                 {
@@ -357,6 +366,21 @@ public:
         }
     }
     
+    void keyPress(const KeyEvent &e)
+    {
+        ViewerApp::keyPress(e);
+        
+        switch (e.getCode())
+        {
+            case GLFW_KEY_F:
+                setFullSceen(!fullSceen());
+                break;
+                
+            default:
+                break;
+        }
+    }
+    
     // Property observer callback
     void updateProperty(const Property::ConstPtr &theProperty)
     {
@@ -427,6 +451,25 @@ public:
             box_mesh->position().y = -box_mesh->boundingBox().min.y;
             the_scene.addObject(box_mesh);
         } 
+    }
+    
+    void draw_lights(const std::vector<gl::LightPtr> &lights)
+    {
+        for(auto &light : lights)
+        {
+            static gl::MeshPtr sphere_mesh;
+            if(!sphere_mesh)
+            {
+                sphere_mesh = gl::Mesh::create(gl::createSphere(30.f, 32), gl::Material::create());
+            }
+            
+            if(light->enabled() && light->type() != gl::Light::DIRECTIONAL)
+            {
+                gl::ScopedMatrixPush modelview(gl::MODEL_VIEW_MATRIX);
+                gl::multMatrix(gl::MODEL_VIEW_MATRIX, light->global_transform());
+                gl::drawMesh(sphere_mesh);
+            }
+        }
     }
 };
 

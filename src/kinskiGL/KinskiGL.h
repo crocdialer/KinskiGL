@@ -97,7 +97,7 @@ namespace kinski { namespace gl {
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     KINSKI_API void pushMatrix(const Matrixtype type);
     KINSKI_API void popMatrix(const Matrixtype type);
-    KINSKI_API void multMatrix(const glm::mat4 &theMatrix);
+    KINSKI_API void multMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
     KINSKI_API void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
     KINSKI_API void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
     

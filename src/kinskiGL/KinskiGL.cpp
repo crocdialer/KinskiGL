@@ -525,6 +525,7 @@ namespace kinski { namespace gl {
         item.counter++;
         gl::MeshPtr m = item.mesh;
         m->material()->setDiffuse(the_color);
+        m->material()->setDepthTest(false);
         m->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y -
                                  m->geometry()->boundingBox().height(), 0.f));
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);

@@ -16,6 +16,16 @@ using namespace std;
 
 namespace kinski
 {
+    GLFW_Window::GLFW_Window(int width, int height, const std::string &theName, bool fullscreen, GLFWwindow* share)
+     {
+         m_handle = glfwCreateWindow(width, height,
+                                     theName.c_str(),
+                                     fullscreen ? glfwGetPrimaryMonitor() : NULL,
+                                     share);
+        if(!m_handle) throw CreateWindowException();
+        glfwMakeContextCurrent(m_handle);
+    }
+    
     GLFW_Window::GLFW_Window(int width, int height, const std::string &theName)
     {
         m_handle = glfwCreateWindow(width, height, theName.c_str(), NULL, NULL);
@@ -65,11 +75,9 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
-        m_windows.push_back(GLFW_Window::Ptr(new GLFW_Window(getWidth(), getHeight(), getName())));
-        glfwSetWindowUserPointer(m_windows.back()->handle(), this);
+        addWindow(GLFW_Window::Ptr(new GLFW_Window(getWidth(), getHeight(), getName())));
         
         gl::setWindowDimension(windowSize());
-        glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
@@ -86,14 +94,6 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(getWidth(), getHeight());
         
-        // static callbacks
-        glfwSetMouseButtonCallback(m_windows.back()->handle(), &GLFW_App::s_mouseButton);
-        glfwSetCursorPosCallback(m_windows.back()->handle(), &GLFW_App::s_mouseMove);
-        glfwSetScrollCallback(m_windows.back()->handle(), &GLFW_App::s_mouseWheel);
-        glfwSetKeyCallback(m_windows.back()->handle(), &GLFW_App::s_keyFunc);
-        glfwSetCharCallback(m_windows.back()->handle(), &GLFW_App::s_charFunc);
-        glfwSetWindowSizeCallback(m_windows.back()->handle(), &GLFW_App::s_resize);
-        
         // call user defined setup callback
         setup();
     }
@@ -109,8 +109,10 @@ namespace kinski
     void GLFW_App::setWindowSize(const glm::vec2 size)
     {
         App::setWindowSize(size);
+        TwWindowSize(size.x, size.y);
         if(!m_windows.empty())
             glfwSetWindowSize(m_windows.back()->handle(), (int)size[0], (int)size[1]);
+        
     }
     
     void GLFW_App::pollEvents()
@@ -144,7 +146,37 @@ namespace kinski
     void GLFW_App::setFullSceen(bool b)
     {
         App::setFullSceen(b);
-        throw Exception("not yet supported");
+        //throw Exception("not yet supported");
+        GLFW_Window::Ptr window(new GLFW_Window(getWidth(), getHeight(), getName(), b,
+                                                m_windows.back()->handle()));
+        m_windows.clear();
+        addWindow(window);
+        
+        int w, h;
+        glfwGetWindowSize(window->handle(), &w, &h);
+        setWindowSize(glm::vec2(w, h));
+    }
+    
+    int GLFW_App::get_num_monitors() const
+    {
+        int ret;
+        GLFWmonitor** monitors = glfwGetMonitors(&ret);
+        return ret;
+    }
+    
+    void GLFW_App::addWindow(const GLFW_Window::Ptr &the_window)
+    {
+        m_windows.push_back(the_window);
+        glfwSetWindowUserPointer(the_window->handle(), this);
+        glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        
+        // static callbacks
+        glfwSetMouseButtonCallback(the_window->handle(), &GLFW_App::s_mouseButton);
+        glfwSetCursorPosCallback(the_window->handle(), &GLFW_App::s_mouseMove);
+        glfwSetScrollCallback(the_window->handle(), &GLFW_App::s_mouseWheel);
+        glfwSetKeyCallback(the_window->handle(), &GLFW_App::s_keyFunc);
+        glfwSetCharCallback(the_window->handle(), &GLFW_App::s_charFunc);
+        glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
     }
     
 /****************************  Application Events (internal) **************************/

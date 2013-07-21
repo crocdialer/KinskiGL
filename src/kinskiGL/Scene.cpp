@@ -19,11 +19,30 @@ namespace kinski { namespace gl {
     
     struct range_item_t
     {
-        Object3DPtr object;
+        Object3D* object;
         float distance;
         range_item_t(){}
-        range_item_t(Object3DPtr obj, float d):object(obj), distance(d){}
+        range_item_t(Object3D *obj, float d):object(obj), distance(d){}
         bool operator <(const range_item_t &other) const {return distance < other.distance;}
+    };
+    
+    class SelectVisitor : public Visitor
+    {
+    public:
+        SelectVisitor():Visitor(){};
+        
+        void visit(Mesh &theNode)
+        {
+            m_objects.push_back(&theNode);
+            Visitor::visit(static_cast<gl::Object3D&>(theNode));
+        };
+        void visit(gl::Light &theNode){Visitor::visit(static_cast<gl::Object3D&>(theNode));};
+        void visit(gl::Camera &theNode){Visitor::visit(static_cast<gl::Object3D&>(theNode));};
+        
+        const std::list<Object3D*>& getObjects() const {return m_objects;};
+        
+    private:
+        std::list<Object3D*> m_objects;
     };
     
     class UpdateVisitor : public Visitor
@@ -150,18 +169,21 @@ namespace kinski { namespace gl {
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
     {
         Object3DPtr ret;
+        SelectVisitor sv;
+        m_root->accept(sv);
+        
         std::list<range_item_t> clicked_items;
-        for (const auto &the_object : m_root->children())
+        for (const auto &the_object : sv.getObjects())
         {
-            gl::OBB boundingBox (the_object->boundingBox(), the_object->transform());
+            gl::OBB boundingBox (the_object->boundingBox(), the_object->global_transform());
 
             if (ray_intersection ray_hit = boundingBox.intersect(ray))
             {
                 if(high_precision)
                 {
-                    if(gl::MeshPtr m = dynamic_pointer_cast<gl::Mesh>(the_object))
+                    if(gl::Mesh *m = dynamic_cast<gl::Mesh*>(the_object))
                     {
-                        gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->transform()));
+                        gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
                         const std::vector<glm::vec3>& vertices = m->geometry()->vertices();
                         for (const auto &face : m->geometry()->faces())
                         {
@@ -184,7 +206,7 @@ namespace kinski { namespace gl {
         if(!clicked_items.empty())
         {
             clicked_items.sort();
-            ret = clicked_items.front().object;
+            ret = clicked_items.front().object->shared_from_this();
             LOG_DEBUG<<"ray hit id "<<ret->getID()<<" ("<<clicked_items.size()<<" total)";
         }
         return ret;

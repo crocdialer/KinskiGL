@@ -114,18 +114,12 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     {
         glGenTextures( 1, &m_Obj->m_TextureID );
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-        KINSKI_CHECK_GL_ERRORS();
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
-        KINSKI_CHECK_GL_ERRORS();
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
-        KINSKI_CHECK_GL_ERRORS();
 	}
-    else 
-    {
-        glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-    }
+    else{ glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID ); }
     
 	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
     
@@ -141,15 +135,12 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 #endif	
     
-    if( format.m_Mipmapping )
-    {
-        glGenerateMipmap(m_Obj->m_Target);
-    }
+    if( format.m_Mipmapping ){ glGenerateMipmap(m_Obj->m_Target); }
     
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
     {
         GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
-        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
     
     KINSKI_CHECK_GL_ERRORS();
@@ -157,13 +148,16 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
 
 void Texture::init( const float *data, GLint dataFormat, const Format &format )
 {
-	m_Obj->m_DoNotDispose = false;
-	glGenTextures( 1, &m_Obj->m_TextureID );
-	glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
+	if(!m_Obj->m_TextureID)
+    {
+        glGenTextures( 1, &m_Obj->m_TextureID );
+        glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
+        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
+        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
+        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );
+        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
+	}
+    else{ glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID ); }
 	
 	if(data) 
     {
@@ -193,7 +187,7 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
     {
         GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
-        glTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
 }
 
