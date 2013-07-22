@@ -301,8 +301,8 @@ namespace kinski { namespace gl {
     {
         static vector<vec3> thePoints;
         thePoints.clear();
-        thePoints.push_back(vec3(a, 0));
-        thePoints.push_back(vec3(b, 0));
+        thePoints.push_back(vec3(a, .1));
+        thePoints.push_back(vec3(b, .1));
         drawLines2D(thePoints, theColor, line_thickness);
     }
     
@@ -312,7 +312,7 @@ namespace kinski { namespace gl {
         
         loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_windowDim[0],
                                                      0.f, g_windowDim[1],
-                                                     0.f, 1000.f));
+                                                     0.f, 1.f));
         loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
         drawLines(thePoints, theColor, line_thickness);
     }
@@ -328,8 +328,8 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             gl::MaterialPtr mat = gl::Material::create();
-            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
-                                                    "shader_line.geom"));
+//            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
+//                                                    "shader_line.geom"));
             mat->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);

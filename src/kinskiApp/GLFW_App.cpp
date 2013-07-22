@@ -153,14 +153,15 @@ namespace kinski
         addWindow(window);
         
         int w, h;
-        glfwGetWindowSize(window->handle(), &w, &h);
+        glfwGetFramebufferSize(window->handle(), &w, &h);
         setWindowSize(glm::vec2(w, h));
     }
     
     int GLFW_App::get_num_monitors() const
     {
         int ret;
-        GLFWmonitor** monitors = glfwGetMonitors(&ret);
+        /*GLFWmonitor** monitors = */
+        glfwGetMonitors(&ret);
         return ret;
     }
     

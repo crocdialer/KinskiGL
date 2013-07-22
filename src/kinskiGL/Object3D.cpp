@@ -45,6 +45,11 @@ namespace kinski { namespace gl {
         setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
     }
     
+    void Object3D::setLookAt(const Object3DPtr &theLookAt)
+    {
+        setLookAt(-theLookAt->position() + position(), theLookAt->up());
+    }
+    
     glm::mat4 Object3D::global_transform() const
     {
         glm::mat4 ret = transform();

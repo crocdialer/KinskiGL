@@ -34,6 +34,12 @@ private:
     std::list<boost::function<void()> > m_tasks;
 };
 
+template <typename T>
+boost::function<void()> create_tween(const T &from, const T &to, float duration, float delay = 0.f)
+{
+    
+}
+
 class SimpleGeometryApp : public ViewerApp
 {
 private:
@@ -233,6 +239,7 @@ public:
         if(selected_mesh())
         {
             m_object_component->setObject(selected_mesh());
+            selected_mesh()->setLookAt(camera());
         }
     }
     
@@ -249,7 +256,7 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            //gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
+            gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
             
             if(*m_use_fbo)
             {
