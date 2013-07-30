@@ -1,0 +1,3 @@
+[submodule "src/production"]
+	path = src/production
+	url = git@github.com:Projektil/kinskiGL_projects.git
