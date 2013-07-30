@@ -239,7 +239,7 @@ public:
         if(selected_mesh())
         {
             m_object_component->setObject(selected_mesh());
-            selected_mesh()->setLookAt(camera());
+            //selected_mesh()->setLookAt(camera());
         }
     }
     

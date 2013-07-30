@@ -52,7 +52,7 @@ namespace kinski
     class AppServer
     {
     public:
-        AppServer(kinski::App::Ptr the_app);
+        AppServer(kinski::App::Ptr the_app, int port = 11111);
         
         void start();
         void stop();

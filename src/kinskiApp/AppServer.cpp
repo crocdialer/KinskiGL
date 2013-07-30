@@ -80,9 +80,9 @@ namespace kinski {
     }
     
     
-    AppServer::AppServer(kinski::App::Ptr the_app) :
+    AppServer::AppServer(kinski::App::Ptr the_app, int port) :
     m_app(the_app),
-    m_acceptor(the_app->io_service(), tcp::endpoint(tcp::v4(), 11111))
+    m_acceptor(the_app->io_service(), tcp::endpoint(tcp::v4(), port))
     {
         start_accept();
     }

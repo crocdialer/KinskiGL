@@ -8,6 +8,10 @@
 #include <boost/bind.hpp>
 //#include <boost/date_time/posix_time/posix_time.hpp>
 
+// video input
+#include "kinskiCV/CVThread.h"
+#include "kinskiCV/TextureIO.h"
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -33,6 +37,7 @@ public:
 private:
     
     Property_<string>::Ptr m_texturePath;
+    Property_<string>::Ptr m_videoPath;
     RangedProperty<int>::Ptr m_num_particles;
     RangedProperty<float>::Ptr m_point_size;
     Property_<vec4>::Ptr m_point_color;
@@ -56,6 +61,9 @@ private:
     cl::ImageGL m_cl_image;
     
     boost::asio::deadline_timer m_timer;
+    
+    // opencv interface
+    CVThread::Ptr m_cvThread;
     
     void initOpenCL()
     {
@@ -262,6 +270,9 @@ public:
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
         
+        m_videoPath = Property_<string>::create("Video path", "");
+        registerProperty(m_videoPath);
+        
         m_num_particles = RangedProperty<int>::create("Num particles", 100000, 1, 2000000);
         registerProperty(m_num_particles);
         
@@ -289,6 +300,8 @@ public:
         
         initOpenCL();
         initParticles(*m_num_particles);
+        
+        m_cvThread.reset(new CVThread());
         
         // load state from config file
         try
@@ -362,6 +375,10 @@ public:
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";}
             catch (FileNotFoundException &e){LOG_WARNING << e.what();}
+        }
+        else if(theProperty == m_videoPath)
+        {
+            
         }
         else if(theProperty == m_num_particles)
         {
