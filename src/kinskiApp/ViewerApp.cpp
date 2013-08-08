@@ -189,6 +189,10 @@ namespace kinski {
                     Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                     save_settings();
                     break;
+                
+                case KeyEvent::KEY_f:
+                    setFullSceen(!fullSceen());
+                    break;
                     
                 case KeyEvent::KEY_r:
                     try

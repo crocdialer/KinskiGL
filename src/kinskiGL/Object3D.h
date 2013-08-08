@@ -41,6 +41,7 @@ namespace kinski { namespace gl {
                                                   glm::length(m_transform[1]),
                                                   glm::length(m_transform[2]));};
         inline void setScale(const glm::vec3 &s){m_transform = glm::scale(m_transform, s / scale());}
+        inline void setScale(float s){setScale(glm::vec3(s));}
         
         void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0, 1, 0));
         void setLookAt(const Object3DPtr &theLookAt);
