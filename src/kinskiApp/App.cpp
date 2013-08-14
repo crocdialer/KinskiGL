@@ -24,7 +24,8 @@ namespace kinski
     m_windowSize(glm::ivec2(width, height)),
     m_running(false),
     m_fullscreen(false),
-    m_cursorVisible(true)
+    m_cursorVisible(true),
+    m_thread_pool(0)
     {
         srand(clock());
     }
