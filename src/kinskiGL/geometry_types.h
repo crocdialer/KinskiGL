@@ -14,7 +14,17 @@ namespace kinski { namespace gl {
     
 enum intersection_type {REJECT = 0, INTERSECT = 1, INSIDE = 2};
 
+struct Ray;
+struct Plane;
+struct Sphere;
+struct AABB;
+struct OBB;
+struct Frustum;
+struct ray_intersection;
 
+ray_intersection intersect_ray_plane(const glm::vec3 &n, const glm::vec3 &p0, const gl::Ray &ray);
+ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray);
+    
 struct KINSKI_API Ray
 {
     glm::vec3 origin;
@@ -63,7 +73,7 @@ struct KINSKI_API ray_triangle_intersection : public ray_intersection
                               float theU = 0.0f, float theV = 0.0f)
     :ray_intersection(theType, theDistance), u(theU), v(theV){}
 };
-    
+
 struct KINSKI_API Plane
 {
     // Ax + By + Cz + D = 0
@@ -93,6 +103,11 @@ struct KINSKI_API Plane
         Plane ret = *this;
 		return ret.transform(t);
 	};
+    
+    inline ray_intersection intersect(const gl::Ray &ray)
+    {
+        return gl::intersect(*this, ray);
+    }
 };
 
 struct KINSKI_API Triangle

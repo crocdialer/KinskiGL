@@ -11,6 +11,31 @@
 
 namespace kinski { namespace gl {
 
+ray_intersection intersect_ray_plane(const glm::vec3 &n, const glm::vec3 &p0, const gl::Ray &ray)
+{
+    // assuming vectors are all normalized
+    float denom = glm::dot(n, ray.direction);
+    if (denom > 1e-6)
+    {
+        glm::vec3 p0l0 = p0 - ray.origin;
+        float d = glm::dot(p0l0, n) / denom;
+        if(d >= 0) return ray_intersection(INTERSECT, d);
+    }
+    return REJECT;
+}
+    
+ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray)
+{
+    // assuming vectors are all normalized
+    float denom = glm::dot(plane.normal(), ray.direction);
+    if (denom > 1e-6)
+    {
+        float d = (-plane.coefficients.z - glm::dot(ray.origin, plane.normal())) / denom;
+        if(d >= 0) return ray_intersection(INTERSECT, d);
+    }
+    return REJECT;
+}
+    
 Plane::Plane()
 {
     coefficients.w = 0;
@@ -41,7 +66,7 @@ Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
     coefficients.xyz() = glm::normalize(theNormal);
     coefficients.w = -glm::dot(theFoot, glm::vec3(coefficients.xyz()));
 }
-
+    
 ray_triangle_intersection Triangle::intersect(const Ray &theRay) const
 {
     glm::vec3 e1 = v1 - v0, e2 = v2 - v0;

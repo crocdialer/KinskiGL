@@ -2,43 +2,13 @@
 #include "kinskiApp/AppServer.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
-
 #include "kinskiApp/Object3DComponent.h"
+#include "kinskiCore/Animation.h"
 
 
 using namespace std;
 using namespace kinski;
 using namespace glm;
-
-
-class Animator
-{
-public:
-    
-    struct Task
-    {
-        
-    };
-    void update()
-    {
-        for (auto &task : m_tasks){task();}
-    };
-    
-    template<typename F, typename V>
-    void add_animation_task(F functor, const V &from, const V &to, double start_time, double duration)
-    {
-        
-    }
-    
-private:
-    std::list<boost::function<void()> > m_tasks;
-};
-
-template <typename T>
-boost::function<void()> create_tween(const T &from, const T &to, float duration, float delay = 0.f)
-{
-    
-}
 
 class SimpleGeometryApp : public ViewerApp
 {
@@ -66,6 +36,9 @@ private:
     gl::MaterialPtr m_post_process_mat;
     Property_<float>::Ptr m_focal_range, m_focal_depth, m_fstop;
     Property_<bool>::Ptr m_show_focus, m_auto_focus;
+    
+    float m_test_float;
+    AnimationPtr m_animation;
     
 public:
     
@@ -203,7 +176,12 @@ public:
         spot_light->children().push_back(cone_mesh);
 
         for (auto &light : lights()){scene().addObject(light);}
-
+        
+        // test animation
+        m_test_float = 0;
+        m_animation = Animation_<float>::create(m_test_float, 5, 10);
+        m_animation->set_loop();
+        
         // load state from config file(s)
         load_settings();
         
@@ -212,8 +190,6 @@ public:
         
         resize(windowSize().x, windowSize().y);
         create_dof_test(scene());
-        
-        
     }
     
     void update(float timeDelta)
@@ -240,7 +216,11 @@ public:
         {
             m_object_component->setObject(selected_mesh());
             //selected_mesh()->setLookAt(camera());
+            selected_mesh()->setScale(m_test_float);
         }
+        
+        m_animation->update(timeDelta);
+        LOG_INFO<<m_animation->progress();
     }
     
     void draw()
