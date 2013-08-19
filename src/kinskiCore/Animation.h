@@ -11,13 +11,18 @@
 
 #include "Definitions.h"
 #include "Property.h"
+#include "Easing.h"
 #include "Logger.h"
+
+#include <boost/function.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 
 namespace kinski
 {
     class Animation;
     typedef std::shared_ptr<Animation> AnimationPtr;
+    
+    typedef boost::function<float (float)> EaseFunction;
     
     class Animation
     {
@@ -32,10 +37,11 @@ namespace kinski
         inline void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD){m_playing = playback_type;}
         inline LoopType loop() const {return m_loop_type;}
         inline void set_loop(LoopType loop_type = LOOP){m_loop_type = loop_type;}
+        inline void set_ease_function(EaseFunction fn){m_ease_function = fn;}
         
         inline float progress() const
         {
-            float val = clamp((float)(m_current_time - m_start_time).total_nanoseconds() /
+            float val = clamp<float>((float)(m_current_time - m_start_time).total_nanoseconds() /
                               (float)(m_end_time - m_start_time).total_nanoseconds(), 0.f, 1.f);
             return val;
         }
@@ -52,7 +58,7 @@ namespace kinski
                 timeDelta *= -1.f;
             
             m_current_time += boost::posix_time::microseconds(timeDelta * 1.e6f);
-            update_internal(progress());
+            update_internal(m_ease_function(progress()));
             
             if(finished())
             {
@@ -76,7 +82,7 @@ namespace kinski
             float dur = duration();
             m_start_time = boost::posix_time::second_clock::local_time()
                 + boost::posix_time::microseconds(delay * 1.e6f);
-            m_end_time = m_start_time + boost::posix_time::seconds(dur);
+            m_end_time = m_start_time + boost::posix_time::microseconds(dur * 1.e6f);
             m_current_time = m_playing == PLAYBACK_FORWARD ? m_start_time : m_end_time;
         };
         
@@ -91,6 +97,7 @@ namespace kinski
         PlaybackType m_playing;
         LoopType m_loop_type;
         boost::posix_time::ptime m_start_time, m_end_time, m_current_time;
+        EaseFunction m_ease_function;
         
     protected:
         Animation(float duration):
@@ -99,7 +106,8 @@ namespace kinski
         m_loop_type(LOOP_NONE),
         m_start_time(boost::posix_time::second_clock::local_time()),
         m_end_time(m_start_time + boost::posix_time::seconds(duration)),
-        m_current_time(m_start_time){}
+        m_current_time(m_start_time),
+        m_ease_function(kinski::EaseNone()){}
     };
     
     int Animation::s_id_pool = 0;

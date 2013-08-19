@@ -179,8 +179,9 @@ public:
         
         // test animation
         m_test_float = 0;
-        m_animation = Animation_<float>::create(&m_test_float, 5, 20);
+        m_animation = Animation_<float>::create(&m_test_float, 5, 5);
         m_animation->set_loop(Animation::LOOP);
+        m_animation->set_ease_function(kinski::EaseOutBounce(.5f));
         
         // load state from config file(s)
         load_settings();
@@ -222,6 +223,8 @@ public:
         }
         
         m_animation->update(timeDelta);
+        
+        assert(m_test_float <= 5.f && m_test_float >= 0.f);
         //LOG_DEBUG<<*m_animationTime;
     }
     

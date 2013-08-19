@@ -60,10 +60,7 @@ namespace kinski
     template <typename T>
     inline T clamp(const T &val, const T &min, const T &max)
     {
-        T ret;
-        ret = std::max(val, min);
-        ret = std::min(val, max);
-        return ret;
+        return val < min ? min : (val > max ? max : val);
     }
 }
 
