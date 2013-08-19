@@ -38,16 +38,7 @@ public:
 	inline void setTweakable(bool isTweakable) {m_tweakable = isTweakable;};
 	inline bool isTweakable() const {return m_tweakable;};
     inline bool empty() const {return m_value.empty();};
-    
-//    inline void setValue(const boost::any& theValue)
-//    {
-//        if (theValue.type() != m_value.type()) {throw WrongTypeSetException(m_name);}
-//        if(checkValue(theValue))
-//            m_value = theValue;
-//        
-//        notifyObservers();
-//    }
-    
+
     template <typename T> 
     inline void setValue(const T& theValue)
     {
@@ -77,6 +68,19 @@ public:
         try
         {
             return *boost::any_cast<T>(&m_value);
+        }
+        catch (const boost::bad_any_cast &theException)
+        {
+            throw WrongTypeGetException(m_name);
+        }
+    }
+    
+    template <typename T>
+    inline T* getValuePtr()
+    {
+        try
+        {
+            return boost::any_cast<T>(&m_value);
         }
         catch (const boost::bad_any_cast &theException)
         {

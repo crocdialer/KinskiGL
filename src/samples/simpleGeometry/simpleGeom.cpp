@@ -179,8 +179,8 @@ public:
         
         // test animation
         m_test_float = 0;
-        m_animation = Animation_<float>::create(m_test_float, 5, 10);
-        m_animation->set_loop();
+        m_animation = Animation_<float>::create(&m_test_float, 5, 20);
+        m_animation->set_loop(Animation::LOOP);
         
         // load state from config file(s)
         load_settings();
@@ -190,6 +190,8 @@ public:
         
         resize(windowSize().x, windowSize().y);
         create_dof_test(scene());
+        
+        //m_animation->start(10.f);
     }
     
     void update(float timeDelta)
@@ -220,7 +222,7 @@ public:
         }
         
         m_animation->update(timeDelta);
-        LOG_INFO<<m_animation->progress();
+        //LOG_DEBUG<<*m_animationTime;
     }
     
     void draw()

@@ -10,6 +10,7 @@
 #define __kinskiGL__Animation__
 
 #include "Definitions.h"
+#include "Property.h"
 #include "Logger.h"
 #include "boost/date_time/posix_time/posix_time.hpp"
 
@@ -22,37 +23,64 @@ namespace kinski
     {
     public:
         
+        enum LoopType {LOOP_NONE = 0, LOOP = 1, LOOP_BACK_FORTH = 2};
+        enum PlaybackType {PLAYBACK_PAUSED = 0, PLAYBACK_FORWARD = 1, PLAYBACK_BACKWARD = 2};
+        
         int getId() const {return m_id;}
         inline float duration() const {return (m_end_time - m_start_time).total_nanoseconds() / 1.e9f;}
-        inline bool loop() const {return m_loop;}
-        inline void set_loop(bool b = true){m_loop = b;}
+        inline PlaybackType playing() const {return m_playing;}
+        inline void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD){m_playing = playback_type;}
+        inline LoopType loop() const {return m_loop_type;}
+        inline void set_loop(LoopType loop_type = LOOP){m_loop_type = loop_type;}
+        
         inline float progress() const
         {
-            return clamp((float)(m_current_time - m_start_time).total_nanoseconds() /
-            (float)(m_end_time - m_start_time).total_nanoseconds(), 0.f, 1.f);
+            float val = clamp((float)(m_current_time - m_start_time).total_nanoseconds() /
+                              (float)(m_end_time - m_start_time).total_nanoseconds(), 0.f, 1.f);
+            return val;
         }
-        inline bool finished() const {return m_current_time > m_end_time;}
+        
+        inline bool finished() const
+        {
+            return m_current_time > m_end_time || m_current_time < m_start_time;
+        }
         
         void update(float timeDelta)
         {
+            if(!m_playing) return;
+            if(m_playing == PLAYBACK_BACKWARD)
+                timeDelta *= -1.f;
+            
             m_current_time += boost::posix_time::microseconds(timeDelta * 1.e6f);
             update_internal(progress());
+            
             if(finished())
             {
-                if(loop()){ start(); }
+                if(loop())
+                {
+                    if(m_loop_type == LOOP_BACK_FORTH)
+                    {
+                        m_playing = m_playing == PLAYBACK_FORWARD ? PLAYBACK_BACKWARD : PLAYBACK_FORWARD;
+                    }
+                    start();
+                }
                 LOG_DEBUG<<"animation finished";
-                return;
             }
         };
         
-        void start()
+        void start(float delay = 0.f)
         {
+            if(!m_playing)
+                m_playing = PLAYBACK_FORWARD;
+            
             float dur = duration();
-            m_start_time = m_current_time = boost::posix_time::second_clock::local_time();
+            m_start_time = boost::posix_time::second_clock::local_time()
+                + boost::posix_time::microseconds(delay * 1.e6f);
             m_end_time = m_start_time + boost::posix_time::seconds(dur);
+            m_current_time = m_playing == PLAYBACK_FORWARD ? m_start_time : m_end_time;
         };
         
-        void stop(){};
+        void stop(){m_playing = PLAYBACK_PAUSED;};
         
     private:
         
@@ -60,15 +88,15 @@ namespace kinski
         
         static int s_id_pool;
         int m_id;
-        bool m_running;
-        bool m_loop;
+        PlaybackType m_playing;
+        LoopType m_loop_type;
         boost::posix_time::ptime m_start_time, m_end_time, m_current_time;
         
     protected:
         Animation(float duration):
         m_id(s_id_pool++),
-        m_running(true),
-        m_loop(false),
+        m_playing(PLAYBACK_FORWARD),
+        m_loop_type(LOOP_NONE),
         m_start_time(boost::posix_time::second_clock::local_time()),
         m_end_time(m_start_time + boost::posix_time::seconds(duration)),
         m_current_time(m_start_time){}
@@ -81,19 +109,26 @@ namespace kinski
     {
     public:
         
-        static AnimationPtr create(T& value, const T &to_value, float duration)
+        static AnimationPtr create(T* value_ptr, const T &to_value, float duration)
         {
-            return AnimationPtr(new Animation_<T>(value, to_value, duration));
+            return AnimationPtr(new Animation_<T>(value_ptr, to_value, duration));
+        }
+        
+        static AnimationPtr create(typename Property_<T>::Ptr property, const T &to_value, float duration)
+        {
+            T *value_ptr = property->template getValuePtr<T>();
+            return AnimationPtr(new Animation_<T>(value_ptr, to_value, duration));
         }
         
     private:
         
-        Animation_(T& value, const T& to_value, float duration):
+        Animation_(T* value_ptr, const T& to_value, float duration):
         Animation(duration),
-        m_value(&value), m_start_value(value), m_end_value(to_value){}
+        m_value(value_ptr), m_start_value(*value_ptr), m_end_value(to_value){}
         
         void update_internal(float progress)
         {
+            //TODO: animation curves / easing
             *m_value = (1.f - progress) * m_start_value + progress * m_end_value;
         }
         

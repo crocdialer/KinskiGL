@@ -107,11 +107,6 @@ namespace kinski{ namespace gl{
                     {
                         for (int i = 0; i < m->entries().size(); i++)
                         {
-//                            m->materials()[i]->shader().uniform("u_modelViewMatrix", modelView);
-//                            m->materials()[i]->shader().uniform("u_normalMatrix",
-//                                                                glm::inverseTranspose( glm::mat3(modelView) ));
-//                            m->materials()[i]->shader().uniform("u_modelViewProjectionMatrix",
-//                                                                cam->getProjectionMatrix() * modelView);
                             apply_material(m->materials()[i]);
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),
