@@ -47,7 +47,7 @@ if(BUILD_SAMPLES)
     ADD_SUBDIRECTORY("samples_raspi")
     else()
     ADD_SUBDIRECTORY("samples")
+    ADD_SUBDIRECTORY("production")
     endif(KINSKI_RASPI)
 endif(BUILD_SAMPLES)
 
-ADD_SUBDIRECTORY("production")

@@ -36,7 +36,7 @@ struct KINSKI_API Ray
     inline Ray& transform(const glm::mat4& t)
 	{
 		origin = (t * glm::vec4(origin, 1.0f)).xyz();
-		direction = glm::normalize(glm::inverseTranspose(glm::mat3(t)) * direction);
+		direction = glm::normalize(glm::mat3(t) * direction);
 		return *this;
 	};
     

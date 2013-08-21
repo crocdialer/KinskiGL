@@ -51,10 +51,11 @@ namespace kinski { namespace gl {
         inline const glm::mat4& transform() const {return m_transform;};
         glm::mat4 global_transform() const;
         
-        inline void set_parent(const Object3DPtr &the_parent){m_parent = the_parent;}
+        void set_parent(const Object3DPtr &the_parent);
         inline Object3DPtr parent() const {return m_parent.lock();}
         
         void add_child(const Object3DPtr &the_child);
+        void remove_child(const Object3DPtr &the_child);
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
         

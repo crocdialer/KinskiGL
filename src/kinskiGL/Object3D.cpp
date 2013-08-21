@@ -62,10 +62,46 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    void Object3D::set_parent(const Object3DPtr &the_parent)
+    {
+        // detach object from former parent
+        if(Object3DPtr p = parent())
+        {
+            p->remove_child(shared_from_this());
+        }
+
+        if(the_parent)
+        {
+            the_parent->add_child(shared_from_this());
+        }
+        else
+        {
+            m_parent.reset();
+        }
+    }
+    
     void Object3D::add_child(const Object3DPtr &the_child)
     {
-        the_child->set_parent(shared_from_this());
-        m_children.push_back(the_child);
+        if(the_child)
+        {
+            the_child->set_parent(Object3DPtr());
+            the_child->m_parent = shared_from_this();
+        }
+        // prevent multiple insertions
+        if(std::find(m_children.begin(), m_children.end(), the_child) == m_children.end())
+        {
+            m_children.push_back(the_child);
+        }
+    }
+    
+    void Object3D::remove_child(const Object3DPtr &the_child)
+    {
+        std::list<Object3DPtr>::iterator it = std::find(m_children.begin(), m_children.end(), the_child);
+        if(it != m_children.end())
+        {
+            m_children.erase(it);
+            if(the_child){the_child->set_parent(Object3DPtr());}
+        }
     }
     
     AABB Object3D::boundingBox() const

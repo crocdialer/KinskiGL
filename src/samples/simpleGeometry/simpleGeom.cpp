@@ -38,7 +38,8 @@ private:
     Property_<bool>::Ptr m_show_focus, m_auto_focus;
     
     float m_test_float;
-    AnimationPtr m_animation;
+    AnimationPtr m_animation, m_property_animation;
+    std::list<AnimationPtr> m_animations;
     
 public:
     
@@ -179,9 +180,17 @@ public:
         
         // test animation
         m_test_float = 0;
-        m_animation = Animation_<float>::create(&m_test_float, 5, 5);
+        m_animation = Animation_<float>::create(&m_test_float, 5.f, 5.f);
         m_animation->set_loop(Animation::LOOP);
         m_animation->set_ease_function(kinski::EaseOutBounce(.5f));
+        
+        m_property_animation = PropertyAnimation_<float>::create(m_animationTime, 1.f, 5);
+        m_property_animation->set_loop();
+        m_property_animation->set_ease_function(kinski::EaseOutBounce(.5f));
+        
+        // add to animations to list
+        m_animations.push_back(m_animation);
+        m_animations.push_back(m_property_animation);
         
         // load state from config file(s)
         load_settings();
@@ -219,10 +228,11 @@ public:
         {
             m_object_component->setObject(selected_mesh());
             //selected_mesh()->setLookAt(camera());
-            selected_mesh()->setScale(m_test_float);
+            selected_mesh()->setScale(*m_animationTime);
         }
         
         m_animation->update(timeDelta);
+        m_property_animation->update(timeDelta);
         
         assert(m_test_float <= 5.f && m_test_float >= 0.f);
         //LOG_DEBUG<<*m_animationTime;
@@ -355,6 +365,21 @@ public:
                                                      + m_label->boundingBox().height())
                                  - m_label->boundingBox().center());
             m_label->setRotation(glm::mat3(camera()->transform()));
+        }
+        
+        // create a ray
+        gl::Ray ray = gl::calculateRay(camera(), e.getX(), e.getY());
+        
+        // calculate intersection of ray and an origin-centered plane
+        gl::Plane plane = gl::Plane(vec3(0), vec3(0, 0, 1));
+        
+        gl::ray_intersection ri = plane.intersect(ray);
+        
+        if(ri)
+        {
+            vec3 p = ray * ri.distance;
+            LOG_DEBUG<<"hit at distance: "<<ri.distance;
+            LOG_DEBUG<<glm::to_string(p);
         }
     }
     

@@ -87,7 +87,7 @@ namespace kinski
 #endif
 
 // compiler has C++11 stdlib
-#if __cplusplus > 199711L || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
+#if KINSKI_MSW || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
 #include <memory>
 #else
 #include <boost/shared_ptr.hpp>

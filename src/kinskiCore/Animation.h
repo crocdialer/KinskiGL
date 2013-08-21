@@ -41,7 +41,7 @@ namespace kinski
         
         inline float progress() const
         {
-            float val = clamp<float>((float)(m_current_time - m_start_time).total_nanoseconds() /
+            float val = clamp((float)(m_current_time - m_start_time).total_nanoseconds() /
                               (float)(m_end_time - m_start_time).total_nanoseconds(), 0.f, 1.f);
             return val;
         }
@@ -70,7 +70,7 @@ namespace kinski
                     }
                     start();
                 }
-                LOG_DEBUG<<"animation finished";
+                LOG_DEBUG<<"Animation "<<as_string(getId())<<" finished";
             }
         };
         
@@ -122,12 +122,6 @@ namespace kinski
             return AnimationPtr(new Animation_<T>(value_ptr, to_value, duration));
         }
         
-        static AnimationPtr create(typename Property_<T>::Ptr property, const T &to_value, float duration)
-        {
-            T *value_ptr = property->template getValuePtr<T>();
-            return AnimationPtr(new Animation_<T>(value_ptr, to_value, duration));
-        }
-        
     private:
         
         Animation_(T* value_ptr, const T& to_value, float duration):
@@ -136,13 +130,40 @@ namespace kinski
         
         void update_internal(float progress)
         {
-            //TODO: animation curves / easing
             *m_value = (1.f - progress) * m_start_value + progress * m_end_value;
         }
         
         T* m_value;
         T m_start_value, m_end_value;
     };
+    
+    template<typename T>
+    class PropertyAnimation_ : public Animation
+    {
+    public:
+        static AnimationPtr create(typename Property_<T>::Ptr property, const T &to_value, float duration)
+        {
+            return AnimationPtr(new PropertyAnimation_<T>(property, to_value, duration));
+        }
+        
+    private:
+        
+        PropertyAnimation_(typename Property_<T>::Ptr property, const T& to_value, float duration):
+        Animation(duration),
+        m_weak_property(property), m_start_value(*property), m_end_value(to_value){}
+        
+        void update_internal(float progress)
+        {
+            if(typename Property_<T>::Ptr prop = m_weak_property.lock())
+            {
+                *prop = (1.f - progress) * m_start_value + progress * m_end_value;
+            }
+        }
+        
+        typename std::weak_ptr<Property_<T> > m_weak_property;
+        T m_start_value, m_end_value;
+    };
+    
 }//namespace
 
 #endif /* defined(__kinskiGL__Animation__) */

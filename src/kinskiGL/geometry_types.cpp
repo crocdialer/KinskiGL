@@ -30,7 +30,7 @@ ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray)
     float denom = glm::dot(plane.normal(), ray.direction);
     if (denom > 1e-6)
     {
-        float d = (-plane.coefficients.z - glm::dot(ray.origin, plane.normal())) / denom;
+        float d = (plane.coefficients.z - glm::dot(ray.origin, plane.normal())) / denom;
         if(d >= 0) return ray_intersection(INTERSECT, d);
     }
     return REJECT;
