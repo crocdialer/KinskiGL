@@ -83,7 +83,8 @@ namespace kinski
             m_start_time = boost::posix_time::second_clock::local_time()
                 + boost::posix_time::microseconds(delay * 1.e6f);
             m_end_time = m_start_time + boost::posix_time::microseconds(dur * 1.e6f);
-            m_current_time = m_playing == PLAYBACK_FORWARD ? m_start_time : m_end_time;
+            m_current_time = m_start_time;
+            //m_current_time = m_playing == PLAYBACK_FORWARD ? m_start_time : m_end_time;
         };
         
         void stop(){m_playing = PLAYBACK_PAUSED;};

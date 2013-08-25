@@ -422,7 +422,8 @@ public:
                 m->position().y = -m->boundingBox().min.y;
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
-                scene().addObject(m_mesh);                
+                scene().addObject(m_mesh);
+                m->material()->setShader(gl::createShader(gl::SHADER_GOURAUD));
             } catch (Exception &e){ LOG_ERROR<< e.what(); }
         }
     }
@@ -456,7 +457,7 @@ public:
     
     void create_dof_test(gl::Scene &the_scene)
     {
-        gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
+        gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_GOURAUD));
         mat->addTexture(gl::createTextureFromFile("stone_color.jpg", true, true));
         
         for (int i = 0; i < 90; i++)

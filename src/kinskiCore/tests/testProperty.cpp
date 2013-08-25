@@ -63,9 +63,25 @@ BOOST_AUTO_TEST_CASE( testObserver )
     
     BOOST_CHECK(!obs1->m_triggered);
     BOOST_CHECK(obs2->m_triggered);
-
+    
     intProp->set(111);
     BOOST_CHECK(intProp->value() == 111);
+    
+    obs1->m_triggered = false;
+    obs2->m_triggered = false;
+    
+    // this part tests the rather hacky way of manipulating
+    // the underlying data directly via references or pointers.
+    // keep in mind that no observer notifications or range checks are performed when using this
+    uint32_t &int_ref = intProp->value();
+    int_ref = 69;
+    BOOST_CHECK(intProp->value() == 69);
+    BOOST_CHECK(!obs2->m_triggered);
+    
+    uint32_t *int_ptr = intProp->getValuePtr<uint32_t>();
+    *int_ptr = 54321;
+    BOOST_CHECK(*intProp == 54321);
+    BOOST_CHECK(!obs2->m_triggered);
 }
 
 //____________________________________________________________________________//

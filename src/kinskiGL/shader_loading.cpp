@@ -77,9 +77,9 @@ namespace kinski { namespace gl {
             float spotExponent;
         };);
         
-        std::string shade_phong_block = STRINGIFY(
-        vec4 shade_phong(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
-                         in vec4 base_color)
+        std::string shade_function_block = STRINGIFY(
+        vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec,
+                   in vec4 base_color)
         {
           vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position;
           vec3 L = normalize(lightDir);
@@ -132,8 +132,6 @@ namespace kinski { namespace gl {
             vec3 normal;
             vec3 eyeVec;
         } vertex_out;
-                                                    
-        //out Lightsource v_lights[8];
         
         void main()
         {
@@ -145,7 +143,8 @@ namespace kinski { namespace gl {
         
         std::string frag_shader_phong = STRINGIFY(
         uniform Material u_material;
-                                                  uniform Lightsource u_lights[16];
+        uniform Lightsource u_lights[16];
+                                                  
         in VertexData
         {
             vec4 color;
@@ -153,8 +152,6 @@ namespace kinski { namespace gl {
             vec3 normal;
             vec3 eyeVec;
         } vertex_in;
-                                                  
-        //in Lightsource v_lights[8];
                                                   
         out vec4 fragData;
         void main()
@@ -171,10 +168,67 @@ namespace kinski { namespace gl {
             vec4 shade_color = vec4(0);
             for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
             {
-                shade_color += shade_phong(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
+                shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
             }
             fragData = shade_color;
         });
+        
+        std::string vertex_shader_gouraud = STRINGIFY(
+            uniform mat4 u_modelViewMatrix;
+            uniform mat4 u_modelViewProjectionMatrix;
+            uniform mat3 u_normalMatrix;
+            uniform mat4 u_textureMatrix;
+            uniform Material u_material;
+            uniform Lightsource u_lights[16];
+                                                      
+            in vec4 a_vertex;
+            in vec3 a_normal;
+            in vec4 a_texCoord;
+            
+            out VertexData{
+                vec4 color;
+                vec4 texCoord;
+//                vec3 normal;
+//                vec3 eyeVec;
+            } vertex_out;
+            
+            void main()
+            {
+                vertex_out.texCoord = u_textureMatrix * a_texCoord;
+                vec3 normal = normalize(u_normalMatrix * a_normal);
+                vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
+                vec4 shade_color = vec4(0);
+                for(int i = 0; i < u_numLights; i++)
+                {
+                    shade_color += shade(u_lights[i], u_material, normal, eyeVec, vec4(1));
+                }
+                vertex_out.color = shade_color;
+                gl_Position = u_modelViewProjectionMatrix * a_vertex;
+            });
+        
+        std::string frag_shader_gouraud = STRINGIFY(
+            uniform int u_numTextures;
+            uniform sampler2D u_textureMap[16];
+
+            in VertexData
+            {
+                vec4 color;
+                vec4 texCoord;
+//                vec3 normal;
+//                vec3 eyeVec;
+            } vertex_in;
+
+            out vec4 fragData;
+            void main()
+            {
+              // accumulate all texture maps
+              vec4 texColors = vec4(1);
+              for(int i = 0; i < u_numTextures; i++)
+              {
+                  texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
+              }
+              fragData = vertex_in.color * texColors;
+            });
         
 #ifdef KINSKI_GLES
         const char *unlitVertSrc = GLSL( ,
@@ -693,6 +747,18 @@ namespace kinski { namespace gl {
             case SHADER_UNLIT:
                 ret.loadFromData(unlitVertSrc, unlitFragSrc);
                 break;
+            
+            case SHADER_GOURAUD:
+                vert_src =  glsl_header_150 +
+                material_block +
+                light_block +
+                shade_function_block +
+                vertex_shader_gouraud;
+                
+                frag_src =  glsl_header_150 +
+                frag_shader_gouraud;
+                ret.loadFromData(vert_src.c_str(), frag_src.c_str());
+                break;
                 
             case SHADER_PHONG:
                 vert_src =  glsl_header_150 +
@@ -703,7 +769,7 @@ namespace kinski { namespace gl {
                 frag_src =  glsl_header_150 +
                             material_block +
                             light_block +
-                            shade_phong_block +
+                            shade_function_block +
                             frag_shader_phong;
                 ret.loadFromData(vert_src.c_str(), frag_src.c_str());
                 break;
@@ -717,7 +783,7 @@ namespace kinski { namespace gl {
                 frag_src =  glsl_header_150 +
                 material_block +
                 light_block +
-                shade_phong_block +
+                shade_function_block +
                 frag_shader_phong;
                 ret.loadFromData(phongVertSrc_skin, frag_src.c_str());
                 break;
