@@ -43,6 +43,8 @@ namespace kinski
         {
             float val = clamp((float)(m_current_time - m_start_time).total_nanoseconds() /
                               (float)(m_end_time - m_start_time).total_nanoseconds(), 0.f, 1.f);
+            
+            if(m_playing == PLAYBACK_BACKWARD){val = 1.f - val;}
             return val;
         }
         
@@ -54,9 +56,7 @@ namespace kinski
         void update(float timeDelta)
         {
             if(!m_playing) return;
-            if(m_playing == PLAYBACK_BACKWARD)
-                timeDelta *= -1.f;
-            
+
             m_current_time += boost::posix_time::microseconds(timeDelta * 1.e6f);
             update_internal(m_ease_function(progress()));
             
@@ -70,7 +70,7 @@ namespace kinski
                     }
                     start();
                 }
-                LOG_DEBUG<<"Animation "<<as_string(getId())<<" finished";
+                LOG_TRACE<<"Animation "<<as_string(getId())<<" finished";
             }
         };
         
@@ -84,7 +84,6 @@ namespace kinski
                 + boost::posix_time::microseconds(delay * 1.e6f);
             m_end_time = m_start_time + boost::posix_time::microseconds(dur * 1.e6f);
             m_current_time = m_start_time;
-            //m_current_time = m_playing == PLAYBACK_FORWARD ? m_start_time : m_end_time;
         };
         
         void stop(){m_playing = PLAYBACK_PAUSED;};

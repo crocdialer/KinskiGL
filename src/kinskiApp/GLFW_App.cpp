@@ -122,6 +122,9 @@ namespace kinski
     
     void GLFW_App::draw_internal()
     {
+        glDepthMask(GL_TRUE);
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         draw();
         
         // draw tweakbar

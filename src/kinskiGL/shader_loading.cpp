@@ -43,8 +43,6 @@ namespace kinski { namespace gl {
         std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
         
         std::string material_block = STRINGIFY(
-        uniform int u_numTextures;
-        uniform sampler2D u_textureMap[16];
         struct Material
         {
           vec4 diffuse;
@@ -144,7 +142,8 @@ namespace kinski { namespace gl {
         std::string frag_shader_phong = STRINGIFY(
         uniform Material u_material;
         uniform Lightsource u_lights[16];
-                                                  
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[16];
         in VertexData
         {
             vec4 color;
@@ -174,61 +173,58 @@ namespace kinski { namespace gl {
         });
         
         std::string vertex_shader_gouraud = STRINGIFY(
-            uniform mat4 u_modelViewMatrix;
-            uniform mat4 u_modelViewProjectionMatrix;
-            uniform mat3 u_normalMatrix;
-            uniform mat4 u_textureMatrix;
-            uniform Material u_material;
-            uniform Lightsource u_lights[16];
-                                                      
-            in vec4 a_vertex;
-            in vec3 a_normal;
-            in vec4 a_texCoord;
-            
-            out VertexData{
-                vec4 color;
-                vec4 texCoord;
-//                vec3 normal;
-//                vec3 eyeVec;
-            } vertex_out;
-            
-            void main()
+        uniform mat4 u_modelViewMatrix;
+        uniform mat4 u_modelViewProjectionMatrix;
+        uniform mat3 u_normalMatrix;
+        uniform mat4 u_textureMatrix;
+        uniform Material u_material;
+        uniform Lightsource u_lights[16];
+                                                  
+        in vec4 a_vertex;
+        in vec3 a_normal;
+        in vec4 a_texCoord;
+        
+        out VertexData
+        {
+            vec4 color;
+            vec4 texCoord;
+        } vertex_out;
+        
+        void main()
+        {
+            vertex_out.texCoord = u_textureMatrix * a_texCoord;
+            vec3 normal = normalize(u_normalMatrix * a_normal);
+            vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
+            vec4 shade_color = vec4(0);
+            for(int i = 0; i < u_numLights; i++)
             {
-                vertex_out.texCoord = u_textureMatrix * a_texCoord;
-                vec3 normal = normalize(u_normalMatrix * a_normal);
-                vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
-                vec4 shade_color = vec4(0);
-                for(int i = 0; i < u_numLights; i++)
-                {
-                    shade_color += shade(u_lights[i], u_material, normal, eyeVec, vec4(1));
-                }
-                vertex_out.color = shade_color;
-                gl_Position = u_modelViewProjectionMatrix * a_vertex;
-            });
+                shade_color += shade(u_lights[i], u_material, normal, eyeVec, vec4(1));
+            }
+            vertex_out.color = shade_color;
+            gl_Position = u_modelViewProjectionMatrix * a_vertex;
+        });
         
         std::string frag_shader_gouraud = STRINGIFY(
-            uniform int u_numTextures;
-            uniform sampler2D u_textureMap[16];
+        uniform int u_numTextures;
+        uniform sampler2D u_textureMap[16];
 
-            in VertexData
-            {
-                vec4 color;
-                vec4 texCoord;
-//                vec3 normal;
-//                vec3 eyeVec;
-            } vertex_in;
+        in VertexData
+        {
+            vec4 color;
+            vec4 texCoord;
+        } vertex_in;
 
-            out vec4 fragData;
-            void main()
-            {
-              // accumulate all texture maps
-              vec4 texColors = vec4(1);
-              for(int i = 0; i < u_numTextures; i++)
-              {
-                  texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
-              }
-              fragData = vertex_in.color * texColors;
-            });
+        out vec4 fragData;
+        void main()
+        {
+          // accumulate all texture maps
+          vec4 texColors = vec4(1);
+          for(int i = 0; i < u_numTextures; i++)
+          {
+              texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
+          }
+          fragData = vertex_in.color * texColors;
+        });
         
 #ifdef KINSKI_GLES
         const char *unlitVertSrc = GLSL( ,

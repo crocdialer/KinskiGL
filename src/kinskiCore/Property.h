@@ -52,40 +52,22 @@ public:
     template <typename T>
     inline const T& getValue() const
     {
-        try
-        {
-            return *boost::any_cast<T>(&m_value);
-        }
-        catch (const boost::bad_any_cast &theException)
-        {
-            throw WrongTypeGetException(m_name);
-        }
+        try{return *boost::any_cast<T>(&m_value);}
+        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
     }
     
     template <typename T>
     inline T& getValue()
     {
-        try
-        {
-            return *boost::any_cast<T>(&m_value);
-        }
-        catch (const boost::bad_any_cast &theException)
-        {
-            throw WrongTypeGetException(m_name);
-        }
+        try{return *boost::any_cast<T>(&m_value);}
+        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
     }
     
     template <typename T>
     inline T* getValuePtr()
     {
-        try
-        {
-            return boost::any_cast<T>(&m_value);
-        }
-        catch (const boost::bad_any_cast &theException)
-        {
-            throw WrongTypeGetException(m_name);
-        }
+        try{return boost::any_cast<T>(&m_value);}
+        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
     }
     
     template <typename C>
@@ -161,6 +143,13 @@ public:
     inline void set(const T &theVal){setValue<T>(theVal);};
     inline void value(const T &theVal){set(theVal);};
     inline operator const T&() const { return value(); }
+    
+    inline Property_<T>& operator=(const Property_<T> &theProp)
+    {
+        setName(theProp.getName());
+        set(theProp.value());
+        return *this;
+    };
     
     inline Property_<T>& operator=(const T &theVal)
     {

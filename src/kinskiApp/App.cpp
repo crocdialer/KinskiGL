@@ -43,10 +43,7 @@ namespace kinski
         
         // Main loop
         while( m_running )
-        {
-            glDepthMask(GL_TRUE);
-            glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            
+        {            
             // update application time
             timeStamp = getApplicationTime();
             
@@ -103,7 +100,7 @@ namespace kinski
             m_framesPerSec = m_framesDrawn / diff;
             m_framesDrawn = 0;
             m_lastMeasurementTimeStamp = timeStamp;
-            LOG_TRACE<< m_framesPerSec << "fps -- "<<getApplicationTime()<<" sec running ...";
+            //LOG_TRACE<< m_framesPerSec << "fps -- "<<getApplicationTime()<<" sec running ...";
         }
     }
 }

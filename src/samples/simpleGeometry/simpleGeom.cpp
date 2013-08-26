@@ -21,6 +21,7 @@ private:
     
     gl::MaterialPtr m_draw_depth_material;
     
+    Property_<bool>::Ptr m_use_phong;
     Property_<bool>::Ptr m_use_fbo;
     Property_<string>::Ptr m_modelPath;
     RangedProperty<float>::Ptr m_animationTime;
@@ -59,6 +60,9 @@ public:
         m_font.load("Courier New Bold.ttf", 24);
         
         /*********** init our application properties ******************/
+        
+        m_use_phong = Property_<bool>::create("Use Phong shader (per pixel)", true);
+        registerProperty(m_use_phong);
         
         m_use_fbo = Property_<bool>::create("Use FBO", false);
         registerProperty(m_use_fbo);
@@ -181,7 +185,7 @@ public:
         // test animation
         m_test_float = 0;
         m_animation = Animation_<float>::create(&m_test_float, 5.f, 5.f);
-        m_animation->set_loop(Animation::LOOP);
+        m_animation->set_loop(Animation::LOOP_BACK_FORTH);
         m_animation->set_ease_function(kinski::EaseOutBounce(.5f));
         
         m_property_animation = PropertyAnimation_<float>::create(m_animationTime, 1.f, 5);
@@ -423,8 +427,15 @@ public:
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
                 scene().addObject(m_mesh);
-                m->material()->setShader(gl::createShader(gl::SHADER_GOURAUD));
+                *m_use_phong = *m_use_phong;
             } catch (Exception &e){ LOG_ERROR<< e.what(); }
+        }
+        else if(theProperty == m_use_phong)
+        {
+            gl::Shader shader = gl::createShader(*m_use_phong ? gl::SHADER_PHONG :
+                                                 gl::SHADER_GOURAUD);
+            if(m_mesh){m_mesh->material()->setShader(shader);}
+            if(selected_mesh()){selected_mesh()->material()->setShader(shader);}
         }
     }
     
