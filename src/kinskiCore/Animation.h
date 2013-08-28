@@ -21,7 +21,6 @@ namespace kinski
 {
     class Animation;
     typedef std::shared_ptr<Animation> AnimationPtr;
-    
     typedef boost::function<float (float)> EaseFunction;
     
     class Animation
@@ -50,7 +49,7 @@ namespace kinski
         
         inline bool finished() const
         {
-            return m_current_time > m_end_time || m_current_time < m_start_time;
+            return m_current_time > m_end_time;
         }
         
         void update(float timeDelta)
@@ -74,16 +73,18 @@ namespace kinski
             }
         };
         
+        /*!
+         * Start the animation with an optional delay in seconds
+         */
         void start(float delay = 0.f)
         {
             if(!m_playing)
                 m_playing = PLAYBACK_FORWARD;
             
             float dur = duration();
-            m_start_time = boost::posix_time::second_clock::local_time()
-                + boost::posix_time::microseconds(delay * 1.e6f);
+            m_current_time = boost::posix_time::second_clock::local_time();
+            m_start_time = m_current_time + boost::posix_time::microseconds(delay * 1.e6f);
             m_end_time = m_start_time + boost::posix_time::microseconds(dur * 1.e6f);
-            m_current_time = m_start_time;
         };
         
         void stop(){m_playing = PLAYBACK_PAUSED;};
@@ -117,20 +118,20 @@ namespace kinski
     {
     public:
         
-        static AnimationPtr create(T* value_ptr, const T &to_value, float duration)
+        static AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration)
         {
-            return AnimationPtr(new Animation_<T>(value_ptr, to_value, duration));
+            return AnimationPtr(new Animation_<T>(value_ptr, from_value, to_value, duration));
         }
         
     private:
         
-        Animation_(T* value_ptr, const T& to_value, float duration):
+        Animation_(T* value_ptr, const T &from_value, const T &to_value, float duration):
         Animation(duration),
-        m_value(value_ptr), m_start_value(*value_ptr), m_end_value(to_value){}
+        m_value(value_ptr), m_start_value(from_value), m_end_value(to_value){}
         
         void update_internal(float progress)
         {
-            *m_value = (1.f - progress) * m_start_value + progress * m_end_value;
+            *m_value = mix(m_start_value, m_end_value, progress);
         }
         
         T* m_value;
@@ -156,7 +157,7 @@ namespace kinski
         {
             if(typename Property_<T>::Ptr prop = m_weak_property.lock())
             {
-                *prop = (1.f - progress) * m_start_value + progress * m_end_value;
+                *prop = mix(m_start_value, m_end_value, progress);
             }
         }
         

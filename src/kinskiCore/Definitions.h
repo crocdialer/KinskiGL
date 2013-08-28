@@ -62,6 +62,12 @@ namespace kinski
     {
         return val < min ? min : (val > max ? max : val);
     }
+    
+    template <typename T>
+    inline T mix(const T &lhs, const T &rhs, float ratio)
+    {
+        return lhs + ratio * (rhs - lhs);
+    }
 }
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
