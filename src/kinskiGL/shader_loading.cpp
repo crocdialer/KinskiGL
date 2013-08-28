@@ -43,7 +43,7 @@ namespace kinski { namespace gl {
         std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
         
         std::string material_block = STRINGIFY(
-        struct Material
+        struct Material\n
         {
           vec4 diffuse;
           vec4 ambient;
@@ -107,7 +107,7 @@ namespace kinski { namespace gl {
           }
           nDotL = max(0.0, nDotL);
           
-          float specIntesity = pow( max(dot(R, E), 0.0), mat.shinyness);
+          float specIntesity = clamp(pow( max(dot(R, E), 0.0), mat.shinyness), 0.0, 1.0);
           vec4 ambient = mat.ambient * light.ambient;
           vec4 diffuse = mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0);
           vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;

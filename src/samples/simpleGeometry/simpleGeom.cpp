@@ -104,7 +104,7 @@ public:
         create_tweakbar_from_component(m_object_component);
         
         /********************** construct a simple scene ***********************/
-        camera()->setClippingPlanes(1.0, 5000);
+        camera()->setClippingPlanes(100.0, 5000);
         
         // configure fbo
         int numsamples = m_frameBuffer.getMaxSamples();//4
@@ -137,7 +137,7 @@ public:
         }
         
         // groundplane
-        gl::Geometry::Ptr plane_geom(gl::createPlane(1000, 1000));
+        gl::Geometry::Ptr plane_geom(gl::Geometry::createPlane(1000, 1000, 2, 2));
         gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_PHONG));
         materials().push_back(mat);
         gl::MeshPtr ground_plane = gl::Mesh::create(plane_geom, mat);
@@ -168,7 +168,7 @@ public:
         spot_light->set_spot_exponent(15.f);
         
         // lightcone
-        gl::Geometry::Ptr cone_geom(gl::createCone(100, 200, 32));
+        gl::Geometry::Ptr cone_geom(gl::Geometry::createCone(100, 200, 32));
         gl::MeshPtr cone_mesh = gl::Mesh::create(cone_geom, gl::Material::create());
         cone_mesh->material()->setDiffuse(gl::Color(1.f, 1.f, .9f, .7f));
         cone_mesh->material()->setBlending();
@@ -176,7 +176,7 @@ public:
         cone_mesh->transform() = glm::rotate(cone_mesh->transform(), 90.f, gl::X_AXIS);
         cone_mesh->position() += glm::vec3(0, 0, -200);
         
-        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::createSphere(10.f, 32), gl::Material::create());
+        gl::MeshPtr spot_mesh = gl::Mesh::create(gl::Geometry::createSphere(10.f, 32), gl::Material::create());
         spot_light->children().push_back(spot_mesh);
         spot_light->children().push_back(cone_mesh);
 
@@ -184,7 +184,7 @@ public:
         
         // test animation
         m_test_float = 0;
-        m_animation = Animation_<float>::create(&m_test_float, 5.f, 5.f);
+        m_animation = Animation_<float>::create(&m_test_float, 0.f, 5.f, 5.f);
         m_animation->set_loop(Animation::LOOP_BACK_FORTH);
         m_animation->set_ease_function(kinski::EaseOutBounce(.5f));
         
@@ -232,14 +232,12 @@ public:
         {
             m_object_component->setObject(selected_mesh());
             //selected_mesh()->setLookAt(camera());
-            selected_mesh()->setScale(*m_animationTime);
+            //selected_mesh()->setScale(*m_animationTime);
         }
         
         m_animation->update(timeDelta);
-        m_property_animation->update(timeDelta);
         
-        assert(m_test_float <= 5.f && m_test_float >= 0.f);
-        //LOG_DEBUG<<*m_animationTime;
+        //for(auto &animation : m_animations){animation->update(timeDelta);}
     }
     
     void draw()
@@ -369,13 +367,18 @@ public:
                                                      + m_label->boundingBox().height())
                                  - m_label->boundingBox().center());
             m_label->setRotation(glm::mat3(camera()->transform()));
+            
+            m_animation = Animation_<float>::create(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
+            m_animation->set_ease_function(EaseOutBounce());
+            m_animation->set_loop(Animation::LOOP_BACK_FORTH);
+            //m_animation->start(2);
         }
         
         // create a ray
         gl::Ray ray = gl::calculateRay(camera(), e.getX(), e.getY());
         
         // calculate intersection of ray and an origin-centered plane
-        gl::Plane plane = gl::Plane(vec3(0), vec3(0, 0, 1));
+        gl::Plane plane = gl::Plane(vec3(0, 0, 0), vec3(1, 0, 0));
         
         gl::ray_intersection ri = plane.intersect(ray);
         
@@ -407,7 +410,7 @@ public:
     {
         ViewerApp::updateProperty(theProperty);
         
-        // one of our porperties was changed
+        // one of our properties was changed
         if(theProperty == m_color)
         {
             if(selected_mesh()) selected_mesh()->material()->setDiffuse(*m_color);
@@ -427,7 +430,7 @@ public:
                 m->material()->setShinyness(*m_shinyness);
                 m->material()->setSpecular(glm::vec4(1));
                 scene().addObject(m_mesh);
-                *m_use_phong = *m_use_phong;
+                m_use_phong->notifyObservers();
             } catch (Exception &e){ LOG_ERROR<< e.what(); }
         }
         else if(theProperty == m_use_phong)
@@ -473,7 +476,7 @@ public:
         
         for (int i = 0; i < 90; i++)
         {
-            gl::MeshPtr box_mesh = gl::Mesh::create(gl::createBox(glm::linearRand(vec3(20), vec3(100))),
+            gl::MeshPtr box_mesh = gl::Mesh::create(gl::Geometry::createBox(glm::linearRand(vec3(20), vec3(100))),
                                                     mat);
             box_mesh->transform() = glm::rotate(box_mesh->transform(), random(0.f, 180.f), gl::Y_AXIS);
             box_mesh->setPosition(glm::linearRand(vec3(-2900), vec3(2900)));
@@ -489,7 +492,7 @@ public:
             static gl::MeshPtr sphere_mesh;
             if(!sphere_mesh)
             {
-                sphere_mesh = gl::Mesh::create(gl::createSphere(30.f, 32), gl::Material::create());
+                sphere_mesh = gl::Mesh::create(gl::Geometry::createSphere(30.f, 32), gl::Material::create());
             }
             
             if(light->enabled() && light->type() != gl::Light::DIRECTIONAL)

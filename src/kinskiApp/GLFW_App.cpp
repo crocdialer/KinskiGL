@@ -16,7 +16,8 @@ using namespace std;
 
 namespace kinski
 {
-    GLFW_Window::GLFW_Window(int width, int height, const std::string &theName, bool fullscreen, GLFWwindow* share)
+    GLFW_Window::GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
+                             GLFWwindow* share)
      {
          m_handle = glfwCreateWindow(width, height,
                                      theName.c_str(),

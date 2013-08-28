@@ -11,29 +11,97 @@
 
 namespace kinski { namespace gl {
 
-ray_intersection intersect_ray_plane(const glm::vec3 &n, const glm::vec3 &p0, const gl::Ray &ray)
+//ray_intersection intersect_ray_plane(const glm::vec3 &n, const glm::vec3 &p0, const gl::Ray &ray)
+//{
+//    // assuming vectors are all normalized
+//    float denom = glm::dot(n, ray.direction);
+//    if (denom > 1e-6)
+//    {
+//        glm::vec3 p0l0 = p0 - ray.origin;
+//        float d = glm::dot(p0l0, n) / denom;
+//        if(d >= 0) return ray_intersection(INTERSECT, d);
+//    }
+//    return REJECT;
+//}
+    
+ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray)
 {
     // assuming vectors are all normalized
-    float denom = glm::dot(n, ray.direction);
+    float denom = glm::dot(-plane.normal(), ray.direction);
     if (denom > 1e-6)
     {
-        glm::vec3 p0l0 = p0 - ray.origin;
-        float d = glm::dot(p0l0, n) / denom;
+        float d = (plane.coefficients.z - glm::dot(ray.origin, -plane.normal())) / denom;
         if(d >= 0) return ray_intersection(INTERSECT, d);
     }
     return REJECT;
 }
     
-ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray)
+ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay)
 {
-    // assuming vectors are all normalized
-    float denom = glm::dot(plane.normal(), ray.direction);
-    if (denom > 1e-6)
+    glm::vec3 e1 = theTri.v1 - theTri.v0, e2 = theTri.v2 - theTri.v0;
+    glm::vec3 pvec = glm::cross(theRay.direction, e2);
+    float det = glm::dot(e1, pvec);
+    static float epsilon = 10.0e-5;
+    if(det > -epsilon && det < epsilon) return REJECT;
+    float inv_det = 1.0f / det;
+    glm::vec3 tvec = theRay.origin - theTri.v0;
+    float u = inv_det * glm::dot(tvec, pvec);
+    if(u < 0.0f || u > 1.0f) return REJECT;
+    glm::vec3 qvec = glm::cross(tvec, e1);
+    float v = glm::dot(theRay.direction, qvec) * inv_det;
+    if(v < 0.0f || (u + v) > 1.0f) return REJECT;
+    return ray_triangle_intersection(INTERSECT, glm::dot(e2, qvec) * inv_det, u, v);
+}
+    
+ray_intersection intersect(const Sphere &theSphere, const Ray &theRay)
+{
+    glm::vec3 l = theSphere.center - theRay.origin;
+    float s = glm::dot(l, theRay.direction);
+    float l2 = glm::dot(l, l);
+    float r2 = theSphere.radius * theSphere.radius;
+    if(s < 0 && l2 > r2) return REJECT;
+    float m2 = l2 - s * s;
+    if(m2 > r2) return REJECT;
+    float q = sqrtf(r2 - m2);
+    float t;
+    if(l2 > r2) t = s - q;
+    else t = s + q;
+    return ray_intersection(INTERSECT, t);
+}
+    
+ray_intersection intersect(const OBB &theOBB, const Ray& theRay)
+{
+    float t_min = std::numeric_limits<float>::min();
+    float t_max = std::numeric_limits<float>::max();
+    glm::vec3 p = theOBB.center - theRay.origin;
+    
+    for (int i = 0; i < 3; i++)
     {
-        float d = (plane.coefficients.z - glm::dot(ray.origin, plane.normal())) / denom;
-        if(d >= 0) return ray_intersection(INTERSECT, d);
+        float e = glm::dot(theOBB.axis[i], p);
+        float f = glm::dot(theOBB.axis[i], theRay.direction);
+        
+        // this test avoids overflow from division
+        if(std::abs(f) > std::numeric_limits<float>::epsilon())
+        {
+            float t1 = (e + theOBB.half_lengths[i]) / f;
+            float t2 = (e - theOBB.half_lengths[i]) / f;
+            
+            if(t1 > t2) std::swap(t1, t2);
+            if(t1 > t_min) t_min = t1;
+            if(t2 < t_max) t_max = t2;
+            if(t_min > t_max) return REJECT;
+            if(t_max < 0) return REJECT;
+        }
+        else if( (-e - theOBB.half_lengths[i]) > 0 || (-e + theOBB.half_lengths[i]) < 0 )
+        {
+            return REJECT;
+        }
     }
-    return REJECT;
+    
+    if(t_min > 0)
+        return ray_intersection(INTERSECT, t_min);
+    else
+        return ray_intersection(INTERSECT, t_max);
 }
     
 Plane::Plane()
@@ -67,23 +135,6 @@ Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
     coefficients.w = -glm::dot(theFoot, glm::vec3(coefficients.xyz()));
 }
     
-ray_triangle_intersection Triangle::intersect(const Ray &theRay) const
-{
-    glm::vec3 e1 = v1 - v0, e2 = v2 - v0;
-    glm::vec3 pvec = glm::cross(theRay.direction, e2);
-    float det = glm::dot(e1, pvec);
-    static float epsilon = 10.0e-5;
-    if(det > -epsilon && det < epsilon) return REJECT;
-    float inv_det = 1.0f / det;
-    glm::vec3 tvec = theRay.origin - v0;
-    float u = inv_det * glm::dot(tvec, pvec);
-    if(u < 0.0f || u > 1.0f) return REJECT;
-    glm::vec3 qvec = glm::cross(tvec, e1);
-    float v = glm::dot(theRay.direction, qvec) * inv_det;
-    if(v < 0.0f || (u + v) > 1.0f) return REJECT;
-    return ray_triangle_intersection(INTERSECT, glm::dot(e2, qvec) * inv_det, u, v);
-}
-    
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
 {
     center = (t * glm::vec4(theAABB.center(), 1.0f)).xyz();
@@ -91,40 +142,6 @@ OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
     axis[1] = t[1].xyz();
     axis[2] = t[2].xyz();
     half_lengths = theAABB.halfExtents();
-}
-    
-ray_intersection OBB::intersect(const Ray& theRay) const
-{
-    float t_min = std::numeric_limits<float>::min();
-    float t_max = std::numeric_limits<float>::max();
-    glm::vec3 p = center - theRay.origin;
-    
-    for (int i = 0; i < 3; i++)
-    {
-        float e = glm::dot(axis[i], p);
-        float f = glm::dot(axis[i], theRay.direction);
-        
-        // this test avoids overflow from division
-        if(std::abs(f) > std::numeric_limits<float>::epsilon())
-        {
-            float t1 = (e + half_lengths[i]) / f;
-            float t2 = (e - half_lengths[i]) / f;
-            
-            if(t1 > t2) std::swap(t1, t2);
-            if(t1 > t_min) t_min = t1;
-            if(t2 < t_max) t_max = t2;
-            if(t_min > t_max) return REJECT;
-            if(t_max < 0) return REJECT;
-        }
-        else if( (-e - half_lengths[i]) > 0 || (-e + half_lengths[i]) < 0 ){
-            return REJECT;
-        }
-    }
-    
-    if(t_min > 0)
-        return ray_intersection(INTERSECT, t_min);
-    else
-        return ray_intersection(INTERSECT, t_max);
 }
     
 AABB& AABB::transform(const glm::mat4& t)
@@ -162,7 +179,6 @@ AABB& AABB::transform(const glm::mat4& t)
             }
         }
     }
-    
     return *this;
 }
 

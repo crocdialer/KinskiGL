@@ -260,8 +260,7 @@ public:
         }
         catch(const BadBoundsException &e)
         {
-            v = std::min(v, m_max);
-            v = std::max(v, m_min);
+            v = clamp(v, m_min, m_max);
             this->set(v);
             return false;
         }
@@ -279,8 +278,7 @@ public:
 private:
 
     RangedProperty():Property_<T>(){};
-    RangedProperty(const std::string &theName, const T &theValue,
-                    const T &min, const T &max):
+    RangedProperty(const std::string &theName, const T &theValue, const T &min, const T &max):
     Property_<T>(theName, theValue)
     {
         setRange(min, max);

@@ -16,14 +16,21 @@ enum intersection_type {REJECT = 0, INTERSECT = 1, INSIDE = 2};
 
 struct Ray;
 struct Plane;
+struct Triangle;
 struct Sphere;
 struct AABB;
 struct OBB;
 struct Frustum;
 struct ray_intersection;
+struct ray_triangle_intersection;
 
-ray_intersection intersect_ray_plane(const glm::vec3 &n, const glm::vec3 &p0, const gl::Ray &ray);
+/********************************** Ray intersection tests ****************************************/
+    
 ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray);
+ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay);
+ray_intersection intersect(const Sphere &theSphere, const Ray &theRay);
+ray_intersection intersect(const AABB &theAABB, const Ray& theRay);
+ray_intersection intersect(const OBB &theOBB, const Ray& theRay);
     
 struct KINSKI_API Ray
 {
@@ -53,7 +60,7 @@ struct KINSKI_API Ray
     { return theRay.origin + t * theRay.direction; }
 };
 /*!
- * Encapsulates type of intersection and distance along the ray
+ * Encapsulates type of intersection and distance along the ray.
  */
 struct KINSKI_API ray_intersection
 {
@@ -64,7 +71,10 @@ struct KINSKI_API ray_intersection
     type(theType), distance(theDistance){}
     operator intersection_type() const { return type; }
 };
-
+/*!
+ * Encapsulates type of intersection and distance along the ray.
+ * Additionally adds the coordinates within the triangle.
+ */
 struct KINSKI_API ray_triangle_intersection : public ray_intersection
 {
     float u, v;
@@ -134,7 +144,10 @@ struct KINSKI_API Triangle
 		return ret.transform(t);
 	};
     
-    ray_triangle_intersection intersect(const Ray &theRay) const;
+    inline ray_triangle_intersection intersect(const Ray &theRay) const
+    {
+        return gl::intersect(*this, theRay);
+    };
 };
 
 struct KINSKI_API Sphere
@@ -171,18 +184,7 @@ struct KINSKI_API Sphere
     
     inline ray_intersection intersect(const Ray &theRay) const
     {
-        glm::vec3 l = center - theRay.origin;
-        float s = glm::dot(l, theRay.direction);
-        float l2 = glm::dot(l, l);
-        float r2 = radius * radius;
-        if(s < 0 && l2 > r2) return REJECT;
-        float m2 = l2 - s * s;
-        if(m2 > r2) return REJECT;
-        float q = sqrtf(r2 - m2);
-        float t;
-        if(l2 > r2) t = s - q;
-        else t = s + q;
-        return ray_intersection(INTERSECT, t);
+        return gl::intersect(*this, theRay);
     }
 };
 
@@ -292,7 +294,10 @@ struct KINSKI_API OBB
     
     OBB(const AABB &theAABB, const glm::mat4 &t);
     
-    ray_intersection intersect(const Ray& theRay) const;
+    inline ray_intersection intersect(const Ray& theRay) const
+    {
+        return gl::intersect(*this, theRay);
+    }
 };
 
 struct KINSKI_API Frustum
@@ -332,7 +337,7 @@ struct KINSKI_API Frustum
     
 	inline uint32_t intersect(const Sphere& s)
 	{	
-		Plane* end = planes+6 ;
+		Plane* end = planes + 6 ;
 		for (Plane *p = planes; p < end; p++)
 		{
 			if (- p->distance(s.center) > s.radius)
@@ -345,7 +350,7 @@ struct KINSKI_API Frustum
 	{	
 		uint32_t ret = INSIDE ;
 
-		Plane* end = planes+6 ;
+		Plane* end = planes + 6 ;
 		for (Plane *p = planes; p < end; p++)
 		{
 			//positive vertex outside ?

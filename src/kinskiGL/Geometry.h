@@ -186,6 +186,17 @@ namespace kinski{ namespace gl{
         
         void createGLBuffers();
         
+        /********************************* Factory methods ****************************************/
+        
+        KINSKI_API static GeometryPtr createPlane(float width, float height,
+                                                  uint32_t numSegments_W = 1,
+                                                  uint32_t numSegments_H = 1);
+        KINSKI_API static GeometryPtr createSolidUnitCircle(int numSegments);
+        KINSKI_API static GeometryPtr createUnitCircle(int numSegments);
+        KINSKI_API static GeometryPtr createBox(const glm::vec3 &theHalfExtents);
+        KINSKI_API static GeometryPtr createSphere(float radius, int numSlices);
+        KINSKI_API static GeometryPtr createCone(float radius, float height, int numSegments);
+        
     private:
         
         Geometry();
@@ -213,16 +224,7 @@ namespace kinski{ namespace gl{
         gl::Buffer m_indexBuffer;
         gl::Buffer m_boneBuffer;
     };
-    
-    KINSKI_API GeometryPtr createPlane(float width, float height,
-                            uint32_t numSegments_W = 1,
-                            uint32_t numSegments_H = 1);
-    KINSKI_API GeometryPtr createSolidUnitCircle(int numSegments);
-    KINSKI_API GeometryPtr createUnitCircle(int numSegments);
-    KINSKI_API GeometryPtr createBox(const glm::vec3 &theHalfExtents);
-    KINSKI_API GeometryPtr createSphere(float radius, int numSlices);
-    KINSKI_API GeometryPtr createCone(float radius, float height, int numSegments);
-    
+
 }//gl
 }//kinski
 

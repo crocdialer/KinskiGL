@@ -218,10 +218,8 @@ namespace kinski { namespace gl {
         AABB ret = AABB(glm::vec3(numeric_limits<float>::max()),
                         glm::vec3(numeric_limits<float>::min()));
         
-        vector<glm::vec3>::const_iterator it = theVertices.begin();
-        for (; it != theVertices.end(); it++)
+        for (const glm::vec3 &vertex : theVertices)
         {
-            const glm::vec3 &vertex = *it;
             // X
             if(vertex.x < ret.min.x)
                 ret.min.x = vertex.x;
@@ -906,7 +904,8 @@ namespace kinski { namespace gl {
         
         if(!our_mesh)
         {
-            GeometryPtr geom = solid ? createSolidUnitCircle(numSegments) : createUnitCircle(numSegments);
+            GeometryPtr geom = solid ? Geometry::createSolidUnitCircle(numSegments) :
+                Geometry::createUnitCircle(numSegments);
             default_mat = gl::Material::create();
             our_mesh = gl::Mesh::create(geom, default_mat);
             if(solid)

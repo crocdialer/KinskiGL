@@ -233,8 +233,8 @@ namespace kinski{ namespace gl{
     
     /********************************* PRIMITIVES ****************************************/
     
-    Geometry::Ptr createPlane(float width, float height,
-                              uint32_t numSegments_W , uint32_t numSegments_H)
+    Geometry::Ptr Geometry::createPlane(float width, float height,
+                                        uint32_t numSegments_W , uint32_t numSegments_H)
     {
         GeometryPtr geom = Geometry::create();
         
@@ -280,7 +280,7 @@ namespace kinski{ namespace gl{
         return geom;
     }
     
-    GeometryPtr createSolidUnitCircle(int numSegments)
+    GeometryPtr Geometry::createSolidUnitCircle(int numSegments)
     {
         GeometryPtr ret = Geometry::create();
         ret->setPrimitiveType(GL_TRIANGLE_FAN);
@@ -307,7 +307,7 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
-    GeometryPtr createUnitCircle(int numSegments)
+    GeometryPtr Geometry::createUnitCircle(int numSegments)
     {
         GeometryPtr ret = Geometry::create();
         ret->setPrimitiveType(GL_LINE_STRIP);
@@ -327,7 +327,7 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
-    Geometry::Ptr createBox(const glm::vec3 &theHalfExtents)
+    Geometry::Ptr Geometry::createBox(const glm::vec3 &theHalfExtents)
     {
         GeometryPtr geom = Geometry::create();
         
@@ -442,7 +442,7 @@ namespace kinski{ namespace gl{
         return geom;
     }
     
-    Geometry::Ptr createSphere(float radius, int numSlices)
+    Geometry::Ptr Geometry::createSphere(float radius, int numSlices)
     {
         uint32_t rings = numSlices, sectors = numSlices;
         GeometryPtr geom = Geometry::create();
@@ -481,7 +481,7 @@ namespace kinski{ namespace gl{
         return geom;
     }
     
-    GeometryPtr createCone(float radius, float height, int numSegments)
+    GeometryPtr Geometry::createCone(float radius, float height, int numSegments)
     {
         GeometryPtr ret = Geometry::create();
         ret->setPrimitiveType(GL_TRIANGLES);
