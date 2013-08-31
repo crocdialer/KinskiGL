@@ -18,7 +18,7 @@ namespace kinski{ namespace gl{
     
     struct KINSKI_API Face3
     {
-        Face3(){};
+        Face3():a(0), b(0), c(0){};
         Face3(uint32_t theA, uint32_t theB, uint32_t theC):
         a(theA), b(theB), c(theC){}
         

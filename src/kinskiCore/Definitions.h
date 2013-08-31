@@ -58,7 +58,7 @@ namespace kinski
     }
     
     template <typename T>
-    inline T clamp(const T &val, const T &min, const T &max)
+    inline const T& clamp(const T &val, const T &min, const T &max)
     {
         return val < min ? min : (val > max ? max : val);
     }
@@ -111,6 +111,4 @@ namespace std
     template<typename T> struct owner_less : public less<T>{};
 }
 #endif
-
-
 #endif

@@ -39,8 +39,8 @@ private:
     Property_<bool>::Ptr m_show_focus, m_auto_focus;
     
     float m_test_float;
-    AnimationPtr m_animation, m_property_animation;
-    std::list<AnimationPtr> m_animations;
+    animation::AnimationPtr m_animation, m_property_animation;
+    std::list<animation::AnimationPtr> m_animations;
     
 public:
     
@@ -104,7 +104,7 @@ public:
         create_tweakbar_from_component(m_object_component);
         
         /********************** construct a simple scene ***********************/
-        camera()->setClippingPlanes(100.0, 5000);
+        camera()->setClippingPlanes(1, 5000);
         
         // configure fbo
         int numsamples = m_frameBuffer.getMaxSamples();//4
@@ -184,13 +184,12 @@ public:
         
         // test animation
         m_test_float = 0;
-        m_animation = Animation_<float>::create(&m_test_float, 0.f, 5.f, 5.f);
-        m_animation->set_loop(Animation::LOOP_BACK_FORTH);
-        m_animation->set_ease_function(kinski::EaseOutBounce(.5f));
+        m_animation = animation::create(&m_test_float, 0.f, 5.f, 5.f);
+        m_animation->set_loop(animation::LOOP_BACK_FORTH);
+        m_animation->set_ease_function(animation::EaseOutBounce(.5f));
         
-        m_property_animation = PropertyAnimation_<float>::create(m_animationTime, 1.f, 5);
-        m_property_animation->set_loop();
-        m_property_animation->set_ease_function(kinski::EaseOutBounce(.5f));
+        m_property_animation = animation::create<float>(m_animationTime, 0.f, 1.f, 5.f);
+        m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
         
         // add to animations to list
         m_animations.push_back(m_animation);
@@ -232,10 +231,12 @@ public:
         {
             m_object_component->setObject(selected_mesh());
             //selected_mesh()->setLookAt(camera());
-            //selected_mesh()->setScale(*m_animationTime);
+            
+            selected_mesh()->setScale(5 * *m_animationTime);
         }
         
         m_animation->update(timeDelta);
+        m_property_animation->update(timeDelta);
         
         //for(auto &animation : m_animations){animation->update(timeDelta);}
     }
@@ -335,15 +336,14 @@ public:
     void buildSkeleton(gl::BonePtr currentBone, vector<vec3> &points)
     {
         if(!currentBone) return;
-        list<gl::BonePtr>::iterator it = currentBone->children.begin();
-        for (; it != currentBone->children.end(); ++it)
+        for (auto child_bone : currentBone->children)
         {
             mat4 globalTransform = currentBone->worldtransform;
-            mat4 childGlobalTransform = (*it)->worldtransform;
+            mat4 childGlobalTransform = child_bone->worldtransform;
             points.push_back(globalTransform[3].xyz());
             points.push_back(childGlobalTransform[3].xyz());
             
-            buildSkeleton(*it, points);
+            buildSkeleton(child_bone, points);
         }
     }
 
@@ -368,17 +368,20 @@ public:
                                  - m_label->boundingBox().center());
             m_label->setRotation(glm::mat3(camera()->transform()));
             
-            m_animation = Animation_<float>::create(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
-            m_animation->set_ease_function(EaseOutBounce());
-            m_animation->set_loop(Animation::LOOP_BACK_FORTH);
-            //m_animation->start(2);
+//            m_property_animation = animation::create(&selected_mesh()->position(), vec3(0.f), vec3(100.f), 5.f);
+//            m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
+            
+//            m_animation = animation::create(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
+//            m_animation->set_ease_function(animation::EaseOutBounce());
+//            m_animation->set_loop(animation::LOOP_BACK_FORTH);
+//            m_animation->start(2);
         }
         
         // create a ray
         gl::Ray ray = gl::calculateRay(camera(), e.getX(), e.getY());
         
         // calculate intersection of ray and an origin-centered plane
-        gl::Plane plane = gl::Plane(vec3(0, 0, 0), vec3(1, 0, 0));
+        gl::Plane plane = gl::Plane(vec3(0, 0, 0), vec3(0, 0, 1));
         
         gl::ray_intersection ri = plane.intersect(ray);
         

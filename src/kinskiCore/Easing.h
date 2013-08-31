@@ -40,7 +40,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 #include <math.h>
 
-namespace kinski {
+namespace kinski{ namespace animation{
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // None
@@ -668,4 +668,4 @@ struct EaseInOutAtan {
 	float mInv2M, mA;
 };
 
-} // namespace kinski
+}} // namespace kinski + animation

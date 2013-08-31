@@ -191,6 +191,10 @@ namespace kinski { namespace gl {
                             
                             if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
                             {
+                                float distance_scale = glm::length(the_object->global_scale() *
+                                                                   ray_in_object_space.direction);
+                                LOG_DEBUG<<"id:"<< the_object->getID() <<" -> "<< distance_scale;
+                                ray_tri_hit.distance *= distance_scale;
                                 clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
                                 LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
                             }

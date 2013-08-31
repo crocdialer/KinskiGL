@@ -50,6 +50,17 @@ namespace kinski { namespace gl {
         setLookAt(-theLookAt->position() + position(), theLookAt->up());
     }
     
+    void Object3D::setScale(const glm::vec3 &s)
+    {
+        glm::vec3 scale_vec = s / scale();
+        if(std::abs(s.x) > 0.f &&
+           std::abs(s.y) > 0.f &&
+           std::abs(s.z) > 0.f)
+        {
+            m_transform = glm::scale(m_transform, scale_vec);
+        }
+    }
+    
     glm::mat4 Object3D::global_transform() const
     {
         glm::mat4 ret = transform();
@@ -60,6 +71,26 @@ namespace kinski { namespace gl {
             ancestor = ancestor->parent();
         }
         return ret;
+    }
+    
+    glm::vec3 Object3D::global_position() const
+    {
+        glm::mat4 global_trans = global_transform();
+        return global_trans[3].xyz();
+    }
+    
+    glm::quat Object3D::global_rotation() const
+    {
+        glm::mat4 global_trans = global_transform();
+        return glm::normalize(glm::quat_cast(global_trans));
+    }
+    
+    glm::vec3 Object3D::global_scale() const
+    {
+        glm::mat4 global_trans = global_transform();
+        return glm::vec3(glm::length(global_trans[0]),
+                         glm::length(global_trans[1]),
+                         glm::length(global_trans[2]));
     }
     
     void Object3D::set_parent(const Object3DPtr &the_parent)

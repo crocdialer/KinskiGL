@@ -24,6 +24,9 @@
 using namespace glm;
 using namespace std;
 
+// maximum matrix-stack size
+#define MAX_MATRIX_STACK_SIZE 100
+
 // how many string meshes are buffered at max
 #define STRING_MESH_BUFFER_SIZE 200
 
@@ -50,6 +53,12 @@ namespace kinski { namespace gl {
     
     void pushMatrix(const Matrixtype type)
     {
+        if(g_modelViewMatrixStack.size() > MAX_MATRIX_STACK_SIZE ||
+           g_projectionMatrixStack.size() > MAX_MATRIX_STACK_SIZE)
+        {
+            throw Exception("Matrix stack overflow");
+        }
+        
         switch (type)
         {
             case PROJECTION_MATRIX:

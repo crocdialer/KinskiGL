@@ -35,12 +35,14 @@ namespace kinski { namespace gl {
         inline glm::vec3 up() const {return glm::normalize(m_transform[1].xyz());}
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
+        void setRotation(float yaw, float pitch, float roll);
         glm::quat rotation() const;
         
         inline glm::vec3 scale(){return glm::vec3(glm::length(m_transform[0]),
                                                   glm::length(m_transform[1]),
                                                   glm::length(m_transform[2]));};
-        inline void setScale(const glm::vec3 &s){m_transform = glm::scale(m_transform, s / scale());}
+
+        void setScale(const glm::vec3 &s);
         inline void setScale(float s){setScale(glm::vec3(s));}
         
         void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0, 1, 0));
@@ -49,7 +51,6 @@ namespace kinski { namespace gl {
         inline void setTransform(const glm::mat4 &theTrans) {m_transform = theTrans;}
         inline glm::mat4& transform() {return m_transform;}
         inline const glm::mat4& transform() const {return m_transform;};
-        glm::mat4 global_transform() const;
         
         void set_parent(const Object3DPtr &the_parent);
         inline Object3DPtr parent() const {return m_parent.lock();}
@@ -58,6 +59,11 @@ namespace kinski { namespace gl {
         void remove_child(const Object3DPtr &the_child);
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
+        
+        glm::mat4 global_transform() const;
+        glm::vec3 global_position() const;
+        glm::quat global_rotation() const;
+        glm::vec3 global_scale() const;
         
         virtual gl::AABB boundingBox() const;
         

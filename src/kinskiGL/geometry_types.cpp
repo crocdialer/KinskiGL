@@ -138,10 +138,13 @@ Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
 {
     center = (t * glm::vec4(theAABB.center(), 1.0f)).xyz();
-    axis[0] = t[0].xyz();
-    axis[1] = t[1].xyz();
-    axis[2] = t[2].xyz();
-    half_lengths = theAABB.halfExtents();
+    glm::vec3 scale (glm::length(t[0]),
+                     glm::length(t[1]),
+                     glm::length(t[2]));
+    axis[0] = t[0].xyz() / scale[0];
+    axis[1] = t[1].xyz() / scale[1];
+    axis[2] = t[2].xyz() / scale[2];
+    half_lengths = theAABB.halfExtents() * scale;
 }
     
 AABB& AABB::transform(const glm::mat4& t)
