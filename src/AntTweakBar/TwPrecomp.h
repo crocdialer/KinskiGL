@@ -2,7 +2,7 @@
 //
 //  @file       TwPrecomp.h
 //  @brief      Precompiled header
-//  @author     Philippe Decaudin - http://www.antisphere.com
+//  @author     Philippe Decaudin
 //  @license    This file is part of the AntTweakBar library.
 //              For conditions of distribution and use, see License.txt
 //
@@ -74,7 +74,9 @@
 #   undef ANT_UNIX
 #elif defined(_WINDOWS) || defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(_WIN64)
 #   define ANT_WINDOWS
-#   define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+#   ifndef WIN32_LEAN_AND_MEAN
+#       define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
+#   endif
 #   include <windows.h>
 #   include <shellapi.h>
 #endif
@@ -82,8 +84,6 @@
 #if !defined(ANT_OGL_HEADER_INCLUDED)
 #   if defined(ANT_OSX)
 #   	include <OpenGL/gl.h>
-#     define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
-#   	include <OpenGL/gl3.h>
 #   else
 #	    include <GL/gl.h>  // must be included after windows.h
 #   endif

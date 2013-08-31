@@ -5,7 +5,7 @@
 //              translate and re-send mouse and keyboard events 
 //              from GLFW event callbacks to AntTweakBar
 //  
-//  @author     Philippe Decaudin - http://www.antisphere.com
+//  @author     Philippe Decaudin
 //  @license    This file is part of the AntTweakBar library.
 //              For conditions of distribution and use, see License.txt
 //
@@ -47,16 +47,16 @@ int TW_CALL TwEventKeyGLFW(int glfwKey, int glfwAction)
     {
         switch( glfwKey )
         {
-        case GLFW_KEY_LEFT_SHIFT:
-        case GLFW_KEY_RIGHT_SHIFT:
+        case GLFW_KEY_LSHIFT:
+        case GLFW_KEY_RSHIFT:
             g_KMod |= TW_KMOD_SHIFT;
             break;
-        case GLFW_KEY_LEFT_CONTROL:
-        case GLFW_KEY_RIGHT_CONTROL:
+        case GLFW_KEY_LCTRL:
+        case GLFW_KEY_RCTRL:
             g_KMod |= TW_KMOD_CTRL;
             break;
-        case GLFW_KEY_LEFT_ALT:
-        case GLFW_KEY_RIGHT_ALT:
+        case GLFW_KEY_LALT:
+        case GLFW_KEY_RALT:
             g_KMod |= TW_KMOD_ALT;
             break;
         }
@@ -65,16 +65,16 @@ int TW_CALL TwEventKeyGLFW(int glfwKey, int glfwAction)
     {
         switch( glfwKey )
         {
-        case GLFW_KEY_LEFT_SHIFT:
-        case GLFW_KEY_RIGHT_SHIFT:
+        case GLFW_KEY_LSHIFT:
+        case GLFW_KEY_RSHIFT:
             g_KMod &= ~TW_KMOD_SHIFT;
             break;
-        case GLFW_KEY_LEFT_CONTROL:
-        case GLFW_KEY_RIGHT_CONTROL:
+        case GLFW_KEY_LCTRL:
+        case GLFW_KEY_RCTRL:
             g_KMod &= ~TW_KMOD_CTRL;
             break;
-        case GLFW_KEY_LEFT_ALT:
-        case GLFW_KEY_RIGHT_ALT:
+        case GLFW_KEY_LALT:
+        case GLFW_KEY_RALT:
             g_KMod &= ~TW_KMOD_ALT;
             break;
         }
@@ -86,9 +86,9 @@ int TW_CALL TwEventKeyGLFW(int glfwKey, int glfwAction)
         int mod = g_KMod;
         int testkp = ((mod&TW_KMOD_CTRL) || (mod&TW_KMOD_ALT)) ? 1 : 0;
 
-        if( (mod&TW_KMOD_CTRL) && glfwKey>0 && glfwKey<GLFW_KEY_ESCAPE )   // CTRL cases
+        if( (mod&TW_KMOD_CTRL) && glfwKey>0 && glfwKey<GLFW_KEY_SPECIAL )   // CTRL cases
             handled = TwKeyPressed(glfwKey, mod);
-        else if( glfwKey>=GLFW_KEY_ESCAPE )
+        else if( glfwKey>=GLFW_KEY_SPECIAL )
         {
             int k = 0;
 
@@ -100,7 +100,7 @@ int TW_CALL TwEventKeyGLFW(int glfwKey, int glfwAction)
             {
                 switch( glfwKey )
                 {
-                case GLFW_KEY_ESCAPE:
+                case GLFW_KEY_ESC:
                     k = TW_KEY_ESCAPE;
                     break;
                 case GLFW_KEY_UP:
@@ -127,13 +127,13 @@ int TW_CALL TwEventKeyGLFW(int glfwKey, int glfwAction)
                 case GLFW_KEY_INSERT:
                     k = TW_KEY_INSERT;
                     break;
-                case GLFW_KEY_DELETE:
+                case GLFW_KEY_DEL:
                     k = TW_KEY_DELETE;
                     break;
-                case GLFW_KEY_PAGE_UP:
+                case GLFW_KEY_PAGEUP:
                     k = TW_KEY_PAGE_UP;
                     break;
-                case GLFW_KEY_PAGE_DOWN:
+                case GLFW_KEY_PAGEDOWN:
                     k = TW_KEY_PAGE_DOWN;
                     break;
                 case GLFW_KEY_HOME:

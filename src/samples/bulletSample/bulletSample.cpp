@@ -70,7 +70,7 @@ public:
             shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
                                                                   btScalar(50.),
                                                                   btScalar(50.)))));
-        gl::MeshPtr groundShape = gl::Mesh::create(gl::createBox(glm::vec3(50.0f)), theMat);
+        gl::MeshPtr groundShape = gl::Mesh::create(gl::Geometry::createBox(glm::vec3(50.0f)), theMat);
         scene().addObject(groundShape);
         groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
         
@@ -124,7 +124,7 @@ public:
                 m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
             
             // geometry
-            gl::Geometry::Ptr geom = gl::createBox(glm::vec3(scaling * 1));
+            gl::Geometry::Ptr geom = gl::Geometry::createBox(glm::vec3(scaling * 1));
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -195,7 +195,7 @@ public:
         /********************** construct a simple scene ***********************/
         
         // test box shape
-        gl::Geometry::Ptr myBox(gl::createBox(vec3(50, 100, 50)));
+        gl::Geometry::Ptr myBox(gl::Geometry::createBox(vec3(50, 100, 50)));
         
         m_box_material = gl::Material::create();
         m_box_material->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));

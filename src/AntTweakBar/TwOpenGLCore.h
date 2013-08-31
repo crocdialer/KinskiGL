@@ -2,12 +2,11 @@
 //
 //  @file       TwOpenGLCore.h
 //  @brief      OpenGL Core graph functions
-//  @author     Philippe Decaudin - http://www.antisphere.com
+//  @author     Philippe Decaudin
 //  @license    This file is part of the AntTweakBar library.
 //              For conditions of distribution and use, see License.txt
 //
-//  notes:      Private header,
-//              Work In Progress, Disabled.
+//  note:       Private header
 //
 //  ---------------------------------------------------------------------------
 
@@ -48,29 +47,56 @@ protected:
     GLuint              m_FontTexID;
     const CTexFont *    m_FontTex;
     
+    GLfloat             m_PrevLineWidth;
+    GLint               m_PrevActiveTexture;
+    GLint               m_PrevTexture;
+    GLint               m_PrevVArray;
     GLboolean           m_PrevLineSmooth;
     GLboolean           m_PrevCullFace;
     GLboolean           m_PrevDepthTest;
     GLboolean           m_PrevBlend;
-    GLboolean           m_PrevScissorTest;
     GLint               m_PrevSrcBlend;
     GLint               m_PrevDstBlend;
-
-    GLuint               m_PrevVArray;
-
-    GLfloat             m_PrevLineWidth;
-    GLint               m_PrevTexture;
+    GLboolean           m_PrevScissorTest;
+    GLint               m_PrevScissorBox[4];
+    GLint               m_PrevViewport[4];
     GLuint              m_PrevProgramObject;
-    GLint               m_ViewportInit[4];
+
     GLuint              m_LineRectVS;
     GLuint              m_LineRectFS;
     GLuint              m_LineRectProgram;
     GLuint              m_LineRectVArray;
-    GLuint              m_LineRectBuffer;
-
-    GLuint              m_TextVS;
-    GLuint              m_TextFS;
-    GLuint              m_TextProgram;
+    GLuint              m_LineRectVertices;
+    GLuint              m_LineRectColors;
+    GLuint              m_TriVS;
+    GLuint              m_TriFS;
+    GLuint              m_TriProgram;
+    GLuint              m_TriUniVS;
+    GLuint              m_TriUniFS;
+    GLuint              m_TriUniProgram;
+    GLuint              m_TriTexVS;
+    GLuint              m_TriTexFS;
+    GLuint              m_TriTexProgram;
+    GLuint              m_TriTexUniVS;
+    GLuint              m_TriTexUniFS;
+    GLuint              m_TriTexUniProgram;
+    GLuint              m_TriVArray;
+    GLuint              m_TriVertices;
+    GLuint              m_TriUVs;
+    GLuint              m_TriColors;
+    GLint               m_TriLocationOffset;
+    GLint               m_TriLocationWndSize;
+    GLint               m_TriUniLocationOffset;
+    GLint               m_TriUniLocationWndSize;
+    GLint               m_TriUniLocationColor;
+    GLint               m_TriTexLocationOffset;
+    GLint               m_TriTexLocationWndSize;
+    GLint               m_TriTexLocationTexture;
+    GLint               m_TriTexUniLocationOffset;
+    GLint               m_TriTexUniLocationWndSize;
+    GLint               m_TriTexUniLocationColor;
+    GLint               m_TriTexUniLocationTexture;
+    size_t              m_TriBufferSize;
 
     int                 m_WndWidth;
     int                 m_WndHeight;
@@ -80,16 +106,13 @@ protected:
     struct Vec2         { GLfloat x, y; Vec2(){} Vec2(GLfloat _X, GLfloat _Y):x(_X),y(_Y){} Vec2(int _X, int _Y):x(GLfloat(_X)),y(GLfloat(_Y)){} };
     struct CTextObj
     {
-        GLuint               m_VArray;
-        GLuint               m_Buffer;
-        GLuint               m_BgVArray;
-        GLuint               m_BgBuffer;
-        GLuint               m_VertCount;
-        GLuint               m_BgVertCount;
-        
-        CTextObj():m_VArray(0),m_Buffer(0),m_BgVArray(0),
-        m_BgBuffer(0),m_VertCount(0),m_BgVertCount(0){};
+        std::vector<Vec2>   m_TextVerts;
+        std::vector<Vec2>   m_TextUVs;
+        std::vector<Vec2>   m_BgVerts;
+        std::vector<color32>m_Colors;
+        std::vector<color32>m_BgColors;
     };
+    void                ResizeTriBuffers(size_t _NewSize);
 };
 
 //  ---------------------------------------------------------------------------

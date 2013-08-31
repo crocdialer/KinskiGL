@@ -42,7 +42,7 @@ namespace kinski
         }
         
         /********************** construct a simple scene ***********************/
-        gl::Geometry::Ptr sphere = gl::createSphere(100, 32);
+        gl::Geometry::Ptr sphere = gl::Geometry::createSphere(100, 32);
         gl::MaterialPtr mat = gl::Material::create();
         materials().push_back(mat);
         
