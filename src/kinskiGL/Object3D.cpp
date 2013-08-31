@@ -105,6 +105,26 @@ namespace kinski { namespace gl {
                          glm::length(global_trans[2]));
     }
     
+    void Object3D::set_global_transform(const glm::mat4 &transform)
+    {
+        
+    }
+    
+    void Object3D::set_global_position(const glm::vec3 &position)
+    {
+    
+    }
+    
+    void Object3D::set_global_rotation(const glm::quat &rotation)
+    {
+    
+    }
+    
+    void Object3D::set_global_scale(const glm::vec3 &scale)
+    {
+    
+    }
+    
     void Object3D::set_parent(const Object3DPtr &the_parent)
     {
         // detach object from former parent

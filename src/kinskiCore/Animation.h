@@ -14,8 +14,8 @@
 #include "Property.h"
 #include "Easing.h"
 
-namespace kinski{ namespace animation
-{
+namespace kinski{ namespace animation{
+    
     class Animation;
     typedef std::shared_ptr<Animation> AnimationPtr;
     typedef boost::function<float (float)> EaseFunction;

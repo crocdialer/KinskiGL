@@ -65,6 +65,11 @@ namespace kinski { namespace gl {
         glm::quat global_rotation() const;
         glm::vec3 global_scale() const;
         
+        void set_global_transform(const glm::mat4 &transform);
+        void set_global_position(const glm::vec3 &position);
+        void set_global_rotation(const glm::quat &rotation);
+        void set_global_scale(const glm::vec3 &scale);
+        
         virtual gl::AABB boundingBox() const;
         
         virtual void accept(Visitor &theVisitor);
