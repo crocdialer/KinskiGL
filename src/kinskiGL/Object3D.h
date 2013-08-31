@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
         inline glm::vec3 up() const {return glm::normalize(m_transform[1].xyz());}
         void setRotation(const glm::quat &theRot);
         void setRotation(const glm::mat3 &theRot);
-        void setRotation(float yaw, float pitch, float roll);
+        void setRotation(float pitch, float yaw, float roll);
         glm::quat rotation() const;
         
         inline glm::vec3 scale(){return glm::vec3(glm::length(m_transform[0]),

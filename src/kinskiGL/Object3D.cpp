@@ -23,16 +23,28 @@ namespace kinski { namespace gl {
     
     void Object3D::setRotation(const glm::quat &theRot)
     {
-        glm::vec4 tmp = m_transform[3];
+        glm::vec3 pos_tmp(position()), scale_tmp(scale());
         m_transform = glm::mat4_cast(theRot);
-        m_transform[3] = tmp;
+        setPosition(pos_tmp);
+        setScale(scale_tmp);
     }
     
     void Object3D::setRotation(const glm::mat3 &theRot)
     {
-        glm::vec4 tmp = m_transform[3];
+        glm::vec3 pos_tmp(position()), scale_tmp(scale());
         m_transform = glm::mat4(theRot);
-        m_transform[3] = tmp;
+        setPosition(pos_tmp);
+        setScale(scale_tmp);
+    }
+    
+    void Object3D::setRotation(float pitch, float yaw, float roll)
+    {
+        glm::vec3 pos_tmp(position()), scale_tmp(scale());
+        m_transform = glm::mat4_cast(glm::quat(glm::vec3(glm::radians(pitch),
+                                                         glm::radians(yaw),
+                                                         glm::radians(roll))));
+        setPosition(pos_tmp);
+        setScale(scale_tmp);
     }
     
     glm::quat Object3D::rotation() const

@@ -50,6 +50,11 @@ BOOST_AUTO_TEST_CASE( test_Object3D )
     b->setPosition(glm::vec3(0, 50, 0));
     BOOST_CHECK(b->position() == glm::vec3(0, 50, 0));
     BOOST_CHECK(b->global_position() == glm::vec3(0, 150, 0));
+    
+    // rotations
+    b->setRotation(48.f, 10.f, 5.f);
+    BOOST_CHECK(b->global_scale() == glm::vec3(0.5));
+    BOOST_CHECK(b->global_position() == glm::vec3(0, 150, 0));
 }
 
 //____________________________________________________________________________//

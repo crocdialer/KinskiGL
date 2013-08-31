@@ -184,12 +184,13 @@ public:
         
         // test animation
         m_test_float = 0;
-        m_animation = animation::create(&m_test_float, 0.f, 5.f, 5.f);
+        m_animation = animation::createAnimation(&m_test_float, 0.f, 5.f, 5.f);
         m_animation->set_loop(animation::LOOP_BACK_FORTH);
         m_animation->set_ease_function(animation::EaseOutBounce(.5f));
         
-        m_property_animation = animation::create<float>(m_animationTime, 0.f, 1.f, 5.f);
+        m_property_animation = animation::createAnimation<float>(m_animationTime, 0.f, 1.f, 5.f);
         m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
+        m_property_animation->set_ease_function(animation::EaseOutBounce(.5f));
         
         // add to animations to list
         m_animations.push_back(m_animation);
@@ -231,8 +232,7 @@ public:
         {
             m_object_component->setObject(selected_mesh());
             //selected_mesh()->setLookAt(camera());
-            
-            selected_mesh()->setScale(5 * *m_animationTime);
+            //selected_mesh()->setScale(5 * *m_animationTime);
         }
         
         m_animation->update(timeDelta);
@@ -370,11 +370,11 @@ public:
             
 //            m_property_animation = animation::create(&selected_mesh()->position(), vec3(0.f), vec3(100.f), 5.f);
 //            m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
-            
-//            m_animation = animation::create(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
-//            m_animation->set_ease_function(animation::EaseOutBounce());
-//            m_animation->set_loop(animation::LOOP_BACK_FORTH);
-//            m_animation->start(2);
+          
+            m_animation = animation::createAnimation(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
+            m_animation->set_ease_function(animation::EaseOutBounce());
+            m_animation->set_loop(animation::LOOP);
+            m_animation->start(2);
         }
         
         // create a ray

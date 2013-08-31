@@ -184,16 +184,16 @@ namespace kinski{ namespace animation
     };
     
     template<typename T>
-    AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration,
-                        float delay = 0)
+    AnimationPtr createAnimation(T* value_ptr, const T &from_value, const T &to_value, float duration,
+                                 float delay = 0)
     {
         PointerInterpolation<T> ptr_interpolate(value_ptr, from_value, to_value);
         return AnimationPtr(new Animation(duration, delay, ptr_interpolate));
     };
     
     template<typename T>
-    AnimationPtr create(typename Property_<T>::Ptr property, const T &from_value, const T &to_value,
-                        float duration, float delay = 0)
+    AnimationPtr createAnimation(typename Property_<T>::Ptr property, const T &from_value, const T &to_value,
+                                 float duration, float delay = 0)
     {
         PropertyInterpolation<T> prop_interpolate(property, from_value, to_value);
         return AnimationPtr(new Animation(duration, delay, prop_interpolate));

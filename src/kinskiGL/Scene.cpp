@@ -184,7 +184,7 @@ namespace kinski { namespace gl {
                     if(gl::Mesh *m = dynamic_cast<gl::Mesh*>(the_object))
                     {
                         gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
-                        const std::vector<glm::vec3>& vertices = m->geometry()->vertices();
+                        const auto& vertices = m->geometry()->vertices();
                         for (const auto &face : m->geometry()->faces())
                         {
                             gl::Triangle t(vertices[face.a], vertices[face.b], vertices[face.c]);
@@ -193,7 +193,6 @@ namespace kinski { namespace gl {
                             {
                                 float distance_scale = glm::length(the_object->global_scale() *
                                                                    ray_in_object_space.direction);
-                                LOG_DEBUG<<"id:"<< the_object->getID() <<" -> "<< distance_scale;
                                 ray_tri_hit.distance *= distance_scale;
                                 clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
                                 LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
