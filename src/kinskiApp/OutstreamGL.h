@@ -36,13 +36,16 @@ namespace kinski{ namespace gl{
         
         std::list<std::string>& lines() {return m_lines;};
         const std::list<std::string>& lines() const {return m_lines;};
+        uint32_t max_lines() const {return m_max_lines;}
+        void set_max_lines(uint32_t ml){m_max_lines = ml;}
         void draw();
     
     private:
         
-        explicit OutstreamGL(const gl::Font &the_font);
+        explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 10);
         
         gl::Font m_font;
+        uint32_t m_max_lines;
         std::list<std::string> m_lines;
     };
     

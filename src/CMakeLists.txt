@@ -23,6 +23,8 @@ OPTION (BUILD_SAMPLES "Build Samples" ON)
 ADD_SUBDIRECTORY("kinskiCore")
 SET(LIBS ${LIBS} "kinskiCore")
 
+##### GLM
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/blocks/glm/include")
 
 ADD_SUBDIRECTORY("kinskiGL")
 INCLUDE_DIRECTORIES("kinskiGL")
