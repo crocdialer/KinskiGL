@@ -538,6 +538,7 @@ namespace kinski { namespace gl {
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
         drawMesh(m);
+        //drawAxes(m);
         
         // free the less frequent used half of our buffered string-meshes
         if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)

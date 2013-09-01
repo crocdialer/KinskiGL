@@ -32,7 +32,7 @@ namespace kinski {
     Logger* Logger::get()
     {
         if(!s_instance)
-            s_instance = new Logger;
+            s_instance = new Logger();
         
         return s_instance;
     }
@@ -42,6 +42,7 @@ namespace kinski {
     m_globalSeverity(SEV_INFO)
     {
         clear_streams();
+        m_out_streams.push_back(&std::cout);
     }
 
     Logger::~Logger()
@@ -113,7 +114,8 @@ namespace kinski {
         if (theSeverity > SEV_PRINT)
         {
             myText<<" [" << getFilenamePart(theModule) << " at:" << theId << "]";
-            myText<<" [thread-id: "<<boost::this_thread::get_id() <<"]";
+            if(false)
+                myText<<" [thread-id: "<< boost::this_thread::get_id() <<"]";
         }
         
         std::string currentTimeString = currentDateTime();
@@ -122,33 +124,33 @@ namespace kinski {
         switch (theSeverity)
         {
             case SEV_TRACE:
-                stream << currentTimeString<<" TRACE: " << myText.str() << std::endl;
+                stream << currentTimeString<<" TRACE: " << myText.str();
                 break;
             case SEV_DEBUG:
-                stream << currentTimeString<<" DEBUG: " << myText.str() << std::endl;
+                stream << currentTimeString<<" DEBUG: " << myText.str();
                 break;
             case SEV_INFO:
-                stream << currentTimeString<<" INFO: " << myText.str() << std::endl;
+                stream << currentTimeString<<" INFO: " << myText.str();
                 break;
             case SEV_WARNING:
-                stream << currentTimeString<<" WARNING: " << myText.str() << std::endl;
+                stream << currentTimeString<<" WARNING: " << myText.str();
                 break;
             case SEV_PRINT:
-                stream << myText.str() << std::endl;
+                stream << myText.str();
                 break;
             case SEV_ERROR:
-                stream << currentTimeString<<" ERROR: " << myText.str() << std::endl;
+                stream << currentTimeString<<" ERROR: " << myText.str();
                 break;
             default:
                 throw Exception("Unknown logger severity");
                 break;
         }
         
-        // give log string to outstreams
+        // pass log string to outstreams
         std::list<std::ostream*>::iterator stream_it = m_out_streams.begin();
         for (; stream_it != m_out_streams.end(); ++stream_it)
         {
-            (**stream_it)<<stream.str();
+            (**stream_it) << stream.str() << std::endl;
         }
         
         #if ANDROID
@@ -185,6 +187,5 @@ namespace kinski {
     void Logger::clear_streams()
     {
         m_out_streams.clear();
-        m_out_streams.push_back(&std::cout);
     }
 };

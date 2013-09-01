@@ -9,8 +9,10 @@ if(NOT KINSKI_RASPI)
 find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
-FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp AppServer.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp AntTweakBarConnector.cpp)
-FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h AppServer.h ViewerApp.h LightComponent.h Object3DComponent.h AntTweakBarConnector.h)
+FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp AppServer.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp 
+        AntTweakBarConnector.cpp OutstreamGL.cpp)
+FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h AppServer.h ViewerApp.h LightComponent.h Object3DComponent.h 
+        AntTweakBarConnector.h OutstreamGL.h)
 
 ##### RASPI
 else()

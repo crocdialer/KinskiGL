@@ -1,5 +1,6 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiApp/AppServer.h"
+#include "kinskiApp/OutStreamGL.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 #include "kinskiApp/Object3DComponent.h"
@@ -38,9 +39,11 @@ private:
     Property_<float>::Ptr m_focal_range, m_focal_depth, m_fstop;
     Property_<bool>::Ptr m_show_focus, m_auto_focus;
     
-    float m_test_float;
+    // animation test
     animation::AnimationPtr m_animation, m_property_animation;
     std::list<animation::AnimationPtr> m_animations;
+    
+    gl::OutstreamGLPtr m_outstream;
     
 public:
     
@@ -55,9 +58,10 @@ public:
         kinski::addSearchPath("~/Desktop/doom3_base", true);
         kinski::addSearchPath("/Library/Fonts");
         
-        list<string> files = kinski::getDirectoryEntries("~/Desktop/sample", true, "png");
-        
         m_font.load("Courier New Bold.ttf", 24);
+        
+        m_outstream = gl::OutstreamGL::create(m_font);
+        Logger::get()->add_outstream(m_outstream.get());
         
         /*********** init our application properties ******************/
         
@@ -183,11 +187,6 @@ public:
         for (auto &light : lights()){scene().addObject(light);}
         
         // test animation
-        m_test_float = 0;
-        m_animation = animation::createAnimation(&m_test_float, 0.f, 5.f, 5.f);
-        m_animation->set_loop(animation::LOOP_BACK_FORTH);
-        m_animation->set_ease_function(animation::EaseOutBounce(.5f));
-        
         m_property_animation = animation::createAnimation<float>(m_animationTime, 0.f, 1.f, 5.f);
         m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
         m_property_animation->set_ease_function(animation::EaseOutBounce(.5f));
@@ -235,10 +234,15 @@ public:
             //selected_mesh()->setScale(5 * *m_animationTime);
         }
         
-        m_animation->update(timeDelta);
+        if(m_animation)
+            m_animation->update(timeDelta);
+        
         m_property_animation->update(timeDelta);
         
         //for(auto &animation : m_animations){animation->update(timeDelta);}
+        
+        //m_outstream->rdbuf()->pubsync();
+        
     }
     
     void draw()
@@ -331,6 +335,8 @@ public:
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
                            glm::vec2(windowSize().x - 110, windowSize().y - 70));
         }
+        
+        m_outstream->draw();
     }
     
     void buildSkeleton(gl::BonePtr currentBone, vector<vec3> &points)
