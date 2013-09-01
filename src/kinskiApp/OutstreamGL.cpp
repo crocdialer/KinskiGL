@@ -28,15 +28,58 @@ namespace kinski{ namespace gl{
     void OutstreamGL::draw()
     {
         glm::vec2 step(0, m_font.getLineHeight() * 1.1f);
-        glm::vec2 offset(windowDimension().x / 2.f, step.y);
+        glm::vec2 offset(10, windowDimension().y - step.y);
         
+        int i = m_lines.size();
         for (const string &line : m_lines)
         {
-            gl::drawText2D(line.substr(0, line.size() - 1), m_font, gl::Color(1), windowDimension().y - offset);
-            offset += step;
+            gl::Color color = gl::Color(1, 1, 1, (float) i / m_lines.size());
+            gl::drawText2D(line.substr(0, line.size() - 1), m_font, color, offset);
+            offset -= step;
+            i--;
         }
         if(m_lines.size() > 10) m_lines.pop_back();
     }
     
+    StreamBufferGL::StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz):
+    m_outstreamGL(ostreamGL),
+    m_buffer(buff_sz + 1)
+    {
+        //set putbase pointer and endput pointer
+        char *base = &m_buffer[0];
+        setp(base, base + buff_sz);
+    }
+
+    
+    // flush the characters in the buffer
+    int StreamBufferGL::flushBuffer ()
+    {
+        int num = pptr() - pbase();
+        
+        // pass the flushed char sequence
+        m_outstreamGL->lines().push_front(std::string(pbase(), pptr()));
+        
+        pbump(-num); // reset put pointer accordingly
+        return num;
+    }
+    
+    int StreamBufferGL::overflow (int c)
+    {
+        if (c != EOF)
+        {
+            *pptr() = c;    // insert character into the buffer
+            pbump(1);
+        }
+        if (flushBuffer() == EOF)
+            return EOF;
+        return c;
+    }
+    
+    int StreamBufferGL::sync()
+    {
+        if (flushBuffer() == EOF)
+            return -1;    // ERROR
+        return 0;
+    }
     
 }}//namespace

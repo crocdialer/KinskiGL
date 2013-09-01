@@ -17,6 +17,11 @@ namespace kinski{ namespace gl{
     class OutstreamGL;
     typedef std::shared_ptr<OutstreamGL> OutstreamGLPtr;
     
+    /* see
+     * http://savingyoutime.wordpress.com/2009/04/21/using-c-stl-streambufostream-to-create-time-stamped-logging-class/
+     * for references
+     */
+    
     class OutstreamGL : public std::ostream
     {
     public:
@@ -48,47 +53,15 @@ namespace kinski{ namespace gl{
     class StreamBufferGL : public std::streambuf
     {
     public:
-        StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz = 2048):
-        m_outstreamGL(ostreamGL),
-        m_buffer(buff_sz + 1)
-        {
-            //set putbase pointer and endput pointer
-            char *base = &m_buffer[0];
-            setp(base, base + buff_sz);
-        }
+        StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz = 2048);
+        
     protected:
         
         // flush the characters in the buffer
-        int flushBuffer ()
-        {
-            int num = pptr() - pbase();
-            
-            std::string out_string(pbase(), pptr());
-            m_outstreamGL->lines().push_front(out_string);
-            
-//            if (write(1, &m_buffer[0], num) != num) {
-//                return EOF;
-//            }
-            pbump(-num); // reset put pointer accordingly
-            return num;
-        }
-        virtual int overflow ( int c = EOF )
-        {
-            if (c != EOF)
-            {
-                *pptr() = c;    // insert character into the buffer
-                pbump(1);
-            }
-            if (flushBuffer() == EOF)
-                return EOF;
-            return c;
-        }
-        virtual int sync()
-        {
-            if (flushBuffer() == EOF)
-                return -1;    // ERROR
-            return 0;
-        }
+        int flushBuffer ();
+        virtual int overflow ( int c = EOF );
+        virtual int sync();
+        
     private:
         OutstreamGL* m_outstreamGL;
         std::vector<char> m_buffer;
