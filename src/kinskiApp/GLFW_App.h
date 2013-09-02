@@ -14,6 +14,7 @@
 #include <GLFW/glfw3.h>
 //#include <GLFW/glfw3native.h>
 #include "App.h"
+#include "OutstreamGL.h"
 
 struct CTwBar;
 
@@ -21,17 +22,31 @@ namespace kinski
 {
     class MouseEvent;
     class KeyEvent;
+    class GLFW_Window;
+    
+    typedef std::shared_ptr<GLFW_Window> GLFW_WindowPtr;
     
     class GLFW_Window
     {
     public:
-        typedef std::shared_ptr<GLFW_Window> Ptr;
-        GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
-                    GLFWwindow* share = NULL);
-        GLFW_Window(int width, int height, const std::string &theName = "KinskiGL");
+        
+        static GLFW_WindowPtr create(int width, int height, const std::string &theName,
+                                     bool fullscreen, GLFWwindow* share = NULL)
+        {
+            return GLFW_WindowPtr(new GLFW_Window(width, height, theName, fullscreen, share));
+        }
+        
+        static GLFW_WindowPtr create(int width, int height, const std::string &theName = "KinskiGL")
+        {
+            return GLFW_WindowPtr(new GLFW_Window(width, height, theName));
+        }
+        
         ~GLFW_Window();
         inline GLFWwindow* handle(){return m_handle;};
     private:
+        GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
+                    GLFWwindow* share);
+        GLFW_Window(int width, int height, const std::string &theName);
         GLFWwindow* m_handle;
     };
     
@@ -85,10 +100,12 @@ namespace kinski
         void create_tweakbar_from_component(const Component::Ptr & the_component);
         
         int get_num_monitors() const;
+        const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
+        gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
         
     private:
         
-        std::vector<GLFW_Window::Ptr> m_windows;
+        std::vector<GLFW_WindowPtr> m_windows;
         glm::ivec2 m_lastWheelPos;
         
         // internal initialization. performed when run is invoked
@@ -98,7 +115,7 @@ namespace kinski
         bool checkRunning();
         
         // GLFW internal
-        void addWindow(const GLFW_Window::Ptr &the_window);
+        void addWindow(const GLFW_WindowPtr &the_window);
         
         // GLFW static callbacks
         static void s_resize(GLFWwindow* window, int w, int h);
@@ -116,6 +133,8 @@ namespace kinski
         bool m_displayTweakBar;
         
         std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
+        
+        gl::OutstreamGL m_outstream_gl;
     };
 }
 #endif // _KINSKI_GLFW_APP_IS_INCLUDED_

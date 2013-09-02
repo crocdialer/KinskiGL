@@ -12,6 +12,14 @@ using namespace std;
 
 namespace kinski{ namespace gl{
     
+    OutstreamGL::OutstreamGL(uint32_t max_lines):
+    ios(0),
+    ostream(new StreamBufferGL(this)),
+    m_max_lines(max_lines)
+    {
+        
+    }
+    
     OutstreamGL::OutstreamGL(const gl::Font &the_font, uint32_t max_lines):
     ios(0),
     ostream(new StreamBufferGL(this)),
@@ -28,6 +36,8 @@ namespace kinski{ namespace gl{
     
     void OutstreamGL::draw()
     {
+        if(!m_font) return;
+        
         if(m_lines.size() > m_max_lines) m_lines.pop_back();
         
         glm::vec2 step(0, m_font.getLineHeight() * 1.1f);

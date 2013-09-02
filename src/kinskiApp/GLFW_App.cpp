@@ -76,9 +76,11 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
-        addWindow(GLFW_Window::Ptr(new GLFW_Window(getWidth(), getHeight(), getName())));
-        
+        addWindow(GLFW_Window::create(getWidth(), getHeight(), getName()));
         gl::setWindowDimension(windowSize());
+        
+        // set graphical log stream
+        Logger::get()->add_outstream(&m_outstream_gl);
         
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
@@ -131,6 +133,9 @@ namespace kinski
         // draw tweakbar
         if(m_displayTweakBar)
         {
+            // console output
+            outstream_gl().draw();
+            
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             TwDraw();
         }
@@ -150,9 +155,8 @@ namespace kinski
     void GLFW_App::setFullSceen(bool b)
     {
         App::setFullSceen(b);
-        //throw Exception("not yet supported");
-        GLFW_Window::Ptr window(new GLFW_Window(getWidth(), getHeight(), getName(), b,
-                                                m_windows.back()->handle()));
+        GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), getName(), b,
+                                                    m_windows.back()->handle());
         m_windows.clear();
         addWindow(window);
         
@@ -169,7 +173,7 @@ namespace kinski
         return ret;
     }
     
-    void GLFW_App::addWindow(const GLFW_Window::Ptr &the_window)
+    void GLFW_App::addWindow(const GLFW_WindowPtr &the_window)
     {
         m_windows.push_back(the_window);
         glfwSetWindowUserPointer(the_window->handle(), this);

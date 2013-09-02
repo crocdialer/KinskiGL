@@ -63,7 +63,6 @@
 #include "glm/gtc/noise.hpp"
 #include "glm/gtc/random.hpp"
 #include "glm/gtx/norm.hpp"
-#include "glm/gtx/extented_min_max.hpp"
 #include "glm/gtx/string_cast.hpp"
 
 namespace kinski { namespace gl {

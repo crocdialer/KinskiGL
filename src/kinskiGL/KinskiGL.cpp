@@ -308,8 +308,8 @@ namespace kinski { namespace gl {
     {
         static vector<vec3> thePoints;
         thePoints.clear();
-        thePoints.push_back(vec3(a, .1));
-        thePoints.push_back(vec3(b, .1));
+        thePoints.push_back(vec3(a, 0));
+        thePoints.push_back(vec3(b, 0));
         drawLines2D(thePoints, theColor, line_thickness);
     }
     

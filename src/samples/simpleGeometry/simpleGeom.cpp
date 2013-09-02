@@ -1,6 +1,5 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiApp/AppServer.h"
-#include "kinskiApp/OutStreamGL.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
 #include "kinskiApp/Object3DComponent.h"
@@ -43,7 +42,7 @@ private:
     animation::AnimationPtr m_animation, m_property_animation;
     std::list<animation::AnimationPtr> m_animations;
     
-    gl::OutstreamGLPtr m_outstream;
+    gl::OutstreamGL m_outstream;
     
 public:
     
@@ -59,9 +58,9 @@ public:
         kinski::addSearchPath("/Library/Fonts");
         
         m_font.load("Courier New Bold.ttf", 24);
-        
-        m_outstream = gl::OutstreamGL::create(m_font);
-        Logger::get()->add_outstream(m_outstream.get());
+
+        // set font for graphical outstream
+        outstream_gl().set_font(m_font);
         
         /*********** init our application properties ******************/
         
@@ -240,9 +239,6 @@ public:
         m_property_animation->update(timeDelta);
         
         //for(auto &animation : m_animations){animation->update(timeDelta);}
-        
-        //m_outstream->rdbuf()->pubsync();
-        
     }
     
     void draw()
@@ -258,7 +254,7 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            gl::drawLine(vec2(0), windowSize(), gl::Color(), 50.f);
+            gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 50.f);
             
             if(*m_use_fbo)
             {
@@ -335,8 +331,6 @@ public:
                            vec4(vec3(1) - clear_color().xyz(), 1.f),
                            glm::vec2(windowSize().x - 110, windowSize().y - 70));
         }
-        
-        m_outstream->draw();
     }
     
     void buildSkeleton(gl::BonePtr currentBone, vector<vec3> &points)

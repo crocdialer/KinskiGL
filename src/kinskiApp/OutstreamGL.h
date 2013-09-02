@@ -14,9 +14,6 @@
 
 namespace kinski{ namespace gl{
     
-    class OutstreamGL;
-    typedef std::shared_ptr<OutstreamGL> OutstreamGLPtr;
-    
     /* see
      * http://savingyoutime.wordpress.com/2009/04/21/using-c-stl-streambufostream-to-create-time-stamped-logging-class/
      * for references
@@ -26,23 +23,23 @@ namespace kinski{ namespace gl{
     {
     public:
         
-        virtual ~OutstreamGL();
+        explicit OutstreamGL(uint32_t max_lines = 10);
+        explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 10);
         
-        static OutstreamGLPtr create(const gl::Font &the_font)
-        {
-            OutstreamGLPtr ret(new OutstreamGL(the_font));
-            return ret;
-        }
+        virtual ~OutstreamGL();
         
         std::list<std::string>& lines() {return m_lines;};
         const std::list<std::string>& lines() const {return m_lines;};
         uint32_t max_lines() const {return m_max_lines;}
         void set_max_lines(uint32_t ml){m_max_lines = ml;}
+        
+        const gl::Font& font() const {return m_font;};
+        gl::Font& font() {return m_font;};
+        void set_font(gl::Font &the_font){m_font = the_font;};
+        
         void draw();
     
     private:
-        
-        explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 10);
         
         gl::Font m_font;
         uint32_t m_max_lines;
@@ -52,7 +49,7 @@ namespace kinski{ namespace gl{
     // This is the streambuffer; its function is to store formatted data and send
     // it to a character output when solicited (sync/overflow methods) . You do not
     // instantiate it by yourself on your application; it will be automatically used
-    // by an actual output stream (like the TimestampLoggerStream class defined ahead)
+    // by an actual output stream (like the OutstreamGL class defined above)
     class StreamBufferGL : public std::streambuf
     {
     public:
