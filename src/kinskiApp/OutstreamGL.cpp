@@ -7,6 +7,7 @@
 //
 
 #include "OutstreamGL.h"
+#include "kinskiGL/Material.h"
 
 using namespace std;
 
@@ -47,6 +48,9 @@ namespace kinski{ namespace gl{
         for (const string &line : m_lines)
         {
             gl::Color color = gl::Color(1, 1, 1, (float) i / m_lines.size());
+            if(line.find("WARNING") != std::string::npos){color = gl::COLOR_ORANGE;}
+            else if(line.find("ERROR") != std::string::npos){color = gl::COLOR_RED;}
+
             gl::drawText2D(line.substr(0, line.size() - 1), m_font, color, offset);
             offset -= step;
             i--;

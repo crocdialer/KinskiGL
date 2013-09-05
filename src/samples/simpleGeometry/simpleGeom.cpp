@@ -149,13 +149,9 @@ public:
 
         try
         {
-            m_textures[0] = gl::createTextureFromFile("Earth2.jpg", true);
-            mat->addTexture(m_textures[0]);
-            //mat->addTexture(m_textures[1]);
+            //m_textures[0] = gl::createTextureFromFile("Earth2.jpg", true);
+            //mat->addTexture(m_textures[0]);
             mat->setShinyness(60);
-            //mat->setShader(gl::createShader(gl::SHADER_PHONG));
-//            mat->setShader(gl::createShaderFromFile("shader_normalMap.vert",
-//                                                    "shader_normalMap.frag"));
         }catch(Exception &e)
         {
             LOG_ERROR<<e.what();
@@ -186,7 +182,7 @@ public:
         for (auto &light : lights()){scene().addObject(light);}
         
         // test animation
-        m_property_animation = animation::createAnimation<float>(m_animationTime, 0.f, 1.f, 5.f);
+        m_property_animation = animation::createAnimation(m_animationTime, 0.f, 1.f, 5.f);
         m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
         m_property_animation->set_ease_function(animation::EaseOutBounce(.5f));
         
@@ -253,7 +249,7 @@ public:
             
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
-            //gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
+            gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
             gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 50.f);
             
             if(*m_use_fbo)
@@ -287,7 +283,7 @@ public:
                     {
                         point_mat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
                         point_mat->setPointSize(24.f);
-                        point_mat->setPointAttenuation(0.f, 40.f, 0.f);
+                        point_mat->setPointAttenuation(0.f, 0.01f, 0.f);
                     }
                     point_mat->uniform("u_lightDir", light_direction());
                     

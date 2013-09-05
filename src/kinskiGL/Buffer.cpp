@@ -114,7 +114,7 @@ void Buffer::setStride(GLsizei theStride)
     m_Obj->stride = theStride;
 }
     
-void Buffer::setData(char *theData, GLsizei numBytes)
+void Buffer::setData(void *theData, GLsizei numBytes)
 {
     if(!m_Obj)
     {

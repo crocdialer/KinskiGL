@@ -51,6 +51,12 @@ class KINSKI_API Logger
     
     void add_outstream(std::ostream *the_stream);
     void clear_streams();
+    
+    bool use_time_stamp() const{ return m_use_timestamp;};
+    void set_use_time_stamp(bool b){m_use_timestamp = b;}
+    
+    bool use_thread_id() const{ return m_use_thread_id;};
+    void set_use_thread_id(bool b){m_use_thread_id = b;}
 
     private:
     
@@ -62,6 +68,8 @@ class KINSKI_API Logger
         std::multimap<std::string, ModuleSeverity> m_severitySettings;
     
         std::list<std::ostream*> m_out_streams;
+    
+        bool m_use_timestamp, m_use_thread_id;
 };
 
 /**

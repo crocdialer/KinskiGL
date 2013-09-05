@@ -60,6 +60,8 @@ private:
     cl::BufferGL m_positions, m_colors;
     cl::ImageGL m_cl_image;
     
+    LightComponent::Ptr m_light_component;
+    
     boost::asio::deadline_timer m_timer;
     
     // opencv interface
@@ -265,7 +267,9 @@ public:
         ViewerApp::setup();
         kinski::addSearchPath("/Library/Fonts");
         kinski::addSearchPath("~/Pictures");
-        m_font.load("Courier New Bold.ttf", 30);
+        
+        m_font.load("Courier New Bold.ttf", 24);
+        outstream_gl().set_font(m_font);
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
@@ -291,7 +295,7 @@ public:
         glGetFloatv(GL_POINT_SIZE_RANGE, vals);
         m_point_size->setRange(vals[0], vals[1]);
         m_pointMaterial->setPointSize(*m_point_size);
-        m_pointMaterial->setPointAttenuation(0.f, 50.f, 0.f);
+        m_pointMaterial->setPointAttenuation(0.f, 0.01f, 0.f);
         m_pointMaterial->uniform("u_pointRadius", 50.f);
         
         //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
@@ -302,6 +306,12 @@ public:
         initParticles(*m_num_particles);
         
         m_cvThread.reset(new CVThread());
+        
+        // light component
+        m_light_component.reset(new LightComponent());
+        m_light_component->set_lights(lights());
+        m_light_component->refresh();
+        create_tweakbar_from_component(m_light_component);
         
         // load state from config file
         try
@@ -324,7 +334,7 @@ public:
         
         ViewerApp::update(timeDelta);
         updateParticles(timeDelta);
-        setColors();
+        //setColors();
     }
     
     void draw()

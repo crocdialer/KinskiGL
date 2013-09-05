@@ -354,8 +354,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawPoints(GLuint thePointVBO, GLsizei theCount, const MaterialPtr &theMaterial,
-                    GLsizei stride, GLsizei offset)
+    void drawPoints(const gl::Buffer &the_point_buf, const MaterialPtr &theMaterial, GLsizei offset)
     {
         static MaterialPtr staticMat;
         static GLuint pointVAO = 0;
@@ -368,9 +367,7 @@ namespace kinski { namespace gl {
         }
         
         MaterialPtr activeMat = theMaterial ? theMaterial : staticMat;
-        
-        //if(!activeMat->shader())
-        //activeMat->shader() = staticMat->shader();
+        int stride = the_point_buf.stride() ? the_point_buf.stride() : sizeof(glm::vec3);
         
         activeMat->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
         
@@ -386,7 +383,7 @@ namespace kinski { namespace gl {
             if(!pointVAO) GL_SUFFIX(glGenVertexArrays)(1, &pointVAO);
             GL_SUFFIX(glBindVertexArray)(pointVAO);
 #endif            
-            glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
+            glBindBuffer(the_point_buf.target(), the_point_buf.id());
             
             GLint vertexAttribLocation = activeMat->shader().getAttribLocation("a_vertex");
             glEnableVertexAttribArray(vertexAttribLocation);
@@ -401,12 +398,12 @@ namespace kinski { namespace gl {
 #endif
         }
         
-        glBindBuffer(GL_ARRAY_BUFFER, thePointVBO);
+        glBindBuffer(the_point_buf.target(), the_point_buf.id());
         
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(pointVAO);
 #endif
-        glDrawArrays(GL_POINTS, 0, theCount);
+        glDrawArrays(GL_POINTS, 0, the_point_buf.numBytes() / sizeof(glm::vec3));
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
@@ -418,18 +415,10 @@ namespace kinski { namespace gl {
     
     void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
     {
-        static GLuint pointVBO = 0;
-        
-        if(!pointVBO)
-            glGenBuffers(1, &pointVBO);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, pointVBO);
-        glBufferData(GL_ARRAY_BUFFER, thePoints.size() * sizeof(vec3), NULL,
-                     GL_STREAM_DRAW);
-        glBufferData(GL_ARRAY_BUFFER, thePoints.size() * sizeof(vec3), &thePoints[0],
-                     GL_STREAM_DRAW);
-
-        drawPoints(pointVBO, thePoints.size(), theMaterial);
+        static gl::Buffer point_buf;
+        if(!point_buf){point_buf = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);}
+        point_buf.setData(thePoints);
+        drawPoints(point_buf, theMaterial);
     }
 
 ///////////////////////////////////////////////////////////////////////////////

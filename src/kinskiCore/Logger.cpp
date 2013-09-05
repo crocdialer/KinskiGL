@@ -7,13 +7,12 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
+#include <iostream>
+#include <limits>
+#include <boost/thread.hpp>
 #include "Logger.h"
 #include "Exception.h"
 #include "file_functions.h"
-#include <boost/thread.hpp>
-
-#include <iostream>
-#include <limits>
 
 namespace kinski {
     
@@ -39,7 +38,9 @@ namespace kinski {
     
     Logger::Logger():
     _myTopLevelLogTag(""),
-    m_globalSeverity(SEV_INFO)
+    m_globalSeverity(SEV_INFO),
+    m_use_timestamp(true),
+    m_use_thread_id(false)
     {
         clear_streams();
         m_out_streams.push_back(&std::cout);
@@ -114,32 +115,34 @@ namespace kinski {
         if (theSeverity > SEV_PRINT)
         {
             myText<<" [" << getFilenamePart(theModule) << " at:" << theId << "]";
-            if(false)
+            if(m_use_thread_id)
                 myText<<" [thread-id: "<< boost::this_thread::get_id() <<"]";
         }
         
-        std::string currentTimeString = currentDateTime();
         std::stringstream stream;
         
+        if(m_use_timestamp)
+            stream << currentDateTime();
+    
         switch (theSeverity)
         {
             case SEV_TRACE:
-                stream << currentTimeString<<" TRACE: " << myText.str();
+                stream <<" TRACE: " << myText.str();
                 break;
             case SEV_DEBUG:
-                stream << currentTimeString<<" DEBUG: " << myText.str();
+                stream <<" DEBUG: " << myText.str();
                 break;
             case SEV_INFO:
-                stream << currentTimeString<<" INFO: " << myText.str();
+                stream <<" INFO: " << myText.str();
                 break;
             case SEV_WARNING:
-                stream << currentTimeString<<" WARNING: " << myText.str();
+                stream <<" WARNING: " << myText.str();
                 break;
             case SEV_PRINT:
                 stream << myText.str();
                 break;
             case SEV_ERROR:
-                stream << currentTimeString<<" ERROR: " << myText.str();
+                stream <<" ERROR: " << myText.str();
                 break;
             default:
                 throw Exception("Unknown logger severity");

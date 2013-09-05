@@ -107,22 +107,26 @@ namespace kinski { namespace gl {
     
     void Object3D::set_global_transform(const glm::mat4 &transform)
     {
-        
+        glm::mat4 global_trans_inv = glm::inverse(global_transform());
+        m_transform = global_trans_inv * transform;
     }
     
     void Object3D::set_global_position(const glm::vec3 &position)
     {
-    
+        glm::mat4 global_trans_inv = glm::inverse(global_transform());
+        m_transform = global_trans_inv * glm::translate(glm::mat4(), position);
     }
     
     void Object3D::set_global_rotation(const glm::quat &rotation)
     {
-    
+        glm::mat4 global_trans_inv = glm::inverse(global_transform());
+        m_transform = global_trans_inv * glm::mat4_cast(rotation);
     }
     
-    void Object3D::set_global_scale(const glm::vec3 &scale)
+    void Object3D::set_global_scale(const glm::vec3 &the_scale)
     {
-    
+        glm::mat4 global_trans_inv = glm::inverse(global_transform());
+        m_transform = global_trans_inv * glm::scale(glm::mat4(), the_scale);
     }
     
     void Object3D::set_parent(const Object3DPtr &the_parent)

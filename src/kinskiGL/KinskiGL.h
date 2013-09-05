@@ -140,9 +140,8 @@ namespace kinski { namespace gl {
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const Color &theColor,
                               float line_thickness = 1.f);
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const MaterialPtr &theMat);
-    KINSKI_API void drawPoints(GLuint thePointVBO, GLsizei theCount,
+    KINSKI_API void drawPoints(const gl::Buffer &the_point_buf,
                                const MaterialPtr &theMaterial = std::shared_ptr<Material>(),
-                               GLsizei stride = 0,
                                GLsizei offset = 0);
     KINSKI_API void drawPoints(const std::vector<glm::vec3> &thePoints,
                                const MaterialPtr &theMaterial = std::shared_ptr<Material>());
@@ -162,8 +161,8 @@ namespace kinski { namespace gl {
     KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
     KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
-                                    const MaterialPtr &theMaterial = MaterialPtr(),
-                                    int numSegments = 32 );
+                               const MaterialPtr &theMaterial = MaterialPtr(),
+                               int numSegments = 32 );
     
     KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam);

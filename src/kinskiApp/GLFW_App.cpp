@@ -251,7 +251,7 @@ namespace kinski
         glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
         app->m_lastWheelPos -= offset;
         if(app->displayTweakBar())
-            TwEventMouseWheelGLFW(app->m_lastWheelPos.y);
+            TwMouseWheel(app->m_lastWheelPos.y);
         
         double posX, posY;
         glfwGetCursorPos(window, &posX, &posY);

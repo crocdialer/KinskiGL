@@ -639,9 +639,9 @@ namespace kinski { namespace gl {
             v_color = a_color;
             v_eyeVec = -(u_modelViewMatrix * a_vertex).xyz;
             float d = length(v_eyeVec);
-            float attenuation = sqrt(u_point_attenuation.constant +
-                                     u_point_attenuation.linear / d +
-                                     u_point_attenuation.quadratic / (d * d));
+            float attenuation = 1.0 / (u_point_attenuation.constant +
+                                       u_point_attenuation.linear * d +
+                                       u_point_attenuation.quadratic * (d * d));
             gl_PointSize = max(a_pointSize, u_pointSize) * attenuation;
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
@@ -687,19 +687,13 @@ namespace kinski { namespace gl {
         });
         
         // pixel shader for rendering points as shaded spheres
-        const char *point_sphere_fragSrc = GLSL(150 core,
+        const char *point_sphere_fragSrc = STRINGIFY(
         uniform float u_pointRadius;  // point size in world space
         uniform vec3 u_lightDir;
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[8];
-        uniform struct
-        {
-          vec4 diffuse;
-          vec4 ambient;
-          vec4 specular;
-          vec4 emission;
-          float shinyness;
-        } u_material;
+        uniform Lightsource u_lights[16];
+        uniform Material u_material;
         in vec4 v_color;
         in vec3 v_eyeVec;        // position of center in eye space
         out vec4 fragData;
@@ -717,7 +711,7 @@ namespace kinski { namespace gl {
             N.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0);
             float mag = dot(N.xy, N.xy);
             if (mag > 1.0) discard;   // kill pixels outside circle
-            N.z = sqrt(1.0-mag);
+            N.z = sqrt(1.0 - mag);
             
             // point on surface of sphere in eye space
             vec3 spherePosEye = v_eyeVec + N * u_pointRadius;
@@ -732,6 +726,14 @@ namespace kinski { namespace gl {
             float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness);
             vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
             fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
+            
+//            vec4 shade_color = vec4(0);
+//            for(int i = 0; i < u_numLights; i++)
+//            {
+//                shade_color += shade(u_lights[i], u_material, N, -normalize(spherePosEye), texColors);
+//            }
+//            
+//            fragData = shade_color;
         });
 #endif
         
@@ -793,7 +795,12 @@ namespace kinski { namespace gl {
                 break;
                 
             case SHADER_POINTS_SPHERE:
-                ret.loadFromData(point_vertSrc, point_sphere_fragSrc);
+                frag_src = glsl_header_150 +
+                material_block +
+                light_block +
+                shade_function_block +
+                point_sphere_fragSrc;
+                ret.loadFromData(point_vertSrc, frag_src.c_str());
                 break;
                 
             default:
