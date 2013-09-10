@@ -4,7 +4,7 @@ FIND_PATH(FMOD_INCLUDE_DIRS fmod.h DOC "Path to FMOD include directory."
   $ENV{FMOD_ROOT}
   PATH_SUFFIX include #For finding the include file under the root of the glfw expanded archive, typically on Windows.
   PATHS
-  ${CMAKE_SOURCE_DIR}/libs/fmod/include
+  "${CMAKE_SOURCE_DIR}/blocks/fmod/include"
   /usr/include/
   /usr/local/include/
   /usr/include/fmod
@@ -15,7 +15,7 @@ FIND_PATH(FMOD_INCLUDE_DIRS fmod.h DOC "Path to FMOD include directory."
 SET(FMOD_LIB_NAMES fmodex)
 
 IF( APPLE )
-    set(LIB_SEARCH_PATHS "${CMAKE_SOURCE_DIR}/libs/fmod/lib_osx")    
+    set(LIB_SEARCH_PATHS "${CMAKE_SOURCE_DIR}/blocks/fmod/lib_osx")    
 endif( APPLE )
 
 FIND_LIBRARY(FMOD_LIBRARIES DOC "Absolute path to FMOD library."
@@ -30,10 +30,9 @@ FIND_LIBRARY(FMOD_LIBRARIES DOC "Absolute path to FMOD library."
   ${FMOD_ROOT}/lib-msvc100/release 
 )
 
-SET(FMOD_FOUND 0)
 IF(FMOD_LIBRARIES AND FMOD_INCLUDE_DIRS)
-  SET(FMOD_FOUND 1)
-  message(STATUS "Found FMOD -> " ${FMOD_LIBRARIES})
+  SET(FMOD_FOUND TRUE)
+  message(STATUS "Found FMOD: ${FMOD_LIBRARIES}")
 ELSE()
   message(STATUS "FMOD NOT found!")
 ENDIF(FMOD_LIBRARIES AND FMOD_INCLUDE_DIRS)

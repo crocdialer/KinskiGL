@@ -111,7 +111,7 @@ namespace kinski { namespace gl {
           vec4 ambient = mat.ambient * light.ambient;
           vec4 diffuse = mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0);
           vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
-          return base_color * att * (ambient + diffuse + spec);
+          return base_color * (ambient + att * (diffuse + spec));
         });
         
         std::string vertex_shader_phong = STRINGIFY(

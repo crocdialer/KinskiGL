@@ -282,7 +282,7 @@ public:
                     if(!point_mat)
                     {
                         point_mat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
-                        point_mat->setPointSize(24.f);
+                        point_mat->setPointSize(32.f);
                         point_mat->setPointAttenuation(0.f, 0.01f, 0.f);
                     }
                     point_mat->uniform("u_lightDir", light_direction());

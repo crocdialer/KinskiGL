@@ -35,11 +35,15 @@ namespace kinski{ namespace gl{
         delete rdbuf();
     }
     
+    void OutstreamGL::add_line(const std::string &line)
+    {
+        while(m_lines.size() >= m_max_lines) m_lines.pop_back();
+        m_lines.push_front(line);
+    }
+    
     void OutstreamGL::draw()
     {
         if(!m_font) return;
-        
-        if(m_lines.size() > m_max_lines) m_lines.pop_back();
         
         glm::vec2 step(0, m_font.getLineHeight() * 1.1f);
         glm::vec2 offset(10, windowDimension().y - step.y);
@@ -73,7 +77,7 @@ namespace kinski{ namespace gl{
         int num = pptr() - pbase();
         
         // pass the flushed char sequence
-        m_outstreamGL->lines().push_front(std::string(pbase(), pptr()));
+        m_outstreamGL->add_line(std::string(pbase(), pptr()));
         
         pbump(-num); // reset put pointer accordingly
         return num;

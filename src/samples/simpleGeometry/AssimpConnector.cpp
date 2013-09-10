@@ -7,13 +7,13 @@
 //
 
 #include <boost/bind.hpp>
-#include "AssimpConnector.h"
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include "kinskiGL/Mesh.h"
 #include "kinskiGL/Geometry.h"
 #include "kinskiGL/Material.h"
+#include "AssimpConnector.h"
 
 using namespace std;
 using namespace glm;
@@ -40,7 +40,7 @@ namespace kinski { namespace gl{
     inline glm::mat4 aimatrix_to_glm_mat4(aiMatrix4x4 theMat)
     {
         glm::mat4 ret;
-        memcpy(&ret[0][0], theMat.Transpose()[0], 16 * sizeof(float));
+        memcpy(&ret[0][0], theMat.Transpose()[0], sizeof(ret));
         return ret;
     }
     

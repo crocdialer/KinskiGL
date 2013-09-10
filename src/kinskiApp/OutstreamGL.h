@@ -25,10 +25,8 @@ namespace kinski{ namespace gl{
         
         explicit OutstreamGL(uint32_t max_lines = 10);
         explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 10);
-        
         virtual ~OutstreamGL();
         
-        std::list<std::string>& lines() {return m_lines;};
         const std::list<std::string>& lines() const {return m_lines;};
         uint32_t max_lines() const {return m_max_lines;}
         void set_max_lines(uint32_t ml){m_max_lines = ml;}
@@ -37,6 +35,7 @@ namespace kinski{ namespace gl{
         gl::Font& font() {return m_font;};
         void set_font(gl::Font &the_font){m_font = the_font;};
         
+        void add_line(const std::string &line);
         void draw();
     
     private:
