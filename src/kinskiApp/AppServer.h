@@ -21,10 +21,10 @@ namespace kinski
     class tcp_connection;
     class response_delegate;
     
-    class tcp_connection : public boost::enable_shared_from_this<tcp_connection>
+    class tcp_connection : public std::enable_shared_from_this<tcp_connection>
     {
     public:
-        typedef boost::shared_ptr<tcp_connection> Ptr;
+        typedef std::shared_ptr<tcp_connection> Ptr;
         
         static Ptr create(boost::asio::io_service& io_service, kinski::Component::WeakPtr the_component)
         {

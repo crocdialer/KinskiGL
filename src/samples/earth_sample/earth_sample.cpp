@@ -32,14 +32,7 @@ namespace kinski
         // enable observer mechanism
         observeProperties();
     
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-        }
+        load_settings();
         
         /********************** construct a simple scene ***********************/
         gl::Geometry::Ptr sphere = gl::Geometry::createSphere(100, 32);

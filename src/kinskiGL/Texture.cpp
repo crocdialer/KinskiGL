@@ -139,7 +139,7 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
     {
-        GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
+        GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat), GL_ONE};
         glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
     

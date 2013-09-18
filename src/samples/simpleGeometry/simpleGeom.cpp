@@ -52,7 +52,6 @@ public:
         set_precise_selection(true);
         
         /******************** add search paths ************************/
-        kinski::addSearchPath("~/Desktop/");
         kinski::addSearchPath("~/Desktop/creatures", true);
         kinski::addSearchPath("~/Desktop/doom3_base", true);
         kinski::addSearchPath("/Library/Fonts");
@@ -250,7 +249,7 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 50.f);
+            gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 2);
             
             if(*m_use_fbo)
             {

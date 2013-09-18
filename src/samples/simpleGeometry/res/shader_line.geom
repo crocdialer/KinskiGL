@@ -20,12 +20,12 @@ out VertexData {
 void main()
 {
     vec3 line_dir = normalize(gl_in[1].gl_Position - gl_in[0].gl_Position).xyz;
-    vec3 offset = vec3(line_dir.y, -line_dir.x, 0.f) / 2.f;
+    vec3 offset_dir = normalize(vec3(line_dir.y, -line_dir.x, 0.f));
     
     for(int i = 0; i < gl_in.length(); i++)
     {
         // copy attributes
-        gl_Position = gl_in[i].gl_Position - vec4(u_line_thickness * offset, 0.f);;
+        gl_Position = gl_in[i].gl_Position - vec4(u_line_thickness * offset_dir, 0.f);;
         vertex_out.color = vertex_in[i].color;
         vertex_out.texCoord = vertex_in[i].texCoord;
         
@@ -33,7 +33,7 @@ void main()
         EmitVertex();
         
         // copy attributes
-        gl_Position = gl_in[i].gl_Position + vec4(u_line_thickness * offset, 0.f);
+        gl_Position = gl_in[i].gl_Position + vec4(u_line_thickness * offset_dir, 0.f);
         vertex_out.color = vertex_in[i].color;
         vertex_out.texCoord = vertex_in[i].texCoord;
         
