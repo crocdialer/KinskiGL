@@ -21,7 +21,7 @@ endif(APPLE)
 add_library(${LIB_NAME} STATIC ${FOLDER_SOURCES} ${FOLDER_HEADERS})
 
 #set(LIBS "-framework OpenGL -framework GLUT -framework AppKit")
-TARGET_LINK_LIBRARIES(${LIB_NAME} "-framework OpenGL -framework GLUT -framework AppKit")
+TARGET_LINK_LIBRARIES(${LIB_NAME} "-framework OpenGL -framework AppKit")
 
 SET(LIBS ${LIBS} ${LIB_NAME})
 

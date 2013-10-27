@@ -70,7 +70,7 @@ struct Texture::Obj
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
-Texture::Texture():m_Obj(new Obj()){}
+Texture::Texture(){}
     
 Texture::Texture( int aWidth, int aHeight, Format format )
 	: m_Obj(new Obj( aWidth, aHeight))

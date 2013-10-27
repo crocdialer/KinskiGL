@@ -278,7 +278,7 @@ namespace kinski{ namespace gl{
     class TextureDataExc : public Exception
     {
     public:	
-        TextureDataExc( const std::string &log ):Exception("TextureData Error: " + log){};
+        TextureDataExc(const std::string &log):Exception("TextureData Error: " + log){};
     };
     
     template<typename T> class scoped_bind

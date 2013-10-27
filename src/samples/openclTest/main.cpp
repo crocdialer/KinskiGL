@@ -6,11 +6,6 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-//#include <boost/date_time/posix_time/posix_time.hpp>
-
-// video input
-#include "kinskiCV/CVThread.h"
-#include "kinskiCV/TextureIO.h"
 
 using namespace std;
 using namespace kinski;
@@ -63,9 +58,6 @@ private:
     LightComponent::Ptr m_light_component;
     
     boost::asio::deadline_timer m_timer;
-    
-    // opencv interface
-    CVThread::Ptr m_cvThread;
     
     void initOpenCL()
     {
@@ -305,8 +297,6 @@ public:
         initOpenCL();
         initParticles(*m_num_particles);
         
-        m_cvThread.reset(new CVThread());
-        
         // light component
         m_light_component.reset(new LightComponent());
         m_light_component->set_lights(lights());
@@ -352,11 +342,15 @@ public:
             glm::vec2 offset(getWidth() - w - 10, 10);
             for(int i = 0;i < 2;i++)
             {
-                float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
+                gl::Texture &t = m_textures[i];
+                
+                if(!t) continue;
+                
+                float h = t.getHeight() * w / t.getWidth();
                 glm::vec2 step(0, h + 10);
-                drawTexture(m_textures[i], vec2(w, h), offset);
-                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
-                               as_string(m_textures[i].getHeight()), m_font, glm::vec4(1),
+                drawTexture(t, vec2(w, h), offset);
+                gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                               as_string(t.getHeight()), m_font, glm::vec4(1),
                                offset);
                 offset += step;
             }

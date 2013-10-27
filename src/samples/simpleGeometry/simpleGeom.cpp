@@ -311,6 +311,7 @@ public:
             for (int j = 0; j < 4; j++)
             {
                 const gl::Texture &t = m_textures[j];
+                if(!t) continue;
                 
                 float h = t.getHeight() * w / t.getWidth();
                 glm::vec2 step(0, h + 10);

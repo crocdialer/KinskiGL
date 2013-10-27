@@ -10,8 +10,6 @@
 #define __kinskiGL__AppServer__
 
 #include "App.h"
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
 
 using boost::asio::ip::tcp;
 

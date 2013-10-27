@@ -254,7 +254,7 @@ namespace kinski { namespace gl {
     {
         if(theVertices.empty())
         {
-            LOG_WARNING << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
+            LOG_TRACE << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
             return vec3(0);
         }
         vec3 sum(0);
@@ -273,9 +273,9 @@ namespace kinski { namespace gl {
         glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
         gl::GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_LINE_STRIP);
-        static glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
+        static const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
             vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
-        static GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
+        static const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
         int num_indices = sizeof(indices) / sizeof(GLuint);
         
         for (int i = 0; i < 8; i++)
@@ -284,10 +284,7 @@ namespace kinski { namespace gl {
             geom->vertices().push_back(vec3(proj_v) / proj_v.w);
         }
         
-        for (int i = 0; i < num_indices; i++)
-        {
-            geom->indices().push_back(indices[i]);
-        }
+        geom->appendIndices(indices, num_indices);
         geom->computeBoundingBox();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
