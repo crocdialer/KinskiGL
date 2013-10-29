@@ -44,7 +44,7 @@ namespace kinski
     m_lastWheelPos(0),
     m_displayTweakBar(true)
     {
-        
+        glfwSetErrorCallback(&s_error_cb);
     }
     
     GLFW_App::~GLFW_App()
@@ -189,6 +189,11 @@ namespace kinski
     }
     
 /****************************  Application Events (internal) **************************/
+    
+    void GLFW_App::s_error_cb(int error_code, const char* error_msg)
+    {
+        LOG_ERROR<<"GLFW Error ("<< error_code <<"): "<<error_msg;
+    }
     
     void GLFW_App::s_resize(GLFWwindow* window, int w, int h)
     {

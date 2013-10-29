@@ -131,6 +131,7 @@ class KINSKI_API Property_ : public Property
 {
 public:
     typedef std::shared_ptr< Property_<T> > Ptr;
+    typedef std::weak_ptr< Property_<T> > WeakPtr;
     
     static Ptr create(const std::string &theName, const T &theValue)
     {

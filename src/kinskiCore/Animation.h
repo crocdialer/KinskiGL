@@ -9,7 +9,6 @@
 #ifndef __kinskiGL__Animation__
 #define __kinskiGL__Animation__
 
-#include <boost/function.hpp>
 #include "boost/date_time/posix_time/posix_time.hpp"
 #include "Property.h"
 #include "Easing.h"
@@ -18,9 +17,9 @@ namespace kinski{ namespace animation{
     
     class Animation;
     typedef std::shared_ptr<Animation> AnimationPtr;
-    typedef boost::function<float (float)> EaseFunction;
-    typedef boost::function<void (float)> InterpolationFunction;
-    typedef boost::function<void (void)> Callback;
+    typedef std::function<float (float)> EaseFunction;
+    typedef std::function<void (float)> InterpolationFunction;
+    typedef std::function<void (void)> Callback;
     
     enum LoopType {LOOP_NONE = 0, LOOP = 1, LOOP_BACK_FORTH = 2};
     enum PlaybackType {PLAYBACK_PAUSED = 0, PLAYBACK_FORWARD = 1, PLAYBACK_BACKWARD = 2};
@@ -139,64 +138,28 @@ namespace kinski{ namespace animation{
     
     int Animation::s_id_pool = 0;
     
-//    template<typename T>
-//    class InterpolationBase
-//    {
-//    public:
-//        InterpolationBase(const T& from, const T& to):m_start_value(from), m_end_value(to){}
-//        inline const T& start_val() const {return m_start_value;}
-//        inline const T& end_val() const {return m_end_value;}
-//    private:
-//        T m_start_value, m_end_value;
-//    };
-    
-    template<typename T>
-    class PointerInterpolation
-    {
-    public:
-        PointerInterpolation(T* the_ptr, const T& from, const T& to):
-        m_value(the_ptr), m_start_value(from), m_end_value(to){}
-        void operator()(float progress)
-        {
-            *m_value = mix(m_start_value, m_end_value, progress);
-        }
-    private:
-        T* m_value;
-        T m_start_value, m_end_value;
-    };
-    
-    template<typename T>
-    class PropertyInterpolation
-    {
-    public:
-        PropertyInterpolation(typename Property_<T>::Ptr property, const T& from, const T& to):
-        m_weak_property(property), m_start_value(from), m_end_value(to){}
-        void operator()(float progress)
-        {
-            if(typename Property_<T>::Ptr prop = m_weak_property.lock())
-            {
-                *prop = mix(m_start_value, m_end_value, progress);
-            }
-        }
-    private:
-        typename std::weak_ptr<Property_<T> > m_weak_property;
-        T m_start_value, m_end_value;
-    };
-    
     template<typename T>
     AnimationPtr createAnimation(T* value_ptr, const T &from_value, const T &to_value, float duration,
                                  float delay = 0)
     {
-        PointerInterpolation<T> ptr_interpolate(value_ptr, from_value, to_value);
-        return AnimationPtr(new Animation(duration, delay, ptr_interpolate));
+        return AnimationPtr(new Animation(duration, delay,
+                                          [=](float progress)
+                                          {*value_ptr = mix(from_value, to_value, progress);}));
     };
     
     template<typename T>
-    AnimationPtr createAnimation(typename Property_<T>::Ptr property, const T &from_value, const T &to_value,
-                                 float duration, float delay = 0)
+    AnimationPtr createAnimation(typename Property_<T>::WeakPtr weak_property,
+                                 const T &from_value,
+                                 const T &to_value,
+                                 float duration,
+                                 float delay = 0)
     {
-        PropertyInterpolation<T> prop_interpolate(property, from_value, to_value);
-        return AnimationPtr(new Animation(duration, delay, prop_interpolate));
+        return AnimationPtr(new Animation(duration, delay,
+                                          [=](float progress)
+                                          {
+                                              if(auto property = weak_property.lock())
+                                                  *property = mix(from_value, to_value, progress);
+                                          }));
     };
     
 }}//namespace

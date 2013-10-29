@@ -27,7 +27,7 @@ namespace kinski
     m_cursorVisible(true),
     m_thread_pool(0)
     {
-        srand(clock());
+        //srand(clock());
     }
     
     App::~App()

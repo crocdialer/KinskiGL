@@ -95,6 +95,7 @@ namespace kinski
 // compiler has C++11 stdlib
 #if KINSKI_MSW || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
 #include <memory>
+#include <functional>
 #else
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
@@ -106,6 +107,8 @@ namespace std
     using boost::dynamic_pointer_cast;
     using boost::const_pointer_cast;
     using boost::enable_shared_from_this;
+    
+    using boost::function;
     
     // backwards compatibility hack
     template<typename T> struct owner_less : public less<T>{};

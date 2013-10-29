@@ -118,6 +118,7 @@ namespace kinski
         void addWindow(const GLFW_WindowPtr &the_window);
         
         // GLFW static callbacks
+        static void s_error_cb(int error_code, const char* error_msg);
         static void s_resize(GLFWwindow* window, int w, int h);
         static void s_mouseMove(GLFWwindow* window,double x, double y);
         static void s_mouseButton(GLFWwindow* window,int button, int action, int modifier_mask);

@@ -12,6 +12,7 @@ namespace kinski
         /******************** add search paths ************************/
         kinski::addSearchPath("/Library/Fonts");
         m_font.load("Courier New Bold.ttf", 24);
+        outstream_gl().set_font(m_font);
         
         /*********** init our application properties ******************/
         m_frustum_rotation = Property_<glm::mat3>::create("Frustum rotation", mat3());
@@ -53,6 +54,11 @@ namespace kinski
         }
         
         gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_COLOR));
+        mat->setPointSize(30.f);
+        mat->setPointAttenuation(0.f, 0.01f, 0.f);
+        mat->setBlending();
+        mat->setDepthWrite(false);
+        //mat->uniform("u_pointRadius", 50.f);
         m_point_mesh = gl::Mesh::create(points, mat);
         
         if(*m_perspective)
@@ -62,6 +68,9 @@ namespace kinski
         
         m_test_cam->setPosition(vec3(0, 0, 50));
         m_frustum_mesh = gl::createFrustumMesh(m_test_cam);
+        
+        std::function<void(float)> poop = [&](float p){LOG_INFO<<"onken";};
+        poop(3);
     }
     
     void Frustum_Tester::update(float timeDelta)
@@ -74,7 +83,7 @@ namespace kinski
         {
             if(f.intersect(m_point_mesh->geometry()->vertices()[i]))
             {
-                m_point_mesh->geometry()->colors()[i] = vec4(1, .7, 0 ,1);
+                m_point_mesh->geometry()->colors()[i] = vec4(1, .7, 0 ,.7);
             }
             else
             {
@@ -128,6 +137,6 @@ namespace kinski
 
 int main(int argc, char *argv[])
 {
-    kinski::App::Ptr theApp(new kinski::Frustum_Tester);
+    kinski::App::Ptr theApp(new kinski::Frustum_Tester());
     return theApp->run();
 }

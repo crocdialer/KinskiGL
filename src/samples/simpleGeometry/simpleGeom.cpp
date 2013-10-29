@@ -188,6 +188,8 @@ public:
         // add to animations to list
         m_animations.push_back(m_animation);
         m_animations.push_back(m_property_animation);
+        m_property_animation->set_finish_callback([]{LOG_DEBUG<<"forth";});
+        m_property_animation->set_reverse_finish_callback([]{LOG_DEBUG<<"back";});
         
         // load state from config file(s)
         load_settings();

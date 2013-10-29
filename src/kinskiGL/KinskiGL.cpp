@@ -44,6 +44,11 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
+    class Impl
+    {
+        
+    };
+    
     static glm::vec2 g_windowDim;
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
@@ -273,9 +278,9 @@ namespace kinski { namespace gl {
         glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
         gl::GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_LINE_STRIP);
-        static const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
+        const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
             vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
-        static const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
+        const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
         int num_indices = sizeof(indices) / sizeof(GLuint);
         
         for (int i = 0; i < 8; i++)
