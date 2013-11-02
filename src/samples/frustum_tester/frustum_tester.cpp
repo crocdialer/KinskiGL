@@ -69,7 +69,7 @@ namespace kinski
         m_test_cam->setPosition(vec3(0, 0, 50));
         m_frustum_mesh = gl::createFrustumMesh(m_test_cam);
         
-        std::function<void(float)> poop = [&](float p){LOG_INFO<<"onken";};
+        auto poop = [&](float p){LOG_INFO<<"onken";};
         poop(3);
     }
     

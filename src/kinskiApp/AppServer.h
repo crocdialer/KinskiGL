@@ -55,6 +55,8 @@ namespace kinski
         void start();
         void stop();
         
+        static std::string get_own_ip_adress(bool ipV6 = false);
+        
     private:
         
         void start_accept();

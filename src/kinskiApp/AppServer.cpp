@@ -9,6 +9,9 @@
 #include "AppServer.h"
 #include "kinskiGL/SerializerGL.h"//temp -> use delegate instead
 
+using namespace std;
+using namespace boost::asio::ip;
+
 namespace kinski {
 
     void tcp_connection::start()
@@ -85,6 +88,22 @@ namespace kinski {
     m_acceptor(the_app->io_service(), tcp::endpoint(tcp::v4(), port))
     {
         start_accept();
+    }
+    
+    std::string AppServer::get_own_ip_adress(bool ipV6)
+    {
+        std::string ret = "unknown_ip";
+        boost::asio::io_service io;
+        boost::asio::ip::tcp::resolver resolver(io);
+        boost::asio::ip::tcp::resolver::query query(ipV6 ? tcp::v6() : tcp::v4(), host_name(), "");
+        boost::asio::ip::tcp::resolver::iterator it = resolver.resolve(query), end;
+        
+        for (; it != end; ++it)
+        {
+            const boost::asio::ip::tcp::endpoint &endpoint = *it;
+            ret = endpoint.address().to_string();
+        }
+        return ret;
     }
     
     void AppServer::start()

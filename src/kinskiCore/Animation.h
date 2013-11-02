@@ -30,17 +30,17 @@ namespace kinski{ namespace animation{
         
         Animation(float duration, float delay, InterpolationFunction interpolate_fn):
         m_id(s_id_pool++),
-        m_playing(PLAYBACK_FORWARD),
+        m_playing(PLAYBACK_PAUSED),
         m_loop_type(LOOP_NONE),
         m_start_time(boost::posix_time::second_clock::local_time()),
         m_end_time(m_start_time + boost::posix_time::seconds(duration)),
         m_current_time(m_start_time),
         m_ease_fn(EaseNone()),
-        m_interpolate_fn(interpolate_fn){}
+        m_interpolate_fn(interpolate_fn){start();}
         
         int getId() const {return m_id;}
         inline float duration() const {return (m_end_time - m_start_time).total_nanoseconds() / 1.e9f;}
-        inline bool playing() const {return m_playing != PLAYBACK_PAUSED;}
+        inline PlaybackType playing() const {return m_playing;}
         inline void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD){m_playing = playback_type;}
         inline LoopType loop() const {return m_loop_type;}
         inline void set_loop(LoopType loop_type = LOOP){m_loop_type = loop_type;}
@@ -50,10 +50,10 @@ namespace kinski{ namespace animation{
         
         void set_ease_function(EaseFunction fn){m_ease_fn = fn;}
         void set_start_callback(Callback cb){m_start_fn = cb;}
-        void set_update_callback(Callback cb){m_start_fn = cb;}
-        void set_finish_callback(Callback cb){m_start_fn = cb;}
-        void set_reverse_start_callback(Callback cb){m_start_fn = cb;}
-        void set_reverse_finish_callback(Callback cb){m_start_fn = cb;}
+        void set_update_callback(Callback cb){m_update_fn = cb;}
+        void set_finish_callback(Callback cb){m_finish_fn = cb;}
+        void set_reverse_start_callback(Callback cb){m_reverse_start_fn = cb;}
+        void set_reverse_finish_callback(Callback cb){m_reverse_finish_fn = cb;}
         
         inline float progress() const
         {
@@ -93,7 +93,7 @@ namespace kinski{ namespace animation{
             // update timing
             m_current_time += boost::posix_time::microseconds(timeDelta * 1.e6f);
             
-            // this applies easing and sets an interpolated value
+            // this applies easing and passes it to an interpolation function
             m_interpolate_fn(m_ease_fn(progress()));
             
             // fire update callback, if any

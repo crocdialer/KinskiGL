@@ -188,8 +188,7 @@ public:
         // add to animations to list
         m_animations.push_back(m_animation);
         m_animations.push_back(m_property_animation);
-        m_property_animation->set_finish_callback([]{LOG_DEBUG<<"forth";});
-        m_property_animation->set_reverse_finish_callback([]{LOG_DEBUG<<"back";});
+
         
         // load state from config file(s)
         load_settings();
@@ -371,7 +370,13 @@ public:
           
             m_animation = animation::createAnimation(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
             m_animation->set_ease_function(animation::EaseOutBounce());
-            m_animation->set_loop(animation::LOOP);
+            m_animation->set_loop(animation::LOOP_BACK_FORTH);
+            
+            m_animation->set_finish_callback([]{LOG_DEBUG<<"forth end";});
+            m_animation->set_reverse_finish_callback([]{LOG_DEBUG<<"back end";});
+            m_animation->set_start_callback([]{LOG_DEBUG<<"forth start";});
+            m_animation->set_reverse_start_callback([]{LOG_DEBUG<<"back start";});
+            
             m_animation->start(2);
         }
         
@@ -511,6 +516,7 @@ int main(int argc, char *argv[])
     App::Ptr theApp(new SimpleGeometryApp);
     theApp->setWindowSize(1024, 768);
     AppServer s(theApp);
+    LOG_INFO<<AppServer::get_own_ip_adress();
     
     return theApp->run();
 }
