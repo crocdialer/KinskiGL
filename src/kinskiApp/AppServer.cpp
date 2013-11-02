@@ -90,7 +90,7 @@ namespace kinski {
         start_accept();
     }
     
-    std::string AppServer::get_own_ip_adress(bool ipV6)
+    std::string AppServer::local_ip(bool ipV6)
     {
         std::string ret = "unknown_ip";
         boost::asio::io_service io;

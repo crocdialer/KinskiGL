@@ -63,10 +63,12 @@ namespace kinski
             throw Exception("GLFW failed to initialize");
         }
         
+        int num_color_bits = 8;
+        
         //TODO: find out why this is necessary for smooth gradients
-        glfwWindowHint(GLFW_RED_BITS, 16);
-        glfwWindowHint(GLFW_GREEN_BITS, 16);
-        glfwWindowHint(GLFW_BLUE_BITS, 16);
+        glfwWindowHint(GLFW_RED_BITS, num_color_bits);
+        glfwWindowHint(GLFW_GREEN_BITS, num_color_bits);
+        glfwWindowHint(GLFW_BLUE_BITS, num_color_bits);
         
         // request an OpenGl 3.2 Context
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3 );

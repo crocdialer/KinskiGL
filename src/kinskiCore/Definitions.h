@@ -34,6 +34,11 @@
 
 namespace kinski
 {
+    using std::string;
+    using std::vector;
+    using std::list;
+    using std::set;
+    
     using boost::int8_t;
     using boost::uint8_t;
     using boost::int16_t;
@@ -99,6 +104,7 @@ namespace kinski
 #else
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/functional.hpp>
 namespace std
 {
     using boost::shared_ptr; // future-proof shared_ptr by putting it into std::
