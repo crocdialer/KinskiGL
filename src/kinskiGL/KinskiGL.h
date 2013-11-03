@@ -142,10 +142,10 @@ namespace kinski { namespace gl {
                               float line_thickness = 1.f);
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const MaterialPtr &theMat);
     KINSKI_API void drawPoints(const gl::Buffer &the_point_buf,
-                               const MaterialPtr &theMaterial = std::shared_ptr<Material>(),
+                               const MaterialPtr &theMaterial = MaterialPtr(),
                                GLsizei offset = 0);
     KINSKI_API void drawPoints(const std::vector<glm::vec3> &thePoints,
-                               const MaterialPtr &theMaterial = std::shared_ptr<Material>());
+                               const MaterialPtr &theMaterial = MaterialPtr());
     KINSKI_API void drawTexture(const gl::Texture &theTexture, const glm::vec2 &theSize,
                                 const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,

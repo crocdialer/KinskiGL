@@ -53,11 +53,17 @@ public:
     virtual gl::Frustum frustum() const;
     
     float near() const {return m_near;};
+    void near(float val) {m_near = val;};
     float far() const {return m_far;};
+    void far(float val) {m_far = val;};
     inline float left() const {return m_left;};
+    void left(float val) {m_left = val;};
     inline float right() const {return m_right;};
+    void right(float val) {m_right = val;};
     inline float bottom() const {return m_bottom;};
+    void bottom(float val) {m_bottom = val;};
     inline float top() const {return m_top;};
+    void top(float val) {m_top = val;};
     
 private:
     
