@@ -48,12 +48,22 @@ namespace kinski
     using boost::int64_t;
     using boost::uint64_t;
     
+    
     template <typename T>
     std::string as_string(const T &theObj)
     {
         std::stringstream ss;
         ss << theObj;
         return ss.str();
+    }
+    
+    template <typename T>
+    T string_as(const std::string &str)
+    {
+        T ret;
+        std::stringstream ss(str);
+        ss >> ret;
+        return ret;
     }
     
     template <typename T>

@@ -88,6 +88,8 @@ namespace kinski
         void            drain();
         bool            isInitialized() const;
         
+        std::vector<std::string> read_lines();
+        
         
     protected:
         void			buildDeviceList();
@@ -98,6 +100,10 @@ namespace kinski
         bool bHaveEnumeratedDevices;
         
         bool 	bInited;
+        
+        // needed for buffered get_line member
+        string m_accum_str;
+        std::vector<char> m_read_buffer;
         
 #ifdef KINSKI_MSW
         

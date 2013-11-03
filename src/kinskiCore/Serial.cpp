@@ -727,4 +727,36 @@ bool Serial::isInitialized() const
     return bInited;
 }
 
+vector<string> Serial::read_lines()
+{
+    vector<string> ret;
+    
+    m_read_buffer.resize(1024);
+    std::fill(m_read_buffer.begin(), m_read_buffer.end(), 0);
+    int num_read = readBytes(&m_read_buffer[0], std::min(available(), m_read_buffer.size()));
+    
+    m_accum_str.append(&m_read_buffer[0], num_read);
+    std::stringstream input(m_accum_str);
+    m_accum_str.clear();
+    
+    if(num_read > 0)
+    {
+        for (string line; std::getline(input, line); )
+        {
+            // remove all carriage-return chars
+            line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
+            
+            if(input.eof())
+            {
+                m_accum_str = line;
+                break;
+            }
+            
+            //LOG_INFO<<line;
+            ret.push_back(line);
+        }
+    }
+    return ret;
+}
+    
 }
