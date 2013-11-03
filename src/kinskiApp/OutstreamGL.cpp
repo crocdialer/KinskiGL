@@ -51,7 +51,8 @@ namespace kinski{ namespace gl{
         int i = m_lines.size();
         for (const string &line : m_lines)
         {
-            gl::Color color = gl::Color(1, 1, 1, (float) i / m_lines.size());
+            gl::Color color = m_color;
+            color.a = (float) i / m_lines.size();
             if(line.find("WARNING") != std::string::npos){color = gl::COLOR_ORANGE;}
             else if(line.find("ERROR") != std::string::npos){color = gl::COLOR_RED;}
 

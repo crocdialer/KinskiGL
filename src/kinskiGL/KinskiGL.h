@@ -150,6 +150,8 @@ namespace kinski { namespace gl {
                                 const glm::vec2 &theTopLeft = glm::vec2(0));
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
                              const glm::vec2 &theTopLeft = glm::vec2(0), bool filled = true);
+    KINSKI_API void drawQuad(const Color &theColor, const glm::vec2 &theSize,
+                             const glm::vec2 &theTopLeft = glm::vec2(0), bool filled = true);
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial,
                              float x0, float y0, float x1, float y1, bool filled = true);
     KINSKI_API void drawText2D(const std::string &theText, const gl::Font &theFont,

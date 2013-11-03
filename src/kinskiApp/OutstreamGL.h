@@ -35,12 +35,16 @@ namespace kinski{ namespace gl{
         gl::Font& font() {return m_font;};
         void set_font(gl::Font &the_font){m_font = the_font;};
         
+        const gl::Color& color() const {return m_color;}
+        void set_color(const gl::Color &c){m_color = c;}
+        
         void add_line(const std::string &line);
         void draw();
     
     private:
         
         gl::Font m_font;
+        gl::Color m_color;
         uint32_t m_max_lines;
         std::list<std::string> m_lines;
     };

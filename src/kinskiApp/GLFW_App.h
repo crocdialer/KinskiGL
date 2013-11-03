@@ -75,7 +75,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void set_displayTweakBar(bool b){m_displayTweakBar = b;};
+        void displayTweakBar(bool b){m_displayTweakBar = b;};
         bool displayTweakBar() const {return m_displayTweakBar;};
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,

@@ -95,6 +95,12 @@ namespace kinski
         kinski::addSearchPath("./res", true);
         kinski::addSearchPath("../Resources", true);
         
+        //---------------------------------
+        #ifdef KINSKI_MAC
+        kinski::addSearchPath("/Library/Fonts");
+        #endif
+        //---------------------------------
+        
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);
         TwWindowSize(getWidth(), getHeight());

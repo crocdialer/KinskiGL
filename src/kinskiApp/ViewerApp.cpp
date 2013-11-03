@@ -238,7 +238,7 @@ namespace kinski {
         }
         else if(theProperty == m_show_tweakbar)
         {
-            set_displayTweakBar(*m_show_tweakbar);
+            displayTweakBar(*m_show_tweakbar);
         }
         else if(theProperty == m_window_size)
         {

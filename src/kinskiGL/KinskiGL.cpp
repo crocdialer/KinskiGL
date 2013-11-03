@@ -46,7 +46,12 @@ namespace kinski { namespace gl {
     
     class Impl
     {
+    private:
         
+        glm::vec2 g_windowDim;
+        std::stack<glm::mat4> g_projectionMatrixStack;
+        std::stack<glm::mat4> g_modelViewMatrixStack;
+        std::map<std::string, string_mesh_container> g_string_mesh_map;
     };
     
     static glm::vec2 g_windowDim;
@@ -432,13 +437,8 @@ namespace kinski { namespace gl {
         //create material, if not yet here
         if(!material)
         {
-            try
-            {
-                material = gl::Material::Ptr(new gl::Material);
-            } catch (Exception &e)
-            {
-                LOG_ERROR<<e.what();
-            }
+            try{material = gl::Material::Ptr(new gl::Material);}
+            catch (Exception &e){LOG_ERROR<<e.what();}
             material->setDepthTest(false);
             material->setDepthWrite(false);
             material->setBlending(true);
@@ -453,6 +453,32 @@ namespace kinski { namespace gl {
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
+    void drawQuad(const gl::Color &theColor,
+                  const vec2 &theSize,
+                  const vec2 &theTopLeft,
+                  bool filled)
+    {
+        static gl::Material::Ptr material;
+        
+        //create material, if not yet here
+        if(!material)
+        {
+            try{material = gl::Material::Ptr(new gl::Material);}
+            catch (Exception &e){LOG_ERROR<<e.what();}
+            material->setDepthTest(false);
+            material->setDepthWrite(false);
+            material->setBlending(true);
+        }
+        material->setDiffuse(theColor);
+        
+        vec2 sz = theSize;
+        // flip to OpenGL coords
+        vec2 tl = vec2(theTopLeft.x, g_windowDim[1] - theTopLeft.y);
+        drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+    }
+    
 ///////////////////////////////////////////////////////////////////////////////
     
     void drawQuad(const gl::MaterialPtr &theMaterial,
@@ -588,13 +614,13 @@ namespace kinski { namespace gl {
     
     void drawGrid(float width, float height, int numW, int numH)
     {
-        static map<boost::tuple<float,float,int,int>, MeshPtr> theMap;
+        static map<std::tuple<float,float,int,int>, MeshPtr> theMap;
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
         // search for incoming key
-        boost::tuple<float,float,int,int> conf (width, height, numW, numH);
-        map<boost::tuple<float,float,int,int>, MeshPtr>::iterator it = theMap.find(conf);
-        if(it == theMap.end())
+        auto conf = std::make_tuple(width, height, numW, numH);
+
+        if(theMap.find(conf) == theMap.end())
         {
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);

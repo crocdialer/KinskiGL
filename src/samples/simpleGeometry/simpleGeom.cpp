@@ -5,8 +5,6 @@
 #include "kinskiApp/Object3DComponent.h"
 #include "kinskiCore/Animation.h"
 
-#include "kinskiCore/Serial.h"
-
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -44,8 +42,6 @@ private:
     std::list<animation::AnimationPtr> m_animations;
     
     gl::OutstreamGL m_outstream;
-    
-    Serial m_serial;
     
 public:
     
@@ -203,10 +199,6 @@ public:
         create_dof_test(scene());
         
         //m_animation->start(10.f);
-        
-        m_serial.listDevices();
-        m_serial.setup();
-        //m_serial.setup("/dev/tty.usbmodemfd121", 9600);
     }
     
     void update(float timeDelta)
@@ -242,16 +234,6 @@ public:
         m_property_animation->update(timeDelta);
         
         //for(auto &animation : m_animations){animation->update(timeDelta);}
-        
-        char buf[2048];
-        int num_read = m_serial.readBytes(buf, std::min(m_serial.available(), sizeof(buf)));
-        std::istringstream input(buf);
-        
-        if(num_read > 0)
-            for (string line; std::getline(input, line); )
-            {
-                LOG_INFO<< line;
-            }
     }
     
     void draw()

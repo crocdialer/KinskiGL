@@ -26,14 +26,14 @@ namespace kinski{ namespace gl{
         Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
         x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
         
-        // does not seem to work in std::map
+        // does not seem to work in std::map !?
         bool operator<(const Area<T> &other) const
         {
             if ( x1 != other.x1 ) return x1 < other.x1;
-                if ( y1 != other.y1 ) return y1 < other.y1;
-                if ( x2 != other.x2 ) return x2 < other.x2;
-                if ( y2 != other.y2 ) return y2 < other.y2;
-                return false;
+            if ( y1 != other.y1 ) return y1 < other.y1;
+            if ( x2 != other.x2 ) return x2 < other.x2;
+            if ( y2 != other.y2 ) return y2 < other.y2;
+            return false;
         }
                 
         inline uint32_t width() const { return x2 - x1; };

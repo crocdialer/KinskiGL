@@ -121,8 +121,6 @@ Serial::~Serial()
 
 	close();
 
-
-
 	//---------------------------------------------
 	#ifdef KINSKI_MSW
 	//---------------------------------------------
@@ -263,7 +261,8 @@ void Serial::close()
 	//---------------------------------------------
 	#ifdef KINSKI_MSW
 	//---------------------------------------------
-		if (bInited){
+		if (bInited)
+        {
 			SetCommTimeouts(hComm,&oldTimeout);
 			CloseHandle(hComm);
 			hComm 		= INVALID_HANDLE_VALUE;
@@ -272,7 +271,8 @@ void Serial::close()
 	//---------------------------------------------
     #else
     //---------------------------------------------
-    	if (bInited){
+    	if (bInited)
+        {
     		tcsetattr(m_handle,TCSANOW,&m_old_options);
     		::close(m_handle);
     		bInited = false;
@@ -686,9 +686,11 @@ void Serial::drain(){
 }
 
 //-------------------------------------------------------------
-size_t Serial::available(){
+size_t Serial::available()
+{
 
-	if (!bInited){
+	if (!bInited)
+    {
 		LOG_ERROR << "available(): serial not inited";
 		return KINSKI_SERIAL_ERROR;
 	}
@@ -697,7 +699,7 @@ size_t Serial::available(){
 
 	//---------------------------------------------
 	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-		ioctl(m_handle,FIONREAD,&numBytes);
+		ioctl(m_handle, FIONREAD, &numBytes);
 	#endif
     //---------------------------------------------
 
