@@ -34,6 +34,7 @@ public:
     
 protected:
 
+    virtual void updateProjectionMatrix() = 0;
     void setProjectionMatrix(const glm::mat4 &theMatrix) { m_projectionMatrix = theMatrix; };
     
 private:
@@ -53,17 +54,44 @@ public:
     virtual gl::Frustum frustum() const;
     
     float near() const {return m_near;};
-    void near(float val) {m_near = val;};
+    void near(float val)
+    {
+        m_near = val;
+        updateProjectionMatrix();
+    };
     float far() const {return m_far;};
-    void far(float val) {m_far = val;};
+    void far(float val)
+    {
+        m_far = val;
+        updateProjectionMatrix();
+    };
     inline float left() const {return m_left;};
-    void left(float val) {m_left = val;};
+    void left(float val)
+    {
+        m_left = val;
+        updateProjectionMatrix();
+    };
     inline float right() const {return m_right;};
-    void right(float val) {m_right = val;};
+    void right(float val)
+    {
+        m_right = val;
+        updateProjectionMatrix();
+    };
     inline float bottom() const {return m_bottom;};
-    void bottom(float val) {m_bottom = val;};
+    void bottom(float val)
+    {
+        m_bottom = val;
+        updateProjectionMatrix();
+    };
     inline float top() const {return m_top;};
-    void top(float val) {m_top = val;};
+    void top(float val)
+    {
+        m_top = val; updateProjectionMatrix();
+    };
+
+protected:
+    
+    void updateProjectionMatrix();
     
 private:
     
@@ -92,13 +120,15 @@ public:
     
     float near() const {return m_near;};
     float far() const {return m_far;};
+
+protected:
+    
+    void updateProjectionMatrix();
     
 private:
     
     float m_near, m_far;
-    
     float m_fov;
-    
     float m_aspect;
 };
 

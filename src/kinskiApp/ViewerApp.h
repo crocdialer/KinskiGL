@@ -29,14 +29,21 @@ namespace kinski {
             if(m_values.size() > m_size) m_values.pop_front();
         }
         
-        const T filter()
+        inline const T filter()
         {
             T ret;
-            typename std::list<T>::const_iterator it = m_values.begin();
-            for ( ; it != m_values.end(); ++it){ret += *it;}
-            ret /= (float)m_values.size();
-            return ret;
+            for ( const auto & val : m_values){ret += val;}
+            return ret / (float)m_values.size();;
         }
+        
+        inline const T filter(const T &theValue)
+        {
+            push(theValue);
+            return filter();
+        }
+        
+        uint32_t window_size() const {return m_size;}
+        void window_size(uint32_t ws) {m_size = ws;}
         
     private:
         std::list<T> m_values;

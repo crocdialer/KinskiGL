@@ -50,7 +50,7 @@ namespace kinski
     
     
     template <typename T>
-    std::string as_string(const T &theObj)
+    inline std::string as_string(const T &theObj)
     {
         std::stringstream ss;
         ss << theObj;
@@ -58,7 +58,7 @@ namespace kinski
     }
     
     template <typename T>
-    T string_as(const std::string &str)
+    inline T string_as(const std::string &str)
     {
         T ret;
         std::stringstream ss(str);

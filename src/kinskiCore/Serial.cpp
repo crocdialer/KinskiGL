@@ -731,18 +731,18 @@ vector<string> Serial::read_lines()
 {
     vector<string> ret;
     
-    m_read_buffer.resize(1024);
+    m_read_buffer.resize(2048);
     std::fill(m_read_buffer.begin(), m_read_buffer.end(), 0);
     
     // try reading some bytes
     int num_read = readBytes(&m_read_buffer[0], std::min(available(), m_read_buffer.size()));
     
-    m_accum_str.append(&m_read_buffer[0], num_read);
-    std::stringstream input(m_accum_str);
-    m_accum_str.clear();
-    
     if(num_read > 0)
     {
+        m_accum_str.append(&m_read_buffer[0], num_read);
+        std::stringstream input(m_accum_str);
+        m_accum_str.clear();
+        
         for (string line; std::getline(input, line); )
         {
             if(input.eof())

@@ -91,7 +91,7 @@ namespace kinski
         std::vector<std::string> read_lines();
         
         
-    protected:
+    private:
         void			buildDeviceList();
         
         std::string				deviceType;

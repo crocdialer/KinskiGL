@@ -361,6 +361,32 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
+    void drawLineStrip(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
+    {
+        if(thePoints.empty()) return;
+        static gl::MeshPtr mesh;
+        
+        //create line mesh
+        if(!mesh)
+        {
+            gl::MaterialPtr mat = gl::Material::create();
+            mat->setTwoSided();
+            gl::GeometryPtr geom = Geometry::create();
+            mesh = gl::Mesh::create(geom, mat);
+            mesh->geometry()->setPrimitiveType(GL_LINE_STRIP);
+        }
+        mesh->material()->uniform("u_window_size", windowDimension());
+        mesh->material()->uniform("u_line_thickness", line_thickness);
+        mesh->geometry()->appendVertices(thePoints);
+        mesh->geometry()->colors().resize(thePoints.size(), theColor);
+        mesh->geometry()->createGLBuffers();
+        gl::drawMesh(mesh);
+        mesh->geometry()->vertices().clear();
+        mesh->geometry()->colors().clear();
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     void drawPoints(const gl::Buffer &the_point_buf, const MaterialPtr &theMaterial, GLsizei offset)
     {
         static MaterialPtr staticMat;

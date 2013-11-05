@@ -134,13 +134,17 @@ namespace kinski { namespace gl {
     
     KINSKI_API void clearColor(const Color &theColor);
     KINSKI_API void drawMesh(const MeshPtr &theMesh);
-    KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b, const Color &theColor = Color(1),
+    KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b,
+                             const Color &theColor = Color(1),
                              float line_thickness = 1.f);
     KINSKI_API void drawLines2D(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor,
                                 float line_thickness = 1.f);
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const Color &theColor,
                               float line_thickness = 1.f);
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const MaterialPtr &theMat);
+    KINSKI_API void drawLineStrip(const std::vector<glm::vec3> &thePoints,
+                                  const glm::vec4 &theColor,
+                                  float line_thickness = 1.f);
     KINSKI_API void drawPoints(const gl::Buffer &the_point_buf,
                                const MaterialPtr &theMaterial = MaterialPtr(),
                                GLsizei offset = 0);
@@ -177,8 +181,10 @@ namespace kinski { namespace gl {
     /*********************************** inbuilt Texture loading **********************************/
     
     KINSKI_API MiniMat loadImage(const std::string &theFileName, int num_channels = 0);
-    KINSKI_API Texture createTextureFromFile(const std::string &theFileName, bool mipmap = false,
-                                             bool compress = false, GLfloat anisotropic_filter_lvl = 1.f);
+    KINSKI_API Texture createTextureFromFile(const std::string &theFileName,
+                                             bool mipmap = false,
+                                             bool compress = false,
+                                             GLfloat anisotropic_filter_lvl = 1.f);
     
     class ImageLoadException : public Exception
     {

@@ -134,7 +134,7 @@ public:
     {
         if(e.getChar() == KeyEvent::KEY_SPACE)
         {
-            set_displayTweakBar(!displayTweakBar());
+            displayTweakBar(!displayTweakBar());
         }
     }
 };
