@@ -31,7 +31,7 @@ namespace kinski {
         
         inline const T filter()
         {
-            T ret;
+            T ret(0);
             for ( const auto & val : m_values){ret += val;}
             return ret / (float)m_values.size();;
         }

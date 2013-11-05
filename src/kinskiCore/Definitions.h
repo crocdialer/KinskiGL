@@ -50,9 +50,10 @@ namespace kinski
     
     
     template <typename T>
-    inline std::string as_string(const T &theObj)
+    inline std::string as_string(const T &theObj, int precision = 6)
     {
         std::stringstream ss;
+        ss.precision(precision);
         ss << theObj;
         return ss.str();
     }
