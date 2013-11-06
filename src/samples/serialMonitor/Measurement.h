@@ -14,12 +14,11 @@ namespace kinski
     template <typename T> class Measurement
     {
     public:
-        explicit Measurement(uint32_t history_size = 1000):
+        explicit Measurement(uint32_t hist = 1000):
         m_min(std::numeric_limits<T>::max()),
         m_max(std::numeric_limits<T>::min())
         {
-            m_current_measure_index = 0;
-            m_measure_history.resize(history_size, T());
+            history_size(hist);
         }
         
         inline void push(const T &value)
@@ -31,6 +30,13 @@ namespace kinski
         }
         
         inline const std::vector<T>& history() const { return m_measure_history;}
+        inline uint32_t history_size() const { return m_measure_history.size();}
+        inline void history_size(uint32_t sz)
+        {
+            m_current_measure_index = clamp<uint32_t>(m_current_measure_index, 0, sz);
+            m_measure_history.resize(sz);
+            std::fill(m_measure_history.begin(), m_measure_history.end(), T(0));
+        }
         inline const int current_index() const { return m_current_measure_index;}
         inline const T& last_value() const
         {

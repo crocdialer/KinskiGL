@@ -17,7 +17,8 @@ private:
     Serial m_serial;
     
     // used for analog input measuring
-    Measurement<float> m_analog_in[8];
+    string m_input_prefix = "analog_";
+    std::vector<Measurement<float>> m_analog_in {8};
     
     // display plot for selected index
     RangedProperty<int>::Ptr m_selected_index;
@@ -42,7 +43,7 @@ public:
         set_clear_color(gl::COLOR_WHITE);
         
         m_selected_index = RangedProperty<int>::create("selected index", 0, 0,
-                                                      sizeof(m_analog_in) / sizeof(Measurement<float>));
+                                                       m_analog_in.size() - 1);
         registerProperty(m_selected_index);
         
         create_tweakbar_from_component(shared_from_this());
@@ -67,11 +68,9 @@ public:
         
         if(m_serial.isInitialized())
         {
-            bool needs_update = false;
             for(string line : m_serial.read_lines())
             {
                 parse_line(line);
-                needs_update = true;
             }
         }
         
@@ -102,7 +101,8 @@ public:
                      vec2(80, measured_val / 2),
                      vec2(windowSize().x - 100, windowSize().y - measured_val / 2));
         
-        gl::drawText2D("Baumhafer input " + as_string(m_selected_index->value()) +": " + as_string(measured_val, 4),
+        gl::drawText2D("Baumhafer(" + as_string(m_selected_index->value()) +"): " +
+                            as_string(measured_val / 1023.f, 2) + " V1",
                        m_font_large,
                        gl::COLOR_BLACK, glm::vec2(30, 30));
         
@@ -169,15 +169,16 @@ public:
     void parse_line(const std::string &line)
     {
         std::istringstream ss(line);
-        string prefix = "analog_";
         int parsed_index = -1;
         
         vector<string> tokens = split(line);
         
-        // return if number of tokens doen´t match or our prefix is not found
-        if(tokens.size() != 2 || tokens[0].find(prefix) == string::npos) return;
+        // return if number of tokens doesn´t match or our prefix is not found
+        if(tokens.size() < 2 || tokens[0].find(m_input_prefix) == string::npos) return;
         
-        parsed_index = string_as<int>(tokens[0].substr(prefix.size()));
+        parsed_index = kinski::clamp<int>(string_as<int>(tokens[0].substr(m_input_prefix.size())),
+                                          0,
+                                          m_analog_in.size() - 1);
         m_analog_in[parsed_index].push(string_as<int>(tokens[1]));
     }
 };
