@@ -95,7 +95,9 @@ void Serial::enumerateWin32Ports()
 
 
 //----------------------------------------------------------------
-Serial::Serial(){
+Serial::Serial():
+m_handle(0)
+{
 
 	//---------------------------------------------
 	#ifdef KINSKI_MSW
@@ -257,7 +259,8 @@ void Serial::enumerateDevices()
 //----------------------------------------------------------------
 void Serial::close()
 {
-
+    if(bInited){LOG_DEBUG<<"closing serial port";}
+    
 	//---------------------------------------------
 	#ifdef KINSKI_MSW
 	//---------------------------------------------
@@ -271,11 +274,15 @@ void Serial::close()
 	//---------------------------------------------
     #else
     //---------------------------------------------
-    	if (bInited)
+    	if (bInited && m_handle)
         {
     		tcsetattr(m_handle,TCSANOW,&m_old_options);
     		::close(m_handle);
     		bInited = false;
+            m_handle = 0;
+            
+            m_read_buffer.clear();
+            m_accum_str.clear();
     	}
     	// [CHECK] -- anything else need to be reset?
     //---------------------------------------------
@@ -310,7 +317,7 @@ bool Serial::setup(int deviceNumber, int baud)
 //----------------------------------------------------------------
 bool Serial::setup(string portName, int baud){
 
-	bInited = false;
+	close();
 
 	//---------------------------------------------
 	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
@@ -333,7 +340,8 @@ bool Serial::setup(string portName, int baud){
 		struct termios options;
 		tcgetattr(m_handle,&m_old_options);
 		options = m_old_options;
-		switch(baud){
+		switch(baud)
+        {
 		   case 300: 	cfsetispeed(&options,B300);
 						cfsetospeed(&options,B300);
 						break;

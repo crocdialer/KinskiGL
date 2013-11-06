@@ -109,20 +109,20 @@ namespace kinski {
     void Logger::log(Severity theSeverity, const char *theModule, int theId,
                      const std::string &theText)
     {
+        std::stringstream stream;
         std::string myLogTag(_myTopLevelLogTag);
         std::ostringstream myText;
         myText << theText;
+        
         if (theSeverity > SEV_PRINT)
         {
+            if(m_use_timestamp)
+                stream << currentDateTime();
+            
             myText<<" [" << getFilenamePart(theModule) << " at:" << theId << "]";
             if(m_use_thread_id)
                 myText<<" [thread-id: "<< boost::this_thread::get_id() <<"]";
         }
-        
-        std::stringstream stream;
-        
-        if(m_use_timestamp)
-            stream << currentDateTime();
     
         switch (theSeverity)
         {
