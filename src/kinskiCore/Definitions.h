@@ -18,6 +18,7 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 #include <vector>
 #include <list>
 #include <set>
@@ -50,10 +51,11 @@ namespace kinski
     
     
     template <typename T>
-    inline std::string as_string(const T &theObj, int precision = 6)
+    inline std::string as_string(const T &theObj, int precision = 0)
     {
         std::stringstream ss;
-        ss.precision(precision);
+        if(precision > 0)
+            ss << std::fixed << std::setprecision(precision);
         ss << theObj;
         return ss.str();
     }

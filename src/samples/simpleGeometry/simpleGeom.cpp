@@ -249,7 +249,7 @@ public:
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 2);
+            gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 5.f);
             
             if(*m_use_fbo)
             {

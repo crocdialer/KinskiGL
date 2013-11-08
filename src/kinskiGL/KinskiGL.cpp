@@ -28,7 +28,7 @@ using namespace std;
 #define MAX_MATRIX_STACK_SIZE 100
 
 // how many string meshes are buffered at max
-#define STRING_MESH_BUFFER_SIZE 200
+#define STRING_MESH_BUFFER_SIZE 300
 
 namespace kinski { namespace gl {
     
@@ -342,21 +342,54 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             gl::MaterialPtr mat = gl::Material::create();
-//            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag",
-//                                                    "shader_line.geom"));
+            mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag"));
             mat->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
-            mesh->geometry()->setPrimitiveType(GL_LINES);
+            
+            mesh->geometry()->setPrimitiveType(GL_LINES_ADJACENCY);
         }
         mesh->material()->uniform("u_window_size", windowDimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
+        
+//        mesh->geometry()->appendVertices(thePoints);
+//        mesh->geometry()->colors().resize(thePoints.size(), theColor);
+        
+        auto &vertices = mesh->geometry()->vertices();
+        auto &indices = mesh->geometry()->indices();
+        
+//        // to improve performance, make room for the vertices + 2 adjacency vertices
+//        vertices.reserve( thePoints.size() + 2);
+        
+        // first, add an adjacency vertex at the beginning
+        vertices.push_back( 2.0f * thePoints[0] - thePoints[1] );
+        
         mesh->geometry()->appendVertices(thePoints);
-        mesh->geometry()->colors().resize(thePoints.size(), theColor);
+        
+        // next, add an adjacency vertex at the end
+        size_t n = thePoints.size();
+        vertices.push_back( 2.0f * thePoints[n-1] - thePoints[n-2] );
+        
+        // colors
+        mesh->geometry()->colors().resize(vertices.size(), theColor);
+        
+        // now that we have a list of vertices, create the index buffer
+        n = vertices.size() - 2;
+        indices.reserve( n * 4 );
+        
+        for(size_t i = 1;i < vertices.size() - 2;++i)
+        {
+            indices.push_back(i-1);
+            indices.push_back(i);
+            indices.push_back(i+1);
+            indices.push_back(i+2);
+        }
+        
         mesh->geometry()->createGLBuffers();
         gl::drawMesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
+        mesh->geometry()->indices().clear();
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -586,7 +619,7 @@ namespace kinski { namespace gl {
         // free the less frequent used half of our buffered string-meshes
         if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)
         {
-            LOG_DEBUG<<"font-mesh buffersize: "<<STRING_MESH_BUFFER_SIZE<<" -> clearing ...";
+            LOG_TRACE<<"font-mesh buffersize: "<<STRING_MESH_BUFFER_SIZE<<" -> clearing ...";
             std::list<string_mesh_container> tmp_list;
             std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
             for (; it != g_string_mesh_map.end(); ++it){tmp_list.push_back(it->second);}

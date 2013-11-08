@@ -18,7 +18,14 @@ private:
     
     // used for analog input measuring
     string m_input_prefix = "analog_";
-    std::vector<Measurement<float>> m_analog_in {8};
+    std::vector<Measurement<float>> m_analog_in {   Measurement<float>("Harp 1"),
+                                                    Measurement<float>("Harp 2"),
+                                                    Measurement<float>("Poti"),
+                                                    Measurement<float>("Empty"),
+                                                    Measurement<float>("Empty"),
+                                                    Measurement<float>("Light"),
+                                                    Measurement<float>("Temperature")
+                                                };
     
     // display plot for selected index
     RangedProperty<int>::Ptr m_selected_index;
@@ -93,31 +100,34 @@ public:
         gl::drawLine(vec2(play_head_x_pos, 0), vec2(play_head_x_pos, windowSize().y), gl::COLOR_BLACK);
         
         gl::setProjection(m_ortho_cam);
+
         gl::drawLineStrip(m_points, gl::COLOR_BLACK);
+        //gl::drawLines(m_points, gl::COLOR_BLACK, 15.f);
         
         auto measured_val = measure.last_value();
+        float volt_value = 5.f * measured_val / 1023.f;
         
         gl::drawQuad(gl::COLOR_OLIVE,
                      vec2(80, measured_val / 2),
                      vec2(windowSize().x - 100, windowSize().y - measured_val / 2));
         
-        gl::drawText2D("Baumhafer(" + as_string(m_selected_index->value()) +"): " +
-                            as_string(measured_val / 1023.f, 2) + " V1",
+        gl::drawText2D(measure.description() + " (" + as_string(m_selected_index->value()) +"): " +
+                            as_string(volt_value, 2) + " V",
                        m_font_large,
                        gl::COLOR_BLACK, glm::vec2(30, 30));
         
         gl::drawText2D(" (" + as_string(measure.min()) +
                        " - " + as_string(measure.max()) + ")",
                        m_font_small,
-                       gl::COLOR_BLACK, glm::vec2(30, 90));
+                       gl::COLOR_BLACK, glm::vec2(50, 110));
         
         gl::drawText2D(" mean: " + as_string(measure.mean(), 2),
                        m_font_small,
-                       gl::COLOR_BLACK, glm::vec2(30, 110));
+                       gl::COLOR_BLACK, glm::vec2(50, 130));
         
         gl::drawText2D(" standard deviation: " + as_string(measure.standard_deviation(), 2),
                        m_font_small,
-                       gl::COLOR_BLACK, glm::vec2(30, 130));
+                       gl::COLOR_BLACK, glm::vec2(50, 150));
     }
     
     void resize(int w ,int h)
@@ -137,6 +147,11 @@ public:
             case KeyEvent::KEY_c:
                 m_serial.setup("/dev/tty.usbmodemfd121", 57600);
                 break;
+                
+            case KeyEvent::KEY_r:
+                for(auto &measure : m_analog_in){measure.reset();}
+                break;
+                
             case KeyEvent::KEY_0:
             case KeyEvent::KEY_1:
             case KeyEvent::KEY_2:
@@ -176,9 +191,11 @@ public:
         // return if number of tokens doesn´t match or our prefix is not found
         if(tokens.size() < 2 || tokens[0].find(m_input_prefix) == string::npos) return;
         
-        parsed_index = kinski::clamp<int>(string_as<int>(tokens[0].substr(m_input_prefix.size())),
-                                          0,
-                                          m_analog_in.size() - 1);
+        parsed_index = string_as<int>(tokens[0].substr(m_input_prefix.size()));
+        
+        // return if parsed index is out of bounds
+        if(parsed_index < 0 || parsed_index >= m_analog_in.size()) return;
+        
         m_analog_in[parsed_index].push(string_as<int>(tokens[1]));
     }
 };

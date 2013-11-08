@@ -14,11 +14,13 @@ namespace kinski
     template <typename T> class Measurement
     {
     public:
-        explicit Measurement(uint32_t hist = 1000):
+        explicit Measurement(const std::string &description = "generic value",
+                             uint32_t hist_size = 1000):
+        m_description(description),
         m_min(std::numeric_limits<T>::max()),
         m_max(std::numeric_limits<T>::min())
         {
-            history_size(hist);
+            history_size(hist_size);
         }
         
         inline void push(const T &value)
@@ -35,7 +37,7 @@ namespace kinski
         {
             m_current_measure_index = clamp<uint32_t>(m_current_measure_index, 0, sz);
             m_measure_history.resize(sz);
-            std::fill(m_measure_history.begin(), m_measure_history.end(), T(0));
+            reset();
         }
         inline const int current_index() const { return m_current_measure_index;}
         inline const T& last_value() const
@@ -46,6 +48,9 @@ namespace kinski
         
         inline uint32_t filter_window_size() const {return m_avg_filter.window_size();}
         inline void filter_window_size(uint32_t sz) {return m_avg_filter.window_size(sz);}
+        
+        inline const std::string& description() const {return m_description;}
+        inline void description(const std::string& dsc) {m_description = dsc;}
         
         inline const T mean() const
         {
@@ -77,10 +82,11 @@ namespace kinski
         }
         
     private:
+        std::string m_description;
         T m_min, m_max;
         MovingAverage<T> m_avg_filter;
         std::vector<T> m_measure_history;
-        int m_current_measure_index;
+        uint32_t m_current_measure_index;
     };
 }
 
