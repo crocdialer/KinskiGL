@@ -23,8 +23,10 @@ Component::~Component()
 
 Property::Ptr Component::getPropertyByName(const std::string & thePropertyName) 
 {
-    for (auto &property : m_propertyList )
+    std::list<Property::Ptr>::iterator it = m_propertyList.begin();
+    for (; it != m_propertyList.end(); ++it)
     {
+        Property::Ptr &property = *it;
         if (property->getName() == thePropertyName) 
             return property;
     }
@@ -44,8 +46,10 @@ void Component::registerProperty(Property::Ptr theProperty)
 
 void Component::observeProperties(const std::list<Property::Ptr>& theProps,  bool b)
 {
-    for (const auto &property : theProps)
+    std::list<Property::Ptr>::const_iterator it = theProps.begin();
+    for (; it != theProps.end(); ++it)
     {
+        const Property::Ptr &property = *it;
         if (b)
             property->addObserver(shared_from_this());
         else
