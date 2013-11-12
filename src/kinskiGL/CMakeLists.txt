@@ -25,9 +25,9 @@ set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 endif()
 
 # stringify all shader files
-INCLUDE(EqStringifyShaders)
-FILE(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" FALSE 
-        "*.vert" || "*.geom" || "*.frag" || "*.glsl")
+#INCLUDE(EqStringifyShaders)
+#FILE(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" FALSE 
+#        "*.vert" || "*.geom" || "*.frag" || "*.glsl")
 
 add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
 TARGET_LINK_LIBRARIES(${LIB_NAME} ${LIBS})

@@ -18,38 +18,6 @@
 
 namespace kinski {
     
-    template <typename T>
-    class MovingAverage
-    {
-    public:
-        explicit MovingAverage(uint32_t sz = 5):m_size(sz){}
-        inline void push(const T &theValue)
-        {
-            m_values.push_back(theValue);
-            if(m_values.size() > m_size) m_values.pop_front();
-        }
-        
-        inline const T filter()
-        {
-            T ret(0);
-            for ( const auto & val : m_values){ret += val;}
-            return ret / (float)m_values.size();;
-        }
-        
-        inline const T filter(const T &theValue)
-        {
-            push(theValue);
-            return filter();
-        }
-        
-        uint32_t window_size() const {return m_size;}
-        void window_size(uint32_t ws) {m_size = ws;}
-        
-    private:
-        std::list<T> m_values;
-        uint32_t m_size;
-    };
-    
     class ViewerApp : public GLFW_App
     {
     public:

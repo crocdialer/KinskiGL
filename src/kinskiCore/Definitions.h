@@ -29,6 +29,8 @@
 #include <boost/version.hpp>
 #include <boost/static_assert.hpp>
 
+#include "Utils.h"
+
 #if BOOST_VERSION < 104900
 #error "Kinski requires Boost version 1.49 or later"
 #endif
@@ -40,69 +42,15 @@ namespace kinski
     using std::list;
     using std::set;
     
-    using boost::int8_t;
-    using boost::uint8_t;
-    using boost::int16_t;
-    using boost::uint16_t;
-    using boost::int32_t;
-    using boost::uint32_t;
-    using boost::int64_t;
-    using boost::uint64_t;
+//    using boost::int8_t;
+//    using boost::uint8_t;
+//    using boost::int16_t;
+//    using boost::uint16_t;
+//    using boost::int32_t;
+//    using boost::uint32_t;
+//    using boost::int64_t;
+//    using boost::uint64_t;
     
-    
-    template <typename T>
-    inline std::string as_string(const T &theObj, int precision = 0)
-    {
-        std::stringstream ss;
-        if(precision > 0)
-            ss << std::fixed << std::setprecision(precision);
-        ss << theObj;
-        return ss.str();
-    }
-    
-    template <typename T>
-    inline T string_as(const std::string &str)
-    {
-        T ret;
-        std::stringstream ss(str);
-        ss >> ret;
-        return ret;
-    }
-    
-    inline std::vector<std::string>& split(const std::string &s, char delim,
-                                           std::vector<std::string> &elems)
-    {
-        std::stringstream ss(s);
-        std::string item;
-        while (std::getline(ss, item, delim)) { elems.push_back(item); }
-        return elems;
-    }
-    
-    
-    inline std::vector<std::string> split(const std::string &s, char delim = ' ')
-    {
-        std::vector<std::string> elems;
-        split(s, delim, elems);
-        return elems;
-    }
-    
-    template <typename T>
-    inline T random(const T &min, const T &max)
-    {
-        return min + (max - min) * (rand() / (float) RAND_MAX);
-    }
-    
-    template <typename T>
-    inline const T& clamp(const T &val, const T &min, const T &max)
-    {
-        return val < min ? min : (val > max ? max : val);
-    }
-    
-    template <typename T>
-    inline T mix(const T &lhs, const T &rhs, float ratio)
-    {
-        return lhs + ratio * (rhs - lhs);
-    }
 }
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
@@ -143,8 +91,6 @@ namespace std
     using boost::dynamic_pointer_cast;
     using boost::const_pointer_cast;
     using boost::enable_shared_from_this;
-    
-    using boost::function;
     
     // backwards compatibility hack
     template<typename T> struct owner_less : public less<T>{};
