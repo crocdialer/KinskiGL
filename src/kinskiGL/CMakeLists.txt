@@ -4,6 +4,8 @@ FILE(GLOB FOLDER_HEADERS *.h)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 SET(LIB_NAME "kinskiGL")
 
+add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
+
 OPTION (REPORT_GL_ERRORS "Compile in checks for GL_ERRORs. Only for debugging, expect performance hit" OFF)
 
 if(REPORT_GL_ERRORS)
@@ -29,7 +31,6 @@ endif()
 #FILE(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" FALSE 
 #        "*.vert" || "*.geom" || "*.frag" || "*.glsl")
 
-add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
 TARGET_LINK_LIBRARIES(${LIB_NAME} ${LIBS})
 
 SET(LIBS ${LIBS} ${LIB_NAME})

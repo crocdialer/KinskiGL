@@ -7,7 +7,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules
 
 # Allow the developer to select if Dynamic or Static libraries are built
 OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
-OPTION (USE_CXX11 "Use C++11 language dialect and library" ON)
+OPTION (USE_CXX11 "Use C++11 language dialect and library" OFF)
 
 if(USE_CXX11)
     add_definitions(-DUSE_CXX11)
