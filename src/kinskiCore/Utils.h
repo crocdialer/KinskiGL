@@ -25,7 +25,8 @@ namespace kinski
         inline const T filter()
         {
             T ret(0);
-            for ( const auto & val : m_values){ret += val;}
+            typename std::list<T>::const_iterator it = m_values.begin();
+            for (; it != m_values.end(); ++it){ret += *it;}
             return ret / (float)m_values.size();;
         }
         
