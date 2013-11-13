@@ -9,6 +9,9 @@
 #ifndef kinskiGL_Utils_h
 #define kinskiGL_Utils_h
 
+#include <sstream>
+#include <iomanip>
+
 namespace kinski
 {
     template <typename T>

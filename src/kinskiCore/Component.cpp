@@ -62,4 +62,4 @@ void Component::observeProperties(bool b)
     observeProperties(m_propertyList, b);
 }
 
-};
+}
