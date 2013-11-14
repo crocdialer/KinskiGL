@@ -44,7 +44,7 @@ namespace kinski
             {
                 m_threads->join_all();
                 
-                for(uint32_t i = 0; i < num; ++i)
+                for(int i = 0; i < num; ++i)
                 {
                     m_threads->create_thread(boost::bind(&boost::asio::io_service::run, m_io_service));
                 }
