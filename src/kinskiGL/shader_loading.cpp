@@ -241,7 +241,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *unlitFragSrc = GLSL( ,
+        const char *unlitFragSrc = STRINGIFY(
         precision mediump float;
         precision lowp int;
         uniform int u_numTextures;
@@ -346,7 +346,7 @@ namespace kinski { namespace gl {
             float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
             vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
             gl_FragColor = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
-        };
+        });
 
 #else
         const char *unlitVertSrc = GLSL(150 core,
