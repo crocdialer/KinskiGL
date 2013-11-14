@@ -1,6 +1,9 @@
-#find_package(OpenCV REQUIRED)
-#include_directories(${OpenCV_INCLUDE_DIRS})
-#set(LIBS ${LIBS} ${OpenCV_LIBS})
+if(APPLE)
+find_library(CoreMIDI NAMES CoreMIDI)
+find_library(CoreFoundation NAMES CoreFoundation)
+find_library(CoreAudio NAMES CoreAudio)
+set(LIBS ${LIBS} ${CoreMIDI} ${CoreFoundation} ${CoreAudio})
+endif()
 
 addSample(${itemName} ${folderItem})
 
