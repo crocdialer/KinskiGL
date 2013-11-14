@@ -76,7 +76,7 @@ namespace kinski
 #endif
 
 // compiler has C++11 stdlib
-#if defined(KINSKI_MSW) || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
+#if defined(KINSKI_CPP11) || defined(KINSKI_MSW) || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
     #include <memory>
     #include <functional>
 #else
