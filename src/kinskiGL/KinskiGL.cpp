@@ -1160,11 +1160,9 @@ namespace kinski { namespace gl {
         glGetIntegerv( GL_FRAMEBUFFER_BINDING, &m_old_value );
     }
     
-    #ifndef KINSKI_GLES
     SaveFramebufferBinding::~SaveFramebufferBinding()
     {
         glBindFramebuffer( GL_ENUM(GL_FRAMEBUFFER), m_old_value );
     }
-    #endif
     
 }}//namespace
