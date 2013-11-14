@@ -214,7 +214,6 @@ namespace kinski { namespace gl {
         glm::vec2 m_old_value;
     };
     
-    #ifndef KINSKI_GLES
     //! Convenience class which pushes and pops the currently bound framebuffer
     class SaveFramebufferBinding
     {
@@ -224,7 +223,6 @@ namespace kinski { namespace gl {
      private:
         GLint m_old_value;
     };
-    #endif
     
     #ifdef KINSKI_GL_REPORT_ERRORS
     #define KINSKI_CHECK_GL_ERRORS()\

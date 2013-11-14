@@ -130,7 +130,7 @@ namespace kinski{ namespace gl{
             tangents[face.c] += sdir;
         }
         
-        for (long a = 0; a < m_vertices.size(); a++)
+        for (uint32_t a = 0; a < m_vertices.size(); a++)
         {
             const glm::vec3& n = m_normals[a];
             const glm::vec3& t = tangents[a];
@@ -448,7 +448,7 @@ namespace kinski{ namespace gl{
         GeometryPtr geom = Geometry::create();
         float const R = 1./(float)(rings-1);
         float const S = 1./(float)(sectors-1);
-        int r, s;
+        uint32_t r, s;
         
         geom->vertices().resize(rings * sectors);
         geom->normals().resize(rings * sectors);
