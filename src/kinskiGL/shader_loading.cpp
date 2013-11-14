@@ -38,7 +38,6 @@ namespace kinski { namespace gl {
     
     Shader createShader(ShaderType type)
     {
-#pragma mark MODULE_BLOCKS
         std::string glsl_header_150 = "#version 150 core\n";
         std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
         
@@ -227,7 +226,7 @@ namespace kinski { namespace gl {
         });
         
 #ifdef KINSKI_GLES
-        const char *unlitVertSrc = GLSL( ,
+        const char *unlitVertSrc = STRINGIFY(
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat4 u_textureMatrix;
         attribute vec4 a_vertex;
@@ -267,7 +266,7 @@ namespace kinski { namespace gl {
             gl_FragColor = u_material.diffuse * texColors;
         });
         
-        const char *phongVertSrc = GLSL( ,
+        const char *phongVertSrc = STRINGIFY(
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
@@ -286,7 +285,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *phongVertSrc_skin = GLSL( ,
+        const char *phongVertSrc_skin = STRINGIFY(
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
@@ -315,7 +314,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
         });
         
-        const char *phongFragSrc = GLSL( ,
+        const char *phongFragSrc = STRINGIFY(
         precision mediump float;
         precision lowp int;
         uniform int u_numTextures;
@@ -348,77 +347,6 @@ namespace kinski { namespace gl {
             vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
             gl_FragColor = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
         };
-        
-        const char *phong_normalmap_vertSrc = GLSL(150 core,
-        uniform mat4 u_modelViewMatrix;
-        uniform mat4 u_modelViewProjectionMatrix;
-        uniform mat3 u_normalMatrix;
-        uniform mat4 u_textureMatrix;
-        uniform vec3 u_lightDir;
-        in vec4 a_vertex;
-        in vec4 a_texCoord;
-        in vec3 a_normal;
-        in vec3 a_tangent;
-        out vec4 v_texCoord;
-        out vec3 v_normal;
-        out vec3 v_eyeVec;
-        out vec3 v_lightDir;
-        void main()
-        {
-           v_normal = normalize(u_normalMatrix * a_normal);
-           vec3 t = normalize (u_normalMatrix * a_tangent);
-           vec3 b = cross(v_normal, t);
-           mat3 tbnMatrix = mat3(t,b, v_normal);
-           v_eyeVec = tbnMatrix * normalize(- (u_modelViewMatrix * a_vertex).xyz);
-           v_lightDir = tbnMatrix * u_lightDir;
-           v_texCoord =  u_textureMatrix * a_texCoord;
-           gl_Position = u_modelViewProjectionMatrix * a_vertex;
-        });
-        
-        const char *phong_normalmap_fragSrc = GLSL(150 core,
-        uniform int u_numTextures;
-        uniform sampler2D u_textureMap[16];
-        uniform struct
-        {
-            vec4 diffuse;
-            vec4 ambient;
-            vec4 specular;
-            vec4 emission;
-            float shinyness;
-        } u_material;
-        in vec3 v_normal;
-        in vec4 v_texCoord;
-        in vec3 v_eyeVec;
-        in vec3 v_lightDir;
-        out vec4 fragData;
-        vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
-        {
-            float center = texture(theMap, theCoords).r ;	 //center bump map sample
-            float U = texture(theMap, theCoords + vec2( 0.005, 0)).r ;	//U bump map sample
-            float V = texture(theMap, theCoords + vec2(0, 0.005)).r ;	 //V bump map sample
-            float dHdU = U - center;	 //create bump map U offset
-            float dHdV = V - center;	 //create bump map V offset
-            vec3 normal = vec3( -dHdU, dHdV, 0.05 / theStrength);	 //create the tangent space normal
-            return normalize(normal);
-        }
-        
-        void main()
-        {
-            //vec2 texCoord = v_texCoord.xy;
-            vec4 texColors = texture(u_textureMap[0], v_texCoord.xy);
-            vec3 N;
-            // sample normal map
-            //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
-            // sample bump map
-            N = normalFromHeightMap(u_textureMap[1], v_texCoord.xy, 0.8);
-            vec3 L = normalize(-v_lightDir);
-            vec3 E = normalize(v_eyeVec);
-		    vec3 R = reflect(-L, N);
-            float nDotL = max(0.0, dot(N, L));
-            float specIntesity = pow( max(dot(R, E), 0.0), u_material.shinyness);
-            vec4 spec = u_material.specular * specIntesity; spec.a = 0.0;
-            fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec;
-        });
 
 #else
         const char *unlitVertSrc = GLSL(150 core,
