@@ -33,8 +33,9 @@ class KINSKI_API Shader
 	GLuint			getHandle() const ;
 
 	void uniform( const std::string &name, GLint data );
+    inline void uniform( const std::string &name, GLuint data ){uniform(name, GLint(data));};
 	void uniform( const std::string &name, GLfloat data );
-    void uniform( const std::string &name, double data ){ uniform(name, (float) data); };
+    inline void uniform( const std::string &name, double data ){ uniform(name, (float) data); };
     
 	void uniform( const std::string &name, const GLint *data, int count );
 	void uniform( const std::string &name, const glm::ivec2 *theArray, int count );	
