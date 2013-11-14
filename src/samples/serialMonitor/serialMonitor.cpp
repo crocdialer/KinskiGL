@@ -1,11 +1,16 @@
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiApp/AppServer.h"
 #include "kinskiCore/Serial.h"
+
+#include "RtMidi.h"
 #include "Measurement.h"
 
 using namespace std;
 using namespace kinski;
 using namespace glm;
+
+typedef std::shared_ptr<RtMidiIn> RtMidiInPtr;
+typedef std::shared_ptr<RtMidiOut> RtMidiOutPtr;
 
 class SerialMonitorSample : public ViewerApp
 {
@@ -26,6 +31,7 @@ private:
                                                     Measurement<float>("Light"),
                                                     Measurement<float>("Temperature")
                                                 };
+    std::vector<bool> m_channel_activity {16};
     
     // display plot for selected index
     RangedProperty<int>::Ptr m_selected_index;
@@ -33,6 +39,13 @@ private:
     // used for data rendering
     vector<vec3> m_points;
     gl::OrthographicCamera::Ptr m_ortho_cam;
+    
+    // midi output
+    RtMidiOutPtr m_midi_out = RtMidiOutPtr(new RtMidiOut());
+    std::vector<unsigned char> m_midi_msg {3};
+    
+    // thresholds
+    uint32_t m_thresh_low = 10, m_thresh_high = 80;
     
 public:
     
@@ -67,6 +80,10 @@ public:
         load_settings();
         
         m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
+        
+        m_channel_activity.resize(16, false);
+        
+        m_midi_out->openVirtualPort("Baumhafer");
     }
     
     void update(float timeDelta)
@@ -78,6 +95,20 @@ public:
             for(string line : m_serial.read_lines())
             {
                 parse_line(line);
+            }
+        }
+        
+        for(int i = 0; i < 2/*m_analog_in.size()*/; i++)
+        {
+            if(m_analog_in[i].last_value() > m_thresh_high && !m_channel_activity[i])
+            {
+                m_channel_activity[i] = true;
+                note_on(i);
+            }
+            else if(m_analog_in[i].last_value() < m_thresh_low && m_channel_activity[i])
+            {
+                m_channel_activity[i] = false;
+                note_off(i);
             }
         }
         
@@ -142,6 +173,8 @@ public:
     {
         ViewerApp::keyPress(e);
         
+        note_on(0);
+        
         switch (e.getChar())
         {
             case KeyEvent::KEY_c:
@@ -162,11 +195,28 @@ public:
             case KeyEvent::KEY_7:
                 *m_selected_index = string_as<int>(as_string(e.getChar()));
                 break;
-                
+            
+            case KeyEvent::KEY_n:
+                note_on(0);
+                break;
             default:
                 break;
         }
+    }
     
+    void keyRelease(const KeyEvent &e)
+    {
+        ViewerApp::keyRelease(e);
+        note_off(0);
+        
+        switch (e.getChar())
+        {
+            case KeyEvent::KEY_n:
+                
+                break;
+            default:
+                break;
+        }
     }
     
     void got_message(const std::string &the_message)
@@ -197,6 +247,32 @@ public:
         if(parsed_index < 0 || parsed_index >= m_analog_in.size()) return;
         
         m_analog_in[parsed_index].push(string_as<int>(tokens[1]));
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void note_on(uint32_t ch)
+    {
+        LOG_DEBUG<<"note_on: "<<ch;
+        
+        // Note On: 144, 64, 90
+        m_midi_msg[0] = 144;
+        m_midi_msg[1] = 64;
+        m_midi_msg[2] = 127;
+        m_midi_out->sendMessage( &m_midi_msg );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void note_off(uint32_t ch)
+    {
+        LOG_DEBUG<<"note_off: "<<ch;
+        
+        // Note Off: 128, 64, 40
+        m_midi_msg[0] = 128;
+        m_midi_msg[1] = 64;
+        m_midi_msg[2] = 127;
+        m_midi_out->sendMessage( &m_midi_msg );
     }
 };
 

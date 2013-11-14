@@ -77,7 +77,7 @@ namespace kinski
         return EXIT_SUCCESS;
     }
     
-    void App::setWindowSize(const glm::vec2 size)
+    void App::setWindowSize(const glm::vec2 &size)
     {
         m_windowSize = size;
         if(running())

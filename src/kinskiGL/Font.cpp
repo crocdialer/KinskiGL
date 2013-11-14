@@ -28,11 +28,11 @@ namespace kinski { namespace gl {
         const uint8_t* src_area_start = src_mat.data + (src_mat.roi.y1 * src_mat.cols + src_mat.roi.x1) * bytes_per_pixel;
         uint8_t* dst_area_start = dst_mat.data + (dst_mat.roi.y1 * dst_mat.cols + dst_mat.roi.x1) * bytes_per_pixel;
         
-        for (int r = 0; r < src_mat.roi.height(); r++)
+        for (uint32_t r = 0; r < src_mat.roi.height(); r++)
         {
             const uint8_t* src_row_start = src_area_start + r * (src_mat.roi.width() + src_row_offset) * bytes_per_pixel;
             uint8_t* dst_row_start = dst_area_start + r * (dst_mat.roi.width() + dst_row_offset) * bytes_per_pixel;
-            for (int c = 0; c < src_mat.roi.width(); c++)
+            for (uint32_t c = 0; c < src_mat.roi.width(); c++)
             {
                 dst_row_start[c * bytes_per_pixel] = src_row_start[c * bytes_per_pixel];
             }
@@ -304,7 +304,7 @@ namespace kinski { namespace gl {
                 colors.push_back(glm::vec4(1));
             }
         }
-        for (int i = 0; i < vertices.size(); i += 4)
+        for (uint32_t i = 0; i < vertices.size(); i += 4)
         {
             geom->appendFace(i, i + 1, i + 2);
             geom->appendFace(i, i + 2, i + 3);

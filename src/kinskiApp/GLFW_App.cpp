@@ -117,7 +117,7 @@ namespace kinski
         }
     }
     
-    void GLFW_App::setWindowSize(const glm::vec2 size)
+    void GLFW_App::setWindowSize(const glm::vec2 &size)
     {
         App::setWindowSize(size);
         TwWindowSize(size.x, size.y);
@@ -288,12 +288,15 @@ namespace kinski
         switch(action)
         {
             case GLFW_PRESS:
-            case GLFW_REPEAT:
                 app->keyPress(e);
                 break;
                 
             case GLFW_RELEASE:
                 app->keyRelease(e);
+                break;
+            
+            case GLFW_REPEAT:
+            default:
                 break;
         }
     }

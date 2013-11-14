@@ -67,7 +67,7 @@ namespace kinski
         GLFW_App(const int width = 800, const int height = 600);
         virtual ~GLFW_App();
         
-        void setWindowSize(const glm::vec2 size);
+        void setWindowSize(const glm::vec2 &size);
         void swapBuffers();
         double getApplicationTime();
         
