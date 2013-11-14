@@ -38,6 +38,9 @@ namespace kinski { namespace gl {
     
     Shader createShader(ShaderType type)
     {
+        const char *phong_normalmap_vertSrc, *phong_normalmap_fragSrc;
+        const char *point_color_fragSrc, *point_texture_fragSrc, *point_sphere_fragSrc;
+        
         std::string glsl_header_150 = "#version 150 core\n";
         std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
         
@@ -428,7 +431,7 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
         });
         
-        const char *phong_normalmap_vertSrc = GLSL(150 core,
+        phong_normalmap_vertSrc = GLSL(150 core,
         uniform mat4 u_modelViewMatrix;
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat3 u_normalMatrix;
@@ -460,7 +463,7 @@ namespace kinski { namespace gl {
            gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *phong_normalmap_fragSrc = GLSL(150 core,
+        phong_normalmap_fragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct
@@ -574,7 +577,8 @@ namespace kinski { namespace gl {
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
-        const char *point_color_fragSrc = GLSL(150 core,
+        point_color_fragSrc = GLSL(150 core,
+                                   
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[16];
         uniform struct
@@ -593,7 +597,7 @@ namespace kinski { namespace gl {
             fragData = u_material.diffuse * texColors;
         });
         
-        const char *point_texture_fragSrc = GLSL(150 core,
+        point_texture_fragSrc = GLSL(150 core,
         uniform int u_numTextures;
         uniform sampler2D u_textureMap[8];
         uniform struct{
@@ -615,7 +619,7 @@ namespace kinski { namespace gl {
         });
         
         // pixel shader for rendering points as shaded spheres
-        const char *point_sphere_fragSrc = STRINGIFY(
+        point_sphere_fragSrc = STRINGIFY(
         uniform float u_pointRadius;  // point size in world space
         uniform vec3 u_lightDir;
         uniform int u_numTextures;
