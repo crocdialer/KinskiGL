@@ -62,7 +62,7 @@ namespace kinski {
         } else if (theProperty->isOfType<std::vector<std::string> >()) {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING_ARRAY;
             const std::vector<std::string>& vals = theProperty->getValue<std::vector<std::string> >();
-            for (int i = 0; i < vals.size(); ++i)
+            for (uint32_t i = 0; i < vals.size(); ++i)
             {
                 theJsonValue[PROPERTY_VALUE][i] = vals[i];
             }
@@ -101,7 +101,7 @@ namespace kinski {
             if(theJsonValue[PROPERTY_VALUE].isArray())
             {
                 std::vector<std::string> vals;
-                for (int i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+                for (uint32_t i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
                 {
                     vals.push_back(theJsonValue[PROPERTY_VALUE][i].asString());
                 }

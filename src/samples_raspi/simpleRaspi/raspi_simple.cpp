@@ -1,5 +1,4 @@
 #include "kinskiApp/Raspi_App.h"
-#include "kinskiApp/TextureIO.h"
 
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
@@ -82,7 +81,7 @@ public:
         // init FBO
         m_frameBuffer = gl::Fbo(800, 600);
 
-        m_textures[0] = gl::TextureIO::loadTexture(m_imagePath->val());
+        m_textures[0] = gl::createTextureFromFile(*m_imagePath);
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
         m_Camera->setAspectRatio(getAspectRatio());
