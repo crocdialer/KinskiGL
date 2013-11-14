@@ -1,1 +1,0 @@
-../../simpleGeometry/res/shader_line.frag
