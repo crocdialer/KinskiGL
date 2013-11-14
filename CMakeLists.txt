@@ -10,7 +10,7 @@ OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
 OPTION (USE_CXX11 "Use C++11 language dialect and library" OFF)
 
 if(USE_CXX11)
-    add_definitions(-DUSE_CXX11)
+    add_definitions(-DKINSKI_CPP11)
     if(APPLE)
     SET (CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
