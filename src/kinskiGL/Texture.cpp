@@ -139,7 +139,7 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
     {
-        #ifndef KINSKI_RASPI
+        #ifndef KINSKI_GLES
             GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
                 GL_ONE};
             glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
@@ -189,8 +189,10 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
     {
+        #ifndef KINSKI_GLES
         GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
         glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        #endif
     }
 }
 
