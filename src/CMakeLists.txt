@@ -41,7 +41,7 @@ ADD_SUBDIRECTORY("kinskiApp")
 SET(LIBS ${LIBS} "kinskiApp")
 endif(BUILD_APPLIB)
 
-ADD_SUBDIRECTORY("kinskiCV")
+#ADD_SUBDIRECTORY("kinskiCV")
 #SET(LIBS ${LIBS} "kinskiCV")
 
 if(BUILD_SAMPLES)

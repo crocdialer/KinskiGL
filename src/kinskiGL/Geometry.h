@@ -47,7 +47,6 @@ namespace kinski{ namespace gl{
         
         typedef std::shared_ptr<Geometry> Ptr;
         
-        static Ptr create(){return Ptr(new Geometry());};
         ~Geometry();
         
         inline void appendVertex(const glm::vec3 &theVert)
@@ -187,15 +186,16 @@ namespace kinski{ namespace gl{
         void createGLBuffers();
         
         /********************************* Factory methods ****************************************/
-        
-        KINSKI_API static GeometryPtr createPlane(float width, float height,
-                                                  uint32_t numSegments_W = 1,
-                                                  uint32_t numSegments_H = 1);
-        KINSKI_API static GeometryPtr createSolidUnitCircle(int numSegments);
-        KINSKI_API static GeometryPtr createUnitCircle(int numSegments);
-        KINSKI_API static GeometryPtr createBox(const glm::vec3 &theHalfExtents);
-        KINSKI_API static GeometryPtr createSphere(float radius, int numSlices);
-        KINSKI_API static GeometryPtr createCone(float radius, float height, int numSegments);
+         
+        static GeometryPtr create(){return Ptr(new Geometry());};
+        static GeometryPtr createPlane(float width, float height,
+                                       uint32_t numSegments_W = 1,
+                                       uint32_t numSegments_H = 1);
+        static GeometryPtr createSolidUnitCircle(int numSegments);
+        static GeometryPtr createUnitCircle(int numSegments);
+        static GeometryPtr createBox(const glm::vec3 &theHalfExtents);
+        static GeometryPtr createSphere(float radius, int numSlices);
+        static GeometryPtr createCone(float radius, float height, int numSegments);
         
     private:
         

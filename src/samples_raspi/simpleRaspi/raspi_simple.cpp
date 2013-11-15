@@ -16,9 +16,9 @@ private:
     gl::Fbo m_frameBuffer;
     gl::Texture m_textures[4];
     
-    gl::Material::Ptr m_material, m_pointMaterial;
-    gl::Geometry::Ptr m_geometry;
-    gl::Geometry::Ptr m_straightPlane;
+    gl::MaterialPtr m_material, m_pointMaterial;
+    gl::GeometryPtr m_geometry;
+    gl::GeometryPtr m_straightPlane;
     
     gl::Mesh::Ptr m_mesh;
     gl::PerspectiveCamera::Ptr m_Camera;
@@ -85,20 +85,19 @@ public:
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
         m_Camera->setClippingPlanes(.1, 5000);
         m_Camera->setAspectRatio(getAspectRatio());
-        m_Camera->setPosition( m_camPosition->val() );
+        m_Camera->setPosition( m_camPosition->value() );
         m_Camera->setLookAt(glm::vec3(0, 0, 0)); 
 
         // test box shape
-        gl::Geometry::Ptr myBox(new gl::Box(glm::vec3(40, 40, 40)));
-        //gl::Geometry::Ptr myBox(new gl::Plane(50, 50));
+        gl::GeometryPtr myBox = gl::Geometry::createBox(glm::vec3(40, 40, 40));
         
-        gl::Material::Ptr myMaterial(new gl::Material);
+        gl::MaterialPtr myMaterial = gl::Material::create();
         myMaterial->setDiffuse(vec4(1.0f, 1.0f, 1.0f, .75f) );
         myMaterial->setBlending(true);
-        myMaterial->shader().loadFromFile("Shader.vert", "Shader.frag");
+        myMaterial->shader() = gl::createShaderFromFile("Shader.vert", "Shader.frag");
         myMaterial->addTexture(m_textures[1]);
 
-        gl::Mesh::Ptr myBoxMesh(new gl::Mesh(myBox, myMaterial));
+        gl::MeshPtr myBoxMesh = gl::Mesh::create(myBox, myMaterial);
         myBoxMesh->setPosition(vec3(0, 0, 0));
         m_scene.addObject(myBoxMesh);
        
@@ -128,8 +127,8 @@ public:
     
     void update(const float timeDelta)
     {
-        glm::mat4 newTrans = glm::rotate(m_mesh->getTransform(),
-                                         m_rotationSpeed->val() * timeDelta,
+        glm::mat4 newTrans = glm::rotate(m_mesh->transform(),
+                                         m_rotationSpeed->value() * timeDelta,
                                          vec3(0, 1, .5));
         m_mesh->setTransform(newTrans);
         m_mesh->material()->uniform("u_time", getApplicationTime()); 
@@ -155,7 +154,7 @@ public:
         
         m_scene.render(m_Camera);
 
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->getTransform());
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->transform());
         gl::drawNormals(m_mesh);
         //gl::drawBoundingBox(m_mesh);
         //gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(), m_mesh->geometry()->vertices().size());
@@ -207,16 +206,16 @@ public:
         }
         else if(theProperty == m_lightDir )
         {
-            //m_material->uniform("u_lightDir", m_lightDir->val());
+            //m_material->uniform("u_lightDir", m_lightDir->value());
         }
         else if(theProperty == m_camPosition)
         {
-            m_Camera->setPosition( m_camPosition->val() );
+            m_Camera->setPosition( m_camPosition->value() );
             m_Camera->setLookAt(glm::vec3(0, 0, 0));
         }
         else if(theProperty == m_imagePath)
         {
-            m_textures[0] = gl::TextureIO::loadTexture(m_imagePath->val());
+            m_textures[0] = gl::createTextureFromFile(m_imagePath->value());
         }
     }
     

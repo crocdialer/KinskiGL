@@ -15,7 +15,7 @@ class Raspi_App : public App
     Raspi_App(const int width = 1920, const int height = 1080);
     virtual ~Raspi_App();
     
-    void setWindowSize(const glm::ivec2 size);
+    void setWindowSize(const glm::vec2 &size);
     void swapBuffers();
     double getApplicationTime();
     
@@ -23,6 +23,7 @@ class Raspi_App : public App
 
     // internal initialization. performed when run is invoked
     void init();
+    void pollEvents(){};
     
     timeval m_startTime;
     //struct ESContext;

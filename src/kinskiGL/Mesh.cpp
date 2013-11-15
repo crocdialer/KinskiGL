@@ -236,7 +236,7 @@ namespace kinski { namespace gl {
             if(!bonekeys.positionkeys.empty())
             {
                 boneHasKeys = true;
-                int i = 0;
+                uint32_t i = 0;
                 for (; i < bonekeys.positionkeys.size() - 1; i++)
                 {
                     const Key<glm::vec3> &key = bonekeys.positionkeys[i + 1];
@@ -292,7 +292,7 @@ namespace kinski { namespace gl {
                 else
                 {
                     boneHasKeys = true;
-                    int i = 0;
+                    uint32_t i = 0;
                     for (; i < bonekeys.scalekeys.size() - 1; i++)
                     {
                         const Key<glm::vec3> &key = bonekeys.scalekeys[i + 1];

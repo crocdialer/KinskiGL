@@ -10,6 +10,8 @@ function(addSample theName thePath)
 
     INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
     
+    include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
+        "/opt/vc/include/interface/vmcs_host/linux" )
     add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
     SET_TARGET_PROPERTIES(${theName} PROPERTIES LINK_FLAGS -Wl,-L/opt/vc/lib)
     target_link_libraries (${theName} ${LIBS})
