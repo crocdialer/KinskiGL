@@ -573,6 +573,7 @@ namespace kinski { namespace gl {
             geom->texCoords().push_back(glm::vec2(0.f, 0.f));
             geom->texCoords().push_back(glm::vec2(1.f, 0.f));
             geom->texCoords().push_back(glm::vec2(1.f, 1.f));
+            geom->colors().assign(4, glm::vec4(1.f));
             geom->normals().assign(4, glm::vec3(0, 0, 1));
             geom->computeBoundingBox();
             geom->computeTangents();
