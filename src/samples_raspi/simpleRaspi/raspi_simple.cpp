@@ -1,4 +1,5 @@
 #include "kinskiApp/Raspi_App.h"
+#include "kinskiApp/AppServer.h"
 
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"
@@ -70,20 +71,21 @@ public:
         m_camPosition = Property_<glm::vec3>::create("Camera Position", vec3(0, 30, -120));
         registerProperty(m_camPosition);
 
-        m_imagePath = Property_<std::string>::create("Image path", "kinski.jpg");
+        m_imagePath = Property_<std::string>::create("Image path", "test.png");
         registerProperty(m_imagePath);
 
         // enable observer mechanism
         observeProperties();
         
         /********************** construct a simple scene ***********************/
-       
+        
+        gl::clearColor(glm::vec4(0));
         // init FBO
         m_frameBuffer = gl::Fbo(800, 600);
 
         m_textures[0] = gl::createTextureFromFile(*m_imagePath);
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setClippingPlanes(.1, 5000);
+        m_Camera->setClippingPlanes(1, 5000);
         m_Camera->setAspectRatio(getAspectRatio());
         m_Camera->setPosition( m_camPosition->value() );
         m_Camera->setLookAt(glm::vec3(0, 0, 0)); 
@@ -92,10 +94,12 @@ public:
         gl::GeometryPtr myBox = gl::Geometry::createBox(glm::vec3(40, 40, 40));
         
         gl::MaterialPtr myMaterial = gl::Material::create();
-        myMaterial->setDiffuse(vec4(1.0f, 1.0f, 1.0f, .75f) );
-        myMaterial->setBlending(true);
-        myMaterial->shader() = gl::createShaderFromFile("Shader.vert", "Shader.frag");
-        myMaterial->addTexture(m_textures[1]);
+        //myMaterial->setDepthTest(false);
+
+        //myMaterial->setDiffuse(vec4(1.0f, 1.0f, 1.0f, .75f) );
+        //myMaterial->setBlending(true);
+        //myMaterial->shader() = gl::createShaderFromFile("Shader.vert", "Shader.frag");
+        //myMaterial->addTexture(m_textures[1]);
 
         gl::MeshPtr myBoxMesh = gl::Mesh::create(myBox, myMaterial);
         myBoxMesh->setPosition(vec3(0, 0, 0));
@@ -104,15 +108,15 @@ public:
         m_mesh = myBoxMesh;
         m_material = myMaterial;
         
-        GLubyte pixels[4 * 3] =
+        GLubyte pixels[] =
         {  
-            255,   0,   0, // Red
-            0, 255,   0, // Green
-            0,   0, 255, // Blue
-            255, 255,   0  // Yellow
+            255,   0,   0, 255, // Red
+            0, 255,   0,  255,  // Green
+            0,   0, 255, 255,   // Blue
+            255, 255,   0, 255  // Yellow
         };
 
-        m_textures[1].update(pixels, GL_UNSIGNED_BYTE, GL_RGB, 2, 2, false);
+        m_textures[1].update(pixels, GL_UNSIGNED_BYTE, GL_RGBA, 2, 2, false);
 
         // load state from config file
         try
@@ -136,34 +140,20 @@ public:
     
     void draw()
     {
-        // enable FBO
-        m_frameBuffer.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glViewport(0, 0, m_frameBuffer.getWidth(), m_frameBuffer.getHeight());
-
         gl::drawTexture(m_textures[0], windowSize());
         
-        //gl::Material cloneMaterial = *m_material;
-        //cloneMaterial.setDepthTest(false);
-        //cloneMaterial.setDepthWrite(false);
-        //gl::drawQuad(cloneMaterial, windowSize() * .5f);
-
         gl::loadMatrix(gl::PROJECTION_MATRIX, m_Camera->getProjectionMatrix());
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix());
         gl::drawGrid(500, 500);
         
+        //gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
         m_scene.render(m_Camera);
 
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m_Camera->getViewMatrix() * m_mesh->transform());
-        gl::drawNormals(m_mesh);
-        //gl::drawBoundingBox(m_mesh);
-        //gl::drawPoints(m_mesh->geometry()->vertexBuffer().id(), m_mesh->geometry()->vertices().size());
-        
-        m_frameBuffer.unbindFramebuffer();
-        glViewport(0, 0, getWidth(), getHeight());
+        //m_frameBuffer.unbindFramebuffer();
+        //glViewport(0, 0, getWidth(), getHeight());
        
-        // draw fbo content
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
+        //// draw fbo content
+        //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
     }
     
     
@@ -228,6 +218,8 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleRaspiApp);
+    AppServer s(theApp);
+    LOG_INFO<<"Running on IP: " << AppServer::local_ip();
     return theApp->run();
 }
 

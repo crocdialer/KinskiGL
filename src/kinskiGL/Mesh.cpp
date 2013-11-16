@@ -259,7 +259,7 @@ namespace kinski { namespace gl {
             if(!bonekeys.rotationkeys.empty())
             {
                 boneHasKeys = true;
-                int i = 0;
+                uint32_t i = 0;
                 for (; i < bonekeys.rotationkeys.size() - 1; i++)
                 {
                     const Key<glm::quat> &key = bonekeys.rotationkeys[i+1];
