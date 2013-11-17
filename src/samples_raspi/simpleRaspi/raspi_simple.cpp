@@ -6,6 +6,8 @@
 #include "kinskiGL/Mesh.h"
 #include "kinskiGL/Fbo.h"
 
+#include "AssimpConnector.h"
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
