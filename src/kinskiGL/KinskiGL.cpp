@@ -1025,6 +1025,21 @@ namespace kinski { namespace gl {
         theScene.render(theCam);
         return theFbo.getTexture();
     }
+    
+#ifdef KINSKI_CPP11
+    
+    KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor)
+    {
+        // push framebuffer and viewport states
+        gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+        gl::setWindowDimension(theFbo.getSize());
+        theFbo.bindFramebuffer();
+        functor();
+        return theFbo.getTexture();
+    }
+    
+#endif
+    
 ///////////////////////////////////////////////////////////////////////////////
     
     void apply_material(const MaterialPtr &the_mat, bool force_apply)

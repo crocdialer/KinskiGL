@@ -291,11 +291,7 @@ Fbo::Fbo( int width, int height, bool alpha, bool color, bool depth )
 	: mObj(new Obj( width, height ))
 {
 	Format format;
-#if defined( KINSKI_GLES )
-	mObj->mFormat.mColorInternalFormat = ( alpha ) ? GL_RGBA8_OES : GL_RGB8_OES;
-#else
-	mObj->mFormat.mColorInternalFormat = ( alpha ) ? GL_RGBA8 : GL_RGB8;
-#endif
+	mObj->mFormat.mColorInternalFormat = ( alpha ) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
 	mObj->mFormat.mDepthBuffer = depth;
 	mObj->mFormat.mNumColorBuffers = color ? 1 : 0;
 	init();

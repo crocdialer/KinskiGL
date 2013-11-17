@@ -41,11 +41,14 @@ private:
     gl::OrthographicCamera::Ptr m_ortho_cam;
     
     // midi output
-    RtMidiOutPtr m_midi_out = RtMidiOutPtr(new RtMidiOut());
+    RtMidiOutPtr m_midi_out {new RtMidiOut()};
     std::vector<unsigned char> m_midi_msg {3};
     
     // thresholds
     uint32_t m_thresh_low = 10, m_thresh_high = 80;
+    
+    float m_time_accum = 0;
+    bool m_note_on = false;
     
 public:
     
@@ -83,7 +86,11 @@ public:
         
         m_channel_activity.resize(16, false);
         
-        m_midi_out->openVirtualPort("Baumhafer");
+        // midi stuff
+        LOG_INFO<<"found "<<m_midi_out->getPortCount()<<" midi-outs";
+        string midi_port_name = "Baumhafer";
+        LOG_INFO<<"openening virtual midi-port: '"<<midi_port_name<<"'";
+        m_midi_out->openVirtualPort(midi_port_name);
     }
     
     void update(float timeDelta)
@@ -119,6 +126,15 @@ public:
         {
             m_points[i].x = i * windowSize().x / measure.history().size();
             m_points[i].y = measure.history()[i] / 2.f;
+        }
+        
+        m_time_accum += timeDelta;
+        if(m_time_accum > 2.f)
+        {
+            if(m_note_on) note_off(0);
+            else note_on(0);
+            m_note_on = !m_note_on;
+            m_time_accum = 0;
         }
     }
     
@@ -197,7 +213,7 @@ public:
                 break;
             
             case KeyEvent::KEY_n:
-                note_on(0);
+                //note_on(0);
                 break;
             default:
                 break;
@@ -212,7 +228,7 @@ public:
         switch (e.getChar())
         {
             case KeyEvent::KEY_n:
-                
+                //note_off(0);
                 break;
             default:
                 break;
@@ -257,7 +273,7 @@ public:
         
         // Note On: 144, 64, 90
         m_midi_msg[0] = 144;
-        m_midi_msg[1] = 64;
+        m_midi_msg[1] = 104;
         m_midi_msg[2] = 127;
         m_midi_out->sendMessage( &m_midi_msg );
     }
@@ -270,8 +286,8 @@ public:
         
         // Note Off: 128, 64, 40
         m_midi_msg[0] = 128;
-        m_midi_msg[1] = 64;
-        m_midi_msg[2] = 127;
+        m_midi_msg[1] = 104;
+        m_midi_msg[2] = 40;
         m_midi_out->sendMessage( &m_midi_msg );
     }
 };

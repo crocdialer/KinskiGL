@@ -313,7 +313,7 @@ namespace kinski
         s_getModifiers(window, 0, buttonMod, keyMod);
         
         KeyEvent e(0, key, keyMod);
-        app->keyPress(e);
+        //app->keyPress(e);
     }
     
     void GLFW_App::s_getModifiers(GLFWwindow* window, int modifier_mask,

@@ -173,6 +173,10 @@ namespace kinski { namespace gl {
     
     KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam);
+    
+#ifdef KINSKI_CPP11
+    KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor);
+#endif
 
     /*********************************** lazy state changing **********************************/
     
