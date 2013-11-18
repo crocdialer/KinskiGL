@@ -1034,6 +1034,7 @@ namespace kinski { namespace gl {
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::setWindowDimension(theFbo.getSize());
         theFbo.bindFramebuffer();
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         functor();
         return theFbo.getTexture();
     }

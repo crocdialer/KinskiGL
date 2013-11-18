@@ -500,7 +500,7 @@ bool Serial::setup(string portName, int baud){
 
 
 //----------------------------------------------------------------
-int Serial::writeBytes(void *buffer, int length)
+int Serial::writeBytes(const void *buffer, int length)
 {
 
 	if (!bInited)
@@ -750,7 +750,7 @@ bool Serial::isInitialized() const
     return bInited;
 }
 
-vector<string> Serial::read_lines()
+vector<string> Serial::read_lines(const char delim)
 {
     vector<string> ret;
     
@@ -766,7 +766,7 @@ vector<string> Serial::read_lines()
         std::stringstream input(m_accum_str);
         m_accum_str.clear();
         
-        for (string line; std::getline(input, line); )
+        for (string line; std::getline(input, line, delim); )
         {
             if(input.eof())
             {

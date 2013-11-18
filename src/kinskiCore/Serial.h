@@ -80,7 +80,7 @@ namespace kinski
         
         
         int 			readBytes(void *buffer, int length);
-        int 			writeBytes(void *buffer, int length);
+        int 			writeBytes(const void *buffer, int length);
         bool			writeByte(unsigned char singleByte);
         int             readByte();  // returns -1 on no read or error...
         void			flush(bool flushIn = true, bool flushOut = true);
@@ -89,7 +89,7 @@ namespace kinski
         void            drain();
         bool            isInitialized() const;
         
-        std::vector<std::string> read_lines();
+        std::vector<std::string> read_lines(const char delim = '\n');
         
         
     private:

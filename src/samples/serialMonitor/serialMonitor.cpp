@@ -4,6 +4,7 @@
 
 #include "RtMidi.h"
 #include "Measurement.h"
+#include "DMXController.h"
 
 using namespace std;
 using namespace kinski;
@@ -20,6 +21,9 @@ private:
     
     // Serial communication with Arduino device
     Serial m_serial;
+    
+    // Communication with Enttec DMXUSB Pro
+    DMXController m_dmx_control;
     
     // used for analog input measuring
     string m_input_prefix = "analog_";
@@ -91,6 +95,12 @@ public:
         string midi_port_name = "Baumhafer";
         LOG_INFO<<"openening virtual midi-port: '"<<midi_port_name<<"'";
         m_midi_out->openVirtualPort(midi_port_name);
+        
+        // DMX test
+        
+        m_dmx_control.values()[0] = 99;
+        m_dmx_control.values()[1] = 111;
+        m_dmx_control.update();
     }
     
     void update(float timeDelta)
@@ -147,7 +157,7 @@ public:
         gl::drawLine(vec2(play_head_x_pos, 0), vec2(play_head_x_pos, windowSize().y), gl::COLOR_BLACK);
         
         gl::setProjection(m_ortho_cam);
-
+        
         gl::drawLineStrip(m_points, gl::COLOR_BLACK);
         //gl::drawLines(m_points, gl::COLOR_BLACK, 15.f);
         

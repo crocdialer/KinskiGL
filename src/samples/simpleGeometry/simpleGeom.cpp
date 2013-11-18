@@ -245,7 +245,6 @@ public:
             
             
             gl::setMatrices(camera());
-            
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
             gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
@@ -254,8 +253,18 @@ public:
             if(*m_use_fbo)
             {
                 // render to fbo
-                m_textures[0] = gl::render_to_texture(scene(), m_frameBuffer, camera());
+                //m_textures[0] = gl::render_to_texture(scene(), m_frameBuffer, camera());
             
+                m_textures[0] = gl::render_to_texture(m_frameBuffer, [&]{
+                    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                    gl::setMatrices(camera());
+                    if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
+                    
+                    gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
+                    gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 5.f);
+                    scene().render(camera());
+                });
+                
                 // draw the fbo output
                 //gl::drawTexture(m_textures[0], windowSize());
                 
