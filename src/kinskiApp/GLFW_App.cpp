@@ -288,6 +288,7 @@ namespace kinski
         switch(action)
         {
             case GLFW_PRESS:
+            case GLFW_REPEAT:
                 app->keyPress(e);
                 break;
                 
@@ -295,7 +296,7 @@ namespace kinski
                 app->keyRelease(e);
                 break;
             
-            case GLFW_REPEAT:
+            
             default:
                 break;
         }
@@ -313,7 +314,7 @@ namespace kinski
         s_getModifiers(window, 0, buttonMod, keyMod);
         
         KeyEvent e(0, key, keyMod);
-        //app->keyPress(e);
+        app->keyPress(e);
     }
     
     void GLFW_App::s_getModifiers(GLFWwindow* window, int modifier_mask,

@@ -13,6 +13,8 @@ using namespace glm;
 typedef std::shared_ptr<RtMidiIn> RtMidiInPtr;
 typedef std::shared_ptr<RtMidiOut> RtMidiOutPtr;
 
+typedef std::map<uint32_t, std::list<uint8_t>> MidiMap;
+
 class SerialMonitorSample : public ViewerApp
 {
 private:
@@ -46,7 +48,12 @@ private:
     
     // midi output
     RtMidiOutPtr m_midi_out {new RtMidiOut()};
-    std::vector<unsigned char> m_midi_msg {3};
+    std::vector<unsigned char> m_midi_msg;
+    
+    // midi properties
+    Property_<string>::Ptr m_midi_port_name;
+    Property_<int>::Ptr m_midi_channel, m_midi_note, m_midi_velocity;
+    MidiMap m_midi_map;
     
     // thresholds
     uint32_t m_thresh_low = 10, m_thresh_high = 80;
@@ -73,6 +80,18 @@ public:
                                                        m_analog_in.size() - 1);
         registerProperty(m_selected_index);
         
+        m_midi_port_name = Property_<string>::create("Midi virtual port name", "Baumhafer");
+        registerProperty(m_midi_port_name);
+        
+        m_midi_channel = Property_<int>::create("Midi channel", 0);
+        registerProperty(m_midi_channel);
+        
+        m_midi_note = Property_<int>::create("Midi note", 0);
+        registerProperty(m_midi_note);
+        
+        m_midi_velocity = Property_<int>::create("Midi velocity", 0);
+        registerProperty(m_midi_velocity);
+        
         create_tweakbar_from_component(shared_from_this());
         displayTweakBar(false);
         
@@ -90,17 +109,23 @@ public:
         
         m_channel_activity.resize(16, false);
         
-        // midi stuff
+        // init midi output
         LOG_INFO<<"found "<<m_midi_out->getPortCount()<<" midi-outs";
-        string midi_port_name = "Baumhafer";
-        LOG_INFO<<"openening virtual midi-port: '"<<midi_port_name<<"'";
-        m_midi_out->openVirtualPort(midi_port_name);
+        LOG_INFO<<"openening virtual midi-port: '"<<*m_midi_port_name<<"'";
+        m_midi_out->openVirtualPort(*m_midi_port_name);
         
-        // DMX test
+        // mtc message !?
+        m_midi_msg.resize(2);
+        m_midi_msg[0] = 0xF1;
+        m_midi_msg[1] = 60;
+        m_midi_out->sendMessage( &m_midi_msg );
+        m_midi_msg.resize(3);
         
-        m_dmx_control.values()[0] = 99;
-        m_dmx_control.values()[1] = 111;
-        m_dmx_control.update();
+        // setup midimap
+        m_midi_map[0] = {49};
+        m_midi_map[1] = {74};
+        
+        m_dmx_control.set_num_active_channels(2);
     }
     
     void update(float timeDelta)
@@ -138,6 +163,7 @@ public:
             m_points[i].y = measure.history()[i] / 2.f;
         }
         
+        // send midi-events in 2 sec interval
         m_time_accum += timeDelta;
         if(m_time_accum > 2.f)
         {
@@ -145,6 +171,16 @@ public:
             else note_on(0);
             m_note_on = !m_note_on;
             m_time_accum = 0;
+        }
+        
+        if(m_dmx_control.serial().isInitialized())
+        {
+            // send dmx-values
+            for(int i = 0; i < m_analog_in.size(); i++)
+            {
+                m_dmx_control.values()[i] = static_cast<uint8_t>(255 * m_analog_in[i].last_value() / 1023.f);
+            }
+            m_dmx_control.update();
         }
     }
     
@@ -199,7 +235,7 @@ public:
     {
         ViewerApp::keyPress(e);
         
-        note_on(0);
+        //note_on(0);
         
         switch (e.getChar())
         {
@@ -223,7 +259,7 @@ public:
                 break;
             
             case KeyEvent::KEY_n:
-                //note_on(0);
+                note_on(0);
                 break;
             default:
                 break;
@@ -233,12 +269,12 @@ public:
     void keyRelease(const KeyEvent &e)
     {
         ViewerApp::keyRelease(e);
-        note_off(0);
+        //note_off(0);
         
         switch (e.getChar())
         {
             case KeyEvent::KEY_n:
-                //note_off(0);
+                note_off(0);
                 break;
             default:
                 break;
@@ -279,13 +315,23 @@ public:
     
     void note_on(uint32_t ch)
     {
-        LOG_DEBUG<<"note_on: "<<ch;
+        // search midi_map for our notes to play
+        if(m_midi_map.find(ch) == m_midi_map.end())
+        {
+            // not found
+            LOG_ERROR<<"no midi notes defined for channel: "<<ch;
+            return;
+        }
+        const auto &note_list = m_midi_map[ch];
         
-        // Note On: 144, 64, 90
-        m_midi_msg[0] = 144;
-        m_midi_msg[1] = 104;
-        m_midi_msg[2] = 127;
-        m_midi_out->sendMessage( &m_midi_msg );
+        for(auto note : note_list)
+        {
+            //Note On: 144, 64, 90
+            m_midi_msg[0] = 144;
+            m_midi_msg[1] = note;
+            m_midi_msg[2] = *m_midi_velocity;
+            m_midi_out->sendMessage( &m_midi_msg );
+        }
     }
     
     /////////////////////////////////////////////////////////////////
@@ -294,11 +340,23 @@ public:
     {
         LOG_DEBUG<<"note_off: "<<ch;
         
-        // Note Off: 128, 64, 40
-        m_midi_msg[0] = 128;
-        m_midi_msg[1] = 104;
-        m_midi_msg[2] = 40;
-        m_midi_out->sendMessage( &m_midi_msg );
+        // search midi_map for our notes to play
+        if(m_midi_map.find(ch) == m_midi_map.end())
+        {
+            // not found
+            LOG_ERROR<<"no midi notes defined for channel: "<<ch;
+            return;
+        }
+        const auto &note_list = m_midi_map[ch];
+        
+        for(auto note : note_list)
+        {
+            // Note Off: 128, 64, 40
+            m_midi_msg[0] = 128;
+            m_midi_msg[1] = note;
+            m_midi_msg[2] = *m_midi_velocity;
+            m_midi_out->sendMessage( &m_midi_msg );
+        }
     }
 };
 

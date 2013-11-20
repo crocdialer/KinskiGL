@@ -20,35 +20,21 @@ namespace kinski
         
         DMXController();
         
-        struct DMXUSBPROParamsType
-        {
-            unsigned char FirmwareLSB;
-            unsigned char FirmwareMSB;
-            unsigned char BreakTime;
-            unsigned char MaBTime;
-            unsigned char RefreshRate;
-        };
-        
-        struct DMXUSBPROSetParamsType
-        {
-            unsigned char UserSizeLSB;
-            unsigned char UserSizeMSB;
-            unsigned char BreakTime;
-            unsigned char MaBTime;
-            unsigned char RefreshRate;
-        };
-        
         inline const std::vector<uint8_t>& values() const {return m_dmx_values;}
         inline std::vector<uint8_t>& values(){return m_dmx_values;}
         
+        void set_values(const std::vector<uint8_t> &values);
+        void set_num_active_channels(int sz);
         void update();
+        
+        const Serial& serial() const {return m_serial;}
         
     private:
         
-        void set_values(const std::vector<uint8_t> &values);
         void transmit(uint8_t label, const uint8_t* data, size_t data_length);
         Serial m_serial;
         std::vector<uint8_t> m_dmx_values;
+        uint32_t m_num_active_channels;
         
     };
 }// namespace
