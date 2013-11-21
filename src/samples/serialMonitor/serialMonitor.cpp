@@ -58,10 +58,15 @@ private:
     // thresholds
     uint32_t m_thresh_low = 10, m_thresh_high = 80;
     
+    // array to keep track of note_on events
+    std::vector<bool> m_midi_note_on_array {128, false};
+    
     float m_time_accum = 0;
-    bool m_note_on = false;
+    int m_note_on = 0;
     
 public:
+    
+    /////////////////////////////////////////////////////////////////
     
     void setup()
     {
@@ -92,6 +97,7 @@ public:
         m_midi_velocity = Property_<int>::create("Midi velocity", 0);
         registerProperty(m_midi_velocity);
         
+        observeProperties();
         create_tweakbar_from_component(shared_from_this());
         displayTweakBar(false);
         
@@ -119,14 +125,21 @@ public:
         m_midi_msg[0] = 0xF1;
         m_midi_msg[1] = 60;
         m_midi_out->sendMessage( &m_midi_msg );
-        m_midi_msg.resize(3);
         
         // setup midimap
-        m_midi_map[0] = {49};
-        m_midi_map[1] = {74};
+        m_midi_map[0] = {48, 55, 60}; // C-1 G-1 C0
+        m_midi_map[1] = {50, 57, 62}; // D-1 A-1 D0
+        m_midi_map[2] = {52, 59, 64}; // E-1 H-1 E0
+        m_midi_map[3] = {53, 60, 65}; // F-1 C0 F0
+        m_midi_map[4] = {55, 62, 67}; // G-1 D0 G0
+        m_midi_map[5] = {57, 64, 69}; // A-1 E0 A0
+        m_midi_map[6] = {59, 66, 71}; // H-1 F#0 H0
+        m_midi_map[7] = {60, 67, 72}; // C0 G0 C1
         
         m_dmx_control.set_num_active_channels(2);
     }
+    
+    /////////////////////////////////////////////////////////////////
     
     void update(float timeDelta)
     {
@@ -145,12 +158,12 @@ public:
             if(m_analog_in[i].last_value() > m_thresh_high && !m_channel_activity[i])
             {
                 m_channel_activity[i] = true;
-                note_on(i);
+                play_string(i);
             }
             else if(m_analog_in[i].last_value() < m_thresh_low && m_channel_activity[i])
             {
                 m_channel_activity[i] = false;
-                note_off(i);
+                stop_string(i);
             }
         }
         
@@ -167,12 +180,21 @@ public:
         m_time_accum += timeDelta;
         if(m_time_accum > 2.f)
         {
-            if(m_note_on) note_off(0);
-            else note_on(0);
-            m_note_on = !m_note_on;
+            if(m_note_on >= 0)
+            {
+                stop_string(m_note_on);
+                m_note_on = -1;
+            }
+            else
+            {
+                m_note_on = kinski::random(0, 8);
+                play_string(m_note_on);
+            }
             m_time_accum = 0;
         }
         
+        // send DMX events
+        //TODO: use less frequent intervals here
         if(m_dmx_control.serial().isInitialized())
         {
             // send dmx-values
@@ -183,6 +205,8 @@ public:
             m_dmx_control.update();
         }
     }
+    
+    /////////////////////////////////////////////////////////////////
     
     void draw()
     {
@@ -223,6 +247,8 @@ public:
                        gl::COLOR_BLACK, glm::vec2(50, 150));
     }
     
+    /////////////////////////////////////////////////////////////////
+    
     void resize(int w ,int h)
     {
         ViewerApp::resize(w, h);
@@ -230,6 +256,8 @@ public:
         m_ortho_cam->right(w);
         m_ortho_cam->top(h);
     }
+    
+    /////////////////////////////////////////////////////////////////
     
     void keyPress(const KeyEvent &e)
     {
@@ -259,12 +287,14 @@ public:
                 break;
             
             case KeyEvent::KEY_n:
-                note_on(0);
+                play_string(0);
                 break;
             default:
                 break;
         }
     }
+    
+    /////////////////////////////////////////////////////////////////
     
     void keyRelease(const KeyEvent &e)
     {
@@ -274,17 +304,21 @@ public:
         switch (e.getChar())
         {
             case KeyEvent::KEY_n:
-                note_off(0);
+                stop_string(0);
                 break;
             default:
                 break;
         }
     }
     
+    /////////////////////////////////////////////////////////////////
+    
     void got_message(const std::string &the_message)
     {
         LOG_INFO<<the_message;
     }
+    
+    /////////////////////////////////////////////////////////////////
     
     void tearDown()
     {
@@ -313,49 +347,106 @@ public:
     
     /////////////////////////////////////////////////////////////////
     
-    void note_on(uint32_t ch)
+    void play_string(uint32_t ch)
     {
+        auto iter = m_midi_map.find(ch);
+        
         // search midi_map for our notes to play
-        if(m_midi_map.find(ch) == m_midi_map.end())
+        if(iter == m_midi_map.end())
         {
             // not found
             LOG_ERROR<<"no midi notes defined for channel: "<<ch;
             return;
         }
-        const auto &note_list = m_midi_map[ch];
+        const auto &note_list = iter->second;
+        LOG_DEBUG<<"note_on: "<< ch << " -> " << note_list.front();
         
         for(auto note : note_list)
         {
-            //Note On: 144, 64, 90
-            m_midi_msg[0] = 144;
-            m_midi_msg[1] = note;
-            m_midi_msg[2] = *m_midi_velocity;
-            m_midi_out->sendMessage( &m_midi_msg );
+            midi_note_on(note);
         }
     }
     
     /////////////////////////////////////////////////////////////////
     
-    void note_off(uint32_t ch)
+    void stop_string(uint32_t ch)
     {
-        LOG_DEBUG<<"note_off: "<<ch;
+        auto iter = m_midi_map.find(ch);
         
         // search midi_map for our notes to play
-        if(m_midi_map.find(ch) == m_midi_map.end())
+        if(iter == m_midi_map.end())
         {
             // not found
             LOG_ERROR<<"no midi notes defined for channel: "<<ch;
             return;
         }
-        const auto &note_list = m_midi_map[ch];
+        const auto &note_list = iter->second;
+        LOG_DEBUG<<"note_off: "<< ch << " -> " << note_list.front();
         
         for(auto note : note_list)
         {
-            // Note Off: 128, 64, 40
-            m_midi_msg[0] = 128;
-            m_midi_msg[1] = note;
-            m_midi_msg[2] = *m_midi_velocity;
-            m_midi_out->sendMessage( &m_midi_msg );
+            midi_note_off(note);
+        }
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void midi_note_on(uint8_t note, uint8_t velocity = 127)
+    {
+        // assert correct size
+        m_midi_msg.resize(3);
+        
+        // note already on, first fire a note-off event
+        if(m_midi_note_on_array[note]){midi_note_off(note);}
+        
+        m_midi_note_on_array[note] = true;
+        
+        //Note On: 144, 64, 90
+        m_midi_msg[0] = 144;
+        m_midi_msg[1] = note;
+        m_midi_msg[2] = velocity;
+        m_midi_out->sendMessage( &m_midi_msg );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void midi_note_off(uint8_t note, uint8_t velocity = 127)
+    {
+        //nothing to do, note already off
+        if(!m_midi_note_on_array[note]) return;
+        
+        // assert correct size
+        m_midi_msg.resize(3);
+        
+        m_midi_note_on_array[note] = false;
+        
+        // Note Off: 128, 64, 40
+        m_midi_msg[0] = 128;
+        m_midi_msg[1] = note;
+        m_midi_msg[2] = velocity;
+        m_midi_out->sendMessage( &m_midi_msg );
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void midi_mute_all()
+    {
+        for (int i = 0; i < m_midi_note_on_array.size(); i++)
+        {
+            if(m_midi_note_on_array[i]){ midi_note_off(i); }
+        }
+    }
+    
+    /////////////////////////////////////////////////////////////////
+    
+    void updateProperty(const Property::ConstPtr &theProperty)
+    {
+        ViewerApp::updateProperty(theProperty);
+        
+        if(theProperty == m_midi_note)
+        {
+            midi_note_off(0);
+            m_midi_map[0] = {*m_midi_note};
         }
     }
 };
