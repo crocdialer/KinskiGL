@@ -29,13 +29,14 @@ private:
     
     // used for analog input measuring
     string m_input_prefix = "analog_";
-    std::vector<Measurement<float>> m_analog_in {   Measurement<float>("Harp 1"),
-                                                    Measurement<float>("Harp 2"),
-                                                    Measurement<float>("Poti"),
-                                                    Measurement<float>("Empty"),
-                                                    Measurement<float>("Empty"),
-                                                    Measurement<float>("Light"),
-                                                    Measurement<float>("Temperature")
+    std::vector<Measurement<float>> m_analog_in {   Measurement<float>("String 1"),
+                                                    Measurement<float>("String 2"),
+                                                    Measurement<float>("String 3"),
+                                                    Measurement<float>("String 4"),
+                                                    Measurement<float>("String 5"),
+                                                    Measurement<float>("String 6"),
+                                                    Measurement<float>("String 7"),
+                                                    Measurement<float>("String 8")
                                                 };
     std::vector<bool> m_channel_activity {16};
     
@@ -177,21 +178,21 @@ public:
         }
         
         // send midi-events in 2 sec interval
-        m_time_accum += timeDelta;
-        if(m_time_accum > 2.f)
-        {
-            if(m_note_on >= 0)
-            {
-                stop_string(m_note_on);
-                m_note_on = -1;
-            }
-            else
-            {
-                m_note_on = kinski::random(0, 8);
-                play_string(m_note_on);
-            }
-            m_time_accum = 0;
-        }
+//        m_time_accum += timeDelta;
+//        if(m_time_accum > 2.f)
+//        {
+//            if(m_note_on >= 0)
+//            {
+//                stop_string(m_note_on);
+//                m_note_on = -1;
+//            }
+//            else
+//            {
+//                m_note_on = kinski::random(0, 8);
+//                play_string(m_note_on);
+//            }
+//            m_time_accum = 0;
+//        }
         
         // send DMX events
         //TODO: use less frequent intervals here
@@ -275,7 +276,6 @@ public:
                 for(auto &measure : m_analog_in){measure.reset();}
                 break;
                 
-            case KeyEvent::KEY_0:
             case KeyEvent::KEY_1:
             case KeyEvent::KEY_2:
             case KeyEvent::KEY_3:
@@ -283,7 +283,8 @@ public:
             case KeyEvent::KEY_5:
             case KeyEvent::KEY_6:
             case KeyEvent::KEY_7:
-                *m_selected_index = string_as<int>(as_string(e.getChar()));
+            case KeyEvent::KEY_8:
+                *m_selected_index = string_as<int>(as_string(e.getChar())) - 1;
                 break;
             
             case KeyEvent::KEY_n:
@@ -359,7 +360,7 @@ public:
             return;
         }
         const auto &note_list = iter->second;
-        LOG_DEBUG<<"note_on: "<< ch << " -> " << note_list.front();
+        LOG_DEBUG<<"note_on: "<< ch << " -> " << (int)note_list.front();
         
         for(auto note : note_list)
         {
@@ -381,7 +382,7 @@ public:
             return;
         }
         const auto &note_list = iter->second;
-        LOG_DEBUG<<"note_off: "<< ch << " -> " << note_list.front();
+        LOG_DEBUG<<"note_off: "<< ch << " -> " << (int)note_list.front();
         
         for(auto note : note_list)
         {
