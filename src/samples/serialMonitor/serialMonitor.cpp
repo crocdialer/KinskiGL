@@ -27,6 +27,8 @@ private:
     // Communication with Enttec DMXUSB Pro
     DMXController m_dmx_control;
     
+    Property_<string>::Ptr m_arduino_device_name;
+    
     // used for analog input measuring
     string m_input_prefix = "analog_";
     std::vector<Measurement<float>> m_analog_in {   Measurement<float>("String 1"),
@@ -57,7 +59,8 @@ private:
     MidiMap m_midi_map;
     
     // thresholds
-    uint32_t m_thresh_low = 10, m_thresh_high = 80;
+    Property_<uint32_t>::Ptr m_thresh_low;// = 10,
+    Property_<uint32_t>::Ptr m_thresh_high;// = 80;
     
     // array to keep track of note_on events
     std::vector<bool> m_midi_note_on_array {128, false};
@@ -82,6 +85,10 @@ public:
         outstream_gl().set_color(gl::COLOR_BLACK);
         set_clear_color(gl::COLOR_WHITE);
         
+        m_arduino_device_name = Property_<string>::create("Arduino device name",
+                                                          "/dev/tty.usbmodem1411");
+        registerProperty(m_arduino_device_name);
+        
         m_selected_index = RangedProperty<int>::create("selected index", 0, 0,
                                                        m_analog_in.size() - 1);
         registerProperty(m_selected_index);
@@ -98,19 +105,25 @@ public:
         m_midi_velocity = Property_<int>::create("Midi velocity", 0);
         registerProperty(m_midi_velocity);
         
+        m_thresh_low = Property_<uint32_t>::create("thresh low", 10);
+        registerProperty(m_thresh_low);
+        
+        m_thresh_high = Property_<uint32_t>::create("thresh high", 80);
+        registerProperty(m_thresh_high);
+        
         observeProperties();
         create_tweakbar_from_component(shared_from_this());
         displayTweakBar(false);
         
+        // restore our settings
+        load_settings();
+        
         m_serial.listDevices();
-        m_serial.setup("/dev/tty.usbmodemfd121", 57600);
+        m_serial.setup(*m_arduino_device_name, 57600);
         
         // drain the serial buffer before we start
         m_serial.drain();
         m_serial.flush();
-        
-        // restore our settings
-        load_settings();
         
         m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
         
@@ -156,12 +169,12 @@ public:
         
         for(int i = 0; i < 2/*m_analog_in.size()*/; i++)
         {
-            if(m_analog_in[i].last_value() > m_thresh_high && !m_channel_activity[i])
+            if(m_analog_in[i].last_value() > *m_thresh_high && !m_channel_activity[i])
             {
                 m_channel_activity[i] = true;
                 play_string(i);
             }
-            else if(m_analog_in[i].last_value() < m_thresh_low && m_channel_activity[i])
+            else if(m_analog_in[i].last_value() < *m_thresh_low && m_channel_activity[i])
             {
                 m_channel_activity[i] = false;
                 stop_string(i);
@@ -178,21 +191,21 @@ public:
         }
         
         // send midi-events in 2 sec interval
-//        m_time_accum += timeDelta;
-//        if(m_time_accum > 2.f)
-//        {
-//            if(m_note_on >= 0)
-//            {
-//                stop_string(m_note_on);
-//                m_note_on = -1;
-//            }
-//            else
-//            {
-//                m_note_on = kinski::random(0, 8);
-//                play_string(m_note_on);
-//            }
-//            m_time_accum = 0;
-//        }
+        m_time_accum += timeDelta;
+        if(m_time_accum > 2.f)
+        {
+            if(m_note_on >= 0)
+            {
+                stop_string(m_note_on);
+                m_note_on = -1;
+            }
+            else
+            {
+                m_note_on = kinski::random(0, 8);
+                play_string(m_note_on);
+            }
+            m_time_accum = 0;
+        }
         
         // send DMX events
         //TODO: use less frequent intervals here
@@ -269,7 +282,7 @@ public:
         switch (e.getChar())
         {
             case KeyEvent::KEY_c:
-                m_serial.setup("/dev/tty.usbmodemfd121", 57600);
+                m_serial.setup(*m_arduino_device_name, 57600);
                 break;
                 
             case KeyEvent::KEY_r:
@@ -350,12 +363,12 @@ public:
     
     void play_string(uint32_t ch)
     {
+        // search midi_map for our notes to play
         auto iter = m_midi_map.find(ch);
         
-        // search midi_map for our notes to play
+        // not found
         if(iter == m_midi_map.end())
         {
-            // not found
             LOG_ERROR<<"no midi notes defined for channel: "<<ch;
             return;
         }
@@ -372,12 +385,12 @@ public:
     
     void stop_string(uint32_t ch)
     {
+        // search midi_map for our notes to play
         auto iter = m_midi_map.find(ch);
         
-        // search midi_map for our notes to play
+        // not found
         if(iter == m_midi_map.end())
         {
-            // not found
             LOG_ERROR<<"no midi notes defined for channel: "<<ch;
             return;
         }
@@ -444,7 +457,11 @@ public:
     {
         ViewerApp::updateProperty(theProperty);
         
-        if(theProperty == m_midi_note)
+        if(theProperty == m_arduino_device_name)
+        {
+            m_serial.setup(*m_arduino_device_name, 57600);
+        }
+        else if(theProperty == m_midi_note)
         {
             midi_note_off(0);
             m_midi_map[0] = {*m_midi_note};
