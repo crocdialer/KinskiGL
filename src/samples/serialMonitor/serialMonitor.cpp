@@ -62,6 +62,9 @@ private:
     Property_<uint32_t>::Ptr m_thresh_low;// = 10,
     Property_<uint32_t>::Ptr m_thresh_high;// = 80;
     
+    // DMX test properties
+    RangedProperty<int>::Ptr m_dmx_red, m_dmx_green, m_dmx_blue;
+    
     // array to keep track of note_on events
     std::vector<bool> m_midi_note_on_array {128, false};
     
@@ -111,6 +114,13 @@ public:
         m_thresh_high = Property_<uint32_t>::create("thresh high", 80);
         registerProperty(m_thresh_high);
         
+        m_dmx_red = RangedProperty<int>::create("dmx red", 0, 0, 255);
+        m_dmx_green = RangedProperty<int>::create("dmx green", 0, 0, 255);
+        m_dmx_blue = RangedProperty<int>::create("dmx blue", 0, 0, 255);
+        registerProperty(m_dmx_red);
+        registerProperty(m_dmx_green);
+        registerProperty(m_dmx_blue);
+        
         observeProperties();
         create_tweakbar_from_component(shared_from_this());
         displayTweakBar(false);
@@ -149,8 +159,6 @@ public:
         m_midi_map[5] = {57, 64, 69}; // A-1 E0 A0
         m_midi_map[6] = {59, 66, 71}; // H-1 F#0 H0
         m_midi_map[7] = {60, 67, 72}; // C0 G0 C1
-        
-        m_dmx_control.set_num_active_channels(2);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -209,15 +217,15 @@ public:
         
         // send DMX events
         //TODO: use less frequent intervals here
-        if(m_dmx_control.serial().isInitialized())
-        {
-            // send dmx-values
-            for(int i = 0; i < m_analog_in.size(); i++)
-            {
-                m_dmx_control.values()[i] = static_cast<uint8_t>(255 * m_analog_in[i].last_value() / 1023.f);
-            }
-            m_dmx_control.update();
-        }
+//        if(m_dmx_control.serial().isInitialized())
+//        {
+//            // send dmx-values
+//            for(int i = 0; i < m_analog_in.size(); i++)
+//            {
+//                m_dmx_control.values()[i] = static_cast<uint8_t>(255 * m_analog_in[i].last_value() / 1023.f);
+//            }
+//            m_dmx_control.update();
+//        }
     }
     
     /////////////////////////////////////////////////////////////////
@@ -465,6 +473,16 @@ public:
         {
             midi_note_off(0);
             m_midi_map[0] = {*m_midi_note};
+        }
+        else if(theProperty == m_dmx_red || theProperty == m_dmx_green ||
+                theProperty == m_dmx_blue)
+        {
+            m_dmx_control[1] = 0;
+            m_dmx_control[2] = *m_dmx_red;
+            m_dmx_control[3] = *m_dmx_green;
+            m_dmx_control[4] = *m_dmx_blue;
+            m_dmx_control[5] = 0;
+            m_dmx_control.update();
         }
     }
 };

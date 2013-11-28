@@ -29,6 +29,9 @@ namespace kinski
         
         const Serial& serial() const {return m_serial;}
         
+        uint8_t& operator[](int index)
+        {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
+        
     private:
         
         void transmit(uint8_t label, const uint8_t* data, size_t data_length);

@@ -30,16 +30,15 @@
 
 namespace kinski
 {
-    DMXController::DMXController():
-    m_num_active_channels(512)
+    DMXController::DMXController()
     {
-        if(m_serial.setup("/dev/tty.usbserial-EN138300", 57600) ||
-           m_serial.setup("/dev/ttyUSB1", 57600))
+        if(!m_serial.setup("/dev/tty.usbserial-EN138300", 57600) &&
+           !m_serial.setup("/dev/ttyUSB1", 57600))
         {
             LOG_ERROR<<"No DMX-Usb device found";
         }
         
-        m_dmx_values.resize(512, 0);
+        m_dmx_values.resize(513, 0);
     }
     
     void DMXController::set_num_active_channels(int sz)
@@ -54,7 +53,7 @@ namespace kinski
     
     void DMXController::set_values(const std::vector<uint8_t> &values)
     {
-        transmit(SET_DMX_TX_MODE, &values[0], std::min<size_t>(values.size(), m_num_active_channels));
+        transmit(SET_DMX_TX_MODE, &values[0], m_dmx_values.size());
     }
     
     void DMXController::transmit(uint8_t label, const uint8_t* data, size_t data_length)
