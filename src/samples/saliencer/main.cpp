@@ -50,7 +50,8 @@ public:
         registerProperty(m_imageIndex);
         
         // add component-props to tweakbar
-        addPropertyListToTweakBar(getPropertyList());
+        //addPropertyListToTweakBar(getPropertyList());
+        create_tweakbar_from_component(shared_from_this());
         
         // CV stuff
         m_cvThread = CVThread::Ptr(new CVThread());

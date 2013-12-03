@@ -20,16 +20,14 @@ namespace kinski
         
         DMXController();
         
-        inline const std::vector<uint8_t>& values() const {return m_dmx_values;}
-        inline std::vector<uint8_t>& values(){return m_dmx_values;}
-        
-        void set_values(const std::vector<uint8_t> &values);
-        void set_num_active_channels(int sz);
         void update();
         
         const Serial& serial() const {return m_serial;}
         
-        uint8_t& operator[](int index)
+        inline uint8_t& operator[](int index)
+        {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
+        
+        inline const uint8_t& operator[](int index) const
         {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
         
     private:
@@ -37,8 +35,6 @@ namespace kinski
         void transmit(uint8_t label, const uint8_t* data, size_t data_length);
         Serial m_serial;
         std::vector<uint8_t> m_dmx_values;
-        uint32_t m_num_active_channels;
-        
     };
 }// namespace
 

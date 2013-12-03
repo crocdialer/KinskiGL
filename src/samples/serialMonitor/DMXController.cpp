@@ -41,23 +41,23 @@ namespace kinski
         m_dmx_values.resize(513, 0);
     }
     
-    void DMXController::set_num_active_channels(int sz)
-    {
-        m_num_active_channels = sz;
-    }
-    
     void DMXController::update()
     {
-        set_values(m_dmx_values);
-    }
-    
-    void DMXController::set_values(const std::vector<uint8_t> &values)
-    {
-        transmit(SET_DMX_TX_MODE, &values[0], m_dmx_values.size());
+        transmit(SET_DMX_TX_MODE, &m_dmx_values[0], m_dmx_values.size());
     }
     
     void DMXController::transmit(uint8_t label, const uint8_t* data, size_t data_length)
     {
+//        vector<uint8_t> bytes =
+//        {
+//            DMX_START_CODE,
+//            label,
+//            data_length & 0xFF,
+//            (data_length >> 8) & 0xFF
+//        };
+//        bytes.insert(bytes.end(), data, data + data_length);
+//        bytes.push_back(DMX_END_CODE);
+        
         m_serial.writeByte(DMX_START_CODE);
         m_serial.writeByte(label);
         m_serial.writeByte(data_length & 0xFF);
@@ -67,6 +67,7 @@ namespace kinski
         m_serial.writeBytes(data, data_length);
         
         m_serial.writeByte(DMX_END_CODE);
+        
     }
     
 }// namespace

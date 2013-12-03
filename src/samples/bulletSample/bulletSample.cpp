@@ -205,7 +205,7 @@ public:
         //m_box_material->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
         
         m_box_material->addTexture(m_textures[3]);
-        m_textures[3].set_anisotropic_filter(8);
+        //m_textures[3].set_anisotropic_filter(8);
         materials().push_back(m_box_material);
         m_box_material->setBlending();
         

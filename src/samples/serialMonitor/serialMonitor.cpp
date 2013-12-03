@@ -31,14 +31,22 @@ private:
     
     // used for analog input measuring
     string m_input_prefix = "analog_";
-    std::vector<Measurement<float>> m_analog_in {   Measurement<float>("String 1"),
-                                                    Measurement<float>("String 2"),
-                                                    Measurement<float>("String 3"),
-                                                    Measurement<float>("String 4"),
-                                                    Measurement<float>("String 5"),
-                                                    Measurement<float>("String 6"),
-                                                    Measurement<float>("String 7"),
-                                                    Measurement<float>("String 8")
+    std::vector<Measurement<float>> m_analog_in {   Measurement<float>("Harp 1 - 1"),
+                                                    Measurement<float>("Harp 1 - 2"),
+                                                    Measurement<float>("Harp 1 - 3"),
+                                                    Measurement<float>("Harp 1 - 4"),
+                                                    Measurement<float>("Harp 1 - 5"),
+                                                    Measurement<float>("Harp 1 - 6"),
+                                                    Measurement<float>("Harp 1 - 7"),
+                                                    Measurement<float>("Harp 1 - 8"),
+                                                    Measurement<float>("Harp 2 - 1"),
+                                                    Measurement<float>("Harp 2 - 2"),
+                                                    Measurement<float>("Harp 2 - 3"),
+                                                    Measurement<float>("Harp 2 - 4"),
+                                                    Measurement<float>("Harp 2 - 5"),
+                                                    Measurement<float>("Harp 2 - 6"),
+                                                    Measurement<float>("Harp 2 - 7"),
+                                                    Measurement<float>("Harp 2 - 8")
                                                 };
     std::vector<bool> m_channel_activity {16};
     
@@ -137,7 +145,7 @@ public:
         
         m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
         
-        m_channel_activity.resize(16, false);
+        m_channel_activity.resize(m_analog_in.size(), false);
         
         // init midi output
         LOG_INFO<<"found "<<m_midi_out->getPortCount()<<" midi-outs";
@@ -305,7 +313,8 @@ public:
             case KeyEvent::KEY_6:
             case KeyEvent::KEY_7:
             case KeyEvent::KEY_8:
-                *m_selected_index = string_as<int>(as_string(e.getChar())) - 1;
+                *m_selected_index = string_as<int>(as_string(e.getChar())) - 1
+                + (e.isShiftDown() ? 8 : 0);
                 break;
             
             case KeyEvent::KEY_n:
@@ -491,7 +500,7 @@ int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SerialMonitorSample);
     theApp->setWindowSize(768, 256);
-    AppServer s(theApp);
+    //AppServer s(theApp);
     LOG_INFO<<"Running on IP: " << AppServer::local_ip();
     
     return theApp->run();

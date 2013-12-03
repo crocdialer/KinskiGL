@@ -167,9 +167,10 @@ namespace kinski { namespace gl {
          
             // calculate shading for all lights
             vec4 shade_color = vec4(0);
-            for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
+            //for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
             {
-                shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
+                shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors);
+                shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors);
             }
             fragData = shade_color;
         });
@@ -198,9 +199,10 @@ namespace kinski { namespace gl {
             vec3 normal = normalize(u_normalMatrix * a_normal);
             vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
             vec4 shade_color = vec4(0);
-            for(int i = 0; i < u_numLights; i++)
+            //for(int i = 0; i < u_numLights; i++)
             {
-                shade_color += shade(u_lights[i], u_material, normal, eyeVec, vec4(1));
+                shade_color += shade(u_lights[0], u_material, normal, eyeVec, vec4(1));
+                shade_color += shade(u_lights[1], u_material, normal, eyeVec, vec4(1));
             }
             vertex_out.color = shade_color;
             gl_Position = u_modelViewProjectionMatrix * a_vertex;
@@ -692,7 +694,7 @@ namespace kinski { namespace gl {
                 
             case SHADER_PHONG:
                 vert_src =  glsl_header_150 +
-                            glsl_define_explicit_layout +
+                            //glsl_define_explicit_layout +
                             light_block +
                             vertex_shader_phong;
                 
