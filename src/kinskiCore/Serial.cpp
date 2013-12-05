@@ -581,7 +581,8 @@ int Serial::readBytes(void *buffer, int length)
 //----------------------------------------------------------------
 bool Serial::writeByte(unsigned char singleByte){
 
-	if (!bInited){
+	if (!bInited)
+    {
 		LOG_ERROR << "writeByte(): serial not inited";
 		//return KINSKI_SERIAL_ERROR; // this looks wrong.
 		return false;

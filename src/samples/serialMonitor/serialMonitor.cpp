@@ -31,6 +31,7 @@ private:
     
     // used for analog input measuring
     string m_input_prefix = "analog_";
+    
     std::vector<Measurement<float>> m_analog_in {   Measurement<float>("Harp 1 - 1"),
                                                     Measurement<float>("Harp 1 - 2"),
                                                     Measurement<float>("Harp 1 - 3"),
@@ -38,15 +39,15 @@ private:
                                                     Measurement<float>("Harp 1 - 5"),
                                                     Measurement<float>("Harp 1 - 6"),
                                                     Measurement<float>("Harp 1 - 7"),
-                                                    Measurement<float>("Harp 1 - 8"),
-                                                    Measurement<float>("Harp 2 - 1"),
-                                                    Measurement<float>("Harp 2 - 2"),
-                                                    Measurement<float>("Harp 2 - 3"),
-                                                    Measurement<float>("Harp 2 - 4"),
-                                                    Measurement<float>("Harp 2 - 5"),
-                                                    Measurement<float>("Harp 2 - 6"),
-                                                    Measurement<float>("Harp 2 - 7"),
-                                                    Measurement<float>("Harp 2 - 8")
+                                                    Measurement<float>("Harp 1 - 8")
+//                                                    Measurement<float>("Harp 2 - 1"),
+//                                                    Measurement<float>("Harp 2 - 2"),
+//                                                    Measurement<float>("Harp 2 - 3"),
+//                                                    Measurement<float>("Harp 2 - 4"),
+//                                                    Measurement<float>("Harp 2 - 5"),
+//                                                    Measurement<float>("Harp 2 - 6"),
+//                                                    Measurement<float>("Harp 2 - 7"),
+//                                                    Measurement<float>("Harp 2 - 8")
                                                 };
     std::vector<bool> m_channel_activity {16};
     
@@ -64,6 +65,7 @@ private:
     // midi properties
     Property_<string>::Ptr m_midi_port_name;
     Property_<int>::Ptr m_midi_channel, m_midi_note, m_midi_velocity;
+    Property_<bool>::Ptr m_midi_autoplay;
     MidiMap m_midi_map;
     
     // thresholds
@@ -115,6 +117,9 @@ public:
         
         m_midi_velocity = Property_<int>::create("Midi velocity", 0);
         registerProperty(m_midi_velocity);
+        
+        m_midi_autoplay = Property_<bool>::create("Midi autoplay", false);
+        registerProperty(m_midi_autoplay);
         
         m_thresh_low = Property_<uint32_t>::create("thresh low", 10);
         registerProperty(m_thresh_low);
@@ -183,7 +188,7 @@ public:
             }
         }
         
-        for(int i = 0; i < 2/*m_analog_in.size()*/; i++)
+        for(int i = 0; i < m_analog_in.size(); i++)
         {
             if(m_analog_in[i].last_value() > *m_thresh_high && !m_channel_activity[i])
             {
@@ -208,7 +213,7 @@ public:
         
         // send midi-events in 2 sec interval
         m_time_accum += timeDelta;
-        if(m_time_accum > 2.f)
+        if(*m_midi_autoplay && m_time_accum > 2.f)
         {
             if(m_note_on >= 0)
             {
@@ -248,7 +253,7 @@ public:
         
         gl::setProjection(m_ortho_cam);
         
-        gl::drawLineStrip(m_points, gl::COLOR_BLACK);
+        gl::drawLineStrip(m_points, vec4(1) - clear_color());
         //gl::drawLines(m_points, gl::COLOR_BLACK, 15.f);
         
         auto measured_val = measure.last_value();
@@ -268,13 +273,22 @@ public:
                        m_font_small,
                        gl::COLOR_BLACK, glm::vec2(50, 110));
         
-        gl::drawText2D(" mean: " + as_string(measure.mean(), 2),
-                       m_font_small,
-                       gl::COLOR_BLACK, glm::vec2(50, 130));
-        
-        gl::drawText2D(" standard deviation: " + as_string(measure.standard_deviation(), 2),
-                       m_font_small,
-                       gl::COLOR_BLACK, glm::vec2(50, 150));
+        int icon_width = 18;
+        vec2 offset(windowSize().x - 200, 130), step(icon_width + 5, 0);
+        for(int i = 0; i < m_analog_in.size(); i++)
+        {
+            gl::drawQuad(m_channel_activity[i] ? gl::COLOR_OLIVE : gl::COLOR_BLACK,
+                         m_channel_activity[i] ? vec2(icon_width + 4) : vec2(icon_width),
+                         offset - (m_channel_activity[i] ? vec2(2) : vec2(0)));
+            offset += step;
+        }
+//        gl::drawText2D(" mean: " + as_string(measure.mean(), 2),
+//                       m_font_small,
+//                       gl::COLOR_BLACK, glm::vec2(50, 130));
+//        
+//        gl::drawText2D(" standard deviation: " + as_string(measure.standard_deviation(), 2),
+//                       m_font_small,
+//                       gl::COLOR_BLACK, glm::vec2(50, 150));
     }
     
     /////////////////////////////////////////////////////////////////
@@ -392,6 +406,8 @@ public:
         const auto &note_list = iter->second;
         LOG_DEBUG<<"note_on: "<< ch << " -> " << (int)note_list.front();
         
+        m_channel_activity[ch] = true;
+        
         for(auto note : note_list)
         {
             midi_note_on(note);
@@ -414,10 +430,13 @@ public:
         const auto &note_list = iter->second;
         LOG_DEBUG<<"note_off: "<< ch << " -> " << (int)note_list.front();
         
+        m_channel_activity[ch] = false;
+        
         for(auto note : note_list)
         {
             midi_note_off(note);
         }
+        
     }
     
     /////////////////////////////////////////////////////////////////

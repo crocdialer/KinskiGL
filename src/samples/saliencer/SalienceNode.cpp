@@ -50,10 +50,10 @@ namespace kinski
         
         m_salienceImage.convertTo(colorSalience, CV_8UC1, 255.0);
         
-        vector<Mat> outMats;
-        outMats.push_back(m_salienceImage);
+//        vector<Mat> outMats;
+//        outMats.push_back(m_salienceImage);
 
-        return outMats;
+        return {m_salienceImage};
     }
     
     // Property observer callback

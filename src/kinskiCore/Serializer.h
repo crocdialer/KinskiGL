@@ -31,6 +31,7 @@ namespace kinski
         static const std::string PROPERTY_TYPE_DOUBLE;
         static const std::string PROPERTY_TYPE_BOOLEAN;
         static const std::string PROPERTY_TYPE_INT;
+        static const std::string PROPERTY_TYPE_UINT;
         static const std::string PROPERTY_TYPE_STRING_ARRAY;
         static const std::string PROPERTY_TYPE_UNKNOWN;
         static const std::string PROPERTY_NAME;
