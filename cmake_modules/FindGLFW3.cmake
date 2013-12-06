@@ -47,9 +47,10 @@ FIND_LIBRARY(GLFW_LIBRARIES DOC "Absolute path to GLFW library."
 )
 IF( APPLE )
     find_library(IOKIT NAMES IOKit)
-    find_library(APPKIT NAMES AppKit)
+    #find_library(APPKIT NAMES AppKit)
+    find_library(COREVIDEO NAMES CoreVideo)
     find_library(COCOA NAMES Cocoa)
-    SET(GLFW_LIBRARIES ${GLFW_LIBRARIES} ${IOKIT} ${APPKIT} ${COCOA})
+    SET(GLFW_LIBRARIES ${GLFW_LIBRARIES} ${IOKIT} ${COREVIDEO} ${COCOA})
 endif( APPLE )
 
 IF(GLFW_LIBRARIES AND GLFW_INCLUDE_DIRS)

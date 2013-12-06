@@ -165,7 +165,7 @@ void Serial::buildDeviceList()
 		prefixMatch.push_back("tty.");
 	#endif
 	#ifdef KINSKI_LINUX
-		#ifdef TARGET_RASPBERRY_PI
+		#ifdef KINSKI_RASPI
 			prefixMatch.push_back("ttyACM");
 		#endif
 

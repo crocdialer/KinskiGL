@@ -49,7 +49,7 @@ private:
 //                                                    Measurement<float>("Harp 2 - 7"),
 //                                                    Measurement<float>("Harp 2 - 8")
                                                 };
-    std::vector<bool> m_channel_activity {16};
+    std::vector<bool> m_channel_activity;
     
     // display plot for selected index
     RangedProperty<int>::Ptr m_selected_index;
@@ -78,8 +78,17 @@ private:
     // array to keep track of note_on events
     std::vector<bool> m_midi_note_on_array {128, false};
     
-    float m_time_accum = 0;
+    // idle time in seconds
+    float m_idle_time = 10;
+    
+    // time an idle note will play
+    float m_idle_note_on_time = 3;
+    
+    // current idle note played
     int m_note_on = 0;
+
+    // idle timer
+    boost::asio::deadline_timer m_idle_timer{io_service()}, m_note_off_timer{io_service()};
     
 public:
     
@@ -141,20 +150,19 @@ public:
         // restore our settings
         load_settings();
         
-        m_serial.listDevices();
-        m_serial.setup(*m_arduino_device_name, 57600);
-        
         // drain the serial buffer before we start
         m_serial.drain();
         m_serial.flush();
         
         m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
         
-        m_channel_activity.resize(m_analog_in.size(), false);
+        for(auto &m : m_analog_in){m.filter_window_size(5);}
+        
+        m_channel_activity.assign(m_analog_in.size(), false);
         
         // init midi output
         LOG_INFO<<"found "<<m_midi_out->getPortCount()<<" midi-outs";
-        LOG_INFO<<"openening virtual midi-port: '"<<*m_midi_port_name<<"'";
+        LOG_INFO<<"openening virtual midi-port: '"<<m_midi_port_name->value()<<"'";
         m_midi_out->openVirtualPort(*m_midi_port_name);
         
         // mtc message !?
@@ -172,6 +180,8 @@ public:
         m_midi_map[5] = {57, 64, 69}; // A-1 E0 A0
         m_midi_map[6] = {59, 66, 71}; // H-1 F#0 H0
         m_midi_map[7] = {60, 67, 72}; // C0 G0 C1
+        
+//        reset_idle_timer();
     }
     
     /////////////////////////////////////////////////////////////////
@@ -190,12 +200,17 @@ public:
         
         for(int i = 0; i < m_analog_in.size(); i++)
         {
-            if(m_analog_in[i].last_value() > *m_thresh_high && !m_channel_activity[i])
+            if(!m_midi_autoplay && m_analog_in[i].last_value() > *m_thresh_high &&
+               !m_channel_activity[i])
             {
                 m_channel_activity[i] = true;
                 play_string(i);
+                
+                // we got some clients, so reset idle timer
+                reset_idle_timer();
             }
-            else if(m_analog_in[i].last_value() < *m_thresh_low && m_channel_activity[i])
+            else if(!m_midi_autoplay && m_analog_in[i].last_value() < *m_thresh_low &&
+                    m_channel_activity[i])
             {
                 m_channel_activity[i] = false;
                 stop_string(i);
@@ -211,34 +226,8 @@ public:
             m_points[i].y = measure.history()[i] / 2.f;
         }
         
-        // send midi-events in 2 sec interval
-        m_time_accum += timeDelta;
-        if(*m_midi_autoplay && m_time_accum > 2.f)
-        {
-            if(m_note_on >= 0)
-            {
-                stop_string(m_note_on);
-                m_note_on = -1;
-            }
-            else
-            {
-                m_note_on = kinski::random(0, 8);
-                play_string(m_note_on);
-            }
-            m_time_accum = 0;
-        }
-        
-        // send DMX events
-        //TODO: use less frequent intervals here
-//        if(m_dmx_control.serial().isInitialized())
-//        {
-//            // send dmx-values
-//            for(int i = 0; i < m_analog_in.size(); i++)
-//            {
-//                m_dmx_control.values()[i] = static_cast<uint8_t>(255 * m_analog_in[i].last_value() / 1023.f);
-//            }
-//            m_dmx_control.update();
-//        }
+        // light control
+        update_dmx();
     }
     
     /////////////////////////////////////////////////////////////////
@@ -273,22 +262,16 @@ public:
                        m_font_small,
                        gl::COLOR_BLACK, glm::vec2(50, 110));
         
-        int icon_width = 18;
-        vec2 offset(windowSize().x - 200, 130), step(icon_width + 5, 0);
+        // activity icons
+        int icon_width = 25;
+        vec2 offset(windowSize().x - 290, 120), step(icon_width + 8, 0);
         for(int i = 0; i < m_analog_in.size(); i++)
         {
-            gl::drawQuad(m_channel_activity[i] ? gl::COLOR_OLIVE : gl::COLOR_BLACK,
-                         m_channel_activity[i] ? vec2(icon_width + 4) : vec2(icon_width),
-                         offset - (m_channel_activity[i] ? vec2(2) : vec2(0)));
+            gl::drawQuad(m_channel_activity[i] ? gl::COLOR_DARK_RED : gl::Color(.2),
+                         m_channel_activity[i] ? vec2(icon_width + 6) : vec2(icon_width),
+                         offset - (m_channel_activity[i] ? vec2(3) : vec2(0)));
             offset += step;
         }
-//        gl::drawText2D(" mean: " + as_string(measure.mean(), 2),
-//                       m_font_small,
-//                       gl::COLOR_BLACK, glm::vec2(50, 130));
-//        
-//        gl::drawText2D(" standard deviation: " + as_string(measure.standard_deviation(), 2),
-//                       m_font_small,
-//                       gl::COLOR_BLACK, glm::vec2(50, 150));
     }
     
     /////////////////////////////////////////////////////////////////
@@ -312,7 +295,7 @@ public:
         switch (e.getChar())
         {
             case KeyEvent::KEY_c:
-                m_serial.setup(*m_arduino_device_name, 57600);
+                m_arduino_device_name->notifyObservers();
                 break;
                 
             case KeyEvent::KEY_r:
@@ -489,18 +472,86 @@ public:
     
     /////////////////////////////////////////////////////////////////
     
+    void update_dmx()
+    {
+        if(!m_dmx_control.serial().isInitialized()) return;
+        
+        m_dmx_control[1] = 0;
+        m_dmx_control[2] = map_value<int>(m_analog_in[0].last_value(), 0, 1023, 0, 255);
+        m_dmx_control[3] = map_value<int>(m_analog_in[1].last_value(), 0, 1023, 0, 255);
+        m_dmx_control[4] = map_value<int>(m_analog_in[2].last_value(), 0, 1023, 0, 255);
+        m_dmx_control[5] = 0;
+        m_dmx_control.update();
+        
+//        int start_index = 1;
+//        for (int i = 0; i < m_analog_in.size(); i++)
+//        {
+//            m_dmx_control[start_index + i] = map_value<int>(m_analog_in[i].last_value(), 0, 1023, 0, 255);
+//        }
+    }
+    
+    void reset_idle_timer()
+    {
+        //m_note_off_timer.cancel();
+        
+        m_idle_timer.expires_from_now(boost::posix_time::seconds(m_idle_time));
+        m_idle_timer.async_wait([&](const boost::system::error_code &error)
+        {
+            // Timer expired regularly
+            if (!error)
+            {
+                if(m_note_on >= 0)
+                {
+                    stop_string(m_note_on);
+                    m_note_on = -1;
+                }
+                
+                m_note_on = kinski::random(0, 8);
+                play_string(m_note_on);
+                
+                // setup our note_off timer
+                m_note_off_timer.expires_from_now(boost::posix_time::seconds(m_idle_note_on_time));
+                m_note_off_timer.async_wait([&](const boost::system::error_code &error)
+                                            {
+                                                if (!error)
+                                                {
+                                                    stop_string(m_note_on);
+                                                    LOG_INFO<<"ciao note";
+                                                }
+                                            });
+                
+                reset_idle_timer();
+            }
+        });
+    }
+    
+    /////////////////////////////////////////////////////////////////
     void updateProperty(const Property::ConstPtr &theProperty)
     {
         ViewerApp::updateProperty(theProperty);
         
         if(theProperty == m_arduino_device_name)
         {
-            m_serial.setup(*m_arduino_device_name, 57600);
+            if(m_arduino_device_name->value().empty())
+                m_serial.setup(0, 57600);
+            else
+                m_serial.setup(*m_arduino_device_name, 57600);
         }
         else if(theProperty == m_midi_note)
         {
             midi_note_off(0);
             m_midi_map[0] = {*m_midi_note};
+        }
+        else if (theProperty == m_midi_autoplay)
+        {
+            if(*m_midi_autoplay)
+            {
+                reset_idle_timer();
+            }
+            else
+            {
+                m_idle_timer.cancel();
+            }
         }
         else if(theProperty == m_dmx_red || theProperty == m_dmx_green ||
                 theProperty == m_dmx_blue)
@@ -518,7 +569,7 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SerialMonitorSample);
-    theApp->setWindowSize(768, 256);
+    //theApp->setWindowSize(768, 256);
     //AppServer s(theApp);
     LOG_INFO<<"Running on IP: " << AppServer::local_ip();
     

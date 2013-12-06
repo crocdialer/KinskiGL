@@ -100,6 +100,14 @@ namespace kinski
     {
         return lhs + ratio * (rhs - lhs);
     }
+    
+    template <typename T>
+    inline T map_value(const T &val, const T &src_min, const T &src_max,
+                 const T &dst_min, const T &dst_max)
+    {
+        float mix_val = (float)val / (src_max - src_min);
+        return mix<T>(dst_min, dst_max, mix_val);
+    }
 }
 
 #endif

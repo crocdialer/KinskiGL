@@ -675,7 +675,7 @@ namespace kinski { namespace gl {
     
     void drawGrid(float width, float height, int numW, int numH)
     {
-        static map<std::tuple<float,float,int,int>, MeshPtr> theMap;
+        static std::map<std::tuple<float,float,int,int>, MeshPtr> theMap;
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
         // search for incoming key

@@ -17,9 +17,10 @@
 
 namespace kinski { namespace gl {
     
-    static const Color COLOR_WHITE(1), COLOR_BLACK(0, 0, 0, 1), COLOR_RED(1, 0, 0, 1),
+    static const Color COLOR_WHITE(1), COLOR_BLACK(0, 0, 0, 1), COLOR_RED(1, 0,  0, 1),
         COLOR_GREEN(0, 1, 0, 1), COLOR_BLUE(0, 0, 1, 1), COLOR_YELLOW(1, 1, 0, 1),
-        COLOR_PURPLE(1, 0, 1, 1), COLOR_ORANGE(1, .5 , 0, 1), COLOR_OLIVE(.5, .5, 0, 1);
+        COLOR_PURPLE(1, 0, 1, 1), COLOR_ORANGE(1, .5 , 0, 1), COLOR_OLIVE(.5, .5, 0, 1),
+        COLOR_DARK_RED(.6, 0,  0, 1);
 
     
     class KINSKI_API Material
