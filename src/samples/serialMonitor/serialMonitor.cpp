@@ -64,7 +64,7 @@ private:
     
     // midi properties
     Property_<string>::Ptr m_midi_port_name;
-    Property_<int>::Ptr m_midi_channel, m_midi_note, m_midi_velocity;
+    Property_<int>::Ptr m_midi_velocity;
     Property_<bool>::Ptr m_midi_autoplay;
     MidiMap m_midi_map;
     
@@ -79,10 +79,10 @@ private:
     std::vector<bool> m_midi_note_on_array {128, false};
     
     // idle time in seconds
-    float m_idle_time = 10;
+    Property_<float>::Ptr m_idle_time = Property_<float>::create("Idle timeout", 10.f);
     
-    // time an idle note will play
-    float m_idle_note_on_time = 3;
+    // time a note will play during idle
+    Property_<float>::Ptr m_idle_note_duration = Property_<float>::create("Idle note duration", 3.f);
     
     // current idle note played
     int m_note_on = 0;
@@ -118,17 +118,14 @@ public:
         m_midi_port_name = Property_<string>::create("Midi virtual port name", "Baumhafer");
         registerProperty(m_midi_port_name);
         
-        m_midi_channel = Property_<int>::create("Midi channel", 0);
-        registerProperty(m_midi_channel);
-        
-        m_midi_note = Property_<int>::create("Midi note", 0);
-        registerProperty(m_midi_note);
-        
         m_midi_velocity = Property_<int>::create("Midi velocity", 0);
         registerProperty(m_midi_velocity);
         
         m_midi_autoplay = Property_<bool>::create("Midi autoplay", false);
         registerProperty(m_midi_autoplay);
+        
+        registerProperty(m_idle_time);
+        registerProperty(m_idle_note_duration);
         
         m_thresh_low = Property_<uint32_t>::create("thresh low", 10);
         registerProperty(m_thresh_low);
@@ -180,8 +177,6 @@ public:
         m_midi_map[5] = {57, 64, 69}; // A-1 E0 A0
         m_midi_map[6] = {59, 66, 71}; // H-1 F#0 H0
         m_midi_map[7] = {60, 67, 72}; // C0 G0 C1
-        
-//        reset_idle_timer();
     }
     
     /////////////////////////////////////////////////////////////////
@@ -289,9 +284,7 @@ public:
     void keyPress(const KeyEvent &e)
     {
         ViewerApp::keyPress(e);
-        
-        //note_on(0);
-        
+
         switch (e.getChar())
         {
             case KeyEvent::KEY_c:
@@ -327,8 +320,7 @@ public:
     void keyRelease(const KeyEvent &e)
     {
         ViewerApp::keyRelease(e);
-        //note_off(0);
-        
+
         switch (e.getChar())
         {
             case KeyEvent::KEY_n:
@@ -393,7 +385,7 @@ public:
         
         for(auto note : note_list)
         {
-            midi_note_on(note);
+            midi_note_on(note, *m_midi_velocity);
         }
     }
     
@@ -492,34 +484,25 @@ public:
     
     void reset_idle_timer()
     {
-        //m_note_off_timer.cancel();
-        
-        m_idle_timer.expires_from_now(boost::posix_time::seconds(m_idle_time));
+        m_idle_timer.expires_from_now(boost::posix_time::seconds(*m_idle_time));
         m_idle_timer.async_wait([&](const boost::system::error_code &error)
         {
             // Timer expired regularly
             if (!error)
             {
-                if(m_note_on >= 0)
-                {
-                    stop_string(m_note_on);
-                    m_note_on = -1;
-                }
-                
                 m_note_on = kinski::random(0, 8);
                 play_string(m_note_on);
                 
                 // setup our note_off timer
-                m_note_off_timer.expires_from_now(boost::posix_time::seconds(m_idle_note_on_time));
+                m_note_off_timer.expires_from_now(boost::posix_time::seconds(*m_idle_note_duration));
                 m_note_off_timer.async_wait([&](const boost::system::error_code &error)
                                             {
                                                 if (!error)
                                                 {
                                                     stop_string(m_note_on);
-                                                    LOG_INFO<<"ciao note";
+                                                    m_note_on = -1;
                                                 }
                                             });
-                
                 reset_idle_timer();
             }
         });
@@ -536,11 +519,6 @@ public:
                 m_serial.setup(0, 57600);
             else
                 m_serial.setup(*m_arduino_device_name, 57600);
-        }
-        else if(theProperty == m_midi_note)
-        {
-            midi_note_off(0);
-            m_midi_map[0] = {*m_midi_note};
         }
         else if (theProperty == m_midi_autoplay)
         {

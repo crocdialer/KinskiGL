@@ -290,9 +290,10 @@ public:
         m_pointMaterial->setPointAttenuation(0.f, 0.01f, 0.f);
         m_pointMaterial->uniform("u_pointRadius", 50.f);
         
-        //m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
-        //m_pointMaterial->setBlending();
+        m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
+        m_pointMaterial->setBlending();
         //m_pointMaterial->setDepthWrite(false);
+        m_pointMaterial->addTexture(gl::createTextureFromFile("~/Desktop/harp_icon.png"));
         
         initOpenCL();
         initParticles(*m_num_particles);

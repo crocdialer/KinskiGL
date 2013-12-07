@@ -48,25 +48,28 @@ namespace kinski
     
     void DMXController::transmit(uint8_t label, const uint8_t* data, size_t data_length)
     {
-//        vector<uint8_t> bytes =
-//        {
-//            DMX_START_CODE,
-//            label,
-//            data_length & 0xFF,
-//            (data_length >> 8) & 0xFF
-//        };
-//        bytes.insert(bytes.end(), data, data + data_length);
-//        bytes.push_back(DMX_END_CODE);
-        
-        m_serial.writeByte(DMX_START_CODE);
-        m_serial.writeByte(label);
-        m_serial.writeByte(data_length & 0xFF);
-        m_serial.writeByte((data_length >> 8) & 0xFF);
+        vector<uint8_t> bytes =
+        {
+            DMX_START_CODE,
+            label,
+            data_length & 0xFF,
+            (data_length >> 8) & 0xFF
+        };
+        bytes.insert(bytes.end(), data, data + data_length);
+        bytes.push_back(DMX_END_CODE);
         
         // write our data block
-        m_serial.writeBytes(data, data_length);
+        m_serial.writeBytes(&bytes[0], bytes.size());
         
-        m_serial.writeByte(DMX_END_CODE);
+//        m_serial.writeByte(DMX_START_CODE);
+//        m_serial.writeByte(label);
+//        m_serial.writeByte(data_length & 0xFF);
+//        m_serial.writeByte((data_length >> 8) & 0xFF);
+//        
+//        // write our data block
+//        m_serial.writeBytes(data, data_length);
+//        
+//        m_serial.writeByte(DMX_END_CODE);
         
     }
     

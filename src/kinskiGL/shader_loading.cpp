@@ -612,7 +612,7 @@ namespace kinski { namespace gl {
         out vec4 fragData;
         void main()
         {
-            vec4 texColors = vec4(1);//v_color; // workaround for ATI gl_PointCoord bug
+            vec4 texColors = v_color; // workaround for ATI gl_PointCoord bug
             for(int i = 0; i < u_numTextures; i++)
             {
                 texColors *= texture(u_textureMap[i], gl_PointCoord.xy);
@@ -633,12 +633,12 @@ namespace kinski { namespace gl {
         out vec4 fragData;
         void main()
         {
-            vec4 texColors = vec4(1);//v_color;// workaround for ATI gl_PointCoord bug
+            vec4 texColors = v_color;// workaround for ATI gl_PointCoord bug
             
-//                for(int i = 0; i < u_numTextures; i++)
-//                {
-//                    texColors *= texture(u_textureMap[i], gl_PointCoord);
-//                }
+            for(int i = 0; i < u_numTextures; i++)
+            {
+                texColors *= texture(u_textureMap[i], gl_PointCoord);
+            }
             
             // calculate normal from texture coordinates
             vec3 N;
