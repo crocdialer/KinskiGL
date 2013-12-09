@@ -64,7 +64,7 @@ private:
     
     // midi properties
     Property_<string>::Ptr m_midi_port_name;
-    Property_<int>::Ptr m_midi_velocity;
+    RangedProperty<int>::Ptr m_midi_velocity = RangedProperty<int>::create("Midi velocity", 127, 0, 127);
     Property_<bool>::Ptr m_midi_autoplay;
     MidiMap m_midi_map;
     
@@ -74,9 +74,13 @@ private:
     
     // DMX test properties
     RangedProperty<int>::Ptr m_dmx_red, m_dmx_green, m_dmx_blue;
+    Property_<int>::Ptr m_dmx_start_index = Property_<int>::create("DMX start index", 1);
     
     // array to keep track of note_on events
     std::vector<bool> m_midi_note_on_array {128, false};
+    
+    //
+    bool m_idle_active = false;
     
     // idle time in seconds
     Property_<float>::Ptr m_idle_time = Property_<float>::create("Idle timeout", 10.f);
@@ -89,6 +93,8 @@ private:
 
     // idle timer
     boost::asio::deadline_timer m_idle_timer{io_service()}, m_note_off_timer{io_service()};
+    
+    std::vector<gl::Texture> m_textures{4};
     
 public:
     
@@ -117,8 +123,6 @@ public:
         
         m_midi_port_name = Property_<string>::create("Midi virtual port name", "Baumhafer");
         registerProperty(m_midi_port_name);
-        
-        m_midi_velocity = Property_<int>::create("Midi velocity", 0);
         registerProperty(m_midi_velocity);
         
         m_midi_autoplay = Property_<bool>::create("Midi autoplay", false);
@@ -139,6 +143,7 @@ public:
         registerProperty(m_dmx_red);
         registerProperty(m_dmx_green);
         registerProperty(m_dmx_blue);
+        registerProperty(m_dmx_start_index);
         
         observeProperties();
         create_tweakbar_from_component(shared_from_this());
@@ -156,6 +161,8 @@ public:
         for(auto &m : m_analog_in){m.filter_window_size(5);}
         
         m_channel_activity.assign(m_analog_in.size(), false);
+        
+        m_textures[0] = gl::createTextureFromFile("harp_icon.png");
         
         // init midi output
         LOG_INFO<<"found "<<m_midi_out->getPortCount()<<" midi-outs";
@@ -195,16 +202,20 @@ public:
         
         for(int i = 0; i < m_analog_in.size(); i++)
         {
-            if(!m_midi_autoplay && m_analog_in[i].last_value() > *m_thresh_high &&
+            if(m_analog_in[i].last_value() > *m_thresh_high &&
                !m_channel_activity[i])
             {
                 m_channel_activity[i] = true;
                 play_string(i);
                 
                 // we got some clients, so reset idle timer
-                reset_idle_timer();
+                if(*m_midi_autoplay)
+                {
+                    m_idle_active = false;
+                    reset_idle_timer();
+                };
             }
-            else if(!m_midi_autoplay && m_analog_in[i].last_value() < *m_thresh_low &&
+            else if(!m_idle_active && m_analog_in[i].last_value() < *m_thresh_low &&
                     m_channel_activity[i])
             {
                 m_channel_activity[i] = false;
@@ -229,6 +240,10 @@ public:
     
     void draw()
     {
+        // background icon
+        gl::drawTexture(m_textures[0], vec2(256),
+                        vec2(10, windowSize().y - 256));
+        
         const auto &measure = m_analog_in[*m_selected_index];
         
         float play_head_x_pos = measure.current_index() * windowSize().x /
@@ -473,13 +488,17 @@ public:
         m_dmx_control[3] = map_value<int>(m_analog_in[1].last_value(), 0, 1023, 0, 255);
         m_dmx_control[4] = map_value<int>(m_analog_in[2].last_value(), 0, 1023, 0, 255);
         m_dmx_control[5] = 0;
-        m_dmx_control.update();
         
-//        int start_index = 1;
-//        for (int i = 0; i < m_analog_in.size(); i++)
+//        for (int i = 0; i < m_analog_in.size() * 2; i += 2)
 //        {
-//            m_dmx_control[start_index + i] = map_value<int>(m_analog_in[i].last_value(), 0, 1023, 0, 255);
+//            uint8_t dmx_val = map_value<int>(m_channel_activity[i] ?
+//                                             m_analog_in[i].last_value() : 0,
+//                                             0, 1023, 0, 255);
+//            
+//            m_dmx_control[*m_dmx_start_index + i] = dmx_val;
+//            m_dmx_control[*m_dmx_start_index + i + 1] = dmx_val;
 //        }
+        m_dmx_control.update();
     }
     
     void reset_idle_timer()
@@ -490,6 +509,9 @@ public:
             // Timer expired regularly
             if (!error)
             {
+                m_idle_active = true;
+                midi_mute_all();
+                
                 m_note_on = kinski::random(0, 8);
                 play_string(m_note_on);
                 
@@ -509,6 +531,7 @@ public:
     }
     
     /////////////////////////////////////////////////////////////////
+    
     void updateProperty(const Property::ConstPtr &theProperty)
     {
         ViewerApp::updateProperty(theProperty);
@@ -528,6 +551,7 @@ public:
             }
             else
             {
+                m_idle_active = false;
                 m_idle_timer.cancel();
             }
         }
@@ -549,7 +573,7 @@ int main(int argc, char *argv[])
     App::Ptr theApp(new SerialMonitorSample);
     //theApp->setWindowSize(768, 256);
     //AppServer s(theApp);
-    LOG_INFO<<"Running on IP: " << AppServer::local_ip();
+    LOG_INFO<<"local ip: " << AppServer::local_ip();
     
     return theApp->run();
 }

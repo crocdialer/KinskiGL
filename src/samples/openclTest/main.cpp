@@ -292,8 +292,8 @@ public:
         
         m_pointMaterial->setDiffuse(vec4(1, 1, 1, .7f));
         m_pointMaterial->setBlending();
-        //m_pointMaterial->setDepthWrite(false);
-        m_pointMaterial->addTexture(gl::createTextureFromFile("~/Desktop/harp_icon.png"));
+//        m_pointMaterial->setDepthWrite(false);
+//        m_pointMaterial->addTexture(gl::createTextureFromFile("~/Desktop/harp_icon.png"));
         
         initOpenCL();
         initParticles(*m_num_particles);
