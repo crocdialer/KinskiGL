@@ -75,6 +75,7 @@ private:
     //RangedProperty<int>::Ptr m_dmx_red, m_dmx_green, m_dmx_blue;
     RangedProperty<uint32_t>::Ptr m_dmx_min_val = RangedProperty<uint32_t>::create("DMX min", 0, 0, 255);
     RangedProperty<uint32_t>::Ptr m_dmx_max_val = RangedProperty<uint32_t>::create("DMX max", 255, 0, 255);
+    RangedProperty<float>::Ptr m_dmx_smoothness = RangedProperty<float>::create("DMX smoothness", .8, 0, 1);
     RangedProperty<uint32_t>::Ptr m_dmx_idle_max_val = RangedProperty<uint32_t>::create("DMX idle max", 25, 0, 255);
     Property_<float>::Ptr m_dmx_idle_speed = Property_<float>::create("DMX idle speed", 1.f);
     Property_<float>::Ptr m_dmx_idle_spread = Property_<float>::create("DMX idle spread", 0.1f);
@@ -137,6 +138,7 @@ public:
         registerProperty(m_dmx_start_index);
         registerProperty(m_dmx_min_val);
         registerProperty(m_dmx_max_val);
+        registerProperty(m_dmx_smoothness);
         registerProperty(m_dmx_idle_max_val);
         registerProperty(m_dmx_idle_speed);
         registerProperty(m_dmx_idle_spread);
@@ -276,9 +278,9 @@ public:
         auto measured_val = measure.last_value();
         float volt_value = 5.f * measured_val / 1023.f;
         
-        gl::drawQuad(gl::COLOR_OLIVE,
-                     vec2(80, measured_val / 2),
-                     vec2(windowSize().x - 100, windowSize().y - measured_val / 2));
+//        gl::drawQuad(gl::COLOR_OLIVE,
+//                     vec2(80, measured_val / 2),
+//                     vec2(windowSize().x - 100, windowSize().y - measured_val / 2));
         
         gl::drawText2D(measure.description() + " (" + as_string(m_selected_index->value()) +"): " +
                             as_string(volt_value, 2) + " V",
@@ -302,10 +304,10 @@ public:
         }
         
         // dmx activity icons
-        offset = vec2(windowSize().x - 290, 220);
+        offset = vec2(windowSize().x - 290, 160);
         for(int i = 0; i < m_analog_in.size(); i++)
         {
-            gl::drawQuad(gl::COLOR_DARK_RED,
+            gl::drawQuad(gl::Color(.2),
                          vec2(icon_width, 5 + m_dmx_control[*m_dmx_start_index + 2 * i]), offset);
             offset += step;
         }
@@ -319,6 +321,8 @@ public:
         
         m_ortho_cam->right(w);
         m_ortho_cam->top(h);
+        
+        set_clear_color(clear_color());
     }
     
     /////////////////////////////////////////////////////////////////
@@ -530,10 +534,10 @@ public:
             
             for (int i = 0; i < m_analog_in.size() * 2; i++)
             {
-                float sin_val = sinf(*m_dmx_idle_spread * i + phase);
+                float sin_val = (sinf(*m_dmx_idle_spread * i + phase) + 1) / 2.f;
                 
-                float map_val = map_value<float>(sin_val + 1.f,
-                                                 0, 2.f, *m_dmx_min_val, *m_dmx_idle_max_val);
+                float map_val = map_value<float>(sin_val,
+                                                 0, 1.f, *m_dmx_min_val, *m_dmx_idle_max_val);
                 
                 uint8_t dmx_val = map_val;
                 
@@ -542,7 +546,10 @@ public:
                     dmx_val = *m_dmx_max_val;
                 }
                     
-                m_dmx_control[*m_dmx_start_index + i] = dmx_val;
+                m_dmx_control[*m_dmx_start_index + i] = kinski::mix(m_dmx_control[*m_dmx_start_index + i],
+                                                                    dmx_val,
+                                                                    1.f - *m_dmx_smoothness);
+                
                 //m_dmx_control[*m_dmx_start_index + (2 * i + 1)] = dmx_val;
             }
         }
@@ -554,8 +561,13 @@ public:
                                                  m_analog_in[i].last_value() : 0,
                                                  0, 1023, *m_dmx_min_val, *m_dmx_max_val);
                 
-                m_dmx_control[*m_dmx_start_index + (2 * i)] = dmx_val;
-                m_dmx_control[*m_dmx_start_index + (2 * i + 1)] = dmx_val;
+                m_dmx_control[*m_dmx_start_index + (2 * i)] = kinski::mix(m_dmx_control[*m_dmx_start_index + (2 * i)],
+                                                                          dmx_val,
+                                                                          1.f - *m_dmx_smoothness);
+                
+                m_dmx_control[*m_dmx_start_index + (2 * i)] = kinski::mix(m_dmx_control[*m_dmx_start_index + (2 * i)],
+                                                                          dmx_val,
+                                                                          1.f - *m_dmx_smoothness);
             }
         }
         m_dmx_control.update();

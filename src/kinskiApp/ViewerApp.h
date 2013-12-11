@@ -44,6 +44,7 @@ namespace kinski {
         const glm::vec3 light_direction(){ return -m_light_direction->value(); };
         void set_light_direction(const glm::vec3 &dir){ return m_light_direction->set(-dir); };
         const glm::vec4& clear_color(){ return *m_clear_color; };
+        void clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
         void set_clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
         const gl::PerspectiveCamera::Ptr& camera() const { return m_camera; };
         gl::MeshPtr selected_mesh(){ return m_selected_mesh; };
