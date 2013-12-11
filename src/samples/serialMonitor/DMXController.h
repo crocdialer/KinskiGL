@@ -25,10 +25,12 @@ namespace kinski
         const Serial& serial() const {return m_serial;}
         
         inline uint8_t& operator[](int index)
-        {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
+//        {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
+        {return m_dmx_values[index];};
         
         inline const uint8_t& operator[](int index) const
-        {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
+//        {return m_dmx_values[kinski::clamp<int>(index, 1, 512)];};
+        {return m_dmx_values[index];};
         
     private:
         

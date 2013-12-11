@@ -40,14 +40,6 @@ private:
                                                     Measurement<float>("Harp 1 - 6"),
                                                     Measurement<float>("Harp 1 - 7"),
                                                     Measurement<float>("Harp 1 - 8")
-//                                                    Measurement<float>("Harp 2 - 1"),
-//                                                    Measurement<float>("Harp 2 - 2"),
-//                                                    Measurement<float>("Harp 2 - 3"),
-//                                                    Measurement<float>("Harp 2 - 4"),
-//                                                    Measurement<float>("Harp 2 - 5"),
-//                                                    Measurement<float>("Harp 2 - 6"),
-//                                                    Measurement<float>("Harp 2 - 7"),
-//                                                    Measurement<float>("Harp 2 - 8")
                                                 };
     std::vector<bool> m_channel_activity;
     
@@ -59,25 +51,37 @@ private:
     gl::OrthographicCamera::Ptr m_ortho_cam;
     
     // midi output
+    Property_<uint32_t>::Ptr m_midi_start_note = Property_<uint32_t>::create("Midi start note", 48);
     RtMidiOutPtr m_midi_out {new RtMidiOut()};
     std::vector<unsigned char> m_midi_msg;
     
     // midi properties
     Property_<string>::Ptr m_midi_port_name;
+    
+    /*!
+     * Used for notes played when idle, or for all notes, if m_midi_fixed_velocity is true
+     */
     RangedProperty<int>::Ptr m_midi_velocity = RangedProperty<int>::create("Midi velocity", 127, 0, 127);
-    Property_<bool>::Ptr m_midi_autoplay;
+    
+    Property_<bool>::Ptr m_midi_fixed_velocity = Property_<bool>::create("Use fixed velocity", true);
+    Property_<bool>::Ptr m_midi_autoplay = Property_<bool>::create("Midi autoplay", false);
     MidiMap m_midi_map;
     
     // thresholds
     Property_<uint32_t>::Ptr m_thresh_low;// = 10,
     Property_<uint32_t>::Ptr m_thresh_high;// = 80;
     
-    // DMX test properties
-    RangedProperty<int>::Ptr m_dmx_red, m_dmx_green, m_dmx_blue;
+    // DMX properties
+    //RangedProperty<int>::Ptr m_dmx_red, m_dmx_green, m_dmx_blue;
+    RangedProperty<uint32_t>::Ptr m_dmx_min_val = RangedProperty<uint32_t>::create("DMX min", 0, 0, 255);
+    RangedProperty<uint32_t>::Ptr m_dmx_max_val = RangedProperty<uint32_t>::create("DMX max", 255, 0, 255);
+    RangedProperty<uint32_t>::Ptr m_dmx_idle_max_val = RangedProperty<uint32_t>::create("DMX idle max", 25, 0, 255);
+    Property_<float>::Ptr m_dmx_idle_speed = Property_<float>::create("DMX idle speed", 1.f);
+    Property_<float>::Ptr m_dmx_idle_spread = Property_<float>::create("DMX idle spread", 0.1f);
     Property_<int>::Ptr m_dmx_start_index = Property_<int>::create("DMX start index", 1);
     
     // array to keep track of note_on events
-    std::vector<bool> m_midi_note_on_array {128, false};
+    std::vector<bool> m_midi_note_on_array;
     
     //
     bool m_idle_active = false;
@@ -121,13 +125,23 @@ public:
                                                        m_analog_in.size() - 1);
         registerProperty(m_selected_index);
         
+        // register midi properties
         m_midi_port_name = Property_<string>::create("Midi virtual port name", "Baumhafer");
         registerProperty(m_midi_port_name);
         registerProperty(m_midi_velocity);
-        
-        m_midi_autoplay = Property_<bool>::create("Midi autoplay", false);
+        registerProperty(m_midi_fixed_velocity);
         registerProperty(m_midi_autoplay);
+        registerProperty(m_midi_start_note);
         
+        // register DMX properties
+        registerProperty(m_dmx_start_index);
+        registerProperty(m_dmx_min_val);
+        registerProperty(m_dmx_max_val);
+        registerProperty(m_dmx_idle_max_val);
+        registerProperty(m_dmx_idle_speed);
+        registerProperty(m_dmx_idle_spread);
+        
+        // register idle properties
         registerProperty(m_idle_time);
         registerProperty(m_idle_note_duration);
         
@@ -137,20 +151,16 @@ public:
         m_thresh_high = Property_<uint32_t>::create("thresh high", 80);
         registerProperty(m_thresh_high);
         
-        m_dmx_red = RangedProperty<int>::create("dmx red", 0, 0, 255);
-        m_dmx_green = RangedProperty<int>::create("dmx green", 0, 0, 255);
-        m_dmx_blue = RangedProperty<int>::create("dmx blue", 0, 0, 255);
-        registerProperty(m_dmx_red);
-        registerProperty(m_dmx_green);
-        registerProperty(m_dmx_blue);
-        registerProperty(m_dmx_start_index);
+//        m_dmx_red = RangedProperty<int>::create("dmx red", 0, 0, 255);
+//        m_dmx_green = RangedProperty<int>::create("dmx green", 0, 0, 255);
+//        m_dmx_blue = RangedProperty<int>::create("dmx blue", 0, 0, 255);
+//        registerProperty(m_dmx_red);
+//        registerProperty(m_dmx_green);
+//        registerProperty(m_dmx_blue);
         
         observeProperties();
         create_tweakbar_from_component(shared_from_this());
         displayTweakBar(false);
-        
-        // restore our settings
-        load_settings();
         
         // drain the serial buffer before we start
         m_serial.drain();
@@ -184,6 +194,11 @@ public:
         m_midi_map[5] = {57, 64, 69}; // A-1 E0 A0
         m_midi_map[6] = {59, 66, 71}; // H-1 F#0 H0
         m_midi_map[7] = {60, 67, 72}; // C0 G0 C1
+        
+        m_midi_note_on_array.resize(128, false);
+        
+        // restore our settings
+        load_settings();
     }
     
     /////////////////////////////////////////////////////////////////
@@ -192,6 +207,7 @@ public:
     {
         ViewerApp::update(timeDelta);
         
+        // parse arduino input
         if(m_serial.isInitialized())
         {
             for(string line : m_serial.read_lines())
@@ -200,13 +216,15 @@ public:
             }
         }
         
+        // apply current state
         for(int i = 0; i < m_analog_in.size(); i++)
         {
             if(m_analog_in[i].last_value() > *m_thresh_high &&
                !m_channel_activity[i])
             {
                 m_channel_activity[i] = true;
-                play_string(i);
+                int string_velocity = 127 * m_analog_in[i].last_value() / 1023.f;
+                play_string(i, *m_midi_fixed_velocity ? *m_midi_velocity : string_velocity);
                 
                 // we got some clients, so reset idle timer
                 if(*m_midi_autoplay)
@@ -272,7 +290,7 @@ public:
                        m_font_small,
                        gl::COLOR_BLACK, glm::vec2(50, 110));
         
-        // activity icons
+        // string activity icons
         int icon_width = 25;
         vec2 offset(windowSize().x - 290, 120), step(icon_width + 8, 0);
         for(int i = 0; i < m_analog_in.size(); i++)
@@ -280,6 +298,15 @@ public:
             gl::drawQuad(m_channel_activity[i] ? gl::COLOR_DARK_RED : gl::Color(.2),
                          m_channel_activity[i] ? vec2(icon_width + 6) : vec2(icon_width),
                          offset - (m_channel_activity[i] ? vec2(3) : vec2(0)));
+            offset += step;
+        }
+        
+        // dmx activity icons
+        offset = vec2(windowSize().x - 290, 220);
+        for(int i = 0; i < m_analog_in.size(); i++)
+        {
+            gl::drawQuad(gl::COLOR_DARK_RED,
+                         vec2(icon_width, 5 + m_dmx_control[*m_dmx_start_index + 2 * i]), offset);
             offset += step;
         }
     }
@@ -299,7 +326,8 @@ public:
     void keyPress(const KeyEvent &e)
     {
         ViewerApp::keyPress(e);
-
+        
+        int number = 0;
         switch (e.getChar())
         {
             case KeyEvent::KEY_c:
@@ -318,12 +346,22 @@ public:
             case KeyEvent::KEY_6:
             case KeyEvent::KEY_7:
             case KeyEvent::KEY_8:
-                *m_selected_index = string_as<int>(as_string(e.getChar())) - 1
-                + (e.isShiftDown() ? 8 : 0);
+                number = string_as<int>(as_string(e.getChar())) - 1;
+                if(e.isAltDown())
+                {
+//                    m_idle_active = false;
+//                    midi_mute_all();
+                    play_string(number, *m_midi_velocity);
+                }
+                else
+                {
+                    *m_selected_index = number
+                    + (e.isShiftDown() ? 8 : 0);
+                }
                 break;
             
             case KeyEvent::KEY_n:
-                play_string(0);
+//                play_string(0);
                 break;
             default:
                 break;
@@ -382,7 +420,7 @@ public:
     
     /////////////////////////////////////////////////////////////////
     
-    void play_string(uint32_t ch)
+    void play_string(uint32_t ch, int velocity)
     {
         // search midi_map for our notes to play
         auto iter = m_midi_map.find(ch);
@@ -394,13 +432,13 @@ public:
             return;
         }
         const auto &note_list = iter->second;
-        LOG_DEBUG<<"note_on: "<< ch << " -> " << (int)note_list.front();
+        //LOG_DEBUG<<"note_on: "<< ch << " -> " << (int)note_list.front();
         
         m_channel_activity[ch] = true;
         
         for(auto note : note_list)
         {
-            midi_note_on(note, *m_midi_velocity);
+            midi_note_on(note, velocity);
         }
     }
     
@@ -418,7 +456,7 @@ public:
             return;
         }
         const auto &note_list = iter->second;
-        LOG_DEBUG<<"note_off: "<< ch << " -> " << (int)note_list.front();
+        //LOG_DEBUG<<"note_off: "<< ch << " -> " << (int)note_list.front();
         
         m_channel_activity[ch] = false;
         
@@ -431,8 +469,10 @@ public:
     
     /////////////////////////////////////////////////////////////////
     
-    void midi_note_on(uint8_t note, uint8_t velocity = 127)
+    void midi_note_on(uint32_t note, uint32_t velocity = 127)
     {
+        LOG_DEBUG<<"note_on: "<< note << " : " << velocity;
+        
         // assert correct size
         m_midi_msg.resize(3);
         
@@ -450,8 +490,10 @@ public:
     
     /////////////////////////////////////////////////////////////////
     
-    void midi_note_off(uint8_t note, uint8_t velocity = 127)
+    void midi_note_off(uint32_t note, uint32_t velocity = 127)
     {
+        LOG_DEBUG<<"note_off: "<< note << " : " << velocity;
+        
         //nothing to do, note already off
         if(!m_midi_note_on_array[note]) return;
         
@@ -481,23 +523,41 @@ public:
     
     void update_dmx()
     {
-        if(!m_dmx_control.serial().isInitialized()) return;
-        
-        m_dmx_control[1] = 0;
-        m_dmx_control[2] = map_value<int>(m_analog_in[0].last_value(), 0, 1023, 0, 255);
-        m_dmx_control[3] = map_value<int>(m_analog_in[1].last_value(), 0, 1023, 0, 255);
-        m_dmx_control[4] = map_value<int>(m_analog_in[2].last_value(), 0, 1023, 0, 255);
-        m_dmx_control[5] = 0;
-        
-//        for (int i = 0; i < m_analog_in.size() * 2; i += 2)
-//        {
-//            uint8_t dmx_val = map_value<int>(m_channel_activity[i] ?
-//                                             m_analog_in[i].last_value() : 0,
-//                                             0, 1023, 0, 255);
-//            
-//            m_dmx_control[*m_dmx_start_index + i] = dmx_val;
-//            m_dmx_control[*m_dmx_start_index + i + 1] = dmx_val;
-//        }
+        if(m_idle_active)
+        {
+            float phase = *m_dmx_idle_speed * getApplicationTime();
+            
+            
+            for (int i = 0; i < m_analog_in.size() * 2; i++)
+            {
+                float sin_val = sinf(*m_dmx_idle_spread * i + phase);
+                
+                float map_val = map_value<float>(sin_val + 1.f,
+                                                 0, 2.f, *m_dmx_min_val, *m_dmx_idle_max_val);
+                
+                uint8_t dmx_val = map_val;
+                
+                if(m_channel_activity[i / 2])
+                {
+                    dmx_val = *m_dmx_max_val;
+                }
+                    
+                m_dmx_control[*m_dmx_start_index + i] = dmx_val;
+                //m_dmx_control[*m_dmx_start_index + (2 * i + 1)] = dmx_val;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < m_analog_in.size(); i ++)
+            {
+                uint8_t dmx_val = map_value<int>(m_channel_activity[i] ?
+                                                 m_analog_in[i].last_value() : 0,
+                                                 0, 1023, *m_dmx_min_val, *m_dmx_max_val);
+                
+                m_dmx_control[*m_dmx_start_index + (2 * i)] = dmx_val;
+                m_dmx_control[*m_dmx_start_index + (2 * i + 1)] = dmx_val;
+            }
+        }
         m_dmx_control.update();
     }
     
@@ -513,7 +573,7 @@ public:
                 midi_mute_all();
                 
                 m_note_on = kinski::random(0, 8);
-                play_string(m_note_on);
+                play_string(m_note_on, *m_midi_velocity);
                 
                 // setup our note_off timer
                 m_note_off_timer.expires_from_now(boost::posix_time::seconds(*m_idle_note_duration));
@@ -555,16 +615,37 @@ public:
                 m_idle_timer.cancel();
             }
         }
-        else if(theProperty == m_dmx_red || theProperty == m_dmx_green ||
-                theProperty == m_dmx_blue)
+        else if (theProperty == m_dmx_min_val || theProperty == m_dmx_max_val)
         {
-            m_dmx_control[1] = 0;
-            m_dmx_control[2] = *m_dmx_red;
-            m_dmx_control[3] = *m_dmx_green;
-            m_dmx_control[4] = *m_dmx_blue;
-            m_dmx_control[5] = 0;
-            m_dmx_control.update();
+            m_dmx_idle_max_val->setRange(*m_dmx_min_val, *m_dmx_max_val);
         }
+        else if (theProperty == m_midi_start_note)
+        {
+            const auto &val = *m_midi_start_note;
+            
+            // setup midimap
+            m_midi_map[0] = {val, val + 7, val + 12};
+            m_midi_map[1] = {val + 2, val + 9, val + 14};
+            m_midi_map[2] = {val + 4, val + 11, val + 16};
+            m_midi_map[3] = {val + 5, val + 12, val + 17};
+            m_midi_map[4] = {val + 7, val + 14, val + 19};
+            m_midi_map[5] = {val + 9, val + 16, val + 21};
+            m_midi_map[6] = {val + 11, val + 18, val + 23};
+            m_midi_map[7] = {val + 12, val + 19, val + 24};
+            
+            // make sure leftover notes are purged
+            midi_mute_all();
+        }
+//        else if(theProperty == m_dmx_red || theProperty == m_dmx_green ||
+//                theProperty == m_dmx_blue)
+//        {
+//            m_dmx_control[1] = 0;
+//            m_dmx_control[2] = *m_dmx_red;
+//            m_dmx_control[3] = *m_dmx_green;
+//            m_dmx_control[4] = *m_dmx_blue;
+//            m_dmx_control[5] = 0;
+//            m_dmx_control.update();
+//        }
     }
 };
 

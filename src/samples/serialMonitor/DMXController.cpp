@@ -43,7 +43,9 @@ namespace kinski
     
     void DMXController::update()
     {
-        transmit(SET_DMX_TX_MODE, &m_dmx_values[0], m_dmx_values.size());
+        // update only when serial connection is initialized
+        if(m_serial.isInitialized())
+            transmit(SET_DMX_TX_MODE, &m_dmx_values[0], m_dmx_values.size());
     }
     
     void DMXController::transmit(uint8_t label, const uint8_t* data, size_t data_length)
