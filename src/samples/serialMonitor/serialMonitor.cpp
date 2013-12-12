@@ -65,6 +65,8 @@ private:
     
     Property_<bool>::Ptr m_midi_fixed_velocity = Property_<bool>::create("Use fixed velocity", true);
     Property_<bool>::Ptr m_midi_autoplay = Property_<bool>::create("Midi autoplay", false);
+    RangedProperty<float>::Ptr m_midi_plug_multiplier =
+        RangedProperty<float>::create("Midi plug multiplier", 1.f, 0.f, 10.f);
     MidiMap m_midi_map;
     
     // thresholds
@@ -80,6 +82,9 @@ private:
     Property_<float>::Ptr m_dmx_idle_speed = Property_<float>::create("DMX idle speed", 1.f);
     Property_<float>::Ptr m_dmx_idle_spread = Property_<float>::create("DMX idle spread", 0.1f);
     Property_<int>::Ptr m_dmx_start_index = Property_<int>::create("DMX start index", 1);
+    RangedProperty<uint32_t>::Ptr m_dmx_extra_1 = RangedProperty<uint32_t>::create("DMX extra 1", 0, 0, 255),
+    m_dmx_extra_2 = RangedProperty<uint32_t>::create("DMX extra 2", 0, 0, 255);
+    
     
     // array to keep track of note_on events
     std::vector<bool> m_midi_note_on_array;
@@ -129,6 +134,7 @@ public:
         // register midi properties
         m_midi_port_name = Property_<string>::create("Midi virtual port name", "Baumhafer");
         registerProperty(m_midi_port_name);
+        registerProperty(m_midi_plug_multiplier);
         registerProperty(m_midi_velocity);
         registerProperty(m_midi_fixed_velocity);
         registerProperty(m_midi_autoplay);
@@ -142,6 +148,8 @@ public:
         registerProperty(m_dmx_idle_max_val);
         registerProperty(m_dmx_idle_speed);
         registerProperty(m_dmx_idle_spread);
+        registerProperty(m_dmx_extra_1);
+        registerProperty(m_dmx_extra_2);
         
         // register idle properties
         registerProperty(m_idle_time);
@@ -152,13 +160,6 @@ public:
         
         m_thresh_high = Property_<uint32_t>::create("thresh high", 80);
         registerProperty(m_thresh_high);
-        
-//        m_dmx_red = RangedProperty<int>::create("dmx red", 0, 0, 255);
-//        m_dmx_green = RangedProperty<int>::create("dmx green", 0, 0, 255);
-//        m_dmx_blue = RangedProperty<int>::create("dmx blue", 0, 0, 255);
-//        registerProperty(m_dmx_red);
-//        registerProperty(m_dmx_green);
-//        registerProperty(m_dmx_blue);
         
         observeProperties();
         create_tweakbar_from_component(shared_from_this());
@@ -225,7 +226,11 @@ public:
                !m_channel_activity[i])
             {
                 m_channel_activity[i] = true;
-                int string_velocity = 127 * m_analog_in[i].last_value() / 1023.f;
+                int string_velocity = kinski::clamp<float>(*m_midi_plug_multiplier * 127 *
+                                                           m_analog_in[i].last_value() / 1023.f,
+                                                           0,
+                                                           127);
+                
                 play_string(i, *m_midi_fixed_velocity ? *m_midi_velocity : string_velocity);
                 
                 // we got some clients, so reset idle timer
@@ -363,10 +368,7 @@ public:
                     + (e.isShiftDown() ? 8 : 0);
                 }
                 break;
-            
-            case KeyEvent::KEY_n:
-//                play_string(0);
-                break;
+                
             default:
                 break;
         }
@@ -549,27 +551,27 @@ public:
                 m_dmx_control[*m_dmx_start_index + i] = kinski::mix(m_dmx_control[*m_dmx_start_index + i],
                                                                     dmx_val,
                                                                     1.f - *m_dmx_smoothness);
-                
-                //m_dmx_control[*m_dmx_start_index + (2 * i + 1)] = dmx_val;
             }
         }
         else
         {
             for (int i = 0; i < m_analog_in.size(); i ++)
             {
-                uint8_t dmx_val = map_value<int>(m_channel_activity[i] ?
-                                                 m_analog_in[i].last_value() : 0,
-                                                 0, 1023, *m_dmx_min_val, *m_dmx_max_val);
+                uint8_t dmx_val = m_channel_activity[i] ? *m_dmx_max_val : *m_dmx_min_val;
                 
                 m_dmx_control[*m_dmx_start_index + (2 * i)] = kinski::mix(m_dmx_control[*m_dmx_start_index + (2 * i)],
                                                                           dmx_val,
                                                                           1.f - *m_dmx_smoothness);
                 
-                m_dmx_control[*m_dmx_start_index + (2 * i)] = kinski::mix(m_dmx_control[*m_dmx_start_index + (2 * i)],
-                                                                          dmx_val,
-                                                                          1.f - *m_dmx_smoothness);
+                m_dmx_control[*m_dmx_start_index + (2 * i + 1)] = kinski::mix(m_dmx_control[*m_dmx_start_index + (2 * i + 1)],
+                                                                              dmx_val,
+                                                                              1.f - *m_dmx_smoothness);
             }
         }
+        
+        m_dmx_control[*m_dmx_start_index + m_analog_in.size() * 2] = *m_dmx_extra_1;
+        m_dmx_control[*m_dmx_start_index + m_analog_in.size() * 2 + 1] = *m_dmx_extra_2;
+        
         m_dmx_control.update();
     }
     
@@ -629,7 +631,12 @@ public:
         }
         else if (theProperty == m_dmx_min_val || theProperty == m_dmx_max_val)
         {
-            m_dmx_idle_max_val->setRange(*m_dmx_min_val, *m_dmx_max_val);
+            try{m_dmx_idle_max_val->setRange(*m_dmx_min_val, *m_dmx_max_val);}
+            catch(Exception &e){LOG_ERROR<<e.what();}
+        }
+        else if (theProperty == m_dmx_start_index)
+        {
+            for (int i = 0; i < 513; i++) { m_dmx_control[i] = 0;}
         }
         else if (theProperty == m_midi_start_note)
         {
@@ -648,25 +655,12 @@ public:
             // make sure leftover notes are purged
             midi_mute_all();
         }
-//        else if(theProperty == m_dmx_red || theProperty == m_dmx_green ||
-//                theProperty == m_dmx_blue)
-//        {
-//            m_dmx_control[1] = 0;
-//            m_dmx_control[2] = *m_dmx_red;
-//            m_dmx_control[3] = *m_dmx_green;
-//            m_dmx_control[4] = *m_dmx_blue;
-//            m_dmx_control[5] = 0;
-//            m_dmx_control.update();
-//        }
     }
 };
 
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SerialMonitorSample);
-    //theApp->setWindowSize(768, 256);
-    //AppServer s(theApp);
     LOG_INFO<<"local ip: " << AppServer::local_ip();
-    
     return theApp->run();
 }
