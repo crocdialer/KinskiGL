@@ -368,7 +368,10 @@ public:
                     + (e.isShiftDown() ? 8 : 0);
                 }
                 break;
-                
+            case KeyEvent::KEY_m:
+                for (int i = 0; i < m_channel_activity.size(); i++) { m_channel_activity[i] = false; }
+                midi_mute_all();
+                break;
             default:
                 break;
         }
@@ -401,6 +404,7 @@ public:
     
     void tearDown()
     {
+        midi_mute_all();
         LOG_PRINT<<"ciao serialMonitor";
     }
     
