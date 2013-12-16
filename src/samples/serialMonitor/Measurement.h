@@ -11,6 +11,29 @@
 
 namespace kinski
 {
+    template <typename T> class FalloffFilter
+    {
+    public:
+//        FalloffFilter()
+        inline const T filter(const T &the_value)
+        {
+            if(the_value > m_last_value)
+            {
+                m_last_value = the_value;
+            }
+            else
+            {
+                m_last_value = kinski::mix(m_last_value, the_value, m_smoothness);
+            }
+            return m_last_value;
+        };
+        
+    private:
+        T m_last_value;
+        float m_smoothness;
+    
+    };
+    
     template <typename T> class Measurement
     {
     public:

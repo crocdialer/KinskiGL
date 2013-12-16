@@ -1,0 +1,2 @@
+addSample(${itemName} ${folderItem})
+
