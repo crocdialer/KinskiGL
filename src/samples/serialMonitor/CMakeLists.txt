@@ -6,5 +6,5 @@ add_definitions(-D__MACOSX_CORE__)
 set(LIBS ${LIBS} ${CoreMIDI} ${CoreFoundation} ${CoreAudio})
 endif()
 
-addSample(${itemName} ${folderItem})
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem})
 

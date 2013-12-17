@@ -29,7 +29,7 @@ namespace kinski {
         m_show_tweakbar->setTweakable(false);
         registerProperty(m_show_tweakbar);
         
-        m_window_size = Property_<glm::vec2>::create("Window Size", windowSize()) ;
+        m_window_size = Property_<glm::vec2>::create("Window Size", windowSize());
         m_window_size->setTweakable(false);
         registerProperty(m_window_size);
         
@@ -37,6 +37,7 @@ namespace kinski {
         registerProperty(m_distance);
         
         m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
+        m_rotation->setTweakable(false);
         registerProperty(m_rotation);
         
         m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);

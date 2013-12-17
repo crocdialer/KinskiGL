@@ -4,5 +4,5 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OpenCV_LIBS})
 #####
 
-addSample(${itemName} ${folderItem})
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem})
 

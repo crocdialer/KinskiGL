@@ -98,6 +98,7 @@ namespace kinski
         //---------------------------------
         #ifdef KINSKI_MAC
         kinski::addSearchPath("/Library/Fonts");
+        kinski::addSearchPath("~/Library/Fonts");
         #endif
         //---------------------------------
         

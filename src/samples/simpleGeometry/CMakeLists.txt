@@ -7,4 +7,4 @@ find_package(ZLIB REQUIRED)
 INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
 
-addSample(${itemName} ${folderItem})
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem})

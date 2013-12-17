@@ -1,2 +1,2 @@
-addSample(${itemName} ${folderItem})
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem})
 

@@ -4,4 +4,4 @@ INCLUDE_DIRECTORIES(${OpenCL_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OPENCL_LIBRARIES})
 #####
 
-addSample(${itemName} ${folderItem})
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem})

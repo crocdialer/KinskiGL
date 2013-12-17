@@ -10,4 +10,4 @@ set(LIBS ${LIBS} ${OpenCV_LIBS})
 
 set(LIBS ${LIBS} "kinskiCV")
 
-addSample(${itemName} ${folderItem})
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem})

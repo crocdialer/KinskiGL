@@ -1,4 +1,5 @@
 #include "kinskiApp/GLFW_App.h"
+#include "kinskiApp/AppServer.h"
 
 
 using namespace std;
