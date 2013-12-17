@@ -32,7 +32,7 @@ namespace kinski{ namespace physics{
     KINSKI_API btCollisionShapePtr createConvexCollisionShape(const gl::MeshPtr &the_mesh,
                                                               const glm::vec3 &the_scale = glm::vec3(1));
     
-    class BulletDebugDrawer : public btIDebugDraw
+    KINSKI_API class BulletDebugDrawer : public btIDebugDraw
     {
     public:
         
@@ -80,7 +80,7 @@ namespace kinski{ namespace physics{
     };
     
     
-    ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
+    KINSKI_API ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
     {
         gl::Object3DPtr m_object;
         btTransform m_graphicsWorldTrans;
@@ -120,7 +120,7 @@ namespace kinski{ namespace physics{
         }
     };
     
-    class Mesh : public btStridingMeshInterface
+    KINSKI_API class Mesh : public btStridingMeshInterface
     {
     public:
         Mesh(const gl::MeshPtr &the_mesh);
@@ -171,7 +171,7 @@ namespace kinski{ namespace physics{
         btRigidBody *rigidbody;
     };
     
-    class physics_context
+    KINSKI_API class physics_context
     {
      public:
         
