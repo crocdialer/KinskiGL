@@ -1,9 +1,10 @@
 function(KINSKI_ADD_SAMPLE theName thePath)
     
-#list(LENGTH ${ARGV2} extra_files_count)
-#    if(${extra_files_count})
-#      MESSAGE("extra-files: ${ARGV2}")
-#    endif(${extra_files_count})
+    foreach(module ${ARGV2})
+      KINSKI_ADD_MODULE(${module} MODULE_SOURCES)
+      SET(MODULE_FILES ${MODULE_FILES} ${MODULE_SOURCES})
+      #message("adding module ${module} with files: ${MODULE_SOURCES}")
+    endforeach(module)
 
     FILE(GLOB FOLDER_SOURCES "${thePath}/*.c*" "${thePath}/*.mm")
     FILE(GLOB FOLDER_HEADERS "${thePath}/*.h*")
@@ -23,9 +24,9 @@ function(KINSKI_ADD_SAMPLE theName thePath)
         MACOSX_PACKAGE_LOCATION Resources
     )
     ADD_EXECUTABLE(${theName} MACOSX_BUNDLE ${FOLDER_SOURCES} ${FOLDER_HEADERS}
-            ${ARGV2} ${resFiles})
+            ${MODULE_FILES} ${resFiles})
     ELSE( APPLE )
-    add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS} ${ARGV2})
+    add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS} ${MODULE_FILES})
     ENDIF( APPLE )
 
     target_link_libraries (${theName} ${LIBS})
