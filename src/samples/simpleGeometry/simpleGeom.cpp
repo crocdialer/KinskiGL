@@ -266,9 +266,9 @@ public:
                 });
                 
                 // draw the fbo output
-                //gl::drawTexture(m_textures[0], windowSize());
+                gl::drawTexture(m_textures[0], windowSize());
                 
-                render_with_post_processing(m_frameBuffer, m_post_process_mat);
+                //render_with_post_processing(m_frameBuffer, m_post_process_mat);
             }
             else
             {

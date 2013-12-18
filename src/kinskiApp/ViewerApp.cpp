@@ -221,6 +221,8 @@ namespace kinski {
         m_arcball.setWindowSize( windowSize() );
         m_arcball.setCenter( windowSize() / 2.f );
         m_arcball.setRadius( 150 );
+        
+        set_clear_color(clear_color());
     }
     
     // Property observer callback
@@ -250,6 +252,7 @@ namespace kinski {
         else if(theProperty == m_clear_color)
         {
             gl::clearColor(*m_clear_color);
+            outstream_gl().set_color(glm::vec4(1.f) - m_clear_color->value());
         }
         else if(theProperty == m_light_direction)
         {
