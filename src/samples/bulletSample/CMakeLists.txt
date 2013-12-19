@@ -6,4 +6,5 @@ set(LIBS ${LIBS} ${OpenCV_LIBS})
 
 set(LIBS ${LIBS} "kinskiCV")
 
-KINSKI_ADD_SAMPLE(${itemName} ${folderItem} "bullet")
+set(MODULES bullet)
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem} "${MODULES}")

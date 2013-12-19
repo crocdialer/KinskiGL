@@ -60,7 +60,7 @@ namespace kinski{ namespace gl{
         struct Format;
         
         //! Default initializer.
-        Texture();
+        Texture(){};
         /** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. **/
         Texture( int aWidth, int aHeight, Format format = Format() );
         

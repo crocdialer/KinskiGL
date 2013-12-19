@@ -11,11 +11,28 @@
 
 using namespace Leap;
 
+void hand_found(const Leap::Hand &h)
+{
+    LOG_DEBUG<<"hand found: "<<h.id();
+}
+
+void hand_lost(int the_id)
+{
+    LOG_DEBUG<<"hand lost: "<<the_id;
+}
+
+void hand_updated(const Leap::Hand &h)
+{
+    LOG_DEBUG<<"hand updated: "<<h.id();
+}
+
 namespace kinski { namespace leap {
     
     LeapConnector::LeapConnector()
     {
-        
+        m_hand_found.connect(hand_found);
+        m_hand_updated.connect(hand_updated);
+        m_hand_lost.connect(hand_lost);
     }
     
     void LeapConnector::start()
@@ -23,7 +40,7 @@ namespace kinski { namespace leap {
         m_controller.reset(new Leap::Controller());
         m_controller->addListener(*this);
         
-        // enable gestures should be tracked
+        // enable gestures to be tracked
         m_controller->enableGesture(Leap::Gesture::TYPE_SWIPE);
     }
     
@@ -37,15 +54,23 @@ namespace kinski { namespace leap {
     {
         if(!controller.isConnected()) return;
         
-        Leap::Frame frame = controller.frame();
-        int num_hands = frame.hands().count();
+        Leap::Frame old_frame = m_frame;
+        m_frame = controller.frame();
+        
+        // dispatch events
+        dispatch_found_events(old_frame, m_frame);
+        dispatch_update_events(old_frame, m_frame);
+        dispatch_lost_events(old_frame, m_frame);        
+        for(const auto &gesture : m_frame.gestures()){m_gesture_detected(gesture);}
+        
+        int num_hands = m_frame.hands().count();
         
         if (num_hands){ LOG_TRACE<< num_hands <<" hands detected"; }
         
         HandList tmp_hand_list;
         PointableList tmp_pointables;
         
-        for (const Hand &hand : frame.hands())
+        for (const Hand &hand : m_frame.hands())
         {
             if(!hand.isValid()) continue;
             hand_struct h;
@@ -54,7 +79,7 @@ namespace kinski { namespace leap {
             tmp_hand_list.push_back(h);
         }
         
-        for(const Pointable &pointable : frame.pointables())
+        for(const Pointable &pointable : m_frame.pointables())
         {
             if(!pointable.isValid()) continue;
             pointable_struct p;
@@ -62,27 +87,81 @@ namespace kinski { namespace leap {
             tmp_pointables.push_back(p);
         }
         
-//        for(const auto &gesture : frame.gestures())
-//        {
-//            LOG_INFO<<"gesture: "<<gesture.toString();
-//            if(gesture.type() == Leap::Gesture::TYPE_SWIPE)
-//            {
-//                const Leap::SwipeGesture &swipe = static_cast<const Leap::SwipeGesture&>(gesture);
-//                glm::vec3 swipe_dir = leap::type_cast(swipe.direction());
-//                LOG_INFO<<glm::to_string(swipe_dir);
-//            }
-//        }
-        
         boost::mutex::scoped_lock lock(m_mutex);
-        m_last_frame = frame;
+        m_gesture_list.append(m_frame.gestures());
         m_hand_list = tmp_hand_list;
         m_pointables = tmp_pointables;
+    }
+    
+    void LeapConnector::dispatch_found_events(const Leap::Frame &old_frame,
+                                              const Leap::Frame &new_frame)
+	{
+		for(const Hand &h : new_frame.hands())
+		{
+			if(!h.isValid())
+				continue;
+			if( !old_frame.hand(h.id()).isValid())
+				m_hand_found(h);
+		}
+		for(const Pointable &p : new_frame.pointables())
+		{
+			if(!p.isValid())
+				continue;
+			if(!old_frame.pointable(p.id()).isValid())
+				m_pointable_found(p);
+		}
+	}
+    
+    void LeapConnector::dispatch_lost_events(const Leap::Frame &old_frame,
+                                             const Leap::Frame &new_frame)
+	{
+		for(const Hand &h : old_frame.hands())
+		{
+			if(!h.isValid())
+				continue;
+			if( !new_frame.hand(h.id()).isValid())
+				m_hand_lost(h.id());
+		}
+		for(const Pointable &p : old_frame.pointables())
+		{
+			if(!p.isValid())
+				continue;
+			if(!new_frame.pointable(p.id()).isValid())
+				m_pointable_lost(p.id());
+		}
+	}
+    
+    void LeapConnector::dispatch_update_events(const Leap::Frame &old_frame,
+                                               const Leap::Frame &new_frame)
+	{
+		for(const Hand &h : old_frame.hands())
+		{
+			if(!h.isValid())
+				continue;
+			if(old_frame.hand(h.id()).isValid())
+				m_hand_updated(h);
+		}
+		for(const Pointable &p : old_frame.pointables())
+		{
+			if(!p.isValid())
+				continue;
+			if(old_frame.pointable(p.id()).isValid())
+				m_pointable_updated(p);
+		}
+	}
+    
+    Leap::GestureList LeapConnector::poll_gestures()
+    {
+        boost::mutex::scoped_lock lock(m_mutex);
+        GestureList ret = m_gesture_list;
+        m_gesture_list = Leap::GestureList();
+        return ret;
     }
     
     Leap::Frame LeapConnector::lastFrame() const
     {
         boost::mutex::scoped_lock lock(m_mutex);
-        return m_last_frame;
+        return m_frame;
     }
     
     const LeapConnector::HandList& LeapConnector::hands() const

@@ -335,6 +335,24 @@
     return [[a plus:b] plus:c];
 }
 
+- (LeapMatrix *)rigidInverse
+{
+    const Leap::Vector localXBasis([_xBasis x], [_xBasis y], [_xBasis z]);
+    const Leap::Vector localYBasis([_yBasis x], [_yBasis y], [_yBasis z]);
+    const Leap::Vector localZBasis([_zBasis x], [_zBasis y], [_zBasis z]);
+    const Leap::Vector localOrigin([_origin x], [_origin y], [_origin z]);
+    Leap::Matrix temp(localXBasis, localYBasis, localZBasis, localOrigin);
+
+    Leap::Matrix inverted = temp.rigidInverse();
+
+    LeapMatrix *rigidInverse = [[LeapMatrix alloc] initWithXBasis:[[LeapVector alloc] initWithLeapVector:&inverted.xBasis]
+                                                           yBasis:[[LeapVector alloc] initWithLeapVector:&inverted.yBasis]
+                                                           zBasis:[[LeapVector alloc] initWithLeapVector:&inverted.zBasis]
+                                                           origin:[[LeapVector alloc] initWithLeapVector:&inverted.origin]];
+    return rigidInverse;
+    
+}
+
 - (LeapMatrix *)times:(const LeapMatrix *)other
 {
     return [[LeapMatrix alloc] initWithXBasis:[self transformDirection:[other xBasis]] yBasis:[self transformDirection:[other yBasis]] zBasis:[self transformDirection:[other zBasis]] origin:[self transformPoint:[other origin]]];
@@ -776,6 +794,11 @@
 - (float)scaleProbability:(const LeapFrame *)sinceFrame
 {
     return _interfaceHand->scaleProbability(*(const Leap::Frame *)[sinceFrame interfaceFrame]);
+}
+
+- (float)timeVisible
+{
+    return _interfaceHand->timeVisible();
 }
 
 + (LeapHand *)invalid

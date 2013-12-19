@@ -183,11 +183,6 @@ namespace kinski{ namespace physics{
         }
         
         m_dynamicsWorld->setGravity(btVector3(0,-500,0));
-        
-        //////////////////////////////////////////////////////////////
-        
-        //boost::bind(&physics_context::near_callback, this);
-        //m_dynamicsWorld->getPairCache()->setOverlapFilterCallback(filterCallback);
     }
     
     void physics_context::stepPhysics(float timestep)
