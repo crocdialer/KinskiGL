@@ -86,6 +86,9 @@ namespace kinski { namespace gl {
           vec3 E = normalize(-eyeVec);
           vec3 R = reflect(-L, normal);
           
+          // ambient term
+          vec4 ambient = mat.ambient * light.ambient;
+            
           float att = 1.0;
           float nDotL = dot(normal, L);
           // point + spot
@@ -101,7 +104,10 @@ namespace kinski { namespace gl {
               {
                   float spotEffect = dot(normalize(light.spotDirection), -L);
                   if (spotEffect < light.spotCosCutoff)
+                  {
                       att = 0.0;//return vec4(0, 0, 0, 1);
+                      base_color * ambient;
+                  }
                   
                   spotEffect = pow(spotEffect, light.spotExponent);
                   att *= spotEffect;
@@ -110,7 +116,6 @@ namespace kinski { namespace gl {
           nDotL = max(0.0, nDotL);
           
           float specIntesity = clamp(pow( max(dot(R, E), 0.0), mat.shinyness), 0.0, 1.0);
-          vec4 ambient = mat.ambient * light.ambient;
           vec4 diffuse = mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0);
           vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
           return base_color * (ambient + att * (diffuse + spec));
