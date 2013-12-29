@@ -330,13 +330,15 @@ public:
             // draw opencv maps
             float w = (windowSize()/8.f).x;
             glm::vec2 offset(getWidth() - w - 10, 10);
-            for(int i = 0;i<4;i++)
+            for(auto &t : m_textures)
             {
-                float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
+                if(!t) continue;
+                
+                float h = t.getHeight() * w / t.getWidth();
                 glm::vec2 step(0, h + 10);
-                drawTexture(m_textures[i], vec2(w, h), offset);
-                gl::drawText2D(as_string(m_textures[i].getWidth()) + std::string(" x ") +
-                               as_string(m_textures[i].getHeight()), m_font, glm::vec4(1),
+                drawTexture(t, vec2(w, h), offset);
+                gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                               as_string(t.getHeight()), m_font, glm::vec4(1),
                                offset);
                 offset += step;
             }

@@ -41,7 +41,7 @@ namespace kinski { namespace gl {
         const char *phong_normalmap_vertSrc, *phong_normalmap_fragSrc;
         const char *point_color_fragSrc, *point_texture_fragSrc, *point_sphere_fragSrc;
         
-        std::string glsl_header_150 = "#version 150 core\n";
+        std::string glsl_header = "#version 150 core\n";
         std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
         
         std::string material_block = STRINGIFY(
@@ -362,12 +362,12 @@ namespace kinski { namespace gl {
         in vec4 a_color;
         out VertexData{
            vec4 color;
-           vec4 texCoord;
+           vec2 texCoord;
         } vertex_out;
         void main()
         {
            vertex_out.color = a_color;
-           vertex_out.texCoord =  u_textureMatrix * a_texCoord;
+           vertex_out.texCoord =  (u_textureMatrix * a_texCoord).xy;
            gl_Position = u_modelViewProjectionMatrix * a_vertex;
         });
         
@@ -384,7 +384,7 @@ namespace kinski { namespace gl {
         } u_material;
         in VertexData{
            vec4 color;
-           vec4 texCoord;
+           vec2 texCoord;
         } vertex_in;
                   
         out vec4 fragData;
@@ -669,6 +669,64 @@ namespace kinski { namespace gl {
 //            
 //            fragData = shade_color;
         });
+        
+        const char *line_geom_src = GLSL(150 core,
+        
+        // ------------------ Geometry Shader --------------------------------
+        layout(lines) in;
+        layout (triangle_strip, max_vertices = 4) out;
+        
+        uniform float u_line_thickness;
+        uniform vec2 u_window_size;
+        
+        in VertexData {
+            vec4 color;
+            vec2 texCoord;
+        } vertex_in[2];
+        
+        out VertexData {
+            vec4 color;
+            vec2 texCoord;
+        } vertex_out;
+        
+        void main()
+        {
+            // get the four vertices passed to the shader:
+            vec2 p0 = gl_in[0].gl_Position.xy;	// start of current segment
+            vec2 p1 = gl_in[1].gl_Position.xy;	// end of current segment
+            
+            // determine the direction of the segment
+            vec2 v0 = normalize(p1 - p0);
+            
+            // determine the normal
+            vec2 n0 = vec2(-v0.y, v0.x);
+            
+            // generate the triangle strip
+            vec2 bias = n0 * u_line_thickness / u_window_size;
+            
+            vertex_out.color = vertex_in[0].color;
+            vertex_out.texCoord = vec2(0, 1);
+            gl_Position = vec4(p0 + bias , 0, 1);
+            EmitVertex();
+            
+            vertex_out.color = vertex_in[0].color;
+            vertex_out.texCoord = vec2(0, 0);
+            gl_Position = vec4(p0 - bias, 0, 1);
+            EmitVertex();
+            
+            vertex_out.color = vertex_in[1].color;
+            vertex_out.texCoord = vec2(0, 1);
+            gl_Position = vec4(p1 + bias, 0, 1);
+            EmitVertex();
+            
+            vertex_out.color = vertex_in[1].color;
+            vertex_out.texCoord = vec2(0, 0);
+            gl_Position = vec4(p1 - bias, 0, 1);
+            EmitVertex();
+            
+            EndPrimitive();
+        });
+        
 #endif
         
         std::string vert_src, geom_src, frag_src;
@@ -681,24 +739,24 @@ namespace kinski { namespace gl {
                 break;
             
             case SHADER_GOURAUD:
-                vert_src =  glsl_header_150 +
+                vert_src =  glsl_header +
                 material_block +
                 light_block +
                 shade_function_block +
                 vertex_shader_gouraud;
                 
-                frag_src =  glsl_header_150 +
+                frag_src =  glsl_header +
                 frag_shader_gouraud;
                 ret.loadFromData(vert_src.c_str(), frag_src.c_str());
                 break;
                 
             case SHADER_PHONG:
-                vert_src =  glsl_header_150 +
+                vert_src =  glsl_header +
                             //glsl_define_explicit_layout +
                             light_block +
                             vertex_shader_phong;
                 
-                frag_src =  glsl_header_150 +
+                frag_src =  glsl_header +
                             material_block +
                             light_block +
                             shade_function_block +
@@ -711,13 +769,17 @@ namespace kinski { namespace gl {
                 break;
                 
             case SHADER_PHONG_SKIN:
-                vert_src = glsl_header_150 + vertex_shader_phong;
-                frag_src =  glsl_header_150 +
+                vert_src = glsl_header + vertex_shader_phong;
+                frag_src =  glsl_header +
                 material_block +
                 light_block +
                 shade_function_block +
                 frag_shader_phong;
                 ret.loadFromData(phongVertSrc_skin, frag_src.c_str());
+                break;
+            
+            case SHADER_LINES:
+                ret.loadFromData(unlitVertSrc, unlitFragSrc, line_geom_src);
                 break;
                 
             case SHADER_POINTS_TEXTURE:
@@ -729,7 +791,7 @@ namespace kinski { namespace gl {
                 break;
                 
             case SHADER_POINTS_SPHERE:
-                frag_src = glsl_header_150 +
+                frag_src = glsl_header +
                 material_block +
                 light_block +
                 shade_function_block +

@@ -18,7 +18,15 @@ namespace kinski
     FaceFilter::FaceFilter()
     {
         set_name("FaceFilter");
-        try{m_cascade.load(searchFile("haarcascade_frontalface_default.xml"));}
+        // find available cascades
+        std::list<std::string> cascades;
+        for (auto &f : getDirectoryEntries(".", false, "xml"))
+        {
+            if(f.find("cascade") != string::npos)
+                cascades.push_back(f);
+        }
+        
+        try{m_cascade.load(cascades.front());}
         catch(const std::exception &e){LOG_ERROR<<e.what();}
     }
     

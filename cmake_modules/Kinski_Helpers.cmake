@@ -17,12 +17,13 @@ function(KINSKI_ADD_SAMPLE theName thePath)
     INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
     
     IF( APPLE )
-    SET( MACOSX_BUNDLE_ICON_FILE ${thePath}/res/icon.icns)
     SET_SOURCE_FILES_PROPERTIES(
+        icon.icns
         ${resFiles}
         PROPERTIES
         MACOSX_PACKAGE_LOCATION Resources
     )
+    SET( MACOSX_BUNDLE_ICON_FILE icon.icns)
     ADD_EXECUTABLE(${theName} MACOSX_BUNDLE ${FOLDER_SOURCES} ${FOLDER_HEADERS}
             ${MODULE_FILES} ${resFiles})
     ELSE( APPLE )
@@ -51,7 +52,6 @@ function(KINSKI_ADD_MODULE MODULE_NAME FILE_LIST)
     FILE(GLOB MODULE_SOURCES "${MODULE_PATH}/*.c*" "${MODULE_PATH}/*.m" "${MODULE_PATH}/*.mm")
     FILE(GLOB MODULE_HEADERS "${MODULE_PATH}/*.h" "${MODULE_PATH}/*.hpp")
     SET(${FILE_LIST} ${MODULE_SOURCES} ${MODULE_HEADERS} PARENT_SCOPE)
-    #MESSAGE("added module-files: ${FILE_LIST}")
 
   else()
     MESSAGE("Could not find a module named ${MODULE_NAME}")

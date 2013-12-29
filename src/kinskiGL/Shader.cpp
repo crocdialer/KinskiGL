@@ -166,7 +166,7 @@ void Shader::uniform( const std::string &name, GLint data )
 void Shader::uniform( const std::string &name, const glm::vec2 &data )
 {
 	GLint loc = getUniformLocation( name );
-	glUniform2i( loc, data.x, data.y );
+	glUniform2f( loc, data.x, data.y );
 }
 
 void Shader::uniform( const std::string &name, const GLint *data, int count )

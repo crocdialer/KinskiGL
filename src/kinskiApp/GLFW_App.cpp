@@ -51,7 +51,10 @@ namespace kinski
     {
         TwTerminate();
         
-        // Close window and terminate GLFW
+        // close all windows
+        m_windows.clear();
+        
+        // terminate GLFW
         glfwTerminate();
     }
     

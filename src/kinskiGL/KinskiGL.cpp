@@ -268,9 +268,10 @@ namespace kinski { namespace gl {
             return vec3(0);
         }
         vec3 sum(0);
-        for(unsigned int i = 0; i < theVertices.size(); i++)
+        vector<vec3>::const_iterator it = theVertices.begin();
+        for(;it != theVertices.end(); ++it)
         {
-            sum += theVertices[i];
+            sum += *it;
         }
         sum /= theVertices.size();
         return sum;
@@ -342,19 +343,29 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             gl::MaterialPtr mat = gl::Material::create();
-            //mat->setShader(gl::createShaderFromFile("shader_line.vert", "shader_line.frag"));
-            mat->setTwoSided();
+            mat->setShader(gl::createShader(gl::SHADER_LINES));
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
             
             //mesh->geometry()->setPrimitiveType(GL_LINES_ADJACENCY);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
+
         mesh->material()->uniform("u_window_size", windowDimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
         
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);
+        
+//        float lineWidth[2];
+//        glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);// [0.5 ... 1] !?
+//        GLint range[2];
+//        glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE, range);// [1 ... 1]
+//        glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE, range);// [1 ... 1]
+        
+//        glEnable(GL_LINE_SMOOTH);
+//        glLineWidth(line_thickness);
+        
         
 //        auto &vertices = mesh->geometry()->vertices();
 //        auto &indices = mesh->geometry()->indices();

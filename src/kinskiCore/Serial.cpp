@@ -316,7 +316,8 @@ bool Serial::setup(int deviceNumber, int baud)
 }
 
 //----------------------------------------------------------------
-bool Serial::setup(string portName, int baud){
+bool Serial::setup(string portName, int baud)
+{
 
 	close();
 
@@ -339,63 +340,63 @@ bool Serial::setup(string portName, int baud){
 		}
 
 		struct termios options;
-		tcgetattr(m_handle,&m_old_options);
+		tcgetattr(m_handle, &m_old_options);
 		options = m_old_options;
     switch(baud)
     {
         case 300:
-            cfsetispeed(&options,B300);
-            cfsetospeed(&options,B300);
+            cfsetispeed(&options, B300);
+            cfsetospeed(&options, B300);
             break;
         case 1200:
-            cfsetispeed(&options,B1200);
-            cfsetospeed(&options,B1200);
+            cfsetispeed(&options, B1200);
+            cfsetospeed(&options, B1200);
             break;
         case 2400:
-            cfsetispeed(&options,B2400);
-            cfsetospeed(&options,B2400);
+            cfsetispeed(&options, B2400);
+            cfsetospeed(&options, B2400);
             break;
         case 4800:
-            cfsetispeed(&options,B4800);
-            cfsetospeed(&options,B4800);
+            cfsetispeed(&options, B4800);
+            cfsetospeed(&options, B4800);
             break;
         case 9600:
-            cfsetispeed(&options,B9600);
-            cfsetospeed(&options,B9600);
+            cfsetispeed(&options, B9600);
+            cfsetospeed(&options, B9600);
             break;
         #ifndef KINSKI_RASPI
             case 14400:
-                cfsetispeed(&options,B14400);
-                cfsetospeed(&options,B14400);
+                cfsetispeed(&options, B14400);
+                cfsetospeed(&options, B14400);
                 break;
             case 28800:
-                cfsetispeed(&options,B28800);
-                cfsetospeed(&options,B28800);
+                cfsetispeed(&options, B28800);
+                cfsetospeed(&options, B28800);
                 break;
         #endif
         case 19200:
-            cfsetispeed(&options,B19200);
-            cfsetospeed(&options,B19200);
+            cfsetispeed(&options, B19200);
+            cfsetospeed(&options, B19200);
             break;
         case 38400:
-            cfsetispeed(&options,B38400);
-            cfsetospeed(&options,B38400);
+            cfsetispeed(&options, B38400);
+            cfsetospeed(&options, B38400);
             break;
         case 57600:
-            cfsetispeed(&options,B57600);
-            cfsetospeed(&options,B57600);
+            cfsetispeed(&options, B57600);
+            cfsetospeed(&options, B57600);
             break;
         case 115200:
-            cfsetispeed(&options,B115200);
-            cfsetospeed(&options,B115200);
+            cfsetispeed(&options, B115200);
+            cfsetospeed(&options, B115200);
             break;
         case 230400:
-            cfsetispeed(&options,B230400);
-            cfsetospeed(&options,B230400);
+            cfsetispeed(&options, B230400);
+            cfsetospeed(&options, B230400);
             break;
         default:
-            cfsetispeed(&options,B9600);
-            cfsetospeed(&options,B9600);
+            cfsetispeed(&options, B9600);
+            cfsetospeed(&options, B9600);
             LOG_ERROR << "setup(): cannot set " << baud << " bps, setting to 9600";
             break;
     }
