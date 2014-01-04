@@ -18,13 +18,10 @@ namespace kinski
 
 const Size KinectDevice::KINECT_RESOLUTION = Size(640,480);
 
-Mat KinectDevice::ms_emptyMat = Mat();
-
 KinectDevice::KinectDevice(freenect_context *_ctx, int _index) :
     FreenectDevice(_ctx, _index), m_gamma(2048),
     m_depth(Size(640, 480), CV_16UC1),
     m_rgb(Size(640, 480), CV_8UC3, Scalar(0)),
-    m_ownMat(Size(640, 480), CV_8UC3, Scalar(0)),
     m_new_rgb_frame(false),
     m_new_depth_frame(false)
 {
@@ -66,10 +63,10 @@ void KinectDevice::DepthCallback(void* _depth, uint32_t timestamp)
 
 bool KinectDevice::getVideo(Mat& output, bool irBool)
 {
-    boost::mutex::scoped_lock lock(m_rgb_mutex);
-    
 	if (m_new_rgb_frame)
 	{
+        boost::mutex::scoped_lock lock(m_rgb_mutex);
+        
 		if (irBool)
 		{
 			//IR 8BIT
@@ -87,23 +84,18 @@ bool KinectDevice::getVideo(Mat& output, bool irBool)
     return false;
 }
 
-bool KinectDevice::getDepth(Mat& output, Mat& outputColored)
+bool KinectDevice::getDepth(Mat& output, Mat outputColored)
 {
-	boost::mutex::scoped_lock lock(m_depth_mutex);
-    
 	if (m_new_depth_frame)
 	{
-		//m_depth.convertTo(output, CV_32F, 1.0 / 2047.0);
-        //double min,max;
-        //minMaxLoc(m_depth,&min,&max);
-        //printf("%.2lf -- %.2lf\n",min,max);
+        boost::mutex::scoped_lock lock(m_depth_mutex);
         
-        output.create(m_depth.size(), CV_32FC1);
+//        output.create(m_depth.size(), CV_32FC1);
+        m_depth.copyTo(output);
         
-        float *depth_mapped = (float*)output.data;
-        uint16_t *depth_raw = (uint16_t*) m_depth.data;
-        uint16_t *depth_raw_end = depth_raw+m_depth.size().area();
+//        float *depth_mapped = (float*)output.data;
         
+
         uchar *depth_color = NULL;
         
         if (!outputColored.empty())
@@ -112,62 +104,65 @@ bool KinectDevice::getDepth(Mat& output, Mat& outputColored)
             depth_color = outputColored.data;
         }
         
-        for (;depth_raw < depth_raw_end;depth_raw++)
-		{
-			int pval = m_gamma[*depth_raw];
+        if (depth_color)
+        {
+            uint16_t *depth_raw = (uint16_t*) m_depth.data;
+            uint16_t *depth_raw_end = depth_raw+m_depth.size().area();
+            
+            for (;depth_raw < depth_raw_end;depth_raw++)
+            {
+                int pval = m_gamma[*depth_raw];
 
-			float finalVal = pval / (float) (2047 * .7);
-			if (finalVal > 1.0)
-				finalVal = 1.0;
-			*depth_mapped++ = finalVal;
+    //			float finalVal = pval / (float) (2047 * .7);
+    //            
+    //			if (finalVal > 1.0)
+    //				finalVal = 1.0;
+    //			*depth_mapped++ = finalVal;
 
-			if (depth_color)
-			{
-				int lb = pval & 0xff;
+                int lb = pval & 0xff;
 
-				switch (pval >> 8)
-				{
-				case 0:
-					*depth_color++ = 255 - lb;
-					*depth_color++ = 255 - lb;
-					*depth_color++ = 255;
-					break;
-				case 1:
-					*depth_color++ = 0;
-					*depth_color++ = lb;
-					*depth_color++ = 255;
-					break;
-				case 2:
-					*depth_color++ = 0;
-					*depth_color++ = 255;
-					*depth_color++ = 255 - lb;
-					break;
-				case 3:
-					*depth_color++ = lb;
-					*depth_color++ = 255;
-					*depth_color++ = 0;
-					break;
-				case 4:
-					*depth_color++ = 255;
-					*depth_color++ = 255 - lb;
-					*depth_color++ = 0;
-					break;
-				case 5:
-					*depth_color++ = 255 - lb;
-					*depth_color++ = 0;
-					*depth_color++ = 0;
-					break;
-				default:
-					*depth_color++ = 0;
-					*depth_color++ = 0;
-					*depth_color++ = 0;
-					break;
-				}
-			}
+                switch (pval >> 8)
+                {
+                case 0:
+                    *depth_color++ = 255 - lb;
+                    *depth_color++ = 255 - lb;
+                    *depth_color++ = 255;
+                    break;
+                case 1:
+                    *depth_color++ = 0;
+                    *depth_color++ = lb;
+                    *depth_color++ = 255;
+                    break;
+                case 2:
+                    *depth_color++ = 0;
+                    *depth_color++ = 255;
+                    *depth_color++ = 255 - lb;
+                    break;
+                case 3:
+                    *depth_color++ = lb;
+                    *depth_color++ = 255;
+                    *depth_color++ = 0;
+                    break;
+                case 4:
+                    *depth_color++ = 255;
+                    *depth_color++ = 255 - lb;
+                    *depth_color++ = 0;
+                    break;
+                case 5:
+                    *depth_color++ = 255 - lb;
+                    *depth_color++ = 0;
+                    *depth_color++ = 0;
+                    break;
+                default:
+                    *depth_color++ = 0;
+                    *depth_color++ = 0;
+                    *depth_color++ = 0;
+                    break;
+                }
+            }
 		}
         
 		m_new_depth_frame = false;
-
 		return true;
 	}
 	else

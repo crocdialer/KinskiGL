@@ -1006,7 +1006,7 @@ namespace kinski { namespace gl {
         our_mesh->material() = theMaterial ? theMaterial : default_mat;
         mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
         mat4 modelView = glm::scale(mat4(), vec3(radius));
-        modelView[3].xyz() = vec3(center, 0);
+        modelView[3].xyz() = vec3(center.x, g_windowDim[1] - center.y, 0);
         
         ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
         loadMatrix(PROJECTION_MATRIX, projectionMatrix);

@@ -54,7 +54,7 @@ namespace kinski
             m_thread.join();
         }catch(std::exception &e)
         {
-            LOG_ERROR<<"CVThread: "<<e.what();
+            LOG_ERROR<<e.what();
         }
     }
     
