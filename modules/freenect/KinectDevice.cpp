@@ -22,9 +22,9 @@ Mat KinectDevice::ms_emptyMat = Mat();
 
 KinectDevice::KinectDevice(freenect_context *_ctx, int _index) :
     FreenectDevice(_ctx, _index), m_gamma(2048),
-    depthMat(Size(640, 480), CV_16UC1),
-    rgbMat(Size(640, 480), CV_8UC3, Scalar(0)),
-    ownMat(Size(640, 480), CV_8UC3, Scalar(0)),
+    m_depth(Size(640, 480), CV_16UC1),
+    m_rgb(Size(640, 480), CV_8UC3, Scalar(0)),
+    m_ownMat(Size(640, 480), CV_8UC3, Scalar(0)),
     m_new_rgb_frame(false),
     m_new_depth_frame(false)
 {
@@ -49,7 +49,7 @@ void KinectDevice::VideoCallback(void* _rgb, uint32_t timestamp)
     boost::mutex::scoped_lock lock(m_rgb_mutex);
 
 	uint8_t* rgb = static_cast<uint8_t*>(_rgb);
-	rgbMat.data = rgb;
+	m_rgb.data = rgb;
 	m_new_rgb_frame = true;
 
 }
@@ -60,7 +60,7 @@ void KinectDevice::DepthCallback(void* _depth, uint32_t timestamp)
     boost::mutex::scoped_lock lock(m_depth_mutex);
 
 	uint16_t* depth = static_cast<uint16_t*>(_depth);
-	depthMat.data = (uchar*) depth;
+	m_depth.data = (uchar*) depth;
 	m_new_depth_frame = true;
 }
 
@@ -73,13 +73,13 @@ bool KinectDevice::getVideo(Mat& output, bool irBool)
 		if (irBool)
 		{
 			//IR 8BIT
-			output = Mat(rgbMat.size(),
+			output = Mat(m_rgb.size(),
                          CV_8UC1,
-                         rgbMat.data + rgbMat.cols * 4).clone();
+                         m_rgb.data + m_rgb.cols * 4).clone();
 		}
 		else
 			//RGB
-			cv::cvtColor(rgbMat, output, CV_RGB2BGR);
+			cv::cvtColor(m_rgb, output, CV_RGB2BGR);
 
 		m_new_rgb_frame = false;
 		return true;
@@ -93,26 +93,26 @@ bool KinectDevice::getDepth(Mat& output, Mat& outputColored)
     
 	if (m_new_depth_frame)
 	{
-		//depthMat.convertTo(output, CV_32F, 1.0 / 2047.0);
+		//m_depth.convertTo(output, CV_32F, 1.0 / 2047.0);
         //double min,max;
-        //minMaxLoc(depthMat,&min,&max);
+        //minMaxLoc(m_depth,&min,&max);
         //printf("%.2lf -- %.2lf\n",min,max);
         
-        output.create(depthMat.size(), CV_32FC1);
+        output.create(m_depth.size(), CV_32FC1);
         
         float *depth_mapped = (float*)output.data;
-        uint16_t *depth_raw = (uint16_t*) depthMat.data;
-        uint16_t *depth_raw_end = depth_raw+depthMat.size().area();
+        uint16_t *depth_raw = (uint16_t*) m_depth.data;
+        uint16_t *depth_raw_end = depth_raw+m_depth.size().area();
         
         uchar *depth_color = NULL;
         
         if (!outputColored.empty())
         {
-            outputColored.create(depthMat.size(),CV_8UC3);
+            outputColored.create(m_depth.size(),CV_8UC3);
             depth_color = outputColored.data;
         }
         
-        for (;depth_raw<depth_raw_end;depth_raw++)
+        for (;depth_raw < depth_raw_end;depth_raw++)
 		{
 			int pval = m_gamma[*depth_raw];
 

@@ -17,6 +17,11 @@ out VertexData {
     vec2 texCoord;
 } vertex_out;
 
+vec2 screen_space(vec4 vertex)
+{
+    return vertex.xy / vertex.w * u_window_size;
+}
+
 void main()
 {
     // get the four vertices passed to the shader:

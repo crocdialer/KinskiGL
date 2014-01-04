@@ -65,7 +65,7 @@ namespace kinski
         }
     
         // going safe, have a copy of our own of the data
-        img = capFrame.clone();
+        capFrame.copyTo(img);
         return true;
     }
     

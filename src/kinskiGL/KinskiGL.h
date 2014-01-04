@@ -65,6 +65,8 @@
 #include "glm/gtx/norm.hpp"
 #include "glm/gtx/string_cast.hpp"
 
+#include "SerializerGL.h"
+
 namespace kinski { namespace gl {
 
     // forward declarations
@@ -104,10 +106,16 @@ namespace kinski { namespace gl {
     KINSKI_API void setMatrices( const CameraPtr &cam );
     KINSKI_API void setModelView( const CameraPtr &cam );
     KINSKI_API void setProjection( const CameraPtr &cam );
+    KINSKI_API void setMatricesForWindow();
     
     const glm::vec3 X_AXIS = glm::vec3(1, 0, 0);
     const glm::vec3 Y_AXIS = glm::vec3(0, 1, 0);
     const glm::vec3 Z_AXIS = glm::vec3(0, 0, 1);
+    
+    static const Color COLOR_WHITE(1), COLOR_BLACK(0, 0, 0, 1), COLOR_RED(1, 0,  0, 1),
+    COLOR_GREEN(0, 1, 0, 1), COLOR_BLUE(0, 0, 1, 1), COLOR_YELLOW(1, 1, 0, 1),
+    COLOR_PURPLE(1, 0, 1, 1), COLOR_ORANGE(1, .5 , 0, 1), COLOR_OLIVE(.5, .5, 0, 1),
+    COLOR_DARK_RED(.6, 0,  0, 1);
     
     class ScopedMatrixPush
     
@@ -141,7 +149,8 @@ namespace kinski { namespace gl {
                                 float line_thickness = 1.f);
     KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const Color &theColor,
                               float line_thickness = 1.f);
-    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const MaterialPtr &theMat);
+    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const MaterialPtr &theMat,
+                              float line_thickness = 1.f);
     KINSKI_API void drawLineStrip(const std::vector<glm::vec3> &thePoints,
                                   const glm::vec4 &theColor,
                                   float line_thickness = 1.f);

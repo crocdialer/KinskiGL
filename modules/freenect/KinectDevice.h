@@ -223,7 +223,9 @@ public:
 				m_ctx,
 				static_cast<freenect_device_flags>(FREENECT_DEVICE_MOTOR
 						| FREENECT_DEVICE_CAMERA));
-
+        
+        freenect_set_log_level(m_ctx, FREENECT_LOG_ERROR);
+        
 		m_thread = boost::thread(boost::ref(*this));
 	}
 	virtual ~Freenect()
@@ -248,6 +250,12 @@ public:
         
 		//printf("Freenect thread joined\n");
 	}
+    
+    void set_log_level(freenect_loglevel lvl)
+    {
+        freenect_set_log_level(m_ctx, lvl);
+    }
+    
 	template<typename ConcreteDevice>
 	ConcreteDevice& createDevice(int _index)
 	{
@@ -255,7 +263,7 @@ public:
 		if (it != m_devices.end())
 			delete it->second;
 		ConcreteDevice * device = new ConcreteDevice(m_ctx, _index);
-		m_devices.insert(std::make_pair<int, FreenectDevice*>(_index, device));
+		m_devices.insert(std::make_pair(_index, device));
 		return *device;
 	}
 	void deleteDevice(int _index)
@@ -266,7 +274,7 @@ public:
 		delete it->second;
 		m_devices.erase(it);
 	}
-	int deviceCount()
+	int num_devices()
 	{
 		return freenect_num_devices(m_ctx);
 	}
@@ -295,9 +303,9 @@ private:
         static cv::Mat ms_emptyMat ;
         
         std::vector<uint16_t> m_gamma;
-        cv::Mat depthMat;
-        cv::Mat rgbMat;
-        cv::Mat ownMat;
+        cv::Mat m_depth;
+        cv::Mat m_rgb;
+        cv::Mat m_ownMat;
         
         boost::mutex m_rgb_mutex;
         boost::mutex m_depth_mutex;

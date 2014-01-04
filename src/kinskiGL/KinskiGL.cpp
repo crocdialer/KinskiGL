@@ -57,6 +57,7 @@ namespace kinski { namespace gl {
     static glm::vec2 g_windowDim;
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
+    static gl::MaterialPtr g_line_material;
     static std::map<std::string, string_mesh_container> g_string_mesh_map;
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -177,6 +178,16 @@ namespace kinski { namespace gl {
         loadMatrix(PROJECTION_MATRIX, cam->getProjectionMatrix());
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    void setMatricesForWindow()
+    {
+        loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, gl::windowDimension().x,
+                                                     0.f, gl::windowDimension().y,
+                                                     0.f, 1.f));
+        loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
+    }
+    
 ///////////////////////////////////////////////////////////////////////////////
     
     const glm::vec2& windowDimension(){ return g_windowDim; }
@@ -334,69 +345,48 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLines(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
+    void drawLines(const vector<vec3> &thePoints, const Color &the_color,
+                   float line_thickness)
+    {
+        static MaterialPtr material;
+        if(!material)
+        {
+            material = gl::Material::create(gl::createShader(gl::SHADER_LINES));
+        }
+        material->setDiffuse(the_color);
+        material->setBlending(the_color.a < 1.f);
+        
+        drawLines(thePoints, material, line_thickness);
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    void drawLines(const vector<vec3> &thePoints, const MaterialPtr &the_material,
+                   float line_thickness)
     {
         if(thePoints.empty()) return;
-        static gl::MeshPtr mesh;
+        static MeshPtr mesh;
+        static MaterialPtr material;
         
         //create line mesh
         if(!mesh)
         {
-            gl::MaterialPtr mat = gl::Material::create();
-            mat->setShader(gl::createShader(gl::SHADER_LINES));
+            material = gl::Material::create(gl::createShader(gl::SHADER_LINES));
+            material->setBlending();
+            material->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
-            mesh = gl::Mesh::create(geom, mat);
+            mesh = gl::Mesh::create(geom, material);
             
             //mesh->geometry()->setPrimitiveType(GL_LINES_ADJACENCY);
             mesh->geometry()->setPrimitiveType(GL_LINES);
         }
-
+        
+        mesh->material() = (the_material ? the_material : material);
         mesh->material()->uniform("u_window_size", windowDimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
         
         mesh->geometry()->appendVertices(thePoints);
-        mesh->geometry()->colors().resize(thePoints.size(), theColor);
-        
-//        float lineWidth[2];
-//        glGetFloatv(GL_LINE_WIDTH_RANGE, lineWidth);// [0.5 ... 1] !?
-//        GLint range[2];
-//        glGetIntegerv(GL_ALIASED_LINE_WIDTH_RANGE, range);// [1 ... 1]
-//        glGetIntegerv(GL_SMOOTH_LINE_WIDTH_RANGE, range);// [1 ... 1]
-        
-//        glEnable(GL_LINE_SMOOTH);
-//        glLineWidth(line_thickness);
-        
-        
-//        auto &vertices = mesh->geometry()->vertices();
-//        auto &indices = mesh->geometry()->indices();
-        
-//        // to improve performance, make room for the vertices + 2 adjacency vertices
-//        vertices.reserve( thePoints.size() + 2);
-        
-//        // first, add an adjacency vertex at the beginning
-//        vertices.push_back( 2.0f * thePoints[0] - thePoints[1] );
-//        
-//        mesh->geometry()->appendVertices(thePoints);
-//        
-//        // next, add an adjacency vertex at the end
-//        size_t n = thePoints.size();
-//        vertices.push_back( 2.0f * thePoints[n-1] - thePoints[n-2] );
-//        
-//        // colors
-//        mesh->geometry()->colors().resize(vertices.size(), theColor);
-//        
-//        // now that we have a list of vertices, create the index buffer
-//        n = vertices.size() - 2;
-//        indices.reserve( n * 4 );
-//        
-//        for(size_t i = 1;i < vertices.size() - 2;++i)
-//        {
-//            indices.push_back(i-1);
-//            indices.push_back(i);
-//            indices.push_back(i+1);
-//            indices.push_back(i+2);
-//        }
-        
+        mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
         mesh->geometry()->createGLBuffers();
         gl::drawMesh(mesh);
         mesh->geometry()->vertices().clear();
@@ -1006,6 +996,7 @@ namespace kinski { namespace gl {
             GeometryPtr geom = solid ? Geometry::createSolidUnitCircle(numSegments) :
                 Geometry::createUnitCircle(numSegments);
             default_mat = gl::Material::create();
+            default_mat->setDepthWrite(false);
             our_mesh = gl::Mesh::create(geom, default_mat);
             if(solid)
                 solid_mesh = our_mesh;

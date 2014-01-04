@@ -85,9 +85,9 @@ namespace kinski {
     
     AppServer::AppServer(kinski::App::Ptr the_app, int port) :
     m_app(the_app),
-    m_acceptor(the_app->io_service(), tcp::endpoint(tcp::v4(), port))
+    m_acceptor_tcp(the_app->io_service())
     {
-        start_accept();
+        start_accept_tcp(port);
     }
     
     std::string AppServer::local_ip(bool ipV6)
@@ -108,27 +108,31 @@ namespace kinski {
     
     void AppServer::start()
     {
-        start_accept();
+        //start_accept();
     }
     
     void AppServer::stop()
     {
-        m_acceptor.close();
+        m_acceptor_tcp.close();
     }
     
-    void AppServer::start_accept()
+    void AppServer::start_accept_tcp(int port)
     {
-        tcp_connection::Ptr new_connection = tcp_connection::create(m_acceptor.get_io_service(), m_app);
+        App::Ptr app = m_app.lock();
         
-        m_acceptor.async_accept(new_connection->socket(),
-                                boost::bind(&AppServer::handle_accept, this, new_connection,
-                                            boost::asio::placeholders::error));
+        m_acceptor_tcp.close();
+        m_acceptor_tcp = tcp::acceptor(app->io_service(), tcp::endpoint(tcp::v4(), port));
+        tcp_connection::Ptr new_connection = tcp_connection::create(m_acceptor_tcp.get_io_service(), m_app);
+        
+        m_acceptor_tcp.async_accept(new_connection->socket(),
+                                    boost::bind(&AppServer::handle_accept_tcp, this, new_connection,
+                                    boost::asio::placeholders::error));
         LOG_DEBUG<<"listening on port: "<<
-        m_acceptor.local_endpoint().port();
+        m_acceptor_tcp.local_endpoint().port();
     }
     
-    void AppServer::handle_accept(tcp_connection::Ptr new_connection,
-                                  const boost::system::error_code& error)
+    void AppServer::handle_accept_tcp(tcp_connection::Ptr new_connection,
+                                      const boost::system::error_code& error)
     {
         if (!error)
         {
@@ -141,6 +145,11 @@ namespace kinski {
             
             return;
         }
-        start_accept();
+        start_accept_tcp(m_acceptor_tcp.local_endpoint().port());
+    }
+    
+    void AppServer::start_accept_udp(int port)
+    {
+    
     }
 }

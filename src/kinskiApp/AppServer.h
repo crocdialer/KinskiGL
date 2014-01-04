@@ -12,6 +12,7 @@
 #include "App.h"
 
 using boost::asio::ip::tcp;
+using boost::asio::ip::udp;
 
 namespace kinski
 {
@@ -57,14 +58,16 @@ namespace kinski
         
         static std::string local_ip(bool ipV6 = false);
         
+        void start_accept_tcp(int port);
+        void start_accept_udp(int port);
+        
     private:
         
-        void start_accept();
-        void handle_accept(tcp_connection::Ptr new_connection,
-                           const boost::system::error_code& error);
+        void handle_accept_tcp(tcp_connection::Ptr new_connection,
+                               const boost::system::error_code& error);
         
         kinski::App::WeakPtr m_app;
-        tcp::acceptor m_acceptor;
+        tcp::acceptor m_acceptor_tcp;
     };
 }// namespace
 

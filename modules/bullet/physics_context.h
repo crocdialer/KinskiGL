@@ -38,7 +38,7 @@ namespace kinski{ namespace physics{
         
         BulletDebugDrawer()
         {
-            gl::MaterialPtr mat = gl::Material::create(gl::createShader(gl::SHADER_UNLIT));
+            gl::MaterialPtr mat = gl::Material::create();
             gl::GeometryPtr geom = gl::Geometry::create();
             m_mesh = gl::Mesh::create(geom, mat);
             m_mesh->geometry()->setPrimitiveType(GL_LINES);
@@ -68,6 +68,9 @@ namespace kinski{ namespace physics{
         inline void flush()
         {
             m_mesh->geometry()->createGLBuffers();
+//            m_mesh->material()->uniform("u_window_size", gl::windowDimension());
+//            m_mesh->material()->uniform("u_line_thickness", 10.f);
+            
             gl::drawMesh(m_mesh);
             m_mesh->geometry()->vertices().clear();
             m_mesh->geometry()->colors().clear();

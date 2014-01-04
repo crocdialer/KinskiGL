@@ -694,11 +694,22 @@ namespace kinski { namespace gl {
             vec2 texCoord;
         } vertex_out;
         
+        vec2 screen_space(vec4 vertex)
+        {
+            return vertex.xy / vertex.w;// * u_window_size;
+        }
+                                         
         void main()
         {
             // get the four vertices passed to the shader:
-            vec2 p0 = gl_in[0].gl_Position.xy;	// start of current segment
-            vec2 p1 = gl_in[1].gl_Position.xy;	// end of current segment
+            vec2 p0 = screen_space(gl_in[0].gl_Position);	// start of current segment
+            vec2 p1 = screen_space(gl_in[1].gl_Position);	// end of current segment
+            
+//            vec2 area = vec2(1.2) ;//* u_window_size;
+//            if( p0.x < -area.x || p0.x > area.x ) return;
+//            if( p0.y < -area.y || p0.y > area.y ) return;
+//            if( p1.x < -area.x || p1.x > area.x ) return;
+//            if( p1.y < -area.y || p1.y > area.y ) return;
             
             // determine the direction of the segment
             vec2 v0 = normalize(p1 - p0);

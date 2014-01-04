@@ -139,8 +139,8 @@ namespace kinski{ namespace animation{
     int Animation::s_id_pool = 0;
     
     template<typename T>
-    AnimationPtr createAnimation(T* value_ptr, const T &from_value, const T &to_value, float duration,
-                                 float delay = 0)
+    AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration,
+                        float delay = 0)
     {
         return AnimationPtr(new Animation(duration, delay,
                                           [=](float progress)
@@ -148,11 +148,11 @@ namespace kinski{ namespace animation{
     };
     
     template<typename T>
-    AnimationPtr createAnimation(typename Property_<T>::WeakPtr weak_property,
-                                 const T &from_value,
-                                 const T &to_value,
-                                 float duration,
-                                 float delay = 0)
+    AnimationPtr create(typename Property_<T>::WeakPtr weak_property,
+                        const T &from_value,
+                        const T &to_value,
+                        float duration,
+                        float delay = 0)
     {
         return AnimationPtr(new Animation(duration, delay,
                                           [=](float progress)

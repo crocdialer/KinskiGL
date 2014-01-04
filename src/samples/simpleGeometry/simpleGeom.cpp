@@ -180,7 +180,7 @@ public:
         for (auto &light : lights()){scene().addObject(light);}
         
         // test animation
-        m_property_animation = animation::createAnimation(m_animationTime, 0.f, 1.f, 5.f);
+        m_property_animation = animation::create(m_animationTime, 0.f, 1.f, 5.f);
         m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
         m_property_animation->set_ease_function(animation::EaseOutBounce(.5f));
         
@@ -247,9 +247,6 @@ public:
             gl::setMatrices(camera());
             if(draw_grid()){ gl::drawGrid(500, 500, 20, 20); }
             
-            gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
-            gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 5.f);
-            
             if(*m_use_fbo)
             {
                 // render to fbo
@@ -307,6 +304,9 @@ public:
             }
         }
 
+        gl::drawCircle(m_frameBuffer.getSize() / 2.f, 320.f, false);
+        gl::drawLine(vec2(0), windowSize(), gl::COLOR_OLIVE, 35.f);
+        
         // draw texture map(s)
         if(displayTweakBar())
         {
@@ -376,7 +376,7 @@ public:
 //            m_property_animation = animation::create(&selected_mesh()->position(), vec3(0.f), vec3(100.f), 5.f);
 //            m_property_animation->set_loop(animation::LOOP_BACK_FORTH);
           
-            m_animation = animation::createAnimation(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
+            m_animation = animation::create(&selected_mesh()->position().y, 0.f, 100.f, 5.f);
             m_animation->set_ease_function(animation::EaseOutBounce());
             m_animation->set_loop(animation::LOOP_BACK_FORTH);
             
