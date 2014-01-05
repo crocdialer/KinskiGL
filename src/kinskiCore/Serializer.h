@@ -68,7 +68,7 @@ namespace kinski
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         
-        static void loadComponentState(std::list<Component::Ptr> &theComponentList,
+        static void loadComponentState(const std::list<Component::Ptr> &theComponentList,
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         

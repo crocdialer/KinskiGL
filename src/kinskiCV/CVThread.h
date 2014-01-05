@@ -61,23 +61,28 @@ namespace kinski
          */
         float getLastProcessTime() const;
         
-        void setFPS(const double& fps){m_captureFPS=fps;};
-        double getFPS() const {return m_captureFPS;};
+        void setFPS(const double& fps){*m_captureFPS = fps;};
+        double getFPS() const {return *m_captureFPS;};
         
         std::string getSourceInfo();
         
         // thread management
         void start();
         void stop();
-        void operator()();
+        
+        // thread runs here
+        void run();
         
         void updateProperty(const Property::ConstPtr &theProperty);
         
     private:
         
-        bool m_running;
-        Property_<bool>::Ptr m_running_toggle;
+        Property_<bool>::Ptr m_running;
         Property_<bool>::Ptr m_processing;
+
+        //desired capturing / seconds  -> used to time threadmanagment
+        Property_<float>::Ptr m_captureFPS;
+        
         bool m_newFrame;
         std::vector<cv::Mat> m_images;
         
@@ -87,9 +92,6 @@ namespace kinski
         
         // fetch next frame, depending on current sourceNode
         cv::Mat grabNextFrame();
-
-        //desired capturing / seconds  -> used to time threadmanagment
-        double m_captureFPS;
         
         float m_lastGrabTime;
         float m_lastProcessTime;

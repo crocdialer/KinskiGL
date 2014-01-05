@@ -523,8 +523,8 @@ int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleGeometryApp);
     theApp->setWindowSize(1024, 768);
-    AppServer s(theApp);
-    LOG_INFO<<AppServer::local_ip();
+    tcp_server tcp(theApp);
+    LOG_INFO<<tcp_server::local_ip();
     
     return theApp->run();
 }

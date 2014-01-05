@@ -17,6 +17,7 @@ namespace kinski{
     class CVNode : public Component
     {
     public:
+        virtual ~CVNode(){};
         typedef std::shared_ptr<CVNode> Ptr;
         virtual std::string getDescription() = 0;
     };
@@ -26,6 +27,7 @@ namespace kinski{
     {
     public:
         typedef std::shared_ptr<CVSourceNode> Ptr;
+        virtual ~CVSourceNode(){};
         
         // inherited from CVNode
         virtual std::string getDescription(){return "Generic Input-source";};

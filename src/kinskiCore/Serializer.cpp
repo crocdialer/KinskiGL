@@ -244,7 +244,7 @@ namespace kinski {
         applyStateToComponent(theComponent, myState, theIO);
     }
     
-    void Serializer::loadComponentState(std::list<Component::Ptr> &theComponentList,
+    void Serializer::loadComponentState(const std::list<Component::Ptr> &theComponentList,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {

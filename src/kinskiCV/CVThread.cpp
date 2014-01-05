@@ -23,14 +23,14 @@ namespace kinski
     }
     
     CVThread::CVThread():
-    m_running(false),
-    m_running_toggle(Property_<bool>::create("Running", false)),
-    m_processing(Property_<bool>::create("Processing", true)),
-    m_newFrame(false),
-    m_captureFPS(25.f)
+    m_running(Property_<bool>::create("cvthread running", false)),
+    m_processing(Property_<bool>::create("cvthread processing", true)),
+    m_captureFPS(Property_<float>::create("max capture fps", 25.f)),
+    m_newFrame(false)
     {
-        registerProperty(m_running_toggle);
+        registerProperty(m_running);
         registerProperty(m_processing);
+        registerProperty(m_captureFPS);
         LOG_INFO<<"OpenCV-Version: " << CV_VERSION;
     }
     
@@ -41,14 +41,15 @@ namespace kinski
     
     void CVThread::start()
     {
-        if(m_running) return;
-        m_thread = boost::thread(boost::ref(*this));
-        m_running = true;
+        if(*m_running) return;
+        m_thread = boost::thread(boost::bind(&CVThread::run, this));
     }
     
     void CVThread::stop()
     {
-        m_running = false;
+        if(!*m_running) return;
+        
+        *m_running = false;
         try
         {
             m_thread.join();
@@ -65,7 +66,7 @@ namespace kinski
     
     void CVThread::playPause()
     {
-        if(!m_running)
+        if(!*m_running)
             start();
         else 
             stop();
@@ -80,7 +81,7 @@ namespace kinski
     {
         CVCaptureNode::Ptr capNode (new CVCaptureNode(path2Video));
         capNode->setLoop(loop);
-        m_captureFPS = capNode->getFPS();
+        *m_captureFPS = capNode->getFPS();
         m_sourceNode = capNode;
         start(); 
     }
@@ -102,14 +103,14 @@ namespace kinski
         return outMat; 
     }
     
-    void CVThread::operator()()
+    void CVThread::run()
     {	
-        m_running = true;
+        *m_running = true;
         
         // measure elapsed time with these
         boost::timer::cpu_timer threadTimer, cpuTimer;
         
-        while(m_running)
+        while(*m_running)
         {
             //restart timer
             threadTimer.start();        
@@ -161,13 +162,13 @@ namespace kinski
             // thread timing
             double elapsed_msecs,sleep_msecs;
             elapsed_msecs = threadTimer.elapsed().wall / 1000000.0;
-            sleep_msecs = max(0.0, (1000.0 / m_captureFPS - elapsed_msecs));
+            sleep_msecs = max(0.0, (1000.0 / *m_captureFPS - elapsed_msecs));
             
             // set thread asleep for a time to achieve desired framerate
             boost::posix_time::milliseconds msecs(sleep_msecs);
             boost::this_thread::sleep(msecs);
         }
-        m_running = false;
+        *m_running = false;
     }
     
     string CVThread::getSourceInfo()
@@ -229,10 +230,9 @@ namespace kinski
     
     void CVThread::updateProperty(const Property::ConstPtr &theProperty)
     {
-        if(theProperty == m_running_toggle)
+        if(theProperty == m_running)
         {
-            if(*m_running_toggle){ start(); }
-            else { stop(); }
+            if(*m_running){ start(); }
         }
     }
     

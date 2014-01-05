@@ -1,13 +1,13 @@
 //
-//  AppServer.h
+//  tcp_server.h
 //  kinskiGL
 //
 //  Created by Fabian on 6/8/13.
 //
 //
 
-#ifndef __kinskiGL__AppServer__
-#define __kinskiGL__AppServer__
+#ifndef __kinskiGL__tcp_server__
+#define __kinskiGL__tcp_server__
 
 #include "App.h"
 
@@ -16,7 +16,7 @@ using boost::asio::ip::udp;
 
 namespace kinski
 {
-    class AppServer;
+    class tcp_server;
     class tcp_connection;
     class response_delegate;
     
@@ -48,27 +48,47 @@ namespace kinski
         kinski::Component::WeakPtr m_component;
     };
     
-    class AppServer
+    class tcp_server
     {
     public:
-        AppServer(kinski::App::Ptr the_app, int port = 11111);
+        tcp_server(kinski::App::Ptr the_app, int port = 11111);
         
-        void start();
         void stop();
         
         static std::string local_ip(bool ipV6 = false);
         
-        void start_accept_tcp(int port);
-        void start_accept_udp(int port);
+        void start_accept(int port);
         
     private:
         
-        void handle_accept_tcp(tcp_connection::Ptr new_connection,
-                               const boost::system::error_code& error);
+        void handle_accept(tcp_connection::Ptr new_connection,
+                           const boost::system::error_code& error);
         
         kinski::App::WeakPtr m_app;
         tcp::acceptor m_acceptor_tcp;
     };
+    
+    class udp_server
+    {
+    public:
+        udp_server(kinski::App::Ptr the_app, int port = 11111);
+        
+    private:
+        void start_receive(int port);
+        void send(const std::vector<uint8_t> &bytes, const std::string &ip, int port);
+        
+        void handle_receive(const boost::system::error_code& error,
+                            std::size_t /*bytes_transferred*/);
+        
+        void handle_send(const boost::system::error_code& /*error*/,
+                         std::size_t /*bytes_transferred*/);
+        
+        kinski::App::WeakPtr m_app;
+        udp::socket socket_;
+        udp::resolver resolver_;
+        udp::endpoint remote_endpoint_;
+        std::array<char, 1024> recv_buffer_;
+    };
 }// namespace
 
-#endif /* defined(__kinskiGL__AppServer__) */
+#endif /* defined(__kinskiGL__tcp_server__) */

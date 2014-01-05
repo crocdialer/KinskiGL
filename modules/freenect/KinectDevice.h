@@ -15,6 +15,7 @@
 
 // Lib-Freenect
 #include <libfreenect/libfreenect.h>
+#include <libusb-1.0/libusb.h>
 
 // Boost
 #include <boost/utility.hpp>
@@ -277,8 +278,17 @@ namespace kinski
         {
             while (!m_stop)
             {
-                if (freenect_process_events(m_ctx) != 0)
+                int res = freenect_process_events(m_ctx);
+                if (res < 0)
                 {
+                    // libusb signals an error has occurred
+                    if (res == LIBUSB_ERROR_INTERRUPTED)
+                    {
+                        // This happens sometimes, it means that a system call in libusb was
+                        // interrupted somehow (perhaps due to a signal)
+                        // The simple solution seems to be just ignore it.
+                        continue;
+                    }
                     LOG_ERROR << "Cannot process freenect events -> terminating thread";
                     break;
                 }

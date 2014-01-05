@@ -89,11 +89,7 @@ bool KinectDevice::getDepth(Mat& output, Mat outputColored)
 	if (m_new_depth_frame)
 	{
         boost::mutex::scoped_lock lock(m_depth_mutex);
-        
-//        output.create(m_depth.size(), CV_32FC1);
         m_depth.copyTo(output);
-        
-//        float *depth_mapped = (float*)output.data;
         
 
         uchar *depth_color = NULL;
