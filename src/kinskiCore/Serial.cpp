@@ -165,10 +165,7 @@ void Serial::buildDeviceList()
 		prefixMatch.push_back("tty.");
 	#endif
 	#ifdef KINSKI_LINUX
-		#ifdef KINSKI_RASPI
-			prefixMatch.push_back("ttyACM");
-		#endif
-
+		prefixMatch.push_back("ttyACM");
 		prefixMatch.push_back("ttyS");
 		prefixMatch.push_back("ttyUSB");
 		prefixMatch.push_back("rfc");
@@ -364,7 +361,7 @@ bool Serial::setup(string portName, int baud)
             cfsetispeed(&options, B9600);
             cfsetospeed(&options, B9600);
             break;
-        #ifndef KINSKI_RASPI
+        #ifndef KINSKI_LINUX
             case 14400:
                 cfsetispeed(&options, B14400);
                 cfsetospeed(&options, B14400);
