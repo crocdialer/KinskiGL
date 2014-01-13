@@ -35,7 +35,8 @@ namespace kinski
         void observeProperties(bool b = true);
         void observeProperties(const std::list<Property::Ptr>& theProps,  bool b = true);
         void registerProperty(Property::Ptr theProperty);
-
+        void unregister_all_properties();
+        
     private:
         
         std::string m_name;

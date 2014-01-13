@@ -145,7 +145,7 @@ namespace kinski {
     
     udp_server::udp_server(kinski::App::Ptr the_app, int port) :
     m_app(the_app),
-    socket_(the_app->io_service(), udp::endpoint(udp::v4(), port)),
+    m_socket(the_app->io_service(), udp::endpoint(udp::v4(), port)),
     resolver_(the_app->io_service())
     {
         start_receive(port);
@@ -153,7 +153,10 @@ namespace kinski {
     
     void udp_server::start_receive(int port)
     {
-        socket_.async_receive_from(boost::asio::buffer(recv_buffer_),
+        if(port != m_socket.local_endpoint().port())
+            m_socket.connect(udp::endpoint(udp::v4(), port));
+        
+        m_socket.async_receive_from(boost::asio::buffer(recv_buffer_),
                                    remote_endpoint_,
                                    boost::bind(&udp_server::handle_receive, this,
                                                boost::asio::placeholders::error,
@@ -167,7 +170,7 @@ namespace kinski {
         {
 //            boost::shared_ptr<std::string> message(new std::string("poooop"));
 //            
-//            socket_.async_send_to(boost::asio::buffer(*message), remote_endpoint_,
+//            m_socket.async_send_to(boost::asio::buffer(*message), remote_endpoint_,
 //                                  boost::bind(&udp_server::handle_send, this, message,
 //                                              boost::asio::placeholders::error,
 //                                              boost::asio::placeholders::bytes_transferred));
@@ -178,7 +181,7 @@ namespace kinski {
                                              recv_buffer_.begin() + bytes_transferred));
             }
             
-            start_receive(remote_endpoint_.port());
+            start_receive(m_socket.local_endpoint().port());
         }
         else
         {
@@ -194,7 +197,7 @@ namespace kinski {
             
             udp::endpoint receiver_endpoint = *resolver_.resolve(query);
             
-            socket_.async_send_to(boost::asio::buffer(bytes), receiver_endpoint,
+            m_socket.async_send_to(boost::asio::buffer(bytes), receiver_endpoint,
                                   boost::bind(&udp_server::handle_send, this,
                                               boost::asio::placeholders::error,
                                               boost::asio::placeholders::bytes_transferred));
@@ -204,5 +207,9 @@ namespace kinski {
     void udp_server::handle_send(const boost::system::error_code& error,
                                  std::size_t bytes_transferred)
     {
+        if(error)
+        {
+            LOG_ERROR << error.message();
+        }
     }
 }

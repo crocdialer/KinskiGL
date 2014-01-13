@@ -84,7 +84,7 @@ namespace kinski
                          std::size_t /*bytes_transferred*/);
         
         kinski::App::WeakPtr m_app;
-        udp::socket socket_;
+        udp::socket m_socket;
         udp::resolver resolver_;
         udp::endpoint remote_endpoint_;
         std::array<char, 1024> recv_buffer_;

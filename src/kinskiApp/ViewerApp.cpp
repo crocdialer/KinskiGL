@@ -173,29 +173,29 @@ namespace kinski {
     {
         GLFW_App::keyPress(e);
         
-        if(e.getChar() == KeyEvent::KEY_SPACE)
+        if(e.getCode() == GLFW_KEY_SPACE)
         {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
         
         if(!displayTweakBar())
         {
-            switch (e.getChar())
+            switch (e.getCode())
             {
-                case KeyEvent::KEY_c:
+                case GLFW_KEY_C:
                     m_center_selected = !m_center_selected;
                     break;
                     
-                case KeyEvent::KEY_s:
+                case GLFW_KEY_S:
                     Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                     save_settings();
                     break;
                 
-                case KeyEvent::KEY_f:
+                case GLFW_KEY_F:
                     setFullSceen(!fullSceen());
                     break;
                     
-                case KeyEvent::KEY_r:
+                case GLFW_KEY_R:
                     try
                     {
                         m_inertia = glm::vec2(0);

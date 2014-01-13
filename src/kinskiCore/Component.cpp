@@ -61,5 +61,10 @@ void Component::observeProperties(bool b)
 {
     observeProperties(m_propertyList, b);
 }
+    
+void Component::unregister_all_properties()
+{
+    m_propertyList.clear();
+}
 
 }

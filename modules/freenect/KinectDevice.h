@@ -228,8 +228,9 @@ namespace kinski
             m_stop = true;
             try
             {
-                boost::posix_time::milliseconds t(5);
-                m_thread.timed_join(t);
+//                boost::posix_time::milliseconds t(5);
+//                m_thread.timed_join(t);
+                m_thread.join();
             }
             catch(std::exception &e){ LOG_ERROR<<e.what(); }
             

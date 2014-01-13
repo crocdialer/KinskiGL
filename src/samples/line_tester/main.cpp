@@ -161,6 +161,6 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new LineTester);
-    LOG_INFO<<"local ip: " << AppServer::local_ip();
+    LOG_INFO<<"local ip: " << tcp_server::local_ip();
     return theApp->run();
 }
