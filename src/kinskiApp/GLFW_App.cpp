@@ -95,6 +95,7 @@ namespace kinski
         glClearColor(0, 0, 0, 1);
         
         // file search paths
+        kinski::addSearchPath(".", true);
         kinski::addSearchPath("./res", true);
         kinski::addSearchPath("../Resources", true);
         
