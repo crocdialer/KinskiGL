@@ -22,12 +22,12 @@ FIND_PATH(ASSIMP_INCLUDE_DIR NAMES ../assimp/cimport.h
   /opt/local/include
   NO_DEFAULT_PATH
 )
- 
 
 FIND_LIBRARY(LIBASSIMP
   NAMES 
-  lib${ASSIMP}.a
+  lib${ASSIMP}
   ${ASSIMP}
+  libassimp.so.3
   PATHS
   ${ASSIMP_DEPS_LIB_DIR}
   ${PROJECT_SOURCE_DIR}/libraries/assimp/lib

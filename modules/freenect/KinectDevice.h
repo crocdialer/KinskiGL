@@ -14,7 +14,7 @@
 #include "kinskiCore/Logger.h"
 
 // Lib-Freenect
-#include <libfreenect/libfreenect.h>
+#include <libfreenect.h>
 #include <libusb-1.0/libusb.h>
 
 // Boost
