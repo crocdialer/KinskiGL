@@ -16,6 +16,13 @@ using boost::asio::ip::udp;
 
 namespace kinski
 {
+    
+    namespace net
+    {
+        void async_send_udp(boost::asio::io_service& io_service, const std::vector<uint8_t> &bytes,
+                            const std::string &ip, int port);
+    }
+    
     class tcp_server;
     class tcp_connection;
     class response_delegate;
@@ -75,13 +82,9 @@ namespace kinski
         
     private:
         void start_receive(int port);
-        void send(const std::vector<uint8_t> &bytes, const std::string &ip, int port);
         
         void handle_receive(const boost::system::error_code& error,
                             std::size_t /*bytes_transferred*/);
-        
-        void handle_send(const boost::system::error_code& /*error*/,
-                         std::size_t /*bytes_transferred*/);
         
         kinski::App::WeakPtr m_app;
         udp::socket m_socket;
