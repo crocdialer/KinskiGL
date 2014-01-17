@@ -20,9 +20,17 @@ using namespace std;
 namespace kinski{ namespace gl{
     
     Geometry::Geometry():
-    m_primitiveType(GL_TRIANGLES)
+    m_primitiveType(GL_TRIANGLES),
+    m_dirty_vertexBuffer(true),
+    m_dirty_normalBuffer(true),
+    m_dirty_texCoordBuffer(true),
+    m_dirty_colorBuffer(true),
+    m_dirty_tangentBuffer(true),
+    m_dirty_pointSizeBuffer(true),
+    m_dirty_indexBuffer(true),
+    m_dirty_boneBuffer(true)
     {
-    
+
     }
     
     Geometry::~Geometry()
@@ -145,7 +153,7 @@ namespace kinski{ namespace gl{
     
     void Geometry::createGLBuffers()
     {
-        if(!m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
+        if(!m_vertices.empty() && m_dirty_vertexBuffer)// pad vec3 -> vec4 (OpenCL compat issue)
         {
             //m_vertexBuffer.setData(m_vertices);
             m_vertexBuffer.setData(NULL, m_vertices.size() * sizeof(glm::vec4));
@@ -159,52 +167,60 @@ namespace kinski{ namespace gl{
             }
             m_vertexBuffer.unmap();
             KINSKI_CHECK_GL_ERRORS();
+            
+            m_dirty_vertexBuffer = false;
         }
         
         // insert normals
-        if(hasNormals())
+        if(hasNormals() && m_dirty_normalBuffer)
         {
             m_normalBuffer.setData(m_normals);
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_normalBuffer = false;
         }
         
         // insert normals
-        if(hasTexCoords())
+        if(hasTexCoords() && m_dirty_texCoordBuffer)
         {
             m_texCoordBuffer.setData(m_texCoords);
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_texCoordBuffer = false;
         }
         
         // insert tangents
-        if(hasTangents())
+        if(hasTangents() && m_dirty_tangentBuffer)
         {
             m_tangentBuffer.setData(m_tangents);
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_tangentBuffer = false;
         }
         
         // insert point sizes
-        if(hasPointSizes())
+        if(hasPointSizes() && m_dirty_pointSizeBuffer)
         {
             m_pointSizeBuffer.setData(m_point_sizes);
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_pointSizeBuffer = false;
         }
         
         // insert colors
-        if(hasColors())
+        if(hasColors() && m_dirty_colorBuffer)
         {
             m_colorBuffer.setData(m_colors);
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_colorBuffer = false;
         }
         
         // insert bone indices and weights
-        if(hasBones())
+        if(hasBones() && m_dirty_boneBuffer)
         {
             m_boneBuffer.setData(m_boneVertexData);
             m_boneBuffer.setStride(sizeof(gl::BoneVertexData));
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_boneBuffer = false;
         }
         
-        if(hasIndices())
+        if(hasIndices() && m_dirty_indexBuffer)
         {
             // index buffer
             m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
@@ -218,6 +234,7 @@ namespace kinski{ namespace gl{
             
             m_indexBuffer.unmap();
             KINSKI_CHECK_GL_ERRORS();
+            m_dirty_indexBuffer = false;
         }
     }
     

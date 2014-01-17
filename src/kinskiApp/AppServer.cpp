@@ -186,10 +186,10 @@ namespace kinski {
             m_socket.connect(udp::endpoint(udp::v4(), port));
         
         m_socket.async_receive_from(boost::asio::buffer(recv_buffer_),
-                                   remote_endpoint_,
-                                   boost::bind(&udp_server::handle_receive, this,
-                                               boost::asio::placeholders::error,
-                                               boost::asio::placeholders::bytes_transferred));
+                                    remote_endpoint_,
+                                    boost::bind(&udp_server::handle_receive, this,
+                                                boost::asio::placeholders::error,
+                                                boost::asio::placeholders::bytes_transferred));
     }
     
     void udp_server::handle_receive(const boost::system::error_code& error,

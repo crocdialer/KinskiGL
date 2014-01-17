@@ -50,67 +50,67 @@ namespace kinski{ namespace gl{
         ~Geometry();
         
         inline void appendVertex(const glm::vec3 &theVert)
-        { m_vertices.push_back(theVert); };
+        { vertices().push_back(theVert); };
         
         inline void appendVertices(const std::vector<glm::vec3> &theVerts)
         {
-            m_vertices.insert(m_vertices.end(), theVerts.begin(), theVerts.end());
+            vertices().insert(m_vertices.end(), theVerts.begin(), theVerts.end());
         }
         inline void appendVertices(const glm::vec3 *theVerts, size_t numVerts)
         {
-            m_vertices.insert(m_vertices.end(), theVerts, theVerts + numVerts);
+            vertices().insert(m_vertices.end(), theVerts, theVerts + numVerts);
         }
         
         inline void appendNormal(const glm::vec3 &theNormal)
-        { m_normals.push_back(theNormal); };
+        { normals().push_back(theNormal); };
         
         inline void appendNormals(const std::vector<glm::vec3> &theNormals)
         {
-            m_normals.insert(m_normals.end(), theNormals.begin(), theNormals.end());
+            normals().insert(m_normals.end(), theNormals.begin(), theNormals.end());
         }
         inline void appendNormals(const glm::vec3 *theNormals, size_t numNormals)
         {
-            m_normals.insert(m_normals.end(), theNormals, theNormals + numNormals);
+            normals().insert(m_normals.end(), theNormals, theNormals + numNormals);
         }
         
         inline void appendTextCoord(float theU, float theV)
-        { m_texCoords.push_back(glm::vec2(theU, theV)); };
+        { texCoords().push_back(glm::vec2(theU, theV)); };
         
         inline void appendTextCoord(const glm::vec2 &theUV)
-        { m_texCoords.push_back(theUV); };
+        { texCoords().push_back(theUV); };
         
         inline void appendTextCoords(const std::vector<glm::vec2> &theVerts)
         {
-            m_texCoords.insert(m_texCoords.end(), theVerts.begin(), theVerts.end());
+            texCoords().insert(m_texCoords.end(), theVerts.begin(), theVerts.end());
         }
         inline void appendTextCoords(const glm::vec2 *theVerts, size_t numVerts)
         {
-            m_texCoords.insert(m_texCoords.end(), theVerts, theVerts + numVerts);
+            texCoords().insert(m_texCoords.end(), theVerts, theVerts + numVerts);
         }
         
         inline void appendColor(const glm::vec4 &theColor)
-        { m_colors.push_back(theColor); };
+        { colors().push_back(theColor); };
         
         inline void appendColors(const std::vector<glm::vec4> &theColors)
         {
-            m_colors.insert(m_colors.end(), theColors.begin(), theColors.end());
+            colors().insert(m_colors.end(), theColors.begin(), theColors.end());
         }
         
         inline void appendColors(const glm::vec4 *theColors, size_t numColors)
         {
-            m_colors.insert(m_colors.end(), theColors, theColors + numColors);
+            colors().insert(m_colors.end(), theColors, theColors + numColors);
         }
         
         inline void appendIndex(uint32_t theIndex)
-        { m_indices.push_back(theIndex); };
+        { indices().push_back(theIndex); };
         
         inline void appendIndices(const std::vector<uint32_t> &theIndices)
         {
-            m_indices.insert(m_indices.end(), theIndices.begin(), theIndices.end());
+            indices().insert(m_indices.end(), theIndices.begin(), theIndices.end());
         }
         inline void appendIndices(const uint32_t *theIndices, size_t numIndices)
         {
-            m_indices.insert(m_indices.end(), theIndices, theIndices + numIndices);
+            indices().insert(m_indices.end(), theIndices, theIndices + numIndices);
         }
         
         inline void appendFace(uint32_t a, uint32_t b, uint32_t c){ appendFace(Face3(a, b, c)); }
@@ -129,31 +129,31 @@ namespace kinski{ namespace gl{
         inline GLenum primitiveType() const {return m_primitiveType;};
         void setPrimitiveType(GLenum type){ m_primitiveType = type; };
         
-        inline std::vector<glm::vec3>& vertices(){ return m_vertices; };
+        inline std::vector<glm::vec3>& vertices(){ m_dirty_vertexBuffer = true; return m_vertices;};
         inline const std::vector<glm::vec3>& vertices() const { return m_vertices; };
         
         bool hasNormals() const { return m_vertices.size() == m_normals.size(); };
-        inline std::vector<glm::vec3>& normals(){ return m_normals; };
+        inline std::vector<glm::vec3>& normals(){ m_dirty_normalBuffer = true; return m_normals; };
         inline const std::vector<glm::vec3>& normals() const { return m_normals; };
         
         bool hasTangents() const { return m_vertices.size() == m_tangents.size(); };
-        inline std::vector<glm::vec3>& tangents(){ return m_tangents; };
+        inline std::vector<glm::vec3>& tangents(){ m_dirty_tangentBuffer = true; return m_tangents; };
         inline const std::vector<glm::vec3>& tangents() const { return m_tangents; };
         
         bool hasPointSizes() const { return m_vertices.size() == m_point_sizes.size(); };
-        inline std::vector<float>& point_sizes(){ return m_point_sizes; };
+        inline std::vector<float>& point_sizes(){ m_dirty_pointSizeBuffer = true; return m_point_sizes; };
         inline const std::vector<float>& point_sizes() const { return m_point_sizes; };
         
         bool hasTexCoords() const { return m_vertices.size() == m_texCoords.size(); };
-        inline std::vector<glm::vec2>& texCoords(){ return m_texCoords; };
+        inline std::vector<glm::vec2>& texCoords(){ m_dirty_texCoordBuffer = true; return m_texCoords; };
         inline const std::vector<glm::vec2>& texCoords() const { return m_texCoords; };
         
         bool hasColors() const { return m_vertices.size() == m_colors.size(); };
-        std::vector<glm::vec4>& colors(){ return m_colors; };
+        std::vector<glm::vec4>& colors(){ m_dirty_colorBuffer = true; return m_colors; };
         const std::vector<glm::vec4>& colors() const { return m_colors; };
         
         bool hasIndices() const { return !m_indices.empty(); };
-        std::vector<uint32_t>& indices(){ return m_indices; };
+        std::vector<uint32_t>& indices(){ m_dirty_indexBuffer = true; return m_indices; };
         const std::vector<uint32_t>& indices() const { return m_indices; };
         
         inline std::vector<Face3>& faces(){ return m_faces; };
@@ -223,6 +223,15 @@ namespace kinski{ namespace gl{
         gl::Buffer m_pointSizeBuffer;
         gl::Buffer m_indexBuffer;
         gl::Buffer m_boneBuffer;
+        
+        bool m_dirty_vertexBuffer;
+        bool m_dirty_normalBuffer;
+        bool m_dirty_texCoordBuffer;
+        bool m_dirty_colorBuffer;
+        bool m_dirty_tangentBuffer;
+        bool m_dirty_pointSizeBuffer;
+        bool m_dirty_indexBuffer;
+        bool m_dirty_boneBuffer;
     };
 
 }//gl

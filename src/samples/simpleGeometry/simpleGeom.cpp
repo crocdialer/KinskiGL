@@ -392,7 +392,7 @@ public:
         gl::Ray ray = gl::calculateRay(camera(), e.getX(), e.getY());
         
         // calculate intersection of ray and an origin-centered plane
-        gl::Plane plane = gl::Plane(vec3(0, 0, 0), vec3(0, 0, 1));
+        gl::Plane plane = gl::Plane(vec3(0, 0, 0), vec3(0, 1, 0));
         
         gl::ray_intersection ri = plane.intersect(ray);
         
