@@ -14,6 +14,7 @@
 #include "kinskiCore/Component.h"
 #include "kinskiCore/Logger.h"
 #include "kinskiCore/file_functions.h"
+#include "kinskiCore/networking.h"
 #include "kinskiCore/ThreadPool.h"
 
 namespace kinski

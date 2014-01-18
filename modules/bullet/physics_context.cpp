@@ -92,13 +92,14 @@ namespace kinski{ namespace physics{
     btCollisionShapePtr createConvexCollisionShape(const gl::MeshPtr &the_mesh,
                                                    const glm::vec3 &the_scale)
     {
-        vector<glm::vec3> &vertices = the_mesh->geometry()->vertices();
+        const vector<glm::vec3> &vertices = the_mesh->geometry()->vertices();
         physics::btCollisionShapePtr hull_shape(new btConvexHullShape((btScalar*)&vertices[0],
                                                                       vertices.size(),
                                                                       sizeof(vertices[0])));
         hull_shape->setLocalScaling(type_cast(the_scale));
         return hull_shape;
     }
+    
     
     btVector3 type_cast(const glm::vec3 &the_vec)
     {
@@ -217,6 +218,22 @@ namespace kinski{ namespace physics{
                                         btDispatcherInfo& dispatchInfo)
     {
     
+    }
+    
+    void physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh)
+    {
+        btCollisionShapePtr customShape = createCollisionShape(the_mesh, the_mesh->scale());
+        m_collisionShapes.push_back(customShape);
+        physics::MotionState *ms = new physics::MotionState(the_mesh);
+        btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
+        btRigidBody* body = new btRigidBody(rbInfo);
+        body->setFriction(0.1f);
+        body->setRestitution(0.1f);
+        body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+        body->setActivationState(DISABLE_DEACTIVATION);
+        
+        //add the body to the dynamics world
+        m_dynamicsWorld->addRigidBody(body);
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/

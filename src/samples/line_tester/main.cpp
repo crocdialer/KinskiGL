@@ -3,6 +3,8 @@
 
 #include "kinskiGL/Mesh.h"
 
+#include "kinskiCore/networking.h"
+
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -41,6 +43,8 @@ public:
         displayTweakBar(false);
         
         m_texture_name->notifyObservers();
+        
+        
     }
     
     /////////////////////////////////////////////////////////////////
@@ -161,6 +165,6 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new LineTester);
-    LOG_INFO<<"local ip: " << tcp_server::local_ip();
+    LOG_INFO<<"local ip: " << net::local_ip();
     return theApp->run();
 }

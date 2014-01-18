@@ -194,6 +194,8 @@ namespace kinski{ namespace physics{
         void near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
                            btDispatcherInfo& dispatchInfo);
         
+        void add_mesh_to_simulation(const gl::MeshPtr &the_mesh);
+        
      private:
         
         std::vector<btCollisionShapePtr> m_collisionShapes;
