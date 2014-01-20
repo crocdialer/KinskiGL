@@ -172,6 +172,35 @@ namespace kinski{ namespace physics{
         gl::MeshPtr m_mesh;
     };
     
+    /*
+     * subclass of btBvhTriangleMeshShape,
+     * which encapsulates a physics::MeshPtr (btStridingMeshInterface)
+     */
+    class TriangleMeshShape : public btBvhTriangleMeshShape
+    {
+    public:
+        
+        TriangleMeshShape(physics::MeshPtr meshInterface,
+                          bool useQuantizedAabbCompression,
+                          bool buildBvh = true):
+        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, buildBvh),
+        m_striding_mesh(meshInterface)
+        {}
+        
+        ///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
+        TriangleMeshShape(physics::MeshPtr meshInterface,
+                          bool useQuantizedAabbCompression,
+                          const btVector3& bvhAabbMin,
+                          const btVector3& bvhAabbMax,
+                          bool buildBvh = true):
+        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, bvhAabbMin, bvhAabbMax, buildBvh),
+        m_striding_mesh(meshInterface)
+        {}
+        
+    private:
+        physics::MeshPtr m_striding_mesh;
+    };
+    
     struct physics_object
     {
         gl::Mesh *graphics_object;

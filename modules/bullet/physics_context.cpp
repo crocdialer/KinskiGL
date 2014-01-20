@@ -82,35 +82,6 @@ using namespace std;
 
 namespace kinski{ namespace physics{
     
-    /*
-     * Internal subclass of btBvhTriangleMeshShape, 
-     * which encapsulates a physics::MeshPtr (btStridingMeshInterface)
-     */
-    class TriangleMeshShape : public btBvhTriangleMeshShape
-    {
-    public:
-        
-        TriangleMeshShape(physics::MeshPtr meshInterface,
-                          bool useQuantizedAabbCompression,
-                          bool buildBvh = true):
-        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, buildBvh),
-        m_striding_mesh(meshInterface)
-        {}
-        
-        ///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
-        TriangleMeshShape(physics::MeshPtr meshInterface,
-                          bool useQuantizedAabbCompression,
-                          const btVector3& bvhAabbMin,
-                          const btVector3& bvhAabbMax,
-                          bool buildBvh = true):
-        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, bvhAabbMin, bvhAabbMax, buildBvh),
-        m_striding_mesh(meshInterface)
-        {}
-        
-        private:
-            physics::MeshPtr m_striding_mesh;
-    };
-    
     btCollisionShapePtr createCollisionShape(const gl::MeshPtr &the_mesh, const glm::vec3 &the_scale)
     {
         auto phy_mesh = std::make_shared<physics::Mesh>(the_mesh);
@@ -249,11 +220,13 @@ namespace kinski{ namespace physics{
     
     }
     
+    //TODO: think about this carefully, not having doubles and stuff
     btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh,
                                                          btCollisionShapePtr col_shape)
     {
         // look for an existing col_shape for this mesh
         auto iter = m_mesh_shape_map.find(the_mesh);
+        
         
         if(iter == m_mesh_shape_map.end())
         {
@@ -264,7 +237,17 @@ namespace kinski{ namespace physics{
         }
         else
         {
-            col_shape = iter->second;
+            if(col_shape)
+            {
+                // remove old collision shape from set
+                m_collisionShapes.erase(m_collisionShapes.find(iter->second));
+                m_collisionShapes.insert(col_shape);
+                m_mesh_shape_map[the_mesh] = col_shape;
+            }
+            else
+            {
+                col_shape = iter->second;
+            }
         }
         
         physics::MotionState *ms = new physics::MotionState(the_mesh);
@@ -365,13 +348,4 @@ namespace kinski{ namespace physics{
     
 /**************************************************************************************************/
     
-    
-    
-//    void MyNearCallback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
-//                        btDispatcherInfo& dispatchInfo)
-//    {
-//        // Do your collision logic here
-//        // Only dispatch the Bullet collision information if you want the physics to continue
-//        dispatcher.defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
-//    }
 }}
