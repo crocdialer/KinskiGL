@@ -197,6 +197,7 @@ namespace kinski{ namespace physics{
     {
         boost::mutex::scoped_lock lock(m_mutex);
         if(!m_dynamicsWorld) return;
+        
         int i;
         for (i = m_dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
         {
@@ -211,6 +212,7 @@ namespace kinski{ namespace physics{
         }
         
         m_collisionShapes.clear();
+        m_mesh_shape_map.clear();
         deleteCollisionLocalStoreMemory();
     }
     
@@ -221,7 +223,7 @@ namespace kinski{ namespace physics{
     }
     
     //TODO: think about this carefully, not having doubles and stuff
-    btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh,
+    btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass,
                                                          btCollisionShapePtr col_shape)
     {
         // look for an existing col_shape for this mesh
@@ -251,12 +253,16 @@ namespace kinski{ namespace physics{
         }
         
         physics::MotionState *ms = new physics::MotionState(the_mesh);
-        btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, col_shape.get());
+        btVector3 localInertia;
+        if(mass != 0.f)
+            col_shape->calculateLocalInertia(mass, localInertia);
+        
+        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, ms, col_shape.get(), localInertia);
         btRigidBody* body = new btRigidBody(rbInfo);
-        body->setFriction(0.1f);
-        body->setRestitution(0.1f);
-        body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-        body->setActivationState(DISABLE_DEACTIVATION);
+//        body->setFriction(0.1f);
+//        body->setRestitution(0.1f);
+//        body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+//        body->setActivationState(DISABLE_DEACTIVATION);
         
         //add the body to the dynamics world
         m_dynamicsWorld->addRigidBody(body);

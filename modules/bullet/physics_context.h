@@ -230,10 +230,10 @@ namespace kinski{ namespace physics{
         /*
          * Add a kinski::MeshPtr instance to the physics simulation,
          * with an optional collision shape.
-         * If no collision shape is provided, a btBvhTriangleMeshShape instance will be created.
+         * If no collision shape is provided, a (static) btBvhTriangleMeshShape instance will be created.
          * return: A pointer to the newly created btRigidBody
          */
-        btRigidBody* add_mesh_to_simulation(const gl::MeshPtr &the_mesh,
+        btRigidBody* add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass = 0.f,
                                             btCollisionShapePtr col_shape = btCollisionShapePtr());
         
      private:
