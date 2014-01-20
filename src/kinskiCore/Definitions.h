@@ -40,15 +40,7 @@ namespace kinski
     using std::list;
     using std::set;
     
-//    using boost::int8_t;
-//    using boost::uint8_t;
-//    using boost::int16_t;
-//    using boost::uint16_t;
-//    using boost::int32_t;
-//    using boost::uint32_t;
-//    using boost::int64_t;
-//    using boost::uint64_t;
-    
+//    using namespace std::placeholders;
 }
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)

@@ -27,6 +27,17 @@ namespace kinski
         
         std::string local_ip(bool ipV6 = false);
         
+        KINSKI_API void send_tcp(const std::vector<uint8_t> &bytes,
+                                 const std::string &ip_string, int port);
+        
+        KINSKI_API void async_send_tcp(boost::asio::io_service& io_service,
+                                       const std::vector<uint8_t> &bytes,
+                                       const std::string &ip,
+                                       int port);
+        
+        KINSKI_API void send_udp(const std::vector<uint8_t> &bytes,
+                                 const std::string &ip_string, int port);
+        
         KINSKI_API void async_send_udp(boost::asio::io_service& io_service,
                                        const std::vector<uint8_t> &bytes,
                                        const std::string &ip,
@@ -41,13 +52,14 @@ namespace kinski
             udp_server();
             udp_server(boost::asio::io_service& io_service, receive_function f = receive_function());
             
-            KINSKI_API void start_receive(int port);
+            KINSKI_API void start_listen(int port);
+            KINSKI_API void stop_listen();
             KINSKI_API void set_receive_function(receive_function f);
             
         private:
             std::shared_ptr<class udp_server_impl> m_impl;
         };
-    }// namespace kinski
+    }// namespace net
     
 }// namespace kinski
 

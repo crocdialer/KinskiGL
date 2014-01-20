@@ -235,6 +235,7 @@ namespace kinski { namespace gl {
         mat->setBlending(true);
         mat->setTwoSided(true);
         MeshPtr ret = gl::Mesh::create(geom, mat);
+        ret->entries().clear();
         
         std::vector<glm::vec3>& vertices = geom->vertices();
         std::vector<glm::vec2>& tex_coords = geom->texCoords();

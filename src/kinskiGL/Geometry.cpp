@@ -60,6 +60,9 @@ namespace kinski{ namespace gl{
     
     void Geometry::computeVertexNormals()
     {
+        //mark gpu buffer as dirty
+        m_dirty_normalBuffer = true;
+        
         if(m_faces.empty()) return;
 
         // create tmp array, if not yet constructed

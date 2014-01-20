@@ -16,4 +16,4 @@ SOURCE_GROUP("Sources" FILES ${FOLDER_SOURCES})
 addTestMacro()
 
 install (TARGETS ${LIB_NAME} DESTINATION lib)    
-install (FILES ${FOLDER_HEADERS} DESTINATION "include/${LIB_NAME}")    
+install (FILES ${FOLDER_HEADERS} DESTINATION "include/${LIB_NAME}")  

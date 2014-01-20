@@ -82,11 +82,40 @@ using namespace std;
 
 namespace kinski{ namespace physics{
     
+    /*
+     * Internal subclass of btBvhTriangleMeshShape, 
+     * which encapsulates a physics::MeshPtr (btStridingMeshInterface)
+     */
+    class TriangleMeshShape : public btBvhTriangleMeshShape
+    {
+    public:
+        
+        TriangleMeshShape(physics::MeshPtr meshInterface,
+                          bool useQuantizedAabbCompression,
+                          bool buildBvh = true):
+        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, buildBvh),
+        m_striding_mesh(meshInterface)
+        {}
+        
+        ///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
+        TriangleMeshShape(physics::MeshPtr meshInterface,
+                          bool useQuantizedAabbCompression,
+                          const btVector3& bvhAabbMin,
+                          const btVector3& bvhAabbMax,
+                          bool buildBvh = true):
+        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, bvhAabbMin, bvhAabbMax, buildBvh),
+        m_striding_mesh(meshInterface)
+        {}
+        
+        private:
+            physics::MeshPtr m_striding_mesh;
+    };
+    
     btCollisionShapePtr createCollisionShape(const gl::MeshPtr &the_mesh, const glm::vec3 &the_scale)
     {
-        btStridingMeshInterface *striding_mesh = new physics::Mesh(the_mesh);
-        striding_mesh->setScaling(type_cast(the_scale));
-        return physics::btCollisionShapePtr(new btBvhTriangleMeshShape(striding_mesh, false));
+        auto phy_mesh = std::make_shared<physics::Mesh>(the_mesh);
+        phy_mesh->setScaling(type_cast(the_scale));
+        return std::make_shared<TriangleMeshShape>(phy_mesh, true);
     }
     
     btCollisionShapePtr createConvexCollisionShape(const gl::MeshPtr &the_mesh,
@@ -220,12 +249,26 @@ namespace kinski{ namespace physics{
     
     }
     
-    void physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh)
+    btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh,
+                                                         btCollisionShapePtr col_shape)
     {
-        btCollisionShapePtr customShape = createCollisionShape(the_mesh, the_mesh->scale());
-        m_collisionShapes.push_back(customShape);
+        // look for an existing col_shape for this mesh
+        auto iter = m_mesh_shape_map.find(the_mesh);
+        
+        if(iter == m_mesh_shape_map.end())
+        {
+            if(!col_shape)
+                col_shape = createCollisionShape(the_mesh, the_mesh->scale());
+            m_mesh_shape_map[the_mesh] = col_shape;
+            m_collisionShapes.insert(col_shape);
+        }
+        else
+        {
+            col_shape = iter->second;
+        }
+        
         physics::MotionState *ms = new physics::MotionState(the_mesh);
-        btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, customShape.get());
+        btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, ms, col_shape.get());
         btRigidBody* body = new btRigidBody(rbInfo);
         body->setFriction(0.1f);
         body->setRestitution(0.1f);
@@ -234,6 +277,7 @@ namespace kinski{ namespace physics{
         
         //add the body to the dynamics world
         m_dynamicsWorld->addRigidBody(body);
+        return body;
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/

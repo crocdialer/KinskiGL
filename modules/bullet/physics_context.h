@@ -19,7 +19,9 @@ class btThreadSupportInterface;
 namespace kinski{ namespace physics{
     
     typedef std::shared_ptr<btCollisionShape> btCollisionShapePtr;
+    typedef std::shared_ptr<const btCollisionShape> btCollisionShapeConstPtr;
     typedef std::shared_ptr<btCollisionObject> btCollisionObjectPtr;
+    typedef std::shared_ptr<const btCollisionObject> btCollisionConstObjectPtr;
     typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
     typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
     
@@ -123,6 +125,8 @@ namespace kinski{ namespace physics{
         }
     };
     
+    typedef std::shared_ptr<class Mesh> MeshPtr;
+    
     KINSKI_API class Mesh : public btStridingMeshInterface
     {
     public:
@@ -188,17 +192,25 @@ namespace kinski{ namespace physics{
         const btDynamicsWorldConstPtr dynamicsWorld() const {return m_dynamicsWorld;};
         const btDynamicsWorldPtr& dynamicsWorld() {return m_dynamicsWorld;};
         
-        const std::vector<btCollisionShapePtr>& collisionShapes() const {return m_collisionShapes;};
-        std::vector<btCollisionShapePtr>& collisionShapes() {return m_collisionShapes;};
+        const std::set<btCollisionShapePtr>& collisionShapes() const {return m_collisionShapes;};
+        std::set<btCollisionShapePtr>& collisionShapes() {return m_collisionShapes;};
         
         void near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
                            btDispatcherInfo& dispatchInfo);
         
-        void add_mesh_to_simulation(const gl::MeshPtr &the_mesh);
+        /*
+         * Add a kinski::MeshPtr instance to the physics simulation,
+         * with an optional collision shape.
+         * If no collision shape is provided, a btBvhTriangleMeshShape instance will be created.
+         * return: A pointer to the newly created btRigidBody
+         */
+        btRigidBody* add_mesh_to_simulation(const gl::MeshPtr &the_mesh,
+                                            btCollisionShapePtr col_shape = btCollisionShapePtr());
         
      private:
         
-        std::vector<btCollisionShapePtr> m_collisionShapes;
+        std::map<gl::MeshPtr, btCollisionShapePtr> m_mesh_shape_map;
+        std::set<btCollisionShapePtr> m_collisionShapes;
         std::shared_ptr<btBroadphaseInterface> m_broadphase;
         std::shared_ptr<btCollisionDispatcher> m_dispatcher;
         std::shared_ptr<btConstraintSolver> m_solver;
@@ -210,9 +222,6 @@ namespace kinski{ namespace physics{
         std::shared_ptr<btThreadSupportInterface> m_threadSupportSolver;
         
         boost::mutex m_mutex;
-//        boost::function<void (btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
-//            btDispatcherInfo& dispatchInfo)> m_nearCallback;
-        
     };
 }}//namespace
 
