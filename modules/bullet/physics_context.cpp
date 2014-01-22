@@ -251,7 +251,6 @@ namespace kinski{ namespace physics{
                 col_shape = iter->second;
             }
         }
-        
         physics::MotionState *ms = new physics::MotionState(the_mesh);
         btVector3 localInertia;
         if(mass != 0.f)
@@ -259,10 +258,6 @@ namespace kinski{ namespace physics{
         
         btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, ms, col_shape.get(), localInertia);
         btRigidBody* body = new btRigidBody(rbInfo);
-//        body->setFriction(0.1f);
-//        body->setRestitution(0.1f);
-//        body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-//        body->setActivationState(DISABLE_DEACTIVATION);
         
         //add the body to the dynamics world
         m_dynamicsWorld->addRigidBody(body);

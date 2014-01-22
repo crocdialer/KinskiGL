@@ -24,6 +24,7 @@ namespace kinski
         
         void updateProperty(const Property::ConstPtr &theProperty);
         void setObject(const gl::Object3DPtr &theObject);
+        gl::Object3DPtr object() {return m_object;}
         void refresh();
         
     private:

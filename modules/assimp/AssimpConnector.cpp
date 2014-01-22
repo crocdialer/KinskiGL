@@ -242,7 +242,7 @@ namespace kinski { namespace gl{
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
             {
-                try{theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data)));}
+                try{theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data), true, true));}
                 catch(Exception &e){LOG_ERROR<<e.what();}
             }
         }

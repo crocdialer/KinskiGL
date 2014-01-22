@@ -51,9 +51,9 @@ bool TextureIO::saveTexture(const string &imgPath, const Texture &texture, bool 
     return imwrite(imgPath, outMat);
 }
 
-void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
+void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage, bool compress)
 {
-    GLenum format=0;
+    GLenum format = 0, internal_format = 0;
     
     switch(theImage.channels()) 
 	{
@@ -74,17 +74,21 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage)
 #else        
         case 1:
             format = GL_RED;
-			break;
-		case 2:
+            internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
+            break;
+        case 2:
             format = GL_RG;
-			break;
-		case 3:
-			format = GL_BGR;
-			break;
+            internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
+            break;
+        case 3:
+            format = GL_BGR;
+            internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
+            break;
         case 4:
-			format =  GL_BGRA;
-		default:
-			break;
+            format = GL_BGRA;
+            internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
+        default:
+            break;
 #endif
 	}
     GLenum dataType = (theImage.type() == CV_32FC(theImage.channels())) ? GL_FLOAT : GL_UNSIGNED_BYTE;

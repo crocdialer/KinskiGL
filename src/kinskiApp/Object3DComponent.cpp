@@ -31,6 +31,12 @@ namespace kinski
     
     void Object3DComponent::updateProperty(const Property::ConstPtr &theProperty)
     {
+        if(!m_object)
+        {
+            LOG_ERROR << "could not update: no component set ...";
+            return;
+        }
+            
         if(theProperty == m_enabled)
         {
             m_object->set_enabled(*m_enabled);

@@ -26,7 +26,8 @@ namespace kinski{ namespace gl{
         static bool saveTexture(const std::string &imgPath, const gl::Texture &texture, bool flip = false);
         
         static void updateTexture(gl::Texture &theTexture,
-                                  const cv::Mat &theImage);
+                                  const cv::Mat &theImage,
+                                  bool compress = false);
     };
 }}
 #endif //_TEXTUREIO_IS_INCLUDED_
