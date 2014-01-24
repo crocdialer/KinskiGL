@@ -19,6 +19,8 @@ namespace kinski { namespace gl {
     {
     public:
         
+        typedef std::function<void (float)> UpdateFunction;
+        
         Object3D();
         virtual ~Object3D(){};
         
@@ -72,6 +74,20 @@ namespace kinski { namespace gl {
         
         virtual gl::AABB boundingBox() const;
         
+        /*!
+         * Performs an update on this scenegraph node.
+         * Triggered by gl::Scene instances during gl::Scene::update(float delta) calls
+         */
+        virtual void update(float time_delta)
+        {
+            if(m_update_function){m_update_function(time_delta);}
+        };
+        
+        /*!
+         * Provide a function object to be called on each update
+         */
+        void set_update_function(UpdateFunction f){ m_update_function = f;}
+        
         virtual void accept(Visitor &theVisitor);
         
     private:
@@ -88,6 +104,8 @@ namespace kinski { namespace gl {
         glm::mat4 m_transform;
         std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;
+        
+        UpdateFunction m_update_function;
     };
     
     class Visitor

@@ -116,9 +116,9 @@ namespace kinski { namespace gl {
           nDotL = max(0.0, nDotL);
           
           float specIntesity = clamp(pow( max(dot(R, E), 0.0), mat.shinyness), 0.0, 1.0);
-          vec4 diffuse = mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0);
-          vec4 spec = mat.specular * light.specular * specIntesity; spec.a = 0.0;
-          return base_color * (ambient + att * (diffuse + spec));
+          vec4 diffuse = att * mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0);
+          vec4 spec = att * mat.specular * light.specular * specIntesity; spec.a = 0.0;
+          return base_color * (ambient + diffuse) + spec;
         });
         
         std::string vertex_shader_phong = STRINGIFY(
@@ -173,10 +173,19 @@ namespace kinski { namespace gl {
             // calculate shading for all lights
             vec4 shade_color = vec4(0);
             //for(int i = 0; i < u_numLights; i++)// loop causes trouble on nvidia osx 10.8
-            {
+            
+            if(u_numLights > 0)
                 shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors);
+            
+            if(u_numLights > 1)
                 shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors);
-            }
+
+            if(u_numLights > 2)
+                shade_color += shade(u_lights[2], u_material, normal, vertex_in.eyeVec, texColors);
+
+            if(u_numLights > 3)
+                shade_color += shade(u_lights[3], u_material, normal, vertex_in.eyeVec, texColors);
+            
             fragData = shade_color;
         });
         

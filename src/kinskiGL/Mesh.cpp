@@ -194,6 +194,8 @@ namespace kinski { namespace gl {
     
     void Mesh::update(float time_delta)
     {
+        Object3D::update(time_delta);
+        
         if(!m_animations.empty())
         {
             const AnimationPtr &anim = m_animations[m_animation_index];

@@ -785,7 +785,7 @@ namespace kinski { namespace gl {
     
     void drawMesh(const MeshPtr &theMesh)
     {
-        if(theMesh->geometry()->vertices().empty()) return;
+        if(!theMesh || theMesh->geometry()->vertices().empty()) return;
         
         theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
         if(theMesh->geometry()->hasNormals())
