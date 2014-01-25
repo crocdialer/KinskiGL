@@ -23,14 +23,13 @@
 #include <map>
 #include <stack>
 
-#include <boost/cstdint.hpp>
 #include <boost/version.hpp>
-#include <boost/static_assert.hpp>
 
+#include "Exception.h"
 #include "Utils.h"
 
-#if BOOST_VERSION < 104900
-#error "Kinski requires Boost version 1.49 or later"
+#if BOOST_VERSION < 105300
+#error "Kinski requires Boost version 1.53 or later"
 #endif
 
 namespace kinski

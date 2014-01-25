@@ -20,16 +20,22 @@ namespace kinski
         std::string local_ip(bool ipV6)
         {
             std::string ret = "unknown_ip";
-            boost::asio::io_service io;
-            tcp::resolver resolver(io);
-            tcp::resolver::query query(ipV6 ? tcp::v6() : tcp::v4(), host_name(), "");
-            tcp::resolver::iterator it = resolver.resolve(query), end;
             
-            for (; it != end; ++it)
+            try
             {
-                const tcp::endpoint &endpoint = *it;
-                ret = endpoint.address().to_string();
+                boost::asio::io_service io;
+                tcp::resolver resolver(io);
+                tcp::resolver::query query(ipV6 ? tcp::v6() : tcp::v4(), host_name(), "");
+                tcp::resolver::iterator it = resolver.resolve(query), end;
+                
+                for (; it != end; ++it)
+                {
+                    const tcp::endpoint &endpoint = *it;
+                    ret = endpoint.address().to_string();
+                }
             }
+            catch (std::exception &e) { LOG_ERROR << e.what(); }
+            
             return ret;
         }
         

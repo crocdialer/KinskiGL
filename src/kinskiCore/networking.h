@@ -17,6 +17,12 @@ namespace boost
     namespace asio
     {
         class io_service;
+        
+        namespace ip
+        {
+//            namespace udp{class socket;}
+//            namespace tcp{class socket;}
+        }
     }
 }
 
@@ -59,6 +65,36 @@ namespace kinski
         private:
             std::shared_ptr<class udp_server_impl> m_impl;
         };
+        
+//        class tcp_connection : public std::enable_shared_from_this<tcp_connection>
+//        {
+//        public:
+//            typedef std::shared_ptr<tcp_connection> Ptr;
+//            
+//            static Ptr create(boost::asio::io_service& io_service)
+//            {
+//                return std::make_shared<tcp_connection>(io_service));
+//            }
+//            
+////            tcp::socket& socket(){ return m_socket; }
+//            
+//            void start();
+//            
+//            void send();
+//            void receive();
+//            
+//        private:
+//            tcp_connection(boost::asio::io_service& io_service);
+////            void handle_write(const boost::system::error_code& error, size_t bytes_transferred);
+////            void handle_read(const boost::system::error_code& error, size_t bytes_transferred);
+//            
+//            std::shared_ptr<class udp_server_impl> m_impl;
+//            
+//            tcp::socket m_socket;
+//            std::string m_message;
+//            std::vector<uint8_t> m_receive_buffer;
+//        };
+        
     }// namespace net
     
 }// namespace kinski

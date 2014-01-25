@@ -9,7 +9,7 @@
 #ifndef CHTHREAD_H
 #define CHTHREAD_H
 
-#include "boost/thread.hpp"
+#include <thread>
 #include "CVNode.h"
 
 namespace kinski
@@ -96,9 +96,9 @@ namespace kinski
         float m_lastGrabTime;
         float m_lastProcessTime;
         
-        boost::thread m_thread;
-        boost::mutex m_mutex;
-        boost::condition_variable m_conditionVar;
+        std::thread m_thread;
+        std::mutex m_mutex;
+        std::condition_variable m_conditionVar;
     };
     
 } // namespace kinski

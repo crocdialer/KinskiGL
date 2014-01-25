@@ -40,6 +40,7 @@ namespace kinski { namespace gl {
     {
         const char *phong_normalmap_vertSrc, *phong_normalmap_fragSrc;
         const char *point_color_fragSrc, *point_texture_fragSrc, *point_sphere_fragSrc;
+        const char *line_geom_src;
         
         std::string glsl_header = "#version 150 core\n";
         std::string glsl_define_explicit_layout = "#define GL_ARB_explicit_attrib_location 1\n";
@@ -684,7 +685,7 @@ namespace kinski { namespace gl {
 //            fragData = shade_color;
         });
         
-        const char *line_geom_src = GLSL(150 core,
+        line_geom_src = GLSL(150 core,
         
         // ------------------ Geometry Shader --------------------------------
         layout(lines) in;

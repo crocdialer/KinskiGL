@@ -42,7 +42,7 @@ namespace kinski
     void CVThread::start()
     {
         if(*m_running) return;
-        m_thread = boost::thread(boost::bind(&CVThread::run, this));
+        m_thread = std::thread(std::bind(&CVThread::run, this));
     }
     
     void CVThread::stop()
@@ -152,7 +152,7 @@ namespace kinski
 
             // locked scope
             {
-                boost::mutex::scoped_lock lock(m_mutex);
+                std::unique_lock<std::mutex> lock(m_mutex);
                 m_lastGrabTime = (grabTimes.wall) / 1.0e9;
                 m_lastProcessTime = (processTimes.wall) / 1.0e9;
                 m_images = tmpImages;
@@ -187,31 +187,31 @@ namespace kinski
     
     void CVThread::waitForImage()
     {
-        boost::mutex::scoped_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         while (!m_newFrame)
-            m_conditionVar.wait(lock);
+            m_conditionVar. wait(lock);
     }
     
     void CVThread::setImage(const cv::Mat& img)
     {
         vector<Mat> tmpImages;
+        tmpImages.push_back(img);
         
         if(hasProcessing())
         {
             vector<Mat> procImages = m_processNode->doProcessing(img);
-            tmpImages.push_back(img);
             tmpImages.insert(tmpImages.end(),
                              procImages.begin(),
                              procImages.end());
         }
-        boost::mutex::scoped_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         m_images = tmpImages;
         m_newFrame = true;
     }
     
     std::vector<cv::Mat> CVThread::getImages()
     {
-        boost::mutex::scoped_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         if(m_newFrame)
             m_newFrame = false;
         

@@ -12,7 +12,12 @@
 #include "boost/thread.hpp"
 #include "kinskiCore/Component.h"
 
-namespace kinski{
+namespace kinski
+{
+    
+    typedef std::shared_ptr<class CVSourceNode> CVSourceNodePtr;
+    typedef std::shared_ptr<CVSourceNode> Ptr;
+    typedef std::shared_ptr<CVSourceNode> Ptr;
     
     class CVNode : public Component
     {
