@@ -10,11 +10,11 @@
 #define CHTHREAD_H
 
 #include <thread>
+#include <mutex>
 #include "CVNode.h"
 
 namespace kinski
 {
-    
     typedef std::shared_ptr<class CVThread> CVThreadPtr;
     
     class CVThread : public Component
