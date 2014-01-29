@@ -2,6 +2,7 @@
 #include "Logger.h"
 
 #if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
+    #include <unistd.h>
 	#include <sys/ioctl.h>
 	#include <getopt.h>
 	#include <dirent.h>
