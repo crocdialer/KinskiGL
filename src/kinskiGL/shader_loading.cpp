@@ -405,13 +405,13 @@ namespace kinski { namespace gl {
         out vec4 fragData;
         void main()
         {
-           vec4 texColors = vertex_in.color;
-           for(int i = 0; i < u_numTextures; i++)
-           {
-               texColors *= texture(u_textureMap[i], vertex_in.texCoord.st);
-           }
+            vec4 texColors = vertex_in.color;
+            
+            if(u_numTextures > 0)
+                texColors *= texture(u_textureMap[0], vertex_in.texCoord.st);
+            
             //if(texColors.a == 0.0) discard;
-           fragData = u_material.diffuse * texColors;
+            fragData = u_material.diffuse * texColors;
         });
         
         const char *phongVertSrc_skin = GLSL(150 core,
