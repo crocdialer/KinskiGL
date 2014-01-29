@@ -61,10 +61,10 @@ GLint Buffer::id() const
     return m_Obj->buffer_id;
 }
 
-uint8_t* Buffer::map()
+uint8_t* Buffer::map(GLenum mode)
 {
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-    uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, GL_ENUM(GL_WRITE_ONLY));
+    uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
     
     if(!ptr) throw Exception("Could not map gl::Buffer");
     

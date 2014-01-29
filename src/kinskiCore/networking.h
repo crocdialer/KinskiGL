@@ -20,8 +20,8 @@ namespace boost
         
         namespace ip
         {
-//            namespace udp{class socket;}
-//            namespace tcp{class socket;}
+            class udp;
+            class tcp;
         }
     }
 }
@@ -30,6 +30,10 @@ namespace kinski
 {
     namespace net
     {
+        // signature for a receive function
+        typedef std::function<void (const std::vector<uint8_t>&)> receive_function;
+        
+        typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;
         
         std::string local_ip(bool ipV6 = false);
         
@@ -53,47 +57,39 @@ namespace kinski
         {
         public:
             
-            typedef std::function<void (const std::vector<uint8_t>&)> receive_function;
-            
             udp_server();
             udp_server(boost::asio::io_service& io_service, receive_function f = receive_function());
             
             KINSKI_API void start_listen(int port);
             KINSKI_API void stop_listen();
             KINSKI_API void set_receive_function(receive_function f);
+            KINSKI_API void set_receive_buffer_size(size_t sz);
             
         private:
-            std::shared_ptr<class udp_server_impl> m_impl;
+            std::shared_ptr<struct udp_server_impl> m_impl;
         };
         
-//        class tcp_connection : public std::enable_shared_from_this<tcp_connection>
-//        {
-//        public:
-//            typedef std::shared_ptr<tcp_connection> Ptr;
-//            
-//            static Ptr create(boost::asio::io_service& io_service)
-//            {
-//                return std::make_shared<tcp_connection>(io_service));
-//            }
-//            
-////            tcp::socket& socket(){ return m_socket; }
-//            
-//            void start();
-//            
-//            void send();
-//            void receive();
-//            
-//        private:
-//            tcp_connection(boost::asio::io_service& io_service);
-////            void handle_write(const boost::system::error_code& error, size_t bytes_transferred);
-////            void handle_read(const boost::system::error_code& error, size_t bytes_transferred);
-//            
-//            std::shared_ptr<class udp_server_impl> m_impl;
-//            
-//            tcp::socket m_socket;
-//            std::string m_message;
-//            std::vector<uint8_t> m_receive_buffer;
-//        };
+        class tcp_connection : public std::enable_shared_from_this<tcp_connection>
+        {
+        public:
+            
+            static tcp_connection_ptr create(boost::asio::io_service& io_service,
+                                             receive_function f = receive_function())
+            {
+                return tcp_connection_ptr(new tcp_connection(io_service, f));
+            }
+
+            void send(const std::vector<uint8_t> &bytes);
+            void receive();
+            
+            KINSKI_API void set_receive_function(receive_function f);
+            
+        private:
+            tcp_connection();
+            tcp_connection(boost::asio::io_service& io_service, receive_function f);
+
+            std::shared_ptr<struct tcp_connection_impl> m_impl;
+        };
         
     }// namespace net
     

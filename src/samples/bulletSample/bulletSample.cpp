@@ -57,74 +57,27 @@ public:
     
     void create_cube_stack(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
-        scene().clear();
-        m_physics_context.collisionShapes().clear();
+        m_physics_context.teardown_physics();
         
         float scaling = 8.0f;
         float start_pox_x = -5;
         float start_pox_y = -5;
         float start_pox_z = -3;
         
-        ///create a few basic rigid bodies
-        m_physics_context.collisionShapes().push_back(
-            shared_ptr<btCollisionShape>(new btBoxShape(btVector3(btScalar(50.),
-                                                                  btScalar(50.),
-                                                                  btScalar(50.)))));
-        gl::MeshPtr groundShape = gl::Mesh::create(gl::Geometry::createBox(glm::vec3(50.0f)), theMat);
-        scene().addObject(groundShape);
-        groundShape->transform()[3] = glm::vec4(0, -50, 0, 1);
+        auto big_box_shape = std::make_shared<btBoxShape>(btVector3(50., 50., 50.));
         
-        //groundShape->initializePolyhedralFeatures();
-        shared_ptr<btCollisionShape> plane_shape (new btStaticPlaneShape(btVector3(0,1,0),150));
+        gl::MeshPtr ground_mesh = gl::Mesh::create(gl::Geometry::createBox(glm::vec3(50.0f)), theMat);
+        scene().addObject(ground_mesh);
+        ground_mesh->position() = glm::vec3(0, -50, 0);
         
-        
-        //m_physics_context.dynamicsWorld()->addRigidBody(plane_shape);
-        
-//        btTransform groundTransform;
-//        groundTransform.setIdentity();
-//        groundTransform.setOrigin(btVector3(0,-50,0));
+        m_physics_context.add_mesh_to_simulation(ground_mesh, 0.f, big_box_shape);
         
         {
-            btScalar mass(0.);
-            //rigidbody is dynamic if and only if mass is non zero, otherwise static
-            bool isDynamic = (mass != 0.f);
-            btVector3 localInertia(0,0,0);
-            if (isDynamic)
-                m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
-            
-            //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-            kinski::physics::MotionState* myMotionState = new kinski::physics::MotionState(groundShape);
-            btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,
-                                                            myMotionState,
-                                                            m_physics_context.collisionShapes().back().get(),
-                                                            localInertia);
-            btRigidBody* body = new btRigidBody(rbInfo);
-            //add the body to the dynamics world
-            m_physics_context.dynamicsWorld()->addRigidBody(body);
-        }
-        
-        {
-            //create a few dynamic rigidbodies
-            // Re-using the same collision is better for memory usage and performance
-            
-            m_physics_context.collisionShapes().push_back(shared_ptr<btBoxShape>(new btBoxShape(btVector3(scaling * 1,
-                                                                                        scaling * 1,
-                                                                                        scaling * 1))));
-            /// Create Dynamic Objects
-            btTransform startTransform;
-            startTransform.setIdentity();
-            
-            btScalar	mass(1.f);
-            
-            //rigidbody is dynamic if and only if mass is non zero, otherwise static
-            bool isDynamic = (mass != 0.f);
-            
-            btVector3 localInertia(0,0,0);
-            if (isDynamic)
-                m_physics_context.collisionShapes().back()->calculateLocalInertia(mass,localInertia);
-            
-            // geometry
+            // geometry for our cubes
             gl::Geometry::Ptr geom = gl::Geometry::createBox(glm::vec3(scaling * 1));
+            
+            // collision shape for our cubes
+            auto box_shape = std::make_shared<btBoxShape>(btVector3(scaling, scaling, scaling));
             
             float start_x = start_pox_x - size_x/2;
             float start_y = start_pox_y;
@@ -136,27 +89,13 @@ public:
                 {
                     for(int j = 0;j<size_z;j++)
                     {
-                        startTransform.setOrigin(scaling * btVector3(
-                                                                   btScalar(2.0*i + start_x),
-                                                                   btScalar(20+2.0*k + start_y),
-                                                                   btScalar(2.0*j + start_z)));
-                        
                         gl::MeshPtr mesh = gl::Mesh::create(geom, theMat);
+                        
+                        mesh->setPosition(scaling * vec3(2.0 * i + start_x,
+                                                         20 + 2.0 * k + start_y,
+                                                         2.0 * j + start_z));
+                        m_physics_context.add_mesh_to_simulation(mesh, 1.f, box_shape);
                         scene().addObject(mesh);
-                        float mat[16];
-                        startTransform.getOpenGLMatrix(mat);
-                        mesh->setTransform(glm::make_mat4(mat));
-                        
-                        //using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-                        physics::MotionState* myMotionState = new physics::MotionState(mesh);
-                        
-                        btRigidBody::btRigidBodyConstructionInfo rbInfo(mass,myMotionState,
-                                                                        m_physics_context.collisionShapes().back().get(),
-                                                                        localInertia);
-                        btRigidBody* body = new btRigidBody(rbInfo);
-                        
-                        
-                        m_physics_context.dynamicsWorld()->addRigidBody(body);
                     }
                 }
             }
@@ -364,19 +303,23 @@ public:
     {
         BaseAppType::keyPress(e);
         
-        switch (e.getChar())
+        switch (e.getCode())
         {
-        case KeyEvent::KEY_p:
+        case GLFW_KEY_W:
+            set_wireframe(!wireframe());
+            break;
+                
+        case GLFW_KEY_P:
             *m_stepPhysics = !*m_stepPhysics;
             break;
                 
-        case KeyEvent::KEY_r:
+        case GLFW_KEY_R:
             Serializer::loadComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
             m_physics_context.teardown_physics();
             create_cube_stack(4, 32, 4, m_box_material);
             break;
                 
-        case KeyEvent::KEY_s:
+        case GLFW_KEY_S:
             try
             {
                 Serializer::saveComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());

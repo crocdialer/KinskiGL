@@ -114,65 +114,22 @@ namespace kinski
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
         
-        class udp_server_impl
+        /////////////////////////////////////////////////////////////////
+        
+        struct udp_server_impl
         {
         public:
-            udp_server_impl(boost::asio::io_service& io_service, udp_server::receive_function f):
+            udp_server_impl(boost::asio::io_service& io_service, net::receive_function f):
             socket(io_service),
             resolver(io_service),
-            receive_function(f)
-            {
-                
-            }
-            
-            void start_listen(int port)
-            {
-                if(!socket.is_open())
-                {
-                    socket.open(udp::v4());
-                    socket.bind(udp::endpoint(udp::v4(), port));
-                }
-                if(port != socket.local_endpoint().port())
-                {
-                    socket.connect(udp::endpoint(udp::v4(), port));
-                }
-                
-                socket.async_receive_from(boost::asio::buffer(recv_buffer),
-                                          remote_endpoint,
-                                          boost::bind(&udp_server_impl::handle_receive, this,
-                                                      boost::asio::placeholders::error,
-                                                      boost::asio::placeholders::bytes_transferred));
-            }
-            
-            void stop_listen()
-            {
-                socket.close();
-            }
-            
-            void handle_receive(const boost::system::error_code& error,
-                                std::size_t bytes_transferred)
-            {
-                if (!error)
-                {
-                    if(receive_function)
-                    {
-                        std::vector<uint8_t> datavec(recv_buffer.begin(),
-                                                     recv_buffer.begin() + bytes_transferred);
-                        receive_function(datavec);
-                    }
-                    start_listen(socket.local_endpoint().port());
-                }
-                else
-                {
-                    LOG_ERROR<<error.message();
-                }
-            }
+            recv_buffer(1 << 20),
+            receive_function(f){}
             
             udp::socket socket;
             udp::resolver resolver;
             udp::endpoint remote_endpoint;
-            std::array<char, 1 << 20> recv_buffer;
-            udp_server::receive_function receive_function;
+            std::vector<uint8_t> recv_buffer;
+            net::receive_function receive_function;
         };
         
         udp_server::udp_server(){}
@@ -188,14 +145,67 @@ namespace kinski
             m_impl->receive_function = f;
         }
         
+        void udp_server::set_receive_buffer_size(size_t sz)
+        {
+            m_impl->recv_buffer.resize(sz);
+        }
+        
         void udp_server::start_listen(int port)
         {
-            m_impl->start_listen(port);
+            if(!m_impl->socket.is_open())
+            {
+                m_impl->socket.open(udp::v4());
+                m_impl->socket.bind(udp::endpoint(udp::v4(), port));
+            }
+            if(port != m_impl->socket.local_endpoint().port())
+            {
+                m_impl->socket.connect(udp::endpoint(udp::v4(), port));
+            }
+            
+            m_impl->socket.async_receive_from(boost::asio::buffer(m_impl->recv_buffer),
+                                              m_impl->remote_endpoint,
+                                              [&](const boost::system::error_code& error,
+                                                  std::size_t bytes_transferred)
+            {
+                if (!error)
+                {
+                    if(m_impl->receive_function)
+                    {
+                        std::vector<uint8_t> datavec(m_impl->recv_buffer.begin(),
+                                                     m_impl->recv_buffer.begin() + bytes_transferred);
+                        m_impl->receive_function(datavec);
+                    }
+                    start_listen(m_impl->socket.local_endpoint().port());
+                }
+                else
+                {
+                    LOG_ERROR<<error.message();
+                }
+            });
         }
             
         void udp_server::stop_listen()
         {
-            m_impl->stop_listen();
+            m_impl->socket.close();
+        }
+            
+        /////////////////////////////////////////////////////////////////
+        
+        struct tcp_connection_impl
+        {
+            tcp_connection_impl(tcp::socket s, net::receive_function f):
+            socket(std::move(s)),
+            recv_buffer(2048),
+            receive_function(f){}
+            
+            tcp::socket socket;
+            std::vector<uint8_t> recv_buffer;
+            net::receive_function receive_function;
+        };
+                
+        tcp_connection::tcp_connection(boost::asio::io_service& io_service, net::receive_function f)
+        {
+            
         }
     }
 }

@@ -104,6 +104,7 @@ namespace kinski{ namespace gl{
         if(m_faces.empty()) return;
         if(m_texCoords.size() != m_vertices.size()) return;
         
+        m_dirty_tangentBuffer = true;
         vector<glm::vec3> tangents;
         if(m_tangents.size() != m_vertices.size())
         {

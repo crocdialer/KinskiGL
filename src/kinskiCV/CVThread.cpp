@@ -79,16 +79,18 @@ namespace kinski
     
     void CVThread::streamVideo(const std::string& path2Video, bool loop)
     {
-        CVCaptureNode::Ptr capNode (new CVCaptureNode(path2Video));
-        capNode->setLoop(loop);
-        *m_captureFPS = capNode->getFPS();
-        m_sourceNode = capNode;
+        CVCaptureNode::Ptr cap_node (new CVCaptureNode(path2Video));
+        cap_node->setLoop(loop);
+        *m_captureFPS = cap_node->getFPS();
+        m_sourceNode = cap_node;
         start(); 
     }
     
     void CVThread::streamUSBCamera(int camId)
     {
-        m_sourceNode = CVSourceNode::Ptr(new CVCaptureNode(0));
+        CVCaptureNode::Ptr cap_node(new CVCaptureNode(0));
+        m_sourceNode = cap_node;
+        *m_captureFPS = cap_node->getFPS();
         start();
     }
     

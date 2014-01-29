@@ -289,7 +289,6 @@ void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
     
 glm::mat4 Texture::getTextureMatrix() const 
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     glm::mat4 ret = m_textureMatrix;
     
     if(m_Obj->m_Flipped)

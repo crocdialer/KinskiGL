@@ -120,7 +120,7 @@ namespace kinski{ namespace physics{
     
     glm::mat4 type_cast(const btTransform &the_transform)
     {
-        float m[16];
+        btScalar m[16];
         the_transform.getOpenGLMatrix(m);
         return glm::make_mat4(m);
     }
