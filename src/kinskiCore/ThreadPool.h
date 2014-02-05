@@ -9,35 +9,41 @@
 #ifndef __kinskiGL__ThreadPool__
 #define __kinskiGL__ThreadPool__
 
-#include <boost/asio.hpp>
 #include "kinskiCore/Definitions.h"
 
-namespace boost {
-    class thread;
-    class thread_group;
-    namespace asio {
+// forward declared io_service
+namespace boost
+{
+    namespace asio
+    {
         class io_service;
     }
 }
 
-namespace kinski{
+namespace kinski
+{
     
     class ThreadPool
     {
     public:
+        
+        typedef std::function<void()> Task;
+        
         ThreadPool(size_t num = 1);
         ~ThreadPool();
         
-        boost::asio::io_service& io_service(){return *m_io_service;};
         void set_num_threads(int num);
         int get_num_threads();
+        boost::asio::io_service& io_service();
         
-        template<class F> inline void submit(const F &task){m_io_service->post(task);}
+        /*!
+         * submit an arbitrary task to be processed by the threadpool
+         */
+        void submit(Task t);
         
     private:
-        std::shared_ptr<boost::asio::io_service> m_io_service;
-        std::shared_ptr<void> m_io_work;
-        std::shared_ptr<boost::thread_group> m_threads;
+        void join_all();
+        std::unique_ptr<struct ThreadPoolImpl> m_impl;
     };
     
 }//namespace

@@ -14,6 +14,8 @@
 #include "kinskiCore/Component.h"
 #include "kinskiCore/Logger.h"
 #include "kinskiCore/file_functions.h"
+
+#include <boost/asio.hpp>
 #include "kinskiCore/networking.h"
 #include "kinskiCore/ThreadPool.h"
 

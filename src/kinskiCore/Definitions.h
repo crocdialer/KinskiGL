@@ -23,14 +23,14 @@
 #include <map>
 #include <stack>
 
-#include <boost/version.hpp>
 
 #include "Exception.h"
 #include "Utils.h"
 
-#if BOOST_VERSION < 105300
-#error "Kinski requires Boost version 1.53 or later"
-#endif
+//#include <boost/version.hpp>
+//#if BOOST_VERSION < 105300
+//#error "Kinski requires Boost version 1.53 or later"
+//#endif
 
 namespace kinski
 {

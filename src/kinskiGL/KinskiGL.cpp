@@ -1119,7 +1119,8 @@ namespace kinski { namespace gl {
         }
         // texture matrix from first texture, if any
         the_mat->shader().uniform("u_textureMatrix",
-                         the_mat->textures().empty() ? glm::mat4() : the_mat->textures().front().getTextureMatrix());
+                         (the_mat->textures().empty() || !the_mat->textures().front()) ?
+                                  glm::mat4() : the_mat->textures().front().getTextureMatrix());
         
         the_mat->shader().uniform("u_numTextures", (GLint) the_mat->textures().size());
         
