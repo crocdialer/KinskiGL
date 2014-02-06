@@ -26,6 +26,7 @@ namespace kinski
         
         // properties
         Property_<string>::Ptr m_movie_path = Property_<string>::create("movie path", "");
+        Property_<float>::Ptr m_movie_speed = Property_<float>::create("movie speed", 1.f);
         
     public:
         

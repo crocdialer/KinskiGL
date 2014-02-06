@@ -23,6 +23,7 @@ void CoreVideoTest::setup()
     outstream_gl().set_color(gl::COLOR_WHITE);
     outstream_gl().set_font(m_font);
     
+    registerProperty(m_movie_speed);
     registerProperty(m_movie_path);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
@@ -43,7 +44,9 @@ void CoreVideoTest::draw()
     if(m_textures[0])
         gl::drawTexture(m_textures[0], gl::windowDimension());
     
-    gl::drawText2D(kinski::as_string(m_movie.current_time()), m_font);
+    gl::drawText2D(m_movie.get_path() + " : " +
+                   kinski::as_string(m_movie.current_time()),
+                   m_font);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -94,6 +97,11 @@ void CoreVideoTest::updateProperty(const Property::ConstPtr &theProperty)
     if(theProperty == m_movie_path)
     {
         m_movie.load(*m_movie_path);
+        m_movie.set_loop(true);
         m_movie.play();
+    }
+    else if(theProperty == m_movie_speed)
+    {
+        m_movie.set_rate(*m_movie_speed);
     }
 }
