@@ -7,29 +7,23 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _included_mobile_ios_MovieController_
-#define _included_mobile_ios_MovieController_
+#ifndef __kinskiGL__MovieController__
+#define __kinskiGL__MovieController__
 
 #include "kinskiGL/KinskiGL.h"
-#import <CoreVideo/CoreVideo.h>
 
 /*
-* This class controls playback of Movie-widgets and manages their assets.
-* There is 1:1 correlation between spark::Movie object and MovieControllers,
-* each controller beeing responsible for exactly one widget.
-* Objective-C classes are wrapped in a forward declared C-struct (AVStruct) for compatibility reasons.
-*
-* Due to planned experiments this class is still a little messy :(
+* This class controls playback of Movies and manages their assets.
 */
 
 namespace kinski
 {
-    
     class MovieController 
     {
     private:
         
-        std::shared_ptr<struct MovieControllerImpl> m_impl;
+        struct Impl;
+        std::unique_ptr<Impl> m_impl;
         
     public:
         MovieController();
@@ -41,15 +35,20 @@ namespace kinski
         void stop();
         void pause();
         void seek_to_time(float value);
-        double duration();
-        double current_time();
-        float getVolume() const;
-        void setVolume(const float newVolume);
+        double duration() const;
+        double current_time() const;
+        float volume() const;
+        void set_volume(float volume);
         void set_loop(bool b);
         void set_rate(float r);
-        bool loop();
-        const std::string& get_path();
+        bool loop() const;
+        const std::string& get_path() const;
         
+        /*!
+         * upload the current frame to a gl::Texture object
+         * return: true if a new frame could be successfully uploaded,
+         * false otherwise
+         */
         bool copy_frame_to_texture(gl::Texture &tex);
     };
     

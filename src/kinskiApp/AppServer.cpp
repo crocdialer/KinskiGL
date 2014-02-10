@@ -55,8 +55,8 @@ namespace kinski {
             }
         }
         
-        std::string message = std::string(m_receive_buffer.begin(),
-                                          m_receive_buffer.begin() + bytes_transferred);
+        auto message = std::vector<uint8_t>(m_receive_buffer.begin(),
+                                            m_receive_buffer.begin() + bytes_transferred);
         
         Component::Ptr c = m_component.lock();
         if(App::Ptr app = std::dynamic_pointer_cast<App>(c))
@@ -170,8 +170,8 @@ namespace kinski {
         {
             if(App::Ptr app = m_app.lock())
             {
-                app->got_message(std::string(recv_buffer_.begin(),
-                                             recv_buffer_.begin() + bytes_transferred));
+                app->got_message(std::vector<uint8_t>(recv_buffer_.begin(),
+                                                      recv_buffer_.begin() + bytes_transferred));
             }
             
             start_receive(m_socket.local_endpoint().port());

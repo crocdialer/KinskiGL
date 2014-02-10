@@ -1,13 +1,13 @@
 //
-//  CoreVideoTest.h
+//  MovieTest.h
 //  kinskiGL
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __kinskiGL__CoreVideoTest__
-#define __kinskiGL__CoreVideoTest__
+#ifndef __kinskiGL__MovieTest__
+#define __kinskiGL__MovieTest__
 
 #include "kinskiApp/ViewerApp.h"
 
@@ -16,7 +16,7 @@
 
 namespace kinski
 {
-    class CoreVideoTest : public ViewerApp
+    class MovieTest : public ViewerApp
     {
     private:
         
@@ -33,7 +33,7 @@ namespace kinski
         void setup();
         void update(float timeDelta);
         void draw();
-        void got_message(const std::string &the_message);
+        void got_message(const std::vector<uint8_t> &the_data);
         void tearDown();
         void updateProperty(const Property::ConstPtr &theProperty);
         
@@ -42,4 +42,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__kinskiGL__CoreVideoTest__) */
+#endif /* defined(__kinskiGL__MovieTest__) */

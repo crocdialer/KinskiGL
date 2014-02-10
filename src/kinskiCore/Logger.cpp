@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <limits>
-#include <boost/thread.hpp>
+#include <thread>
 #include "Logger.h"
 #include "Exception.h"
 #include "file_functions.h"
@@ -121,7 +121,7 @@ namespace kinski {
             
             myText<<" [" << getFilenamePart(theModule) << " at:" << theId << "]";
             if(m_use_thread_id)
-                myText<<" [thread-id: "<< boost::this_thread::get_id() <<"]";
+                myText<<" [thread-id: "<< std::this_thread::get_id() <<"]";
         }
     
         switch (theSeverity)

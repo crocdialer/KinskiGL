@@ -410,10 +410,6 @@ public:
         
         switch (e.getCode())
         {
-            case GLFW_KEY_F:
-                setFullSceen(!fullSceen());
-                break;
-                
             default:
                 break;
         }
@@ -449,7 +445,7 @@ public:
         }
         else if(theProperty == m_use_phong)
         {
-            gl::Shader shader = gl::createShader(*m_use_phong ? gl::SHADER_PHONG :
+            gl::Shader shader = gl::createShader(*m_use_phong ? gl::SHADER_PHONG_SKIN :
                                                  gl::SHADER_GOURAUD);
             if(m_mesh){m_mesh->material()->setShader(shader);}
             if(selected_mesh()){selected_mesh()->material()->setShader(shader);}

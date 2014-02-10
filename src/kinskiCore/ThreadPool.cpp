@@ -14,17 +14,17 @@
 
 namespace kinski
 {
-    struct ThreadPoolImpl
+    struct ThreadPool::Impl
     {
         boost::asio::io_service io_service;
         boost::asio::io_service::work io_work;
         std::vector<std::thread> threads;
         
-        ThreadPoolImpl():io_work(io_service){}
+        Impl():io_work(io_service){}
     };
     
     ThreadPool::ThreadPool(size_t num):
-    m_impl(new ThreadPoolImpl)
+    m_impl(new Impl)
     {
         set_num_threads(num);
     }

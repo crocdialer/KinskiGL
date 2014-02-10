@@ -9,6 +9,7 @@
 
 #include "App.h"
 #include <boost/asio/io_service.hpp>
+#include <thread>
 
 using namespace std;
 
@@ -53,8 +54,11 @@ namespace kinski
             // poll input events
             pollEvents();
             
+            // time elapsed since last frame
+            float time_delta = timeStamp - m_lastTimeStamp;
+            
             // call update callback
-            update(timeStamp - m_lastTimeStamp);
+            update(time_delta);
             
             m_lastTimeStamp = timeStamp;
             
@@ -69,6 +73,14 @@ namespace kinski
             
             // Check if ESC key was pressed or window was closed or whatever
             m_running = checkRunning();
+            
+            // fps managment
+            float current_fps = 1.f / time_delta;
+            if(current_fps > m_max_fps)
+            {
+                double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
+                this_thread::sleep_for(std::chrono::nanoseconds((long)(sleep_secs * 1000000000L)));
+            }
         }
         
         // manage tearDown, save stuff etc.

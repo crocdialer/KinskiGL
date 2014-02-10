@@ -42,6 +42,9 @@ class KINSKI_API Buffer
     uint8_t* map(GLenum mode = GL_ENUM(GL_WRITE_ONLY));
     void unmap();
     
+    void bind();
+    void unbind();
+    
     GLint id() const;
     GLenum target() const;
     GLenum usage() const;

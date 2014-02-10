@@ -1,5 +1,5 @@
 //
-//  CoreVideoTest.cpp
+//  MovieTest.cpp
 //  kinskiGL
 //
 //  Created by Fabian on 29/01/14.
@@ -15,7 +15,7 @@ using namespace glm;
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::setup()
+void MovieTest::setup()
 {
     ViewerApp::setup();
     
@@ -32,26 +32,30 @@ void CoreVideoTest::setup()
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::update(float timeDelta)
+void MovieTest::update(float timeDelta)
 {
     m_movie.copy_frame_to_texture(m_textures[0]);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::draw()
+void MovieTest::draw()
 {
     if(m_textures[0])
         gl::drawTexture(m_textures[0], gl::windowDimension());
     
-    gl::drawText2D(m_movie.get_path() + " : " +
-                   kinski::as_string(m_movie.current_time()),
-                   m_font);
+    if(displayTweakBar())
+    {
+        gl::drawText2D(m_movie.get_path() + " : " +
+                       kinski::as_string(m_movie.current_time(), 2) + " / " +
+                       kinski::as_string(m_movie.duration(), 2),
+                       m_font);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::keyPress(const KeyEvent &e)
+void MovieTest::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
     
@@ -68,6 +72,13 @@ void CoreVideoTest::keyPress(const KeyEvent &e)
         case GLFW_KEY_RIGHT:
             m_movie.seek_to_time(m_movie.current_time() + 5);
             break;
+        case GLFW_KEY_UP:
+            m_movie.set_volume(m_movie.volume() + .1f);
+            break;
+            
+        case GLFW_KEY_DOWN:
+            m_movie.set_volume(m_movie.volume() - .1f);
+            break;
             
         default:
             break;
@@ -76,21 +87,21 @@ void CoreVideoTest::keyPress(const KeyEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::got_message(const std::string &the_message)
+void MovieTest::got_message(const std::vector<uint8_t> &the_data)
 {
-    LOG_INFO<<the_message;
+    LOG_INFO << string(the_data.begin(), the_data.end());
 }
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::tearDown()
+void MovieTest::tearDown()
 {
-    LOG_PRINT<<"ciao movie sample";
+    LOG_PRINT << "ciao movie sample";
 }
 
 /////////////////////////////////////////////////////////////////
 
-void CoreVideoTest::updateProperty(const Property::ConstPtr &theProperty)
+void MovieTest::updateProperty(const Property::ConstPtr &theProperty)
 {
     ViewerApp::updateProperty(theProperty);
     
@@ -98,7 +109,6 @@ void CoreVideoTest::updateProperty(const Property::ConstPtr &theProperty)
     {
         m_movie.load(*m_movie_path);
         m_movie.set_loop(true);
-        m_movie.play();
     }
     else if(theProperty == m_movie_speed)
     {
