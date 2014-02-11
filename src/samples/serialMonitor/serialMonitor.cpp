@@ -337,24 +337,24 @@ public:
         ViewerApp::keyPress(e);
         
         int number = 0;
-        switch (e.getChar())
+        switch (e.getCode())
         {
-            case KeyEvent::KEY_c:
+            case GLFW_KEY_C:
                 m_arduino_device_name->notifyObservers();
                 break;
                 
-            case KeyEvent::KEY_r:
+            case GLFW_KEY_R:
                 for(auto &measure : m_analog_in){measure.reset();}
                 break;
                 
-            case KeyEvent::KEY_1:
-            case KeyEvent::KEY_2:
-            case KeyEvent::KEY_3:
-            case KeyEvent::KEY_4:
-            case KeyEvent::KEY_5:
-            case KeyEvent::KEY_6:
-            case KeyEvent::KEY_7:
-            case KeyEvent::KEY_8:
+            case GLFW_KEY_1:
+            case GLFW_KEY_2:
+            case GLFW_KEY_3:
+            case GLFW_KEY_4:
+            case GLFW_KEY_5:
+            case GLFW_KEY_6:
+            case GLFW_KEY_7:
+            case GLFW_KEY_8:
                 number = string_as<int>(as_string(e.getChar())) - 1;
                 if(e.isAltDown())
                 {
@@ -368,7 +368,7 @@ public:
                     + (e.isShiftDown() ? 8 : 0);
                 }
                 break;
-            case KeyEvent::KEY_m:
+            case GLFW_KEY_M:
                 for (int i = 0; i < m_channel_activity.size(); i++) { m_channel_activity[i] = false; }
                 midi_mute_all();
                 break;
@@ -385,7 +385,7 @@ public:
 
         switch (e.getChar())
         {
-            case KeyEvent::KEY_n:
+            case GLFW_KEY_N:
                 stop_string(0);
                 break;
             default:

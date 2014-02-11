@@ -27,6 +27,9 @@ void MovieTest::setup()
     registerProperty(m_movie_path);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
+    
+    m_camera.start_capture();
+    
     load_settings();
 }
 
@@ -34,7 +37,8 @@ void MovieTest::setup()
 
 void MovieTest::update(float timeDelta)
 {
-    m_movie.copy_frame_to_texture(m_textures[0]);
+//    m_movie.copy_frame_to_texture(m_textures[0]);
+    m_camera.copy_frame_to_texture(m_textures[0]);
 }
 
 /////////////////////////////////////////////////////////////////

@@ -12,7 +12,9 @@
 #include "kinskiApp/ViewerApp.h"
 
 #include "kinskiGL/Texture.h"
+
 #include "MovieController.h"
+#include "CameraController.h"
 
 namespace kinski
 {
@@ -22,6 +24,7 @@ namespace kinski
         
         gl::Font m_font;
         MovieController m_movie;
+        CameraController m_camera;
         vector<gl::Texture> m_textures{4};
         
         // properties
