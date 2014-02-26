@@ -14,6 +14,7 @@
 #include "KinskiGL.h"
 #include "Shader.h"
 #include "Texture.h"
+#include "ArrayTexture.h"
 
 namespace kinski { namespace gl {
     
@@ -41,6 +42,7 @@ namespace kinski { namespace gl {
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
 
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
+        void addTextureArray(const ArrayTexture &theTexture) {m_array_textures.push_back(theTexture);};
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; };
@@ -51,6 +53,9 @@ namespace kinski { namespace gl {
         
         std::vector<Texture>& textures() {return m_textures;};
         const std::vector<Texture>& textures() const {return m_textures;};
+        
+        std::vector<ArrayTexture>& array_textures() {return m_array_textures;};
+        const std::vector<ArrayTexture>& array_textures() const {return m_array_textures;};
         
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
@@ -94,6 +99,8 @@ namespace kinski { namespace gl {
         UniformMap m_uniforms;
         
         std::vector<Texture> m_textures;
+        
+        std::vector<ArrayTexture> m_array_textures;
         
         Color m_diffuse;
         Color m_ambient;

@@ -154,6 +154,12 @@ namespace kinski
     void CameraController::stop_capture()
     {
         [m_impl->m_camera.captureSession stopRunning];
+        
+        if(m_impl->m_camera.sampleBuffer)
+        {
+            CFRelease(m_impl->m_camera.sampleBuffer);
+            m_impl->m_camera.sampleBuffer = NULL;
+        }
     }
     
     bool CameraController::copy_frame_to_texture(gl::Texture &tex)

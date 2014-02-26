@@ -1127,7 +1127,8 @@ namespace kinski { namespace gl {
         if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
         
         // add texturemaps
-        for(uint32_t i = 0; i < the_mat->textures().size(); i++)
+        uint32_t i = 0;
+        for(; i < the_mat->textures().size(); i++)
         {
             if(the_mat->textures()[i])
                 the_mat->textures()[i].bind(i);
@@ -1135,6 +1136,24 @@ namespace kinski { namespace gl {
             sprintf(buf, "u_textureMap[%d]", i);
             the_mat->shader().uniform(buf, i);
         }
+        
+        KINSKI_CHECK_GL_ERRORS();
+        
+        // add array textures
+        for(uint32_t k = 0; k < the_mat->array_textures().size(); k++)
+        {
+            if(the_mat->array_textures()[k])
+            {
+                the_mat->array_textures()[k].bind(i + k);
+                
+            }
+            sprintf(buf, "u_array_sampler[%d]", k);
+            the_mat->shader().uniform(buf, i + k);
+            the_mat->shader().uniform("u_textureMatrix",
+                                      the_mat->array_textures()[k].getTextureMatrix());
+        }
+        
+        KINSKI_CHECK_GL_ERRORS();
         
         // set all other uniform values
         Material::UniformMap::const_iterator it = the_mat->uniforms().begin();

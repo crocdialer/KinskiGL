@@ -7,6 +7,7 @@
 //
 
 #include "MovieTest.h"
+#include "kinskiGL/ArrayTexture.h"
 
 using namespace std;
 using namespace kinski;
@@ -28,7 +29,9 @@ void MovieTest::setup()
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
-    m_camera.start_capture();
+    m_movie.set_on_load_callback(bind(&MovieTest::on_movie_load, this));
+    
+//    m_camera.start_capture();
     
     load_settings();
 }
@@ -37,8 +40,8 @@ void MovieTest::setup()
 
 void MovieTest::update(float timeDelta)
 {
-//    m_movie.copy_frame_to_texture(m_textures[0]);
-    m_camera.copy_frame_to_texture(m_textures[0]);
+    m_movie.copy_frame_to_texture(m_textures[0]);
+//    m_camera.copy_frame_to_texture(m_textures[0]);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -63,10 +66,16 @@ void MovieTest::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
     
+    gl::ArrayTexture array_tex;
+    
     switch (e.getCode())
     {
         case GLFW_KEY_P:
             m_movie.pause();
+            break;
+            
+        case GLFW_KEY_B:
+            m_movie.copy_frames_offline(array_tex);
             break;
             
         case GLFW_KEY_LEFT:
@@ -101,6 +110,13 @@ void MovieTest::got_message(const std::vector<uint8_t> &the_data)
 void MovieTest::tearDown()
 {
     LOG_PRINT << "ciao movie sample";
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MovieTest::on_movie_load()
+{
+    m_movie.play();
 }
 
 /////////////////////////////////////////////////////////////////

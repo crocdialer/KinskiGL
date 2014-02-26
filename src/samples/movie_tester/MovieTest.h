@@ -42,6 +42,8 @@ namespace kinski
         
         void keyPress(const KeyEvent &e);
         
+        void on_movie_load();
+        
     };
 }// namespace kinski
 

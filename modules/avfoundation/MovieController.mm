@@ -1,5 +1,6 @@
 #import <AVFoundation/AVFoundation.h>
 #include "kinskiGL/Texture.h"
+#include "kinskiGL/ArrayTexture.h"
 #include "kinskiGL/Buffer.h"
 #include "MovieController.h"
 
@@ -19,6 +20,8 @@ namespace kinski {
         bool m_playing;
         bool m_loop;
         float m_rate;
+        
+        Callback m_on_load_cb;
         
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
@@ -64,7 +67,9 @@ namespace kinski {
     
     void MovieController::load(const std::string &filePath)
     {
+        Callback on_load = m_impl->m_on_load_cb;
         m_impl.reset(new Impl);
+        m_impl->m_on_load_cb = on_load;
         
         m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
@@ -102,10 +107,22 @@ namespace kinski {
                  m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
                  [m_impl->m_player_item addOutput:m_impl->m_output];
                  m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
+                 
+                 NSArray *videoTrackArray = [asset tracksWithMediaType:AVMediaTypeVideo];
+                 //NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
+                 
+                 m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
+                 
+                 AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
+                 m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
 
                  if(!error)
                  {
-                     play();
+//                     play();
+                     [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
+                  
+                     if(m_impl->m_on_load_cb)
+                         m_impl->m_on_load_cb();
                  }
                  else
                  {
@@ -161,7 +178,6 @@ namespace kinski {
         
         m_impl->m_audioPlayer.volume = val;
         m_impl->m_player.volume = val;
-        
     }
     
     bool MovieController::copy_frame_to_texture(gl::Texture &tex)
@@ -217,6 +233,82 @@ namespace kinski {
         return false;
     }
     
+    bool MovieController::copy_frames_offline(gl::ArrayTexture &tex)
+    {
+        if(!m_impl->m_videoOut) return false;
+        
+        std::list<CMSampleBufferRef> samples;
+        
+        CMSampleBufferRef sampleBuffer = NULL;
+        [m_impl->m_assetReader startReading];
+        
+        while([m_impl->m_assetReader status] == AVAssetReaderStatusReading)
+        {
+//            if(sampleBuffer) CFRelease(sampleBuffer);
+            sampleBuffer = [m_impl->m_videoOut copyNextSampleBuffer];
+            samples.push_back(sampleBuffer);
+        }
+        
+        // determine num frames
+        int num_frames = samples.size();
+        
+        LOG_DEBUG << num_frames <<" frames";
+        
+        GLuint width, height;
+        
+        if(!samples.empty())
+        {
+            CVPixelBufferRef pixbuf = CMSampleBufferGetImageBuffer(samples.front());
+            width = CVPixelBufferGetWidth(pixbuf);
+            height = CVPixelBufferGetHeight(pixbuf);
+            
+            // aquire gpu-memory for our frames
+            gl::ArrayTexture::Format fmt;
+            fmt.setInternalFormat(GL_BGRA);
+            tex = gl::ArrayTexture(width, height, num_frames);
+            tex.setFlipped();
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        else
+        {
+            LOG_ERROR << "no samples";
+            return false;
+        }
+        
+        int i = 0;
+        tex.bind();
+        
+//        GLint swizzleMask[] = {GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA};
+//        glTexParameteriv(tex.getTarget(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        
+        // release samples
+        for (auto buffer : samples)
+        {
+            if(buffer)
+            {
+                CVPixelBufferRef pixbuf = CMSampleBufferGetImageBuffer(buffer);
+                
+                if(CVPixelBufferLockBaseAddress(pixbuf, 0) != kCVReturnSuccess)
+                    LOG_ERROR << "could not aquire pixelbuffer";
+                
+                
+                // upload data
+                glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1,
+                                GL_BGRA, GL_UNSIGNED_BYTE,
+                                CVPixelBufferGetBaseAddress(pixbuf));
+                
+                CVPixelBufferUnlockBaseAddress(pixbuf, 0);
+                i++;
+                //
+                CFRelease(buffer);
+            }
+        }
+        tex.unbind();
+        KINSKI_CHECK_GL_ERRORS();
+        
+        return true;
+    }
+    
     double MovieController::duration() const
     {
         AVPlayerItem *playerItem = [m_impl->m_player currentItem];
@@ -258,5 +350,10 @@ namespace kinski {
     const std::string& MovieController::get_path() const
     {
         return m_impl->m_src_path;
+    }
+    
+    void MovieController::set_on_load_callback(Callback c)
+    {
+        m_impl->m_on_load_cb = c;
     }
 }

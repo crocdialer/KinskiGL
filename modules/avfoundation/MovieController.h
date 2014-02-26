@@ -17,6 +17,9 @@ namespace kinski
         std::unique_ptr<Impl> m_impl;
         
     public:
+        
+        typedef std::function<void()> Callback;
+        
         MovieController();
         virtual ~MovieController();
         
@@ -35,12 +38,16 @@ namespace kinski
         bool loop() const;
         const std::string& get_path() const;
         
+        void set_on_load_callback(Callback c);
+        
         /*!
          * upload the current frame to a gl::Texture object
-         * return: true if a new frame could be successfully uploaded,
+         * return: true if a new frame could be uploaded successfully,
          * false otherwise
          */
         bool copy_frame_to_texture(gl::Texture &tex);
+        
+        bool copy_frames_offline(gl::ArrayTexture &tex);
     };
     
     typedef std::shared_ptr<MovieController> MovieControllerPtr;

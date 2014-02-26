@@ -16,7 +16,7 @@
 #include "kinskiCore/file_functions.h"
 
 //triggers checks with glGetError()
-//#define KINSKI_GL_REPORT_ERRORS
+#define KINSKI_GL_REPORT_ERRORS
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
@@ -74,6 +74,8 @@ namespace kinski { namespace gl {
     class Buffer;
     class Shader;
     class Fbo;
+    class Texture;
+    class ArrayTexture;
     class Font;
     class Visitor;
     struct Ray;
@@ -84,7 +86,7 @@ namespace kinski { namespace gl {
     struct MiniMat;
     
     typedef glm::vec4 Color;
-    typedef std::shared_ptr<class Texture> TexturePtr;
+    typedef std::shared_ptr<Texture> TexturePtr;
     typedef std::shared_ptr<class Material> MaterialPtr;
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;
