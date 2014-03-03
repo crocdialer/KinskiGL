@@ -252,8 +252,6 @@ namespace kinski {
         // determine num frames
         int num_frames = samples.size();
         
-        LOG_DEBUG << num_frames <<" frames";
-        
         GLuint width, height;
         
         if(!samples.empty())
@@ -265,7 +263,7 @@ namespace kinski {
             // aquire gpu-memory for our frames
             gl::ArrayTexture::Format fmt;
             fmt.setInternalFormat(GL_BGRA);
-            tex = gl::ArrayTexture(width, height, num_frames);
+            tex = gl::ArrayTexture(width, height, num_frames - 1);
             tex.setFlipped();
             KINSKI_CHECK_GL_ERRORS();
         }
@@ -289,8 +287,10 @@ namespace kinski {
                 CVPixelBufferRef pixbuf = CMSampleBufferGetImageBuffer(buffer);
                 
                 if(CVPixelBufferLockBaseAddress(pixbuf, 0) != kCVReturnSuccess)
+                {
                     LOG_ERROR << "could not aquire pixelbuffer";
-                
+                    continue;
+                }
                 
                 // upload data
                 glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1,
@@ -304,6 +304,7 @@ namespace kinski {
             }
         }
         tex.unbind();
+        LOG_DEBUG << i <<" frames";
         KINSKI_CHECK_GL_ERRORS();
         
         return true;
