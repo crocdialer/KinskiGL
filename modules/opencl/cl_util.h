@@ -13,7 +13,7 @@ namespace kinski {
     
 // Helper function to get error string
 // *********************************************************************
-    const char* oclErrorString(int error)
+    static const char* oclErrorString(int error)
     {
         static const char* errorString[] =
         {

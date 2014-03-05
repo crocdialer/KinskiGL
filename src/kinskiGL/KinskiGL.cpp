@@ -1146,11 +1146,11 @@ namespace kinski { namespace gl {
             {
                 the_mat->array_textures()[k].bind(i + k);
                 
+                sprintf(buf, "u_array_sampler[%d]", k);
+                the_mat->shader().uniform(buf, i + k);
+                the_mat->shader().uniform("u_textureMatrix",
+                                          the_mat->array_textures()[k].getTextureMatrix());
             }
-            sprintf(buf, "u_array_sampler[%d]", k);
-            the_mat->shader().uniform(buf, i + k);
-            the_mat->shader().uniform("u_textureMatrix",
-                                      the_mat->array_textures()[k].getTextureMatrix());
         }
         
         KINSKI_CHECK_GL_ERRORS();

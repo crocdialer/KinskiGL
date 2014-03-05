@@ -14,11 +14,12 @@ namespace kinski
     private:
         
         struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        std::shared_ptr<Impl> m_impl;
         
     public:
         
         typedef std::function<void()> Callback;
+        typedef std::function<void(MovieController &the_movie)> MovieCallback;
         
         MovieController();
         virtual ~MovieController();
@@ -38,7 +39,7 @@ namespace kinski
         bool loop() const;
         const std::string& get_path() const;
         
-        void set_on_load_callback(Callback c);
+        void set_on_load_callback(MovieCallback c);
         
         /*!
          * upload the current frame to a gl::Texture object

@@ -56,7 +56,7 @@ namespace kinski{ namespace gl{
     class StreamBufferGL : public std::streambuf
     {
     public:
-        StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz = 2048);
+        StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz = 4096);
         
     protected:
         

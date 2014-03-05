@@ -21,7 +21,7 @@ namespace kinski {
         bool m_loop;
         float m_rate;
         
-        Callback m_on_load_cb;
+        MovieCallback m_on_load_cb;
         
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
@@ -67,7 +67,7 @@ namespace kinski {
     
     void MovieController::load(const std::string &filePath)
     {
-        Callback on_load = m_impl->m_on_load_cb;
+        MovieCallback on_load = m_impl->m_on_load_cb;
         m_impl.reset(new Impl);
         m_impl->m_on_load_cb = on_load;
         
@@ -122,7 +122,7 @@ namespace kinski {
                      [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                   
                      if(m_impl->m_on_load_cb)
-                         m_impl->m_on_load_cb();
+                         m_impl->m_on_load_cb(*this);
                  }
                  else
                  {
@@ -244,7 +244,6 @@ namespace kinski {
         
         while([m_impl->m_assetReader status] == AVAssetReaderStatusReading)
         {
-//            if(sampleBuffer) CFRelease(sampleBuffer);
             sampleBuffer = [m_impl->m_videoOut copyNextSampleBuffer];
             samples.push_back(sampleBuffer);
         }
@@ -257,6 +256,8 @@ namespace kinski {
         if(!samples.empty())
         {
             CVPixelBufferRef pixbuf = CMSampleBufferGetImageBuffer(samples.front());
+//            LOG_DEBUG << "planar: " << (bool) CVPixelBufferIsPlanar(pixbuf);
+            
             width = CVPixelBufferGetWidth(pixbuf);
             height = CVPixelBufferGetHeight(pixbuf);
             
@@ -353,7 +354,7 @@ namespace kinski {
         return m_impl->m_src_path;
     }
     
-    void MovieController::set_on_load_callback(Callback c)
+    void MovieController::set_on_load_callback(MovieCallback c)
     {
         m_impl->m_on_load_cb = c;
     }
