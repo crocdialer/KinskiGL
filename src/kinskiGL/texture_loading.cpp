@@ -29,7 +29,7 @@ namespace kinski { namespace gl {
         
         if(!data) throw ImageLoadException(theFileName);
         
-        LOG_DEBUG<<"loaded image: "<<theFileName<<" -- "<<width
+        LOG_TRACE<<"loaded image: "<<theFileName<<" -- "<<width
         <<" x "<<height<<" ("<<num_components<<" ch)";
         // ... process data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...

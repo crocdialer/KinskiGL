@@ -16,7 +16,7 @@ namespace kinski
     m_position_y(Property_<float>::create("position Y", 0)),
     m_position_z(Property_<float>::create("position Z", 0)),
     m_scale(Property_<glm::vec3>::create("scale", glm::vec3(1))),
-    m_rotation(Property_<glm::mat3>::create("rottion", glm::mat3()))
+    m_rotation(Property_<glm::mat3>::create("rotation", glm::mat3()))
     {
         registerProperty(m_enabled);
         registerProperty(m_position_x);
