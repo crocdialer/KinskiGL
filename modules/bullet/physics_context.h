@@ -9,7 +9,11 @@
 #ifndef __kinskiGL__physics_context__
 #define __kinskiGL__physics_context__
 
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 #include "kinskiCore/Definitions.h"
 #include "btBulletDynamicsCommon.h"
 #include "kinskiGL/Mesh.h"
@@ -250,7 +254,7 @@ namespace kinski{ namespace physics{
         std::shared_ptr<btThreadSupportInterface> m_threadSupportCollision;
         std::shared_ptr<btThreadSupportInterface> m_threadSupportSolver;
         
-        boost::mutex m_mutex;
+        std::mutex m_mutex;
     };
 }}//namespace
 

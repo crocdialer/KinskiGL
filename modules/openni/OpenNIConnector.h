@@ -9,7 +9,9 @@
 #ifndef __kinskiGL__OpenNIConnector__
 #define __kinskiGL__OpenNIConnector__
 
-#include "boost/thread.hpp"
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 #include "kinskiGL/KinskiGL.h"
 #include "kinskiCore/Component.h"
 
@@ -75,9 +77,9 @@ namespace kinski{ namespace gl{
         gl::TexturePtr m_depth_texture;
         
         bool m_running;
-        boost::thread m_thread;
-        mutable boost::mutex m_mutex;
-        boost::condition_variable m_conditionVar;
+        std::thread m_thread;
+        mutable std::mutex m_mutex;
+        std::condition_variable m_conditionVar;
         
         Property_<bool>::Ptr m_live_input;
         Property_<std::string>::Ptr m_config_path;

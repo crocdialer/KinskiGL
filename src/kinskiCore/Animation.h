@@ -29,8 +29,6 @@ namespace kinski{ namespace animation{
     public:
         
         Animation(float duration, float delay, InterpolationFunction interpolate_fn):
-//        m_id(s_id_pool++),
-        m_id(0),
         m_playing(PLAYBACK_PAUSED),
         m_loop_type(LOOP_NONE),
         m_start_time(boost::posix_time::second_clock::local_time()),
@@ -127,7 +125,6 @@ namespace kinski{ namespace animation{
         
     private:
         
-//        static int s_id_pool;
         int m_id;
         PlaybackType m_playing;
         LoopType m_loop_type;
@@ -136,8 +133,6 @@ namespace kinski{ namespace animation{
         InterpolationFunction m_interpolate_fn;
         Callback m_start_fn, m_update_fn, m_finish_fn, m_reverse_start_fn, m_reverse_finish_fn;
     };
-    
-//    int Animation::s_id_pool = 0;
     
     template<typename T>
     AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration,

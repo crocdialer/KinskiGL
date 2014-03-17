@@ -9,7 +9,12 @@
 #pragma once
 
 #include "opencv2/opencv.hpp"
-#include "boost/thread.hpp"
+//#include "boost/thread.hpp"
+
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
 #include "kinskiCore/Component.h"
 
 namespace kinski
@@ -50,7 +55,7 @@ namespace kinski
         CVBufferedSourceNode(const CVSourceNode::Ptr srcNode, int bufSize = 20);
         virtual ~CVBufferedSourceNode();
         
-        void operator()();
+        void run();
         
         // override
         
@@ -60,9 +65,9 @@ namespace kinski
         
     private:
         
-        boost::thread m_thread;
-        boost::mutex m_mutex;
-        boost::condition_variable m_conditionVar;
+        std::thread m_thread;
+        std::mutex m_mutex;
+        std::condition_variable m_conditionVar;
         
         volatile bool m_running;
         

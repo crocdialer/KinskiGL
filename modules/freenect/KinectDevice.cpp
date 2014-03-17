@@ -43,7 +43,7 @@ KinectDevice::~KinectDevice()
 // Do not call directly even in child
 void KinectDevice::VideoCallback(void* _rgb, uint32_t timestamp)
 {
-    boost::mutex::scoped_lock lock(m_rgb_mutex);
+    std::unique_lock<std::mutex> lock(m_rgb_mutex);
 
 	uint8_t* rgb = static_cast<uint8_t*>(_rgb);
 	m_rgb.data = rgb;
@@ -54,7 +54,7 @@ void KinectDevice::VideoCallback(void* _rgb, uint32_t timestamp)
 // Do not call directly even in child
 void KinectDevice::DepthCallback(void* _depth, uint32_t timestamp)
 {
-    boost::mutex::scoped_lock lock(m_depth_mutex);
+    std::unique_lock<std::mutex> lock(m_depth_mutex);
 
 	uint16_t* depth = static_cast<uint16_t*>(_depth);
 	m_depth.data = (uchar*) depth;
@@ -65,7 +65,7 @@ bool KinectDevice::getVideo(Mat& output, bool irBool)
 {
 	if (m_new_rgb_frame)
 	{
-        boost::mutex::scoped_lock lock(m_rgb_mutex);
+        std::unique_lock<std::mutex> lock(m_rgb_mutex);
         
 		if (irBool)
 		{
@@ -88,7 +88,7 @@ bool KinectDevice::getDepth(Mat& output, Mat outputColored)
 {
 	if (m_new_depth_frame)
 	{
-        boost::mutex::scoped_lock lock(m_depth_mutex);
+        std::unique_lock<std::mutex> lock(m_depth_mutex);
         m_depth.copyTo(output);
         
 

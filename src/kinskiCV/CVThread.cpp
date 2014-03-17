@@ -167,8 +167,7 @@ namespace kinski
             sleep_msecs = max(0.0, (1000.0 / *m_captureFPS - elapsed_msecs));
             
             // set thread asleep for a time to achieve desired framerate
-            boost::posix_time::milliseconds msecs(sleep_msecs);
-            boost::this_thread::sleep(msecs);
+            this_thread::sleep_for(std::chrono::nanoseconds((long)(sleep_msecs * 1000000L)));
         }
         *m_running = false;
     }

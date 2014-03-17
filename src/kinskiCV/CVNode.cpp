@@ -91,7 +91,7 @@ namespace kinski
     m_sourceNode(srcNode),
     m_bufferSize(bufSize)
     {
-        m_thread = boost::thread(boost::ref(*this));
+        m_thread = std::thread(std::bind(&CVBufferedSourceNode::run, this));
     }
     
     CVBufferedSourceNode::~CVBufferedSourceNode()
@@ -109,14 +109,14 @@ namespace kinski
         return ss.str();
     }
     
-    void CVBufferedSourceNode::operator()()
+    void CVBufferedSourceNode::run()
     {
         m_running = true;
         Mat nextImg;
         
         while (m_running)
         {
-            boost::mutex::scoped_lock lock(m_mutex);
+            std::unique_lock<std::mutex> lock(m_mutex);
         
             while (m_running &&
                    (!m_sourceNode || m_imgBuffer.size() >= m_bufferSize))
@@ -135,7 +135,7 @@ namespace kinski
     
     bool CVBufferedSourceNode::getNextImage(cv::Mat &img)
     {
-        boost::mutex::scoped_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         if(!m_running) return false;
         
         while (m_imgBuffer.empty())

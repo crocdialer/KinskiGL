@@ -255,7 +255,7 @@ namespace kinski{ namespace gl{
     void OpenNIConnector::start()
     {
         if(m_running) return;
-        m_thread = boost::thread(boost::bind(&OpenNIConnector::run, this));
+        m_thread = std::thread(std::bind(&OpenNIConnector::run, this));
         m_running = true;
     }
     
@@ -293,7 +293,7 @@ namespace kinski{ namespace gl{
             
             //locked scope
             {
-                boost::mutex::scoped_lock lock(m_mutex);
+                std::unique_lock<std::mutex> lock(m_mutex);
                 update_depth_texture(depthMD, sceneMD);
                 m_user_list.clear();
                 
@@ -317,7 +317,7 @@ namespace kinski{ namespace gl{
     
     OpenNIConnector::UserList OpenNIConnector::get_user_positions() const
     {
-        boost::mutex::scoped_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         m_new_frame = false;
         return m_user_list;
     }
@@ -326,7 +326,7 @@ namespace kinski{ namespace gl{
     {
         // needs OpenGL -> can only be called from main thread
         // TODO: move or keep !?
-        boost::mutex::scoped_lock lock(m_mutex);
+        std::unique_lock<std::mutex> lock(m_mutex);
         m_new_frame = false;
         if(m_obj && !m_obj->m_pixel_buffer.empty())
             m_depth_texture->update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);

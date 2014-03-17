@@ -19,7 +19,12 @@
 
 // Boost
 #include <boost/utility.hpp>
-#include <boost/thread/thread.hpp>
+//#include <boost/thread/thread.hpp>
+
+// threading
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 // OpenCV
 #include "opencv2/opencv.hpp"
@@ -221,7 +226,7 @@ namespace kinski
             
             freenect_set_log_level(m_ctx, FREENECT_LOG_ERROR);
             
-            m_thread = boost::thread(boost::bind(&Freenect::run, this));
+            m_thread = std::thread(std::bind(&Freenect::run, this));
         }
         virtual ~Freenect()
         {
@@ -299,7 +304,7 @@ namespace kinski
         freenect_context *m_ctx;
     
         volatile bool m_stop;
-        boost::thread m_thread;
+        std::thread m_thread;
     
         DeviceMap m_devices;
     };
@@ -312,8 +317,8 @@ namespace kinski
         cv::Mat m_depth;
         cv::Mat m_rgb;
         
-        boost::mutex m_rgb_mutex;
-        boost::mutex m_depth_mutex;
+        std::mutex m_rgb_mutex;
+        std::mutex m_depth_mutex;
         
         bool m_new_rgb_frame;
         bool m_new_depth_frame;
