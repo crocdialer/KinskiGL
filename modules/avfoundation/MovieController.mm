@@ -65,7 +65,7 @@ namespace kinski {
         return [m_impl->m_audioPlayer isPlaying];
     }
     
-    void MovieController::load(const std::string &filePath)
+    void MovieController::load(const std::string &filePath, bool autoplay)
     {
         MovieCallback on_load = m_impl->m_on_load_cb;
         m_impl.reset(new Impl);
@@ -118,7 +118,9 @@ namespace kinski {
 
                  if(!error)
                  {
-//                     play();
+                     if(autoplay)
+                         play();
+                     
                      [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                   
                      if(m_impl->m_on_load_cb)

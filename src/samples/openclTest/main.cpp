@@ -1,6 +1,8 @@
 #include "kinskiApp/ViewerApp.h"
 
+//#define __NO_STD_VECTOR
 #define __CL_ENABLE_EXCEPTIONS
+
 #include "cl.hpp"
 #include "cl_util.h"
 

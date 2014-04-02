@@ -12,8 +12,8 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
 
-namespace kinski {
-    
+namespace kinski
+{
     class cl_context
     {
     public:

@@ -24,7 +24,7 @@ namespace kinski
         MovieController();
         virtual ~MovieController();
         
-        void load(const std::string &filePath);
+        void load(const std::string &filePath, bool autoplay = false);
         void play();
         bool isPlaying() const;
         void stop();
