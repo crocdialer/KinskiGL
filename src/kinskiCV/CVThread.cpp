@@ -59,6 +59,11 @@ namespace kinski
         }
     }
     
+    bool CVThread::is_running() const
+    {
+        return *m_running;
+    }
+    
     void CVThread::openImage(const std::string& imgPath)
     {	
         setImage(imread(imgPath));

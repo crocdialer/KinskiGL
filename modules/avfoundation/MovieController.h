@@ -43,15 +43,13 @@ namespace kinski
         
         /*!
          * upload the current frame to a gl::Texture object
-         * return: true if a new frame could be uploaded successfully,
+         * return: true if a new frame has been uploaded successfully,
          * false otherwise
          */
         bool copy_frame_to_texture(gl::Texture &tex);
         
         bool copy_frames_offline(gl::ArrayTexture &tex);
     };
-    
-    typedef std::shared_ptr<MovieController> MovieControllerPtr;
 }
 
 #endif

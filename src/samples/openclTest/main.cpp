@@ -3,8 +3,7 @@
 //#define __NO_STD_VECTOR
 #define __CL_ENABLE_EXCEPTIONS
 
-#include "cl.hpp"
-#include "cl_util.h"
+#include "cl_context.h"
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -44,7 +43,7 @@ private:
     gl::MeshPtr m_mesh;
     gl::Font m_font;
     
-    //OpenCL standard stuff
+    // OpenCL standard stuff
     cl::Context m_context;
     cl::Device m_device;
     cl::CommandQueue m_queue;

@@ -24,7 +24,7 @@ namespace kinski
         
         gl::Font m_font;
         MovieController m_movie;
-        CameraController m_camera;
+        CameraController m_camera_control;
         vector<gl::Texture> m_textures{4};
         
         // properties

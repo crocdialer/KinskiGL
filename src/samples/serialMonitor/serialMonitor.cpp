@@ -644,17 +644,17 @@ public:
         }
         else if (theProperty == m_midi_start_note)
         {
-            const auto &val = *m_midi_start_note;
+            uint8_t val = *m_midi_start_note;
             
             // setup midimap
-            m_midi_map[0] = {val, val + 7, val + 12};
-            m_midi_map[1] = {val + 2, val + 9, val + 14};
-            m_midi_map[2] = {val + 4, val + 11, val + 16};
-            m_midi_map[3] = {val + 5, val + 12, val + 17};
-            m_midi_map[4] = {val + 7, val + 14, val + 19};
-            m_midi_map[5] = {val + 9, val + 16, val + 21};
-            m_midi_map[6] = {val + 11, val + 18, val + 23};
-            m_midi_map[7] = {val + 12, val + 19, val + 24};
+            m_midi_map[0] = {val, uint8_t(val + 7), uint8_t(val + 12)};
+            m_midi_map[1] = {uint8_t(val + 2), uint8_t(val + 9), uint8_t(val + 14)};
+            m_midi_map[2] = {uint8_t(val + 4), uint8_t(val + 11), uint8_t(val + 16)};
+            m_midi_map[3] = {uint8_t(val + 5), uint8_t(val + 12), uint8_t(val + 17)};
+            m_midi_map[4] = {uint8_t(val + 7), uint8_t(val + 14), uint8_t(val + 19)};
+            m_midi_map[5] = {uint8_t(val + 9), uint8_t(val + 16), uint8_t(val + 21)};
+            m_midi_map[6] = {uint8_t(val + 11), uint8_t(val + 18), uint8_t(val + 23)};
+            m_midi_map[7] = {uint8_t(val + 12), uint8_t(val + 19), uint8_t(val + 24)};
             
             // make sure leftover notes are purged
             midi_mute_all();

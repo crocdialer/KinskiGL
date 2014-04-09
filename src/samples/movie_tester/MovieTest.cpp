@@ -31,7 +31,7 @@ void MovieTest::setup()
     
     m_movie.set_on_load_callback(bind(&MovieTest::on_movie_load, this));
     
-//    m_camera.start_capture();
+    m_camera_control.start_capture();
     
     load_settings();
 }
@@ -40,8 +40,8 @@ void MovieTest::setup()
 
 void MovieTest::update(float timeDelta)
 {
-    m_movie.copy_frame_to_texture(m_textures[0]);
-//    m_camera.copy_frame_to_texture(m_textures[0]);
+//    m_movie.copy_frame_to_texture(m_textures[0]);
+    m_camera_control.copy_frame_to_texture(m_textures[0]);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -70,6 +70,13 @@ void MovieTest::keyPress(const KeyEvent &e)
     
     switch (e.getCode())
     {
+        case GLFW_KEY_C:
+            if(m_camera_control.is_capturing())
+                m_camera_control.stop_capture();
+            else
+                m_camera_control.start_capture();
+            break;
+            
         case GLFW_KEY_P:
             m_movie.pause();
             break;

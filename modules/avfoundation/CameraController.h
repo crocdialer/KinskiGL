@@ -22,6 +22,7 @@ namespace kinski
         
         void start_capture();
         void stop_capture();
+        bool is_capturing() const;
         
         /*!
          * upload the current frame to a gl::Texture object

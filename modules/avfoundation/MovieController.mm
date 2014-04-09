@@ -62,7 +62,7 @@ namespace kinski {
         
     bool MovieController::isPlaying() const
     {
-        return [m_impl->m_audioPlayer isPlaying];
+        return [m_impl->m_player rate] != 0.0f;
     }
     
     void MovieController::load(const std::string &filePath, bool autoplay)
@@ -107,9 +107,6 @@ namespace kinski {
                  m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
                  [m_impl->m_player_item addOutput:m_impl->m_output];
                  m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
-                 
-                 NSArray *videoTrackArray = [asset tracksWithMediaType:AVMediaTypeVideo];
-                 //NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
                  
                  m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
                  

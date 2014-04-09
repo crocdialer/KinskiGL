@@ -70,6 +70,7 @@ namespace kinski
         // thread management
         void start();
         void stop();
+        bool is_running() const;
         
         // thread runs here
         void run();

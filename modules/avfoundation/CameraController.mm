@@ -94,6 +94,9 @@
     [_captureSession release];
     [_videoInput release];
     [_videoOutput release];
+    
+    if(_sampleBuffer)
+        CFRelease(_sampleBuffer);
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
@@ -129,7 +132,7 @@ namespace kinski
         
         ~Impl()
         {
-            [m_camera release];
+            [m_camera dealloc];
         };
     };
     
@@ -200,10 +203,14 @@ namespace kinski
             
             // unlock base address, release buffer
             CVPixelBufferUnlockBaseAddress(buffer, 0);
-//            CFRelease(buffer);
-            
+
             return true;
         }
         return false;
+    }
+    
+    bool CameraController::is_capturing() const
+    {
+        return m_impl->m_camera.captureSession.isRunning;
     }
 }

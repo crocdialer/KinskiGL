@@ -82,6 +82,10 @@ BOOST_AUTO_TEST_CASE( testObserver )
     *int_ptr = 54321;
     BOOST_CHECK(*intProp == 54321);
     BOOST_CHECK(!obs2->m_triggered);
+    
+    // tests automatic observer managment with smart pointers
+    obs1.reset();
+    *intProp = 5;
 }
 
 //____________________________________________________________________________//

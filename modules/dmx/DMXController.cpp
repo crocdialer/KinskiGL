@@ -54,8 +54,8 @@ namespace kinski
         {
             DMX_START_CODE,
             label,
-            data_length & 0xFF,
-            (data_length >> 8) & 0xFF
+            static_cast<unsigned char>(data_length & 0xFF),
+            static_cast<unsigned char>((data_length >> 8) & 0xFF)
         };
         bytes.insert(bytes.end(), data, data + data_length);
         bytes.push_back(DMX_END_CODE);
