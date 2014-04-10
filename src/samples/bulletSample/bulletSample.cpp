@@ -140,7 +140,7 @@ public:
         gl::Geometry::Ptr myBox(gl::Geometry::createBox(vec3(50, 100, 50)));
         
         m_box_material = gl::Material::create();
-        m_box_material->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
+//        m_box_material->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
         //m_box_material->setShader(gl::createShaderFromFile("shader_normalMap.vert", "shader_normalMap.frag"));
         
         m_box_material->addTexture(m_textures[3]);

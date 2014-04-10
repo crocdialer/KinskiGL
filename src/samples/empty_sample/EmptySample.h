@@ -32,7 +32,7 @@ namespace kinski
         void mouseMove(const MouseEvent &e);
         void mouseDrag(const MouseEvent &e);
         void mouseWheel(const MouseEvent &e);
-        void got_message(const std::string &the_message);
+        void got_message(const std::vector<uint8_t> &the_message);
         void tearDown();
         void updateProperty(const Property::ConstPtr &theProperty);
     };

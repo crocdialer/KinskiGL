@@ -40,8 +40,10 @@ void MovieTest::setup()
 
 void MovieTest::update(float timeDelta)
 {
-//    m_movie.copy_frame_to_texture(m_textures[0]);
-    m_camera_control.copy_frame_to_texture(m_textures[0]);
+    if(m_camera_control.is_capturing())
+        m_camera_control.copy_frame_to_texture(m_textures[0]);
+    else
+        m_movie.copy_frame_to_texture(m_textures[0]);
 }
 
 /////////////////////////////////////////////////////////////////

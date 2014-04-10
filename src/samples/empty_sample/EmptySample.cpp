@@ -92,7 +92,7 @@ void EmptySample::mouseWheel(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::got_message(const std::string &the_message)
+void EmptySample::got_message(const std::vector<uint8_t> &the_message);
 {
     LOG_INFO<<the_message;
 }
