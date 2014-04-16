@@ -19,18 +19,17 @@ namespace kinski { namespace gl {
         return tmp == v;
     }
     
-    MiniMat loadImage(const std::string &theFileName, int num_channels)
+    MiniMat decode_image(const std::vector<uint8_t> &the_data, int num_channels)
     {
-        std::vector<uint8_t> dataVec = kinski::readBinaryFile(theFileName);
-        
         int width, height, num_components;
-        unsigned char *data = stbi_load_from_memory(&dataVec[0], dataVec.size(),
+        unsigned char *data = stbi_load_from_memory(&the_data[0], the_data.size(),
                                                     &width, &height, &num_components, num_channels);
         
-        if(!data) throw ImageLoadException(theFileName);
+        if(!data) throw ImageLoadException();
         
-        LOG_TRACE<<"loaded image: "<<theFileName<<" -- "<<width
+        LOG_TRACE<<"decoded image: "<<width
         <<" x "<<height<<" ("<<num_components<<" ch)";
+        
         // ... process data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...
         // ... replace '0' with '1'..'4' to force that many components per pixel
@@ -40,11 +39,17 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress,
+    Texture createTextureFromData(const std::vector<uint8_t> &the_data, bool mipmap, bool compress,
                                   GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
-        MiniMat img = loadImage(theFileName);
+        MiniMat img;
+        try {img = decode_image(the_data);}
+        catch (ImageLoadException &e)
+        {
+            LOG_ERROR << e.what();
+            return ret;
+        }
         
         GLenum format = 0, internal_format = 0;
         
@@ -101,6 +106,22 @@ namespace kinski { namespace gl {
         ret.set_anisotropic_filter(anisotropic_filter_lvl);
         stbi_image_free(img.data);
         
+        return ret;
+    }
+    
+    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress,
+                                  GLfloat anisotropic_filter_lvl)
+    {
+        std::vector<uint8_t> dataVec;
+        Texture ret;
+        
+        try {dataVec = kinski::readBinaryFile(theFileName);}
+        catch (FileNotFoundException &e)
+        {
+            LOG_ERROR << e.what();
+            return ret;
+        }
+        ret = createTextureFromData(dataVec, mipmap, compress, anisotropic_filter_lvl);
         return ret;
     }
     

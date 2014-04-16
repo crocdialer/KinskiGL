@@ -9,6 +9,7 @@
 #include "FaceSyphoner.h"
 #include "ThreshNode.h"
 #include "FaceFilter.h"
+#include "kinskiCV/TextureIO.h"
 
 using namespace std;
 using namespace kinski;
@@ -25,6 +26,10 @@ void FaceSyphoner::setup()
     outstream_gl().set_color(gl::COLOR_WHITE);
     outstream_gl().set_font(m_font);
 
+    // register props
+    registerProperty(m_use_syphon);
+    registerProperty(m_syphon_server_name);
+    
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -42,14 +47,54 @@ void FaceSyphoner::setup()
 
 void FaceSyphoner::update(float timeDelta)
 {
-    
+    if(m_opencv->hasImage())
+    {
+        vector<cv::Mat> images = m_opencv->getImages();
+        
+        int j = 0;
+        for(int i = 2; i < images.size(); i++)
+        {
+            if(i < 4)
+            {
+                gl::TextureIO::updateTexture(m_textures[j++], images[i]);
+            }
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
 
 void FaceSyphoner::draw()
 {
+    for(int i = 0; i < m_syphon.size(); ++i)
+    {
+        try
+        {
+            if(m_textures[i])
+                m_syphon[i].publish_texture(m_textures[i]);
+        }
+        catch(gl::SyphonNotRunningException &e){break;}
+        
+    }
     
+    if(displayTweakBar())
+    {
+        // draw opencv maps
+        float w = (windowSize()/6.f).x;
+        glm::vec2 offset(getWidth() - w - 10, 10);
+        for(auto &t : m_textures)
+        {
+            if(!t) continue;
+            
+            float h = t.getHeight() * w / t.getWidth();
+            glm::vec2 step(0, h + 10);
+            drawTexture(t, vec2(w, h), offset);
+            gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                           as_string(t.getHeight()), m_font, glm::vec4(1),
+                           offset);
+            offset += step;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////

@@ -51,8 +51,10 @@ namespace kinski
             r.y /= scale;
             r.width /= scale;
             r.height /= scale;
-            //if(it->area() > 5000)
-            outMats.push_back(img(r).clone());
+            
+            Mat tmp;
+            resize(img(r), tmp, Size(512, 512));
+            outMats.push_back(tmp);
         }
 
         return outMats;

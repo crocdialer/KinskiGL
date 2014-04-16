@@ -9,11 +9,11 @@
 #ifndef __kinskiGL__EmptySample__
 #define __kinskiGL__EmptySample__
 
-#include "kinskiApp/GLFW_App.h"
+#include "kinskiApp/ViewerApp.h"
 
 namespace kinski
 {
-    class EmptySample : public GLFW_App
+    class EmptySample : public ViewerApp
     {
     private:
         

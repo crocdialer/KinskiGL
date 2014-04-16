@@ -196,8 +196,12 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API MiniMat loadImage(const std::string &theFileName, int num_channels = 0);
+    KINSKI_API MiniMat decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
     KINSKI_API Texture createTextureFromFile(const std::string &theFileName,
+                                             bool mipmap = false,
+                                             bool compress = false,
+                                             GLfloat anisotropic_filter_lvl = 1.f);
+    KINSKI_API Texture createTextureFromData(const std::vector<uint8_t> &the_data,
                                              bool mipmap = false,
                                              bool compress = false,
                                              GLfloat anisotropic_filter_lvl = 1.f);
@@ -205,8 +209,8 @@ namespace kinski { namespace gl {
     class ImageLoadException : public Exception
     {
     public:
-        ImageLoadException(const std::string &thePath)
-        :Exception("Got trouble with image file: " + thePath){};
+        ImageLoadException()
+        :Exception("Got trouble decoding image file"){};
     };
     
     /*********************************** Shader loading *******************************************/

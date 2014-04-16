@@ -46,6 +46,8 @@ namespace kinski{ namespace gl{
         uint32_t rows, cols;
         uint32_t bytes_per_pixel;
         Area<uint32_t> roi;
+        MiniMat():data(NULL), rows(0), cols(0), bytes_per_pixel(0){};
+        
         MiniMat(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
                 const Area<uint32_t> &theRoi = Area<uint32_t>()):
         data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};

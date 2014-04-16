@@ -89,7 +89,7 @@ namespace kinski{ namespace gl{
 #endif
             KINSKI_CHECK_GL_ERRORS();
 
-            for (const auto &item : sub_selection)
+            for (const RenderBin::item &item : sub_selection)
             {
                 m = item.mesh;
                 

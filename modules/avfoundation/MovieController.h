@@ -48,6 +48,13 @@ namespace kinski
          */
         bool copy_frame_to_texture(gl::Texture &tex);
         
+        /*!
+         * copy the current frame to a std::vector<uint8_t>
+         * return: true if a new frame has been copied successfully,
+         * false otherwise
+         */
+        bool copy_frame(std::vector<uint8_t>& data);
+        
         bool copy_frames_offline(gl::ArrayTexture &tex);
     };
 }

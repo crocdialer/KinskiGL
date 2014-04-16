@@ -179,6 +179,40 @@ namespace kinski {
         m_impl->m_player.volume = val;
     }
     
+    bool MovieController::copy_frame(std::vector<uint8_t>& data)
+    {
+        if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
+        
+        if(m_impl->m_loop && current_time() >= duration())
+        {
+            play();
+        }
+        
+        CMTime ct = [m_impl->m_player currentTime];
+        
+        if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])
+            return false;
+        
+        CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
+        
+        if(buffer)
+        {
+            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
+            data.resize(num_bytes);
+            
+            // lock base adress
+            CVPixelBufferLockBaseAddress(buffer, 0);
+            memcpy(&data[0], CVPixelBufferGetBaseAddress(buffer), num_bytes);
+            
+            // unlock base address, release buffer
+            CVPixelBufferUnlockBaseAddress(buffer, 0);
+            CFRelease(buffer);
+            
+            return true;
+        }
+        return false;
+    }
+    
     bool MovieController::copy_frame_to_texture(gl::Texture &tex)
     {
         if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
