@@ -9,14 +9,26 @@
 #include "Downloader.h"
 #include <string.h>
 #include "curl/curl.h"
+#include "kinskiCore/Logger.h"
 
 using namespace std;
 
 namespace kinski{ namespace net{
 
+struct Downloader_impl
+{
+    CURLM *m_curl_multi_handle;
+    
+    Downloader_impl(): m_curl_multi_handle(curl_multi_init()){};
+    virtual ~Downloader_impl(){curl_multi_cleanup(m_curl_multi_handle);}
+};
+    
 class Action
 {
 protected:
+    CURL *m_curl_handle;
+    ConnectionInfo m_connection_info;
+    long m_timeout;
     std::vector<uint8_t> m_response;
  
     /*!
@@ -46,16 +58,51 @@ protected:
         memcpy(ptr, inStream, length);
         return length;
     }
-
+    
+    /*!
+     * Callback for transfer progress
+     */
+    static int progress_static(void *userp, double dltotal, double dlnow, double ult,
+                               double uln)
+    {
+        Action *self = static_cast<Action*>(userp);
+        self->m_connection_info.dl_total = dltotal;
+        self->m_connection_info.dl_now = dlnow;
+        self->m_connection_info.ul_total = ult;
+        self->m_connection_info.ul_now = uln;
+        LOG_TRACE << self->connection_info().url << " : " << self->connection_info().dl_now << " / "
+        << self->connection_info().dl_total;
+        return 0;
+    }
     
 public:
-    Action(){};
-    virtual ~Action()
+    Action():
+    m_curl_handle(curl_easy_init()),
+    m_connection_info({"", 0, 0, 0, 0})
     {};
+    virtual ~Action()
+    {curl_easy_cleanup(m_curl_handle);};
     
     const std::vector<uint8_t>& getResponse(){return m_response;};
     
-    virtual bool performWithHandle(CURL* curlHandle) = 0;
+    bool perform()
+    {
+        CURLcode curlResult = curl_easy_perform(handle());
+		return !curlResult;
+    }
+    
+    CURL* handle() const {return m_curl_handle;}
+    ConnectionInfo connection_info() const {return m_connection_info;}
+    
+    void set_handle(CURL *handle)
+    {
+        if(m_curl_handle)
+        {
+            curl_easy_cleanup(m_curl_handle);
+        }
+        
+        m_curl_handle = handle;
+    }
 };
 
     
@@ -68,28 +115,29 @@ private:
 	string m_nodeUrl;
 public:
 	GetURLAction(const string &the_url) :
+    Action(),
     m_nodeUrl(the_url)
 	{
-	}
-
-	virtual bool performWithHandle(CURL *curlHandle)
-	{
-		/* specify target URL, and note that this URL should include a file
+        m_connection_info.url = the_url;
+        
+        /* specify target URL, and note that this URL should include a file
 		 name, not only a directory */
-		curl_easy_setopt(curlHandle, CURLOPT_URL, m_nodeUrl.c_str());
-		curl_easy_setopt(curlHandle, CURLOPT_WRITEDATA, this);
-		curl_easy_setopt(curlHandle, CURLOPT_WRITEFUNCTION, write_save);
-		CURLcode curlResult = curl_easy_perform(curlHandle);
-		return !curlResult;
+		curl_easy_setopt(handle(), CURLOPT_URL, m_nodeUrl.c_str());
+		curl_easy_setopt(handle(), CURLOPT_WRITEDATA, this);
+		curl_easy_setopt(handle(), CURLOPT_WRITEFUNCTION, write_save);
+        curl_easy_setopt(handle(), CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(handle(), CURLOPT_PROGRESSDATA, this);
+        curl_easy_setopt(handle(), CURLOPT_PROGRESSFUNCTION, progress_static);
 	}
 };
 
 Downloader::Downloader() :
-        m_maxQueueSize(50),
-        m_timeout(DEFAULT_TIMEOUT),
-        m_stop(false)
+    m_impl(new Downloader_impl),
+    m_maxQueueSize(50),
+    m_timeout(DEFAULT_TIMEOUT),
+    m_stop(false)
 {
-//    m_thread = std::thread(std::bind(&GetURL::run, this));
+
 }
     
 Downloader::~Downloader()
@@ -101,12 +149,24 @@ std::vector<uint8_t> Downloader::getURL(const std::string &the_url)
 {
 	ActionPtr getNodeAction = make_shared<GetURLAction>(the_url);
     
-	CURL *handle = curl_easy_init();
-    curl_easy_setopt(handle, CURLOPT_TIMEOUT, m_timeout);
-	getNodeAction->performWithHandle(handle);
-	curl_easy_cleanup(handle);
+    curl_easy_setopt(getNodeAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+	getNodeAction->perform();
 
 	return getNodeAction->getResponse();
+}
+    
+void Downloader::getURL_async(const std::string &the_url,
+                              CompletionHandler ch,
+                              ProgressHandler ph)
+{
+    // create an action which holds an easy handle
+    ActionPtr getNodeAction = make_shared<GetURLAction>(the_url);
+    
+    // set options for this handle
+    curl_easy_setopt(getNodeAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+    
+    // add handle to multi
+    curl_multi_add_handle(m_impl->m_curl_multi_handle, getNodeAction->handle());
 }
 
 void Downloader::addAction(const ActionPtr & theAction)
@@ -122,13 +182,6 @@ void Downloader::addAction(const ActionPtr & theAction)
 	m_conditionVar.notify_one();
 }
 
-//void GetURL::setNumWorkerThreads(unsigned int n)
-//{
-//	stop();
-//	m_stop = false;
-//    m_thread = std::thread(std::bind(this, &GetURL::run));
-//}
-
 void Downloader::run()
 {
 	// init curl-handle for this thread
@@ -143,9 +196,7 @@ void Downloader::run()
 		// locked scope
 		{
 			std::unique_lock<std::mutex> lock(m_mutex);
-            
-            curl_easy_setopt(handle, CURLOPT_TIMEOUT, m_timeout);
-            
+
 			while (m_actionQueue.empty() && !m_stop)
 				m_conditionVar.wait(lock);
 
@@ -153,11 +204,12 @@ void Downloader::run()
 				break;
 
 			action = m_actionQueue.front();
+            curl_easy_setopt(action->handle(), CURLOPT_TIMEOUT, m_timeout);
 			m_actionQueue.pop_front();
 		}
 
 		// go for gold
-		action->performWithHandle(handle);
+		action->perform();
 	}
 
 	//cleanup

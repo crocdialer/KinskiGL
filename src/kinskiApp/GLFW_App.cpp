@@ -81,7 +81,7 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
-        addWindow(GLFW_Window::create(getWidth(), getHeight(), getName()));
+        addWindow(GLFW_Window::create(getWidth(), getHeight(), getName(), fullSceen()));
         gl::setWindowDimension(windowSize());
         
         // set graphical log stream
@@ -168,6 +168,9 @@ namespace kinski
     void GLFW_App::setFullSceen(bool b)
     {
         App::setFullSceen(b);
+        
+        if(m_windows.empty()) return;
+        
         GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), getName(), b,
                                                     m_windows.back()->handle());
         m_windows.clear();

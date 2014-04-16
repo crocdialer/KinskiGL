@@ -17,11 +17,20 @@
 
 namespace kinski{ namespace net{
     
+    struct ConnectionInfo
+    {
+        std::string url;
+        double dl_total, dl_now, ul_total, ul_now;
+    };
+    
     class Downloader
     {
     public:
         
         static const long DEFAULT_TIMEOUT;
+        
+        typedef std::function<void(ConnectionInfo)> ProgressHandler;
+        typedef std::function<void(ConnectionInfo, const std::vector<uint8_t>&)> CompletionHandler;
         
         Downloader();
         virtual ~Downloader();
@@ -31,6 +40,13 @@ namespace kinski{ namespace net{
          */
         std::vector<uint8_t> getURL(const std::string &the_url);
         
+        /*!
+         * Download the resource at the given url (nonblocking)
+         */
+        void getURL_async(const std::string &the_url,
+                          CompletionHandler ch,
+                          ProgressHandler ph = ProgressHandler());
+        
         long getTimeOut();
         void setTimeOut(long t);
         
@@ -39,6 +55,7 @@ namespace kinski{ namespace net{
     private:
         
         typedef std::shared_ptr<class Action> ActionPtr;
+        std::unique_ptr<struct Downloader_impl> m_impl;
         
         void stop(){};
         void addAction(const ActionPtr& theAction);
