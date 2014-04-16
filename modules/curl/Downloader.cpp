@@ -6,7 +6,7 @@
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
-#include "GetURL.h"
+#include "Downloader.h"
 #include <string.h>
 #include "curl/curl.h"
 
@@ -23,7 +23,7 @@ protected:
      * Callback to process incoming data
      */
     static size_t write_save(void *buffer, size_t size, size_t nmemb,
-                                 void *userp)
+                             void *userp)
     {
         size_t realsize = size * nmemb;
         if (userp)
@@ -40,7 +40,7 @@ protected:
      * Callback for data provided to Curl for sending
      */
     static size_t read_static(void *ptr, size_t size, size_t nmemb,
-                                  void *inStream)
+                              void *inStream)
     {
         size_t length = strlen((char*) inStream);
         memcpy(ptr, inStream, length);
@@ -60,7 +60,7 @@ public:
 
     
 // Timeout interval for http requests
-const long GetURL::DEFAULT_TIMEOUT = 1L;
+const long Downloader::DEFAULT_TIMEOUT = 1L;
 
 class GetURLAction: public Action
 {
@@ -84,7 +84,7 @@ public:
 	}
 };
 
-GetURL::GetURL() :
+Downloader::Downloader() :
         m_maxQueueSize(50),
         m_timeout(DEFAULT_TIMEOUT),
         m_stop(false)
@@ -92,12 +92,12 @@ GetURL::GetURL() :
 //    m_thread = std::thread(std::bind(&GetURL::run, this));
 }
     
-GetURL::~GetURL()
+Downloader::~Downloader()
 {
 	stop();
 }
 
-std::vector<uint8_t> GetURL::getURL(const std::string &the_url)
+std::vector<uint8_t> Downloader::getURL(const std::string &the_url)
 {
 	ActionPtr getNodeAction = make_shared<GetURLAction>(the_url);
     
@@ -109,7 +109,7 @@ std::vector<uint8_t> GetURL::getURL(const std::string &the_url)
 	return getNodeAction->getResponse();
 }
 
-void GetURL::addAction(const ActionPtr & theAction)
+void Downloader::addAction(const ActionPtr & theAction)
 {
 	std::unique_lock<std::mutex> lock(m_mutex);
     
@@ -129,7 +129,7 @@ void GetURL::addAction(const ActionPtr & theAction)
 //    m_thread = std::thread(std::bind(this, &GetURL::run));
 //}
 
-void GetURL::run()
+void Downloader::run()
 {
 	// init curl-handle for this thread
 	CURL *handle = curl_easy_init();
@@ -164,12 +164,12 @@ void GetURL::run()
 	curl_easy_cleanup(handle);
 }
 
-long GetURL::getTimeOut()
+long Downloader::getTimeOut()
 {
     return m_timeout;
 }
     
-void GetURL::setTimeOut(long t)
+void Downloader::setTimeOut(long t)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     m_timeout=t;

@@ -6,8 +6,8 @@
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef kinski__GetURL_h_INCLUDED
-#define kinski__GetURL_h_INCLUDED
+#ifndef kinski__Downloader_h_INCLUDED
+#define kinski__Downloader_h_INCLUDED
 
 #include "kinskiCore/Definitions.h"
 #include <thread>
@@ -17,14 +17,14 @@
 
 namespace kinski{ namespace net{
     
-    class GetURL
+    class Downloader
     {
     public:
         
         static const long DEFAULT_TIMEOUT;
         
-        GetURL();
-        virtual ~GetURL();
+        Downloader();
+        virtual ~Downloader();
         
         /*!
          * Download the resource at the given url (blocking) 
