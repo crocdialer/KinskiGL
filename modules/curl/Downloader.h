@@ -27,6 +27,8 @@ namespace kinski{ namespace net{
     {
     public:
         
+        typedef std::shared_ptr<class Action> ActionPtr;
+        
         static const long DEFAULT_TIMEOUT;
         
         typedef std::function<void(ConnectionInfo)> ProgressHandler;
@@ -52,9 +54,10 @@ namespace kinski{ namespace net{
         
         void run();
         
+        void poll();
+        
     private:
         
-        typedef std::shared_ptr<class Action> ActionPtr;
         std::unique_ptr<struct Downloader_impl> m_impl;
         
         void stop(){};
@@ -66,7 +69,7 @@ namespace kinski{ namespace net{
         long m_timeout;
         
         // threading
-        volatile bool m_stop;
+        int m_running;
         std::thread m_thread;
         std::mutex m_mutex;
         std::condition_variable m_conditionVar;

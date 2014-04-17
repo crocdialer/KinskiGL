@@ -14,10 +14,13 @@
 using namespace std;
 
 namespace kinski{ namespace net{
+    
+typedef std::map<CURL*, Downloader::ActionPtr> HandleMap;
 
 struct Downloader_impl
 {
     CURLM *m_curl_multi_handle;
+    HandleMap m_handle_map;
     
     Downloader_impl(): m_curl_multi_handle(curl_multi_init()){};
     virtual ~Downloader_impl(){curl_multi_cleanup(m_curl_multi_handle);}
@@ -28,13 +31,16 @@ class Action
 protected:
     CURL *m_curl_handle;
     ConnectionInfo m_connection_info;
+    Downloader::CompletionHandler m_completion_handler;
+    Downloader::ProgressHandler m_progress_handler;
+    
     long m_timeout;
     std::vector<uint8_t> m_response;
  
     /*!
      * Callback to process incoming data
      */
-    static size_t write_save(void *buffer, size_t size, size_t nmemb,
+    static size_t write_static(void *buffer, size_t size, size_t nmemb,
                              void *userp)
     {
         size_t realsize = size * nmemb;
@@ -79,7 +85,13 @@ public:
     Action():
     m_curl_handle(curl_easy_init()),
     m_connection_info({"", 0, 0, 0, 0})
-    {};
+    {
+        curl_easy_setopt(m_curl_handle, CURLOPT_WRITEDATA, this);
+		curl_easy_setopt(m_curl_handle, CURLOPT_WRITEFUNCTION, write_static);
+        curl_easy_setopt(m_curl_handle, CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(m_curl_handle, CURLOPT_PROGRESSDATA, this);
+        curl_easy_setopt(m_curl_handle, CURLOPT_PROGRESSFUNCTION, progress_static);
+    };
     virtual ~Action()
     {curl_easy_cleanup(m_curl_handle);};
     
@@ -88,6 +100,7 @@ public:
     bool perform()
     {
         CURLcode curlResult = curl_easy_perform(handle());
+        if(m_completion_handler) m_completion_handler(m_connection_info, m_response);
 		return !curlResult;
     }
     
@@ -103,6 +116,10 @@ public:
         
         m_curl_handle = handle;
     }
+    
+    Downloader::CompletionHandler completion_handler() {return m_completion_handler;}
+    void set_completion_handler(Downloader::CompletionHandler ch){m_completion_handler = ch;}
+    void set_progress_handler(Downloader::ProgressHandler ph){m_progress_handler = ph;}
 };
 
     
@@ -123,11 +140,6 @@ public:
         /* specify target URL, and note that this URL should include a file
 		 name, not only a directory */
 		curl_easy_setopt(handle(), CURLOPT_URL, m_nodeUrl.c_str());
-		curl_easy_setopt(handle(), CURLOPT_WRITEDATA, this);
-		curl_easy_setopt(handle(), CURLOPT_WRITEFUNCTION, write_save);
-        curl_easy_setopt(handle(), CURLOPT_NOPROGRESS, 0L);
-        curl_easy_setopt(handle(), CURLOPT_PROGRESSDATA, this);
-        curl_easy_setopt(handle(), CURLOPT_PROGRESSFUNCTION, progress_static);
 	}
 };
 
@@ -135,7 +147,7 @@ Downloader::Downloader() :
     m_impl(new Downloader_impl),
     m_maxQueueSize(50),
     m_timeout(DEFAULT_TIMEOUT),
-    m_stop(false)
+    m_running(0)
 {
 
 }
@@ -147,26 +159,65 @@ Downloader::~Downloader()
 
 std::vector<uint8_t> Downloader::getURL(const std::string &the_url)
 {
-	ActionPtr getNodeAction = make_shared<GetURLAction>(the_url);
-    
-    curl_easy_setopt(getNodeAction->handle(), CURLOPT_TIMEOUT, m_timeout);
-	getNodeAction->perform();
+	ActionPtr getURLAction = make_shared<GetURLAction>(the_url);
+    curl_easy_setopt(getURLAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+    LOG_DEBUG << "trying to fetch url: '" << the_url << "'";
+	getURLAction->perform();
+	return getURLAction->getResponse();
+}
 
-	return getNodeAction->getResponse();
+void Downloader::poll()
+{
+    if(m_running)
+    {
+        curl_multi_perform(m_impl->m_curl_multi_handle, &m_running);
+        
+        CURLMsg *msg;
+        int msgs_left;
+        CURL *easy;
+        CURLcode res;
+        
+        while ((msg = curl_multi_info_read(m_impl->m_curl_multi_handle, &msgs_left)))
+        {
+            if (msg->msg == CURLMSG_DONE)
+            {
+                easy = msg->easy_handle;
+                res = msg->data.result;
+                
+                curl_multi_remove_handle(m_impl->m_curl_multi_handle, easy);
+                
+                auto itr = m_impl->m_handle_map.find(easy);
+                if(itr != m_impl->m_handle_map.end())
+                {
+                    itr->second->completion_handler()(itr->second->connection_info(),
+                                                      itr->second->getResponse());
+                    LOG_DEBUG << "'" << itr->second->connection_info().url << "' completed";
+                    m_impl->m_handle_map.erase(itr);
+                }
+            }
+        }
+    }
 }
     
 void Downloader::getURL_async(const std::string &the_url,
                               CompletionHandler ch,
                               ProgressHandler ph)
 {
+    LOG_DEBUG << "trying to fetch url: '" << the_url << "' async";
+    
     // create an action which holds an easy handle
-    ActionPtr getNodeAction = make_shared<GetURLAction>(the_url);
+    ActionPtr getURLAction = make_shared<GetURLAction>(the_url);
     
     // set options for this handle
-    curl_easy_setopt(getNodeAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+    curl_easy_setopt(getURLAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+    
+    getURLAction->set_completion_handler(ch);
+    m_impl->m_handle_map[getURLAction->handle()] = getURLAction;
     
     // add handle to multi
-    curl_multi_add_handle(m_impl->m_curl_multi_handle, getNodeAction->handle());
+    curl_multi_add_handle(m_impl->m_curl_multi_handle, getURLAction->handle());
+    
+    curl_multi_perform(m_impl->m_curl_multi_handle, &m_running);
 }
 
 void Downloader::addAction(const ActionPtr & theAction)
@@ -187,7 +238,7 @@ void Downloader::run()
 	// init curl-handle for this thread
 	CURL *handle = curl_easy_init();
 
-	while (!m_stop)
+	while (m_running)
 	{
 		ActionPtr action;
         
@@ -197,10 +248,10 @@ void Downloader::run()
 		{
 			std::unique_lock<std::mutex> lock(m_mutex);
 
-			while (m_actionQueue.empty() && !m_stop)
+			while (m_actionQueue.empty() && m_running)
 				m_conditionVar.wait(lock);
 
-			if (m_stop)
+			if (!m_running)
 				break;
 
 			action = m_actionQueue.front();
