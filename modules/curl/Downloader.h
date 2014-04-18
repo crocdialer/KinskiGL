@@ -13,9 +13,19 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <boost/asio.hpp>
 
 
 namespace kinski{ namespace net{
+    
+    // forward declarations
+//    namespace boost
+//    {
+//        namespace asio
+//        {
+//            class io_service;
+//        }
+//    }
     
     struct ConnectionInfo
     {
@@ -35,6 +45,7 @@ namespace kinski{ namespace net{
         typedef std::function<void(ConnectionInfo, const std::vector<uint8_t>&)> CompletionHandler;
         
         Downloader();
+        Downloader(boost::asio::io_service &io);
         virtual ~Downloader();
         
         /*!
@@ -58,7 +69,7 @@ namespace kinski{ namespace net{
         
     private:
         
-        std::unique_ptr<struct Downloader_impl> m_impl;
+        std::shared_ptr<struct Downloader_impl> m_impl;
         
         void stop(){};
         void addAction(const ActionPtr& theAction);
@@ -70,9 +81,9 @@ namespace kinski{ namespace net{
         
         // threading
         int m_running;
-        std::thread m_thread;
-        std::mutex m_mutex;
-        std::condition_variable m_conditionVar;
+//        std::thread m_thread;
+//        std::mutex m_mutex;
+//        std::condition_variable m_conditionVar;
     };
     
 }}// namespace

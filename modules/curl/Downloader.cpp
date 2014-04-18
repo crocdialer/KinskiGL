@@ -6,10 +6,10 @@
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
-#include "Downloader.h"
-#include <string.h>
 #include "curl/curl.h"
+//#include <boost/asio.hpp>
 #include "kinskiCore/Logger.h"
+#include "Downloader.h"
 
 using namespace std;
 
@@ -19,10 +19,13 @@ typedef std::map<CURL*, Downloader::ActionPtr> HandleMap;
 
 struct Downloader_impl
 {
+    boost::asio::io_service *m_io_service;
     CURLM *m_curl_multi_handle;
     HandleMap m_handle_map;
     
-    Downloader_impl(): m_curl_multi_handle(curl_multi_init()){};
+    Downloader_impl(boost::asio::io_service *io):
+    m_io_service(io),
+    m_curl_multi_handle(curl_multi_init()){};
     virtual ~Downloader_impl(){curl_multi_cleanup(m_curl_multi_handle);}
 };
     
@@ -78,6 +81,10 @@ protected:
         self->m_connection_info.ul_now = uln;
         LOG_TRACE << self->connection_info().url << " : " << self->connection_info().dl_now << " / "
         << self->connection_info().dl_total;
+        
+        if(self->m_progress_handler)
+            self->m_progress_handler(self->m_connection_info);
+        
         return 0;
     }
     
@@ -144,7 +151,16 @@ public:
 };
 
 Downloader::Downloader() :
-    m_impl(new Downloader_impl),
+m_impl(new Downloader_impl(NULL)),
+m_maxQueueSize(50),
+m_timeout(DEFAULT_TIMEOUT),
+m_running(0)
+{
+    
+}
+    
+Downloader::Downloader(boost::asio::io_service &io) :
+    m_impl(new Downloader_impl(&io)),
     m_maxQueueSize(50),
     m_timeout(DEFAULT_TIMEOUT),
     m_running(0)
@@ -196,6 +212,8 @@ void Downloader::poll()
                 }
             }
         }
+        if(m_impl->m_io_service)
+            m_impl->m_io_service->post(std::bind(&Downloader::poll, this));
     }
 }
     
@@ -212,59 +230,65 @@ void Downloader::getURL_async(const std::string &the_url,
     curl_easy_setopt(getURLAction->handle(), CURLOPT_TIMEOUT, m_timeout);
     
     getURLAction->set_completion_handler(ch);
+    getURLAction->set_progress_handler(ph);
     m_impl->m_handle_map[getURLAction->handle()] = getURLAction;
     
     // add handle to multi
     curl_multi_add_handle(m_impl->m_curl_multi_handle, getURLAction->handle());
     
     curl_multi_perform(m_impl->m_curl_multi_handle, &m_running);
+    
+    if(m_impl->m_io_service)
+    {
+        m_impl->m_io_service->post(std::bind(&Downloader::poll, this));
+    }
 }
 
 void Downloader::addAction(const ActionPtr & theAction)
 {
-	std::unique_lock<std::mutex> lock(m_mutex);
-    
-	m_actionQueue.push_back(theAction);
-    if(m_actionQueue.size() > m_maxQueueSize)
-    {
-        m_actionQueue.pop_front();
-        //printf("dropping action...\n");
-    }
-	m_conditionVar.notify_one();
+//	std::unique_lock<std::mutex> lock(m_mutex);
+//    
+//	m_actionQueue.push_back(theAction);
+//    if(m_actionQueue.size() > m_maxQueueSize)
+//    {
+//        m_actionQueue.pop_front();
+//        //printf("dropping action...\n");
+//    }
+//	m_conditionVar.notify_one();
 }
 
 void Downloader::run()
 {
-	// init curl-handle for this thread
-	CURL *handle = curl_easy_init();
-
-	while (m_running)
-	{
-		ActionPtr action;
-        
-        curl_easy_reset(handle);
-
-		// locked scope
-		{
-			std::unique_lock<std::mutex> lock(m_mutex);
-
-			while (m_actionQueue.empty() && m_running)
-				m_conditionVar.wait(lock);
-
-			if (!m_running)
-				break;
-
-			action = m_actionQueue.front();
-            curl_easy_setopt(action->handle(), CURLOPT_TIMEOUT, m_timeout);
-			m_actionQueue.pop_front();
-		}
-
-		// go for gold
-		action->perform();
-	}
-
-	//cleanup
-	curl_easy_cleanup(handle);
+//	// init curl-handle for this thread
+//	CURL *handle = curl_easy_init();
+//
+//	while (m_running)
+//	{
+//		ActionPtr action;
+//        
+//        curl_easy_reset(handle);
+//
+//		// locked scope
+//		{
+//			std::unique_lock<std::mutex> lock(m_mutex);
+//
+//			while (m_actionQueue.empty() && m_running)
+//				m_conditionVar.wait(lock);
+//
+//			if (!m_running)
+//				break;
+//
+//			action = m_actionQueue.front();
+//            curl_easy_setopt(action->handle(), CURLOPT_TIMEOUT, m_timeout);
+//			m_actionQueue.pop_front();
+//		}
+//
+//		// go for gold
+//		action->perform();
+//	}
+//
+//	//cleanup
+//	curl_easy_cleanup(handle);
 }
 
 long Downloader::getTimeOut()
@@ -274,7 +298,7 @@ long Downloader::getTimeOut()
     
 void Downloader::setTimeOut(long t)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
+//    std::unique_lock<std::mutex> lock(m_mutex);
     m_timeout=t;
 }
     
