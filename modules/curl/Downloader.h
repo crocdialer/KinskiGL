@@ -9,23 +9,9 @@
 #ifndef kinski__Downloader_h_INCLUDED
 #define kinski__Downloader_h_INCLUDED
 
-#include "kinskiCore/Definitions.h"
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <boost/asio.hpp>
-
+#include "kinskiCore/networking.h"
 
 namespace kinski{ namespace net{
-    
-    // forward declarations
-//    namespace boost
-//    {
-//        namespace asio
-//        {
-//            class io_service;
-//        }
-//    }
     
     struct ConnectionInfo
     {
@@ -56,34 +42,24 @@ namespace kinski{ namespace net{
         /*!
          * Download the resource at the given url (nonblocking)
          */
-        void getURL_async(const std::string &the_url,
+        void async_getURL(const std::string &the_url,
                           CompletionHandler ch,
                           ProgressHandler ph = ProgressHandler());
         
         long getTimeOut();
         void setTimeOut(long t);
-        
-        void run();
-        
+
         void poll();
         
     private:
         
         std::shared_ptr<struct Downloader_impl> m_impl;
         
-        void stop(){};
-        void addAction(const ActionPtr& theAction);
-        
-        std::deque<ActionPtr> m_actionQueue;
-        unsigned int m_maxQueueSize;
-        
+        // connection timeout in ms
         long m_timeout;
         
-        // threading
+        // number of running transfers
         int m_running;
-//        std::thread m_thread;
-//        std::mutex m_mutex;
-//        std::condition_variable m_conditionVar;
     };
     
 }}// namespace

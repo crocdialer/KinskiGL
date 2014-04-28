@@ -7,7 +7,7 @@
 //
 
 #include "curl/curl.h"
-//#include <boost/asio.hpp>
+#include <boost/asio.hpp>
 #include "kinskiCore/Logger.h"
 #include "Downloader.h"
 
@@ -44,7 +44,7 @@ protected:
      * Callback to process incoming data
      */
     static size_t write_static(void *buffer, size_t size, size_t nmemb,
-                             void *userp)
+                               void *userp)
     {
         size_t realsize = size * nmemb;
         if (userp)
@@ -107,7 +107,7 @@ public:
     bool perform()
     {
         CURLcode curlResult = curl_easy_perform(handle());
-        if(m_completion_handler) m_completion_handler(m_connection_info, m_response);
+        if(!curlResult && m_completion_handler) m_completion_handler(m_connection_info, m_response);
 		return !curlResult;
     }
     
@@ -124,7 +124,7 @@ public:
         m_curl_handle = handle;
     }
     
-    Downloader::CompletionHandler completion_handler() {return m_completion_handler;}
+    Downloader::CompletionHandler completion_handler() const {return m_completion_handler;}
     void set_completion_handler(Downloader::CompletionHandler ch){m_completion_handler = ch;}
     void set_progress_handler(Downloader::ProgressHandler ph){m_progress_handler = ph;}
 };
@@ -136,23 +136,22 @@ const long Downloader::DEFAULT_TIMEOUT = 1L;
 class GetURLAction: public Action
 {
 private:
-	string m_nodeUrl;
+	string m_url;
 public:
 	GetURLAction(const string &the_url) :
     Action(),
-    m_nodeUrl(the_url)
+    m_url(the_url)
 	{
         m_connection_info.url = the_url;
         
         /* specify target URL, and note that this URL should include a file
 		 name, not only a directory */
-		curl_easy_setopt(handle(), CURLOPT_URL, m_nodeUrl.c_str());
+		curl_easy_setopt(handle(), CURLOPT_URL, m_url.c_str());
 	}
 };
 
 Downloader::Downloader() :
 m_impl(new Downloader_impl(NULL)),
-m_maxQueueSize(50),
 m_timeout(DEFAULT_TIMEOUT),
 m_running(0)
 {
@@ -161,7 +160,6 @@ m_running(0)
     
 Downloader::Downloader(boost::asio::io_service &io) :
     m_impl(new Downloader_impl(&io)),
-    m_maxQueueSize(50),
     m_timeout(DEFAULT_TIMEOUT),
     m_running(0)
 {
@@ -170,16 +168,16 @@ Downloader::Downloader(boost::asio::io_service &io) :
     
 Downloader::~Downloader()
 {
-	stop();
+
 }
 
 std::vector<uint8_t> Downloader::getURL(const std::string &the_url)
 {
-	ActionPtr getURLAction = make_shared<GetURLAction>(the_url);
-    curl_easy_setopt(getURLAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+	ActionPtr url_action = make_shared<GetURLAction>(the_url);
+    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_timeout);
     LOG_DEBUG << "trying to fetch url: '" << the_url << "'";
-	getURLAction->perform();
-	return getURLAction->getResponse();
+	url_action->perform();
+	return url_action->getResponse();
 }
 
 void Downloader::poll()
@@ -205,36 +203,46 @@ void Downloader::poll()
                 auto itr = m_impl->m_handle_map.find(easy);
                 if(itr != m_impl->m_handle_map.end())
                 {
-                    itr->second->completion_handler()(itr->second->connection_info(),
-                                                      itr->second->getResponse());
-                    LOG_DEBUG << "'" << itr->second->connection_info().url << "' completed";
+                    if(!res)
+                    {
+                        LOG_DEBUG << "'" << itr->second->connection_info().url << "' completed successfully";
+                        if(itr->second->completion_handler())
+                        {
+                            itr->second->completion_handler()(itr->second->connection_info(),
+                                                              itr->second->getResponse());
+                        }
+                    }
+                    else
+                    {
+                        LOG_DEBUG << "could not retrieve '" << itr->second->connection_info().url << "'";
+                    }
                     m_impl->m_handle_map.erase(itr);
                 }
             }
         }
-        if(m_impl->m_io_service)
+        if(m_running && m_impl->m_io_service)
             m_impl->m_io_service->post(std::bind(&Downloader::poll, this));
     }
 }
     
-void Downloader::getURL_async(const std::string &the_url,
+void Downloader::async_getURL(const std::string &the_url,
                               CompletionHandler ch,
                               ProgressHandler ph)
 {
     LOG_DEBUG << "trying to fetch url: '" << the_url << "' async";
     
     // create an action which holds an easy handle
-    ActionPtr getURLAction = make_shared<GetURLAction>(the_url);
+    ActionPtr url_action = make_shared<GetURLAction>(the_url);
     
     // set options for this handle
-    curl_easy_setopt(getURLAction->handle(), CURLOPT_TIMEOUT, m_timeout);
+    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_timeout);
     
-    getURLAction->set_completion_handler(ch);
-    getURLAction->set_progress_handler(ph);
-    m_impl->m_handle_map[getURLAction->handle()] = getURLAction;
+    url_action->set_completion_handler(ch);
+    url_action->set_progress_handler(ph);
+    m_impl->m_handle_map[url_action->handle()] = url_action;
     
     // add handle to multi
-    curl_multi_add_handle(m_impl->m_curl_multi_handle, getURLAction->handle());
+    curl_multi_add_handle(m_impl->m_curl_multi_handle, url_action->handle());
     
     curl_multi_perform(m_impl->m_curl_multi_handle, &m_running);
     
@@ -244,53 +252,6 @@ void Downloader::getURL_async(const std::string &the_url,
     }
 }
 
-void Downloader::addAction(const ActionPtr & theAction)
-{
-//	std::unique_lock<std::mutex> lock(m_mutex);
-//    
-//	m_actionQueue.push_back(theAction);
-//    if(m_actionQueue.size() > m_maxQueueSize)
-//    {
-//        m_actionQueue.pop_front();
-//        //printf("dropping action...\n");
-//    }
-//	m_conditionVar.notify_one();
-}
-
-void Downloader::run()
-{
-//	// init curl-handle for this thread
-//	CURL *handle = curl_easy_init();
-//
-//	while (m_running)
-//	{
-//		ActionPtr action;
-//        
-//        curl_easy_reset(handle);
-//
-//		// locked scope
-//		{
-//			std::unique_lock<std::mutex> lock(m_mutex);
-//
-//			while (m_actionQueue.empty() && m_running)
-//				m_conditionVar.wait(lock);
-//
-//			if (!m_running)
-//				break;
-//
-//			action = m_actionQueue.front();
-//            curl_easy_setopt(action->handle(), CURLOPT_TIMEOUT, m_timeout);
-//			m_actionQueue.pop_front();
-//		}
-//
-//		// go for gold
-//		action->perform();
-//	}
-//
-//	//cleanup
-//	curl_easy_cleanup(handle);
-}
-
 long Downloader::getTimeOut()
 {
     return m_timeout;
@@ -298,7 +259,6 @@ long Downloader::getTimeOut()
     
 void Downloader::setTimeOut(long t)
 {
-//    std::unique_lock<std::mutex> lock(m_mutex);
     m_timeout=t;
 }
     
