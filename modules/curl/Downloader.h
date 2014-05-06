@@ -43,7 +43,7 @@ namespace kinski{ namespace net{
          * Download the resource at the given url (nonblocking)
          */
         void async_getURL(const std::string &the_url,
-                          CompletionHandler ch,
+                          CompletionHandler ch = CompletionHandler(),
                           ProgressHandler ph = ProgressHandler());
         
         long getTimeOut();
