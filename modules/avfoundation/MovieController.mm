@@ -4,6 +4,25 @@
 #include "kinskiGL/Buffer.h"
 #include "MovieController.h"
 
+@interface LoopHelper : NSObject{}
+@end
+
+@implementation LoopHelper
+
+- (void) dealloc
+{
+    [super dealloc];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)playerItemDidReachEnd:(NSNotification *)notification {
+    AVPlayerItem *p = [notification object];
+    [p seekToTime:kCMTimeZero];
+    LOG_TRACE << "playerItemDidReachEnd";
+}
+
+@end
+
 namespace kinski {
     
     struct MovieController::Impl
@@ -14,7 +33,8 @@ namespace kinski {
         AVPlayer *m_player;
         AVPlayerItem *m_player_item;
         AVPlayerItemVideoOutput *m_output;
-        AVAudioPlayer *m_audioPlayer;
+
+        LoopHelper *m_loop_helper;
         
         std::string m_src_path;
         bool m_playing;
@@ -32,7 +52,7 @@ namespace kinski {
                 m_player(NULL),
                 m_player_item(NULL),
                 m_output(NULL),
-                m_audioPlayer(NULL),
+                m_loop_helper([[LoopHelper alloc] init]),
                 m_playing(false),
                 m_loop(true),
                 m_rate(1.f),
@@ -45,7 +65,7 @@ namespace kinski {
             if(m_player) [m_player release];
             if(m_player_item) [m_player_item release];
             if(m_output) [m_output release];
-            if(m_audioPlayer) [m_audioPlayer release];
+            if(m_loop_helper) [m_loop_helper release];
         };
     };
     
@@ -65,7 +85,7 @@ namespace kinski {
         return [m_impl->m_player rate] != 0.0f;
     }
     
-    void MovieController::load(const std::string &filePath, bool autoplay)
+    void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
         MovieCallback on_load = m_impl->m_on_load_cb;
         m_impl.reset(new Impl);
@@ -83,11 +103,7 @@ namespace kinski {
         
         NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
         
-        // create new audio-player instance
-        m_impl->m_audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:nil];
-        
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
-        
         NSString *tracksKey = @"tracks";
         
         [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:tracksKey] 
@@ -107,6 +123,8 @@ namespace kinski {
                  m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
                  [m_impl->m_player_item addOutput:m_impl->m_output];
                  m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
+                 m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
+                                                        AVPlayerActionAtItemEndPause;
                  
                  m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
                  
@@ -117,6 +135,8 @@ namespace kinski {
                  {
                      if(autoplay)
                          play();
+                     
+                     set_loop(loop);
                      
                      [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                   
@@ -131,17 +151,13 @@ namespace kinski {
          }];
     }
     void MovieController::play()
-    {        
-        // already playing. nothing to do
-        //if(m_impl->m_player)
-        {
-            LOG_TRACE << "starting movie playback";
-            [m_impl->m_player seekToTime:kCMTimeZero];
-            [m_impl->m_player play];
-            [m_impl->m_player setRate: m_impl->m_rate];
-            
-            m_impl->m_playing = true;
-        }
+    {
+        LOG_TRACE << "starting movie playback";
+        [m_impl->m_player seekToTime:kCMTimeZero];
+        [m_impl->m_player play];
+        [m_impl->m_player setRate: m_impl->m_rate];
+        
+        m_impl->m_playing = true;
     }
     
     void MovieController::stop()
@@ -175,7 +191,6 @@ namespace kinski {
         if(val < 0.f) val = 0.f;
         if(val > 1.f) val = 1.f;
         
-        m_impl->m_audioPlayer.volume = val;
         m_impl->m_player.volume = val;
     }
     
@@ -183,10 +198,10 @@ namespace kinski {
     {
         if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
         
-        if(m_impl->m_loop && current_time() >= duration())
-        {
-            play();
-        }
+//        if(m_impl->m_loop && current_time() >= duration())
+//        {
+//            play();
+//        }
         
         CMTime ct = [m_impl->m_player currentTime];
         
@@ -217,10 +232,10 @@ namespace kinski {
     {
         if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
 
-        if(m_impl->m_loop && current_time() >= duration())
-        {
-            play();
-        }
+//        if(m_impl->m_loop && current_time() >= duration())
+//        {
+//            play();
+//        }
         
         CMTime ct = [m_impl->m_player currentTime];
         
@@ -289,8 +304,6 @@ namespace kinski {
         if(!samples.empty())
         {
             CVPixelBufferRef pixbuf = CMSampleBufferGetImageBuffer(samples.front());
-//            LOG_DEBUG << "planar: " << (bool) CVPixelBufferIsPlanar(pixbuf);
-            
             width = CVPixelBufferGetWidth(pixbuf);
             height = CVPixelBufferGetHeight(pixbuf);
             
@@ -369,6 +382,23 @@ namespace kinski {
     void MovieController::set_loop(bool b)
     {
         m_impl->m_loop = b;
+        
+        if(b)
+        {
+            // do not stop at end of movie
+            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+            
+            // register our loop helper as observer
+            [[NSNotificationCenter defaultCenter] addObserver:m_impl->m_loop_helper
+                                                     selector:@selector(playerItemDidReachEnd:)
+                                                         name:AVPlayerItemDidPlayToEndTimeNotification
+                                                       object:[m_impl->m_player currentItem]];
+        }
+        else
+        {
+            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+            [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
+        }
     }
     
     bool MovieController::loop() const
