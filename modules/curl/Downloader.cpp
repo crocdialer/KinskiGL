@@ -116,11 +116,7 @@ public:
     
     void set_handle(CURL *handle)
     {
-        if(m_curl_handle)
-        {
-            curl_easy_cleanup(m_curl_handle);
-        }
-        
+        if(m_curl_handle){ curl_easy_cleanup(m_curl_handle); }
         m_curl_handle = handle;
     }
     
