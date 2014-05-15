@@ -53,6 +53,8 @@ namespace kinski{ namespace gl{
         data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
         
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
+        
+        ~MiniMat(){};
     };
                 
     /** \brief Represents an OpenGL Texture. \ImplShared*/

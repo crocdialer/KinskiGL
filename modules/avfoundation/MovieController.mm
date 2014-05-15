@@ -4,23 +4,13 @@
 #include "kinskiGL/Buffer.h"
 #include "MovieController.h"
 
-@interface LoopHelper : NSObject{}
-@end
-
-@implementation LoopHelper
-
-- (void) dealloc
+@interface LoopHelper : NSObject
 {
-    [super dealloc];
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    kinski::MovieController::Impl *m_movie_control_impl;
 }
+- (void) initWith: (kinski::MovieController::Impl*) the_impl;
 
-- (void)playerItemDidReachEnd:(NSNotification *)notification {
-    AVPlayerItem *p = [notification object];
-    [p seekToTime:kCMTimeZero];
-    LOG_TRACE << "playerItemDidReachEnd";
-}
-
+@property(assign) kinski::MovieController::Impl *movie_control_impl;
 @end
 
 namespace kinski {
@@ -42,6 +32,7 @@ namespace kinski {
         float m_rate;
         
         MovieCallback m_on_load_cb;
+        Callback m_movie_ended_cb;
         
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
@@ -52,11 +43,14 @@ namespace kinski {
                 m_player(NULL),
                 m_player_item(NULL),
                 m_output(NULL),
-                m_loop_helper([[LoopHelper alloc] init]),
                 m_playing(false),
                 m_loop(true),
                 m_rate(1.f),
-                m_pbo_index(0){}
+                m_pbo_index(0)
+        {
+            m_loop_helper = [[LoopHelper alloc] init];
+            m_loop_helper.movie_control_impl = this;
+        }
         ~Impl()
         {
             if(m_videoOut) [m_videoOut release];
@@ -136,7 +130,7 @@ namespace kinski {
                      if(autoplay)
                          play();
                      
-                     set_loop(loop);
+                     set_loop(loop || m_impl->m_loop);
                      
                      [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                   
@@ -156,7 +150,6 @@ namespace kinski {
         [m_impl->m_player seekToTime:kCMTimeZero];
         [m_impl->m_player play];
         [m_impl->m_player setRate: m_impl->m_rate];
-        
         m_impl->m_playing = true;
     }
     
@@ -231,11 +224,6 @@ namespace kinski {
     bool MovieController::copy_frame_to_texture(gl::Texture &tex)
     {
         if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
-
-//        if(m_impl->m_loop && current_time() >= duration())
-//        {
-//            play();
-//        }
         
         CMTime ct = [m_impl->m_player currentTime];
         
@@ -421,4 +409,35 @@ namespace kinski {
     {
         m_impl->m_on_load_cb = c;
     }
+    
+    void MovieController::set_movie_ended_callback(Callback c)
+    {
+        m_impl->m_movie_ended_cb = c;
+    }
 }
+
+@implementation LoopHelper
+
+- (void) initWith: (kinski::MovieController::Impl*) the_impl
+{
+    [self init];
+    self.movie_control_impl = the_impl;
+}
+
+- (void) dealloc
+{
+    [super dealloc];
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)playerItemDidReachEnd:(NSNotification *)notification {
+    AVPlayerItem *p = [notification object];
+    [p seekToTime:kCMTimeZero];
+    
+    if(self.movie_control_impl->m_movie_ended_cb)
+        self.movie_control_impl->m_movie_ended_cb();
+    
+    LOG_TRACE << "playerItemDidReachEnd";
+}
+
+@end

@@ -11,9 +11,11 @@ namespace kinski
 {
     class MovieController 
     {
+    public:
+        struct Impl;
+        
     private:
         
-        struct Impl;
         std::shared_ptr<Impl> m_impl;
         
     public:
@@ -40,6 +42,7 @@ namespace kinski
         const std::string& get_path() const;
         
         void set_on_load_callback(MovieCallback c);
+        void set_movie_ended_callback(Callback c);
         
         /*!
          * upload the current frame to a gl::Texture object

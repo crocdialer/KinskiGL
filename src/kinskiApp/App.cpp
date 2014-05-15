@@ -26,6 +26,7 @@ namespace kinski
     m_running(false),
     m_fullscreen(false),
     m_cursorVisible(true),
+    m_max_fps(60.f),
     m_thread_pool(0)
     {
         srand(clock());

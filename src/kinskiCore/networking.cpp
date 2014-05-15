@@ -114,6 +114,37 @@ namespace kinski
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
         
+        void async_send_udp_broadcast(boost::asio::io_service& io_service,
+                                                 const std::string &str,
+                                                 int port)
+        {
+            async_send_udp_broadcast(io_service, std::vector<uint8_t>(str.begin(), str.end()), port);
+        }
+        
+        void async_send_udp_broadcast(boost::asio::io_service& io_service,
+                                      const std::vector<uint8_t> &bytes,
+                                      int port)
+        {
+            try
+            {
+                // set broadcast enpoint
+                udp::endpoint receiver_endpoint(address_v4::broadcast(), port);
+                
+                udp::socket socket(io_service, udp::v4());
+                socket.set_option(udp::socket::reuse_address(true));
+                socket.set_option(boost::asio::socket_base::broadcast(true));
+                
+                socket.async_send_to(boost::asio::buffer(bytes), receiver_endpoint,
+                                     [](const boost::system::error_code& error,  // Result of operation.
+                                        std::size_t bytes_transferred)           // Number of bytes sent.
+                                     {
+                                         if (error){LOG_ERROR << error.message();}
+                                         else{ }
+                                     });
+            }
+            catch (std::exception &e) { LOG_ERROR << e.what(); }
+        }
+        
         /////////////////////////////////////////////////////////////////
         
         struct udp_server_impl
@@ -179,7 +210,7 @@ namespace kinski
                 }
                 else
                 {
-                    LOG_ERROR<<error.message();
+                    LOG_WARNING<<error.message();
                 }
             });
         }
