@@ -131,6 +131,13 @@ namespace kinski
         
     }
     
+    void GLFW_App::setCursorVisible(bool b)
+    {
+        App::setCursorVisible(b);
+        glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR,
+                         b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+    }
+    
     void GLFW_App::pollEvents()
     {
         glfwPollEvents();

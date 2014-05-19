@@ -191,11 +191,6 @@ namespace kinski {
     {
         if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
         
-//        if(m_impl->m_loop && current_time() >= duration())
-//        {
-//            play();
-//        }
-        
         CMTime ct = [m_impl->m_player currentTime];
         
         if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])

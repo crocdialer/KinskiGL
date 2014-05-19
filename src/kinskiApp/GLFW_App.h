@@ -72,6 +72,7 @@ namespace kinski
         double getApplicationTime();
         
         void setFullSceen(bool b = true);
+        void setCursorVisible(bool b = true);
         
         ///////////////////////////////////////////////////////////////////////////////
         

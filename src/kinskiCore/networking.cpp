@@ -92,6 +92,14 @@ namespace kinski
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
         
+        void async_send_udp(boost::asio::io_service& io_service,
+                            const std::string &str,
+                            const std::string &ip,
+                            int port)
+        {
+            async_send_udp(io_service, std::vector<uint8_t>(str.begin(), str.end()), ip, port);
+        }
+        
         void async_send_udp(boost::asio::io_service& io_service, const std::vector<uint8_t> &bytes,
                             const std::string &ip_string, int port)
         {

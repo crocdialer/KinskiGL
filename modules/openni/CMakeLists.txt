@@ -11,7 +11,6 @@ else(WIN32)
     FIND_LIBRARY( OPENNI_LIBRARIES DOC "Absolute path to OpenNI"
                   NAMES "OpenNI"
                   HINTS
-                  $ENV{GLFW_ROOT}
                   PATHS
                   /usr/local/lib
                   /usr/lib

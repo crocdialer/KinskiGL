@@ -53,6 +53,12 @@ namespace kinski
         
         KINSKI_API void send_udp_broadcast(const std::vector<uint8_t> &bytes, int port);
         
+        
+        KINSKI_API void async_send_udp(boost::asio::io_service& io_service,
+                                       const std::string &str,
+                                       const std::string &ip,
+                                       int port);
+        
         KINSKI_API void async_send_udp(boost::asio::io_service& io_service,
                                        const std::vector<uint8_t> &bytes,
                                        const std::string &ip,
