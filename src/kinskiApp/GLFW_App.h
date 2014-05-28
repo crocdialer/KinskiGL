@@ -31,9 +31,10 @@ namespace kinski
     public:
         
         static GLFW_WindowPtr create(int width, int height, const std::string &theName,
-                                     bool fullscreen, GLFWwindow* share = NULL)
+                                     bool fullscreen, int monitor_index = 0, GLFWwindow* share = NULL)
         {
-            return GLFW_WindowPtr(new GLFW_Window(width, height, theName, fullscreen, share));
+            return GLFW_WindowPtr(new GLFW_Window(width, height, theName, fullscreen,
+                                                  monitor_index, share));
         }
         
         static GLFW_WindowPtr create(int width, int height, const std::string &theName = "KinskiGL")
@@ -45,7 +46,7 @@ namespace kinski
         inline GLFWwindow* handle(){return m_handle;};
     private:
         GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
-                    GLFWwindow* share);
+                    int monitor_index, GLFWwindow* share);
         GLFW_Window(int width, int height, const std::string &theName);
         GLFWwindow* m_handle;
     };
@@ -72,7 +73,9 @@ namespace kinski
         double getApplicationTime();
         
         void setFullSceen(bool b = true);
+        void setFullSceen(bool b, int monitor_index);
         void setCursorVisible(bool b = true);
+        void setCursorPosition(float x, float y);
         
         ///////////////////////////////////////////////////////////////////////////////
         

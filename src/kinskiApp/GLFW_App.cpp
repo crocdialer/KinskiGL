@@ -17,11 +17,16 @@ using namespace std;
 namespace kinski
 {
     GLFW_Window::GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
-                             GLFWwindow* share)
+                             int monitor_index, GLFWwindow* share)
      {
+         int monitor_count = 0;
+         GLFWmonitor **monitors = glfwGetMonitors(&monitor_count);
+         monitor_index = clamp(monitor_index, 0, monitor_count - 1);
+//         GLFWmonitor *monitor_handle = monitor_count > 1 ? monitors[monitor_index] : glfwGetPrimaryMonitor();
+         
          m_handle = glfwCreateWindow(width, height,
                                      theName.c_str(),
-                                     fullscreen ? glfwGetPrimaryMonitor() : NULL,
+                                     fullscreen ? monitors[monitor_index] : NULL,
                                      share);
         if(!m_handle) throw CreateWindowException();
         glfwMakeContextCurrent(m_handle);
@@ -138,6 +143,11 @@ namespace kinski
                          b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
     }
     
+    void GLFW_App::setCursorPosition(float x, float y)
+    {
+        glfwSetCursorPos(m_windows.back()->handle(), x, y);
+    }
+    
     void GLFW_App::pollEvents()
     {
         glfwPollEvents();
@@ -174,11 +184,16 @@ namespace kinski
     
     void GLFW_App::setFullSceen(bool b)
     {
+        setFullSceen(b, 0);
+    }
+    
+    void GLFW_App::setFullSceen(bool b, int monitor_index)
+    {
         App::setFullSceen(b);
         
         if(m_windows.empty()) return;
         
-        GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), getName(), b,
+        GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), getName(), b, monitor_index,
                                                     m_windows.back()->handle());
         m_windows.clear();
         addWindow(window);

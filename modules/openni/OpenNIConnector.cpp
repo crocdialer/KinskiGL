@@ -11,6 +11,7 @@
 #include <XnCppWrapper.h>
 #include <XnPropNames.h>
 #include "kinskiGL/Texture.h"
+#include "kinskiGL/Buffer.h"
 #include <boost/timer/timer.hpp>
 #include "OpenNIConnector.h"
 
@@ -36,6 +37,8 @@ namespace kinski{ namespace gl{
         xn::Player m_player;
         std::vector<uint8_t> m_pixel_buffer;
         std::vector<float> m_histogram_buffer;
+        
+        std::vector<glm::vec4> m_point_buffer;
         
         Obj(){}
         
@@ -295,6 +298,7 @@ namespace kinski{ namespace gl{
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 update_depth_texture(depthMD, sceneMD);
+                
                 m_user_list.clear();
                 
                 for (int i = 0; i < num_users; ++i)
@@ -331,6 +335,17 @@ namespace kinski{ namespace gl{
         if(m_obj && !m_obj->m_pixel_buffer.empty())
             m_depth_texture->update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
         return *m_depth_texture;
+    }
+    
+    void OpenNIConnector::update_depth_buffer(gl::Buffer the_vertex_buf) const
+    {
+        // needs OpenGL -> can only be called from main thread
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_new_frame = false;
+        if(m_obj && !m_obj->m_point_buffer.empty())
+        {
+            the_vertex_buf.setData(m_obj->m_point_buffer);
+        }
     }
     
     void OpenNIConnector::update_depth_texture(const xn::DepthMetaData& dmd, const xn::SceneMetaData& smd)
@@ -425,6 +440,32 @@ namespace kinski{ namespace gl{
         {
             std::fill(m_obj->m_pixel_buffer.begin(), m_obj->m_pixel_buffer.end(), 0);
         }
+        
+        if(true)
+        {
+            // point buffer
+            int w = 640, h = 480;
+            
+            m_obj->m_point_buffer.resize(w * h);
+            
+            // reset pointer
+            pDepth = dmd.Data();
+            
+            XnPoint3D p2d, p3d;
+            for (int i = 0; i < h; i++)
+                for (int j = 0; j < w; j++)
+                {
+                    p2d.X = j;
+                    p2d.Y = i;
+                    p2d.Z = pDepth[i * w + j];
+                    m_obj->m_depthGenerator.ConvertProjectiveToRealWorld(1, &p2d, &p3d);
+                    
+                    m_obj->m_point_buffer[i * w + j] = glm::vec4(p3d.X, p3d.Y, -p3d.Z, 1.f);
+                    
+                    //                m_obj->m_point_buffer[i * w + j] = glm::vec4(j, i, pDepth[i * w + j], 1.f);
+                }
+        }
+        
     }
         
 }}

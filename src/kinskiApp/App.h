@@ -53,6 +53,7 @@ namespace kinski
         virtual void keyRelease(const KeyEvent &e){};
         virtual void fileDrop(const std::vector<std::string> &files){};
         virtual void got_message(const std::vector<uint8_t> &the_data){};
+        virtual void setCursorPosition(float x, float y){};
 
         bool running(){return m_running;};
         inline float getWidth(){return m_windowSize[0];};
@@ -69,6 +70,7 @@ namespace kinski
         
         virtual bool cursorVisible() const { return m_cursorVisible;};
         virtual void setCursorVisible(bool b = true){ m_cursorVisible = b;};
+        
         
         virtual double getApplicationTime() = 0;
         

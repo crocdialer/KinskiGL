@@ -87,6 +87,18 @@ namespace kinski
         return elems;
     }
     
+    inline std::string remove_whitespace(const std::string &input)
+    {
+        std::string ret(input);
+        ret.erase(std::remove_if(ret.begin(),
+                                 ret.end(),
+                                 std::bind(std::isspace<char>,
+                                           std::placeholders::_1,
+                                           std::locale::classic())),
+                  ret.end());
+        return ret;
+    }
+    
     template <typename T>
     inline T random(const T &min, const T &max)
     {

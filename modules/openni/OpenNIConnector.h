@@ -54,6 +54,8 @@ namespace kinski{ namespace gl{
         UserList get_user_positions() const;
         gl::Texture get_depth_texture() const;
         
+        void update_depth_buffer(gl::Buffer the_vertex_buf) const;
+        
         const std::vector<gl::Color>& user_colors() const {return m_user_colors;};
         std::vector<gl::Color>& user_colors() {return m_user_colors;};
         

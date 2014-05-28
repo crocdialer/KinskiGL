@@ -20,6 +20,8 @@
 //Syphon
 #include "SyphonConnector.h"
 
+#include "kinskiGL/Fbo.h"
+
 namespace kinski
 {
     class PointCloudSample : public ViewerApp
@@ -27,6 +29,7 @@ namespace kinski
     private:
         
         gl::Font m_font;
+        std::vector<gl::Texture> m_textures{4};
         
         // output via Syphon
         gl::SyphonConnector m_syphon;
@@ -42,6 +45,16 @@ namespace kinski
         RangedProperty<float>::Ptr m_depth_cam_x, m_depth_cam_y, m_depth_cam_z;
         Property_<glm::vec3>::Ptr m_depth_cam_look_dir;
         RangedProperty<float>::Ptr m_depth_cam_scale;
+        
+        gl::Scene m_debug_scene;
+        gl::PerspectiveCamera::Ptr m_free_camera;
+        gl::MeshPtr m_free_camera_mesh;
+        gl::Fbo m_fbo;
+        Property_<glm::vec2>::Ptr m_fbo_size;
+        RangedProperty<float>::Ptr m_fbo_cam_distance;
+        
+        // pointcloud mesh
+        gl::MeshPtr m_point_cloud;
         
     public:
         
