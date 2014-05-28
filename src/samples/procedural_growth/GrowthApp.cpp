@@ -22,10 +22,19 @@ void GrowthApp::setup()
     outstream_gl().set_color(gl::COLOR_WHITE);
     outstream_gl().set_font(m_font);
     
+    registerProperty(m_branch_angles);
+    registerProperty(m_increment);
     registerProperty(m_num_iterations);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
+    
+    // our lsystem shall draw a dragon curve
+    m_lsystem.set_axiom("f");
+    m_lsystem.add_rule("f = f - h");
+    m_lsystem.add_rule("h = f + h");
+    
+    LOG_INFO << m_lsystem;
     
     load_settings();
 }
@@ -125,8 +134,14 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
 {
     ViewerApp::updateProperty(theProperty);
     
-    if(theProperty == m_num_iterations)
+    if(theProperty == m_num_iterations ||
+       theProperty == m_branch_angles ||
+       theProperty == m_increment)
     {
+        m_lsystem.set_branch_angles(*m_branch_angles);
+        m_lsystem.set_increment(*m_increment);
+        
+        // iterate
         m_lsystem.iterate(*m_num_iterations);
         
         // create a mesh from our lystem geometry

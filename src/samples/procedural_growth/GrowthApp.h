@@ -26,8 +26,11 @@ namespace kinski
         LSystem m_lsystem;
         
         // Properties
-        
         Property_<uint32_t>::Ptr m_num_iterations = Property_<uint32_t>::create("num iterations", 2);
+        Property_<glm::vec3>::Ptr m_branch_angles = Property_<glm::vec3>::create("branch angles",
+                                                                                     glm::vec3(90));
+        RangedProperty<float>::Ptr m_increment = RangedProperty<float>::create("growth increment",
+                                                                                1.f, 0.f, 1000.f);
         
     public:
         

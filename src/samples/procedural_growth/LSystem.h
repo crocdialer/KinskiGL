@@ -23,7 +23,10 @@ namespace kinski
         //! euler angles to apply when rotating (Head, Left, Up)
         glm::vec3 m_branch_angle;
         
-        // turtle state
+        // increment
+        float m_increment;
+        
+        // turtle state (Head, Left, Up, Pos)
         mutable std::vector<glm::mat4> m_transform_stack;
         
         // convenience getters
@@ -31,7 +34,9 @@ namespace kinski
         const glm::vec3& left() const;
         const glm::vec3& up() const;
         
-        float m_branch_distance;
+        // helper to parse/lex rule strings
+        static std::pair<char, std::string> parse_rule(const std::string &the_rule);
+        static std::string lex_rule(const std::pair<char, std::string> &the_rule);
         
     public:
         
@@ -41,7 +46,10 @@ namespace kinski
         gl::GeometryPtr create_geometry() const;
         
         const std::string axiom() const { return m_axiom;}
-        void set_axiom(const std::string &the_axiom);
+        void set_axiom(const std::string &the_axiom){m_axiom = the_axiom;};
+        
+        float increment() const {return m_increment;}
+        void set_increment(float the_inc) {m_increment = the_inc;}
         
         const glm::vec3& branch_angles() const {return m_branch_angle;}
         void set_branch_angles(const glm::vec3& the_angles){m_branch_angle = the_angles;}
@@ -49,9 +57,17 @@ namespace kinski
         std::map<char, std::string>& rules() {return m_rules;}
         const std::map<char, std::string>& rules() const {return m_rules;}
         void set_rules(const std::map<char, std::string> &rule_map){m_rules = rule_map;}
+        
         void add_rule(const std::pair<char, string> the_rule);
+        void add_rule(const std::string &the_rule);
         
         std::string get_info_string() const;
+        
+        friend std::ostream& operator<<(std::ostream &os,const LSystem& ls)
+        {
+            os << ls.get_info_string();
+            return os;
+        }
     };
 }
 

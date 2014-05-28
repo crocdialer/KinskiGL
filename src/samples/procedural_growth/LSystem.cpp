@@ -13,21 +13,35 @@ using namespace kinski;
 using namespace std;
 using namespace glm;
 
+std::pair<char, std::string> LSystem::parse_rule(const std::string &the_rule)
+{
+    auto ret = std::pair<char, std::string>();
+    auto splits = split(remove_whitespace(the_rule), '=');
+    
+    if(splits.size() != 2)
+    {
+        LOG_ERROR << "parse error";
+    }
+    else
+    {
+        ret.first = splits[0][0];
+        ret.second = splits[1];
+    }
+    return ret;
+}
 
-// + Turn left by angle δ, using rotation matrix RU(δ).
-// − Turn right by angle δ, using rotation matrix RU(−δ). & Pitch down by angle δ, using rotation matrix RL(δ).
-// & Pitch down by angle δ, using rotation matrix RL(δ).
-// ∧ Pitch up by angle δ, using rotation matrix RL(−δ).
-// \ Roll left by angle δ, using rotation matrix RH(δ).
-// / Roll right by angle δ, using rotation matrix RH(−δ).
-// | Turn around, using rotation matrix RU (180◦ ).
+std::string LSystem::lex_rule(const std::pair<char, std::string> &the_rule)
+{
+    std::stringstream ss;
+    ss << the_rule.first << " = " << the_rule.second;
+    return ss.str();
+}
 
 LSystem::LSystem():
 m_branch_angle(90),
-m_branch_distance(2.f)
+m_increment(2.f)
 {
-    m_axiom = "f";
-    m_rules = {{'f', "f - h"}, {'h', "f + h"}};
+
 }
 
 const glm::vec3& LSystem::head() const
@@ -35,12 +49,12 @@ const glm::vec3& LSystem::head() const
     return *reinterpret_cast<glm::vec3*>(&m_transform_stack.back()[0]);
 }
 
-const glm::vec3& LSystem::up() const
+const glm::vec3& LSystem::left() const
 {
     return *reinterpret_cast<glm::vec3*>(&m_transform_stack.back()[1]);
 }
 
-const glm::vec3& LSystem::left() const
+const glm::vec3& LSystem::up() const
 {
     return *reinterpret_cast<glm::vec3*>(&m_transform_stack.back()[2]);
 }
@@ -61,12 +75,23 @@ void LSystem::iterate(int num_iterations)
             if(iter != m_rules.end()){tmp.append(iter->second);}
             else{tmp.insert(tmp.end(), ch);}
         }
-        m_buffer = remove_whitespace(tmp);
+        m_buffer = tmp;
     }
-    
-    LOG_INFO << m_buffer;
+    m_buffer = remove_whitespace(m_buffer);
+    LOG_DEBUG << m_buffer;
 }
 
+/*!
+ 
+ + Turn left by angle δ, using rotation matrix RU(δ).
+ − Turn right by angle δ, using rotation matrix RU(−δ).
+ & Pitch down by angle δ, using rotation matrix RL(δ).
+ ∧ Pitch up by angle δ, using rotation matrix RL(−δ).
+ \ Roll left by angle δ, using rotation matrix RH(δ).
+ / Roll right by angle δ, using rotation matrix RH(−δ).
+ | Turn around, using rotation matrix RU (180◦ ).
+ 
+*/
 gl::GeometryPtr LSystem::create_geometry() const
 {
     m_transform_stack = {glm::mat4()};
@@ -76,11 +101,11 @@ gl::GeometryPtr LSystem::create_geometry() const
     // head
     m_transform_stack.back()[0].xyz() = gl::Y_AXIS;
     
-    // up
-    m_transform_stack.back()[1].xyz() = -gl::Z_AXIS;
-    
     // left
-    m_transform_stack.back()[2].xyz() = -gl::X_AXIS;
+    m_transform_stack.back()[1].xyz() = -gl::X_AXIS;
+    
+    // up
+    m_transform_stack.back()[2].xyz() = -gl::Z_AXIS;
     
     // our output geometry
     gl::GeometryPtr ret = gl::Geometry::create();
@@ -98,21 +123,20 @@ gl::GeometryPtr LSystem::create_geometry() const
             // insert a line sequment in 'head direction'
             case 'f':
                 points.push_back(tmp_pos);
-                tmp_pos += head() * m_branch_distance;
+                tmp_pos += head() * m_increment;
                 points.push_back(tmp_pos);
                 
                 colors.push_back(gl::COLOR_ORANGE);
                 colors.push_back(gl::COLOR_ORANGE);
-                
                 break;
+                
             case 'h':
                 points.push_back(tmp_pos);
-                tmp_pos += head() * m_branch_distance;
+                tmp_pos += head() * m_increment;
                 points.push_back(tmp_pos);
                 
                 colors.push_back(gl::COLOR_BLUE);
                 colors.push_back(gl::COLOR_BLUE);
-                
                 break;
             
             // rotate around 'up vector' ccw
@@ -136,7 +160,7 @@ gl::GeometryPtr LSystem::create_geometry() const
                                                         left());
                 break;
                 
-            // rotate around 'left vector' ccw
+            // rotate around 'left vector' cw
             case '^':
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         -m_branch_angle[1],
@@ -150,7 +174,7 @@ gl::GeometryPtr LSystem::create_geometry() const
                                                         head());
                 break;
                 
-            // rotate around 'head vector' ccw
+            // rotate around 'head vector' cw
             case '/':
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         -m_branch_angle[0],
@@ -174,7 +198,6 @@ gl::GeometryPtr LSystem::create_geometry() const
         // re-insert position
         m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
     }
-    
     ret->setPrimitiveType(GL_LINES);
     ret->computeBoundingBox();
     ret->createGLBuffers();
@@ -182,7 +205,26 @@ gl::GeometryPtr LSystem::create_geometry() const
     return ret;
 }
 
+void LSystem::add_rule(const std::pair<char, string> the_rule)
+{
+    m_rules.insert(the_rule);
+}
+
+void LSystem::add_rule(const std::string &the_rule)
+{
+    add_rule(parse_rule(the_rule));
+}
+
 std::string LSystem::get_info_string() const
 {
-    return "not implemented";
+    std::stringstream ss("LSystem:\n");
+    ss << "Axiom: " << m_axiom << std::endl;
+    
+    for (const auto &rule : m_rules)
+    {
+        ss << "Rule: " << lex_rule(rule) << std::endl;
+    }
+    ss << "Angles (Head / Left / Up): " << glm::to_string(m_branch_angle) << std::endl;
+    ss << "Increment: " << m_increment << std::endl;
+    return ss.str();
 }
