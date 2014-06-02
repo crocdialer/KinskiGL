@@ -15,30 +15,13 @@ namespace kinski
 {
     class LSystem
     {
-    private:
-        
-        std::string m_axiom, m_buffer;
-        std::map<char, std::string> m_rules;
-        
-        //! euler angles to apply when rotating (Head, Left, Up)
-        glm::vec3 m_branch_angle;
-        
-        // increment
-        float m_increment;
-        
-        // turtle state (Head, Left, Up, Pos)
-        mutable std::vector<glm::mat4> m_transform_stack;
-        
-        // convenience getters
-        const glm::vec3& head() const;
-        const glm::vec3& left() const;
-        const glm::vec3& up() const;
-        
-        // helper to parse/lex rule strings
-        static std::pair<char, std::string> parse_rule(const std::string &the_rule);
-        static std::string lex_rule(const std::pair<char, std::string> &the_rule);
-        
     public:
+        
+        //! type for a generic function to manipulate geometry in an arbitrary way
+        typedef std::function<void(const gl::GeometryPtr&)> GeomFunctor;
+        
+        //! type for mapping symbols to geometry functions
+        typedef std::map<char, GeomFunctor> FunctorMap;
         
         LSystem();
         
@@ -68,6 +51,32 @@ namespace kinski
             os << ls.get_info_string();
             return os;
         }
+        
+    private:
+        
+        std::string m_axiom, m_buffer;
+        std::map<char, std::string> m_rules;
+        
+        //! euler angles, in degrees, to apply when rotating (Head, Left, Up)
+        glm::vec3 m_branch_angle;
+        
+        // increment
+        float m_increment;
+        
+        // turtle state (Head, Left, Up, Pos)
+        mutable std::vector<glm::mat4> m_transform_stack;
+        
+        // iteration depth of last run
+        uint32_t m_iteration_depth;
+        
+        // convenience getters
+        const glm::vec3& head() const;
+        const glm::vec3& left() const;
+        const glm::vec3& up() const;
+        
+        // helper to parse/lex rule strings
+        static std::pair<char, std::string> parse_rule(const std::string &the_rule);
+        static std::string lex_rule(const std::pair<char, std::string> &the_rule);
     };
 }
 

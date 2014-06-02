@@ -25,16 +25,13 @@ void GrowthApp::setup()
     registerProperty(m_branch_angles);
     registerProperty(m_increment);
     registerProperty(m_num_iterations);
+    registerProperty(m_max_index);
+    registerProperty(m_axiom);
+    for(auto rule : m_rules)
+        registerProperty(rule);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
-    
-    // our lsystem shall draw a dragon curve
-    m_lsystem.set_axiom("f");
-    m_lsystem.add_rule("f = f - h");
-    m_lsystem.add_rule("h = f + h");
-    
-    LOG_INFO << m_lsystem;
     
     load_settings();
 }
@@ -44,6 +41,8 @@ void GrowthApp::setup()
 void GrowthApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    
+    if(m_dirty_lsystem) refresh_lsystem();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -55,7 +54,10 @@ void GrowthApp::draw()
     if(draw_grid()){gl::drawGrid(50, 50);}
     
     if(m_mesh)
+    {
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
         gl::drawMesh(m_mesh);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -70,6 +72,48 @@ void GrowthApp::resize(int w ,int h)
 void GrowthApp::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
+    
+    if(!displayTweakBar())
+    {
+        switch (e.getCode())
+        {
+            case GLFW_KEY_1:
+                // our lsystem shall draw a dragon curve
+                *m_branch_angles = vec3(90);
+                *m_axiom = "F";
+                *m_num_iterations = 14;
+                *m_rules[0] = "F = F - H";
+                *m_rules[1] = "H = F + H";
+                *m_rules[2] = "";
+                *m_rules[3] = "";
+                break;
+                
+            case GLFW_KEY_2:
+                // our lsystem shall draw something else ...
+                *m_branch_angles = vec3(90);
+                *m_num_iterations = 4;
+                *m_axiom = "-L";
+                *m_rules[0] = "L=LF+RFR+FL-F-LFLFL-FRFR+";
+                *m_rules[1] = "R=-LFLF+RFRFR+F+RF-LFL-FR";
+                *m_rules[2] = "";
+                *m_rules[3] = "";
+                break;
+                
+            case GLFW_KEY_3:
+                // our lsystem shall draw something else ...
+                *m_branch_angles = vec3(60);
+                *m_num_iterations = 4;
+                *m_axiom = "F";
+                *m_rules[0] = "F=F+G++G-F--FF-G+";
+                *m_rules[1] = "G=-F+GG++G+F--F-G";
+                *m_rules[2] = "";
+                *m_rules[3] = "";
+                break;
+                
+            default:
+                break;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -134,17 +178,46 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
 {
     ViewerApp::updateProperty(theProperty);
     
-    if(theProperty == m_num_iterations ||
+    bool rule_changed = false;
+    
+    for(auto r : m_rules)
+        if (theProperty == r) rule_changed = true;
+        
+    if(theProperty == m_axiom ||
+       rule_changed ||
+       theProperty == m_num_iterations ||
        theProperty == m_branch_angles ||
        theProperty == m_increment)
     {
-        m_lsystem.set_branch_angles(*m_branch_angles);
-        m_lsystem.set_increment(*m_increment);
+        m_dirty_lsystem = true;
         
-        // iterate
-        m_lsystem.iterate(*m_num_iterations);
-        
-        // create a mesh from our lystem geometry
-        m_mesh = gl::Mesh::create(m_lsystem.create_geometry(), gl::Material::create());
     }
+    else if(theProperty == m_max_index)
+    {
+        if(m_mesh)
+            m_mesh->entries().front().numdices = *m_max_index;
+    }
+}
+
+void GrowthApp::refresh_lsystem()
+{
+    m_dirty_lsystem = false;
+    
+    m_lsystem.set_axiom(*m_axiom);
+    m_lsystem.rules().clear();
+    
+    for(auto r : m_rules)
+        m_lsystem.add_rule(*r);
+        
+    m_lsystem.set_branch_angles(*m_branch_angles);
+    m_lsystem.set_increment(*m_increment);
+    
+    // iterate
+    m_lsystem.iterate(*m_num_iterations);
+    
+    // create a mesh from our lystem geometry
+    m_mesh = gl::Mesh::create(m_lsystem.create_geometry(), gl::Material::create());
+    m_mesh->position() -= m_mesh->boundingBox().center();
+    
+    m_max_index->setRange(0, m_mesh->entries().front().numdices - 1);
 }

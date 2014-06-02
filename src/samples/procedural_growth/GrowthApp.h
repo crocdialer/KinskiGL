@@ -25,12 +25,29 @@ namespace kinski
         gl::MeshPtr m_mesh;
         LSystem m_lsystem;
         
+        //! needs to recalculate
+        bool m_dirty_lsystem = false;
+        
         // Properties
+        RangedProperty<uint32_t>::Ptr m_max_index = RangedProperty<uint32_t>::create("max index",
+                                                                                     0, 0, 2000000);
+        
         Property_<uint32_t>::Ptr m_num_iterations = Property_<uint32_t>::create("num iterations", 2);
         Property_<glm::vec3>::Ptr m_branch_angles = Property_<glm::vec3>::create("branch angles",
                                                                                      glm::vec3(90));
         RangedProperty<float>::Ptr m_increment = RangedProperty<float>::create("growth increment",
                                                                                 1.f, 0.f, 1000.f);
+        
+        Property_<std::string>::Ptr m_axiom = Property_<std::string>::create("Axiom", "f");
+        std::vector<Property_<std::string>::Ptr> m_rules =
+        {
+            Property_<std::string>::create("Rule 1", "f = f - h"),
+            Property_<std::string>::create("Rule 2", "h = f + h"),
+            Property_<std::string>::create("Rule 3", ""),
+            Property_<std::string>::create("Rule 4", "")
+        };
+        
+        void refresh_lsystem();
         
     public:
         

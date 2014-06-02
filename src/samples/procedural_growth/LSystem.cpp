@@ -20,7 +20,7 @@ std::pair<char, std::string> LSystem::parse_rule(const std::string &the_rule)
     
     if(splits.size() != 2)
     {
-        LOG_ERROR << "parse error";
+//        LOG_ERROR << "parse error";
     }
     else
     {
@@ -62,6 +62,7 @@ const glm::vec3& LSystem::up() const
 void LSystem::iterate(int num_iterations)
 {
     m_buffer = m_axiom;
+    m_iteration_depth = num_iterations;
     
     for(int i = 0; i < num_iterations; i++)
     {
@@ -111,6 +112,8 @@ gl::GeometryPtr LSystem::create_geometry() const
     gl::GeometryPtr ret = gl::Geometry::create();
     auto &points = ret->vertices();
     auto &colors = ret->colors();
+    auto &indices = ret->indices();
+    int i = 0;
     
     // create geometry out of our buffer string
     for (char ch : m_buffer)
@@ -121,22 +124,30 @@ gl::GeometryPtr LSystem::create_geometry() const
         switch (ch)
         {
             // insert a line sequment in 'head direction'
-            case 'f':
+            case 'F':
                 points.push_back(tmp_pos);
-                tmp_pos += head() * m_increment;
+                tmp_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
                 points.push_back(tmp_pos);
                 
                 colors.push_back(gl::COLOR_ORANGE);
                 colors.push_back(gl::COLOR_ORANGE);
+                indices.push_back(i++);
+                indices.push_back(i++);
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
                 
-            case 'h':
+            case 'H':
                 points.push_back(tmp_pos);
-                tmp_pos += head() * m_increment;
+                tmp_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
                 points.push_back(tmp_pos);
                 
                 colors.push_back(gl::COLOR_BLUE);
                 colors.push_back(gl::COLOR_BLUE);
+                indices.push_back(i++);
+                indices.push_back(i++);
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
             
             // rotate around 'up vector' ccw
@@ -144,6 +155,8 @@ gl::GeometryPtr LSystem::create_geometry() const
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         m_branch_angle[2],
                                                         up());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
                 
             // rotate around 'up vector' cw
@@ -151,6 +164,17 @@ gl::GeometryPtr LSystem::create_geometry() const
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         -m_branch_angle[2],
                                                         up());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
+                break;
+            
+            // rotate around 'up vector' 180 deg
+            case '|':
+                m_transform_stack.back() *= glm::rotate(mat4(),
+                                                        180.f,
+                                                        up());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
                 
             // rotate around 'left vector' ccw
@@ -158,6 +182,8 @@ gl::GeometryPtr LSystem::create_geometry() const
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         m_branch_angle[1],
                                                         left());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
                 
             // rotate around 'left vector' cw
@@ -165,6 +191,8 @@ gl::GeometryPtr LSystem::create_geometry() const
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         -m_branch_angle[1],
                                                         left());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
             
             // rotate around 'head vector' ccw
@@ -172,6 +200,8 @@ gl::GeometryPtr LSystem::create_geometry() const
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         m_branch_angle[0],
                                                         head());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
                 
             // rotate around 'head vector' cw
@@ -179,6 +209,8 @@ gl::GeometryPtr LSystem::create_geometry() const
                 m_transform_stack.back() *= glm::rotate(mat4(),
                                                         -m_branch_angle[0],
                                                         head());
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
                 
             // push state
@@ -190,13 +222,22 @@ gl::GeometryPtr LSystem::create_geometry() const
             case ']':
                 m_transform_stack.pop_back();
                 break;
-                
+            
+            // insert a line sequment in 'head direction'
             default:
+                points.push_back(tmp_pos);
+                tmp_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
+                points.push_back(tmp_pos);
+                
+                colors.push_back(gl::COLOR_WHITE);
+                colors.push_back(gl::COLOR_WHITE);
+                indices.push_back(i++);
+                indices.push_back(i++);
+                
+                // re-insert position
+                m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
                 break;
         }
-        
-        // re-insert position
-        m_transform_stack.back()[3] = vec4(tmp_pos, 1.f);
     }
     ret->setPrimitiveType(GL_LINES);
     ret->computeBoundingBox();
