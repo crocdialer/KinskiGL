@@ -54,6 +54,11 @@ namespace kinski
         
     private:
         
+        struct turtle_state
+        {
+            glm::mat4 transform;
+        };
+        
         std::string m_axiom, m_buffer;
         std::map<char, std::string> m_rules;
         
@@ -63,13 +68,13 @@ namespace kinski
         // increment
         float m_increment;
         
-        // turtle state (Head, Left, Up, Pos)
-        mutable std::vector<glm::mat4> m_transform_stack;
+        //! turtle state: transform -> (Head, Left, Up, Pos)
+        mutable std::vector<turtle_state> m_state_stack;
         
         // iteration depth of last run
         uint32_t m_iteration_depth;
         
-        // convenience getters
+        // convenience getters for current turtle orientation
         const glm::vec3& head() const;
         const glm::vec3& left() const;
         const glm::vec3& up() const;

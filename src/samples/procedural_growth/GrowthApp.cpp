@@ -27,8 +27,11 @@ void GrowthApp::setup()
     registerProperty(m_num_iterations);
     registerProperty(m_max_index);
     registerProperty(m_axiom);
+    
     for(auto rule : m_rules)
         registerProperty(rule);
+    
+    registerProperty(m_animate_growth);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
@@ -43,6 +46,11 @@ void GrowthApp::update(float timeDelta)
     ViewerApp::update(timeDelta);
     
     if(m_dirty_lsystem) refresh_lsystem();
+    
+    if(m_growth_animation)
+    {
+        m_growth_animation->update(timeDelta);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -77,6 +85,14 @@ void GrowthApp::keyPress(const KeyEvent &e)
     {
         switch (e.getCode())
         {
+            case GLFW_KEY_LEFT:
+                *m_num_iterations -= 1;
+                break;
+            
+            case GLFW_KEY_RIGHT:
+                *m_num_iterations += 1;
+                break;
+                
             case GLFW_KEY_1:
                 // our lsystem shall draw a dragon curve
                 *m_branch_angles = vec3(90);
@@ -197,6 +213,11 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
         if(m_mesh)
             m_mesh->entries().front().numdices = *m_max_index;
     }
+    else if(theProperty == m_animate_growth)
+    {
+        if(*m_animate_growth){m_growth_animation->start();}
+        else{m_growth_animation->stop();}
+    }
 }
 
 void GrowthApp::refresh_lsystem()
@@ -219,5 +240,12 @@ void GrowthApp::refresh_lsystem()
     m_mesh = gl::Mesh::create(m_lsystem.create_geometry(), gl::Material::create());
     m_mesh->position() -= m_mesh->boundingBox().center();
     
-    m_max_index->setRange(0, m_mesh->entries().front().numdices - 1);
+    uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
+    m_max_index->setRange(min, max);
+    
+    // animation
+    m_growth_animation = animation::create(m_max_index, min, max, 5.f);
+    if(!*m_animate_growth)
+        m_growth_animation->stop();
+    m_growth_animation->set_loop();
 }

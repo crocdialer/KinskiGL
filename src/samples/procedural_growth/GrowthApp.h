@@ -11,6 +11,7 @@
 
 #include "kinskiApp/ViewerApp.h"
 #include "kinskiGL/Texture.h"
+#include "kinskiCore/Animation.h"
 #include "LSystem.h"
 
 namespace kinski
@@ -27,6 +28,9 @@ namespace kinski
         
         //! needs to recalculate
         bool m_dirty_lsystem = false;
+        
+        //! animate fractal growth
+        animation::AnimationPtr m_growth_animation;
         
         // Properties
         RangedProperty<uint32_t>::Ptr m_max_index = RangedProperty<uint32_t>::create("max index",
@@ -46,6 +50,8 @@ namespace kinski
             Property_<std::string>::create("Rule 3", ""),
             Property_<std::string>::create("Rule 4", "")
         };
+        
+        Property_<bool>::Ptr m_animate_growth = Property_<bool>::create("animate growth", false);
         
         void refresh_lsystem();
         
