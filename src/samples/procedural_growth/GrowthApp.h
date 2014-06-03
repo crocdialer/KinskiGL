@@ -39,6 +39,8 @@ namespace kinski
         Property_<uint32_t>::Ptr m_num_iterations = Property_<uint32_t>::create("num iterations", 2);
         Property_<glm::vec3>::Ptr m_branch_angles = Property_<glm::vec3>::create("branch angles",
                                                                                      glm::vec3(90));
+        Property_<glm::vec3>::Ptr m_branch_randomness = Property_<glm::vec3>::create("branch randomness",
+                                                                                 glm::vec3(0));
         RangedProperty<float>::Ptr m_increment = RangedProperty<float>::create("growth increment",
                                                                                 1.f, 0.f, 1000.f);
         

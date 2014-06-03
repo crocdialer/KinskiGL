@@ -23,6 +23,7 @@ void GrowthApp::setup()
     outstream_gl().set_font(m_font);
     
     registerProperty(m_branch_angles);
+    registerProperty(m_branch_randomness);
     registerProperty(m_increment);
     registerProperty(m_num_iterations);
     registerProperty(m_max_index);
@@ -214,6 +215,7 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
        rule_changed ||
        theProperty == m_num_iterations ||
        theProperty == m_branch_angles ||
+       theProperty == m_branch_randomness ||
        theProperty == m_increment)
     {
         m_dirty_lsystem = true;
@@ -241,6 +243,7 @@ void GrowthApp::refresh_lsystem()
         m_lsystem.add_rule(*r);
         
     m_lsystem.set_branch_angles(*m_branch_angles);
+    m_lsystem.set_branch_randomness(*m_branch_randomness);
     m_lsystem.set_increment(*m_increment);
     
     // iterate

@@ -39,9 +39,10 @@ std::string LSystem::lex_rule(const std::pair<char, std::string> &the_rule)
 
 LSystem::LSystem():
 m_branch_angle(90),
+m_branch_randomness(20),
 m_increment(2.f)
 {
-
+//    m_position_check = [&](const vec3& p) -> bool {return glm::length(p) < 10;};
 }
 
 const glm::vec3& LSystem::head() const
@@ -95,7 +96,7 @@ void LSystem::iterate(int num_iterations)
 */
 gl::GeometryPtr LSystem::create_geometry() const
 {
-    m_state_stack = {{glm::mat4()}};
+    m_state_stack = {{glm::mat4(), false}};
     
     // start in xz plane, face upward
     
@@ -114,16 +115,19 @@ gl::GeometryPtr LSystem::create_geometry() const
     auto &colors = ret->colors();
     auto &indices = ret->indices();
     int i = 0;
+    vec3 current_pos, new_pos;
     
     // create geometry out of our buffer string
     for (char ch : m_buffer)
     {
+        int num_grow_tries = 0;
+        
         gl::Color current_color(gl::COLOR_WHITE);
         
         // color / material / stack state here
         switch (ch)
         {
-            // insert a line sequment in 'head direction'
+            //TODO: move those in a colour lookup map
             case 'F':
                 current_color = gl::COLOR_ORANGE;
                 break;
@@ -142,8 +146,16 @@ gl::GeometryPtr LSystem::create_geometry() const
                 break;
         }
         
-        // tmp save position here
-        vec3 current_pos = m_state_stack.back().transform[3].xyz();
+        // this branch should not continue growing -> move on with iteration
+        if(m_state_stack.back().abort_branch)
+            continue;
+        
+        // save current position here
+        current_pos = new_pos = m_state_stack.back().transform[3].xyz();
+        
+        // our current branch angles
+        vec3 current_branch_angles = m_branch_angle + glm::linearRand(-m_branch_randomness,
+                                                                      m_branch_randomness);
         
         switch (ch)
         {
@@ -155,14 +167,14 @@ gl::GeometryPtr LSystem::create_geometry() const
             // rotate around 'up vector' ccw
             case '+':
                 m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              m_branch_angle[2],
+                                                              current_branch_angles[2],
                                                               up());
                 break;
                 
             // rotate around 'up vector' cw
             case '-':
                 m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -m_branch_angle[2],
+                                                              -current_branch_angles[2],
                                                               up());
                 break;
             
@@ -176,49 +188,57 @@ gl::GeometryPtr LSystem::create_geometry() const
             // rotate around 'left vector' ccw
             case '&':
                 m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              m_branch_angle[1],
+                                                              current_branch_angles[1],
                                                               left());
                 break;
                 
             // rotate around 'left vector' cw
             case '^':
                 m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -m_branch_angle[1],
+                                                              -current_branch_angles[1],
                                                               left());
                 break;
             
             // rotate around 'head vector' ccw
             case '\\':
                 m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              m_branch_angle[0],
+                                                              current_branch_angles[0],
                                                               head());
                 break;
                 
             // rotate around 'head vector' cw
             case '/':
                 m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -m_branch_angle[0],
+                                                              -current_branch_angles[0],
                                                               head());
                 break;
                 
             // insert a line sequment in 'head direction'
             default:
+                
+                //geometry check here
+                do
+                {
+                    new_pos = current_pos + head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
+                    num_grow_tries++;
+                }
+                while(!is_position_valid(new_pos) && num_grow_tries < 50);
+                
+                if(num_grow_tries >= 50)
+                {
+                    m_state_stack.back().abort_branch = true;
+                    break;
+                }
                 points.push_back(current_pos);
-                
-                //TODO: geometry check here
-                current_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
-                
-                points.push_back(current_pos);
-                
+                points.push_back(new_pos);
                 colors.push_back(current_color);
                 colors.push_back(current_color);
                 indices.push_back(i++);
                 indices.push_back(i++);
-                
                 break;
         }
         // re-insert position
-        m_state_stack.back().transform[3] = vec4(current_pos, 1.f);
+        m_state_stack.back().transform[3] = vec4(new_pos, 1.f);
     }
     ret->setPrimitiveType(GL_LINES);
     ret->computeBoundingBox();

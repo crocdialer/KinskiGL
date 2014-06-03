@@ -40,6 +40,9 @@ namespace kinski
         const glm::vec3& branch_angles() const {return m_branch_angle;}
         void set_branch_angles(const glm::vec3& the_angles){m_branch_angle = the_angles;}
         
+        const glm::vec3& branch_randomness() const {return m_branch_randomness;}
+        void set_branch_randomness(const glm::vec3& the_angles){m_branch_randomness = the_angles;}
+        
         std::map<char, std::string>& rules() {return m_rules;}
         const std::map<char, std::string>& rules() const {return m_rules;}
         void set_rules(const std::map<char, std::string> &rule_map){m_rules = rule_map;}
@@ -62,6 +65,7 @@ namespace kinski
         struct turtle_state
         {
             glm::mat4 transform;
+            bool abort_branch;
         };
         
         std::string m_axiom, m_buffer;
@@ -69,6 +73,9 @@ namespace kinski
         
         //! euler angles, in degrees, to apply when rotating (Head, Left, Up)
         glm::vec3 m_branch_angle;
+        
+        //! euler angles, in degrees, representing max randomness (Head, Left, Up)
+        glm::vec3 m_branch_randomness;
         
         // increment
         float m_increment;
@@ -90,7 +97,7 @@ namespace kinski
          *  if no functor is defined the check will always succeed
          */
         inline bool is_position_valid(const glm::vec3& p) const
-        {return m_position_check && m_position_check(p);};
+        {return m_position_check ? m_position_check(p) : true;};
         
         // helper to parse/lex rule strings
         static std::pair<char, std::string> parse_rule(const std::string &the_rule);
