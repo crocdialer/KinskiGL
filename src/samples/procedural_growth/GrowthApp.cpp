@@ -125,6 +125,17 @@ void GrowthApp::keyPress(const KeyEvent &e)
                 *m_rules[2] = "";
                 *m_rules[3] = "";
                 break;
+
+            case GLFW_KEY_4:
+                // our lsystem shall draw something else ...
+                *m_branch_angles = vec3(17.55, 20.0, 18.41);
+                *m_num_iterations = 8;
+                *m_axiom = "FFq";
+                *m_rules[0] = "q=Fp[&/+p]F[^\\-p]";
+                *m_rules[1] = "F=[--&p]q";
+                *m_rules[2] = "p=FF[^^^-q][\\\\+q]";
+                *m_rules[3] = "";
+                break;
                 
             default:
                 break;
@@ -206,17 +217,16 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
        theProperty == m_increment)
     {
         m_dirty_lsystem = true;
-        
     }
     else if(theProperty == m_max_index)
     {
         if(m_mesh)
             m_mesh->entries().front().numdices = *m_max_index;
     }
-    else if(theProperty == m_animate_growth)
+    else if(m_growth_animation && theProperty == m_animate_growth)
     {
         if(*m_animate_growth){m_growth_animation->start();}
-        else{m_growth_animation->stop();}
+        else {m_growth_animation->stop();}
     }
 }
 
@@ -247,5 +257,6 @@ void GrowthApp::refresh_lsystem()
     m_growth_animation = animation::create(m_max_index, min, max, 5.f);
     if(!*m_animate_growth)
         m_growth_animation->stop();
+    
     m_growth_animation->set_loop();
 }

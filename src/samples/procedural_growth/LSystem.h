@@ -17,8 +17,11 @@ namespace kinski
     {
     public:
         
-        //! type for a generic function to manipulate geometry in an arbitrary way
+        //! signature for a generic function to manipulate geometry in an arbitrary way
         typedef std::function<void(const gl::GeometryPtr&)> GeomFunctor;
+        
+        //! signature for a generic function to check if a newly grown position is valid
+        typedef std::function<bool(const glm::vec3&)> PositionCheckFunctor;
         
         //! type for mapping symbols to geometry functions
         typedef std::map<char, GeomFunctor> FunctorMap;
@@ -43,6 +46,8 @@ namespace kinski
         
         void add_rule(const std::pair<char, string> the_rule);
         void add_rule(const std::string &the_rule);
+        
+        void set_position_check(PositionCheckFunctor pf){m_position_check = pf;}
         
         std::string get_info_string() const;
         
@@ -74,10 +79,18 @@ namespace kinski
         // iteration depth of last run
         uint32_t m_iteration_depth;
         
+        PositionCheckFunctor m_position_check;
+        
         // convenience getters for current turtle orientation
         const glm::vec3& head() const;
         const glm::vec3& left() const;
         const glm::vec3& up() const;
+        
+        /*! perform a validity check for a new position
+         *  if no functor is defined the check will always succeed
+         */
+        inline bool is_position_valid(const glm::vec3& p) const
+        {return m_position_check && m_position_check(p);};
         
         // helper to parse/lex rule strings
         static std::pair<char, std::string> parse_rule(const std::string &the_rule);

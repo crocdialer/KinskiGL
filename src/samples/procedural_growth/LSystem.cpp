@@ -118,99 +118,17 @@ gl::GeometryPtr LSystem::create_geometry() const
     // create geometry out of our buffer string
     for (char ch : m_buffer)
     {
-        // tmp save position here
-        vec3 tmp_pos = m_state_stack.back().transform[3].xyz();
+        gl::Color current_color(gl::COLOR_WHITE);
         
+        // color / material / stack state here
         switch (ch)
         {
             // insert a line sequment in 'head direction'
             case 'F':
-                points.push_back(tmp_pos);
-                tmp_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
-                points.push_back(tmp_pos);
-                
-                colors.push_back(gl::COLOR_ORANGE);
-                colors.push_back(gl::COLOR_ORANGE);
-                indices.push_back(i++);
-                indices.push_back(i++);
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
+                current_color = gl::COLOR_ORANGE;
                 break;
-                
             case 'H':
-                points.push_back(tmp_pos);
-                tmp_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
-                points.push_back(tmp_pos);
-                
-                colors.push_back(gl::COLOR_BLUE);
-                colors.push_back(gl::COLOR_BLUE);
-                indices.push_back(i++);
-                indices.push_back(i++);
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-            
-            // rotate around 'up vector' ccw
-            case '+':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              m_branch_angle[2],
-                                                              up());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-                
-            // rotate around 'up vector' cw
-            case '-':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -m_branch_angle[2],
-                                                              up());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-            
-            // rotate around 'up vector' 180 deg
-            case '|':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              180.f,
-                                                              up());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-                
-            // rotate around 'left vector' ccw
-            case '&':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              m_branch_angle[1],
-                                                              left());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-                
-            // rotate around 'left vector' cw
-            case '^':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -m_branch_angle[1],
-                                                              left());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-            
-            // rotate around 'head vector' ccw
-            case '\\':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              m_branch_angle[0],
-                                                              head());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
-                break;
-                
-            // rotate around 'head vector' cw
-            case '/':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -m_branch_angle[0],
-                                                              head());
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
+                current_color = gl::COLOR_BLUE;
                 break;
                 
             // push state
@@ -222,22 +140,85 @@ gl::GeometryPtr LSystem::create_geometry() const
             case ']':
                 m_state_stack.pop_back();
                 break;
+        }
+        
+        // tmp save position here
+        vec3 current_pos = m_state_stack.back().transform[3].xyz();
+        
+        switch (ch)
+        {
+            // already handled above
+            case '[':
+            case ']':
+                break;
+                
+            // rotate around 'up vector' ccw
+            case '+':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              m_branch_angle[2],
+                                                              up());
+                break;
+                
+            // rotate around 'up vector' cw
+            case '-':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              -m_branch_angle[2],
+                                                              up());
+                break;
             
+            // rotate around 'up vector' 180 deg
+            case '|':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              180.f,
+                                                              up());
+                break;
+                
+            // rotate around 'left vector' ccw
+            case '&':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              m_branch_angle[1],
+                                                              left());
+                break;
+                
+            // rotate around 'left vector' cw
+            case '^':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              -m_branch_angle[1],
+                                                              left());
+                break;
+            
+            // rotate around 'head vector' ccw
+            case '\\':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              m_branch_angle[0],
+                                                              head());
+                break;
+                
+            // rotate around 'head vector' cw
+            case '/':
+                m_state_stack.back().transform *= glm::rotate(mat4(),
+                                                              -m_branch_angle[0],
+                                                              head());
+                break;
+                
             // insert a line sequment in 'head direction'
             default:
-                points.push_back(tmp_pos);
-                tmp_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
-                points.push_back(tmp_pos);
+                points.push_back(current_pos);
                 
-                colors.push_back(gl::COLOR_WHITE);
-                colors.push_back(gl::COLOR_WHITE);
+                //TODO: geometry check here
+                current_pos += head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
+                
+                points.push_back(current_pos);
+                
+                colors.push_back(current_color);
+                colors.push_back(current_color);
                 indices.push_back(i++);
                 indices.push_back(i++);
                 
-                // re-insert position
-                m_state_stack.back().transform[3] = vec4(tmp_pos, 1.f);
                 break;
         }
+        // re-insert position
+        m_state_stack.back().transform[3] = vec4(current_pos, 1.f);
     }
     ret->setPrimitiveType(GL_LINES);
     ret->computeBoundingBox();
