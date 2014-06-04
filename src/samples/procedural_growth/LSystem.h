@@ -37,6 +37,9 @@ namespace kinski
         float increment() const {return m_increment;}
         void set_increment(float the_inc) {m_increment = the_inc;}
         
+        float increment_randomness() const {return m_increment_randomness;}
+        void set_increment_randomness(float the_inc) {m_increment_randomness = the_inc;}
+        
         const glm::vec3& branch_angles() const {return m_branch_angle;}
         void set_branch_angles(const glm::vec3& the_angles){m_branch_angle = the_angles;}
         
@@ -77,8 +80,14 @@ namespace kinski
         //! euler angles, in degrees, representing max randomness (Head, Left, Up)
         glm::vec3 m_branch_randomness;
         
+        //! maximum number of random grow tries before a branch is aborted
+        uint32_t m_max_random_tries;
+        
         // increment
         float m_increment;
+        
+        // increment randomness
+        float m_increment_randomness;
         
         //! turtle state: transform -> (Head, Left, Up, Pos)
         mutable std::vector<turtle_state> m_state_stack;
@@ -86,6 +95,9 @@ namespace kinski
         // iteration depth of last run
         uint32_t m_iteration_depth;
         
+        /*! an optional function object, responsible for performing validity checks for
+         *  newly created geometry
+         */
         PositionCheckFunctor m_position_check;
         
         // convenience getters for current turtle orientation

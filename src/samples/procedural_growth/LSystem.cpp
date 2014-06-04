@@ -39,8 +39,10 @@ std::string LSystem::lex_rule(const std::pair<char, std::string> &the_rule)
 
 LSystem::LSystem():
 m_branch_angle(90),
-m_branch_randomness(20),
-m_increment(2.f)
+m_branch_randomness(0),
+m_max_random_tries(50),
+m_increment(2.f),
+m_increment_randomness(0.f)
 {
 //    m_position_check = [&](const vec3& p) -> bool {return glm::length(p) < 10;};
 }
@@ -157,6 +159,10 @@ gl::GeometryPtr LSystem::create_geometry() const
         vec3 current_branch_angles = m_branch_angle + glm::linearRand(-m_branch_randomness,
                                                                       m_branch_randomness);
         
+        // our current increment
+        float current_increment = m_increment + kinski::random(-m_increment_randomness,
+                                                               m_increment_randomness);
+        
         switch (ch)
         {
             // already handled above
@@ -213,18 +219,18 @@ gl::GeometryPtr LSystem::create_geometry() const
                                                               head());
                 break;
                 
-            // insert a line sequment in 'head direction'
+            // all other symbols will insert a line sequment in 'head direction'
             default:
                 
                 //geometry check here
                 do
                 {
-                    new_pos = current_pos + head() * m_increment / (float) std::max<int>(m_iteration_depth, 1);
+                    new_pos = current_pos + head() * current_increment / (float) std::max<int>(m_iteration_depth, 1);
                     num_grow_tries++;
                 }
-                while(!is_position_valid(new_pos) && num_grow_tries < 50);
+                while(!is_position_valid(new_pos) && num_grow_tries < m_max_random_tries);
                 
-                if(num_grow_tries >= 50)
+                if(num_grow_tries >= m_max_random_tries)
                 {
                     m_state_stack.back().abort_branch = true;
                     break;

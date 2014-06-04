@@ -25,6 +25,7 @@ void GrowthApp::setup()
     registerProperty(m_branch_angles);
     registerProperty(m_branch_randomness);
     registerProperty(m_increment);
+    registerProperty(m_increment_randomness);
     registerProperty(m_num_iterations);
     registerProperty(m_max_index);
     registerProperty(m_axiom);
@@ -33,6 +34,7 @@ void GrowthApp::setup()
         registerProperty(rule);
     
     registerProperty(m_animate_growth);
+    registerProperty(m_animation_time);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
@@ -216,7 +218,8 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
        theProperty == m_num_iterations ||
        theProperty == m_branch_angles ||
        theProperty == m_branch_randomness ||
-       theProperty == m_increment)
+       theProperty == m_increment ||
+       theProperty == m_increment_randomness)
     {
         m_dirty_lsystem = true;
     }
@@ -229,6 +232,10 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     {
         if(*m_animate_growth){m_growth_animation->start();}
         else {m_growth_animation->stop();}
+    }
+    else if(theProperty == m_animation_time)
+    {
+//        *m_animation_time
     }
 }
 
@@ -245,6 +252,7 @@ void GrowthApp::refresh_lsystem()
     m_lsystem.set_branch_angles(*m_branch_angles);
     m_lsystem.set_branch_randomness(*m_branch_randomness);
     m_lsystem.set_increment(*m_increment);
+    m_lsystem.set_increment_randomness(*m_increment_randomness);
     
     // iterate
     m_lsystem.iterate(*m_num_iterations);
@@ -257,7 +265,7 @@ void GrowthApp::refresh_lsystem()
     m_max_index->setRange(min, max);
     
     // animation
-    m_growth_animation = animation::create(m_max_index, min, max, 5.f);
+    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
     if(!*m_animate_growth)
         m_growth_animation->stop();
     

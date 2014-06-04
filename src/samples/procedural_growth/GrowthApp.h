@@ -43,6 +43,8 @@ namespace kinski
                                                                                  glm::vec3(0));
         RangedProperty<float>::Ptr m_increment = RangedProperty<float>::create("growth increment",
                                                                                 1.f, 0.f, 1000.f);
+        RangedProperty<float>::Ptr m_increment_randomness = RangedProperty<float>::create("growth increment randomness",
+                                                                               0.f, 0.f, 1000.f);
         
         Property_<std::string>::Ptr m_axiom = Property_<std::string>::create("Axiom", "f");
         std::vector<Property_<std::string>::Ptr> m_rules =
@@ -54,6 +56,8 @@ namespace kinski
         };
         
         Property_<bool>::Ptr m_animate_growth = Property_<bool>::create("animate growth", false);
+        RangedProperty<float>::Ptr m_animation_time = RangedProperty<float>::create("animation time",
+                                                                               5.f, 0.f, 120.f);
         
         void refresh_lsystem();
         
