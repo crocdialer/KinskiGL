@@ -287,15 +287,14 @@ void GrowthApp::refresh_lsystem()
     m_lsystem.iterate(*m_num_iterations);
     
     // geometry constraints
-    auto poop = [=](const vec3& p) -> bool
-    {
-        return gl::is_point_inside_mesh(p, m_bounding_mesh);
-//        return m_bounding_mesh->boundingBox().intersect(p);
-    };
-    m_lsystem.set_position_check(poop);
+//    auto poop = [=](const vec3& p) -> bool
+//    {
+//        return gl::is_point_inside_mesh(p, m_bounding_mesh);
+//    };
+//    m_lsystem.set_position_check(poop);
     
     // create a mesh from our lystem geometry
-    m_mesh = gl::Mesh::create(m_lsystem.create_geometry(), gl::Material::create());
+    m_mesh = m_lsystem.create_mesh();
 //    m_mesh->position() -= m_mesh->boundingBox().center();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;

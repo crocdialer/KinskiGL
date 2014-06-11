@@ -7,7 +7,7 @@
 //
 
 #include "LSystem.h"
-#include "kinskiGL/Geometry.h"
+#include "kinskiGL/Mesh.h"
 
 using namespace kinski;
 using namespace std;
@@ -96,7 +96,7 @@ void LSystem::iterate(int num_iterations)
  | Turn around, using rotation matrix RU (180◦ ).
  
 */
-gl::GeometryPtr LSystem::create_geometry() const
+gl::MeshPtr LSystem::create_mesh() const
 {
     m_state_stack = {{glm::mat4(), false}};
     
@@ -112,10 +112,20 @@ gl::GeometryPtr LSystem::create_geometry() const
     m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
     
     // our output geometry
-    gl::GeometryPtr ret = gl::Geometry::create();
-    auto &points = ret->vertices();
-    auto &colors = ret->colors();
-    auto &indices = ret->indices();
+    bool use_mesh_entries = true;
+    
+    gl::MeshPtr ret = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
+    auto &points = ret->geometry()->vertices();
+    auto &colors = ret->geometry()->colors();
+    auto &indices = ret->geometry()->indices();
+    auto &point_sizes = ret->geometry()->point_sizes();
+    
+    uint32_t max_branch_depth = 0;
+    std::vector<std::vector<glm::vec3>> points_vec;
+    std::vector<std::vector<glm::vec4>> colors_vec;
+    std::vector<std::vector<uint32_t>>  indices_vec;
+    std::vector<std::vector<float>>  point_sizes_vec;
+    
     int i = 0;
     vec3 current_pos, new_pos;
     
@@ -246,6 +256,19 @@ gl::GeometryPtr LSystem::create_geometry() const
             // all other symbols will insert a line sequment in 'head direction'
             default:
                 
+                // current branch depth
+                size_t current_branch_depth = m_state_stack.size();
+                
+                // create seperate vectors for each branch_depth to store vertex infos
+                if(current_branch_depth > max_branch_depth)
+                {
+                    max_branch_depth = current_branch_depth;
+                    points_vec.resize(max_branch_depth);
+                    colors_vec.resize(max_branch_depth);
+                    indices_vec.resize(max_branch_depth);
+                    point_sizes_vec.resize(max_branch_depth);
+                }
+                
                 //geometry check here
                 do
                 {
@@ -260,20 +283,84 @@ gl::GeometryPtr LSystem::create_geometry() const
 //                    break;
                     current_color = gl::COLOR_PURPLE;
                 }
-                points.push_back(current_pos);
-                points.push_back(new_pos);
-                colors.push_back(current_color);
-                colors.push_back(current_color);
-                indices.push_back(i++);
-                indices.push_back(i++);
+                
+                if(!use_mesh_entries)
+                {
+                    points.push_back(current_pos);
+                    points.push_back(new_pos);
+                    colors.push_back(current_color);
+                    colors.push_back(current_color);
+                    indices.push_back(i++);
+                    indices.push_back(i++);
+                }
+                // seperate entries implementation
+                else
+                {
+                    int idx = current_branch_depth - 1;
+                    points_vec[idx].push_back(current_pos);
+                    points_vec[idx].push_back(new_pos);
+                    colors_vec[idx].push_back(current_color);
+                    colors_vec[idx].push_back(current_color);
+                    indices_vec[idx].push_back(i++);
+                    indices_vec[idx].push_back(i++);
+                }
+                
                 break;
         }
         // re-insert position
         m_state_stack.back().transform[3] = vec4(new_pos, 1.f);
     }
-    ret->setPrimitiveType(GL_LINES);
-    ret->computeBoundingBox();
-    ret->createGLBuffers();
+    
+    // merge together all sub entries
+    if(use_mesh_entries)
+    {
+        uint32_t current_index = 0, current_vertex = 0, material_index = 0;
+        std::vector<gl::Mesh::Entry> entries;
+        std::vector<gl::MaterialPtr> materials;
+        
+        gl::GeometryPtr merged_geom = gl::Geometry::create();
+        
+        for (int i = 0; i < max_branch_depth; i++)
+        {
+            // mege points
+            merged_geom->vertices().insert(merged_geom->vertices().end(),
+                                           points_vec[i].begin(),
+                                           points_vec[i].end());
+            
+            // mege colors
+            merged_geom->colors().insert(merged_geom->colors().end(),
+                                         colors_vec[i].begin(),
+                                         colors_vec[i].end());
+            
+            // mege indices
+            merged_geom->indices().insert(merged_geom->indices().end(),
+                                          indices_vec[i].begin(),
+                                          indices_vec[i].end());
+            
+            // mege point sizes (aka diameters)
+            merged_geom->point_sizes().insert(merged_geom->point_sizes().end(),
+                                              point_sizes_vec[i].begin(),
+                                              point_sizes_vec[i].end());
+            
+            gl::Mesh::Entry m;
+            m.num_vertices = points_vec[i].size();
+            m.numdices = indices_vec[i].size();
+            m.base_index = current_index;
+            m.base_vertex = current_vertex;
+            m.material_index = material_index;
+            entries.push_back(m);
+            current_vertex += points_vec[i].size();
+            current_index += indices_vec[i].size();
+            material_index++;
+            materials.push_back(gl::Material::create());
+        }
+        ret->geometry() = merged_geom;
+        ret->entries() = entries;
+        ret->materials() = materials;
+    }
+    ret->geometry()->setPrimitiveType(GL_LINES);
+    ret->geometry()->computeBoundingBox();
+    ret->geometry()->createGLBuffers();
     
     return ret;
 }

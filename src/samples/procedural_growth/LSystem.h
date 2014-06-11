@@ -29,7 +29,7 @@ namespace kinski
         LSystem();
         
         void iterate(int num_iterations);
-        gl::GeometryPtr create_geometry() const;
+        gl::MeshPtr create_mesh() const;
         
         const std::string axiom() const { return m_axiom;}
         void set_axiom(const std::string &the_axiom){m_axiom = the_axiom;};
