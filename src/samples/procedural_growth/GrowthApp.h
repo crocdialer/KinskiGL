@@ -23,7 +23,7 @@ namespace kinski
         gl::Font m_font;
         std::vector<gl::Texture> m_textures{4};
         
-        gl::MeshPtr m_mesh;
+        gl::MeshPtr m_mesh, m_bounding_mesh;
         LSystem m_lsystem;
         
         //! needs to recalculate

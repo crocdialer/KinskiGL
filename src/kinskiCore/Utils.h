@@ -79,11 +79,33 @@ namespace kinski
         return elems;
     }
     
-    
     inline std::vector<std::string> split(const std::string &s, char delim = ' ')
     {
         std::vector<std::string> elems;
         split(s, delim, elems);
+        return elems;
+    }
+    
+    inline std::vector<std::string> split_by_string(const std::string &s,
+                                                    const std::string &delim = " ")
+    {
+        std::vector<std::string> elems;
+        std::string::size_type pos = s.find(delim), current_pos = 0;
+        
+        while(pos != std::string::npos)
+        {
+            elems.push_back(s.substr(current_pos, pos - current_pos));
+            current_pos = pos + delim.size();
+            
+            // continue searching
+            pos = s.find(delim, current_pos);
+        }
+        
+        // remainder
+        std::string remainder = s.substr(current_pos, s.size() - current_pos);
+        if(!remainder.empty())
+            elems.push_back(remainder);
+        
         return elems;
     }
     
@@ -97,6 +119,12 @@ namespace kinski
                                            std::locale::classic())),
                   ret.end());
         return ret;
+    }
+    
+    template <typename T>
+    inline int sgn(T val)
+    {
+        return (T(0) < val) - (val < T(0));
     }
     
     template <typename T>

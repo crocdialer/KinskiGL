@@ -121,7 +121,8 @@ namespace kinski{ namespace animation{
                 m_reverse_start_fn();
         };
         
-        inline void play(PlaybackType pt = PLAYBACK_FORWARD){ m_playing = pt; };
+        inline void stop(){ m_playing = PLAYBACK_PAUSED;}
+//        inline void play(PlaybackType pt = PLAYBACK_FORWARD){ m_playing = pt; };
         
     private:
         

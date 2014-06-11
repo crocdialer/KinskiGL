@@ -40,7 +40,7 @@ std::string LSystem::lex_rule(const std::pair<char, std::string> &the_rule)
 LSystem::LSystem():
 m_branch_angle(90),
 m_branch_randomness(0),
-m_max_random_tries(50),
+m_max_random_tries(5),
 m_increment(2.f),
 m_increment_randomness(0.f)
 {
@@ -120,11 +120,15 @@ gl::GeometryPtr LSystem::create_geometry() const
     vec3 current_pos, new_pos;
     
     // create geometry out of our buffer string
-    for (char ch : m_buffer)
+    for (auto iter = m_buffer.begin(), end = m_buffer.end(); iter != end; ++iter)
     {
+        char ch = *iter;
+        
         int num_grow_tries = 0;
         
         gl::Color current_color(gl::COLOR_WHITE);
+        
+        bool has_parameter = false;
         
         // color / material / stack state here
         switch (ch)
@@ -146,6 +150,22 @@ gl::GeometryPtr LSystem::create_geometry() const
             case ']':
                 m_state_stack.pop_back();
                 break;
+            
+            // parameter begin
+            case '(':
+                has_parameter = true;
+//            case ')':
+                break;
+        }
+        
+        if(has_parameter)
+        {
+//            string param_buf;
+//            
+//            for(++iter; iter != end; ++iter)
+//            {
+//                param_buf.insert(param_buf.end(), *iter);
+//            }
         }
         
         // this branch should not continue growing -> move on with iteration
@@ -163,11 +183,15 @@ gl::GeometryPtr LSystem::create_geometry() const
         float current_increment = m_increment + kinski::random(-m_increment_randomness,
                                                                m_increment_randomness);
         
+//        current_increment /= (float) std::max<int>(m_iteration_depth, 1);
+        
         switch (ch)
         {
             // already handled above
             case '[':
             case ']':
+            case '(':
+            case ')':
                 break;
                 
             // rotate around 'up vector' ccw
@@ -225,15 +249,16 @@ gl::GeometryPtr LSystem::create_geometry() const
                 //geometry check here
                 do
                 {
-                    new_pos = current_pos + head() * current_increment / (float) std::max<int>(m_iteration_depth, 1);
+                    new_pos = current_pos + head() * current_increment;
                     num_grow_tries++;
                 }
                 while(!is_position_valid(new_pos) && num_grow_tries < m_max_random_tries);
                 
                 if(num_grow_tries >= m_max_random_tries)
                 {
-                    m_state_stack.back().abort_branch = true;
-                    break;
+//                    m_state_stack.back().abort_branch = true;
+//                    break;
+                    current_color = gl::COLOR_PURPLE;
                 }
                 points.push_back(current_pos);
                 points.push_back(new_pos);

@@ -1203,5 +1203,31 @@ namespace kinski { namespace gl {
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_old_value );
     }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+    bool is_point_inside_mesh(const glm::vec3& p, gl::MeshPtr m)
+    {
+        // checks only make sense with triangle geometry
+        if(!m ||
+           m->geometry()->primitiveType() != GL_TRIANGLES ||
+           m->geometry()->faces().empty() ||
+           !m->geometry()->boundingBox().contains(p))
+        {
+            return false;
+        }
+        
+        const auto &vertices = m->geometry()->vertices();
+        
+        // check the point's distance to all triangle planes
+        for (const auto &face : m->geometry()->faces())
+        {
+            gl::Plane plane(vertices[face.a], vertices[face.b], vertices[face.c]);
+//            plane.transform(m->transform());
+            if(plane.distance(p) < 0)
+                return false;
+        }
+        return true;
+    }
     
 }}//namespace

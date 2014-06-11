@@ -7,6 +7,7 @@
 //
 
 #include "GrowthApp.h"
+#include "AssimpConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -39,6 +40,21 @@ void GrowthApp::setup()
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
+    try
+    {
+//        m_bounding_mesh = gl::AssimpConnector::loadModel("tree01.dae");
+        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
+                                           gl::Material::create());
+//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 8),
+//                                           gl::Material::create());
+
+//        m_bounding_mesh->setPosition(vec3(0, 0, 160));
+        m_bounding_mesh->material()->setWireframe();
+        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
+        scene().addObject(m_bounding_mesh);
+    }
+    catch(Exception &e){LOG_ERROR << e.what();}
+    
     load_settings();
 }
 
@@ -60,6 +76,8 @@ void GrowthApp::update(float timeDelta)
 
 void GrowthApp::draw()
 {
+    scene().render(camera());
+    
     gl::setMatrices(camera());
     
     if(draw_grid()){gl::drawGrid(50, 50);}
@@ -137,6 +155,17 @@ void GrowthApp::keyPress(const KeyEvent &e)
                 *m_rules[0] = "q=Fp[&/+p]F[^\\-p]";
                 *m_rules[1] = "F=[--&p]q";
                 *m_rules[2] = "p=FF[^^^-q][\\\\+q]";
+                *m_rules[3] = "";
+                break;
+                
+            case GLFW_KEY_5:
+                // our lsystem shall draw something else ...
+                *m_branch_angles = vec3(15.f);
+                *m_num_iterations = 10;
+                *m_axiom = "FA";
+                *m_rules[0] = "A=^FB\\\\\\B/////B";
+                *m_rules[1] = "B=[^^F//////A]";
+                *m_rules[2] = "";
                 *m_rules[3] = "";
                 break;
                 
@@ -257,9 +286,17 @@ void GrowthApp::refresh_lsystem()
     // iterate
     m_lsystem.iterate(*m_num_iterations);
     
+    // geometry constraints
+    auto poop = [=](const vec3& p) -> bool
+    {
+        return gl::is_point_inside_mesh(p, m_bounding_mesh);
+//        return m_bounding_mesh->boundingBox().intersect(p);
+    };
+    m_lsystem.set_position_check(poop);
+    
     // create a mesh from our lystem geometry
     m_mesh = gl::Mesh::create(m_lsystem.create_geometry(), gl::Material::create());
-    m_mesh->position() -= m_mesh->boundingBox().center();
+//    m_mesh->position() -= m_mesh->boundingBox().center();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);

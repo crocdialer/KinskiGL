@@ -284,6 +284,13 @@ struct KINSKI_API AABB
     ray_intersection intersect(const Ray& theRay) const;
     
 	uint32_t intersect(const Triangle& t) const ;
+    
+    inline bool contains(const glm::vec3& p) const
+    {
+        return  p.x > min.x && p.x < max.x &&
+                p.y > min.y && p.y < max.y &&
+                p.z > min.z && p.z < max.z;
+    };
 };
     
 struct KINSKI_API OBB
@@ -298,6 +305,16 @@ struct KINSKI_API OBB
     {
         return gl::intersect(*this, theRay);
     }
+    
+    inline bool contains(const glm::vec3& p) const
+    {
+        // point in axis space
+        const glm::mat3& mat = *reinterpret_cast<const glm::mat3*>(&axis[0][0]);
+        glm::vec3 p_in_axis_space = mat * p;
+        return  abs(p_in_axis_space.x) < half_lengths.x &&
+                abs(p_in_axis_space.y) < half_lengths.y &&
+                abs(p_in_axis_space.z) < half_lengths.z;
+    };
 };
 
 struct KINSKI_API Frustum

@@ -245,6 +245,13 @@ namespace kinski { namespace gl {
         GLint m_old_value;
     };
     
+    /*!
+     * unfinished geometry check
+     * return true if point p is contained within the mesh's geometry 
+     * TODO: only convex or concave?
+     */
+    KINSKI_API bool is_point_inside_mesh(const glm::vec3& p, gl::MeshPtr m);
+    
     #ifdef KINSKI_GL_REPORT_ERRORS
     #define KINSKI_CHECK_GL_ERRORS()\
     while(GLenum error = glGetError()){\

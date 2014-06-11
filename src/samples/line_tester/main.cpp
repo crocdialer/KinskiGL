@@ -78,7 +78,7 @@ public:
     {
         switch (e.getChar())
         {
-            case KeyEvent::KEY_SPACE:
+            case GLFW_KEY_SPACE:
                 displayTweakBar(!displayTweakBar());
                 break;
                 

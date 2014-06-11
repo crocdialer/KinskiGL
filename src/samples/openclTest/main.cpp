@@ -375,9 +375,12 @@ public:
             {
                 m_textures[0] = gl::createTextureFromFile(*m_texturePath);
                 
-                // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
-                m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
-                                         m_textures[0].getId());
+                if(m_textures[0])
+                {
+                    // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
+                    m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                                             m_textures[0].getId());
+                }
             }
             catch(cl::Error &error){LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";}
             catch (FileNotFoundException &e){LOG_WARNING << e.what();}
