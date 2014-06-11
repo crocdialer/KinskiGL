@@ -301,9 +301,9 @@ void GrowthApp::refresh_lsystem()
     m_max_index->setRange(min, max);
     
     // animation
-    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
-    if(!*m_animate_growth)
-        m_growth_animation->stop();
-    
-    m_growth_animation->set_loop();
+//    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
+//    if(!*m_animate_growth)
+//        m_growth_animation->stop();
+//    
+//    m_growth_animation->set_loop();
 }

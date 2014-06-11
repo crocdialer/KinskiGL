@@ -126,6 +126,8 @@ gl::MeshPtr LSystem::create_mesh() const
     std::vector<std::vector<uint32_t>>  indices_vec;
     std::vector<std::vector<float>>  point_sizes_vec;
     
+    std::vector<uint32_t> index_increments;
+    
     int i = 0;
     vec3 current_pos, new_pos;
     
@@ -267,6 +269,7 @@ gl::MeshPtr LSystem::create_mesh() const
                     colors_vec.resize(max_branch_depth);
                     indices_vec.resize(max_branch_depth);
                     point_sizes_vec.resize(max_branch_depth);
+                    index_increments.resize(max_branch_depth, 0);
                 }
                 
                 //geometry check here
@@ -301,8 +304,8 @@ gl::MeshPtr LSystem::create_mesh() const
                     points_vec[idx].push_back(new_pos);
                     colors_vec[idx].push_back(current_color);
                     colors_vec[idx].push_back(current_color);
-                    indices_vec[idx].push_back(i++);
-                    indices_vec[idx].push_back(i++);
+                    indices_vec[idx].push_back(index_increments[idx]++);
+                    indices_vec[idx].push_back(index_increments[idx]++);
                 }
                 
                 break;
@@ -357,6 +360,11 @@ gl::MeshPtr LSystem::create_mesh() const
         ret->geometry() = merged_geom;
         ret->entries() = entries;
         ret->materials() = materials;
+    }
+    else
+    {
+        ret->entries().front().num_vertices = ret->geometry()->vertices().size();
+        ret->entries().front().numdices = ret->geometry()->indices().size();
     }
     ret->geometry()->setPrimitiveType(GL_LINES);
     ret->geometry()->computeBoundingBox();
