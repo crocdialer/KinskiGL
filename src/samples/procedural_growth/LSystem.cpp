@@ -360,9 +360,13 @@ gl::MeshPtr LSystem::create_mesh() const
         ret->geometry() = merged_geom;
         ret->entries() = entries;
         ret->materials() = materials;
+        
+        auto &sh = materials.front()->shader();
+        for(auto &m : materials){m->setShader(sh);}
     }
     else
     {
+//        ret->entries() = {ret->entries().front()};
         ret->entries().front().num_vertices = ret->geometry()->vertices().size();
         ret->entries().front().numdices = ret->geometry()->indices().size();
     }

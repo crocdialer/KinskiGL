@@ -69,6 +69,7 @@ namespace kinski
         {
             glm::mat4 transform;
             bool abort_branch;
+            float diameter;
         };
         
         std::string m_axiom, m_buffer;

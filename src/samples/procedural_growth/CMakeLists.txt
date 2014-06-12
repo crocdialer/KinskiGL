@@ -1,4 +1,3 @@
 set(LIBS ${LIBS})
-set(MODULES assimp)
+set(MODULES)
 KINSKI_ADD_SAMPLE(${itemName} ${folderItem} "${MODULES}")
-

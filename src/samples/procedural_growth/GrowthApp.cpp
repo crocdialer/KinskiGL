@@ -7,7 +7,7 @@
 //
 
 #include "GrowthApp.h"
-#include "AssimpConnector.h"
+//#include "AssimpConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -293,7 +293,7 @@ void GrowthApp::refresh_lsystem()
 //    };
 //    m_lsystem.set_position_check(poop);
     
-    // create a mesh from our lystem geometry
+    // create a mesh from our lsystem geometry
     m_mesh = m_lsystem.create_mesh();
 //    m_mesh->position() -= m_mesh->boundingBox().center();
     

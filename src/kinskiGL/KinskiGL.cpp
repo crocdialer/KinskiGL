@@ -827,6 +827,7 @@ namespace kinski { namespace gl {
             {
                 for (int i = 0; i < theMesh->entries().size(); i++)
                 {
+                    // TODO: fucks up VAO !?
                     apply_material(theMesh->materials()[i]);
                     
                     glDrawElementsBaseVertex(theMesh->geometry()->primitiveType(),
