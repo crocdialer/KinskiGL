@@ -116,20 +116,27 @@ gl::MeshPtr LSystem::create_mesh() const
     
     gl::MeshPtr ret = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
     auto &points = ret->geometry()->vertices();
+    auto &normals = ret->geometry()->normals();
     auto &colors = ret->geometry()->colors();
     auto &indices = ret->geometry()->indices();
     auto &point_sizes = ret->geometry()->point_sizes();
     
     uint32_t max_branch_depth = 0;
-    std::vector<std::vector<glm::vec3>> points_vec;
+    
+    // vertex info for the different branch depths
+    std::vector<std::vector<glm::vec3>> verts_vec;
+    std::vector<std::vector<glm::vec3>> normals_vec;
     std::vector<std::vector<glm::vec4>> colors_vec;
     std::vector<std::vector<uint32_t>>  indices_vec;
+    
+    // will hold the current branch diameter
     std::vector<std::vector<float>>  point_sizes_vec;
     
+    // helper to have seperate indices for each brnach depth
     std::vector<uint32_t> index_increments;
     
     int i = 0;
-    vec3 current_pos, new_pos;
+    vec3 current_pos, new_pos, current_normal;
     
     // create geometry out of our buffer string
     for (auto iter = m_buffer.begin(), end = m_buffer.end(); iter != end; ++iter)
@@ -146,12 +153,12 @@ gl::MeshPtr LSystem::create_mesh() const
         switch (ch)
         {
             //TODO: move those in a colour lookup map
-            case 'F':
-                current_color = gl::COLOR_ORANGE;
-                break;
-            case 'H':
-                current_color = gl::COLOR_BLUE;
-                break;
+//            case 'F':
+//                current_color = gl::COLOR_ORANGE;
+//                break;
+//            case 'H':
+//                current_color = gl::COLOR_BLUE;
+//                break;
                 
             // push state
             case '[':
@@ -186,6 +193,9 @@ gl::MeshPtr LSystem::create_mesh() const
         
         // save current position here
         current_pos = new_pos = m_state_stack.back().transform[3].xyz();
+        
+        // derive normal from up-vector
+        current_normal = m_state_stack.back().transform[2].xyz();
         
         // our current branch angles
         vec3 current_branch_angles = m_branch_angle + glm::linearRand(-m_branch_randomness,
@@ -265,7 +275,8 @@ gl::MeshPtr LSystem::create_mesh() const
                 if(current_branch_depth > max_branch_depth)
                 {
                     max_branch_depth = current_branch_depth;
-                    points_vec.resize(max_branch_depth);
+                    verts_vec.resize(max_branch_depth);
+                    normals_vec.resize(max_branch_depth);
                     colors_vec.resize(max_branch_depth);
                     indices_vec.resize(max_branch_depth);
                     point_sizes_vec.resize(max_branch_depth);
@@ -280,17 +291,22 @@ gl::MeshPtr LSystem::create_mesh() const
                 }
                 while(!is_position_valid(new_pos) && num_grow_tries < m_max_random_tries);
                 
+                // no way to grow in this direction
                 if(num_grow_tries >= m_max_random_tries)
                 {
+                    // TODO: come up with something useful here, just not needed currently
+                    
 //                    m_state_stack.back().abort_branch = true;
 //                    break;
-                    current_color = gl::COLOR_PURPLE;
+//                    current_color = gl::COLOR_PURPLE;
                 }
                 
                 if(!use_mesh_entries)
                 {
                     points.push_back(current_pos);
                     points.push_back(new_pos);
+                    normals.push_back(current_normal);
+                    normals.push_back(current_normal);
                     colors.push_back(current_color);
                     colors.push_back(current_color);
                     indices.push_back(i++);
@@ -300,14 +316,15 @@ gl::MeshPtr LSystem::create_mesh() const
                 else
                 {
                     int idx = current_branch_depth - 1;
-                    points_vec[idx].push_back(current_pos);
-                    points_vec[idx].push_back(new_pos);
+                    verts_vec[idx].push_back(current_pos);
+                    verts_vec[idx].push_back(new_pos);
+                    normals_vec[idx].push_back(current_normal);
+                    normals_vec[idx].push_back(current_normal);
                     colors_vec[idx].push_back(current_color);
                     colors_vec[idx].push_back(current_color);
                     indices_vec[idx].push_back(index_increments[idx]++);
                     indices_vec[idx].push_back(index_increments[idx]++);
                 }
-                
                 break;
         }
         // re-insert position
@@ -325,34 +342,39 @@ gl::MeshPtr LSystem::create_mesh() const
         
         for (int i = 0; i < max_branch_depth; i++)
         {
-            // mege points
+            // merge vertices
             merged_geom->vertices().insert(merged_geom->vertices().end(),
-                                           points_vec[i].begin(),
-                                           points_vec[i].end());
+                                           verts_vec[i].begin(),
+                                           verts_vec[i].end());
             
-            // mege colors
+            // merge normals
+            merged_geom->normals().insert(merged_geom->normals().end(),
+                                          normals_vec[i].begin(),
+                                          normals_vec[i].end());
+            
+            // merge colors
             merged_geom->colors().insert(merged_geom->colors().end(),
                                          colors_vec[i].begin(),
                                          colors_vec[i].end());
             
-            // mege indices
+            // merge indices
             merged_geom->indices().insert(merged_geom->indices().end(),
                                           indices_vec[i].begin(),
                                           indices_vec[i].end());
             
-            // mege point sizes (aka diameters)
+            // merge point sizes (aka diameters)
             merged_geom->point_sizes().insert(merged_geom->point_sizes().end(),
                                               point_sizes_vec[i].begin(),
                                               point_sizes_vec[i].end());
             
             gl::Mesh::Entry m;
-            m.num_vertices = points_vec[i].size();
+            m.num_vertices = verts_vec[i].size();
             m.numdices = indices_vec[i].size();
             m.base_index = current_index;
             m.base_vertex = current_vertex;
             m.material_index = material_index;
             entries.push_back(m);
-            current_vertex += points_vec[i].size();
+            current_vertex += verts_vec[i].size();
             current_index += indices_vec[i].size();
             material_index++;
             materials.push_back(gl::Material::create());
@@ -362,11 +384,13 @@ gl::MeshPtr LSystem::create_mesh() const
         ret->materials() = materials;
         
         auto &sh = materials.front()->shader();
-        for(auto &m : materials){m->setShader(sh);}
+        for(auto &m : materials)
+        {
+            m->setShader(sh);m->setDiffuse(glm::linearRand(vec4(0,0,.2,1), vec4(1,1,1,1)));
+        }
     }
     else
     {
-//        ret->entries() = {ret->entries().front()};
         ret->entries().front().num_vertices = ret->geometry()->vertices().size();
         ret->entries().front().numdices = ret->geometry()->indices().size();
     }

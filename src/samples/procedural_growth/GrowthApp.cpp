@@ -51,7 +51,10 @@ void GrowthApp::setup()
 //        m_bounding_mesh->setPosition(vec3(0, 0, 160));
         m_bounding_mesh->material()->setWireframe();
         m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
-        scene().addObject(m_bounding_mesh);
+//        scene().addObject(m_bounding_mesh);
+        
+        // load shader
+        m_lsystem_shader = gl::createShaderFromFile("shader_01.vert", "shader_01.frag", "shader_01.geom");
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -295,15 +298,21 @@ void GrowthApp::refresh_lsystem()
     
     // create a mesh from our lsystem geometry
     m_mesh = m_lsystem.create_mesh();
-//    m_mesh->position() -= m_mesh->boundingBox().center();
+    m_mesh->position() -= m_mesh->boundingBox().center();
+    
+    // add our shader
+    for (auto m : m_mesh->materials())
+    {
+        m->setShader(m_lsystem_shader);
+    }
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);
     
     // animation
-//    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
-//    if(!*m_animate_growth)
-//        m_growth_animation->stop();
-//    
-//    m_growth_animation->set_loop();
+    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
+    if(!*m_animate_growth)
+        m_growth_animation->stop();
+    
+    m_growth_animation->set_loop();
 }

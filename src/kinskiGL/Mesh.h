@@ -81,7 +81,7 @@ namespace kinski { namespace gl {
         const MaterialPtr& material() const { return m_materials.front(); };
         MaterialPtr& material() { return m_materials.front(); };
         
-        void bindVertexPointers() const;
+        void bindVertexPointers(int material_index = 0) const;
         void createVertexArray();
         GLuint vertexArray() const;
         
@@ -158,7 +158,9 @@ namespace kinski { namespace gl {
         std::vector<Entry> m_entries;
         std::vector<MaterialPtr> m_materials;
         GLuint m_vertexArray;
-        mutable std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
+        std::vector<GLuint> m_vertexArrays;
+        
+        std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
         
         // skeletal animations stuff
         BonePtr m_rootBone;

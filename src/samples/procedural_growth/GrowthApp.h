@@ -24,7 +24,14 @@ namespace kinski
         std::vector<gl::Texture> m_textures{4};
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
+        
+        // our Lindemayersystem object
         LSystem m_lsystem;
+        
+        //! holds an shader programm, containing a geomtry shader for drawing the lines
+        // created by a lsystem as more complex geometry
+        //
+        gl::Shader m_lsystem_shader;
         
         //! needs to recalculate
         bool m_dirty_lsystem = false;

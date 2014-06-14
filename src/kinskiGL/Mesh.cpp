@@ -42,9 +42,9 @@ namespace kinski { namespace gl {
 #endif
     }
     
-    void Mesh::bindVertexPointers() const
+    void Mesh::bindVertexPointers(int material_index) const
     {
-        Shader& shader = material()->shader();
+        Shader& shader = materials()[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
