@@ -27,6 +27,7 @@ void GrowthApp::setup()
     registerProperty(m_branch_randomness);
     registerProperty(m_increment);
     registerProperty(m_increment_randomness);
+    registerProperty(m_diameter_shrink);
     registerProperty(m_num_iterations);
     registerProperty(m_max_index);
     registerProperty(m_axiom);
@@ -255,7 +256,8 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
        theProperty == m_branch_angles ||
        theProperty == m_branch_randomness ||
        theProperty == m_increment ||
-       theProperty == m_increment_randomness)
+       theProperty == m_increment_randomness ||
+       theProperty == m_diameter_shrink)
     {
         m_dirty_lsystem = true;
     }
@@ -289,6 +291,7 @@ void GrowthApp::refresh_lsystem()
     m_lsystem.set_branch_randomness(*m_branch_randomness);
     m_lsystem.set_increment(*m_increment);
     m_lsystem.set_increment_randomness(*m_increment_randomness);
+    m_lsystem.set_diameter_shrink_factor(*m_diameter_shrink);
     
     // iterate
     m_lsystem.iterate(*m_num_iterations);

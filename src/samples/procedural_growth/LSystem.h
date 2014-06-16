@@ -46,6 +46,9 @@ namespace kinski
         const glm::vec3& branch_randomness() const {return m_branch_randomness;}
         void set_branch_randomness(const glm::vec3& the_angles){m_branch_randomness = the_angles;}
         
+        float diameter_shrink_factor() const {return m_diameter_shrink_factor;}
+        void set_diameter_shrink_factor(float factor) {m_diameter_shrink_factor = factor;}
+        
         std::map<char, std::string>& rules() {return m_rules;}
         const std::map<char, std::string>& rules() const {return m_rules;}
         void set_rules(const std::map<char, std::string> &rule_map){m_rules = rule_map;}
@@ -89,6 +92,9 @@ namespace kinski
         
         // increment randomness
         float m_increment_randomness;
+        
+        //! factor to multiply current diameter when shrinking
+        float m_diameter_shrink_factor;
         
         //! turtle state: transform -> (Head, Left, Up, Pos)
         mutable std::vector<turtle_state> m_state_stack;

@@ -2,7 +2,6 @@
 
 // ------------------ Geometry Shader: Line -> Cuboid --------------------------------
 layout(lines) in;
-//layout (triangles, max_vertices = 36) out;
 layout (triangle_strip, max_vertices = 18) out;
 
 uniform mat4 u_modelViewProjectionMatrix;
@@ -38,10 +37,7 @@ void main()
     vec3 p0 = vertex_in[0].position;	// start of current segment
     vec3 p1 = vertex_in[1].position;	// end of current segment
     
-    //float d2_left, d2_right;
-    //d2_left = d2_right = vertex_in[0].point_size / 2.0;
-    //float h2_left, h2_right;
-    //h2_left = h2_right = vertex_in[1].point_size / 2.0;
+    depth2 = height2 = vertex_in[0].pointSize / 2.0;
 
 
     // basevectors for the cuboid

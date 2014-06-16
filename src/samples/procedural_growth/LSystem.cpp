@@ -42,7 +42,8 @@ m_branch_angle(90),
 m_branch_randomness(0),
 m_max_random_tries(5),
 m_increment(2.f),
-m_increment_randomness(0.f)
+m_increment_randomness(0.f),
+m_diameter_shrink_factor(1.f)
 {
 //    m_position_check = [&](const vec3& p) -> bool {return glm::length(p) < 10;};
 }
@@ -98,7 +99,7 @@ void LSystem::iterate(int num_iterations)
 */
 gl::MeshPtr LSystem::create_mesh() const
 {
-    m_state_stack = {{glm::mat4(), false}};
+    m_state_stack = {{glm::mat4(), false, 1.f}};
     
     // start in xz plane, face upward
     
@@ -172,7 +173,7 @@ gl::MeshPtr LSystem::create_mesh() const
             
             // shrink diameter
             case '!':
-                
+                m_state_stack.back().diameter *= m_diameter_shrink_factor;
                 break;
             
             // parameter begin
@@ -322,6 +323,8 @@ gl::MeshPtr LSystem::create_mesh() const
                     normals_vec[idx].push_back(current_normal);
                     colors_vec[idx].push_back(current_color);
                     colors_vec[idx].push_back(current_color);
+                    point_sizes_vec[idx].push_back(m_state_stack.back().diameter);
+                    point_sizes_vec[idx].push_back(m_state_stack.back().diameter);
                     indices_vec[idx].push_back(index_increments[idx]++);
                     indices_vec[idx].push_back(index_increments[idx]++);
                 }

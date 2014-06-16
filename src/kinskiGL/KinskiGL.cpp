@@ -828,7 +828,7 @@ namespace kinski { namespace gl {
                 for (int i = 0; i < theMesh->entries().size(); i++)
                 {
                     // TODO: fucks up VAO !?
-                    apply_material(theMesh->materials()[i]);
+                    apply_material(theMesh->materials()[theMesh->entries()[i].material_index]);
                     
                     glDrawElementsBaseVertex(theMesh->geometry()->primitiveType(),
                                              theMesh->entries()[i].numdices,
@@ -1101,16 +1101,10 @@ namespace kinski { namespace gl {
             else
             {
                 glEnable(GL_BLEND);
-                
-//                if(last_mat->blend_src() != the_mat->blend_src() ||
-//                   last_mat->blend_dst() != the_mat->blend_dst())
-                {
-                    glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
-                }
-//                if(last_mat->blend_equation() != the_mat->blend_equation())
-                {
-                    glBlendEquation(the_mat->blend_equation());
-                }
+                glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
+#ifndef KINSKI_GLES
+                glBlendEquation(the_mat->blend_equation());
+#endif
             }
         }
         KINSKI_CHECK_GL_ERRORS();

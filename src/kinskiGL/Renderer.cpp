@@ -107,7 +107,8 @@ namespace kinski{ namespace gl{
                     {
                         for (int i = 0; i < m->entries().size(); i++)
                         {
-                            apply_material(m->material());
+                            // TODO: fucks up VAO !?
+                            apply_material(m->materials()[m->entries()[i].material_index]);
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),
                                                      m->entries()[i].numdices,
