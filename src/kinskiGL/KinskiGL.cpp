@@ -1101,7 +1101,16 @@ namespace kinski { namespace gl {
             else
             {
                 glEnable(GL_BLEND);
-                glBlendFunc(the_mat->blendSrc(), the_mat->blendDst());
+                
+//                if(last_mat->blend_src() != the_mat->blend_src() ||
+//                   last_mat->blend_dst() != the_mat->blend_dst())
+                {
+                    glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
+                }
+//                if(last_mat->blend_equation() != the_mat->blend_equation())
+                {
+                    glBlendEquation(the_mat->blend_equation());
+                }
             }
         }
         KINSKI_CHECK_GL_ERRORS();

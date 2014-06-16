@@ -26,7 +26,9 @@ namespace kinski { namespace gl {
     m_wireFrame(false),
     m_depthTest(true),
     m_depthWrite(true),
-    m_blending(false), m_blendSrc(GL_SRC_ALPHA), m_blendDst(GL_ONE_MINUS_SRC_ALPHA),
+    m_blending(false),
+    m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
+    m_blend_equation(GL_FUNC_ADD),
     m_pointSize(1.f)
     {
         m_uniforms["u_material.diffuse"] = m_diffuse;

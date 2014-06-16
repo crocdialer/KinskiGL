@@ -45,20 +45,31 @@ void GrowthApp::setup()
 //        m_bounding_mesh = gl::AssimpConnector::loadModel("tree01.dae");
         m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
                                            gl::Material::create());
-//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 8),
-//                                           gl::Material::create());
+        
+        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
+                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
 
 //        m_bounding_mesh->setPosition(vec3(0, 0, 160));
-        m_bounding_mesh->material()->setWireframe();
-        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
+//        m_bounding_mesh->material()->setWireframe();
+//        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
 //        scene().addObject(m_bounding_mesh);
         
         // load shader
-        m_lsystem_shader = gl::createShaderFromFile("shader_01.vert", "shader_01.frag", "shader_01.geom");
+        m_lsystem_shader = gl::createShaderFromFile("shader_01.vert",
+                                                    "shader_01.frag",
+                                                    "shader_01.geom");
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
     load_settings();
+    
+    // light component
+    m_light_component.reset(new LightComponent());
+    m_light_component->set_lights(lights());
+    create_tweakbar_from_component(m_light_component);
+    
+    // add lights to scene
+    for (auto &light : lights()){ scene().addObject(light); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -79,17 +90,10 @@ void GrowthApp::update(float timeDelta)
 
 void GrowthApp::draw()
 {
-    scene().render(camera());
-    
     gl::setMatrices(camera());
-    
     if(draw_grid()){gl::drawGrid(50, 50);}
     
-    if(m_mesh)
-    {
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
-        gl::drawMesh(m_mesh);
-    }
+    scene().render(camera());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -166,8 +170,8 @@ void GrowthApp::keyPress(const KeyEvent &e)
                 *m_branch_angles = vec3(15.f);
                 *m_num_iterations = 10;
                 *m_axiom = "FA";
-                *m_rules[0] = "A=^FB\\\\\\B/////B";
-                *m_rules[1] = "B=[^^F//////A]";
+                *m_rules[0] = "A=^F+ F - B\\\\FB&&B";
+                *m_rules[1] = "B=[^F/////A][&&A]";
                 *m_rules[2] = "";
                 *m_rules[3] = "";
                 break;
@@ -297,8 +301,10 @@ void GrowthApp::refresh_lsystem()
 //    m_lsystem.set_position_check(poop);
     
     // create a mesh from our lsystem geometry
+    scene().removeObject(m_mesh);
     m_mesh = m_lsystem.create_mesh();
     m_mesh->position() -= m_mesh->boundingBox().center();
+    scene().addObject(m_mesh);
     
     // add our shader
     for (auto m : m_mesh->materials())

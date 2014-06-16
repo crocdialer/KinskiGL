@@ -170,6 +170,11 @@ gl::MeshPtr LSystem::create_mesh() const
                 m_state_stack.pop_back();
                 break;
             
+            // shrink diameter
+            case '!':
+                
+                break;
+            
             // parameter begin
             case '(':
                 has_parameter = true;
@@ -179,12 +184,6 @@ gl::MeshPtr LSystem::create_mesh() const
         
         if(has_parameter)
         {
-//            string param_buf;
-//            
-//            for(++iter; iter != end; ++iter)
-//            {
-//                param_buf.insert(param_buf.end(), *iter);
-//            }
         }
         
         // this branch should not continue growing -> move on with iteration
@@ -212,6 +211,7 @@ gl::MeshPtr LSystem::create_mesh() const
             // already handled above
             case '[':
             case ']':
+            case '!':
             case '(':
             case ')':
                 break;
@@ -386,7 +386,11 @@ gl::MeshPtr LSystem::create_mesh() const
         auto &sh = materials.front()->shader();
         for(auto &m : materials)
         {
-            m->setShader(sh);m->setDiffuse(glm::linearRand(vec4(0,0,.2,1), vec4(1,1,1,1)));
+            m->setBlending();
+//            m->set_blend_equation(GL_MAX);
+            
+            //TODO: remove this when submaterials are tested well enough
+            m->setShader(sh);m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
         }
     }
     else

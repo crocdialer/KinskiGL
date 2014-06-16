@@ -10,6 +10,7 @@
 #define __kinskiGL__GrowthApp__
 
 #include "kinskiApp/ViewerApp.h"
+#include "kinskiApp/LightComponent.h"
 #include "kinskiGL/Texture.h"
 #include "kinskiCore/Animation.h"
 #include "LSystem.h"
@@ -22,6 +23,9 @@ namespace kinski
         
         gl::Font m_font;
         std::vector<gl::Texture> m_textures{4};
+        
+        // light controls
+        LightComponent::Ptr m_light_component;
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
         

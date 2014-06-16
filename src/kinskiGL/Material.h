@@ -63,13 +63,16 @@ namespace kinski { namespace gl {
         bool twoSided() const { return m_twoSided; };
         bool wireframe() const { return m_wireFrame; };
         bool blending() const { return m_blending; };
-        GLenum blendSrc() const { return m_blendSrc; };
-        GLenum blendDst() const { return m_blendDst; };
+        GLenum blend_src() const { return m_blend_src; };
+        GLenum blend_dst() const { return m_blend_dst; };
+        GLenum blend_equation() const { return m_blend_equation; };
         
         void setTwoSided(bool b = true) { m_twoSided = b;};
         void setWireframe(bool b = true) { m_wireFrame = b;};
         void setBlending(bool b = true) { m_blending = b;};
-        void setBlendValues(GLenum src, GLenum dst) { m_blendSrc = src; m_blendDst = dst;};
+        void set_blend_factors(GLenum src, GLenum dst){ m_blend_src = src; m_blend_dst = dst; };
+        void set_blend_equation(GLenum equation){ m_blend_equation = equation;};
+        
         void setDepthTest(bool b = true) { m_depthTest = b;};
         void setDepthWrite(bool b = true) { m_depthWrite = b;};
         
@@ -114,7 +117,7 @@ namespace kinski { namespace gl {
         bool m_depthTest;
         bool m_depthWrite;
         bool m_blending;
-        GLenum m_blendSrc, m_blendDst;
+        GLenum m_blend_src, m_blend_dst, m_blend_equation;
         
         // point attributes
         float m_pointSize;

@@ -9,7 +9,8 @@ in vec2 a_texCoord;
 in vec4 a_color;
 in float a_pointSize;
 
-out VertexData {
+out VertexData 
+{
     vec3 position;
     vec3 normal;
     vec4 color;
@@ -20,7 +21,8 @@ out VertexData {
 void main()
 {
     vertex_out.position = a_vertex.xyz;
-    vertex_out.normal = normalize(u_normalMatrix * a_normal);
+    vertex_out.normal = a_normal;//normalize(u_normalMatrix * a_normal);
+    vertex_out.pointSize = a_pointSize;
     vertex_out.color = a_color;
     vertex_out.texCoord =  (u_textureMatrix * vec4(a_texCoord, 0, 1)).xy;
     gl_Position = u_modelViewProjectionMatrix * a_vertex;
