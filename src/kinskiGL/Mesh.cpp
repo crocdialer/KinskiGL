@@ -200,7 +200,7 @@ namespace kinski { namespace gl {
         {
             const AnimationPtr &anim = m_animations[m_animation_index];
             anim->current_time = fmod(anim->current_time + time_delta * anim->ticksPerSec,
-                                                     anim->duration);
+                                      anim->duration);
             m_boneMatrices.resize(get_num_bones(m_rootBone));
             buildBoneMatrices(anim->current_time, m_rootBone, glm::mat4(), m_boneMatrices);
         }

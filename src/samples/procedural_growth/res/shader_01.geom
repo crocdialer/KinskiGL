@@ -13,7 +13,13 @@ float depth2 = .5;
 float height2 = .5;
 
 // scratch space for our cuboid vertices
-vec4 v[8];
+vec3 v[8];
+
+// projected cuboid vertices
+vec4 vp[8];
+
+// cubiod vertices in eye coords
+vec3 eye_vecs[8];
 
 in VertexData 
 {
@@ -39,93 +45,117 @@ void main()
     
     depth2 = height2 = vertex_in[0].pointSize / 2.0;
 
-
     // basevectors for the cuboid
     vec3 dx = normalize(p1 - p0);
     vec3 dy = vertex_in[0].normal;
     vec3 dz = cross(dx, dy);
 
-    //TODO: calc 8 vertices that define our cuboid
-    
+    //calc 8 vertices that define our cuboid
     // front left bottom
-    v[0] = u_modelViewProjectionMatrix * vec4(p0 + depth2 * dz - height2 * dy, 1);
+    v[0] = p0 + depth2 * dz - height2 * dy;
     // front right bottom
-    v[1] = u_modelViewProjectionMatrix * vec4(p1 + depth2 * dz - height2 * dy, 1);
+    v[1] = p1 + depth2 * dz - height2 * dy;
     // back right bottom
-    v[2] = u_modelViewProjectionMatrix * vec4(p1 - depth2 * dz - height2 * dy, 1);
+    v[2] = p1 - depth2 * dz - height2 * dy;
     // back left bottom
-    v[3] = u_modelViewProjectionMatrix * vec4(p0 - depth2 * dz - height2 * dy, 1);
-
+    v[3] = p0 - depth2 * dz - height2 * dy;
     // front left top
-    v[4] = u_modelViewProjectionMatrix * vec4(p0 + depth2 * dz + height2 * dy, 1);
+    v[4] = p0 + depth2 * dz + height2 * dy;
     // front right top
-    v[5] = u_modelViewProjectionMatrix * vec4(p1 + depth2 * dz + height2 * dy, 1);
+    v[5] = p1 + depth2 * dz + height2 * dy;
     // back right top
-    v[6] = u_modelViewProjectionMatrix * vec4(p1 - depth2 * dz + height2 * dy, 1);
+    v[6] = p1 - depth2 * dz + height2 * dy;
     // back left top
-    v[7] = u_modelViewProjectionMatrix * vec4(p0 - depth2 * dz + height2 * dy, 1);
+    v[7] = p0 - depth2 * dz + height2 * dy;
     
+    // calculate projected coords
+    for(int i = 0; i < 8; i++){ vp[i] = u_modelViewProjectionMatrix * vec4(v[i], 1); }
+    
+    // calcualte eye coords
+    for(int i = 0; i < 8; i++){ eye_vecs[i] = (u_modelViewMatrix * vec4(v[i], 1)).xyz; }
+
     // generate a triangle strip
     vertex_out.color = vertex_in[0].color;
     vertex_out.texCoord = vec4(0, 0, 0, 1);
     vertex_out.eyeVec = (u_modelViewMatrix * vec4(p0, 1)).xyz;
+    dx *= u_normalMatrix; 
+    dy *= u_normalMatrix; 
+    dz *= u_normalMatrix;
 
     // mantle faces
-
+    
     // front
     vertex_out.normal = dz;
-    gl_Position = v[0];
+    vertex_out.eyeVec = eye_vecs[0];
+    gl_Position = vp[0];
     EmitVertex();
-    gl_Position = v[1];
+    vertex_out.eyeVec = eye_vecs[1];
+    gl_Position = vp[1];
     EmitVertex();
-    gl_Position = v[4];
+    vertex_out.eyeVec = eye_vecs[4];
+    gl_Position = vp[4];
     EmitVertex();
-    gl_Position = v[5];
+    vertex_out.eyeVec = eye_vecs[5];
+    gl_Position = vp[5];
     EmitVertex();
 
     // top
     vertex_out.normal = dy;
-    gl_Position = v[7];
+    vertex_out.eyeVec = eye_vecs[7];
+    gl_Position = vp[7];
     EmitVertex();
-    gl_Position = v[6];
+    vertex_out.eyeVec = eye_vecs[6];
+    gl_Position = vp[6];
     EmitVertex();
 
     // back
     vertex_out.normal = -dz;
-    gl_Position = v[3];
+    vertex_out.eyeVec = eye_vecs[3];
+    gl_Position = vp[3];
     EmitVertex();
-    gl_Position = v[2];
+    vertex_out.eyeVec = eye_vecs[2];
+    gl_Position = vp[2];
     EmitVertex();
 
     // bottom
     vertex_out.normal = -dy;
-    gl_Position = v[0];
+    vertex_out.eyeVec = eye_vecs[0];
+    gl_Position = vp[0];
     EmitVertex();
-    gl_Position = v[1];
+    vertex_out.eyeVec = eye_vecs[1];
+    gl_Position = vp[1];
     EmitVertex();
     EndPrimitive();
 
     // caps faces left
     vertex_out.normal = -dx;
-    gl_Position = v[3];
+    vertex_out.eyeVec = eye_vecs[3];
+    gl_Position = vp[3];
     EmitVertex();
-    gl_Position = v[0];
+    vertex_out.eyeVec = eye_vecs[0];
+    gl_Position = vp[0];
     EmitVertex();
-    gl_Position = v[7];
+    vertex_out.eyeVec = eye_vecs[7];
+    gl_Position = vp[7];
     EmitVertex();
-    gl_Position = v[4];
+    vertex_out.eyeVec = eye_vecs[4];
+    gl_Position = vp[4];
     EmitVertex();
     EndPrimitive();
 
     // caps faces right
     vertex_out.normal = dx;
-    gl_Position = v[1];
+    vertex_out.eyeVec = eye_vecs[1];
+    gl_Position = vp[1];
     EmitVertex();
-    gl_Position = v[2];
+    vertex_out.eyeVec = eye_vecs[2];
+    gl_Position = vp[2];
     EmitVertex();
-    gl_Position = v[5];
+    vertex_out.eyeVec = eye_vecs[5];
+    gl_Position = vp[5];
     EmitVertex();
-    gl_Position = v[6];
+    vertex_out.eyeVec = eye_vecs[6];
+    gl_Position = vp[6];
     EmitVertex();
     EndPrimitive();
 }

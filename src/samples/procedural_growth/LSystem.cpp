@@ -389,7 +389,7 @@ gl::MeshPtr LSystem::create_mesh() const
         auto &sh = materials.front()->shader();
         for(auto &m : materials)
         {
-            m->setBlending();
+//            m->setBlending();
 //            m->set_blend_equation(GL_MAX);
             
             //TODO: remove this when submaterials are tested well enough

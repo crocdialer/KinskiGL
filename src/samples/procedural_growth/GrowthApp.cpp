@@ -95,6 +95,14 @@ void GrowthApp::draw()
     if(draw_grid()){gl::drawGrid(50, 50);}
     
     scene().render(camera());
+    
+    if(displayTweakBar())
+    {
+        // draw fps string
+        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+                       vec4(vec3(1) - clear_color().xyz(), 1.f),
+                       glm::vec2(windowSize().x - 110, windowSize().y - 70));
+    }
 }
 
 /////////////////////////////////////////////////////////////////
