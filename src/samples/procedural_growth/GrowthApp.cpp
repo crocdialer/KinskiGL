@@ -96,6 +96,11 @@ void GrowthApp::draw()
     
     scene().render(camera());
     
+    for(auto light : lights())
+    {
+        gl::drawLight(light);
+    }
+    
     if(displayTweakBar())
     {
         // draw fps string

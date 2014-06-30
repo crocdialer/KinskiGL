@@ -104,6 +104,7 @@ namespace kinski { namespace gl {
     KINSKI_API void popMatrix(const Matrixtype type);
     KINSKI_API void multMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
     KINSKI_API void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
+    KINSKI_API void loadIdentity(const Matrixtype type);
     KINSKI_API void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
     
     KINSKI_API void setMatrices( const CameraPtr &cam );
@@ -145,6 +146,7 @@ namespace kinski { namespace gl {
     
     KINSKI_API void clearColor(const Color &theColor);
     KINSKI_API void drawMesh(const MeshPtr &theMesh);
+    KINSKI_API void drawLight(const LightPtr &theLight);
     KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b,
                              const Color &theColor = Color(1),
                              float line_thickness = 1.f);

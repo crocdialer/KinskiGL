@@ -140,6 +140,13 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
+    void loadIdentity(const Matrixtype type)
+    {
+        loadMatrix(type, glm::mat4());
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     void getMatrix(const Matrixtype type, glm::mat4 &theMatrix)
     {
         switch (type)
@@ -860,6 +867,78 @@ namespace kinski { namespace gl {
         KINSKI_CHECK_GL_ERRORS();
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
+    void drawLight(const LightPtr &theLight)
+    {
+        static gl::MeshPtr directional_mesh, point_mesh, spot_mesh;
+        
+
+        gl::ScopedMatrixPush mat_push(gl::MODEL_VIEW_MATRIX);
+        gl::multMatrix(gl::MODEL_VIEW_MATRIX, theLight->transform());
+        
+        if(!directional_mesh)
+        {
+            directional_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
+            point_mesh = gl::Mesh::create(gl::Geometry::createSphere(5.f, 8),
+                                          gl::Material::create());
+            spot_mesh = gl::Mesh::create(gl::Geometry::createCone(5.f, 10.f, 8),
+                                         gl::Material::create());
+            
+            glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), 90.f, gl::X_AXIS);
+            
+            for(auto &vert : spot_mesh->geometry()->vertices())
+            {
+                vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
+            }
+            spot_mesh->geometry()->createGLBuffers();
+            spot_mesh->createVertexArray();
+            
+            std::list<gl::MaterialPtr> mats =
+            {
+                directional_mesh->material(),
+                point_mesh->material(),
+                spot_mesh->material()
+                
+            };
+            for (auto mat : mats)
+            {
+                mat->setWireframe();
+            }
+            
+        }
+        
+        gl::MeshPtr light_mesh;
+        
+        switch (theLight->type())
+        {
+            case gl::Light::DIRECTIONAL:
+                light_mesh = directional_mesh;
+                break;
+                
+            case gl::Light::POINT:
+                light_mesh = point_mesh;
+                break;
+                
+            case gl::Light::SPOT:
+                light_mesh = spot_mesh;
+                break;
+        }
+        
+        if(theLight->enabled())
+        {
+            light_mesh->material()->setDiffuse(theLight->diffuse());
+        }
+        else
+        {
+//            light_mesh->material()->setDiffuse(gl::COLOR_RED);
+            return;
+        }
+        
+        // draw the configured mesh
+        gl::drawMesh(light_mesh);
+    }
+    
 ///////////////////////////////////////////////////////////////////////////////
     
     void drawBoundingBox(const MeshWeakPtr &weakMesh)

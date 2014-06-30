@@ -292,7 +292,7 @@ gl::MeshPtr LSystem::create_mesh() const
                 }
                 while(!is_position_valid(new_pos) && num_grow_tries < m_max_random_tries);
                 
-                // no way to grow in this direction
+                // no way to grow from this point
                 if(num_grow_tries >= m_max_random_tries)
                 {
                     // TODO: come up with something useful here, just not needed currently
@@ -392,8 +392,11 @@ gl::MeshPtr LSystem::create_mesh() const
 //            m->setBlending();
 //            m->set_blend_equation(GL_MAX);
             
+            //TODO: allow different shaders here, needs modifications in Mesh VAO implementation
+            m->setShader(sh);
+            
             //TODO: remove this when submaterials are tested well enough
-            m->setShader(sh);m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
+            m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
         }
     }
     else
