@@ -18,6 +18,9 @@ vec3 v[8];
 // projected cuboid vertices
 vec4 vp[8];
 
+vec4 texCoords[4]; 
+
+
 // cubiod vertices in eye coords
 vec3 eye_vecs[8];
 
@@ -74,6 +77,12 @@ void main()
     // calcualte eye coords
     for(int i = 0; i < 8; i++){ eye_vecs[i] = (u_modelViewMatrix * vec4(v[i], 1)).xyz; }
 
+    // texCoords
+    texCoords[0] = vec4(0, 0, 0, 1);
+    texCoords[1] = vec4(1, 0, 0, 1);
+    texCoords[2] = vec4(0, 1, 0, 1);
+    texCoords[3] = vec4(1, 1, 0, 1);
+
     // generate a triangle strip
     vertex_out.color = vertex_in[0].color;
     vertex_out.texCoord = vec4(0, 0, 0, 1);
@@ -87,42 +96,52 @@ void main()
     // front
     vertex_out.normal = dz;
     vertex_out.eyeVec = eye_vecs[0];
+    vertex_out.texCoord = texCoords[0];
     gl_Position = vp[0];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[1];
+    vertex_out.texCoord = texCoords[1];
     gl_Position = vp[1];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[4];
+    vertex_out.texCoord = texCoords[2];
     gl_Position = vp[4];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[5];
+    vertex_out.texCoord = texCoords[3];
     gl_Position = vp[5];
     EmitVertex();
 
     // top
     vertex_out.normal = dy;
     vertex_out.eyeVec = eye_vecs[7];
+    vertex_out.texCoord = texCoords[0];
     gl_Position = vp[7];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[6];
+    vertex_out.texCoord = texCoords[1];
     gl_Position = vp[6];
     EmitVertex();
 
     // back
     vertex_out.normal = -dz;
     vertex_out.eyeVec = eye_vecs[3];
+    vertex_out.texCoord = texCoords[2];
     gl_Position = vp[3];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[2];
+    vertex_out.texCoord = texCoords[3];
     gl_Position = vp[2];
     EmitVertex();
 
     // bottom
     vertex_out.normal = -dy;
     vertex_out.eyeVec = eye_vecs[0];
+    vertex_out.texCoord = texCoords[0];
     gl_Position = vp[0];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[1];
+    vertex_out.texCoord = texCoords[1];
     gl_Position = vp[1];
     EmitVertex();
     EndPrimitive();

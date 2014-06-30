@@ -27,6 +27,7 @@ void GrowthApp::setup()
     registerProperty(m_branch_randomness);
     registerProperty(m_increment);
     registerProperty(m_increment_randomness);
+    registerProperty(m_diameter);
     registerProperty(m_diameter_shrink);
     registerProperty(m_num_iterations);
     registerProperty(m_max_index);
@@ -59,6 +60,8 @@ void GrowthApp::setup()
         m_lsystem_shader = gl::createShaderFromFile("shader_01.vert",
                                                     "shader_01.frag",
                                                     "shader_01.geom");
+        
+        m_textures[0] = gl::createTextureFromFile("tex.jpg");
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -270,6 +273,7 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
        theProperty == m_branch_randomness ||
        theProperty == m_increment ||
        theProperty == m_increment_randomness ||
+       theProperty == m_diameter ||
        theProperty == m_diameter_shrink)
     {
         m_dirty_lsystem = true;
@@ -304,6 +308,7 @@ void GrowthApp::refresh_lsystem()
     m_lsystem.set_branch_randomness(*m_branch_randomness);
     m_lsystem.set_increment(*m_increment);
     m_lsystem.set_increment_randomness(*m_increment_randomness);
+    m_lsystem.set_diameter(*m_diameter);
     m_lsystem.set_diameter_shrink_factor(*m_diameter_shrink);
     
     // iterate
@@ -326,6 +331,7 @@ void GrowthApp::refresh_lsystem()
     for (auto m : m_mesh->materials())
     {
         m->setShader(m_lsystem_shader);
+        m->addTexture(m_textures[0]);
     }
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;

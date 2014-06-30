@@ -43,6 +43,7 @@ m_branch_randomness(0),
 m_max_random_tries(5),
 m_increment(2.f),
 m_increment_randomness(0.f),
+m_diameter(1.f),
 m_diameter_shrink_factor(1.f)
 {
 //    m_position_check = [&](const vec3& p) -> bool {return glm::length(p) < 10;};
@@ -99,7 +100,7 @@ void LSystem::iterate(int num_iterations)
 */
 gl::MeshPtr LSystem::create_mesh() const
 {
-    m_state_stack = {{glm::mat4(), false, 1.f}};
+    m_state_stack = {{glm::mat4(), false, m_diameter}};
     
     // start in xz plane, face upward
     

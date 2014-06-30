@@ -46,6 +46,9 @@ namespace kinski
         const glm::vec3& branch_randomness() const {return m_branch_randomness;}
         void set_branch_randomness(const glm::vec3& the_angles){m_branch_randomness = the_angles;}
         
+        float diameter() const {return m_diameter;}
+        void set_diameter(float d) {m_diameter = d;}
+        
         float diameter_shrink_factor() const {return m_diameter_shrink_factor;}
         void set_diameter_shrink_factor(float factor) {m_diameter_shrink_factor = factor;}
         
@@ -92,6 +95,9 @@ namespace kinski
         
         // increment randomness
         float m_increment_randomness;
+        
+        //! factor to multiply current diameter when shrinking
+        float m_diameter;
         
         //! factor to multiply current diameter when shrinking
         float m_diameter_shrink_factor;
