@@ -332,6 +332,7 @@ void GrowthApp::refresh_lsystem()
     {
         m->setShader(m_lsystem_shader);
         m->addTexture(m_textures[0]);
+//        m->setWireframe();
     }
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
