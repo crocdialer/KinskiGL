@@ -61,7 +61,9 @@ void GrowthApp::setup()
                                                     "shader_01.frag",
                                                     "shader_01.geom");
         
-        m_textures[0] = gl::createTextureFromFile("tex.jpg");
+        m_textures[0] = gl::createTextureFromFile("mask.png");
+        
+        m_movie.load("59_babeShadow.mov", true, true);
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -81,6 +83,9 @@ void GrowthApp::setup()
 void GrowthApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    
+    // movie playback, get a new frame if available
+    m_movie.copy_frame_to_texture(m_textures[0]);
     
     if(m_dirty_lsystem) refresh_lsystem();
     
@@ -331,7 +336,10 @@ void GrowthApp::refresh_lsystem()
     for (auto m : m_mesh->materials())
     {
         m->setShader(m_lsystem_shader);
-        m->addTexture(m_textures[0]);
+//        m->addTexture(m_textures[0]);
+//        m->setBlending();
+//        m->setDepthTest(false);
+//        m->setTwoSided();
 //        m->setWireframe();
     }
     

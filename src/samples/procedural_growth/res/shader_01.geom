@@ -11,6 +11,7 @@ uniform mat3 u_normalMatrix;
 // placeholder for halfs of depth and height
 float depth2 = .5;
 float height2 = .5;
+vec3 cap_bias = vec3(.1, 0, 0);
 
 // scratch space for our cuboid vertices
 vec3 v[8];
@@ -174,24 +175,24 @@ void main()
     EndPrimitive();
 
     // caps faces left
-    vertex_out.normal = -dx;
-    vertex_out.eyeVec = eye_vecs[3];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[3];
-    EmitVertex();
-    vertex_out.eyeVec = eye_vecs[0];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[0];
-    EmitVertex();
-    vertex_out.eyeVec = eye_vecs[7];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[7];
-    EmitVertex();
-    vertex_out.eyeVec = eye_vecs[4];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[4];
-    EmitVertex();
-    EndPrimitive();
+    //vertex_out.normal = -dx;
+    //vertex_out.eyeVec = eye_vecs[3];
+    //vertex_out.texCoord = texCoords[0];
+    //gl_Position = vp[3];
+    //EmitVertex();
+    //vertex_out.eyeVec = eye_vecs[0];
+    //vertex_out.texCoord = texCoords[0];
+    //gl_Position = vp[0];
+    //EmitVertex();
+    //vertex_out.eyeVec = eye_vecs[7];
+    //vertex_out.texCoord = texCoords[0];
+    //gl_Position = vp[7];
+    //EmitVertex();
+    //vertex_out.eyeVec = eye_vecs[4];
+    //vertex_out.texCoord = texCoords[0];
+    //gl_Position = vp[4];
+    //EmitVertex();
+    //EndPrimitive();
 
     // caps faces right
     vertex_out.normal = dx;

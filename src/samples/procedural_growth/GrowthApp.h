@@ -15,6 +15,9 @@
 #include "kinskiCore/Animation.h"
 #include "LSystem.h"
 
+// Movie playback with avfoundation
+#include "MovieController.h"
+
 namespace kinski
 {
     class GrowthApp : public ViewerApp
@@ -24,12 +27,15 @@ namespace kinski
         gl::Font m_font;
         std::vector<gl::Texture> m_textures{4};
         
+        // movie
+        MovieController m_movie;
+        
         // light controls
         LightComponent::Ptr m_light_component;
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
         
-        // our Lindemayersystem object
+        // our Lindemayer-System object
         LSystem m_lsystem;
         
         //! holds an shader programm, containing a geomtry shader for drawing the lines
