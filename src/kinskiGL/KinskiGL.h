@@ -47,7 +47,7 @@
 #endif
 
 // crossplattform helper-macros to append either nothing or "OES"
-// appropriately to a symbol based on either OpenGL3 or OpenGLES2
+// appropriately to a symbol based on either OpenGL3+ or OpenGLES2
 #if defined( KINSKI_GLES )
 #define GL_SUFFIX(sym) sym##OES
 #define GL_ENUM(sym) sym##_OES

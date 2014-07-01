@@ -83,7 +83,7 @@ namespace kinski { namespace gl {
         
         void bindVertexPointers(int material_index = 0) const;
         void createVertexArray();
-        GLuint vertexArray() const;
+        GLuint vertexArray(int i = 0) const;
         
         void update(float time_delta);
         AABB boundingBox() const;
@@ -161,6 +161,7 @@ namespace kinski { namespace gl {
         std::vector<GLuint> m_vertexArrays;
         
         std::pair<MaterialPtr, GLuint> m_material_vertex_array_mapping;
+        std::map<MaterialPtr, GLuint> m_material_vertex_array_mappings;
         
         // skeletal animations stuff
         BonePtr m_rootBone;

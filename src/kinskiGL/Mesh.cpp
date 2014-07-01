@@ -39,6 +39,13 @@ namespace kinski { namespace gl {
     {
 #ifndef KINSKI_NO_VAO 
         if(m_vertexArray) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArray);
+        
+        // TODO: cleanup here as soon as multiple vertexArrays work
+        
+        for (int i = 0; i < m_vertexArrays.size(); i++)
+        {
+            if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
+        }
 #endif
     }
     
@@ -54,7 +61,7 @@ namespace kinski { namespace gl {
         
         // define attrib pointer (vertex)
         GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
-        glBindBuffer(GL_ARRAY_BUFFER, m_geometry->vertexBuffer().id());
+        m_geometry->vertexBuffer().bind();
         glEnableVertexAttribArray(vertexAttribLocation);
         glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
                               m_geometry->vertexBuffer().stride(), BUFFER_OFFSET(0));
@@ -66,7 +73,7 @@ namespace kinski { namespace gl {
             
             if(normalAttribLocation >= 0)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->normalBuffer().id());
+                m_geometry->normalBuffer().bind();
                 // define attrib pointer (normal)
                 glEnableVertexAttribArray(normalAttribLocation);
                 glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
@@ -81,7 +88,7 @@ namespace kinski { namespace gl {
             
             if(texCoordAttribLocation >= 0)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->texCoordBuffer().id());
+                m_geometry->texCoordBuffer().bind();
                 // define attrib pointer (texcoord)
                 glEnableVertexAttribArray(texCoordAttribLocation);
                 glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
@@ -96,7 +103,7 @@ namespace kinski { namespace gl {
             
             if(tangentAttribLocation >= 0)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->tangentBuffer().id());
+                m_geometry->tangentBuffer().bind();
                 // define attrib pointer (tangent)
                 glEnableVertexAttribArray(tangentAttribLocation);
                 glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
@@ -111,7 +118,7 @@ namespace kinski { namespace gl {
             
             if(pointSizeAttribLocation >= 0)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->pointSizeBuffer().id());
+                m_geometry->pointSizeBuffer().bind();
                 // define attrib pointer (pointsize)
                 glEnableVertexAttribArray(pointSizeAttribLocation);
                 glVertexAttribPointer(pointSizeAttribLocation, 1, GL_FLOAT, GL_FALSE,
@@ -129,7 +136,7 @@ namespace kinski { namespace gl {
             
             if(colorAttribLocation >= 0)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->colorBuffer().id());
+                m_geometry->colorBuffer().bind();
                 // define attrib pointer (colors)
                 glEnableVertexAttribArray(colorAttribLocation);
                 glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE,
@@ -148,7 +155,7 @@ namespace kinski { namespace gl {
             
             if(boneIdsAttribLocation >= 0 && boneWeightsAttribLocation >= 0)
             {
-                glBindBuffer(GL_ARRAY_BUFFER, m_geometry->boneBuffer().id());
+                m_geometry->boneBuffer().bind();
                 // define attrib pointer (boneIDs)
                 glEnableVertexAttribArray(boneIdsAttribLocation);
                 
@@ -176,7 +183,7 @@ namespace kinski { namespace gl {
         
         // index buffer
         if(m_geometry->hasIndices())
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_geometry->indexBuffer().id());
+            m_geometry->indexBuffer().bind();
     }
 
     void Mesh::createVertexArray()
@@ -189,6 +196,18 @@ namespace kinski { namespace gl {
         bindVertexPointers();
         GL_SUFFIX(glBindVertexArray)(0);
         m_material_vertex_array_mapping = std::make_pair(material(), m_vertexArray);
+        
+        // TODO: cleanup here as soon as multiple vertexArrays work
+        m_vertexArrays.resize(m_materials.size(), 0);
+        
+        for (int i = 0; i < m_vertexArrays.size(); i++)
+        {
+            if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
+            GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
+            bindVertexPointers(i);
+            GL_SUFFIX(glBindVertexArray)(0);
+            m_material_vertex_array_mappings[m_materials[i]] = m_vertexArrays[i];
+        }
 #endif
     }
     
@@ -334,9 +353,9 @@ namespace kinski { namespace gl {
         return m_geometry->boundingBox();
     }
     
-    GLuint Mesh::vertexArray() const
+    GLuint Mesh::vertexArray(int i) const
     {
-        if(m_material_vertex_array_mapping.first != material())
+        if(m_material_vertex_array_mapping.first != m_materials[i])
         {
             throw WrongVertexArrayDefinedException(getID());
         }

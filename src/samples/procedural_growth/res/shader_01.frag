@@ -82,6 +82,8 @@ void main()
   if(u_numLights > 0) shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors); 
   if(u_numLights > 1) shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors); 
   if(u_numLights > 2) shade_color += shade(u_lights[2], u_material, normal, vertex_in.eyeVec, texColors); 
-  if(u_numLights > 3) shade_color += shade(u_lights[3], u_material, normal, vertex_in.eyeVec, texColors); 
-  fragData = shade_color; 
+  if(u_numLights > 3) shade_color += shade(u_lights[3], u_material, normal, vertex_in.eyeVec, texColors);
+
+  //float n_dot_eye = 1 - dot(vertex_in.normal, normalize(-vertex_in.eyeVec));
+  fragData = shade_color; //vec4(shade_color.rgb, shade_color.a * n_dot_eye); 
 }

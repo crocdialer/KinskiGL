@@ -110,8 +110,25 @@ void GrowthApp::draw()
         gl::drawLight(light);
     }
     
+    // draw texture map(s)
     if(displayTweakBar())
     {
+        float w = (windowSize()/6.f).x;
+        float h = m_textures[0].getHeight() * w / m_textures[0].getWidth();
+        glm::vec2 offset(getWidth() - w - 10, 10);
+        glm::vec2 step(0, h + 10);
+        
+        for (const gl::Texture &t : m_textures)
+        {
+            if(!t) continue;
+            
+            float h = t.getHeight() * w / t.getWidth();
+            drawTexture(t, vec2(w, h), offset);
+            gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                           as_string(t.getHeight()), m_font, glm::vec4(1),
+                           offset);
+            offset += step;
+        }
         // draw fps string
         gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
                        vec4(vec3(1) - clear_color().xyz(), 1.f),

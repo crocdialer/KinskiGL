@@ -2,7 +2,7 @@
 
 // ------------------ Geometry Shader: Line -> Cuboid --------------------------------
 layout(lines) in;
-layout (triangle_strip, max_vertices = 24) out;
+layout (triangle_strip, max_vertices = 20) out;
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_modelViewMatrix;
@@ -195,22 +195,22 @@ void main()
     //EndPrimitive();
 
     // caps faces right
-    vertex_out.normal = dx;
-    vertex_out.eyeVec = eye_vecs[1];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[1];
-    EmitVertex();
-    vertex_out.eyeVec = eye_vecs[2];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[2];
-    EmitVertex();
-    vertex_out.eyeVec = eye_vecs[5];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[5];
-    EmitVertex();
-    vertex_out.eyeVec = eye_vecs[6];
-    vertex_out.texCoord = texCoords[0];
-    gl_Position = vp[6];
-    EmitVertex();
-    EndPrimitive();
+    //vertex_out.normal = dx;
+    //vertex_out.eyeVec = eye_vecs[1];
+    //vertex_out.texCoord = texCoords[0];
+    //gl_Position = vp[1];
+    //EmitVertex();
+    //vertex_out.eyeVec = eye_vecs[2];
+    //vertex_out.texCoord = texCoords[1];
+    //gl_Position = vp[2];
+    //EmitVertex();
+    //vertex_out.eyeVec = eye_vecs[5];
+    //vertex_out.texCoord = texCoords[2];
+    //gl_Position = vp[5];
+    //EmitVertex();
+    //vertex_out.eyeVec = eye_vecs[6];
+    //vertex_out.texCoord = texCoords[3];
+    //gl_Position = vp[6];
+    //EmitVertex();
+    //EndPrimitive();
 }
