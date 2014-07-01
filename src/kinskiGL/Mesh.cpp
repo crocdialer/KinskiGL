@@ -14,7 +14,6 @@ namespace kinski { namespace gl {
     Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
     Object3D(),
     m_geometry(theGeom),
-    m_vertexArray(0),
     m_animation_index(0),
     m_vertexLocationName("a_vertex"),
     m_normalLocationName("a_normal"),
@@ -37,11 +36,7 @@ namespace kinski { namespace gl {
     
     Mesh::~Mesh()
     {
-#ifndef KINSKI_NO_VAO 
-        if(m_vertexArray) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArray);
-        
-        // TODO: cleanup here as soon as multiple vertexArrays work
-        
+#ifndef KINSKI_NO_VAO
         for (int i = 0; i < m_vertexArrays.size(); i++)
         {
             if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
@@ -191,13 +186,6 @@ namespace kinski { namespace gl {
         if(m_geometry->vertices().empty()) return;
         
 #ifndef KINSKI_NO_VAO
-        if(!m_vertexArray){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArray); }
-        GL_SUFFIX(glBindVertexArray)(m_vertexArray);
-        bindVertexPointers();
-        GL_SUFFIX(glBindVertexArray)(0);
-        m_material_vertex_array_mapping = std::make_pair(material(), m_vertexArray);
-        
-        // TODO: cleanup here as soon as multiple vertexArrays work
         m_vertexArrays.resize(m_materials.size(), 0);
         
         for (int i = 0; i < m_vertexArrays.size(); i++)
@@ -355,13 +343,31 @@ namespace kinski { namespace gl {
     
     GLuint Mesh::vertexArray(int i) const
     {
-        if(m_material_vertex_array_mapping.first != m_materials[i])
+        auto iter = m_material_vertex_array_mappings.find(m_materials[i]);
+        if(iter == m_material_vertex_array_mappings.end())
         {
             throw WrongVertexArrayDefinedException(getID());
         }
-        
-        return m_vertexArray;
+        return iter->second;
     };
+    
+    void Mesh::bind_vertex_array(int i)
+    {
+        if(i < 0 || i >= m_vertexArrays.size()){createVertexArray();}
+        
+        try{GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);}
+        catch(const WrongVertexArrayDefinedException &e)
+        {
+            createVertexArray();
+            try{GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);}
+            catch(std::exception &e)
+            {
+                // should not arrive here
+                LOG_ERROR<<e.what();
+                return;
+            }
+        }
+    }
     
     void Mesh::setVertexLocationName(const std::string &theName)
     {

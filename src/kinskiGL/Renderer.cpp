@@ -72,18 +72,7 @@ namespace kinski{ namespace gl{
             gl::apply_material(m->material(), false);
             
 #ifndef KINSKI_NO_VAO
-            try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
-            catch(const WrongVertexArrayDefinedException &e)
-            {
-                m->createVertexArray();
-                try{GL_SUFFIX(glBindVertexArray)(m->vertexArray());}
-                catch(std::exception &e)
-                {
-                    // should not arrive here
-                    LOG_ERROR<<e.what();
-                    return;
-                }
-            }
+            m->bind_vertex_array();
 #else
             m->bindVertexPointers();
 #endif
@@ -107,8 +96,9 @@ namespace kinski{ namespace gl{
                     {
                         for (int i = 0; i < m->entries().size(); i++)
                         {
-                            // TODO: fucks up VAO !?
-                            apply_material(m->materials()[m->entries()[i].material_index]);
+                            int mat_index = m->entries()[i].material_index;
+                            m->bind_vertex_array(mat_index);
+                            apply_material(m->materials()[mat_index]);
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),
                                                      m->entries()[i].numdices,

@@ -811,18 +811,7 @@ namespace kinski { namespace gl {
         gl::apply_material(theMesh->material());
         
 #ifndef KINSKI_NO_VAO
-        try{GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());}
-        catch(const WrongVertexArrayDefinedException &e)
-        {
-            theMesh->createVertexArray();
-            try{GL_SUFFIX(glBindVertexArray)(theMesh->vertexArray());}
-            catch(std::exception &e)
-            {
-                // should not arrive here
-                LOG_ERROR<<e.what();
-                return;
-            }
-        }
+        theMesh->bind_vertex_array();
 #else
         theMesh->bindVertexPointers();
 #endif
@@ -834,8 +823,9 @@ namespace kinski { namespace gl {
             {
                 for (int i = 0; i < theMesh->entries().size(); i++)
                 {
-                    // TODO: fucks up VAO !?
-                    apply_material(theMesh->materials()[theMesh->entries()[i].material_index]);
+                    int mat_index = theMesh->entries()[i].material_index;
+                    theMesh->bind_vertex_array(mat_index);
+                    apply_material(theMesh->materials()[mat_index]);
                     
                     glDrawElementsBaseVertex(theMesh->geometry()->primitiveType(),
                                              theMesh->entries()[i].numdices,
