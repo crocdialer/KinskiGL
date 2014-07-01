@@ -67,6 +67,9 @@ namespace kinski
         RangedProperty<float>::Ptr m_diameter_shrink = RangedProperty<float>::create("diameter shrink factor",
                                                                                      1.f, 0.f, 5.f);
         
+        RangedProperty<float>::Ptr m_cap_bias = RangedProperty<float>::create("cap bias",
+                                                                              0.f, 0.f, 10.f);
+        
         Property_<std::string>::Ptr m_axiom = Property_<std::string>::create("Axiom", "f");
         std::vector<Property_<std::string>::Ptr> m_rules =
         {

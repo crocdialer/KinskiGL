@@ -2,16 +2,16 @@
 
 // ------------------ Geometry Shader: Line -> Cuboid --------------------------------
 layout(lines) in;
-layout (triangle_strip, max_vertices = 18) out;
+layout (triangle_strip, max_vertices = 24) out;
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_modelViewMatrix;
 uniform mat3 u_normalMatrix;
+uniform float u_cap_bias = 2;
 
 // placeholder for halfs of depth and height
 float depth2 = .5;
 float height2 = .5;
-vec3 cap_bias = vec3(.1, 0, 0);
 
 // scratch space for our cuboid vertices
 vec3 v[8];
@@ -56,21 +56,21 @@ void main()
 
     //calc 8 vertices that define our cuboid
     // front left bottom
-    v[0] = p0 + depth2 * dz - height2 * dy;
+    v[0] = p0 + depth2 * dz - height2 * dy - dx * u_cap_bias;
     // front right bottom
-    v[1] = p1 + depth2 * dz - height2 * dy;
+    v[1] = p1 + depth2 * dz - height2 * dy + dx * u_cap_bias;
     // back right bottom
-    v[2] = p1 - depth2 * dz - height2 * dy;
+    v[2] = p1 - depth2 * dz - height2 * dy + dx * u_cap_bias;
     // back left bottom
-    v[3] = p0 - depth2 * dz - height2 * dy;
+    v[3] = p0 - depth2 * dz - height2 * dy - dx * u_cap_bias;
     // front left top
-    v[4] = p0 + depth2 * dz + height2 * dy;
+    v[4] = p0 + depth2 * dz + height2 * dy - dx * u_cap_bias;
     // front right top
-    v[5] = p1 + depth2 * dz + height2 * dy;
+    v[5] = p1 + depth2 * dz + height2 * dy + dx * u_cap_bias;
     // back right top
-    v[6] = p1 - depth2 * dz + height2 * dy;
+    v[6] = p1 - depth2 * dz + height2 * dy + dx * u_cap_bias;
     // back left top
-    v[7] = p0 - depth2 * dz + height2 * dy;
+    v[7] = p0 - depth2 * dz + height2 * dy - dx * u_cap_bias;
     
     // calculate projected coords
     for(int i = 0; i < 8; i++){ vp[i] = u_modelViewProjectionMatrix * vec4(v[i], 1); }

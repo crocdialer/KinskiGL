@@ -29,6 +29,7 @@ void GrowthApp::setup()
     registerProperty(m_increment_randomness);
     registerProperty(m_diameter);
     registerProperty(m_diameter_shrink);
+    registerProperty(m_cap_bias);
     registerProperty(m_num_iterations);
     registerProperty(m_max_index);
     registerProperty(m_axiom);
@@ -63,7 +64,7 @@ void GrowthApp::setup()
         
         m_textures[0] = gl::createTextureFromFile("mask.png");
         
-        m_movie.load("59_babeShadow.mov", true, true);
+//        m_movie.load("59_babeShadow.mov", true, true);
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -297,6 +298,13 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     {
 //        *m_animation_time
     }
+    else if(theProperty == m_cap_bias)
+    {
+        if(m_mesh)
+        {
+            m_mesh->material()->uniform("u_cap_bias", *m_cap_bias);
+        }
+    }
 }
 
 void GrowthApp::refresh_lsystem()
@@ -336,9 +344,10 @@ void GrowthApp::refresh_lsystem()
     for (auto m : m_mesh->materials())
     {
         m->setShader(m_lsystem_shader);
-//        m->addTexture(m_textures[0]);
-//        m->setBlending();
-//        m->setDepthTest(false);
+        m->addTexture(m_textures[0]);
+        m->setBlending();
+        m->setDepthTest(false);
+        m->setDepthWrite(false);
 //        m->setTwoSided();
 //        m->setWireframe();
     }

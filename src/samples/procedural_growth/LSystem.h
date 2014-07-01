@@ -28,7 +28,10 @@ namespace kinski
         
         LSystem();
         
+        //! repeatedly apply rules and generate a string
         void iterate(int num_iterations);
+        
+        //! generate a gl::Mesh object from current string
         gl::MeshPtr create_mesh() const;
         
         const std::string axiom() const { return m_axiom;}
@@ -96,7 +99,7 @@ namespace kinski
         // increment randomness
         float m_increment_randomness;
         
-        //! factor to multiply current diameter when shrinking
+        //! start diameter
         float m_diameter;
         
         //! factor to multiply current diameter when shrinking
