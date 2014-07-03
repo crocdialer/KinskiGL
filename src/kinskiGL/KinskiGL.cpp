@@ -800,11 +800,10 @@ namespace kinski { namespace gl {
             if(theMesh->geometry()->hasNormals())
             {
                 mat->uniform("u_normalMatrix",
-                                             glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
+                             glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
             }
             mat->uniform("u_modelViewProjectionMatrix",
-                                         g_projectionMatrixStack.top()
-                                         * g_modelViewMatrixStack.top());
+                         g_projectionMatrixStack.top() * g_modelViewMatrixStack.top());
             
             if(theMesh->geometry()->hasBones())
             {

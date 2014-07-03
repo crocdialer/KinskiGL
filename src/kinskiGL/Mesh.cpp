@@ -355,7 +355,7 @@ namespace kinski { namespace gl {
     {
         if(i < 0 || i >= m_vertexArrays.size()){createVertexArray();}
         
-        try{GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);}
+        try{GL_SUFFIX(glBindVertexArray)(vertexArray(i));}
         catch(const WrongVertexArrayDefinedException &e)
         {
             createVertexArray();

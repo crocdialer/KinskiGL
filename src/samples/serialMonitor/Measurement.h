@@ -14,23 +14,27 @@ namespace kinski
     template <typename T> class FalloffFilter
     {
     public:
-//        FalloffFilter()
+        FalloffFilter(float update_speed = .2):
+        m_speed_dec(kinski::clamp(update_speed, 0.f, 1.f)),
+        m_speed_inc(1.f)
+        {}
+        
         inline const T filter(const T &the_value)
         {
             if(the_value > m_last_value)
             {
-                m_last_value = the_value;
+                m_last_value = kinski::mix(m_last_value, the_value, m_speed_inc);
             }
             else
             {
-                m_last_value = kinski::mix(m_last_value, the_value, m_smoothness);
+                m_last_value = kinski::mix(m_last_value, the_value, m_speed_dec);
             }
             return m_last_value;
         };
         
     private:
         T m_last_value;
-        float m_smoothness;
+        float m_speed_inc, m_speed_dec;
     
     };
     

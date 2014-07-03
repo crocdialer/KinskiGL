@@ -59,23 +59,18 @@ namespace kinski{ namespace gl{
         {
             list<RenderBin::item>& sub_selection = pair_item.second;
             Mesh *m = sub_selection.front().mesh;
-            
-            if(m->geometry()->hasBones())
-            {
-                m->material()->uniform("u_bones", m->boneMatrices());
-            }
-            
+
+#ifndef KINSKI_NO_VAO
+            m->bind_vertex_array();
+#else
+            m->bindVertexPointers();
+#endif
             for (auto &material : m->materials())
             {
                 set_light_uniforms(material, light_list);
             }
             gl::apply_material(m->material(), false);
             
-#ifndef KINSKI_NO_VAO
-            m->bind_vertex_array();
-#else
-            m->bindVertexPointers();
-#endif
             KINSKI_CHECK_GL_ERRORS();
 
             for (const RenderBin::item &item : sub_selection)
@@ -86,10 +81,10 @@ namespace kinski{ namespace gl{
                 
                 for(auto &mat : m->materials())
                 {
-                    m->material()->shader().uniform("u_modelViewMatrix", modelView);
-                    m->material()->shader().uniform("u_normalMatrix",
-                                                    glm::inverseTranspose( glm::mat3(modelView) ));
-                    m->material()->shader().uniform("u_modelViewProjectionMatrix",
+                    m->material()->uniform("u_modelViewMatrix", modelView);
+                    m->material()->uniform("u_normalMatrix",
+                                           glm::inverseTranspose( glm::mat3(modelView) ));
+                    m->material()->uniform("u_modelViewProjectionMatrix",
                                                     cam->getProjectionMatrix() * modelView);
                     if(m->geometry()->hasBones())
                     {
@@ -107,6 +102,12 @@ namespace kinski{ namespace gl{
                             int mat_index = m->entries()[i].material_index;
                             m->bind_vertex_array(mat_index);
                             apply_material(m->materials()[mat_index]);
+                            
+                            GLint current_vao, current_prog;
+                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
+                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
+                            std::cout << "vao: " << current_vao << " -- prog: " << current_prog << std::endl;
+                            KINSKI_CHECK_GL_ERRORS();
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),
                                                      m->entries()[i].numdices,
