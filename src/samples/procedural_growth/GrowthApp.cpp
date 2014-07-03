@@ -62,7 +62,7 @@ void GrowthApp::setup()
                                                     "shader_01.frag",
                                                     "shader_01.geom");
         
-        m_textures[0] = gl::createTextureFromFile("mask.png");
+        m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         
 //        m_movie.load("59_babeShadow.mov", true, true);
     }
