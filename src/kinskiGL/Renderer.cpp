@@ -83,11 +83,19 @@ namespace kinski{ namespace gl{
                 m = item.mesh;
                 
                 glm::mat4 modelView = item.transform;
-                m->material()->shader().uniform("u_modelViewMatrix", modelView);
-                m->material()->shader().uniform("u_normalMatrix",
-                                                glm::inverseTranspose( glm::mat3(modelView) ));
-                m->material()->shader().uniform("u_modelViewProjectionMatrix",
-                                                cam->getProjectionMatrix() * modelView);
+                
+                for(auto &mat : m->materials())
+                {
+                    m->material()->shader().uniform("u_modelViewMatrix", modelView);
+                    m->material()->shader().uniform("u_normalMatrix",
+                                                    glm::inverseTranspose( glm::mat3(modelView) ));
+                    m->material()->shader().uniform("u_modelViewProjectionMatrix",
+                                                    cam->getProjectionMatrix() * modelView);
+                    if(m->geometry()->hasBones())
+                    {
+                        mat->uniform("u_bones", m->boneMatrices());
+                    }
+                }
                 
                 if(m->geometry()->hasIndices())
                 {

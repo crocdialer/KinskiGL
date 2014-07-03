@@ -103,7 +103,9 @@ void GrowthApp::draw()
     gl::setMatrices(camera());
     if(draw_grid()){gl::drawGrid(50, 50);}
     
-    scene().render(camera());
+//    scene().render(camera());
+    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
+    gl::drawMesh(m_mesh);
     
     for(auto light : lights())
     {
@@ -360,11 +362,12 @@ void GrowthApp::refresh_lsystem()
     // add our shader
     for (auto m : m_mesh->materials())
     {
-        m->setShader(m_lsystem_shader);
-        m->addTexture(m_textures[0]);
-        m->setBlending();
-        m->setDepthTest(false);
-        m->setDepthWrite(false);
+//        m->setShader(m_lsystem_shader);
+//        m->addTexture(m_textures[0]);
+//        m->setBlending();
+//        m->setDepthTest(false);
+//        m->setDepthWrite(false);
+        
 //        m->setTwoSided();
 //        m->setWireframe();
     }

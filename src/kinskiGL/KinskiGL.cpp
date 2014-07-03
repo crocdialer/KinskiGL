@@ -794,19 +794,22 @@ namespace kinski { namespace gl {
     {
         if(!theMesh || theMesh->geometry()->vertices().empty()) return;
         
-        theMesh->material()->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
-        if(theMesh->geometry()->hasNormals())
+        for(auto &mat : theMesh->materials())
         {
-            theMesh->material()->uniform("u_normalMatrix",
-                                         glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
-        }
-        theMesh->material()->uniform("u_modelViewProjectionMatrix",
-                                        g_projectionMatrixStack.top()
-                                        * g_modelViewMatrixStack.top());
-
-        if(theMesh->geometry()->hasBones())
-        {
-            theMesh->material()->uniform("u_bones", theMesh->boneMatrices());
+            mat->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
+            if(theMesh->geometry()->hasNormals())
+            {
+                mat->uniform("u_normalMatrix",
+                                             glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
+            }
+            mat->uniform("u_modelViewProjectionMatrix",
+                                         g_projectionMatrixStack.top()
+                                         * g_modelViewMatrixStack.top());
+            
+            if(theMesh->geometry()->hasBones())
+            {
+                mat->uniform("u_bones", theMesh->boneMatrices());
+            }
         }
         gl::apply_material(theMesh->material());
         
