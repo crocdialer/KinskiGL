@@ -46,7 +46,7 @@ namespace kinski { namespace gl {
     
     void Mesh::bindVertexPointers(int material_index) const
     {
-        Shader& shader = materials()[material_index]->shader();
+        Shader& shader = m_materials[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
@@ -337,6 +337,10 @@ namespace kinski { namespace gl {
         for (int i = 0; i < m_vertexArrays.size(); i++)
         {
             if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
+            
+//            if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
+//            glGenVertexArrays(1, &m_vertexArrays[i]);
+            
             GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
             bindVertexPointers(i);
             m_shaders[i] = &m_materials[i]->shader();

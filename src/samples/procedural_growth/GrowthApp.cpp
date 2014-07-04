@@ -7,7 +7,7 @@
 //
 
 #include "GrowthApp.h"
-//#include "AssimpConnector.h"
+#include "Fmod_Sound.h"
 
 using namespace std;
 using namespace kinski;
@@ -66,6 +66,13 @@ void GrowthApp::setup()
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         
 //        m_movie.load("~/Desktop/l_system_animation/vid1.mov", true, true);
+        
+        // audio
+        for(auto &sample : getDirectoryEntries("~/Desktop/eier_sounds/", false, "wav"))
+        {
+            m_samples.push_back(audio::SoundPtr(new audio::Fmod_Sound(sample)));
+        }
+        
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -97,6 +104,18 @@ void GrowthApp::update(float timeDelta)
         for (const auto &m : m_analog_in)
         {
             LOG_DEBUG << m.description() << ": " << m.last_value();
+            
+            bool sample_playing = false;
+            for (auto &sample : m_samples)
+            {
+                if(sample->playing()){ sample_playing = true; break;}
+            }
+            
+            if(m.last_value() > .1 && ! sample_playing)
+            {
+                int sample_index = random<int>(0, m_samples.size() - 1);
+                m_samples[sample_index]->play();
+            }
         }
     }
     
@@ -239,6 +258,10 @@ void GrowthApp::keyPress(const KeyEvent &e)
                 *m_rules[1] = "B=[^F/////A][&&A]";
                 *m_rules[2] = "";
                 *m_rules[3] = "";
+                break;
+            
+            case GLFW_KEY_E:
+                m_samples[0]->play();
                 break;
                 
             default:
@@ -394,15 +417,15 @@ void GrowthApp::refresh_lsystem()
     {
         m->setShader(m_lsystem_shader);
         m->addTexture(m_textures[0]);
-        m->setBlending();
-        m->setDepthTest(false);
-        m->setDepthWrite(false);
+//        m->setBlending();
+//        m->setDepthTest(false);
+//        m->setDepthWrite(false);
         
 //        m->setTwoSided();
 //        m->setWireframe();
     }
-//    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
-//    m_mesh->materials()[0]->textures().clear();
+    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
+    m_mesh->materials()[0]->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);

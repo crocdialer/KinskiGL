@@ -21,6 +21,9 @@
 // serial communication
 #include "kinskiCore/Serial.h"
 
+// audio
+#include "Sound.h"
+
 namespace kinski
 {
     class GrowthApp : public ViewerApp
@@ -41,6 +44,8 @@ namespace kinski
         string m_input_prefix = "analog_";
         std::vector<Measurement<float>> m_analog_in { Measurement<float>("Hammer Input") };
         
+        // audio samples
+        std::vector<audio::SoundPtr> m_samples;
         
         // movie
         MovieController m_movie;
