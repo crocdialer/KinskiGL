@@ -50,6 +50,9 @@ namespace kinski { namespace gl {
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
+        // bind our shader, not sure if necessary here
+        shader.bind();
+        
         // create VBOs if not yet existing
         if(!m_geometry->vertexBuffer())
             m_geometry->createGLBuffers();
@@ -179,24 +182,6 @@ namespace kinski { namespace gl {
         // index buffer
         if(m_geometry->hasIndices())
             m_geometry->indexBuffer().bind();
-    }
-
-    void Mesh::createVertexArray()
-    {
-        if(m_geometry->vertices().empty()) return;
-        
-#ifndef KINSKI_NO_VAO
-        m_vertexArrays.resize(m_materials.size(), 0);
-        
-        for (int i = 0; i < m_vertexArrays.size(); i++)
-        {
-            if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
-            GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
-            bindVertexPointers(i);
-            GL_SUFFIX(glBindVertexArray)(0);
-            m_material_vertex_array_mappings[m_materials[i]] = m_vertexArrays[i];
-        }
-#endif
     }
     
     void Mesh::update(float time_delta)
@@ -341,14 +326,32 @@ namespace kinski { namespace gl {
         return m_geometry->boundingBox();
     }
     
+    void Mesh::createVertexArray()
+    {
+        if(m_geometry->vertices().empty()) return;
+        
+#ifndef KINSKI_NO_VAO
+        m_vertexArrays.resize(m_materials.size(), 0);
+        m_shaders.resize(m_materials.size(), NULL);
+        
+        for (int i = 0; i < m_vertexArrays.size(); i++)
+        {
+            if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
+            GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
+            bindVertexPointers(i);
+            m_shaders[i] = &m_materials[i]->shader();
+        }
+        GL_SUFFIX(glBindVertexArray)(0);
+#endif
+    }
+    
     GLuint Mesh::vertexArray(int i) const
     {
-        auto iter = m_material_vertex_array_mappings.find(m_materials[i]);
-        if(iter == m_material_vertex_array_mappings.end())
+        if(m_shaders[i] != &m_materials[i]->shader())
         {
             throw WrongVertexArrayDefinedException(getID());
         }
-        return iter->second;
+        return m_vertexArrays[i];
     };
     
     void Mesh::bind_vertex_array(int i)

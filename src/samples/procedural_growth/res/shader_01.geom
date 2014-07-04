@@ -21,7 +21,6 @@ vec4 vp[8];
 
 vec4 texCoords[4];
 
-
 // cubiod vertices in eye coords
 vec3 eye_vecs[8];
 

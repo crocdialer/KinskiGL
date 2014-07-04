@@ -103,16 +103,17 @@ namespace kinski{ namespace gl{
                             m->bind_vertex_array(mat_index);
                             apply_material(m->materials()[mat_index]);
                             
-                            GLint current_vao, current_prog;
-                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
-                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
-                            std::cout << "vao: " << current_vao << " -- prog: " << current_prog << std::endl;
+//                            GLint current_vao, current_prog;
+//                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
+//                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
+//                            std::cout << "vao: " << current_vao << " -- prog: " << current_prog << std::endl;
                             KINSKI_CHECK_GL_ERRORS();
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),
                                                      m->entries()[i].numdices,
                                                      m->geometry()->indexType(),
-                                                     BUFFER_OFFSET(m->entries()[i].base_index * sizeof(m->geometry()->indexType())),
+                                                     BUFFER_OFFSET(m->entries()[i].base_index
+                                                                   * sizeof(m->geometry()->indexType())),
                                                      m->entries()[i].base_vertex);
                         }
                     }

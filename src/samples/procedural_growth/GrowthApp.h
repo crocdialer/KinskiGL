@@ -18,6 +18,9 @@
 // Movie playback with avfoundation
 #include "MovieController.h"
 
+// serial communication
+#include "kinskiCore/Serial.h"
+
 namespace kinski
 {
     class GrowthApp : public ViewerApp
@@ -26,6 +29,18 @@ namespace kinski
         
         gl::Font m_font;
         std::vector<gl::Texture> m_textures{4};
+        
+        // Serial communication with Arduino device
+        Property_<string>::Ptr m_arduino_device_name =
+            Property_<string>::create("Arduino device name",
+                                      "/dev/tty.usbmodem1411");
+        // the serial device
+        Serial m_serial;
+        
+        // sensor inputs
+        string m_input_prefix = "analog_";
+        std::vector<Measurement<float>> m_analog_in { Measurement<float>("Hammer Input") };
+        
         
         // movie
         MovieController m_movie;
@@ -84,6 +99,8 @@ namespace kinski
                                                                                5.f, 0.f, 120.f);
         
         void refresh_lsystem();
+        
+        void parse_line(const std::string &line);
         
     public:
         

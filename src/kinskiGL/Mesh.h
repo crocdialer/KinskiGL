@@ -160,7 +160,7 @@ namespace kinski { namespace gl {
         std::vector<MaterialPtr> m_materials;
         std::vector<GLuint> m_vertexArrays;
         
-        std::map<MaterialPtr, GLuint> m_material_vertex_array_mappings;
+        std::vector<gl::Shader*> m_shaders;
         
         // skeletal animations stuff
         BonePtr m_rootBone;

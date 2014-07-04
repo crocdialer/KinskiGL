@@ -3,7 +3,7 @@
 #include "kinskiCore/Serial.h"
 
 #include "RtMidi.h"
-#include "Measurement.h"
+//#include "Measurement.h"
 #include "DMXController.h"
 
 using namespace std;

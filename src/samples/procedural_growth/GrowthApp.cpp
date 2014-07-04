@@ -23,6 +23,7 @@ void GrowthApp::setup()
     outstream_gl().set_color(gl::COLOR_WHITE);
     outstream_gl().set_font(m_font);
     
+    registerProperty(m_arduino_device_name);
     registerProperty(m_branch_angles);
     registerProperty(m_branch_randomness);
     registerProperty(m_increment);
@@ -46,11 +47,11 @@ void GrowthApp::setup()
     try
     {
 //        m_bounding_mesh = gl::AssimpConnector::loadModel("tree01.dae");
-        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
-                                           gl::Material::create());
-        
-        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
-                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
+//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
+//                                           gl::Material::create());
+//        
+//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
+//                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
 
 //        m_bounding_mesh->setPosition(vec3(0, 0, 160));
 //        m_bounding_mesh->material()->setWireframe();
@@ -84,6 +85,20 @@ void GrowthApp::setup()
 void GrowthApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    
+    // parse arduino input
+    if(m_serial.isInitialized())
+    {
+        for(string line : m_serial.read_lines())
+        {
+            parse_line(line);
+        }
+        
+        for (const auto &m : m_analog_in)
+        {
+            LOG_DEBUG << m.description() << ": " << m.last_value();
+        }
+    }
     
     // movie playback, get a new frame if available
     if(m_movie.copy_frame_to_texture(m_textures[0])){}
@@ -324,6 +339,13 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh->material()->uniform("u_cap_bias", *m_cap_bias);
         }
     }
+    else if(theProperty == m_arduino_device_name)
+    {
+        if(m_arduino_device_name->value().empty())
+            m_serial.setup(0, 57600);
+        else
+            m_serial.setup(*m_arduino_device_name, 57600);
+    }
 }
 
 void GrowthApp::refresh_lsystem()
@@ -371,8 +393,8 @@ void GrowthApp::refresh_lsystem()
 //        m->setTwoSided();
 //        m->setWireframe();
     }
-//    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
-//    m_mesh->materials().back()->textures().clear();
+//    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
+//    m_mesh->materials()[0]->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);
@@ -383,4 +405,22 @@ void GrowthApp::refresh_lsystem()
         m_growth_animation->stop();
     
     m_growth_animation->set_loop();
+}
+
+void GrowthApp::parse_line(const std::string &line)
+{
+    std::istringstream ss(line);
+    int parsed_index = -1;
+    
+    vector<string> tokens = split(line);
+    
+    // return if number of tokens doesn´t match or our prefix is not found
+    if(tokens.size() < 2 || tokens[0].find(m_input_prefix) == string::npos) return;
+    
+    parsed_index = string_as<int>(tokens[0].substr(m_input_prefix.size()));
+    
+    // return if parsed index is out of bounds
+    if(parsed_index < 0 || parsed_index >= m_analog_in.size()) return;
+    
+    m_analog_in[parsed_index].push(string_as<int>(tokens[1]) / 1023.f);
 }
