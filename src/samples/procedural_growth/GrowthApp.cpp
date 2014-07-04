@@ -8,6 +8,7 @@
 
 #include "GrowthApp.h"
 #include "Fmod_Sound.h"
+#include "Renderer.h"
 
 using namespace std;
 using namespace kinski;
@@ -137,9 +138,17 @@ void GrowthApp::draw()
     gl::setMatrices(camera());
     if(draw_grid()){gl::drawGrid(50, 50);}
     
-    scene().render(camera());
-//    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
-//    gl::drawMesh(m_mesh);
+//    scene().render(camera());
+    gl::RenderBinPtr bin = scene().cull(camera());
+    gl::Renderer r;
+    
+    for (auto &m : m_mesh->materials())
+    {
+        r.set_light_uniforms(m, bin->lights);
+    }
+    
+    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
+    gl::drawMesh(m_mesh);
     
     for(auto light : lights())
     {
@@ -417,15 +426,15 @@ void GrowthApp::refresh_lsystem()
     {
         m->setShader(m_lsystem_shader);
         m->addTexture(m_textures[0]);
-//        m->setBlending();
-//        m->setDepthTest(false);
-//        m->setDepthWrite(false);
+        m->setBlending();
+        m->setDepthTest(false);
+        m->setDepthWrite(false);
         
 //        m->setTwoSided();
 //        m->setWireframe();
     }
-    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
-    m_mesh->materials()[0]->textures().clear();
+    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
+    m_mesh->materials().back()->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);

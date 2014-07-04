@@ -61,12 +61,11 @@ namespace kinski{ namespace gl{
         virtual ~Renderer(){};
         
         void render(const RenderBinPtr &theBin);
+        void set_light_uniforms(MaterialPtr &the_mat, const std::list<RenderBin::light> &light_list);
         
     private:
         void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
                                      const std::list<RenderBin::light> &light_list);
-        
-        void set_light_uniforms(MaterialPtr &the_mat, const std::list<RenderBin::light> &light_list);
     };
     
 }}// namespace
