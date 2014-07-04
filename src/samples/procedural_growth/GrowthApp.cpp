@@ -401,8 +401,8 @@ void GrowthApp::refresh_lsystem()
 //        m->setTwoSided();
 //        m->setWireframe();
     }
-    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
-    m_mesh->materials()[0]->textures().clear();
+//    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
+//    m_mesh->materials()[0]->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);

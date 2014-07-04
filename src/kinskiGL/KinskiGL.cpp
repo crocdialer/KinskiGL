@@ -825,6 +825,9 @@ namespace kinski { namespace gl {
             {
                 for (int i = 0; i < theMesh->entries().size(); i++)
                 {
+                    // skip disabled entries
+                    if(!theMesh->entries()[i].enabled) continue;
+                    
                     int mat_index = theMesh->entries()[i].material_index;
                     theMesh->bind_vertex_array(mat_index);
                     apply_material(theMesh->materials()[mat_index]);
