@@ -146,6 +146,14 @@ void GrowthApp::draw()
                            offset);
             offset += step;
         }
+        
+        // draw analog input meter
+        float val = m_analog_in[0].last_value();
+        
+        gl::drawQuad(gl::COLOR_DARK_RED,
+                     vec2(70, windowSize().y * val),
+                     vec2(windowSize().x - 150, windowSize().y * (1 - val)));
+        
         // draw fps string
         gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
                        vec4(vec3(1) - clear_color().xyz(), 1.f),
@@ -393,8 +401,8 @@ void GrowthApp::refresh_lsystem()
 //        m->setTwoSided();
 //        m->setWireframe();
     }
-//    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
-//    m_mesh->materials()[0]->textures().clear();
+    m_mesh->materials()[0]->setShader(gl::createShader(gl::SHADER_UNLIT));
+    m_mesh->materials()[0]->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);

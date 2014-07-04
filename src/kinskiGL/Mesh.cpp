@@ -65,21 +65,6 @@ namespace kinski { namespace gl {
                               m_geometry->vertexBuffer().stride(), BUFFER_OFFSET(0));
         KINSKI_CHECK_GL_ERRORS();
         
-        if(m_geometry->hasNormals())
-        {
-            GLint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
-            
-            if(normalAttribLocation >= 0)
-            {
-                m_geometry->normalBuffer().bind();
-                // define attrib pointer (normal)
-                glEnableVertexAttribArray(normalAttribLocation);
-                glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                      m_geometry->normalBuffer().stride(), BUFFER_OFFSET(0));
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }
-        
         if(m_geometry->hasTexCoords())
         {
             GLint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
@@ -91,6 +76,39 @@ namespace kinski { namespace gl {
                 glEnableVertexAttribArray(texCoordAttribLocation);
                 glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
                                       m_geometry->texCoordBuffer().stride(), BUFFER_OFFSET(0));
+                KINSKI_CHECK_GL_ERRORS();
+            }
+        }
+        
+        if(m_geometry->hasColors())
+        {
+            GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
+            
+            if(colorAttribLocation >= 0)
+            {
+                m_geometry->colorBuffer().bind();
+                // define attrib pointer (colors)
+                glEnableVertexAttribArray(colorAttribLocation);
+                glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE,
+                                      m_geometry->colorBuffer().stride(), BUFFER_OFFSET(0));
+                KINSKI_CHECK_GL_ERRORS();
+            }
+        }else{
+            GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
+            if(colorAttribLocation >= 0) glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+        
+        if(m_geometry->hasNormals())
+        {
+            GLint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
+            
+            if(normalAttribLocation >= 0)
+            {
+                m_geometry->normalBuffer().bind();
+                // define attrib pointer (normal)
+                glEnableVertexAttribArray(normalAttribLocation);
+                glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                                      m_geometry->normalBuffer().stride(), BUFFER_OFFSET(0));
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
@@ -127,25 +145,7 @@ namespace kinski { namespace gl {
             GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
             if(pointSizeAttribLocation >= 0) glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
         }
-        
-        if(m_geometry->hasColors())
-        {
-            GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
-            
-            if(colorAttribLocation >= 0)
-            {
-                m_geometry->colorBuffer().bind();
-                // define attrib pointer (colors)
-                glEnableVertexAttribArray(colorAttribLocation);
-                glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE,
-                                      m_geometry->colorBuffer().stride(), BUFFER_OFFSET(0));
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }else{
-            GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
-            if(colorAttribLocation >= 0) glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-        }
-        
+
         if(m_geometry->hasBones())
         {
             GLint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
