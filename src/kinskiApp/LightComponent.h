@@ -25,10 +25,13 @@ namespace kinski
         void updateProperty(const Property::ConstPtr &theProperty);
         void set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings = true);
         void set_index(int index);
+        void set_drawLight_dummies(bool b);
+        bool draw_light_dummies() const;
         void refresh();
         
     private:
         std::vector<gl::LightPtr> m_lights;
+        Property_<bool>::Ptr m_draw_light_dummies;
         RangedProperty<int>::Ptr m_light_index;
         RangedProperty<int>::Ptr m_light_type;
         Property_<bool>::Ptr m_enabled;

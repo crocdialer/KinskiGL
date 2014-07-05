@@ -50,47 +50,50 @@ namespace kinski{ namespace gl{
         KINSKI_CHECK_GL_ERRORS();
         typedef map<pair<Material*, Geometry*>, list<RenderBin::item> > MatMeshMap;
         MatMeshMap mat_mesh_map;
-        for (auto &item : item_list)
+//        for (auto &item : item_list)
+//        {
+//            mat_mesh_map[std::make_pair(item.mesh->material().get(),
+//                                        item.mesh->geometry().get())].push_back(item);
+//        }
+//        for (auto &pair_item : mat_mesh_map)
         {
-            mat_mesh_map[std::make_pair(item.mesh->material().get(),
-                                        item.mesh->geometry().get())].push_back(item);
-        }
-        for (auto &pair_item : mat_mesh_map)
-        {
-            list<RenderBin::item>& sub_selection = pair_item.second;
-            Mesh *m = sub_selection.front().mesh;
+//            list<RenderBin::item>& sub_selection = pair_item.second;
 
-#ifndef KINSKI_NO_VAO
-            m->bind_vertex_array();
-#else
-            m->bindVertexPointers();
-#endif
-            for (auto &material : m->materials())
+            for (const RenderBin::item &item : item_list)
             {
-                set_light_uniforms(material, light_list);
-            }
-            gl::apply_material(m->material(), false);
-            
-            KINSKI_CHECK_GL_ERRORS();
-
-            for (const RenderBin::item &item : sub_selection)
-            {
-                m = item.mesh;
+                Mesh *m = item.mesh;
                 
-                glm::mat4 modelView = item.transform;
+                const glm::mat4 &modelView = item.transform;
                 
                 for(auto &mat : m->materials())
                 {
-                    m->material()->uniform("u_modelViewMatrix", modelView);
-                    m->material()->uniform("u_normalMatrix",
-                                           glm::inverseTranspose( glm::mat3(modelView) ));
-                    m->material()->uniform("u_modelViewProjectionMatrix",
-                                                    cam->getProjectionMatrix() * modelView);
+                    mat->uniform("u_modelViewMatrix", modelView);
+                    mat->uniform("u_modelViewProjectionMatrix",
+                                           cam->getProjectionMatrix() * modelView);
+                    
+                    if(m->geometry()->hasNormals())
+                    {
+                        mat->uniform("u_normalMatrix",
+                                     glm::inverseTranspose( glm::mat3(modelView) ));
+                    }
+                    
                     if(m->geometry()->hasBones())
                     {
                         mat->uniform("u_bones", m->boneMatrices());
                     }
+                    
+                    // lighting parameters
+                    set_light_uniforms(mat, light_list);
                 }
+                gl::apply_material(m->material());
+                
+#ifndef KINSKI_NO_VAO
+                m->bind_vertex_array();
+#else
+                m->bindVertexPointers();
+#endif
+                
+                KINSKI_CHECK_GL_ERRORS();
                 
                 if(m->geometry()->hasIndices())
                 {

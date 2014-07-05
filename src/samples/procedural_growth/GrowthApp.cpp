@@ -16,6 +16,8 @@ using namespace glm;
 
 /////////////////////////////////////////////////////////////////
 
+bool poop = true;
+
 void GrowthApp::setup()
 {
     ViewerApp::setup();
@@ -53,7 +55,6 @@ void GrowthApp::setup()
 //        
 //        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
 //                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
-
 //        m_bounding_mesh->setPosition(vec3(0, 0, 160));
 //        m_bounding_mesh->material()->setWireframe();
 //        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
@@ -112,7 +113,7 @@ void GrowthApp::update(float timeDelta)
                 if(sample->playing()){ sample_playing = true; break;}
             }
             
-            if(m.last_value() > .1 && ! sample_playing)
+            if(m.last_value() > .1 && !sample_playing)
             {
                 int sample_index = random<int>(0, m_samples.size() - 1);
                 m_samples[sample_index]->play();
@@ -138,21 +139,24 @@ void GrowthApp::draw()
     gl::setMatrices(camera());
     if(draw_grid()){gl::drawGrid(50, 50);}
     
-//    scene().render(camera());
-    gl::RenderBinPtr bin = scene().cull(camera());
-    gl::Renderer r;
+    // draw our scene
+    scene().render(camera());
+
+//        gl::RenderBinPtr bin = scene().cull(camera());
+//        gl::Renderer r;
+//        
+//        for (auto &m : m_mesh->materials()){ r.set_light_uniforms(m, bin->lights); }
+//        
+//        gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+//        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
+//        gl::drawMesh(m_mesh);
     
-    for (auto &m : m_mesh->materials())
-    {
-        r.set_light_uniforms(m, bin->lights);
-    }
-    
-    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
-    gl::drawMesh(m_mesh);
-    
-    for(auto light : lights())
-    {
-        gl::drawLight(light);
+    if(m_light_component->draw_light_dummies())
+    {    
+        for(auto light : lights())
+        {
+            gl::drawLight(light);
+        }
     }
     
     // draw texture map(s)
@@ -270,7 +274,13 @@ void GrowthApp::keyPress(const KeyEvent &e)
                 break;
             
             case GLFW_KEY_E:
-                m_samples[0]->play();
+//                m_samples[0]->play();
+                poop = !poop;
+//                gl::apply_material(gl::Material::create());
+//                for(auto &m :m_mesh->materials())
+//                {
+//                    m->uniforms().clear();
+//                }
                 break;
                 
             default:
@@ -429,12 +439,7 @@ void GrowthApp::refresh_lsystem()
         m->setBlending();
         m->setDepthTest(false);
         m->setDepthWrite(false);
-        
-//        m->setTwoSided();
-//        m->setWireframe();
     }
-    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
-    m_mesh->materials().back()->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);

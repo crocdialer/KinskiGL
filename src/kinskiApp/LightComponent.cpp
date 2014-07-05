@@ -11,6 +11,7 @@
 namespace kinski
 {
     LightComponent::LightComponent():
+    m_draw_light_dummies(Property_<bool>::create("draw light dummies", false)),
     m_light_index(RangedProperty<int>::create("index", -1, -1, 256)),
     m_light_type(RangedProperty<int>::create("light type", 0, 0, 2)),
     m_enabled(Property_<bool>::create("enabled", true)),
@@ -27,6 +28,7 @@ namespace kinski
     m_spot_cutoff(RangedProperty<float>::create("spot cutoff", 45.f, 0.f, 360.f)),
     m_spot_exponent(RangedProperty<float>::create("spot exponent", 0, 0, 256.f))
     {
+        registerProperty(m_draw_light_dummies);
         registerProperty(m_light_index);
         registerProperty(m_light_type);
         registerProperty(m_enabled);
@@ -114,6 +116,16 @@ namespace kinski
     void LightComponent::set_index(int index)
     {
         *m_light_index = index;
+    }
+    
+    void LightComponent::set_drawLight_dummies(bool b)
+    {
+        *m_draw_light_dummies = b;
+    }
+    
+    bool LightComponent::draw_light_dummies() const
+    {
+        return *m_draw_light_dummies;
     }
     
     void LightComponent::set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings)
