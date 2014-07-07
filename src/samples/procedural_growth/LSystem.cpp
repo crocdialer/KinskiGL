@@ -386,19 +386,6 @@ gl::MeshPtr LSystem::create_mesh() const
         ret->geometry() = merged_geom;
         ret->entries() = entries;
         ret->materials() = materials;
-        
-//        auto &sh = materials.front()->shader();
-        for(auto &m : materials)
-        {
-//            m->setBlending();
-//            m->set_blend_equation(GL_MAX);
-            
-            //TODO: allow different shaders here, needs modifications in Mesh VAO implementation
-//            m->setShader(sh);
-            
-            //TODO: remove this when submaterials are tested well enough
-            m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
-        }
     }
     else
     {

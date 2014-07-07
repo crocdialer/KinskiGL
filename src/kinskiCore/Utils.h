@@ -174,6 +174,9 @@ namespace kinski
             return m_last_value;
         };
         
+        void set_increase_speed(float is){ m_speed_inc = kinski::clamp(is, 0.f, 1.f); };
+        void set_decrease_speed(float ds){ m_speed_dec = kinski::clamp(ds, 0.f, 1.f); };
+        
     private:
         T m_last_value;
         float m_speed_inc, m_speed_dec;

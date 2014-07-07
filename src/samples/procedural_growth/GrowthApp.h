@@ -24,6 +24,9 @@
 // audio
 #include "Sound.h"
 
+// networking
+#include "kinskiCore/networking.h"
+
 namespace kinski
 {
     class GrowthApp : public ViewerApp
@@ -43,6 +46,10 @@ namespace kinski
         // sensor inputs
         string m_input_prefix = "analog_";
         std::vector<Measurement<float>> m_analog_in { Measurement<float>("Hammer Input") };
+        
+        // udp receiver
+        net::udp_server m_udp_server;
+        Property_<uint32_t>::Ptr m_local_udp_port = Property_<uint32_t>::create("udp port", 11111);
         
         // audio samples
         std::vector<audio::SoundPtr> m_samples;

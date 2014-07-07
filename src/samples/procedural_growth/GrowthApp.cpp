@@ -26,6 +26,7 @@ void GrowthApp::setup()
     outstream_gl().set_color(gl::COLOR_WHITE);
     outstream_gl().set_font(m_font);
     
+    registerProperty(m_local_udp_port);
     registerProperty(m_arduino_device_name);
     registerProperty(m_branch_angles);
     registerProperty(m_branch_randomness);
@@ -47,6 +48,11 @@ void GrowthApp::setup()
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
+    // udp server
+    m_udp_server = net::udp_server(io_service(), std::bind(&GrowthApp::got_message,
+                                                           this, std::placeholders::_1));
+    m_udp_server.start_listen(*m_local_udp_port);
+    
     try
     {
 //        m_bounding_mesh = gl::AssimpConnector::loadModel("tree01.dae");
@@ -67,7 +73,7 @@ void GrowthApp::setup()
         
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         
-//        m_movie.load("~/Desktop/l_system_animation/vid1.mov", true, true);
+        m_movie.load("~/Desktop/l_system_animation/vid3.mov", true, true);
         
         // audio
         for(auto &sample : getDirectoryEntries("~/Desktop/eier_sounds/", false, "wav"))
@@ -102,27 +108,32 @@ void GrowthApp::update(float timeDelta)
         {
             parse_line(line);
         }
+    }
+    
+    // process our analog inputs
+    for (const auto &m : m_analog_in)
+    {
+//        LOG_DEBUG << m.description() << ": " << m.last_value();
         
-        for (const auto &m : m_analog_in)
+        bool sample_playing = false;
+        for (auto &sample : m_samples)
         {
-            LOG_DEBUG << m.description() << ": " << m.last_value();
-            
-            bool sample_playing = false;
-            for (auto &sample : m_samples)
-            {
-                if(sample->playing()){ sample_playing = true; break;}
-            }
-            
-            if(m.last_value() > .1 && !sample_playing)
-            {
-                int sample_index = random<int>(0, m_samples.size() - 1);
-                m_samples[sample_index]->play();
-            }
+            if(sample->playing()){ sample_playing = true; break;}
+        }
+        
+        if(m.last_value() > .1 && !sample_playing)
+        {
+            int sample_index = random<int>(0, m_samples.size() - 1);
+            m_samples[sample_index]->play();
+            refresh_lsystem();
         }
     }
     
     // movie playback, get a new frame if available
-    if(m_movie.copy_frame_to_texture(m_textures[0])){}
+    if(m_movie.copy_frame_to_texture(m_textures[1]))
+    {
+//        LOG_INFO << "update";
+    }
     
     if(m_dirty_lsystem) refresh_lsystem();
     
@@ -141,15 +152,6 @@ void GrowthApp::draw()
     
     // draw our scene
     scene().render(camera());
-
-//        gl::RenderBinPtr bin = scene().cull(camera());
-//        gl::Renderer r;
-//        
-//        for (auto &m : m_mesh->materials()){ r.set_light_uniforms(m, bin->lights); }
-//        
-//        gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-//        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
-//        gl::drawMesh(m_mesh);
     
     if(m_light_component->draw_light_dummies())
     {    
@@ -272,16 +274,6 @@ void GrowthApp::keyPress(const KeyEvent &e)
                 *m_rules[2] = "";
                 *m_rules[3] = "";
                 break;
-            
-            case GLFW_KEY_E:
-//                m_samples[0]->play();
-                poop = !poop;
-//                gl::apply_material(gl::Material::create());
-//                for(auto &m :m_mesh->materials())
-//                {
-//                    m->uniforms().clear();
-//                }
-                break;
                 
             default:
                 break;
@@ -335,7 +327,9 @@ void GrowthApp::mouseWheel(const MouseEvent &e)
 
 void GrowthApp::got_message(const std::vector<uint8_t> &the_message)
 {
-    LOG_INFO<<string(the_message.begin(), the_message.end());
+    string msg = string(the_message.begin(), the_message.end());
+    LOG_DEBUG << msg;
+    parse_line(msg);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -389,6 +383,10 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh->material()->uniform("u_cap_bias", *m_cap_bias);
         }
     }
+    else if(theProperty == m_local_udp_port)
+    {
+        m_udp_server.start_listen(*m_local_udp_port);
+    }
     else if(theProperty == m_arduino_device_name)
     {
         if(m_arduino_device_name->value().empty())
@@ -418,13 +416,6 @@ void GrowthApp::refresh_lsystem()
     // iterate
     m_lsystem.iterate(*m_num_iterations);
     
-    // geometry constraints
-//    auto poop = [=](const vec3& p) -> bool
-//    {
-//        return gl::is_point_inside_mesh(p, m_bounding_mesh);
-//    };
-//    m_lsystem.set_position_check(poop);
-    
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);
     m_mesh = m_lsystem.create_mesh();
@@ -439,7 +430,14 @@ void GrowthApp::refresh_lsystem()
         m->setBlending();
         m->setDepthTest(false);
         m->setDepthWrite(false);
+        
+        //TODO: remove this when submaterials are tested well enough
+        m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
     }
+    
+//    m_mesh->materials().back()->textures() = {m_textures[1]};
+//    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
+//    m_mesh->materials().back()->textures().clear();
     
     uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
     m_max_index->setRange(min, max);
