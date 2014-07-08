@@ -154,14 +154,6 @@ gl::MeshPtr LSystem::create_mesh() const
         // color / material / stack state here
         switch (ch)
         {
-            //TODO: move those in a colour lookup map
-//            case 'F':
-//                current_color = gl::COLOR_ORANGE;
-//                break;
-//            case 'H':
-//                current_color = gl::COLOR_BLUE;
-//                break;
-                
             // push state
             case '[':
                 m_state_stack.push_back(m_state_stack.back());
@@ -311,6 +303,8 @@ gl::MeshPtr LSystem::create_mesh() const
                     normals.push_back(current_normal);
                     colors.push_back(current_color);
                     colors.push_back(current_color);
+                    point_sizes.push_back(m_state_stack.back().diameter);
+                    point_sizes.push_back(m_state_stack.back().diameter);
                     indices.push_back(i++);
                     indices.push_back(i++);
                 }

@@ -68,7 +68,7 @@ namespace kinski
         //! holds an shader programm, containing a geomtry shader for drawing the lines
         // created by a lsystem as more complex geometry
         //
-        gl::Shader m_lsystem_shader;
+        std::vector<gl::Shader> m_lsystem_shaders{2};
         
         //! needs to recalculate
         bool m_dirty_lsystem = false;
@@ -111,8 +111,8 @@ namespace kinski
                                                                                5.f, 0.f, 120.f);
         
         void refresh_lsystem();
-        
         void parse_line(const std::string &line);
+        void animate_lights(float time_delta);
         
     public:
         

@@ -66,10 +66,14 @@ void GrowthApp::setup()
 //        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
 //        scene().addObject(m_bounding_mesh);
         
-        // load shader
-        m_lsystem_shader = gl::createShaderFromFile("shader_01.vert",
-                                                    "shader_01.frag",
-                                                    "shader_01.geom");
+        // load shaders
+        m_lsystem_shaders[0] = gl::createShaderFromFile("shader_01.vert",
+                                                        "shader_01.frag",
+                                                        "shader_01.geom");
+        
+        m_lsystem_shaders[1] = gl::createShaderFromFile("shader_01.vert",
+                                                        "shader_points.frag",
+                                                        "lines_to_points.geom");
         
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         
@@ -113,8 +117,6 @@ void GrowthApp::update(float timeDelta)
     // process our analog inputs
     for (const auto &m : m_analog_in)
     {
-//        LOG_DEBUG << m.description() << ": " << m.last_value();
-        
         bool sample_playing = false;
         for (auto &sample : m_samples)
         {
@@ -132,7 +134,7 @@ void GrowthApp::update(float timeDelta)
     // movie playback, get a new frame if available
     if(m_movie.copy_frame_to_texture(m_textures[1]))
     {
-//        LOG_INFO << "update";
+
     }
     
     if(m_dirty_lsystem) refresh_lsystem();
@@ -141,6 +143,8 @@ void GrowthApp::update(float timeDelta)
     {
         m_growth_animation->update(timeDelta);
     }
+    
+    animate_lights(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -396,6 +400,11 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     }
 }
 
+void GrowthApp::animate_lights(float time_delta)
+{
+    //TODO: implement
+}
+
 void GrowthApp::refresh_lsystem()
 {
     m_dirty_lsystem = false;
@@ -425,8 +434,8 @@ void GrowthApp::refresh_lsystem()
     // add our shader
     for (auto m : m_mesh->materials())
     {
-        m->setShader(m_lsystem_shader);
-        m->addTexture(m_textures[0]);
+        m->setShader(m_lsystem_shaders[1]);
+//        m->addTexture(m_textures[0]);
         m->setBlending();
         m->setDepthTest(false);
         m->setDepthWrite(false);
