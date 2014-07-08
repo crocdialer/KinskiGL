@@ -14,7 +14,7 @@ struct PointAttenuation
   float linear;
   float quadratic;
 };
-PointAttenuation u_point_attenuation;
+uniform PointAttenuation u_point_attenuation;
 
 uniform float u_cap_bias = 2;
 const int u_num_points = 5;
@@ -59,18 +59,6 @@ void main()
     float line_length = length(diff_vec);
     vec3 line_dir = diff_vec / line_length;
 
-    // calculate eye coords and attenuations
-    for(int i = 0; i < u_num_points; i++)
-    {
-      eye_vecs[i] = -(u_modelViewMatrix * vec4(points[i], 1)).xyz; 
-
-      float d = length(eye_vecs[i]);
-      attenuations[i] = 1.0 / (u_point_attenuation.constant +
-                        u_point_attenuation.linear * d +
-                        u_point_attenuation.quadratic * (d * d));
-    }
-
-
     vec3 offset = p0;
     vec3 point_step = diff_vec / u_num_points;
     for(int i = 0; i < u_num_points; i++)
@@ -81,12 +69,22 @@ void main()
     
     // calculate projected points
     for(int i = 0; i < u_num_points; i++){pp[i] = u_modelViewProjectionMatrix * vec4(points[i], 1);}
-    
+   
+    // calculate eye coords and attenuations
+    for(int i = 0; i < u_num_points; i++)
+    {
+      eye_vecs[i] = -(u_modelViewMatrix * vec4(points[i], 1)).xyz; 
+
+      float d = length(eye_vecs[i]);
+      attenuations[i] = 1.0 / (1.0 +
+                        u_point_attenuation.linear * d +
+                        u_point_attenuation.quadratic * (d * d));
+    }
+
     // emit primitives
     for(int i = 0; i < u_num_points; i++)
     {
-      gl_PointSize = point_size ;//* attenuations[i];
-      //gl_PointSize = 3.0; 
+      gl_PointSize = point_size * attenuations[i];
       gl_Position = pp[i];
       EmitVertex();
       EndPrimitive();

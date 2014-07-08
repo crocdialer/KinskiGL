@@ -90,7 +90,7 @@ namespace kinski
         RangedProperty<float>::Ptr m_increment_randomness = RangedProperty<float>::create("growth increment randomness",
                                                                                0.f, 0.f, 1000.f);
         RangedProperty<float>::Ptr m_diameter = RangedProperty<float>::create("diameter",
-                                                                              1.f, 0.f, 10.f);
+                                                                              1.f, 0.f, 100.f);
         RangedProperty<float>::Ptr m_diameter_shrink = RangedProperty<float>::create("diameter shrink factor",
                                                                                      1.f, 0.f, 5.f);
         

@@ -435,13 +435,14 @@ void GrowthApp::refresh_lsystem()
     for (auto m : m_mesh->materials())
     {
         m->setShader(m_lsystem_shaders[1]);
-//        m->addTexture(m_textures[0]);
+        m->addTexture(m_textures[0]);
         m->setBlending();
         m->setDepthTest(false);
         m->setDepthWrite(false);
         
         //TODO: remove this when submaterials are tested well enough
         m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
+        m->setPointAttenuation(1.0, 0.0, 0.00005);
     }
     
 //    m_mesh->materials().back()->textures() = {m_textures[1]};
