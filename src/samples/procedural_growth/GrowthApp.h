@@ -77,6 +77,9 @@ namespace kinski
         //! animate fractal growth
         animation::AnimationPtr m_growth_animation;
         
+        //! animations
+        std::vector<animation::AnimationPtr> m_animations{10};
+        
         // Properties
         RangedProperty<uint32_t>::Ptr m_max_index = RangedProperty<uint32_t>::create("max index",
                                                                                      0, 0, 2000000);
@@ -114,7 +117,7 @@ namespace kinski
         void refresh_lsystem();
         void parse_line(const std::string &line);
         void animate_lights(float time_delta);
-        void update_animations();
+        void update_animations(float time_delta);
         
     public:
         

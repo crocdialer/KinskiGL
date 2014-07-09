@@ -263,7 +263,14 @@ namespace kinski { namespace gl{
     {
         Assimp::Importer importer;
         LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
-        const aiScene *theScene = importer.ReadFile(searchFile(theModelPath), 0);
+        std::string found_path;
+        try { found_path = searchFile(theModelPath); }
+        catch (FileNotFoundException &e)
+        {
+            LOG_ERROR << e.what();
+            return gl::MeshPtr();
+        }
+        const aiScene *theScene = importer.ReadFile(found_path, 0);
         
         if(true)
         {

@@ -1,4 +1,4 @@
-#version 150
+#version 410
 
 struct Material
 {

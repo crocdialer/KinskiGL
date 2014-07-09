@@ -1,4 +1,4 @@
-#version 150
+#version 410
 
 // ------------------ Geometry Shader: Line -> Points --------------------------------
 layout(lines) in;
@@ -19,7 +19,7 @@ uniform PointAttenuation u_point_attenuation;
 uniform float u_cap_bias = 2;
 
 const int num_circle_points = 24;
-const int num_turns = 3;
+const int num_turns = 2;
 const int u_num_points = num_turns * num_circle_points;
 
 in VertexData
@@ -83,15 +83,22 @@ void main()
     vec3 p1 = vertex_in[1].position;	// end of current segment
     
     float point_size = vertex_in[0].pointSize;
-    
-    // basevectors
+   
+    // line vector
     vec3 diff_vec = (p1 - p0); 
     float line_length = length(diff_vec);
     vec3 line_dir = diff_vec / line_length;
+
+    // basevectors
+    vec3 dx = line_dir;
+    vec3 dy = vertex_in[0].normal;
+    vec3 dz = cross(dx, dy);
+
+    mat3 t = mat3(dx, dy, dz); 
     
     // midpoint on line
     vec3 mid_point = p0 + 0.5 * diff_vec;
-    vec3 up_vec = vertex_in[0].normal;
+    vec3 grow_vec = dy;
 
     vec3 offset = p0;
     vec3 point_step = diff_vec / u_num_points;
@@ -102,11 +109,13 @@ void main()
     // generate points
     for(int i = 0; i < u_num_points; i++)
     {
-      points[i] = mid_point + unit_circle[i % num_circle_points] * current_radius 
-        + up_vec * current_height;
+      points[i] = mid_point + t * unit_circle[i % num_circle_points] * current_radius 
+        + grow_vec * current_height;
       current_radius += 0.08;
       current_height += 0.3;
-      //up_vec = mix(up_vec, vec3(0, 1, 0), 0.001);
+     
+      // up vector slowly bends towards global y-axis
+      grow_vec = mix(grow_vec, vec3(0, 1, 0), 0.01);
     }
     
     // calculate projected points

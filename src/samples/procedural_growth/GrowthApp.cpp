@@ -8,7 +8,7 @@
 
 #include "GrowthApp.h"
 #include "Fmod_Sound.h"
-#include "Renderer.h"
+#include "AssimpConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -55,16 +55,17 @@ void GrowthApp::setup()
     
     try
     {
-//        m_bounding_mesh = gl::AssimpConnector::loadModel("tree01.dae");
+        m_bounding_mesh = gl::AssimpConnector::loadModel("kamin_01.dae");
+        scene().addObject(m_bounding_mesh);
+        
 //        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
 //                                           gl::Material::create());
-//        
+//
 //        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
 //                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
 //        m_bounding_mesh->setPosition(vec3(0, 0, 160));
 //        m_bounding_mesh->material()->setWireframe();
 //        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
-//        scene().addObject(m_bounding_mesh);
         
         // load shaders
         m_lsystem_shaders[0] = gl::createShaderFromFile("shader_01.vert",
@@ -100,7 +101,10 @@ void GrowthApp::setup()
     create_tweakbar_from_component(m_light_component);
     
     // add lights to scene
-    for (auto &light : lights()){ m_light_root->add_child(light); }
+    for (int i = 1; i < lights().size(); i++){ m_light_root->add_child(lights()[i]); }
+    
+    // first light supposed to be directional, hence attached to scene root
+    scene().addObject(lights()[0]);
     scene().addObject(m_light_root);
 }
 
@@ -149,7 +153,9 @@ void GrowthApp::update(float timeDelta)
         m_growth_animation->update(timeDelta);
     }
     
+    // animation stuff here
     animate_lights(timeDelta);
+    update_animations(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -409,9 +415,20 @@ void GrowthApp::animate_lights(float time_delta)
 {
     //TODO: implement
     // rotation_speed
-    float rot_speed = 5.f;
+    float rot_speed = 15.f;
     m_light_root->transform() = glm::rotate(m_light_root->transform(), rot_speed * time_delta,
                                             gl::Y_AXIS);
+}
+
+void GrowthApp::update_animations(float time_delta)
+{
+    for(auto anim : m_animations)
+    {
+        if(anim)
+        {
+            anim->update(time_delta);
+        }
+    }
 }
 
 void GrowthApp::refresh_lsystem()
@@ -437,8 +454,10 @@ void GrowthApp::refresh_lsystem()
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);
     m_mesh = m_lsystem.create_mesh();
-    m_mesh->position() -= m_mesh->boundingBox().center();
     scene().addObject(m_mesh);
+    
+    // set position to center
+//    m_mesh->position() -= m_mesh->boundingBox().center();
     
     // add our shader
     for (auto m : m_mesh->materials())
@@ -451,7 +470,7 @@ void GrowthApp::refresh_lsystem()
         
         //TODO: remove this when submaterials are tested well enough
         m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
-        m->setPointAttenuation(.1, .001, 0);
+        m->setPointAttenuation(0.1, .0002, 0);
     }
     m_mesh->materials().back()->setShader(m_lsystem_shaders[2]);
 //    m_mesh->materials().back()->textures() = {m_textures[1]};
