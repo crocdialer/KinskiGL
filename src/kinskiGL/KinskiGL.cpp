@@ -870,7 +870,7 @@ namespace kinski { namespace gl {
         
 
         gl::ScopedMatrixPush mat_push(gl::MODEL_VIEW_MATRIX);
-        gl::multMatrix(gl::MODEL_VIEW_MATRIX, theLight->transform());
+        gl::multMatrix(gl::MODEL_VIEW_MATRIX, theLight->global_transform());
         
         if(!directional_mesh)
         {

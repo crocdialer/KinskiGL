@@ -113,9 +113,10 @@ gl::MeshPtr LSystem::create_mesh() const
     // up
     m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
     
-    // our output geometry
+    // use subgeometries for different branch depths
     bool use_mesh_entries = true;
     
+    // our output geometry
     gl::MeshPtr ret = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
     auto &points = ret->geometry()->vertices();
     auto &normals = ret->geometry()->normals();
@@ -134,7 +135,7 @@ gl::MeshPtr LSystem::create_mesh() const
     // will hold the current branch diameter
     std::vector<std::vector<float>>  point_sizes_vec;
     
-    // helper to have seperate indices for each brnach depth
+    // helper to have seperate indices for each branch depth
     std::vector<uint32_t> index_increments;
     
     int i = 0;

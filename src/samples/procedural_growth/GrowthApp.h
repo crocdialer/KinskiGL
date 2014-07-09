@@ -59,16 +59,17 @@ namespace kinski
         
         // light controls
         LightComponent::Ptr m_light_component;
+        gl::Object3DPtr m_light_root{new gl::Object3D};
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
         
         // our Lindemayer-System object
         LSystem m_lsystem;
         
-        //! holds an shader programm, containing a geomtry shader for drawing the lines
+        //! holds some shader programs, containing geomtry shaders for drawing the lines
         // created by a lsystem as more complex geometry
         //
-        std::vector<gl::Shader> m_lsystem_shaders{2};
+        std::vector<gl::Shader> m_lsystem_shaders{3};
         
         //! needs to recalculate
         bool m_dirty_lsystem = false;
@@ -113,6 +114,7 @@ namespace kinski
         void refresh_lsystem();
         void parse_line(const std::string &line);
         void animate_lights(float time_delta);
+        void update_animations();
         
     public:
         

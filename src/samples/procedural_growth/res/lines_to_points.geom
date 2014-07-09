@@ -1,6 +1,6 @@
 #version 150
 
-// ------------------ Geometry Shader: Line -> Cuboid --------------------------------
+// ------------------ Geometry Shader: Line -> Points --------------------------------
 layout(lines) in;
 layout (points, max_vertices = 18) out;
 
@@ -84,7 +84,7 @@ void main()
     // emit primitives
     for(int i = 0; i < u_num_points; i++)
     {
-      gl_PointSize = point_size * attenuations[i];
+      gl_PointSize = 10 * point_size * attenuations[i];
       gl_Position = pp[i];
       EmitVertex();
       EndPrimitive();

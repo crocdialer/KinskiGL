@@ -75,6 +75,10 @@ void GrowthApp::setup()
                                                         "shader_points.frag",
                                                         "lines_to_points.geom");
         
+        m_lsystem_shaders[2] = gl::createShaderFromFile("shader_01.vert",
+                                                        "shader_points.frag",
+                                                        "lines_to_points_spiral.geom");
+        
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         
         m_movie.load("~/Desktop/l_system_animation/vid3.mov", true, true);
@@ -96,7 +100,8 @@ void GrowthApp::setup()
     create_tweakbar_from_component(m_light_component);
     
     // add lights to scene
-    for (auto &light : lights()){ scene().addObject(light); }
+    for (auto &light : lights()){ m_light_root->add_child(light); }
+    scene().addObject(m_light_root);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -403,6 +408,10 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
 void GrowthApp::animate_lights(float time_delta)
 {
     //TODO: implement
+    // rotation_speed
+    float rot_speed = 5.f;
+    m_light_root->transform() = glm::rotate(m_light_root->transform(), rot_speed * time_delta,
+                                            gl::Y_AXIS);
 }
 
 void GrowthApp::refresh_lsystem()
@@ -434,7 +443,7 @@ void GrowthApp::refresh_lsystem()
     // add our shader
     for (auto m : m_mesh->materials())
     {
-        m->setShader(m_lsystem_shaders[1]);
+        m->setShader(m_lsystem_shaders[0]);
         m->addTexture(m_textures[0]);
         m->setBlending();
         m->setDepthTest(false);
@@ -442,10 +451,11 @@ void GrowthApp::refresh_lsystem()
         
         //TODO: remove this when submaterials are tested well enough
         m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
-        m->setPointAttenuation(1.0, 0.0, 0.00005);
+        m->setPointAttenuation(.1, .001, 0);
     }
-    
+    m_mesh->materials().back()->setShader(m_lsystem_shaders[2]);
 //    m_mesh->materials().back()->textures() = {m_textures[1]};
+    
 //    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
 //    m_mesh->materials().back()->textures().clear();
     
