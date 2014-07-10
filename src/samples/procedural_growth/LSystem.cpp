@@ -152,9 +152,6 @@ gl::MeshPtr LSystem::create_mesh() const
     // create geometry out of our buffer string
     for (auto iter = m_buffer.begin(), end = m_buffer.end(); iter != end; ++iter)
     {
-        // this iterator is used to look one step ahead to look for parantheses
-//        auto tmp_iter = iter + 1;
-        
         char ch = *iter, next_ch = (iter + 1) != m_buffer.end() ? *(iter + 1) : 0;
         
         
@@ -237,58 +234,57 @@ gl::MeshPtr LSystem::create_mesh() const
             // already handled above
             case '[':
             case ']':
-//            case '!':
             case '(':
             case ')':
                 break;
                 
             // rotate around 'up vector' ccw
             case '+':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              current_branch_angles[2],
-                                                              up());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             current_branch_angles[2],
+                                                             up());
                 break;
                 
             // rotate around 'up vector' cw
             case '-':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -current_branch_angles[2],
-                                                              up());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             -current_branch_angles[2],
+                                                             up());
                 break;
             
             // rotate around 'up vector' 180 deg
             case '|':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              180.f,
-                                                              up());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             180.f,
+                                                             up());
                 break;
                 
             // rotate around 'left vector' ccw
             case '&':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              current_branch_angles[1],
-                                                              left());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             current_branch_angles[1],
+                                                             left());
                 break;
                 
             // rotate around 'left vector' cw
             case '^':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -current_branch_angles[1],
-                                                              left());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             -current_branch_angles[1],
+                                                             left());
                 break;
             
             // rotate around 'head vector' ccw
             case '\\':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              current_branch_angles[0],
-                                                              head());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             current_branch_angles[0],
+                                                             head());
                 break;
                 
             // rotate around 'head vector' cw
             case '/':
-                m_state_stack.back().transform *= glm::rotate(mat4(),
-                                                              -current_branch_angles[0],
-                                                              head());
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                                                             -current_branch_angles[0],
+                                                             head());
                 break;
             
             // shrink diameter

@@ -99,7 +99,7 @@ namespace kinski
                                                                                      1.f, 0.f, 5.f);
         
         RangedProperty<float>::Ptr m_cap_bias = RangedProperty<float>::create("cap bias",
-                                                                              0.f, 0.f, 10.f);
+                                                                              0.f, 0.f, 100.f);
         
         Property_<std::string>::Ptr m_axiom = Property_<std::string>::create("Axiom", "f");
         std::vector<Property_<std::string>::Ptr> m_rules =
@@ -113,6 +113,7 @@ namespace kinski
         Property_<bool>::Ptr m_animate_growth = Property_<bool>::create("animate growth", false);
         RangedProperty<float>::Ptr m_animation_time = RangedProperty<float>::create("animation time",
                                                                                5.f, 0.f, 120.f);
+        
         Property_<uint32_t>::Ptr m_shader_index = Property_<uint32_t>::create("shader index", 0);
         
         void refresh_lsystem();

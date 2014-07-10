@@ -76,6 +76,7 @@ namespace kinski
         
         struct turtle_state
         {
+            //! contains base vectors (Head, Left, Up) and position
             glm::mat4 transform;
             bool abort_branch;
             float diameter;
