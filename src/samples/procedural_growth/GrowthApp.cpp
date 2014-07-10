@@ -25,6 +25,7 @@ void GrowthApp::setup()
     m_font.load("Courier New Bold.ttf", 18);
     outstream_gl().set_color(gl::COLOR_WHITE);
     outstream_gl().set_font(m_font);
+    set_precise_selection(false);
     
     registerProperty(m_local_udp_port);
     registerProperty(m_arduino_device_name);
@@ -44,6 +45,7 @@ void GrowthApp::setup()
     
     registerProperty(m_animate_growth);
     registerProperty(m_animation_time);
+    registerProperty(m_shader_index);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
@@ -55,8 +57,8 @@ void GrowthApp::setup()
     
     try
     {
-        m_bounding_mesh = gl::AssimpConnector::loadModel("kamin_01.dae");
-        scene().addObject(m_bounding_mesh);
+//        m_bounding_mesh = gl::AssimpConnector::loadModel("kamin_01.dae");
+//        scene().addObject(m_bounding_mesh);
         
 //        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
 //                                           gl::Material::create());
@@ -80,9 +82,11 @@ void GrowthApp::setup()
                                                         "shader_points.frag",
                                                         "lines_to_points_spiral.geom");
         
+        m_lsystem_shaders[3] = gl::createShader(gl::SHADER_UNLIT);
+        
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         
-        m_movie.load("~/Desktop/l_system_animation/vid3.mov", true, true);
+//        m_movie.load("~/Desktop/l_system_animation/vid3.mov", true, true);
         
         // audio
         for(auto &sample : getDirectoryEntries("~/Desktop/eier_sounds/", false, "wav"))
@@ -106,6 +110,9 @@ void GrowthApp::setup()
     // first light supposed to be directional, hence attached to scene root
     scene().addObject(lights()[0]);
     scene().addObject(m_light_root);
+    
+//    m_animations[0] = animation::create(&m_light_root->position().y, 0.f, 500.f, 5.f);
+//    m_animations[0]->set_loop();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -398,6 +405,20 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh->material()->uniform("u_cap_bias", *m_cap_bias);
         }
     }
+    else if(theProperty == m_shader_index)
+    {
+        if(m_mesh)
+        {
+            for(auto mat : m_mesh->materials())
+            {
+                auto shader = m_lsystem_shaders[kinski::clamp<uint32_t>(*m_shader_index,
+                                                                        0,
+                                                                        m_lsystem_shaders.size() - 1)];
+                if(shader)
+                    mat->setShader(shader);
+            }
+        }
+    }
     else if(theProperty == m_local_udp_port)
     {
         m_udp_server.start_listen(*m_local_udp_port);
@@ -472,7 +493,7 @@ void GrowthApp::refresh_lsystem()
         m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
         m->setPointAttenuation(0.1, .0002, 0);
     }
-    m_mesh->materials().back()->setShader(m_lsystem_shaders[2]);
+//    m_mesh->materials().back()->setShader(m_lsystem_shaders[2]);
 //    m_mesh->materials().back()->textures() = {m_textures[1]};
     
 //    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));

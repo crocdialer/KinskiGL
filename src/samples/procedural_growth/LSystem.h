@@ -120,6 +120,7 @@ namespace kinski
         const glm::vec3& head() const;
         const glm::vec3& left() const;
         const glm::vec3& up() const;
+        const glm::vec3& position() const;
         
         /*! perform a validity check for a new position
          *  if no functor is defined the check will always succeed

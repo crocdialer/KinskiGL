@@ -69,7 +69,7 @@ namespace kinski
         //! holds some shader programs, containing geomtry shaders for drawing the lines
         // created by a lsystem as more complex geometry
         //
-        std::vector<gl::Shader> m_lsystem_shaders{3};
+        std::vector<gl::Shader> m_lsystem_shaders{4};
         
         //! needs to recalculate
         bool m_dirty_lsystem = false;
@@ -113,6 +113,7 @@ namespace kinski
         Property_<bool>::Ptr m_animate_growth = Property_<bool>::create("animate growth", false);
         RangedProperty<float>::Ptr m_animation_time = RangedProperty<float>::create("animation time",
                                                                                5.f, 0.f, 120.f);
+        Property_<uint32_t>::Ptr m_shader_index = Property_<uint32_t>::create("shader index", 0);
         
         void refresh_lsystem();
         void parse_line(const std::string &line);

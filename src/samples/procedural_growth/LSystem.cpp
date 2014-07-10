@@ -46,7 +46,7 @@ m_increment_randomness(0.f),
 m_diameter(1.f),
 m_diameter_shrink_factor(1.f)
 {
-//    m_position_check = [&](const vec3& p) -> bool {return glm::length(p) < 10;};
+
 }
 
 const glm::vec3& LSystem::head() const
@@ -62,6 +62,11 @@ const glm::vec3& LSystem::left() const
 const glm::vec3& LSystem::up() const
 {
     return *reinterpret_cast<glm::vec3*>(&m_state_stack.back().transform[2]);
+}
+
+const glm::vec3& LSystem::position() const
+{
+    return *reinterpret_cast<glm::vec3*>(&m_state_stack.back().transform[3]);
 }
 
 void LSystem::iterate(int num_iterations)
@@ -138,19 +143,27 @@ gl::MeshPtr LSystem::create_mesh() const
     // helper to have seperate indices for each branch depth
     std::vector<uint32_t> index_increments;
     
+    // tmp values
     int i = 0;
     vec3 current_pos, new_pos, current_normal;
+    vec3 branch_angle;
+    float increment, diameter_shrink_factor;
     
     // create geometry out of our buffer string
     for (auto iter = m_buffer.begin(), end = m_buffer.end(); iter != end; ++iter)
     {
-        char ch = *iter;
+        // this iterator is used to look one step ahead to look for parantheses
+//        auto tmp_iter = iter + 1;
+        
+        char ch = *iter, next_ch = (iter + 1) != m_buffer.end() ? *(iter + 1) : 0;
+        
         
         int num_grow_tries = 0;
         
         gl::Color current_color(gl::COLOR_WHITE);
         
-        bool has_parameter = false;
+        // upcoming char starts a parameter block
+        bool has_parameter = next_ch && next_ch == '(';
         
         // color / material / stack state here
         switch (ch)
@@ -164,21 +177,28 @@ gl::MeshPtr LSystem::create_mesh() const
             case ']':
                 m_state_stack.pop_back();
                 break;
-            
-            // shrink diameter
-            case '!':
-                m_state_stack.back().diameter *= m_diameter_shrink_factor;
-                break;
-            
-            // parameter begin
-            case '(':
-                has_parameter = true;
-//            case ')':
-                break;
         }
+        
+        // this optional parameter will only be used if not NaN
+        float optional_param = std::nanf("0");
         
         if(has_parameter)
         {
+            // jump forward to first position in parameter block
+            iter += 2;
+            
+            string accum;
+            
+            // increment the iterator until a ')' char is encountered, build up accum string
+            while (iter != m_buffer.end())
+            {
+                // parameter string ended
+                if(*iter == ')'){ break; }
+                
+                accum.insert(accum.end(), *iter);
+                ++iter;
+            }
+            optional_param = kinski::string_as<float>(accum);
         }
         
         // this branch should not continue growing -> move on with iteration
@@ -186,27 +206,38 @@ gl::MeshPtr LSystem::create_mesh() const
             continue;
         
         // save current position here
-        current_pos = new_pos = m_state_stack.back().transform[3].xyz();
+        current_pos = new_pos = position();
         
         // derive normal from up-vector
-        current_normal = m_state_stack.back().transform[2].xyz();
+        current_normal = up();
+        
+        // the possible base values to apply, either predefined or from supplied parameter
+        branch_angle = m_branch_angle;
+        increment = m_increment;
+        diameter_shrink_factor = m_diameter_shrink_factor;
+        
+        // a custom parameter was provided
+        if(!std::isnan(optional_param))
+        {
+            branch_angle = vec3(optional_param);
+            increment = optional_param;
+            diameter_shrink_factor = optional_param;
+        }
         
         // our current branch angles
-        vec3 current_branch_angles = m_branch_angle + glm::linearRand(-m_branch_randomness,
+        vec3 current_branch_angles = branch_angle + glm::linearRand(-m_branch_randomness,
                                                                       m_branch_randomness);
         
         // our current increment
-        float current_increment = m_increment + kinski::random(-m_increment_randomness,
+        float current_increment = increment + kinski::random(-m_increment_randomness,
                                                                m_increment_randomness);
-        
-//        current_increment /= (float) std::max<int>(m_iteration_depth, 1);
         
         switch (ch)
         {
             // already handled above
             case '[':
             case ']':
-            case '!':
+//            case '!':
             case '(':
             case ')':
                 break;
@@ -259,6 +290,11 @@ gl::MeshPtr LSystem::create_mesh() const
                                                               -current_branch_angles[0],
                                                               head());
                 break;
+            
+            // shrink diameter
+            case '!':
+                m_state_stack.back().diameter *= diameter_shrink_factor;
+                break;
                 
             // all other symbols will insert a line sequment in 'head direction'
             default:
@@ -290,10 +326,8 @@ gl::MeshPtr LSystem::create_mesh() const
                 if(num_grow_tries >= m_max_random_tries)
                 {
                     // TODO: come up with something useful here, just not needed currently
-                    
-//                    m_state_stack.back().abort_branch = true;
-//                    break;
-//                    current_color = gl::COLOR_PURPLE;
+                    m_state_stack.back().abort_branch = true;
+                    break;
                 }
                 
                 if(!use_mesh_entries)
