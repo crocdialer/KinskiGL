@@ -57,11 +57,17 @@ void GrowthApp::setup()
     
     try
     {
-//        m_bounding_mesh = gl::AssimpConnector::loadModel("kamin_01.dae");
-//        scene().addObject(m_bounding_mesh);
+        auto model = gl::AssimpConnector::loadModel("kamin_01.dae");
+        auto aabb = model->boundingBox();
+        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(aabb.halfExtents()),
+                                           gl::Material::create());
+        m_bounding_mesh->position() += aabb.center();
+        scene().addObject(m_bounding_mesh);
+        auto &bound_mat = m_bounding_mesh->material();
+        bound_mat->setDiffuse(gl::Color(bound_mat->diffuse().rgb(), .2));
+        bound_mat->setBlending();
+        bound_mat->setDepthWrite(false);
         
-//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(15, 40, 15)),
-//                                           gl::Material::create());
 //
 //        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
 //                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
@@ -170,7 +176,7 @@ void GrowthApp::update(float timeDelta)
 void GrowthApp::draw()
 {
     gl::setMatrices(camera());
-    if(draw_grid()){gl::drawGrid(50, 50);}
+    if(draw_grid()){gl::drawGrid(500, 500);}
     
     // draw our scene
     scene().render(camera());
@@ -215,6 +221,8 @@ void GrowthApp::draw()
                        vec4(vec3(1) - clear_color().xyz(), 1.f),
                        glm::vec2(windowSize().x - 110, windowSize().y - 70));
     }
+    
+    gl::drawTransform(m_lsystem.turtle_transform(), 10);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -472,6 +480,13 @@ void GrowthApp::refresh_lsystem()
     // iterate
     m_lsystem.iterate(*m_num_iterations);
     
+    m_lsystem.set_max_random_tries(20);
+    
+    m_lsystem.set_position_check([&](const glm::vec3& p) -> bool
+    {
+        return gl::is_point_inside_mesh(p, m_bounding_mesh);
+    });
+    
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);
     m_mesh = m_lsystem.create_mesh();
@@ -484,7 +499,7 @@ void GrowthApp::refresh_lsystem()
     for (auto m : m_mesh->materials())
     {
         m->setShader(m_lsystem_shaders[0]);
-//        m->addTexture(m_textures[0]);
+        m->addTexture(m_textures[0]);
         m->setBlending();
         m->setDepthTest(false);
         m->setDepthWrite(false);

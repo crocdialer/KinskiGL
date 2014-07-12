@@ -101,8 +101,6 @@ void main()
     
     // generate a triangle strip
     vertex_out.color = vertex_in[0].color;
-    vertex_out.texCoord = vec4(0, 0, 0, 1);
-    vertex_out.eyeVec = (u_modelViewMatrix * vec4(p0, 1)).xyz;
 
     // mantle faces
     

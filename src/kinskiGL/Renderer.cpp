@@ -71,7 +71,7 @@ namespace kinski{ namespace gl{
                     mat->uniform("u_modelViewProjectionMatrix",
                                            cam->getProjectionMatrix() * modelView);
                     
-                    if(m->geometry()->hasNormals())
+//                    if(m->geometry()->hasNormals())
                     {
                         mat->uniform("u_normalMatrix",
                                      glm::inverseTranspose( glm::mat3(modelView) ));
@@ -109,9 +109,9 @@ namespace kinski{ namespace gl{
                             m->bind_vertex_array(mat_index);
                             apply_material(m->materials()[mat_index]);
                             
-                            GLint current_vao, current_prog;
-                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
-                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
+//                            GLint current_vao, current_prog;
+//                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
+//                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
 //                            std::cout << "vao: " << current_vao << " -- prog: " << current_prog << std::endl;
                             KINSKI_CHECK_GL_ERRORS();
                             

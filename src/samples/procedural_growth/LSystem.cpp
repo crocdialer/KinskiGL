@@ -69,6 +69,11 @@ const glm::vec3& LSystem::position() const
     return *reinterpret_cast<glm::vec3*>(&m_state_stack.back().transform[3]);
 }
 
+const glm::mat4& LSystem::turtle_transform() const
+{
+    return m_state_stack.back().transform;
+}
+
 void LSystem::iterate(int num_iterations)
 {
     m_buffer = m_axiom;
@@ -109,14 +114,14 @@ gl::MeshPtr LSystem::create_mesh() const
     
     // start in xz plane, face upward
     
-    // head
-    m_state_stack.back().transform[0].xyz() = gl::Y_AXIS;
-    
-    // left
-    m_state_stack.back().transform[1].xyz() = -gl::X_AXIS;
-    
-    // up
-    m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
+//    // head
+//    m_state_stack.back().transform[0].xyz() = gl::Y_AXIS;
+//    
+//    // left
+//    m_state_stack.back().transform[1].xyz() = -gl::X_AXIS;
+//    
+//    // up
+//    m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
     
     // use subgeometries for different branch depths
     bool use_mesh_entries = true;
@@ -237,10 +242,10 @@ gl::MeshPtr LSystem::create_mesh() const
             case '(':
             case ')':
                 break;
-                
+            
             // rotate around 'up vector' ccw
             case '+':
-                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+                m_state_stack.back().transform = glm::rotate_slow(m_state_stack.back().transform,
                                                              current_branch_angles[2],
                                                              up());
                 break;
@@ -310,20 +315,43 @@ gl::MeshPtr LSystem::create_mesh() const
                     index_increments.resize(max_branch_depth, 0);
                 }
                 
+                // try to grow in head direction
+                vec3 grow_dir = head();
+                
                 //geometry check here
-                do
+                while(true)
                 {
-                    new_pos = current_pos + head() * current_increment;
+                    new_pos = current_pos + grow_dir * current_increment;
                     num_grow_tries++;
+                    
+                    // exit condition
+                    if(is_position_valid(new_pos) || num_grow_tries >= m_max_random_tries)
+                        break;
+                    
+                    // get new random vals
+//                    // our current branch angles
+//                    current_branch_angles = branch_angle + glm::linearRand(-m_branch_randomness,
+//                                                                           m_branch_randomness);
+                    
+                    
+                    // our current increment
+                    current_increment = increment + kinski::random(-m_increment_randomness,
+                                                                   m_increment_randomness);
+                    
+                    // random direction
+                    grow_dir = glm::ballRand(1.f);
                 }
-                while(!is_position_valid(new_pos) && num_grow_tries < m_max_random_tries);
+                
                 
                 // no way to grow from this point
                 if(num_grow_tries >= m_max_random_tries)
                 {
-                    // TODO: come up with something useful here, just not needed currently
+                    // TODO: come up with something useful here
+                    
                     m_state_stack.back().abort_branch = true;
-                    break;
+                    LOG_DEBUG << "aborting branch";
+                    continue;
+
                 }
                 
                 if(!use_mesh_entries)

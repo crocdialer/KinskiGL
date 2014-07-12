@@ -37,6 +37,8 @@ namespace kinski
         const std::string axiom() const { return m_axiom;}
         void set_axiom(const std::string &the_axiom){m_axiom = the_axiom;};
         
+        const glm::mat4& turtle_transform() const;
+        
         float increment() const {return m_increment;}
         void set_increment(float the_inc) {m_increment = the_inc;}
         
@@ -63,6 +65,8 @@ namespace kinski
         void add_rule(const std::string &the_rule);
         
         void set_position_check(PositionCheckFunctor pf){m_position_check = pf;}
+        int max_random_tries() const {return m_max_random_tries;}
+        void set_max_random_tries(int num_tries){m_max_random_tries = num_tries;}
         
         std::string get_info_string() const;
         

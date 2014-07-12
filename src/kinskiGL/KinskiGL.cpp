@@ -790,6 +790,37 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
+void drawTransform(const glm::mat4& the_transform, float the_scale)
+{
+    static gl::MeshPtr transform_mesh;
+    
+    if(!transform_mesh)
+    {
+        transform_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
+        auto &verts = transform_mesh->geometry()->vertices();
+        auto &colors = transform_mesh->geometry()->colors();
+        transform_mesh->geometry()->setPrimitiveType(GL_LINES);
+        verts =
+        {
+            glm::vec3(0), gl::X_AXIS,
+            glm::vec3(0), gl::Y_AXIS,
+            glm::vec3(0), gl::Z_AXIS
+        };
+        colors =
+        {
+            gl::COLOR_RED, gl::COLOR_RED,
+            gl::COLOR_GREEN, gl::COLOR_GREEN,
+            gl::COLOR_BLUE, gl::COLOR_BLUE
+        };
+        transform_mesh->createVertexArray();
+    }
+    gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+    gl::multMatrix(gl::MODEL_VIEW_MATRIX, glm::scale(the_transform, glm::vec3(the_scale)));
+    gl::drawMesh(transform_mesh);
+}
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     void drawMesh(const MeshPtr &theMesh)
     {
         if(!theMesh || theMesh->geometry()->vertices().empty()) return;
@@ -1301,7 +1332,7 @@ namespace kinski { namespace gl {
         for (const auto &face : m->geometry()->faces())
         {
             gl::Plane plane(vertices[face.a], vertices[face.b], vertices[face.c]);
-//            plane.transform(m->transform());
+            plane.transform(m->transform());
             if(plane.distance(p) < 0)
                 return false;
         }

@@ -16,7 +16,7 @@
 #include "kinskiCore/file_functions.h"
 
 //triggers checks with glGetError()
-#define KINSKI_GL_REPORT_ERRORS
+//#define KINSKI_GL_REPORT_ERRORS
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
@@ -179,6 +179,7 @@ namespace kinski { namespace gl {
     
     KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
+    KINSKI_API void drawTransform(const glm::mat4& the_transform, float the_scale = 1.f);
     KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
     KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
