@@ -62,15 +62,19 @@ void GrowthApp::setup()
         m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(aabb.halfExtents()),
                                            gl::Material::create());
         m_bounding_mesh->position() += aabb.center();
-        scene().addObject(m_bounding_mesh);
+        
+//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 8),
+//                                           gl::Material::create());
+        
         auto &bound_mat = m_bounding_mesh->material();
         bound_mat->setDiffuse(gl::Color(bound_mat->diffuse().rgb(), .2));
         bound_mat->setBlending();
         bound_mat->setDepthWrite(false);
+//        scene().addObject(m_bounding_mesh);
         
 //
 //        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
-//                                           gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
+//                                           gl::Material::create());
 //        m_bounding_mesh->setPosition(vec3(0, 0, 160));
 //        m_bounding_mesh->material()->setWireframe();
 //        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
@@ -91,6 +95,8 @@ void GrowthApp::setup()
         m_lsystem_shaders[3] = gl::createShader(gl::SHADER_UNLIT);
         
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
+        m_textures[1] = gl::createTextureFromFile("snake_tex.jpg", true, true, 4);
+//        m_textures[2] = gl::createTextureFromFile("bark_01.jpg", true, true, 4);
         
 //        m_movie.load("~/Desktop/l_system_animation/vid3.mov", true, true);
         
@@ -119,6 +125,15 @@ void GrowthApp::setup()
     
 //    m_animations[0] = animation::create(&m_light_root->position().y, 0.f, 500.f, 5.f);
 //    m_animations[0]->set_loop();
+    
+    int num_audio_devices = m_audio.getDeviceCount();
+    
+    for(int i = 0; i < num_audio_devices; i++)
+    {
+        auto dev = m_audio.getDeviceInfo(i);
+        LOG_INFO << "found audio device " << dev.name <<": "<< dev.outputChannels
+            <<" outputs -- " <<dev.inputChannels <<" inputs";
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -410,7 +425,10 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     {
         if(m_mesh)
         {
-            m_mesh->material()->uniform("u_cap_bias", *m_cap_bias);
+            for (auto m : m_mesh->materials())
+            {
+                m->uniform("u_cap_bias", *m_cap_bias);
+            }
         }
     }
     else if(theProperty == m_shader_index)
@@ -500,9 +518,12 @@ void GrowthApp::refresh_lsystem()
     {
         m->setShader(m_lsystem_shaders[0]);
         m->addTexture(m_textures[0]);
+        m->addTexture(m_textures[1]);
         m->setBlending();
         m->setDepthTest(false);
         m->setDepthWrite(false);
+        
+        m->uniform("u_cap_bias", *m_cap_bias);
         
         //TODO: remove this when submaterials are tested well enough
         m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));

@@ -159,9 +159,6 @@ gl::MeshPtr LSystem::create_mesh() const
     {
         char ch = *iter, next_ch = (iter + 1) != m_buffer.end() ? *(iter + 1) : 0;
         
-        
-        int num_grow_tries = 0;
-        
         gl::Color current_color(gl::COLOR_WHITE);
         
         // upcoming char starts a parameter block
@@ -318,6 +315,9 @@ gl::MeshPtr LSystem::create_mesh() const
                 // try to grow in head direction
                 vec3 grow_dir = head();
                 
+                // number of tries to grow in this direction
+                int num_grow_tries = 0;
+                
                 //geometry check here
                 while(true)
                 {
@@ -329,9 +329,9 @@ gl::MeshPtr LSystem::create_mesh() const
                         break;
                     
                     // get new random vals
-//                    // our current branch angles
-//                    current_branch_angles = branch_angle + glm::linearRand(-m_branch_randomness,
-//                                                                           m_branch_randomness);
+                    // our current branch angles
+                    current_branch_angles = branch_angle + glm::linearRand(-m_branch_randomness,
+                                                                           m_branch_randomness);
                     
                     
                     // our current increment
@@ -339,7 +339,12 @@ gl::MeshPtr LSystem::create_mesh() const
                                                                    m_increment_randomness);
                     
                     // random direction
-                    grow_dir = glm::ballRand(1.f);
+                    grow_dir = glm::sphericalRand(1.f);
+                    
+                    // rotate around 'up vector' 180 deg
+//                    m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
+//                                                                 current_branch_angles[2],
+//                                                                 up());
                 }
                 
                 

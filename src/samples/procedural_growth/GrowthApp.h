@@ -22,6 +22,7 @@
 #include "kinskiCore/Serial.h"
 
 // audio
+#include "RtAudio.h"
 #include "Sound.h"
 
 // networking
@@ -50,6 +51,9 @@ namespace kinski
         // udp receiver
         net::udp_server m_udp_server;
         Property_<uint32_t>::Ptr m_local_udp_port = Property_<uint32_t>::create("udp port", 11111);
+        
+        // audio device
+        RtAudio m_audio;
         
         // audio samples
         std::vector<audio::SoundPtr> m_samples;

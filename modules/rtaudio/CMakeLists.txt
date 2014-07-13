@@ -1,6 +1,6 @@
 if(APPLE)
   find_library(CoreAudio NAMES CoreAudio)
-  add_definitions(-D__MACOSX_CORE__)
+  add_definitions(-D__MACOSX_CORE__ PARENT_SCOPE)
   set(MODULE_LIBRARIES ${CoreAudio} PARENT_SCOPE)
 elseif(UNIX)
   #TODO
