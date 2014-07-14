@@ -25,6 +25,8 @@ namespace kinski
         // audio system
         RtAudio m_audio;
         
+        bool m_streaming = false;
+        
     public:
         
         void setup();
