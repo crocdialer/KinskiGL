@@ -431,7 +431,7 @@ gl::MeshPtr LSystem::create_mesh() const
             
             gl::Mesh::Entry m;
             m.num_vertices = verts_vec[i].size();
-            m.numdices = indices_vec[i].size();
+            m.num_indices = indices_vec[i].size();
             m.base_index = current_index;
             m.base_vertex = current_vertex;
             m.material_index = material_index;
@@ -448,7 +448,7 @@ gl::MeshPtr LSystem::create_mesh() const
     else
     {
         ret->entries().front().num_vertices = ret->geometry()->vertices().size();
-        ret->entries().front().numdices = ret->geometry()->indices().size();
+        ret->entries().front().num_indices = ret->geometry()->indices().size();
     }
     ret->geometry()->setPrimitiveType(GL_LINES);
     ret->geometry()->computeBoundingBox();

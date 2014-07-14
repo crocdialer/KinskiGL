@@ -352,7 +352,9 @@ namespace kinski{ namespace gl{
     {
         GeometryPtr geom = Geometry::create();
         
-        glm::vec3 vertices[8] = {   glm::vec3(-theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom left front
+        glm::vec3 vertices[8] =
+        {
+            glm::vec3(-theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom left front
             glm::vec3(theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom right front
             glm::vec3(theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom right back
             glm::vec3(-theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom left back

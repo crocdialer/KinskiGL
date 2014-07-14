@@ -864,7 +864,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     apply_material(theMesh->materials()[mat_index]);
                     
                     glDrawElementsBaseVertex(theMesh->geometry()->primitiveType(),
-                                             theMesh->entries()[i].numdices,
+                                             theMesh->entries()[i].num_indices,
                                              theMesh->geometry()->indexType(),
                                              BUFFER_OFFSET(theMesh->entries()[i].base_index *
                                                            sizeof(theMesh->geometry()->indexType())),
@@ -1320,11 +1320,13 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         // checks only make sense with triangle geometry
         if(!m ||
            m->geometry()->primitiveType() != GL_TRIANGLES ||
-           m->geometry()->faces().empty() ||
-           !m->geometry()->boundingBox().contains(p))
+           m->geometry()->faces().empty())
         {
             return false;
         }
+        
+        // checks if p is inside the (transformed aabb of Mesh m)
+        if(!m->boundingBox().contains(p)) return false;
         
         const auto &vertices = m->geometry()->vertices();
         

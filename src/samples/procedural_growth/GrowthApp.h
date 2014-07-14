@@ -64,6 +64,11 @@ namespace kinski
         // light controls
         LightComponent::Ptr m_light_component;
         gl::Object3DPtr m_light_root{new gl::Object3D};
+        Property_<float>::Ptr
+        m_light_rotation = Property_<float>::create("light rotation speed", 5.f),
+        m_light_elevation = Property_<float>::create("light elevation speed", 5.f);
+        
+//        float m_light_rotation, m_light_elevation;
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
         
@@ -80,6 +85,7 @@ namespace kinski
         
         //! animate fractal growth
         animation::AnimationPtr m_growth_animation;
+        gl::Mesh::Entry m_entry;
         
         //! animations
         std::vector<animation::AnimationPtr> m_animations{10};
@@ -91,16 +97,19 @@ namespace kinski
         Property_<uint32_t>::Ptr m_num_iterations = Property_<uint32_t>::create("num iterations", 2);
         Property_<glm::vec3>::Ptr m_branch_angles = Property_<glm::vec3>::create("branch angles",
                                                                                      glm::vec3(90));
-        Property_<glm::vec3>::Ptr m_branch_randomness = Property_<glm::vec3>::create("branch randomness",
-                                                                                 glm::vec3(0));
+        Property_<glm::vec3>::Ptr m_branch_randomness =
+            Property_<glm::vec3>::create("branch randomness",
+                                         glm::vec3(0));
         RangedProperty<float>::Ptr m_increment = RangedProperty<float>::create("growth increment",
                                                                                 1.f, 0.f, 1000.f);
-        RangedProperty<float>::Ptr m_increment_randomness = RangedProperty<float>::create("growth increment randomness",
-                                                                               0.f, 0.f, 1000.f);
+        RangedProperty<float>::Ptr m_increment_randomness =
+            RangedProperty<float>::create("growth increment randomness",
+                                          0.f, 0.f, 1000.f);
         RangedProperty<float>::Ptr m_diameter = RangedProperty<float>::create("diameter",
                                                                               1.f, 0.f, 100.f);
-        RangedProperty<float>::Ptr m_diameter_shrink = RangedProperty<float>::create("diameter shrink factor",
-                                                                                     1.f, 0.f, 5.f);
+        RangedProperty<float>::Ptr m_diameter_shrink =
+            RangedProperty<float>::create("diameter shrink factor",
+                                          1.f, 0.f, 5.f);
         
         RangedProperty<float>::Ptr m_cap_bias = RangedProperty<float>::create("cap bias",
                                                                               0.f, 0.f, 100.f);
@@ -114,6 +123,7 @@ namespace kinski
             Property_<std::string>::create("Rule 4", "")
         };
         
+        Property_<bool>::Ptr m_use_bounding_mesh = Property_<bool>::create("use bounding mesh", false);
         Property_<bool>::Ptr m_animate_growth = Property_<bool>::create("animate growth", false);
         RangedProperty<float>::Ptr m_animation_time = RangedProperty<float>::create("animation time",
                                                                                5.f, 0.f, 120.f);

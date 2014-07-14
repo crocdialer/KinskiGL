@@ -43,6 +43,7 @@ void GrowthApp::setup()
     for(auto rule : m_rules)
         registerProperty(rule);
     
+    registerProperty(m_use_bounding_mesh);
     registerProperty(m_animate_growth);
     registerProperty(m_animation_time);
     registerProperty(m_shader_index);
@@ -63,21 +64,12 @@ void GrowthApp::setup()
                                            gl::Material::create());
         m_bounding_mesh->position() += aabb.center();
         
-//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 8),
-//                                           gl::Material::create());
-        
+        // some material props
         auto &bound_mat = m_bounding_mesh->material();
         bound_mat->setDiffuse(gl::Color(bound_mat->diffuse().rgb(), .2));
         bound_mat->setBlending();
         bound_mat->setDepthWrite(false);
 //        scene().addObject(m_bounding_mesh);
-        
-//
-//        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createSphere(60.f, 32),
-//                                           gl::Material::create());
-//        m_bounding_mesh->setPosition(vec3(0, 0, 160));
-//        m_bounding_mesh->material()->setWireframe();
-//        m_bounding_mesh->material()->setDiffuse(gl::COLOR_WHITE);
         
         // load shaders
         m_lsystem_shaders[0] = gl::createShaderFromFile("shader_01.vert",
@@ -197,6 +189,14 @@ void GrowthApp::draw()
     
     // draw our scene
     scene().render(camera());
+    
+    // our bounding mesh
+    if(*m_use_bounding_mesh)
+    {
+        gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+        gl::multMatrix(gl::MODEL_VIEW_MATRIX, m_bounding_mesh->global_transform());
+        gl::drawMesh(m_bounding_mesh);
+    }
     
     if(m_light_component->draw_light_dummies())
     {    
@@ -412,7 +412,7 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_max_index)
     {
         if(m_mesh)
-            m_mesh->entries().front().numdices = *m_max_index;
+            m_mesh->entries().front().num_indices = *m_max_index;
     }
     else if(m_growth_animation && theProperty == m_animate_growth)
     {
@@ -502,10 +502,19 @@ void GrowthApp::refresh_lsystem()
     
     m_lsystem.set_max_random_tries(20);
     
-    m_lsystem.set_position_check([&](const glm::vec3& p) -> bool
+    // add a position check functor
+    if(*m_use_bounding_mesh)
     {
-        return gl::is_point_inside_mesh(p, m_bounding_mesh);
-    });
+        m_lsystem.set_position_check([&](const glm::vec3& p) -> bool
+        {
+            return gl::is_point_inside_mesh(p, m_bounding_mesh);
+        });
+    }
+    // add an empty functor (clear poaition check)
+    else
+    {
+        m_lsystem.set_position_check(LSystem::PositionCheckFunctor());
+    }
     
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);
@@ -537,7 +546,7 @@ void GrowthApp::refresh_lsystem()
 //    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
 //    m_mesh->materials().back()->textures().clear();
     
-    uint32_t min = 0, max = m_mesh->entries().front().numdices - 1;
+    uint32_t min = 0, max = m_mesh->entries().front().num_indices - 1;
     m_max_index->setRange(min, max);
     
     // animation

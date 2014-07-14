@@ -27,7 +27,7 @@ namespace kinski { namespace gl {
         m_materials.push_back(theMaterial);
         Entry entry;
         entry.num_vertices = theGeom->vertices().size();
-        entry.numdices = theGeom->indices().size();
+        entry.num_indices = theGeom->indices().size();
         entry.base_index = entry.base_vertex = 0;
         entry.material_index = 0;
         m_entries.push_back(entry);
@@ -323,7 +323,8 @@ namespace kinski { namespace gl {
     
     AABB Mesh::boundingBox() const
     {
-        return m_geometry->boundingBox();
+        auto ret = m_geometry->boundingBox();
+        return ret.transform(global_transform());
     }
     
     void Mesh::createVertexArray()

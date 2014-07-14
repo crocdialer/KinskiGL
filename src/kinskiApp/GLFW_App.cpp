@@ -445,7 +445,7 @@ namespace kinski
             theBar = m_tweakBars.front();
         }
         std::stringstream ss;
-        glm::ivec4 color(theColor * 255);
+        glm::ivec4 color(theColor * 255.f);
         ss << TwGetBarName(theBar) << " color='" <<color.r
         <<" " << color.g << " " << color.b <<"' alpha="<<color.a;
         TwDefine(ss.str().c_str());

@@ -116,7 +116,7 @@ namespace kinski{ namespace gl{
                             KINSKI_CHECK_GL_ERRORS();
                             
                             glDrawElementsBaseVertex(m->geometry()->primitiveType(),
-                                                     m->entries()[i].numdices,
+                                                     m->entries()[i].num_indices,
                                                      m->geometry()->indexType(),
                                                      BUFFER_OFFSET(m->entries()[i].base_index
                                                                    * sizeof(m->geometry()->indexType())),

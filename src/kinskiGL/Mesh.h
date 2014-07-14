@@ -57,8 +57,8 @@ namespace kinski { namespace gl {
         
         struct Entry
         {
-            Entry():numdices(0), base_vertex(0), base_index(0), material_index(-1), enabled(true){}
-            uint32_t numdices;
+            Entry():num_indices(0), base_vertex(0), base_index(0), material_index(-1), enabled(true){}
+            uint32_t num_indices;
             uint32_t num_vertices;
             uint32_t base_vertex;
             uint32_t base_index;
@@ -88,6 +88,10 @@ namespace kinski { namespace gl {
         GLuint vertexArray(int i = 0) const;
         
         void update(float time_delta);
+        
+        /*!
+         * returns an AABB with global transform applied to it 
+         */
         AABB boundingBox() const;
         
         const std::vector<Entry>& entries() const {return m_entries;};
