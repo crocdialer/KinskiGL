@@ -134,6 +134,8 @@ void GrowthApp::setup()
         LOG_INFO << "found audio device " << dev.name <<": "<< dev.outputChannels
             <<" outputs -- " <<dev.inputChannels <<" inputs";
     }
+    
+    LOG_INFO << "default device: " << m_audio.getDeviceInfo(m_audio.getDefaultOutputDevice()).name;
 }
 
 /////////////////////////////////////////////////////////////////
