@@ -90,7 +90,7 @@ namespace kinski { namespace gl {
         void update(float time_delta);
         
         /*!
-         * returns an AABB with global transform applied to it 
+         * returns an AABB with global transform applied to it
          */
         AABB boundingBox() const;
         

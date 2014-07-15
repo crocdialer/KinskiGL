@@ -35,12 +35,16 @@ namespace kinski{ namespace animation{
         m_end_time(m_start_time + boost::posix_time::seconds(duration)),
         m_current_time(m_start_time),
         m_ease_fn(EaseNone()),
-        m_interpolate_fn(interpolate_fn){start();}
+        m_interpolate_fn(interpolate_fn){}
         
         int getId() const {return m_id;}
+        
         inline float duration() const {return (m_end_time - m_start_time).total_nanoseconds() / 1.e9f;}
+        inline void set_duration(float d){ m_end_time = m_start_time + boost::posix_time::seconds(d); };
+        
         inline PlaybackType playing() const {return m_playing;}
         inline void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD){m_playing = playback_type;}
+        
         inline LoopType loop() const {return m_loop_type;}
         inline void set_loop(LoopType loop_type = LOOP){m_loop_type = loop_type;}
         
@@ -122,7 +126,6 @@ namespace kinski{ namespace animation{
         };
         
         inline void stop(){ m_playing = PLAYBACK_PAUSED;}
-//        inline void play(PlaybackType pt = PLAYBACK_FORWARD){ m_playing = pt; };
         
     private:
         
@@ -133,6 +136,16 @@ namespace kinski{ namespace animation{
         EaseFunction m_ease_fn;
         InterpolationFunction m_interpolate_fn;
         Callback m_start_fn, m_update_fn, m_finish_fn, m_reverse_start_fn, m_reverse_finish_fn;
+    };
+    
+    class SequentialAnimation : public Animation
+    {
+    
+    };
+    
+    class ParallelAnimation : public Animation
+    {
+        
     };
     
     template<typename T>

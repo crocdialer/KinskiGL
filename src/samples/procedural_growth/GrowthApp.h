@@ -85,7 +85,7 @@ namespace kinski
         
         //! animate fractal growth
         animation::AnimationPtr m_growth_animation;
-        gl::Mesh::Entry m_entry;
+        std::vector<gl::Mesh::Entry> m_entries;
         
         //! animations
         std::vector<animation::AnimationPtr> m_animations{10};

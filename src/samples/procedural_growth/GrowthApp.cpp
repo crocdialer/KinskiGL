@@ -46,6 +46,9 @@ void GrowthApp::setup()
     registerProperty(m_use_bounding_mesh);
     registerProperty(m_animate_growth);
     registerProperty(m_animation_time);
+    registerProperty(m_light_rotation);
+    registerProperty(m_light_elevation);
+    
     registerProperty(m_shader_index);
     
     observeProperties();
@@ -115,8 +118,10 @@ void GrowthApp::setup()
     scene().addObject(lights()[0]);
     scene().addObject(m_light_root);
     
-//    m_animations[0] = animation::create(&m_light_root->position().y, 0.f, 500.f, 5.f);
-//    m_animations[0]->set_loop();
+    auto bounds = m_bounding_mesh->boundingBox();
+    m_animations[0] = animation::create(&m_light_root->position().y, bounds.min.y, bounds.max.y,
+                                        *m_light_elevation);
+    m_animations[0]->set_loop();
     
     int num_audio_devices = m_audio.getDeviceCount();
     
@@ -158,7 +163,9 @@ void GrowthApp::update(float timeDelta)
         {
             int sample_index = random<int>(0, m_samples.size() - 1);
             m_samples[sample_index]->play();
+            
             refresh_lsystem();
+//            m_growth_animation->start();
         }
     }
     
@@ -191,7 +198,7 @@ void GrowthApp::draw()
     scene().render(camera());
     
     // our bounding mesh
-    if(*m_use_bounding_mesh)
+    if(wireframe())
     {
         gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
         gl::multMatrix(gl::MODEL_VIEW_MATRIX, m_bounding_mesh->global_transform());
@@ -412,7 +419,10 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_max_index)
     {
         if(m_mesh)
+        {
+            m_mesh->entries().front().enabled = true;
             m_mesh->entries().front().num_indices = *m_max_index;
+        }
     }
     else if(m_growth_animation && theProperty == m_animate_growth)
     {
@@ -421,7 +431,10 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_animation_time)
     {
-//        *m_animation_time
+        if(m_growth_animation)
+        {
+            m_growth_animation->set_duration(*m_animation_time);
+        }
     }
     else if(theProperty == m_cap_bias)
     {
@@ -458,14 +471,21 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
         else
             m_serial.setup(*m_arduino_device_name, 57600);
     }
+    else if(theProperty == m_light_elevation ||
+            theProperty == m_light_rotation)
+    {
+        auto bounds = m_bounding_mesh->boundingBox();
+        m_animations[0] = animation::create(&m_light_root->position().y, bounds.min.y, bounds.max.y,
+                                            *m_light_elevation);
+        m_animations[0]->set_loop();
+    }
 }
 
 void GrowthApp::animate_lights(float time_delta)
 {
     //TODO: implement
     // rotation_speed
-    float rot_speed = 15.f;
-    m_light_root->transform() = glm::rotate(m_light_root->transform(), rot_speed * time_delta,
+    m_light_root->transform() = glm::rotate(m_light_root->transform(), *m_light_rotation * time_delta,
                                             gl::Y_AXIS);
 }
 
@@ -505,7 +525,7 @@ void GrowthApp::refresh_lsystem()
     // add a position check functor
     if(*m_use_bounding_mesh)
     {
-        m_lsystem.set_position_check([&](const glm::vec3& p) -> bool
+        m_lsystem.set_position_check([=](const glm::vec3& p) -> bool
         {
             return gl::is_point_inside_mesh(p, m_bounding_mesh);
         });
@@ -519,10 +539,9 @@ void GrowthApp::refresh_lsystem()
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);
     m_mesh = m_lsystem.create_mesh();
-    scene().addObject(m_mesh);
+    m_entries = m_mesh->entries();
     
-    // set position to center
-//    m_mesh->position() -= m_mesh->boundingBox().center();
+    scene().addObject(m_mesh);
     
     // add our shader
     for (auto m : m_mesh->materials())
@@ -543,18 +562,23 @@ void GrowthApp::refresh_lsystem()
 //    m_mesh->materials().back()->setShader(m_lsystem_shaders[2]);
 //    m_mesh->materials().back()->textures() = {m_textures[1]};
     
-//    m_mesh->materials().back()->setShader(gl::createShader(gl::SHADER_UNLIT));
-//    m_mesh->materials().back()->textures().clear();
-    
-    uint32_t min = 0, max = m_mesh->entries().front().num_indices - 1;
+    uint32_t min = 0, max = m_entries.front().num_indices - 1;
     m_max_index->setRange(min, max);
     
     // animation
     m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
-    if(!*m_animate_growth)
-        m_growth_animation->stop();
     
-    m_growth_animation->set_loop();
+    if(*m_animate_growth)
+    {
+        for (auto &entry : m_mesh->entries())
+        {
+            entry.enabled = false;
+        }
+        m_growth_animation->start();
+    }
+    
+    
+//    m_growth_animation->set_loop();
 }
 
 void GrowthApp::parse_line(const std::string &line)
