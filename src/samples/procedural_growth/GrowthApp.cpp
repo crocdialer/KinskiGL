@@ -532,7 +532,7 @@ void GrowthApp::refresh_lsystem()
             return gl::is_point_inside_mesh(p, m_bounding_mesh);
         });
     }
-    // add an empty functor (clear poaition check)
+    // add an empty functor (clear position check)
     else
     {
         m_lsystem.set_position_check(LSystem::PositionCheckFunctor());
@@ -568,15 +568,28 @@ void GrowthApp::refresh_lsystem()
     m_max_index->setRange(min, max);
     
     // animation
-    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
+//    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
+    
+// TODO: create compound animation
     
     if(*m_animate_growth)
     {
+        auto compound_anim = std::make_shared<animation::CompoundAnimation>();
+        float delay = 0.f;
         for (auto &entry : m_mesh->entries())
         {
-            entry.enabled = false;
+//            entry.enabled = false;
+            auto anim = animation::create<uint32_t>(&entry.num_indices,
+                                                    0,
+                                                    entry.num_indices,
+                                                    *m_animation_time,
+                                                    delay);
+            compound_anim->children().push_back(anim);
+            anim->start(delay);
+            delay += 2.f;
         }
-        m_growth_animation->start();
+        m_growth_animation = compound_anim;
+//        m_growth_animation->start();
     }
     
     

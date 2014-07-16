@@ -43,9 +43,7 @@ namespace kinski{ namespace animation{
         m_current_time(m_start_time),
         m_ease_fn(EaseNone()),
         m_interpolate_fn(interpolate_fn)
-        {
-        
-        }
+        {}
         
         int getId() const {return m_id;}
         
@@ -127,7 +125,7 @@ namespace kinski{ namespace animation{
                 m_playing = PLAYBACK_FORWARD;
             
             float dur = duration();
-            m_current_time = steady_clock::now();
+            m_start_time = m_current_time = steady_clock::now();
             m_start_time = m_current_time + duration_cast<steady_clock::duration>(float_second(delay));
             m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(dur));
             
@@ -154,6 +152,8 @@ namespace kinski{ namespace animation{
     class CompoundAnimation : public Animation
     {
     public:
+        
+        CompoundAnimation():Animation(0.f, 0.f, InterpolationFunction()){}
         
         virtual void start(float delay = 0.f)
         {
