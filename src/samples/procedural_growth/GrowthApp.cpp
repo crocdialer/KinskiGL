@@ -122,6 +122,7 @@ void GrowthApp::setup()
     m_animations[0] = animation::create(&m_light_root->position().y, bounds.min.y, bounds.max.y,
                                         *m_light_elevation);
     m_animations[0]->set_loop();
+    m_animations[0]->start();
     
     int num_audio_devices = m_audio.getDeviceCount();
     
@@ -478,6 +479,7 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
         m_animations[0] = animation::create(&m_light_root->position().y, bounds.min.y, bounds.max.y,
                                             *m_light_elevation);
         m_animations[0]->set_loop();
+        m_animations[0]->start();
     }
 }
 

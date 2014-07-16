@@ -9,11 +9,18 @@
 #ifndef __kinskiGL__Animation__
 #define __kinskiGL__Animation__
 
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include <chrono>
 #include "Property.h"
 #include "Easing.h"
 
 namespace kinski{ namespace animation{
+    
+    using std::chrono::duration_cast;
+    using std::chrono::microseconds;
+    using std::chrono::steady_clock;
+    
+    // ratio is 1 second per second, wow :D
+    typedef std::chrono::duration<float> float_second;
     
     class Animation;
     typedef std::shared_ptr<Animation> AnimationPtr;
@@ -31,25 +38,31 @@ namespace kinski{ namespace animation{
         Animation(float duration, float delay, InterpolationFunction interpolate_fn):
         m_playing(PLAYBACK_PAUSED),
         m_loop_type(LOOP_NONE),
-        m_start_time(boost::posix_time::second_clock::local_time()),
-        m_end_time(m_start_time + boost::posix_time::seconds(duration)),
+        m_start_time(steady_clock::now()),
+        m_end_time(m_start_time + duration_cast<steady_clock::duration>(float_second(duration))),
         m_current_time(m_start_time),
         m_ease_fn(EaseNone()),
-        m_interpolate_fn(interpolate_fn){}
+        m_interpolate_fn(interpolate_fn)
+        {
+        
+        }
         
         int getId() const {return m_id;}
         
-        inline float duration() const {return (m_end_time - m_start_time).total_nanoseconds() / 1.e9f;}
-        inline void set_duration(float d){ m_end_time = m_start_time + boost::posix_time::seconds(d); };
+        virtual float duration() const {return duration_cast<float_second>(m_end_time - m_start_time).count();}
+        virtual void set_duration(float d)
+        {
+            m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(d));
+        };
         
-        inline PlaybackType playing() const {return m_playing;}
+        virtual PlaybackType playing() const {return m_playing;}
         inline void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD){m_playing = playback_type;}
         
         inline LoopType loop() const {return m_loop_type;}
         inline void set_loop(LoopType loop_type = LOOP){m_loop_type = loop_type;}
         
-        boost::posix_time::ptime start_time() const {return m_start_time;}
-        boost::posix_time::ptime end_time() const {return m_end_time;}
+        steady_clock::time_point start_time() const {return m_start_time;}
+        steady_clock::time_point end_time() const {return m_end_time;}
         
         void set_ease_function(EaseFunction fn){m_ease_fn = fn;}
         void set_start_callback(Callback cb){m_start_fn = cb;}
@@ -58,21 +71,21 @@ namespace kinski{ namespace animation{
         void set_reverse_start_callback(Callback cb){m_reverse_start_fn = cb;}
         void set_reverse_finish_callback(Callback cb){m_reverse_finish_fn = cb;}
         
-        inline float progress() const
+        virtual float progress() const
         {
-            float val = clamp((float)(m_current_time - m_start_time).total_nanoseconds() /
-                              (float)(m_end_time - m_start_time).total_nanoseconds(), 0.f, 1.f);
+            float val = clamp(duration_cast<float_second>(m_current_time - m_start_time).count() /
+                              duration_cast<float_second>(m_end_time - m_start_time).count(), 0.f, 1.f);
             
             if(m_playing == PLAYBACK_BACKWARD){val = 1.f - val;}
             return val;
         }
         
-        inline bool finished() const
+        virtual bool finished() const
         {
             return m_current_time > m_end_time;
         }
         
-        void update(float timeDelta)
+        virtual void update(float timeDelta)
         {
             if(!playing()) return;
 
@@ -94,7 +107,7 @@ namespace kinski{ namespace animation{
                 }
             }
             // update timing
-            m_current_time += boost::posix_time::microseconds(timeDelta * 1.e6f);
+            m_current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
             
             // this applies easing and passes it to an interpolation function
             m_interpolate_fn(m_ease_fn(progress()));
@@ -108,15 +121,15 @@ namespace kinski{ namespace animation{
         /*!
          * Start the animation with an optional delay in seconds
          */
-        void start(float delay = 0.f)
+        virtual void start(float delay = 0.f)
         {
             if(!m_playing)
                 m_playing = PLAYBACK_FORWARD;
             
             float dur = duration();
-            m_current_time = boost::posix_time::second_clock::local_time();
-            m_start_time = m_current_time + boost::posix_time::microseconds(delay * 1.e6f);
-            m_end_time = m_start_time + boost::posix_time::microseconds(dur * 1.e6f);
+            m_current_time = steady_clock::now();
+            m_start_time = m_current_time + duration_cast<steady_clock::duration>(float_second(delay));
+            m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(dur));
             
             // fire start callback, if any
             if(m_playing == PLAYBACK_FORWARD && m_start_fn)
@@ -125,28 +138,84 @@ namespace kinski{ namespace animation{
                 m_reverse_start_fn();
         };
         
-        inline void stop(){ m_playing = PLAYBACK_PAUSED;}
+        virtual void stop(){ m_playing = PLAYBACK_PAUSED;}
         
     private:
         
         int m_id;
         PlaybackType m_playing;
         LoopType m_loop_type;
-        boost::posix_time::ptime m_start_time, m_end_time, m_current_time;
+        steady_clock::time_point m_start_time, m_end_time, m_current_time;
         EaseFunction m_ease_fn;
         InterpolationFunction m_interpolate_fn;
         Callback m_start_fn, m_update_fn, m_finish_fn, m_reverse_start_fn, m_reverse_finish_fn;
     };
     
-    class SequentialAnimation : public Animation
+    class CompoundAnimation : public Animation
     {
-    
-    };
-    
-    class ParallelAnimation : public Animation
-    {
+    public:
         
+        virtual void start(float delay = 0.f)
+        {
+            for(const auto &child_anim : m_animations)
+                child_anim->start();
+        }
+        virtual void stop()
+        {
+            for(const auto &child_anim : m_animations)
+                child_anim->stop();
+        }
+        
+        virtual float duration() const
+        {
+            if(m_animations.empty()) return 0.f;
+            
+            // find min start time and max end time
+            steady_clock::time_point start_tp = steady_clock::time_point::max(),
+            end_tp = steady_clock::time_point::min();
+            
+            for(const auto &child_anim : m_animations)
+            {
+                if(child_anim->start_time() < start_tp)
+                    start_tp = child_anim->start_time();
+                if(child_anim->end_time() > end_tp)
+                    end_tp = child_anim->end_time();
+                
+            }
+            return duration_cast<float_second>(end_tp - start_tp).count();
+        }
+        
+        virtual void update(float timeDelta)
+        {
+            for(const auto &child_anim : m_animations){ child_anim->update(timeDelta); }
+        }
+        
+        virtual bool finished() const
+        {
+            for(const auto &child_anim : m_animations)
+            {
+                if(!child_anim->finished())
+                    return false;
+            }
+            return true;
+        }
+        
+        std::vector<AnimationPtr>& children() {return m_animations;}
+        const std::vector<AnimationPtr>& children() const {return m_animations;}
+        
+    private:
+        std::vector<AnimationPtr> m_animations;
     };
+    
+//    class SequentialAnimation : public CompoundAnimation
+//    {
+//        virtual float duration() const;
+//    };
+//    
+//    class ParallelAnimation : public CompoundAnimation
+//    {
+//        virtual float duration() const;
+//    };
     
     template<typename T>
     AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration,

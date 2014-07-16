@@ -85,6 +85,7 @@ void main()
   if(u_numLights > 3) shade_color += shade(u_lights[3], u_material, normal, vertex_in.eyeVec, texColors);
   
   // NdotEye
+  //float n_dot_eye = 1.0;//max(0.0, dot(normal, normalize(-vertex_in.eyeVec)));
   float n_dot_eye = dot(normal, normalize(-vertex_in.eyeVec));
 
   fragData = shade_color * vec4(1, 1, 1, n_dot_eye * n_dot_eye); //vec4(1, 0, 0, 1); 
