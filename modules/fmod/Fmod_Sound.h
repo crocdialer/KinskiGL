@@ -10,7 +10,7 @@
 #define __kinskiGL__Fmod_Sound__
 
 #include "fmod.hpp"
-//#include "fmod_errors.h"
+#include "fmod_errors.h"
 #include "Sound.h"
 
 namespace kinski{ namespace audio{
@@ -26,7 +26,7 @@ namespace kinski{ namespace audio{
         void unload();
         void play();
         void stop();
-        void record();
+        void record(int device = 0);
         void get_spectrum(float *buffer, int num_buckets);
         void get_pcm_buffer(float *buffer, int num_samples);
         
@@ -39,6 +39,7 @@ namespace kinski{ namespace audio{
         void set_position(float pct); // 0 = start, 1 = end;
         void set_positionMS(int ms);
         
+        bool is_recording(int device = 0);
         bool playing();
         float volume();
         float pan();

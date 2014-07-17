@@ -22,6 +22,14 @@ namespace kinski{ namespace audio{
     float* get_spectrum(int nBands);
     void shutdown();
     
+    struct recording_device
+    {
+        std::string name;
+        int num_channels;
+    };
+    
+    std::vector<recording_device> get_recording_devices();
+    
     typedef std::shared_ptr<class Sound> SoundPtr;
     
     class Sound
@@ -35,7 +43,7 @@ namespace kinski{ namespace audio{
         virtual void unload() = 0;
         virtual void play() = 0;
         virtual void stop() = 0;
-        virtual void record() = 0;
+        virtual void record(int device = 0) = 0;
         virtual void get_spectrum(float *buffer, int num_buckets) = 0;
         virtual void get_pcm_buffer(float *buffer, int num_samples) = 0;
         
@@ -48,6 +56,7 @@ namespace kinski{ namespace audio{
         virtual void set_position(float pct) = 0; // 0 = start, 1 = end;
         virtual void set_positionMS(int ms) = 0;
         
+        virtual bool is_recording(int device = 0) = 0;
         virtual bool playing() = 0;
         virtual float volume() = 0;
         virtual float pan() = 0;
@@ -71,6 +80,13 @@ namespace kinski{ namespace audio{
     public:
         SoundLoadException(const std::string &theFilename) :
         Exception(std::string("Got trouble loading an audiofile: ") + theFilename){}
+    };
+    
+    class SoundRecordingException: public Exception
+    {
+    public:
+        SoundRecordingException() :
+        Exception("Got trouble recording a sound: "){}
     };
     
     class SoundInput

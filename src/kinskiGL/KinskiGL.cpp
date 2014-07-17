@@ -1125,6 +1125,12 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam)
     {
+        if(!theFbo)
+        {
+            LOG_WARNING << "trying to use an uninitialized FBO";
+            return gl::Texture();
+        }
+        
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::setWindowDimension(theFbo.getSize());

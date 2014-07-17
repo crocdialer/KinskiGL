@@ -22,6 +22,10 @@ namespace kinski{ namespace audio{
     static std::vector<float> g_fftInterpValues;
     static std::vector<float> g_fftSpectrum;
     
+    #define CHECK_ERROR(result) \
+        if(result != FMOD_OK) \
+            LOG_ERROR << "FMOD error! " << result << ": " << FMOD_ErrorString(result);
+    
     void init_fmod()
     {
         if(!g_system)
@@ -72,6 +76,28 @@ namespace kinski{ namespace audio{
         return i;
     }
     
+    std::vector<recording_device> get_recording_devices()
+    {
+        init_fmod();
+        
+        std::vector<recording_device> ret;
+        FMOD_RESULT result;
+        int numdrivers;
+        result = g_system->getRecordNumDrivers(&numdrivers);
+        CHECK_ERROR(result);
+        
+        for (int count = 0; count < numdrivers; count++)
+        {
+            char name[256];
+            
+            result = g_system->getRecordDriverInfo(count, name, 256, 0);
+            CHECK_ERROR(result);
+            
+            ret.push_back({name, 1});
+        }
+        return ret;
+    }
+    
     float* get_spectrum(int nBands)
     {
         init_fmod();
@@ -106,15 +132,15 @@ namespace kinski{ namespace audio{
         // 	try to put all of the values (nBandsToGet) into (nBands)
         //  in a way which is accurate and preserves the data:
         //
-        
-        if (nBandsToGet == nBands){
-            
-            for(int i = 0; i < nBandsToGet; i++){
+        if (nBandsToGet == nBands)
+        {
+            for(int i = 0; i < nBandsToGet; i++)
+            {
                 g_fftInterpValues[i] = g_fftValues[i];
             }
-            
-        } else {
-            
+        }
+        else
+        {
             float step = (float)nBandsToGet / (float)nBands;
             //float pos 		= 0;
             // so for example, if nBands = 33, nBandsToGet = 64, step = 1.93f;
@@ -125,7 +151,8 @@ namespace kinski{ namespace audio{
                 // if I am current band = 0, I care about (0+1) * step, my end pos
                 // if i > endPos, then split i with me and my neighbor
                 
-                if (i >= ((currentBand+1)*step)){
+                if (i >= ((currentBand+1)*step))
+                {
                     
                     // do some fractional thing here...
                     float fraction = ((currentBand+1)*step) - (i-1);
@@ -139,21 +166,21 @@ namespace kinski{ namespace audio{
                     }
                     
                     g_fftInterpValues[currentBand] += one_m_fraction * g_fftValues[i];
-                    
-                } else {
+                }
+                else
+                {
                     // do normal things
                     g_fftInterpValues[currentBand] += g_fftValues[i];
                 }
             }
             
             // because we added "step" amount per band, divide to get the mean:
-            for (int i = 0; i < nBands; i++){
+            for (int i = 0; i < nBands; i++)
+            {
                 g_fftInterpValues[i] /= step;
                 if (g_fftInterpValues[i] > 1) g_fftInterpValues[i] = 1; 	// this seems "wrong"
             }
-            
         }
-        
         return &g_fftInterpValues[0];
     }
     
@@ -248,14 +275,56 @@ namespace kinski{ namespace audio{
         m_channel->stop();
     }
     
-    void Fmod_Sound::record()
+    void Fmod_Sound::record(int device)
     {
+        FMOD_RESULT result;
+        
+        // init system
+        init_fmod();
+        unload();
+        
+        // list drivers
+        //auto devices = get_recording_devices();
+
+        // set driver
+        int recorddriver = device;
+        
+        // create sound
+        FMOD_CREATESOUNDEXINFO exinfo;
+        memset(&exinfo, 0, sizeof(FMOD_CREATESOUNDEXINFO));
+        
+        exinfo.cbsize = sizeof(FMOD_CREATESOUNDEXINFO);
+        exinfo.numchannels = 2;
+        exinfo.defaultfrequency = 44100;
+        
+        exinfo.format = FMOD_SOUND_FORMAT_PCM16;
+        // TODO: no hardcoded 5secs here
+        exinfo.length = exinfo.defaultfrequency * sizeof(short) * exinfo.numchannels * 5;
+        
+        result = g_system->createSound(NULL, FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER, &exinfo, &m_sound);
+        CHECK_ERROR(result);
+
+        // start recording
+        result = g_system->recordStart(recorddriver, m_sound, m_loop);
+        CHECK_ERROR(result);
+        
+        // just in case
+        g_system->update();
+    }
     
+    bool Fmod_Sound::is_recording(int device)
+    {
+        init_fmod();
+        bool ret;
+        g_system->isRecording(0, &ret);
+        return ret;
     }
     
     void Fmod_Sound::get_spectrum(float *buffer, int num_buckets)
     {
-    
+        //TODO: only left channel returned here
+        FMOD_RESULT result = m_channel->getSpectrum(buffer, num_buckets, 0, FMOD_DSP_FFT_WINDOW_RECT);
+        CHECK_ERROR(result);
     }
     
     void Fmod_Sound::get_pcm_buffer(float *buffer, int num_samples)
