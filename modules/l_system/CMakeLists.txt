@@ -1,0 +1,6 @@
+if(APPLE)
+elseif(UNIX)
+endif()
+
+set(MODULE_LIBRARIES "" PARENT_SCOPE)
+set(MODULE_INCLUDES "" PARENT_SCOPE)

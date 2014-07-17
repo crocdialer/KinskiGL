@@ -47,7 +47,9 @@ namespace kinski{ namespace animation{
         
         int getId() const {return m_id;}
         
-        virtual float duration() const {return duration_cast<float_second>(m_end_time - m_start_time).count();}
+        virtual float duration() const
+        {return duration_cast<float_second>(m_end_time - m_start_time).count();}
+        
         virtual void set_duration(float d)
         {
             m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(d));
@@ -62,6 +64,7 @@ namespace kinski{ namespace animation{
         steady_clock::time_point start_time() const {return m_start_time;}
         steady_clock::time_point end_time() const {return m_end_time;}
         
+        void set_interpolation_function(InterpolationFunction fn){m_interpolate_fn = fn;}
         void set_ease_function(EaseFunction fn){m_ease_fn = fn;}
         void set_start_callback(Callback cb){m_start_fn = cb;}
         void set_update_callback(Callback cb){m_update_fn = cb;}
@@ -125,7 +128,7 @@ namespace kinski{ namespace animation{
                 m_playing = PLAYBACK_FORWARD;
             
             float dur = duration();
-            m_start_time = m_current_time = steady_clock::now();
+            m_current_time = steady_clock::now();
             m_start_time = m_current_time + duration_cast<steady_clock::duration>(float_second(delay));
             m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(dur));
             

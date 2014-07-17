@@ -1,4 +1,2 @@
-set(LIBS ${LIBS})
-set(MODULES avfoundation rtaudio fmod assimp)
-add_definitions(-D__MACOSX_CORE__)
+set(MODULES l_system)
 KINSKI_ADD_SAMPLE(${itemName} ${folderItem} "${MODULES}")

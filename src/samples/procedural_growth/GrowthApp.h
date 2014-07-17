@@ -15,16 +15,6 @@
 #include "kinskiCore/Animation.h"
 #include "LSystem.h"
 
-// Movie playback with avfoundation
-#include "MovieController.h"
-
-// serial communication
-#include "kinskiCore/Serial.h"
-
-// audio
-#include "RtAudio.h"
-#include "Sound.h"
-
 // networking
 #include "kinskiCore/networking.h"
 
@@ -37,29 +27,9 @@ namespace kinski
         gl::Font m_font;
         std::vector<gl::Texture> m_textures{4};
         
-        // Serial communication with Arduino device
-        Property_<string>::Ptr m_arduino_device_name =
-            Property_<string>::create("Arduino device name",
-                                      "/dev/tty.usbmodem1411");
-        // the serial device
-        Serial m_serial;
-        
-        // sensor inputs
-        string m_input_prefix = "analog_";
-        std::vector<Measurement<float>> m_analog_in { Measurement<float>("Hammer Input") };
-        
         // udp receiver
         net::udp_server m_udp_server;
         Property_<uint32_t>::Ptr m_local_udp_port = Property_<uint32_t>::create("udp port", 11111);
-        
-        // audio device
-        RtAudio m_audio;
-        
-        // audio samples
-        std::vector<audio::SoundPtr> m_samples;
-        
-        // movie
-        MovieController m_movie;
         
         // light controls
         LightComponent::Ptr m_light_component;
@@ -67,8 +37,6 @@ namespace kinski
         Property_<float>::Ptr
         m_light_rotation = Property_<float>::create("light rotation speed", 5.f),
         m_light_elevation = Property_<float>::create("light elevation speed", 5.f);
-        
-//        float m_light_rotation, m_light_elevation;
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
         
@@ -131,7 +99,6 @@ namespace kinski
         Property_<uint32_t>::Ptr m_shader_index = Property_<uint32_t>::create("shader index", 0);
         
         void refresh_lsystem();
-        void parse_line(const std::string &line);
         void animate_lights(float time_delta);
         void update_animations(float time_delta);
         

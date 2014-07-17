@@ -7,8 +7,6 @@
 //
 
 #include "GrowthApp.h"
-#include "Fmod_Sound.h"
-#include "AssimpConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -28,7 +26,6 @@ void GrowthApp::setup()
     set_precise_selection(false);
     
     registerProperty(m_local_udp_port);
-    registerProperty(m_arduino_device_name);
     registerProperty(m_branch_angles);
     registerProperty(m_branch_randomness);
     registerProperty(m_increment);
@@ -61,11 +58,9 @@ void GrowthApp::setup()
     
     try
     {
-        auto model = gl::AssimpConnector::loadModel("kamin_01.dae");
-        auto aabb = model->boundingBox();
-        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(aabb.halfExtents()),
+        m_bounding_mesh = gl::Mesh::create(gl::Geometry::createBox(vec3(50)),
                                            gl::Material::create());
-        m_bounding_mesh->position() += aabb.center();
+        m_bounding_mesh->position() += m_bounding_mesh->boundingBox().center();
         
         // some material props
         auto &bound_mat = m_bounding_mesh->material();
@@ -79,28 +74,8 @@ void GrowthApp::setup()
                                                         "shader_01.frag",
                                                         "shader_01.geom");
         
-        m_lsystem_shaders[1] = gl::createShaderFromFile("shader_01.vert",
-                                                        "shader_points.frag",
-                                                        "lines_to_points.geom");
-        
-        m_lsystem_shaders[2] = gl::createShaderFromFile("shader_01.vert",
-                                                        "shader_points.frag",
-                                                        "lines_to_points_spiral.geom");
-        
-        m_lsystem_shaders[3] = gl::createShader(gl::SHADER_UNLIT);
-        
         m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
         m_textures[1] = gl::createTextureFromFile("snake_tex.jpg", true, true, 4);
-//        m_textures[2] = gl::createTextureFromFile("bark_01.jpg", true, true, 4);
-        
-//        m_movie.load("~/Desktop/l_system_animation/vid3.mov", true, true);
-        
-        // audio
-        for(auto &sample : getDirectoryEntries("~/Desktop/eier_sounds/", false, "wav"))
-        {
-            m_samples.push_back(audio::SoundPtr(new audio::Fmod_Sound(sample)));
-        }
-        
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -123,17 +98,6 @@ void GrowthApp::setup()
                                         *m_light_elevation);
     m_animations[0]->set_loop();
     m_animations[0]->start();
-    
-    int num_audio_devices = m_audio.getDeviceCount();
-    
-    for(int i = 0; i < num_audio_devices; i++)
-    {
-        auto dev = m_audio.getDeviceInfo(i);
-        LOG_INFO << "found audio device " << dev.name <<": "<< dev.outputChannels
-            <<" outputs -- " <<dev.inputChannels <<" inputs";
-    }
-    
-    LOG_INFO << "default device: " << m_audio.getDeviceInfo(m_audio.getDefaultOutputDevice()).name;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -141,40 +105,6 @@ void GrowthApp::setup()
 void GrowthApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
-    
-    // parse arduino input
-    if(m_serial.isInitialized())
-    {
-        for(string line : m_serial.read_lines())
-        {
-            parse_line(line);
-        }
-    }
-    
-    // process our analog inputs
-    for (const auto &m : m_analog_in)
-    {
-        bool sample_playing = false;
-        for (auto &sample : m_samples)
-        {
-            if(sample->playing()){ sample_playing = true; break;}
-        }
-        
-        if(m.last_value() > .1 && !sample_playing)
-        {
-            int sample_index = random<int>(0, m_samples.size() - 1);
-            m_samples[sample_index]->play();
-            
-            refresh_lsystem();
-//            m_growth_animation->start();
-        }
-    }
-    
-    // movie playback, get a new frame if available
-    if(m_movie.copy_frame_to_texture(m_textures[1]))
-    {
-
-    }
     
     if(m_dirty_lsystem) refresh_lsystem();
     
@@ -233,13 +163,6 @@ void GrowthApp::draw()
                            offset);
             offset += step;
         }
-        
-        // draw analog input meter
-        float val = m_analog_in[0].last_value();
-        
-        gl::drawQuad(gl::COLOR_DARK_RED,
-                     vec2(70, windowSize().y * val),
-                     vec2(windowSize().x - 150, windowSize().y * (1 - val)));
         
         // draw fps string
         gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
@@ -384,7 +307,6 @@ void GrowthApp::got_message(const std::vector<uint8_t> &the_message)
 {
     string msg = string(the_message.begin(), the_message.end());
     LOG_DEBUG << msg;
-    parse_line(msg);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -447,30 +369,9 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
             }
         }
     }
-    else if(theProperty == m_shader_index)
-    {
-        if(m_mesh)
-        {
-            for(auto mat : m_mesh->materials())
-            {
-                auto shader = m_lsystem_shaders[kinski::clamp<uint32_t>(*m_shader_index,
-                                                                        0,
-                                                                        m_lsystem_shaders.size() - 1)];
-                if(shader)
-                    mat->setShader(shader);
-            }
-        }
-    }
     else if(theProperty == m_local_udp_port)
     {
         m_udp_server.start_listen(*m_local_udp_port);
-    }
-    else if(theProperty == m_arduino_device_name)
-    {
-        if(m_arduino_device_name->value().empty())
-            m_serial.setup(0, 57600);
-        else
-            m_serial.setup(*m_arduino_device_name, 57600);
     }
     else if(theProperty == m_light_elevation ||
             theProperty == m_light_rotation)
@@ -485,7 +386,6 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
 
 void GrowthApp::animate_lights(float time_delta)
 {
-    //TODO: implement
     // rotation_speed
     m_light_root->transform() = glm::rotate(m_light_root->transform(), *m_light_rotation * time_delta,
                                             gl::Y_AXIS);
@@ -561,24 +461,16 @@ void GrowthApp::refresh_lsystem()
         m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
         m->setPointAttenuation(0.1, .0002, 0);
     }
-//    m_mesh->materials().back()->setShader(m_lsystem_shaders[2]);
-//    m_mesh->materials().back()->textures() = {m_textures[1]};
     
     uint32_t min = 0, max = m_entries.front().num_indices - 1;
     m_max_index->setRange(min, max);
-    
-    // animation
-//    m_growth_animation = animation::create(m_max_index, min, max, *m_animation_time);
-    
-// TODO: create compound animation
-    
+
     if(*m_animate_growth)
     {
         auto compound_anim = std::make_shared<animation::CompoundAnimation>();
         float delay = 0.f;
         for (auto &entry : m_mesh->entries())
         {
-//            entry.enabled = false;
             auto anim = animation::create<uint32_t>(&entry.num_indices,
                                                     0,
                                                     entry.num_indices,
@@ -589,27 +481,6 @@ void GrowthApp::refresh_lsystem()
             delay += 2.f;
         }
         m_growth_animation = compound_anim;
-//        m_growth_animation->start();
     }
-    
-    
-//    m_growth_animation->set_loop();
-}
 
-void GrowthApp::parse_line(const std::string &line)
-{
-    std::istringstream ss(line);
-    int parsed_index = -1;
-    
-    vector<string> tokens = split(line);
-    
-    // return if number of tokens doesn´t match or our prefix is not found
-    if(tokens.size() < 2 || tokens[0].find(m_input_prefix) == string::npos) return;
-    
-    parsed_index = string_as<int>(tokens[0].substr(m_input_prefix.size()));
-    
-    // return if parsed index is out of bounds
-    if(parsed_index < 0 || parsed_index >= m_analog_in.size()) return;
-    
-    m_analog_in[parsed_index].push(string_as<int>(tokens[1]) / 1023.f);
 }
