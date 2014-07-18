@@ -43,8 +43,8 @@ namespace kinski{ namespace audio{
         virtual void unload() = 0;
         virtual void play() = 0;
         virtual void stop() = 0;
-        virtual void record(int device = 0) = 0;
-        virtual void get_spectrum(float *buffer, int num_buckets) = 0;
+        virtual void record(float num_secs = 5.f, int device = 0) = 0;
+        virtual void get_spectrum(std::vector<float> &buffer, int num_buckets = 0) = 0;
         virtual void get_pcm_buffer(float *buffer, int num_samples) = 0;
         
         virtual void set_volume(float vol) = 0;

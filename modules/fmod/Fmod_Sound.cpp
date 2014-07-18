@@ -98,41 +98,41 @@ namespace kinski{ namespace audio{
         return ret;
     }
     
-    float* get_spectrum(int nBands)
+    bool rebase_buffer(const std::vector<float> &in_buf,
+                       std::vector<float> &out_buf,
+                       int num_buckets)
     {
-        init_fmod();
-        
         // 	set to 0
         std::fill(g_fftInterpValues.begin(), g_fftInterpValues.end(), 0.f);
         
         // 	check what the user wants vs. what we can do:
-        if (nBands > g_max_num_fft_bands)
+        if (num_buckets > g_max_num_fft_bands)
         {
-            LOG_ERROR<<"error in audio::get_spectrum, the maximum number of bands is 8192";
-            nBands = g_max_num_fft_bands;
+            LOG_ERROR << "error in audio::get_spectrum, the maximum number of bands is 8192";
+            num_buckets = g_max_num_fft_bands;
         }
-        else if (nBands <= 0)
+        else if (num_buckets <= 0)
         {
-            LOG_ERROR<<"error in audio::get_spectrum, minimum number of bands is 1";
-            return &g_fftInterpValues[0];
+            LOG_ERROR << "error in audio::get_spectrum, minimum number of bands is 1";
+            return false;
         }
         
         // 	FMOD needs pow2
-        int nBandsToGet = nextPow2(nBands);
-        if (nBandsToGet < 64) nBandsToGet = 64;
+        int nBandsToGet = std::max(nextPow2(num_buckets), 64);
         
-        // 	get the fft
-        g_system->getSpectrum(&g_fftSpectrum[0], nBandsToGet, 0, FMOD_DSP_FFT_WINDOW_HANNING);
+        // resize our output buffer
+        out_buf.resize(num_buckets);
         
         // 	convert to db scale
-        for(int i = 0; i < nBandsToGet; i++){
-            g_fftValues[i] = 10.0f * (float)log10(1 + g_fftSpectrum[i]) * 2.0f;
+        for(int i = 0; i < nBandsToGet; i++)
+        {
+            g_fftValues[i] = 10.0f * (float)log10(1 + in_buf[i]) * 2.0f;
         }
         
         // 	try to put all of the values (nBandsToGet) into (nBands)
         //  in a way which is accurate and preserves the data:
         //
-        if (nBandsToGet == nBands)
+        if (nBandsToGet == num_buckets)
         {
             for(int i = 0; i < nBandsToGet; i++)
             {
@@ -141,12 +141,13 @@ namespace kinski{ namespace audio{
         }
         else
         {
-            float step = (float)nBandsToGet / (float)nBands;
+            float step = (float)nBandsToGet / (float)num_buckets;
             //float pos 		= 0;
             // so for example, if nBands = 33, nBandsToGet = 64, step = 1.93f;
             int currentBand = 0;
             
-            for(int i = 0; i < nBandsToGet; i++){
+            for(int i = 0; i < nBandsToGet; i++)
+            {
                 
                 // if I am current band = 0, I care about (0+1) * step, my end pos
                 // if i > endPos, then split i with me and my neighbor
@@ -160,7 +161,7 @@ namespace kinski{ namespace audio{
                     g_fftInterpValues[currentBand] += fraction * g_fftValues[i];
                     currentBand++;
                     // safety check:
-                    if (currentBand >= nBands)
+                    if (currentBand >= num_buckets)
                     {
                         LOG_ERROR<<"get_spectrum - currentBand >= nBands";
                     }
@@ -175,12 +176,41 @@ namespace kinski{ namespace audio{
             }
             
             // because we added "step" amount per band, divide to get the mean:
-            for (int i = 0; i < nBands; i++)
+            for (int i = 0; i < num_buckets; i++)
             {
                 g_fftInterpValues[i] /= step;
                 if (g_fftInterpValues[i] > 1) g_fftInterpValues[i] = 1; 	// this seems "wrong"
             }
         }
+        memcpy(&out_buf[0], &g_fftInterpValues[0], num_buckets * sizeof(g_fftInterpValues[0]));
+        return true;
+    }
+    
+    float* get_spectrum(int num_buckets)
+    {
+        init_fmod();
+        
+        // 	check what the user wants vs. what we can do:
+        if (num_buckets > g_max_num_fft_bands)
+        {
+            LOG_ERROR << "error in audio::get_spectrum, the maximum number of bands is 8192";
+            num_buckets = g_max_num_fft_bands;
+        }
+        else if (num_buckets <= 0)
+        {
+            LOG_ERROR << "error in audio::get_spectrum, minimum number of bands is 1";
+            return NULL;
+        }
+        
+        // 	FMOD needs pow2
+        int nBandsToGet = std::max(nextPow2(num_buckets), 64);
+        
+        // 	get the fft
+        g_system->getSpectrum(&g_fftSpectrum[0], nBandsToGet, 0, FMOD_DSP_FFT_WINDOW_HANNING);
+        
+        // rebase buffer to desired bucket size
+        rebase_buffer(g_fftSpectrum, g_fftInterpValues, nBandsToGet);
+        
         return &g_fftInterpValues[0];
     }
     
@@ -275,7 +305,7 @@ namespace kinski{ namespace audio{
         m_channel->stop();
     }
     
-    void Fmod_Sound::record(int device)
+    void Fmod_Sound::record(float num_secs, int device)
     {
         FMOD_RESULT result;
         
@@ -298,8 +328,7 @@ namespace kinski{ namespace audio{
         exinfo.defaultfrequency = 44100;
         
         exinfo.format = FMOD_SOUND_FORMAT_PCM16;
-        // TODO: no hardcoded 5secs here
-        exinfo.length = exinfo.defaultfrequency * sizeof(short) * exinfo.numchannels * 5;
+        exinfo.length = exinfo.defaultfrequency * sizeof(short) * exinfo.numchannels * num_secs;
         
         result = g_system->createSound(NULL, FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER, &exinfo, &m_sound);
         CHECK_ERROR(result);
@@ -320,11 +349,30 @@ namespace kinski{ namespace audio{
         return ret;
     }
     
-    void Fmod_Sound::get_spectrum(float *buffer, int num_buckets)
+    void Fmod_Sound::get_spectrum(std::vector<float> &buffer, int num_buckets)
     {
+        // 	check what the user wants vs. what we can do:
+        if (num_buckets > g_max_num_fft_bands)
+        {
+            LOG_ERROR << "error in audio::get_spectrum, the maximum number of bands is 8192";
+            num_buckets = g_max_num_fft_bands;
+        }
+        else if (num_buckets <= 0)
+        {
+            LOG_ERROR << "error in audio::get_spectrum, minimum number of bands is 1";
+            num_buckets = 1;
+        }
+        
+        // 	FMOD needs pow2
+        int nBandsToGet = std::max(nextPow2(num_buckets), 64);
+        
         //TODO: only left channel returned here
-        FMOD_RESULT result = m_channel->getSpectrum(buffer, num_buckets, 0, FMOD_DSP_FFT_WINDOW_RECT);
+        FMOD_RESULT result = m_channel->getSpectrum(&g_fftSpectrum[0], nBandsToGet, 0,
+                                                    FMOD_DSP_FFT_WINDOW_HANNING);
         CHECK_ERROR(result);
+        
+        // interpolate and write values to output buffer
+        rebase_buffer(g_fftSpectrum, buffer, num_buckets);
     }
     
     void Fmod_Sound::get_pcm_buffer(float *buffer, int num_samples)
