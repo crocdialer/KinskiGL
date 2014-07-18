@@ -162,7 +162,7 @@ namespace kinski{ namespace audio{
                     // safety check:
                     if (currentBand >= nBands)
                     {
-                        LOG_ERROR<<"ofFmodSoundGetSpectrum - currentBand >= nBands";
+                        LOG_ERROR<<"get_spectrum - currentBand >= nBands";
                     }
                     
                     g_fftInterpValues[currentBand] += one_m_fraction * g_fftValues[i];

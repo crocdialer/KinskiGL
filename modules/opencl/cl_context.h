@@ -20,7 +20,7 @@ namespace kinski
         void init();
         
         cl::Context& context(){return m_context;}
-        cl::Device& device(){return m_device;};
+        cl::Device& device(){return m_device;}
         cl::CommandQueue& queue(){return m_queue;}
         cl::Program& program(){return m_program;}
         

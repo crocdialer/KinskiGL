@@ -242,7 +242,7 @@ gl::MeshPtr LSystem::create_mesh() const
             
             // rotate around 'up vector' ccw
             case '+':
-                m_state_stack.back().transform = glm::rotate_slow(m_state_stack.back().transform,
+                m_state_stack.back().transform = glm::rotate(m_state_stack.back().transform,
                                                              current_branch_angles[2],
                                                              up());
                 break;

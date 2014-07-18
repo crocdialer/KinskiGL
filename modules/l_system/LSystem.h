@@ -16,15 +16,9 @@ namespace kinski
     class LSystem
     {
     public:
-        
-        //! signature for a generic function to manipulate geometry in an arbitrary way
-        typedef std::function<void(const gl::GeometryPtr&)> GeomFunctor;
-        
+
         //! signature for a generic function to check if a newly grown position is valid
         typedef std::function<bool(const glm::vec3&)> PositionCheckFunctor;
-        
-        //! type for mapping symbols to geometry functions
-        typedef std::map<char, GeomFunctor> FunctorMap;
         
         LSystem();
         
