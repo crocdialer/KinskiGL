@@ -9,6 +9,7 @@
 #ifndef __kinskiGL__ViewerApp__
 #define __kinskiGL__ViewerApp__
 
+#include "kinskiCore/Measurement.hpp"
 #include "kinskiApp/GLFW_App.h"
 #include "kinskiApp/LightComponent.h"
 #include "kinskiApp/Arcball.h"
