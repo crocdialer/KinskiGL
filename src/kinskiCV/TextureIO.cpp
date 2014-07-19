@@ -22,7 +22,7 @@ const Texture TextureIO::loadTexture(const string &imgName)
     Texture ret;
     
     if(img.empty())
-        throw ImageLoadException(imgName);
+        throw ImageLoadException();
    
     //GLint maxSize;
     //glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxSize);

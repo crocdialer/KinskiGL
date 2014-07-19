@@ -291,7 +291,7 @@ namespace kinski{ namespace physics{
         stride = sizeof(geom->vertices()[0]);
         *indexbase = reinterpret_cast<unsigned char*>(&geom->indices()[e.base_index]);
         indexstride = 3 * sizeof(geom->indices()[0]);
-        numfaces = e.numdices / 3;
+        numfaces = e.num_indices / 3;
         indicestype = PHY_INTEGER;
     }
     
@@ -313,7 +313,7 @@ namespace kinski{ namespace physics{
         stride = sizeof(geom->vertices()[0]);
         *indexbase = reinterpret_cast<const unsigned char*>(&geom->indices()[e.base_index]);
         indexstride = 3 * sizeof(geom->indices()[0]);
-        numfaces = e.numdices / 3;
+        numfaces = e.num_indices / 3;
         indicestype = PHY_INTEGER;
     }
     
