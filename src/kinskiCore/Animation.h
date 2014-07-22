@@ -98,6 +98,9 @@ namespace kinski{ namespace animation{
                 else if(m_playing == PLAYBACK_BACKWARD && m_reverse_finish_fn)
                     m_reverse_finish_fn();
                 
+                // end playback
+                stop();
+                
                 if(loop())
                 {
                     if(m_loop_type == LOOP_BACK_FORTH)
