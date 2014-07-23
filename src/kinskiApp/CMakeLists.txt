@@ -10,9 +10,9 @@ find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp AppServer.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp 
-        AntTweakBarConnector.cpp OutstreamGL.cpp)
+        AntTweakBarConnector.cpp OutstreamGL.cpp MaterialComponent.cpp)
 FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h AppServer.h ViewerApp.h LightComponent.h Object3DComponent.h 
-        AntTweakBarConnector.h OutstreamGL.h)
+        AntTweakBarConnector.h OutstreamGL.h MaterialComponent.h)
 
 ##### RASPI
 else()
@@ -32,4 +32,4 @@ SOURCE_GROUP("Headers" FILES ${FOLDER_HEADERS})
 SOURCE_GROUP("Sources" FILES ${FOLDER_SOURCES})
 
 install (TARGETS ${LIB_NAME} DESTINATION lib)    
-install (FILES ${FOLDER_HEADERS} DESTINATION "include/${LIB_NAME}")    
+install (FILES ${FOLDER_HEADERS} DESTINATION "include/${LIB_NAME}")
