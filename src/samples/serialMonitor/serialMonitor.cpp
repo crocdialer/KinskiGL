@@ -24,6 +24,9 @@ private:
     // Serial communication with Arduino device
     Serial m_serial;
     
+    net::udp_server m_udp_server;
+    Property_<uint32_t>::Ptr m_local_udp_port = Property_<uint32_t>::create("udp port", 11111);
+    
     // Communication with Enttec DMXUSB Pro
     DMXController m_dmx_control;
     
@@ -131,6 +134,11 @@ public:
                                                        m_analog_in.size() - 1);
         registerProperty(m_selected_index);
         
+        // udp server
+        m_udp_server = net::udp_server(io_service(), std::bind(&SerialMonitorSample::got_message,
+                                                               this, std::placeholders::_1));
+        m_udp_server.start_listen(11111);
+        
         // register midi properties
         m_midi_port_name = Property_<string>::create("Midi virtual port name", "Baumhafer");
         registerProperty(m_midi_port_name);
@@ -171,7 +179,7 @@ public:
         
         m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
         
-        for(auto &m : m_analog_in){m.filter_window_size(5);}
+//        for(auto &m : m_analog_in){m.filter_window_size(5);}
         
         m_channel_activity.assign(m_analog_in.size(), false);
         
@@ -395,9 +403,10 @@ public:
     
     /////////////////////////////////////////////////////////////////
     
-    void got_message(const std::string &the_message)
+    void got_message(const std::vector<uint8_t> &the_message)
     {
-        LOG_INFO<<the_message;
+        std::string msg = std::string(the_message.begin(), the_message.end());
+        parse_line(msg);
     }
     
     /////////////////////////////////////////////////////////////////
@@ -658,6 +667,10 @@ public:
             
             // make sure leftover notes are purged
             midi_mute_all();
+        }
+        else if(theProperty == m_local_udp_port)
+        {
+            m_udp_server.start_listen(*m_local_udp_port);
         }
     }
 };
