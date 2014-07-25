@@ -11,7 +11,6 @@
 
 #include "kinskiCore/Measurement.hpp"
 #include "kinskiApp/GLFW_App.h"
-#include "kinskiApp/LightComponent.h"
 #include "kinskiApp/Arcball.h"
 #include "kinskiGL/SerializerGL.h"
 #include "kinskiGL/Scene.h"

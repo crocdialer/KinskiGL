@@ -271,7 +271,7 @@ namespace kinski {
         for (; it != getSearchPaths().end(); ++it)
         {
             ret_path = path(*it) / path(expanded_name);
-            if (boost::filesystem::exists(ret_path))
+            if (boost::filesystem::exists(ret_path) && is_regular_file(ret_path))
             {
                 LOG_TRACE<<"found '"<<theFileName<<"' as: "<<ret_path.string();
                 return ret_path.string();

@@ -69,9 +69,9 @@ const glm::vec3& LSystem::position() const
     return *reinterpret_cast<glm::vec3*>(&m_state_stack.back().transform[3]);
 }
 
-const glm::mat4& LSystem::turtle_transform() const
+glm::mat4 LSystem::turtle_transform() const
 {
-    return m_state_stack.back().transform;
+    return m_state_stack.empty() ? glm::mat4() : m_state_stack.back().transform;
 }
 
 void LSystem::iterate(int num_iterations)

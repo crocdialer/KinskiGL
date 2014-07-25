@@ -40,9 +40,13 @@ namespace kinski {
     
     class FileNotFoundException: public Exception
     {
+    private:
+        std::string m_file_name;
     public:
         FileNotFoundException(const std::string &theFilename) :
-        Exception(std::string("File not found: ") + theFilename) {}
+        Exception(std::string("File not found: ") + theFilename),
+        m_file_name(theFilename){}
+        std::string file_name() const { return m_file_name;}
     };
     
     class OpenDirectoryFailed: public Exception

@@ -31,7 +31,7 @@ namespace kinski
         const std::string axiom() const { return m_axiom;}
         void set_axiom(const std::string &the_axiom){m_axiom = the_axiom;};
         
-        const glm::mat4& turtle_transform() const;
+        glm::mat4 turtle_transform() const;
         
         float increment() const {return m_increment;}
         void set_increment(float the_inc) {m_increment = the_inc;}

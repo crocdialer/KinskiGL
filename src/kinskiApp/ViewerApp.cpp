@@ -8,6 +8,9 @@
 
 #include "ViewerApp.h"
 
+#include "kinskiApp/LightComponent.h"
+#include "kinskiApp/MaterialComponent.h"
+
 namespace kinski {
     
     ViewerApp::ViewerApp():GLFW_App(),
@@ -76,10 +79,15 @@ namespace kinski {
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         lights().front()->setPosition(light_direction());
         
-        m_materials.push_back(gl::MaterialPtr(new gl::Material));
-        m_materials.push_back(gl::MaterialPtr(new gl::Material));
-        m_materials[0]->setShader(gl::createShader(gl::SHADER_PHONG));
-        m_materials[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
+        gl::Shader unlit_shader = gl::createShader(gl::SHADER_UNLIT);
+        for (int i = 0; i < 16; i++)
+        {
+            m_materials.push_back(gl::Material::create(unlit_shader));
+        }
+        
+//        m_materials.push_back(gl::MaterialPtr(new gl::Material));
+//        m_materials[0]->setShader(gl::createShader(gl::SHADER_PHONG));
+//        m_materials[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
         
         // enable observer mechanism
         observeProperties();
@@ -272,19 +280,28 @@ namespace kinski {
     
     void ViewerApp::save_settings(const std::string &path)
     {
-        std::list<Component::ConstPtr> components;
+        std::list<Component::ConstPtr> light_components, material_components;
         for (int i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());
             tmp->set_name("Light " + as_string(i));
             tmp->set_lights(lights());
             tmp->set_index(i);
-            components.push_back(tmp);
+            light_components.push_back(tmp);
+        }
+        for (int i = 0; i < materials().size(); i++)
+        {
+            MaterialComponent::Ptr tmp(new MaterialComponent());
+            tmp->set_name("Material " + as_string(i));
+            tmp->set_materials(materials());
+            tmp->set_index(i);
+            material_components.push_back(tmp);
         }
         try
         {
             Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            Serializer::saveComponentState(components, "light_config.json", PropertyIO_GL());
+            Serializer::saveComponentState(light_components, "light_config.json", PropertyIO_GL());
+            Serializer::saveComponentState(material_components, "material_config.json", PropertyIO_GL());
             
         }
         catch(Exception &e){LOG_ERROR<<e.what();}
@@ -292,7 +309,7 @@ namespace kinski {
     
     void ViewerApp::load_settings(const std::string &path)
     {
-        std::list<Component::Ptr> components;
+        std::list<Component::Ptr> light_components, material_components;
         for (int i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());
@@ -300,12 +317,22 @@ namespace kinski {
             tmp->set_lights(lights(), false);
             tmp->set_index(i);
             tmp->observeProperties();
-            components.push_back(tmp);
+            light_components.push_back(tmp);
+        }
+        for (int i = 0; i < materials().size(); i++)
+        {
+            MaterialComponent::Ptr tmp(new MaterialComponent());
+            tmp->set_name("Material " + as_string(i));
+            tmp->set_materials(materials(), false);
+            tmp->set_index(i);
+            tmp->observeProperties();
+            material_components.push_back(tmp);
         }
         try
         {
             Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            Serializer::loadComponentState(components, "light_config.json", PropertyIO_GL());
+            Serializer::loadComponentState(light_components, "light_config.json", PropertyIO_GL());
+            Serializer::loadComponentState(material_components, "material_config.json", PropertyIO_GL());
         }
         catch(Exception &e){LOG_ERROR<<e.what();}
     }

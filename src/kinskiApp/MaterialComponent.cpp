@@ -26,6 +26,21 @@ namespace kinski
     m_texture_path_3(Property_<std::string>::create("texture 3", "")),
     m_texture_path_4(Property_<std::string>::create("texture 4", ""))
     {
+        registerProperty(m_index);
+        registerProperty(m_ambient);
+        registerProperty(m_diffuse);
+        registerProperty(m_specular);
+        registerProperty(m_blending);
+        registerProperty(m_write_depth);
+        registerProperty(m_read_depth);
+        registerProperty(m_shader_vert);
+        registerProperty(m_shader_frag);
+        registerProperty(m_shader_geom);
+        registerProperty(m_texture_path_1);
+        registerProperty(m_texture_path_2);
+        registerProperty(m_texture_path_3);
+        registerProperty(m_texture_path_4);
+        
         set_name("Materials");
     }
     
@@ -69,17 +84,54 @@ namespace kinski
                 theProperty == m_shader_geom)
         {
             gl::Shader shader;
-            try
-            {
-                shader = gl::createShaderFromFile(*m_shader_vert, *m_shader_frag, *m_shader_geom);
-            } catch (Exception &e)
-            {
-                LOG_ERROR << e.what();
-                return;
-            }
             
-            if(shader)
-                active_mat->setShader(shader);
+            if(!m_shader_vert->value().empty() && !m_shader_frag->value().empty())
+            {
+                try
+                {
+                    shader = gl::createShaderFromFile(*m_shader_vert, *m_shader_frag, *m_shader_geom);
+                }
+                catch (FileNotFoundException &fe)
+                {
+                    if(!fe.file_name().empty()) LOG_DEBUG << fe.what();
+                }
+                catch (Exception &e)
+                {
+                    LOG_ERROR << e.what();
+                    return;
+                }
+                
+                if(shader)
+                    active_mat->setShader(shader);
+            }
+        }
+        else if(theProperty == m_texture_path_1 ||
+                theProperty == m_texture_path_2 ||
+                theProperty == m_texture_path_3 ||
+                theProperty == m_texture_path_4)
+        {
+            active_mat->textures().clear();
+            
+            std::list<std::string> tex_names = {*m_texture_path_1, *m_texture_path_2,
+                *m_texture_path_3, *m_texture_path_4};
+            
+            for(const std::string& n : tex_names)
+            {
+                if(n.empty()) continue;
+                
+                try
+                {
+                    auto tex = gl::createTextureFromFile(n);
+                    if(tex)
+                    {
+                        active_mat->addTexture(tex);
+                    }
+                }
+                catch (Exception &e)
+                {
+                    LOG_ERROR << e.what();
+                }
+            }
         }
     }
     
