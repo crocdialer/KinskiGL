@@ -87,4 +87,8 @@ namespace kinski
         template<typename T> struct owner_less : public less<T>{};
     }
 #endif
+
+// forward declare boost io_service
+namespace boost{ namespace asio{ class io_service; } }
+
 #endif//kinskiGL_Definitions_h

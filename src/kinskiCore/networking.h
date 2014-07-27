@@ -11,23 +11,6 @@
 
 #include "Definitions.h"
 
-// forward declarations
-namespace boost
-{
-    namespace asio
-    {
-        class io_service;
-        
-        namespace ip
-        {
-            class udp;
-            class tcp;
-            
-        }
-//        template<> class basic_stream_socket<ip::tcp>;
-    }
-}
-
 namespace kinski
 {
     namespace net
