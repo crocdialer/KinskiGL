@@ -23,7 +23,7 @@
 #include <map>
 #include <stack>
 
-
+#include "Logger.h"
 #include "Exception.h"
 #include "Utils.h"
 

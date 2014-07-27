@@ -21,10 +21,11 @@ using namespace kinski;
 struct Timer::timer_impl
 {
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> m_timer;
-    Callback m_callback;
+    Timer::Callback m_callback;
     
-    timer_impl(boost::asio::io_service &io):
-    m_timer(io)
+    timer_impl(boost::asio::io_service &io, Callback cb):
+    m_timer(io),
+    m_callback(cb)
     {}
 };
 
@@ -33,27 +34,33 @@ Timer::Timer()
 
 }
 
-Timer::Timer(float secs, boost::asio::io_service &io, Callback cb):
-m_impl(new timer_impl(io))
+Timer::Timer(boost::asio::io_service &io, Callback cb):
+m_impl(new timer_impl(io, cb)){}
+
+Timer::Timer(float secs, boost::asio::io_service &io, Timer::Callback cb):
+m_impl(new timer_impl(io, cb))
 {
     expires_from_now(secs);
 }
 
-Timer::Timer(float secs, Callback cb)
+Timer::Timer(float secs, Timer::Callback cb)
 {
-
+    LOG_WARNING << "constructor not yet implemented";
 }
 
 void Timer::expires_from_now(float secs)
 {
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
-    m_impl->m_timer.async_wait([&](const boost::system::error_code &error)
+    
+    // make a tmp copy to solve obscure errors in lambda
+    auto cb = m_impl->m_callback;
+    
+    m_impl->m_timer.async_wait([cb](const boost::system::error_code &error)
     {
         // Timer expired regularly
         if (!error)
         {
-            if(m_impl->m_callback)
-                m_impl->m_callback();
+            if(cb){ cb(); }
         }
     });
 }

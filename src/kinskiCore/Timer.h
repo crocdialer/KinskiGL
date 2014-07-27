@@ -15,19 +15,21 @@ namespace kinski
 {
     class Timer
     {
-        typedef std::function<void()> Callback;
-        
-        struct timer_impl;
-        std::shared_ptr<timer_impl> m_impl;
-        
     public:
+        typedef std::function<void(void)> Callback;
+        
         Timer();
+        Timer(boost::asio::io_service &io, Callback cb = Callback());
         Timer(float secs, boost::asio::io_service &io, Callback cb);
         Timer(float secs, Callback cb);
         
         void expires_from_now(float secs);
         float expires_from_now() const;
         void set_callback(Callback cb);
+        
+    private:
+        struct timer_impl;
+        std::shared_ptr<timer_impl> m_impl;
     };
 }
 
