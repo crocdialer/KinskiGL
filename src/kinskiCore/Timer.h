@@ -25,6 +25,8 @@ namespace kinski
         
         void expires_from_now(float secs);
         float expires_from_now() const;
+        void cancel();
+        
         void set_callback(Callback cb);
         
     private:

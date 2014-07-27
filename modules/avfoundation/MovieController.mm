@@ -130,6 +130,8 @@ namespace kinski {
                  {
                      if(autoplay)
                          play();
+                     else
+                         pause();
                      
                      set_loop(loop || m_impl->m_loop);
                      
@@ -148,13 +150,12 @@ namespace kinski {
     void MovieController::play()
     {
         LOG_TRACE << "starting movie playback";
-        [m_impl->m_player seekToTime:kCMTimeZero];
         [m_impl->m_player play];
         [m_impl->m_player setRate: m_impl->m_rate];
         m_impl->m_playing = true;
     }
     
-    void MovieController::stop()
+    void MovieController::unload()
     {
         m_impl.reset(new Impl);
         m_impl->m_playing = false;
@@ -162,22 +163,20 @@ namespace kinski {
     
     void MovieController::pause()
     {
-        if(m_impl->m_playing)
-        {
-            [m_impl->m_player pause];
-            [m_impl->m_player setRate: 0.f];
-        }
-        else
-        {
-            [m_impl->m_player play];
-            [m_impl->m_player setRate: m_impl->m_rate];
-        }
-        m_impl->m_playing = !m_impl->m_playing;
+        [m_impl->m_player pause];
+        [m_impl->m_player setRate: 0.f];
+        m_impl->m_playing = false;
     }
     
     bool MovieController::isPlaying() const
     {
         return [m_impl->m_player rate] != 0.0f;
+    }
+    
+    void MovieController::restart()
+    {
+        [m_impl->m_player seekToTime:kCMTimeZero];
+        play();
     }
     
     float MovieController::volume() const
@@ -225,7 +224,7 @@ namespace kinski {
     
     bool MovieController::copy_frame_to_texture(gl::Texture &tex)
     {
-        if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
+        if(!isPlaying() || !m_impl->m_output || !m_impl->m_player_item) return false;
         
         CMTime ct = [m_impl->m_player currentTime];
         
@@ -386,7 +385,8 @@ namespace kinski {
         }
         else
         {
-            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
             [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
         }
     }

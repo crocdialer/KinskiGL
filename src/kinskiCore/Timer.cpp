@@ -50,6 +50,8 @@ Timer::Timer(float secs, Timer::Callback cb)
 
 void Timer::expires_from_now(float secs)
 {
+    if(!m_impl) return;
+    
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
     
     // make a tmp copy to solve obscure errors in lambda
@@ -69,6 +71,12 @@ float Timer::expires_from_now() const
 {
     auto duration = m_impl->m_timer.expires_from_now();
     return duration_cast<float_second>(duration).count();
+}
+
+void Timer::cancel()
+{
+    if(m_impl)
+        m_impl->m_timer.cancel();
 }
 
 void Timer::set_callback(Callback cb)

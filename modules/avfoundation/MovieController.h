@@ -29,9 +29,10 @@ namespace kinski
         
         void load(const std::string &filePath, bool autoplay = false, bool loop = false);
         void play();
-        bool isPlaying() const;
-        void stop();
         void pause();
+        bool isPlaying() const;
+        void restart();
+        void unload();
         void seek_to_time(float value);
         double duration() const;
         double current_time() const;
