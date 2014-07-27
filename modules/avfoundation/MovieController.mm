@@ -385,8 +385,8 @@ namespace kinski {
         }
         else
         {
-//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
-            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
             [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
         }
     }
