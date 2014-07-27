@@ -94,7 +94,7 @@ void LSystem::iterate(int num_iterations)
         m_buffer = tmp;
     }
     m_buffer = remove_whitespace(m_buffer);
-    LOG_DEBUG << m_buffer;
+    LOG_TRACE << m_buffer;
 }
 
 /*!

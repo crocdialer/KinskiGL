@@ -24,6 +24,7 @@ namespace kinski
         typedef std::function<void(MovieController &the_movie)> MovieCallback;
         
         MovieController();
+        MovieController(const std::string &filePath, bool autoplay = false, bool loop = false);
         virtual ~MovieController();
         
         void load(const std::string &filePath, bool autoplay = false, bool loop = false);

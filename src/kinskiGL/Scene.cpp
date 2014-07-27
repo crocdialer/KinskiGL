@@ -210,7 +210,7 @@ namespace kinski { namespace gl {
         {
             clicked_items.sort();
             ret = clicked_items.front().object->shared_from_this();
-            LOG_DEBUG<<"ray hit id "<<ret->getID()<<" ("<<clicked_items.size()<<" total)";
+            LOG_TRACE<<"ray hit id "<<ret->getID()<<" ("<<clicked_items.size()<<" total)";
         }
         return ret;
     }

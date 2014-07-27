@@ -44,7 +44,7 @@ namespace kinski {
                 m_player_item(NULL),
                 m_output(NULL),
                 m_playing(false),
-                m_loop(true),
+                m_loop(false),
                 m_rate(1.f),
                 m_pbo_index(0)
         {
@@ -69,16 +69,17 @@ namespace kinski {
         
     }
     
+    MovieController::MovieController(const std::string &filePath, bool autoplay, bool loop):
+    m_impl(new Impl)
+    {
+        load(filePath, autoplay, loop);
+    }
+    
     MovieController::~MovieController()
     {
 
     }
-        
-    bool MovieController::isPlaying() const
-    {
-        return [m_impl->m_player rate] != 0.0f;
-    }
-    
+
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
         MovieCallback on_load = m_impl->m_on_load_cb;
@@ -164,6 +165,7 @@ namespace kinski {
         if(m_impl->m_playing)
         {
             [m_impl->m_player pause];
+            [m_impl->m_player setRate: 0.f];
         }
         else
         {
@@ -171,6 +173,11 @@ namespace kinski {
             [m_impl->m_player setRate: m_impl->m_rate];
         }
         m_impl->m_playing = !m_impl->m_playing;
+    }
+    
+    bool MovieController::isPlaying() const
+    {
+        return [m_impl->m_player rate] != 0.0f;
     }
     
     float MovieController::volume() const
@@ -425,7 +432,8 @@ namespace kinski {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
-- (void)playerItemDidReachEnd:(NSNotification *)notification {
+- (void)playerItemDidReachEnd:(NSNotification *)notification
+{
     AVPlayerItem *p = [notification object];
     [p seekToTime:kCMTimeZero];
     
