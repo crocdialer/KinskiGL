@@ -98,9 +98,6 @@ namespace kinski{ namespace animation{
                 else if(m_playing == PLAYBACK_BACKWARD && m_reverse_finish_fn)
                     m_reverse_finish_fn();
                 
-                // end playback
-                stop();
-                
                 if(loop())
                 {
                     if(m_loop_type == LOOP_BACK_FORTH)
@@ -108,6 +105,11 @@ namespace kinski{ namespace animation{
                         m_playing = m_playing == PLAYBACK_FORWARD ? PLAYBACK_BACKWARD : PLAYBACK_FORWARD;
                     }
                     start();
+                }
+                else
+                {
+                    // end playback
+                    stop();
                 }
             }
             // update timing
