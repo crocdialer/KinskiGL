@@ -114,13 +114,13 @@ namespace kinski { namespace gl {
         return m_obj->line_height;
     }
     
-    void Font::load(const std::string &thePath, size_t theSize)
+    void Font::load(const std::string &thePath, size_t theSize, size_t line_height)
     {
         //TODO: check extension
         try
         {
             m_obj->font_height = theSize;
-            m_obj->line_height = theSize * 1.1;
+            m_obj->line_height = line_height > 0 ? line_height : theSize * 1.1;
             std::vector<uint8_t> font_file = kinski::readBinaryFile(thePath);
             stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
                                  m_obj->font_height, m_obj->data, m_obj->bitmap_width,
