@@ -115,13 +115,15 @@ namespace kinski{ namespace animation{
             // update timing
             m_current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
             
-            // this applies easing and passes it to an interpolation function
-            m_interpolate_fn(m_ease_fn(progress()));
-            
-            // fire update callback, if any
-            if(m_update_fn)
-                m_update_fn();
-        
+            if(m_current_time > m_start_time && m_current_time < m_end_time)
+            {
+                // this applies easing and passes it to an interpolation function
+                m_interpolate_fn(m_ease_fn(progress()));
+                
+                // fire update callback, if any
+                if(m_update_fn)
+                    m_update_fn();
+            }
         };
         
         /*!
@@ -224,6 +226,9 @@ namespace kinski{ namespace animation{
 //    {
 //        virtual float duration() const;
 //    };
+    
+//    AnimationPtr create(float duration, float delay, InterpolationFunction interpolate_fn)
+//    { return std::make_shared<Animation>(duration, delay, interpolate_fn); };
     
     template<typename T>
     AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration,
