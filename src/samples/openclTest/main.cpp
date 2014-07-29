@@ -2,8 +2,9 @@
 
 //#define __NO_STD_VECTOR
 #define __CL_ENABLE_EXCEPTIONS
-
 #include "cl_context.h"
+
+#include "kinskiApp/LightComponent.h"
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>

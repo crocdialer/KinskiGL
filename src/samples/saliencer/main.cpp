@@ -133,7 +133,7 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
-        if(e.getChar() == KeyEvent::KEY_SPACE)
+        if(e.getChar() == GLFW_KEY_SPACE)
         {
             displayTweakBar(!displayTweakBar());
         }

@@ -179,7 +179,11 @@ public:
         
         m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
         
-//        for(auto &m : m_analog_in){m.filter_window_size(5);}
+        for(auto &m : m_analog_in)
+        {
+            m.set_filter(std::make_shared<FalloffFilter<float>>());
+        }
+        
         
         m_channel_activity.assign(m_analog_in.size(), false);
         
