@@ -115,7 +115,7 @@ namespace kinski{ namespace animation{
             // update timing
             m_current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
             
-            if(m_current_time > m_start_time && m_current_time < m_end_time)
+//            if(m_current_time > m_start_time && m_current_time < m_end_time)
             {
                 // this applies easing and passes it to an interpolation function
                 m_interpolate_fn(m_ease_fn(progress()));
