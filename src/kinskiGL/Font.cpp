@@ -172,7 +172,7 @@ namespace kinski { namespace gl {
             if(codepoint == 10)
             {
                 x = 0;
-                y += m_obj->font_height * 1.1;
+                y += m_obj->line_height;
             }
             
             stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
