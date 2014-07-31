@@ -24,16 +24,24 @@ namespace kinski
         
         void updateProperty(const Property::ConstPtr &theProperty);
         void setObject(const gl::Object3DPtr &theObject);
-        gl::Object3DPtr object() {return m_object;}
         void refresh();
         
+        const std::vector<gl::Object3DPtr>& objects() const {return m_objects;}
+        std::vector<gl::Object3DPtr>& objects() {return m_objects;}
+        void set_objects(const std::vector<gl::Object3DPtr> &the_objects, bool copy_settings = true);
+        void set_objects(const std::vector<gl::MeshPtr> &the_objects, bool copy_settings = true);
+        
+        void set_index(int index);
+        
     private:
+        RangedProperty<int>::Ptr m_object_index;
+        
         Property_<bool>::Ptr m_enabled;
         Property_<float>::Ptr m_position_x, m_position_y, m_position_z;
         Property_<glm::vec3>::Ptr m_scale;
         Property_<glm::mat3>::Ptr m_rotation;
         
-        gl::Object3DPtr m_object;
+        std::vector<gl::Object3DPtr> m_objects;
     };
 }
 #endif /* defined(__kinskiGL__LightComponent__) */

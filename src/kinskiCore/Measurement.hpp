@@ -86,7 +86,7 @@ public:
     
 private:
     T m_last_value;
-    float m_speed_inc, m_speed_dec;
+    float m_speed_dec, m_speed_inc;
     
 };
 
@@ -158,6 +158,7 @@ public:
         m_max = std::numeric_limits<T>::min();
     }
     
+    typename Filter<T>::Ptr get_filter() const { return m_filter; }
     void set_filter(typename Filter<T>::Ptr the_filter){m_filter = the_filter;}
     
 private:

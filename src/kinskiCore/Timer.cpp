@@ -22,10 +22,12 @@ struct Timer::timer_impl
 {
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> m_timer;
     Timer::Callback m_callback;
+    bool periodic;
     
     timer_impl(boost::asio::io_service &io, Callback cb):
     m_timer(io),
-    m_callback(cb)
+    m_callback(cb),
+    periodic(false)
     {}
 };
 
@@ -52,15 +54,23 @@ void Timer::expires_from_now(float secs)
 {
     if(!m_impl) return;
     
+//    auto period_func = [=](const boost::system::error_code &error){ if(!error) expires_from_now(secs);};
+    
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
     
     // make a tmp copy to solve obscure errors in lambda
     auto cb = m_impl->m_callback;
     
-    m_impl->m_timer.async_wait([cb](const boost::system::error_code &error)
+    m_impl->m_timer.async_wait([&, cb](const boost::system::error_code &error)
     {
         // Timer expired regularly
         if (!error && cb) { cb(); }
+        
+//        if(periodic())
+//        {
+//            m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
+//            m_impl->m_timer.async_wait(period_func);
+//        }
     });
 }
 
@@ -74,6 +84,16 @@ void Timer::cancel()
 {
     if(m_impl)
         m_impl->m_timer.cancel();
+}
+
+bool Timer::periodic() const
+{
+    return m_impl->periodic;
+}
+
+void Timer::set_periodic(bool b)
+{
+    m_impl->periodic = b;
 }
 
 void Timer::set_callback(Callback cb)

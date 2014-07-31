@@ -46,7 +46,17 @@ m_increment_randomness(0.f),
 m_diameter(1.f),
 m_diameter_shrink_factor(1.f)
 {
-
+    m_state_stack = {{glm::mat4(), false, m_diameter}};
+    // start in xz plane, face upward
+    
+    //    // head
+    //    m_state_stack.back().transform[0].xyz() = gl::Y_AXIS;
+    //
+    //    // left
+    //    m_state_stack.back().transform[1].xyz() = -gl::X_AXIS;
+    //
+    //    // up
+    //    m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
 }
 
 const glm::vec3& LSystem::head() const
@@ -69,9 +79,14 @@ const glm::vec3& LSystem::position() const
     return *reinterpret_cast<glm::vec3*>(&m_state_stack.back().transform[3]);
 }
 
-glm::mat4 LSystem::turtle_transform() const
+glm::mat4& LSystem::turtle_transform()
 {
-    return m_state_stack.empty() ? glm::mat4() : m_state_stack.back().transform;
+    return m_state_stack.back().transform;
+}
+
+const glm::mat4& LSystem::turtle_transform() const
+{
+    return m_state_stack.back().transform;
 }
 
 void LSystem::iterate(int num_iterations)
@@ -95,6 +110,9 @@ void LSystem::iterate(int num_iterations)
     }
     m_buffer = remove_whitespace(m_buffer);
     LOG_TRACE << m_buffer;
+    
+    // reset stack
+    m_state_stack = {{glm::mat4(), false, m_diameter}};
 }
 
 /*!
@@ -110,18 +128,7 @@ void LSystem::iterate(int num_iterations)
 */
 gl::MeshPtr LSystem::create_mesh() const
 {
-    m_state_stack = {{glm::mat4(), false, m_diameter}};
-    
-    // start in xz plane, face upward
-    
-//    // head
-//    m_state_stack.back().transform[0].xyz() = gl::Y_AXIS;
-//    
-//    // left
-//    m_state_stack.back().transform[1].xyz() = -gl::X_AXIS;
-//    
-//    // up
-//    m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
+//    m_state_stack = {{glm::mat4(), false, m_diameter}};
     
     // use subgeometries for different branch depths
     bool use_mesh_entries = true;

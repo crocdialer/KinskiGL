@@ -27,6 +27,9 @@ namespace kinski
         float expires_from_now() const;
         void cancel();
         
+        bool periodic() const;
+        void set_periodic(bool b);
+        
         void set_callback(Callback cb);
         
     private:
