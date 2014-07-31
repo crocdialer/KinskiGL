@@ -64,6 +64,7 @@ class FalloffFilter : public Filter<T>
 {
 public:
     FalloffFilter(float update_speed = .2):
+    m_last_value(T(0)),
     m_speed_dec(kinski::clamp(update_speed, 0.f, 1.f)),
     m_speed_inc(1.f)
     {}
