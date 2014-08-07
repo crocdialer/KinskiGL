@@ -34,6 +34,11 @@ namespace kinski
         float expires_from_now() const;
         
         /*!
+         * returns true if the timer has expired
+         */
+        bool has_expired() const;
+        
+        /*!
          * cancel a currently running timer
          */
         void cancel();

@@ -81,6 +81,11 @@ float Timer::expires_from_now() const
     return duration_cast<float_second>(duration).count();
 }
 
+bool Timer::has_expired() const
+{
+    return expires_from_now() <= 0.f;
+}
+
 void Timer::cancel()
 {
     if(m_impl)
