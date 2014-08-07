@@ -23,13 +23,34 @@ namespace kinski
         Timer(float secs, boost::asio::io_service &io, Callback cb);
         Timer(float secs, Callback cb);
         
+        /*!
+         * set expiration date from now in seconds
+         */
         void expires_from_now(float secs);
+        
+        /*!
+         * get expiration date from now in seconds
+         */
         float expires_from_now() const;
+        
+        /*!
+         * cancel a currently running timer
+         */
         void cancel();
         
+        /*!
+         * returns true if the timer is set to fire periodicly
+         */
         bool periodic() const;
+        
+        /*!
+         * set if the timer should fire periodicly
+         */
         void set_periodic(bool b);
         
+        /*!
+         * set the function object to call when the timer fires
+         */
         void set_callback(Callback cb);
         
     private:
