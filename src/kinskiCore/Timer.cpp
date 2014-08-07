@@ -54,23 +54,24 @@ void Timer::expires_from_now(float secs)
 {
     if(!m_impl) return;
     
-//    auto period_func = [=](const boost::system::error_code &error){ if(!error) expires_from_now(secs);};
-    
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
     
     // make a tmp copy to solve obscure errors in lambda
     auto cb = m_impl->m_callback;
     
-    m_impl->m_timer.async_wait([&, cb](const boost::system::error_code &error)
+    m_impl->m_timer.async_wait([&, cb, secs](const boost::system::error_code &error)
     {
         // Timer expired regularly
         if (!error && cb) { cb(); }
         
-//        if(periodic())
-//        {
-//            m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
-//            m_impl->m_timer.async_wait(period_func);
-//        }
+        if(periodic())
+        {
+            auto period_func = [this, secs](const boost::system::error_code &e)
+            {
+                if(!e) expires_from_now(secs);
+            };
+            m_impl->m_timer.async_wait(period_func);
+        }
     });
 }
 
@@ -88,12 +89,16 @@ void Timer::cancel()
 
 bool Timer::periodic() const
 {
-    return m_impl->periodic;
+    if(m_impl)
+        return m_impl->periodic;
+    
+    return false;
 }
 
 void Timer::set_periodic(bool b)
 {
-    m_impl->periodic = b;
+    if(m_impl)
+        m_impl->periodic = b;
 }
 
 void Timer::set_callback(Callback cb)
