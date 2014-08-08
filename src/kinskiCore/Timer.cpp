@@ -62,9 +62,12 @@ void Timer::expires_from_now(float secs)
     m_impl->m_timer.async_wait([this, cb, secs](const boost::system::error_code &error)
     {
         // Timer expired regularly
-        if (!error && cb) { cb(); }
+        if (!error)
+        {
+            if(cb) { cb(); }
+            if(periodic()){ expires_from_now(secs); }
+        }
         
-        if(periodic()){ expires_from_now(secs); }
     });
 }
 
