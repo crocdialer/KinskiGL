@@ -59,19 +59,12 @@ void Timer::expires_from_now(float secs)
     // make a tmp copy to solve obscure errors in lambda
     auto cb = m_impl->m_callback;
     
-    m_impl->m_timer.async_wait([&, cb, secs](const boost::system::error_code &error)
+    m_impl->m_timer.async_wait([this, cb, secs](const boost::system::error_code &error)
     {
         // Timer expired regularly
         if (!error && cb) { cb(); }
         
-        if(periodic())
-        {
-            auto period_func = [this, secs](const boost::system::error_code &e)
-            {
-                if(!e) expires_from_now(secs);
-            };
-            m_impl->m_timer.async_wait(period_func);
-        }
+        if(periodic()){ expires_from_now(secs); }
     });
 }
 
