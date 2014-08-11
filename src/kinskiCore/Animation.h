@@ -15,13 +15,6 @@
 
 namespace kinski{ namespace animation{
     
-    using std::chrono::duration_cast;
-    using std::chrono::microseconds;
-    using std::chrono::steady_clock;
-    
-    // ratio is 1 second per second, wow :D
-    typedef std::chrono::duration<float> float_second;
-    
     class Animation;
     typedef std::shared_ptr<Animation> AnimationPtr;
     typedef std::function<float (float)> EaseFunction;
@@ -35,128 +28,54 @@ namespace kinski{ namespace animation{
     {
     public:
         
-        Animation(float duration, float delay, InterpolationFunction interpolate_fn):
-        m_playing(PLAYBACK_PAUSED),
-        m_loop_type(LOOP_NONE),
-        m_start_time(steady_clock::now()),
-        m_end_time(m_start_time + duration_cast<steady_clock::duration>(float_second(duration))),
-        m_current_time(m_start_time),
-        m_ease_fn(EaseNone()),
-        m_interpolate_fn(interpolate_fn)
-        {}
+        Animation(float duration, float delay, InterpolationFunction interpolate_fn);
         
-        int getId() const {return m_id;}
+        int getId() const;
         
-        virtual float duration() const
-        {return duration_cast<float_second>(m_end_time - m_start_time).count();}
+        virtual float duration() const;
         
-        virtual void set_duration(float d)
-        {
-            m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(d));
-        };
+        virtual void set_duration(float d);
         
-        virtual PlaybackType playing() const {return m_playing;}
-        inline void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD){m_playing = playback_type;}
+        virtual PlaybackType playing() const;
+        void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD);
         
-        inline LoopType loop() const {return m_loop_type;}
-        inline void set_loop(LoopType loop_type = LOOP){m_loop_type = loop_type;}
+        LoopType loop() const;
+        void set_loop(LoopType loop_type = LOOP);
         
-        steady_clock::time_point start_time() const {return m_start_time;}
-        steady_clock::time_point end_time() const {return m_end_time;}
+        std::chrono::steady_clock::time_point start_time() const;
+        std::chrono::steady_clock::time_point end_time() const;
         
-        void set_interpolation_function(InterpolationFunction fn){m_interpolate_fn = fn;}
-        void set_ease_function(EaseFunction fn){m_ease_fn = fn;}
-        void set_start_callback(Callback cb){m_start_fn = cb;}
-        void set_update_callback(Callback cb){m_update_fn = cb;}
-        void set_finish_callback(Callback cb){m_finish_fn = cb;}
-        void set_reverse_start_callback(Callback cb){m_reverse_start_fn = cb;}
-        void set_reverse_finish_callback(Callback cb){m_reverse_finish_fn = cb;}
+        void set_interpolation_function(InterpolationFunction fn);
+        void set_ease_function(EaseFunction fn);
+        void set_start_callback(Callback cb);
+        void set_update_callback(Callback cb);
+        void set_finish_callback(Callback cb);
+        void set_reverse_start_callback(Callback cb);
+        void set_reverse_finish_callback(Callback cb);
         
-        virtual float progress() const
-        {
-            float val = clamp(duration_cast<float_second>(m_current_time - m_start_time).count() /
-                              duration_cast<float_second>(m_end_time - m_start_time).count(), 0.f, 1.f);
-            
-            if(m_playing == PLAYBACK_BACKWARD){val = 1.f - val;}
-            return val;
-        }
+        virtual float progress() const;
         
-        virtual bool finished() const
-        {
-            return m_current_time > m_end_time;
-        }
+        virtual bool finished() const;
         
-        virtual void update(float timeDelta)
-        {
-            if(!playing()) return;
-
-            if(finished())
-            {
-                // fire finish callback, if any
-                if(m_playing == PLAYBACK_FORWARD && m_finish_fn)
-                    m_finish_fn();
-                else if(m_playing == PLAYBACK_BACKWARD && m_reverse_finish_fn)
-                    m_reverse_finish_fn();
-                
-                if(loop())
-                {
-                    if(m_loop_type == LOOP_BACK_FORTH)
-                    {
-                        m_playing = m_playing == PLAYBACK_FORWARD ? PLAYBACK_BACKWARD : PLAYBACK_FORWARD;
-                    }
-                    start();
-                }
-                else
-                {
-                    // end playback
-                    stop();
-                }
-            }
-            // update timing
-            m_current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
-            
-//            if(m_current_time > m_start_time && m_current_time < m_end_time)
-            {
-                // this applies easing and passes it to an interpolation function
-                m_interpolate_fn(m_ease_fn(progress()));
-                
-                // fire update callback, if any
-                if(m_update_fn)
-                    m_update_fn();
-            }
-        };
+        virtual void update(float timeDelta);
         
         /*!
          * Start the animation with an optional delay in seconds
          */
-        virtual void start(float delay = 0.f)
-        {
-            if(!m_playing)
-                m_playing = PLAYBACK_FORWARD;
-            
-            float dur = duration();
-            m_current_time = steady_clock::now();
-            m_start_time = m_current_time + duration_cast<steady_clock::duration>(float_second(delay));
-            m_end_time = m_start_time + duration_cast<steady_clock::duration>(float_second(dur));
-            
-            // fire start callback, if any
-            if(m_playing == PLAYBACK_FORWARD && m_start_fn)
-                m_start_fn();
-            else if(m_playing == PLAYBACK_BACKWARD && m_reverse_start_fn)
-                m_reverse_start_fn();
-        };
+        virtual void start(float delay = 0.f);
         
-        virtual void stop(){ m_playing = PLAYBACK_PAUSED;}
+        virtual void stop();
         
     private:
         
-        int m_id;
-        PlaybackType m_playing;
-        LoopType m_loop_type;
-        steady_clock::time_point m_start_time, m_end_time, m_current_time;
-        EaseFunction m_ease_fn;
-        InterpolationFunction m_interpolate_fn;
-        Callback m_start_fn, m_update_fn, m_finish_fn, m_reverse_start_fn, m_reverse_finish_fn;
+        struct AnimationImpl;
+        std::shared_ptr<AnimationImpl> m_impl;
+        
+    public:
+        //! Emulates shared_ptr-like behavior
+        typedef std::shared_ptr<AnimationImpl> Animation::*unspecified_bool_type;
+        operator unspecified_bool_type() const { return ( m_impl.get() == 0 ) ? 0 : &Animation::m_impl; }
+        void reset() { m_impl.reset(); }
     };
     
     class CompoundAnimation : public Animation
