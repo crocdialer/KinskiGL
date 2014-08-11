@@ -476,7 +476,7 @@ void GrowthApp::refresh_lsystem()
                                                     entry.num_indices,
                                                     *m_animation_time,
                                                     delay);
-            compound_anim->children().push_back(anim);
+            compound_anim->children().push_back(*anim);
             anim->start(delay);
             delay += 2.f;
         }

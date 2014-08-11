@@ -13,6 +13,24 @@
 
 namespace kinski
 {
+    class Stopwatch
+    {
+    public:
+        Stopwatch();
+        
+        void start();
+        void stop();
+        bool running();
+        float time_elapsed();
+        void reset();
+        void new_lap();
+        const std::vector<float>& laps();
+
+    private:
+        struct stopwatch_impl;
+        std::shared_ptr<stopwatch_impl> m_impl;
+    };
+    
     class Timer
     {
     public:

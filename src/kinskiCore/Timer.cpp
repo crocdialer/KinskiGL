@@ -18,6 +18,76 @@ typedef std::chrono::duration<float> float_second;
 
 using namespace kinski;
 
+struct Stopwatch::stopwatch_impl
+{
+    bool running;
+    std::chrono::steady_clock::time_point start_time;
+    std::vector<float> laps;
+    
+    stopwatch_impl():
+    running(false),
+    start_time(steady_clock::now()),
+    laps({0.f}){}
+};
+
+Stopwatch::Stopwatch():m_impl(new stopwatch_impl)
+{
+
+}
+
+void Stopwatch::start()
+{
+    if(m_impl->running) return;
+    
+    m_impl->running = true;
+    m_impl->start_time = steady_clock::now();
+}
+
+void Stopwatch::stop()
+{
+    if(!m_impl->running) return;
+    m_impl->running = false;
+    m_impl->laps.back() += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+}
+
+bool Stopwatch::running()
+{
+    return m_impl->running;
+}
+
+void Stopwatch::reset()
+{
+    m_impl.reset(new stopwatch_impl);
+}
+
+void Stopwatch::new_lap()
+{
+    if(!m_impl->running) return;
+    
+    m_impl->laps.back() += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+    m_impl->start_time = steady_clock::now();
+    m_impl->laps.push_back(0.f);
+}
+
+float Stopwatch::time_elapsed()
+{
+    float ret = 0.f;
+    
+    for(auto lap_time : m_impl->laps){ ret += lap_time; }
+    
+    if(!m_impl->running) return ret;
+    
+    ret += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+    return ret;
+}
+
+const std::vector<float>& Stopwatch::laps()
+{
+    return m_impl->laps;
+}
+
+/////////////////////////////////////////////////////////////////////////
+
 struct Timer::timer_impl
 {
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> m_timer;
@@ -62,7 +132,6 @@ void Timer::expires_from_now(float secs)
             if(cb) { cb(); }
             if(periodic()){ expires_from_now(secs); }
         }
-        
     });
 }
 
