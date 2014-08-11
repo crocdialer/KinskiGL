@@ -45,11 +45,6 @@ m_impl(new timer_impl(io, cb))
     expires_from_now(secs);
 }
 
-Timer::Timer(float secs, Timer::Callback cb)
-{
-    LOG_WARNING << "constructor not yet implemented";
-}
-
 void Timer::expires_from_now(float secs)
 {
     if(!m_impl) return;

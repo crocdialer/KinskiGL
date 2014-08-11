@@ -28,6 +28,7 @@ namespace kinski{ namespace animation{
     {
     public:
         
+        Animation();
         Animation(float duration, float delay, InterpolationFunction interpolate_fn);
         
         int getId() const;
@@ -70,70 +71,26 @@ namespace kinski{ namespace animation{
         
         struct AnimationImpl;
         std::shared_ptr<AnimationImpl> m_impl;
-        
-    public:
-        //! Emulates shared_ptr-like behavior
-        typedef std::shared_ptr<AnimationImpl> Animation::*unspecified_bool_type;
-        operator unspecified_bool_type() const { return ( m_impl.get() == 0 ) ? 0 : &Animation::m_impl; }
-        void reset() { m_impl.reset(); }
     };
     
     class CompoundAnimation : public Animation
     {
     public:
         
-        CompoundAnimation():Animation(0.f, 0.f, InterpolationFunction()){}
+        CompoundAnimation();
         
-        virtual void start(float delay = 0.f)
-        {
-            for(const auto &child_anim : m_animations)
-                child_anim->start();
-        }
-        virtual void stop()
-        {
-            for(const auto &child_anim : m_animations)
-                child_anim->stop();
-        }
+        virtual void start(float delay = 0.f);
+        virtual void stop();
         
-        virtual float duration() const
-        {
-            if(m_animations.empty()) return 0.f;
-            
-            // find min start time and max end time
-            steady_clock::time_point start_tp = steady_clock::time_point::max(),
-            end_tp = steady_clock::time_point::min();
-            
-            for(const auto &child_anim : m_animations)
-            {
-                if(child_anim->start_time() < start_tp)
-                    start_tp = child_anim->start_time();
-                if(child_anim->end_time() > end_tp)
-                    end_tp = child_anim->end_time();
-                
-            }
-            return duration_cast<float_second>(end_tp - start_tp).count();
-        }
+        virtual float duration() const;
+        virtual void update(float timeDelta);
+        virtual bool finished() const;
         
-        virtual void update(float timeDelta)
-        {
-            for(const auto &child_anim : m_animations){ child_anim->update(timeDelta); }
-        }
-        
-        virtual bool finished() const
-        {
-            for(const auto &child_anim : m_animations)
-            {
-                if(!child_anim->finished())
-                    return false;
-            }
-            return true;
-        }
-        
-        std::vector<AnimationPtr>& children() {return m_animations;}
-        const std::vector<AnimationPtr>& children() const {return m_animations;}
+        std::vector<Animation>& children() {return m_animations;}
+        const std::vector<Animation>& children() const {return m_animations;}
         
     private:
-        std::vector<AnimationPtr> m_animations;
+        std::vector<Animation> m_animations;
     };
     
 //    class SequentialAnimation : public CompoundAnimation

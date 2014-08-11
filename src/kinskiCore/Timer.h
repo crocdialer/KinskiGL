@@ -20,8 +20,7 @@ namespace kinski
         
         Timer();
         Timer(boost::asio::io_service &io, Callback cb = Callback());
-        Timer(float secs, boost::asio::io_service &io, Callback cb);
-        Timer(float secs, Callback cb);
+        Timer(float secs, boost::asio::io_service &io, Callback cb = Callback());
         
         /*!
          * set expiration date from now in seconds

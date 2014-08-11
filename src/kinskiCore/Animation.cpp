@@ -27,6 +27,15 @@ namespace kinski{ namespace animation{
         InterpolationFunction interpolate_fn;
         Callback start_fn, update_fn, finish_fn, reverse_start_fn, reverse_finish_fn;
         
+        AnimationImpl():
+        playing(PLAYBACK_PAUSED),
+        loop_type(LOOP_NONE),
+        start_time(steady_clock::now()),
+        end_time(start_time),
+        current_time(start_time),
+        ease_fn(EaseNone()),
+        interpolate_fn([](float){}){}
+        
         AnimationImpl(float duration, float delay, InterpolationFunction interpolate_fn):
         playing(PLAYBACK_PAUSED),
         loop_type(LOOP_NONE),
@@ -36,6 +45,9 @@ namespace kinski{ namespace animation{
         ease_fn(EaseNone()),
         interpolate_fn(interpolate_fn){}
     };
+    
+    Animation::Animation():m_impl(new AnimationImpl)
+    {}
     
     Animation::Animation(float duration, float delay, InterpolationFunction interpolate_fn):
     m_impl(new AnimationImpl(duration, delay, interpolate_fn))
@@ -152,6 +164,56 @@ namespace kinski{ namespace animation{
     void Animation::stop()
     {
         m_impl->playing = PLAYBACK_PAUSED;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    
+    CompoundAnimation::CompoundAnimation():Animation(){}
+    
+    void CompoundAnimation::start(float delay)
+    {
+        for(auto &child_anim : m_animations)
+            child_anim.start();
+    }
+    
+    void CompoundAnimation::stop()
+    {
+        for(auto &child_anim : m_animations)
+            child_anim.stop();
+    }
+    
+    float CompoundAnimation::duration() const
+    {
+        if(m_animations.empty()) return 0.f;
+        
+        // find min start time and max end time
+        steady_clock::time_point start_tp = steady_clock::time_point::max(),
+        end_tp = steady_clock::time_point::min();
+        
+        for(auto &child_anim : m_animations)
+        {
+            if(child_anim.start_time() < start_tp)
+                start_tp = child_anim.start_time();
+            if(child_anim.end_time() > end_tp)
+                end_tp = child_anim.end_time();
+            
+        }
+        return duration_cast<float_second>(end_tp - start_tp).count();
+    }
+    
+    void CompoundAnimation::update(float timeDelta)
+    {
+        for(auto &child_anim : m_animations){ child_anim.update(timeDelta); }
+    }
+    
+    bool CompoundAnimation::finished() const
+    {
+        for(auto &child_anim : m_animations)
+        {
+            if(!child_anim.finished())
+                return false;
+        }
+        return true;
     }
     
 }}//namespaces
