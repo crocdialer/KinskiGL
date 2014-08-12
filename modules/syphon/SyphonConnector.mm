@@ -1,14 +1,14 @@
 //
 //  SyphonConnector.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 5/3/13.
 //
 //
 
 #include "SyphonConnector.h"
-#include "kinskiGL/Texture.h"
-#include "kinskiGL/Fbo.h"
+#include "gl/Texture.h"
+#include "gl/Fbo.h"
 #import <Syphon/SyphonServer.h>
 
 namespace kinski{ namespace gl{

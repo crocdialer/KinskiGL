@@ -1,6 +1,6 @@
 //
 //  FaceSyphoner.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
@@ -9,7 +9,7 @@
 #include "FaceSyphoner.h"
 #include "ThreshNode.h"
 #include "FaceFilter.h"
-#include "kinskiCV/TextureIO.h"
+#include "cv/TextureIO.h"
 
 using namespace std;
 using namespace kinski;

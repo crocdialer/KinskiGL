@@ -1,13 +1,13 @@
 //
 //  cl_util.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 5/10/13.
 //
 //
 
-#ifndef __kinskiGL__cl_context__
-#define __kinskiGL__cl_context__
+#ifndef __gl__cl_context__
+#define __gl__cl_context__
 
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
@@ -39,4 +39,4 @@ namespace kinski
 // *********************************************************************
     const char* oclErrorString(int error);
 }
-#endif /* defined(__kinskiGL__cl_util__) */
+#endif /* defined(__gl__cl_util__) */

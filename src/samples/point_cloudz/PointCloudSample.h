@@ -1,15 +1,15 @@
 //
 //  EmptySample.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __kinskiGL__EmptySample__
-#define __kinskiGL__EmptySample__
+#ifndef __gl__EmptySample__
+#define __gl__EmptySample__
 
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 
 // OpenCL
 #include "cl_context.h"
@@ -20,7 +20,7 @@
 //Syphon
 #include "SyphonConnector.h"
 
-#include "kinskiGL/Fbo.h"
+#include "gl/Fbo.h"
 
 namespace kinski
 {
@@ -75,4 +75,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__kinskiGL__EmptySample__) */
+#endif /* defined(__gl__EmptySample__) */

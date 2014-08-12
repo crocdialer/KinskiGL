@@ -1,20 +1,20 @@
 #ifdef KINSKI_RASPI
-#include "kinskiApp/Raspi_App.h"
+#include "app/Raspi_App.h"
 typedef kinski::Raspi_App BaseAppType;
 #else
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 typedef kinski::ViewerApp BaseAppType;
 #endif
 
 #include "physics_context.h"
 
-#include "kinskiCV/CVThread.h"
-#include "kinskiCV/TextureIO.h"
+#include "cv/CVThread.h"
+#include "cv/TextureIO.h"
 #include "ThreshNode.h"
 #include "DopeRecorder.h"
 #include "FaceFilter.h"
 
-#include "kinskiGL/Renderer.h"
+#include "gl/Renderer.h"
 
 using namespace std;
 using namespace kinski;

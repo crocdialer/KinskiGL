@@ -1,13 +1,13 @@
 //
 //  LSystem.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 27/05/14.
 //
 //
 
 #include "LSystem.h"
-#include "kinskiGL/Mesh.h"
+#include "gl/Mesh.h"
 
 using namespace kinski;
 using namespace std;

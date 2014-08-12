@@ -1,18 +1,18 @@
 //
 //  OpenNIConnector.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 5/5/13.
 //
 //
 
-#ifndef __kinskiGL__OpenNIConnector__
-#define __kinskiGL__OpenNIConnector__
+#ifndef __gl__OpenNIConnector__
+#define __gl__OpenNIConnector__
 
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "kinskiGL/KinskiGL.h"
+#include "gl/KinskiGL.h"
 #include "kinskiCore/Component.h"
 
 // forward declare OpenNI stuff to avoid header inclusion
@@ -97,4 +97,4 @@ namespace kinski{ namespace gl{
     
 }}//namespace
 
-#endif /* defined(__kinskiGL__OpenNIConnector__) */
+#endif /* defined(__gl__OpenNIConnector__) */

@@ -1,17 +1,17 @@
 //
 //  Sound.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 6/26/13.
 //
 //
 
-#ifndef __kinskiGL__Sound__
-#define __kinskiGL__Sound__
+#ifndef __gl__Sound__
+#define __gl__Sound__
 
-#include "kinskiCore/Definitions.h"
-#include "kinskiCore/Exception.h"
-#include "kinskiCore/Logger.h"
+#include "core/Definitions.h"
+#include "core/Exception.h"
+#include "core/Logger.h"
 
 namespace kinski{ namespace audio{
     
@@ -154,4 +154,4 @@ namespace kinski{ namespace audio{
     
 }}//namespace
 
-#endif /* defined(__kinskiGL__Sound__) */
+#endif /* defined(__gl__Sound__) */

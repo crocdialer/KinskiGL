@@ -1,6 +1,6 @@
 //
 //  AssimpConnector.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 12/15/12.
 //
@@ -10,9 +10,9 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include "kinskiGL/Mesh.h"
-#include "kinskiGL/Geometry.h"
-#include "kinskiGL/Material.h"
+#include "gl/Mesh.h"
+#include "gl/Geometry.h"
+#include "gl/Material.h"
 #include "AssimpConnector.h"
 
 using namespace std;

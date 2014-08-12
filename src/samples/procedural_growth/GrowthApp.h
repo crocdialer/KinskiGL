@@ -1,22 +1,22 @@
 //
 //  EmptySample.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __kinskiGL__GrowthApp__
-#define __kinskiGL__GrowthApp__
+#ifndef __gl__GrowthApp__
+#define __gl__GrowthApp__
 
-#include "kinskiApp/ViewerApp.h"
-#include "kinskiApp/LightComponent.h"
-#include "kinskiGL/Texture.h"
-#include "kinskiCore/Animation.h"
+#include "app/ViewerApp.h"
+#include "app/LightComponent.h"
+#include "gl/Texture.h"
+#include "core/Animation.h"
 #include "LSystem.h"
 
 // networking
-#include "kinskiCore/networking.h"
+#include "core/networking.h"
 
 namespace kinski
 {
@@ -121,4 +121,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__kinskiGL__EmptySample__) */
+#endif /* defined(__gl__EmptySample__) */

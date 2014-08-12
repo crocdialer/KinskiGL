@@ -1,13 +1,13 @@
 //
 //  Measurement.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 05/11/13.
 //
 //
 
-#ifndef kinskiGL_Measurement_h
-#define kinskiGL_Measurement_h
+#ifndef gl_Measurement_h
+#define gl_Measurement_h
 
 namespace kinski
 {

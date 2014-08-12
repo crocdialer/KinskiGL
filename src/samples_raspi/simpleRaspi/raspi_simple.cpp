@@ -1,10 +1,10 @@
-#include "kinskiApp/Raspi_App.h"
-#include "kinskiApp/AppServer.h"
+#include "app/Raspi_App.h"
+#include "app/AppServer.h"
 
-#include "kinskiGL/SerializerGL.h"
-#include "kinskiGL/Scene.h"
-#include "kinskiGL/Mesh.h"
-#include "kinskiGL/Fbo.h"
+#include "gl/SerializerGL.h"
+#include "gl/Scene.h"
+#include "gl/Mesh.h"
+#include "gl/Fbo.h"
 
 #include "AssimpConnector.h"
 

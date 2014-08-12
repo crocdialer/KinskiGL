@@ -1,15 +1,15 @@
 //
 //  ThreshNode.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 7/20/12.
 //
 //
 
-#ifndef kinskiGL_ThreshNode_h
-#define kinskiGL_ThreshNode_h
+#ifndef gl_ThreshNode_h
+#define gl_ThreshNode_h
 
-#include "kinskiCV/CVNode.h"
+#include "cv/CVNode.h"
 
 namespace kinski
 {

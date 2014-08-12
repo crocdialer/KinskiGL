@@ -1,6 +1,6 @@
 #ifndef KINSKI_FRUSTUM_TESTER_HPP
 #define KINSKI_FRUSTUM_TESTER_HPP
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 
 namespace kinski
 {

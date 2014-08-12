@@ -1,18 +1,18 @@
 //
 //  MovieTest.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __kinskiGL__MovieTest__
-#define __kinskiGL__MovieTest__
+#ifndef __gl__MovieTest__
+#define __gl__MovieTest__
 
-#include "kinskiApp/ViewerApp.h"
-#include "kinskiGL/Texture.h"
+#include "app/ViewerApp.h"
+#include "gl/Texture.h"
 
-#include "kinskiCV/CVThread.h"
+#include "cv/CVThread.h"
 #include "SyphonConnector.h"
 
 namespace kinski
@@ -46,4 +46,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__kinskiGL__MovieTest__) */
+#endif /* defined(__gl__MovieTest__) */

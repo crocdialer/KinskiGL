@@ -1,6 +1,6 @@
 //
 //  LeapConnector.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 7/30/13.
 //

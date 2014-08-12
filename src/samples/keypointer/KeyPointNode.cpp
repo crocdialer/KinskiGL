@@ -1,6 +1,6 @@
 //
 //  KeyPointNode.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 8/8/12.
 //
@@ -8,7 +8,7 @@
 
 #include "KeyPointNode.h"
 #include "boost/timer/timer.hpp"
-#include "kinskiCore/Logger.h"
+#include "core/Logger.h"
 
 using namespace std;
 using namespace cv;

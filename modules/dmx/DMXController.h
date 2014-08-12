@@ -1,13 +1,13 @@
 //
 //  DMXController.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 18/11/13.
 //
 //
 
-#ifndef __kinskiGL__DMXController__
-#define __kinskiGL__DMXController__
+#ifndef __gl__DMXController__
+#define __gl__DMXController__
 
 #include "kinskiCore/Definitions.h"
 #include "kinskiCore/Serial.h"
@@ -38,4 +38,4 @@ namespace kinski
     };
 }// namespace
 
-#endif /* defined(__kinskiGL__DMXController__) */
+#endif /* defined(__gl__DMXController__) */

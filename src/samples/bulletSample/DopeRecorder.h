@@ -1,16 +1,16 @@
 //
 //  DopeRecorder.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 4/4/13.
 //
 //
 
-#ifndef __kinskiGL__DopeRecorder__
-#define __kinskiGL__DopeRecorder__
+#ifndef __gl__DopeRecorder__
+#define __gl__DopeRecorder__
 
 #include <queue>
-#include "kinskiCV/CVNode.h"
+#include "cv/CVNode.h"
 
 namespace kinski
 {
@@ -35,4 +35,4 @@ namespace kinski
 }
 
 
-#endif /* defined(__kinskiGL__DopeRecorder__) */
+#endif /* defined(__gl__DopeRecorder__) */

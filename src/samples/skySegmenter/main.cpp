@@ -1,9 +1,9 @@
-#include "kinskiApp/GLFW_App.h"
-#include "kinskiGL/Material.h"
-#include "kinskiGL/SerializerGL.h"
+#include "app/GLFW_App.h"
+#include "gl/Material.h"
+#include "gl/SerializerGL.h"
 
-#include "kinskiCV/CVThread.h"
-#include "kinskiCV/TextureIO.h"
+#include "cv/CVThread.h"
+#include "cv/TextureIO.h"
 #include "SkySegmentNode.h"
 
 using namespace std;

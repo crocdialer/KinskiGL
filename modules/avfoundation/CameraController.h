@@ -1,7 +1,7 @@
-#ifndef __kinskiGL__CameraController__
-#define __kinskiGL__CameraController__
+#ifndef __gl__CameraController__
+#define __gl__CameraController__
 
-#include "kinskiGL/KinskiGL.h"
+#include "gl/KinskiGL.h"
 
 /*
 * This class controls a camera capture

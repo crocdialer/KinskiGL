@@ -1,8 +1,8 @@
-#include "kinskiApp/GLFW_App.h"
-#include "kinskiGL/Material.h"
+#include "app/GLFW_App.h"
+#include "gl/Material.h"
 
-#include "kinskiCV/CVThread.h"
-#include "kinskiCV/TextureIO.h"
+#include "cv/CVThread.h"
+#include "cv/TextureIO.h"
 #include "ColorHistNode.h"
 
 using namespace std;

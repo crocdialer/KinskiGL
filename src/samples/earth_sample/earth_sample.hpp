@@ -1,6 +1,6 @@
 #ifndef KINSKI_EARTH_SAMPLE_HPP
 #define KINSKI_EARTH_SAMPLE_HPP
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 
 namespace kinski
 {

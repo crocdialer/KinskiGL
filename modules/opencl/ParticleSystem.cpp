@@ -1,13 +1,13 @@
 //
 //  ParticleSystem.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 18/07/14.
 //
 //
 
 #include "ParticleSystem.hpp"
-#include "kinskiGL/Mesh.h"
+#include "gl/Mesh.h"
 
 using namespace std;
 using namespace glm;

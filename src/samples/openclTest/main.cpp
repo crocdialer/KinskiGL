@@ -1,10 +1,10 @@
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 
 //#define __NO_STD_VECTOR
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl_context.h"
 
-#include "kinskiApp/LightComponent.h"
+#include "app/LightComponent.h"
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>

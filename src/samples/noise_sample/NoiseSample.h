@@ -1,18 +1,18 @@
 //
 //  NoiseSample.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __kinskiGL__NoiseSample__
-#define __kinskiGL__NoiseSample__
+#ifndef __gl__NoiseSample__
+#define __gl__NoiseSample__
 
 // Audio
 #include "RtAudio.h"
 
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 
 namespace kinski
 {
@@ -46,4 +46,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__kinskiGL__NoiseSample__) */
+#endif /* defined(__gl__NoiseSample__) */

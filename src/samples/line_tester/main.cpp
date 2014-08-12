@@ -1,9 +1,9 @@
-#include "kinskiApp/GLFW_App.h"
-#include "kinskiApp/AppServer.h"
+#include "app/GLFW_App.h"
+#include "app/AppServer.h"
 
-#include "kinskiGL/Mesh.h"
+#include "gl/Mesh.h"
 
-#include "kinskiCore/networking.h"
+#include "core/networking.h"
 
 using namespace std;
 using namespace kinski;

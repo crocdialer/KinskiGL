@@ -1,6 +1,6 @@
 //
 //  OpenNIConnector.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 5/5/13.
 //
@@ -10,8 +10,8 @@
 #include <XnCodecIDs.h>
 #include <XnCppWrapper.h>
 #include <XnPropNames.h>
-#include "kinskiGL/Texture.h"
-#include "kinskiGL/Buffer.h"
+#include "gl/Texture.h"
+#include "gl/Buffer.h"
 #include <boost/timer/timer.hpp>
 #include "OpenNIConnector.h"
 

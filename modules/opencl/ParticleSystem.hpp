@@ -1,16 +1,16 @@
 //
 //  ParticleSystem.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 18/07/14.
 //
 //
 
-#ifndef __kinskiGL__ParticleSystem__
-#define __kinskiGL__ParticleSystem__
+#ifndef __gl__ParticleSystem__
+#define __gl__ParticleSystem__
 
-#include "kinskiGL/KinskiGL.h"
-#include "kinskiGL/geometry_types.h"
+#include "gl/KinskiGL.h"
+#include "gl/geometry_types.h"
 #include "cl_context.h"
 
 namespace kinski{ namespace gl{
@@ -82,4 +82,4 @@ namespace kinski{ namespace gl{
     
 }}
 
-#endif /* defined(__kinskiGL__ParticleSystem__) */
+#endif /* defined(__gl__ParticleSystem__) */

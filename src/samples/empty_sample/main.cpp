@@ -1,5 +1,5 @@
 #include "EmptySample.h"
-#include "kinskiCore/networking.h"
+#include "core/networking.h"
 
 int main(int argc, char *argv[])
 {

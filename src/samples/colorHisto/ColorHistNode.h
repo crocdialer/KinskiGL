@@ -1,15 +1,15 @@
 //
 //  SkySegmentNode.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian Schmidt on 6/25/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef _kinskiCV_CVNode_included_
-#define _kinskiCV_CVNode_included_
+#ifndef _cv_CVNode_included_
+#define _cv_CVNode_included_
 
-#include "kinskiCV/CVNode.h"
+#include "cv/CVNode.h"
 
 namespace kinski
 {

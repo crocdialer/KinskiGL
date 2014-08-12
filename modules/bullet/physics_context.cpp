@@ -1,6 +1,6 @@
 //
 //  physics_context.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 1/16/13.
 //

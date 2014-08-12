@@ -1,15 +1,15 @@
 //
 //  KeyPointNode.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 8/8/12.
 //
 //
 
-#ifndef __kinskiGL__KeyPointNode__
-#define __kinskiGL__KeyPointNode__
+#ifndef __gl__KeyPointNode__
+#define __gl__KeyPointNode__
 
-#include "kinskiCV/CVNode.h"
+#include "cv/CVNode.h"
 
 namespace kinski
 {
@@ -54,4 +54,4 @@ namespace kinski
     };
 
 }
-#endif /* defined(__kinskiGL__FeatureDetector__) */
+#endif /* defined(__gl__FeatureDetector__) */

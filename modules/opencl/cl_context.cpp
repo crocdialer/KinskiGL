@@ -1,15 +1,15 @@
 //
 //  cl_context.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 7/1/13.
 //
 //
 
 #include "cl_context.h"
-#include "kinskiCore/Definitions.h"
-#include "kinskiCore/Logger.h"
-#include "kinskiCore/file_functions.h"
+#include "core/Definitions.h"
+#include "core/Logger.h"
+#include "core/file_functions.h"
 
 using namespace std;
 

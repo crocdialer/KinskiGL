@@ -1,12 +1,12 @@
-#include "kinskiApp/GLFW_App.h"
+#include "app/GLFW_App.h"
 
-#include "kinskiGL/Material.h"
+#include "gl/Material.h"
 
-#include "kinskiCV/CVThread.h"
-#include "kinskiCV/TextureIO.h"
+#include "cv/CVThread.h"
+#include "cv/TextureIO.h"
 #include "SalienceNode.h"
 
-#include "kinskiGL/SerializerGL.h"
+#include "gl/SerializerGL.h"
 
 using namespace std;
 using namespace kinski;

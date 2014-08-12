@@ -1,15 +1,15 @@
 //
 //  LeapConnector.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 7/30/13.
 //
 //
 
-#ifndef __kinskiGL__LeapConnector__
-#define __kinskiGL__LeapConnector__
+#ifndef __gl__LeapConnector__
+#define __gl__LeapConnector__
 
-#include "kinskiGL/KinskiGL.h"
+#include "gl/KinskiGL.h"
 #include "boost/thread.hpp"
 #include "boost/signals2.hpp"
 #include "boost/asio.hpp"
@@ -100,4 +100,4 @@ namespace kinski{ namespace leap{
     };
 }}// namespaces
 
-#endif /* defined(__kinskiGL__LeapConnector__) */
+#endif /* defined(__gl__LeapConnector__) */

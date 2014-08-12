@@ -1,15 +1,15 @@
 //
 //  DopeRecorder.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 4/4/13.
 //
 //
 
-#ifndef __kinskiGL__FaceFilter__
-#define __kinskiGL__FaceFilter__
+#ifndef __gl__FaceFilter__
+#define __gl__FaceFilter__
 
-#include "kinskiCV/CVNode.h"
+#include "cv/CVNode.h"
 
 namespace kinski
 {
@@ -28,4 +28,4 @@ namespace kinski
 }
 
 
-#endif /* defined(__kinskiGL__FaceFilter__) */
+#endif /* defined(__gl__FaceFilter__) */

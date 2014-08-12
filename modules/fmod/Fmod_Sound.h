@@ -1,13 +1,13 @@
 //
 //  Fmod_Sound.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 6/26/13.
 //
 //
 
-#ifndef __kinskiGL__Fmod_Sound__
-#define __kinskiGL__Fmod_Sound__
+#ifndef __gl__Fmod_Sound__
+#define __gl__Fmod_Sound__
 
 #include "fmod.hpp"
 #include "fmod_errors.h"
@@ -67,4 +67,4 @@ namespace kinski{ namespace audio{
     };
 }}//namespace
 
-#endif /* defined(__kinskiGL__Fmod_Sound__) */
+#endif /* defined(__gl__Fmod_Sound__) */

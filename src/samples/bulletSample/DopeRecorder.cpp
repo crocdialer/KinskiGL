@@ -1,6 +1,6 @@
 //
 //  DopeRecorder.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 4/4/13.
 //

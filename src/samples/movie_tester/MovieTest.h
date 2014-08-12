@@ -1,17 +1,17 @@
 //
 //  MovieTest.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __kinskiGL__MovieTest__
-#define __kinskiGL__MovieTest__
+#ifndef __gl__MovieTest__
+#define __gl__MovieTest__
 
-#include "kinskiApp/ViewerApp.h"
+#include "app/ViewerApp.h"
 
-#include "kinskiGL/Texture.h"
+#include "gl/Texture.h"
 
 #include "MovieController.h"
 #include "CameraController.h"
@@ -47,4 +47,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__kinskiGL__MovieTest__) */
+#endif /* defined(__gl__MovieTest__) */

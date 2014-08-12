@@ -1,12 +1,12 @@
 //
 //  Fmod_Sound.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 6/26/13.
 //
 //
 
-#include "kinskiCore/file_functions.h"
+#include "core/file_functions.h"
 #include "Fmod_Sound.h"
 #include <cmath>
 

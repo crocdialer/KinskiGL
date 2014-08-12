@@ -1,14 +1,14 @@
 //
 //  DopeRecorder.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 4/4/13.
 //
 //
 
 #include "FaceFilter.h"
-#include "kinskiCore/Logger.h"
-#include "kinskiCore/file_functions.h"
+#include "core/Logger.h"
+#include "core/file_functions.h"
 
 namespace kinski
 {

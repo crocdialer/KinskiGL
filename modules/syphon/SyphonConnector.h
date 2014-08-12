@@ -1,16 +1,16 @@
 //
 //  SyphonConnector.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 5/3/13.
 //
 //
 
-#ifndef __kinskiGL__SyphonConnector__
-#define __kinskiGL__SyphonConnector__
+#ifndef __gl__SyphonConnector__
+#define __gl__SyphonConnector__
 
-#include "kinskiGL/KinskiGL.h"
-#include "kinskiCore/Component.h"
+#include "gl/KinskiGL.h"
+#include "core/Component.h"
 
 namespace kinski{ namespace gl{
     
@@ -45,4 +45,4 @@ namespace kinski{ namespace gl{
     };
 }}//namespace
 
-#endif /* defined(__kinskiGL__SyphonConnector__) */
+#endif /* defined(__gl__SyphonConnector__) */

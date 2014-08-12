@@ -1,15 +1,15 @@
 //
 //  LSystem.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 27/05/14.
 //
 //
 
-#ifndef __kinskiGL__LSystem__
-#define __kinskiGL__LSystem__
+#ifndef __gl__LSystem__
+#define __gl__LSystem__
 
-#include "kinskiGL/KinskiGL.h"
+#include "gl/KinskiGL.h"
 
 namespace kinski
 {
@@ -134,4 +134,4 @@ namespace kinski
     };
 }
 
-#endif /* defined(__kinskiGL__LSystem__) */
+#endif /* defined(__gl__LSystem__) */

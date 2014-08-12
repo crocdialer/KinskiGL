@@ -1,13 +1,13 @@
 //
 //  MovieTest.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
 #include "MovieTest.h"
-#include "kinskiGL/ArrayTexture.h"
+#include "gl/ArrayTexture.h"
 
 using namespace std;
 using namespace kinski;

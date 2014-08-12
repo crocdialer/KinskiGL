@@ -1,6 +1,6 @@
-#include "kinskiApp/ViewerApp.h"
-#include "kinskiApp/AppServer.h"
-#include "kinskiCore/Serial.h"
+#include "app/ViewerApp.h"
+#include "app/AppServer.h"
+#include "core/Serial.h"
 
 #include "RtMidi.h"
 //#include "Measurement.h"

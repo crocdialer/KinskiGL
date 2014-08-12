@@ -1,10 +1,10 @@
-#include "kinskiApp/ViewerApp.h"
-#include "kinskiApp/AppServer.h"
-#include "kinskiGL/Fbo.h"
+#include "app/ViewerApp.h"
+#include "app/AppServer.h"
+#include "gl/Fbo.h"
 #include "AssimpConnector.h"
-#include "kinskiApp/LightComponent.h"
-#include "kinskiApp/Object3DComponent.h"
-#include "kinskiCore/Animation.h"
+#include "app/LightComponent.h"
+#include "app/Object3DComponent.h"
+#include "core/Animation.h"
 
 using namespace std;
 using namespace kinski;

@@ -1,6 +1,6 @@
 //
 //  NoiseSample.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 29/01/14.
 //

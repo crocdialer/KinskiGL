@@ -1,13 +1,13 @@
 //
 //  physics_context.h
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 1/16/13.
 //
 //
 
-#ifndef __kinskiGL__physics_context__
-#define __kinskiGL__physics_context__
+#ifndef __gl__physics_context__
+#define __gl__physics_context__
 
 //#include <boost/thread.hpp>
 #include <thread>
@@ -16,7 +16,7 @@
 
 #include "kinskiCore/Definitions.h"
 #include "btBulletDynamicsCommon.h"
-#include "kinskiGL/Mesh.h"
+#include "gl/Mesh.h"
 
 class btThreadSupportInterface;
 
@@ -258,4 +258,4 @@ namespace kinski{ namespace physics{
     };
 }}//namespace
 
-#endif /* defined(__kinskiGL__physics_context__) */
+#endif /* defined(__gl__physics_context__) */

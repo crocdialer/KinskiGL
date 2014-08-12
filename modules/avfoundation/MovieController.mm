@@ -1,7 +1,7 @@
 #import <AVFoundation/AVFoundation.h>
-#include "kinskiGL/Texture.h"
-#include "kinskiGL/ArrayTexture.h"
-#include "kinskiGL/Buffer.h"
+#include "gl/Texture.h"
+#include "gl/ArrayTexture.h"
+#include "gl/Buffer.h"
 #include "MovieController.h"
 
 @interface LoopHelper : NSObject

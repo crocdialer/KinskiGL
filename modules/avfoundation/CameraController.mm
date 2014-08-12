@@ -1,6 +1,6 @@
 #import <AVFoundation/AVFoundation.h>
-#include "kinskiGL/Texture.h"
-#include "kinskiGL/Buffer.h"
+#include "gl/Texture.h"
+#include "gl/Buffer.h"
 #include "CameraController.h"
 
 @interface Camera : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>

@@ -1,6 +1,6 @@
 //
 //  DMXController.cpp
-//  kinskiGL
+//  gl
 //
 //  Created by Fabian on 18/11/13.
 //
