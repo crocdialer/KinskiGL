@@ -15,10 +15,12 @@ namespace kinski
 {
     namespace net
     {
+        class tcp_server;
+        class tcp_connection;
+        class udp_server;
+        
         // signature for a receive function
         typedef std::function<void (const std::vector<uint8_t>&)> receive_function;
-        
-        typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;
         
         std::string local_ip(bool ipV6 = false);
         
@@ -74,55 +76,48 @@ namespace kinski
         {
         public:
             
-            tcp_server(boost::asio::io_service& io_service, short port);
+            typedef std::function<void(tcp_connection&)> connection_callback;
+            
+            tcp_server();
+            
+            tcp_server(boost::asio::io_service& io_service,
+                       short port,
+                       connection_callback ccb);
             
             KINSKI_API void start_listen(int port);
             KINSKI_API void stop_listen();
-            KINSKI_API void set_receive_function(receive_function f);
-            KINSKI_API void set_receive_buffer_size(size_t sz);
+            KINSKI_API void set_connection_callback(connection_callback ccb);
             
         private:
-//            void do_accept()
-//            {
-//                acceptor_.async_accept(socket_,
-//                                       [this](boost::system::error_code ec)
-//                                       {
-//                                           if (!ec)
-//                                           {
-//                                               std::make_shared<session>(std::move(socket_))->start();
-//                                           }
-//                                           
-//                                           do_accept();
-//                                       });
-//            }
-            
+
             struct tcp_server_impl;
             std::shared_ptr<tcp_server_impl> m_impl;
-            
-//            tcp::acceptor acceptor_;
-//            tcp::socket socket_;
         };
         
-        class tcp_connection : public std::enable_shared_from_this<tcp_connection>
+        class tcp_connection
         {
+        private:
+            
+            friend class tcp_server;
+            
+            struct tcp_connection_impl;
+            std::shared_ptr<tcp_connection_impl> m_impl;
+            
         public:
             
-            static tcp_connection_ptr create(boost::asio::io_service& io_service,
-                                             receive_function f = receive_function())
-            {
-                return tcp_connection_ptr(new tcp_connection(io_service, f));
-            }
-
+            tcp_connection(boost::asio::io_service& io_service,
+                           std::string the_ip,
+                           short the_port,
+                           receive_function f);
+            
+            tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl);
+            
+            void send(const std::string &str);
             void send(const std::vector<uint8_t> &bytes);
+            
             void receive();
             
             KINSKI_API void set_receive_function(receive_function f);
-            
-        private:
-            tcp_connection();
-            tcp_connection(boost::asio::io_service& io_service, receive_function f);
-
-            std::shared_ptr<struct tcp_connection_impl> m_impl;
         };
         
     }// namespace net
