@@ -130,35 +130,6 @@ namespace kinski { namespace gl {
         } m_point_attenuation;
     };
     
-    class MaterialGroup
-    {
-    public:
-        
-        const std::list<Material::WeakPtr>& materials() const { return m_materials; };
-        std::list<Material::WeakPtr>& materials() { return m_materials; };
-        
-        void uniform(const std::string &theName, const Material::UniformValue &theVal)
-        {
-            std::list<Material::WeakPtr>::iterator it = m_materials.begin();
-            while(it != m_materials.end())
-            {
-                MaterialPtr m = it->lock();
-                if(m)
-                {
-                    m->uniform(theName, theVal);
-                    ++it;
-                }
-                else
-                {
-                    m_materials.erase(it++);
-                }
-            }
-        }
-        
-    private:
-        std::list<Material::WeakPtr> m_materials;
-    };
-    
     class InsertUniformVisitor : public boost::static_visitor<>
     {
     private:

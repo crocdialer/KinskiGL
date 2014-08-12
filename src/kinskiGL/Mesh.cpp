@@ -325,6 +325,7 @@ namespace kinski { namespace gl {
     {
         auto ret = m_geometry->boundingBox();
         return ret.transform(global_transform());
+//        return ret;
     }
     
     void Mesh::createVertexArray()
@@ -338,9 +339,6 @@ namespace kinski { namespace gl {
         for (int i = 0; i < m_vertexArrays.size(); i++)
         {
             if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
-            
-//            if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
-//            glGenVertexArrays(1, &m_vertexArrays[i]);
             
             GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
             bindVertexPointers(i);

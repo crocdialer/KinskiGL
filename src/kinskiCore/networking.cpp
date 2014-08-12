@@ -230,6 +230,22 @@ namespace kinski
             
         /////////////////////////////////////////////////////////////////
         
+        struct tcp_server::tcp_server_impl
+        {
+            tcp::acceptor acceptor;
+            tcp::socket socket;
+            
+            tcp_server_impl(boost::asio::io_service& io_service, short port):
+            acceptor(io_service, tcp::endpoint(tcp::v4(), port)),
+            socket(io_service){}
+        };
+        
+        tcp_server::tcp_server(boost::asio::io_service& io_service, short port):
+        m_impl(new tcp_server_impl(io_service, port))
+        {
+//                do_accept();
+        }
+        
         struct tcp_connection_impl
         {
             tcp_connection_impl(tcp::socket s, net::receive_function f):

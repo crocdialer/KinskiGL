@@ -2,6 +2,7 @@
 #include "kinskiApp/AppServer.h"
 #include "kinskiGL/Fbo.h"
 #include "AssimpConnector.h"
+#include "kinskiApp/LightComponent.h"
 #include "kinskiApp/Object3DComponent.h"
 #include "kinskiCore/Animation.h"
 
@@ -223,7 +224,7 @@ public:
         
         if(selected_mesh())
         {
-            m_object_component->setObject(selected_mesh());
+            m_object_component->set_object(selected_mesh());
             //selected_mesh()->setLookAt(camera());
             //selected_mesh()->setScale(5 * *m_animationTime);
         }

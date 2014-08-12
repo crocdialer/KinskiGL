@@ -26,16 +26,15 @@ namespace kinski
         KINSKI_API void send_tcp(const std::vector<uint8_t> &bytes,
                                  const std::string &ip_string, int port);
         
-        KINSKI_API void async_send_tcp(boost::asio::io_service& io_service,
-                                       const std::vector<uint8_t> &bytes,
-                                       const std::string &ip,
-                                       int port);
-        
         KINSKI_API void send_udp(const std::vector<uint8_t> &bytes,
                                  const std::string &ip_string, int port);
         
         KINSKI_API void send_udp_broadcast(const std::vector<uint8_t> &bytes, int port);
         
+        KINSKI_API void async_send_tcp(boost::asio::io_service& io_service,
+                                       const std::vector<uint8_t> &bytes,
+                                       const std::string &ip,
+                                       int port);
         
         KINSKI_API void async_send_udp(boost::asio::io_service& io_service,
                                        const std::string &str,
@@ -69,6 +68,39 @@ namespace kinski
             
         private:
             std::shared_ptr<struct udp_server_impl> m_impl;
+        };
+        
+        KINSKI_API class tcp_server
+        {
+        public:
+            
+            tcp_server(boost::asio::io_service& io_service, short port);
+            
+            KINSKI_API void start_listen(int port);
+            KINSKI_API void stop_listen();
+            KINSKI_API void set_receive_function(receive_function f);
+            KINSKI_API void set_receive_buffer_size(size_t sz);
+            
+        private:
+//            void do_accept()
+//            {
+//                acceptor_.async_accept(socket_,
+//                                       [this](boost::system::error_code ec)
+//                                       {
+//                                           if (!ec)
+//                                           {
+//                                               std::make_shared<session>(std::move(socket_))->start();
+//                                           }
+//                                           
+//                                           do_accept();
+//                                       });
+//            }
+            
+            struct tcp_server_impl;
+            std::shared_ptr<tcp_server_impl> m_impl;
+            
+//            tcp::acceptor acceptor_;
+//            tcp::socket socket_;
         };
         
         class tcp_connection : public std::enable_shared_from_this<tcp_connection>
