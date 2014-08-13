@@ -183,20 +183,12 @@ void KristallApp::setup()
                                                         "unlit.frag",
                                                         "split_cuboids.geom");
         
-        m_lsystem_shaders[2] = gl::createShaderFromFile("geom_prepass.vert",
-                                                        "shader_points.frag",
-                                                        "lines_to_points_spiral.geom");
-        
-        m_lsystem_shaders[3] = gl::createShaderFromFile("geom_prepass.vert",
-                                                        "shader_points.frag",
-                                                        "lines_to_points_spiral.geom");
-        
         // split lines + unlit shading
-        m_lsystem_shaders[4] = gl::createShaderFromFile("geom_prepass.vert",
+        m_lsystem_shaders[2] = gl::createShaderFromFile("geom_prepass.vert",
                                                         "unlit.frag",
                                                         "split_lines.geom");
         
-        m_lsystem_shaders[5] = gl::createShader(gl::SHADER_POINTS_TEXTURE);
+        m_lsystem_shaders[3] = gl::createShader(gl::SHADER_POINTS_TEXTURE);
         
         m_textures[MASK_TEX] = gl::createTextureFromFile("mask.png", true, false, 4);
         
@@ -205,7 +197,7 @@ void KristallApp::setup()
         m_comp_assets.background_tex = m_comp_assets.template_img;
         
         // our video texture
-        m_movies[0].load("~/Desktop/l_system_animation/vid3.mov", true, true);
+//        m_movies[0].load("~/Desktop/l_system_animation/vid3.mov", true, true);
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -280,11 +272,15 @@ void KristallApp::setup()
 //    m_test_timer.expires_from_now(1.f);
     
     m_tcp_server = net::tcp_server(io_service(), 22222,
-                                   [](net::tcp_connection con)
+                                   [this](net::tcp_connection &con)
     {
-        LOG_DEBUG << "company";
-        con.send("\nlalala ich bin auch da\n");
+        LOG_DEBUG << "port: "<< con.port()<<" -- new connection with: " << con.remote_ip()
+            << " : " << con.remote_port();
+        con.send(Serializer::serializeComponent(shared_from_this(), PropertyIO_GL()));
+        
+        m_tcp_connections.push_back(con);
     });
+    m_tcp_server.start_listen(33333);
     
     // start with ready gamephase
     change_gamestate(READY_PHASE);

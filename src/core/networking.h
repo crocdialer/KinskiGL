@@ -67,6 +67,7 @@ namespace kinski
             KINSKI_API void stop_listen();
             KINSKI_API void set_receive_function(receive_function f);
             KINSKI_API void set_receive_buffer_size(size_t sz);
+            KINSKI_API unsigned short listening_port() const;
             
         private:
             std::shared_ptr<struct udp_server_impl> m_impl;
@@ -88,22 +89,19 @@ namespace kinski
             KINSKI_API void stop_listen();
             KINSKI_API void set_connection_callback(connection_callback ccb);
             
+            KINSKI_API unsigned short listening_port() const;
+            
         private:
 
             struct tcp_server_impl;
             std::shared_ptr<tcp_server_impl> m_impl;
         };
         
-        class tcp_connection
+        KINSKI_API class tcp_connection
         {
-        private:
-            
-            friend class tcp_server;
+        public:
             
             struct tcp_connection_impl;
-            std::shared_ptr<tcp_connection_impl> m_impl;
-            
-        public:
             
             tcp_connection(boost::asio::io_service& io_service,
                            std::string the_ip,
@@ -112,12 +110,19 @@ namespace kinski
             
             tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl);
             
-            void send(const std::string &str);
-            void send(const std::vector<uint8_t> &bytes);
-            
-            void receive();
+            KINSKI_API void send(const std::string &str);
+            KINSKI_API void send(const std::vector<uint8_t> &bytes);
             
             KINSKI_API void set_receive_function(receive_function f);
+            
+            KINSKI_API unsigned short port() const;
+            
+            KINSKI_API std::string remote_ip() const;
+            KINSKI_API unsigned short remote_port() const;
+
+        private:
+            
+            std::shared_ptr<tcp_connection_impl> m_impl;
         };
         
     }// namespace net

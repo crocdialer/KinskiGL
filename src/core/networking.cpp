@@ -227,6 +227,11 @@ namespace kinski
         {
             m_impl->socket.close();
         }
+        
+        unsigned short udp_server::listening_port() const
+        {
+            return m_impl->socket.local_endpoint().port();
+        }
             
         /////////////////////////////////////////////////////////////////
         
@@ -252,11 +257,14 @@ namespace kinski
                     if (!ec)
                     {
                         auto impl = std::make_shared<tcp_connection::tcp_connection_impl>(std::move(socket),
-                                                                                        receive_function());
+                        [](const std::vector<uint8_t> &data)
+                        {
+                            LOG_DEBUG << std::string(data.begin(), data.end());
+                        });
                         tcp_connection con(impl);
                         if(connection_callback){ connection_callback(con); }
                     }
-                  accept();
+                    accept();
               });
             }
         };
@@ -278,18 +286,30 @@ namespace kinski
         
         void tcp_server::start_listen(int port)
         {
-            if(!m_impl->acceptor.is_open())
+            if(!m_impl->acceptor.is_open() ||
+               port != m_impl->acceptor.local_endpoint().port())
             {
-                m_impl->acceptor.open(tcp::v4());
-                m_impl->acceptor.bind(tcp::endpoint(tcp::v4(), port));
+                try
+                {
+                    m_impl->acceptor.close();
+                    m_impl->acceptor.open(tcp::v4());
+                    m_impl->acceptor.bind(tcp::endpoint(tcp::v4(), port));
+                    m_impl->acceptor.listen();
+                }
+                catch (std::exception &e)
+                {
+                    LOG_ERROR << "could not start listening on port: " << port << "(" << e.what()
+                    << ")";
+                    
+                    return;
+                }
             }
-            if(port != m_impl->acceptor.local_endpoint().port())
-            {
-//                m_impl->acceptor.connect(tcp::endpoint(tcp::v4(), port));
-                LOG_WARNING << "something fishy here";
-            }
-
             m_impl->accept();
+        }
+        
+        unsigned short tcp_server::listening_port() const
+        {
+            return m_impl->acceptor.local_endpoint().port();
         }
         
         void tcp_server::stop_listen()
@@ -303,12 +323,37 @@ namespace kinski
         {
             tcp_connection_impl(tcp::socket s, net::receive_function f):
             socket(std::move(s)),
-            recv_buffer(2048),
-            receive_function(f){}
+            recv_buffer(8192),
+            receive_function(f)
+            {
+                receive();
+            }
             
             tcp::socket socket;
             std::vector<uint8_t> recv_buffer;
             net::receive_function receive_function;
+            
+            void receive()
+            {
+                socket.async_receive(boost::asio::buffer(recv_buffer),
+                                     [this](const boost::system::error_code& error,
+                                            std::size_t bytes_transferred)
+                {
+                    if(!error)
+                    {
+                        if(receive_function && bytes_transferred)
+                        {
+                            std::vector<uint8_t> datavec(recv_buffer.begin(),
+                                                         recv_buffer.begin() + bytes_transferred);
+                            receive_function(datavec);
+                            LOG_TRACE << "received " << bytes_transferred << "bytes";
+                        }
+                    }
+                    else{ LOG_WARNING<<error.message(); }
+                    
+                    receive();
+                });
+            }
         };
         
         tcp_connection::tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl):
@@ -330,7 +375,6 @@ namespace kinski
             {
                 LOG_WARNING << e.what();
             }
-            
         }
         
         void tcp_connection::send(const std::string &str)
@@ -340,14 +384,33 @@ namespace kinski
         
         void tcp_connection::send(const std::vector<uint8_t> &bytes)
         {
+            size_t bytes_total = bytes.size();
             boost::asio::async_write(m_impl->socket,
                                      boost::asio::buffer(bytes),
-                                     [](const boost::system::error_code& error,  // Result of operation.
-                                        std::size_t bytes_transferred)           // Number of bytes sent.
+                                     [bytes_total](const boost::system::error_code& error,  // Result of operation.
+                                                   std::size_t bytes_transferred)           // Number of bytes sent.
             {
                 if(error){LOG_ERROR << error.message();}
-                else{ }
+                else if(bytes_transferred < bytes_total)
+                {
+                    LOG_WARNING << "not all bytes written";
+                }
             });
+        }
+        
+        unsigned short tcp_connection::port() const
+        {
+            return m_impl->socket.local_endpoint().port();
+        }
+        
+        std::string tcp_connection::remote_ip() const
+        {
+            return m_impl->socket.remote_endpoint().address().to_string();
+        }
+        
+        unsigned short tcp_connection::remote_port() const
+        {
+            return m_impl->socket.remote_endpoint().port();
         }
     }
 }

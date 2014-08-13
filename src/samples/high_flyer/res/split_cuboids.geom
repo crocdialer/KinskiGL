@@ -124,7 +124,6 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec, in bool draw_caps)
     vertex_out.texCoord = texCoords[3];
     gl_Position = vp[5];
     EmitVertex();
-    EndPrimitive();
 
     // top
     vertex_out.normal = normals[7];
@@ -163,28 +162,25 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec, in bool draw_caps)
     EmitVertex();
     EndPrimitive();
     
-//    if(draw_caps)
-    {
-      // caps faces left
-      vertex_out.normal = -dx;
-      vertex_out.eyeVec = eye_vecs[3];
-      vertex_out.texCoord = texCoords[0];
-      gl_Position = vp[3];
-      EmitVertex();
-      vertex_out.eyeVec = eye_vecs[0];
-      vertex_out.texCoord = texCoords[0];
-      gl_Position = vp[0];
-      EmitVertex();
-      vertex_out.eyeVec = eye_vecs[7];
-      vertex_out.texCoord = texCoords[0];
-      gl_Position = vp[7];
-      EmitVertex();
-      vertex_out.eyeVec = eye_vecs[4];
-      vertex_out.texCoord = texCoords[0];
-      gl_Position = vp[4];
-      EmitVertex();
-      EndPrimitive();
-    }
+    // caps faces left
+    vertex_out.normal = -dx;
+    vertex_out.eyeVec = eye_vecs[3];
+    vertex_out.texCoord = texCoords[0];
+    gl_Position = vp[3];
+    EmitVertex();
+    vertex_out.eyeVec = eye_vecs[0];
+    vertex_out.texCoord = texCoords[0];
+    gl_Position = vp[0];
+    EmitVertex();
+    vertex_out.eyeVec = eye_vecs[7];
+    vertex_out.texCoord = texCoords[0];
+    gl_Position = vp[7];
+    EmitVertex();
+    vertex_out.eyeVec = eye_vecs[4];
+    vertex_out.texCoord = texCoords[0];
+    gl_Position = vp[4];
+    EmitVertex();
+    EndPrimitive();
 
     // caps faces right
     vertex_out.normal = dx;
@@ -231,7 +227,7 @@ void main()
                  vertex_in[0].normal,
                  true);
     }
-    // two smaller cuboid with caps
+    // two smaller cuboids with caps
     else
     {
       create_box(p0 - line_dir * u_cap_bias,
