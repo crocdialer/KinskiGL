@@ -197,7 +197,7 @@ void KristallApp::setup()
         m_comp_assets.background_tex = m_comp_assets.template_img;
         
         // our video texture
-//        m_movies[0].load("~/Desktop/l_system_animation/vid3.mov", true, true);
+        m_movies[0].load("~/Desktop/l_system_animation/vid3.mov", true, true);
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -277,8 +277,7 @@ void KristallApp::setup()
         LOG_DEBUG << "port: "<< con.port()<<" -- new connection with: " << con.remote_ip()
             << " : " << con.remote_port();
         con.send(Serializer::serializeComponent(shared_from_this(), PropertyIO_GL()));
-        
-        m_tcp_connections.push_back(con);
+//        m_tcp_connections.push_back(con);
     });
     m_tcp_server.start_listen(33333);
     

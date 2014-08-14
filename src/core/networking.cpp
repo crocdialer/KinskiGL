@@ -298,7 +298,7 @@ namespace kinski
                 }
                 catch (std::exception &e)
                 {
-                    LOG_ERROR << "could not start listening on port: " << port << "(" << e.what()
+                    LOG_ERROR << "could not start listening on port: " << port << " (" << e.what()
                     << ")";
                     
                     return;
@@ -348,10 +348,9 @@ namespace kinski
                             receive_function(datavec);
                             LOG_TRACE << "received " << bytes_transferred << "bytes";
                         }
+                        receive();
                     }
                     else{ LOG_WARNING<<error.message(); }
-                    
-                    receive();
                 });
             }
         };
@@ -385,9 +384,10 @@ namespace kinski
         void tcp_connection::send(const std::vector<uint8_t> &bytes)
         {
             size_t bytes_total = bytes.size();
+            auto impl = m_impl;
             boost::asio::async_write(m_impl->socket,
                                      boost::asio::buffer(bytes),
-                                     [bytes_total](const boost::system::error_code& error,  // Result of operation.
+                                     [impl, bytes_total](const boost::system::error_code& error,  // Result of operation.
                                                    std::size_t bytes_transferred)           // Number of bytes sent.
             {
                 if(error){LOG_ERROR << error.message();}
@@ -396,6 +396,16 @@ namespace kinski
                     LOG_WARNING << "not all bytes written";
                 }
             });
+        }
+        
+        void tcp_connection::close()
+        {
+            m_impl->socket.close();
+        }
+        
+        bool tcp_connection::is_open() const
+        {
+            return m_impl->socket.is_open();
         }
         
         unsigned short tcp_connection::port() const

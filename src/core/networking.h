@@ -115,8 +115,10 @@ namespace kinski
             
             KINSKI_API void set_receive_function(receive_function f);
             
-            KINSKI_API unsigned short port() const;
+            KINSKI_API void close();
+            KINSKI_API bool is_open() const;
             
+            KINSKI_API unsigned short port() const;
             KINSKI_API std::string remote_ip() const;
             KINSKI_API unsigned short remote_port() const;
 
