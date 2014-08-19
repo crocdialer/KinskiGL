@@ -14,7 +14,7 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "kinskiCore/Definitions.h"
+#include "core/Definitions.h"
 #include "btBulletDynamicsCommon.h"
 #include "gl/Mesh.h"
 

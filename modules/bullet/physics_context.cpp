@@ -8,9 +8,9 @@
 
 #include <boost/bind.hpp>
 #include "physics_context.h"
-#include "kinskiCore/Exception.h"
-#include "kinskiCore/Logger.h"
-#include "kinskiCore/file_functions.h"
+#include "core/Exception.h"
+#include "core/Logger.h"
+#include "core/file_functions.h"
 
 #define USE_PARALLEL_SOLVER 1 //experimental parallel solver
 #define USE_PARALLEL_DISPATCHER 1

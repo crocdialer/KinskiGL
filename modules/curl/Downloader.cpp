@@ -8,7 +8,7 @@
 
 #include "curl/curl.h"
 #include <boost/asio.hpp>
-#include "kinskiCore/Logger.h"
+#include "core/Logger.h"
 #include "Downloader.h"
 
 using namespace std;

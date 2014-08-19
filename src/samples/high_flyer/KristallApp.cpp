@@ -869,24 +869,24 @@ void KristallApp::refresh_lsystem(LSystem &the_lsystem, int num_iterations, floa
     }
     
     // generate a random spawn position
-    bool pos_valid = false;
-    vec3 rnd_spawn;
-    while (!pos_valid)
-    {
-        rnd_spawn = 0.8f * glm::linearRand(m_aabb_min->value(), m_aabb_max->value());
-        pos_valid = true;
-        
-        // check against occluder
-        for(auto o : m_occluding_meshes)
-        {
-            if(o->enabled() && gl::is_point_inside_mesh(rnd_spawn, o))
-            {
-                pos_valid = false;
-                break;
-            }
-        }
-    }
-    the_lsystem.turtle_transform()[3] = vec4(rnd_spawn, 1);
+//    bool pos_valid = false;
+//    vec3 rnd_spawn;
+//    while (!pos_valid)
+//    {
+//        rnd_spawn = 0.8f * glm::linearRand(m_aabb_min->value(), m_aabb_max->value());
+//        pos_valid = true;
+//        
+//        // check against occluder
+//        for(auto o : m_occluding_meshes)
+//        {
+//            if(o->enabled() && gl::is_point_inside_mesh(rnd_spawn, o))
+//            {
+//                pos_valid = false;
+//                break;
+//            }
+//        }
+//    }
+//    the_lsystem.turtle_transform()[3] = vec4(rnd_spawn, 1);
     
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);

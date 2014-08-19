@@ -9,7 +9,7 @@
 #ifndef kinski__Downloader_h_INCLUDED
 #define kinski__Downloader_h_INCLUDED
 
-#include "kinskiCore/networking.h"
+#include "core/networking.h"
 
 namespace kinski{ namespace net{
     

@@ -22,6 +22,7 @@ namespace kinski
         void stop();
         bool running();
         float time_elapsed();
+        float time_elapsed_for_lap();
         void reset();
         void new_lap();
         const std::vector<float>& laps();

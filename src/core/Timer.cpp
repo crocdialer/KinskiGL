@@ -81,6 +81,16 @@ float Stopwatch::time_elapsed()
     return ret;
 }
 
+float Stopwatch::time_elapsed_for_lap()
+{
+    float ret = m_impl->laps.back();
+    
+    if(!m_impl->running) return ret;
+    
+    ret += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+    return ret;
+}
+
 const std::vector<float>& Stopwatch::laps()
 {
     return m_impl->laps;

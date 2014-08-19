@@ -7,7 +7,7 @@
 //
 
 #include "LeapConnector.h"
-#include "kinskiCore/Logger.h"
+#include "core/Logger.h"
 
 using namespace Leap;
 
