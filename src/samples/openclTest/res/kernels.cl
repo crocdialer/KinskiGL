@@ -49,9 +49,4 @@ __kernel void updateParticles(__global float3* pos, __global float4* color, __gl
     //update the arrays with our newly computed values
     pos[i] = p;
     vel[i] = v;
-    
-    //you can manipulate the color based on properties of the system
-    //here we adjust the alpha
-    
-    //color[i] = (float4)(1.f, 1.f, 0.f, 1.f);//life / 5.0;
 }

@@ -358,10 +358,9 @@ namespace kinski
         
         tcp_connection::~tcp_connection()
         {
-            LOG_DEBUG << "desctructor: " << m_impl.use_count();
-            
-            if(m_impl.use_count() == 2)
-                close();
+//            LOG_DEBUG << "desctructor: " << m_impl.use_count();            
+//            if(m_impl.use_count() == 2)
+//                close();
         }
         
         void tcp_connection::send(const std::string &str)

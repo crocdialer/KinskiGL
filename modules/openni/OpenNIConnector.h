@@ -13,7 +13,7 @@
 #include <mutex>
 #include <condition_variable>
 #include "gl/KinskiGL.h"
-#include "kinskiCore/Component.h"
+#include "core/Component.h"
 
 // forward declare OpenNI stuff to avoid header inclusion
 namespace xn
