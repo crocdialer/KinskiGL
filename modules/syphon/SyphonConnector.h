@@ -20,7 +20,6 @@ namespace kinski{ namespace gl{
         SyphonConnector(){};
         SyphonConnector(const std::string &theName);
         
-        void publish_framebuffer(const Fbo &theFbo);
         void publish_texture(const Texture &theTexture);
         void setName(const std::string &theName);
         std::string getName();

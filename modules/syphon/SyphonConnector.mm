@@ -30,22 +30,15 @@ namespace kinski{ namespace gl{
     
     SyphonConnector::SyphonConnector(const std::string &theName):m_obj(new Obj(theName)){}
     
-    void SyphonConnector::publish_framebuffer(const Fbo &theFbo)
-    {
-        if(!m_obj) throw SyphonNotRunningException();
-        NSRect rect = NSMakeRect(0, 0, theFbo.getWidth(), theFbo.getHeight());
-        NSSize size = NSMakeSize(theFbo.getWidth(), theFbo.getHeight());
-        [m_obj->m_syphon_server publishFramebuffer:theFbo.getId() imageRegion:rect textureDimensions:size];
-    }
-    
     void SyphonConnector::publish_texture(const Texture &theTexture)
     {
         if(!m_obj) throw SyphonNotRunningException();
         NSRect rect = NSMakeRect(0, 0, theTexture.getWidth(), theTexture.getHeight());
         NSSize size = NSMakeSize(theTexture.getWidth(), theTexture.getHeight());
         
-        // not working with OpenGL 3.2
-        // using the gl3 branch of this fork helped: git://github.com/GameClay/syphon-framework.git
+        // syphon won't be nice and change the viewport settings, so save them
+        gl::SaveViewPort sv;
+
         [m_obj->m_syphon_server publishFrameTexture:theTexture.getId()
                                 textureTarget:theTexture.getTarget()
                                 imageRegion:rect
