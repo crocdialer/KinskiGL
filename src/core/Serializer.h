@@ -80,12 +80,27 @@ namespace kinski
                                               const PropertyIO &theIO = PropertyIO());
         
         /*!
+         * Serialize a component to a string in json format.
+         * Supported Property types are determined by theIO object
+         */
+        static std::string serializeComponents(const std::list<Component::ConstPtr> &theComponentList,
+                                               const PropertyIO &theIO = PropertyIO());
+        
+        /*!
          * Read a component´s state from a string in json-format
          * Supported Property types are determined by theIO object
          */
         static void applyStateToComponent(const Component::Ptr &theComponent,
                                           const std::string &theState,
                                           const PropertyIO &theIO = PropertyIO());
+        
+        /*!
+         * Read a component´s state from a string in json-format
+         * Supported Property types are determined by theIO object
+         */
+        static void applyStateToComponents(const std::list<Component::Ptr> &theComponentList,
+                                           const std::string &theState,
+                                           const PropertyIO &theIO = PropertyIO());
         
         class ParsingException: public Exception
         {

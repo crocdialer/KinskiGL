@@ -157,14 +157,16 @@ namespace kinski {
     std::string Serializer::serializeComponent(const Component::ConstPtr &theComponent,
                                                const PropertyIO &theIO)
     {
-        if(!theComponent) throw Exception("Could not serialize empty component");
-        
+        return serializeComponents({theComponent});
+    }
+    
+    std::string Serializer::serializeComponents(const std::list<Component::ConstPtr> &theComponentList,
+                                                const PropertyIO &theIO)
+    {
         Json::Value myRoot;
-        std::list<Component::ConstPtr> list;
-        list.push_back(theComponent);
-        add_to_json_object(list, myRoot, theIO);
+        add_to_json_object(theComponentList, myRoot, theIO);
         Json::StyledWriter myWriter;
-        return myWriter.write(myRoot); 
+        return myWriter.write(myRoot);
     }
     
     void Serializer::applyStateToComponent(const Component::Ptr &theComponent,
@@ -201,6 +203,13 @@ namespace kinski {
                 }
             }
         }
+    }
+    
+    void Serializer::applyStateToComponents(const std::list<Component::Ptr> &theComponentList,
+                                            const std::string &theState,
+                                            const PropertyIO &theIO)
+    {
+        for(auto c : theComponentList){ applyStateToComponent(c, theState, theIO);}
     }
     
     void Serializer::saveComponentState(const Component::ConstPtr &theComponent,

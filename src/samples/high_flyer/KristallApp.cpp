@@ -276,15 +276,18 @@ void KristallApp::setup()
     {
         LOG_DEBUG << "port: "<< con.port()<<" -- new connection with: " << con.remote_ip()
             << " : " << con.remote_port();
-        con.send(Serializer::serializeComponent(shared_from_this(), PropertyIO_GL()));
+        
+        con.send(Serializer::serializeComponents({shared_from_this(), m_light_component},
+                                                 PropertyIO_GL()));
         m_tcp_connections.push_back(con);
         
         con.set_receive_function([&](net::tcp_connection& con, const std::vector<uint8_t>& response)
         {
             try
             {
-                Serializer::applyStateToComponent(shared_from_this(), string(response.begin(),
-                                                                             response.end()));
+                Serializer::applyStateToComponents({shared_from_this(), m_light_component},
+                                                   string(response.begin(),
+                                                          response.end()));
             } catch (std::exception &e)
             {
                 LOG_ERROR << e.what();

@@ -140,11 +140,9 @@ namespace kinski {
                      if(m_impl->m_on_load_cb)
                          m_impl->m_on_load_cb(*this);
                  }
-                 else
-                 {
-                     LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path;
-                 }
+                 else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
              }
+             else{ LOG_ERROR << "No video tracks found in: " << m_impl->m_src_path; }
          }];
     }
     void MovieController::play()
