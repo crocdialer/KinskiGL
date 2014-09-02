@@ -412,7 +412,7 @@ namespace kinski
                         LOG_TRACE << "received " << bytes_transferred << "bytes";
                     }
                     
-                    LOG_DEBUG << impl_cp.use_count();
+//                    LOG_DEBUG << impl_cp.use_count();
                     
                     // only keep receiving if there are any refs on this instance left
                     if(impl_cp.use_count() > 1)

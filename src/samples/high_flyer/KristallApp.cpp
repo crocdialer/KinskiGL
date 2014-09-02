@@ -277,7 +277,19 @@ void KristallApp::setup()
         LOG_DEBUG << "port: "<< con.port()<<" -- new connection with: " << con.remote_ip()
             << " : " << con.remote_port();
         con.send(Serializer::serializeComponent(shared_from_this(), PropertyIO_GL()));
-//        m_tcp_connections.push_back(con);
+        m_tcp_connections.push_back(con);
+        
+        con.set_receive_function([&](net::tcp_connection& con, const std::vector<uint8_t>& response)
+        {
+            try
+            {
+                Serializer::applyStateToComponent(shared_from_this(), string(response.begin(),
+                                                                             response.end()));
+            } catch (std::exception &e)
+            {
+                LOG_ERROR << e.what();
+            }
+        });
     });
     m_tcp_server.start_listen(33333);
     
@@ -653,6 +665,13 @@ void KristallApp::got_message(const std::vector<uint8_t> &the_message)
 {
     string msg = string(the_message.begin(), the_message.end());
     LOG_TRACE << msg;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void KristallApp::fileDrop(const std::vector<std::string> &files)
+{
+    for(auto &f : files){ LOG_DEBUG << f;}
 }
 
 /////////////////////////////////////////////////////////////////

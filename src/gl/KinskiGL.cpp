@@ -1156,7 +1156,14 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     void apply_material(const MaterialPtr &the_mat, bool force_apply)
     {
         static Material::WeakPtr weak_last;
+        
+        // TODO: remove again! tmp: always force apply
+        force_apply = true;
+        
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
+
+        
+        
         if(!the_mat) return;
         
         the_mat->shader().bind();

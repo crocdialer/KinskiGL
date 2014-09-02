@@ -224,6 +224,7 @@ namespace kinski
         glfwSetKeyCallback(the_window->handle(), &GLFW_App::s_keyFunc);
         glfwSetCharCallback(the_window->handle(), &GLFW_App::s_charFunc);
         glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
+        glfwSetDropCallback(the_window->handle(), &GLFW_App::s_file_drop_func);
     }
     
 /****************************  Application Events (internal) **************************/
@@ -367,6 +368,18 @@ namespace kinski
             keyModifiers |= KeyEvent::ALT_DOWN;
         if( glfwGetKey(window, GLFW_KEY_LEFT_SUPER) || glfwGetKey(window, GLFW_KEY_RIGHT_SUPER))
             keyModifiers |= KeyEvent::META_DOWN;
+    }
+    
+    void GLFW_App::s_file_drop_func(GLFWwindow* window, int num_files,const char **paths)
+    {
+        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        std::vector<std::string> files;
+        
+        for(int i = 0; i < num_files; i++)
+        {
+            files.push_back(paths[i]);
+        }
+        app->fileDrop(files);
     }
     
 /****************************  TweakBar + Properties **************************/
