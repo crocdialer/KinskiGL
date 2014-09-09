@@ -963,21 +963,22 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawBoundingBox(const MeshWeakPtr &weakMesh)
+    void drawBoundingBox(const MeshPtr &the_mesh)
     {
-        static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorWhite(1.0), colorRed(1.0, 0, 0 ,1.0);
-        
-        if(theMap.find(weakMesh) == theMap.end())
+        static MeshPtr line_mesh;
+
+        if(!line_mesh)
         {
-            Mesh::ConstPtr m = weakMesh.lock();
-            if(!m) return;
+            if(!the_mesh) return;
             
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
             gl::MaterialPtr mat = gl::Material::create();
-            MeshPtr line_mesh = gl::Mesh::create(geom, mat);
-            AABB bb = m->boundingBox();
+            line_mesh = gl::Mesh::create(geom, mat);
+
+            auto bb = gl::AABB(vec3(-.5f), vec3(.5f));
+            
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
             
@@ -1025,18 +1026,14 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 
             geom->createGLBuffers();
             line_mesh->createVertexArray();
-            
-            theMap[weakMesh] = line_mesh;
         }
-        gl::drawMesh(theMap[weakMesh]);
-        
-        // cleanup
-        map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
-        for (; meshIt != theMap.end(); ++meshIt)
-        {
-            if(! meshIt->first.lock() )
-                theMap.erase(meshIt);
-        }
+        AABB mesh_bb = the_mesh->boundingBox();
+        glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(mesh_bb.width(),
+                                                           mesh_bb.height(),
+                                                           mesh_bb.depth()));
+        gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+        gl::multMatrix(gl::MODEL_VIEW_MATRIX, scale_mat);
+        gl::drawMesh(line_mesh);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1334,8 +1331,10 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             return false;
         }
         
+        auto aabb = m->boundingBox().transform(m->global_transform());
+        
         // checks if p is inside the (transformed aabb of Mesh m)
-        if(!m->boundingBox().contains(p)) return false;
+        if(!aabb.contains(p)) return false;
         
         const auto &vertices = m->geometry()->vertices();
         

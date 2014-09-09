@@ -180,7 +180,7 @@ namespace kinski { namespace gl {
     KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
     KINSKI_API void drawTransform(const glm::mat4& the_transform, float the_scale = 1.f);
-    KINSKI_API void drawBoundingBox(const MeshWeakPtr &theMesh);
+    KINSKI_API void drawBoundingBox(const MeshPtr &theMesh);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
     KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
                                const MaterialPtr &theMaterial = MaterialPtr(),

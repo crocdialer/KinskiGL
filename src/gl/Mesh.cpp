@@ -324,8 +324,8 @@ namespace kinski { namespace gl {
     AABB Mesh::boundingBox() const
     {
         auto ret = m_geometry->boundingBox();
-        return ret.transform(global_transform());
-//        return ret;
+//        return ret.transform(global_transform());
+        return ret;
     }
     
     void Mesh::createVertexArray()
