@@ -36,6 +36,11 @@ namespace kinski {
     std::string get_working_directory();
     std::string getExtension(const std::string &thePath);
     std::string removeExtension(const std::string &theFileName);
+    
+    enum class FileType{FILE_IMAGE, FILE_MODEL, FILE_AUDIO, FILE_OTHER};
+    
+    FileType get_filetype(const std::string &file_name);
+    
     /************************ Exceptions ************************/
     
     class FileNotFoundException: public Exception

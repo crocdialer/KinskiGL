@@ -88,6 +88,12 @@ namespace kinski
         return ret;
     }
     
+    template <typename X, typename C>
+    inline bool is_in(const X &elem, const C &container)
+    {
+        return std::find(begin(container), end(container), elem) != end(container);
+    }
+    
     template <typename T>
     inline int sgn(T val)
     {
