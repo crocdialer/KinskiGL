@@ -88,6 +88,20 @@ namespace kinski
         return ret;
     }
     
+    inline std::string to_lower(const std::string &str)
+    {
+        std::string ret = str;
+        std::transform(str.begin(), str.end(), ret.begin(), ::tolower);
+        return ret;
+    }
+    
+    inline std::string to_upper(const std::string &str)
+    {
+        std::string ret = str;
+        std::transform(str.begin(), str.end(), ret.begin(), ::toupper);
+        return ret;
+    }
+    
     template <typename X, typename C>
     inline bool is_in(const X &elem, const C &container)
     {

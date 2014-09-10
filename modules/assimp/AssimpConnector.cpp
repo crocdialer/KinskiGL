@@ -310,6 +310,11 @@ namespace kinski { namespace gl{
                 materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
             }
             combined_geom->computeBoundingBox();
+//            if(!combined_geom->hasColors())
+//            {
+//                combined_geom->colors().resize(combined_geom->vertices().size(), gl::Color(1));
+//            }
+            
             insertBoneData(combined_geom, weightmap);
             
             gl::GeometryPtr geom = combined_geom;
@@ -352,7 +357,6 @@ namespace kinski { namespace gl{
             {
                 materials[i]->setShader(shader);
             }
-            mesh->geometry()->createGLBuffers();
             mesh->createVertexArray();
             
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<

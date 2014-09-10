@@ -30,6 +30,9 @@ void ModelViewer::setup()
     m_light_component->set_lights(lights());
     create_tweakbar_from_component(m_light_component);
     
+    m_test_box = gl::Mesh::create(gl::Geometry::createBox(glm::vec3(5)), gl::Material::create());
+    scene().addObject(m_test_box);
+    
     load_settings();
 }
 
@@ -152,8 +155,21 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                 break;
             
             case FileType::FILE_IMAGE:
-                try { textures().push_back(gl::createTextureFromFile(f)); }
+                try
+                {
+                    textures().push_back(gl::createTextureFromFile(f, true, false));
+                    
+                    if(m_mesh)
+                    {
+                        m_mesh->material()->textures().clear();
+                        m_mesh->material()->textures().push_back(textures().back());
+                    }
+                }
                 catch (Exception &e) { LOG_WARNING << e.what();}
+                if(scene().pick(gl::calculateRay(camera(), e.getX(), e.getY())))
+                {
+                    LOG_INFO << "texture drop on model";
+                }
                 break;
             default:
                 break;
@@ -181,8 +197,9 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         if(m)
         {
             m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
+            m->material()->setDiffuse(gl::Color(1));
             
-            for(auto &t : m->material()->textures()){ textures().push_back(t);}
+            for(auto &t : m->material()->textures()){ textures().push_back(t); }
             
             scene().removeObject(m_mesh);
             m_mesh = m;

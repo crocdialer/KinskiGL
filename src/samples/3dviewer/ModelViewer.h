@@ -20,7 +20,7 @@ namespace kinski
         
         gl::Font m_font;
         
-        gl::MeshPtr m_mesh;
+        gl::MeshPtr m_mesh, m_test_box;
         
         LightComponent::Ptr m_light_component;
         

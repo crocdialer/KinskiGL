@@ -305,7 +305,7 @@ namespace kinski {
     
     FileType get_filetype(const std::string &file_name)
     {
-        string ext = kinski::getExtension(file_name).substr(1);
+        string ext = kinski::to_lower(kinski::getExtension(file_name).substr(1));
         
         std::list<string> image_exts{"png", "jpg", "jpeg"}, audio_exts{"wav, m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply"};

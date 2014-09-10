@@ -114,10 +114,10 @@ public:
         m_frameBuffer = gl::Fbo(getWidth(), getHeight(), fboFormat);
         
         // Depth of field post processing
-        m_post_process_mat = gl::Material::create();
-        m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "DoF_bokeh_2.2.frag"));
-        m_post_process_mat->uniform("u_znear", camera()->near());
-        m_post_process_mat->uniform("u_zfar", camera()->far());
+//        m_post_process_mat = gl::Material::create();
+//        m_post_process_mat->setShader(gl::createShaderFromFile("shader_depth.vert", "DoF_bokeh_2.2.frag"));
+//        m_post_process_mat->uniform("u_znear", camera()->near());
+//        m_post_process_mat->uniform("u_zfar", camera()->far());
         
         // create a simplex noise texture
         {
