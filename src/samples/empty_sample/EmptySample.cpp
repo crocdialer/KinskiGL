@@ -18,6 +18,11 @@ using namespace glm;
 void EmptySample::setup()
 {
     ViewerApp::setup();
+    m_font.load("Courier New Bold.ttf", 18);
+    outstream_gl().set_color(gl::COLOR_WHITE);
+    outstream_gl().set_font(m_font);
+    observeProperties();
+    create_tweakbar_from_component(shared_from_this());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -31,7 +36,8 @@ void EmptySample::update(float timeDelta)
 
 void EmptySample::draw()
 {
-    
+    gl::setMatrices(camera());
+    gl::drawGrid(50, 50);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -95,6 +101,13 @@ void EmptySample::mouseWheel(const MouseEvent &e)
 void EmptySample::got_message(const std::vector<uint8_t> &the_message)
 {
     LOG_INFO<<string(the_message.begin(), the_message.end());
+}
+
+/////////////////////////////////////////////////////////////////
+
+void EmptySample::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
+{
+    for(const string &f : files){ LOG_INFO << f; }
 }
 
 /////////////////////////////////////////////////////////////////

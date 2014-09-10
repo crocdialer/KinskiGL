@@ -1,23 +1,30 @@
 //
-//  EmptySample.h
+//  3dViewer.h
 //  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __gl__EmptySample__
-#define __gl__EmptySample__
+#ifndef __gl__3dViewer__
+#define __gl__3dViewer__
 
 #include "app/ViewerApp.h"
+#include "app/LightComponent.h"
 
 namespace kinski
 {
-    class EmptySample : public ViewerApp
+    class ModelViewer : public ViewerApp
     {
     private:
         
         gl::Font m_font;
+        
+        gl::MeshPtr m_mesh;
+        
+        LightComponent::Ptr m_light_component;
+        
+        Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
         
     public:
         
@@ -39,4 +46,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__gl__EmptySample__) */
+#endif /* defined(__gl__3dViewer__) */

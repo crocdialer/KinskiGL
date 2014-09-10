@@ -157,7 +157,7 @@ namespace kinski {
     std::string Serializer::serializeComponent(const Component::ConstPtr &theComponent,
                                                const PropertyIO &theIO)
     {
-        return serializeComponents({theComponent});
+        return serializeComponents({theComponent}, theIO);
     }
     
     std::string Serializer::serializeComponents(const std::list<Component::ConstPtr> &theComponentList,

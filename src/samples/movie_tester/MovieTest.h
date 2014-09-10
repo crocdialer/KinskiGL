@@ -37,7 +37,7 @@ namespace kinski
         void update(float timeDelta);
         void draw();
         void got_message(const std::vector<uint8_t> &the_data);
-        void fileDrop(const std::vector<std::string> &files);
+        void fileDrop(const MouseEvent &e, const std::vector<std::string> &files);
         void tearDown();
         void updateProperty(const Property::ConstPtr &theProperty);
         

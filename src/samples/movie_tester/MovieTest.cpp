@@ -116,7 +116,7 @@ void MovieTest::got_message(const std::vector<uint8_t> &the_data)
 
 /////////////////////////////////////////////////////////////////
 
-void MovieTest::fileDrop(const std::vector<std::string> &files)
+void MovieTest::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
 {
     *m_movie_path = files.back();
 }

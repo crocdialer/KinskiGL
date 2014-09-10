@@ -132,7 +132,7 @@ namespace kinski
         static void s_file_drop_func(GLFWwindow* window, int num_files, const char **paths);
 
         // return the current key and mouse button modifier mask
-        static void s_getModifiers(GLFWwindow* window, int modifier_mask, uint32_t &buttonModifiers,
+        static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
                                    uint32_t &keyModifiers);
         
         std::vector<CTwBar*> m_tweakBars;

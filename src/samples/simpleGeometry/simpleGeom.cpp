@@ -1,5 +1,4 @@
 #include "app/ViewerApp.h"
-#include "app/AppServer.h"
 #include "gl/Fbo.h"
 #include "AssimpConnector.h"
 #include "app/LightComponent.h"
@@ -520,8 +519,7 @@ int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleGeometryApp);
     theApp->setWindowSize(1024, 768);
-    tcp_server tcp(theApp);
-    LOG_INFO<<tcp_server::local_ip();
+    LOG_INFO<<net::local_ip();
     
     return theApp->run();
 }

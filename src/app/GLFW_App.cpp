@@ -252,7 +252,7 @@ namespace kinski
         if(app->displayTweakBar())
             TwEventMousePosGLFW((int)x, (int)y);
         uint32_t buttonModifiers, keyModifiers, bothMods;
-        s_getModifiers(window, 0, buttonModifiers, keyModifiers);
+        s_getModifiers(window, buttonModifiers, keyModifiers);
         bothMods = buttonModifiers | keyModifiers;
         MouseEvent e(buttonModifiers, (int)x, (int)y, bothMods, glm::ivec2(0));
         
@@ -269,7 +269,7 @@ namespace kinski
             TwEventMouseButtonGLFW(button, action);
         
         uint32_t initiator, keyModifiers, bothMods;
-        s_getModifiers(window, modifier_mask, initiator, keyModifiers);
+        s_getModifiers(window, initiator, keyModifiers);
         bothMods = initiator | keyModifiers;
         
         double posX, posY;
@@ -300,7 +300,7 @@ namespace kinski
         double posX, posY;
         glfwGetCursorPos(window, &posX, &posY);
         uint32_t buttonMod, keyModifiers = 0;
-        s_getModifiers(window, 0, buttonMod, keyModifiers);
+        s_getModifiers(window, buttonMod, keyModifiers);
         MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
         if(app->running()) app->mouseWheel(e);
     }
@@ -312,7 +312,7 @@ namespace kinski
             TwEventKeyGLFW(key, action);
         
         uint32_t buttonMod, keyMod;
-        s_getModifiers(window, modifier_mask, buttonMod, keyMod);
+        s_getModifiers(window, buttonMod, keyMod);
         
         KeyEvent e(key, key, keyMod);
         
@@ -342,14 +342,15 @@ namespace kinski
         if(key == GLFW_KEY_SPACE){return;}
         
         uint32_t buttonMod, keyMod;
-        s_getModifiers(window, 0, buttonMod, keyMod);
+        s_getModifiers(window, buttonMod, keyMod);
         
 //        KeyEvent e(0, key, keyMod);
 //        app->keyPress(e);
     }
     
-    void GLFW_App::s_getModifiers(GLFWwindow* window, int modifier_mask,
-                                  uint32_t &buttonModifiers, uint32_t &keyModifiers)
+    void GLFW_App::s_getModifiers(GLFWwindow* window,
+                                  uint32_t &buttonModifiers,
+                                  uint32_t &keyModifiers)
     {
         buttonModifiers = 0;
         if( glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) )
@@ -379,7 +380,14 @@ namespace kinski
         {
             files.push_back(paths[i]);
         }
-        app->fileDrop(files);
+        uint32_t initiator, keyModifiers, bothMods;
+        s_getModifiers(window, initiator, keyModifiers);
+        bothMods = initiator | keyModifiers;
+        double posX, posY;
+        glfwGetCursorPos(window, &posX, &posY);
+        MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
+        
+        app->fileDrop(e, files);
     }
     
 /****************************  TweakBar + Properties **************************/

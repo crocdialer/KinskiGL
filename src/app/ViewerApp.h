@@ -51,8 +51,12 @@ namespace kinski {
         void set_selected_mesh(gl::MeshPtr m){ m_selected_mesh = m; };
         const std::vector<gl::MaterialPtr>& materials() const { return m_materials; };
         std::vector<gl::MaterialPtr>& materials(){ return m_materials; };
+        
         std::vector<gl::LightPtr>& lights() { return m_lights; };
         const std::vector<gl::LightPtr>& lights() const { return m_lights; };
+        std::vector<gl::Texture>& textures() { return m_textures; };
+        const std::vector<gl::Texture>& textures() const { return m_textures; };
+        
         const gl::Scene& scene() const { return m_scene; };
         gl::Scene& scene() { return m_scene; };
         bool precise_selection() const { return m_precise_selection; };
@@ -71,6 +75,8 @@ namespace kinski {
         
         // Lightsources
         std::vector<gl::LightPtr> m_lights;
+        
+        std::vector<gl::Texture> m_textures;
         
         bool m_precise_selection;
         bool m_center_selected;

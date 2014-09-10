@@ -51,7 +51,7 @@ namespace kinski { namespace gl {
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
         // bind our shader, not sure if necessary here
-        shader.bind();
+//        shader.bind();
         
         // create VBOs if not yet existing
         if(!m_geometry->vertexBuffer())

@@ -51,7 +51,7 @@ namespace kinski
         virtual void mouseWheel(const MouseEvent &e){};
         virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
-        virtual void fileDrop(const std::vector<std::string> &files){};
+        virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
         virtual void got_message(const std::vector<uint8_t> &the_data){};
         virtual void setCursorPosition(float x, float y){};
 

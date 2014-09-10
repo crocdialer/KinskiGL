@@ -254,6 +254,7 @@ namespace kinski { namespace gl{
         dst->appendVertices(src->vertices());
         dst->appendNormals(src->normals());
         dst->appendColors(src->colors());
+        dst->tangents().insert(dst->tangents().end(), src->tangents().begin(), src->tangents().end());
         dst->appendTextCoords(src->texCoords());
         dst->appendIndices(src->indices());
         dst->faces().insert(dst->faces().end(), src->faces().begin(), src->faces().end());
@@ -288,10 +289,6 @@ namespace kinski { namespace gl{
             BoneMap bonemap;
             WeightMap weightmap;
             std::vector<Mesh::Entry> entries;
-            
-//            mat4 t;
-//            GeometryPtr tmp;
-//            get_node_transform(theScene, theScene->mRootNode, t, tmp);
             
             for (int i = 0; i < theScene->mNumMeshes; i++)
             {
@@ -355,7 +352,9 @@ namespace kinski { namespace gl{
             {
                 materials[i]->setShader(shader);
             }
+            mesh->geometry()->createGLBuffers();
             mesh->createVertexArray();
+            
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
                 geom->faces().size()<<" faces";
             
