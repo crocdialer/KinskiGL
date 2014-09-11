@@ -197,7 +197,9 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         if(m)
         {
             m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
+            m->createVertexArray();
             m->material()->setDiffuse(gl::Color(1));
+//            m->material()->textures().clear();
             
             for(auto &t : m->material()->textures()){ textures().push_back(t); }
             

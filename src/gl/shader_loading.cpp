@@ -373,8 +373,8 @@ namespace kinski { namespace gl {
         uniform mat4 u_modelViewProjectionMatrix;
         uniform mat4 u_textureMatrix;
         in vec4 a_vertex;
-        in vec4 a_texCoord;
         in vec4 a_color;
+        in vec4 a_texCoord;
         out VertexData{
            vec4 color;
            vec2 texCoord;

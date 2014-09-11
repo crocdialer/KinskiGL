@@ -330,6 +330,12 @@ namespace kinski { namespace gl {
     
     void Mesh::createVertexArray()
     {
+        for (int i = 0; i < m_vertexArrays.size(); i++)
+        {
+            if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
+        }
+        m_vertexArrays.clear();
+        m_shaders.clear();
         if(m_geometry->vertices().empty()) return;
         
 #ifndef KINSKI_NO_VAO
