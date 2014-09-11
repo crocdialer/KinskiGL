@@ -50,10 +50,10 @@ void ModelViewer::draw()
     gl::setMatrices(camera());
     if(draw_grid()){ gl::drawGrid(50, 50); }
     
-//    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
-//    gl::drawMesh(m_mesh);
+    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
+    gl::drawMesh(m_mesh);
     
-    scene().render(camera());
+//    scene().render(camera());
     
     // draw texture map(s)
     if(displayTweakBar())
@@ -201,9 +201,9 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
             
             for(auto &t : m->material()->textures()){ textures().push_back(t); }
             
-            scene().removeObject(m_mesh);
+//            scene().removeObject(m_mesh);
             m_mesh = m;
-            scene().addObject(m_mesh);
+//            scene().addObject(m_mesh);
             
             auto aabb = m->boundingBox();
             

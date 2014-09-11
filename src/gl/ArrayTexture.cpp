@@ -20,7 +20,7 @@ namespace gl {
     
 ArrayTexture::Format::Format()
 {
-	m_Target = GL_TEXTURE_2D_ARRAY;
+	m_Target = GL_TEXTURE_2D_ARRAY;//GL_TEXTURE_3D
 	m_WrapS = GL_CLAMP_TO_EDGE;//GL_REPEAT not working in ios
 	m_WrapT = GL_CLAMP_TO_EDGE;
 	m_MinFilter = GL_LINEAR;

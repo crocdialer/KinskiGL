@@ -54,8 +54,12 @@ namespace kinski {
         
         std::vector<gl::LightPtr>& lights() { return m_lights; };
         const std::vector<gl::LightPtr>& lights() const { return m_lights; };
+        
         std::vector<gl::Texture>& textures() { return m_textures; };
         const std::vector<gl::Texture>& textures() const { return m_textures; };
+        
+        std::vector<gl::Font>& fonts() { return m_fonts; };
+        const std::vector<gl::Font>& fonts() const { return m_fonts; };
         
         const gl::Scene& scene() const { return m_scene; };
         gl::Scene& scene() { return m_scene; };
@@ -66,7 +70,12 @@ namespace kinski {
         virtual void save_settings(const std::string &path = "");
         virtual void load_settings(const std::string &path = "");
         
+        void draw_textures();
+        
     private:
+        
+        std::vector<gl::Font> m_fonts{4};
+        
         std::vector<gl::MaterialPtr> m_materials;
         gl::MeshPtr m_selected_mesh;
         gl::PerspectiveCamera::Ptr m_camera;
@@ -76,7 +85,7 @@ namespace kinski {
         // Lightsources
         std::vector<gl::LightPtr> m_lights;
         
-        std::vector<gl::Texture> m_textures;
+        std::vector<gl::Texture> m_textures {16};
         
         bool m_precise_selection;
         bool m_center_selected;

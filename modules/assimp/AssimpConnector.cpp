@@ -310,10 +310,10 @@ namespace kinski { namespace gl{
                 materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
             }
             combined_geom->computeBoundingBox();
-//            if(!combined_geom->hasColors())
-//            {
-//                combined_geom->colors().resize(combined_geom->vertices().size(), gl::Color(1));
-//            }
+            if(!combined_geom->hasColors())
+            {
+                combined_geom->colors().resize(combined_geom->vertices().size(), gl::Color(1));
+            }
             
             insertBoneData(combined_geom, weightmap);
             

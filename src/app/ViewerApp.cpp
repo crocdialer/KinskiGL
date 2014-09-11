@@ -69,6 +69,10 @@ namespace kinski {
     
     void ViewerApp::setup()
     {
+        fonts()[0].load("Courier New Bold.ttf", 18);
+        outstream_gl().set_color(gl::COLOR_WHITE);
+        outstream_gl().set_font(fonts()[0]);
+        
         for (int i = 0; i < 16; i++)
         {
             gl::LightPtr light(new gl::Light(gl::Light::POINT));
@@ -335,5 +339,25 @@ namespace kinski {
             Serializer::loadComponentState(material_components, "material_config.json", PropertyIO_GL());
         }
         catch(Exception &e){LOG_ERROR<<e.what();}
+    }
+    
+    void ViewerApp::draw_textures()
+    {
+        float w = (windowSize()/6.f).x;
+        glm::vec2 offset(getWidth() - w - 10, 10);
+        
+        for (const gl::Texture &t : textures())
+        {
+            if(!t) continue;
+            
+            float h = t.getHeight() * w / t.getWidth();
+            glm::vec2 step(0, h + 10);
+            
+            drawTexture(t, glm::vec2(w, h), offset);
+            gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+                           as_string(t.getHeight()), m_fonts[0], glm::vec4(1),
+                           offset);
+            offset += step;
+        }
     }
 }

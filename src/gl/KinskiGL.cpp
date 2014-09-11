@@ -44,13 +44,13 @@ namespace kinski { namespace gl {
     {
     private:
         
-        glm::vec2 g_windowDim;
+        glm::vec2 g_viewportDim;
         std::stack<glm::mat4> g_projectionMatrixStack;
         std::stack<glm::mat4> g_modelViewMatrixStack;
         std::map<std::string, string_mesh_container> g_string_mesh_map;
     };
     
-    static glm::vec2 g_windowDim;
+    static glm::vec2 g_viewportDim;
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
     static gl::MaterialPtr g_line_material;
@@ -193,13 +193,13 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    const glm::vec2& windowDimension(){ return g_windowDim; }
+    const glm::vec2& windowDimension(){ return g_viewportDim; }
     
 ///////////////////////////////////////////////////////////////////////////////
     
     void setWindowDimension(const glm::vec2 &theDim)
     {
-        g_windowDim = theDim;
+        g_viewportDim = theDim;
         glViewport(0, 0, theDim.x, theDim.y);
         
         if(g_projectionMatrixStack.empty())
@@ -339,8 +339,8 @@ namespace kinski { namespace gl {
     {
         ScopedMatrixPush pro(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
         
-        loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_windowDim[0],
-                                                     0.f, g_windowDim[1],
+        loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewportDim[0],
+                                                     0.f, g_viewportDim[1],
                                                      0.f, 1.f));
         loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
         drawLines(thePoints, theColor, line_thickness);
@@ -513,7 +513,7 @@ namespace kinski { namespace gl {
         
         vec2 sz = theSize;
         // flip to OpenGL coords
-        vec2 tl = vec2(theTopLeft.x, g_windowDim[1] - theTopLeft.y);
+        vec2 tl = vec2(theTopLeft.x, g_viewportDim[1] - theTopLeft.y);
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
 
@@ -539,7 +539,7 @@ namespace kinski { namespace gl {
         
         vec2 sz = theSize;
         // flip to OpenGL coords
-        vec2 tl = vec2(theTopLeft.x, g_windowDim[1] - theTopLeft.y);
+        vec2 tl = vec2(theTopLeft.x, g_viewportDim[1] - theTopLeft.y);
         drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
@@ -551,7 +551,7 @@ namespace kinski { namespace gl {
                   bool filled)
     {
         // flip to OpenGL coords
-        vec2 tl = vec2(theTl.x, g_windowDim[1] - theTl.y);
+        vec2 tl = vec2(theTl.x, g_viewportDim[1] - theTl.y);
         drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1], filled);
     }
     
@@ -586,10 +586,10 @@ namespace kinski { namespace gl {
         }
         quad_mesh->geometry()->setPrimitiveType(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
         quad_mesh->material() = theMaterial;
-        float scaleX = (x1 - x0) / g_windowDim[0];
-        float scaleY = (y0 - y1) / g_windowDim[1];
+        float scaleX = (x1 - x0) / g_viewportDim[0];
+        float scaleY = (y0 - y1) / g_viewportDim[1];
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
-        modelViewMatrix[3] = vec4(x0 / g_windowDim[0], y1 / g_windowDim[1] , 0, 1);
+        modelViewMatrix[3] = vec4(x0 / g_viewportDim[0], y1 / g_viewportDim[1] , 0, 1);
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
         drawMesh(quad_mesh);
@@ -603,7 +603,7 @@ namespace kinski { namespace gl {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         
         if(!theFont.glyph_texture()) return;
-        mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
+        mat4 projectionMatrix = ortho(0.0f, g_viewportDim[0], 0.0f, g_viewportDim[1], 0.0f, 1.0f);
         
         if(g_string_mesh_map.find(theText) == g_string_mesh_map.end())
         {
@@ -615,7 +615,7 @@ namespace kinski { namespace gl {
         gl::MeshPtr m = item.mesh;
         m->material()->setDiffuse(the_color);
         m->material()->setDepthTest(false);
-        m->setPosition(glm::vec3(theTopLeft.x, g_windowDim[1] - theTopLeft.y -
+        m->setPosition(glm::vec3(theTopLeft.x, g_viewportDim[1] - theTopLeft.y -
                                  m->geometry()->boundingBox().height(), 0.f));
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
@@ -1103,9 +1103,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 line_mesh = our_mesh;
         }
         our_mesh->material() = theMaterial ? theMaterial : default_mat;
-        mat4 projectionMatrix = ortho(0.0f, g_windowDim[0], 0.0f, g_windowDim[1], 0.0f, 1.0f);
+        mat4 projectionMatrix = ortho(0.0f, g_viewportDim[0], 0.0f, g_viewportDim[1], 0.0f, 1.0f);
         mat4 modelView = glm::scale(mat4(), vec3(radius));
-        modelView[3].xyz() = vec3(center.x, g_windowDim[1] - center.y, 0);
+        modelView[3].xyz() = vec3(center.x, g_viewportDim[1] - center.y, 0);
         
         ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
         loadMatrix(PROJECTION_MATRIX, projectionMatrix);
