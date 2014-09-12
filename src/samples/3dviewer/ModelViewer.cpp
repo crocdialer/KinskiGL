@@ -18,9 +18,6 @@ using namespace glm;
 void ModelViewer::setup()
 {
     ViewerApp::setup();
-    m_font.load("Courier New Bold.ttf", 18);
-    outstream_gl().set_color(gl::COLOR_WHITE);
-    outstream_gl().set_font(m_font);
     
     registerProperty(m_model_path);
     observeProperties();
@@ -30,10 +27,11 @@ void ModelViewer::setup()
     m_light_component->set_lights(lights());
     create_tweakbar_from_component(m_light_component);
     
-    m_test_box = gl::Mesh::create(gl::Geometry::createBox(glm::vec3(5)), gl::Material::create());
-    scene().addObject(m_test_box);
+    // add lights to scene
+    for (auto l : lights()){ scene().addObject(l ); }
     
     load_settings();
+    m_light_component->refresh();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -50,31 +48,15 @@ void ModelViewer::draw()
     gl::setMatrices(camera());
     if(draw_grid()){ gl::drawGrid(50, 50); }
     
-    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->transform());
-    gl::drawMesh(m_mesh);
+    if(m_light_component->draw_light_dummies())
+    {
+        for (auto l : lights()){ gl::drawLight(l); }
+    }
     
-//    scene().render(camera());
+    scene().render(camera());
     
     // draw texture map(s)
-    if(displayTweakBar())
-    {
-        float w = (windowSize()/6.f).x;
-        glm::vec2 offset(getWidth() - w - 10, 10);
-        
-        for (const gl::Texture &t : textures())
-        {
-            if(!t) continue;
-            
-            float h = t.getHeight() * w / t.getWidth();
-            glm::vec2 step(0, h + 10);
-            
-            drawTexture(t, vec2(w, h), offset);
-            gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
-                           as_string(t.getHeight()), m_font, glm::vec4(1),
-                           offset);
-            offset += step;
-        }
-    }
+    if(displayTweakBar()){ draw_textures(); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -196,16 +178,16 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         
         if(m)
         {
-            m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
-            m->createVertexArray();
-            m->material()->setDiffuse(gl::Color(1));
-//            m->material()->textures().clear();
+//            m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
+//            m->createVertexArray();
+            
+//            m->material()->setDiffuse(gl::Color(1));
             
             for(auto &t : m->material()->textures()){ textures().push_back(t); }
             
-//            scene().removeObject(m_mesh);
+            scene().removeObject(m_mesh);
             m_mesh = m;
-//            scene().addObject(m_mesh);
+            scene().addObject(m_mesh);
             
             auto aabb = m->boundingBox();
             

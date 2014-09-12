@@ -1028,11 +1028,15 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             line_mesh->createVertexArray();
         }
         AABB mesh_bb = the_mesh->boundingBox();
+        glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
+        
         glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(mesh_bb.width(),
                                                            mesh_bb.height(),
                                                            mesh_bb.depth()));
+        
+    
         gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-        gl::multMatrix(gl::MODEL_VIEW_MATRIX, scale_mat);
+        gl::multMatrix(gl::MODEL_VIEW_MATRIX, center_mat * scale_mat);
         gl::drawMesh(line_mesh);
     }
 

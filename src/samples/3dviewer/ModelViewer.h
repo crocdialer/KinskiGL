@@ -18,9 +18,7 @@ namespace kinski
     {
     private:
         
-        gl::Font m_font;
-        
-        gl::MeshPtr m_mesh, m_test_box;
+        gl::MeshPtr m_mesh;
         
         LightComponent::Ptr m_light_component;
         

@@ -324,23 +324,22 @@ namespace kinski { namespace gl {
     AABB Mesh::boundingBox() const
     {
         auto ret = m_geometry->boundingBox();
-//        return ret.transform(global_transform());
         return ret;
     }
     
     void Mesh::createVertexArray()
     {
+        if(m_geometry->vertices().empty()) return;
+        
+#ifndef KINSKI_NO_VAO
         for (int i = 0; i < m_vertexArrays.size(); i++)
         {
             if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
         }
         m_vertexArrays.clear();
         m_shaders.clear();
-        if(m_geometry->vertices().empty()) return;
-        
-#ifndef KINSKI_NO_VAO
         m_vertexArrays.resize(m_materials.size(), 0);
-        m_shaders.resize(m_materials.size(), NULL);
+        m_shaders.resize(m_materials.size());
         
         for (int i = 0; i < m_vertexArrays.size(); i++)
         {
@@ -348,7 +347,7 @@ namespace kinski { namespace gl {
             
             GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
             bindVertexPointers(i);
-            m_shaders[i] = &m_materials[i]->shader();
+            m_shaders[i] = m_materials[i]->shader();
         }
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
@@ -356,7 +355,7 @@ namespace kinski { namespace gl {
     
     GLuint Mesh::vertexArray(int i) const
     {
-        if(m_shaders[i] != &m_materials[i]->shader())
+        if(m_shaders[i] != m_materials[i]->shader())
         {
             throw WrongVertexArrayDefinedException(getID());
         }
