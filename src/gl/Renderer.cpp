@@ -105,7 +105,9 @@ namespace kinski{ namespace gl{
                             // skip disabled entries
                             if(!m->entries()[i].enabled) continue;
                             
-                            int mat_index = m->entries()[i].material_index;
+                            int mat_index = clamp<int>(m->entries()[i].material_index,
+                                                       0,
+                                                       m->materials().size() - 1);
                             m->bind_vertex_array(mat_index);
                             apply_material(m->materials()[mat_index]);
                             

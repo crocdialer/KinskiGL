@@ -181,8 +181,6 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
 //            m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
 //            m->createVertexArray();
             
-//            m->material()->setDiffuse(gl::Color(1));
-            
             for(auto &t : m->material()->textures()){ textures().push_back(t); }
             
             scene().removeObject(m_mesh);

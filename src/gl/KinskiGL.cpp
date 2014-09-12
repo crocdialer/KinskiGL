@@ -855,7 +855,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     // skip disabled entries
                     if(!theMesh->entries()[i].enabled) continue;
                     
-                    int mat_index = theMesh->entries()[i].material_index;
+                    int mat_index = clamp<int>(theMesh->entries()[i].material_index,
+                                               0,
+                                               theMesh->materials().size() - 1);
                     theMesh->bind_vertex_array(mat_index);
                     apply_material(theMesh->materials()[mat_index]);
                     
