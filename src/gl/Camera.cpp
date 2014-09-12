@@ -16,7 +16,7 @@ namespace kinski { namespace gl{
     
     glm::mat4 Camera::getViewMatrix() const
     {
-        return glm::inverse(transform());
+        return glm::inverse(global_transform());
     }
     
     AABB Camera::boundingBox() const

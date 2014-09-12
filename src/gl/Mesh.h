@@ -51,6 +51,11 @@ namespace kinski { namespace gl {
         Animation():current_time(0), ticksPerSec(1.0f){};
     };
     
+    class KINSKI_API VertexAttrib
+    {
+        
+    };
+    
     class KINSKI_API Mesh : public Object3D
     {
     public:
