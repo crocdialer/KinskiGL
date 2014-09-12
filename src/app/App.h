@@ -23,6 +23,7 @@ namespace kinski
 {
     class MouseEvent;
     class KeyEvent;
+    class JoystickState;
     
     class KINSKI_API App : public Component
     {
@@ -54,6 +55,7 @@ namespace kinski
         virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
         virtual void got_message(const std::vector<uint8_t> &the_data){};
         virtual void setCursorPosition(float x, float y){};
+        virtual std::vector<JoystickState> get_joystick_states() const {return {};};
 
         bool running(){return m_running;};
         inline float getWidth(){return m_windowSize[0];};
@@ -215,6 +217,26 @@ namespace kinski
         int				mCode;
         char			mChar;
         unsigned int	mModifiers;
+    };
+    
+    class JoystickState
+    {
+    public:
+        JoystickState(const std::string &n,
+                      const std::vector<uint8_t>& b,
+                      const std::vector<float>& a):
+        m_name(n),
+        m_buttons(b),
+        m_axis(a){}
+        
+        const std::string& name() const { return m_name; };
+        const std::vector<uint8_t>& buttons() const { return m_buttons; };
+        const std::vector<float>& axis() const { return m_axis; };
+        
+    private:
+        std::string m_name;
+        std::vector<uint8_t> m_buttons;
+        std::vector<float> m_axis;
     };
 }
 #endif // _KINSKI_APP_IS_INCLUDED_

@@ -72,7 +72,7 @@ namespace kinski {
         
         void draw_textures();
         
-    private:
+    protected:
         
         std::vector<gl::Font> m_fonts{4};
         

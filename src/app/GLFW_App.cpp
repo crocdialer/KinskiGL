@@ -227,6 +227,26 @@ namespace kinski
         glfwSetDropCallback(the_window->handle(), &GLFW_App::s_file_drop_func);
     }
     
+    std::vector<JoystickState> GLFW_App::get_joystick_states() const
+    {
+        std::vector<JoystickState> ret;
+        int count;
+        for(int i = GLFW_JOYSTICK_1; i < GLFW_JOYSTICK_LAST; i++)
+        {
+            if(!glfwJoystickPresent(i)) continue;
+            
+            const float *glfw_axis = glfwGetJoystickAxes(i, &count);
+            std::vector<float> axis(glfw_axis, glfw_axis + count);
+            
+            const uint8_t *glfw_buttons = glfwGetJoystickButtons(i, &count);
+            std::vector<uint8_t> buttons(glfw_buttons, glfw_buttons + count);
+            
+            std::string name(glfwGetJoystickName(i));
+            ret.push_back(JoystickState(name, buttons, axis));
+        }
+        return ret;
+    }
+    
 /****************************  Application Events (internal) **************************/
     
     void GLFW_App::s_error_cb(int error_code, const char* error_msg)

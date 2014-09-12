@@ -77,6 +77,8 @@ namespace kinski
         void setCursorVisible(bool b = true);
         void setCursorPosition(float x, float y);
         
+        std::vector<JoystickState> get_joystick_states() const;
+        
         ///////////////////////////////////////////////////////////////////////////////
         
         void displayTweakBar(bool b){m_displayTweakBar = b;};
