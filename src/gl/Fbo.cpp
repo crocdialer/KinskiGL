@@ -297,11 +297,11 @@ Fbo::Fbo( int width, int height, bool alpha, bool color, bool depth )
 	init();
 }
 
-Texture& Fbo::getTexture( int attachment )
+Texture Fbo::getTexture( int attachment )
 {
 	resolveTextures();
 	updateMipmaps( true, attachment );
-	return mObj->mColorTextures[attachment];
+	return mObj->mColorTextures.empty() ? gl::Texture() : mObj->mColorTextures[attachment];
 }
 
 Texture& Fbo::getDepthTexture()

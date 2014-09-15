@@ -20,6 +20,7 @@ void ModelViewer::setup()
     ViewerApp::setup();
     
     registerProperty(m_model_path);
+    registerProperty(m_movie_path);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -29,11 +30,25 @@ void ModelViewer::setup()
     
     
     gl::Fbo::Format fmt;
-    fmt.setSamples(8);
-    m_offscreen_fbo = gl::Fbo(1024, 768, fmt);
+//    fmt.setSamples(8);
+//    fmt.setNumColorBuffers(0);
+    
+    m_fbos[0] = gl::Fbo(1024, 768, fmt);
+    m_fbos[1] = gl::Fbo(1024, 768);
     
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }
+    
+    m_draw_depth_mat = gl::Material::create();
+    m_draw_depth_mat->setBlending();
+    m_draw_depth_mat->setDepthTest(false);
+    m_draw_depth_mat->setDepthWrite();
+    
+    try
+    {
+        auto sh = gl::createShaderFromFile("depthmap.vert", "depthmap.frag");
+        m_draw_depth_mat->setShader(sh);
+    } catch (Exception &e) { LOG_ERROR << e.what(); }
     
     // load settings
     load_settings();
@@ -48,7 +63,27 @@ void ModelViewer::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-    textures()[1] = gl::render_to_texture(scene(), m_offscreen_fbo, m_projector);
+//    gl::render_to_texture(scene(), m_fbos[0], m_projector);
+    
+    if(m_mesh)
+    {
+        m_mesh->material()->uniform("u_light_mvp",
+                                    m_projector->getProjectionMatrix() * m_projector->getViewMatrix());
+    }
+    
+    if(m_movie.copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
+    {
+        auto &t = m_mesh->material()->textures();
+        t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE]};
+    }
+        
+//    m_draw_depth_mat->textures() = { m_fbos[0].getDepthTexture() };
+//    
+//    textures()[2] = gl::render_to_texture(m_fbos[1], [&]()
+//    {
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        gl::drawQuad(m_draw_depth_mat, gl::windowDimension());
+//    });
 }
 
 /////////////////////////////////////////////////////////////////
@@ -178,6 +213,10 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                     LOG_INFO << "texture drop on model";
                 }
                 break;
+                
+            case FileType::FILE_MOVIE:
+                *m_movie_path = f;
+                break;
             default:
                 break;
         }
@@ -203,8 +242,9 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         
         if(m)
         {
-//            m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
-//            m->createVertexArray();
+            m->material()->setShader(m_draw_depth_mat->shader());
+//            m->material()->addTexture(m_fbos[0].getDepthTexture());
+            m->createVertexArray();
             
             for(auto &t : m->material()->textures()){ textures()[0] = t; }
             
@@ -217,6 +257,10 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
             float scale_factor = 50.f / aabb.width();
             m->setScale(scale_factor);
         }
+    }
+    else if(theProperty == m_movie_path)
+    {
+        m_movie.load(*m_movie_path, true, true);
     }
 }
 

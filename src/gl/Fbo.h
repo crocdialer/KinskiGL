@@ -107,7 +107,7 @@ class KINSKI_API Fbo
 	GLenum			getTarget() const { return mObj->mFormat.mTarget; }
 
 	//! Returns a reference to the color texture of the FBO. \a attachment specifies which attachment in the case of multiple color buffers
-	Texture&		getTexture( int attachment = 0 );
+	Texture		getTexture( int attachment = 0 );
 	//! Returns a reference to the depth texture of the FBO.
 	Texture&		getDepthTexture();	
 	
@@ -193,8 +193,7 @@ class KINSKI_API Fbo
 		int		getCoverageSamples() const { return mCoverageSamples; }
 		//! Returns whether the FBO contains a color buffer
 		bool	hasColorBuffer() const { return mNumColorBuffers > 0; }
-		//! Returns the number of color buffers
-		int		getNumColorBuffers() const { return mNumColorBuffers; }
+		
 		//! Returns whether the FBO contains a depth buffer
 		bool	hasDepthBuffer() const { return mDepthBuffer; }
 		//! Returns whether the FBO contains a depth buffer implemened as a texture. Always \c false on OpenGL ES.
@@ -202,6 +201,10 @@ class KINSKI_API Fbo
 //		bool	hasStencilBuffer() const { return mStencilBuffer; }
 		//! Returns whether the contents of the FBO textures are mip-mapped.
 		bool	hasMipMapping() const { return mMipmapping; }
+        
+        //! Returns the number of color buffers
+		int		getNumColorBuffers() const { return mNumColorBuffers; }
+        void setNumColorBuffers(int the_num) { mNumColorBuffers = the_num; }
 		
 	  protected:
 		GLenum		mTarget;

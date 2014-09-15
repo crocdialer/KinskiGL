@@ -11,8 +11,9 @@
 
 #include "app/ViewerApp.h"
 #include "app/LightComponent.h"
-
 #include "gl/Fbo.h"
+
+#include "MovieController.h"
 
 namespace kinski
 {
@@ -22,16 +23,23 @@ namespace kinski
     {
     private:
         
+        enum TextureEnum{TEXTURE_DIFFUSE = 0, TEXTURE_SHADOWMAP = 1, TEXTURE_MOVIE = 2};
+        
         gl::MeshPtr m_mesh;
         
         LightComponent::Ptr m_light_component;
         
-        gl::Fbo m_offscreen_fbo;
-        gl::PerspectiveCamera::Ptr m_projector;
+        std::vector<gl::Fbo> m_fbos{4};
         
-        Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
+        gl::PerspectiveCamera::Ptr m_projector;
+        MovieController m_movie;
+        
+        gl::MaterialPtr m_draw_depth_mat;
         
         gl::PerspectiveCamera::Ptr create_camera_from_viewport();
+        
+        Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
+        Property_<std::string>::Ptr m_movie_path = Property_<std::string>::create("Movie path", "");
         
     public:
         
