@@ -31,7 +31,7 @@ void ModelViewer::setup()
     
     gl::Fbo::Format fmt;
 //    fmt.setSamples(8);
-//    fmt.setNumColorBuffers(0);
+    fmt.setNumColorBuffers(0);
     
     m_fbos[0] = gl::Fbo(1024, 768, fmt);
     m_fbos[1] = gl::Fbo(1024, 768);
@@ -63,18 +63,18 @@ void ModelViewer::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-//    gl::render_to_texture(scene(), m_fbos[0], m_projector);
+    gl::render_to_texture(scene(), m_fbos[0], m_projector);
     
     if(m_mesh)
     {
-        m_mesh->material()->uniform("u_light_mvp",
-                                    m_projector->getProjectionMatrix() * m_projector->getViewMatrix());
+        m_mesh->material()->uniform("u_light_mvp", m_projector->getProjectionMatrix() *
+                                    m_projector->getViewMatrix() * m_mesh->transform());
     }
     
     if(m_movie.copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
     {
         auto &t = m_mesh->material()->textures();
-        t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE]};
+        t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE], m_fbos[0].getDepthTexture()};
     }
         
 //    m_draw_depth_mat->textures() = { m_fbos[0].getDepthTexture() };

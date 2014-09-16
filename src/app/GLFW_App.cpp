@@ -224,7 +224,10 @@ namespace kinski
         glfwSetKeyCallback(the_window->handle(), &GLFW_App::s_keyFunc);
         glfwSetCharCallback(the_window->handle(), &GLFW_App::s_charFunc);
         glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
+        
+#if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 1
         glfwSetDropCallback(the_window->handle(), &GLFW_App::s_file_drop_func);
+#endif
     }
     
     std::vector<JoystickState> GLFW_App::get_joystick_states() const
