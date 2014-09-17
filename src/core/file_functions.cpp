@@ -258,6 +258,23 @@ namespace kinski {
         return boost::filesystem::exists(theFilename);
     }
     
+    bool create_directory(const std::string &theFilename)
+    {
+        if(!fileExists(theFilename))
+        {
+            try
+            {
+                return boost::filesystem::create_directory(theFilename);
+            } catch (boost::filesystem::filesystem_error &e){ LOG_ERROR << e.what(); }
+        }
+        return false;
+    }
+    
+    std::string join_paths(const std::string &p1, const std::string &p2)
+    {
+        return (path(p1) / path(p2)).filename().string();
+    }
+    
     std::string searchFile(const std::string &theFileName)
     {
         std::string expanded_name = expand_user(theFileName);

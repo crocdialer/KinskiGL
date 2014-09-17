@@ -370,23 +370,27 @@ namespace kinski {
     {
         m_impl->m_loop = b;
         
-        if(b)
-        {
-            // do not stop at end of movie
-            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-            
-            // register our loop helper as observer
-            [[NSNotificationCenter defaultCenter] addObserver:m_impl->m_loop_helper
-                                                     selector:@selector(playerItemDidReachEnd:)
-                                                         name:AVPlayerItemDidPlayToEndTimeNotification
-                                                       object:[m_impl->m_player currentItem]];
-        }
-        else
-        {
-            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+        m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+        
+        // register our loop helper as observer
+        [[NSNotificationCenter defaultCenter] addObserver:m_impl->m_loop_helper
+                                                 selector:@selector(playerItemDidReachEnd:)
+                                                     name:AVPlayerItemDidPlayToEndTimeNotification
+                                                   object:[m_impl->m_player currentItem]];
+        
+//        if(b)
+//        {
+//            // do not stop at end of movie
 //            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-            [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
-        }
+//            
+//        
+//        }
+//        else
+//        {
+//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
+//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
+//            [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
+//        }
     }
     
     bool MovieController::loop() const
@@ -434,6 +438,14 @@ namespace kinski {
 {
     AVPlayerItem *p = [notification object];
     [p seekToTime:kCMTimeZero];
+    
+    if(self.movie_control_impl->m_loop)
+    {
+        [self.movie_control_impl->m_player setRate: self.movie_control_impl->m_rate];
+        [self.movie_control_impl->m_player play];
+        self.movie_control_impl->m_playing = true;
+    }
+    else{ self.movie_control_impl->m_playing = false; }
     
     if(self.movie_control_impl->m_movie_ended_cb)
         self.movie_control_impl->m_movie_ended_cb();

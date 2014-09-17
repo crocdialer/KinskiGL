@@ -27,6 +27,8 @@ namespace kinski {
                                                const std::string &theExtension = "");
     bool fileExists(const std::string &theFilename);
     bool isDirectory(const std::string &theFilename);
+    bool create_directory(const std::string &theFilename);
+    std::string join_paths(const std::string &p1, const std::string &p2);
     const std::string readFile(const std::string &theUTF8Filename);
     std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename);
     std::string getFilenamePart(const std::string &theFileName);
