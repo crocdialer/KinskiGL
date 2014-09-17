@@ -22,13 +22,14 @@ namespace kinski{ namespace audio{
     float* get_spectrum(int nBands);
     void shutdown();
     
-    struct recording_device
+    struct device
     {
         std::string name;
         int num_channels;
     };
     
-    std::vector<recording_device> get_recording_devices();
+    std::vector<device> get_output_devices();
+    std::vector<device> get_recording_devices();
     
     typedef std::shared_ptr<class Sound> SoundPtr;
     

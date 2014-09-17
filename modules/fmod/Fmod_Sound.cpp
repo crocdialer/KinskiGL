@@ -15,7 +15,10 @@ namespace kinski{ namespace audio{
     ////////////////////// implementation internal /////////////////////////////
     
     static FMOD::ChannelGroup* g_channelgroup = NULL;
-    static FMOD::System* g_system = NULL;
+//    static FMOD::System* g_system = NULL;
+    
+    static std::vector<FMOD::ChannelGroup*> g_channelgroups = {nullptr, nullptr, nullptr, nullptr};
+    static std::vector<FMOD::System*> g_systems = {nullptr, nullptr, nullptr, nullptr};
     
     int g_max_num_fft_bands = 8192;
     static std::vector<float> g_fftValues;
@@ -26,20 +29,22 @@ namespace kinski{ namespace audio{
         if(result != FMOD_OK) \
             LOG_ERROR << "FMOD error! " << result << ": " << FMOD_ErrorString(result);
     
-    void init_fmod()
+    void init_fmod(int device = 0)
     {
-        if(!g_system)
+        if(!g_systems[device])
         {
             FMOD_RESULT result;
-            result =FMOD::System_Create(&g_system);
+            result = FMOD::System_Create(&g_systems[device]);
             if(result != FMOD_OK) throw SystemException();
             
 #ifdef TARGET_LINUX
             FMOD::System_SetOutput(sys,FMOD_OUTPUTTYPE_ALSA);
 #endif
-            g_system->init(32, FMOD_INIT_NORMAL, NULL);//do we want just 32 channels?
+            g_systems[device]->setDriver(clamp<int>(device, 0, get_output_devices().size() - 1));
             
-            g_system->getMasterChannelGroup(&g_channelgroup);
+            g_systems[device]->init(32, FMOD_INIT_NORMAL, NULL);//do we want just 32 channels?
+            
+            g_systems[device]->getMasterChannelGroup(&g_channelgroups[device]);
             
             g_fftValues.assign(g_max_num_fft_bands, 0.f);
             g_fftInterpValues.assign(g_max_num_fft_bands, 0.f);
@@ -52,20 +57,35 @@ namespace kinski{ namespace audio{
     void stop_all()
     {
         init_fmod();
-        g_channelgroup->stop();
+        
+        for(auto ch : g_channelgroups)
+        {
+            if(ch){ ch->stop(); }
+        }
     }
     
     void set_volume(float vol)
     {
         init_fmod();
-        g_channelgroup->setVolume(vol);
+        for(auto ch : g_channelgroups)
+        {
+            if(ch){ ch->setVolume(vol); }
+        }
     }
     
     void update()
     {
-        if(g_system)
+        for(auto sys : g_systems)
         {
-            g_system->update();
+            if(sys){ sys->update(); }
+        }
+    }
+    
+    void shutdown()
+    {
+        for(auto sys : g_systems)
+        {
+            if(sys){ sys->close(); }
         }
     }
     
@@ -76,21 +96,38 @@ namespace kinski{ namespace audio{
         return i;
     }
     
-    std::vector<recording_device> get_recording_devices()
+    std::vector<device> get_output_devices()
     {
-        init_fmod();
+        init_fmod(0);
         
-        std::vector<recording_device> ret;
+        std::vector<device> ret;
+        int num_drivers;
+        g_systems[0]->getNumDrivers(&num_drivers);
+		
+		for(int i=0; i < num_drivers; i++)
+		{
+			char name[256];
+			g_systems[0]->getDriverInfo(i, name, 256, nullptr);
+            ret.push_back({name, 2});
+		}
+        return ret;
+    }
+    
+    std::vector<audio::device> get_recording_devices()
+    {
+        init_fmod(0);
+        
+        std::vector<audio::device> ret;
         FMOD_RESULT result;
         int numdrivers;
-        result = g_system->getRecordNumDrivers(&numdrivers);
+        result = g_systems[0]->getRecordNumDrivers(&numdrivers);
         CHECK_ERROR(result);
         
         for (int count = 0; count < numdrivers; count++)
         {
             char name[256];
             
-            result = g_system->getRecordDriverInfo(count, name, 256, 0);
+            result = g_systems[0]->getRecordDriverInfo(count, name, 256, 0);
             CHECK_ERROR(result);
             
             ret.push_back({name, 1});
@@ -188,7 +225,7 @@ namespace kinski{ namespace audio{
     
     float* get_spectrum(int num_buckets)
     {
-        init_fmod();
+        init_fmod(0);
         
         // 	check what the user wants vs. what we can do:
         if (num_buckets > g_max_num_fft_bands)
@@ -206,7 +243,7 @@ namespace kinski{ namespace audio{
         int nBandsToGet = std::max(nextPow2(num_buckets), 64);
         
         // 	get the fft
-        g_system->getSpectrum(&g_fftSpectrum[0], nBandsToGet, 0, FMOD_DSP_FFT_WINDOW_HANNING);
+        g_systems[0]->getSpectrum(&g_fftSpectrum[0], nBandsToGet, 0, FMOD_DSP_FFT_WINDOW_HANNING);
         
         // rebase buffer to desired bucket size
         rebase_buffer(g_fftSpectrum, g_fftInterpValues, nBandsToGet);
@@ -214,17 +251,10 @@ namespace kinski{ namespace audio{
         return &g_fftInterpValues[0];
     }
     
-    void shutdown()
-    {
-        if(g_system)
-        {
-            g_system->close();
-        }
-    }
-    
     ///////////////////////////////////////////////////////////////////////////
     
-    Fmod_Sound::Fmod_Sound(const std::string &file_name):
+    Fmod_Sound::Fmod_Sound(const std::string &file_name, int device):
+    m_device(device),
     m_streaming(false),
     m_multiplay(false),
     m_loop(false),
@@ -249,15 +279,15 @@ namespace kinski{ namespace audio{
     {
         std::string path = searchFile(fileName);
         m_multiplay = false;
-        init_fmod();
+        init_fmod(m_device);
         unload();
         
         //choose if we want streaming
-        int fmodFlags =  FMOD_HARDWARE; // FMOD_HARDWARE !?
-        if(stream)fmodFlags =  FMOD_HARDWARE | FMOD_CREATESTREAM;
+        int fmodFlags =  FMOD_SOFTWARE; // FMOD_HARDWARE !?
+        if(stream)fmodFlags =  FMOD_SOFTWARE | FMOD_CREATESTREAM;
         
         FMOD_RESULT result;
-        result = g_system->createSound(path.c_str(), fmodFlags, NULL, &m_sound);
+        result = g_systems[m_device]->createSound(path.c_str(), fmodFlags, NULL, &m_sound);
         
         if (result != FMOD_OK){throw SoundLoadException(fileName);}
 
@@ -286,7 +316,7 @@ namespace kinski{ namespace audio{
         // before we start another
         if (!m_multiplay){m_channel->stop();}
         
-        g_system->playSound(FMOD_CHANNEL_FREE, m_sound, m_paused, &m_channel);
+        g_systems[m_device]->playSound(FMOD_CHANNEL_FREE, m_sound, m_paused, &m_channel);
         m_channel->getFrequency(&m_internal_freq);
         m_channel->setVolume(m_volume);
         set_pan(m_pan);
@@ -297,7 +327,7 @@ namespace kinski{ namespace audio{
         //we have been using fmod without calling it at all which resulted in channels not being able
         //to be reused.  we should have some sort of global update function but putting it here
         //solves the channel bug
-        g_system->update();
+        g_systems[m_device]->update();
     }
     
     void Fmod_Sound::stop()
@@ -330,22 +360,22 @@ namespace kinski{ namespace audio{
         exinfo.format = FMOD_SOUND_FORMAT_PCM16;
         exinfo.length = exinfo.defaultfrequency * sizeof(short) * exinfo.numchannels * num_secs;
         
-        result = g_system->createSound(NULL, FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER, &exinfo, &m_sound);
+        result = g_systems[m_device]->createSound(NULL, FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER, &exinfo, &m_sound);
         CHECK_ERROR(result);
 
         // start recording
-        result = g_system->recordStart(recorddriver, m_sound, m_loop);
+        result = g_systems[m_device]->recordStart(recorddriver, m_sound, m_loop);
         CHECK_ERROR(result);
         
         // just in case
-        g_system->update();
+        g_systems[m_device]->update();
     }
     
     bool Fmod_Sound::is_recording(int device)
     {
         init_fmod();
         bool ret;
-        g_system->isRecording(0, &ret);
+        g_systems[m_device]->isRecording(0, &ret);
         return ret;
     }
     

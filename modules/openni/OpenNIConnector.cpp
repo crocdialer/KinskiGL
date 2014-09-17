@@ -6,10 +6,13 @@
 //
 //
 
-#include <XnOpenNI.h>
-#include <XnCodecIDs.h>
-#include <XnCppWrapper.h>
-#include <XnPropNames.h>
+//#include <XnOpenNI.h>
+//#include <XnCodecIDs.h>
+//#include <XnCppWrapper.h>
+//#include <XnPropNames.h>
+
+#include <ni2/OpenNI.h>
+
 #include "gl/Texture.h"
 #include "gl/Buffer.h"
 #include <boost/timer/timer.hpp>

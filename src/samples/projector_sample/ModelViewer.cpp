@@ -76,14 +76,6 @@ void ModelViewer::update(float timeDelta)
         auto &t = m_mesh->material()->textures();
         t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE], m_fbos[0].getDepthTexture()};
     }
-        
-//    m_draw_depth_mat->textures() = { m_fbos[0].getDepthTexture() };
-//    
-//    textures()[2] = gl::render_to_texture(m_fbos[1], [&]()
-//    {
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//        gl::drawQuad(m_draw_depth_mat, gl::windowDimension());
-//    });
 }
 
 /////////////////////////////////////////////////////////////////
