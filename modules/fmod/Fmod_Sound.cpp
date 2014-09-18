@@ -14,9 +14,6 @@ namespace kinski{ namespace audio{
 
     ////////////////////// implementation internal /////////////////////////////
     
-    static FMOD::ChannelGroup* g_channelgroup = NULL;
-//    static FMOD::System* g_system = NULL;
-    
     static std::vector<FMOD::ChannelGroup*> g_channelgroups = {nullptr, nullptr, nullptr, nullptr};
     static std::vector<FMOD::System*> g_systems = {nullptr, nullptr, nullptr, nullptr};
     

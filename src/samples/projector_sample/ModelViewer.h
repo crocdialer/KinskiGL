@@ -32,6 +32,7 @@ namespace kinski
         std::vector<gl::Fbo> m_fbos{4};
         
         gl::PerspectiveCamera::Ptr m_projector;
+        gl::MeshPtr m_projector_mesh;
         MovieController m_movie;
         
         gl::MaterialPtr m_draw_depth_mat;

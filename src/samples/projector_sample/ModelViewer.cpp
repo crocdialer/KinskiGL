@@ -68,7 +68,7 @@ void ModelViewer::update(float timeDelta)
     if(m_mesh)
     {
         m_mesh->material()->uniform("u_light_mvp", m_projector->getProjectionMatrix() *
-                                    m_projector->getViewMatrix() * m_mesh->transform());
+                                    m_projector->getViewMatrix() * m_mesh->global_transform());
     }
     
     if(m_movie.copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
@@ -113,6 +113,10 @@ void ModelViewer::keyPress(const KeyEvent &e)
     {
         case GLFW_KEY_P:
             m_projector = create_camera_from_viewport();
+            scene().removeObject(m_projector_mesh);
+            m_projector_mesh = gl::createFrustumMesh(m_projector);
+            scene().addObject(m_projector_mesh);
+            
             break;
             
         default:
