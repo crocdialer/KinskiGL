@@ -101,7 +101,6 @@ Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bo
 	m_Obj->m_DoNotDispose = aDoNotDispose;
 	m_Obj->m_Width = aWidth;
 	m_Obj->m_Height = aHeight;
-
 }
 
 void Texture::init(const unsigned char *data, GLenum dataFormat,
@@ -286,6 +285,27 @@ void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
 {
     m_textureMatrix = theMatrix;
 }
+
+void Texture::set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+{
+    // clamp values
+    x = clamp<int>(x, 0, getWidth() - 1);
+    y = clamp<int>(y, 0, getHeight() - 1);
+    width = clamp<int>(width, 0, getWidth() - x);
+    height = clamp<int>(height, 0, getHeight() - y);
+    
+    glm::vec3 offset = glm::vec3((float)x / getWidth(),
+                                 (float)y / getHeight(), 0);
+    glm::vec3 scale = glm::vec3((float)width / getWidth(),
+                                (float)height / getHeight(), 1);
+    
+    m_textureMatrix = glm::translate(glm::mat4(), offset) * glm::scale(glm::mat4(), scale);
+}
+    
+void Texture::set_roi(const Area<uint32_t> &the_roi)
+{
+    set_roi(the_roi.x1, the_roi.y1, the_roi.width(), the_roi.height());
+}
     
 glm::mat4 Texture::getTextureMatrix() const 
 {
@@ -296,8 +316,8 @@ glm::mat4 Texture::getTextureMatrix() const
         static glm::mat4 flipY = glm::mat4(glm::vec4(1, 0, 0, 1),
                                            glm::vec4(0, -1, 0, 1),// invert y-coords
                                            glm::vec4(0, 0, 1, 1),
-                                           glm::vec4(0, 1, 0, 1));// [-1,0] -> [0,1]
-        ret *= flipY;
+                                           glm::vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
+        ret = flipY * ret;
     }
     return ret;
 }
