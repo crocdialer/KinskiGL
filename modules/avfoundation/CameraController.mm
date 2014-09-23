@@ -25,7 +25,7 @@
 //@synthesize captureSession;
 //@synthesize pixelBuffer;
 
-- (id)init
+- (id)initWithDeviceId:(int) device_id
 {
     if (!(self = [super init]))
 		return nil;
@@ -34,13 +34,16 @@
     _has_new_frame = false;
     
 	// Grab the back-facing camera
-	AVCaptureDevice *backFacingCamera = nil;
+	AVCaptureDevice *camera = nil;
 	NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    int i = 0;
 	for (AVCaptureDevice *device in devices)
 	{
-		if ([device position] == AVCaptureDevicePositionUnspecified /*AVCaptureDevicePositionBack*/)
+        LOG_DEBUG << "camera("<< i++ <<"): " << [device.localizedName UTF8String];
+		if ([device position] == AVCaptureDevicePositionUnspecified /*AVCaptureDevicePositionBack*/
+            && i == device_id)
 		{
-			backFacingCamera = device;
+			camera = device;
 		}
 	}
     
@@ -52,7 +55,7 @@
     
 	// Add the video input
 	NSError *error = nil;
-	_videoInput = [[AVCaptureDeviceInput alloc] initWithDevice:backFacingCamera error:&error];
+	_videoInput = [[AVCaptureDeviceInput alloc] initWithDevice:camera error:&error];
 	if ([_captureSession canAddInput:_videoInput])
 	{
 		[_captureSession addInput:_videoInput];
@@ -123,11 +126,11 @@ namespace kinski
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
         
-        Impl():
+        Impl(int device_id):
         m_camera(NULL),
         m_pbo_index(0)
         {
-            m_camera = [[Camera alloc] init];
+            m_camera = [[Camera alloc] initWithDeviceId: device_id];
         }
         
         ~Impl()
@@ -136,8 +139,8 @@ namespace kinski
         };
     };
     
-    CameraController::CameraController():
-    m_impl(new Impl)
+    CameraController::CameraController(int device_id):
+    m_impl(new Impl(device_id))
     {
         
     }
@@ -163,6 +166,34 @@ namespace kinski
             CFRelease(m_impl->m_camera.sampleBuffer);
             m_impl->m_camera.sampleBuffer = NULL;
         }
+    }
+    
+    bool CameraController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
+    {
+        if(!m_impl->m_camera.has_new_frame) return false;
+        
+        CVPixelBufferRef buffer = CMSampleBufferGetImageBuffer(m_impl->m_camera.sampleBuffer);
+        
+        if(buffer)
+        {
+            m_impl->m_camera.has_new_frame = false;
+            
+            if(width){*width = CVPixelBufferGetWidth(buffer);}
+            if(height){*height = CVPixelBufferGetHeight(buffer);}
+                
+            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
+            data.resize(num_bytes);
+            
+            // lock base adress
+            CVPixelBufferLockBaseAddress(buffer, 0);
+            memcpy(&data[0], CVPixelBufferGetBaseAddress(buffer), num_bytes);
+            
+            // unlock base address, release buffer
+            CVPixelBufferUnlockBaseAddress(buffer, 0);
+            
+            return true;
+        }
+        return false;
     }
     
     bool CameraController::copy_frame_to_texture(gl::Texture &tex)

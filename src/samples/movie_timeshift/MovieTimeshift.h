@@ -13,6 +13,7 @@
 #include "core/Timer.h"
 
 #include "MovieController.h"
+#include "CameraController.h"
 
 namespace kinski
 {
@@ -23,8 +24,11 @@ namespace kinski
         enum TextureEnum { TEXTURE_DIFFUSE = 0, TEXTURE_NOISE = 1};
         
         MovieController m_movie;
+        CameraController m_camera;
         
         bool m_needs_movie_refresh = false;
+        
+        std::vector<uint8_t> m_camera_data;
         
         gl::ArrayTexture m_array_tex;
         gl::MaterialPtr m_custom_mat;
@@ -33,6 +37,7 @@ namespace kinski
         
         
         // properties
+        Property_<bool>::Ptr m_use_camera = Property_<bool>::create("use camera", false);
         Property_<string>::Ptr m_movie_path = Property_<string>::create("movie path", "");
         Property_<float>::Ptr m_movie_speed = Property_<float>::create("movie speed", 1.f);
         

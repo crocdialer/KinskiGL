@@ -17,12 +17,14 @@ namespace kinski
         std::unique_ptr<Impl> m_impl;
         
     public:
-        CameraController();
+        CameraController(int device_id = 0);
         virtual ~CameraController();
         
         void start_capture();
         void stop_capture();
         bool is_capturing() const;
+        
+        bool copy_frame(std::vector<uint8_t>& data, int *width = NULL, int *height = NULL);
         
         /*!
          * upload the current frame to a gl::Texture object

@@ -52,7 +52,7 @@ void main()
 
     vec4 movie_tex = texture(u_textureMap[MOVIE], vec2(proj_coords.x, 1 - proj_coords.y));
     
-    texColors += is_in_shadow ? vec4(0) : movie_tex;
+    texColors += is_in_shadow ? .7 * (vec4(vec3(1) - movie_tex.rgb, 1.0)) : movie_tex;
 
     fragData = u_material.diffuse * texColors; //vec4(vec3(depth), 1.0);
 }

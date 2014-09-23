@@ -20,6 +20,7 @@ void MovieTimeshift::setup()
 {
     ViewerApp::setup();
 
+    registerProperty(m_use_camera);
     registerProperty(m_movie_speed);
     registerProperty(m_movie_path);
     observeProperties();
@@ -60,6 +61,17 @@ void MovieTimeshift::update(float timeDelta)
         m_custom_mat->array_textures() = {m_array_tex};
     }
     
+    // fetch data from camera, if available. then upload to array texture
+    if(m_camera.is_capturing())
+    {
+        int w, h;
+        
+        if(m_camera.copy_frame(m_camera_data, &w, &h))
+        {
+            LOG_INFO << "received frame: " << w << " x " << h;
+        }
+    }
+    
     textures()[TEXTURE_NOISE] = create_noise_tex(getApplicationTime() * .1);
     m_custom_mat->textures() = {textures()[TEXTURE_NOISE] };
 }
@@ -69,9 +81,10 @@ void MovieTimeshift::update(float timeDelta)
 void MovieTimeshift::draw()
 {
     if(textures()[0])
+    {
         gl::drawTexture(textures()[0], gl::windowDimension());
-    
-    if(m_array_tex)
+    }
+    else if(m_array_tex)
     {
         gl::drawQuad(m_custom_mat, gl::windowDimension());
     }
@@ -173,5 +186,10 @@ void MovieTimeshift::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_movie_speed)
     {
         m_movie.set_rate(*m_movie_speed);
+    }
+    else if(theProperty == m_use_camera)
+    {
+        if(*m_use_camera){ m_camera.start_capture(); }
+        else{ m_camera.stop_capture(); }
     }
 }
