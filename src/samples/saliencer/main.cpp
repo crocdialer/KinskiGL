@@ -94,10 +94,14 @@ public:
     {
         if(m_cvThread->hasImage())
         {
+            m_material->textures().clear();
             vector<cv::Mat> images = m_cvThread->getImages();
             
             for(int i=0;i<images.size();i++)
+            {
                 gl::TextureIO::updateTexture(m_textures[i], images[i]);
+                m_material->textures().push_back(m_textures[i]);
+            }
             
             m_imageIndex->setRange(0, images.size() - 1);
         }
@@ -120,6 +124,7 @@ public:
         
         for(int i=0;i<m_cvThread->getImages().size();i++)
         {
+            if(!m_textures[i]) continue;
             float h = m_textures[i].getHeight() * w / m_textures[i].getWidth();
             glm::vec2 step(0, h + 10);
             

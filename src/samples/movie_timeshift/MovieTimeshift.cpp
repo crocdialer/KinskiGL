@@ -155,7 +155,7 @@ void MovieTimeshift::on_movie_load()
 
 gl::Texture MovieTimeshift::create_noise_tex(float seed)
 {
-    int w = 128, h = 128;
+    int w = 64, h = 64;
     float data[w * h];
     
     for (int i = 0; i < h; i++)
@@ -165,7 +165,7 @@ gl::Texture MovieTimeshift::create_noise_tex(float seed)
         }
     
     gl::Texture::Format fmt;
-    fmt.setInternalFormat(GL_COMPRESSED_RED_RGTC1);
+    fmt.setInternalFormat(GL_RED);
 //    fmt.set_mipmapping(true);
     gl::Texture noise_tex = gl::Texture (w, h, fmt);
     noise_tex.update(data, GL_RED, w, h, true);

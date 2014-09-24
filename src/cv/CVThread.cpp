@@ -126,10 +126,7 @@ namespace kinski
             // fetch frame, cancel loop when not possible
             // this call is supposed to be fast and not block the thread too long
             Mat inFrame;
-            try 
-            {
-                inFrame = grabNextFrame();
-            } 
+            try{ inFrame = grabNextFrame(); }
             catch (Exception &e)
             {
                 LOG_ERROR<<e.what();
