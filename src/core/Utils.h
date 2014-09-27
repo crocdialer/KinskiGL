@@ -12,6 +12,8 @@
 #include <sstream>
 #include <iomanip>
 
+#include "Definitions.h"
+
 namespace kinski
 {
     template <typename T>
