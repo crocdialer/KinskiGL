@@ -70,6 +70,7 @@ namespace kinski
 #if defined(KINSKI_CPP11) || defined(KINSKI_MSW) || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
     #include <memory>
     #include <functional>
+    #include <algorithm>
 #else
     #include <boost/shared_ptr.hpp>
     #include <boost/enable_shared_from_this.hpp>
