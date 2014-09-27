@@ -18,7 +18,7 @@ namespace kinski
     {
     public:
         explicit Exception(const std::string &msg): std::runtime_error(msg){};
-        virtual ~Exception() throw(){};
+        virtual ~Exception(){};
     };
     
 } // namespace kinski
