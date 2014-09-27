@@ -54,6 +54,7 @@ namespace kinski {
         Exception(std::string("File not found: ") + theFilename),
         m_file_name(theFilename){}
         std::string file_name() const { return m_file_name;}
+        virtual ~FileNotFoundException() noexcept {};
     };
     
     class OpenDirectoryFailed: public Exception
@@ -61,6 +62,7 @@ namespace kinski {
     public:
         OpenDirectoryFailed(const std::string &theDir) :
         Exception(std::string("Could not open directory: ") + theDir) {}
+        virtual ~OpenDirectoryFailed() noexcept {};
     };
     
     class OpenFileFailed: public Exception
@@ -68,6 +70,7 @@ namespace kinski {
     public:
         OpenFileFailed(const std::string &theFilename) :
         Exception(std::string("Could not open file: ") + theFilename) {}
+        virtual ~OpenFileFailed() noexcept {};
     };
 }
 
