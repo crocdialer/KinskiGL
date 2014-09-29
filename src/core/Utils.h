@@ -12,7 +12,6 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
-
 #include "Definitions.h"
 
 namespace kinski

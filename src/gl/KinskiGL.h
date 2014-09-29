@@ -75,7 +75,6 @@ namespace kinski { namespace gl {
     class Shader;
     class Fbo;
     class Texture;
-    class ArrayTexture;
     class Font;
     class Visitor;
     struct Ray;
@@ -86,7 +85,6 @@ namespace kinski { namespace gl {
     struct MiniMat;
     
     typedef glm::vec4 Color;
-    typedef std::shared_ptr<Texture> TexturePtr;
     typedef std::shared_ptr<class Material> MaterialPtr;
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;

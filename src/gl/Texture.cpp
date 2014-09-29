@@ -33,74 +33,83 @@ Texture::Format::Format()
     
 struct Texture::Obj
 {
-    Obj() : m_Width( -1 ), m_Height( -1 ), m_InternalFormat( -1 ), m_dataType(-1), m_Target(GL_TEXTURE_2D),
-    m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_DeallocatorFunc( 0 ) {};
+    Obj() : m_Width( -1 ), m_Height( -1 ), m_depth(-1), m_InternalFormat( -1 ), m_dataType(-1),
+    m_Target(GL_TEXTURE_2D), m_TextureID(0), m_Flipped(false), m_mip_map(false),
+    m_DeallocatorFunc(0) {};
     
-    Obj( int aWidth, int aHeight ) : m_Width( aWidth ), m_Height( aHeight ),
-    m_InternalFormat( -1 ),
-    m_dataType(-1),
-    m_Target(GL_TEXTURE_2D),
-    m_TextureID( 0 ), m_Flipped( false ), m_mip_map(false), m_boundTextureUnit(-1),
-    m_DeallocatorFunc( 0 )  {};
+    Obj( int aWidth, int aHeight, int depth = 1 ) : m_Width(aWidth), m_Height(aHeight),
+    m_depth(depth), m_InternalFormat( -1 ), m_dataType(-1), m_Target(GL_TEXTURE_2D), m_TextureID(0),
+    m_Flipped(false), m_mip_map(false), m_boundTextureUnit(-1), m_DeallocatorFunc(0){};
     
     ~Obj()
     {
         if( m_DeallocatorFunc )
             (*m_DeallocatorFunc)( m_DeallocatorRefcon );
         
-        if( ( m_TextureID > 0 ) && ( ! m_DoNotDispose ) ) {
-            glDeleteTextures( 1, &m_TextureID );
+        if( (m_TextureID > 0) && (!m_DoNotDispose))
+        {
+            glDeleteTextures(1, &m_TextureID);
         }
     }
 
     
-    mutable GLint	m_Width, m_Height;
-    mutable GLint	m_InternalFormat;
-    GLenum          m_dataType;
-    GLenum			m_Target;
-    GLuint			m_TextureID;
+    GLint m_Width, m_Height, m_depth;
+    GLint m_InternalFormat;
+    GLenum m_dataType;
+    GLenum m_Target;
+    GLuint m_TextureID;
     
-    bool			m_DoNotDispose;
-    bool			m_Flipped;
-    bool            m_mip_map;
-    mutable GLint   m_boundTextureUnit;
-    void			(*m_DeallocatorFunc)(void *refcon);
-    void			*m_DeallocatorRefcon;			
+    bool m_DoNotDispose;
+    bool m_Flipped;
+    bool m_mip_map;
+    GLint m_boundTextureUnit;
+    void (*m_DeallocatorFunc)(void *refcon);
+    void *m_DeallocatorRefcon;
 };
 
 /////////////////////////////////////////////////////////////////////////////////
 // Texture
     
-Texture::Texture( int aWidth, int aHeight, Format format )
-	: m_Obj(new Obj( aWidth, aHeight))
+Texture::Texture( int aWidth, int aHeight, Format format ):
+Texture(aWidth, aHeight, 1, format){}
+    
+Texture::Texture(int aWidth, int aHeight, int aDepth, Format format):
+m_Obj(new Obj(aWidth, aHeight, aDepth))
 {
-	if( format.m_InternalFormat == -1 )
-		format.m_InternalFormat = GL_RGBA;
-	m_Obj->m_InternalFormat = format.m_InternalFormat;
-	m_Obj->m_Target = format.m_Target;
+    if( format.m_InternalFormat == -1 ){ format.m_InternalFormat = GL_RGBA; }
+    m_Obj->m_InternalFormat = format.m_InternalFormat;
+    m_Obj->m_Target = format.m_Target;
     m_Obj->m_dataType = GL_UNSIGNED_BYTE;
-	init( (unsigned char*)0, GL_RGBA, format, 0);
+    init((unsigned char*) nullptr, GL_RGBA, format, 0);
 }
 
-Texture::Texture( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format )
-	: m_Obj(new Obj( aWidth, aHeight))
+Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format)
+    : Texture(data, dataFormat, aWidth, aHeight, 1, format){}
+    
+Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, int aDepth,
+                 Format format)
+: m_Obj(new Obj(aWidth, aHeight, aDepth))
 {
-	if( format.m_InternalFormat == -1 )
-		format.m_InternalFormat = GL_RGBA;
-	m_Obj->m_InternalFormat = format.m_InternalFormat;
-	m_Obj->m_Target = format.m_Target;
+    if( format.m_InternalFormat == -1 ){ format.m_InternalFormat = GL_RGBA; }
+    m_Obj->m_InternalFormat = format.m_InternalFormat;
+    m_Obj->m_Target = format.m_Target;
     m_Obj->m_dataType = GL_UNSIGNED_BYTE;
-	init( data, dataFormat, format );
-}	
+    init( data, dataFormat, format );
+}
 
-Texture::Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose )
-	: m_Obj( ObjPtr( new Obj() ) )
+Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose)
+    : Texture(aTarget, aTextureID, aWidth, aHeight, 1, aDoNotDispose){}
+    
+Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, int aDepth,
+                 bool aDoNotDispose):
+m_Obj(new Obj)
 {
-	m_Obj->m_Target = aTarget;
-	m_Obj->m_TextureID = aTextureID;
-	m_Obj->m_DoNotDispose = aDoNotDispose;
-	m_Obj->m_Width = aWidth;
-	m_Obj->m_Height = aHeight;
+    m_Obj->m_Target = aTarget;
+    m_Obj->m_TextureID = aTextureID;
+    m_Obj->m_DoNotDispose = aDoNotDispose;
+    m_Obj->m_Width = aWidth;
+    m_Obj->m_Height = aHeight;
+    m_Obj->m_depth = aDepth;
 }
 
 void Texture::init(const unsigned char *data, GLenum dataFormat,
@@ -125,9 +134,20 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, unpackRowLength );
 #endif
     
-	glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
-                 m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
-                 GL_UNSIGNED_BYTE, data );
+    if(m_Obj->m_Target == GL_TEXTURE_2D)
+    {
+        glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
+                     m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
+                     GL_UNSIGNED_BYTE, data );
+    }
+#if !defined(KINSKI_GLES)
+    else if (m_Obj->m_Target == GL_TEXTURE_3D ||
+             m_Obj->m_Target == GL_TEXTURE_2D_ARRAY)
+    {
+        glTexImage3D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
+                     m_Obj->m_depth, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+    }
+#endif
     
 #if ! defined( KINSKI_GLES )
 	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
@@ -147,7 +167,7 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     KINSKI_CHECK_GL_ERRORS();
 }
 
-void Texture::init( const float *data, GLint dataFormat, const Format &format )
+void Texture::init(const float *data, GLint dataFormat, const Format &format)
 {
 	if(!m_Obj->m_TextureID)
     {
@@ -160,27 +180,23 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
 	}
     else{ glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID ); }
 	
-	if(data) 
+    if(m_Obj->m_Target == GL_TEXTURE_2D)
     {
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
-                     0, dataFormat, GL_FLOAT, data );
-	}
-	else
-    {
-        GLuint mode;
-    
-#ifdef KINSKI_GLES
-        mode = GL_LUMINANCE;
-#else 
-        mode = GL_RED;
-#endif
-        // init to black...
-		glTexImage2D( m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height, 0,
-                     mode, GL_FLOAT, 0 );
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
+                     m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
+                     GL_FLOAT, data );
     }
+#if ! defined( KINSKI_GLES )
+    else if (m_Obj->m_Target == GL_TEXTURE_3D ||
+             m_Obj->m_Target == GL_TEXTURE_2D_ARRAY)
+    {
+        glTexImage3D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
+                     m_Obj->m_depth, 0, dataFormat, GL_FLOAT, data);
+    }
+#endif
     
-    if( format.m_Mipmapping )
+    if(format.m_Mipmapping)
     {
         glGenerateMipmap(m_Obj->m_Target);
     }
@@ -194,12 +210,12 @@ void Texture::init( const float *data, GLint dataFormat, const Format &format )
     }
 }
 
-void Texture::update( const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped )
+void Texture::update(const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped)
 {   
     update(data, GL_UNSIGNED_BYTE, format, theWidth, theHeight, flipped);
 }
     
-void Texture::update( const float *data,GLenum format, int theWidth, int theHeight, bool flipped )
+void Texture::update(const float *data,GLenum format, int theWidth, int theHeight, bool flipped)
 {
     update(data, GL_FLOAT, format, theWidth, theHeight, flipped);
 }
@@ -209,7 +225,7 @@ void Texture::update(const void *data,
                      int theWidth, int theHeight,
                      bool flipped )
 {
-    if(!m_Obj) m_Obj = ObjPtr(new Obj());
+    if(!m_Obj){ m_Obj = ObjPtr(new Obj()); }
     setFlipped(flipped);
     
     if(m_Obj->m_Width == theWidth && 
@@ -236,7 +252,8 @@ void Texture::update(const void *data,
     
 bool Texture::dataFormatHasAlpha( GLint dataFormat )
 {
-	switch( dataFormat ) {
+	switch( dataFormat )
+    {
 		case GL_RGBA:
 		case GL_ALPHA:
 #if ! defined( KINSKI_GLES )
@@ -479,6 +496,19 @@ GLint Texture::getHeight() const
 	}
 #endif
 	return m_Obj->m_Height;
+}
+    
+GLint Texture::getDepth() const
+{
+    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+#if ! defined( KINSKI_GLES )
+    if( m_Obj->m_depth == -1 )
+    {
+        bind();
+        glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_DEPTH, &m_Obj->m_depth );
+    }
+#endif
+    return m_Obj->m_depth;
 }
 
 void Texture::bind( GLuint textureUnit ) const

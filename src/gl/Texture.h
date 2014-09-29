@@ -66,13 +66,20 @@ namespace kinski{ namespace gl{
         //! Default initializer.
         Texture(){};
         /** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. **/
-        Texture( int aWidth, int aHeight, Format format = Format() );
+        Texture(int aWidth, int aHeight, Format format = Format());
+        
+        Texture(int aWidth, int aHeight, int aDepth, Format format = Format());
         
         /** \brief Constructs a texture of size(\a aWidth, \a aHeight), storing the data in internal format \a aInternalFormat. Pixel data is provided by \a data and is expected to be interleaved and in format \a dataFormat, for which \c GL_RGB or \c GL_RGBA would be typical values. **/
-        Texture( const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format = Format() );
+        Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format = Format() );
+        
+        Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, int aDepth,
+                Format format = Format() );
         
         //! Constructs a Texture based on an externally initialized OpenGL texture. \a aDoNotDispose specifies whether the Texture is responsible for disposing of the associated OpenGL resource.
         Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose );
+        
+        Texture( GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, int aDepth, bool aDoNotDispose );
         
         //! Determines whether the Texture will call glDeleteTextures() to free the associated texture objects on destruction
         void setDoNotDispose( bool aDoNotDispose = true );
@@ -122,6 +129,8 @@ namespace kinski{ namespace gl{
         GLint getWidth() const;
         //! the height of the texture in pixels
         GLint getHeight() const;
+        //! the depth of the texture in pixels
+        GLint getDepth() const;
         
         //! the size of the texture in pixels
         //const Eigen::Vector2i getSize() const { return Eigen::Vector2i( getWidth(), getHeight() ); }	

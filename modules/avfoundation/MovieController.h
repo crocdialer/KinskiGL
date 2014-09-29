@@ -60,7 +60,7 @@ namespace kinski
          */
         bool copy_frame(std::vector<uint8_t>& data);
         
-        bool copy_frames_offline(gl::ArrayTexture &tex);
+        bool copy_frames_offline(gl::Texture &tex);
     };
 }
 

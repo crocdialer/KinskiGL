@@ -1248,30 +1248,33 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
         
         // add texturemaps
-        uint32_t i = 0;
-        for(; i < the_mat->textures().size(); i++)
+        uint32_t tex_unit = 0, tex_2d = 0, tex_3d = 0, tex_2d_array = 0;
+        for(auto &t : the_mat->textures())
         {
-            if(the_mat->textures()[i])
-                the_mat->textures()[i].bind(i);
+            if(!t){ continue; }
             
-            sprintf(buf, "u_textureMap[%d]", i);
-            the_mat->shader().uniform(buf, i);
-        }
-        
-        KINSKI_CHECK_GL_ERRORS();
-        
-        // add array textures
-        for(uint32_t k = 0; k < the_mat->array_textures().size(); k++)
-        {
-            if(the_mat->array_textures()[k])
+            t.bind(tex_unit);
+            
+            switch (t.getTarget())
             {
-                the_mat->array_textures()[k].bind(i + k);
-                
-                sprintf(buf, "u_array_sampler[%d]", k);
-                the_mat->shader().uniform(buf, i + k);
-                the_mat->shader().uniform("u_textureMatrix",
-                                          the_mat->array_textures()[k].getTextureMatrix());
+                case GL_TEXTURE_2D:
+                    sprintf(buf, "u_textureMap[%d]", tex_2d++);
+                    break;
+                    
+#if !defined(KINSKI_GLES)
+                case GL_TEXTURE_3D:
+                    sprintf(buf, "u_sampler_3D[%d]", tex_3d++);
+                    break;
+                    
+                case GL_TEXTURE_2D_ARRAY:
+                    sprintf(buf, "u_sampler_2D_array[%d]", tex_2d_array++);
+                    break;
+#endif
+                default:
+                    break;
             }
+            the_mat->shader().uniform(buf, tex_unit);
+            tex_unit++;
         }
         
         KINSKI_CHECK_GL_ERRORS();

@@ -1,6 +1,5 @@
 #import <AVFoundation/AVFoundation.h>
 #include "gl/Texture.h"
-#include "gl/ArrayTexture.h"
 #include "gl/Buffer.h"
 #include "MovieController.h"
 
@@ -268,7 +267,7 @@ namespace kinski {
         return false;
     }
     
-    bool MovieController::copy_frames_offline(gl::ArrayTexture &tex)
+    bool MovieController::copy_frames_offline(gl::Texture &tex)
     {
         if(!m_impl->m_videoOut) return false;
         
@@ -295,9 +294,9 @@ namespace kinski {
             height = CVPixelBufferGetHeight(pixbuf);
             
             // aquire gpu-memory for our frames
-            gl::ArrayTexture::Format fmt;
+            gl::Texture::Format fmt;
             fmt.setInternalFormat(GL_BGRA);
-            tex = gl::ArrayTexture(width, height, num_frames - 1);
+            tex = gl::Texture(width, height, num_frames - 1);
             tex.setFlipped();
             KINSKI_CHECK_GL_ERRORS();
         }
