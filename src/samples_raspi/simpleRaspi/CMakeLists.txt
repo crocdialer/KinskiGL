@@ -1,10 +1,3 @@
-##### ASSIMP
-find_package(ASSIMP REQUIRED)
-INCLUDE_DIRECTORIES(${ASSIMP_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${ASSIMP_LIBRARIES})
-    
-find_package(ZLIB REQUIRED)
-INCLUDE_DIRECTORIES(${ZLIB_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${ZLIB_LIBRARIES})
-
-addSample(${itemName} ${folderItem})
+set(LIBS ${LIBS})
+set(MODULES assimp)
+KINSKI_ADD_SAMPLE(${itemName} ${folderItem} "${MODULES}")
