@@ -36,15 +36,28 @@
 	// Grab the back-facing camera
 	AVCaptureDevice *camera = nil;
 	NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    
+    int num_devices = [devices count];
+    
+    // no camera found
+    if(num_devices == 0)
+    {
+        LOG_WARNING << "no camera found ...";
+        return nil;
+    }
+    
+    device_id = kinski::clamp(device_id, 0, num_devices - 1);
     int i = 0;
+    
 	for (AVCaptureDevice *device in devices)
 	{
-        LOG_DEBUG << "camera("<< i++ <<"): " << [device.localizedName UTF8String];
+        LOG_DEBUG << "camera("<< i <<"): " << [device.localizedName UTF8String];
 		if ([device position] == AVCaptureDevicePositionUnspecified /*AVCaptureDevicePositionBack*/
             && i == device_id)
 		{
 			camera = device;
 		}
+        i++;
 	}
     
 	// Create the capture session
@@ -92,14 +105,14 @@
 
 - (void)dealloc
 {
-    [super dealloc];
-    
     [_captureSession release];
     [_videoInput release];
     [_videoOutput release];
     
     if(_sampleBuffer)
         CFRelease(_sampleBuffer);
+    
+    [super dealloc];
 }
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput
@@ -147,7 +160,7 @@ namespace kinski
     
     CameraController::~CameraController()
     {
-
+        stop_capture();
     }
     
     void CameraController::start_capture()

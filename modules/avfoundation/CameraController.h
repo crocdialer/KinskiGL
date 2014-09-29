@@ -14,7 +14,7 @@ namespace kinski
     private:
         
         struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        std::shared_ptr<Impl> m_impl;
         
     public:
         CameraController(int device_id = 0);
