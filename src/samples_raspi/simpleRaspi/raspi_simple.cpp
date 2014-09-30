@@ -42,6 +42,7 @@ private:
     Property_<std::string>::Ptr m_imagePath;
 
     net::tcp_server m_tcp_server;
+    std::vector<net::tcp_connection_ptr> m_tcp_connections;
     
 public:
     
