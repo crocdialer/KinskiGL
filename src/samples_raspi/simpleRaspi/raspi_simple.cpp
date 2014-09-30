@@ -1,5 +1,5 @@
 #include "app/Raspi_App.h"
-#include "app/AppServer.h"
+#include "core/networking.h"
 
 #include "gl/SerializerGL.h"
 #include "gl/Scene.h"
@@ -23,7 +23,7 @@ private:
     gl::GeometryPtr m_geometry;
     gl::GeometryPtr m_straightPlane;
     
-    gl::Mesh::Ptr m_mesh;
+    gl::MeshPtr m_mesh;
     gl::PerspectiveCamera::Ptr m_Camera;
     gl::Scene m_scene;
     
@@ -161,21 +161,8 @@ public:
     
     void keyPress(const KeyEvent &e)
     {
-        switch (e.getChar())
+        switch (e.getCode())
         {
-        case KeyEvent::KEY_s:
-            Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            break;
-            
-        case KeyEvent::KEY_r:
-            try
-            {
-                Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            }catch(Exception &e)
-            {
-                LOG_WARNING << e.what();
-            }
-            break;
                 
         default:
             break;
@@ -220,8 +207,7 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SimpleRaspiApp);
-    AppServer s(theApp);
-    LOG_INFO<<"Running on IP: " << AppServer::local_ip();
+    LOG_INFO<<"Running on IP: " << net::local_ip();
     return theApp->run();
 }
 

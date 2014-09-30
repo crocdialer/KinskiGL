@@ -30,6 +30,8 @@ function(KINSKI_ADD_SAMPLE theName thePath)
     if(KINSKI_RASPI)
       include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" ) 
+      link_directories("/opt/vc/lib")
+      
     endif(KINSKI_RASPI)
     add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS} ${MODULE_FILES})
     ENDIF( APPLE )

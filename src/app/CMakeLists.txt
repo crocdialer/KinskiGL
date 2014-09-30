@@ -21,6 +21,7 @@ FILE(GLOB FOLDER_HEADERS Raspi_App.h AppServer.h esUtil.h App.h TextureIO.h Outs
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
 link_directories("/opt/vc/lib")
+set(LIBS {LIBS} bcm_hosts)
 endif()
 
 add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
