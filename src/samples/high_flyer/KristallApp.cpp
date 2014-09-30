@@ -234,7 +234,7 @@ void KristallApp::setup()
     auto rec_devices = audio::get_recording_devices();
     
     // print audio input devices
-    for(audio::recording_device rec_dev : rec_devices){ LOG_INFO << rec_dev.name; }
+    for(audio::device rec_dev : rec_devices){ LOG_INFO << rec_dev.name; }
     
     // audio recording for fft
     m_sound_recording = std::make_shared<audio::Fmod_Sound>();
@@ -272,16 +272,16 @@ void KristallApp::setup()
 //    m_test_timer.expires_from_now(1.f);
     
     m_tcp_server = net::tcp_server(io_service(), 22222,
-                                   [this](net::tcp_connection &con)
+                                   [this](net::tcp_connection_ptr con)
     {
-        LOG_DEBUG << "port: "<< con.port()<<" -- new connection with: " << con.remote_ip()
-            << " : " << con.remote_port();
+        LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
+            << " : " << con->remote_port();
         
-        con.send(Serializer::serializeComponents({shared_from_this(), m_light_component},
+        con->send(Serializer::serializeComponents({shared_from_this(), m_light_component},
                                                  PropertyIO_GL()));
         m_tcp_connections.push_back(con);
         
-        con.set_receive_function([&](net::tcp_connection& con, const std::vector<uint8_t>& response)
+        con->set_receive_function([&](net::tcp_connection_ptr con, const std::vector<uint8_t>& response)
         {
             try
             {

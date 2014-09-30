@@ -257,12 +257,12 @@ namespace kinski
                     if (!ec)
                     {
                         auto impl = std::make_shared<tcp_connection::tcp_connection_impl>(std::move(socket));
-                        tcp_connection con(impl);
-                        con.set_receive_function([](tcp_connection&, const std::vector<uint8_t> &data)
+                        tcp_connection_ptr con = tcp_connection::create(impl);
+                        con->set_receive_function([](tcp_connection_ptr, const std::vector<uint8_t> &data)
                         {
                             LOG_DEBUG << std::string(data.begin(), data.end());
                         });
-                        con.start_receive();
+                        con->start_receive();
                         if(connection_callback){ connection_callback(con); }
                     }
                     accept();
@@ -319,6 +319,15 @@ namespace kinski
         }
         
         /////////////////////////////////////////////////////////////////////////////////////
+        
+        tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
+                                                  std::string the_ip,
+                                                  short the_port,
+                                                  tcp_receive_callback f)
+        { return tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f)); }
+        
+        tcp_connection_ptr tcp_connection::create(std::shared_ptr<tcp_connection_impl> the_impl)
+        { return tcp_connection_ptr(new tcp_connection(the_impl)); }
         
         struct tcp_connection::tcp_connection_impl
         {
@@ -408,7 +417,7 @@ namespace kinski
                     {
                         std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
                                                      impl_cp->recv_buffer.begin() + bytes_transferred);
-                        impl_cp->tcp_receive_cb(*this, datavec);
+                        impl_cp->tcp_receive_cb(shared_from_this(), datavec);
                         LOG_TRACE << "received " << bytes_transferred << "bytes";
                     }
                     

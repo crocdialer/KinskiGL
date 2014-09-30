@@ -40,6 +40,8 @@ private:
     Property_<glm::vec3>::Ptr m_camPosition;
     
     Property_<std::string>::Ptr m_imagePath;
+
+    net::tcp_server m_tcp_server;
     
 public:
     
@@ -129,6 +131,30 @@ public:
             LOG_WARNING << e.what();
             Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         }
+        
+        // setup a tcp server for kinski_remote
+        m_tcp_server = net::tcp_server(io_service(), 33333,
+                                       [this](net::tcp_connection_ptr con)
+        {
+            LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
+              << " : " << con->remote_port();
+        
+            con->send(Serializer::serializeComponents({shared_from_this()}, PropertyIO_GL()));
+            m_tcp_connections.push_back(con);
+        
+            con->set_receive_function([&](net::tcp_connection_ptr con, const std::vector<uint8_t>& response)
+            {
+                try
+                {
+                    Serializer::applyStateToComponents({shared_from_this()},
+                                                       string(response.begin(),
+                                                              response.end()));
+                } catch (std::exception &e)
+                {
+                  LOG_ERROR << e.what();
+                }
+            });
+        });
     }
     
     void update(const float timeDelta)

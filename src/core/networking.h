@@ -19,9 +19,11 @@ namespace kinski
         class tcp_connection;
         class udp_server;
         
+        typedef std::shared_ptr<tcp_connection> tcp_connection_ptr;
+        
         // signature for a receive function
         typedef std::function<void (const std::vector<uint8_t>&)> receive_function;
-        typedef std::function<void(tcp_connection&,
+        typedef std::function<void(tcp_connection_ptr,
                                    const std::vector<uint8_t>&)> tcp_receive_callback;
         
         std::string local_ip(bool ipV6 = false);
@@ -79,7 +81,7 @@ namespace kinski
         {
         public:
             
-            typedef std::function<void(tcp_connection&)> tcp_connection_callback;
+            typedef std::function<void(tcp_connection_ptr)> tcp_connection_callback;
             
             tcp_server();
             
@@ -99,18 +101,19 @@ namespace kinski
             std::shared_ptr<tcp_server_impl> m_impl;
         };
         
-        KINSKI_API class tcp_connection
+        KINSKI_API class tcp_connection : public std::enable_shared_from_this<tcp_connection>
         {
         public:
             
             struct tcp_connection_impl;
             
-            tcp_connection(boost::asio::io_service& io_service,
-                           std::string the_ip,
-                           short the_port,
-                           tcp_receive_callback f);
+            static tcp_connection_ptr create(boost::asio::io_service& io_service,
+                                             std::string the_ip,
+                                             short the_port,
+                                             tcp_receive_callback f);
             
-            tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl);
+            static tcp_connection_ptr create(std::shared_ptr<tcp_connection_impl> the_impl);
+            
             ~tcp_connection();
             
             KINSKI_API void send(const std::string &str);
@@ -127,6 +130,13 @@ namespace kinski
             KINSKI_API unsigned short remote_port() const;
 
         private:
+            
+            tcp_connection(boost::asio::io_service& io_service,
+                           std::string the_ip,
+                           short the_port,
+                           tcp_receive_callback f);
+            
+            tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl);
             
             typedef std::shared_ptr<tcp_connection_impl> impl_ptr;
             impl_ptr m_impl;

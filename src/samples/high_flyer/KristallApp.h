@@ -46,7 +46,7 @@ namespace kinski
     private:
         
         net::tcp_server m_tcp_server;
-        std::vector<net::tcp_connection> m_tcp_connections;
+        std::vector<net::tcp_connection_ptr> m_tcp_connections;
         
         // game logic
         enum GameState{READY_PHASE, IMPACT_PHASE, GROW_PHASE, DECAY_PHASE, SCORE_PHASE,
