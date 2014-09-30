@@ -7,7 +7,6 @@
 //
 
 #include "MovieTest.h"
-#include "gl/ArrayTexture.h"
 
 using namespace std;
 using namespace kinski;
@@ -68,8 +67,6 @@ void MovieTest::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
     
-    gl::ArrayTexture array_tex;
-    
     switch (e.getCode())
     {
         case GLFW_KEY_C:
@@ -81,10 +78,6 @@ void MovieTest::keyPress(const KeyEvent &e)
             
         case GLFW_KEY_P:
             m_movie.pause();
-            break;
-            
-        case GLFW_KEY_B:
-            m_movie.copy_frames_offline(array_tex);
             break;
             
         case GLFW_KEY_LEFT:

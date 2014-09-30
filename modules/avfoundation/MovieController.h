@@ -60,6 +60,11 @@ namespace kinski
          */
         bool copy_frame(std::vector<uint8_t>& data);
         
+        /*!
+         * upload all frames to a gl::Texture object with target GL_TEXTURE_2D_ARRAY
+         * return: true if all frames have been uploaded successfully,
+         * false otherwise
+         */
         bool copy_frames_offline(gl::Texture &tex);
     };
 }

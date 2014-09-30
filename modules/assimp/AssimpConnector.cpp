@@ -115,7 +115,7 @@ namespace kinski { namespace gl{
         {
             int bone_index;
             
-            for (int i = 0; i < aMesh->mNumBones; ++i)
+            for (uint32_t i = 0; i < aMesh->mNumBones; ++i)
             {
                 aiBone* bone = aMesh->mBones[i];
                 if(bonemap.find(bone->mName.data) == bonemap.end())
@@ -130,7 +130,7 @@ namespace kinski { namespace gl{
                     bone_index = bonemap[bone->mName.data].first;
                 }
                 
-                for (int j = 0; j < bone->mNumWeights; ++j)
+                for (uint32_t j = 0; j < bone->mNumWeights; ++j)
                 {
                     const aiVertexWeight &w = bone->mWeights[j];
                     weightmap[w.mVertexId + base_vertex].push_back( std::make_pair(bone_index, w.mWeight) );
@@ -290,7 +290,7 @@ namespace kinski { namespace gl{
             WeightMap weightmap;
             std::vector<Mesh::Entry> entries;
             
-            for (int i = 0; i < theScene->mNumMeshes; i++)
+            for (uint32_t i = 0; i < theScene->mNumMeshes; i++)
             {
                 aiMesh *aMesh = theScene->mMeshes[i];
                 GeometryPtr g = createGeometry(aMesh, theScene);
@@ -327,7 +327,7 @@ namespace kinski { namespace gl{
                                              bonemap, dummy);
             if(mesh->rootBone()) mesh->initBoneMatrices();
             
-            for (int i = 0; i < theScene->mNumAnimations; i++)
+            for (uint32_t i = 0; i < theScene->mNumAnimations; i++)
             {
                 aiAnimation *assimpAnimation = theScene->mAnimations[i];
                 AnimationPtr anim(new gl::Animation());
@@ -353,7 +353,7 @@ namespace kinski { namespace gl{
                 LOG_WARNING<<e.what();
             }
             
-            for (int i = 0; i < materials.size(); i++)
+            for (uint32_t i = 0; i < materials.size(); i++)
             {
                 materials[i]->setShader(shader);
             }
@@ -388,7 +388,7 @@ namespace kinski { namespace gl{
         
         if(theAnimation)
         {
-            for (int i = 0; i < theAnimation->mNumChannels; i++)
+            for (uint32_t i = 0; i < theAnimation->mNumChannels; i++)
             {
                 aiNodeAnim *ptr = theAnimation->mChannels[i];
                 
@@ -432,7 +432,7 @@ namespace kinski { namespace gl{
                 glm::vec3 boneScale;
                 glm::quat boneRotation;
                 
-                for (int i = 0; i < nodeAnim->mNumRotationKeys; i++)
+                for (uint32_t i = 0; i < nodeAnim->mNumRotationKeys; i++)
                 {
                     aiQuaternion rot = nodeAnim->mRotationKeys[i].mValue;
                     boneRotation = glm::quat(rot.w, rot.x, rot.y, rot.z);
@@ -440,7 +440,7 @@ namespace kinski { namespace gl{
                                                                        boneRotation));
                 }
                 
-                for (int i = 0; i < nodeAnim->mNumPositionKeys; i++)
+                for (uint32_t i = 0; i < nodeAnim->mNumPositionKeys; i++)
                 {
                     aiVector3D pos = nodeAnim->mPositionKeys[i].mValue;
                     bonePosition = vec3(pos.x, pos.y, pos.z);
@@ -448,7 +448,7 @@ namespace kinski { namespace gl{
                                                                        bonePosition));
                 }
                 
-                for (int i = 0; i < nodeAnim->mNumScalingKeys; i++)
+                for (uint32_t i = 0; i < nodeAnim->mNumScalingKeys; i++)
                 {
                     aiVector3D scaleTmp = nodeAnim->mScalingKeys[i].mValue;
                     boneScale = vec3(scaleTmp.x, scaleTmp.y, scaleTmp.z);
@@ -459,7 +459,7 @@ namespace kinski { namespace gl{
             }
         }
         
-        for (int i = 0 ; i < theNode->mNumChildren ; i++)
+        for (uint32_t i = 0 ; i < theNode->mNumChildren ; i++)
         {
             BonePtr child = traverseNodes(theAnimation, theNode->mChildren[i], globalTransform,
                                           boneMap, outAnim, currentBone);
@@ -482,7 +482,7 @@ namespace kinski { namespace gl{
         the_transform *= nodeTransform;
         glm::mat3 normal_matrix = glm::mat3(glm::inverseTranspose(the_transform));
         
-        for (int i = 0 ; i < the_node->mNumMeshes ; i++)
+        for (uint32_t i = 0 ; i < the_node->mNumMeshes ; i++)
         {
             //LOG_INFO<<"found mesh";
             GeometryPtr g = createGeometry(the_scene->mMeshes[the_node->mMeshes[i]], the_scene);
@@ -497,7 +497,7 @@ namespace kinski { namespace gl{
             mergeGeometries(g, geom);
         }
         
-        for (int i = 0 ; i < the_node->mNumChildren ; i++)
+        for (uint32_t i = 0 ; i < the_node->mNumChildren ; i++)
         {
             get_node_transform(the_scene, the_node->mChildren[i], the_transform, geom);
         }
