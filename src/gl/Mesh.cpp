@@ -364,6 +364,7 @@ namespace kinski { namespace gl {
     
     void Mesh::bind_vertex_array(int i)
     {
+#if !defined(KINSKI_NO_VAO)
         if(i < 0 || i >= m_vertexArrays.size()){createVertexArray();}
         
         try{GL_SUFFIX(glBindVertexArray)(vertexArray(i));}
@@ -378,6 +379,7 @@ namespace kinski { namespace gl {
                 return;
             }
         }
+#endif
     }
     
     void Mesh::setVertexLocationName(const std::string &theName)

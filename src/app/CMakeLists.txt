@@ -16,12 +16,12 @@ FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h AppServer.h ViewerApp.h LightComponent
 
 ##### RASPI
 else()
-FILE(GLOB FOLDER_SOURCES Raspi_App.cpp AppServer.cpp esUtil.c App.cpp TextureIO.cpp OutstreamGL.cpp)
-FILE(GLOB FOLDER_HEADERS Raspi_App.h AppServer.h esUtil.h App.h TextureIO.h OutstreamGL.h)
+FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp OutstreamGL.cpp)
+FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h OutstreamGL.h)
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
 link_directories("/opt/vc/lib")
-set(LIBS {LIBS} bcm_hosts)
+set(LIBS ${LIBS} bcm_host)
 endif()
 
 add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
