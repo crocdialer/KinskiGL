@@ -80,6 +80,7 @@ namespace kinski
         
         
         int 			readBytes(void *buffer, int length);
+        int 			write_string(const std::string &str);
         int 			writeBytes(const void *buffer, int length);
         bool			writeByte(unsigned char singleByte);
         int             readByte();  // returns -1 on no read or error...

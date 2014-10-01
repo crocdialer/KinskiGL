@@ -497,7 +497,13 @@ bool Serial::setup(string portName, int baud)
 	//---------------------------------------------
 }
 
-
+//----------------------------------------------------------------
+    
+int Serial::write_string(const std::string &str)
+{
+    return writeBytes(str.c_str(), str.length() + 1);
+}
+    
 //----------------------------------------------------------------
 int Serial::writeBytes(const void *buffer, int length)
 {

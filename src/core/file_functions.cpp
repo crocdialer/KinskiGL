@@ -144,7 +144,11 @@ namespace kinski {
                     directory_iterator it(p), end;
                     while(it != end)
                     {
-                        if(boost::filesystem::is_regular_file(*it))
+                        auto f_stat(it->status());
+                        if(f_stat.type() == boost::filesystem::regular_file ||
+                           f_stat.type() == boost::filesystem::symlink_file ||
+                           f_stat.type() == boost::filesystem::character_file ||
+                           f_stat.type() == boost::filesystem::block_file)
                         {
                             if(theExtension.empty())
                             {
