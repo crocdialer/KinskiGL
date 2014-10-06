@@ -50,14 +50,14 @@ namespace kinski
         /*!
          * Save a single component´s state to file using json file formatting
          */
-        static void saveComponentState(const Component::ConstPtr &theComponent,
+        static void saveComponentState(const Component::Ptr &theComponent,
                                        const std::string &theFileName,
                                        const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Save multiple component´s states to file using json file formatting
          */
-        static void saveComponentState(const std::list<Component::ConstPtr> &theComponentList,
+        static void saveComponentState(const std::list<Component::Ptr> &theComponentList,
                                 const std::string &theFileName,
                                 const PropertyIO &theIO = PropertyIO());
         
@@ -76,14 +76,14 @@ namespace kinski
          * Serialize a component to a string in json format.
          * Supported Property types are determined by theIO object
          */
-        static std::string serializeComponent(const Component::ConstPtr &theComponent,
+        static std::string serializeComponent(const Component::Ptr &theComponent,
                                               const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Serialize a component to a string in json format.
          * Supported Property types are determined by theIO object
          */
-        static std::string serializeComponents(const std::list<Component::ConstPtr> &theComponentList,
+        static std::string serializeComponents(const std::list<Component::Ptr> &theComponentList,
                                                const PropertyIO &theIO = PropertyIO());
         
         /*!
@@ -109,7 +109,7 @@ namespace kinski
             Exception(std::string("Error while parsing json string: ") + theContentString) {}
         };
     private:
-        static void add_to_json_object(const std::list<Component::ConstPtr> &theComponentList,
+        static void add_to_json_object(const std::list<Component::Ptr> &theComponentList,
                                        Json::Value &json_val,
                                        const PropertyIO &theIO = PropertyIO());
     };

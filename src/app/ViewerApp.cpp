@@ -298,7 +298,7 @@ namespace kinski {
     
     void ViewerApp::save_settings(const std::string &path)
     {
-        std::list<Component::ConstPtr> light_components, material_components;
+        std::list<Component::Ptr> light_components, material_components;
         for (int i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());

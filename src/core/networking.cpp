@@ -430,15 +430,17 @@ namespace kinski
                     {
                         case boost::asio::error::eof:
                         case boost::asio::error::connection_reset:
+                            LOG_TRACE << error.message() << " ("<<error.value() << ")";
                             impl_cp->socket.close();
-//                            return;
+                            break;
                             
                         case boost::asio::error::operation_aborted:
+                            break;
+                            
                         default:
+                            LOG_WARNING << error.message() << " ("<<error.value() << ")";
                             break;
                     }
-                    LOG_WARNING << error.message() << " ("<<error.value() << ")";
-                    LOG_INFO << "is open: " << is_open();
                 }
             });
         }

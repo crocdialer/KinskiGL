@@ -42,13 +42,13 @@ namespace kinski { namespace gl {
         std::vector< Key<glm::vec3> > scalekeys;
     };
     
-    struct Animation
+    struct MeshAnimation
     {
         float current_time;
         float duration;
         float ticksPerSec;
         std::map<BonePtr, AnimationKeys> boneKeys;
-        Animation():current_time(0), ticksPerSec(1.0f){};
+        MeshAnimation():current_time(0), ticksPerSec(1.0f){};
     };
     
     class KINSKI_API VertexAttrib
@@ -105,9 +105,9 @@ namespace kinski { namespace gl {
         const std::vector<MaterialPtr>& materials() const {return m_materials;};
         std::vector<MaterialPtr>& materials() {return m_materials;};
         
-        const std::vector<AnimationPtr>& animations() const { return m_animations; };
-        std::vector<AnimationPtr>& animations() { return m_animations; };
-        void addAnimation(const AnimationPtr &theAnim) { m_animations.push_back(theAnim); };
+        const std::vector<MeshAnimation>& animations() const { return m_animations; };
+        std::vector<MeshAnimation>& animations() { return m_animations; };
+        void addAnimation(const MeshAnimation &theAnim) { m_animations.push_back(theAnim); };
         
         std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
         const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
@@ -175,7 +175,7 @@ namespace kinski { namespace gl {
         // skeletal animations stuff
         BonePtr m_rootBone;
         uint32_t m_animation_index;
-        std::vector<AnimationPtr> m_animations;
+        std::vector<MeshAnimation> m_animations;
         std::vector<glm::mat4> m_boneMatrices;
         
         std::string m_vertexLocationName;

@@ -89,12 +89,12 @@ namespace kinski { namespace gl {
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;
     typedef std::shared_ptr<class Mesh> MeshPtr;
-    typedef std::shared_ptr<class Light> LightPtr;
     typedef std::weak_ptr<const Mesh> MeshWeakPtr;
+    typedef std::shared_ptr<struct MeshAnimation> MeshAnimationPtr;
+    typedef std::shared_ptr<class Light> LightPtr;
     typedef std::shared_ptr<class Scene> ScenePtr;
     typedef std::shared_ptr<class Camera> CameraPtr;
     typedef std::shared_ptr<struct Bone> BonePtr;
-    typedef std::shared_ptr<struct Animation> AnimationPtr;
     typedef std::shared_ptr<struct RenderBin> RenderBinPtr;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
