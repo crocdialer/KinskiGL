@@ -107,12 +107,12 @@ namespace kinski
             
             struct tcp_connection_impl;
             
-            static tcp_connection_ptr create(boost::asio::io_service& io_service,
-                                             std::string the_ip,
-                                             short the_port,
-                                             tcp_receive_callback f);
+            KINSKI_API static tcp_connection_ptr create(boost::asio::io_service& io_service,
+                                                        std::string the_ip,
+                                                        short the_port,
+                                                        tcp_receive_callback f);
             
-            static tcp_connection_ptr create(std::shared_ptr<tcp_connection_impl> the_impl);
+            KINSKI_API static tcp_connection_ptr create(std::shared_ptr<tcp_connection_impl> the_impl);
             
             ~tcp_connection();
             
@@ -122,12 +122,12 @@ namespace kinski
             KINSKI_API void set_receive_function(tcp_receive_callback f);
             KINSKI_API void start_receive();
             
-            KINSKI_API void close();
+            KINSKI_API bool close();
             KINSKI_API bool is_open() const;
             
-            KINSKI_API unsigned short port() const;
+            KINSKI_API int port() const;
             KINSKI_API std::string remote_ip() const;
-            KINSKI_API unsigned short remote_port() const;
+            KINSKI_API int remote_port() const;
 
         private:
             

@@ -367,9 +367,8 @@ namespace kinski
         
         tcp_connection::~tcp_connection()
         {
-//            LOG_DEBUG << "desctructor: " << m_impl.use_count();            
-//            if(m_impl.use_count() == 2)
-//                close();
+            close();
+            LOG_DEBUG << "tcp_connection desctructor: " << m_impl.use_count();
         }
         
         void tcp_connection::send(const std::string &str)
@@ -421,22 +420,39 @@ namespace kinski
                         LOG_TRACE << "received " << bytes_transferred << "bytes";
                     }
                     
-//                    LOG_DEBUG << impl_cp.use_count();
-                    
                     // only keep receiving if there are any refs on this instance left
                     if(impl_cp.use_count() > 1)
                         _start_receive(impl_cp);
                 }
-                else{ LOG_WARNING<<error.message(); }
+                else
+                {
+                    switch (error.value())
+                    {
+                        case boost::asio::error::eof:
+                        case boost::asio::error::connection_reset:
+                            impl_cp->socket.close();
+//                            return;
+                            
+                        case boost::asio::error::operation_aborted:
+                        default:
+                            break;
+                    }
+                    LOG_WARNING << error.message() << " ("<<error.value() << ")";
+                    LOG_INFO << "is open: " << is_open();
+                }
             });
         }
         
-        void tcp_connection::close()
+        bool tcp_connection::close()
         {
-            // compatibility, maybe unnecessary
-            m_impl->socket.shutdown(m_impl->socket.shutdown_both);
-            
-            m_impl->socket.close();
+            try
+            {
+                // compatibility, maybe unnecessary
+                m_impl->socket.shutdown(m_impl->socket.shutdown_both);
+                m_impl->socket.close();
+                return true;
+            } catch (std::exception &e) { LOG_WARNING << e.what(); }
+            return false;
         }
         
         bool tcp_connection::is_open() const
@@ -444,19 +460,25 @@ namespace kinski
             return m_impl->socket.is_open();
         }
         
-        unsigned short tcp_connection::port() const
+        int tcp_connection::port() const
         {
-            return m_impl->socket.local_endpoint().port();
+            try{ return m_impl->socket.local_endpoint().port(); }
+            catch (std::exception &e) {}
+            return -1;
         }
         
         std::string tcp_connection::remote_ip() const
         {
-            return m_impl->socket.remote_endpoint().address().to_string();
+            try{ return m_impl->socket.remote_endpoint().address().to_string(); }
+            catch (std::exception &e) {}
+            return "0.0.0.0";
         }
         
-        unsigned short tcp_connection::remote_port() const
+        int tcp_connection::remote_port() const
         {
-            return m_impl->socket.remote_endpoint().port();
+            try{ return m_impl->socket.remote_endpoint().port(); }
+            catch (std::exception &e) {}
+            return -1;
         }
     }
 }

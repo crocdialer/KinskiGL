@@ -272,7 +272,7 @@ void KristallApp::setup()
 //    m_test_timer.expires_from_now(1.f);
     
     m_tcp_server = net::tcp_server(io_service(), 22222,
-                                   [this](net::tcp_connection_ptr con)
+                                   [&](net::tcp_connection_ptr con)
     {
         LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
             << " : " << con->remote_port();
@@ -281,17 +281,25 @@ void KristallApp::setup()
                                                  PropertyIO_GL()));
         m_tcp_connections.push_back(con);
         
-        con->set_receive_function([&](net::tcp_connection_ptr con, const std::vector<uint8_t>& response)
+        con->set_receive_function([&](net::tcp_connection_ptr rec_con,
+                                           const std::vector<uint8_t>& response)
         {
             try
             {
                 Serializer::applyStateToComponents({shared_from_this(), m_light_component},
                                                    string(response.begin(),
-                                                          response.end()));
+                                                          response.end()),
+                                                   PropertyIO_GL());
             } catch (std::exception &e)
             {
                 LOG_ERROR << e.what();
             }
+            
+//            if(!rec_con.get() || !rec_con->is_open())
+//            {
+//                LOG_DEBUG << "connection closed";
+////                m_tcp_connections.remove(con);
+//            }
         });
     });
     m_tcp_server.start_listen(33333);
@@ -398,6 +406,19 @@ void KristallApp::update(float timeDelta)
             }
         }
     }
+    
+    // manage tcp connections
+    std::vector<net::tcp_connection_ptr> tmp;
+    
+    for (auto &con : m_tcp_connections)
+    {
+        if(con->is_open())
+        {
+//            LOG_INFO << "dead connection: " << con->remote_ip() << ":" << con->remote_port();
+        }
+        tmp.push_back(con);
+    }
+    m_tcp_connections = tmp;
 }
 
 /////////////////////////////////////////////////////////////////

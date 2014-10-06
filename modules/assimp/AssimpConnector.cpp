@@ -54,7 +54,7 @@ namespace kinski { namespace gl{
         if(aMesh->HasTextureCoords(0))
         {
             geom->texCoords().reserve(aMesh->mNumVertices);
-            for (int i = 0; i < aMesh->mNumVertices; i++)
+            for (uint32_t i = 0; i < aMesh->mNumVertices; i++)
             {
                 geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
             }
@@ -64,7 +64,7 @@ namespace kinski { namespace gl{
         }
         
         std::vector<uint32_t> &indices = geom->indices(); indices.reserve(aMesh->mNumFaces * 3);
-        for(int i = 0; i < aMesh->mNumFaces; i++)
+        for(uint32_t i = 0; i < aMesh->mNumFaces; i++)
         {
             const aiFace &f = aMesh->mFaces[i];
             if(f.mNumIndices != 3) throw Exception("Non triangle mesh loaded");

@@ -149,7 +149,8 @@ public:
                 {
                     Serializer::applyStateToComponents({shared_from_this()},
                                                        string(response.begin(),
-                                                              response.end()));
+                                                              response.end()), 
+                                                       PropertyIO_GL());
                 } catch (std::exception &e)
                 {
                   LOG_ERROR << e.what();

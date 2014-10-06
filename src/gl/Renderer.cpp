@@ -8,8 +8,6 @@
 
 #include "Renderer.h"
 #include "Mesh.h"
-#include "Geometry.h"
-#include "Material.h"
 #include "Camera.h"
 #include "Light.h"
 
@@ -50,100 +48,91 @@ namespace kinski{ namespace gl{
         KINSKI_CHECK_GL_ERRORS();
         typedef map<pair<Material*, Geometry*>, list<RenderBin::item> > MatMeshMap;
         MatMeshMap mat_mesh_map;
-//        for (auto &item : item_list)
-//        {
-//            mat_mesh_map[std::make_pair(item.mesh->material().get(),
-//                                        item.mesh->geometry().get())].push_back(item);
-//        }
-//        for (auto &pair_item : mat_mesh_map)
+        
+        for (const RenderBin::item &item : item_list)
         {
-//            list<RenderBin::item>& sub_selection = pair_item.second;
-
-            for (const RenderBin::item &item : item_list)
+            Mesh *m = item.mesh;
+            
+            const glm::mat4 &modelView = item.transform;
+            
+            for(auto &mat : m->materials())
             {
-                Mesh *m = item.mesh;
+                mat->uniform("u_modelViewMatrix", modelView);
+                mat->uniform("u_modelViewProjectionMatrix",
+                             cam->getProjectionMatrix() * modelView);
                 
-                const glm::mat4 &modelView = item.transform;
-                
-                for(auto &mat : m->materials())
+                //if(m->geometry()->hasNormals())
                 {
-                    mat->uniform("u_modelViewMatrix", modelView);
-                    mat->uniform("u_modelViewProjectionMatrix",
-                                           cam->getProjectionMatrix() * modelView);
-                    
-//                    if(m->geometry()->hasNormals())
-                    {
-                        mat->uniform("u_normalMatrix",
-                                     glm::inverseTranspose( glm::mat3(modelView) ));
-                    }
-                    
-                    if(m->geometry()->hasBones())
-                    {
-                        mat->uniform("u_bones", m->boneMatrices());
-                    }
-                    
-                    // lighting parameters
-                    set_light_uniforms(mat, light_list);
+                    mat->uniform("u_normalMatrix",
+                                 glm::inverseTranspose( glm::mat3(modelView) ));
                 }
-                gl::apply_material(m->material());
                 
-#ifndef KINSKI_NO_VAO
-                m->bind_vertex_array();
-#else
-                m->bindVertexPointers();
-#endif
-                
-                KINSKI_CHECK_GL_ERRORS();
-                
-                if(m->geometry()->hasIndices())
+                if(m->geometry()->hasBones())
                 {
+                    mat->uniform("u_bones", m->boneMatrices());
+                }
+                
+                // lighting parameters
+                set_light_uniforms(mat, light_list);
+            }
+            gl::apply_material(m->material());
+            
+#ifndef KINSKI_NO_VAO
+            m->bind_vertex_array();
+#else
+            m->bindVertexPointers();
+#endif
+            
+            KINSKI_CHECK_GL_ERRORS();
+            
+            if(m->geometry()->hasIndices())
+            {
 #ifndef KINSKI_GLES
-                    if(!m->entries().empty())
+                if(!m->entries().empty())
+                {
+                    for (int i = 0; i < m->entries().size(); i++)
                     {
-                        for (int i = 0; i < m->entries().size(); i++)
-                        {
-                            // skip disabled entries
-                            if(!m->entries()[i].enabled) continue;
-                            
-                            int mat_index = clamp<int>(m->entries()[i].material_index,
-                                                       0,
-                                                       m->materials().size() - 1);
-                            m->bind_vertex_array(mat_index);
-                            apply_material(m->materials()[mat_index]);
-                            
+                        // skip disabled entries
+                        if(!m->entries()[i].enabled) continue;
+                        
+                        int mat_index = clamp<int>(m->entries()[i].material_index,
+                                                   0,
+                                                   m->materials().size() - 1);
+                        m->bind_vertex_array(mat_index);
+                        apply_material(m->materials()[mat_index]);
+                        
 //                            GLint current_vao, current_prog;
 //                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
 //                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
 //                            std::cout << "vao: " << current_vao << " -- prog: " << current_prog << std::endl;
-                            KINSKI_CHECK_GL_ERRORS();
-                            
-                            glDrawElementsBaseVertex(m->geometry()->primitiveType(),
-                                                     m->entries()[i].num_indices,
-                                                     m->geometry()->indexType(),
-                                                     BUFFER_OFFSET(m->entries()[i].base_index
-                                                                   * sizeof(m->geometry()->indexType())),
-                                                     m->entries()[i].base_vertex);
-                        }
-                    }
-                    else
-#endif
-                    {
-                        glDrawElements(m->geometry()->primitiveType(),
-                                       m->geometry()->indices().size(), m->geometry()->indexType(),
-                                       BUFFER_OFFSET(0));
+                        KINSKI_CHECK_GL_ERRORS();
+                        
+                        glDrawElementsBaseVertex(m->geometry()->primitiveType(),
+                                                 m->entries()[i].num_indices,
+                                                 m->geometry()->indexType(),
+                                                 BUFFER_OFFSET(m->entries()[i].base_index
+                                                               * sizeof(m->geometry()->indexType())),
+                                                 m->entries()[i].base_vertex);
                     }
                 }
                 else
-                {
-                    glDrawArrays(m->geometry()->primitiveType(), 0,
-                                 m->geometry()->vertices().size());
-                }
-                KINSKI_CHECK_GL_ERRORS();
-            }
-#ifndef KINSKI_NO_VAO
-            GL_SUFFIX(glBindVertexArray)(0);
 #endif
+                {
+                    glDrawElements(m->geometry()->primitiveType(),
+                                   m->geometry()->indices().size(), m->geometry()->indexType(),
+                                   BUFFER_OFFSET(0));
+                }
+            }
+            else
+            {
+                glDrawArrays(m->geometry()->primitiveType(), 0,
+                             m->geometry()->vertices().size());
+            }
+            KINSKI_CHECK_GL_ERRORS();
         }
+#ifndef KINSKI_NO_VAO
+        GL_SUFFIX(glBindVertexArray)(0);
+#endif
     }
     
     void Renderer::set_light_uniforms(MaterialPtr &the_mat, const list<RenderBin::light> &light_list)

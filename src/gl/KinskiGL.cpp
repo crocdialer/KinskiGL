@@ -1160,14 +1160,12 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     {
         static Material::WeakPtr weak_last;
         
-        // TODO: remove again! tmp: always force apply
-        force_apply = true;
-        
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
 
-        
-        
         if(!the_mat) return;
+        
+        // weak copy of current mat
+        weak_last = the_mat;
         
         the_mat->shader().bind();
         
@@ -1249,6 +1247,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         
         // add texturemaps
         uint32_t tex_unit = 0, tex_2d = 0, tex_3d = 0, tex_2d_array = 0;
+        
         for(auto &t : the_mat->textures())
         {
             if(!t){ continue; }
@@ -1286,7 +1285,6 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             boost::apply_visitor(InsertUniformVisitor(the_mat->shader(), it->first), it->second);
             KINSKI_CHECK_GL_ERRORS();
         }
-        weak_last = the_mat;
     }
     
 ///////////////////////////////////////////////////////////////////////////////
