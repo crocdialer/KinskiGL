@@ -50,6 +50,12 @@ namespace kinski{ namespace audio{
         
         virtual void set_volume(float vol) = 0;
         virtual void set_pan(float vol) = 0; // -1 = left, 1 = right
+        virtual void set_speaker_mix(float frontleft, float frontright, float center, float lfe,
+                                     float backleft, float backright, float sideleft,
+                                     float sideright) = 0;
+        virtual void get_speaker_mix(float *frontleft, float *frontright, float *center, float *lfe,
+                                     float *backleft, float *backright, float *sideleft,
+                                     float *sideright) = 0;
         virtual void set_speed(float spd) = 0;
         virtual void set_paused(bool bP) = 0;
         virtual void set_loop(bool bLp) = 0;

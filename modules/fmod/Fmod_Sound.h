@@ -32,6 +32,10 @@ namespace kinski{ namespace audio{
         
         void set_volume(float vol);
         void set_pan(float pan); // -1 = left, 1 = right
+        void set_speaker_mix(float frontleft, float frontright, float center, float lfe,
+                             float backleft, float backright, float sideleft, float sideright);
+        void get_speaker_mix(float *frontleft, float *frontright, float *center, float *lfe,
+                             float *backleft, float *backright, float *sideleft, float *sideright);
         void set_speed(float speed);
         void set_paused(bool b);
         void set_loop(bool b);
@@ -57,6 +61,7 @@ namespace kinski{ namespace audio{
 		bool m_loop;
 		bool m_paused;
 		float m_pan; // -1 to 1
+        std::vector<float> m_speaker_mix;
 		float m_volume; // 0 - 1
 		float m_internal_freq; // 44100 ?
 		float m_speed; // -n to n, 1 = normal, -1 backwards
@@ -64,8 +69,10 @@ namespace kinski{ namespace audio{
         
         FMOD::Channel *m_channel;
         FMOD::Sound *m_sound;
-        
     };
+    
+    typedef std::shared_ptr<Fmod_Sound> Fmod_SoundPtr;
+    
 }}//namespace
 
 #endif /* defined(__gl__Fmod_Sound__) */
