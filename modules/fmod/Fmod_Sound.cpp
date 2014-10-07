@@ -39,8 +39,8 @@ namespace kinski{ namespace audio{
 #endif
             g_systems[device]->setDriver(clamp<int>(device, 0, get_output_devices().size() - 1));
             
+            g_systems[device]->setSpeakerMode(FMOD_SPEAKERMODE_5POINT1);
             g_systems[device]->init(32, FMOD_INIT_NORMAL, NULL);//do we want just 32 channels?
-            
             g_systems[device]->getMasterChannelGroup(&g_channelgroups[device]);
             
             g_fftValues.assign(g_max_num_fft_bands, 0.f);
@@ -282,7 +282,7 @@ namespace kinski{ namespace audio{
         unload();
         
         //choose if we want streaming
-        int fmodFlags =  FMOD_SOFTWARE; // FMOD_HARDWARE !?
+        int fmodFlags =  FMOD_SOFTWARE | FMOD_2D; // FMOD_HARDWARE !?
         if(stream)fmodFlags =  FMOD_SOFTWARE | FMOD_CREATESTREAM;
         
         FMOD_RESULT result;
@@ -319,12 +319,12 @@ namespace kinski{ namespace audio{
         m_channel->getFrequency(&m_internal_freq);
         m_channel->setVolume(m_volume);
         set_pan(m_pan);
-        m_channel->setSpeakerMix(m_speaker_mix[0], m_speaker_mix[1], m_speaker_mix[2],
-                                 m_speaker_mix[3], m_speaker_mix[4], m_speaker_mix[5],
-                                 m_speaker_mix[6], m_speaker_mix[7]);
         
         m_channel->setFrequency(m_internal_freq * m_speed);
         m_channel->setMode(m_loop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
+        m_channel->setSpeakerMix(m_speaker_mix[0], m_speaker_mix[1], m_speaker_mix[2],
+                                 m_speaker_mix[3], m_speaker_mix[4], m_speaker_mix[5],
+                                 m_speaker_mix[6], m_speaker_mix[7]);
         m_channel->setPaused(m_paused);
         
         //fmod update() should be called every frame - according to the docs.
@@ -429,8 +429,13 @@ namespace kinski{ namespace audio{
     void Fmod_Sound::set_speaker_mix(float frontleft, float frontright, float center, float lfe,
                                      float backleft, float backright, float sideleft, float sideright)
     {
-        m_channel->setSpeakerMix(frontleft, frontright, center, lfe, backleft, backright, sideleft,
-                                 sideright);
+        m_speaker_mix = {frontleft, frontright, center, lfe, backleft, backright, sideleft,
+            sideright};
+        if (playing())
+        {
+            m_channel->setSpeakerMix(frontleft, frontright, center, lfe, backleft, backright, sideleft,
+                                     sideright);
+        }
     }
     
     void Fmod_Sound::get_speaker_mix(float *frontleft, float *frontright, float *center, float *lfe,
