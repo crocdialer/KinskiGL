@@ -15,31 +15,27 @@
 
 namespace kinski
 {
+    class RemoteControl;
+    typedef std::unique_ptr<RemoteControl> RemoteControlPtr;
+    
     class RemoteControl
     {
     public:
-        
-//        template <typename L>
-//        RemoteControl(boost::asio::io_service &io, const L &component_collection,
-//                      uint16_t the_port = 33333):
-//        RemoteControl(io,
-//                      std::list<Component::Ptr>(begin(component_collection),
-//                                                end(component_collection)),
-//                      the_port){}
         
         RemoteControl(){};
         RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list,
                       uint16_t the_port = 33333);
         
+        void start_listen(uint16_t port = 33333);
+        void stop_listen();
+        
     private:
         
-        
         void new_connection_cb(net::tcp_connection_ptr con);
-        
         void receive_cb(net::tcp_connection_ptr rec_con,
                         const std::vector<uint8_t>& response);
         
-        std::list<Component::Ptr> lock_components(const std::list<Component::WeakPtr> &weak_components);
+        std::list<Component::Ptr> lock_components();
         
         //!
         net::tcp_server m_tcp_server;

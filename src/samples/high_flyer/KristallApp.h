@@ -21,6 +21,7 @@
 #include "app/LightComponent.h"
 #include "app/Object3DComponent.h"
 #include "app/MaterialComponent.h"
+#include "app/RemoteControl.h"
 
 // module headers
 #include "SyphonConnector.h"
@@ -45,8 +46,10 @@ namespace kinski
         
     private:
         
-        net::tcp_server m_tcp_server;
-        std::vector<net::tcp_connection_ptr> m_tcp_connections;
+//        net::tcp_server m_tcp_server;
+//        std::vector<net::tcp_connection_ptr> m_tcp_connections;
+        
+        kinski::RemoteControl m_remote_control;
         
         // game logic
         enum GameState{READY_PHASE, IMPACT_PHASE, GROW_PHASE, DECAY_PHASE, SCORE_PHASE,

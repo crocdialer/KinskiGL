@@ -14,10 +14,20 @@ using namespace kinski;
 RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list,
                              uint16_t the_port)
 {
-    m_tcp_server = net::tcp_server(io, the_port, std::bind(&RemoteControl::new_connection_cb, this,
-                                                           std::placeholders::_1));
-    
     m_components.assign(the_list.begin(), the_list.end());
+    m_tcp_server = net::tcp_server(io, the_port, net::tcp_server::tcp_connection_callback());
+}
+
+void RemoteControl::start_listen(uint16_t port)
+{
+    m_tcp_server.start_listen(port);
+    m_tcp_server.set_connection_callback(std::bind(&RemoteControl::new_connection_cb,
+                                                   this, std::placeholders::_1));
+}
+
+void RemoteControl::stop_listen()
+{
+    m_tcp_server.stop_listen();
 }
 
 void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
@@ -26,7 +36,7 @@ void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
     << " : " << con->remote_port();
     
     // lock our components and get a list
-    std::list<Component::Ptr> comp_list = lock_components(m_components);
+    std::list<Component::Ptr> comp_list = lock_components();
     
     con->send(Serializer::serializeComponents(comp_list, PropertyIO_GL()));
     
@@ -50,17 +60,18 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
 {
     try
     {
-        Serializer::applyStateToComponents(lock_components(m_components),
+        Serializer::applyStateToComponents(lock_components(),
                                            string(response.begin(),
                                                   response.end()),
                                            PropertyIO_GL());
     } catch (std::exception &e){ LOG_ERROR << e.what(); }
 }
 
-std::list<Component::Ptr> RemoteControl::lock_components(const std::list<Component::WeakPtr> &weak_components)
+std::list<Component::Ptr>
+RemoteControl::lock_components()
 {
     std::list<Component::Ptr> ret;
-    
+
     for(auto &weak_comp : m_components)
     {
         Component::Ptr ptr = weak_comp.lock();
