@@ -11,6 +11,7 @@
 
 // module headers
 #include "AssimpConnector.h"
+#include "DMXController.h"
 
 using namespace std;
 using namespace kinski;
@@ -31,22 +32,28 @@ private:
     gl::PerspectiveCamera::Ptr m_Camera;
     gl::Scene m_scene;
     
-    RangedProperty<float>::Ptr m_distance;
+    RangedProperty<float>::Ptr m_distance = = RangedProperty<float>::create("view distance", 25, 0, 5000);;
     
-    Property_<bool>::Ptr m_wireFrame;
-    Property_<bool>::Ptr m_drawNormals;
-    Property_<glm::vec3>::Ptr m_lightDir;
+    Property_<bool>::Ptr m_wireFrame = Property_<bool>::create("Wireframe", false);
+    Property_<bool>::Ptr m_drawNormals = Property_<bool>::create("Normals", false);
+    Property_<glm::vec3>::Ptr m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
     
-    Property_<glm::vec4>::Ptr m_color;
-    Property_<glm::mat3>::Ptr m_rotation;
-    RangedProperty<float>::Ptr m_rotationSpeed;
+    Property_<glm::vec4>::Ptr m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
+    Property_<glm::mat3>::Ptr m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());;
+    RangedProperty<float>::Ptr m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 15, -100, 100);
 
-    Property_<glm::vec3>::Ptr m_camPosition;
+    Property_<glm::vec3>::Ptr m_camPosition = Property_<glm::vec3>::create("Camera Position", vec3(0, 30, -120));
     
-    Property_<std::string>::Ptr m_imagePath;
+    Property_<std::string>::Ptr m_imagePath = Property_<std::string>::create("Image path", "test.png");
 
-    net::tcp_server m_tcp_server;
-    std::vector<net::tcp_connection_ptr> m_tcp_connections;
+    // remote control
+    RemoteController m_remote_control;
+    
+    // dmx vals
+    DMXController m_dmx_control;
+    RangedProperty<int>::Ptr
+    m_dmx_start_index = RangedProperty<int>::create("DMX start index", 1, 0, 255);
+    Property_<gl::Color>::Ptr m_dmx_color = Property_<gl::Color>::create("DMX color", gl::COLOR_OLIVE);
     
 public:
     
@@ -56,32 +63,17 @@ public:
     {
         /*********** init our application properties ******************/
         
-        m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);
         registerProperty(m_distance);
-        
-        m_wireFrame = Property_<bool>::create("Wireframe", false);
         registerProperty(m_wireFrame);
-        
-        m_drawNormals = Property_<bool>::create("Normals", false);
         registerProperty(m_drawNormals);
-        
-        m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
         registerProperty(m_lightDir);
-        
-        m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
         registerProperty(m_color);
-        
-        m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
         registerProperty(m_rotation);
-        
-        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 15, -100, 100);
         registerProperty(m_rotationSpeed);
-        
-        m_camPosition = Property_<glm::vec3>::create("Camera Position", vec3(0, 30, -120));
         registerProperty(m_camPosition);
-
-        m_imagePath = Property_<std::string>::create("Image path", "test.png");
         registerProperty(m_imagePath);
+        registerProperty(m_dmx_start_index);
+        registerProperty(m_dmx_color);
 
         // enable observer mechanism
         observeProperties();
@@ -206,6 +198,24 @@ public:
         else if(theProperty == m_imagePath)
         {
             m_textures[0] = gl::createTextureFromFile(m_imagePath->value());
+        }
+        else if(theProperty == m_dmx_color)
+        {
+            const gl::Color &c = *m_dmx_color;
+        
+            // set manual control
+            m_dmx_control[*m_dmx_start_index] = 0;
+          
+            // R
+            m_dmx_control[*m_dmx_start_index + 1] = (uint8_t)(c.r * 255);
+            
+            // G
+            m_dmx_control[*m_dmx_start_index + 2] = (uint8_t)(c.g * 255);
+            
+            // B
+            m_dmx_control[*m_dmx_start_index + 3] = (uint8_t)(c.b * 255);
+            
+            m_dmx_control.update();
         }
     }
     

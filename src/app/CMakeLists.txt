@@ -9,15 +9,17 @@ if(NOT KINSKI_RASPI)
 find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
-FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp AppServer.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp 
+FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp 
         AntTweakBarConnector.cpp OutstreamGL.cpp MaterialComponent.cpp)
-FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h AppServer.h ViewerApp.h LightComponent.h Object3DComponent.h 
+FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h RemoteControl.h ViewerApp.h LightComponent.h Object3DComponent.h 
         AntTweakBarConnector.h OutstreamGL.h MaterialComponent.h)
 
 ##### RASPI
 else()
-FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp OutstreamGL.cpp)
-FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h OutstreamGL.h)
+FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp OutstreamGL.cpp RemoteControl.cpp
+    LightComponent.cpp Object3DComponent.cpp MaterialComponent.cpp)
+FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h OutstreamGL.h RemoteControl.h 
+    LightComponent.h Object3DComponent.h MaterialComponent.h)
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
 link_directories("/opt/vc/lib")
