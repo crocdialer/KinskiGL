@@ -47,7 +47,7 @@ private:
     Property_<std::string>::Ptr m_imagePath = Property_<std::string>::create("Image path", "test.png");
 
     // remote control
-    RemoteController m_remote_control;
+    RemoteControl m_remote_control;
     
     // dmx vals
     DMXController m_dmx_control;
