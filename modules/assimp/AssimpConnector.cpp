@@ -32,7 +32,7 @@ namespace kinski { namespace gl{
                           const aiNode *theNode,
                           const glm::mat4 &parentTransform,
                           const map<std::string, pair<int, glm::mat4> > &boneMap,
-                          AnimationPtr &outAnim,
+                          MeshAnimation &outAnim,
                           BonePtr parentBone = BonePtr());
     void get_node_transform(const aiScene *the_scene, const aiNode *the_node,
                             glm::mat4 &the_transform, GeometryPtr geom);
@@ -322,7 +322,7 @@ namespace kinski { namespace gl{
             mesh->entries() = entries;
             mesh->materials() = materials;
             
-            AnimationPtr dummy;
+            MeshAnimation dummy;
             mesh->rootBone() = traverseNodes(NULL, theScene->mRootNode, mat4(),
                                              bonemap, dummy);
             if(mesh->rootBone()) mesh->initBoneMatrices();
@@ -330,9 +330,9 @@ namespace kinski { namespace gl{
             for (uint32_t i = 0; i < theScene->mNumAnimations; i++)
             {
                 aiAnimation *assimpAnimation = theScene->mAnimations[i];
-                AnimationPtr anim(new gl::Animation());
-                anim->duration = assimpAnimation->mDuration;
-                anim->ticksPerSec = assimpAnimation->mTicksPerSecond;
+                MeshAnimation anim;
+                anim.duration = assimpAnimation->mDuration;
+                anim.ticksPerSec = assimpAnimation->mTicksPerSecond;
                 BonePtr rootBone = traverseNodes(assimpAnimation, theScene->mRootNode, mat4(),
                                                  bonemap, anim);
                 mesh->addAnimation(anim);
@@ -378,7 +378,7 @@ namespace kinski { namespace gl{
                           const aiNode *theNode,
                           const glm::mat4 &parentTransform,
                           const map<std::string, pair<int, glm::mat4> > &boneMap,
-                          AnimationPtr &outAnim,
+                          MeshAnimation &outAnim,
                           BonePtr parentBone)
     {
         BonePtr currentBone;
@@ -455,7 +455,7 @@ namespace kinski { namespace gl{
                     animKeys.scalekeys.push_back(gl::Key<glm::vec3>(nodeAnim->mScalingKeys[i].mTime,
                                                                     boneScale));
                 }
-                outAnim->boneKeys[currentBone] = animKeys;
+                outAnim.boneKeys[currentBone] = animKeys;
             }
         }
         

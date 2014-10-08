@@ -287,6 +287,12 @@ namespace kinski
         
         void tcp_server::start_listen(int port)
         {
+            if(!m_impl)
+            {
+                LOG_ERROR << "could not start listen, server not initiated";
+                return;
+            }
+            
             if(!m_impl->acceptor.is_open() ||
                port != m_impl->acceptor.local_endpoint().port())
             {
@@ -368,7 +374,6 @@ namespace kinski
         tcp_connection::~tcp_connection()
         {
             close();
-            LOG_DEBUG << "tcp_connection desctructor: " << m_impl.use_count();
         }
         
         void tcp_connection::send(const std::string &str)
@@ -450,7 +455,8 @@ namespace kinski
             try
             {
                 // compatibility, maybe unnecessary
-                m_impl->socket.shutdown(m_impl->socket.shutdown_both);
+//                m_impl->socket.shutdown(m_impl->socket.shutdown_both);
+                
                 m_impl->socket.close();
                 return true;
             } catch (std::exception &e) { LOG_WARNING << e.what(); }

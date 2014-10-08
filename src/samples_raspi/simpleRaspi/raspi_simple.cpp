@@ -6,6 +6,10 @@
 #include "gl/Mesh.h"
 #include "gl/Fbo.h"
 
+// remote control
+#include "app/RemoteControl.h"
+
+// module headers
 #include "AssimpConnector.h"
 
 using namespace std;
@@ -133,30 +137,9 @@ public:
             Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
         }
         
-        // setup a tcp server for kinski_remote
-        m_tcp_server = net::tcp_server(io_service(), 33333,
-                                       [this](net::tcp_connection_ptr con)
-        {
-            LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
-              << " : " << con->remote_port();
-        
-            con->send(Serializer::serializeComponents({shared_from_this()}, PropertyIO_GL()));
-            m_tcp_connections.push_back(con);
-        
-            con->set_receive_function([&](net::tcp_connection_ptr con, const std::vector<uint8_t>& response)
-            {
-                try
-                {
-                    Serializer::applyStateToComponents({shared_from_this()},
-                                                       string(response.begin(),
-                                                              response.end()), 
-                                                       PropertyIO_GL());
-                } catch (std::exception &e)
-                {
-                  LOG_ERROR << e.what();
-                }
-            });
-        });
+        // add tcp remote control
+        m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
+        m_remote_control.start_listen(); 
     }
     
     void update(const float timeDelta)

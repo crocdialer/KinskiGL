@@ -269,42 +269,10 @@ void KristallApp::setup()
     m_ready_timer = Timer(io_service(), std::bind(&KristallApp::change_gamestate, this, READY_PHASE));
     m_decay_timer = Timer(io_service(), std::bind(&KristallApp::change_gamestate, this, DECAY_PHASE));
     
-//    m_test_timer = Timer(1.f, io_service(), [](){ LOG_DEBUG << "timer poop"; });
-//    m_test_timer.set_periodic(true);
-//    m_test_timer.expires_from_now(1.f);
+    // add tcp remote control
+    m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
+    m_remote_control.start_listen();
     
-    m_tcp_server = net::tcp_server(io_service(), 22222,
-                                   [&](net::tcp_connection_ptr con)
-    {
-        LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
-            << " : " << con->remote_port();
-        
-        con->send(Serializer::serializeComponents({shared_from_this(), m_light_component},
-                                                 PropertyIO_GL()));
-        m_tcp_connections.push_back(con);
-        
-        con->set_receive_function([&](net::tcp_connection_ptr rec_con,
-                                           const std::vector<uint8_t>& response)
-        {
-            try
-            {
-                Serializer::applyStateToComponents({shared_from_this(), m_light_component},
-                                                   string(response.begin(),
-                                                          response.end()),
-                                                   PropertyIO_GL());
-            } catch (std::exception &e)
-            {
-                LOG_ERROR << e.what();
-            }
-            
-//            if(!rec_con.get() || !rec_con->is_open())
-//            {
-//                LOG_DEBUG << "connection closed";
-////                m_tcp_connections.remove(con);
-//            }
-        });
-    });
-    m_tcp_server.start_listen(33333);
     
     // start with ready gamephase
     change_gamestate(READY_PHASE);
@@ -408,19 +376,6 @@ void KristallApp::update(float timeDelta)
             }
         }
     }
-    
-    // manage tcp connections
-    std::vector<net::tcp_connection_ptr> tmp;
-    
-    for (auto &con : m_tcp_connections)
-    {
-        if(con->is_open())
-        {
-//            LOG_INFO << "dead connection: " << con->remote_ip() << ":" << con->remote_port();
-        }
-        tmp.push_back(con);
-    }
-    m_tcp_connections = tmp;
 }
 
 /////////////////////////////////////////////////////////////////

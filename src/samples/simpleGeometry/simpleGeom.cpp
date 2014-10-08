@@ -434,6 +434,8 @@ public:
             try
             {
                 gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_modelPath);
+                if(!m) return;
+                
                 scene().removeObject(m_mesh);
                 m_mesh = m;
                 m->position().y = -m->boundingBox().min.y;
