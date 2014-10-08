@@ -9,8 +9,8 @@
 #ifndef __gl__DMXController__
 #define __gl__DMXController__
 
-#include "kinskiCore/Definitions.h"
-#include "kinskiCore/Serial.h"
+#include "core/Definitions.h"
+#include "core/Serial.h"
 
 namespace kinski
 {

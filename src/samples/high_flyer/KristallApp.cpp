@@ -64,6 +64,8 @@ void KristallApp::setup()
     outstream_gl().set_font(m_font);
     set_precise_selection(false);
     
+    registerProperty(m_dmx_start_index);
+    registerProperty(m_dmx_color);
     registerProperty(m_template_image);
     registerProperty(m_view_option);
     registerProperty(m_use_syphon);
@@ -815,6 +817,24 @@ void KristallApp::updateProperty(const Property::ConstPtr &theProperty)
         try{ m_comp_assets.template_img = gl::createTextureFromFile(*m_template_image);
         } catch (FileNotFoundException &e){ LOG_ERROR << e.what(); }
     }
+    else if(theProperty == m_dmx_color)
+    {
+        const gl::Color &c = *m_dmx_color;
+        
+        // set manual control
+        m_dmx_control[*m_dmx_start_index] = 0;
+        
+        // R
+        m_dmx_control[*m_dmx_start_index + 1] = (uint8_t)(c.r * 255);
+        
+        // G
+        m_dmx_control[*m_dmx_start_index + 2] = (uint8_t)(c.g * 255);
+        
+        // B
+        m_dmx_control[*m_dmx_start_index + 3] = (uint8_t)(c.b * 255);
+        
+        m_dmx_control.update();
+    }
 }
 
 void KristallApp::update_animations(float time_delta)
@@ -1114,7 +1134,7 @@ void KristallApp::save_settings(const std::string &path)
 {
     ViewerApp::save_settings(path);
     
-    std::list<Component::ConstPtr> object_components;
+    std::list<Component::Ptr> object_components;
     for (int i = 0; i < m_occluding_meshes.size(); i++)
     {
         Object3DComponent::Ptr tmp(new Object3DComponent());

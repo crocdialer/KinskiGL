@@ -6,7 +6,7 @@
 //
 //
 #include "DMXController.h"
-#include "kinskiCore/Logger.h"
+#include "core/Logger.h"
 
 // Enttec Pro definitions
 #define GET_WIDGET_PARAMS 3

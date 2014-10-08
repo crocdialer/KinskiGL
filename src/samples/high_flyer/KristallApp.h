@@ -26,6 +26,7 @@
 #include "SyphonConnector.h"
 #include "Sound.h"
 #include "MovieController.h"
+#include "DMXController.h"
 
 // networking
 #include "core/networking.h"
@@ -263,6 +264,12 @@ namespace kinski
         m_freq_mid_low = RangedProperty<float>::create("frequency mid low", 400, 0.f, 22050.f),
         m_freq_mid_high = RangedProperty<float>::create("frequency mid high", 1200, 0.f, 22050.f),
         m_freq_high = RangedProperty<float>::create("frequency high", 22050, 0.f, 22050.f);
+        
+        // dmx vals
+        DMXController m_dmx_control;
+        RangedProperty<int>::Ptr
+        m_dmx_start_index = RangedProperty<int>::create("DMX start index", 1, 0, 255);
+        Property_<gl::Color>::Ptr m_dmx_color = Property_<gl::Color>::create("DMX color", gl::COLOR_OLIVE);
         
         void refresh_lsystem(LSystem &the_system, int num_iterations, float sz = 1.f);
         
