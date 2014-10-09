@@ -23,8 +23,8 @@ namespace kinski {
     void clearSearchPaths();
     
     std::list<std::string> getDirectoryEntries(const std::string &thePath,
-                                               bool recursive = false,
-                                               const std::string &theExtension = "");
+                                               const std::string &theExtension = "",
+                                               bool recursive = false);
     bool fileExists(const std::string &theFilename);
     bool isDirectory(const std::string &theFilename);
     bool create_directory(const std::string &theFilename);

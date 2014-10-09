@@ -13,7 +13,7 @@
 
 namespace kinski {
     
-    ViewerApp::ViewerApp():GLFW_App(),
+    ViewerApp::ViewerApp():BaseApp(),
     m_camera(new gl::PerspectiveCamera),
     m_precise_selection(true),
     m_center_selected(false),
@@ -83,16 +83,6 @@ namespace kinski {
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         lights().front()->setPosition(light_direction());
         
-        gl::Shader unlit_shader = gl::createShader(gl::SHADER_UNLIT);
-        for (int i = 0; i < 16; i++)
-        {
-            m_materials.push_back(gl::Material::create(unlit_shader));
-        }
-        
-//        m_materials.push_back(gl::MaterialPtr(new gl::Material));
-//        m_materials[0]->setShader(gl::createShader(gl::SHADER_PHONG));
-//        m_materials[1]->setDiffuse(glm::vec4(0, 1, 0, 1));
-        
         // enable observer mechanism
         observeProperties();
     }
@@ -150,17 +140,15 @@ namespace kinski {
             {
                 if(m_selected_mesh != m)
                 {
-//                    if(m_selected_mesh){ m_selected_mesh->material() = m_materials[0]; }
                     m_selected_mesh = m;
-//                    m_materials[0] = m_selected_mesh->material();
-//                    m_materials[1]->shader() = m_materials[0]->shader();
-//                    m_selected_mesh->material() = m_materials[1];
                 }
             }
         }
-        else{
-            if(e.isRight() && m_selected_mesh){
-//                m_selected_mesh->material() = m_materials[0];
+        else
+        {
+            if(e.isRight() && m_selected_mesh)
+            {
+
                 m_selected_mesh.reset();
             }
         }

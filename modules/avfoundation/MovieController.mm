@@ -5,16 +5,16 @@
 
 @interface LoopHelper : NSObject
 {
-    kinski::MovieController::Impl *m_movie_control_impl;
+    kinski::MovieControllerImpl *m_movie_control_impl;
 }
-- (void) initWith: (kinski::MovieController::Impl*) the_impl;
+- (void) initWith: (kinski::MovieControllerImpl*) the_impl;
 
-@property(assign) kinski::MovieController::Impl *movie_control_impl;
+@property(assign) kinski::MovieControllerImpl *movie_control_impl;
 @end
 
 namespace kinski {
     
-    struct MovieController::Impl
+    struct MovieControllerImpl
     {
         AVAssetReaderTrackOutput *m_videoOut, *m_audioOut;
         AVAssetReader *m_assetReader;
@@ -22,7 +22,8 @@ namespace kinski {
         AVPlayer *m_player;
         AVPlayerItem *m_player_item;
         AVPlayerItemVideoOutput *m_output;
-
+        
+        MovieController *m_movie_control;
         LoopHelper *m_loop_helper;
         
         std::string m_src_path;
@@ -30,13 +31,12 @@ namespace kinski {
         bool m_loop;
         float m_rate;
         
-        MovieCallback m_on_load_cb;
-        Callback m_movie_ended_cb;
+        MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
         
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
         
-        Impl(): m_videoOut(NULL),
+        MovieControllerImpl(): m_videoOut(NULL),
                 m_audioOut(NULL),
                 m_assetReader(NULL),
                 m_player(NULL),
@@ -50,7 +50,7 @@ namespace kinski {
             m_loop_helper = [[LoopHelper alloc] init];
             m_loop_helper.movie_control_impl = this;
         }
-        ~Impl()
+        ~MovieControllerImpl()
         {
             if(m_videoOut) [m_videoOut release];
             if(m_audioOut) [m_audioOut release];
@@ -63,13 +63,13 @@ namespace kinski {
     };
     
     MovieController::MovieController():
-    m_impl(new Impl)
+    m_impl(new MovieControllerImpl)
     {
         
     }
     
     MovieController::MovieController(const std::string &filePath, bool autoplay, bool loop):
-    m_impl(new Impl)
+    m_impl(new MovieControllerImpl)
     {
         load(filePath, autoplay, loop);
     }
@@ -81,9 +81,11 @@ namespace kinski {
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        MovieCallback on_load = m_impl->m_on_load_cb;
-        m_impl.reset(new Impl);
+        MovieCallback on_load = m_impl->m_on_load_cb, on_end = m_impl->m_movie_ended_cb;
+        m_impl.reset(new MovieControllerImpl);
+        m_impl->m_movie_control = this;
         m_impl->m_on_load_cb = on_load;
+        m_impl->m_movie_ended_cb = on_end;
         
         m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
@@ -154,7 +156,7 @@ namespace kinski {
     
     void MovieController::unload()
     {
-        m_impl.reset(new Impl);
+        m_impl.reset(new MovieControllerImpl);
         m_impl->m_playing = false;
     }
     
@@ -367,6 +369,9 @@ namespace kinski {
     
     void MovieController::set_loop(bool b)
     {
+        // remove any existing observer
+        [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
+        
         m_impl->m_loop = b;
         
         m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
@@ -376,20 +381,6 @@ namespace kinski {
                                                  selector:@selector(playerItemDidReachEnd:)
                                                      name:AVPlayerItemDidPlayToEndTimeNotification
                                                    object:[m_impl->m_player currentItem]];
-        
-//        if(b)
-//        {
-//            // do not stop at end of movie
-//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-//            
-//        
-//        }
-//        else
-//        {
-//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndPause;
-//            m_impl->m_player.actionAtItemEnd = AVPlayerActionAtItemEndNone;
-//            [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
-//        }
     }
     
     bool MovieController::loop() const
@@ -413,7 +404,7 @@ namespace kinski {
         m_impl->m_on_load_cb = c;
     }
     
-    void MovieController::set_movie_ended_callback(Callback c)
+    void MovieController::set_movie_ended_callback(MovieCallback c)
     {
         m_impl->m_movie_ended_cb = c;
     }
@@ -421,7 +412,7 @@ namespace kinski {
 
 @implementation LoopHelper
 
-- (void) initWith: (kinski::MovieController::Impl*) the_impl
+- (void) initWith: (kinski::MovieControllerImpl*) the_impl
 {
     [self init];
     self.movie_control_impl = the_impl;
@@ -447,7 +438,7 @@ namespace kinski {
     else{ self.movie_control_impl->m_playing = false; }
     
     if(self.movie_control_impl->m_movie_ended_cb)
-        self.movie_control_impl->m_movie_ended_cb();
+        self.movie_control_impl->m_movie_ended_cb(*self.movie_control_impl->m_movie_control);
     
     LOG_TRACE << "playerItemDidReachEnd";
 }

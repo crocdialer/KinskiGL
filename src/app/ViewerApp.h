@@ -18,7 +18,14 @@
 
 namespace kinski {
     
-    class ViewerApp : public GLFW_App
+#if defined(KINSKI_MAC)
+#define BaseApp GLFW_App
+#elif defined(KINSKI_RASPI)
+#define BaseApp Raspi_App
+
+#endif
+    
+    class ViewerApp : public BaseApp
     {
     public:
         ViewerApp();

@@ -11,12 +11,10 @@ namespace kinski
 {
     class MovieController 
     {
-    public:
-        struct Impl;
         
     private:
         
-        std::shared_ptr<Impl> m_impl;
+        std::shared_ptr<struct MovieControllerImpl> m_impl;
         
     public:
         
@@ -44,7 +42,7 @@ namespace kinski
         const std::string& get_path() const;
         
         void set_on_load_callback(MovieCallback c);
-        void set_movie_ended_callback(Callback c);
+        void set_movie_ended_callback(MovieCallback c);
         
         /*!
          * upload the current frame to a gl::Texture object
@@ -66,6 +64,9 @@ namespace kinski
          * false otherwise
          */
         bool copy_frames_offline(gl::Texture &tex);
+        
+        inline bool operator==(const MovieController& other){ return m_impl == other.m_impl; }
+        inline bool operator!=(const MovieController& other){ return !(*this == other); }
     };
 }
 

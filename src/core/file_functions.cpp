@@ -100,8 +100,8 @@ namespace kinski {
         g_searchPaths.clear();
     }
     
-    list<string> getDirectoryEntries(const std::string &thePath, bool recursive,
-                                     const std::string &theExtension)
+    list<string> getDirectoryEntries(const std::string &thePath, const std::string &theExtension,
+                                     bool recursive)
     {
         list<string> ret;
         path p (expand_user(thePath));
