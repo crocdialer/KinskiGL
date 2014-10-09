@@ -148,7 +148,7 @@ namespace kinski { namespace gl{
         
         for (WeightMap::const_iterator it = weightmap.begin(); it != weightmap.end(); ++it)
         {
-            int i = 0;
+            uint32_t i = 0;
             gl::BoneVertexData &boneData = geom->boneVertexData()[it->first];
             
             list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
