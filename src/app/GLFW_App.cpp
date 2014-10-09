@@ -173,8 +173,9 @@ namespace kinski
     
     bool GLFW_App::checkRunning()
     {
-        return !glfwGetKey(m_windows.back()->handle(), GLFW_KEY_ESCAPE ) &&
-            !glfwWindowShouldClose( m_windows.back()->handle() );
+        return  running() &&
+                !glfwGetKey(m_windows.back()->handle(), GLFW_KEY_ESCAPE ) &&
+                !glfwWindowShouldClose(m_windows.back()->handle());
     }
     
     double GLFW_App::getApplicationTime()

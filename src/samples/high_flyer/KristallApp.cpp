@@ -273,7 +273,6 @@ void KristallApp::setup()
     m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
     m_remote_control.start_listen();
     
-    
     // start with ready gamephase
     change_gamestate(READY_PHASE);
 }

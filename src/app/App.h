@@ -57,7 +57,9 @@ namespace kinski
         virtual void setCursorPosition(float x, float y){};
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
 
-        bool running(){return m_running;};
+        bool running() const {return m_running;};
+        void set_running(bool b){m_running = b;}
+        
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
         inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::vec2(w, h));};
@@ -90,7 +92,7 @@ namespace kinski
         
         void timing(double timeStamp);
         virtual void draw_internal();
-        virtual bool checkRunning(){return true;};
+        virtual bool checkRunning(){return m_running;};
         
         uint32_t m_framesDrawn;
         double m_lastTimeStamp;

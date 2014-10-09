@@ -32,7 +32,7 @@ private:
     gl::PerspectiveCamera::Ptr m_Camera;
     gl::Scene m_scene;
     
-    RangedProperty<float>::Ptr m_distance = = RangedProperty<float>::create("view distance", 25, 0, 5000);;
+    RangedProperty<float>::Ptr m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);;
     
     Property_<bool>::Ptr m_wireFrame = Property_<bool>::create("Wireframe", false);
     Property_<bool>::Ptr m_drawNormals = Property_<bool>::create("Normals", false);
