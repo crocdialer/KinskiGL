@@ -286,12 +286,9 @@ namespace kinski{ namespace gl{
         ObjPtr m_Obj;
         
     public:
-        //@{
         //! Emulates shared_ptr-like behavior
-        typedef ObjPtr Texture::*unspecified_bool_type;
-        operator unspecified_bool_type() const { return ( m_Obj.get() == 0 ) ? 0 : &Texture::m_Obj; }
+        operator bool() const { return m_Obj.get() != nullptr; }
         void reset() { m_Obj.reset(); }
-        //@}  
     };
     
     class TextureDataExc : public Exception

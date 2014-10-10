@@ -34,8 +34,7 @@ class KINSKI_API Buffer
     ~Buffer();
     
     //! Emulates shared_ptr-like behavior
-    typedef ObjPtr Buffer::*unspecified_bool_type;
-    operator unspecified_bool_type() const { return ( m_Obj.get() == 0 ) ? 0 : &Buffer::m_Obj; }
+    operator bool() const { return m_Obj.get() != nullptr; }
     void reset() { m_Obj.reset(); }
     
     // map and unmap the buffer to local memory

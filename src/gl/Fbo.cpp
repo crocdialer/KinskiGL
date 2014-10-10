@@ -53,11 +53,11 @@ Renderbuffer::Obj::~Obj()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Renderbuffer::Renderbuffer
 Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat )
-	: mObj( new Obj( width, height, internalFormat, 0) )
+	: m_obj( new Obj( width, height, internalFormat, 0) )
 {
 }
 Renderbuffer::Renderbuffer( int width, int height, GLenum internalFormat, int msaaSamples)
-	: mObj( new Obj( width, height, internalFormat, msaaSamples))
+	: m_obj( new Obj( width, height, internalFormat, msaaSamples))
 {
 }
 
@@ -93,16 +93,17 @@ Fbo::Format::Format()
 #if defined( KINSKI_GLES )
 	mColorInternalFormat = GL_RGBA;
 	mDepthInternalFormat = GL_DEPTH_COMPONENT24_OES;
-	mDepthBufferAsTexture = false;
+    m_stencilInternalFormat = GL_STENCIL_INDEX8;
+	m_depthBufferAsTexture = false;
 #else
 	mColorInternalFormat = GL_RGBA8;
-	mDepthInternalFormat = GL_DEPTH_COMPONENT24;
-	mDepthBufferAsTexture = true;
+	mDepthInternalFormat = GL_DEPTH24_STENCIL8;
+	m_depthBufferAsTexture = true;
 #endif
 	mSamples = 0;
 	mCoverageSamples = 0;
 	mNumColorBuffers = 1;
-	mDepthBuffer = true;
+	m_depthBuffer = true;
 	mStencilBuffer = false;
 	mMipmapping = false;
 	mWrapS = GL_CLAMP_TO_EDGE;
@@ -122,11 +123,11 @@ void Fbo::Format::enableColorBuffer( bool colorBuffer, int numColorBuffers )
 
 void Fbo::Format::enableDepthBuffer( bool depthBuffer, bool asTexture )
 {
-	mDepthBuffer = depthBuffer;
+	m_depthBuffer = depthBuffer;
 #if defined( KINSKI_GLES )
-	mDepthBufferAsTexture = false;
+	m_depthBufferAsTexture = false;
 #else
-	mDepthBufferAsTexture = asTexture;
+	m_depthBufferAsTexture = asTexture;
 #endif
 }
 
@@ -137,28 +138,28 @@ void Fbo::Format::enableDepthBuffer( bool depthBuffer, bool asTexture )
 
 void Fbo::init()
 {
-	bool useAA = mObj->mFormat.mSamples > 0;
+	bool useAA = m_obj->mFormat.mSamples > 0;
 
 	// allocate the framebuffer itself
-	glGenFramebuffers(1, &mObj->mId);
-    glBindFramebuffer(GL_FRAMEBUFFER, mObj->mId);
+	glGenFramebuffers(1, &m_obj->mId);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_obj->mId);
 
 	Texture::Format textureFormat;
 	textureFormat.setTarget(getTarget());
 	textureFormat.setInternalFormat( getFormat().getColorInternalFormat());
-	textureFormat.setWrap( mObj->mFormat.mWrapS, mObj->mFormat.mWrapT);
-	textureFormat.setMinFilter( mObj->mFormat.mMinFilter);
-	textureFormat.setMagFilter( mObj->mFormat.mMagFilter);
+	textureFormat.setWrap( m_obj->mFormat.mWrapS, m_obj->mFormat.mWrapT);
+	textureFormat.setMinFilter( m_obj->mFormat.mMinFilter);
+	textureFormat.setMagFilter( m_obj->mFormat.mMagFilter);
 	textureFormat.set_mipmapping( getFormat().hasMipMapping());
 
 	// allocate the color buffers
-	for( int c = 0; c < mObj->mFormat.mNumColorBuffers; ++c )
+	for( int c = 0; c < m_obj->mFormat.mNumColorBuffers; ++c )
     {
-		mObj->mColorTextures.push_back(Texture(mObj->mWidth, mObj->mHeight, textureFormat));
+		m_obj->mColorTextures.push_back(Texture(m_obj->mWidth, m_obj->mHeight, textureFormat));
 	}
 	
 #if ! defined( KINSKI_GLES )	
-	if(mObj->mFormat.mNumColorBuffers == 0)
+	if(m_obj->mFormat.mNumColorBuffers == 0)
     {
         // no color
 		glDrawBuffer(GL_NONE);
@@ -173,10 +174,10 @@ void Fbo::init()
         // if we don't need any variety of multisampling or it failed to initialize
 		// attach all the textures to the framebuffer
 		vector<GLenum> drawBuffers;
-		for(size_t c = 0; c < mObj->mColorTextures.size(); ++c)
+		for(size_t c = 0; c < m_obj->mColorTextures.size(); ++c)
         {
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, getTarget(),
-                                   mObj->mColorTextures[c].getId(), 0);
+                                   m_obj->mColorTextures[c].getId(), 0);
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 		}
 #if ! defined( KINSKI_GLES )
@@ -184,45 +185,58 @@ void Fbo::init()
 #endif
 
 		// allocate and attach depth texture
-		if(mObj->mFormat.mDepthBuffer)
+		if(m_obj->mFormat.m_depthBuffer)
         {
-			if(mObj->mFormat.mDepthBufferAsTexture)
+			if(m_obj->mFormat.m_depthBufferAsTexture)
             {
 	#if ! defined( KINSKI_GLES )			
 				GLuint depthTextureId;
 				glGenTextures(1, &depthTextureId);
 				glBindTexture(getTarget(), depthTextureId);
 				glTexImage2D(getTarget(), 0, getFormat().getDepthInternalFormat(),
-                             mObj->mWidth, mObj->mHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-				glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, mObj->mFormat.mMinFilter);
-				glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, mObj->mFormat.mMagFilter);
-				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, mObj->mFormat.mWrapS);
-				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_T, mObj->mFormat.mWrapT);
-				mObj->mDepthTexture = Texture(getTarget(), depthTextureId, mObj->mWidth,
-                                              mObj->mHeight, true );
+                             m_obj->mWidth, m_obj->mHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+				glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, m_obj->mFormat.mMinFilter);
+				glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, m_obj->mFormat.mMagFilter);
+				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, m_obj->mFormat.mWrapS);
+				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_T, m_obj->mFormat.mWrapT);
+				m_obj->m_depthTexture = Texture(getTarget(), depthTextureId, m_obj->mWidth,
+                                              m_obj->mHeight, true );
+                
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, getTarget(),
-                                       mObj->mDepthTexture.getId(), 0);
+                                       m_obj->m_depthTexture.getId(), 0);
+                
+                if(m_obj->mFormat.hasStencilBuffer())
+                {
+                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, getTarget(),
+                                           m_obj->m_depthTexture.getId(), 0);
+                }
 	#else
 		throw; // this should never fire in OpenGL ES
 	#endif
 			}
-			else if( mObj->mFormat.mDepthBuffer )// implement depth buffer as RenderBuffer
+            // implement depth buffer as RenderBuffer
+			else if(m_obj->mFormat.m_depthBuffer)
             {
-				mObj->mDepthRenderbuffer = Renderbuffer(mObj->mWidth, mObj->mHeight,
-                                                        mObj->mFormat.getDepthInternalFormat());
+				m_obj->m_depthRenderbuffer = Renderbuffer(m_obj->mWidth, m_obj->mHeight,
+                                                          m_obj->mFormat.getDepthInternalFormat());
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                                          mObj->mDepthRenderbuffer.getId() );
+                                          m_obj->m_depthRenderbuffer.getId());
+                
+                if(m_obj->mFormat.hasStencilBuffer())
+                {
+                    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
+                                              GL_RENDERBUFFER, m_obj->m_depthRenderbuffer.getId());
+                }
 			}
 		}
 
 		FboExceptionInvalidSpecification exc;
-		if( ! checkStatus( &exc ) ) { // failed creation; throw
-			throw exc;
-		}
+        // failed creation; throw
+		if(!checkStatus(&exc)) { throw exc; }
 	}
 	
-	mObj->mNeedsResolve = false;
-	mObj->mNeedsMipmapUpdate = false;
+	m_obj->mNeedsResolve = false;
+	m_obj->mNeedsMipmapUpdate = false;
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -232,15 +246,15 @@ bool Fbo::initMultisample()
 #if defined( KINSKI_GLES )
 	return false;
 #else
-	glGenFramebuffers(1, &mObj->mResolveFramebufferId);
-	glBindFramebuffer(GL_FRAMEBUFFER, mObj->mResolveFramebufferId);
+	glGenFramebuffers(1, &m_obj->mResolveFramebufferId);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_obj->mResolveFramebufferId);
 	
 	// bind all of the color buffers to the resolve FB's attachment points
 	vector<GLenum> drawBuffers;
-	for( size_t c = 0; c < mObj->mColorTextures.size(); ++c )
+	for( size_t c = 0; c < m_obj->mColorTextures.size(); ++c )
     {
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, getTarget(),
-                               mObj->mColorTextures[c].getId(), 0);
+                               m_obj->mColorTextures[c].getId(), 0);
 		drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 	}
 
@@ -251,35 +265,42 @@ bool Fbo::initMultisample()
 	FboExceptionInvalidSpecification ignoredException;
     if(!checkStatus( &ignoredException)){ return false; }
 
-	glBindFramebuffer( GL_FRAMEBUFFER, mObj->mId );
+	glBindFramebuffer( GL_FRAMEBUFFER, m_obj->mId );
 
-	mObj->mFormat.mSamples = std::min(mObj->mFormat.mSamples, getMaxSamples());
+	m_obj->mFormat.mSamples = std::min(m_obj->mFormat.mSamples, getMaxSamples());
     
 	// setup the multisampled color renderbuffers
-	for(int c = 0; c < mObj->mFormat.mNumColorBuffers; ++c )
+	for(int c = 0; c < m_obj->mFormat.mNumColorBuffers; ++c)
     {
-		mObj->mMultisampleColorRenderbuffers.push_back(Renderbuffer(mObj->mWidth, mObj->mHeight,
-                                                                    mObj->mFormat.mColorInternalFormat,
-                                                                    mObj->mFormat.mSamples));
+		m_obj->mMultisampleColorRenderbuffers.push_back(Renderbuffer(m_obj->mWidth, m_obj->mHeight,
+                                                                    m_obj->mFormat.mColorInternalFormat,
+                                                                    m_obj->mFormat.mSamples));
 
 		// attach the multisampled color buffer
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER,
-                                  mObj->mMultisampleColorRenderbuffers.back().getId());
+                                  m_obj->mMultisampleColorRenderbuffers.back().getId());
 	}
 	
 	if(!drawBuffers.empty())
-		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
+		glDrawBuffers(drawBuffers.size(), &drawBuffers[0]);
 
-	if(mObj->mFormat.mDepthBuffer)
+	if(m_obj->mFormat.m_depthBuffer)
     {
 		// create the multisampled depth Renderbuffer
-		mObj->mMultisampleDepthRenderbuffer = Renderbuffer(mObj->mWidth, mObj->mHeight,
-                                                           mObj->mFormat.mDepthInternalFormat,
-                                                           mObj->mFormat.mSamples);
+		m_obj->mMultisampleDepthRenderbuffer = Renderbuffer(m_obj->mWidth, m_obj->mHeight,
+                                                            m_obj->mFormat.mDepthInternalFormat,
+                                                            m_obj->mFormat.mSamples);
 
 		// attach the depth Renderbuffer
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
-                                  mObj->mMultisampleDepthRenderbuffer.getId() );
+                                  m_obj->mMultisampleDepthRenderbuffer.getId());
+        
+        if(m_obj->mFormat.hasStencilBuffer())
+        {
+            // attach the depth Renderbuffer
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                                      m_obj->mMultisampleDepthRenderbuffer.getId());
+        }
 	}
 
 	// see if the primary framebuffer turned out ok
@@ -288,19 +309,19 @@ bool Fbo::initMultisample()
 }
 
 Fbo::Fbo( int width, int height, Format format )
-	: mObj(new Obj( width, height ))
+	: m_obj(new Obj( width, height ))
 {
-	mObj->mFormat = format;
+	m_obj->mFormat = format;
 	init();
 }
 
 Fbo::Fbo( int width, int height, bool alpha, bool color, bool depth )
-	: mObj(new Obj( width, height ))
+	: m_obj(new Obj( width, height ))
 {
 	Format format;
-	mObj->mFormat.mColorInternalFormat = ( alpha ) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
-	mObj->mFormat.mDepthBuffer = depth;
-	mObj->mFormat.mNumColorBuffers = color ? 1 : 0;
+	m_obj->mFormat.mColorInternalFormat = ( alpha ) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
+	m_obj->mFormat.m_depthBuffer = depth;
+	m_obj->mFormat.mNumColorBuffers = color ? 1 : 0;
 	init();
 }
 
@@ -308,18 +329,18 @@ Texture Fbo::getTexture( int attachment )
 {
 	resolveTextures();
 	updateMipmaps( true, attachment );
-	return mObj->mColorTextures.empty() ? gl::Texture() : mObj->mColorTextures[attachment];
+	return m_obj->mColorTextures.empty() ? gl::Texture() : m_obj->mColorTextures[attachment];
 }
 
 Texture& Fbo::getDepthTexture()
 {
-	return mObj->mDepthTexture;
+	return m_obj->m_depthTexture;
 }
 
 void Fbo::bindTexture( int textureUnit, int attachment )
 {
 	resolveTextures();
-	mObj->mColorTextures[attachment].bind( textureUnit );
+	m_obj->mColorTextures[attachment].bind( textureUnit );
 	updateMipmaps( false, attachment );
 }
 
@@ -328,74 +349,75 @@ void Fbo::unbindTexture()
 	glBindTexture( getTarget(), 0 );
 }
 
-void Fbo::bindDepthTexture( int textureUnit )
+void Fbo::bindDepthTexture(int textureUnit)
 {
-	mObj->mDepthTexture.bind( textureUnit );
+	m_obj->m_depthTexture.bind(textureUnit);
 }
 
 void Fbo::resolveTextures() const
 {
-	if( ! mObj->mNeedsResolve )
+	if( ! m_obj->mNeedsResolve )
 		return;
 
 #if ! defined( KINSKI_GLES )		
 	// if this FBO is multisampled, resolve it, so it can be displayed
-	if ( mObj->mResolveFramebufferId )
+	if ( m_obj->mResolveFramebufferId )
     {
 		//SaveFramebufferBinding saveFboBinding;
 
-		glBindFramebuffer( GL_READ_FRAMEBUFFER, mObj->mId );
-		glBindFramebuffer( GL_DRAW_FRAMEBUFFER, mObj->mResolveFramebufferId );
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_obj->mId);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_obj->mResolveFramebufferId);
 		
-		for( size_t c = 0; c < mObj->mColorTextures.size(); ++c )
+		for(size_t c = 0; c < m_obj->mColorTextures.size(); ++c)
         {
-			glDrawBuffer( GL_COLOR_ATTACHMENT0 + c );
-			glReadBuffer( GL_COLOR_ATTACHMENT0 + c );
+			glDrawBuffer(GL_COLOR_ATTACHMENT0 + c);
+			glReadBuffer(GL_COLOR_ATTACHMENT0 + c);
 			GLbitfield bitfield = GL_COLOR_BUFFER_BIT;
-			if( mObj->mDepthTexture && mObj->mDepthTexture.getId() )
-				bitfield |= GL_DEPTH_BUFFER_BIT;
-			glBlitFramebuffer( 0, 0, mObj->mWidth, mObj->mHeight, 0, 0, mObj->mWidth, mObj->mHeight, bitfield, GL_NEAREST );
+			if(m_obj->m_depthTexture && m_obj->m_depthTexture.getId())
+                bitfield |= GL_DEPTH_BUFFER_BIT;
+			glBlitFramebuffer(0, 0, m_obj->mWidth, m_obj->mHeight, 0, 0, m_obj->mWidth,
+                              m_obj->mHeight, bitfield, GL_NEAREST);
             KINSKI_CHECK_GL_ERRORS();
 		}
 
 		// restore the draw buffers to the default for the antialiased (non-resolve) framebuffer
 		vector<GLenum> drawBuffers;
-		for( size_t c = 0; c < mObj->mColorTextures.size(); ++c )
+		for(size_t c = 0; c < m_obj->mColorTextures.size(); ++c)
 			drawBuffers.push_back( GL_COLOR_ATTACHMENT0 + c );
-		glBindFramebuffer( GL_FRAMEBUFFER, mObj->mId );
+		glBindFramebuffer( GL_FRAMEBUFFER, m_obj->mId );
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
         KINSKI_CHECK_GL_ERRORS();
 	}
 #endif
 
-	mObj->mNeedsResolve = false;
+	m_obj->mNeedsResolve = false;
 }
 
 void Fbo::updateMipmaps( bool bindFirst, int attachment ) const
 {
-	if( ! mObj->mNeedsMipmapUpdate )
+	if( ! m_obj->mNeedsMipmapUpdate )
 		return;
 	
 	if( bindFirst ) 
     {
-		mObj->mColorTextures[attachment].bind();
+		m_obj->mColorTextures[attachment].bind();
 		glGenerateMipmap( getTarget() );
 	}
 	else {
 		glGenerateMipmap( getTarget() );
 	}
 
-	mObj->mNeedsMipmapUpdate = false;
+	m_obj->mNeedsMipmapUpdate = false;
 }
 
 void Fbo::bindFramebuffer()
 {
-	glBindFramebuffer( GL_FRAMEBUFFER, mObj->mId );
-	if( mObj->mResolveFramebufferId ) {
-		mObj->mNeedsResolve = true;
+	glBindFramebuffer( GL_FRAMEBUFFER, m_obj->mId );
+	if( m_obj->mResolveFramebufferId ) {
+		m_obj->mNeedsResolve = true;
 	}
-	if( mObj->mFormat.hasMipMapping() ) {
-		mObj->mNeedsMipmapUpdate = true;
+	if( m_obj->mFormat.hasMipMapping() ) {
+		m_obj->mNeedsMipmapUpdate = true;
 	}
 }
 
@@ -472,7 +494,7 @@ GLint Fbo::getMaxAttachments()
 //{
 //	SaveFramebufferBinding saveFboBinding;
 //
-//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, mObj->mId );
+//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, m_obj->mId );
 //	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, dst.getId() );		
 //	glBlitFramebufferEXT( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 //}
@@ -481,7 +503,7 @@ GLint Fbo::getMaxAttachments()
 //{
 //	SaveFramebufferBinding saveFboBinding;
 //
-//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, mObj->mId );
+//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, m_obj->mId );
 //	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, 0 );		
 //	glBlitFramebufferEXT( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 //}
@@ -491,7 +513,7 @@ GLint Fbo::getMaxAttachments()
 //	SaveFramebufferBinding saveFboBinding;
 //
 //	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, GL_NONE );
-//	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, mObj->mId );		
+//	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, m_obj->mId );		
 //	glBlitFramebufferEXT( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
 //}
 //#endif

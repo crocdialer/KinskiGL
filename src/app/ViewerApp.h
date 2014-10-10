@@ -70,6 +70,9 @@ namespace kinski {
         std::vector<gl::Font>& fonts() { return m_fonts; };
         const std::vector<gl::Font>& fonts() const { return m_fonts; };
         
+        std::vector<animation::AnimationPtr>& animations() { return m_animations; };
+        const std::vector<animation::AnimationPtr>& animations() const { return m_animations; };
+        
         const gl::Scene& scene() const { return m_scene; };
         gl::Scene& scene() { return m_scene; };
         bool precise_selection() const { return m_precise_selection; };

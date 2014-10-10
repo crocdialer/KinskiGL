@@ -34,10 +34,8 @@ namespace kinski { namespace gl {
         
     public:
         //! Emulates shared_ptr-like behavior
-        typedef ObjPtr Font::*unspecified_bool_type;
-        operator unspecified_bool_type() const { return ( m_obj.get() == 0 ) ? 0 : &Font::m_obj; }
+        operator bool() const { return m_obj.get() != nullptr; }
         void reset() { m_obj.reset(); }
-        //@}
     };
     
 }}// namespace
