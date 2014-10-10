@@ -73,11 +73,18 @@ namespace kinski {
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
         
+        gl::Shader unlit_shader = gl::createShader(gl::SHADER_UNLIT);
+        
         for (int i = 0; i < 16; i++)
         {
-            gl::LightPtr light(new gl::Light(gl::Light::POINT));
+            // lights
+            auto light = std::make_shared<gl::Light>(gl::Light::POINT);
             light->set_enabled(false);
             lights().push_back(light);
+            
+            // materials
+            auto material = gl::Material::create(unlit_shader);
+            materials().push_back(material);
         }
         // viewer provides a directional light
         lights().front()->set_type(gl::Light::DIRECTIONAL);
@@ -108,6 +115,7 @@ namespace kinski {
                                                  glm::vec3(0, 1, .5)));
         }
         
+        // update joysticks
         for(auto &joystick : get_joystick_states())
         {
             float min_val = .38f, multiplier = 1.2f;
@@ -119,6 +127,12 @@ namespace kinski {
             
             if(joystick.buttons()[4]){ *m_distance += 5.f; }
             if(joystick.buttons()[5]){ *m_distance -= 5.f; }
+        }
+        
+        // update animations
+        for(auto &anim : m_animations)
+        {
+            if(anim){ anim->update(timeDelta); }
         }
         
         m_scene.update(timeDelta);

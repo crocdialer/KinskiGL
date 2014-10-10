@@ -30,7 +30,7 @@ namespace kinski
         
         std::vector<uint8_t> m_camera_data;
         
-        gl::ArrayTexture m_array_tex;
+        gl::Texture m_array_tex;
         gl::MaterialPtr m_custom_mat;
         
         Timer m_timer_update_noise;

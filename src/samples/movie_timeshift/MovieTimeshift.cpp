@@ -7,7 +7,6 @@
 //
 
 #include "MovieTimeshift.h"
-#include "gl/ArrayTexture.h"
 
 using namespace std;
 using namespace kinski;

@@ -11,14 +11,8 @@ namespace kinski
 {
     class MovieController 
     {
-        
-    private:
-        
-        std::shared_ptr<struct MovieControllerImpl> m_impl;
-        
     public:
         
-        typedef std::function<void()> Callback;
         typedef std::function<void(MovieController &the_movie)> MovieCallback;
         
         MovieController();
@@ -67,6 +61,10 @@ namespace kinski
         
         inline bool operator==(const MovieController& other){ return m_impl == other.m_impl; }
         inline bool operator!=(const MovieController& other){ return !(*this == other); }
+        
+    private:
+        
+        std::shared_ptr<struct MovieControllerImpl> m_impl;
     };
 }
 

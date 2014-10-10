@@ -62,17 +62,6 @@ namespace kinski
         
         // write our data block
         m_serial.writeBytes(&bytes[0], bytes.size());
-        
-//        m_serial.writeByte(DMX_START_CODE);
-//        m_serial.writeByte(label);
-//        m_serial.writeByte(data_length & 0xFF);
-//        m_serial.writeByte((data_length >> 8) & 0xFF);
-//        
-//        // write our data block
-//        m_serial.writeBytes(data, data_length);
-//        
-//        m_serial.writeByte(DMX_END_CODE);
-        
     }
     
 }// namespace

@@ -9,6 +9,8 @@
 #ifndef __gl__ViewerApp__
 #define __gl__ViewerApp__
 
+#include "core/Timer.h"
+#include "core/Animation.h"
 #include "core/Measurement.hpp"
 #include "app/GLFW_App.h"
 #include "app/Arcball.h"
@@ -93,6 +95,8 @@ namespace kinski {
         std::vector<gl::LightPtr> m_lights;
         
         std::vector<gl::Texture> m_textures {16};
+        
+        std::vector<animation::AnimationPtr> m_animations{8};
         
         bool m_precise_selection;
         bool m_center_selected;

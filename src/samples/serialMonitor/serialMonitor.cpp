@@ -1,9 +1,7 @@
 #include "app/ViewerApp.h"
-#include "app/AppServer.h"
 #include "core/Serial.h"
 
 #include "RtMidi.h"
-//#include "Measurement.h"
 #include "DMXController.h"
 
 using namespace std;
@@ -682,6 +680,6 @@ public:
 int main(int argc, char *argv[])
 {
     App::Ptr theApp(new SerialMonitorSample);
-    LOG_INFO<<"local ip: " << tcp_server::local_ip();
+    LOG_INFO<<"local ip: " << net::local_ip();
     return theApp->run();
 }

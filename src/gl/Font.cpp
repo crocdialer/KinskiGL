@@ -6,11 +6,12 @@
 //
 //
 
-#define STB_TRUETYPE_IMPLEMENTATION
-#include "stb_truetype.h"
 #include "Texture.h"
 #include "Mesh.h"
 #include "Font.h"
+
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "stb_truetype.h"
 
 namespace kinski { namespace gl {
     
