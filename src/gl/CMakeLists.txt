@@ -1,3 +1,14 @@
+# which shaders to include
+if(KINSKI_RASPI)
+  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ES2")
+else()
+  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/330")
+endif()
+
+#stringify all shader files
+STRINGIFY_SHADERS(${SHADER_DIR})
+
+# now gather all files
 FILE(GLOB FOLDER_SOURCES *.c*)
 FILE(GLOB FOLDER_HEADERS *.h*)
 
@@ -25,11 +36,6 @@ find_package(OpenGL REQUIRED)
 INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${OPENGL_LIBRARIES})
 endif()
-
-# stringify all shader files
-#INCLUDE(EqStringifyShaders)
-#FILE(GLOB_RECURSE SHADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}/shaders" FALSE 
-#        "*.vert" || "*.geom" || "*.frag" || "*.glsl")
 
 TARGET_LINK_LIBRARIES(${LIB_NAME} ${LIBS})
 

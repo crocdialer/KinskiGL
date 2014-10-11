@@ -13,10 +13,10 @@
 using namespace std;
 
 namespace kinski{ namespace gl{
-
+    
 //////////////////////////////////////////////////////////////////////////
 // Shader::Obj
-struct Shader::Obj 
+struct Shader::Obj
 {
     Obj() : m_Handle(glCreateProgram()) {}
     ~Obj();

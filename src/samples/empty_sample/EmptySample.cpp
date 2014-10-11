@@ -23,6 +23,16 @@ void EmptySample::setup()
     outstream_gl().set_font(m_font);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
+    
+    gl::createShader(gl::SHADER_UNLIT);
+    gl::createShader(gl::SHADER_GOURAUD);
+    gl::createShader(gl::SHADER_PHONG);
+    gl::createShader(gl::SHADER_PHONG_NORMALMAP);
+    gl::createShader(gl::SHADER_PHONG_SKIN);
+    gl::createShader(gl::SHADER_LINES);
+    gl::createShader(gl::SHADER_POINTS_COLOR);
+    gl::createShader(gl::SHADER_POINTS_SPHERE);
+    gl::createShader(gl::SHADER_POINTS_TEXTURE);
 }
 
 /////////////////////////////////////////////////////////////////

@@ -82,3 +82,44 @@ function(addTestMacro)
   endif(BUILD_TESTS)
 endfunction()
 
+function(STRINGIFY_SHADERS FOLDER_NAME)
+   
+  SET(OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/ShaderLibrary")
+
+  # create output implementation and header
+  file(WRITE ${OUTPUT}.h 
+  "/* Generated file, do not edit! */\n\n"
+  "#ifndef KINSKI_SHADER_LIBRARY\n"
+  "#define KINSKI_SHADER_LIBRARY\n")
+  file(WRITE ${OUTPUT}.cpp
+    "/* Generated file, do not edit! */\n\n"
+    "#include \"ShaderLibrary.h\"\n\n")
+  
+  # gather all shader files
+  FILE(GLOB SHADER_FILES  "${FOLDER_NAME}/*.vert" 
+                          "${FOLDER_NAME}/*.geom"
+                          "${FOLDER_NAME}/*.frag"
+                          "${FOLDER_NAME}/*.glsl")
+
+  foreach(SHADER_FILE ${SHADER_FILES})
+  
+    get_filename_component(FILENAME ${SHADER_FILE} NAME)
+    string(REGEX REPLACE "[.]" "_" NAME ${FILENAME})
+
+    file(STRINGS ${SHADER_FILE} LINES)
+
+    file(APPEND ${OUTPUT}.h "extern char const* const ${NAME};\n")
+    file(APPEND ${OUTPUT}.cpp "\nchar const* const ${NAME} = \n")
+
+    foreach(LINE ${LINES})
+      string(REPLACE "\"" "\\\"" LINE "${LINE}")
+      file(APPEND ${OUTPUT}.cpp "   \"${LINE}\\n\"\n")
+    endforeach(LINE)
+
+    file(APPEND ${OUTPUT}.cpp ";\n") 
+  endforeach(SHADER_FILE)
+  
+  file(APPEND ${OUTPUT}.h "#endif") 
+  
+endfunction(STRINGIFY_SHADERS)
+

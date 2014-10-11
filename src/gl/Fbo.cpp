@@ -462,13 +462,7 @@ bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
 GLint Fbo::getMaxSamples()
 {
 #if ! defined( KINSKI_GLES )
-	if( sMaxSamples < 0 ) {
-//		if( ( ! gl::isExtensionAvailable( "GL_EXT_framebuffer_multisample" ) ) || ( ! gl::isExtensionAvailable( "GL_EXT_framebuffer_blit" ) ) ) {
-//			sMaxSamples = 0;
-//		}
-//		else
-			glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples);	
-	}
+    if( sMaxSamples < 0 ){ glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples); }
 	
 	return sMaxSamples;
 #else
@@ -479,9 +473,7 @@ GLint Fbo::getMaxSamples()
 GLint Fbo::getMaxAttachments()
 {
 #if ! defined( KINSKI_GLES )
-	if( sMaxAttachments < 0 ) {
-		glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &sMaxAttachments );
-	}
+	if(sMaxAttachments < 0) { glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &sMaxAttachments ); }
 	
 	return sMaxAttachments;
 #else

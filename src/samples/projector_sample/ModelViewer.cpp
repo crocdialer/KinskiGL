@@ -257,6 +257,7 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_movie_path)
     {
         m_movie.load(*m_movie_path, true, true);
+        m_movie.set_on_load_callback([&](MovieController &m){ m_movie.set_volume(0); });
     }
 }
 

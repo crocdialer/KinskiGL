@@ -10,6 +10,7 @@
 #include "KinskiGL.h"
 #include "Material.h"
 #include "Shader.h"
+#include "ShaderLibrary.h"
 #include "Texture.h"
 #include "Camera.h"
 #include "Mesh.h"
@@ -354,7 +355,7 @@ namespace kinski { namespace gl {
         static MaterialPtr material;
         if(!material)
         {
-            material = gl::Material::create(gl::createShader(gl::SHADER_LINES));
+            material = gl::Material::create(gl::createShader(gl::SHADER_LINES_2D));
         }
         material->setDiffuse(the_color);
         material->setBlending(the_color.a < 1.f);
@@ -374,7 +375,7 @@ namespace kinski { namespace gl {
         //create line mesh
         if(!mesh)
         {
-            material = gl::Material::create(gl::createShader(gl::SHADER_LINES));
+            material = gl::Material::create(gl::createShader(gl::SHADER_LINES_2D));
             material->setBlending();
             material->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
@@ -1257,7 +1258,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             switch (t.getTarget())
             {
                 case GL_TEXTURE_2D:
-                    sprintf(buf, "u_textureMap[%d]", tex_2d++);
+                    sprintf(buf, "u_sampler_2D[%d]", tex_2d++);
                     break;
                     
 #if !defined(KINSKI_GLES)
@@ -1354,6 +1355,88 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 return false;
         }
         return true;
+    }
+    
+    //////////////////////////////////////////////////////////////////////////
+    // global shader creation functions
+    
+    Shader createShaderFromFile(const std::string &vertPath,
+                                const std::string &fragPath,
+                                const std::string &geomPath)
+    {
+        Shader ret;
+        std::string vertSrc, fragSrc, geomSrc;
+        vertSrc = readFile(vertPath);
+        fragSrc = readFile(fragPath);
+    
+        if (!geomPath.empty()) geomSrc = readFile(geomPath);
+    
+        try {
+            ret.loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
+        }
+        catch (Exception &e)
+        {
+            LOG_ERROR<<e.what();
+        }
+        return ret;
+    }
+    
+    Shader createShader(ShaderType type)
+    {
+        Shader ret;
+        
+        const char *vert_src = nullptr, *frag_src = nullptr, *geom_src = nullptr;
+        
+        switch (type)
+        {
+            case SHADER_UNLIT:
+                vert_src = unlit_vert;
+                frag_src = unlit_frag;
+                break;
+    
+            case SHADER_GOURAUD:
+                vert_src = gouraud_vert;
+                frag_src = gouraud_frag;
+                break;
+    
+            case SHADER_PHONG:
+                vert_src = phong_vert;
+                frag_src = phong_frag;
+                break;
+    
+            case SHADER_PHONG_NORMALMAP:
+                vert_src = phong_normalmap_vert;
+                frag_src = phong_normalmap_frag;
+                break;
+    
+            case SHADER_PHONG_SKIN:
+                vert_src = phong_skin_vert;
+                frag_src = phong_frag;
+                break;
+    
+            case SHADER_LINES_2D:
+                vert_src = unlit_vert;
+                frag_src = unlit_frag;
+                geom_src = lines_2D_geom;
+                break;
+            
+            case SHADER_POINTS_COLOR:
+            case SHADER_POINTS_TEXTURE:
+                vert_src = points_vert;
+                frag_src = points_frag;
+                break;
+                
+            case SHADER_POINTS_SPHERE:
+                vert_src = points_vert;
+                frag_src = points_sphere_frag;
+                break;
+                
+            default:
+                break;
+        }
+        ret.loadFromData(vert_src, frag_src, geom_src);
+        KINSKI_CHECK_GL_ERRORS();
+        return ret;
     }
     
 }}//namespace
