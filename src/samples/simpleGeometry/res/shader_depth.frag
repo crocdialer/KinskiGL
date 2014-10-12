@@ -1,7 +1,7 @@
-#version 150 core
+#version 330
 
 uniform int u_numTextures;
-uniform sampler2D u_textureMap[16];
+uniform sampler2D u_sampler_2D[1];
 uniform float u_near, u_far;
 
 in vec4 v_texCoord;
@@ -22,7 +22,7 @@ vec4 jet(in float val)
 
 void main()
 {
-    float depth = texture(u_textureMap[0], v_texCoord.st).r;
+    float depth = texture(u_sampler_2D[0], v_texCoord.st).r;
     depth = linearizeDepth(depth, u_near, u_far);
     fragData = jet(1.0 - depth);
 }

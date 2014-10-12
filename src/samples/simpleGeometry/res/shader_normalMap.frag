@@ -2,7 +2,7 @@
 
 uniform float u_time;
 uniform int u_numTextures;
-uniform sampler2D u_textureMap[16];
+uniform sampler2D u_sampler_2D[4];
 
 uniform struct
 {
@@ -151,7 +151,7 @@ void main()
     // sample normal map
     //N = texture(u_textureMap[1], v_texCoord.xy).xyz * 2.0 - 1.0;
     
-    float height = texture(u_textureMap[1], v_texCoord.xy).r;
+    float height = texture(u_sampler_2D[1], v_texCoord.xy).r;
     // scale and bias
     height = height * 0.08 - 0.0;
     
@@ -160,9 +160,9 @@ void main()
     
     // calculate parallax offset
     vec2 newCoords = mod(v_texCoord.xy + (E.xy * height), 1.0);
-    vec4 texColors = texture(u_textureMap[0], newCoords);
+    vec4 texColors = texture(u_sampler_2D[0], newCoords);
     
-    vec3 N = normalFromHeightMap(u_textureMap[1], newCoords, 0.8);
+    vec3 N = normalFromHeightMap(u_sampler_2D[1], newCoords, 0.8);
     //vec3 N = vec3(0, 0, 1);
     vec3 R = reflect(-L, N);
     

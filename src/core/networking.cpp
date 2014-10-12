@@ -243,9 +243,8 @@ namespace kinski
             tcp_server::tcp_connection_callback connection_callback;
             
             tcp_server_impl(boost::asio::io_service& io_service,
-                            short port,
                             tcp_server::tcp_connection_callback ccb):
-            acceptor(io_service, tcp::endpoint(tcp::v4(), port)),
+            acceptor(io_service),
             socket(io_service),
             connection_callback(ccb){}
             
@@ -272,13 +271,9 @@ namespace kinski
         
         tcp_server::tcp_server(){}
         
-        tcp_server::tcp_server(boost::asio::io_service& io_service,
-                               short port,
-                               tcp_connection_callback ccb):
-        m_impl(new tcp_server_impl(io_service, port, ccb))
-        {
-            start_listen(port);
-        }
+        tcp_server::tcp_server(boost::asio::io_service& io_service, tcp_connection_callback ccb):
+        m_impl(new tcp_server_impl(io_service, ccb))
+        {}
         
         void tcp_server::set_connection_callback(tcp_connection_callback ccb)
         {

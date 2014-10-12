@@ -85,9 +85,7 @@ namespace kinski
             
             tcp_server();
             
-            tcp_server(boost::asio::io_service& io_service,
-                       short port,
-                       tcp_connection_callback ccb);
+            tcp_server(boost::asio::io_service& io_service, tcp_connection_callback ccb);
             
             KINSKI_API void start_listen(int port);
             KINSKI_API void stop_listen();

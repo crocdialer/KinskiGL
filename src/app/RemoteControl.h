@@ -17,17 +17,23 @@ namespace kinski
 {
     class RemoteControl;
     typedef std::unique_ptr<RemoteControl> RemoteControlPtr;
+    typedef std::map<std::string, std::function<void(void)>> CommandMap;
     
     class RemoteControl
     {
     public:
         
         RemoteControl(){};
-        RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list,
-                      uint16_t the_port = 33333);
+        RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list);
         
         void start_listen(uint16_t port = 33333);
         void stop_listen();
+        
+        void add_command(const std::string &the_cmd, std::function<void(void)> the_action);
+        void remove_command(const std::string &the_cmd);
+        
+        const CommandMap& command_map() const { return m_command_map; }
+        CommandMap& command_map() { return m_command_map; }
         
     private:
         
@@ -36,6 +42,9 @@ namespace kinski
                         const std::vector<uint8_t>& response);
         
         std::list<Component::Ptr> lock_components();
+        
+        //!
+        CommandMap m_command_map;
         
         //!
         net::tcp_server m_tcp_server;

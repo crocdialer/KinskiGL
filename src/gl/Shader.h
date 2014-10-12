@@ -89,12 +89,9 @@ class KINSKI_API Shader
 	mutable ObjPtr m_Obj;
 
   public:
-	//@{
 	//! Emulates shared_ptr-like behavior
-	typedef ObjPtr Shader::*unspecified_bool_type;
-	operator unspecified_bool_type() const { return ( m_Obj.get() == 0 ) ? 0 : &Shader::m_Obj; }
+	operator bool() const { return m_Obj.get() != nullptr; }
 	void reset() { m_Obj.reset(); }
-	//@}
     
     bool operator==(const Shader &other) const { return m_Obj.get() == other.m_Obj.get();}
     bool operator!=(const Shader &other) const { return m_Obj.get() != other.m_Obj.get();}

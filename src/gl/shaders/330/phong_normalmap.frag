@@ -1,7 +1,7 @@
 #version 330
 
 uniform int u_numTextures; 
-uniform sampler2D u_textureMap[16]; 
+uniform sampler2D u_sampler_2D[4]; 
 
 uniform struct
 {
@@ -36,9 +36,9 @@ vec3 normalFromHeightMap(sampler2D theMap, vec2 theCoords, float theStrength)
 
 void main()
 {
-  vec4 texColors = texture(u_textureMap[0], vertex_in.texCoord.xy); 
+  vec4 texColors = texture(u_sampler_2D[0], vertex_in.texCoord.xy); 
   vec3 N; 
-  N = normalFromHeightMap(u_textureMap[1], vertex_in.texCoord.xy, 0.8); 
+  N = normalFromHeightMap(u_sampler_2D[1], vertex_in.texCoord.xy, 0.8); 
   vec3 L = normalize(-vertex_in.lightDir); 
   vec3 E = normalize(vertex_in.eyeVec); 
   vec3 R = reflect(-L, N); 

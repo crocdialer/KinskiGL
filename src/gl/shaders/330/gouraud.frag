@@ -17,7 +17,7 @@ void main()
   
   if(u_numTextures > 0)
   {
-    texColors *= texture(u_textureMap[0], vertex_in.texCoord.st); 
+    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); 
   } 
   fragData = vertex_in.color * texColors; 
 }

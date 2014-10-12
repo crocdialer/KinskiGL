@@ -21,7 +21,7 @@ void main()
   
   if(u_numTextures > 0)
   {
-    texColors *= texture(u_sampler_2D[i], gl_PointCoord.xy); 
+    texColors *= texture(u_sampler_2D[0], gl_PointCoord.xy); 
   } 
   fragData = u_material.diffuse * texColors; 
 }

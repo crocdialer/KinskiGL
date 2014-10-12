@@ -11,11 +11,10 @@
 
 using namespace kinski;
 
-RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list,
-                             uint16_t the_port)
+RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list)
 {
     m_components.assign(the_list.begin(), the_list.end());
-    m_tcp_server = net::tcp_server(io, the_port, net::tcp_server::tcp_connection_callback());
+    m_tcp_server = net::tcp_server(io, net::tcp_server::tcp_connection_callback());
 }
 
 void RemoteControl::start_listen(uint16_t port)
@@ -76,6 +75,19 @@ RemoteControl::lock_components()
     {
         Component::Ptr ptr = weak_comp.lock();
         if(ptr){ ret.push_back(ptr); }
+//        else{ m_components.remove(weak_comp); }
     }
     return ret;
+}
+
+void RemoteControl::add_command(const std::string &the_cmd, std::function<void(void)> the_action)
+{
+    m_command_map[the_cmd] = the_action;
+}
+
+void RemoteControl::remove_command(const std::string &the_cmd)
+{
+    auto iter = m_command_map.find(the_cmd);
+    
+    if(iter != m_command_map.end()){ m_command_map.erase(iter); }
 }

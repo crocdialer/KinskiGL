@@ -43,7 +43,7 @@ changelog:
 #version 150 core
 
 uniform int u_numTextures;
-uniform sampler2D u_textureMap[2];
+uniform sampler2D u_sampler_2D[2];
 uniform vec2 u_window_size;
 uniform float u_znear;
 uniform float u_zfar;
