@@ -1403,7 +1403,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 vert_src = phong_vert;
                 frag_src = phong_frag;
                 break;
-    
+#if !defined(KINSKI_GLES)
             case SHADER_PHONG_NORMALMAP:
                 vert_src = phong_normalmap_vert;
                 frag_src = phong_normalmap_frag;
@@ -1430,7 +1430,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 vert_src = points_vert;
                 frag_src = points_sphere_frag;
                 break;
-                
+#endif
             default:
                 break;
         }
