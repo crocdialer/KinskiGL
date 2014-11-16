@@ -33,7 +33,8 @@ namespace kinski
     DMXController::DMXController()
     {
         if(!m_serial.setup("/dev/tty.usbserial-EN138300", 57600) &&
-           !m_serial.setup("/dev/ttyUSB1", 57600))
+           !m_serial.setup("/dev/ttyUSB0", 57600) &&
+           !!m_serial.setup("/dev/ttyUSB1", 57600))
         {
             LOG_ERROR<<"No DMX-Usb device found";
         }
