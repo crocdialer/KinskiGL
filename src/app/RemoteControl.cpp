@@ -22,6 +22,12 @@ void RemoteControl::start_listen(uint16_t port)
     m_tcp_server.start_listen(port);
     m_tcp_server.set_connection_callback(std::bind(&RemoteControl::new_connection_cb,
                                                    this, std::placeholders::_1));
+    
+    add_command("request_state", [this](net::tcp_connection_ptr con)
+    {
+        // send the state string via tcp
+        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
+    });
 }
 
 void RemoteControl::stop_listen()
@@ -33,11 +39,6 @@ void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 {
     LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
     << " : " << con->remote_port();
-    
-    // lock our components and get a list
-    std::list<Component::Ptr> comp_list = lock_components();
-    
-    con->send(Serializer::serializeComponents(comp_list, PropertyIO_GL()));
     
     // manage existing tcp connections
     std::vector<net::tcp_connection_ptr> tmp;
@@ -57,13 +58,25 @@ void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
                                const std::vector<uint8_t>& response)
 {
-    try
+    auto iter = m_command_map.find(std::string(response.begin(), response.end()));
+    
+    if(iter != m_command_map.end())
     {
-        Serializer::applyStateToComponents(lock_components(),
-                                           string(response.begin(),
-                                                  response.end()),
-                                           PropertyIO_GL());
-    } catch (std::exception &e){ LOG_ERROR << e.what(); }
+        LOG_DEBUG << "Executing command: " << iter->first;
+        
+        // call the function object
+        iter->second(rec_con);
+    }
+    else
+    {
+        try
+        {
+            Serializer::applyStateToComponents(lock_components(),
+                                               string(response.begin(),
+                                                      response.end()),
+                                               PropertyIO_GL());
+        } catch (std::exception &e){ LOG_ERROR << e.what(); }
+    }
 }
 
 std::list<Component::Ptr>
@@ -80,7 +93,8 @@ RemoteControl::lock_components()
     return ret;
 }
 
-void RemoteControl::add_command(const std::string &the_cmd, std::function<void(void)> the_action)
+void RemoteControl::add_command(const std::string &the_cmd,
+                                std::function<void(net::tcp_connection_ptr)> the_action)
 {
     m_command_map[the_cmd] = the_action;
 }
