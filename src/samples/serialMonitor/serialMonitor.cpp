@@ -31,7 +31,7 @@ private:
     Property_<string>::Ptr m_arduino_device_name;
     
     // used for analog input measuring
-    string m_input_prefix = "analog_";
+    string m_input_prefix = "a_";
     
     std::vector<Measurement<float>> m_analog_in {   Measurement<float>("Harp 1 - 1"),
                                                     Measurement<float>("Harp 1 - 2"),
@@ -628,9 +628,9 @@ public:
         if(theProperty == m_arduino_device_name)
         {
             if(m_arduino_device_name->value().empty())
-                m_serial.setup(0, 57600);
+                m_serial.setup(0, 115200);
             else
-                m_serial.setup(*m_arduino_device_name, 57600);
+                m_serial.setup(*m_arduino_device_name, 115200);
         }
         else if (theProperty == m_midi_autoplay)
         {
