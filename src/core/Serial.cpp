@@ -782,7 +782,8 @@ vector<string> Serial::read_lines(const char delim)
             // remove all carriage-return chars
             line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
             
-            ret.push_back(line);
+            if(!line.empty())
+                ret.push_back(line);
         }
     }
     return ret;
