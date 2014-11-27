@@ -36,16 +36,17 @@ namespace kinski {
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
         
-        MovieControllerImpl(): m_videoOut(NULL),
-                m_audioOut(NULL),
-                m_assetReader(NULL),
-                m_player(NULL),
-                m_player_item(NULL),
-                m_output(NULL),
-                m_playing(false),
-                m_loop(false),
-                m_rate(1.f),
-                m_pbo_index(0)
+        MovieControllerImpl():
+        m_videoOut(nullptr),
+        m_audioOut(nullptr),
+        m_assetReader(nullptr),
+        m_player(nullptr),
+        m_player_item(nullptr),
+        m_output(nullptr),
+        m_playing(false),
+        m_loop(false),
+        m_rate(1.f),
+        m_pbo_index(0)
         {
             m_loop_helper = [[LoopHelper alloc] init];
             m_loop_helper.movie_control_impl = this;
@@ -126,7 +127,7 @@ namespace kinski {
                  
                  AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
                  m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
-
+                 
                  if(!error)
                  {
                      if(autoplay)
@@ -258,6 +259,7 @@ namespace kinski {
             // bind pbo and schedule texture upload
             m_impl->m_pbo[m_impl->m_pbo_index].bind();
             tex.update(NULL, GL_UNSIGNED_BYTE, GL_BGRA, width, height, true);
+            
             m_impl->m_pbo[m_impl->m_pbo_index].unbind();
             
             // unlock base address, release buffer
@@ -269,7 +271,7 @@ namespace kinski {
         return false;
     }
     
-    bool MovieController::copy_frames_offline(gl::Texture &tex)
+    bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)
     {
         if(!m_impl->m_videoOut) return false;
         
@@ -297,9 +299,12 @@ namespace kinski {
             
             // aquire gpu-memory for our frames
             gl::Texture::Format fmt;
-            fmt.setInternalFormat(GL_BGRA);
+            fmt.setInternalFormat(compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA);
             tex = gl::Texture(width, height, num_frames - 1);
             tex.setFlipped();
+            
+            // swizzle color components
+            tex.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA);
             KINSKI_CHECK_GL_ERRORS();
         }
         else
@@ -310,9 +315,6 @@ namespace kinski {
         
         int i = 0;
         tex.bind();
-        
-//        GLint swizzleMask[] = {GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA};
-//        glTexParameteriv(tex.getTarget(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
         
         // release samples
         for (auto buffer : samples)
@@ -329,7 +331,7 @@ namespace kinski {
                 
                 // upload data
                 glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1,
-                                GL_BGRA, GL_UNSIGNED_BYTE,
+                                GL_RGBA, GL_UNSIGNED_BYTE,
                                 CVPixelBufferGetBaseAddress(pixbuf));
                 
                 CVPixelBufferUnlockBaseAddress(pixbuf, 0);
@@ -440,7 +442,7 @@ namespace kinski {
     if(self.movie_control_impl->m_movie_ended_cb)
         self.movie_control_impl->m_movie_ended_cb(*self.movie_control_impl->m_movie_control);
     
-    LOG_TRACE << "playerItemDidReachEnd";
+    LOG_DEBUG << "playerItemDidReachEnd";
 }
 
 @end

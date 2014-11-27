@@ -302,6 +302,12 @@ void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
 {
     m_textureMatrix = theMatrix;
 }
+    
+void Texture::set_swizzle(GLint red, GLint green, GLint blue, GLint alpha)
+{
+    GLint swizzleMask[] = {red, green, blue, alpha};
+    glTexParameteriv(getTarget(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+}
 
 void Texture::set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {

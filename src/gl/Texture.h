@@ -111,6 +111,8 @@ namespace kinski{ namespace gl{
         
         void setTextureMatrix( const glm::mat4 &theMatrix );
         
+        void set_swizzle(GLint red, GLint green, GLint blue, GLint alpha);
+        
         glm::mat4 getTextureMatrix() const;
         
         const bool isBound() const;

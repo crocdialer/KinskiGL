@@ -9,6 +9,9 @@
 
 namespace kinski
 {
+    class MovieController;
+    typedef std::shared_ptr<MovieController> MovieControllerPtr;
+    
     class MovieController 
     {
     public:
@@ -57,7 +60,7 @@ namespace kinski
          * return: true if all frames have been uploaded successfully,
          * false otherwise
          */
-        bool copy_frames_offline(gl::Texture &tex);
+        bool copy_frames_offline(gl::Texture &tex, bool compress = false);
         
         inline bool operator==(const MovieController& other){ return m_impl == other.m_impl; }
         inline bool operator!=(const MovieController& other){ return !(*this == other); }
