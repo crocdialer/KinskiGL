@@ -48,8 +48,11 @@ public:
     
     typedef std::shared_ptr<OrthographicCamera> Ptr;
     
-    OrthographicCamera(float left = 0, float right = 1, float bottom = 0, float top = 1,
-                       float near = 0, float far = 1000);
+    static Ptr create(float left, float right, float bottom, float top,
+                      float near, float far)
+    {
+        return Ptr(new OrthographicCamera(left, right, bottom, top, near, far));
+    };
     
     virtual gl::Frustum frustum() const;
     
@@ -94,6 +97,9 @@ protected:
     void updateProjectionMatrix();
     
 private:
+    
+    OrthographicCamera(float left, float right, float bottom, float top,
+                       float near, float far);
     
     float m_left, m_right, m_bottom, m_top, m_near, m_far;
 };

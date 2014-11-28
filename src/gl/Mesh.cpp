@@ -324,7 +324,7 @@ namespace kinski { namespace gl {
     
     AABB Mesh::boundingBox() const
     {
-        auto ret = m_geometry->boundingBox();
+        auto ret = m_geometry->boundingBox() + Object3D::boundingBox();
         return ret;
     }
     

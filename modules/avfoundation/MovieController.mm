@@ -442,7 +442,7 @@ namespace kinski {
     if(self.movie_control_impl->m_movie_ended_cb)
         self.movie_control_impl->m_movie_ended_cb(*self.movie_control_impl->m_movie_control);
     
-    LOG_DEBUG << "playerItemDidReachEnd";
+    LOG_TRACE << "playerItemDidReachEnd";
 }
 
 @end
