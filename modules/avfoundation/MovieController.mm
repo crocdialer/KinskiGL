@@ -283,7 +283,7 @@ namespace kinski {
         while([m_impl->m_assetReader status] == AVAssetReaderStatusReading)
         {
             sampleBuffer = [m_impl->m_videoOut copyNextSampleBuffer];
-            samples.push_back(sampleBuffer);
+            if(sampleBuffer){ samples.push_back(sampleBuffer); }
         }
         
         // determine num frames
@@ -300,7 +300,7 @@ namespace kinski {
             // aquire gpu-memory for our frames
             gl::Texture::Format fmt;
             fmt.setInternalFormat(compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA);
-            tex = gl::Texture(width, height, num_frames - 1);
+            tex = gl::Texture(width, height, num_frames, fmt);
             tex.setFlipped();
             
             // swizzle color components
@@ -341,7 +341,7 @@ namespace kinski {
             }
         }
         tex.unbind();
-        LOG_DEBUG << i <<" frames";
+        LOG_TRACE << "copied " << i << "frames into GL_TEXTURE_2D_ARRAY (compression: " << compress<<")";
         KINSKI_CHECK_GL_ERRORS();
         
         return true;
