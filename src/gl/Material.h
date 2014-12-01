@@ -71,7 +71,7 @@ namespace kinski { namespace gl {
         void setDepthTest(bool b = true) { m_depthTest = b;};
         void setDepthWrite(bool b = true) { m_depthWrite = b;};
         
-        bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
+        bool opaque() const { return !m_blending && m_diffuse.a == 1.f ;};
         bool depthTest() const { return m_depthTest; };
         bool depthWrite() const { return m_depthWrite; };
         float pointSize() const { return m_pointSize; };
