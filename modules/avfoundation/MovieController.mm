@@ -299,6 +299,7 @@ namespace kinski {
             
             // aquire gpu-memory for our frames
             gl::Texture::Format fmt;
+            fmt.setTarget(GL_TEXTURE_2D_ARRAY);
             fmt.setInternalFormat(compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA);
             tex = gl::Texture(width, height, num_frames, fmt);
             tex.setFlipped();
@@ -341,7 +342,7 @@ namespace kinski {
             }
         }
         tex.unbind();
-        LOG_TRACE << "copied " << i << "frames into GL_TEXTURE_2D_ARRAY (compression: " << compress<<")";
+        LOG_DEBUG << "copied " << i << "frames into GL_TEXTURE_2D_ARRAY (compression: " << compress<<")";
         KINSKI_CHECK_GL_ERRORS();
         
         return true;

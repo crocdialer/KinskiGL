@@ -155,7 +155,7 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     
     if( format.m_Mipmapping ){ glGenerateMipmap(m_Obj->m_Target); }
     
-    if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
+    if(dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
     {
         #ifndef KINSKI_GLES
             GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
