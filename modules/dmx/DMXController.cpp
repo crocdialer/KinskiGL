@@ -30,15 +30,12 @@
 
 namespace kinski
 {
-    DMXController::DMXController()
+    DMXController::DMXController(const std::string &the_device_name)
     {
-        if(!m_serial.setup("/dev/tty.usbserial-EN138300", 57600) &&
-           !m_serial.setup("/dev/ttyUSB0", 57600) &&
-           !!m_serial.setup("/dev/ttyUSB1", 57600))
+        if(!m_serial.setup(the_device_name, 57600))
         {
             LOG_ERROR<<"No DMX-Usb device found";
         }
-        
         m_dmx_values.resize(513, 0);
     }
     

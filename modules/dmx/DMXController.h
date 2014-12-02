@@ -18,7 +18,7 @@ namespace kinski
     {
     public:
         
-        DMXController();
+        DMXController(const std::string &the_device_name = "");
         
         void update();
         

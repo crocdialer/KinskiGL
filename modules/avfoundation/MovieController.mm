@@ -342,7 +342,7 @@ namespace kinski {
             }
         }
         tex.unbind();
-        LOG_DEBUG << "copied " << i << "frames into GL_TEXTURE_2D_ARRAY (compression: " << compress<<")";
+        LOG_TRACE << "copied " << i << " frames into GL_TEXTURE_2D_ARRAY (compression: " << compress<<")";
         KINSKI_CHECK_GL_ERRORS();
         
         return true;
