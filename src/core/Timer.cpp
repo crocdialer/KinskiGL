@@ -155,7 +155,7 @@ float Timer::expires_from_now() const
 
 bool Timer::has_expired() const
 {
-    return !m_impl->running || expires_from_now() <= 0.f;
+    return !m_impl->running;
 }
 
 void Timer::cancel()
