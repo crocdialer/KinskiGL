@@ -53,6 +53,26 @@ namespace kinski{ namespace animation{
     m_impl(new AnimationImpl(duration, delay, interpolate_fn))
     {}
     
+    Animation::~Animation()
+    {
+        switch (playing())
+        {
+            case PLAYBACK_FORWARD:
+                if(m_impl->finish_fn)
+                    m_impl->finish_fn();
+                break;
+                
+            case PLAYBACK_BACKWARD:
+                if(m_impl->reverse_finish_fn)
+                    m_impl->reverse_finish_fn();
+                break;
+                
+            case PLAYBACK_PAUSED:
+            default:
+                break;
+        }
+    }
+    
     int Animation::getId() const {return m_impl->id;}
     
     float Animation::duration() const

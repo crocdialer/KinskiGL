@@ -30,6 +30,7 @@ namespace kinski{ namespace animation{
         
         Animation();
         Animation(float duration, float delay, InterpolationFunction interpolate_fn);
+        virtual ~Animation();
         
         int getId() const;
         
