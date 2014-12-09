@@ -23,12 +23,15 @@ namespace kinski
         void update();
         
         const Serial& serial() const {return m_serial;}
+        Serial& serial() {return m_serial;}
         
-        inline uint8_t& operator[](int index)
-        {return m_dmx_values[index];};
+        inline uint8_t& operator[](int address)
+        {return m_dmx_values[clamp(address, 0, 511)];};
         
-        inline const uint8_t& operator[](int index) const
-        {return m_dmx_values[index];};
+        inline const uint8_t& operator[](int address) const
+        {return m_dmx_values[clamp(address, 0, 511)];};
+        
+        void set_device_name(const std::string &the_device_name);
         
     private:
         

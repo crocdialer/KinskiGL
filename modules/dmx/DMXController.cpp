@@ -32,11 +32,18 @@ namespace kinski
 {
     DMXController::DMXController(const std::string &the_device_name)
     {
-        if(!m_serial.setup(the_device_name, 57600))
+        std::list<std::string> device_names = {"/dev/tty.usbserial-EN138300", the_device_name};
+        bool success = false;
+        for (const auto &n : device_names)
         {
-            LOG_ERROR<<"No DMX-Usb device found";
+            if(m_serial.setup(n, 57600))
+            {
+                success = true;
+                break;
+            }
         }
-        m_dmx_values.resize(513, 0);
+        LOG_ERROR_IF(!success) << "No DMX-Usb device found";
+        m_dmx_values.resize(512, 0);
     }
     
     void DMXController::update()
@@ -60,6 +67,11 @@ namespace kinski
         
         // write our data block
         m_serial.writeBytes(&bytes[0], bytes.size());
+    }
+    
+    void DMXController::set_device_name(const std::string &the_device_name)
+    {
+        m_serial.setup(the_device_name, 57600);
     }
     
 }// namespace
