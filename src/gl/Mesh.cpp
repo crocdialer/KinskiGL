@@ -49,21 +49,21 @@ namespace kinski { namespace gl {
         Shader& shader = m_materials[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
-
+        
+        // bind our shader, not sure if necessary here
+        //        shader.bind();
+        
         // create VBOs if not yet existing
         if(!m_geometry->vertexBuffer())
             m_geometry->createGLBuffers();
         
-        if(!m_geometry->vertices().empty())
-        {
-            // define attrib pointer (vertex)
-            GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
-            m_geometry->vertexBuffer().bind();
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                  m_geometry->vertexBuffer().stride(), BUFFER_OFFSET(0));
-            KINSKI_CHECK_GL_ERRORS();
-        }
+        // define attrib pointer (vertex)
+        GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
+        m_geometry->vertexBuffer().bind();
+        glEnableVertexAttribArray(vertexAttribLocation);
+        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
+                              m_geometry->vertexBuffer().stride(), BUFFER_OFFSET(0));
+        KINSKI_CHECK_GL_ERRORS();
         
         if(m_geometry->hasTexCoords())
         {
@@ -330,7 +330,7 @@ namespace kinski { namespace gl {
     
     void Mesh::createVertexArray()
     {
-//        if(m_geometry->vertices().empty()) return;
+        if(m_geometry->vertices().empty()) return;
         
 #ifndef KINSKI_NO_VAO
         for (int i = 0; i < m_vertexArrays.size(); i++)
