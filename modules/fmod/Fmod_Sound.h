@@ -19,7 +19,7 @@ namespace kinski{ namespace audio{
     {
     public:
         
-        Fmod_Sound(const std::string &file_name = "", int device = 0);
+        Fmod_Sound(const std::string &file_name = "", int device = 0, bool stream = false);
         virtual ~Fmod_Sound();
         
         void load(const std::string &fileName, bool stream = false);

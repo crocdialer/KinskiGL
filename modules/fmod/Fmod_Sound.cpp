@@ -251,7 +251,7 @@ namespace kinski{ namespace audio{
     
     ///////////////////////////////////////////////////////////////////////////
     
-    Fmod_Sound::Fmod_Sound(const std::string &file_name, int device):
+    Fmod_Sound::Fmod_Sound(const std::string &file_name, int device, bool stream):
     m_device(device),
     m_streaming(false),
     m_multiplay(false),
@@ -266,7 +266,7 @@ namespace kinski{ namespace audio{
     m_sound(NULL)
     {
         if(!file_name.empty())
-            load(file_name);
+            load(file_name, stream);
     }
     
     Fmod_Sound::~Fmod_Sound()
