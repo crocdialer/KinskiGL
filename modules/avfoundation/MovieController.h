@@ -53,7 +53,7 @@ namespace kinski
          * return: true if a new frame has been copied successfully,
          * false otherwise
          */
-        bool copy_frame(std::vector<uint8_t>& data);
+        bool copy_frame(std::vector<uint8_t>& data, int *width = nullptr, int *height = nullptr);
         
         /*!
          * upload all frames to a gl::Texture object with target GL_TEXTURE_2D_ARRAY

@@ -193,7 +193,7 @@ namespace kinski {
         m_impl->m_player.volume = val;
     }
     
-    bool MovieController::copy_frame(std::vector<uint8_t>& data)
+    bool MovieController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
         if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
         
@@ -208,6 +208,9 @@ namespace kinski {
         {
             size_t num_bytes = CVPixelBufferGetDataSize(buffer);
             data.resize(num_bytes);
+            
+            if(width){*width = CVPixelBufferGetWidth(buffer);}
+            if(height){*height = CVPixelBufferGetHeight(buffer);}
             
             // lock base adress
             CVPixelBufferLockBaseAddress(buffer, 0);

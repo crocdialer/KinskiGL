@@ -24,7 +24,7 @@ namespace kinski
         void stop_capture();
         bool is_capturing() const;
         
-        bool copy_frame(std::vector<uint8_t>& data, int *width = NULL, int *height = NULL);
+        bool copy_frame(std::vector<uint8_t>& data, int *width = nullptr, int *height = nullptr);
         
         /*!
          * upload the current frame to a gl::Texture object
