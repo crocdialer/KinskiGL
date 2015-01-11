@@ -71,8 +71,19 @@ uint8_t* Buffer::map(GLenum mode)
     glBindBuffer(m_Obj->target, 0);
     return ptr;
 }
+    
+const uint8_t* Buffer::map(GLenum mode) const
+{
+    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
+    const uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
+    
+    if(!ptr) throw Exception("Could not map gl::Buffer");
+    
+    glBindBuffer(m_Obj->target, 0);
+    return ptr;
+}
 
-void Buffer::unmap()
+void Buffer::unmap() const
 {
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
     GL_SUFFIX(glUnmapBuffer)(m_Obj->target);
@@ -99,12 +110,12 @@ GLsizei Buffer::stride() const
     return m_Obj->stride;
 }
 
-void Buffer::bind()
+void Buffer::bind() const
 {
     glBindBuffer(m_Obj->target, m_Obj->buffer_id);
 }
 
-void Buffer::unbind()
+void Buffer::unbind() const
 {
     glBindBuffer(m_Obj->target, 0);
 }
@@ -125,7 +136,7 @@ void Buffer::setStride(GLsizei theStride)
     m_Obj->stride = theStride;
 }
     
-void Buffer::setData(void *theData, GLsizei numBytes)
+void Buffer::setData(const void *theData, GLsizei numBytes)
 {
     if(!m_Obj)
     {

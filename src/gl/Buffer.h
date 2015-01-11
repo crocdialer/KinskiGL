@@ -39,10 +39,11 @@ class KINSKI_API Buffer
     
     // map and unmap the buffer to local memory
     uint8_t* map(GLenum mode = GL_ENUM(GL_WRITE_ONLY));
-    void unmap();
+    const uint8_t* map(GLenum mode = GL_ENUM(GL_WRITE_ONLY)) const;
+    void unmap() const;
     
-    void bind();
-    void unbind();
+    void bind() const;
+    void unbind() const;
     
     GLint id() const;
     GLenum target() const;
@@ -53,7 +54,7 @@ class KINSKI_API Buffer
     void setTarget(GLenum theTarget);
     void setUsage(GLenum theUsage);
     void setStride(GLsizei theStride);
-    void setData(void *theData, GLsizei numBytes);
+    void setData(const void *theData, GLsizei numBytes);
     
     template <typename T>
     inline void setData(const std::vector<T> &theVec)

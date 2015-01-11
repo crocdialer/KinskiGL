@@ -242,7 +242,7 @@ namespace kinski
             
             // bind pbo and schedule texture upload
             m_impl->m_pbo[m_impl->m_pbo_index].bind();
-            tex.update(NULL, GL_UNSIGNED_BYTE, GL_BGRA, width, height, true);
+            tex.update(nullptr, GL_UNSIGNED_BYTE, GL_BGRA, width, height, true);
             m_impl->m_pbo[m_impl->m_pbo_index].unbind();
             
             // unlock base address, release buffer

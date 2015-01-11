@@ -235,7 +235,7 @@ namespace kinski
     {
         std::vector<JoystickState> ret;
         int count;
-        for(int i = GLFW_JOYSTICK_1; i < GLFW_JOYSTICK_LAST; i++)
+        for(int i = GLFW_JOYSTICK_1; i <= GLFW_JOYSTICK_LAST; i++)
         {
             if(!glfwJoystickPresent(i)) continue;
             

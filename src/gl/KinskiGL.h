@@ -246,6 +246,42 @@ namespace kinski { namespace gl {
         GLint m_old_value;
     };
     
+    template<typename T> class scoped_bind
+    {
+    public:
+        scoped_bind():
+        m_obj(nullptr),m_isBound(false)
+        {}
+        
+        explicit scoped_bind(const T &theObj):
+        m_obj(&theObj),m_isBound(false)
+        {
+            bind();
+        }
+        
+        ~scoped_bind()
+        {
+            if(m_isBound)
+                unbind();
+        }
+        
+        inline void bind()
+        {
+            m_obj->bind();
+            m_isBound = true;
+        }
+        
+        inline void unbind()
+        {
+            m_obj->unbind();
+            m_isBound = false;
+        }
+        
+    private:
+        const T *m_obj;
+        bool m_isBound;
+    };
+    
     /*!
      * unfinished geometry check
      * return true if point p is contained within the mesh's geometry 

@@ -69,7 +69,7 @@ namespace kinski{ namespace gl{
 
     OpenNIConnector::OpenNIConnector():
     m_new_frame(false),
-    m_depth_texture(new gl::Texture(640, 480, gl::Texture::Format())),
+    m_depth_texture(640, 480, gl::Texture::Format()),
     m_running(false),
     m_live_input(Property_<bool>::create("Live input", false)),
     m_config_path(Property_<string>::create("Config path", "ni_config.xml")),
@@ -329,15 +329,15 @@ namespace kinski{ namespace gl{
         return m_user_list;
     }
     
-    gl::Texture OpenNIConnector::get_depth_texture() const
+    gl::Texture OpenNIConnector::get_depth_texture()
     {
         // needs OpenGL -> can only be called from main thread
         // TODO: move or keep !?
         std::unique_lock<std::mutex> lock(m_mutex);
         m_new_frame = false;
         if(m_obj && !m_obj->m_pixel_buffer.empty())
-            m_depth_texture->update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
-        return *m_depth_texture;
+            m_depth_texture.update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
+        return m_depth_texture;
     }
     
     void OpenNIConnector::update_depth_buffer(gl::Buffer the_vertex_buf) const

@@ -52,7 +52,7 @@ namespace kinski{ namespace gl{
         void run();
         
         UserList get_user_positions() const;
-        gl::Texture get_depth_texture() const;
+        gl::Texture get_depth_texture();
         
         void update_depth_buffer(gl::Buffer the_vertex_buf) const;
         
@@ -76,7 +76,7 @@ namespace kinski{ namespace gl{
         void reset() { m_obj.reset(); }
         
         UserList m_user_list;
-        gl::TexturePtr m_depth_texture;
+        gl::Texture m_depth_texture;
         
         bool m_running;
         std::thread m_thread;
