@@ -12,14 +12,17 @@ namespace kinski
     class MovieController;
     typedef std::shared_ptr<MovieController> MovieControllerPtr;
     
-    class MovieController 
+    class MovieController : public std::enable_shared_from_this<MovieController>
     {
     public:
         
-        typedef std::function<void(MovieController &the_movie)> MovieCallback;
+        typedef std::function<void(MovieControllerPtr the_movie)> MovieCallback;
         
-        MovieController();
-        MovieController(const std::string &filePath, bool autoplay = false, bool loop = false);
+        static MovieControllerPtr create();
+        static MovieControllerPtr create(const std::string &filePath, bool autoplay = false,
+                                         bool loop = false);
+        
+        
         virtual ~MovieController();
         
         void load(const std::string &filePath, bool autoplay = false, bool loop = false);
@@ -67,7 +70,9 @@ namespace kinski
         
     private:
         
-        std::shared_ptr<struct MovieControllerImpl> m_impl;
+        MovieController();
+        MovieController(const std::string &filePath, bool autoplay = false, bool loop = false);
+        std::unique_ptr<struct MovieControllerImpl> m_impl;
     };
 }
 

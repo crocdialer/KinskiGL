@@ -63,6 +63,17 @@ namespace kinski {
         };
     };
     
+    MovieControllerPtr MovieController::create()
+    {
+        return MovieControllerPtr(new MovieController());
+    }
+    
+    MovieControllerPtr MovieController::create(const std::string &filePath, bool autoplay,
+                                               bool loop)
+    {
+        return MovieControllerPtr(new MovieController(filePath, autoplay, loop));
+    }
+    
     MovieController::MovieController():
     m_impl(new MovieControllerImpl)
     {
@@ -140,7 +151,7 @@ namespace kinski {
                      [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                   
                      if(m_impl->m_on_load_cb)
-                         m_impl->m_on_load_cb(*this);
+                         m_impl->m_on_load_cb(shared_from_this());
                  }
                  else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
              }
@@ -444,7 +455,7 @@ namespace kinski {
     else{ self.movie_control_impl->m_playing = false; }
     
     if(self.movie_control_impl->m_movie_ended_cb)
-        self.movie_control_impl->m_movie_ended_cb(*self.movie_control_impl->m_movie_control);
+        self.movie_control_impl->m_movie_ended_cb(self.movie_control_impl->m_movie_control->shared_from_this());
     
     LOG_TRACE << "playerItemDidReachEnd";
 }

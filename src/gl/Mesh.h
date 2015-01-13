@@ -97,7 +97,7 @@ namespace kinski { namespace gl {
         /*!
          * returns an AABB with global transform applied to it
          */
-        AABB boundingBox() const;
+        AABB boundingBox() const override;
         
         const std::vector<Entry>& entries() const {return m_entries;};
         std::vector<Entry>& entries() {return m_entries;};

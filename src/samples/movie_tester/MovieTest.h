@@ -23,7 +23,7 @@ namespace kinski
     private:
         
         gl::Font m_font;
-        MovieController m_movie;
+        MovieControllerPtr m_movie = MovieController::create();
         CameraController m_camera_control;
         vector<gl::Texture> m_textures{4};
         

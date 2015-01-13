@@ -19,7 +19,7 @@ namespace kinski { namespace gl {
         return tmp == v;
     }
     
-    MiniMat decode_image(const std::vector<uint8_t> &the_data, int num_channels)
+    Image decode_image(const std::vector<uint8_t> &the_data, int num_channels)
     {
         int width, height, num_components;
         unsigned char *data = stbi_load_from_memory(&the_data[0], the_data.size(),
@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
         
-        MiniMat ret(data, height, width, num_components);
+        Image ret(data, height, width, num_components);
         return ret;
     }
     
@@ -43,7 +43,7 @@ namespace kinski { namespace gl {
                                   GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
-        MiniMat img;
+        Image img;
         try {img = decode_image(the_data);}
         catch (ImageLoadException &e)
         {

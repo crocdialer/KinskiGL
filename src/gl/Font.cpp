@@ -15,7 +15,7 @@
 
 namespace kinski { namespace gl {
     
-    void copyMat(const MiniMat &src_mat, MiniMat &dst_mat)
+    void copy_image(const Image &src_mat, Image &dst_mat)
     {
         uint32_t bytes_per_pixel = 1;
         
@@ -199,15 +199,15 @@ namespace kinski { namespace gl {
         uint8_t dst_data[max_x * max_y];
         std::fill(dst_data, dst_data + max_x * max_y, 0);
         
-        MiniMat src_mat(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width);
-        MiniMat dst_mat(dst_data, max_y, max_x);
+        Image src_mat(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width);
+        Image dst_mat(dst_data, max_y, max_x);
         
         Area_Pairs::iterator area_it = area_pairs.begin();
         for (; area_it != area_pairs.end(); ++area_it)
         {
             src_mat.roi = area_it->first;
             dst_mat.roi = area_it->second;
-            copyMat(src_mat, dst_mat);
+            copy_image(src_mat, dst_mat);
         }
         
         // create RGBA data

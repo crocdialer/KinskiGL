@@ -40,21 +40,21 @@ namespace kinski{ namespace gl{
         inline uint32_t height() const { return y2 - y1; };
     };
                 
-    struct MiniMat
+    struct Image
     {
         uint8_t* data;
         uint32_t rows, cols;
         uint32_t bytes_per_pixel;
         Area<uint32_t> roi;
-        MiniMat():data(NULL), rows(0), cols(0), bytes_per_pixel(0){};
+        Image():data(nullptr), rows(0), cols(0), bytes_per_pixel(0){};
         
-        MiniMat(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
+        Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
                 const Area<uint32_t> &theRoi = Area<uint32_t>()):
         data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
         
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
         
-        ~MiniMat(){};
+        ~Image(){};
     };
                 
     /** \brief Represents an OpenGL Texture. \ImplShared*/

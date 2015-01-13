@@ -71,7 +71,7 @@ void ModelViewer::update(float timeDelta)
                                     m_projector->getViewMatrix() * m_mesh->global_transform());
     }
     
-    if(m_movie.copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
+    if(m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
     {
         auto &t = m_mesh->material()->textures();
         t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE], m_fbos[0].getDepthTexture()};
@@ -256,8 +256,8 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_movie_path)
     {
-        m_movie.load(*m_movie_path, true, true);
-        m_movie.set_on_load_callback([&](MovieController &m){ m_movie.set_volume(0); });
+        m_movie->load(*m_movie_path, true, true);
+        m_movie->set_on_load_callback([&](MovieControllerPtr m){ m->set_volume(0); });
     }
 }
 

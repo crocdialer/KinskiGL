@@ -12,7 +12,7 @@
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
-//#include <GLFW/glfw3native.h>
+
 #include "App.h"
 #include "OutstreamGL.h"
 
@@ -68,14 +68,14 @@ namespace kinski
         GLFW_App(const int width = 800, const int height = 600);
         virtual ~GLFW_App();
         
-        void setWindowSize(const glm::vec2 &size);
-        void swapBuffers();
-        double getApplicationTime();
+        void setWindowSize(const glm::vec2 &size) override;
+        void swapBuffers() override;
+        double getApplicationTime() override;
         
-        void setFullSceen(bool b = true);
+        void setFullSceen(bool b = true) override;
         void setFullSceen(bool b, int monitor_index);
-        void setCursorVisible(bool b = true);
-        void setCursorPosition(float x, float y);
+        void setCursorVisible(bool b = true) override;
+        void setCursorPosition(float x, float y) override;
         
         std::vector<JoystickState> get_joystick_states() const;
         
