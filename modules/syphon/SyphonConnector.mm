@@ -11,9 +11,9 @@
 #include "gl/Buffer.h"
 #import <Syphon/Syphon.h>
 
-namespace kinski{ namespace gl{
+namespace kinski{ namespace syphon{
 
-    struct SyphonConnector::Obj
+    struct Output::Obj
     {
         SyphonServer* m_syphon_server;
         
@@ -29,9 +29,9 @@ namespace kinski{ namespace gl{
         }
     };
     
-    SyphonConnector::SyphonConnector(const std::string &theName):m_obj(new Obj(theName)){}
+    Output::Output(const std::string &theName):m_obj(new Obj(theName)){}
     
-    void SyphonConnector::publish_texture(const Texture &theTexture)
+    void Output::publish_texture(const gl::Texture &theTexture)
     {
         if(!m_obj) throw SyphonNotRunningException();
         NSRect rect = NSMakeRect(0, 0, theTexture.getWidth(), theTexture.getHeight());
@@ -46,13 +46,13 @@ namespace kinski{ namespace gl{
                                 textureDimensions:size flipped:theTexture.isFlipped()];
     }
     
-    void SyphonConnector::setName(const std::string &theName)
+    void Output::setName(const std::string &theName)
     {
         if(!m_obj) throw SyphonNotRunningException();
         [m_obj->m_syphon_server setName:[NSString stringWithUTF8String:theName.c_str()]];
     }
     
-    std::string SyphonConnector::getName()
+    std::string Output::getName()
     {
         if(!m_obj) throw SyphonNotRunningException();
         return [m_obj->m_syphon_server.name UTF8String];
@@ -60,7 +60,7 @@ namespace kinski{ namespace gl{
     
     ///////////////////////////////////////////////////////////////////////////////////////////
     
-    SyphonServerDescription convert_description(NSDictionary *the_desc)
+    ServerDescription convert_description(NSDictionary *the_desc)
     {
         // These are the keys we can use in the server description dictionary.
         NSString* name = [the_desc objectForKey:SyphonServerDescriptionNameKey];
@@ -68,9 +68,9 @@ namespace kinski{ namespace gl{
         return {[name UTF8String], [appName UTF8String]};
     }
     
-    std::vector<SyphonServerDescription> SyphonInput::get_inputs()
+    std::vector<ServerDescription> Input::get_inputs()
     {
-        std::vector<SyphonServerDescription> ret;
+        std::vector<ServerDescription> ret;
         
         for(NSDictionary *description in [[SyphonServerDirectory sharedDirectory] servers])
         {
@@ -81,7 +81,7 @@ namespace kinski{ namespace gl{
     
     ///////////////////////////////////////////////////////////////////////////////////////////
     
-    struct SyphonInput::Obj
+    struct Input::Obj
     {
         SyphonClient *m_syphon_client;
         SyphonImage *m_image;
@@ -110,18 +110,18 @@ namespace kinski{ namespace gl{
         }
     };
     
-    SyphonInput::SyphonInput(uint32_t the_index):
+    Input::Input(uint32_t the_index):
     m_obj(new Obj(the_index))
     {
     
     }
     
-    bool SyphonInput::has_new_frame()
+    bool Input::has_new_frame()
     {
         return m_obj && [m_obj->m_syphon_client hasNewFrame];
     }
     
-    bool SyphonInput::copy_frame(gl::Texture &tex)
+    bool Input::copy_frame(gl::Texture &tex)
     {
         if(!has_new_frame()) return false;
         
@@ -139,7 +139,7 @@ namespace kinski{ namespace gl{
         return true;
     }
     
-    SyphonServerDescription SyphonInput::description()
+    ServerDescription Input::description()
     {
         return convert_description(m_obj->m_syphon_client.serverDescription);
     }

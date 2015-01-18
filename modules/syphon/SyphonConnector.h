@@ -12,15 +12,15 @@
 #include "gl/KinskiGL.h"
 #include "core/Component.h"
 
-namespace kinski{ namespace gl{
+namespace kinski{ namespace syphon{
     
-    class SyphonConnector
+    class Output
     {
      public:
-        SyphonConnector(){};
-        SyphonConnector(const std::string &theName);
+        Output(){};
+        Output(const std::string &theName);
         
-        void publish_texture(const Texture &theTexture);
+        void publish_texture(const gl::Texture &theTexture);
         void setName(const std::string &theName);
         std::string getName();
         
@@ -35,25 +35,25 @@ namespace kinski{ namespace gl{
         void reset() { m_obj.reset(); }
     };
     
-    struct SyphonServerDescription
+    struct ServerDescription
     {
         std::string name;
         std::string app_name;
     };
     
-    class SyphonInput
+    class Input
     {
     public:
         
-        static std::vector<SyphonServerDescription> get_inputs();
+        static std::vector<ServerDescription> get_inputs();
         
-        SyphonInput(){};
-        SyphonInput(uint32_t the_index);
+        Input(){};
+        Input(uint32_t the_index);
         
         bool has_new_frame();
         bool copy_frame(gl::Texture &tex);
         
-        SyphonServerDescription description();
+        ServerDescription description();
         
     private:
         
