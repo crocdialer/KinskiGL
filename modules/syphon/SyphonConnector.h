@@ -14,7 +14,7 @@
 
 namespace kinski{ namespace gl{
     
-    class SyphonConnector : public kinski::Component
+    class SyphonConnector
     {
      public:
         SyphonConnector(){};
@@ -31,8 +31,38 @@ namespace kinski{ namespace gl{
         ObjPtr m_obj;
         
         //! Emulates shared_ptr-like behavior
-        typedef ObjPtr SyphonConnector::*unspecified_bool_type;
-        operator unspecified_bool_type() const { return ( m_obj.get() == 0 ) ? 0 : &SyphonConnector::m_obj; }
+        operator bool() const { return m_obj.get() != nullptr; }
+        void reset() { m_obj.reset(); }
+    };
+    
+    struct SyphonServerDescription
+    {
+        std::string name;
+        std::string app_name;
+    };
+    
+    class SyphonInput
+    {
+    public:
+        
+        static std::vector<SyphonServerDescription> get_inputs();
+        
+        SyphonInput(){};
+        SyphonInput(uint32_t the_index);
+        
+        bool has_new_frame();
+        bool copy_frame(gl::Texture &tex);
+        
+        SyphonServerDescription description();
+        
+    private:
+        
+        struct Obj;
+        typedef std::shared_ptr<Obj> ObjPtr;
+        ObjPtr m_obj;
+        
+        //! Emulates shared_ptr-like behavior
+        operator bool() const { return m_obj.get() != nullptr; }
         void reset() { m_obj.reset(); }
     };
     
@@ -42,6 +72,14 @@ namespace kinski{ namespace gl{
         SyphonNotRunningException() :
         Exception("No Syphon server running"){}
     };
+    
+    class SyphonInputOutOfBoundsException: public Exception
+    {
+    public:
+        SyphonInputOutOfBoundsException() :
+        Exception("Requested SyphonInput out of bounds"){}
+    };
+    
 }}//namespace
 
 #endif /* defined(__gl__SyphonConnector__) */

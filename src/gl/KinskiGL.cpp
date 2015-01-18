@@ -497,17 +497,45 @@ namespace kinski { namespace gl {
     
     void drawTexture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
-        static gl::Material::Ptr material;
+        static gl::MaterialPtr material;
+        static Shader shader_2D, shader_2Drect;
+        
+        // empty texture
+        if(!theTexture)
+        {
+            LOG_WARNING << "trying to draw an empty texture";
+            return;
+        }
+        
+        // create shaders
+        if(!shader_2D || !shader_2Drect)
+        {
+            shader_2D = gl::createShader(gl::SHADER_UNLIT);
+            shader_2Drect = gl::createShader(gl::SHADER_2D_RECT);
+        }
         
         //create material, if not yet here
         if(!material)
         {
-            try{material = gl::Material::Ptr(new gl::Material);}
+            try{ material = gl::Material::create(shader_2D); }
             catch (Exception &e){LOG_ERROR<<e.what();}
             material->setDepthTest(false);
             material->setDepthWrite(false);
             material->setBlending(true);
         }
+        
+        if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(shader_2D); }
+        else if(theTexture.getTarget() == GL_TEXTURE_RECTANGLE)
+        {
+            material->setShader(shader_2Drect);
+            material->uniform("u_texture_size", theTexture.getSize());
+        }
+        else
+        {
+            LOG_ERROR << "drawTexture: texture target not supported";
+            return;
+        }
+        
         // add the texture to the material
         material->textures().clear();
         material->addTexture(theTexture);
@@ -839,6 +867,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             }
         }
         gl::apply_material(theMesh->material());
+        KINSKI_CHECK_GL_ERRORS();
         
 #ifndef KINSKI_NO_VAO
         theMesh->bind_vertex_array();
@@ -1247,7 +1276,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
         
         // add texturemaps
-        uint32_t tex_unit = 0, tex_2d = 0, tex_3d = 0, tex_2d_array = 0;
+        uint32_t tex_unit = 0, tex_2d = 0, tex_rect = 0, tex_3d = 0, tex_2d_array = 0;
         
         for(auto &t : the_mat->textures())
         {
@@ -1262,6 +1291,11 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     break;
                     
 #if !defined(KINSKI_GLES)
+
+                case GL_TEXTURE_RECTANGLE:
+                    sprintf(buf, "u_sampler_2Drect[%d]", tex_rect++);
+                    break;
+                    
                 case GL_TEXTURE_3D:
                     sprintf(buf, "u_sampler_3D[%d]", tex_3d++);
                     break;
@@ -1404,6 +1438,12 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 frag_src = phong_frag;
                 break;
 #if !defined(KINSKI_GLES)
+            
+            case SHADER_2D_RECT:
+                vert_src = unlit_rect_vert;
+                frag_src = unlit_rect_frag;
+                break;
+                
             case SHADER_PHONG_NORMALMAP:
                 vert_src = phong_normalmap_vert;
                 frag_src = phong_normalmap_frag;

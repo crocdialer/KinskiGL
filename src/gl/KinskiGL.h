@@ -16,7 +16,7 @@
 #include "core/file_functions.h"
 
 //triggers checks with glGetError()
-//#define KINSKI_GL_REPORT_ERRORS
+#define KINSKI_GL_REPORT_ERRORS
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
 #define KINSKI_GLES
@@ -218,7 +218,7 @@ namespace kinski { namespace gl {
     
     enum ShaderType {SHADER_UNLIT, SHADER_GOURAUD, SHADER_PHONG, SHADER_PHONG_NORMALMAP,
         SHADER_PHONG_SKIN, SHADER_POINTS_TEXTURE, SHADER_LINES_2D, SHADER_POINTS_COLOR,
-        SHADER_POINTS_SPHERE};
+        SHADER_POINTS_SPHERE, SHADER_2D_RECT};
     KINSKI_API Shader createShader(ShaderType type);
     KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
                                            const std::string &geomPath="");

@@ -102,14 +102,13 @@ Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, boo
     
 Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, int aDepth,
                  bool aDoNotDispose):
-m_Obj(new Obj)
+m_Obj(new Obj(aWidth, aHeight, aDepth))
 {
     m_Obj->m_Target = aTarget;
     m_Obj->m_TextureID = aTextureID;
+    m_Obj->m_InternalFormat = GL_RGBA;
+    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
     m_Obj->m_DoNotDispose = aDoNotDispose;
-    m_Obj->m_Width = aWidth;
-    m_Obj->m_Height = aHeight;
-    m_Obj->m_depth = aDepth;
 }
 
 void Texture::init(const unsigned char *data, GLenum dataFormat,

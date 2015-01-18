@@ -8,6 +8,7 @@ extern char const* const phong_normalmap_vert;
 extern char const* const phong_skin_vert;
 extern char const* const points_vert;
 extern char const* const unlit_vert;
+extern char const* const unlit_rect_vert;
 extern char const* const lines_2D_geom;
 extern char const* const gouraud_frag;
 extern char const* const phong_frag;
@@ -15,4 +16,5 @@ extern char const* const phong_normalmap_frag;
 extern char const* const points_frag;
 extern char const* const points_sphere_frag;
 extern char const* const unlit_frag;
+extern char const* const unlit_rect_frag;
 #endif

@@ -246,6 +246,27 @@ char const* const unlit_vert =
    "}\n"
 ;
 
+char const* const unlit_rect_vert = 
+   "#version 330\n"
+   "uniform mat4 u_modelViewProjectionMatrix;\n"
+   "uniform mat4 u_textureMatrix;\n"
+   "uniform vec2 u_texture_size = vec2(1.0);\n"
+   "in vec4 a_vertex;\n"
+   "in vec4 a_color;\n"
+   "in vec4 a_texCoord; \n"
+   "out VertexData\n"
+   "{ \n"
+   "  vec4 color;\n"
+   "  vec2 texCoord;\n"
+   "} vertex_out;\n"
+   "void main() \n"
+   "{\n"
+   "  vertex_out.color = a_color;\n"
+   "  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy * u_texture_size;\n"
+   "  gl_Position = u_modelViewProjectionMatrix * a_vertex; \n"
+   "}\n"
+;
+
 char const* const lines_2D_geom = 
    "#version 330\n"
    "layout(lines) in;\n"
@@ -605,6 +626,33 @@ char const* const unlit_frag =
    "  vec4 texColors = vertex_in.color;\n"
    "  if(u_numTextures > 0) \n"
    "    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); \n"
+   "  fragData = u_material.diffuse * texColors; \n"
+   "}\n"
+;
+
+char const* const unlit_rect_frag = 
+   "#version 330\n"
+   "uniform int u_numTextures;\n"
+   "uniform sampler2DRect u_sampler_2Drect[1];\n"
+   "uniform struct Material \n"
+   "{\n"
+   "  vec4 diffuse;\n"
+   "  vec4 ambient;\n"
+   "  vec4 specular; \n"
+   "  vec4 emission; \n"
+   "  float shinyness; \n"
+   "} u_material;\n"
+   "in VertexData\n"
+   "{\n"
+   "  vec4 color; \n"
+   "  vec2 texCoord;\n"
+   "} vertex_in; \n"
+   "out vec4 fragData;\n"
+   "void main() \n"
+   "{\n"
+   "  vec4 texColors = vertex_in.color;\n"
+   "  if(u_numTextures > 0) \n"
+   "    texColors *= texture(u_sampler_2Drect[0], vertex_in.texCoord.st); \n"
    "  fragData = u_material.diffuse * texColors; \n"
    "}\n"
 ;
