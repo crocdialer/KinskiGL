@@ -10,7 +10,6 @@
 #define __gl__SyphonConnector__
 
 #include "gl/KinskiGL.h"
-#include "core/Component.h"
 
 namespace kinski{ namespace syphon{
     

@@ -24,7 +24,6 @@ namespace kinski{ namespace syphon{
         }
         ~Obj()
         {
-            [m_syphon_server stop];
             [m_syphon_server dealloc];
         }
     };
