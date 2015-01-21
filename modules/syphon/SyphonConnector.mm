@@ -32,6 +32,7 @@ namespace kinski{ namespace syphon{
     
     void Output::publish_texture(const gl::Texture &theTexture)
     {
+        if(!theTexture){ return; }
         if(!m_obj) throw SyphonNotRunningException();
         NSRect rect = NSMakeRect(0, 0, theTexture.getWidth(), theTexture.getHeight());
         NSSize size = NSMakeSize(theTexture.getWidth(), theTexture.getHeight());
