@@ -49,7 +49,7 @@ namespace kinski
          * return: true if a new frame has been uploaded successfully,
          * false otherwise
          */
-        bool copy_frame_to_texture(gl::Texture &tex);
+        bool copy_frame_to_texture(gl::Texture &tex, bool as_texture2D = false);
         
         /*!
          * copy the current frame to a std::vector<uint8_t>

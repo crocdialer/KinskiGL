@@ -104,10 +104,37 @@ namespace kinski
         return ret;
     }
     
-    template <typename X, typename C>
-    inline bool is_in(const X &elem, const C &container)
+    template <typename T, typename C>
+    inline bool is_in(const T &elem, const C &container)
     {
         return std::find(begin(container), end(container), elem) != end(container);
+    }
+    
+    namespace details
+    {
+        // allow in-order expansion of parameter packs.
+        struct do_in_order
+        {
+            template<typename T> do_in_order(std::initializer_list<T>&&) { }
+        };
+        
+        template<typename C1, typename C2> void concat_helper(C1& l, const C2& r)
+        {
+            l.insert(std::end(l), std::begin(r), std::end(r));
+        }
+//        template<typename C1, typename C2> void concat_helper(C1& l, C2&& r)
+//        {
+//            l.insert(std::end(l), std::make_move_iterator(std::begin(r)),
+//                     std::make_move_iterator(std::end(r)));
+//        }
+    } // namespace details
+    
+    template<typename T, typename... C>
+    inline std::vector<T> concat_containers(C&&... the_containers)
+    {
+        std::vector<T> ret;
+        details::do_in_order{(details::concat_helper(ret, std::forward<C>(the_containers)), 0)...};
+        return ret;
     }
     
     template <typename T>

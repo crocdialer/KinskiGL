@@ -23,6 +23,9 @@ namespace kinski {
         AVPlayerItem *m_player_item;
         AVPlayerItemVideoOutput *m_output;
         
+        IOSurfaceRef m_io_surface;
+        GLuint m_output_tex_name;
+        
         MovieController *m_movie_control;
         LoopHelper *m_loop_helper;
         
@@ -43,6 +46,8 @@ namespace kinski {
         m_player(nullptr),
         m_player_item(nullptr),
         m_output(nullptr),
+        m_io_surface(nullptr),
+        m_output_tex_name(0),
         m_playing(false),
         m_loop(false),
         m_rate(1.f),
@@ -60,6 +65,11 @@ namespace kinski {
             if(m_player_item) [m_player_item release];
             if(m_output) [m_output release];
             if(m_loop_helper) [m_loop_helper release];
+//            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
+//            {
+//                IOSurfaceDecrementUseCount(m_io_surface);
+//            }
+            if(m_output_tex_name){ glDeleteTextures(1, &m_output_tex_name); }
         };
     };
     
@@ -125,7 +135,7 @@ namespace kinski {
              
              if([videoTrackArray count])
              {
-                 NSDictionary* settings = @{ (id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA] };
+                 NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
                  m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
              
                  m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
@@ -224,11 +234,11 @@ namespace kinski {
             if(height){*height = CVPixelBufferGetHeight(buffer);}
             
             // lock base adress
-            CVPixelBufferLockBaseAddress(buffer, 0);
+            CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
             memcpy(&data[0], CVPixelBufferGetBaseAddress(buffer), num_bytes);
             
             // unlock base address, release buffer
-            CVPixelBufferUnlockBaseAddress(buffer, 0);
+            CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
             CFRelease(buffer);
             
             return true;
@@ -236,7 +246,7 @@ namespace kinski {
         return false;
     }
     
-    bool MovieController::copy_frame_to_texture(gl::Texture &tex)
+    bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
         if(!isPlaying() || !m_impl->m_output || !m_impl->m_player_item) return false;
         
@@ -252,32 +262,62 @@ namespace kinski {
             GLuint width = CVPixelBufferGetWidth(buffer);
             GLuint height = CVPixelBufferGetHeight(buffer);
             
-            // ping pong our pbo index
-            m_impl->m_pbo_index = (m_impl->m_pbo_index + 1) % 2;
+            //
+            IOSurfaceRef io_surface = CVPixelBufferGetIOSurface(buffer);
             
-            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
-            
-            // lock base adress
-            CVPixelBufferLockBaseAddress(buffer, 0);
-            
-            if(m_impl->m_pbo[m_impl->m_pbo_index].numBytes() != num_bytes)
+            if(!as_texture2D && io_surface)
             {
-                m_impl->m_pbo[m_impl->m_pbo_index].setData(NULL, num_bytes);
+//                if(m_impl->m_io_surface){ IOSurfaceDecrementUseCount(m_impl->m_io_surface); }
+//                IOSurfaceIncrementUseCount(io_surface);
+                m_impl->m_io_surface = io_surface;
+                
+                if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);
+                
+                tex = gl::Texture(GL_TEXTURE_RECTANGLE,
+                                  m_impl->m_output_tex_name,
+                                  width,
+                                  height, true);
+                gl::scoped_bind<gl::Texture> tex_bind(tex);
+                CGLTexImageIOSurface2D(CGLGetCurrentContext(),
+                                       GL_TEXTURE_RECTANGLE,
+                                       GL_RGBA,
+                                       width,
+                                       height,
+                                       GL_BGRA,
+                                       GL_UNSIGNED_INT_8_8_8_8_REV,
+                                       m_impl->m_io_surface,
+                                       0);
+                tex.setFlipped();
             }
-
-            // map buffer, copy data
-            uint8_t *ptr = m_impl->m_pbo[m_impl->m_pbo_index].map();
-            memcpy(ptr, CVPixelBufferGetBaseAddress(buffer), num_bytes);
-            m_impl->m_pbo[m_impl->m_pbo_index].unmap();
-            
-            // bind pbo and schedule texture upload
-            m_impl->m_pbo[m_impl->m_pbo_index].bind();
-            tex.update(nullptr, GL_UNSIGNED_BYTE, GL_BGRA, width, height, true);
-            
-            m_impl->m_pbo[m_impl->m_pbo_index].unbind();
+            else
+            {
+                // ping pong our pbo index
+                m_impl->m_pbo_index = (m_impl->m_pbo_index + 1) % 2;
+                
+                size_t num_bytes = CVPixelBufferGetDataSize(buffer);
+                
+                // lock base adress
+                CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
+                
+                if(m_impl->m_pbo[m_impl->m_pbo_index].numBytes() != num_bytes)
+                {
+                    m_impl->m_pbo[m_impl->m_pbo_index].setData(nullptr, num_bytes);
+                }
+                
+                // map buffer, copy data
+                uint8_t *ptr = m_impl->m_pbo[m_impl->m_pbo_index].map();
+                memcpy(ptr, CVPixelBufferGetBaseAddress(buffer), num_bytes);
+                m_impl->m_pbo[m_impl->m_pbo_index].unmap();
+                
+                // bind pbo and schedule texture upload
+                m_impl->m_pbo[m_impl->m_pbo_index].bind();
+                tex.update(nullptr, GL_UNSIGNED_BYTE, GL_BGRA, width, height, true);
+                
+                m_impl->m_pbo[m_impl->m_pbo_index].unbind();
+            }
             
             // unlock base address, release buffer
-            CVPixelBufferUnlockBaseAddress(buffer, 0);
+            CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
             CFRelease(buffer);
             
             return true;
@@ -338,7 +378,7 @@ namespace kinski {
             {
                 CVPixelBufferRef pixbuf = CMSampleBufferGetImageBuffer(buffer);
                 
-                if(CVPixelBufferLockBaseAddress(pixbuf, 0) != kCVReturnSuccess)
+                if(CVPixelBufferLockBaseAddress(pixbuf, kCVPixelBufferLock_ReadOnly) != kCVReturnSuccess)
                 {
                     LOG_ERROR << "could not aquire pixelbuffer";
                     continue;
@@ -349,7 +389,7 @@ namespace kinski {
                                 GL_RGBA, GL_UNSIGNED_BYTE,
                                 CVPixelBufferGetBaseAddress(pixbuf));
                 
-                CVPixelBufferUnlockBaseAddress(pixbuf, 0);
+                CVPixelBufferUnlockBaseAddress(pixbuf, kCVPixelBufferLock_ReadOnly);
                 i++;
                 //
                 CFRelease(buffer);
