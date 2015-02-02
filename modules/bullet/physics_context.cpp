@@ -137,20 +137,17 @@ namespace kinski{ namespace physics{
         
         ///collision configuration contains default setup for memory, collision setup
         btDefaultCollisionConstructionInfo cci;
-        if(m_maxNumTasks > 1)
-            cci.m_defaultMaxPersistentManifoldPoolSize = 32768;
-        m_collisionConfiguration = shared_ptr<btDefaultCollisionConfiguration>(
-                                                                               new btDefaultCollisionConfiguration());
+        if(m_maxNumTasks > 1){ cci.m_defaultMaxPersistentManifoldPoolSize = 32768; }
         
-        //m_collisionConfiguration->setConvexConvexMultipointIterations();
+        m_collisionConfiguration = std::make_shared<btDefaultCollisionConfiguration>();
         
         ///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
-        m_dispatcher = shared_ptr<btCollisionDispatcher>(new btCollisionDispatcher(m_collisionConfiguration.get()));
+        m_dispatcher = std::make_shared<btCollisionDispatcher>(m_collisionConfiguration.get());
         
-        m_broadphase = shared_ptr<btBroadphaseInterface>(new btDbvtBroadphase());
+        m_broadphase = std::make_shared<btDbvtBroadphase>();
         
         ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
-        m_solver = shared_ptr<btConstraintSolver>(new btSequentialImpulseConstraintSolver);
+        m_solver = std::make_shared<btSequentialImpulseConstraintSolver>();
         
         if(m_maxNumTasks > 1)
         {
@@ -158,21 +155,22 @@ namespace kinski{ namespace physics{
                                                                         processCollisionTask,
                                                                         createCollisionLocalStoreMemory,
                                                                         m_maxNumTasks);
-            m_threadSupportCollision = std::shared_ptr<btThreadSupportInterface>(new PosixThreadSupport(constructionInfo));
-            m_dispatcher = shared_ptr<btCollisionDispatcher>(new SpuGatheringCollisionDispatcher(m_threadSupportCollision.get(),
-                                                                                                 m_maxNumTasks,
-                                                                                                 m_collisionConfiguration.get()));
+            m_threadSupportCollision = std::make_shared<PosixThreadSupport>(constructionInfo);
+            m_dispatcher = std::make_shared<SpuGatheringCollisionDispatcher>(m_threadSupportCollision.get(),
+                                                                             m_maxNumTasks,
+                                                                             m_collisionConfiguration.get());
             
             m_threadSupportSolver = createSolverThreadSupport(m_maxNumTasks);
-            m_solver = shared_ptr<btConstraintSolver>(new btParallelConstraintSolver(m_threadSupportSolver.get()));
+            m_solver = std::make_shared<btParallelConstraintSolver>(m_threadSupportSolver.get());
+            
             //this solver requires the contacts to be in a contiguous pool, so avoid dynamic allocation
             m_dispatcher->setDispatcherFlags(btCollisionDispatcher::CD_DISABLE_CONTACTPOOL_DYNAMIC_ALLOCATION);
         }
         
-        m_dynamicsWorld = shared_ptr<btDynamicsWorld>(new btDiscreteDynamicsWorld(m_dispatcher.get(),
-                                                                                  m_broadphase.get(),
-                                                                                  m_solver.get(),
-                                                                                  m_collisionConfiguration.get()));
+        m_dynamicsWorld = std::make_shared<btDiscreteDynamicsWorld>(m_dispatcher.get(),
+                                                                    m_broadphase.get(),
+                                                                    m_solver.get(),
+                                                                    m_collisionConfiguration.get());
 
         if(m_maxNumTasks > 1)
         {

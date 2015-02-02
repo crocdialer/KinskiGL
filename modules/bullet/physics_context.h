@@ -9,7 +9,6 @@
 #ifndef __gl__physics_context__
 #define __gl__physics_context__
 
-//#include <boost/thread.hpp>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -66,7 +65,7 @@ namespace kinski{ namespace physics{
         {
             //TODO: font rendering here
         }
-        void setDebugMode(int debugMode){LOG_WARNING<<"unsupported operation";}
+        void setDebugMode(int debugMode){ LOG_WARNING << "unsupported operation"; }
         int	getDebugMode() const {return DBG_DrawWireframe;}
         
         //!
@@ -83,7 +82,7 @@ namespace kinski{ namespace physics{
         };
         
     private:
-        gl::Mesh::Ptr m_mesh_lines, m_mesh_points;
+        gl::MeshPtr m_mesh_lines, m_mesh_points;
     };
     
     
@@ -201,12 +200,6 @@ namespace kinski{ namespace physics{
         
     private:
         physics::MeshPtr m_striding_mesh;
-    };
-    
-    struct physics_object
-    {
-        gl::Mesh *graphics_object;
-        btRigidBody *rigidbody;
     };
     
     KINSKI_API class physics_context
