@@ -262,7 +262,6 @@ namespace kinski {
             GLuint width = CVPixelBufferGetWidth(buffer);
             GLuint height = CVPixelBufferGetHeight(buffer);
             
-            //
             IOSurfaceRef io_surface = CVPixelBufferGetIOSurface(buffer);
             
             if(!as_texture2D && io_surface)

@@ -34,7 +34,7 @@ void FractureApp::setup()
     m_light_component->refresh();
     
     // init physics
-    m_physics.init_physics();
+    m_physics.init();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -43,7 +43,7 @@ void FractureApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-    m_physics.step_physics(timeDelta);
+    m_physics.step_simulation(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -59,6 +59,8 @@ void FractureApp::draw()
     }
     
     scene().render(camera());
+    
+    m_physics.debug_render(camera());
     
     // draw texture map(s)
     if(displayTweakBar()){ draw_textures(); }
@@ -90,6 +92,8 @@ void FractureApp::keyRelease(const KeyEvent &e)
 void FractureApp::mousePress(const MouseEvent &e)
 {
     ViewerApp::mousePress(e);
+    
+    if(e.isRight()){ shoot_box(); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -209,4 +213,9 @@ void FractureApp::shoot_box(const glm::vec3 &the_half_extents)
 {
     gl::GeometryPtr geom = gl::Geometry::createBox(the_half_extents);
     gl::MeshPtr mesh = gl::Mesh::create(geom, gl::Material::create());
+    mesh->setPosition(camera()->position());
+    scene().addObject(mesh);
+    
+    btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f));
+    rb->setLinearVelocity(physics::type_cast(camera()->lookAt() * 100.f));
 }

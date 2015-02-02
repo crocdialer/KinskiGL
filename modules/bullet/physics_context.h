@@ -27,6 +27,7 @@ namespace kinski{ namespace physics{
     typedef std::shared_ptr<const btCollisionObject> btCollisionConstObjectPtr;
     typedef std::shared_ptr<btDynamicsWorld> btDynamicsWorldPtr;
     typedef std::shared_ptr<const btDynamicsWorld> btDynamicsWorldConstPtr;
+    typedef std::shared_ptr<btIDebugDraw> btIDebugDrawPtr;
     
     KINSKI_API btVector3 type_cast(const glm::vec3 &the_vec);
     KINSKI_API btTransform type_cast(const glm::mat4 &the_transform);
@@ -209,9 +210,10 @@ namespace kinski{ namespace physics{
         explicit physics_context(int num_tasks = 1):m_maxNumTasks(num_tasks){};
         ~physics_context();
         
-        void init_physics();
-        void step_physics(float timestep);
-        void teardown_physics();
+        void init();
+        void step_simulation(float timestep);
+        void debug_render(gl::CameraPtr the_cam);
+        void teardown();
         
         const btDynamicsWorldConstPtr dynamicsWorld() const {return m_dynamicsWorld;};
         const btDynamicsWorldPtr& dynamicsWorld() {return m_dynamicsWorld;};
@@ -244,6 +246,8 @@ namespace kinski{ namespace physics{
         uint32_t m_maxNumTasks;
         std::shared_ptr<btThreadSupportInterface> m_threadSupportCollision;
         std::shared_ptr<btThreadSupportInterface> m_threadSupportSolver;
+        
+        std::shared_ptr<BulletDebugDrawer> m_debug_drawer;
         
         std::mutex m_mutex;
     };

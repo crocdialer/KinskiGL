@@ -71,7 +71,7 @@ void ModelViewer::update(float timeDelta)
                                     m_projector->getViewMatrix() * m_mesh->global_transform());
     }
     
-    if(m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
+    if(m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE], true))
     {
         auto &t = m_mesh->material()->textures();
         t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE], m_fbos[0].getDepthTexture()};

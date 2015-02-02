@@ -127,10 +127,10 @@ namespace kinski{ namespace physics{
     
     physics_context::~physics_context()
     {
-        teardown_physics();
+        teardown();
     }
     
-    void physics_context::init_physics()
+    void physics_context::init()
     {
         LOG_DEBUG<<"initializing physics";
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -181,17 +181,21 @@ namespace kinski{ namespace physics{
             world->getDispatchInfo().m_enableSPU = true;
         }
         
-        m_dynamicsWorld->setGravity(btVector3(0,-500,0));
+        m_dynamicsWorld->setGravity(btVector3(0,-9.87,0));
+        
+        // debug drawer
+        m_debug_drawer = std::make_shared<BulletDebugDrawer>();
+        m_dynamicsWorld->setDebugDrawer(m_debug_drawer.get());
     }
     
-    void physics_context::step_physics(float timestep)
+    void physics_context::step_simulation(float timestep)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         if(m_dynamicsWorld)
-            m_dynamicsWorld->stepSimulation(timestep, 1);
+            m_dynamicsWorld->stepSimulation(timestep, 0);
     }
     
-    void physics_context::teardown_physics()
+    void physics_context::teardown()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         if(!m_dynamicsWorld) return;
@@ -218,6 +222,18 @@ namespace kinski{ namespace physics{
                                         btDispatcherInfo& dispatchInfo)
     {
     
+    }
+    
+    void physics_context::debug_render(gl::CameraPtr the_cam)
+    {
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
+        gl::setMatrices(the_cam);
+        
+        if(m_dynamicsWorld)
+        {
+            m_dynamicsWorld->btCollisionWorld::debugDrawWorld();
+            m_debug_drawer->flush();
+        }
     }
     
     //TODO: think about this carefully, not having doubles and stuff
