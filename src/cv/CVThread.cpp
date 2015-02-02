@@ -7,11 +7,12 @@
 //
 #include "CVThread.h"
 #include "core/Logger.h"
-#include <boost/timer/timer.hpp>
+#include <chrono>
+
+typedef std::chrono::duration<float> float_second;
 
 using namespace std;
 using namespace cv;
-using namespace boost::timer;
 
 namespace kinski
 {
@@ -114,14 +115,10 @@ namespace kinski
     {	
         *m_running = true;
         
-        // measure elapsed time with these
-        boost::timer::cpu_timer threadTimer, cpuTimer;
-        
         while(*m_running)
         {
             //restart timer
-            threadTimer.start();        
-            cpuTimer.start();
+            auto start_time = chrono::steady_clock::now();
             
             // fetch frame, cancel loop when not possible
             // this call is supposed to be fast and not block the thread too long
@@ -132,7 +129,7 @@ namespace kinski
                 LOG_ERROR<<e.what();
                 break;
             }
-            cpu_times grabTimes = cpuTimer.elapsed();
+            auto grab_duration = chrono::steady_clock::now() - start_time;
             
             //skip iteration when invalid frame is returned (eg. from camera)
             if(inFrame.empty()) continue;
@@ -141,8 +138,6 @@ namespace kinski
             tmpImages.push_back(inFrame);
             
             // image processing
-            cpuTimer.start();
-            
             if(hasProcessing())
             {
                 //auto_cpu_timer autoTimer;
@@ -152,20 +147,22 @@ namespace kinski
                                  procImages.begin(),
                                  procImages.end());
             }
-            cpu_times processTimes = cpuTimer.elapsed();
+            auto img_proc_duration = chrono::steady_clock::now() - start_time - grab_duration;
 
             // locked scope
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
-                m_lastGrabTime = (grabTimes.wall) / 1.0e9;
-                m_lastProcessTime = (processTimes.wall) / 1.0e9;
+                m_lastGrabTime = chrono::duration_cast<float_second>(grab_duration).count();
+                m_lastProcessTime = chrono::duration_cast<float_second>(img_proc_duration).count();
                 m_images = tmpImages;
                 m_newFrame = true;
                 m_conditionVar.notify_all();
             }
             // thread timing
+            auto overall_duration = chrono::steady_clock::now() - start_time;
+            
             double elapsed_msecs,sleep_msecs;
-            elapsed_msecs = threadTimer.elapsed().wall / 1000000.0;
+            elapsed_msecs = chrono::duration_cast<chrono::milliseconds>(overall_duration).count();
             sleep_msecs = max(0.0, (1000.0 / *m_captureFPS - elapsed_msecs));
             
             // set thread asleep for a time to achieve desired framerate

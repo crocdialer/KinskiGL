@@ -170,19 +170,26 @@ namespace kinski {
     
     void ViewerApp::mouseDrag(const MouseEvent &e)
     {
-        glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
-        
-        if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
+        if(e.isLeft())
         {
-            *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
-                                         glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
-                                                   glm::radians(-mouseDiff.x), 0)));
+            glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
             
-//            m_arcball.mouseDrag(e.getPos());
-//            *m_rotation = glm::mat3_cast(m_arcball.getQuat());
+            if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
+            {
+                *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
+                                             glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
+                                                                 glm::radians(-mouseDiff.x), 0)));
+                
+                //            m_arcball.mouseDrag(e.getPos());
+                //            *m_rotation = glm::mat3_cast(m_arcball.getQuat());
+            }
+            m_avg_filter.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
+            m_dragPos = glm::vec2(e.getX(), e.getY());
         }
-        m_avg_filter.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
-        m_dragPos = glm::vec2(e.getX(), e.getY());
+        else if(e.isRight())
+        {
+            
+        }
     }
     
     void ViewerApp::mouseRelease(const MouseEvent &e)

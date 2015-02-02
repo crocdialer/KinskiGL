@@ -46,16 +46,16 @@ namespace kinski{ namespace physics{
         {
             gl::MaterialPtr mat = gl::Material::create();
             gl::GeometryPtr geom = gl::Geometry::create();
-            m_mesh = gl::Mesh::create(geom, mat);
-            m_mesh->geometry()->setPrimitiveType(GL_LINES);
+            m_mesh_lines = gl::Mesh::create(geom, mat);
+            m_mesh_lines->geometry()->setPrimitiveType(GL_LINES);
         };
         
         inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
         {
-            m_mesh->geometry()->appendVertex(glm::vec3(from.x(), from.y(), from.z()));
-            m_mesh->geometry()->appendVertex(glm::vec3(to.x(), to.y(), to.z()));
-            m_mesh->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
-            m_mesh->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh_lines->geometry()->appendVertex(glm::vec3(from.x(), from.y(), from.z()));
+            m_mesh_lines->geometry()->appendVertex(glm::vec3(to.x(), to.y(), to.z()));
+            m_mesh_lines->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh_lines->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
         }
         
         void drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,
@@ -73,19 +73,17 @@ namespace kinski{ namespace physics{
         // issue the actual draw command
         inline void flush()
         {
-            m_mesh->geometry()->createGLBuffers();
-//            m_mesh->material()->uniform("u_window_size", gl::windowDimension());
-//            m_mesh->material()->uniform("u_line_thickness", 10.f);
+            m_mesh_lines->geometry()->createGLBuffers();
             
-            gl::drawMesh(m_mesh);
-            m_mesh->geometry()->vertices().clear();
-            m_mesh->geometry()->colors().clear();
-            m_mesh->geometry()->vertices().reserve(1024);
-            m_mesh->geometry()->colors().reserve(1024);
+            gl::drawMesh(m_mesh_lines);
+            m_mesh_lines->geometry()->vertices().clear();
+            m_mesh_lines->geometry()->colors().clear();
+            m_mesh_lines->geometry()->vertices().reserve(1024);
+            m_mesh_lines->geometry()->colors().reserve(1024);
         };
         
     private:
-        gl::Mesh::Ptr m_mesh;
+        gl::Mesh::Ptr m_mesh_lines, m_mesh_points;
     };
     
     
@@ -218,8 +216,8 @@ namespace kinski{ namespace physics{
         explicit physics_context(int num_tasks = 1):m_maxNumTasks(num_tasks){};
         ~physics_context();
         
-        void initPhysics();
-        void stepPhysics(float timestep);
+        void init_physics();
+        void step_physics(float timestep);
         void teardown_physics();
         
         const btDynamicsWorldConstPtr dynamicsWorld() const {return m_dynamicsWorld;};

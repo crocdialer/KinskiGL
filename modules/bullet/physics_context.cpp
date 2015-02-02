@@ -130,7 +130,7 @@ namespace kinski{ namespace physics{
         teardown_physics();
     }
     
-    void physics_context::initPhysics()
+    void physics_context::init_physics()
     {
         LOG_DEBUG<<"initializing physics";
         std::unique_lock<std::mutex> lock(m_mutex);
@@ -186,7 +186,7 @@ namespace kinski{ namespace physics{
         m_dynamicsWorld->setGravity(btVector3(0,-500,0));
     }
     
-    void physics_context::stepPhysics(float timestep)
+    void physics_context::step_physics(float timestep)
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         if(m_dynamicsWorld)

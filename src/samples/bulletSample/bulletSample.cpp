@@ -58,6 +58,7 @@ public:
     void create_cube_stack(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
         m_physics_context.teardown_physics();
+        scene().clear();
         
         float scaling = 8.0f;
         float start_pox_x = -5;
@@ -157,7 +158,7 @@ public:
         m_cvThread->streamUSBCamera();
         
         // init physics pipeline
-        m_physics_context.initPhysics();
+        m_physics_context.init_physics();
         m_debugDrawer = shared_ptr<physics::BulletDebugDrawer>(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
