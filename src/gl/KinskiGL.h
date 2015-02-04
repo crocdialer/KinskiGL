@@ -89,7 +89,7 @@ namespace kinski { namespace gl {
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;
     typedef std::shared_ptr<class Mesh> MeshPtr;
-    typedef std::weak_ptr<const Mesh> MeshWeakPtr;
+    typedef std::weak_ptr<Mesh> MeshWeakPtr;
     typedef std::shared_ptr<struct MeshAnimation> MeshAnimationPtr;
     typedef std::shared_ptr<class Light> LightPtr;
     typedef std::shared_ptr<class Scene> ScenePtr;

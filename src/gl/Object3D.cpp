@@ -16,10 +16,12 @@ namespace kinski { namespace gl {
     uint32_t Object3D::s_idPool = 0;
     
     Object3D::Object3D():
+    m_id(s_idPool++),
+    m_name("Object3D " + as_string(m_id)),
     m_enabled(true),
     m_billboard(false)
     {
-        m_id = s_idPool++;
+
     }
     
     void Object3D::setRotation(const glm::quat &theRot)

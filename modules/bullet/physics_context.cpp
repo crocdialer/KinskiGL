@@ -133,7 +133,6 @@ namespace kinski{ namespace physics{
     void physics_context::init()
     {
         LOG_DEBUG<<"initializing physics";
-        std::unique_lock<std::mutex> lock(m_mutex);
         
         ///collision configuration contains default setup for memory, collision setup
         btDefaultCollisionConstructionInfo cci;
@@ -188,16 +187,14 @@ namespace kinski{ namespace physics{
         m_dynamicsWorld->setDebugDrawer(m_debug_drawer.get());
     }
     
-    void physics_context::step_simulation(float timestep)
+    void physics_context::step_simulation(float timestep, int max_sub_steps, float fixed_time_step)
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
         if(m_dynamicsWorld)
-            m_dynamicsWorld->stepSimulation(timestep, 0);
+            m_dynamicsWorld->stepSimulation(timestep, max_sub_steps, fixed_time_step);
     }
     
     void physics_context::teardown()
     {
-        std::unique_lock<std::mutex> lock(m_mutex);
         if(!m_dynamicsWorld) return;
         
         int i;
@@ -215,6 +212,7 @@ namespace kinski{ namespace physics{
         
         m_collisionShapes.clear();
         m_mesh_shape_map.clear();
+        m_mesh_rigidbody_map.clear();
         deleteCollisionLocalStoreMemory();
     }
     
@@ -236,18 +234,40 @@ namespace kinski{ namespace physics{
         }
     }
     
+    btRigidBody* physics_context::get_rigidbody_for_mesh(gl::MeshWeakPtr the_mesh)
+    {
+        auto body_iter = m_mesh_rigidbody_map.find(the_mesh);
+        
+        if(body_iter != m_mesh_rigidbody_map.end()){ return body_iter->second; }
+        return nullptr;
+    }
+    
     //TODO: think about this carefully, not having doubles and stuff
     btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass,
                                                          btCollisionShapePtr col_shape)
     {
         // look for an existing col_shape for this mesh
         auto iter = m_mesh_shape_map.find(the_mesh);
+        auto body_iter = m_mesh_rigidbody_map.find(the_mesh);
         
+        // already added to simulation
+        if(body_iter != m_mesh_rigidbody_map.end())
+        {
+            LOG_WARNING << "mesh already added to simulation";
+            
+            // remove the rigidbody from the simulation
+            btRigidBody *rb = body_iter->second;
+            if (m_dynamicsWorld && rb && rb->getMotionState())
+            {
+                m_dynamicsWorld->removeCollisionObject(rb);
+                delete rb->getMotionState();
+                delete rb;
+            }
+        }
         
         if(iter == m_mesh_shape_map.end())
         {
-            if(!col_shape)
-                col_shape = createCollisionShape(the_mesh, the_mesh->scale());
+            if(!col_shape){ col_shape = createCollisionShape(the_mesh, the_mesh->scale()); }
             m_mesh_shape_map[the_mesh] = col_shape;
             m_collisionShapes.insert(col_shape);
         }
@@ -275,7 +295,46 @@ namespace kinski{ namespace physics{
         
         //add the body to the dynamics world
         m_dynamicsWorld->addRigidBody(body);
+        m_mesh_rigidbody_map[the_mesh] = body;
         return body;
+    }
+    
+    void physics_context::set_world_boundaries(const glm::vec3 &the_half_extents,
+                                               const glm::vec3 &the_origin)
+    {
+        // add static plane boundaries
+        physics::btCollisionShapePtr
+        ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), the_origin[1] - the_half_extents[1])),
+        front_plane(new btStaticPlaneShape(btVector3(0, 0, -1), the_origin[2] - the_half_extents[2])),
+        back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), the_origin[2] - the_half_extents[2])),
+        left_plane(new btStaticPlaneShape(btVector3(1, 0, 0), the_origin[0] - the_half_extents[0])),
+        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), the_origin[0] - the_half_extents[0])),
+        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), the_origin[1] - the_half_extents[1]));
+        
+        m_bounding_shapes = {ground_plane, front_plane, back_plane, left_plane, right_plane, top_plane};
+        
+        // remove previous bounding bodies
+        for(btRigidBody *rb : m_bounding_bodies)
+        {        
+            if (m_dynamicsWorld && rb)
+            {
+                m_dynamicsWorld->removeCollisionObject(rb);
+                delete rb;
+            }
+        }
+        
+        for (const auto &shape : m_bounding_shapes)
+        {
+            btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, nullptr, shape.get());
+            btRigidBody* body = new btRigidBody(rbInfo);
+            body->setFriction(.1f);
+            body->setRestitution(0);
+            body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+            body->setActivationState(DISABLE_DEACTIVATION);
+            
+            //add the body to the dynamics world
+            m_dynamicsWorld->addRigidBody(body);
+        }
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/
@@ -306,7 +365,7 @@ namespace kinski{ namespace physics{
         *indexbase = reinterpret_cast<unsigned char*>(&geom->indices()[e.base_index]);
         indexstride = 3 * sizeof(geom->indices()[0]);
         numfaces = e.num_indices / 3;
-        indicestype = PHY_INTEGER;
+        indicestype = geom->indexType() == GL_UNSIGNED_INT ? PHY_INTEGER : PHY_SHORT;
     }
     
     void Mesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
@@ -328,7 +387,7 @@ namespace kinski{ namespace physics{
         *indexbase = reinterpret_cast<const unsigned char*>(&geom->indices()[e.base_index]);
         indexstride = 3 * sizeof(geom->indices()[0]);
         numfaces = e.num_indices / 3;
-        indicestype = PHY_INTEGER;
+        indicestype = geom->indexType() == GL_UNSIGNED_INT ? PHY_INTEGER : PHY_SHORT;
     }
     
     /// unLockVertexBase finishes the access to a subpart of the triangle mesh

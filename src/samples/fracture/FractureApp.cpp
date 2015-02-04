@@ -35,6 +35,7 @@ void FractureApp::setup()
     
     // init physics
     m_physics.init();
+    m_physics.set_world_boundaries(vec3(50, 50, 200));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ void FractureApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-    m_physics.step_simulation(timeDelta);
+    m_physics.step_simulation(timeDelta, 0);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -218,4 +219,6 @@ void FractureApp::shoot_box(const glm::vec3 &the_half_extents)
     
     btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f));
     rb->setLinearVelocity(physics::type_cast(camera()->lookAt() * 100.f));
+//    rb->setCcdSweptSphereRadius(1 / 2.f);
+//    rb->setCcdMotionThreshold(1 / 2.f);
 }

@@ -25,6 +25,9 @@ namespace kinski { namespace gl {
         virtual ~Object3D(){};
         
         uint32_t getID() const {return m_id;};
+        const std::string name() const { return m_name; }
+        void set_name(const std::string &the_name){ m_name = the_name; }
+        
         bool enabled() const {return m_enabled;}
         void set_enabled(bool b = true){m_enabled = b;}
         bool billboard() const {return m_billboard;};
@@ -93,7 +96,12 @@ namespace kinski { namespace gl {
     private:
         
         static uint32_t s_idPool;
+        
+        //! unique id
         uint32_t m_id;
+        
+        //! user definable name
+        std::string m_name;
         
         //! enabled hint, can be used by Visitors
         bool m_enabled;

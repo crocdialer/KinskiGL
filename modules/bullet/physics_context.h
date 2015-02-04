@@ -9,10 +9,6 @@
 #ifndef __gl__physics_context__
 #define __gl__physics_context__
 
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-
 #include "core/Definitions.h"
 #include "btBulletDynamicsCommon.h"
 #include "gl/Mesh.h"
@@ -211,7 +207,7 @@ namespace kinski{ namespace physics{
         ~physics_context();
         
         void init();
-        void step_simulation(float timestep);
+        void step_simulation(float timestep, int max_sub_steps = 1, float fixed_time_step = 1.f / 60.f);
         void debug_render(gl::CameraPtr the_cam);
         void teardown();
         
@@ -224,7 +220,7 @@ namespace kinski{ namespace physics{
         void near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,
                            btDispatcherInfo& dispatchInfo);
         
-        /*
+        /*!
          * Add a kinski::MeshPtr instance to the physics simulation,
          * with an optional collision shape.
          * If no collision shape is provided, a (static) btBvhTriangleMeshShape instance will be created.
@@ -233,9 +229,23 @@ namespace kinski{ namespace physics{
         btRigidBody* add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass = 0.f,
                                             btCollisionShapePtr col_shape = btCollisionShapePtr());
         
+        /*!
+         * return a pointer to the corresponding btRigidBody for the_mesh
+         * or nullptr if not found
+         */
+        btRigidBody* get_rigidbody_for_mesh(gl::MeshWeakPtr the_mesh);
+        
+        /*!
+         * set where to position static planes as boundaries for the entire physics scene
+         */
+        void set_world_boundaries(const glm::vec3 &the_half_extents,
+                                  const glm::vec3 &the_origin = glm::vec3(0));
+        
      private:
         
         std::map<gl::MeshPtr, btCollisionShapePtr> m_mesh_shape_map;
+        std::map<gl::MeshWeakPtr, btRigidBody*, std::owner_less<gl::MeshWeakPtr>> m_mesh_rigidbody_map;
+        
         std::set<btCollisionShapePtr> m_collisionShapes;
         std::shared_ptr<btBroadphaseInterface> m_broadphase;
         std::shared_ptr<btCollisionDispatcher> m_dispatcher;
@@ -249,7 +259,8 @@ namespace kinski{ namespace physics{
         
         std::shared_ptr<BulletDebugDrawer> m_debug_drawer;
         
-        std::mutex m_mutex;
+        std::vector<btCollisionShapePtr> m_bounding_shapes;
+        std::vector<btRigidBody*> m_bounding_bodies;
     };
 }}//namespace
 
