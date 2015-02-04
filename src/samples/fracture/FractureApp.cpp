@@ -30,12 +30,12 @@ void FractureApp::setup()
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }
     
-    load_settings();
-    m_light_component->refresh();
-    
     // init physics
     m_physics.init();
-    m_physics.set_world_boundaries(vec3(50, 50, 200));
+    m_physics.set_world_boundaries(vec3(500, 500, 500), vec3(0, -250, 0));
+    
+    load_settings();
+    m_light_component->refresh();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -44,7 +44,7 @@ void FractureApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-    m_physics.step_simulation(timeDelta, 0);
+    m_physics.step_simulation(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -94,7 +94,11 @@ void FractureApp::mousePress(const MouseEvent &e)
 {
     ViewerApp::mousePress(e);
     
-    if(e.isRight()){ shoot_box(); }
+    if(e.isRight())
+    {
+        auto ray = gl::calculateRay(camera(), e.getX(), e.getY());
+        shoot_box();
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -197,13 +201,15 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             for(auto &t : m->material()->textures()){ textures().push_back(t); }
             
             scene().removeObject(m_mesh);
+            m_physics.remove_mesh_from_simulation(m_mesh);
             m_mesh = m;
-            scene().addObject(m_mesh);
             
             auto aabb = m->boundingBox();
-            
             float scale_factor = 50.f / aabb.width();
             m->setScale(scale_factor);
+            
+            scene().addObject(m_mesh);
+            m_physics.add_mesh_to_simulation(m_mesh);
         }
     }
 }
@@ -213,12 +219,16 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
 void FractureApp::shoot_box(const glm::vec3 &the_half_extents)
 {
     gl::GeometryPtr geom = gl::Geometry::createBox(the_half_extents);
+    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
+    
     gl::MeshPtr mesh = gl::Mesh::create(geom, gl::Material::create());
     mesh->setPosition(camera()->position());
     scene().addObject(mesh);
     
-    btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f));
-    rb->setLinearVelocity(physics::type_cast(camera()->lookAt() * 100.f));
-//    rb->setCcdSweptSphereRadius(1 / 2.f);
-//    rb->setCcdMotionThreshold(1 / 2.f);
+    
+    btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f),
+                                                       box_shape);
+    rb->setLinearVelocity(physics::type_cast(camera()->lookAt() * 160.f));
+    rb->setCcdSweptSphereRadius(1 / 2.f);
+    rb->setCcdMotionThreshold(1 / 2.f);
 }

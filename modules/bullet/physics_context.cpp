@@ -246,6 +246,8 @@ namespace kinski{ namespace physics{
     btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass,
                                                          btCollisionShapePtr col_shape)
     {
+        if(!m_dynamicsWorld) return nullptr;
+        
         // look for an existing col_shape for this mesh
         auto iter = m_mesh_shape_map.find(the_mesh);
         auto body_iter = m_mesh_rigidbody_map.find(the_mesh);
@@ -297,6 +299,21 @@ namespace kinski{ namespace physics{
         m_dynamicsWorld->addRigidBody(body);
         m_mesh_rigidbody_map[the_mesh] = body;
         return body;
+    }
+    
+    bool physics_context::remove_mesh_from_simulation(const gl::MeshPtr &the_mesh)
+    {
+        btRigidBody *rb = get_rigidbody_for_mesh(the_mesh);
+
+        if(!rb){ return false; }
+        if (m_dynamicsWorld)
+        {
+            m_dynamicsWorld->removeCollisionObject(rb);
+            if(rb->getMotionState()){ delete rb->getMotionState(); }
+            delete rb;
+        }
+        
+        return true;
     }
     
     void physics_context::set_world_boundaries(const glm::vec3 &the_half_extents,

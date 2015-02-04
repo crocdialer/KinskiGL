@@ -229,6 +229,8 @@ namespace kinski{ namespace physics{
         btRigidBody* add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass = 0.f,
                                             btCollisionShapePtr col_shape = btCollisionShapePtr());
         
+        bool remove_mesh_from_simulation(const gl::MeshPtr &the_mesh);
+        
         /*!
          * return a pointer to the corresponding btRigidBody for the_mesh
          * or nullptr if not found
