@@ -132,6 +132,8 @@ namespace kinski{ namespace physics{
     
     void physics_context::init()
     {
+        teardown();
+        
         LOG_DEBUG<<"initializing physics";
         
         ///collision configuration contains default setup for memory, collision setup
@@ -322,11 +324,11 @@ namespace kinski{ namespace physics{
         // add static plane boundaries
         physics::btCollisionShapePtr
         ground_plane (new btStaticPlaneShape(btVector3(0, 1, 0), the_origin[1] - the_half_extents[1])),
-        front_plane(new btStaticPlaneShape(btVector3(0, 0, -1), the_origin[2] - the_half_extents[2])),
+        front_plane(new btStaticPlaneShape(btVector3(0, 0, -1), -the_origin[2] - the_half_extents[2])),
         back_plane(new btStaticPlaneShape(btVector3(0, 0, 1), the_origin[2] - the_half_extents[2])),
         left_plane(new btStaticPlaneShape(btVector3(1, 0, 0), the_origin[0] - the_half_extents[0])),
-        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), the_origin[0] - the_half_extents[0])),
-        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), the_origin[1] - the_half_extents[1]));
+        right_plane(new btStaticPlaneShape(btVector3(-1, 0, 0), -the_origin[0] - the_half_extents[0])),
+        top_plane(new btStaticPlaneShape(btVector3(0, -1, 0), -the_origin[1] - the_half_extents[1]));
         
         m_bounding_shapes = {ground_plane, front_plane, back_plane, left_plane, right_plane, top_plane};
         
@@ -335,7 +337,7 @@ namespace kinski{ namespace physics{
         {        
             if (m_dynamicsWorld && rb)
             {
-                m_dynamicsWorld->removeCollisionObject(rb);
+                m_dynamicsWorld->removeRigidBody(rb);
                 delete rb;
             }
         }
@@ -346,8 +348,8 @@ namespace kinski{ namespace physics{
             btRigidBody* body = new btRigidBody(rbInfo);
             body->setFriction(.1f);
             body->setRestitution(0);
-            body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-            body->setActivationState(DISABLE_DEACTIVATION);
+//            body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+//            body->setActivationState(DISABLE_DEACTIVATION);
             
             //add the body to the dynamics world
             m_dynamicsWorld->addRigidBody(body);

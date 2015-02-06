@@ -29,7 +29,12 @@ namespace kinski
         
         Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
         
-        void shoot_box(const glm::vec3 &the_half_extents = glm::vec3(1));
+        
+        physics::btCollisionShapePtr m_box_shape;
+        gl::GeometryPtr m_box_geom;
+        
+        void shoot_box(const gl::Ray &the_ray, float the_velocity,
+                       const glm::vec3 &the_half_extents = glm::vec3(.5f));
         
     public:
         
