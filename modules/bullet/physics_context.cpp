@@ -199,8 +199,20 @@ namespace kinski{ namespace physics{
     {
         if(!m_dynamicsWorld) return;
         
+        //cleanup in the reverse order of creation/initialization
+        
         int i;
-        for (i = m_dynamicsWorld->getNumCollisionObjects()-1; i>=0 ;i--)
+        //remove all constraints
+        for (i = m_dynamicsWorld->getNumConstraints() - 1; i >= 0; i--)
+        {
+            btTypedConstraint* constraint = m_dynamicsWorld->getConstraint(i);
+            m_dynamicsWorld->removeConstraint(constraint);
+            delete constraint;
+        }
+        
+        //remove the rigidbodies from the dynamics world and delete them
+        
+        for (i = m_dynamicsWorld->getNumCollisionObjects()- 1; i>= 0; i--)
         {
             btCollisionObject* obj = m_dynamicsWorld->getCollisionObjectArray()[i];
             btRigidBody* body = btRigidBody::upcast(obj);
@@ -244,7 +256,6 @@ namespace kinski{ namespace physics{
         return nullptr;
     }
     
-    //TODO: think about this carefully, not having doubles and stuff
     btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass,
                                                          btCollisionShapePtr col_shape)
     {

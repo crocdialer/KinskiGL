@@ -32,11 +32,12 @@ void FractureApp::setup()
     
     // init physics
     m_physics.init();
+    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
     
+    // box shooting stuff
     m_box_shape = std::make_shared<btBoxShape>(btVector3(.5f, .5f, .5f));
     m_box_geom = gl::Geometry::createBox(vec3(.5f));
     
-//    m_physics.set_world_boundaries(vec3(40), vec3(0));
     
     load_settings();
     m_light_component->refresh();
@@ -214,8 +215,6 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             
             scene().addObject(m_mesh);
             m_physics.add_mesh_to_simulation(m_mesh);
-            
-            m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
         }
     }
 }
@@ -225,7 +224,7 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
 void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
                             const glm::vec3 &the_half_extents)
 {
-    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
+//    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
     
     gl::MeshPtr mesh = gl::Mesh::create(m_box_geom, gl::Material::create());
     mesh->setScale(2.f * the_half_extents);
@@ -234,7 +233,7 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
     
     
     btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f),
-                                                       box_shape);
+                                                       m_box_shape);
     rb->setLinearVelocity(physics::type_cast(the_ray.direction * the_velocity));
     rb->setCcdSweptSphereRadius(1 / 2.f);
     rb->setCcdMotionThreshold(1 / 2.f);
