@@ -261,9 +261,12 @@ void FractureApp::fracture_test()
     t.start();
     
     scene().clear();
+    for(auto &l : lights()){ scene().addObject(l); }
     
-    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
-    //    m->setPosition(vec3(0, 500, 0));
+//    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
+    auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
+    
+    m->setPosition(vec3(0, 10, 0));
     auto aabb = m->boundingBox().transform(m->transform());
     
     // voronoi points
@@ -279,8 +282,7 @@ void FractureApp::fracture_test()
     {
         scene().addObject(sm);
         
-//        sm->material()->setShader(phong_shader);
-//        sm->material()->setWireframe();
+        sm->material()->setShader(phong_shader);
         sm->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
     }
     
