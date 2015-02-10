@@ -56,6 +56,7 @@
 #define GL_ENUM(sym) sym
 #endif
 
+//#define GLM_FORCE_CXX11
 #define GLM_SWIZZLE
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -178,7 +179,7 @@ namespace kinski { namespace gl {
     KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
     KINSKI_API void drawTransform(const glm::mat4& the_transform, float the_scale = 1.f);
-    KINSKI_API void drawBoundingBox(const MeshPtr &theMesh);
+    KINSKI_API void drawBoundingBox(const Object3DPtr &the_obj);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
     KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
                                const MaterialPtr &theMaterial = MaterialPtr(),

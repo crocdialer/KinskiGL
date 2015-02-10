@@ -6,6 +6,7 @@
 //
 //
 
+#include "core/Timer.h"
 #include "FractureApp.h"
 #include "AssimpConnector.h"
 
@@ -41,6 +42,8 @@ void FractureApp::setup()
     
     load_settings();
     m_light_component->refresh();
+    
+    fracture_test();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -84,6 +87,19 @@ void FractureApp::resize(int w ,int h)
 void FractureApp::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
+    
+    if(!displayTweakBar())
+    {
+        switch (e.getCode())
+        {
+            case GLFW_KEY_V:
+                fracture_test();
+                break;
+                
+            default:
+                break;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -237,4 +253,36 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
     rb->setLinearVelocity(physics::type_cast(the_ray.direction * the_velocity));
     rb->setCcdSweptSphereRadius(1 / 2.f);
     rb->setCcdMotionThreshold(1 / 2.f);
+}
+
+void FractureApp::fracture_test()
+{
+    Stopwatch t;
+    t.start();
+    
+    scene().clear();
+    
+    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
+    //    m->setPosition(vec3(0, 500, 0));
+    auto aabb = m->boundingBox().transform(m->transform());
+    
+    // voronoi points
+    std::vector<glm::vec3> voronoi_points;
+    voronoi_points.resize(10);
+    for(auto &vp : voronoi_points){ vp = glm::linearRand(aabb.min, aabb.max); }
+    
+    auto phong_shader = gl::createShader(gl::SHADER_PHONG);
+    auto sr = physics::voronoi_convex_hull_shatter(voronoi_points, m, 3.f);
+    
+    
+    for(auto &sm : sr.shard_meshes)
+    {
+        scene().addObject(sm);
+        
+//        sm->material()->setShader(phong_shader);
+//        sm->material()->setWireframe();
+        sm->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
+    }
+    
+    LOG_DEBUG << "fracturing took " << t.time_elapsed() << "secs";
 }

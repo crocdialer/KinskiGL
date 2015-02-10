@@ -36,6 +36,8 @@ namespace kinski
         void shoot_box(const gl::Ray &the_ray, float the_velocity,
                        const glm::vec3 &the_half_extents = glm::vec3(.5f));
         
+        void fracture_test();
+        
     public:
         
         void setup() override;

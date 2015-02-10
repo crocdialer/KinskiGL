@@ -995,14 +995,14 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawBoundingBox(const MeshPtr &the_mesh)
+    void drawBoundingBox(const Object3DPtr &the_obj)
     {
         static vec4 colorWhite(1.0), colorRed(1.0, 0, 0 ,1.0);
         static MeshPtr line_mesh;
+        if(!the_obj) return;
 
         if(!line_mesh)
         {
-            if(!the_mesh) return;
             
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
@@ -1059,7 +1059,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             geom->createGLBuffers();
             line_mesh->createVertexArray();
         }
-        AABB mesh_bb = the_mesh->boundingBox();
+        AABB mesh_bb = the_obj->boundingBox();
         glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
         
         glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(mesh_bb.width(),
