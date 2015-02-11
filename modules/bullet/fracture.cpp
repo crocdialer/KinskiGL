@@ -52,10 +52,12 @@ namespace kinski{namespace physics{
         int cellnum = 0;
         int i, j, k;
         
-        // Convert verts to world space and get convexPlanes
+        // Normalize verts (numerical stability), convert to world space and get convexPlanes
         int numverts = mesh_verts.size();
+        auto aabb = the_mesh->boundingBox();
+        float scale_val = 1.f;//std::max(std::max(aabb.width(), aabb.height()), aabb.depth());
         
-        auto mesh_transform = the_mesh->global_transform();
+        auto mesh_transform = the_mesh->global_transform() * scale(glm::mat4(), vec3(1.f / scale_val));
         std::vector<glm::vec3> world_space_verts;
         
         world_space_verts.resize(mesh_verts.size());
@@ -199,6 +201,7 @@ namespace kinski{namespace physics{
             
             auto m = gl::Mesh::create(geom, gl::Material::create());
             m->setPosition(curVoronoiPoint + type_cast(com));
+            m->transform() *= glm::scale(mat4(), vec3(scale_val));
             ret.shard_meshes.push_back(m);
             
             cellnum ++;

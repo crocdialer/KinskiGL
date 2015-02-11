@@ -21,6 +21,9 @@ void FractureApp::setup()
     ViewerApp::setup();
     
     registerProperty(m_model_path);
+    registerProperty(m_physics_running);
+    registerProperty(m_physics_debug_draw);
+    registerProperty(m_num_fracture_shards);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -43,7 +46,7 @@ void FractureApp::setup()
     load_settings();
     m_light_component->refresh();
     
-    fracture_test();
+    fracture_test(*m_num_fracture_shards);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -52,7 +55,7 @@ void FractureApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-    m_physics.step_simulation(timeDelta);
+    if(*m_physics_running){ m_physics.step_simulation(timeDelta); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -67,9 +70,9 @@ void FractureApp::draw()
         for (auto l : lights()){ gl::drawLight(l); }
     }
     
-    scene().render(camera());
+    if(*m_physics_debug_draw){ m_physics.debug_render(camera()); }
+    else{ scene().render(camera()); }
     
-    m_physics.debug_render(camera());
     
     // draw texture map(s)
     if(displayTweakBar()){ draw_textures(); }
@@ -93,7 +96,10 @@ void FractureApp::keyPress(const KeyEvent &e)
         switch (e.getCode())
         {
             case GLFW_KEY_V:
-                fracture_test();
+                fracture_test(*m_num_fracture_shards);
+                break;
+            case GLFW_KEY_P:
+                *m_physics_running = !*m_physics_running;
                 break;
                 
             default:
@@ -215,6 +221,7 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_model_path)
     {
+        addSearchPath(getDirectoryPart(*m_model_path));
         gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_model_path);
         
         if(m)
@@ -255,23 +262,29 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
     rb->setCcdMotionThreshold(1 / 2.f);
 }
 
-void FractureApp::fracture_test()
+void FractureApp::fracture_test(uint32_t num_shards)
 {
     Stopwatch t;
     t.start();
     
     scene().clear();
+    m_physics.init();
+    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
+    
+    scene().addObject(m_mesh);
+    m_physics.add_mesh_to_simulation(m_mesh);
+    
     for(auto &l : lights()){ scene().addObject(l); }
     
 //    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
     auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
     
-    m->setPosition(vec3(0, 10, 0));
+    m->setPosition(vec3(0, 60, 0));
     auto aabb = m->boundingBox().transform(m->transform());
     
     // voronoi points
     std::vector<glm::vec3> voronoi_points;
-    voronoi_points.resize(10);
+    voronoi_points.resize(num_shards);
     for(auto &vp : voronoi_points){ vp = glm::linearRand(aabb.min, aabb.max); }
     
     auto phong_shader = gl::createShader(gl::SHADER_PHONG);
@@ -284,6 +297,9 @@ void FractureApp::fracture_test()
         
         sm->material()->setShader(phong_shader);
         sm->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
+        
+        auto col_shape = physics::createConvexCollisionShape(sm);
+        btRigidBody* rb = m_physics.add_mesh_to_simulation(sm, 1.f, col_shape);
     }
     
     LOG_DEBUG << "fracturing took " << t.time_elapsed() << "secs";

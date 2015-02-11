@@ -30,13 +30,20 @@ namespace kinski
         Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
         
         
+        Property_<bool>::Ptr
+        m_physics_running = Property_<bool>::create("physics running", true),
+        m_physics_debug_draw = Property_<bool>::create("physics debug draw", true);
+        
+        Property_<uint32_t>::Ptr
+        m_num_fracture_shards = Property_<uint32_t>::create("num fracture shards", 20);
+        
         physics::btCollisionShapePtr m_box_shape;
         gl::GeometryPtr m_box_geom;
         
         void shoot_box(const gl::Ray &the_ray, float the_velocity,
                        const glm::vec3 &the_half_extents = glm::vec3(.5f));
         
-        void fracture_test();
+        void fracture_test(uint32_t num_shards);
         
     public:
         
