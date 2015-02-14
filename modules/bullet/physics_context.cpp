@@ -259,7 +259,7 @@ namespace kinski{ namespace physics{
     btRigidBody* physics_context::add_mesh_to_simulation(const gl::MeshPtr &the_mesh, float mass,
                                                          btCollisionShapePtr col_shape)
     {
-        if(!m_dynamicsWorld) return nullptr;
+        if(!m_dynamicsWorld || !the_mesh) return nullptr;
         
         // look for an existing col_shape for this mesh
         auto iter = m_mesh_shape_map.find(the_mesh);

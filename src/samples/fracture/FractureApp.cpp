@@ -271,14 +271,17 @@ void FractureApp::fracture_test(uint32_t num_shards)
     m_physics.init();
     m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
     
-    scene().addObject(m_mesh);
-    m_physics.add_mesh_to_simulation(m_mesh);
+    if(m_mesh)
+    {
+        scene().addObject(m_mesh);
+        m_physics.add_mesh_to_simulation(m_mesh);
+    }
     
     for(auto &l : lights()){ scene().addObject(l); }
     
 //    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
-    auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
-    
+    auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), gl::Material::create());
+    m->setScale(vec3(5, 1, 3));
     m->setPosition(vec3(0, 60, 0));
     auto aabb = m->boundingBox().transform(m->transform());
     

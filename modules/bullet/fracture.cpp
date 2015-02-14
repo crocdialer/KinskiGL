@@ -54,10 +54,10 @@ namespace kinski{namespace physics{
         
         // Normalize verts (numerical stability), convert to world space and get convexPlanes
         int numverts = mesh_verts.size();
-        auto aabb = the_mesh->boundingBox();
-        float scale_val = 1.f;//std::max(std::max(aabb.width(), aabb.height()), aabb.depth());
+//        auto aabb = the_mesh->boundingBox();
+//        float scale_val = 1.f;//std::max(std::max(aabb.width(), aabb.height()), aabb.depth());
         
-        auto mesh_transform = the_mesh->global_transform() * scale(glm::mat4(), vec3(1.f / scale_val));
+        auto mesh_transform = the_mesh->global_transform() ;//* scale(glm::mat4(), vec3(1.f / scale_val));
         std::vector<glm::vec3> world_space_verts;
         
         world_space_verts.resize(mesh_verts.size());
@@ -150,8 +150,6 @@ namespace kinski{namespace physics{
             btScalar volume = btScalar(0.);
             btVector3 com(0., 0., 0.);
             
-            std::vector<gl::Face3> my_faces;
-            
             for (j = 0; j < numFaces; j++)
             {
                 const btConvexHullComputer::Edge* edge = &convexHC->edges[convexHC->faces[j]];
@@ -167,7 +165,6 @@ namespace kinski{namespace physics{
                     volume += vol;
                     com += vol * (convexHC->vertices[v0] + convexHC->vertices[v1] + convexHC->vertices[v2]);
                     edge = edge->getNextEdgeOfFace();
-                    my_faces.push_back(gl::Face3(v0, v1, v2));
                     
                     v1 = v2;
                     v2 = edge->getTargetVertex();
@@ -182,27 +179,70 @@ namespace kinski{namespace physics{
             {
                 convexHC->vertices[j] -= com;
             }
-
-            // create gl::Mesh object for the shard
-            auto geom = gl::Geometry::create();
-            auto &out_verts = geom->vertices();
-            out_verts.resize(numVerts);
             
-            // verts
-            for(int i = 0; i < out_verts.size(); i++)
+            // now create our output geometry with indices
+            std::vector<gl::Face3> out_faces;
+            std::vector<glm::vec3> out_vertices;
+            int cur_index = 0;
+            
+            for (j = 0; j < numFaces; j++)
             {
-                out_verts[i] = type_cast(convexHC->vertices[i]);
+                const btConvexHullComputer::Edge* edge = &convexHC->edges[convexHC->faces[j]];
+                v0 = edge->getSourceVertex();
+                v1 = edge->getTargetVertex();
+                edge = edge->getNextEdgeOfFace();
+                v2 = edge->getTargetVertex();
+                
+                int face_start_index = cur_index;
+                
+                // advance index
+                cur_index += 3;
+                
+                // first 3 verts of n-gon
+                glm::vec3 tmp[] = { type_cast(convexHC->vertices[v0]),
+                                    type_cast(convexHC->vertices[v1]),
+                                    type_cast(convexHC->vertices[v2])};
+                
+                out_vertices.insert(out_vertices.end(), tmp, tmp + 3);
+                out_faces.push_back(gl::Face3(face_start_index,
+                                              face_start_index + 1,
+                                              face_start_index + 2));
+                
+                // add remaining triangles of face (if any)
+                while (true)
+                {
+                    edge = edge->getNextEdgeOfFace();
+                    v1 = v2;
+                    v2 = edge->getTargetVertex();
+                    
+                    // end of n-gon
+                    if(v2 == v0) break;
+                    
+                    out_vertices.push_back(type_cast(convexHC->vertices[v2]));
+                    out_faces.push_back(gl::Face3(face_start_index,
+                                                  cur_index - 1,
+                                                  cur_index));
+                    cur_index++;
+                }
             }
             
-            // indices
-            geom->appendFaces(my_faces);
-            geom->computeVertexNormals();
+            // create gl::Mesh object for the shard
+            auto geom = gl::Geometry::create();
+            
+            // append verts and indices
+            geom->appendFaces(out_faces);
+            geom->appendVertices(out_vertices);
+            geom->computeFaceNormals();
+            
             geom->computeBoundingBox();
             
             auto m = gl::Mesh::create(geom, gl::Material::create());
             m->setPosition(curVoronoiPoint + type_cast(com));
-            m->transform() *= glm::scale(mat4(), vec3(scale_val));
+//            m->transform() *= glm::scale(mat4(), vec3(scale_val));
+            
+            // push to return structure
             ret.shard_meshes.push_back(m);
+            ret.volumes.push_back(volume);
             
             cellnum ++;
             
@@ -214,6 +254,7 @@ namespace kinski{namespace physics{
     
 }}// namespace
 
+// TODO: this routine appears to be numerically instable ...
 void getVerticesInsidePlanes(const btAlignedObjectArray<btVector3>& planes,
                              btAlignedObjectArray<btVector3>& verticesOut,
                              std::set<int>& planeIndicesOut)

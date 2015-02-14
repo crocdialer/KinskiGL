@@ -10,7 +10,10 @@
 #define __gl__physics_context__
 
 #include "core/Definitions.h"
+
+//#define BT_USE_DOUBLE_PRECISION
 #include "btBulletDynamicsCommon.h"
+
 #include "gl/Mesh.h"
 
 class btThreadSupportInterface;
@@ -273,6 +276,7 @@ namespace kinski{ namespace physics{
         std::list<btRigidBody*> rigid_bodies;
         std::list<btFixedConstraint*> constraints;
         std::list<gl::MeshPtr> shard_meshes;
+        std::list<float> volumes;
     };
     
     ShatterResult voronoi_convex_hull_shatter(const std::vector<glm::vec3>& the_voronoi_points,
