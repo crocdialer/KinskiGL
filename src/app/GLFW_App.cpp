@@ -78,9 +78,9 @@ namespace kinski
         glfwWindowHint(GLFW_GREEN_BITS, num_color_bits);
         glfwWindowHint(GLFW_BLUE_BITS, num_color_bits);
         
-        // request an OpenGl 3.2 Context
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3 );
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2 );
+        // request an OpenGl 4.1 Context
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_SAMPLES, 4);
