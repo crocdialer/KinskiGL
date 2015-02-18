@@ -1,15 +1,23 @@
-#version 330
+#version 410
 
 uniform mat4 u_modelViewMatrix; 
 uniform mat4 u_modelViewProjectionMatrix; 
-uniform float u_pointSize; 
 
-uniform struct
+struct Material
 {
-  float constant; 
-  float linear; 
-  float quadratic; 
-} u_point_attenuation; 
+  vec4 diffuse; 
+  vec4 ambient; 
+  vec4 specular; 
+  vec4 emission; 
+  float shinyness;
+  float point_size; 
+  struct
+  {
+    float constant; 
+    float linear; 
+    float quadratic; 
+  } point_attenuation;
+}; 
 
 layout(location = 0) in vec4 a_vertex; 
 //layout(location = 1) in vec3 a_normal; 

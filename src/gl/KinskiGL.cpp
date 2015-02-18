@@ -865,6 +865,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             {
                 mat->uniform("u_bones", theMesh->boneMatrices());
             }
+            
+            GLuint block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
+            glUniformBlockBinding(mat->shader().getHandle(), block_index, 0);
         }
         gl::apply_material(theMesh->material());
         KINSKI_CHECK_GL_ERRORS();
@@ -1262,7 +1265,6 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 glEnable(GL_PROGRAM_POINT_SIZE);
                 glPointSize(the_mat->pointSize());
 #endif
-                the_mat->shader().uniform("u_pointSize", the_mat->pointSize());
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
@@ -1312,6 +1314,8 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         }
         
         KINSKI_CHECK_GL_ERRORS();
+        
+        the_mat->update_uniform_buffer();
         
         // set all other uniform values
         Material::UniformMap::const_iterator it = the_mat->uniforms().begin();

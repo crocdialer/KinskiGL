@@ -13,6 +13,7 @@
 #include <boost/variant.hpp>
 #include "KinskiGL.h"
 #include "Shader.h"
+#include "Buffer.h"
 #include "Texture.h"
 
 namespace kinski { namespace gl {
@@ -40,10 +41,14 @@ namespace kinski { namespace gl {
         
         Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
 
+        bool dirty() const { return m_dirty; };
+        
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; };
+        
+        void update_uniform_buffer();
         
         Shader& shader() {return m_shader;};
         const Shader& shader() const {return m_shader;};
@@ -93,16 +98,12 @@ namespace kinski { namespace gl {
         
     private:
         
-        mutable Shader m_shader;
+        Shader m_shader;
+        
         UniformMap m_uniforms;
+        gl::Buffer m_uniform_buffer;
         
-        std::vector<Texture> m_textures;
-        
-        Color m_diffuse;
-        Color m_ambient;
-        Color m_specular;
-        Color m_emission;
-        float m_shinyness;
+        bool m_dirty;
         
         GLenum m_polygonMode;
         bool m_twoSided;
@@ -111,6 +112,15 @@ namespace kinski { namespace gl {
         bool m_depthWrite;
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
+        
+        // those are available in shader
+        Color m_diffuse;
+        Color m_ambient;
+        Color m_specular;
+        Color m_emission;
+        float m_shinyness;
+        
+        std::vector<Texture> m_textures;
         
         // point attributes
         float m_pointSize;

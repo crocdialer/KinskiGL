@@ -6,7 +6,14 @@ struct Material
   vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
-  float shinyness; 
+  float shinyness;
+  float point_size; 
+  struct
+  {
+    float constant; 
+    float linear; 
+    float quadratic; 
+  } point_attenuation;
 };
 
 uniform int u_numLights; 

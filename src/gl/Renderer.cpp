@@ -104,6 +104,8 @@ namespace kinski{ namespace gl{
                 GLuint block_index = mat->shader().getUniformBlockIndex("LightBlock");
                 glUniformBlockBinding(mat->shader().getHandle(), block_index, LIGHT_BLOCK);
                 
+                block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
+                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATERIAL_BLOCK);
             }
             gl::apply_material(m->material());
             

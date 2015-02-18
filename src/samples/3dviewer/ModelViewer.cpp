@@ -177,13 +177,11 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_model_path)
     {
+        addSearchPath(getDirectoryPart(*m_model_path));
         gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_model_path);
         
         if(m)
         {
-//            m->material()->setShader(gl::createShader(gl::SHADER_UNLIT));
-//            m->createVertexArray();
-            
             for(auto &t : m->material()->textures()){ textures().push_back(t); }
             
             scene().removeObject(m_mesh);

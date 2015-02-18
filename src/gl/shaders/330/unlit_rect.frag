@@ -3,14 +3,26 @@
 uniform int u_numTextures;
 uniform sampler2DRect u_sampler_2Drect[1];
 
-uniform struct Material 
+struct Material
 {
-  vec4 diffuse;
-  vec4 ambient;
+  vec4 diffuse; 
+  vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
-  float shinyness; 
-} u_material;
+  float shinyness;
+  float point_size; 
+  struct
+  {
+    float constant; 
+    float linear; 
+    float quadratic; 
+  } point_attenuation;
+};
+
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
 
 in VertexData
 {

@@ -1,15 +1,28 @@
-#version 330
+#version 410
 
 uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[1]; 
 
-uniform struct
+struct Material
 {
   vec4 diffuse; 
   vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
-} u_material; 
+  float shinyness;
+  float point_size; 
+  struct
+  {
+    float constant; 
+    float linear; 
+    float quadratic; 
+  } point_attenuation;
+}; 
+
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
 
 in vec4 v_color; 
 

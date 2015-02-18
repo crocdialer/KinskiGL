@@ -1,12 +1,19 @@
 #version 410
 
-uniform struct Material
+struct Material
 {
   vec4 diffuse; 
   vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
-  float shinyness; 
+  float shinyness;
+  float point_size; 
+  struct
+  {
+    float constant; 
+    float linear; 
+    float quadratic; 
+  } point_attenuation;
 };
 
 struct Lightsource
@@ -60,13 +67,12 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   return base_color * (ambient + diffuse) + spec; 
 }
 
-uniform Material u_material;
-//layout(std140) uniform MaterialBlock
-//{
-//  Material u_material;
-//};
+//uniform Material u_material;
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
 
-//uniform Lightsource u_lights[16]; 
 layout(std140) uniform LightBlock
 {
   int u_numLights;
