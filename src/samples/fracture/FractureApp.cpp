@@ -233,7 +233,7 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh = m;
             
             auto aabb = m->boundingBox();
-            float scale_factor = 50.f / aabb.width();
+            float scale_factor = 10.f / aabb.width();
             m->setScale(scale_factor);
             
             scene().addObject(m_mesh);
@@ -269,7 +269,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     scene().clear();
     m_physics.init();
-    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
+    m_physics.set_world_boundaries(vec3(40), vec3(0, 40, 0));
     
     if(m_mesh)
     {
@@ -282,28 +282,29 @@ void FractureApp::fracture_test(uint32_t num_shards)
 //    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
     auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), gl::Material::create());
     m->setScale(vec3(5, 1, 3));
-    m->setPosition(vec3(0, 60, 0));
+    m->setPosition(vec3(0, 25, 0));
     auto aabb = m->boundingBox().transform(m->transform());
     
     // voronoi points
     std::vector<glm::vec3> voronoi_points;
     voronoi_points.resize(num_shards);
-    for(auto &vp : voronoi_points){ vp = glm::linearRand(aabb.min, aabb.max); }
+    for(auto &vp : voronoi_points){ vp = m->position() + glm::ballRand(2.f);}//(aabb.min, aabb.max); }
     
     auto phong_shader = gl::createShader(gl::SHADER_PHONG);
-    auto sr = physics::voronoi_convex_hull_shatter(voronoi_points, m, 3.f);
+    auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
+    auto mat = gl::Material::create(phong_shader);
     
-    
-    for(auto &sm : sr.shard_meshes)
+    for(auto &s : shards)
     {
-        scene().addObject(sm);
+        scene().addObject(s.mesh);
         
-        sm->material()->setShader(phong_shader);
-        sm->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
+        s.mesh->material() = mat;
+//        s.mesh->material()->setShader(phong_shader);
+//        s.mesh->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
         
-        auto col_shape = physics::createConvexCollisionShape(sm);
-        btRigidBody* rb = m_physics.add_mesh_to_simulation(sm, 1.f, col_shape);
+        auto col_shape = physics::createConvexCollisionShape(s.mesh);
+        btRigidBody* rb = m_physics.add_mesh_to_simulation(s.mesh, s.volume, col_shape);
     }
     
-    LOG_DEBUG << "fracturing took " << t.time_elapsed() << "secs";
+    LOG_DEBUG << "fracturing took " << t.time_elapsed() << " secs";
 }

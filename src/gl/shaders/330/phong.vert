@@ -1,30 +1,13 @@
-#version 330
-
-uniform int u_numLights;
-
-struct Lightsource
-{
-  int type; 
-  vec3 position; 
-  vec4 diffuse; 
-  vec4 ambient; 
-  vec4 specular; 
-  float constantAttenuation;
-  float linearAttenuation; 
-  float quadraticAttenuation; 
-  vec3 spotDirection; 
-  float spotCosCutoff; 
-  float spotExponent; 
-};
+#version 410
 
 uniform mat4 u_modelViewMatrix; 
 uniform mat4 u_modelViewProjectionMatrix; 
 uniform mat3 u_normalMatrix; 
 uniform mat4 u_textureMatrix; 
 
-in vec4 a_vertex; 
-in vec3 a_normal; 
-in vec4 a_texCoord; 
+layout(location = 0) in vec4 a_vertex; 
+layout(location = 1) in vec3 a_normal; 
+layout(location = 2) in vec4 a_texCoord; 
 
 out VertexData
 {

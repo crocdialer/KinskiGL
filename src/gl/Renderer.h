@@ -57,15 +57,23 @@ namespace kinski{ namespace gl{
         typedef std::shared_ptr<Renderer> Ptr;
         typedef std::shared_ptr<const Renderer> ConstPtr;
         
-        Renderer(){};
+        enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0};
+        enum UniformBlockBinding {MATERIAL_BLOCK = 0, LIGHT_BLOCK = 1};
+        
+        Renderer();
         virtual ~Renderer(){};
         
         void render(const RenderBinPtr &theBin);
+        
         void set_light_uniforms(MaterialPtr &the_mat, const std::list<RenderBin::light> &light_list);
+        void update_uniform_buffers(const std::list<RenderBin::light> &light_list);
         
     private:
         void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
                                      const std::list<RenderBin::light> &light_list);
+        
+        gl::Buffer m_uniform_buffer[1];
+        
     };
     
 }}// namespace

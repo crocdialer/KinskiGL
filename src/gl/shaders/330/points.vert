@@ -11,9 +11,11 @@ uniform struct
   float quadratic; 
 } u_point_attenuation; 
 
-in vec4 a_vertex; 
-in float a_pointSize; 
-in vec4 a_color; 
+layout(location = 0) in vec4 a_vertex; 
+//layout(location = 1) in vec3 a_normal; 
+//layout(location = 2) in vec4 a_texCoord;
+layout(location = 3) in vec4 a_color; 
+layout(location = 4) in float a_pointSize; 
 
 out vec4 v_color; 
 out vec3 v_eyeVec; 

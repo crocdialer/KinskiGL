@@ -4,7 +4,7 @@
 
 
 char const* const gouraud_vert = 
-   "#version 330\n"
+   "#version 410\n"
    "struct Material\n"
    "{ \n"
    "   vec4 diffuse;\n"
@@ -66,9 +66,9 @@ char const* const gouraud_vert =
    "uniform mat4 u_textureMatrix; \n"
    "uniform Material u_material; \n"
    "uniform Lightsource u_lights[16]; \n"
-   "in vec4 a_vertex; \n"
-   "in vec3 a_normal; \n"
-   "in vec4 a_texCoord; \n"
+   "layout(location = 0) in vec4 a_vertex; \n"
+   "layout(location = 1) in vec3 a_normal; \n"
+   "layout(location = 2) in vec4 a_texCoord; \n"
    "out VertexData \n"
    "{\n"
    "  vec4 color;\n"
@@ -92,29 +92,14 @@ char const* const gouraud_vert =
 ;
 
 char const* const phong_vert = 
-   "#version 330\n"
-   "uniform int u_numLights;\n"
-   "struct Lightsource\n"
-   "{\n"
-   "  int type; \n"
-   "  vec3 position; \n"
-   "  vec4 diffuse; \n"
-   "  vec4 ambient; \n"
-   "  vec4 specular; \n"
-   "  float constantAttenuation;\n"
-   "  float linearAttenuation; \n"
-   "  float quadraticAttenuation; \n"
-   "  vec3 spotDirection; \n"
-   "  float spotCosCutoff; \n"
-   "  float spotExponent; \n"
-   "};\n"
+   "#version 410\n"
    "uniform mat4 u_modelViewMatrix; \n"
    "uniform mat4 u_modelViewProjectionMatrix; \n"
    "uniform mat3 u_normalMatrix; \n"
    "uniform mat4 u_textureMatrix; \n"
-   "in vec4 a_vertex; \n"
-   "in vec3 a_normal; \n"
-   "in vec4 a_texCoord; \n"
+   "layout(location = 0) in vec4 a_vertex; \n"
+   "layout(location = 1) in vec3 a_normal; \n"
+   "layout(location = 2) in vec4 a_texCoord; \n"
    "out VertexData\n"
    "{\n"
    "  vec4 color; \n"
@@ -210,9 +195,11 @@ char const* const points_vert =
    "  float linear; \n"
    "  float quadratic; \n"
    "} u_point_attenuation; \n"
-   "in vec4 a_vertex; \n"
-   "in float a_pointSize; \n"
-   "in vec4 a_color; \n"
+   "layout(location = 0) in vec4 a_vertex; \n"
+   "//layout(location = 1) in vec3 a_normal; \n"
+   "//layout(location = 2) in vec4 a_texCoord;\n"
+   "layout(location = 3) in vec4 a_color; \n"
+   "layout(location = 4) in float a_pointSize; \n"
    "out vec4 v_color; \n"
    "out vec3 v_eyeVec; \n"
    "void main()\n"
@@ -227,12 +214,12 @@ char const* const points_vert =
 ;
 
 char const* const unlit_vert = 
-   "#version 330\n"
+   "#version 410\n"
    "uniform mat4 u_modelViewProjectionMatrix;\n"
    "uniform mat4 u_textureMatrix;\n"
-   "in vec4 a_vertex;\n"
-   "in vec4 a_color;\n"
-   "in vec4 a_texCoord; \n"
+   "layout(location = 0) in vec4 a_vertex; \n"
+   "layout(location = 2) in vec4 a_texCoord;\n"
+   "layout(location = 3) in vec4 a_color; \n"
    "out VertexData\n"
    "{ \n"
    "  vec4 color;\n"
@@ -247,7 +234,7 @@ char const* const unlit_vert =
 ;
 
 char const* const unlit_rect_vert = 
-   "#version 330\n"
+   "#version 410\n"
    "uniform mat4 u_modelViewProjectionMatrix;\n"
    "uniform mat4 u_textureMatrix;\n"
    "uniform vec2 u_texture_size = vec2(1.0);\n"
@@ -317,7 +304,7 @@ char const* const lines_2D_geom =
 ;
 
 char const* const gouraud_frag = 
-   "#version 330\n"
+   "#version 410\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2D u_sampler_2D[1]; \n"
    "in VertexData \n"
@@ -339,8 +326,8 @@ char const* const gouraud_frag =
 ;
 
 char const* const phong_frag = 
-   "#version 330\n"
-   "struct Material\n"
+   "#version 410\n"
+   "uniform struct Material\n"
    "{\n"
    "  vec4 diffuse; \n"
    "  vec4 ambient; \n"
@@ -348,20 +335,19 @@ char const* const phong_frag =
    "  vec4 emission; \n"
    "  float shinyness; \n"
    "};\n"
-   "uniform int u_numLights; \n"
    "struct Lightsource\n"
    "{\n"
-   "  int type; \n"
    "  vec3 position; \n"
    "  vec4 diffuse; \n"
    "  vec4 ambient; \n"
    "  vec4 specular; \n"
-   "  float constantAttenuation; \n"
-   "  float linearAttenuation; \n"
-   "  float quadraticAttenuation; \n"
    "  vec3 spotDirection; \n"
    "  float spotCosCutoff; \n"
    "  float spotExponent; \n"
+   "  float constantAttenuation; \n"
+   "  float linearAttenuation; \n"
+   "  float quadraticAttenuation; \n"
+   "  int type; \n"
    "};\n"
    "vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)\n"
    "{\n"
@@ -399,7 +385,16 @@ char const* const phong_frag =
    "  return base_color * (ambient + diffuse) + spec; \n"
    "}\n"
    "uniform Material u_material;\n"
-   "uniform Lightsource u_lights[16]; \n"
+   "//layout(std140) uniform MaterialBlock\n"
+   "//{\n"
+   "//  Material u_material;\n"
+   "//};\n"
+   "//uniform Lightsource u_lights[16]; \n"
+   "layout(std140) uniform LightBlock\n"
+   "{\n"
+   "  int u_numLights;\n"
+   "  Lightsource u_lights[16];\n"
+   "};\n"
    "uniform int u_numTextures; \n"
    "uniform sampler2D u_sampler_2D[4]; \n"
    "in VertexData\n"
@@ -604,7 +599,7 @@ char const* const points_sphere_frag =
 ;
 
 char const* const unlit_frag = 
-   "#version 330\n"
+   "#version 410\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2D u_sampler_2D[1];\n"
    "uniform struct Material \n"
@@ -631,7 +626,7 @@ char const* const unlit_frag =
 ;
 
 char const* const unlit_rect_frag = 
-   "#version 330\n"
+   "#version 410\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2DRect u_sampler_2Drect[1];\n"
    "uniform struct Material \n"

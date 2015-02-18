@@ -162,8 +162,7 @@ namespace kinski { namespace gl {
     
     void Scene::render(const CameraPtr &theCamera) const
     {
-        gl::Renderer r;
-        r.render(cull(theCamera));
+        m_renderer.render(cull(theCamera));
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const

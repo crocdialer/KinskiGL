@@ -23,6 +23,7 @@ struct Shader::Obj
     
     GLuint						m_Handle;
     std::map<std::string,int>	m_UniformLocs;
+    std::map<std::string,int>	m_UniformBlockIndices;
 
 };
     
@@ -317,11 +318,19 @@ GLint Shader::getUniformLocation(const std::string &name)
     
 GLint Shader::getUniformBlockIndex(const std::string &name)
 {
-    GLint ret = -1;
 #ifndef KINSKI_GLES
-    ret = glGetUniformBlockIndex(m_Obj->m_Handle, name.c_str());
+    
+    auto it = m_Obj->m_UniformBlockIndices.find(name);
+    if(it == m_Obj->m_UniformBlockIndices.end())
+    {
+        GLint loc = glGetUniformBlockIndex(m_Obj->m_Handle, name.c_str());
+        m_Obj->m_UniformBlockIndices[name] = loc;
+        return loc;
+    }
+    else
+        return it->second;
 #endif
-    return ret;
+    return -1;
 }
     
 GLint Shader::getAttribLocation(const std::string &name) const

@@ -13,6 +13,7 @@
 #include "Mesh.h"
 #include "Light.h"
 #include "Camera.h"
+#include "Renderer.h"
 
 namespace kinski { namespace gl {
     
@@ -37,6 +38,10 @@ namespace kinski { namespace gl {
     private:
         
         mutable uint32_t m_num_visible_objects;
+        
+        //TODO: find a better place to put this
+        mutable gl::Renderer m_renderer;
+        
         Object3DPtr m_root;
     };
     

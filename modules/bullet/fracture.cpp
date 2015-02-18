@@ -24,17 +24,14 @@ namespace kinski{namespace physics{
         }
     };
     
-    ShatterResult voronoi_convex_hull_shatter(const std::vector<glm::vec3>& the_voronoi_points,
-                                              const kinski::gl::MeshPtr &the_mesh,
-                                              float the_mat_density,
-                                              bool use_constraints)
+    std::list<VoronoiShard>
+    voronoi_convex_hull_shatter(const gl::MeshPtr &the_mesh,
+                                const std::vector<glm::vec3>& the_voronoi_points)
     {
         // points define voronoi cells in world space (avoid duplicates)
         // verts = source (convex hull) mesh vertices in local space
-        // bbq & bbt = source (convex hull) mesh quaternion rotation and translation
-        // matDensity = Material density for voronoi shard mass calculation
         
-        ShatterResult ret;
+        std::list<VoronoiShard> ret;
         std::vector<glm::vec3> mesh_verts = the_mesh->geometry()->vertices();
         
         auto convexHC = std::make_shared<btConvexHullComputer>();
@@ -49,7 +46,6 @@ namespace kinski{namespace physics{
         std::set<int> planeIndices;
         std::set<int>::iterator planeIndicesIter;
         int numplaneIndices;
-        int cellnum = 0;
         int i, j, k;
         
         // Normalize verts (numerical stability), convert to world space and get convexPlanes
@@ -241,13 +237,9 @@ namespace kinski{namespace physics{
 //            m->transform() *= glm::scale(mat4(), vec3(scale_val));
             
             // push to return structure
-            ret.shard_meshes.push_back(m);
-            ret.volumes.push_back(volume);
-            
-            cellnum ++;
-            
+            ret.push_back({m, volume});
         }
-        LOG_DEBUG << "Generated " << cellnum <<" voronoi shards";
+        LOG_DEBUG << "Generated " << ret.size() <<" voronoi shards";
         
         return ret;
     }

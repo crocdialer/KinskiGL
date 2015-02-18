@@ -1,10 +1,11 @@
-#version 330
+#version 410
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
-in vec4 a_vertex;
-in vec4 a_color;
-in vec4 a_texCoord; 
+
+layout(location = 0) in vec4 a_vertex; 
+layout(location = 2) in vec4 a_texCoord;
+layout(location = 3) in vec4 a_color; 
 
 out VertexData
 { 

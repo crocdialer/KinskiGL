@@ -270,18 +270,15 @@ namespace kinski{ namespace physics{
     
     //////////////////////////////// fracture utilities ////////////////////////////////////////////
     
-    struct ShatterResult
+    struct VoronoiShard
     {
-        std::list<btCollisionShape*> collision_shapes;
-        std::list<btRigidBody*> rigid_bodies;
-        std::list<btFixedConstraint*> constraints;
-        std::list<gl::MeshPtr> shard_meshes;
-        std::list<float> volumes;
+        gl::MeshPtr mesh;
+        float volume;
     };
     
-    ShatterResult voronoi_convex_hull_shatter(const std::vector<glm::vec3>& the_voronoi_points,
-                                              const gl::MeshPtr &the_mesh, float the_mat_density,
-                                              bool use_constraints = true);
+    std::list<VoronoiShard>
+    voronoi_convex_hull_shatter(const gl::MeshPtr &the_mesh,
+                                const std::vector<glm::vec3>& the_voronoi_points);
     
 }}//namespace
 

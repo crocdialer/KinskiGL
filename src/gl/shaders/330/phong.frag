@@ -1,6 +1,6 @@
-#version 330
+#version 410
 
-struct Material
+uniform struct Material
 {
   vec4 diffuse; 
   vec4 ambient; 
@@ -9,20 +9,19 @@ struct Material
   float shinyness; 
 };
 
-uniform int u_numLights; 
 struct Lightsource
 {
-  int type; 
   vec3 position; 
   vec4 diffuse; 
   vec4 ambient; 
   vec4 specular; 
-  float constantAttenuation; 
-  float linearAttenuation; 
-  float quadraticAttenuation; 
   vec3 spotDirection; 
   float spotCosCutoff; 
   float spotExponent; 
+  float constantAttenuation; 
+  float linearAttenuation; 
+  float quadraticAttenuation; 
+  int type; 
 };
 
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)
@@ -62,7 +61,18 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
 }
 
 uniform Material u_material;
-uniform Lightsource u_lights[16]; 
+//layout(std140) uniform MaterialBlock
+//{
+//  Material u_material;
+//};
+
+//uniform Lightsource u_lights[16]; 
+layout(std140) uniform LightBlock
+{
+  int u_numLights;
+  Lightsource u_lights[16];
+};
+
 uniform int u_numTextures; 
 uniform sampler2D u_sampler_2D[4]; 
 

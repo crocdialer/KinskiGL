@@ -17,6 +17,29 @@ namespace kinski{ namespace gl{
     using std::map;
     using std::list;
     
+    using namespace glm;
+    
+    struct lightstruct_std140
+    {
+        vec4 position;//pad
+        vec4 diffuse;
+        vec4 ambient;
+        vec4 specular;
+        vec4 spotDirection;//pad
+        float spotCosCutoff;
+        float spotExponent;
+        float constantAttenuation;
+        float linearAttenuation;
+        float quadraticAttenuation;
+        int type;
+        uint32_t pad[2];//pad
+    };
+    
+    Renderer::Renderer()
+    {
+        
+    }
+    
     void Renderer::render(const RenderBinPtr &theBin)
     {
         std::list<RenderBin::item> opaque_items, blended_items;
@@ -38,6 +61,10 @@ namespace kinski{ namespace gl{
         opaque_items.sort(RenderBin::sort_items_increasing());
         blended_items.sort(RenderBin::sort_items_decreasing());
         
+        // update uniform buffers (only lights at the moment)
+        update_uniform_buffers(theBin->lights);
+        
+        // draw our stuff
         draw_sorted_by_material(theBin->camera, opaque_items, theBin->lights);
         draw_sorted_by_material(theBin->camera, blended_items, theBin->lights);
     }
@@ -64,7 +91,7 @@ namespace kinski{ namespace gl{
                 //if(m->geometry()->hasNormals())
                 {
                     mat->uniform("u_normalMatrix",
-                                 glm::inverseTranspose( glm::mat3(modelView) ));
+                                 glm::inverseTranspose(glm::mat3(modelView)));
                 }
                 
                 if(m->geometry()->hasBones())
@@ -73,7 +100,10 @@ namespace kinski{ namespace gl{
                 }
                 
                 // lighting parameters
-                set_light_uniforms(mat, light_list);
+//                set_light_uniforms(mat, light_list);
+                GLuint block_index = mat->shader().getUniformBlockIndex("LightBlock");
+                glUniformBlockBinding(mat->shader().getHandle(), block_index, LIGHT_BLOCK);
+                
             }
             gl::apply_material(m->material());
             
@@ -167,5 +197,44 @@ namespace kinski{ namespace gl{
             light_count++;
         }
         the_mat->uniform("u_numLights", light_count);
+    }
+    
+    void Renderer::update_uniform_buffers(const std::list<RenderBin::light> &light_list)
+    {
+#ifndef KINSKI_GLES
+        if(!m_uniform_buffer[LIGHT_UNIFORM_BUFFER])
+        {
+            m_uniform_buffer[LIGHT_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+        }
+        
+        std::vector<lightstruct_std140> light_structs;
+        
+        // update light uniform buffer
+        for(const RenderBin::light &l : light_list)
+        {
+            lightstruct_std140 buf;
+            buf.type = (int)l.light->type();
+            buf.position = l.transform[3];
+            buf.diffuse = l.light->diffuse();
+            buf.ambient = l.light->ambient();
+            buf.specular = l.light->specular();
+            buf.constantAttenuation = l.light->attenuation().constant;
+            buf.linearAttenuation = l.light->attenuation().linear;
+            buf.quadraticAttenuation = l.light->attenuation().quadratic;
+            buf.spotDirection = vec4(glm::normalize(-vec3(l.transform[2].xyz())), 0.f);
+            buf.spotCosCutoff = cosf(glm::radians(l.light->spot_cutoff()));
+            buf.spotExponent = l.light->spot_exponent();
+            light_structs.push_back(buf);
+        }
+        int num_lights = light_list.size();
+        int num_bytes = sizeof(lightstruct_std140) * light_structs.size() + 16;
+        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].setData(nullptr, num_bytes);
+        uint8_t *ptr = m_uniform_buffer[LIGHT_UNIFORM_BUFFER].map();
+        memcpy(ptr, &num_lights, 4);
+        memcpy(ptr + 16, &light_structs[0], sizeof(lightstruct_std140) * light_structs.size());
+        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].unmap();
+        
+        glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BLOCK, m_uniform_buffer[LIGHT_UNIFORM_BUFFER].id());
+#endif
     }
 }}
