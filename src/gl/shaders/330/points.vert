@@ -19,9 +19,12 @@ struct Material
   } point_attenuation;
 }; 
 
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
+
 layout(location = 0) in vec4 a_vertex; 
-//layout(location = 1) in vec3 a_normal; 
-//layout(location = 2) in vec4 a_texCoord;
 layout(location = 3) in vec4 a_color; 
 layout(location = 4) in float a_pointSize; 
 
@@ -33,7 +36,8 @@ void main()
   v_color = a_color; 
   v_eyeVec = -(u_modelViewMatrix * a_vertex).xyz; 
   float d = length(v_eyeVec); 
-  float attenuation = 1.0 / (u_point_attenuation.constant + u_point_attenuation.linear * d + u_point_attenuation.quadratic * (d * d)); 
-  gl_PointSize = max(a_pointSize, u_pointSize) * attenuation; 
+  float attenuation = 1.0 / (u_material.point_attenuation.constant + 
+      u_material.point_attenuation.linear * d + u_material.point_attenuation.quadratic * (d * d)); 
+  gl_PointSize = max(a_pointSize, u_material.point_size) * attenuation; 
   gl_Position = u_modelViewProjectionMatrix * a_vertex; 
 }

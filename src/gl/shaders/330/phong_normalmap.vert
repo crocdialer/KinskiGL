@@ -6,10 +6,10 @@ uniform mat3 u_normalMatrix;
 uniform mat4 u_textureMatrix; 
 uniform vec3 u_lightDir; 
 
-in vec4 a_vertex; 
-in vec4 a_texCoord; 
-in vec3 a_normal; 
-in vec3 a_tangent; 
+layout(location = 0) in vec4 a_vertex; 
+layout(location = 1) in vec3 a_normal; 
+layout(location = 2) in vec4 a_texCoord; 
+layout(location = 5) in vec3 a_tangent; 
 
 out VertexData
 {

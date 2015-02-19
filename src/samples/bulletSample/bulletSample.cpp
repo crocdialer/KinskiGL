@@ -57,7 +57,7 @@ public:
     
     void create_cube_stack(int size_x, int size_y, int size_z, const gl::MaterialPtr &theMat)
     {
-        m_physics_context.teardown_physics();
+        m_physics_context.teardown();
         scene().clear();
         
         float scaling = 8.0f;
@@ -158,7 +158,7 @@ public:
         m_cvThread->streamUSBCamera();
         
         // init physics pipeline
-        m_physics_context.init_physics();
+        m_physics_context.init();
         m_debugDrawer = shared_ptr<physics::BulletDebugDrawer>(new physics::BulletDebugDrawer);
         m_physics_context.dynamicsWorld()->setDebugDrawer(m_debugDrawer.get());
         
@@ -315,7 +315,7 @@ public:
                 
         case GLFW_KEY_R:
             Serializer::loadComponentState(m_cvThread->getProcessingNode(), "config_cv.json", PropertyIO_GL());
-            m_physics_context.teardown_physics();
+            m_physics_context.teardown();
             create_cube_stack(4, 32, 4, m_box_material);
             break;
                 

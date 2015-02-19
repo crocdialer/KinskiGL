@@ -148,6 +148,11 @@ struct KINSKI_API Triangle
     {
         return gl::intersect(*this, theRay);
     };
+    
+    inline glm::vec3 normal() const
+    {
+        return glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    };
 };
 
 struct KINSKI_API Sphere

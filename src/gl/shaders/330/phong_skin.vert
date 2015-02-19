@@ -1,4 +1,4 @@
-#version 330
+#version 410
 
 uniform mat4 u_modelViewMatrix; 
 uniform mat4 u_modelViewProjectionMatrix; 
@@ -6,11 +6,11 @@ uniform mat3 u_normalMatrix;
 uniform mat4 u_textureMatrix; 
 uniform mat4 u_bones[110]; 
 
-in vec4 a_vertex; 
-in vec4 a_texCoord; 
-in vec3 a_normal; 
-in ivec4 a_boneIds; 
-in vec4 a_boneWeights; 
+layout(location = 0) in vec4 a_vertex; 
+layout(location = 1) in vec3 a_normal; 
+layout(location = 2) in vec4 a_texCoord; 
+layout(location = 6) in ivec4 a_boneIds; 
+layout(location = 7) in vec4 a_boneWeights; 
 
 out VertexData
 {

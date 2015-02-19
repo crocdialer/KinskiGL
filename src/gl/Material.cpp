@@ -121,9 +121,9 @@ namespace kinski { namespace gl {
             m_uniforms["u_material.emmission"] = m_emission;
             m_uniforms["u_material.shinyness"] = m_shinyness;
             m_uniforms["u_pointSize"] = m_pointSize;
-            m_uniforms["u_point_attenuation.constant"] = m_point_attenuation.constant;
-            m_uniforms["u_point_attenuation.linear"] = m_point_attenuation.linear;
-            m_uniforms["u_point_attenuation.quadratic"] = m_point_attenuation.quadratic;
+            m_uniforms["u_material.point_attenuation.constant"] = m_point_attenuation.constant;
+            m_uniforms["u_material.point_attenuation.linear"] = m_point_attenuation.linear;
+            m_uniforms["u_material.point_attenuation.quadratic"] = m_point_attenuation.quadratic;
             m_dirty = false;
         }
 #endif

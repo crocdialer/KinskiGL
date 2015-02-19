@@ -293,6 +293,11 @@ void FractureApp::fracture_test(uint32_t num_shards)
     auto phong_shader = gl::createShader(gl::SHADER_PHONG);
     auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
     auto mat = gl::Material::create(phong_shader);
+    auto tex = gl::createTextureFromFile("~/Desktop/monkey_island.jpg");
+    
+    mat->addTexture(tex);
+//    mat->setDiffuse(vec4(mat->diffuse().rgb(), .7));
+//    mat->setBlending();
     
     for(auto &s : shards)
     {
