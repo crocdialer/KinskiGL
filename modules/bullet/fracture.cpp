@@ -229,7 +229,6 @@ namespace kinski{namespace physics{
             geom->appendFaces(out_faces);
             geom->appendVertices(out_vertices);
             geom->computeFaceNormals();
-            geom->texCoords().resize(out_vertices.size());
             geom->computeBoundingBox();
             
             
@@ -237,66 +236,13 @@ namespace kinski{namespace physics{
             m->setPosition(curVoronoiPoint + type_cast(com));
 //            m->transform() *= glm::scale(mat4(), vec3(scale_val));
             
+            // compute projected texcoords
+            gl::project_texcoords(the_mesh, m);
+            
             // push to return structure
             ret.push_back({m, volume});
         }
         
-        // compute texcoords
-        auto &mesh_texcoords = the_mesh->geometry()->texCoords();
-        
-        for(auto &shard : ret)
-        {
-            auto &shard_verts = shard.mesh->geometry()->vertices();
-            auto &shard_normals = shard.mesh->geometry()->normals();
-            auto &shard_texcoords = shard.mesh->geometry()->texCoords();
-            
-            //
-            float ray_offset = 10.f;
-            
-            for(int i = 0; i < shard_verts.size(); i++)
-            {
-                gl::Ray ray(shard_verts[i] + shard_normals[i] * ray_offset, -shard_normals[i]);
-                ray = ray.transform(shard.mesh->transform());
-                
-                gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_mesh->global_transform()));
-                
-                float u, v, w;
-                
-                struct hit_struct
-                {
-                    gl::Face3 face;
-                    float u, v, distance;
-                };
-                auto hit_struct_comp = [](hit_struct &h1, hit_struct &h2) -> bool
-                {
-                    return h1.distance > h2.distance;
-                };
-                std::vector<hit_struct> hit_structs;
-                
-                for (const auto &face : the_mesh->geometry()->faces())
-                {
-                    gl::Triangle t(mesh_verts[face.a], mesh_verts[face.b], mesh_verts[face.c]);
-
-                    if(gl::ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
-                    {
-                        hit_structs.push_back({face, ray_tri_hit.u, ray_tri_hit.v, ray_tri_hit.distance});
-                    }
-                }
-                if(!hit_structs.empty())
-                {
-                    std::sort(hit_structs.begin(), hit_structs.end(), hit_struct_comp);
-                    const auto & hs = hit_structs.front();
-                    u = hs.u, v = hs.v, w = 1 - u - v;
-                    
-                    shard_texcoords[i] = mesh_texcoords[hs.face.a] * v +
-                    mesh_texcoords[hs.face.b] * u +
-                    mesh_texcoords[hs.face.c] * w;
-                }
-                
-                
-            }
-            shard.mesh->geometry()->createGLBuffers();
-        }
         
         LOG_DEBUG << "Generated " << ret.size() <<" voronoi shards";
         

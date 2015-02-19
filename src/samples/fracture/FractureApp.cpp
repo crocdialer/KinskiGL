@@ -280,8 +280,10 @@ void FractureApp::fracture_test(uint32_t num_shards)
     for(auto &l : lights()){ scene().addObject(l); }
     
 //    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
-    auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), gl::Material::create());
-    m->setScale(vec3(5, 1, 3));
+    
+    auto phong_shader = gl::createShader(gl::SHADER_PHONG);
+    auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), gl::Material::create(phong_shader));
+    m->setScale(vec3(3, 1, 5));
     m->setPosition(vec3(0, 25, 0));
     auto aabb = m->boundingBox().transform(m->transform());
     
@@ -290,20 +292,19 @@ void FractureApp::fracture_test(uint32_t num_shards)
     voronoi_points.resize(num_shards);
     for(auto &vp : voronoi_points){ vp = m->position() + glm::ballRand(2.f);}//(aabb.min, aabb.max); }
     
-    auto phong_shader = gl::createShader(gl::SHADER_PHONG);
     auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
-    auto mat = gl::Material::create(phong_shader);
+
     auto tex = gl::createTextureFromFile("~/Desktop/monkey_island.jpg");
+    m->material()->addTexture(tex);
     
-    mat->addTexture(tex);
-//    mat->setDiffuse(vec4(mat->diffuse().rgb(), .7));
-//    mat->setBlending();
+    m->position() += vec3(5, 0, 0);
+    scene().addObject(m);
     
     for(auto &s : shards)
     {
         scene().addObject(s.mesh);
         
-        s.mesh->material() = mat;
+        s.mesh->material() = m->material();
 //        s.mesh->material()->setShader(phong_shader);
 //        s.mesh->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
         

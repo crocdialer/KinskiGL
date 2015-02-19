@@ -290,6 +290,11 @@ namespace kinski { namespace gl {
      */
     KINSKI_API bool is_point_inside_mesh(const glm::vec3& p, gl::MeshPtr m);
     
+    /*!
+     * generate texcoords for dest mesh by raycasting the src mesh
+     */
+    KINSKI_API void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest);
+    
     #ifdef KINSKI_GL_REPORT_ERRORS
     #define KINSKI_CHECK_GL_ERRORS()\
     while(GLenum error = glGetError()){\

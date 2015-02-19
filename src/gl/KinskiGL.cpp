@@ -1395,6 +1395,71 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         return true;
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
+    void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest)
+    {
+        auto &src_verts = src->geometry()->vertices();
+        auto &src_texcoords = src->geometry()->texCoords();
+        auto &dest_verts = dest->geometry()->vertices();
+        auto &dest_normals = dest->geometry()->normals();
+        auto &dest_texcoords = dest->geometry()->texCoords();
+        
+        // aquire enough space for texcoords
+        dest_texcoords.resize(dest_verts.size());
+        
+        // helper structure and comparator for sorting
+        struct hit_struct
+        {
+            gl::Face3 face;
+            float u, v, distance;
+        };
+        auto hit_struct_comp = [](const hit_struct &h1, const hit_struct &h2) -> bool
+        {
+            return h1.distance > h2.distance;
+        };
+        
+        //TODO: find a good heuristic
+        float ray_offset = 2 * glm::length(src->boundingBox().transform(src->global_transform()).halfExtents());
+        
+        for(int i = 0; i < dest_verts.size(); i++)
+        {
+            gl::Ray ray(dest_verts[i] + dest_normals[i] * ray_offset, -dest_normals[i]);
+            ray = ray.transform(dest->transform());
+            
+            gl::Ray ray_in_object_space = ray.transform(glm::inverse(glm::scale(src->global_transform(), vec3(1.01f))));
+            
+            std::vector<hit_struct> hit_structs;
+            
+            for (const auto &face : src->geometry()->faces())
+            {
+                gl::Triangle t(src_verts[face.a], src_verts[face.b], src_verts[face.c]);
+                
+                if(gl::ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
+                {
+                    hit_structs.push_back({face, ray_tri_hit.u, ray_tri_hit.v, ray_tri_hit.distance});
+                }
+            }
+            if(!hit_structs.empty())
+            {
+                std::sort(hit_structs.begin(), hit_structs.end(), hit_struct_comp);
+                const auto & hs = hit_structs.front();
+                float u, v, w;
+                u = hs.u, v = hs.v, w = 1 - u - v;
+                
+                dest_texcoords[i] = src_texcoords[hs.face.a] * v +
+                src_texcoords[hs.face.b] * u +
+                src_texcoords[hs.face.c] * w;
+                
+                dest_texcoords[i] = dest_texcoords[i].yx();
+                dest_texcoords[i].x = 1 - dest_texcoords[i].x;
+                
+            }else{ LOG_ERROR << "no triangle hit"; }
+        }
+        dest->geometry()->createGLBuffers();
+    }
+///////////////////////////////////////////////////////////////////////////////
+    
     //////////////////////////////////////////////////////////////////////////
     // global shader creation functions
     
