@@ -1399,10 +1399,10 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
     void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest)
     {
-        auto &src_verts = src->geometry()->vertices();
-        auto &src_texcoords = src->geometry()->texCoords();
-        auto &dest_verts = dest->geometry()->vertices();
-        auto &dest_normals = dest->geometry()->normals();
+        const auto &src_verts = src->geometry()->vertices();
+        const auto &src_texcoords = src->geometry()->texCoords();
+        const auto &dest_verts = dest->geometry()->vertices();
+        const auto &dest_normals = dest->geometry()->normals();
         auto &dest_texcoords = dest->geometry()->texCoords();
         
         // aquire enough space for texcoords
@@ -1416,10 +1416,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         };
         auto hit_struct_comp = [](const hit_struct &h1, const hit_struct &h2) -> bool
         {
-            return h1.distance > h2.distance;
+            return h1.distance < h2.distance;
         };
         
-        //TODO: find a good heuristic
         float ray_offset = 2 * glm::length(src->boundingBox().transform(src->global_transform()).halfExtents());
         
         for(int i = 0; i < dest_verts.size(); i++)
@@ -1427,7 +1426,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             gl::Ray ray(dest_verts[i] + dest_normals[i] * ray_offset, -dest_normals[i]);
             ray = ray.transform(dest->transform());
             
-            gl::Ray ray_in_object_space = ray.transform(glm::inverse(glm::scale(src->global_transform(), vec3(1.01f))));
+            float scale_val = 1.01f;
+            gl::Ray ray_in_object_space = ray.transform(glm::inverse(glm::scale(src->global_transform(),
+                                                                                vec3(scale_val))));
             
             std::vector<hit_struct> hit_structs;
             
@@ -1453,11 +1454,13 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 
                 dest_texcoords[i] = dest_texcoords[i].yx();
                 dest_texcoords[i].x = 1 - dest_texcoords[i].x;
+                dest_texcoords[i].y = 1 - dest_texcoords[i].y;
                 
             }else{ LOG_ERROR << "no triangle hit"; }
         }
         dest->geometry()->createGLBuffers();
     }
+    
 ///////////////////////////////////////////////////////////////////////////////
     
     //////////////////////////////////////////////////////////////////////////
