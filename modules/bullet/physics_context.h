@@ -47,6 +47,7 @@ namespace kinski{ namespace physics{
             gl::GeometryPtr geom = gl::Geometry::create();
             m_mesh_lines = gl::Mesh::create(geom, mat);
             m_mesh_lines->geometry()->setPrimitiveType(GL_LINES);
+            setDebugMode(getDebugMode() | DBG_DrawConstraints);
         };
         
         inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
@@ -245,6 +246,8 @@ namespace kinski{ namespace physics{
          */
         void set_world_boundaries(const glm::vec3 &the_half_extents,
                                   const glm::vec3 &the_origin = glm::vec3(0));
+        
+        void attach_constraints(float the_thresh);
         
      private:
         

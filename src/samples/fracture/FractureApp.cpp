@@ -24,6 +24,7 @@ void FractureApp::setup()
     registerProperty(m_physics_running);
     registerProperty(m_physics_debug_draw);
     registerProperty(m_num_fracture_shards);
+    registerProperty(m_breaking_thresh);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -279,9 +280,9 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     for(auto &l : lights()){ scene().addObject(l); }
     
-//    auto m = gl::Mesh::create(gl::Geometry::createSphere(.5f, 8), gl::Material::create());
     
     auto phong_shader = gl::createShader(gl::SHADER_PHONG);
+//    auto m = gl::Mesh::create(gl::Geometry::createSphere(1.5f, 10), gl::Material::create(phong_shader));
     auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), gl::Material::create(phong_shader));
     m->setScale(vec3(3, 1, 5));
     m->setPosition(vec3(0, 25, 0));
@@ -294,23 +295,29 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
 
-    auto tex = gl::createTextureFromFile("~/Desktop/monkey_island.jpg");
+    auto tex = gl::createTextureFromFile("~/Desktop/monkey_island.jpg", true, true, 8.f);
     m->material()->addTexture(tex);
     
     m->position() += vec3(5, 0, 0);
     scene().addObject(m);
+    m_physics.add_mesh_to_simulation(m);
+    
+    float density = 1.8;
+    float convex_margin = 0.007;
     
     for(auto &s : shards)
     {
         scene().addObject(s.mesh);
-        
         s.mesh->material() = m->material();
-//        s.mesh->material()->setShader(phong_shader);
-//        s.mesh->material()->setDiffuse(glm::linearRand(gl::COLOR_GREEN, gl::COLOR_WHITE));
-        
         auto col_shape = physics::createConvexCollisionShape(s.mesh);
-        btRigidBody* rb = m_physics.add_mesh_to_simulation(s.mesh, s.volume, col_shape);
+        btRigidBody* rb = m_physics.add_mesh_to_simulation(s.mesh, density * s.volume, col_shape);
+        rb->getCollisionShape()->setMargin(convex_margin);
+        
+        rb->setRestitution(0.5f);
+        rb->setFriction(.6f);
     }
+    m_physics.dynamicsWorld()->performDiscreteCollisionDetection();
+    m_physics.attach_constraints(*m_breaking_thresh);
     
     LOG_DEBUG << "fracturing took " << t.time_elapsed() << " secs";
 }

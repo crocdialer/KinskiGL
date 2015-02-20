@@ -231,7 +231,6 @@ namespace kinski{namespace physics{
             geom->computeFaceNormals();
             geom->computeBoundingBox();
             
-            
             auto m = gl::Mesh::create(geom, gl::Material::create());
             m->setPosition(curVoronoiPoint + type_cast(com));
 //            m->transform() *= glm::scale(mat4(), vec3(scale_val));
@@ -242,10 +241,7 @@ namespace kinski{namespace physics{
             // push to return structure
             ret.push_back({m, volume});
         }
-        
-        
         LOG_DEBUG << "Generated " << ret.size() <<" voronoi shards";
-        
         return ret;
     }
     

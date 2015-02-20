@@ -37,6 +37,9 @@ namespace kinski
         Property_<uint32_t>::Ptr
         m_num_fracture_shards = Property_<uint32_t>::create("num fracture shards", 20);
         
+        Property_<float>::Ptr
+        m_breaking_thresh = Property_<float>::create("breaking threshold", 2.4f);
+        
         physics::btCollisionShapePtr m_box_shape;
         gl::GeometryPtr m_box_geom;
         

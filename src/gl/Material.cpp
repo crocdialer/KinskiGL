@@ -27,7 +27,7 @@ namespace kinski { namespace gl {
     m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
     m_blend_equation(GL_FUNC_ADD),
     m_diffuse(Color(1)),
-    m_ambient(Color(0)),
+    m_ambient(Color(1)),
     m_specular(Color(1)),
     m_emission(Color(0)),
     m_shinyness(10.0f),

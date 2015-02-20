@@ -1420,15 +1420,14 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         };
         
         float ray_offset = 2 * glm::length(src->boundingBox().transform(src->global_transform()).halfExtents());
+        float scale_val = 1.01f;
+        mat4 world_to_src = glm::inverse(glm::scale(src->global_transform(), vec3(scale_val)));
         
         for(int i = 0; i < dest_verts.size(); i++)
         {
             gl::Ray ray(dest_verts[i] + dest_normals[i] * ray_offset, -dest_normals[i]);
             ray = ray.transform(dest->transform());
-            
-            float scale_val = 1.01f;
-            gl::Ray ray_in_object_space = ray.transform(glm::inverse(glm::scale(src->global_transform(),
-                                                                                vec3(scale_val))));
+            gl::Ray ray_in_object_space = ray.transform(world_to_src);
             
             std::vector<hit_struct> hit_structs;
             

@@ -357,7 +357,7 @@ namespace kinski{ namespace physics{
         {
             btRigidBody::btRigidBodyConstructionInfo rbInfo(0.f, nullptr, shape.get());
             btRigidBody* body = new btRigidBody(rbInfo);
-            body->setFriction(.1f);
+            body->setFriction(.7f);
             body->setRestitution(0);
 //            body->setCollisionFlags( body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
 //            body->setActivationState(DISABLE_DEACTIVATION);
@@ -365,6 +365,80 @@ namespace kinski{ namespace physics{
             //add the body to the dynamics world
             m_dynamicsWorld->addRigidBody(body);
         }
+    }
+    
+    void physics_context::attach_constraints(float the_thresh)
+    {
+        btAlignedObjectArray<btRigidBody*> bodies;
+        
+        int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
+        
+        for (int i=0;i<numManifolds;i++)
+        {
+            btPersistentManifold* manifold = m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+            if (!manifold->getNumContacts())
+                continue;
+            
+            btScalar minDist = 1e30f;
+            int minIndex = -1;
+            for (int v=0;v<manifold->getNumContacts();v++)
+            {
+                if (minDist >manifold->getContactPoint(v).getDistance())
+                {
+                    minDist = manifold->getContactPoint(v).getDistance();
+                    minIndex = v;
+                }
+            }
+            if (minDist>0.)
+                continue;
+            
+            btCollisionObject* colObj0 = (btCollisionObject*)manifold->getBody0();
+            btCollisionObject* colObj1 = (btCollisionObject*)manifold->getBody1();
+            //	int tag0 = (colObj0)->getIslandTag();
+            //		int tag1 = (colObj1)->getIslandTag();
+            btRigidBody* body0 = btRigidBody::upcast(colObj0);
+            btRigidBody* body1 = btRigidBody::upcast(colObj1);
+            if (bodies.findLinearSearch(body0)==bodies.size())
+                bodies.push_back(body0);
+            if (bodies.findLinearSearch(body1)==bodies.size())
+                bodies.push_back(body1);
+            
+            if (body0 && body1 &&
+                !colObj0->isStaticOrKinematicObject() && !colObj1->isStaticOrKinematicObject() &&
+                body0->checkCollideWithOverride(body1))
+            {
+                btTransform trA,trB;
+                trA.setIdentity();
+                trB.setIdentity();
+                btVector3 contactPosWorld = manifold->getContactPoint(minIndex).m_positionWorldOnA;
+                btTransform globalFrame;
+                globalFrame.setIdentity();
+                globalFrame.setOrigin(contactPosWorld);
+                
+                trA = body0->getWorldTransform().inverse()*globalFrame;
+                trB = body1->getWorldTransform().inverse()*globalFrame;
+                float totalMass = 1.f/body0->getInvMass() + 1.f/body1->getInvMass();
+                
+                
+                //                            if (useGenericConstraint)
+                //                            {
+                //                                btGeneric6DofConstraint* dof6 = new btGeneric6DofConstraint(*body0,*body1,trA,trB,true);
+                //                                dof6->setOverrideNumSolverIterations(30);
+                //
+                //
+                //                                dof6->setBreakingImpulseThreshold(BREAKING_THRESHOLD*totalMass);
+                //
+                //                                for (int i=0;i<6;i++)
+                //                                    dof6->setLimit(i,0,0);
+                //                                getDynamicsWorld()->addConstraint(dof6,true);
+                //
+                //                            } else
+                btFixedConstraint* fixed = new btFixedConstraint(*body0,*body1,trA,trB);
+                fixed->setBreakingImpulseThreshold(the_thresh * totalMass);
+                fixed ->setOverrideNumSolverIterations(30);
+                m_dynamicsWorld->addConstraint(fixed,true);
+            }
+        }//for
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/
