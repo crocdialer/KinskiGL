@@ -370,7 +370,7 @@ namespace kinski { namespace gl{
         }
         else
         {
-            throw Exception("could not load model: "+ theModelPath);
+            return gl::MeshPtr();
         }
     }
     

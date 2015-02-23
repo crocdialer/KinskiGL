@@ -47,7 +47,7 @@ namespace kinski{ namespace physics{
             gl::GeometryPtr geom = gl::Geometry::create();
             m_mesh_lines = gl::Mesh::create(geom, mat);
             m_mesh_lines->geometry()->setPrimitiveType(GL_LINES);
-            setDebugMode(getDebugMode() | DBG_DrawConstraints);
+//            setDebugMode(getDebugMode() | DBG_DrawConstraints);
         };
         
         inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
@@ -217,6 +217,9 @@ namespace kinski{ namespace physics{
         
         const btDynamicsWorldConstPtr dynamicsWorld() const {return m_dynamicsWorld;};
         const btDynamicsWorldPtr& dynamicsWorld() {return m_dynamicsWorld;};
+        
+        const std::vector<btRigidBody*>& bounding_bodies() const { return m_bounding_bodies; };
+        std::vector<btRigidBody*>& bounding_bodies() { return m_bounding_bodies; };
         
         const std::set<btCollisionShapePtr>& collisionShapes() const {return m_collisionShapes;};
         std::set<btCollisionShapePtr>& collisionShapes() {return m_collisionShapes;};

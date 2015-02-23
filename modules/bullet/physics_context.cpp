@@ -224,6 +224,8 @@ namespace kinski{ namespace physics{
             delete obj;
         }
         
+        m_bounding_bodies.clear();
+        m_bounding_shapes.clear();
         m_collisionShapes.clear();
         m_mesh_shape_map.clear();
         m_mesh_rigidbody_map.clear();
@@ -352,6 +354,7 @@ namespace kinski{ namespace physics{
                 delete rb;
             }
         }
+        m_bounding_bodies.clear();
         
         for (const auto &shape : m_bounding_shapes)
         {
@@ -364,6 +367,7 @@ namespace kinski{ namespace physics{
             
             //add the body to the dynamics world
             m_dynamicsWorld->addRigidBody(body);
+            m_bounding_bodies.push_back(body);
         }
     }
     
@@ -418,21 +422,7 @@ namespace kinski{ namespace physics{
                 trA = body0->getWorldTransform().inverse()*globalFrame;
                 trB = body1->getWorldTransform().inverse()*globalFrame;
                 float totalMass = 1.f/body0->getInvMass() + 1.f/body1->getInvMass();
-                
-                
-                //                            if (useGenericConstraint)
-                //                            {
-                //                                btGeneric6DofConstraint* dof6 = new btGeneric6DofConstraint(*body0,*body1,trA,trB,true);
-                //                                dof6->setOverrideNumSolverIterations(30);
-                //
-                //
-                //                                dof6->setBreakingImpulseThreshold(BREAKING_THRESHOLD*totalMass);
-                //
-                //                                for (int i=0;i<6;i++)
-                //                                    dof6->setLimit(i,0,0);
-                //                                getDynamicsWorld()->addConstraint(dof6,true);
-                //
-                //                            } else
+
                 btFixedConstraint* fixed = new btFixedConstraint(*body0,*body1,trA,trB);
                 fixed->setBreakingImpulseThreshold(the_thresh * totalMass);
                 fixed ->setOverrideNumSolverIterations(30);

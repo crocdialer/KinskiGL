@@ -27,8 +27,9 @@ namespace kinski
         
         LightComponent::Ptr m_light_component;
         
-        Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
-        
+        Property_<std::string>::Ptr
+        m_model_path = Property_<std::string>::create("Model path", ""),
+        m_texture_path = Property_<std::string>::create("texture path", "");
         
         Property_<bool>::Ptr
         m_physics_running = Property_<bool>::create("physics running", true),
@@ -38,6 +39,8 @@ namespace kinski
         m_num_fracture_shards = Property_<uint32_t>::create("num fracture shards", 20);
         
         Property_<float>::Ptr
+        m_gravity = Property_<float>::create("gravity", 9.81f),
+        m_friction = Property_<float>::create("friction", .6f),
         m_breaking_thresh = Property_<float>::create("breaking threshold", 2.4f);
         
         physics::btCollisionShapePtr m_box_shape;

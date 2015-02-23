@@ -21,10 +21,13 @@ void FractureApp::setup()
     ViewerApp::setup();
     
     registerProperty(m_model_path);
+    registerProperty(m_texture_path);
     registerProperty(m_physics_running);
     registerProperty(m_physics_debug_draw);
     registerProperty(m_num_fracture_shards);
     registerProperty(m_breaking_thresh);
+    registerProperty(m_gravity);
+    registerProperty(m_friction);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -37,7 +40,7 @@ void FractureApp::setup()
     
     // init physics
     m_physics.init();
-    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
+//    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 0));
     
     // box shooting stuff
     m_box_shape = std::make_shared<btBoxShape>(btVector3(.5f, .5f, .5f));
@@ -57,6 +60,13 @@ void FractureApp::update(float timeDelta)
     ViewerApp::update(timeDelta);
     
     if(*m_physics_running){ m_physics.step_simulation(timeDelta); }
+    
+    for(auto &joystick : get_joystick_states())
+    {
+        float min_val = .38f, multiplier = 1.2f;
+        float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
+        float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -187,13 +197,14 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
             case FileType::FILE_IMAGE:
                 try
                 {
-                    textures().push_back(gl::createTextureFromFile(f, true, false));
+                    textures() = {gl::createTextureFromFile(f, true, true, 4.f)};
                     
                     if(m_mesh)
                     {
-                        m_mesh->material()->textures().clear();
-                        m_mesh->material()->textures().push_back(textures().back());
+                        m_mesh->material()->textures() = {textures().back()};
                     }
+                    
+                    *m_texture_path = f;
                 }
                 catch (Exception &e) { LOG_WARNING << e.what(); }
                 if(scene().pick(gl::calculateRay(camera(), e.getX(), e.getY())))
@@ -241,6 +252,26 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             m_physics.add_mesh_to_simulation(m_mesh);
         }
     }
+    else if(theProperty == m_texture_path){}
+    else if(theProperty == m_gravity)
+    {
+        if(m_physics.dynamicsWorld())
+        {
+            m_physics.dynamicsWorld()->setGravity(btVector3(0 , -1.f, 0) * *m_gravity);
+        }
+    }
+    else if(theProperty == m_friction)
+    {
+        if(m_physics.dynamicsWorld())
+        {
+            for(int i = m_physics.dynamicsWorld()->getNumCollisionObjects() - 1; i >= 0; i--)
+            {
+                btRigidBody* b = btRigidBody::upcast(m_physics.dynamicsWorld()->getCollisionObjectArray()[i]);
+                
+                if(b){ b->setFriction(*m_friction); }
+            }
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -258,6 +289,7 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
     
     btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f),
                                                        m_box_shape);
+    rb->setFriction(*m_friction);
     rb->setLinearVelocity(physics::type_cast(the_ray.direction * the_velocity));
     rb->setCcdSweptSphereRadius(1 / 2.f);
     rb->setCcdMotionThreshold(1 / 2.f);
@@ -270,7 +302,10 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     scene().clear();
     m_physics.init();
+    m_gravity->notifyObservers();
     m_physics.set_world_boundaries(vec3(40), vec3(0, 40, 0));
+    
+    for(auto *b : m_physics.bounding_bodies()){ b->setFriction(*m_friction); }
     
     if(m_mesh)
     {
@@ -288,15 +323,18 @@ void FractureApp::fracture_test(uint32_t num_shards)
     m->setPosition(vec3(0, 25, 0));
     auto aabb = m->boundingBox().transform(m->transform());
     
+    try
+    {
+        auto tex = gl::createTextureFromFile(*m_texture_path, true, true, 8.f);
+        m->material()->addTexture(tex);
+    }catch(Exception &e){ LOG_WARNING << e.what(); }
+    
     // voronoi points
     std::vector<glm::vec3> voronoi_points;
     voronoi_points.resize(num_shards);
     for(auto &vp : voronoi_points){ vp = m->position() + glm::ballRand(2.f);}//(aabb.min, aabb.max); }
     
     auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
-
-    auto tex = gl::createTextureFromFile("~/Desktop/monkey_island.jpg", true, true, 8.f);
-    m->material()->addTexture(tex);
     
     m->position() += vec3(5, 0, 0);
     scene().addObject(m);
@@ -311,10 +349,10 @@ void FractureApp::fracture_test(uint32_t num_shards)
         s.mesh->material() = m->material();
         auto col_shape = physics::createConvexCollisionShape(s.mesh);
         btRigidBody* rb = m_physics.add_mesh_to_simulation(s.mesh, density * s.volume, col_shape);
+
         rb->getCollisionShape()->setMargin(convex_margin);
-        
         rb->setRestitution(0.5f);
-        rb->setFriction(.6f);
+        rb->setFriction(*m_friction);
     }
     m_physics.dynamicsWorld()->performDiscreteCollisionDetection();
     m_physics.attach_constraints(*m_breaking_thresh);
