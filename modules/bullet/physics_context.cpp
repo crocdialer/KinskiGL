@@ -125,6 +125,12 @@ namespace kinski{ namespace physics{
         return glm::make_mat4(m);
     }
     
+    void _tick_callback(btDynamicsWorld *world, btScalar timeStep)
+    {
+        physics_context *p = static_cast<physics_context*>(world->getWorldUserInfo());
+        p->tick_callback(timeStep);
+    }
+    
     physics_context::~physics_context()
     {
         teardown();
@@ -187,6 +193,9 @@ namespace kinski{ namespace physics{
         // debug drawer
         m_debug_drawer = std::make_shared<BulletDebugDrawer>();
         m_dynamicsWorld->setDebugDrawer(m_debug_drawer.get());
+        
+        // tick callback
+        m_dynamicsWorld->setInternalTickCallback(&_tick_callback, static_cast<void*>(this));
     }
     
     void physics_context::step_simulation(float timestep, int max_sub_steps, float fixed_time_step)
@@ -429,6 +438,31 @@ namespace kinski{ namespace physics{
                 m_dynamicsWorld->addConstraint(fixed,true);
             }
         }//for
+    }
+    
+    void physics_context::tick_callback(btScalar timeStep)
+    {
+        int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
+        for (int i = 0; i < numManifolds; i++)
+        {
+            btPersistentManifold* contactManifold =  m_dynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+            const btCollisionObject* obA = contactManifold->getBody0();
+            const btCollisionObject* obB = contactManifold->getBody1();
+            
+            int numContacts = contactManifold->getNumContacts();
+            for (int j = 0; j < numContacts; j++)
+            {
+                btManifoldPoint& pt = contactManifold->getContactPoint(j);
+                if (pt.getDistance()<0.f)
+                {
+                    const btVector3& ptA = pt.getPositionWorldOnA();
+                    const btVector3& ptB = pt.getPositionWorldOnB();
+                    const btVector3& normalOnB = pt.m_normalWorldOnB;
+                }
+            }
+        }
+        
+//        LOG_DEBUG << numManifolds << " collisions";
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/

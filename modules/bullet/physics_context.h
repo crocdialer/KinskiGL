@@ -252,6 +252,11 @@ namespace kinski{ namespace physics{
         
         void attach_constraints(float the_thresh);
         
+        /*!
+         * internal tick callback, do not call directly
+         */
+        void tick_callback(btScalar timeStep);
+        
      private:
         
         std::map<gl::MeshPtr, btCollisionShapePtr> m_mesh_shape_map;

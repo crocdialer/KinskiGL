@@ -51,6 +51,13 @@ void FractureApp::setup()
     m_light_component->refresh();
     
     fracture_test(*m_num_fracture_shards);
+    
+    m_gui_cam = gl::OrthographicCamera::create(0, gl::windowDimension().x, gl::windowDimension().y,
+                                               0, 0, 1);
+    
+    // init joystick crosshairs
+    m_crosshair_pos.resize(get_joystick_states().size());
+    for(auto &p : m_crosshair_pos){ p = windowSize() / 2.f; }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -61,11 +68,25 @@ void FractureApp::update(float timeDelta)
     
     if(*m_physics_running){ m_physics.step_simulation(timeDelta); }
     
-    for(auto &joystick : get_joystick_states())
+    // update joystick positions
+    auto joystick_states = get_joystick_states();
+    
+    int i = 0;
+    for(auto &joystick : joystick_states)
     {
-        float min_val = .38f, multiplier = 1.2f;
+        float min_val = .38f, multiplier = 400.f;
         float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
         float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
+        m_crosshair_pos[i] += vec2(x_axis, y_axis) * multiplier * timeDelta;
+        m_crosshair_pos[i] = glm::clamp(m_crosshair_pos[i], vec2(0), windowSize());
+        
+        if(joystick.buttons()[0])
+        {
+            auto ray = gl::calculateRay(camera(), m_crosshair_pos[i].x, m_crosshair_pos[i].y);
+            shoot_box(ray, 160.f);
+        }
+
+        i++;
     }
 }
 
@@ -84,6 +105,12 @@ void FractureApp::draw()
     if(*m_physics_debug_draw){ m_physics.debug_render(camera()); }
     else{ scene().render(camera()); }
     
+    // gui stuff
+    gl::setMatrices(m_gui_cam);
+    for(auto &p : m_crosshair_pos)
+    {
+        gl::drawCircle(p, 15.f, false);
+    }
     
     // draw texture map(s)
     if(displayTweakBar()){ draw_textures(); }
@@ -94,6 +121,8 @@ void FractureApp::draw()
 void FractureApp::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
+    
+    m_gui_cam = gl::OrthographicCamera::create(0, w, h, 0, 0, 1);
 }
 
 /////////////////////////////////////////////////////////////////

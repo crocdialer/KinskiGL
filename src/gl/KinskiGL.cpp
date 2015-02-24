@@ -162,7 +162,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void setMatrices( const CameraPtr &cam )
+    void setMatrices(const CameraPtr &cam)
     {
         setProjection(cam);
         setModelView(cam);

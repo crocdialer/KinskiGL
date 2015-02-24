@@ -46,6 +46,11 @@ namespace kinski
         physics::btCollisionShapePtr m_box_shape;
         gl::GeometryPtr m_box_geom;
         
+        // gui stuff
+        gl::CameraPtr m_gui_cam;
+        std::vector<glm::vec2> m_crosshair_pos;
+        
+        
         void shoot_box(const gl::Ray &the_ray, float the_velocity,
                        const glm::vec3 &the_half_extents = glm::vec3(.5f));
         
