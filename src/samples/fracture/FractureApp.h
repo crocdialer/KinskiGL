@@ -44,7 +44,8 @@ namespace kinski
         Property_<float>::Ptr
         m_gravity = Property_<float>::create("gravity", 9.81f),
         m_friction = Property_<float>::create("friction", .6f),
-        m_breaking_thresh = Property_<float>::create("breaking threshold", 2.4f);
+        m_breaking_thresh = Property_<float>::create("breaking threshold", 2.4f),
+        m_shoot_velocity = Property_<float>::create("shoot velocity", 40.f);
         
         Property_<glm::vec3>::Ptr
         m_obj_scale = Property_<glm::vec3>::create("object scale", glm::vec3(.5f));

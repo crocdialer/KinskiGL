@@ -28,6 +28,7 @@ void FractureApp::setup()
     registerProperty(m_breaking_thresh);
     registerProperty(m_gravity);
     registerProperty(m_friction);
+    registerProperty(m_shoot_velocity);
     registerProperty(m_obj_scale);
     registerProperty(m_fbo_resolution);
     registerProperty(m_fbo_cam_pos);
@@ -83,12 +84,14 @@ void FractureApp::update(float timeDelta)
         float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
         float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
         m_crosshair_pos[i] += vec2(x_axis, y_axis) * multiplier * timeDelta;
-        m_crosshair_pos[i] = glm::clamp(m_crosshair_pos[i], vec2(0), windowSize());
         
-        if(joystick.buttons()[0])
+        if(m_fbos[0])
+        m_crosshair_pos[i] = glm::clamp(m_crosshair_pos[i], vec2(0), m_fbos[0].getSize());
+        
+        if(joystick.buttons()[0] && m_fbo_cam)
         {
-            auto ray = gl::calculateRay(camera(), m_crosshair_pos[i].x, m_crosshair_pos[i].y);
-            shoot_box(ray, 160.f);
+            auto ray = gl::calculateRay(m_fbo_cam, m_crosshair_pos[i].x, m_crosshair_pos[i].y);
+            shoot_box(ray, *m_shoot_velocity);
         }
 
         i++;
@@ -112,18 +115,23 @@ void FractureApp::draw()
     
     if(m_fbos[0] && m_fbo_cam)
     {
-        auto tex = gl::render_to_texture(scene(), m_fbos[0], camera());
-        gl::drawTexture(tex, gl::windowDimension());
+        auto tex = gl::render_to_texture(m_fbos[0],[&]
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            scene().render(m_fbo_cam);
+            
+            // gui stuff
+            gl::setMatrices(m_gui_cam);
+            for(auto &p : m_crosshair_pos)
+            {
+                gl::drawCircle(p, 15.f, false);
+            }
+            
+        });
+//        gl::drawTexture(tex, gl::windowDimension());
         textures()[1] = tex;
         
-        if(*m_use_syphon){ m_syphon.publish_texture(textures()[1]); }
-    }
-    
-    // gui stuff
-    gl::setMatrices(m_gui_cam);
-    for(auto &p : m_crosshair_pos)
-    {
-        gl::drawCircle(p, 15.f, false);
+        if(*m_use_syphon){ m_syphon.publish_texture(tex); }
     }
     
     // draw texture map(s)
@@ -178,7 +186,7 @@ void FractureApp::mousePress(const MouseEvent &e)
     if(e.isRight())
     {
         auto ray = gl::calculateRay(camera(), e.getX(), e.getY());
-        shoot_box(ray, 30.f);
+        shoot_box(ray, *m_shoot_velocity);
     }
 }
 
@@ -299,7 +307,8 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_fbo_resolution)
     {
         m_fbos[0] = gl::Fbo(m_fbo_resolution->value().x, m_fbo_resolution->value().y);
-        m_fbo_cam = gl::PerspectiveCamera::create(m_fbos[0].getAspectRatio(), 45.f, .01f, 10.f);
+        float aspect = m_fbos[0].getAspectRatio();//m_obj_scale->value().x / m_obj_scale->value().y;
+        m_fbo_cam = gl::PerspectiveCamera::create(aspect, 45.f, .1f, 100.f);
         m_fbo_cam->position() = *m_fbo_cam_pos;
     }
     else if(theProperty == m_fbo_cam_pos)
