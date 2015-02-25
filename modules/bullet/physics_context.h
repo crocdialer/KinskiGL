@@ -10,6 +10,7 @@
 #define __gl__physics_context__
 
 #include "core/Definitions.h"
+#include <unordered_map>
 
 //#define BT_USE_DOUBLE_PRECISION
 #include "btBulletDynamicsCommon.h"
@@ -242,7 +243,7 @@ namespace kinski{ namespace physics{
          * return a pointer to the corresponding btRigidBody for the_mesh
          * or nullptr if not found
          */
-        btRigidBody* get_rigidbody_for_mesh(gl::MeshWeakPtr the_mesh);
+        btRigidBody* get_rigidbody_for_mesh(const gl::MeshPtr &the_mesh);
         
         /*!
          * set where to position static planes as boundaries for the entire physics scene
@@ -259,8 +260,8 @@ namespace kinski{ namespace physics{
         
      private:
         
-        std::map<gl::MeshPtr, btCollisionShapePtr> m_mesh_shape_map;
-        std::map<gl::MeshWeakPtr, btRigidBody*, std::owner_less<gl::MeshWeakPtr>> m_mesh_rigidbody_map;
+        std::unordered_map<gl::MeshPtr, btCollisionShapePtr> m_mesh_shape_map;
+        std::unordered_map<gl::MeshPtr, btRigidBody*> m_mesh_rigidbody_map;
         
         std::set<btCollisionShapePtr> m_collisionShapes;
         std::shared_ptr<btBroadphaseInterface> m_broadphase;

@@ -259,7 +259,7 @@ namespace kinski{ namespace physics{
         }
     }
     
-    btRigidBody* physics_context::get_rigidbody_for_mesh(gl::MeshWeakPtr the_mesh)
+    btRigidBody* physics_context::get_rigidbody_for_mesh(const gl::MeshPtr &the_mesh)
     {
         auto body_iter = m_mesh_rigidbody_map.find(the_mesh);
         
@@ -442,6 +442,7 @@ namespace kinski{ namespace physics{
     
     void physics_context::tick_callback(btScalar timeStep)
     {
+        int collisions = 0;
         int numManifolds = m_dynamicsWorld->getDispatcher()->getNumManifolds();
         for (int i = 0; i < numManifolds; i++)
         {
@@ -458,11 +459,12 @@ namespace kinski{ namespace physics{
                     const btVector3& ptA = pt.getPositionWorldOnA();
                     const btVector3& ptB = pt.getPositionWorldOnB();
                     const btVector3& normalOnB = pt.m_normalWorldOnB;
+                    collisions++;
                 }
             }
         }
         
-//        LOG_DEBUG << numManifolds << " collisions";
+        LOG_DEBUG << collisions << " collisions";
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/
