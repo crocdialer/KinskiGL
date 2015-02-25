@@ -28,6 +28,11 @@ void FractureApp::setup()
     registerProperty(m_breaking_thresh);
     registerProperty(m_gravity);
     registerProperty(m_friction);
+    registerProperty(m_obj_scale);
+    registerProperty(m_fbo_resolution);
+    registerProperty(m_fbo_cam_pos);
+    registerProperty(m_use_syphon);
+    registerProperty(m_syphon_server_name);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -105,6 +110,15 @@ void FractureApp::draw()
     if(*m_physics_debug_draw){ m_physics.debug_render(camera()); }
     else{ scene().render(camera()); }
     
+    if(m_fbos[0] && m_fbo_cam)
+    {
+        auto tex = gl::render_to_texture(scene(), m_fbos[0], camera());
+        gl::drawTexture(tex, gl::windowDimension());
+        textures()[1] = tex;
+        
+        if(*m_use_syphon){ m_syphon.publish_texture(textures()[1]); }
+    }
+    
     // gui stuff
     gl::setMatrices(m_gui_cam);
     for(auto &p : m_crosshair_pos)
@@ -164,7 +178,7 @@ void FractureApp::mousePress(const MouseEvent &e)
     if(e.isRight())
     {
         auto ray = gl::calculateRay(camera(), e.getX(), e.getY());
-        shoot_box(ray, 160.f);
+        shoot_box(ray, 30.f);
     }
 }
 
@@ -282,6 +296,25 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
         }
     }
     else if(theProperty == m_texture_path){}
+    else if(theProperty == m_fbo_resolution)
+    {
+        m_fbos[0] = gl::Fbo(m_fbo_resolution->value().x, m_fbo_resolution->value().y);
+        m_fbo_cam = gl::PerspectiveCamera::create(m_fbos[0].getAspectRatio(), 45.f, .01f, 10.f);
+        m_fbo_cam->position() = *m_fbo_cam_pos;
+    }
+    else if(theProperty == m_fbo_cam_pos)
+    {
+        m_fbo_cam->position() = *m_fbo_cam_pos;
+    }
+    else if(theProperty == m_use_syphon)
+    {
+        m_syphon = *m_use_syphon ? syphon::Output(*m_syphon_server_name) : syphon::Output();
+    }
+    else if(theProperty == m_syphon_server_name)
+    {
+        try{m_syphon.setName(*m_syphon_server_name);}
+        catch(syphon::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
+    }
     else if(theProperty == m_gravity)
     {
         if(m_physics.dynamicsWorld())
@@ -311,28 +344,52 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
 //    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
     
     gl::MeshPtr mesh = gl::Mesh::create(m_box_geom, gl::Material::create());
-    mesh->setScale(2.f * the_half_extents);
+    mesh->setScale(.2f * the_half_extents);
     mesh->setPosition(the_ray.origin);
     scene().addObject(mesh);
+    m_box_shape->setLocalScaling(physics::type_cast(mesh->scale()));
     
     
     btRigidBody *rb = m_physics.add_mesh_to_simulation(mesh, pow(2 * the_half_extents.x, 3.f),
                                                        m_box_shape);
     rb->setFriction(*m_friction);
     rb->setLinearVelocity(physics::type_cast(the_ray.direction * the_velocity));
-    rb->setCcdSweptSphereRadius(1 / 2.f);
-    rb->setCcdMotionThreshold(1 / 2.f);
+    rb->setCcdSweptSphereRadius(glm::length(mesh->scale() / 2.f));
+    rb->setCcdMotionThreshold(glm::length(mesh->scale() / 2.f));
 }
 
 void FractureApp::fracture_test(uint32_t num_shards)
 {
-    Stopwatch t;
-    t.start();
-    
     scene().clear();
     m_physics.init();
     m_gravity->notifyObservers();
-    m_physics.set_world_boundaries(vec3(40), vec3(0, 40, 0));
+    
+    auto phong_shader = gl::createShader(gl::SHADER_PHONG);
+    
+//    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 100 - .3f));
+    {
+        // ground plane
+        auto ground_mat = gl::Material::create(phong_shader);
+        auto ground = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
+        ground->setScale(vec3(100, .3, 100));
+        auto ground_aabb = ground->boundingBox().transform(ground->transform());
+        ground->position().y -= ground_aabb.halfExtents().y;
+        auto col_shape = std::make_shared<btBoxShape>(physics::type_cast(ground_aabb.halfExtents()));
+        btRigidBody *rb =m_physics.add_mesh_to_simulation(ground, 0.f, col_shape);
+        rb->setFriction(*m_friction);
+        scene().addObject(ground);
+        
+        // back plane
+        auto back = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
+        back->setScale(vec3(100, 20, .3));
+        auto back_aabb = back->boundingBox().transform(back->transform());
+        back->position() += vec3(0, back_aabb.halfExtents().y, -.3f);
+        col_shape = std::make_shared<btBoxShape>(physics::type_cast(back_aabb.halfExtents()));
+        rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
+        rb->setFriction(*m_friction);
+        scene().addObject(back);
+    }
+    
     
     for(auto *b : m_physics.bounding_bodies()){ b->setFriction(*m_friction); }
     
@@ -344,13 +401,10 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     for(auto &l : lights()){ scene().addObject(l); }
     
-    
-    auto phong_shader = gl::createShader(gl::SHADER_PHONG);
-//    auto m = gl::Mesh::create(gl::Geometry::createSphere(1.5f, 10), gl::Material::create(phong_shader));
     auto m = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), gl::Material::create(phong_shader));
-    m->setScale(vec3(3, 1, 5));
-    m->setPosition(vec3(0, 25, 0));
+    m->setScale(*m_obj_scale);
     auto aabb = m->boundingBox().transform(m->transform());
+    m->position().y += aabb.halfExtents().y;
     
     try
     {
@@ -361,16 +415,22 @@ void FractureApp::fracture_test(uint32_t num_shards)
     // voronoi points
     std::vector<glm::vec3> voronoi_points;
     voronoi_points.resize(num_shards);
-    for(auto &vp : voronoi_points){ vp = m->position() + glm::ballRand(2.f);}//(aabb.min, aabb.max); }
+    for(auto &vp : voronoi_points)
+    {
+        vp = m->position() + glm::linearRand(-aabb.halfExtents(), aabb.halfExtents());
+    }//(aabb.min, aabb.max); }
+    
+    Stopwatch t;
+    t.start();
     
     auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
     
-    m->position() += vec3(5, 0, 0);
-    scene().addObject(m);
-    m_physics.add_mesh_to_simulation(m);
+//    m->position() += vec3(5, 0, 0);
+//    scene().addObject(m);
+//    m_physics.add_mesh_to_simulation(m);
     
     float density = 1.8;
-    float convex_margin = 0.007;
+    float convex_margin = 0.00;
     
     for(auto &s : shards)
     {
@@ -382,6 +442,10 @@ void FractureApp::fracture_test(uint32_t num_shards)
         rb->getCollisionShape()->setMargin(convex_margin);
         rb->setRestitution(0.5f);
         rb->setFriction(*m_friction);
+        
+        //ccd
+//        rb->setCcdSweptSphereRadius(glm::length(s.mesh->scale() / 2.f));
+//        rb->setCcdMotionThreshold(glm::length(s.mesh->scale() / 2.f));
     }
     m_physics.dynamicsWorld()->performDiscreteCollisionDetection();
     m_physics.attach_constraints(*m_breaking_thresh);

@@ -12,8 +12,11 @@
 #include "app/ViewerApp.h"
 #include "app/LightComponent.h"
 
-// module header
+#include "gl/Fbo.h"
+
+// module headers
 #include "physics_context.h"
+#include "SyphonConnector.h"
 
 namespace kinski
 {
@@ -21,10 +24,10 @@ namespace kinski
     {
     private:
         
+        enum ViewType{VIEW_DEBUG = 0, VIEW_OUTPUT = 1};
+        
         gl::MeshPtr m_mesh;
-        
         physics::physics_context m_physics;
-        
         LightComponent::Ptr m_light_component;
         
         Property_<std::string>::Ptr
@@ -43,6 +46,9 @@ namespace kinski
         m_friction = Property_<float>::create("friction", .6f),
         m_breaking_thresh = Property_<float>::create("breaking threshold", 2.4f);
         
+        Property_<glm::vec3>::Ptr
+        m_obj_scale = Property_<glm::vec3>::create("object scale", glm::vec3(.5f));
+        
         physics::btCollisionShapePtr m_box_shape;
         gl::GeometryPtr m_box_geom;
         
@@ -50,6 +56,22 @@ namespace kinski
         gl::CameraPtr m_gui_cam;
         std::vector<glm::vec2> m_crosshair_pos;
         
+        // fbo / syphon stuff
+        std::vector<gl::Fbo> m_fbos{5};
+        gl::CameraPtr m_fbo_cam;
+        Property_<glm::vec3>::Ptr
+        m_fbo_cam_pos = Property_<glm::vec3>::create("fbo camera position", glm::vec3(0, 0, 5.f));
+        
+        Property_<glm::vec2>::Ptr
+        m_fbo_resolution = Property_<glm::vec2>::create("Fbo resolution", glm::vec2(1920, 1080));
+        
+        ViewType m_view_type = VIEW_OUTPUT;
+        
+        // output via Syphon
+        syphon::Output m_syphon;
+        Property_<bool>::Ptr m_use_syphon = Property_<bool>::create("Use syphon", false);
+        Property_<std::string>::Ptr m_syphon_server_name =
+        Property_<std::string>::create("Syphon server name", "fracture");
         
         void shoot_box(const gl::Ray &the_ray, float the_velocity,
                        const glm::vec3 &the_half_extents = glm::vec3(.5f));

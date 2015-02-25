@@ -464,7 +464,7 @@ namespace kinski{ namespace physics{
             }
         }
         
-        LOG_DEBUG << collisions << " collisions";
+//        LOG_DEBUG << collisions << " collisions";
     }
     
 /***************** kinski::physics::Mesh (btStridingMeshInterface implementation) *****************/
