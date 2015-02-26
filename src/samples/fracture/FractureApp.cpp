@@ -20,6 +20,7 @@ void FractureApp::setup()
 {
     ViewerApp::setup();
     
+    registerProperty(m_view_type);
     registerProperty(m_model_path);
     registerProperty(m_texture_path);
     registerProperty(m_physics_running);
@@ -78,6 +79,7 @@ void FractureApp::update(float timeDelta)
     auto joystick_states = get_joystick_states();
     
     int i = 0;
+    
     for(auto &joystick : joystick_states)
     {
         float min_val = .38f, multiplier = 400.f;
@@ -93,7 +95,8 @@ void FractureApp::update(float timeDelta)
             auto ray = gl::calculateRay(m_fbo_cam, m_crosshair_pos[i], m_fbos[0].getSize());
             shoot_box(ray, *m_shoot_velocity);
         }
-
+        
+        if(joystick.buttons()[9]){ fracture_test(*m_num_fracture_shards); break; }
         i++;
     }
 }
@@ -102,17 +105,7 @@ void FractureApp::update(float timeDelta)
 
 void FractureApp::draw()
 {
-    gl::setMatrices(camera());
-    if(draw_grid()){ gl::drawGrid(50, 50); }
-    
-    if(m_light_component->draw_light_dummies())
-    {
-        for (auto l : lights()){ gl::drawLight(l); }
-    }
-    
-    if(*m_physics_debug_draw){ m_physics.debug_render(camera()); }
-    else{ scene().render(camera()); }
-    
+    // draw the output texture
     if(m_fbos[0] && m_fbo_cam)
     {
         auto tex = gl::render_to_texture(m_fbos[0],[&]
@@ -128,10 +121,32 @@ void FractureApp::draw()
             }
             
         });
-//        gl::drawTexture(tex, gl::windowDimension());
         textures()[1] = tex;
         
         if(*m_use_syphon){ m_syphon.publish_texture(tex); }
+    }
+    
+    switch (*m_view_type)
+    {
+        case VIEW_DEBUG:
+            gl::setMatrices(camera());
+            if(draw_grid()){ gl::drawGrid(50, 50); }
+            
+            if(m_light_component->draw_light_dummies())
+            {
+                for (auto l : lights()){ gl::drawLight(l); }
+            }
+            
+            if(*m_physics_debug_draw){ m_physics.debug_render(camera()); }
+            else{ scene().render(camera()); }
+            break;
+            
+        case VIEW_OUTPUT:
+            gl::drawTexture(textures()[1], gl::windowDimension());
+            break;
+            
+        default:
+            break;
     }
     
     // draw texture map(s)
@@ -376,9 +391,11 @@ void FractureApp::fracture_test(uint32_t num_shards)
     auto phong_shader = gl::createShader(gl::SHADER_PHONG);
     
 //    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 100 - .3f));
+    btRigidBody *wall;
     {
         // ground plane
-        auto ground_mat = gl::Material::create(phong_shader);
+        auto ground_mat = gl::Material::create();
+        ground_mat->setDiffuse(gl::COLOR_BLACK);
         auto ground = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
         ground->setScale(vec3(100, .3, 100));
         auto ground_aabb = ground->boundingBox().transform(ground->transform());
@@ -394,7 +411,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto back_aabb = back->boundingBox().transform(back->transform());
         back->position() += vec3(0, back_aabb.halfExtents().y, -.3f);
         col_shape = std::make_shared<btBoxShape>(physics::type_cast(back_aabb.halfExtents()));
-        rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
+        wall = rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
         rb->setFriction(*m_friction);
         scene().addObject(back);
     }
@@ -432,7 +449,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     Stopwatch t;
     t.start();
     
-    auto shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
+    m_voronoi_shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
     
 //    m->position() += vec3(5, 0, 0);
 //    scene().addObject(m);
@@ -441,12 +458,13 @@ void FractureApp::fracture_test(uint32_t num_shards)
     float density = 1.8;
     float convex_margin = 0.00;
     
-    for(auto &s : shards)
+    for(auto &s : m_voronoi_shards)
     {
-        scene().addObject(s.mesh);
+        auto mesh_copy = s.mesh;//s.mesh->copy();
+        scene().addObject(mesh_copy);
         s.mesh->material() = m->material();
-        auto col_shape = physics::createConvexCollisionShape(s.mesh);
-        btRigidBody* rb = m_physics.add_mesh_to_simulation(s.mesh, density * s.volume, col_shape);
+        auto col_shape = physics::createConvexCollisionShape(mesh_copy);
+        btRigidBody* rb = m_physics.add_mesh_to_simulation(mesh_copy, density * s.volume, col_shape);
 
         rb->getCollisionShape()->setMargin(convex_margin);
         rb->setRestitution(0.5f);
@@ -455,6 +473,10 @@ void FractureApp::fracture_test(uint32_t num_shards)
         //ccd
 //        rb->setCcdSweptSphereRadius(glm::length(s.mesh->scale() / 2.f));
 //        rb->setCcdMotionThreshold(glm::length(s.mesh->scale() / 2.f));
+        
+        // pin to wall
+        
+        
     }
     m_physics.dynamicsWorld()->performDiscreteCollisionDetection();
     m_physics.attach_constraints(*m_breaking_thresh);

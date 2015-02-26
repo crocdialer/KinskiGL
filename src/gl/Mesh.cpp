@@ -385,6 +385,13 @@ namespace kinski { namespace gl {
 #endif
     }
     
+    MeshPtr Mesh::copy()
+    {
+        MeshPtr ret = create(m_geometry, m_materials[0]);
+        *ret = *this;
+        return ret;
+    }
+    
     void Mesh::setVertexLocationName(const std::string &theName)
     {
         m_vertexLocationName = theName;

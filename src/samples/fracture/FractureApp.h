@@ -24,7 +24,7 @@ namespace kinski
     {
     private:
         
-        enum ViewType{VIEW_DEBUG = 0, VIEW_OUTPUT = 1};
+        enum ViewType{VIEW_NOTHING = 1, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
         
         gl::MeshPtr m_mesh;
         physics::physics_context m_physics;
@@ -53,6 +53,8 @@ namespace kinski
         physics::btCollisionShapePtr m_box_shape;
         gl::GeometryPtr m_box_geom;
         
+        std::list<physics::VoronoiShard> m_voronoi_shards;
+        
         // gui stuff
         gl::CameraPtr m_gui_cam;
         std::vector<glm::vec2> m_crosshair_pos;
@@ -64,9 +66,10 @@ namespace kinski
         m_fbo_cam_pos = Property_<glm::vec3>::create("fbo camera position", glm::vec3(0, 0, 5.f));
         
         Property_<glm::vec2>::Ptr
-        m_fbo_resolution = Property_<glm::vec2>::create("Fbo resolution", glm::vec2(1920, 1080));
+        m_fbo_resolution = Property_<glm::vec2>::create("Fbo resolution", glm::vec2(1280, 640));
         
-        ViewType m_view_type = VIEW_OUTPUT;
+        Property_<uint32_t>::Ptr
+        m_view_type = RangedProperty<uint32_t>::create("view type", VIEW_OUTPUT, 0, 2);
         
         // output via Syphon
         syphon::Output m_syphon;
@@ -78,6 +81,8 @@ namespace kinski
                        const glm::vec3 &the_half_extents = glm::vec3(.5f));
         
         void fracture_test(uint32_t num_shards);
+        
+        void reset_scene();
         
     public:
         
