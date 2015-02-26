@@ -90,7 +90,7 @@ void FractureApp::update(float timeDelta)
         
         if(joystick.buttons()[0] && m_fbo_cam)
         {
-            auto ray = gl::calculateRay(m_fbo_cam, m_crosshair_pos[i].x, m_crosshair_pos[i].y);
+            auto ray = gl::calculateRay(m_fbo_cam, m_crosshair_pos[i], m_fbos[0].getSize());
             shoot_box(ray, *m_shoot_velocity);
         }
 
@@ -185,7 +185,7 @@ void FractureApp::mousePress(const MouseEvent &e)
     
     if(e.isRight())
     {
-        auto ray = gl::calculateRay(camera(), e.getX(), e.getY());
+        auto ray = gl::calculateRay(camera(), vec2(e.getX(), e.getY()));
         shoot_box(ray, *m_shoot_velocity);
     }
 }
@@ -258,7 +258,7 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                     *m_texture_path = f;
                 }
                 catch (Exception &e) { LOG_WARNING << e.what(); }
-                if(scene().pick(gl::calculateRay(camera(), e.getX(), e.getY())))
+                if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
                 {
                     LOG_DEBUG << "texture drop on model";
                 }

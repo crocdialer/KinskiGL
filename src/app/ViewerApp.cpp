@@ -146,7 +146,8 @@ namespace kinski {
         m_lastTransform = *m_rotation;
         m_mouse_down = true;
         
-        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, e.getX(), e.getY()),
+        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, glm::vec2(e.getX(),
+                                                                                          e.getY())),
                                                      m_precise_selection))
         {
             LOG_TRACE<<"picked id: "<< picked_obj->getID();
