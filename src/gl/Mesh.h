@@ -155,6 +155,11 @@ namespace kinski { namespace gl {
          */
         void setColorLocationName(const std::string &theName);
         
+        /*!
+         *  return a copy of this mesh, sharing its geometry, materials, animations, etc.
+         */
+        MeshPtr copy();
+        
         virtual void accept(Visitor &theVisitor);
         
     private:

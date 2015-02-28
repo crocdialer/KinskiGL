@@ -151,7 +151,7 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                     }
                 }
                 catch (Exception &e) { LOG_WARNING << e.what();}
-                if(scene().pick(gl::calculateRay(camera(), e.getX(), e.getY())))
+                if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
                 {
                     LOG_INFO << "texture drop on model";
                 }

@@ -212,15 +212,16 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    gl::Ray calculateRay(const CameraPtr &theCamera, uint32_t x, uint32_t y)
+    gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 window_pos,
+                         const glm::vec2 window_size)
     {
         glm::vec3 cam_pos = theCamera->position();
         glm::vec3 lookAt = theCamera->lookAt(),
         side = theCamera->side(), up = theCamera->up();
         float near = theCamera->near();
         // bring click_pos to range -1, 1
-        glm::vec2 offset (gl::windowDimension() / 2.0f);
-        glm::vec2 click_2D(x, y);
+        glm::vec2 offset (window_size / 2.0f);
+        glm::vec2 click_2D(window_pos);
         click_2D -= offset;
         click_2D /= offset;
         click_2D.y = - click_2D.y;
