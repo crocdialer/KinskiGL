@@ -524,6 +524,7 @@ namespace kinski { namespace gl {
             material->setBlending(true);
         }
         
+#if !defined(KINSKI_GLES)
         if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(shader_2D); }
         else if(theTexture.getTarget() == GL_TEXTURE_RECTANGLE)
         {
@@ -535,7 +536,7 @@ namespace kinski { namespace gl {
             LOG_ERROR << "drawTexture: texture target not supported";
             return;
         }
-        
+#endif
         // add the texture to the material
         material->textures().clear();
         material->addTexture(theTexture);
@@ -866,8 +867,10 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 mat->uniform("u_bones", theMesh->boneMatrices());
             }
             
+#if !defined(KINSKI_GLES)
             GLuint block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
             glUniformBlockBinding(mat->shader().getHandle(), block_index, 0);
+#endif
         }
         gl::apply_material(theMesh->material());
         KINSKI_CHECK_GL_ERRORS();
