@@ -150,14 +150,11 @@ public:
         gl::setMatrices(m_Camera);
         gl::drawGrid(500, 500);
         
-        gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
-        //m_scene.render(m_Camera);
+        m_scene.render(m_Camera);
 
-        //m_frameBuffer.unbindFramebuffer();
-        //glViewport(0, 0, getWidth(), getHeight());
-       
-        //// draw fbo content
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
+        // draw fbo content
+        //gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
+        //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
     }
     
     

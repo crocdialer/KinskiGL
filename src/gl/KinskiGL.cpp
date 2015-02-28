@@ -504,17 +504,10 @@ namespace kinski { namespace gl {
         // empty texture
         if(!theTexture){ return; }
         
-        // create shaders
-        if(!shader_2D || !shader_2Drect)
-        {
-            shader_2D = gl::createShader(gl::SHADER_UNLIT);
-            shader_2Drect = gl::createShader(gl::SHADER_2D_RECT);
-        }
-        
         //create material, if not yet here
         if(!material)
         {
-            try{ material = gl::Material::create(shader_2D); }
+            try{ material = gl::Material::create(); }
             catch (Exception &e){LOG_ERROR<<e.what();}
             material->setDepthTest(false);
             material->setDepthWrite(false);
@@ -522,6 +515,13 @@ namespace kinski { namespace gl {
         }
         
 #if !defined(KINSKI_GLES)
+        // create shaders
+        if(!shader_2D || !shader_2Drect)
+        {
+            shader_2D = gl::createShader(gl::SHADER_UNLIT);
+            shader_2Drect = gl::createShader(gl::SHADER_2D_RECT);
+        }
+
         if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(shader_2D); }
         else if(theTexture.getTarget() == GL_TEXTURE_RECTANGLE)
         {

@@ -6,7 +6,7 @@ attribute vec4 a_color;
 varying lowp vec4 v_color;
 varying lowp vec4 v_texCoord;
 
-void main()
+void main(void)
 {
   v_color = a_color;
   v_texCoord =  u_textureMatrix * a_texCoord;
