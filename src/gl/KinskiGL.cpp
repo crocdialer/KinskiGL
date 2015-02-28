@@ -502,11 +502,7 @@ namespace kinski { namespace gl {
         static Shader shader_2D, shader_2Drect;
         
         // empty texture
-        if(!theTexture)
-        {
-            LOG_WARNING << "trying to draw an empty texture";
-            return;
-        }
+        if(!theTexture){ return; }
         
         // create shaders
         if(!shader_2D || !shader_2Drect)
