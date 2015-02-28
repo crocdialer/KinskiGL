@@ -100,12 +100,15 @@ namespace kinski{ namespace gl{
                 }
                 
                 // lighting parameters
-//                set_light_uniforms(mat, light_list);
+#if !defined(KINSKI_GLES)
                 GLuint block_index = mat->shader().getUniformBlockIndex("LightBlock");
                 glUniformBlockBinding(mat->shader().getHandle(), block_index, LIGHT_BLOCK);
                 
                 block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
                 glUniformBlockBinding(mat->shader().getHandle(), block_index, MATERIAL_BLOCK);
+#else
+                set_light_uniforms(mat, light_list);
+#endif
             }
             gl::apply_material(m->material());
             
