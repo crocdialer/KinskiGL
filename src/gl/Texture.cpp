@@ -154,14 +154,14 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
     
     if( format.m_Mipmapping ){ glGenerateMipmap(m_Obj->m_Target); }
     
+#ifndef KINSKI_GLES
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
     {
-        #ifndef KINSKI_GLES
             GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
                 GL_ONE};
             glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-        #endif
     }
+#endif
     
     KINSKI_CHECK_GL_ERRORS();
 }
@@ -304,8 +304,10 @@ void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
     
 void Texture::set_swizzle(GLint red, GLint green, GLint blue, GLint alpha)
 {
+#if !defined(KINSKI_GLES)
     GLint swizzleMask[] = {red, green, blue, alpha};
     glTexParameteriv(getTarget(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+#endif
 }
 
 void Texture::set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
