@@ -19,6 +19,7 @@ struct Material
 struct Lightsource
 {
   vec3 position; 
+  int type; 
   vec4 diffuse; 
   vec4 ambient; 
   vec4 specular; 
@@ -28,7 +29,6 @@ struct Lightsource
   float constantAttenuation; 
   float linearAttenuation; 
   float quadraticAttenuation; 
-  int type; 
 };
 
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color) 

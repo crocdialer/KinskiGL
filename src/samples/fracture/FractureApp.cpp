@@ -395,7 +395,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     {
         // ground plane
         auto ground_mat = gl::Material::create();
-        ground_mat->setDiffuse(gl::COLOR_BLACK);
+//        ground_mat->setDiffuse(gl::COLOR_BLACK);
         auto ground = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
         ground->setScale(vec3(100, .3, 100));
         auto ground_aabb = ground->boundingBox().transform(ground->transform());
@@ -403,13 +403,13 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto col_shape = std::make_shared<btBoxShape>(physics::type_cast(ground_aabb.halfExtents()));
         btRigidBody *rb =m_physics.add_mesh_to_simulation(ground, 0.f, col_shape);
         rb->setFriction(*m_friction);
-        scene().addObject(ground);
+//        scene().addObject(ground);
         
         // back plane
         auto back = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
         back->setScale(vec3(100, 20, .3));
         auto back_aabb = back->boundingBox().transform(back->transform());
-        back->position() += vec3(0, back_aabb.halfExtents().y, -.3f);
+        back->position() += vec3(0, back_aabb.halfExtents().y, -2.f * back_aabb.halfExtents().z);
         col_shape = std::make_shared<btBoxShape>(physics::type_cast(back_aabb.halfExtents()));
         wall = rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
         rb->setFriction(*m_friction);

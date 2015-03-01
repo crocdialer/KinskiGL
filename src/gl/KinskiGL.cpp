@@ -499,7 +499,6 @@ namespace kinski { namespace gl {
     void drawTexture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
         static gl::MaterialPtr material;
-        static Shader shader_2D, shader_2Drect;
         
         // empty texture
         if(!theTexture){ return; }
@@ -515,10 +514,12 @@ namespace kinski { namespace gl {
         }
         
 #if !defined(KINSKI_GLES)
+        static Shader shader_2D, shader_2Drect;
+        
         // create shaders
         if(!shader_2D || !shader_2Drect)
         {
-            shader_2D = gl::createShader(gl::SHADER_UNLIT);
+            shader_2D = material->shader();
             shader_2Drect = gl::createShader(gl::SHADER_2D_RECT);
         }
 

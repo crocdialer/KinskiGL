@@ -22,6 +22,7 @@ struct Material
 struct Lightsource
 {
   vec3 position; 
+  int type; 
   vec4 diffuse; 
   vec4 ambient; 
   vec4 specular; 
@@ -31,7 +32,6 @@ struct Lightsource
   float constantAttenuation; 
   float linearAttenuation; 
   float quadraticAttenuation; 
-  int type; 
 }; 
 
 layout(std140) uniform MaterialBlock

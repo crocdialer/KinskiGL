@@ -21,18 +21,18 @@ namespace kinski{ namespace gl{
     
     struct lightstruct_std140
     {
-        vec4 position;//pad
+        vec3 position;//pad
+        int type;
         vec4 diffuse;
         vec4 ambient;
         vec4 specular;
-        vec4 spotDirection;//pad
+        vec3 spotDirection;//pad
         float spotCosCutoff;
         float spotExponent;
         float constantAttenuation;
         float linearAttenuation;
         float quadraticAttenuation;
-        int type;
-        uint32_t pad[2];//pad
+//        uint32_t pad[2];//pad
     };
     
     Renderer::Renderer()
@@ -219,14 +219,14 @@ namespace kinski{ namespace gl{
         {
             lightstruct_std140 buf;
             buf.type = (int)l.light->type();
-            buf.position = l.transform[3];
+            buf.position = l.transform[3].xyz();
             buf.diffuse = l.light->diffuse();
             buf.ambient = l.light->ambient();
             buf.specular = l.light->specular();
             buf.constantAttenuation = l.light->attenuation().constant;
             buf.linearAttenuation = l.light->attenuation().linear;
             buf.quadraticAttenuation = l.light->attenuation().quadratic;
-            buf.spotDirection = vec4(glm::normalize(-vec3(l.transform[2].xyz())), 0.f);
+            buf.spotDirection = glm::normalize(-vec3(l.transform[2].xyz()));
             buf.spotCosCutoff = cosf(glm::radians(l.light->spot_cutoff()));
             buf.spotExponent = l.light->spot_exponent();
             light_structs.push_back(buf);
