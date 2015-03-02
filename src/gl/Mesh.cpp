@@ -389,6 +389,9 @@ namespace kinski { namespace gl {
     {
         MeshPtr ret = create(m_geometry, m_materials[0]);
         *ret = *this;
+        ret->m_vertexArrays.clear();
+        ret->m_shaders.clear();
+        ret->createVertexArray();
         return ret;
     }
     

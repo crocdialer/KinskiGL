@@ -394,7 +394,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     btRigidBody *wall;
     {
         // ground plane
-        auto ground_mat = gl::Material::create();
+        auto ground_mat = gl::Material::create(phong_shader);
 //        ground_mat->setDiffuse(gl::COLOR_BLACK);
         auto ground = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
         ground->setScale(vec3(100, .3, 100));
@@ -403,7 +403,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto col_shape = std::make_shared<btBoxShape>(physics::type_cast(ground_aabb.halfExtents()));
         btRigidBody *rb =m_physics.add_mesh_to_simulation(ground, 0.f, col_shape);
         rb->setFriction(*m_friction);
-//        scene().addObject(ground);
+        scene().addObject(ground);
         
         // back plane
         auto back = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
@@ -469,10 +469,12 @@ void FractureApp::fracture_test(uint32_t num_shards)
         rb->getCollisionShape()->setMargin(convex_margin);
         rb->setRestitution(0.5f);
         rb->setFriction(*m_friction);
+        rb->setRollingFriction(*m_friction);
         
         //ccd
-//        rb->setCcdSweptSphereRadius(glm::length(s.mesh->scale() / 2.f));
-//        rb->setCcdMotionThreshold(glm::length(s.mesh->scale() / 2.f));
+        auto aabb = mesh_copy->boundingBox();
+        rb->setCcdSweptSphereRadius(glm::length(aabb.halfExtents()) / 2.f);
+        rb->setCcdMotionThreshold(glm::length(aabb.halfExtents()) / 2.f);
         
         // pin to wall
         

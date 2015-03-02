@@ -849,16 +849,18 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     {
         if(!theMesh || theMesh->geometry()->vertices().empty()) return;
         
+        const glm::mat4 &modelView = g_modelViewMatrixStack.top();
+        mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
+        mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
+        
         for(auto &mat : theMesh->materials())
         {
-            mat->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
+            mat->uniform("u_modelViewMatrix", modelView);
             if(theMesh->geometry()->hasNormals())
             {
-                mat->uniform("u_normalMatrix",
-                             glm::inverseTranspose( glm::mat3(g_modelViewMatrixStack.top()) ));
+                mat->uniform("u_normalMatrix", normal_matrix);
             }
-            mat->uniform("u_modelViewProjectionMatrix",
-                         g_projectionMatrixStack.top() * g_modelViewMatrixStack.top());
+            mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
             
             if(theMesh->geometry()->hasBones())
             {
@@ -1424,7 +1426,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         float scale_val = 1.01f;
         mat4 world_to_src = glm::inverse(glm::scale(src->global_transform(), vec3(scale_val)));
         
-        for(int i = 0; i < dest_verts.size(); i++)
+        for(uint32_t i = 0; i < dest_verts.size(); i++)
         {
             gl::Ray ray(dest_verts[i] + dest_normals[i] * ray_offset, -dest_normals[i]);
             ray = ray.transform(dest->transform());
