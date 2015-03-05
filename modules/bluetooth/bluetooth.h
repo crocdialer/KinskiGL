@@ -13,14 +13,18 @@
 
 namespace kinski{ namespace bluetooth{
     
+    class UUID;
     class Central;
     class Peripheral;
+    
+    typedef std::function<void(const Central&, Peripheral&, std::vector<uint8_t>, float)>
+    DiscoveredPeripheralCallback;
     
     class Central
     {
     public:
         Central();
-        std::list<Peripheral> scan_for_peripherals();
+        void scan_for_peripherals();
         void connect_peripheral(const Peripheral &the_peripheral);
         
     private:

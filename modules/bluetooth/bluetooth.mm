@@ -8,22 +8,72 @@
 #include "bluetooth.h"
 #include "CoreBluetooth/CoreBluetooth.h"
 
+@interface CentralManagerDelegate : NSObject<CBCentralManagerDelegate>
+{
+}
+@end
+
+@implementation CentralManagerDelegate
+- (void)centralManagerDidUpdateState:(CBCentralManager *)central
+{
+
+}
+
+- (void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary *)dict
+{}
+
+- (void)centralManager:(CBCentralManager *)central didRetrievePeripherals:(NSArray *)peripherals
+{}
+
+- (void)centralManager:(CBCentralManager *)central didRetrieveConnectedPeripherals:(NSArray *)peripherals
+{}
+
+- (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
+     advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
+{
+    LOG_DEBUG << "discovered: " << [peripheral.name UTF8String];
+}
+
+- (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
+{}
+
+- (void)centralManager:(CBCentralManager *)central
+    didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
+{}
+
+- (void)centralManager:(CBCentralManager *)central
+    didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
+{}
+
+@end
+
 namespace kinski{ namespace bluetooth{
 
     struct Central::CentralImpl
     {
-    
+        CBCentralManager* central_manager;
+        CentralManagerDelegate* delegate;
+        CentralImpl()
+        {
+            delegate = [[CentralManagerDelegate alloc] init];
+            central_manager = [[CBCentralManager alloc] initWithDelegate:delegate queue:nil options:nil];
+        }
+        ~CentralImpl()
+        {
+            [central_manager dealloc];
+            [delegate dealloc];
+        }
     };
     
     Central::Central():
     m_impl(new CentralImpl)
     {
-    
+        
     }
     
-    std::list<Peripheral> Central::scan_for_peripherals()
+    void Central::scan_for_peripherals()
     {
-        return {};
+        [m_impl->central_manager scanForPeripheralsWithServices:nil options:nil];
     }
     
     void Central::connect_peripheral(const Peripheral &the_peripheral)
