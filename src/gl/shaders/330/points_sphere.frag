@@ -34,20 +34,21 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   vec4 ambient = mat.ambient * light.ambient; 
   float att = 1.0; 
   float nDotL = dot(normal, L); 
+  
   if (light.type > 0)
   {
     float dist = length(lightDir); 
     att = 1.0 / (light.constantAttenuation + light.linearAttenuation * dist + light.quadraticAttenuation * dist * dist); 
     
-    if(light.type > 1) 
+    if(light.type > 1)
     {
       float spotEffect = dot(normalize(light.spotDirection), -L); 
       
-      if (spotEffect < light.spotCosCutoff) 
+      if (spotEffect < light.spotCosCutoff)
       {
-        att = 0.0; 
+        att = 0.0;
         base_color * ambient; 
-      } 
+      }
       spotEffect = pow(spotEffect, light.spotExponent); 
       att *= spotEffect; 
     }
@@ -76,34 +77,45 @@ layout(std140) uniform LightBlock
   Lightsource u_lights[16];
 }; 
 
-in vec4 v_color; 
-in vec3 v_eyeVec; 
+in VertexData
+{
+  vec4 color; 
+  vec3 eyeVec;
+  float point_size;
+} vertex_in; 
 
 out vec4 fragData; 
 
 void main() 
 {
-  vec4 texColors = v_color; 
+  vec4 texColors = vertex_in.color; 
   
   for(int i = 0; i < u_numTextures; i++) 
   { 
     texColors *= texture(u_sampler_2D[i], gl_PointCoord); 
   }
-  vec3 N; 
-  N.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0); 
-  float mag = dot(N.xy, N.xy); 
+  vec3 normal; 
+  normal.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0); 
+  float mag = dot(normal.xy, normal.xy); 
   
   if (mag > 1.0) discard; 
   
-  N.z = sqrt(1.0 - mag); 
-  vec3 spherePosEye = v_eyeVec + N * u_pointRadius; 
-  vec3 L = normalize(-u_lightDir); 
-  vec3 E = normalize(v_eyeVec); 
-  float nDotL = max(0.0, dot(N, L)); 
-  vec3 v = normalize(-spherePosEye); 
-  vec3 h = normalize(-u_lightDir + v); 
-  float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness); 
-  vec4 spec = u_material.specular * specIntesity; 
-  spec.a = 0.0; 
-  fragData = texColors * (u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec; 
+  normal.z = sqrt(1.0 - mag); 
+  vec3 spherePosEye = -(vertex_in.eyeVec + normal * vertex_in.point_size / 2.0); 
+
+  vec4 shade_color = vec4(0); 
+  
+  if(u_numLights > 0) 
+    shade_color += shade(u_lights[0], u_material, normal, spherePosEye, texColors); 
+  
+  if(u_numLights > 1)
+    shade_color += shade(u_lights[1], u_material, normal, spherePosEye, texColors);
+
+  if(u_numLights > 2) 
+    shade_color += shade(u_lights[2], u_material, normal, spherePosEye, texColors); 
+  
+  if(u_numLights > 3)
+    shade_color += shade(u_lights[3], u_material, normal, spherePosEye, texColors);
+
+  fragData = shade_color;//texColors * (u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec; 
 }

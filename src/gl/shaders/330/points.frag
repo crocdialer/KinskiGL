@@ -18,13 +18,18 @@ layout(std140) uniform MaterialBlock
   Material u_material;
 };
 
-in vec4 v_color; 
+in VertexData
+{
+  vec4 color; 
+  vec3 eyeVec;
+  float point_size;
+} vertex_in; 
 
 out vec4 fragData; 
 
 void main() 
 {
-  vec4 texColors = v_color; 
+  vec4 texColors = vertex_in.color; 
   
   if(u_numTextures > 0)
   {

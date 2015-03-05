@@ -22,15 +22,19 @@ layout(location = 0) in vec4 a_vertex;
 layout(location = 3) in vec4 a_color; 
 layout(location = 4) in float a_pointSize; 
 
-out vec4 v_color; 
-out vec3 v_eyeVec; 
+out VertexData
+{
+  vec4 color; 
+  vec3 eyeVec;
+  float point_size;
+} vertex_out;
 
 void main()
 {
-  v_color = a_color; 
-  v_eyeVec = -(u_modelViewMatrix * a_vertex).xyz; 
-  float d = length(v_eyeVec); 
+  vertex_out.color = a_color; 
+  vertex_out.eyeVec = -(u_modelViewMatrix * a_vertex).xyz; 
+  float d = length(vertex_out.eyeVec); 
   float attenuation = 1.0 / (u_material.point_vals[1] + u_material.point_vals[2] * d + u_material.point_vals[3] * (d * d)); 
-  gl_PointSize = max(a_pointSize, u_material.point_vals[0]) * attenuation; 
+  gl_PointSize = vertex_out.point_size = max(a_pointSize, u_material.point_vals[0]) * attenuation; 
   gl_Position = u_modelViewProjectionMatrix * a_vertex; 
 }

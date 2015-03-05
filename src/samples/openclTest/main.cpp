@@ -144,7 +144,12 @@ private:
         m_geom->point_sizes().resize(m_numParticles, 9.f);
         m_geom->createGLBuffers();
         m_mesh->material()->setPointSize(2.f);
+        
+        scene().clear();
         scene().addObject(m_mesh);
+        // add lights to scene
+        for (auto l : lights()){ scene().addObject(l ); }
+        
         try
         {
             // shared position buffer for OpenGL / OpenCL
@@ -262,9 +267,6 @@ public:
         kinski::addSearchPath("/Library/Fonts");
         kinski::addSearchPath("~/Pictures");
         
-        m_font.load("Courier New Bold.ttf", 24);
-        outstream_gl().set_font(m_font);
-        
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
         
@@ -300,20 +302,21 @@ public:
         initOpenCL();
         initParticles(*m_num_particles);
         
-        // light component
-        m_light_component.reset(new LightComponent());
+        m_light_component = std::make_shared<LightComponent>();
         m_light_component->set_lights(lights());
-        m_light_component->refresh();
         create_tweakbar_from_component(m_light_component);
         
+        load_settings();
+        m_light_component->refresh();
+        
         // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-        }
+//        try
+//        {
+//            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
+//        }catch(Exception &e)
+//        {
+//            LOG_WARNING << e.what();
+//        }
     }
     
     void tearDown()
@@ -392,7 +395,6 @@ public:
         }
         else if(theProperty == m_num_particles)
         {
-            scene().removeObject(m_mesh);
             initParticles(*m_num_particles);
         }
         else if(theProperty == m_point_size)
