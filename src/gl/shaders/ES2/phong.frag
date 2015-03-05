@@ -3,14 +3,17 @@ precision lowp int;
 uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[2];
 uniform vec3 u_lightDir;
-uniform struct
+
+struct Material
 {
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec4 emission;
+  vec4 diffuse; 
+  vec4 ambient; 
+  vec4 specular; 
+  vec4 emission; 
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
   float shinyness;
-} u_material;
+}; 
+uniform Material u_material;
 
 varying vec3 v_normal;
 varying vec4 v_texCoord;

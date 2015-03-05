@@ -1,4 +1,4 @@
-#version 330
+#version 410
 
 struct Material
 {
@@ -6,31 +6,23 @@ struct Material
   vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
   float shinyness;
-  float point_size; 
-  struct
-  {
-    float constant; 
-    float linear; 
-    float quadratic; 
-  } point_attenuation;
 };
-
-uniform int u_numLights; 
 
 struct Lightsource
 {
-  int type; 
   vec3 position; 
+  int type; 
   vec4 diffuse; 
   vec4 ambient; 
   vec4 specular; 
-  float constantAttenuation; 
-  float linearAttenuation; 
-  float quadraticAttenuation; 
   vec3 spotDirection; 
   float spotCosCutoff; 
   float spotExponent; 
+  float constantAttenuation; 
+  float linearAttenuation; 
+  float quadraticAttenuation; 
 };
 
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)
@@ -71,9 +63,18 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
 uniform float u_pointRadius; 
 uniform vec3 u_lightDir; 
 uniform int u_numTextures; 
-uniform sampler2D u_sampler_2D[8]; 
-uniform Lightsource u_lights[16]; 
-uniform Material u_material; 
+uniform sampler2D u_sampler_2D[8];
+
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
+
+layout(std140) uniform LightBlock
+{
+  int u_numLights;
+  Lightsource u_lights[16];
+}; 
 
 in vec4 v_color; 
 in vec3 v_eyeVec; 
@@ -104,5 +105,5 @@ void main()
   float specIntesity = pow( max(dot(N, h), 0.0), u_material.shinyness); 
   vec4 spec = u_material.specular * specIntesity; 
   spec.a = 0.0; 
-  fragData = texColors * (u_material.ambient + u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec; 
+  fragData = texColors * (u_material.diffuse * vec4(vec3(nDotL), 1.0)) + spec; 
 }

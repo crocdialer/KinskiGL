@@ -92,9 +92,9 @@ namespace kinski { namespace gl {
             vec4 ambient;
             vec4 specular;
             vec4 emission;
+            vec4 point_vals;
             float shinyness;
-            float point_size;
-            PointAttenuation point_attenuation;// 3 floats
+            uint32_t pad[3];
         };
         
         if(m_dirty)
@@ -104,9 +104,11 @@ namespace kinski { namespace gl {
             m.ambient = m_ambient;
             m.specular = m_specular;
             m.emission = m_emission;
+            m.point_vals[0] = m_pointSize;
+            m.point_vals[1] = m_point_attenuation.constant;
+            m.point_vals[2] = m_point_attenuation.linear;
+            m.point_vals[3] = m_point_attenuation.quadratic;
             m.shinyness = m_shinyness;
-            m.point_size = m_pointSize;
-            m.point_attenuation = m_point_attenuation;
             
             m_uniform_buffer.setData(&m, sizeof(m));
             m_dirty = false;
@@ -120,10 +122,10 @@ namespace kinski { namespace gl {
             m_uniforms["u_material.specular"] = m_specular;
             m_uniforms["u_material.emmission"] = m_emission;
             m_uniforms["u_material.shinyness"] = m_shinyness;
-            m_uniforms["u_pointSize"] = m_pointSize;
-            m_uniforms["u_material.point_attenuation.constant"] = m_point_attenuation.constant;
-            m_uniforms["u_material.point_attenuation.linear"] = m_point_attenuation.linear;
-            m_uniforms["u_material.point_attenuation.quadratic"] = m_point_attenuation.quadratic;
+            m_uniforms["u_material.point_vals[0]"] = m_pointSize;
+            m_uniforms["u_material.point_vals[1]"] = m_point_attenuation.constant;
+            m_uniforms["u_material.point_vals[2]"] = m_point_attenuation.linear;
+            m_uniforms["u_material.point_vals[3]"] = m_point_attenuation.quadratic;
             m_dirty = false;
         }
 #endif

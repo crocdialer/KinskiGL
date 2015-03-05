@@ -321,7 +321,9 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_texture_path){}
     else if(theProperty == m_fbo_resolution)
     {
-        m_fbos[0] = gl::Fbo(m_fbo_resolution->value().x, m_fbo_resolution->value().y);
+        gl::Fbo::Format fmt;
+        fmt.setSamples(8);
+        m_fbos[0] = gl::Fbo(m_fbo_resolution->value().x, m_fbo_resolution->value().y, fmt);
         float aspect = m_fbos[0].getAspectRatio();//m_obj_scale->value().x / m_obj_scale->value().y;
         m_fbo_cam = gl::PerspectiveCamera::create(aspect, 45.f, .1f, 100.f);
         m_fbo_cam->position() = *m_fbo_cam_pos;
@@ -477,7 +479,14 @@ void FractureApp::fracture_test(uint32_t num_shards)
         rb->setCcdMotionThreshold(glm::length(aabb.halfExtents()) / 2.f);
         
         // pin to wall
-        
+//        btTransform trA = rb->getWorldTransform(), trB = rb->getWorldTransform();
+//        btVector3 pin_point = trA.getOrigin();
+//        pin_point[2] = 0.f;//trB.getOrigin().z();
+//        trB.setOrigin(pin_point);
+//        btFixedConstraint* fixed = new btFixedConstraint(*rb, *wall, trA, trB);
+//        fixed->setBreakingImpulseThreshold(*m_breaking_thresh);
+//        fixed ->setOverrideNumSolverIterations(30);
+//        m_physics.dynamicsWorld()->addConstraint(fixed,true);
         
     }
     m_physics.dynamicsWorld()->performDiscreteCollisionDetection();

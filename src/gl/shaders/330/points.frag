@@ -9,14 +9,8 @@ struct Material
   vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
   float shinyness;
-  float point_size; 
-  struct
-  {
-    float constant; 
-    float linear; 
-    float quadratic; 
-  } point_attenuation;
 }; 
 
 layout(std140) uniform MaterialBlock

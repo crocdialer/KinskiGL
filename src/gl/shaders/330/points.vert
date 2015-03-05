@@ -9,14 +9,8 @@ struct Material
   vec4 ambient; 
   vec4 specular; 
   vec4 emission; 
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
   float shinyness;
-  float point_size; 
-  struct
-  {
-    float constant; 
-    float linear; 
-    float quadratic; 
-  } point_attenuation;
 }; 
 
 layout(std140) uniform MaterialBlock
@@ -36,8 +30,7 @@ void main()
   v_color = a_color; 
   v_eyeVec = -(u_modelViewMatrix * a_vertex).xyz; 
   float d = length(v_eyeVec); 
-  float attenuation = 1.0 / (u_material.point_attenuation.constant + 
-      u_material.point_attenuation.linear * d + u_material.point_attenuation.quadratic * (d * d)); 
-  gl_PointSize = max(a_pointSize, u_material.point_size) * attenuation; 
+  float attenuation = 1.0 / (u_material.point_vals[1] + u_material.point_vals[2] * d + u_material.point_vals[3] * (d * d)); 
+  gl_PointSize = max(a_pointSize, u_material.point_vals[0]) * attenuation; 
   gl_Position = u_modelViewProjectionMatrix * a_vertex; 
 }
