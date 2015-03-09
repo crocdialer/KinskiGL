@@ -10,6 +10,15 @@ void getVerticesInsidePlanes(const btAlignedObjectArray<btVector3>& planes,
 
 namespace kinski{namespace physics{
     
+    inline bool is_equal(const btVector3 &v0, const btVector3 &v1, const float eps = 0.0001f)
+    {
+        if(fabs(v0[0] - v1[0]) > eps) return false;
+        if(fabs(v0[1] - v1[1]) > eps) return false;
+        if(fabs(v0[2] - v1[2]) > eps) return false;
+//        if(fabs(v0[3] - v1[3]) > eps) return false;
+        return true;
+    }
+    
     struct pointCmp
     {
         glm::vec3 current_point;
@@ -177,9 +186,9 @@ namespace kinski{namespace physics{
             }
             
             // now create our output geometry with indices
-            std::vector<gl::Face3> out_faces;
-            std::vector<glm::vec3> out_vertices;
-            int cur_index = 0;
+            std::vector<gl::Face3> outer_faces, inner_faces;
+            std::vector<glm::vec3> outer_vertices, inner_vertices;
+            int cur_outer_index = 0, cur_inner_index = 0;
             
             for (j = 0; j < numFaces; j++)
             {
@@ -189,20 +198,40 @@ namespace kinski{namespace physics{
                 edge = edge->getNextEdgeOfFace();
                 v2 = edge->getTargetVertex();
                 
-                int face_start_index = cur_index;
+                // determine is its a inner or outer face
+                btVector3 cur_plane = (convexHC->vertices[v1] - convexHC->vertices[v0]).cross(convexHC->vertices[v2]-convexHC->vertices[v0]).normalize();
+                cur_plane[3] = -cur_plane.dot(convexHC->vertices[v0]);
+                bool is_outside = false;
+                
+                for(uint32_t q = 0; q < convexPlanes.size(); q++)
+                {
+                    if(is_equal(convexPlanes[q], cur_plane, 0.01f)){ is_outside = true; break;}
+                }
+                std::vector<gl::Face3> *shard_faces = &outer_faces;
+                std::vector<glm::vec3> *shard_vertices = &outer_vertices;
+                int *shard_index = &cur_outer_index;
+                
+                if(!is_outside)
+                {
+                    shard_faces = &inner_faces;
+                    shard_vertices = &inner_vertices;
+                    shard_index = &cur_inner_index;
+                }
+                
+                int face_start_index = *shard_index;
                 
                 // advance index
-                cur_index += 3;
+                *shard_index += 3;
                 
                 // first 3 verts of n-gon
                 glm::vec3 tmp[] = { type_cast(convexHC->vertices[v0]),
                                     type_cast(convexHC->vertices[v1]),
                                     type_cast(convexHC->vertices[v2])};
                 
-                out_vertices.insert(out_vertices.end(), tmp, tmp + 3);
-                out_faces.push_back(gl::Face3(face_start_index,
-                                              face_start_index + 1,
-                                              face_start_index + 2));
+                shard_vertices->insert(shard_vertices->end(), tmp, tmp + 3);
+                shard_faces->push_back(gl::Face3(face_start_index,
+                                                 face_start_index + 1,
+                                                 face_start_index + 2));
                 
                 // add remaining triangles of face (if any)
                 while (true)
@@ -214,24 +243,55 @@ namespace kinski{namespace physics{
                     // end of n-gon
                     if(v2 == v0) break;
                     
-                    out_vertices.push_back(type_cast(convexHC->vertices[v2]));
-                    out_faces.push_back(gl::Face3(face_start_index,
-                                                  cur_index - 1,
-                                                  cur_index));
-                    cur_index++;
+                    shard_vertices->push_back(type_cast(convexHC->vertices[v2]));
+                    shard_faces->push_back(gl::Face3(face_start_index,
+                                                     *shard_index - 1,
+                                                     *shard_index));
+                    (*shard_index)++;
                 }
             }
             
+            // entry construction
+            
+            // outer entry
+            gl::Mesh::Entry e0, e1;
+            e0.num_vertices = outer_vertices.size();
+            e0.num_indices = outer_faces.size() * 3;
+            e0.material_index = 0;
+            
+            // inner entry
+            e1.base_index = e0.num_indices;
+            e1.base_vertex = e0.num_vertices;
+            e1.num_vertices = inner_vertices.size();
+            e1.num_indices = inner_faces.size() * 3;
+            e1.material_index = 1;
+            
             // create gl::Mesh object for the shard
-            auto geom = gl::Geometry::create();
+            auto inner_geom = gl::Geometry::create(), outer_geom = gl::Geometry::create();
             
             // append verts and indices
-            geom->appendFaces(out_faces);
-            geom->appendVertices(out_vertices);
-            geom->computeFaceNormals();
-            geom->computeBoundingBox();
+            outer_geom->appendFaces(outer_faces);
+            outer_geom->appendVertices(outer_vertices);
+            outer_geom->computeFaceNormals();
             
-            auto m = gl::Mesh::create(geom, gl::Material::create());
+            inner_geom->appendFaces(inner_faces);
+            inner_geom->appendVertices(inner_vertices);
+            inner_geom->computeFaceNormals();
+            
+            // merge geometries
+            outer_geom->appendVertices(inner_geom->vertices());
+            outer_geom->appendNormals(inner_geom->normals());
+            outer_geom->appendIndices(inner_geom->indices());
+            outer_geom->faces().insert(outer_geom->faces().end(),
+                                       inner_geom->faces().begin(), inner_geom->faces().end());
+            outer_geom->computeBoundingBox();
+            
+            auto inner_mat = gl::Material::create();
+            inner_mat->setDiffuse(gl::COLOR_RED);
+            
+            auto m = gl::Mesh::create(outer_geom, gl::Material::create());
+            m->entries() = {e0, e1};
+            m->materials().push_back(inner_mat);
             m->setPosition(curVoronoiPoint + type_cast(com));
 //            m->transform() *= glm::scale(mat4(), vec3(scale_val));
             

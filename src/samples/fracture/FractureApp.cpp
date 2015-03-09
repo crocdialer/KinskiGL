@@ -413,9 +413,9 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto back_aabb = back->boundingBox().transform(back->transform());
         back->position() += vec3(0, back_aabb.halfExtents().y, -2.f * back_aabb.halfExtents().z);
         col_shape = std::make_shared<btBoxShape>(physics::type_cast(back_aabb.halfExtents()));
-        wall = rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
-        rb->setFriction(*m_friction);
-        scene().addObject(back);
+//        wall = rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
+//        rb->setFriction(*m_friction);
+//        scene().addObject(back);
     }
     
     
