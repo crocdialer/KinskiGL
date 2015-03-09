@@ -252,9 +252,9 @@ namespace kinski{namespace physics{
             }
             
             // entry construction
+            gl::Mesh::Entry e0, e1;
             
             // outer entry
-            gl::Mesh::Entry e0, e1;
             e0.num_vertices = outer_vertices.size();
             e0.num_indices = outer_faces.size() * 3;
             e0.material_index = 0;
@@ -287,7 +287,7 @@ namespace kinski{namespace physics{
             outer_geom->computeBoundingBox();
             
             auto inner_mat = gl::Material::create();
-            inner_mat->setDiffuse(gl::COLOR_RED);
+//            inner_mat->setDiffuse(gl::COLOR_RED);
             
             auto m = gl::Mesh::create(outer_geom, gl::Material::create());
             m->entries() = {e0, e1};

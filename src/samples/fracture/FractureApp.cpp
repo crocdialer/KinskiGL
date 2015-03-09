@@ -464,7 +464,11 @@ void FractureApp::fracture_test(uint32_t num_shards)
     {
         auto mesh_copy = s.mesh;//s.mesh->copy();
         scene().addObject(mesh_copy);
-        s.mesh->material() = m->material();
+        s.mesh->materials()[0] = m->material();
+        *s.mesh->materials()[1] = *m->material();
+        s.mesh->materials()[1]->setDiffuse(gl::COLOR_RED);
+        s.mesh->materials()[1]->setSpecular(gl::COLOR_BLACK);
+        
         auto col_shape = physics::createConvexCollisionShape(mesh_copy);
         btRigidBody* rb = m_physics.add_mesh_to_simulation(mesh_copy, density * s.volume, col_shape);
 
