@@ -198,7 +198,7 @@ namespace kinski{namespace physics{
                 edge = edge->getNextEdgeOfFace();
                 v2 = edge->getTargetVertex();
                 
-                // determine is its a inner or outer face
+                // determine if it is an inner or outer face
                 btVector3 cur_plane = (convexHC->vertices[v1] - convexHC->vertices[v0]).cross(convexHC->vertices[v2]-convexHC->vertices[v0]).normalize();
                 cur_plane[3] = -cur_plane.dot(convexHC->vertices[v0]);
                 bool is_outside = false;
@@ -298,7 +298,74 @@ namespace kinski{namespace physics{
             gl::project_texcoords(the_mesh, m);
             
             // compute box mapped texcoords for inside vertices
-            
+//            auto &indices = m->geometry()->indices();
+//            auto &vertices = m->geometry()->vertices();
+//            
+//            // aabb
+//            auto out_aabb = the_mesh->boundingBox();
+//            vec3 aabb_extents = out_aabb.halfExtents() * 2.f;
+//            
+//            uint32_t base_vertex = m->entries()[1].base_vertex;
+//            uint32_t k = m->entries()[1].base_index, kl = k + m->entries()[1].num_indices;
+//            
+//            for(;k < kl; k += 3)
+//            {
+//                gl::Face3 f(indices[k] + base_vertex,
+//                            indices[k] + base_vertex + 1,
+//                            indices[k] + base_vertex + 2);
+//                
+//                // normal
+//                const vec3 &v0 = vertices[f.a];
+//                const vec3 &v1 = vertices[f.b];
+//                const vec3 &v2 = vertices[f.c];
+//                
+//                vec3 n = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+//                
+//                float abs_vals[3] = {fabsf(n[0]), fabsf(n[1]), fabsf(n[2])};
+//                
+//                // get principal direction
+//                int principle_axis = std::distance(abs_vals, std::max_element(abs_vals, abs_vals + 3));
+//                
+//                switch (principle_axis)
+//                {
+//                    // X-axis
+//                    case 0:
+//                        //ZY plane
+//                        m->geometry()->texCoords()[f.a] = vec2(v0.z - out_aabb.min.z / aabb_extents.z,
+//                                                               v0.y - out_aabb.min.y / aabb_extents.y);
+//                        m->geometry()->texCoords()[f.b] = vec2(v1.z - out_aabb.min.z / aabb_extents.z,
+//                                                               v1.y - out_aabb.min.y / aabb_extents.y);
+//                        m->geometry()->texCoords()[f.c] = vec2(v2.z - out_aabb.min.z / aabb_extents.z,
+//                                                               v2.y - out_aabb.min.y / aabb_extents.y);
+//                        break;
+//                        
+//                    // Y-axis
+//                    case 1:
+//                        //XZ plane
+//                        m->geometry()->texCoords()[f.a] = vec2(v0.x - out_aabb.min.x / aabb_extents.x,
+//                                                               v0.z - out_aabb.min.z / aabb_extents.z);
+//                        m->geometry()->texCoords()[f.b] = vec2(v1.x - out_aabb.min.x / aabb_extents.x,
+//                                                               v1.z - out_aabb.min.z / aabb_extents.z);
+//                        m->geometry()->texCoords()[f.c] = vec2(v2.x - out_aabb.min.x / aabb_extents.x,
+//                                                               v2.z - out_aabb.min.z / aabb_extents.z);
+//                        break;
+//                        
+//                    // Z-axis
+//                    case 2:
+//                        //XY plane
+//                        m->geometry()->texCoords()[f.a] = vec2(v0.x - out_aabb.min.x / aabb_extents.x,
+//                                                               v0.y - out_aabb.min.y / aabb_extents.y);
+//                        m->geometry()->texCoords()[f.b] = vec2(v1.x - out_aabb.min.x / aabb_extents.x,
+//                                                               v1.y - out_aabb.min.y / aabb_extents.y);
+//                        m->geometry()->texCoords()[f.c] = vec2(v2.x - out_aabb.min.x / aabb_extents.x,
+//                                                               v2.y - out_aabb.min.y / aabb_extents.y);
+//                        break;
+//                        
+//                    default:
+//                        break;
+//                }
+//            }
+            m->geometry()->createGLBuffers();
             
             // push to return structure
             ret.push_back({m, volume});

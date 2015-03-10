@@ -1460,7 +1460,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 
             }else{ LOG_ERROR << "no triangle hit"; }
         }
-        dest->geometry()->createGLBuffers();
+//        dest->geometry()->createGLBuffers();
     }
     
 ///////////////////////////////////////////////////////////////////////////////
