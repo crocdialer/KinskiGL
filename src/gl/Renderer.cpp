@@ -28,18 +28,17 @@ namespace kinski{ namespace gl{
     
     struct lightstruct_std140
     {
-        vec3 position;//pad
+        vec3 position;
         int type;
         vec4 diffuse;
         vec4 ambient;
         vec4 specular;
-        vec3 spotDirection;//pad
+        vec3 spotDirection;
         float spotCosCutoff;
         float spotExponent;
         float constantAttenuation;
         float linearAttenuation;
         float quadraticAttenuation;
-//        uint32_t pad[2];//pad
     };
     
     Renderer::Renderer()
@@ -141,11 +140,6 @@ namespace kinski{ namespace gl{
                                                    m->materials().size() - 1);
                         m->bind_vertex_array(mat_index);
                         apply_material(m->materials()[mat_index]);
-                        
-//                            GLint current_vao, current_prog;
-//                            glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &current_vao);
-//                            glGetIntegerv(GL_CURRENT_PROGRAM, &current_prog);
-//                            std::cout << "vao: " << current_vao << " -- prog: " << current_prog << std::endl;
                         KINSKI_CHECK_GL_ERRORS();
                         
                         glDrawElementsBaseVertex(m->geometry()->primitiveType(),
@@ -239,11 +233,10 @@ namespace kinski{ namespace gl{
         }
         int num_lights = light_list.size();
         int num_bytes = sizeof(lightstruct_std140) * light_structs.size() + 16;
-        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].setData(nullptr, num_bytes);
-        uint8_t *ptr = m_uniform_buffer[LIGHT_UNIFORM_BUFFER].map();
-        memcpy(ptr, &num_lights, 4);
-        memcpy(ptr + 16, &light_structs[0], sizeof(lightstruct_std140) * light_structs.size());
-        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].unmap();
+        uint8_t buf[num_bytes];
+        memcpy(buf, &num_lights, 4);
+        memcpy(buf + 16, &light_structs[0], sizeof(lightstruct_std140) * light_structs.size());
+        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].setData(buf, num_bytes);
         
         glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BLOCK, m_uniform_buffer[LIGHT_UNIFORM_BUFFER].id());
 #endif

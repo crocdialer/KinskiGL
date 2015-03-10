@@ -271,7 +271,7 @@ namespace kinski{namespace physics{
             
             // append verts and indices
             outer_geom->appendFaces(outer_faces);
-            outer_geom->appendVertices(outer_vertices);
+            outer_geom->vertices() = outer_vertices;
             outer_geom->computeFaceNormals();
             
             inner_geom->appendFaces(inner_faces);
@@ -287,7 +287,6 @@ namespace kinski{namespace physics{
             outer_geom->computeBoundingBox();
             
             auto inner_mat = gl::Material::create();
-//            inner_mat->setDiffuse(gl::COLOR_RED);
             
             auto m = gl::Mesh::create(outer_geom, gl::Material::create());
             m->entries() = {e0, e1};
@@ -295,8 +294,11 @@ namespace kinski{namespace physics{
             m->setPosition(curVoronoiPoint + type_cast(com));
 //            m->transform() *= glm::scale(mat4(), vec3(scale_val));
             
-            // compute projected texcoords
+            // compute projected texcoords (outside)
             gl::project_texcoords(the_mesh, m);
+            
+            // compute box mapped texcoords for inside vertices
+            
             
             // push to return structure
             ret.push_back({m, volume});
