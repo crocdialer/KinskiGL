@@ -56,6 +56,7 @@ namespace kinski
         physics::btCollisionShapePtr m_box_shape;
         gl::GeometryPtr m_box_geom;
         
+        bool m_needs_refracture = true;
         std::list<physics::VoronoiShard> m_voronoi_shards;
         
         // gui stuff

@@ -189,6 +189,7 @@ namespace kinski{ namespace gl{
         const gl::Buffer& boneBuffer() const { return m_boneBuffer; };
         const gl::Buffer& indexBuffer() const { return m_indexBuffer; };
         
+        bool has_dirty_buffers() const;
         void createGLBuffers();
         
         /********************************* Factory methods ****************************************/

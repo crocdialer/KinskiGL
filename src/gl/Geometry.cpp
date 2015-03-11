@@ -155,6 +155,19 @@ namespace kinski{ namespace gl{
         }
     }
     
+    bool Geometry::has_dirty_buffers() const
+    {
+        return m_dirty_vertexBuffer ||
+            (hasIndices() && m_dirty_indexBuffer) ||
+            (hasNormals() && m_dirty_normalBuffer) ||
+            (hasColors() && m_dirty_colorBuffer) ||
+            (hasTexCoords() && m_dirty_texCoordBuffer) ||
+            (hasTangents() && m_dirty_tangentBuffer) ||
+            (hasTexCoords() && m_dirty_texCoordBuffer) ||
+            (hasPointSizes() && m_dirty_pointSizeBuffer);
+        
+    }
+    
     void Geometry::createGLBuffers()
     {
         if(!m_vertices.empty() && m_dirty_vertexBuffer)// pad vec3 -> vec4 (OpenCL compat issue)

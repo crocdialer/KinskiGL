@@ -31,7 +31,6 @@ namespace kinski { namespace gl {
         entry.base_index = entry.base_vertex = 0;
         entry.material_index = 0;
         m_entries.push_back(entry);
-        createVertexArray();
     }
     
     Mesh::~Mesh()

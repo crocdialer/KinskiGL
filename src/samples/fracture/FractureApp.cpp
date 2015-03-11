@@ -123,7 +123,7 @@ void FractureApp::draw()
             }
             
         });
-        textures()[2] = tex;
+        textures()[TEXTURE_SYPHON] = tex;
         m_syphon.publish_texture(tex);
     }
     
@@ -363,6 +363,10 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             }
         }
     }
+    else if(theProperty == m_num_fracture_shards)
+    {
+        m_needs_refracture = true;
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -458,7 +462,12 @@ void FractureApp::fracture_test(uint32_t num_shards)
     Stopwatch t;
     t.start();
     
-    m_voronoi_shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
+    if(m_needs_refracture || m_voronoi_shards.empty())
+    {
+        m_voronoi_shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
+        for(auto &s : m_voronoi_shards){ s.mesh->createVertexArray(); }
+        m_needs_refracture = false;
+    }
     
 // original object without fracturing
 //    m->position() += vec3(5, 0, 0);
@@ -482,9 +491,9 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     for(auto &s : m_voronoi_shards)
     {
-        auto mesh_copy = s.mesh;//s.mesh->copy();
+        auto mesh_copy = s.mesh->copy();
         scene().addObject(mesh_copy);
-        s.mesh->materials() = {outer_mat, inner_mat};
+        mesh_copy->materials() = {outer_mat, inner_mat};
         
         
         auto col_shape = physics::createConvexCollisionShape(mesh_copy);
