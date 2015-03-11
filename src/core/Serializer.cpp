@@ -249,7 +249,7 @@ namespace kinski {
                                         const PropertyIO &theIO)
     {
         if(!theComponent) return;
-        std::string myState = readFile(theFileName);
+        std::string myState = read_file(theFileName);
         applyStateToComponent(theComponent, myState, theIO);
     }
     
@@ -258,7 +258,7 @@ namespace kinski {
                                         const PropertyIO &theIO)
     {
         if(theComponentList.empty()) return;
-        std::string myState = readFile(theFileName);
+        std::string myState = read_file(theFileName);
         
         for (auto &component : theComponentList){applyStateToComponent(component, myState, theIO);}
     }

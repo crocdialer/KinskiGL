@@ -20,9 +20,11 @@ void FractureApp::setup()
 {
     ViewerApp::setup();
     
+    m_texture_paths->setTweakable(false);
+    
     registerProperty(m_view_type);
     registerProperty(m_model_path);
-    registerProperty(m_texture_path);
+    registerProperty(m_texture_paths);
     registerProperty(m_physics_running);
     registerProperty(m_physics_debug_draw);
     registerProperty(m_num_fracture_shards);
@@ -106,7 +108,7 @@ void FractureApp::update(float timeDelta)
 void FractureApp::draw()
 {
     // draw the output texture
-    if(m_fbos[0] && m_fbo_cam)
+    if(m_fbos[0] && m_fbo_cam && *m_use_syphon)
     {
         auto tex = gl::render_to_texture(m_fbos[0],[&]
         {
@@ -121,9 +123,8 @@ void FractureApp::draw()
             }
             
         });
-        textures()[1] = tex;
-        
-        if(*m_use_syphon){ m_syphon.publish_texture(tex); }
+        textures()[2] = tex;
+        m_syphon.publish_texture(tex);
     }
     
     switch (*m_view_type)
@@ -246,12 +247,14 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
 {
     textures().clear();
     
+    m_texture_paths->value().clear();
+    
     for(const string &f : files)
     {
         LOG_INFO << f;
 
         // add path to searchpaths
-        kinski::addSearchPath(kinski::getDirectoryPart(f));
+        kinski::add_search_path(kinski::get_directory_part(f));
         m_search_paths->value().push_back(f);
         
         switch (get_filetype(f))
@@ -263,14 +266,14 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
             case FileType::FILE_IMAGE:
                 try
                 {
-                    textures() = {gl::createTextureFromFile(f, true, true, 4.f)};
+                    textures().push_back(gl::createTextureFromFile(f, true, true, 4.f));
                     
                     if(m_mesh)
                     {
                         m_mesh->material()->textures() = {textures().back()};
                     }
                     
-                    *m_texture_path = f;
+                    m_texture_paths->value().push_back(f);
                 }
                 catch (Exception &e) { LOG_WARNING << e.what(); }
                 if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
@@ -299,7 +302,7 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_model_path)
     {
-        addSearchPath(getDirectoryPart(*m_model_path));
+        add_search_path(get_directory_part(*m_model_path));
         gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_model_path);
         
         if(m)
@@ -318,7 +321,7 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             m_physics.add_mesh_to_simulation(m_mesh);
         }
     }
-    else if(theProperty == m_texture_path){}
+    else if(theProperty == m_texture_paths){}
     else if(theProperty == m_fbo_resolution)
     {
         gl::Fbo::Format fmt;
@@ -434,11 +437,15 @@ void FractureApp::fracture_test(uint32_t num_shards)
     auto aabb = m->boundingBox().transform(m->transform());
     m->position().y += aabb.halfExtents().y;
     
-    try
+    std::vector<gl::Texture> textures;
+    for(const auto &tex_path : m_texture_paths->value())
     {
-        auto tex = gl::createTextureFromFile(*m_texture_path, true, true, 8.f);
-        m->material()->addTexture(tex);
-    }catch(Exception &e){ LOG_WARNING << e.what(); }
+        try
+        {
+            textures.push_back(gl::createTextureFromFile(tex_path, true, true, 8.f));
+        }catch(Exception &e){ LOG_WARNING << e.what(); }
+    }
+//    m->material()->addTexture(tex);
     
     // voronoi points
     std::vector<glm::vec3> voronoi_points;
@@ -453,6 +460,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     
     m_voronoi_shards = physics::voronoi_convex_hull_shatter(m, voronoi_points);
     
+// original object without fracturing
 //    m->position() += vec3(5, 0, 0);
 //    scene().addObject(m);
 //    m_physics.add_mesh_to_simulation(m);
@@ -460,14 +468,24 @@ void FractureApp::fracture_test(uint32_t num_shards)
     float density = 1.8;
     float convex_margin = 0.00;
     
+    gl::MaterialPtr inner_mat(gl::Material::create()),
+    outer_mat(gl::Material::create(phong_shader));
+    
+//    inner_mat->setDiffuse(gl::COLOR_RED);
+    inner_mat->setSpecular(gl::COLOR_BLACK);
+    
+    if(textures.size() > 1)
+    {
+        outer_mat->textures() = { textures[0] };
+        inner_mat->textures() = { textures[1] };
+    }
+    
     for(auto &s : m_voronoi_shards)
     {
         auto mesh_copy = s.mesh;//s.mesh->copy();
         scene().addObject(mesh_copy);
-        s.mesh->materials()[0] = m->material();
-        *s.mesh->materials()[1] = *m->material();
-        s.mesh->materials()[1]->setDiffuse(gl::COLOR_RED);
-        s.mesh->materials()[1]->setSpecular(gl::COLOR_BLACK);
+        s.mesh->materials() = {outer_mat, inner_mat};
+        
         
         auto col_shape = physics::createConvexCollisionShape(mesh_copy);
         btRigidBody* rb = m_physics.add_mesh_to_simulation(mesh_copy, density * s.volume, col_shape);

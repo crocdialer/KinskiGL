@@ -44,12 +44,12 @@ namespace kinski {
     
     /////////// end implemantation internal /////////////
     
-    const std::set<std::string>& getSearchPaths()
+    const std::set<std::string>& get_search_paths()
     {
         return g_searchPaths;
     }
     
-    void addSearchPath(const std::string &thePath, bool recursive)
+    void add_search_path(const std::string &thePath, bool recursive)
     {
         boost::filesystem::path path_expanded (expand_user(thePath));
         if (!boost::filesystem::exists(path_expanded))
@@ -60,7 +60,7 @@ namespace kinski {
             
         if(recursive)
         {
-            g_searchPaths.insert(getDirectoryPart(path_expanded.string()));
+            g_searchPaths.insert(get_directory_part(path_expanded.string()));
             recursive_directory_iterator it;
             try
             {
@@ -95,13 +95,13 @@ namespace kinski {
         }
     }
     
-    void clearSearchPaths()
+    void clear_search_paths()
     {
         g_searchPaths.clear();
     }
     
-    list<string> getDirectoryEntries(const std::string &thePath, const std::string &theExtension,
-                                     bool recursive)
+    list<string> get_directory_entries(const std::string &thePath, const std::string &theExtension,
+                                       bool recursive)
     {
         list<string> ret;
         path p (expand_user(thePath));
@@ -180,15 +180,15 @@ namespace kinski {
         return ret;
     }
     
-    int getFileSize(const std::string &theFilename)
+    int get_file_size(const std::string &theFilename)
     {
         return boost::filesystem::file_size(theFilename);
     }
 
     /// read a complete file into a string
-    const std::string readFile(const std::string & theUTF8Filename)
+    const std::string read_file(const std::string & theUTF8Filename)
     {
-        string path = searchFile(theUTF8Filename);
+        string path = search_file(theUTF8Filename);
         ifstream inStream(path.c_str());
         
         if(!inStream.good())
@@ -199,9 +199,9 @@ namespace kinski {
                        istreambuf_iterator<char>());
     }
 
-    std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename)
+    std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename)
     {
-        string path = searchFile(theUTF8Filename);
+        string path = search_file(theUTF8Filename);
         ifstream inStream(path.c_str());
         
         if(!inStream.good())
@@ -214,13 +214,13 @@ namespace kinski {
         return content;
     }
     
-    std::vector<std::string> readFileLineByLine(const std::string &theUTF8Filename)
+    std::vector<std::string> read_file_line_by_line(const std::string &theUTF8Filename)
     {
         std::vector<std::string> ret;
         const size_t MAX_LENGTH = 1000;
         char buffer[MAX_LENGTH];
         std::string newPart;
-        std::string filepath = searchFile(theUTF8Filename);
+        std::string filepath = search_file(theUTF8Filename);
         FILE *file;
         if ((file = fopen(filepath.c_str(), "rb")) == NULL) {
             throw OpenFileFailed("Error opening file " + theUTF8Filename);
@@ -247,24 +247,24 @@ namespace kinski {
         return ret;
     }
 
-    std::string getFilenamePart(const std::string &theFileName)
+    std::string get_filename_part(const std::string &theFileName)
     {
         return path(theFileName).filename().string();
     }
     
-    bool isDirectory(const std::string &theFilename)
+    bool is_directory(const std::string &theFilename)
     {
         return boost::filesystem::is_directory(theFilename);
     }
     
-    bool fileExists(const std::string& theFilename)
+    bool file_exists(const std::string& theFilename)
     {
         return boost::filesystem::exists(theFilename);
     }
     
     bool create_directory(const std::string &theFilename)
     {
-        if(!fileExists(theFilename))
+        if(!file_exists(theFilename))
         {
             try
             {
@@ -279,7 +279,7 @@ namespace kinski {
         return (path(p1) / path(p2)).string();
     }
     
-    std::string searchFile(const std::string &theFileName)
+    std::string search_file(const std::string &theFileName)
     {
         std::string expanded_name = expand_user(theFileName);
         boost::filesystem::path ret_path(expanded_name);
@@ -288,8 +288,8 @@ namespace kinski {
         {
             return ret_path.string();
         }
-        std::set<std::string>::const_iterator it = getSearchPaths().begin();
-        for (; it != getSearchPaths().end(); ++it)
+        std::set<std::string>::const_iterator it = get_search_paths().begin();
+        for (; it != get_search_paths().end(); ++it)
         {
             ret_path = path(*it) / path(expanded_name);
             if (boost::filesystem::exists(ret_path) && is_regular_file(ret_path))
@@ -306,7 +306,7 @@ namespace kinski {
         return boost::filesystem::current_path().string();
     }
     
-    std::string getDirectoryPart(const std::string &theFileName)
+    std::string get_directory_part(const std::string &theFileName)
     {
         if(is_directory(theFileName))
             return path(theFileName).string();
@@ -314,23 +314,24 @@ namespace kinski {
             return path(theFileName).parent_path().string();
     }
 
-    std::string getExtension(const std::string &thePath)
+    std::string get_extension(const std::string &thePath)
     {
         return boost::filesystem::extension(thePath);
     }
 
-    std::string removeExtension(const std::string &theFileName)
+    std::string remove_extension(const std::string &theFileName)
     {
         return path(theFileName).replace_extension().string();
     }
     
     FileType get_filetype(const std::string &file_name)
     {
-        string ext = kinski::to_lower(kinski::getExtension(file_name).substr(1));
+        string ext = kinski::to_lower(kinski::get_extension(file_name).substr(1));
         
         std::list<string> image_exts{"png", "jpg", "jpeg"}, audio_exts{"wav", "m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh"}, movie_exts{"mpg", "mov", "avi", "mp4", "m4v"};
         
+        if(is_directory(file_name)){ return FileType::FILE_DIRECTORY; }
         if(kinski::is_in(ext, image_exts)){ return FileType::FILE_IMAGE; }
         if(kinski::is_in(ext, model_exts)){ return FileType::FILE_MODEL; }
         if(kinski::is_in(ext, audio_exts)){ return FileType::FILE_AUDIO; }

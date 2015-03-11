@@ -55,9 +55,6 @@ namespace kinski {
         m_drawNormals = Property_<bool>::create("Normals", false);
         registerProperty(m_drawNormals);
         
-        m_light_direction = Property_<glm::vec3>::create("Light dir", glm::vec3(1));
-        registerProperty(m_light_direction);
-        
         m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
         registerProperty(m_clear_color);
     }
@@ -88,7 +85,6 @@ namespace kinski {
         }
         // viewer provides a directional light
         lights().front()->set_type(gl::Light::DIRECTIONAL);
-        lights().front()->setPosition(light_direction());
         
         // enable observer mechanism
         observeProperties();
@@ -268,7 +264,7 @@ namespace kinski {
         {
             for (const auto &search_path : m_search_paths->value())
             {
-                kinski::addSearchPath(search_path);
+                kinski::add_search_path(search_path);
             }
         }
         else if(theProperty == m_logger_severity)
@@ -289,10 +285,6 @@ namespace kinski {
         {
             gl::clearColor(*m_clear_color);
             outstream_gl().set_color(glm::vec4(1.f) - m_clear_color->value());
-        }
-        else if(theProperty == m_light_direction)
-        {
-            if(!lights().empty()) lights().front()->position() = m_light_direction->value();
         }
         else if(theProperty == m_distance || theProperty == m_rotation)
         {

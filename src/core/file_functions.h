@@ -15,31 +15,31 @@
 
 namespace kinski {
 
-    int getFileSize(const std::string &theFilename);
+    int get_file_size(const std::string &theFilename);
     
     // manage known file locations
-    const std::set<std::string>& getSearchPaths();
-    void addSearchPath(const std::string &thePath, bool recursive = false);
-    void clearSearchPaths();
+    const std::set<std::string>& get_search_paths();
+    void add_search_path(const std::string &thePath, bool recursive = false);
+    void clear_search_paths();
     
-    std::list<std::string> getDirectoryEntries(const std::string &thePath,
+    std::list<std::string> get_directory_entries(const std::string &thePath,
                                                const std::string &theExtension = "",
                                                bool recursive = false);
-    bool fileExists(const std::string &theFilename);
-    bool isDirectory(const std::string &theFilename);
+    bool file_exists(const std::string &theFilename);
+    bool is_directory(const std::string &theFilename);
     bool create_directory(const std::string &theFilename);
     std::string join_paths(const std::string &p1, const std::string &p2);
-    const std::string readFile(const std::string &theUTF8Filename);
-    std::vector<uint8_t> readBinaryFile(const std::string &theUTF8Filename);
-    std::string getFilenamePart(const std::string &theFileName);
-    std::string getDirectoryPart(const std::string &theFileName);
-    std::vector<std::string> readFileLineByLine(const std::string &theUTF8Filename);
-    std::string searchFile(const std::string &theFileName);
+    const std::string read_file(const std::string &theUTF8Filename);
+    std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename);
+    std::string get_filename_part(const std::string &theFileName);
+    std::string get_directory_part(const std::string &theFileName);
+    std::vector<std::string> read_file_line_by_line(const std::string &theUTF8Filename);
+    std::string search_file(const std::string &theFileName);
     std::string get_working_directory();
-    std::string getExtension(const std::string &thePath);
-    std::string removeExtension(const std::string &theFileName);
+    std::string get_extension(const std::string &thePath);
+    std::string remove_extension(const std::string &theFileName);
     
-    enum class FileType{FILE_IMAGE, FILE_MODEL, FILE_AUDIO, FILE_MOVIE, FILE_OTHER};
+    enum class FileType{FILE_IMAGE, FILE_MODEL, FILE_AUDIO, FILE_MOVIE, FILE_DIRECTORY, FILE_OTHER};
     
     FileType get_filetype(const std::string &file_name);
     

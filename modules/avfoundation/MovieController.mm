@@ -112,7 +112,7 @@ namespace kinski {
         m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         
-        try{ m_impl->m_src_path = kinski::searchFile(filePath); }
+        try{ m_impl->m_src_path = kinski::search_file(filePath); }
         catch(FileNotFoundException &e)
         {
             LOG_ERROR << e.what();

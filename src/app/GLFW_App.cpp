@@ -100,14 +100,14 @@ namespace kinski
         glClearColor(0, 0, 0, 1);
         
         // file search paths
-        kinski::addSearchPath(".", true);
-        kinski::addSearchPath("./res", true);
-        kinski::addSearchPath("../Resources", true);
+        kinski::add_search_path(".", true);
+        kinski::add_search_path("./res", true);
+        kinski::add_search_path("../Resources", true);
         
         //---------------------------------
         #ifdef KINSKI_MAC
-        kinski::addSearchPath("/Library/Fonts");
-        kinski::addSearchPath("~/Library/Fonts");
+        kinski::add_search_path("/Library/Fonts");
+        kinski::add_search_path("~/Library/Fonts");
         #endif
         //---------------------------------
         

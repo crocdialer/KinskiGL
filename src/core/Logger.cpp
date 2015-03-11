@@ -119,7 +119,7 @@ namespace kinski {
             if(m_use_timestamp)
                 stream << currentDateTime();
             
-            myText<<" [" << getFilenamePart(theModule) << " at:" << theId << "]";
+            myText<<" [" << get_filename_part(theModule) << " at:" << theId << "]";
             if(m_use_thread_id)
                 myText<<" [thread-id: "<< std::this_thread::get_id() <<"]";
         }

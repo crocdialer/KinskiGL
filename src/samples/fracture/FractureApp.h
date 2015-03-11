@@ -25,14 +25,17 @@ namespace kinski
     private:
         
         enum ViewType{VIEW_NOTHING = 1, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
+        enum TextureEnum{TEXTURE_OUTER = 0, TEXTURE_INNER = 1, TEXTURE_SYPHON = 2};
         
         gl::MeshPtr m_mesh;
         physics::physics_context m_physics;
         LightComponent::Ptr m_light_component;
         
         Property_<std::string>::Ptr
-        m_model_path = Property_<std::string>::create("Model path", ""),
-        m_texture_path = Property_<std::string>::create("texture path", "");
+        m_model_path = Property_<std::string>::create("Model path", "");
+        
+        Property_<std::vector<std::string>>::Ptr
+        m_texture_paths = Property_<std::vector<std::string>>::create("texture paths", {});
         
         Property_<bool>::Ptr
         m_physics_running = Property_<bool>::create("physics running", true),

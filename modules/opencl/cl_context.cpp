@@ -75,7 +75,7 @@ namespace kinski
         try
         {
             cl::Program::Sources sources;
-            std::string file_content = kinski::readFile(path);
+            std::string file_content = kinski::read_file(path);
             sources.push_back(std::make_pair(file_content.c_str(), file_content.size() + 1));
             set_sources(sources);
         }

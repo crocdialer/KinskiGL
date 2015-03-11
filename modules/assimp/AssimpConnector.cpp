@@ -265,7 +265,7 @@ namespace kinski { namespace gl{
         Assimp::Importer importer;
         LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
         std::string found_path;
-        try { found_path = searchFile(theModelPath); }
+        try { found_path = search_file(theModelPath); }
         catch (FileNotFoundException &e)
         {
             LOG_ERROR << e.what();
