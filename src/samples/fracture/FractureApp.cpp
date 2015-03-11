@@ -101,6 +101,9 @@ void FractureApp::update(float timeDelta)
         if(joystick.buttons()[9]){ fracture_test(*m_num_fracture_shards); break; }
         i++;
     }
+    
+    // movie updates
+    if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_INNER])){}
 }
 
 /////////////////////////////////////////////////////////////////
@@ -245,8 +248,6 @@ void FractureApp::got_message(const std::vector<uint8_t> &the_message)
 
 void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
 {
-    textures().clear();
-    
     m_texture_paths->value().clear();
     
     for(const string &f : files)
@@ -264,18 +265,8 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                 break;
             
             case FileType::FILE_IMAGE:
-                try
-                {
-                    textures().push_back(gl::createTextureFromFile(f, true, true, 4.f));
-                    
-                    if(m_mesh)
-                    {
-                        m_mesh->material()->textures() = {textures().back()};
-                    }
-                    
-                    m_texture_paths->value().push_back(f);
-                }
-                catch (Exception &e) { LOG_WARNING << e.what(); }
+            case FileType::FILE_MOVIE:
+                m_texture_paths->value().push_back(f);
                 if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
                 {
                     LOG_DEBUG << "texture drop on model";
@@ -285,6 +276,7 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                 break;
         }
     }
+    m_texture_paths->notifyObservers();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -321,7 +313,23 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             m_physics.add_mesh_to_simulation(m_mesh);
         }
     }
-    else if(theProperty == m_texture_paths){}
+    else if(theProperty == m_texture_paths)
+    {
+        std::vector<gl::Texture> tex_array;
+        for(const string &f : m_texture_paths->value())
+        {
+            if(get_filetype(f) == FileType::FILE_IMAGE)
+            {
+                try{ tex_array.push_back(gl::createTextureFromFile(f, true, true, 8.f)); }
+                catch (Exception &e) { LOG_WARNING << e.what(); }
+            }else if(get_filetype(f) == FileType::FILE_MOVIE)
+            {
+                m_movie = MovieController::create(f, true, true);
+            }
+        }
+        if(tex_array.size() > 0){ textures()[TEXTURE_OUTER] = tex_array[0]; }
+        if(tex_array.size() > 1){ textures()[TEXTURE_INNER] = tex_array[1]; }
+    }
     else if(theProperty == m_fbo_resolution)
     {
         gl::Fbo::Format fmt;
@@ -441,14 +449,14 @@ void FractureApp::fracture_test(uint32_t num_shards)
     auto aabb = m->boundingBox().transform(m->transform());
     m->position().y += aabb.halfExtents().y;
     
-    std::vector<gl::Texture> textures;
-    for(const auto &tex_path : m_texture_paths->value())
-    {
-        try
-        {
-            textures.push_back(gl::createTextureFromFile(tex_path, true, true, 8.f));
-        }catch(Exception &e){ LOG_WARNING << e.what(); }
-    }
+//    std::vector<gl::Texture> textures;
+//    for(const auto &tex_path : m_texture_paths->value())
+//    {
+//        try
+//        {
+//            textures.push_back(gl::createTextureFromFile(tex_path, true, true, 8.f));
+//        }catch(Exception &e){ LOG_WARNING << e.what(); }
+//    }
 //    m->material()->addTexture(tex);
     
     // voronoi points
@@ -483,11 +491,8 @@ void FractureApp::fracture_test(uint32_t num_shards)
 //    inner_mat->setDiffuse(gl::COLOR_RED);
     inner_mat->setSpecular(gl::COLOR_BLACK);
     
-    if(textures.size() > 1)
-    {
-        outer_mat->textures() = { textures[0] };
-        inner_mat->textures() = { textures[1] };
-    }
+    outer_mat->textures() = { textures()[TEXTURE_OUTER] };
+    inner_mat->textures() = { textures()[TEXTURE_INNER] };
     
     for(auto &s : m_voronoi_shards)
     {

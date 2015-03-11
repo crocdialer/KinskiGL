@@ -15,8 +15,9 @@
 #include "gl/Fbo.h"
 
 // module headers
-#include "physics_context.h"
-#include "SyphonConnector.h"
+#include "physics/physics_context.h"
+#include "syphon/SyphonConnector.h"
+#include "video/MovieController.h"
 
 namespace kinski
 {
@@ -29,6 +30,7 @@ namespace kinski
         
         gl::MeshPtr m_mesh;
         physics::physics_context m_physics;
+        MovieControllerPtr m_movie;
         LightComponent::Ptr m_light_component;
         
         Property_<std::string>::Ptr
