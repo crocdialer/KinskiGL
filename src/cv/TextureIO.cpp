@@ -17,7 +17,7 @@ namespace kinski{ namespace gl{
     
 const Texture TextureIO::loadTexture(const string &imgName)
 {
-    string imgPath = searchFile(imgName);
+    string imgPath = search_file(imgName);
     Mat img = imread(imgPath , -1);
     Texture ret;
     
@@ -33,7 +33,7 @@ const Texture TextureIO::loadTexture(const string &imgName)
         cv::cvtColor(img, img, CV_BGR2RGBA);
 #endif
 
-    LOG_TRACE<<"loaded image '"<<searchFile(imgPath)<<"': "<<img.cols<<" x "<<img.rows<<" -- "
+    LOG_TRACE<<"loaded image '"<<search_file(imgPath)<<"': "<<img.cols<<" x "<<img.rows<<" -- "
         <<img.channels()<<" channel(s)";
 
     updateTexture(ret, img);

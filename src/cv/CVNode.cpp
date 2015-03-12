@@ -36,7 +36,7 @@ namespace kinski
     m_videoSource(movieFile),
     m_loop(true)
     {
-        if(!m_capture.open(kinski::searchFile(movieFile)))
+        if(!m_capture.open(kinski::search_file(movieFile)))
             throw BadInputSourceException("could not open capture");
         
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
@@ -252,7 +252,7 @@ namespace kinski
     {
         if(!m_videoWriter.isOpened())
         {
-            m_videoWriter.open(kinski::searchFile(*m_videoSrc),
+            m_videoWriter.open(kinski::search_file(*m_videoSrc),
                                m_codec,
                                25, img.size());
         }

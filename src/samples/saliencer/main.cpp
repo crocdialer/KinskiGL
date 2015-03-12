@@ -32,7 +32,7 @@ public:
     
     void setup()
     {
-        kinski::addSearchPath("/Users/Fabian/Desktop/");
+        kinski::add_search_path("/Users/Fabian/Desktop/");
         setBarColor(vec4(0, 0 ,0 , .5));
         setBarSize(ivec2(250, 500));
 
