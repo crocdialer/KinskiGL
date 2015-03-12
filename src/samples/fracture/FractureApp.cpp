@@ -103,7 +103,7 @@ void FractureApp::update(float timeDelta)
     }
     
     // movie updates
-    if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_INNER])){}
+    if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_INNER], true)){}
 }
 
 /////////////////////////////////////////////////////////////////
@@ -146,7 +146,7 @@ void FractureApp::draw()
             break;
             
         case VIEW_OUTPUT:
-            gl::drawTexture(textures()[1], gl::windowDimension());
+            gl::drawTexture(textures()[TEXTURE_SYPHON], gl::windowDimension());
             break;
             
         default:
@@ -204,7 +204,8 @@ void FractureApp::mousePress(const MouseEvent &e)
     
     if(e.isRight())
     {
-        auto ray = gl::calculateRay(camera(), vec2(e.getX(), e.getY()));
+        gl::CameraPtr cam = *m_view_type == VIEW_OUTPUT ? m_fbo_cam : camera();
+        auto ray = gl::calculateRay(cam, vec2(e.getX(), e.getY()));
         shoot_box(ray, *m_shoot_velocity);
     }
 }

@@ -45,11 +45,12 @@ namespace kinski
         void set_movie_ended_callback(MovieCallback c);
         
         /*!
-         * upload the current frame to a gl::Texture object
+         * upload the current frame to the_texture with target GL_RECTANGLE as default
+         * or GL_TEXTURE_2D if as_texture2D is true
          * return: true if a new frame has been uploaded successfully,
          * false otherwise
          */
-        bool copy_frame_to_texture(gl::Texture &tex, bool as_texture2D = false);
+        bool copy_frame_to_texture(gl::Texture &the_texture, bool as_texture2D = false);
         
         /*!
          * copy the current frame to a std::vector<uint8_t>
