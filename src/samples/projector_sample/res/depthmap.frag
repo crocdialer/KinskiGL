@@ -1,16 +1,43 @@
-#version 150 core
+#version 410
 uniform int u_numTextures;
 
 uniform sampler2D u_sampler_2D[4];
 
-uniform struct Material
+struct Material
 {
-    vec4 diffuse;
-    vec4 ambient;
-    vec4 specular;
-    vec4 emission;
-    float shinyness;
-} u_material;
+  vec4 diffuse; 
+  vec4 ambient; 
+  vec4 specular; 
+  vec4 emission; 
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
+  float shinyness;
+};
+
+struct Lightsource
+{
+  vec3 position; 
+  int type; 
+  vec4 diffuse; 
+  vec4 ambient; 
+  vec4 specular; 
+  vec3 spotDirection; 
+  float spotCosCutoff; 
+  float spotExponent; 
+  float constantAttenuation; 
+  float linearAttenuation; 
+  float quadraticAttenuation; 
+};
+
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
+
+layout(std140) uniform LightBlock
+{
+  int u_numLights;
+  Lightsource u_lights[16];
+};
 
 in VertexData{
    vec4 color;

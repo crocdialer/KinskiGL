@@ -13,8 +13,8 @@
 
 #include "gl/Texture.h"
 
-#include "MovieController.h"
-#include "CameraController.h"
+#include "video/MovieController.h"
+#include "video/CameraController.h"
 
 namespace kinski
 {

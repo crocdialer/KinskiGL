@@ -103,7 +103,7 @@ namespace kinski{ namespace gl{
             xn::EnumerationErrors errors;
             try
             {
-                ni_status = m_obj->m_context.InitFromXmlFile(searchFile(*m_config_path).c_str(),
+                ni_status = m_obj->m_context.InitFromXmlFile(search_file(*m_config_path).c_str(),
                                                              m_obj->m_scriptNode, &errors);
             } catch (FileNotFoundException &e){LOG_ERROR<<e.what();}
             
@@ -117,7 +117,7 @@ namespace kinski{ namespace gl{
             m_obj->m_context.Init();
             try
             {
-                ni_status = m_obj->m_context.OpenFileRecording(searchFile(*m_oni_path).c_str(),
+                ni_status = m_obj->m_context.OpenFileRecording(search_file(*m_oni_path).c_str(),
                                                                m_obj->m_player);
             }catch (FileNotFoundException &e){LOG_ERROR<<e.what();}
             if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}

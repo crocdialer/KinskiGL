@@ -182,8 +182,8 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
         LOG_INFO << f;
         
         // add path to searchpaths
-        string dir_part = kinski::getDirectoryPart(f);
-        kinski::addSearchPath(dir_part);
+        string dir_part = kinski::get_directory_part(f);
+        kinski::add_search_path(dir_part);
         m_search_paths->value().push_back(dir_part);
 
         switch (get_filetype(f))
@@ -204,7 +204,7 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                     }
                 }
                 catch (Exception &e) { LOG_WARNING << e.what();}
-                if(scene().pick(gl::calculateRay(camera(), e.getX(), e.getY())))
+                if(scene().pick(gl::calculateRay(camera(), vec2(e.getPos()))))
                 {
                     LOG_INFO << "texture drop on model";
                 }
