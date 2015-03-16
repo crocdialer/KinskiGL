@@ -298,34 +298,34 @@ namespace kinski{namespace physics{
             gl::project_texcoords(the_mesh, m);
             
             // compute box mapped texcoords for inside vertices
-//            auto &indices = m->geometry()->indices();
-//            auto &vertices = m->geometry()->vertices();
-//            
-//            // aabb
-//            auto out_aabb = the_mesh->boundingBox();
-//            vec3 aabb_extents = out_aabb.halfExtents() * 2.f;
-//            
-//            uint32_t base_vertex = m->entries()[1].base_vertex;
-//            uint32_t k = m->entries()[1].base_index, kl = k + m->entries()[1].num_indices;
-//            
-//            for(;k < kl; k += 3)
-//            {
-//                gl::Face3 f(indices[k] + base_vertex,
-//                            indices[k] + base_vertex + 1,
-//                            indices[k] + base_vertex + 2);
-//                
-//                // normal
-//                const vec3 &v0 = vertices[f.a];
-//                const vec3 &v1 = vertices[f.b];
-//                const vec3 &v2 = vertices[f.c];
-//                
-//                vec3 n = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-//                
-//                float abs_vals[3] = {fabsf(n[0]), fabsf(n[1]), fabsf(n[2])};
-//                
-//                // get principal direction
-//                int principle_axis = std::distance(abs_vals, std::max_element(abs_vals, abs_vals + 3));
-//                
+            auto &indices = m->geometry()->indices();
+            auto &vertices = m->geometry()->vertices();
+            
+            // aabb
+            auto out_aabb = the_mesh->boundingBox();
+            vec3 aabb_extents = out_aabb.halfExtents() * 2.f;
+            
+            uint32_t base_vertex = m->entries()[1].base_vertex;
+            uint32_t k = m->entries()[1].base_index, kl = k + m->entries()[1].num_indices;
+            
+            for(;k < kl; k += 3)
+            {
+                gl::Face3 f(indices[k] + base_vertex,
+                            indices[k] + base_vertex + 1,
+                            indices[k] + base_vertex + 2);
+                
+                // normal
+                const vec3 &v0 = vertices[f.a];
+                const vec3 &v1 = vertices[f.b];
+                const vec3 &v2 = vertices[f.c];
+                
+                vec3 n = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+                
+                float abs_vals[3] = {fabsf(n[0]), fabsf(n[1]), fabsf(n[2])};
+                
+                // get principal direction
+                int principle_axis = std::distance(abs_vals, std::max_element(abs_vals, abs_vals + 3));
+                
 //                switch (principle_axis)
 //                {
 //                    // X-axis
@@ -341,7 +341,7 @@ namespace kinski{namespace physics{
 //                        
 //                    // Y-axis
 //                    case 1:
-//                        //XZ plane
+//                    // XZ plane
 //                        m->geometry()->texCoords()[f.a] = vec2(v0.x - out_aabb.min.x / aabb_extents.x,
 //                                                               v0.z - out_aabb.min.z / aabb_extents.z);
 //                        m->geometry()->texCoords()[f.b] = vec2(v1.x - out_aabb.min.x / aabb_extents.x,
@@ -364,7 +364,7 @@ namespace kinski{namespace physics{
 //                    default:
 //                        break;
 //                }
-//            }
+            }
             
 //            m->geometry()->createGLBuffers();
             

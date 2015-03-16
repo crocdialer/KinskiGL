@@ -30,11 +30,12 @@ namespace kinski
         
         gl::MeshPtr m_mesh;
         physics::physics_context m_physics;
-        MovieControllerPtr m_movie;
+        MovieControllerPtr m_movie, m_crosshair_movie;
         LightComponent::Ptr m_light_component;
         
         Property_<std::string>::Ptr
-        m_model_path = Property_<std::string>::create("Model path", "");
+        m_model_path = Property_<std::string>::create("Model path", ""),
+        m_crosshair_path = Property_<std::string>::create("Crosshair path", "crosshair.png");
         
         Property_<std::vector<std::string>>::Ptr
         m_texture_paths = Property_<std::vector<std::string>>::create("texture paths", {});
@@ -50,7 +51,8 @@ namespace kinski
         m_gravity = Property_<float>::create("gravity", 9.81f),
         m_friction = Property_<float>::create("friction", .6f),
         m_breaking_thresh = Property_<float>::create("breaking threshold", 2.4f),
-        m_shoot_velocity = Property_<float>::create("shoot velocity", 40.f);
+        m_shoot_velocity = Property_<float>::create("shoot velocity", 40.f),
+        m_shots_per_sec = Property_<float>::create("shots per second", 3.f);
         
         Property_<glm::vec3>::Ptr
         m_obj_scale = Property_<glm::vec3>::create("object scale", glm::vec3(.5f));
@@ -63,7 +65,9 @@ namespace kinski
         
         // gui stuff
         gl::CameraPtr m_gui_cam;
+        gl::Texture m_crosshair_tex;
         std::vector<glm::vec2> m_crosshair_pos;
+        float m_time_since_last_shot = 0;
         
         // fbo / syphon stuff
         std::vector<gl::Fbo> m_fbos{5};

@@ -24,6 +24,7 @@ void FractureApp::setup()
     
     registerProperty(m_view_type);
     registerProperty(m_model_path);
+    registerProperty(m_crosshair_path);
     registerProperty(m_texture_paths);
     registerProperty(m_physics_running);
     registerProperty(m_physics_debug_draw);
@@ -32,6 +33,7 @@ void FractureApp::setup()
     registerProperty(m_gravity);
     registerProperty(m_friction);
     registerProperty(m_shoot_velocity);
+    registerProperty(m_shots_per_sec);
     registerProperty(m_obj_scale);
     registerProperty(m_fbo_resolution);
     registerProperty(m_fbo_cam_pos);
@@ -75,6 +77,8 @@ void FractureApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
+    m_time_since_last_shot += timeDelta;
+    
     if(*m_physics_running){ m_physics.step_simulation(timeDelta); }
     
     // update joystick positions
@@ -92,10 +96,11 @@ void FractureApp::update(float timeDelta)
         if(m_fbos[0])
         m_crosshair_pos[i] = glm::clamp(m_crosshair_pos[i], vec2(0), m_fbos[0].getSize());
         
-        if(joystick.buttons()[0] && m_fbo_cam)
+        if(joystick.buttons()[0] && m_fbo_cam && m_time_since_last_shot > 1.f / *m_shots_per_sec)
         {
             auto ray = gl::calculateRay(m_fbo_cam, m_crosshair_pos[i], m_fbos[0].getSize());
             shoot_box(ray, *m_shoot_velocity);
+            m_time_since_last_shot = 0.f;
         }
         
         if(joystick.buttons()[9]){ fracture_test(*m_num_fracture_shards); break; }
@@ -104,6 +109,8 @@ void FractureApp::update(float timeDelta)
     
     // movie updates
     if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_INNER], true)){}
+    
+    if(m_crosshair_movie && m_crosshair_movie->copy_frame_to_texture(m_crosshair_tex, true)){}
 }
 
 /////////////////////////////////////////////////////////////////
@@ -120,9 +127,12 @@ void FractureApp::draw()
             
             // gui stuff
             gl::setMatrices(m_gui_cam);
+            int crosshair_width = 70;
+            
             for(auto &p : m_crosshair_pos)
             {
-                gl::drawCircle(p, 15.f, false);
+//                gl::drawCircle(p, 15.f, false);
+                gl::drawTexture(m_crosshair_tex, vec2(crosshair_width), p - vec2(crosshair_width) / 2.f);
             }
             
         });
@@ -314,6 +324,23 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
             m_physics.add_mesh_to_simulation(m_mesh);
         }
     }
+    else if(theProperty == m_crosshair_path)
+    {
+        auto ft = get_filetype(*m_crosshair_path);
+        if(ft == FileType::FILE_MOVIE)
+        {
+            m_crosshair_movie = MovieController::create(*m_crosshair_path, true, true);
+        }
+        else if(ft == FileType::FILE_IMAGE)
+        {
+            m_crosshair_movie.reset();
+            
+            try
+            {
+                m_crosshair_tex  = gl::createTextureFromFile(*m_crosshair_path);
+            } catch (FileNotFoundException &e) { LOG_WARNING << e.what(); }
+        }
+    }
     else if(theProperty == m_texture_paths)
     {
         std::vector<gl::Texture> tex_array;
@@ -384,8 +411,9 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
                             const glm::vec3 &the_half_extents)
 {
 //    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
-    
-    gl::MeshPtr mesh = gl::Mesh::create(m_box_geom, gl::Material::create());
+    static gl::Shader phong_shader;
+    if(!phong_shader){ phong_shader = gl::createShader(gl::SHADER_PHONG); }
+    gl::MeshPtr mesh = gl::Mesh::create(m_box_geom, gl::Material::create(phong_shader));
     mesh->setScale(.2f * the_half_extents);
     mesh->setPosition(the_ray.origin);
     scene().addObject(mesh);
@@ -421,7 +449,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto col_shape = std::make_shared<btBoxShape>(physics::type_cast(ground_aabb.halfExtents()));
         btRigidBody *rb =m_physics.add_mesh_to_simulation(ground, 0.f, col_shape);
         rb->setFriction(*m_friction);
-        scene().addObject(ground);
+//        scene().addObject(ground);
         
         // back plane
         auto back = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
@@ -429,9 +457,21 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto back_aabb = back->boundingBox().transform(back->transform());
         back->position() += vec3(0, back_aabb.halfExtents().y, -2.f * back_aabb.halfExtents().z);
         col_shape = std::make_shared<btBoxShape>(physics::type_cast(back_aabb.halfExtents()));
+        
+        // stopper
+        auto stopper = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);
+        stopper->setScale(vec3(m_obj_scale->value().x, .1f, .1f));
+        auto stopper_aabb = back->boundingBox().transform(back->transform());
+        stopper->position() = vec3(0, 0,  - m_obj_scale->value().z / 2.f);
+        col_shape = std::make_shared<btBoxShape>(physics::type_cast(stopper_aabb.halfExtents()));
+        m_physics.add_mesh_to_simulation(stopper);
+        
 //        wall = rb = m_physics.add_mesh_to_simulation(back, 0.f, col_shape);
 //        rb->setFriction(*m_friction);
 //        scene().addObject(back);
+        
+        // wall left/right
+        m_physics.set_world_boundaries(vec3(m_obj_scale->value().x / 2.f, 100, 1000));
     }
     
     
