@@ -87,6 +87,9 @@ namespace kinski
         Property_<std::string>::Ptr m_syphon_server_name =
         Property_<std::string>::create("Syphon server name", "fracture");
         
+        // post processing (Dof)
+        gl::MaterialPtr m_dof_material;
+        
         void shoot_box(const gl::Ray &the_ray, float the_velocity,
                        const glm::vec3 &the_half_extents = glm::vec3(.5f));
         

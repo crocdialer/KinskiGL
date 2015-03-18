@@ -8,7 +8,8 @@
 
 #include "core/Timer.h"
 #include "FractureApp.h"
-#include "AssimpConnector.h"
+#include "assimp/AssimpConnector.h"
+#include "gl/ShaderLibrary.h"
 
 using namespace std;
 using namespace kinski;
@@ -69,6 +70,13 @@ void FractureApp::setup()
     // init joystick crosshairs
     m_crosshair_pos.resize(get_joystick_states().size());
     for(auto &p : m_crosshair_pos){ p = windowSize() / 2.f; }
+    
+    // dof material
+    gl::Shader sh; sh.loadFromData(unlit_vert, read_file("~/Desktop/shader_dof.frag").c_str());
+    m_dof_material = gl::Material::create(sh);
+    m_dof_material->setDepthTest(false);
+    m_dof_material->setDepthWrite(false);
+    m_dof_material->setBlending();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -157,6 +165,8 @@ void FractureApp::draw()
             
         case VIEW_OUTPUT:
             gl::drawTexture(textures()[TEXTURE_SYPHON], gl::windowDimension());
+//            m_dof_material->textures() = { textures()[TEXTURE_SYPHON], m_fbos[0].getDepthTexture() };
+//            gl::drawQuad(m_dof_material, gl::windowDimension());
             break;
             
         default:

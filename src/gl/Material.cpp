@@ -122,10 +122,10 @@ namespace kinski { namespace gl {
             m_uniforms["u_material.specular"] = m_specular;
             m_uniforms["u_material.emmission"] = m_emission;
             m_uniforms["u_material.shinyness"] = m_shinyness;
-            m_uniforms["u_material.point_vals[0]"] = m_pointSize;
-            m_uniforms["u_material.point_vals[1]"] = m_point_attenuation.constant;
-            m_uniforms["u_material.point_vals[2]"] = m_point_attenuation.linear;
-            m_uniforms["u_material.point_vals[3]"] = m_point_attenuation.quadratic;
+            m_uniforms["u_material.point_vals"] = vec4(m_pointSize,
+                                                       m_point_attenuation.constant,
+                                                       m_point_attenuation.linear,
+                                                       m_point_attenuation.quadratic);
             m_dirty = false;
         }
 #endif

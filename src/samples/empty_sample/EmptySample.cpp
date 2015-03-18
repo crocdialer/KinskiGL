@@ -18,11 +18,9 @@ using namespace glm;
 void EmptySample::setup()
 {
     ViewerApp::setup();
-    m_font.load("Courier New Bold.ttf", 18);
-    outstream_gl().set_color(gl::COLOR_WHITE);
-    outstream_gl().set_font(m_font);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
+    load_settings();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -37,7 +35,7 @@ void EmptySample::update(float timeDelta)
 void EmptySample::draw()
 {
     gl::setMatrices(camera());
-    gl::drawGrid(50, 50);
+    if(*m_draw_grid){ gl::drawGrid(50, 50); }
 }
 
 /////////////////////////////////////////////////////////////////
