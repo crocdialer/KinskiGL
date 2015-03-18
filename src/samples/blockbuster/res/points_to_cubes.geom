@@ -1,14 +1,14 @@
 #version 410
 
-// ------------------ Geometry Shader: Line -> Cuboid --------------------------------
+// ------------------ Geometry Shader: Point -> Cuboid --------------------------------
 layout(points) in;
-layout (triangle_strip, max_vertices = 20) out;
+layout (triangle_strip, max_vertices = 24) out;
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_modelViewMatrix;
 uniform mat3 u_normalMatrix;
 
-uniform float u_cap_bias = 2;
+uniform float u_cap_bias = 0;
 uniform float u_length = 10.0;
 
 // placeholder for halfs of depth and height

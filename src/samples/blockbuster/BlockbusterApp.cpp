@@ -55,6 +55,11 @@ void BlockbusterApp::draw()
     gl::drawPoints(m_user_positions);
     
     scene().render(camera());
+    
+    if(m_light_component->draw_light_dummies())
+    {
+        for (auto l : lights()){ gl::drawLight(l); }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -152,6 +157,7 @@ gl::MeshPtr BlockbusterApp::create_mesh()
     geom->setPrimitiveType(GL_POINTS);
     geom->vertices().resize(*m_num_tiles_x * *m_num_tiles_y);
     geom->normals().resize(*m_num_tiles_x * *m_num_tiles_y, vec3(0, 0, 1));
+    geom->point_sizes().resize(*m_num_tiles_x * *m_num_tiles_y, 5.f);
     vec2 step(10), offset = - vec2(*m_num_tiles_x, *m_num_tiles_y) * step / 2.f;
     
     auto &verts = geom->vertices();

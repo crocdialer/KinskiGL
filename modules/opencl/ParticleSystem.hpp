@@ -11,7 +11,7 @@
 
 #include "gl/KinskiGL.h"
 #include "gl/geometry_types.h"
-#include "cl_context.h"
+#include "opencl/cl_context.h"
 
 namespace kinski{ namespace gl{
 

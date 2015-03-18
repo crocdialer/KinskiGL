@@ -1,4 +1,4 @@
 set(LIBS ${LIBS})
-set(MODULES)
+set(MODULES opencl)
 KINSKI_ADD_SAMPLE(${itemName} ${folderItem} "${MODULES}")
 
