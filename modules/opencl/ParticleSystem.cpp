@@ -44,6 +44,7 @@ namespace kinski{ namespace gl{
         if(m_mesh)
         {
             auto &geom = m_mesh->geometry();
+            geom->createGLBuffers();
             m_contraints_aabb = geom->boundingBox();
             
             try

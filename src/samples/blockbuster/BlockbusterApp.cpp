@@ -21,6 +21,8 @@ void BlockbusterApp::setup()
     ViewerApp::setup();
     registerProperty(m_num_tiles_x);
     registerProperty(m_num_tiles_y);
+    registerProperty(m_spacing_x);
+    registerProperty(m_spacing_y);
     registerProperty(m_block_length);
     registerProperty(m_block_width);
     observeProperties();
@@ -36,8 +38,9 @@ void BlockbusterApp::setup()
     load_settings();
     m_light_component->refresh();
     
-    m_mesh = create_mesh();
-    scene().addObject(m_mesh);
+    m_psystem.opencl().init();
+    m_psystem.opencl().set_sources("kernels.cl");
+    m_psystem.add_kernel("set_positions_from_image");
 }
 
 /////////////////////////////////////////////////////////////////
@@ -45,6 +48,15 @@ void BlockbusterApp::setup()
 void BlockbusterApp::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    
+    if(m_dirty)
+    {
+        scene().removeObject(m_mesh);
+        m_mesh = create_mesh();
+        m_psystem.set_mesh(m_mesh);
+        scene().addObject(m_mesh);
+        m_dirty = false;
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -163,6 +175,13 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh->material()->uniform("u_width", *m_block_width);
         }
     }
+    else if(theProperty == m_num_tiles_x ||
+            theProperty == m_num_tiles_y ||
+            theProperty == m_spacing_x ||
+            theProperty == m_spacing_y)
+    {
+        m_dirty = true;
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -174,8 +193,8 @@ gl::MeshPtr BlockbusterApp::create_mesh()
     geom->setPrimitiveType(GL_POINTS);
     geom->vertices().resize(*m_num_tiles_x * *m_num_tiles_y);
     geom->normals().resize(*m_num_tiles_x * *m_num_tiles_y, vec3(0, 0, 1));
-    geom->point_sizes().resize(*m_num_tiles_x * *m_num_tiles_y, 5.f);
-    vec2 step(10), offset = - vec2(*m_num_tiles_x, *m_num_tiles_y) * step / 2.f;
+    geom->point_sizes().resize(*m_num_tiles_x * *m_num_tiles_y, 1.f);
+    vec2 step(*m_spacing_x, *m_spacing_y), offset = - vec2(*m_num_tiles_x, *m_num_tiles_y) * step / 2.f;
     
     auto &verts = geom->vertices();
     

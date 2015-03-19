@@ -8,7 +8,6 @@ uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_modelViewMatrix;
 uniform mat3 u_normalMatrix;
 
-uniform float u_cap_bias = 0;
 uniform float u_length = 10.0;
 uniform float u_width = 1.0;
 
@@ -217,11 +216,6 @@ void main()
     vec3 p0 = vertex_in[0].position;	// start of current segment
     vec3 p1 = p0 + vertex_in[0].normal * u_length;	// end of current segment
     
-    // basevectors for the cuboid
-    //vec3 line_seq = p1 - p0;
-    //float line_length = length(line_seq);
-    //vec3 line_dir = line_seq / line_length;
-
     // texCoords
     texCoords[0] = vec4(0, 0, 0, 1);
     texCoords[1] = vec4(1, 0, 0, 1);

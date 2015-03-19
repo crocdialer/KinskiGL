@@ -12,6 +12,9 @@
 #include "app/ViewerApp.h"
 #include "app/LightComponent.h"
 
+// module
+#include "opencl/ParticleSystem.hpp"
+
 namespace kinski
 {
     class BlockbusterApp : public ViewerApp
@@ -22,19 +25,24 @@ namespace kinski
         
         gl::MeshPtr m_mesh;
         std::vector<glm::vec3> m_user_positions;
+        gl::ParticleSystem m_psystem;
         
-        gl::MeshPtr create_mesh();
-        glm::vec3 click_pos_on_ground(const glm::vec2 click_pos);
+        gl::Texture m_texture_input;
+        
+        bool m_dirty = true;
         
         Property_<uint32_t>::Ptr
         m_num_tiles_x = Property_<uint32_t>::create("num tiles x", 16),
-        m_num_tiles_y = Property_<uint32_t>::create("num tiles y", 10);
+        m_num_tiles_y = Property_<uint32_t>::create("num tiles y", 10),
+        m_spacing_x = Property_<uint32_t>::create("spacing x", 10),
+        m_spacing_y = Property_<uint32_t>::create("spacing y", 10);
         
         Property_<float>::Ptr
         m_block_length = Property_<float>::create("block length", 1.f),
         m_block_width = Property_<float>::create("block width", 1.f);
         
-        bool m_dirty = true;
+        gl::MeshPtr create_mesh();
+        glm::vec3 click_pos_on_ground(const glm::vec2 click_pos);
         
     public:
         
