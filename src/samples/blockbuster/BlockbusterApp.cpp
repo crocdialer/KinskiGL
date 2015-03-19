@@ -66,7 +66,7 @@ void BlockbusterApp::draw()
     gl::setMatrices(camera());
     if(*m_draw_grid){ gl::drawGrid(50, 50); }
     
-    gl::drawPoints(m_user_positions);
+//    gl::drawPoints(m_user_positions);
     
     scene().render(camera());
     

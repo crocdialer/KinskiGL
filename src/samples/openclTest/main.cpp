@@ -110,7 +110,7 @@ private:
             m_queue = cl::CommandQueue(m_context, devices[0]);
             
             // Read source file
-            std::string sourceCode = kinski::readFile("kernels.cl");
+            std::string sourceCode = kinski::read_file("kernels.cl");
             
             // Make program of the source code in the context
             m_program = cl::Program(m_context, sourceCode);
@@ -264,8 +264,8 @@ public:
     void setup()
     {
         ViewerApp::setup();
-        kinski::addSearchPath("/Library/Fonts");
-        kinski::addSearchPath("~/Pictures");
+        kinski::add_search_path("/Library/Fonts");
+        kinski::add_search_path("~/Pictures");
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
         registerProperty(m_texturePath);
@@ -326,7 +326,7 @@ public:
     
     void update(float timeDelta)
     {
-        m_pointMaterial->uniform("u_lightDir", light_direction());
+//        m_pointMaterial->uniform("u_lightDir", light_direction());
         
         ViewerApp::update(timeDelta);
         updateParticles(timeDelta);
