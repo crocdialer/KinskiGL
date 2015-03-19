@@ -10,6 +10,7 @@ uniform mat3 u_normalMatrix;
 
 uniform float u_cap_bias = 0;
 uniform float u_length = 10.0;
+uniform float u_width = 1.0;
 
 // placeholder for halfs of depth and height
 float depth2 = .5;
@@ -49,7 +50,7 @@ out VertexData
 void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
 {
     // same for all verts
-    depth2 = height2 = vertex_in[0].pointSize / 2.0;
+    depth2 = height2 = max(u_width, vertex_in[0].pointSize) / 2.0;
     vertex_out.color = vertex_in[0].color;
 
     // basevectors for the cuboid
@@ -84,9 +85,9 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     // generate a triangle strip
     
     // transform directions 
-    dx *= u_normalMatrix; 
-    dy *= u_normalMatrix; 
-    dz *= u_normalMatrix;
+    dx = u_normalMatrix * dx; 
+    dy = u_normalMatrix * dy; 
+    dz = u_normalMatrix * dz;
 
     ///////// mantle faces //////////
     
@@ -214,12 +215,12 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
 void main()
 {
     vec3 p0 = vertex_in[0].position;	// start of current segment
-    vec3 p1 = p0 - vertex_in[0].normal * u_length;	// end of current segment
+    vec3 p1 = p0 + vertex_in[0].normal * u_length;	// end of current segment
     
     // basevectors for the cuboid
-    vec3 line_seq = p1 - p0;
-    float line_length = length(line_seq);
-    vec3 line_dir = line_seq / line_length;
+    //vec3 line_seq = p1 - p0;
+    //float line_length = length(line_seq);
+    //vec3 line_dir = line_seq / line_length;
 
     // texCoords
     texCoords[0] = vec4(0, 0, 0, 1);
@@ -227,7 +228,5 @@ void main()
     texCoords[2] = vec4(0, 1, 0, 1);
     texCoords[3] = vec4(1, 1, 0, 1);
     
-    create_box(p0 - line_dir * u_cap_bias,
-               p1 + line_dir * u_cap_bias,
-               vec3(0, 1, 0));
+    create_box(p0, p1, vec3(0, 1, 0));
 }

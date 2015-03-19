@@ -21,6 +21,8 @@ void BlockbusterApp::setup()
     ViewerApp::setup();
     registerProperty(m_num_tiles_x);
     registerProperty(m_num_tiles_y);
+    registerProperty(m_block_length);
+    registerProperty(m_block_width);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -146,6 +148,21 @@ void BlockbusterApp::tearDown()
 void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
 {
     ViewerApp::updateProperty(theProperty);
+    
+    if(theProperty == m_block_length)
+    {
+        if(m_mesh)
+        {
+            m_mesh->material()->uniform("u_length", *m_block_length);
+        }
+    }
+    else if(theProperty == m_block_width)
+    {
+        if(m_mesh)
+        {
+            m_mesh->material()->uniform("u_width", *m_block_width);
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -174,8 +191,8 @@ gl::MeshPtr BlockbusterApp::create_mesh()
                     phong_frag,
                     read_file("points_to_cubes.geom").c_str());
     ret = gl::Mesh::create(geom, gl::Material::create(sh));
-    ret->material()->uniform("u_length", 30.f);
-    
+    ret->material()->uniform("u_length", *m_block_length);
+    ret->material()->uniform("u_width", *m_block_width);
     return ret;
 }
 

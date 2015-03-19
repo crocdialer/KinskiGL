@@ -30,6 +30,10 @@ namespace kinski
         m_num_tiles_x = Property_<uint32_t>::create("num tiles x", 16),
         m_num_tiles_y = Property_<uint32_t>::create("num tiles y", 10);
         
+        Property_<float>::Ptr
+        m_block_length = Property_<float>::create("block length", 1.f),
+        m_block_width = Property_<float>::create("block width", 1.f);
+        
         bool m_dirty = true;
         
     public:
