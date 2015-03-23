@@ -14,12 +14,16 @@
 
 // module
 #include "opencl/ParticleSystem.hpp"
+#include "video/CameraController.h"
+#include "video/MovieController.h"
 
 namespace kinski
 {
     class BlockbusterApp : public ViewerApp
     {
     private:
+        
+        MovieControllerPtr m_movie;
         
         LightComponent::Ptr m_light_component;
         
@@ -28,6 +32,9 @@ namespace kinski
         gl::ParticleSystem m_psystem;
         
         gl::Texture m_texture_input;
+        
+        Property_<std::string>::Ptr
+        m_media_path = Property_<std::string>::create("media path", "");
         
         bool m_dirty = true;
         

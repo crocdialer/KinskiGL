@@ -72,11 +72,11 @@ void FractureApp::setup()
     for(auto &p : m_crosshair_pos){ p = windowSize() / 2.f; }
     
     // dof material
-    gl::Shader sh; sh.loadFromData(unlit_vert, read_file("~/Desktop/shader_dof.frag").c_str());
-    m_dof_material = gl::Material::create(sh);
-    m_dof_material->setDepthTest(false);
-    m_dof_material->setDepthWrite(false);
-    m_dof_material->setBlending();
+//    gl::Shader sh; sh.loadFromData(unlit_vert, read_file("~/Desktop/shader_dof.frag").c_str());
+//    m_dof_material = gl::Material::create(sh);
+//    m_dof_material->setDepthTest(false);
+//    m_dof_material->setDepthWrite(false);
+//    m_dof_material->setBlending();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -174,7 +174,7 @@ void FractureApp::draw()
     }
     
     // draw texture map(s)
-    if(displayTweakBar()){ draw_textures(); }
+    if(displayTweakBar()){ draw_textures(textures()); }
 }
 
 /////////////////////////////////////////////////////////////////

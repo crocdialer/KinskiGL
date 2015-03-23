@@ -80,7 +80,7 @@ namespace kinski {
         virtual void save_settings(const std::string &path = "");
         virtual void load_settings(const std::string &path = "");
         
-        void draw_textures();
+        void draw_textures(const std::vector<gl::Texture> &the_textures);
         
     protected:
         

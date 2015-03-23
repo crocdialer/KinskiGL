@@ -357,12 +357,12 @@ namespace kinski {
         catch(Exception &e){LOG_ERROR<<e.what();}
     }
     
-    void ViewerApp::draw_textures()
+    void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
     {
         float w = (windowSize()/6.f).x;
         glm::vec2 offset(getWidth() - w - 10, 10);
         
-        for (const gl::Texture &t : textures())
+        for (const gl::Texture &t : the_textures)
         {
             if(!t) continue;
             

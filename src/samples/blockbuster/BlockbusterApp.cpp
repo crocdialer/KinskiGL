@@ -19,6 +19,7 @@ using namespace glm;
 void BlockbusterApp::setup()
 {
     ViewerApp::setup();
+    registerProperty(m_media_path);
     registerProperty(m_num_tiles_x);
     registerProperty(m_num_tiles_y);
     registerProperty(m_spacing_x);
@@ -40,7 +41,7 @@ void BlockbusterApp::setup()
     
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
-    m_psystem.add_kernel("set_positions_from_image");
+    m_psystem.add_kernel("texture_input");
 }
 
 /////////////////////////////////////////////////////////////////
@@ -56,6 +57,11 @@ void BlockbusterApp::update(float timeDelta)
         m_psystem.set_mesh(m_mesh);
         scene().addObject(m_mesh);
         m_dirty = false;
+    }
+    
+    if(m_movie && m_movie->copy_frame_to_texture(textures()[0], true))
+    {
+        m_psystem.texture_input(textures()[0]);
     }
 }
 
@@ -74,6 +80,8 @@ void BlockbusterApp::draw()
     {
         for (auto l : lights()){ gl::drawLight(l); }
     }
+    
+    if(displayTweakBar()){ draw_textures(textures());}
 }
 
 /////////////////////////////////////////////////////////////////
@@ -145,7 +153,17 @@ void BlockbusterApp::got_message(const std::vector<uint8_t> &the_message)
 
 void BlockbusterApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
 {
-    for(const string &f : files){ LOG_INFO << f; }
+    for(const string &f : files)
+    {
+        LOG_DEBUG << f;
+        
+        auto ft = get_filetype(f);
+        if(ft == FileType::FILE_IMAGE || ft == FileType::FILE_MOVIE)
+        {
+        
+            *m_media_path = f;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -161,7 +179,11 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
 {
     ViewerApp::updateProperty(theProperty);
     
-    if(theProperty == m_block_length)
+    if(theProperty == m_media_path)
+    {
+        m_movie = MovieController::create(*m_media_path, true, true);
+    }
+    else if(theProperty == m_block_length)
     {
         if(m_mesh)
         {

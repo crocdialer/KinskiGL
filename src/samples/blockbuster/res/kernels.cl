@@ -5,6 +5,12 @@ typedef struct Params
     
 }Params;
 
+inline float4 gray(float4 color)
+{
+    float y_val = dot(color.xyz, (float3)(0.299, 0.587, 0.114));
+    return (float4)(y_val, y_val, y_val, color.w);
+}
+
 inline float3 create_radial_force(float3 pos, float3 pos_particle, float strength)
 {
     float3 dir = pos_particle - pos;
@@ -13,7 +19,7 @@ inline float3 create_radial_force(float3 pos, float3 pos_particle, float strengt
     return strength * dir / dist2;
 }
 
-__kernel void set_positions_from_image(image2d_t image, __global float3* pos)
+__kernel void texture_input(image2d_t image, __global float3* pos)
 {
     unsigned int i = get_global_id(0);
     int cols = 30, rows = 20;
@@ -24,7 +30,7 @@ __kernel void set_positions_from_image(image2d_t image, __global float3* pos)
     int2 array_pos = {w * (i % cols) / (float)(cols), h * (i / cols) / (float)(rows)};
     
     float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos); 
-//    pos[i].z = 
+    pos[i].z = gray(color).x * 100.0; 
 }
 
 // apply forces and change velocities

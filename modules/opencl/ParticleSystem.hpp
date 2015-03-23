@@ -49,6 +49,8 @@ namespace kinski{ namespace gl{
         
         void set_aabb(gl::AABB the_aabb){m_contraints_aabb = the_aabb;}
         
+        void texture_input(gl::Texture &the_texture);
+        
     private:
         
         void apply_forces(float time_delta);

@@ -149,94 +149,138 @@ namespace kinski{ namespace gl{
         apply_forces(time_delta);
         
         auto iter = m_kernel_map.find("updateParticles");
-        if(iter == m_kernel_map.end())
+        if(iter != m_kernel_map.end())
         {
-            LOG_WARNING << "no particle kernel found";
-            return;
+            // get a ref for our kernel
+            auto &kernel = iter->second;
+            
+            try
+            {
+                vector<cl::Memory> glBuffers = {m_vertices, m_colors};
+                
+                // Make sure OpenGL is done using our VBOs
+                glFinish();
+                
+                // map OpenGL buffer object for writing from OpenCL
+                // this passes in the vector of VBO buffer objects (position and color)
+                m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
+                
+                kernel.setArg(0, m_vertices);
+                kernel.setArg(1, m_colors);
+                kernel.setArg(2, m_velocities);
+                kernel.setArg(3, m_positionGen);
+                kernel.setArg(4, m_velocityGen);
+                kernel.setArg(5, time_delta); //pass in the timestep
+                kernel.setArg(6, m_param_buffer);
+                
+                int num = num_particles();
+                
+                // execute the kernel
+                m_opencl.queue().enqueueNDRangeKernel(kernel,
+                                                      cl::NullRange,
+                                                      cl::NDRange(num),
+                                                      cl::NullRange);
+                
+                // Release the VBOs again
+                m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
+                
+                m_opencl.queue().finish();
+            }
+            catch(cl::Error &error)
+            {
+                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            }
         }
-        
-        // get a ref for our kernel
-        auto &kernel = iter->second;
-        
-        try
+    }
+    
+    void ParticleSystem::texture_input(gl::Texture &the_texture)
+    {
+        auto iter = m_kernel_map.find("texture_input");
+        if(iter != m_kernel_map.end())
         {
-            vector<cl::Memory> glBuffers = {m_vertices, m_colors};
+            // get a ref for our kernel
+            auto &kernel = iter->second;
             
-            // Make sure OpenGL is done using our VBOs
-            glFinish();
+            try
+            {
+                
+                cl::ImageGL img(opencl().context(), CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                                         the_texture.getId());
+                
+                vector<cl::Memory> glBuffers = {m_vertices, img};
+                
+                // Make sure OpenGL is done using our VBOs
+                glFinish();
+                
+                // map OpenGL buffer object for writing from OpenCL
+                // this passes in the vector of VBO buffer objects (position and color)
+                opencl().queue().enqueueAcquireGLObjects(&glBuffers);
+                
+                kernel.setArg(0, img);
+                kernel.setArg(1, m_vertices);
+                
+                int num = num_particles();
+                
+                // execute the kernel
+                m_opencl.queue().enqueueNDRangeKernel(kernel,
+                                                      cl::NullRange,
+                                                      cl::NDRange(num),
+                                                      cl::NullRange);
+                
+                m_opencl.queue().finish();
+                
+                // Release the VBOs again
+                opencl().queue().enqueueReleaseGLObjects(&glBuffers, nullptr);
+                
+                opencl().queue().finish();
+            }
+            catch(cl::Error &error)
+            {
+                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            }
             
-            // map OpenGL buffer object for writing from OpenCL
-            // this passes in the vector of VBO buffer objects (position and color)
-            m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
-            
-            kernel.setArg(0, m_vertices);
-            kernel.setArg(1, m_colors);
-            kernel.setArg(2, m_velocities);
-            kernel.setArg(3, m_positionGen);
-            kernel.setArg(4, m_velocityGen);
-            kernel.setArg(5, time_delta); //pass in the timestep
-            kernel.setArg(6, m_param_buffer);
-            
-            int num = num_particles();
-            
-            // execute the kernel
-            m_opencl.queue().enqueueNDRangeKernel(kernel,
-                                                  cl::NullRange,
-                                                  cl::NDRange(num),
-                                                  cl::NullRange);
-            
-            // Release the VBOs again
-            m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
-            
-            m_opencl.queue().finish();
-        }
-        catch(cl::Error &error)
-        {
-            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
         }
     }
     
     void ParticleSystem::apply_forces(float time_delta)
     {
         auto iter = m_kernel_map.find("apply_forces");
-        if(iter == m_kernel_map.end())
+        if(iter != m_kernel_map.end())
         {
-            LOG_WARNING << "no apply_forces kernel found";
-            return;
-        }
-        
-        // get a ref for our kernel
-        auto &force_kernel = iter->second;
-        
-        try
-        {
-            if(!m_forces.empty())
+            // get a ref for our kernel
+            auto &force_kernel = iter->second;
+            
+            try
             {
-                m_opencl.queue().enqueueWriteBuffer(m_force_buffer, CL_TRUE, 0,
-                                                    m_forces.size() * sizeof(vec4),
-                                                    &m_forces[0]);
+                if(!m_forces.empty())
+                {
+                    m_opencl.queue().enqueueWriteBuffer(m_force_buffer, CL_TRUE, 0,
+                                                        m_forces.size() * sizeof(vec4),
+                                                        &m_forces[0]);
+                }
+                
+                force_kernel.setArg(0, m_vertices);
+                force_kernel.setArg(1, m_velocities);
+                force_kernel.setArg(2, m_force_buffer);
+                force_kernel.setArg(3, (int)m_forces.size());
+                force_kernel.setArg(4, time_delta);
+                force_kernel.setArg(5, m_param_buffer);
+                
+                int num = num_particles();
+                
+                // execute the kernel
+                m_opencl.queue().enqueueNDRangeKernel(force_kernel,
+                                                      cl::NullRange,
+                                                      cl::NDRange(num),
+                                                      cl::NullRange);
+                
+                m_opencl.queue().finish();
             }
-            
-            force_kernel.setArg(0, m_vertices);
-            force_kernel.setArg(1, m_velocities);
-            force_kernel.setArg(2, m_force_buffer);
-            force_kernel.setArg(3, (int)m_forces.size());
-            force_kernel.setArg(4, time_delta);
-            force_kernel.setArg(5, m_param_buffer);
-
-            int num = num_particles();
-            
-            // execute the kernel
-            m_opencl.queue().enqueueNDRangeKernel(force_kernel,
-                                                  cl::NullRange,
-                                                  cl::NDRange(num),
-                                                  cl::NullRange);
-            
-            m_opencl.queue().finish();
-        }
-        catch(cl::Error &error)
-        {
-            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            catch(cl::Error &error)
+            {
+                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            }
+        
         }
     }
     

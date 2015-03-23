@@ -56,7 +56,10 @@ void ModelViewer::draw()
     scene().render(camera());
     
     // draw texture map(s)
-    if(displayTweakBar()){ draw_textures(); }
+    if(displayTweakBar() && m_mesh)
+    {
+        draw_textures(m_mesh->material()->textures());
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -126,12 +129,15 @@ void ModelViewer::got_message(const std::vector<uint8_t> &the_message)
 
 void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
 {
+    std::vector<gl::Texture> dropped_textures;
+    
     for(const string &f : files)
     {
         LOG_INFO << f;
-
+        
+        
         // add path to searchpaths
-        kinski::addSearchPath(kinski::getDirectoryPart(f));
+        kinski::add_search_path(kinski::get_directory_part(f));
         
         switch (get_filetype(f))
         {
@@ -142,13 +148,7 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
             case FileType::FILE_IMAGE:
                 try
                 {
-                    textures().push_back(gl::createTextureFromFile(f, true, false));
-                    
-                    if(m_mesh)
-                    {
-                        m_mesh->material()->textures().clear();
-                        m_mesh->material()->textures().push_back(textures().back());
-                    }
+                    dropped_textures.push_back(gl::createTextureFromFile(f, true, false));
                 }
                 catch (Exception &e) { LOG_WARNING << e.what();}
                 if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
@@ -160,6 +160,7 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                 break;
         }
     }
+    if(m_mesh){ m_mesh->material()->textures() = dropped_textures; }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -177,21 +178,24 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_model_path)
     {
-        addSearchPath(getDirectoryPart(*m_model_path));
+        add_search_path(get_directory_part(*m_model_path));
         gl::MeshPtr m = gl::AssimpConnector::loadModel(*m_model_path);
         
         if(m)
         {
-            for(auto &t : m->material()->textures()){ textures().push_back(t); }
-            
             scene().removeObject(m_mesh);
+            m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
             m_mesh = m;
+            
             scene().addObject(m_mesh);
+
             
-            auto aabb = m->boundingBox();
+            m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
+            m->material()->addTexture(gl::createTextureFromFile("~/Desktop/normal.png", true));
             
-            float scale_factor = 50.f / aabb.width();
-            m->setScale(scale_factor);
+//            auto aabb = m->boundingBox();
+//            float scale_factor = 50.f / aabb.width();
+//            m->setScale(scale_factor);
         }
     }
 }
