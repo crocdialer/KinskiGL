@@ -71,12 +71,12 @@ namespace kinski{ namespace gl{
         ObjPtr m_obj;
         
         //! Emulates shared_ptr-like behavior
-        typedef ObjPtr OpenNIConnector::*unspecified_bool_type;
-        operator unspecified_bool_type() const { return ( m_obj.get() == 0 ) ? 0 : &OpenNIConnector::m_obj; }
+        operator bool() const { return m_obj.get() != nullptr; }
         void reset() { m_obj.reset(); }
         
+        const uint16_t* m_depth_data = nullptr;
         UserList m_user_list;
-        gl::Texture m_depth_texture;
+        gl::Texture m_depth_texture, m_depth_texture_raw;
         
         bool m_running;
         std::thread m_thread;

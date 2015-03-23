@@ -204,7 +204,7 @@ namespace kinski{ namespace gl{
             try
             {
                 
-                cl::ImageGL img(opencl().context(), CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.getTarget(), 0,
                                          the_texture.getId());
                 
                 vector<cl::Memory> glBuffers = {m_vertices, img};

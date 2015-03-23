@@ -16,12 +16,15 @@
 #include "opencl/ParticleSystem.hpp"
 #include "video/CameraController.h"
 #include "video/MovieController.h"
+#include "openni/OpenNIConnector.h"
 
 namespace kinski
 {
     class BlockbusterApp : public ViewerApp
     {
     private:
+        
+        gl::OpenNIConnector::Ptr m_open_ni;
         
         MovieControllerPtr m_movie;
         

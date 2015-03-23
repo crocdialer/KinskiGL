@@ -42,6 +42,12 @@ void BlockbusterApp::setup()
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
     m_psystem.add_kernel("texture_input");
+    
+    // openni
+    // OpenNI
+    m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
+    m_open_ni->observeProperties();
+    create_tweakbar_from_component(m_open_ni);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -59,8 +65,15 @@ void BlockbusterApp::update(float timeDelta)
         m_dirty = false;
     }
     
-    if(m_movie && m_movie->copy_frame_to_texture(textures()[0], true))
+//    if(m_movie && m_movie->copy_frame_to_texture(textures()[0]))
+//    {
+//        m_psystem.texture_input(textures()[0]);
+//    }
+    
+    if(m_open_ni->has_new_frame())
     {
+        // get the depth+userID texture
+        m_textures[0] = m_open_ni->get_depth_texture();
         m_psystem.texture_input(textures()[0]);
     }
 }

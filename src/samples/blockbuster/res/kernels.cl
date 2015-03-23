@@ -22,15 +22,20 @@ inline float3 create_radial_force(float3 pos, float3 pos_particle, float strengt
 __kernel void texture_input(image2d_t image, __global float3* pos)
 {
     unsigned int i = get_global_id(0);
-    int cols = 30, rows = 20;
+    int cols = 300, rows = 200;
 
     int w = get_image_width(image);
     int h = get_image_height(image);
     
     int2 array_pos = {w * (i % cols) / (float)(cols), h * (i / cols) / (float)(rows)};
     
-    float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos); 
-    pos[i].z = gray(color).x * 100.0; 
+    float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos);
+    
+    // kinect: uint16_t input, only using 11 bits
+    float poop = color.x * 65535.0 / 2047.0;
+
+    //pos[i].z = gray(color).x * 1000.0; 
+    pos[i].z = poop * 100.0; 
 }
 
 // apply forces and change velocities

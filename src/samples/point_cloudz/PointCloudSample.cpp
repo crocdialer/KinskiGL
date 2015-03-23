@@ -97,7 +97,7 @@ void PointCloudSample::update(float timeDelta)
         m_textures[3] = m_open_ni->get_depth_texture();
         
         // update pointcloud mesh
-        m_open_ni->update_depth_buffer(m_point_cloud->geometry()->vertexBuffer());
+//        m_open_ni->update_depth_buffer(m_point_cloud->geometry()->vertexBuffer());
 //        vec3 s = m_point_cloud->scale();
 //        m_point_cloud->setTransform(m_depth_cam->transform());
 //        m_point_cloud->setScale(s);
@@ -243,11 +243,11 @@ void PointCloudSample::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_use_syphon)
     {
-        m_syphon = *m_use_syphon ? gl::SyphonConnector(*m_syphon_server_name) : gl::SyphonConnector();
+        m_syphon = *m_use_syphon ? syphon::Output(*m_syphon_server_name) : syphon::Output();
     }
     else if(theProperty == m_syphon_server_name)
     {
         try{m_syphon.setName(*m_syphon_server_name);}
-        catch(gl::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
+        catch(syphon::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
     }
 }

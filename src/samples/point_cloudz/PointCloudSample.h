@@ -12,13 +12,13 @@
 #include "app/ViewerApp.h"
 
 // OpenCL
-#include "cl_context.h"
+#include "opencl/cl_context.h"
 
 // OpenNI
-#include "OpenNIConnector.h"
+#include "openni/OpenNIConnector.h"
 
 //Syphon
-#include "SyphonConnector.h"
+#include "syphon/SyphonConnector.h"
 
 #include "gl/Fbo.h"
 
@@ -32,7 +32,7 @@ namespace kinski
         std::vector<gl::Texture> m_textures{4};
         
         // output via Syphon
-        gl::SyphonConnector m_syphon;
+        syphon::Output m_syphon;
         Property_<bool>::Ptr m_use_syphon = Property_<bool>::create("Use syphon", false);
         Property_<std::string>::Ptr m_syphon_server_name =
             Property_<std::string>::create("syphon server name", "point clouder");

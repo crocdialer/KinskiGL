@@ -126,35 +126,38 @@ namespace kinski{ namespace gl{
         // create a depth generator
         ni_status = m_obj->m_context.FindExistingNode(XN_NODE_TYPE_DEPTH, m_obj->m_depthGenerator);
         if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+        m_obj->m_depthGenerator.StartGenerating();
+        LOG_DEBUG<<"created depth node";
         
         // create a user generator
-        ni_status = m_obj->m_context.FindExistingNode(XN_NODE_TYPE_USER, m_obj->m_userGenerator);
-        if (ni_status != XN_STATUS_OK)
-        {
-            ni_status = m_obj->m_userGenerator.Create(m_obj->m_context);
-            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-        }
+//        ni_status = m_obj->m_context.FindExistingNode(XN_NODE_TYPE_USER, m_obj->m_userGenerator);
+//        if (ni_status != XN_STATUS_OK)
+//        {
+//            ni_status = m_obj->m_userGenerator.Create(m_obj->m_context);
+//            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+//        }
+//        LOG_DEBUG<<"created user node";
+//        
+//        if (!m_obj->m_userGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
+//        {
+//            LOG_WARNING<<"Supplied user generator doesn't support skeleton";
+//        }
+//        XnCallbackHandle hUserCallbacks, hCalibrationStart, hCalibrationComplete;
+//        ni_status = m_obj->m_userGenerator.RegisterUserCallbacks(Obj::new_user, Obj::lost_user,
+//                                                                 m_obj.get(), hUserCallbacks);
+//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+//        
+//        ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationStart(Obj::calibration_start,
+//                                                                                       m_obj.get(),
+//                                                                                       hCalibrationStart);
+//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+//        ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationComplete(Obj::calibration_complete,
+//                                                                                          m_obj.get(),
+//                                                                                          hCalibrationComplete);
+//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
         
-        if (!m_obj->m_userGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
-        {
-            LOG_WARNING<<"Supplied user generator doesn't support skeleton";
-        }
-        XnCallbackHandle hUserCallbacks, hCalibrationStart, hCalibrationComplete;
-        ni_status = m_obj->m_userGenerator.RegisterUserCallbacks(Obj::new_user, Obj::lost_user,
-                                                                 m_obj.get(), hUserCallbacks);
-        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-        
-        ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationStart(Obj::calibration_start,
-                                                                                       m_obj.get(),
-                                                                                       hCalibrationStart);
-        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-        ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationComplete(Obj::calibration_complete,
-                                                                                          m_obj.get(),
-                                                                                          hCalibrationComplete);
-        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-        
-        ni_status = m_obj->m_context.StartGeneratingAll();
-        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+//        ni_status = m_obj->m_context.StartGeneratingAll();
+//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
         
         XnFieldOfView fov;
         m_obj->m_depthGenerator.GetFieldOfView(fov);
@@ -279,41 +282,42 @@ namespace kinski{ namespace gl{
         catch(OpenNIException &e){LOG_ERROR<<e.what(); m_running = false;}
         
         // measure elapsed time with these
-        boost::timer::cpu_timer threadTimer, cpuTimer;
+//        boost::timer::cpu_timer threadTimer, cpuTimer;
         xn::SceneMetaData sceneMD;
         xn::DepthMetaData depthMD;
         
         while(m_running)
         {
             // Read next available data
-            m_obj->m_context.WaitOneUpdateAll(m_obj->m_userGenerator);
+//            m_obj->m_context.WaitOneUpdateAll(m_obj->m_userGenerator);
+            m_obj->m_context.WaitOneUpdateAll(m_obj->m_depthGenerator);
             
             // Process the data
             m_obj->m_depthGenerator.GetMetaData(depthMD);
-            m_obj->m_userGenerator.GetUserPixels(0, sceneMD);
-            
-            XnPoint3D user_center;
-            XnUInt16 num_users = m_obj->m_userGenerator.GetNumberOfUsers();
-            uint32_t user_ids[num_users];
-            m_obj->m_userGenerator.GetUsers(user_ids, num_users);
+//            m_obj->m_userGenerator.GetUserPixels(0, sceneMD);
+//            
+//            XnPoint3D user_center;
+//            XnUInt16 num_users = m_obj->m_userGenerator.GetNumberOfUsers();
+//            uint32_t user_ids[num_users];
+//            m_obj->m_userGenerator.GetUsers(user_ids, num_users);
             
             //locked scope
             {
                 std::unique_lock<std::mutex> lock(m_mutex);
                 update_depth_texture(depthMD, sceneMD);
-                
-                m_user_list.clear();
-                
-                for (int i = 0; i < num_users; ++i)
-                {
-                    m_obj->m_userGenerator.GetCoM(user_ids[i], user_center);
-                    glm::vec3 p = glm::make_vec3((float*)&user_center);
-                    // zombie filter
-                    if(p != glm::vec3(0))
-                    {
-                        m_user_list.push_back(User(user_ids[i], p));
-                    }
-                }
+//
+//                m_user_list.clear();
+//                
+//                for (int i = 0; i < num_users; ++i)
+//                {
+//                    m_obj->m_userGenerator.GetCoM(user_ids[i], user_center);
+//                    glm::vec3 p = glm::make_vec3((float*)&user_center);
+//                    // zombie filter
+//                    if(p != glm::vec3(0))
+//                    {
+//                        m_user_list.push_back(User(user_ids[i], p));
+//                    }
+//                }
                 m_new_frame = true;
             }
         }
@@ -331,13 +335,16 @@ namespace kinski{ namespace gl{
     
     gl::Texture OpenNIConnector::get_depth_texture()
     {
-        // needs OpenGL -> can only be called from main thread
-        // TODO: move or keep !?
-        std::unique_lock<std::mutex> lock(m_mutex);
-        m_new_frame = false;
-        if(m_obj && !m_obj->m_pixel_buffer.empty())
-            m_depth_texture.update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
-        return m_depth_texture;
+//        // needs OpenGL -> can only be called from main thread
+//        // TODO: move or keep !?
+//        std::unique_lock<std::mutex> lock(m_mutex);
+//        m_new_frame = false;
+//        if(m_obj && !m_obj->m_pixel_buffer.empty())
+//            m_depth_texture.update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
+//        return m_depth_texture;
+        
+        m_depth_texture_raw.update((void*)m_depth_data, GL_UNSIGNED_SHORT, GL_RED, 640, 480);
+        return m_depth_texture_raw;
     }
     
     void OpenNIConnector::update_depth_buffer(gl::Buffer the_vertex_buf) const
@@ -373,6 +380,13 @@ namespace kinski{ namespace gl{
         const XnDepthPixel* pDepth = dmd.Data();
         const XnLabel* pLabels = smd.Data();
         
+        // make raw depth image available for gpu processing
+        if(true)
+        {
+            m_depth_data = static_cast<const uint16_t*>(dmd.Data());
+            return;
+        }
+        
         // Calculate the accumulative histogram
         for (nY=0; nY<y_res; nY++)
         {
@@ -402,7 +416,8 @@ namespace kinski{ namespace gl{
         }
         
         pDepth = dmd.Data();
-        if (true)//g_bDrawPixels)
+        
+        if (false)//g_bDrawPixels)
         {
             XnUInt32 nIndex = 0;
             int num_colors = m_user_colors.size() - 1;
@@ -444,7 +459,7 @@ namespace kinski{ namespace gl{
             std::fill(m_obj->m_pixel_buffer.begin(), m_obj->m_pixel_buffer.end(), 0);
         }
         
-        if(true)
+        if(false)
         {
             // point buffer
             int w = 640, h = 480;
