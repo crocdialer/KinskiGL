@@ -276,9 +276,8 @@ namespace kinski{ namespace gl{
         };
         
     private:
-        void	init(const unsigned char *data, GLenum dataFormat,
-                     const Format &format, int unpackRowLength = 0);	
-        void	init( const float *data, GLint dataFormat, const Format &format );
+
+        void init(const void *data, GLenum dataType, GLint dataFormat, const Format &format);
         
         glm::mat4           m_textureMatrix;
         

@@ -79,8 +79,8 @@ m_Obj(new Obj(aWidth, aHeight, aDepth))
     if( format.m_InternalFormat == -1 ){ format.m_InternalFormat = GL_RGBA; }
     m_Obj->m_InternalFormat = format.m_InternalFormat;
     m_Obj->m_Target = format.m_Target;
-    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
-    init((unsigned char*) nullptr, GL_RGBA, format, 0);
+//    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
+    init(nullptr, GL_UNSIGNED_BYTE, GL_RGBA, format);
 }
 
 Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format)
@@ -94,7 +94,7 @@ Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHei
     m_Obj->m_InternalFormat = format.m_InternalFormat;
     m_Obj->m_Target = format.m_Target;
     m_Obj->m_dataType = GL_UNSIGNED_BYTE;
-    init( data, dataFormat, format );
+    init(data, GL_UNSIGNED_BYTE, dataFormat, format);
 }
 
 Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose)
@@ -110,11 +110,11 @@ m_Obj(new Obj(aWidth, aHeight, aDepth))
     m_Obj->m_dataType = GL_UNSIGNED_BYTE;
     m_Obj->m_DoNotDispose = aDoNotDispose;
 }
-
-void Texture::init(const unsigned char *data, GLenum dataFormat,
-                   const Format &format, int unpackRowLength)
+    
+void Texture::init(const void *data, GLenum dataType, GLint dataFormat, const Format &format)
 {
-	m_Obj->m_DoNotDispose = false;
+    m_Obj->m_DoNotDispose = false;
+    m_Obj->m_dataType = dataType;
     
     if(!m_Obj->m_TextureID)
     {
@@ -122,91 +122,48 @@ void Texture::init(const unsigned char *data, GLenum dataFormat,
         glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );	
+        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );
         glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
-	}
+    }
     else{ glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID ); }
     
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+    glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
     
-#if ! defined( KINSKI_GLES )
-	glPixelStorei( GL_UNPACK_ROW_LENGTH, unpackRowLength );
-#endif
+//#if ! defined( KINSKI_GLES )
+//    glPixelStorei( GL_UNPACK_ROW_LENGTH, unpackRowLength );
+//#endif
     
     if(m_Obj->m_Target == GL_TEXTURE_2D)
     {
         glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
                      m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
-                     GL_UNSIGNED_BYTE, data );
+                     dataType, data );
     }
 #if !defined(KINSKI_GLES)
     else if (m_Obj->m_Target == GL_TEXTURE_3D ||
              m_Obj->m_Target == GL_TEXTURE_2D_ARRAY)
     {
         glTexImage3D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
-                     m_Obj->m_depth, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+                     m_Obj->m_depth, 0, dataFormat, dataType, data);
     }
 #endif
     
 #if ! defined( KINSKI_GLES )
-	glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
-#endif	
+    glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
+#endif
     
     if( format.m_Mipmapping ){ glGenerateMipmap(m_Obj->m_Target); }
     
 #ifndef KINSKI_GLES
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
     {
-            GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
-                GL_ONE};
-            glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
+            GL_ONE};
+        glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
 #endif
     
     KINSKI_CHECK_GL_ERRORS();
-}
-
-void Texture::init(const float *data, GLint dataFormat, const Format &format)
-{
-	if(!m_Obj->m_TextureID)
-    {
-        glGenTextures( 1, &m_Obj->m_TextureID );
-        glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
-	}
-    else{ glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID ); }
-	
-    if(m_Obj->m_Target == GL_TEXTURE_2D)
-    {
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
-                     m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
-                     GL_FLOAT, data );
-    }
-#if ! defined( KINSKI_GLES )
-    else if (m_Obj->m_Target == GL_TEXTURE_3D ||
-             m_Obj->m_Target == GL_TEXTURE_2D_ARRAY)
-    {
-        glTexImage3D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
-                     m_Obj->m_depth, 0, dataFormat, GL_FLOAT, data);
-    }
-#endif
-    
-    if(format.m_Mipmapping)
-    {
-        glGenerateMipmap(m_Obj->m_Target);
-    }
-    
-    if(dataFormat != GL_RGB && dataFormat != GL_RGBA)
-    {
-        #ifndef KINSKI_GLES
-        GLint swizzleMask[] = {dataFormat, dataFormat, dataFormat, GL_ONE};
-        glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
-        #endif
-    }
 }
 
 void Texture::update(const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped)
@@ -219,10 +176,8 @@ void Texture::update(const float *data,GLenum format, int theWidth, int theHeigh
     update(data, GL_FLOAT, format, theWidth, theHeight, flipped);
 }
     
-void Texture::update(const void *data,
-                     GLenum dataType,GLenum format,
-                     int theWidth, int theHeight,
-                     bool flipped )
+void Texture::update(const void *data, GLenum dataType, GLenum format, int theWidth, int theHeight,
+                     bool flipped)
 {
     if(!m_Obj){ m_Obj = ObjPtr(new Obj()); }
     setFlipped(flipped);
@@ -241,11 +196,7 @@ void Texture::update(const void *data,
         m_Obj->m_Width = theWidth;
         m_Obj->m_Height = theHeight;
         Format f;
-        if(dataType == GL_UNSIGNED_BYTE)
-            init((unsigned char*)data, format, f);
-        else if(dataType == GL_FLOAT)
-            init((float*) data, format, f);
-            
+        init(data, dataType, format, f);
     }
 }
     
