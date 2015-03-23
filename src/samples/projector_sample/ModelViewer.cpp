@@ -93,7 +93,7 @@ void ModelViewer::draw()
     scene().render(camera());
     
     // draw texture map(s)
-    if(displayTweakBar()){ draw_textures(); }
+    if(displayTweakBar()){ draw_textures(textures()); }
 }
 
 /////////////////////////////////////////////////////////////////
