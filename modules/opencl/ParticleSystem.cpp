@@ -205,7 +205,7 @@ namespace kinski{ namespace gl{
             {
                 
                 cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.getTarget(), 0,
-                                         the_texture.getId());
+                                the_texture.getId());
                 
                 vector<cl::Memory> glBuffers = {m_vertices, img};
                 
@@ -231,8 +231,6 @@ namespace kinski{ namespace gl{
                 
                 // Release the VBOs again
                 opencl().queue().enqueueReleaseGLObjects(&glBuffers, nullptr);
-                
-                opencl().queue().finish();
             }
             catch(cl::Error &error)
             {

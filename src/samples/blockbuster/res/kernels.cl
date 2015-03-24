@@ -11,6 +11,15 @@ inline float4 gray(float4 color)
     return (float4)(y_val, y_val, y_val, color.w);
 }
 
+inline float raw_depth_to_meters(int raw_depth)
+{
+    if (raw_depth < 2048)
+    {
+        return 0.1236 * tan(raw_depth / 2842.5 + 1.1863);
+    }
+    return 0;
+}
+
 inline float3 create_radial_force(float3 pos, float3 pos_particle, float strength)
 {
     float3 dir = pos_particle - pos;
@@ -19,23 +28,27 @@ inline float3 create_radial_force(float3 pos, float3 pos_particle, float strengt
     return strength * dir / dist2;
 }
 
-__kernel void texture_input(image2d_t image, __global float3* pos)
+__kernel void texture_input(read_only image2d_t image, __global float3* pos)
 {
     unsigned int i = get_global_id(0);
-    int cols = 300, rows = 200;
+    int cols = 150, rows = 100;
 
     int w = get_image_width(image);
     int h = get_image_height(image);
     
     int2 array_pos = {w * (i % cols) / (float)(cols), h * (i / cols) / (float)(rows)};
+    array_pos.y = h - array_pos.y;
     
     float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos);
+    //int raw_depth = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x;
     
     // kinect: uint16_t input, only using 11 bits
-    float poop = color.x * 65535.0 / 2047.0;
-
-    //pos[i].z = gray(color).x * 1000.0; 
-    pos[i].z = poop * 100.0; 
+    //float depth = raw_depth_to_meters(raw_depth);//color.x * 65535.0 / 2047.0;
+    
+    float depth = clamp(color.x * 65535.0 / 2047.0, 0.0, 1.0);
+    
+    float outval = (depth < 0.7 && depth > 0.1) ? depth * 80.0 : 0;
+    pos[i].z = outval;
 }
 
 // apply forces and change velocities
@@ -102,24 +115,6 @@ __kernel void updateParticles(  __global float3* pos,
 
     //update the position with the new velocity
     p.xyz += v.xyz * dt;
-
-    //apply contraints
-    int3 min_hit = p < params->contraints_min.xyz;
-    int3 max_hit = p > params->contraints_max.xyz;
-    int3 combo_hit = min_hit | max_hit;
-    
-    // ground hit
-//    if(p.y < 0)
-//    {
-//        p.y = 0;
-//        v.y *= -.4;
-//    }
-
-    p = min_hit ? params->contraints_min.xyz : p;
-    p = max_hit ? params->contraints_max.xyz : p;
-    
-    // bounce back at boundaries
-    v.xyz = combo_hit ? -params->bouncyness * v.xyz : v.xyz;
 
     //store the updated life in the velocity array
     v.w = life;

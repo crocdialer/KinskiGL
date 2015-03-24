@@ -36,18 +36,17 @@ void BlockbusterApp::setup()
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }
     
-    load_settings();
-    m_light_component->refresh();
-    
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
     m_psystem.add_kernel("texture_input");
     
     // openni
-    // OpenNI
     m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
     m_open_ni->observeProperties();
     create_tweakbar_from_component(m_open_ni);
+    
+    load_settings();
+    m_light_component->refresh();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -248,6 +247,26 @@ gl::MeshPtr BlockbusterApp::create_mesh()
     ret->material()->uniform("u_length", *m_block_length);
     ret->material()->uniform("u_width", *m_block_width);
     return ret;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void BlockbusterApp::save_settings(const std::string &path)
+{
+    ViewerApp::save_settings(path);
+    
+    try{ Serializer::saveComponentState(m_open_ni, "openni_config.json", PropertyIO_GL()); }
+    catch(Exception &e){LOG_ERROR<<e.what();}
+}
+
+/////////////////////////////////////////////////////////////////
+
+void BlockbusterApp::load_settings(const std::string &path)
+{
+    ViewerApp::load_settings(path);
+    
+    try{ Serializer::loadComponentState(m_open_ni, "openni_config.json", PropertyIO_GL()); }
+    catch(Exception &e){LOG_ERROR<<e.what();}
 }
 
 /////////////////////////////////////////////////////////////////

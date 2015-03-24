@@ -71,6 +71,9 @@ namespace kinski
         void fileDrop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void tearDown() override;
         void updateProperty(const Property::ConstPtr &theProperty) override;
+        
+        void save_settings(const std::string &path = "") override;
+        void load_settings(const std::string &path = "") override;
     };
 }// namespace kinski
 
