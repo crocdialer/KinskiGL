@@ -26,12 +26,15 @@ KinectDevice::KinectDevice(freenect_context *_ctx, int _index) :
     m_new_depth_frame(false)
 {
 
-	for (unsigned int i = 0; i < 2048; i++)
-	{
-		float v = i / 2048.0;
-		v = std::pow(v, 3) * 6;
-		m_gamma[i] = v * 6 * 256;
-	}
+    const float k1 = 1.1863;
+    const float k2 = 2842.5;
+    const float k3 = 0.1236;
+    
+    for (size_t i=0; i<2048; i++)
+    {
+        const float depth = k3 * tanf(i/k2 + k1);
+        m_gamma[i] = depth;
+    }
 }
 
 KinectDevice::~KinectDevice()

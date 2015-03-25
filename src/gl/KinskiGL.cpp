@@ -318,6 +318,15 @@ namespace kinski { namespace gl {
         m->setTransform(cam->transform());
         return m;
     }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+    gl::CameraPtr create_shadow_camera(const LightPtr &the_light)
+    {
+        float aspect = 1.f;
+        gl::PerspectiveCamera::Ptr cam ;//= gl::PerspectiveCamera::create();
+        return cam;
+    }
     
 ///////////////////////////////////////////////////////////////////////////////
     

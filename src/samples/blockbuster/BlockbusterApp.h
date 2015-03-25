@@ -49,7 +49,11 @@ namespace kinski
         
         Property_<float>::Ptr
         m_block_length = Property_<float>::create("block length", 1.f),
-        m_block_width = Property_<float>::create("block width", 1.f);
+        m_block_width = Property_<float>::create("block width", 1.f),
+        m_depth_min = Property_<float>::create("depth min", 1.f),
+        m_depth_max = Property_<float>::create("depth max", 3.f),
+        m_depth_multiplier = Property_<float>::create("depth mutliplier", 10.f),
+        m_depth_smooth = Property_<float>::create("depth smooth", .05f);
         
         gl::MeshPtr create_mesh();
         glm::vec3 click_pos_on_ground(const glm::vec2 click_pos);

@@ -141,6 +141,7 @@ namespace kinski { namespace gl {
     KINSKI_API gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices);
     KINSKI_API glm::vec3 calculateCentroid(const std::vector<glm::vec3> &theVertices);
     KINSKI_API gl::MeshPtr createFrustumMesh(const CameraPtr &cam);
+    KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light);
     
     /********************************* Drawing Functions *****************************************/
     

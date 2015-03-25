@@ -26,6 +26,10 @@ void BlockbusterApp::setup()
     registerProperty(m_spacing_y);
     registerProperty(m_block_length);
     registerProperty(m_block_width);
+    registerProperty(m_depth_min);
+    registerProperty(m_depth_max);
+    registerProperty(m_depth_multiplier);
+    registerProperty(m_depth_smooth);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -73,7 +77,8 @@ void BlockbusterApp::update(float timeDelta)
     {
         // get the depth+userID texture
         m_textures[0] = m_open_ni->get_depth_texture();
-        m_psystem.texture_input(textures()[0]);
+        m_psystem.texture_input(textures()[0], *m_num_tiles_x, *m_num_tiles_y, *m_depth_min, *m_depth_max, *m_depth_multiplier,
+                                *m_depth_smooth);
     }
 }
 

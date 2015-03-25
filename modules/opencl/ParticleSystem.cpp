@@ -142,8 +142,7 @@ namespace kinski{ namespace gl{
             vec4(std::numeric_limits<float>::max()));
         params.bouncyness = m_particle_bounce;
         
-        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params,
-                                            NULL);
+        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
         
         // apply our forces
         apply_forces(time_delta);
@@ -193,7 +192,9 @@ namespace kinski{ namespace gl{
         }
     }
     
-    void ParticleSystem::texture_input(gl::Texture &the_texture)
+    void ParticleSystem::texture_input(gl::Texture &the_texture, int num_cols, int num_rows,
+                                       float the_min, float the_max, float the_multiplier,
+                                       float the_smoothing)
     {
         auto iter = m_kernel_map.find("texture_input");
         if(iter != m_kernel_map.end())
@@ -207,7 +208,7 @@ namespace kinski{ namespace gl{
                 cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.getTarget(), 0,
                                 the_texture.getId());
                 
-                vector<cl::Memory> glBuffers = {m_vertices, img};
+                vector<cl::Memory> glBuffers = {m_vertices};
                 
                 // Make sure OpenGL is done using our VBOs
                 glFinish();
@@ -218,6 +219,12 @@ namespace kinski{ namespace gl{
                 
                 kernel.setArg(0, img);
                 kernel.setArg(1, m_vertices);
+                kernel.setArg(2, num_cols);
+                kernel.setArg(3, num_rows);
+                kernel.setArg(4, the_min);
+                kernel.setArg(5, the_max);
+                kernel.setArg(6, the_multiplier);
+                kernel.setArg(7, the_smoothing);
                 
                 int num = num_particles();
                 

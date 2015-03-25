@@ -11,15 +11,6 @@ inline float4 gray(float4 color)
     return (float4)(y_val, y_val, y_val, color.w);
 }
 
-inline float raw_depth_to_meters(int raw_depth)
-{
-    if (raw_depth < 2048)
-    {
-        return 0.1236 * tan(raw_depth / 2842.5 + 1.1863);
-    }
-    return 0;
-}
-
 inline float3 create_radial_force(float3 pos, float3 pos_particle, float strength)
 {
     float3 dir = pos_particle - pos;
@@ -28,27 +19,36 @@ inline float3 create_radial_force(float3 pos, float3 pos_particle, float strengt
     return strength * dir / dist2;
 }
 
-__kernel void texture_input(read_only image2d_t image, __global float3* pos)
+__kernel void texture_input(read_only image2d_t image, __global float3* pos, int num_cols, int num_rows, 
+                            float the_min, float the_max, float the_multiplier, float the_smoothing)
 {
     unsigned int i = get_global_id(0);
-    int cols = 150, rows = 100;
 
     int w = get_image_width(image);
     int h = get_image_height(image);
     
-    int2 array_pos = {w * (i % cols) / (float)(cols), h * (i / cols) / (float)(rows)};
+    int2 array_pos = {w * (i % num_cols) / (float)(num_cols), h * (i / num_cols) / (float)(num_rows)};
     array_pos.y = h - array_pos.y;
     
     float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos);
-    //int raw_depth = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x;
+    //int depth_in_mm = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x;
     
-    // kinect: uint16_t input, only using 11 bits
-    //float depth = raw_depth_to_meters(raw_depth);//color.x * 65535.0 / 2047.0;
+    // depth value in meters here
+    float depth = color.x * 65535.0 / 1000.0;
     
-    float depth = clamp(color.x * 65535.0 / 2047.0, 0.0, 1.0);
+    //float min_val = 1.0, max_val = 2.5;
+    //
+    float ratio = 0.0;
+    if(depth < the_min || depth > the_max){ depth = 0; }
+    else
+    {
+        ratio = (depth - the_min) / (the_max - the_min); 
     
-    float outval = (depth < 0.7 && depth > 0.1) ? depth * 80.0 : 0;
-    pos[i].z = outval;
+    }
+    
+    //float outval = (depth < 3.0 && depth > 2.0) ? depth * 20.0 : 0;
+    float outval = ratio * the_multiplier;
+    pos[i].z = mix(pos[i].z, outval, the_smoothing);
 }
 
 // apply forces and change velocities
