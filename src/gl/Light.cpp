@@ -18,7 +18,8 @@ namespace kinski { namespace gl {
     m_spot_exponent(1.f),
     m_ambient(Color(0)),
     m_diffuse(Color(1)),
-    m_specular(Color(1))
+    m_specular(Color(1)),
+    m_cast_shadow(false)
     {
     
     }

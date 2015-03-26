@@ -210,8 +210,6 @@ void Fbo::init()
                     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, getTarget(),
                                            m_obj->m_depthTexture.getId(), 0);
                 }
-	#else
-		throw; // this should never fire in OpenGL ES
 	#endif
 			}
             // implement depth buffer as RenderBuffer

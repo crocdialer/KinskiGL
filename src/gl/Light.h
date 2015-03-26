@@ -47,6 +47,8 @@ namespace kinski { namespace gl {
         void set_spot_cutoff(float f){m_spot_cutoff = f;}
         Type type() const {return m_type;}
         void set_type(Type theType){m_type = theType;}
+        void set_cast_shadow(bool b){ m_cast_shadow = b; }
+        bool cast_shadow() const { return m_cast_shadow; }
         
         //! corresponds to the light´s area of effect
         gl::AABB boundingBox() const;
@@ -59,6 +61,7 @@ namespace kinski { namespace gl {
         Attenuation m_attenuation;
         float m_spot_cutoff, m_spot_exponent;
         Color m_ambient, m_diffuse, m_specular;
+        bool m_cast_shadow;
     };
     
 }}//namespace

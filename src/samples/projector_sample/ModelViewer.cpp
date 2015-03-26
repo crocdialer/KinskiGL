@@ -63,6 +63,7 @@ void ModelViewer::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
+    // this renders the shadow map
     gl::render_to_texture(scene(), m_fbos[0], m_projector);
     
     if(m_mesh)
@@ -74,7 +75,7 @@ void ModelViewer::update(float timeDelta)
     if(m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE], true))
     {
         auto &t = m_mesh->material()->textures();
-        t = {ViewerApp::textures().front(), textures()[TEXTURE_MOVIE], m_fbos[0].getDepthTexture()};
+        t = {textures().front(), textures()[TEXTURE_MOVIE], m_fbos[0].getDepthTexture()};
     }
 }
 

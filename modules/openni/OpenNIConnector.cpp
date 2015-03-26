@@ -130,34 +130,37 @@ namespace kinski{ namespace gl{
         LOG_DEBUG<<"created depth node";
         
         // create a user generator
-//        ni_status = m_obj->m_context.FindExistingNode(XN_NODE_TYPE_USER, m_obj->m_userGenerator);
-//        if (ni_status != XN_STATUS_OK)
-//        {
-//            ni_status = m_obj->m_userGenerator.Create(m_obj->m_context);
-//            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-//        }
-//        LOG_DEBUG<<"created user node";
-//        
-//        if (!m_obj->m_userGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
-//        {
-//            LOG_WARNING<<"Supplied user generator doesn't support skeleton";
-//        }
-//        XnCallbackHandle hUserCallbacks, hCalibrationStart, hCalibrationComplete;
-//        ni_status = m_obj->m_userGenerator.RegisterUserCallbacks(Obj::new_user, Obj::lost_user,
-//                                                                 m_obj.get(), hUserCallbacks);
-//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-//        
-//        ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationStart(Obj::calibration_start,
-//                                                                                       m_obj.get(),
-//                                                                                       hCalibrationStart);
-//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-//        ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationComplete(Obj::calibration_complete,
-//                                                                                          m_obj.get(),
-//                                                                                          hCalibrationComplete);
-//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
-        
-//        ni_status = m_obj->m_context.StartGeneratingAll();
-//        if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+        if(false)
+        {
+            ni_status = m_obj->m_context.FindExistingNode(XN_NODE_TYPE_USER, m_obj->m_userGenerator);
+            if (ni_status != XN_STATUS_OK)
+            {
+                ni_status = m_obj->m_userGenerator.Create(m_obj->m_context);
+                if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+            }
+            LOG_DEBUG<<"created user node";
+            
+            if (!m_obj->m_userGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
+            {
+                LOG_WARNING<<"Supplied user generator doesn't support skeleton";
+            }
+            XnCallbackHandle hUserCallbacks, hCalibrationStart, hCalibrationComplete;
+            ni_status = m_obj->m_userGenerator.RegisterUserCallbacks(Obj::new_user, Obj::lost_user,
+                                                                     m_obj.get(), hUserCallbacks);
+            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+            
+            ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationStart(Obj::calibration_start,
+                                                                                           m_obj.get(),
+                                                                                           hCalibrationStart);
+            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+            ni_status = m_obj->m_userGenerator.GetSkeletonCap().RegisterToCalibrationComplete(Obj::calibration_complete,
+                                                                                              m_obj.get(),
+                                                                                              hCalibrationComplete);
+            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+            
+            ni_status = m_obj->m_userGenerator.StartGenerating();;
+            if(ni_status != XN_STATUS_OK){throw OpenNIException(xnGetStatusString(ni_status));}
+        }
         
         XnFieldOfView fov;
         m_obj->m_depthGenerator.GetFieldOfView(fov);
@@ -282,14 +285,12 @@ namespace kinski{ namespace gl{
         catch(OpenNIException &e){LOG_ERROR<<e.what(); m_running = false;}
         
         // measure elapsed time with these
-//        boost::timer::cpu_timer threadTimer, cpuTimer;
         xn::SceneMetaData sceneMD;
         xn::DepthMetaData depthMD;
         
         while(m_running)
         {
             // Read next available data
-//            m_obj->m_context.WaitOneUpdateAll(m_obj->m_userGenerator);
             m_obj->m_context.WaitOneUpdateAll(m_obj->m_depthGenerator);
             
             // Process the data
@@ -343,7 +344,7 @@ namespace kinski{ namespace gl{
 //            m_depth_texture.update(&m_obj->m_pixel_buffer[0], GL_UNSIGNED_BYTE, GL_RGB, 640, 480, true);
 //        return m_depth_texture;
         
-        m_depth_texture_raw.update((void*)m_depth_data, GL_UNSIGNED_SHORT, GL_RED, 640, 480);
+        m_depth_texture_raw.update((void*)m_depth_data, GL_UNSIGNED_SHORT, GL_RED, 640, 480, true);
         return m_depth_texture_raw;
     }
     
