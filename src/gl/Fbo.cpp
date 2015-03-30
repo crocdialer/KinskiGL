@@ -200,7 +200,7 @@ void Fbo::init()
 				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, m_obj->mFormat.mWrapS);
 				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_T, m_obj->mFormat.mWrapT);
 				m_obj->m_depthTexture = Texture(getTarget(), depthTextureId, m_obj->mWidth,
-                                              m_obj->mHeight, true );
+                                                m_obj->mHeight, false );
                 
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, getTarget(),
                                        m_obj->m_depthTexture.getId(), 0);

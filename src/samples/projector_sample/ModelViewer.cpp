@@ -33,8 +33,8 @@ void ModelViewer::setup()
 //    fmt.setSamples(8);
     fmt.setNumColorBuffers(0);
     
-    m_fbos[0] = gl::Fbo(1024, 768, fmt);
-    m_fbos[1] = gl::Fbo(1024, 768);
+    m_fbos[0] = gl::Fbo(1024, 1024, fmt);
+    m_fbos[1] = gl::Fbo(1024, 1024);
     
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }

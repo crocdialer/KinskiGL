@@ -141,6 +141,24 @@ namespace kinski { namespace gl {
     private:
         std::stack<glm::mat4> m_transform_stack;
     };
+    
+    template<typename T>
+    class SelectVisitor : public Visitor
+    {
+    public:
+        SelectVisitor():Visitor(){};
+        
+        void visit(T &theNode)
+        {
+            m_objects.push_back(&theNode);
+            Visitor::visit(static_cast<gl::Object3D&>(theNode));
+        };
+        
+        const std::list<T*>& getObjects() const {return m_objects;};
+        
+    private:
+        std::list<T*> m_objects;
+    };
 
 }}//namespace
 

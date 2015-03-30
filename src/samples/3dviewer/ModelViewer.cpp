@@ -184,18 +184,18 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         if(m)
         {
             scene().removeObject(m_mesh);
-            m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
+//            m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
             m_mesh = m;
             
             scene().addObject(m_mesh);
 
             
-            m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
-            m->material()->addTexture(gl::createTextureFromFile("~/Desktop/normal.png", true));
+//            m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
+//            m->material()->addTexture(gl::createTextureFromFile("~/Desktop/normal.png", true));
             
-//            auto aabb = m->boundingBox();
-//            float scale_factor = 50.f / aabb.width();
-//            m->setScale(scale_factor);
+            auto aabb = m->boundingBox();
+            float scale_factor = 50.f / aabb.width();
+            m->setScale(scale_factor);
         }
     }
 }

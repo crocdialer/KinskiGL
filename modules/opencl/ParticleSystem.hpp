@@ -80,7 +80,7 @@ namespace kinski{ namespace gl{
         //! radial forces -> (x, y, z, strength)
         std::vector<glm::vec4> m_forces;
         
-        //! an aabb to contrain particle positions
+        //! an aabb to constrain particle positions
         bool m_use_constraints;
         gl::AABB m_contraints_aabb;
         

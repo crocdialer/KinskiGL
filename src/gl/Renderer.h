@@ -11,6 +11,7 @@
 
 #include "KinskiGL.h"
 #include "Mesh.h"
+#include "Fbo.h"
 
 namespace kinski{ namespace gl{
     
@@ -70,11 +71,15 @@ namespace kinski{ namespace gl{
         void update_uniform_buffer_matrices(const glm::mat4 &model_view,
                                             const glm::mat4 &projection);
         
+        void set_shadowmap_size(const glm::vec2 &the_size);
+        std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
+        
     private:
         void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
                                      const std::list<RenderBin::light> &light_list);
         
         gl::Buffer m_uniform_buffer[2];
+        std::vector<gl::Fbo> m_shadow_fbos{4};
         
     };
     

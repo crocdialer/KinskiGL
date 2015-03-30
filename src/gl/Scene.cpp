@@ -26,25 +26,6 @@ namespace kinski { namespace gl {
         bool operator <(const range_item_t &other) const {return distance < other.distance;}
     };
     
-    class SelectVisitor : public Visitor
-    {
-    public:
-        SelectVisitor():Visitor(){};
-        
-        void visit(Mesh &theNode)
-        {
-            m_objects.push_back(&theNode);
-            Visitor::visit(static_cast<gl::Object3D&>(theNode));
-        };
-        void visit(gl::Light &theNode){Visitor::visit(static_cast<gl::Object3D&>(theNode));};
-        void visit(gl::Camera &theNode){Visitor::visit(static_cast<gl::Object3D&>(theNode));};
-        
-        const std::list<Object3D*>& getObjects() const {return m_objects;};
-        
-    private:
-        std::list<Object3D*> m_objects;
-    };
-    
     class UpdateVisitor : public Visitor
     {
     public:
@@ -162,13 +143,48 @@ namespace kinski { namespace gl {
     
     void Scene::render(const CameraPtr &theCamera) const
     {
+        // shadow passes
+        SelectVisitor<Light> lv;
+        m_root->accept(lv);
+        
+        int i = 0;
+        m_renderer.set_shadowmap_size(glm::vec2(1024));
+        
+        for(gl::Light *l : lv.getObjects())
+        {
+            if(l->enabled() && l->cast_shadow())
+            {
+                if(i >= m_renderer.shadow_fbos().size())
+                {
+                    LOG_WARNING << "too many lights with active shadows";
+                    break;
+                }
+                
+                gl::PerspectiveCamera::Ptr
+                cam = gl::PerspectiveCamera::create(m_renderer.shadow_fbos()[i].getAspectRatio(),
+                                                    l->spot_cutoff(), .1f, 1000.f);
+                cam->setTransform(l->global_transform());
+                
+                LOG_DEBUG << "rendering shadowmap: " << i;
+                
+                // offscreen render shadow map here
+                gl::render_to_texture(m_renderer.shadow_fbos()[i], [&]()
+                {
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    m_renderer.render(cull(cam));
+                });
+                i++;
+            }
+        }
+        
+        // forward render pass
         m_renderer.render(cull(theCamera));
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
     {
         Object3DPtr ret;
-        SelectVisitor sv;
+        SelectVisitor<Object3D> sv;
         m_root->accept(sv);
         
         std::list<range_item_t> clicked_items;

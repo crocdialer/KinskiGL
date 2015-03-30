@@ -43,7 +43,7 @@ namespace kinski{ namespace gl{
     
     Renderer::Renderer()
     {
-        
+
     }
     
     void Renderer::render(const RenderBinPtr &theBin)
@@ -63,6 +63,7 @@ namespace kinski{ namespace gl{
             if(opaque){opaque_items.push_back(item);}
             else{blended_items.push_back(item);}
         }
+        
         //sort by distance to camera
         opaque_items.sort(RenderBin::sort_items_increasing());
         blended_items.sort(RenderBin::sort_items_decreasing());
@@ -259,5 +260,19 @@ namespace kinski{ namespace gl{
         
         glBindBufferBase(GL_UNIFORM_BUFFER, MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());
 #endif
+    }
+    
+    void Renderer::set_shadowmap_size(const glm::vec2 &the_size)
+    {
+        gl::Fbo::Format fmt;
+        fmt.setNumColorBuffers(0);
+        
+        for(int i = 0; i < m_shadow_fbos.size(); i++)
+        {
+            if(!m_shadow_fbos[i] || m_shadow_fbos[i].getSize() != the_size)
+            {
+                m_shadow_fbos[i] = gl::Fbo(the_size.x, the_size.y, fmt);
+            }
+        }
     }
 }}
