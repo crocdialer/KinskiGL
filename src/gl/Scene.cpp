@@ -148,7 +148,7 @@ namespace kinski { namespace gl {
         m_root->accept(lv);
         
         int i = 0;
-        m_renderer.set_shadowmap_size(glm::vec2(1024));
+        m_renderer.set_shadowmap_size(glm::vec2(2048));
         
         for(gl::Light *l : lv.getObjects())
         {
@@ -164,6 +164,7 @@ namespace kinski { namespace gl {
                 cam = gl::PerspectiveCamera::create(m_renderer.shadow_fbos()[i].getAspectRatio(),
                                                     l->spot_cutoff(), .1f, 1000.f);
                 cam->setTransform(l->global_transform());
+                m_renderer.shadow_cams()[i] = cam;
                 
                 LOG_DEBUG << "rendering shadowmap: " << i;
                 

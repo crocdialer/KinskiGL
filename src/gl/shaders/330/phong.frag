@@ -25,6 +25,13 @@ struct Lightsource
   float quadraticAttenuation; 
 };
 
+vec3 projected_coords(vec4 the_lightspace_pos)
+{
+    vec3 proj_coords = the_lightspace_pos.xyz / the_lightspace_pos.w;
+    proj_coords = (vec3(1) + proj_coords) * 0.5;
+    return proj_coords;
+}
+
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)
 {
   vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position; 
@@ -73,7 +80,10 @@ layout(std140) uniform LightBlock
   Lightsource u_lights[16];
 };
 
-uniform int u_numTextures; 
+uniform int u_numTextures;
+
+#define DIFFUSE 0
+#define SHADOW_MAP 1
 uniform sampler2D u_sampler_2D[4]; 
 
 in VertexData
@@ -82,6 +92,7 @@ in VertexData
   vec4 texCoord;
   vec3 normal; 
   vec3 eyeVec; 
+  vec4 lightspace_pos[4];
 } vertex_in;
 
 out vec4 fragData; 
@@ -98,6 +109,11 @@ void main()
   
   for(int i = 0; i < u_numLights; i++)
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
+  
+  //vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[0]);
+  //float depth = texture(u_sampler_2D[1], proj_coords.xy).x;
+  //bool is_in_shadow = depth < (proj_coords.z - 0.00001);
+  //shade_color.xyz *= is_in_shadow ? .4 : 1.0 ;
 
   fragData = shade_color; 
 }

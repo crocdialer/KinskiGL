@@ -19,28 +19,6 @@ namespace kinski{ namespace gl{
     
     using namespace glm;
     
-    struct matrixstruct_std140
-    {
-        mat4 modelViewMatrix;
-        mat4 modelViewProjectionMatrix;
-        mat3 normalMatrix;
-    };
-    
-    struct lightstruct_std140
-    {
-        vec3 position;
-        int type;
-        vec4 diffuse;
-        vec4 ambient;
-        vec4 specular;
-        vec3 spotDirection;
-        float spotCosCutoff;
-        float spotExponent;
-        float constantAttenuation;
-        float linearAttenuation;
-        float quadraticAttenuation;
-    };
-    
     Renderer::Renderer()
     {
 
@@ -96,6 +74,16 @@ namespace kinski{ namespace gl{
                 mat->uniform("u_modelViewMatrix", modelView);
                 mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
                 mat->uniform("u_normalMatrix", normal_matrix);
+                
+//                std::vector<glm::mat4> shadow_matrices;
+//                if(m_shadow_cams[0])
+//                {
+//                    shadow_matrices.push_back(m_shadow_cams[0]->getProjectionMatrix() *
+//                                              m_shadow_cams[0]->getViewMatrix() * m->global_transform());
+//                    mat->uniform("u_shadow_matrices", shadow_matrices);
+//                    m_shadow_fbos[0].getDepthTexture().bind(mat->textures().size());
+//                    mat->uniform("u_sampler_2D[1]", (int)mat->textures().size());
+//                }
 
                 if(m->geometry()->hasBones())
                 {
@@ -208,6 +196,21 @@ namespace kinski{ namespace gl{
     void Renderer::update_uniform_buffers(const std::list<RenderBin::light> &light_list)
     {
 #ifndef KINSKI_GLES
+        struct lightstruct_std140
+        {
+            vec3 position;
+            int type;
+            vec4 diffuse;
+            vec4 ambient;
+            vec4 specular;
+            vec3 spotDirection;
+            float spotCosCutoff;
+            float spotExponent;
+            float constantAttenuation;
+            float linearAttenuation;
+            float quadraticAttenuation;
+        };
+        
         if(!m_uniform_buffer[LIGHT_UNIFORM_BUFFER])
         {
             m_uniform_buffer[LIGHT_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
@@ -247,6 +250,14 @@ namespace kinski{ namespace gl{
                                                   const glm::mat4 &projection)
     {
 #ifndef KINSKI_GLES
+        
+        struct matrixstruct_std140
+        {
+            mat4 modelViewMatrix;
+            mat4 modelViewProjectionMatrix;
+            mat3 normalMatrix;
+        };
+        
         if(!m_uniform_buffer[MATRIX_UNIFORM_BUFFER])
         {
             m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
