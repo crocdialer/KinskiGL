@@ -82,6 +82,7 @@ namespace kinski{ namespace gl{
         
         gl::Buffer m_uniform_buffer[2];
         
+        int m_num_shadow_lights;
         std::vector<gl::Fbo> m_shadow_fbos{4};
         std::vector<gl::PerspectiveCamera::Ptr> m_shadow_cams{4};
         

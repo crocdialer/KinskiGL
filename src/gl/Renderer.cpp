@@ -46,6 +46,13 @@ namespace kinski{ namespace gl{
         opaque_items.sort(RenderBin::sort_items_increasing());
         blended_items.sort(RenderBin::sort_items_decreasing());
         
+        m_num_shadow_lights = 0;
+        
+        for(const RenderBin::light &l : theBin->lights)
+        {
+            if(l.light->cast_shadow()){ m_num_shadow_lights++; }
+        }
+            
         // update uniform buffers (only lights at the moment)
         update_uniform_buffers(theBin->lights);
         
@@ -76,7 +83,7 @@ namespace kinski{ namespace gl{
                 mat->uniform("u_normalMatrix", normal_matrix);
                 
                 std::vector<glm::mat4> shadow_matrices;
-                if(m_shadow_cams[0])
+                if(m_num_shadow_lights)
                 {
                     shadow_matrices.push_back(m_shadow_cams[0]->getProjectionMatrix() *
                                               m_shadow_cams[0]->getViewMatrix() * m->global_transform());
