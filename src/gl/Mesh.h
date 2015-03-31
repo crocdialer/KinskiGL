@@ -198,22 +198,7 @@ namespace kinski { namespace gl {
     public:
         WrongVertexArrayDefinedException(uint32_t theID):
         Exception("wrong vertex array defined for object: " + kinski::as_string(theID)){}
-    };
-    
-    class SelectMeshVisitor : public Visitor
-    {
-    public:
-        SelectMeshVisitor(){};
-        virtual void visit(gl::Mesh &theNode)
-        {
-            m_objects.push_back(std::dynamic_pointer_cast<gl::Mesh>(theNode.shared_from_this()));
-        }
-        const std::list<gl::MeshPtr>& objects() const {return m_objects;}
-        std::list<gl::MeshPtr>& objects() {return m_objects;}
-        
-    private:
-        std::list<gl::MeshPtr> m_objects;
-    };
+    };    
 }}
 
 #endif /* defined(__gl__Mesh__) */

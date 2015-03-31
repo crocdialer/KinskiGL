@@ -35,7 +35,7 @@ void ModelViewer::setup()
                                         gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
     ground_mesh->transform() = glm::rotate(mat4(), -90.f, gl::X_AXIS);
     uint8_t c = 255;
-    gl::Texture t(&c, 1, 1, GL_RED);
+    gl::Texture t(&c, GL_RED, 1, 1);
     ground_mesh->material()->addTexture(t);
     
     scene().addObject(ground_mesh);
@@ -68,7 +68,9 @@ void ModelViewer::draw()
     // draw texture map(s)
     if(displayTweakBar() && m_mesh)
     {
-        draw_textures(m_mesh->material()->textures());
+        gl::MeshPtr m = m_mesh;
+        if(selected_mesh()){ m = selected_mesh(); }
+        draw_textures(m->material()->textures());
     }
 }
 

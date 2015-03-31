@@ -51,9 +51,9 @@ public:
         set_precise_selection(true);
         
         /******************** add search paths ************************/
-        kinski::addSearchPath("~/Desktop/creatures", true);
-        kinski::addSearchPath("~/Desktop/doom3_base", true);
-        kinski::addSearchPath("/Library/Fonts");
+        kinski::add_search_path("~/Desktop/creatures", true);
+        kinski::add_search_path("~/Desktop/doom3_base", true);
+        kinski::add_search_path("/Library/Fonts");
         
         m_font.load("Courier New Bold.ttf", 24);
 
@@ -208,7 +208,6 @@ public:
         if(m_mesh)
         {
             m_mesh->material()->setWireframe(wireframe());
-            m_mesh->material()->uniform("u_lightDir", light_direction());
             m_mesh->material()->setDiffuse(m_color->value());
             m_mesh->material()->setBlending(m_color->value().a < 1.0f);
 
@@ -216,7 +215,6 @@ public:
         for (int i = 0; i < materials().size(); i++)
         {
             materials()[i]->uniform("u_time",getApplicationTime());
-            materials()[i]->uniform("u_lightDir", light_direction());
             materials()[i]->setShinyness(*m_shinyness);
             materials()[i]->setAmbient(0.2 * clear_color());
         }
@@ -290,7 +288,6 @@ public:
                         point_mat->setPointSize(32.f);
                         point_mat->setPointAttenuation(0.f, 0.01f, 0.f);
                     }
-                    point_mat->uniform("u_lightDir", light_direction());
                     
                     vector<vec3> points;
                     buildSkeleton(selected_mesh()->rootBone(), points);
@@ -389,7 +386,7 @@ public:
         }
         
         // create a ray
-        gl::Ray ray = gl::calculateRay(camera(), e.getX(), e.getY());
+        gl::Ray ray = gl::calculateRay(camera(), vec2(e.getPos()));
         
         // calculate intersection of ray and an origin-centered plane
         gl::Plane plane = gl::Plane(vec3(0, 0, 0), vec3(0, 1, 0));

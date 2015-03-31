@@ -110,10 +110,10 @@ void main()
   for(int i = 0; i < u_numLights; i++)
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
   
-  //vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[0]);
-  //float depth = texture(u_sampler_2D[1], proj_coords.xy).x;
-  //bool is_in_shadow = depth < (proj_coords.z - 0.00001);
-  //shade_color.xyz *= is_in_shadow ? .4 : 1.0 ;
+  vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[0]);
+  float depth = texture(u_sampler_2D[1], proj_coords.xy).x;
+  bool is_in_shadow = depth < (proj_coords.z - 0.00001);
+  shade_color.xyz *= is_in_shadow ? .4 : 1.0 ;
 
   fragData = shade_color; 
 }

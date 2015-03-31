@@ -10,6 +10,7 @@
 #include <algorithm>
 #include "gl/geometry_types.h"
 #include "Object3D.h"
+#include "Visitor.h"
 
 namespace kinski { namespace gl {
     

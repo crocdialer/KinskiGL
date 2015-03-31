@@ -8,6 +8,7 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "Scene.h"
+#include "Visitor.h"
 #include "Mesh.h"
 #include "Camera.h"
 #include "Renderer.h"
@@ -162,7 +163,7 @@ namespace kinski { namespace gl {
                 
                 gl::PerspectiveCamera::Ptr
                 cam = gl::PerspectiveCamera::create(m_renderer.shadow_fbos()[i].getAspectRatio(),
-                                                    l->spot_cutoff(), .1f, 1000.f);
+                                                    2 * l->spot_cutoff(), .1f, 1000.f);
                 cam->setTransform(l->global_transform());
                 m_renderer.shadow_cams()[i] = cam;
                 
@@ -185,7 +186,7 @@ namespace kinski { namespace gl {
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
     {
         Object3DPtr ret;
-        SelectVisitor<Object3D> sv;
+        SelectVisitor<Mesh> sv;
         m_root->accept(sv);
         
         std::list<range_item_t> clicked_items;
@@ -197,7 +198,7 @@ namespace kinski { namespace gl {
             {
                 if(high_precision)
                 {
-                    if(gl::Mesh *m = dynamic_cast<gl::Mesh*>(the_object))
+                    if(gl::Mesh *m = the_object)
                     {
                         gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
                         const auto& vertices = m->geometry()->vertices();

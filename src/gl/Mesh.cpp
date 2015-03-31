@@ -8,6 +8,7 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "Mesh.h"
+#include "Visitor.h"
 
 namespace kinski { namespace gl {
   
