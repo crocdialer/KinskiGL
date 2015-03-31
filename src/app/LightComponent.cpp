@@ -155,6 +155,7 @@ namespace kinski
         
         *m_light_type = light->type();
         *m_enabled = light->enabled();
+        *m_cast_shadows = light->cast_shadow();
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
         *m_position_z = light->position().z;
