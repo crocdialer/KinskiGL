@@ -83,13 +83,15 @@ namespace kinski{ namespace gl{
                 mat->uniform("u_normalMatrix", normal_matrix);
                 
                 std::vector<glm::mat4> shadow_matrices;
-                if(m_num_shadow_lights)
+                char buf[32];
+                for(int i = 0; i < m_num_shadow_lights; i++)
                 {
-                    shadow_matrices.push_back(m_shadow_cams[0]->getProjectionMatrix() *
-                                              m_shadow_cams[0]->getViewMatrix() * m->global_transform());
+                    shadow_matrices.push_back(m_shadow_cams[i]->getProjectionMatrix() *
+                                              m_shadow_cams[i]->getViewMatrix() * m->global_transform());
                     mat->uniform("u_shadow_matrices", shadow_matrices);
-                    m_shadow_fbos[0].getDepthTexture().bind(mat->textures().size());
-                    mat->uniform("u_sampler_2D[1]", (int)mat->textures().size());
+                    m_shadow_fbos[i].getDepthTexture().bind(mat->textures().size());
+                    sprintf(buf, "u_shadow_map[%d]", i);
+                    mat->uniform(buf, (int)mat->textures().size() + i);
                 }
 
                 if(m->geometry()->hasBones())

@@ -82,9 +82,8 @@ layout(std140) uniform LightBlock
 
 uniform int u_numTextures;
 
-#define DIFFUSE 0
-#define SHADOW_MAP 1
 uniform sampler2D u_sampler_2D[4]; 
+uniform sampler2D u_shadow_map[4]; 
 
 in VertexData
 {
@@ -111,7 +110,7 @@ void main()
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
   
   vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[0]);
-  float depth = texture(u_sampler_2D[1], proj_coords.xy).x;
+  float depth = texture(u_shadow_map[0], proj_coords.xy).x;
   bool is_in_shadow = depth < (proj_coords.z - 0.00001);
   shade_color.xyz *= is_in_shadow ? .4 : 1.0 ;
 

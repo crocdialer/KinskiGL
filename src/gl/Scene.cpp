@@ -167,7 +167,7 @@ namespace kinski { namespace gl {
                 cam->setTransform(l->global_transform());
                 m_renderer.shadow_cams()[i] = cam;
                 
-                LOG_DEBUG << "rendering shadowmap: " << i;
+//                LOG_DEBUG << "rendering shadowmap: " << i;
                 
                 // offscreen render shadow map here
                 gl::render_to_texture(m_renderer.shadow_fbos()[i], [&]()
