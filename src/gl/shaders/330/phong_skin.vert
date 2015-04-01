@@ -36,6 +36,9 @@ void main()
   vertex_out.normal = normalize(u_normalMatrix * newNormal.xyz); 
   vertex_out.texCoord = u_textureMatrix * a_texCoord; 
   vertex_out.eyeVec = (u_modelViewMatrix * newVertex).xyz; 
-  vertex_out.lightspace_pos[0] = u_shadow_matrices[0] * newVertex;
+  for(int i = 0; i < 4; i++)
+  {
+    vertex_out.lightspace_pos[i] = u_shadow_matrices[i] * newVertex;
+  }
   gl_Position = u_modelViewProjectionMatrix * newVertex;
 }

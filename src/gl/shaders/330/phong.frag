@@ -68,6 +68,7 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   return base_color * (ambient + diffuse) + spec; 
 }
 
+
 //uniform Material u_material;
 layout(std140) uniform MaterialBlock
 {
@@ -85,7 +86,8 @@ uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[4];
 
 #define EPSILON 0.00001
-uniform sampler2D u_shadow_map[4]; 
+uniform sampler2D u_shadow_map[4];
+uniform vec2 u_shadow_map_size = vec2(1024);
 
 in VertexData
 {
@@ -97,6 +99,26 @@ in VertexData
 } vertex_in;
 
 out vec4 fragData; 
+
+float shadow_factor(int shadow_index)
+{
+  vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[shadow_index]);
+  float xOffset = 1.0/u_shadow_map_size.x;
+  float yOffset = 1.0/u_shadow_map_size.y;
+  float factor = 0.0;
+
+  for(int y = -2 ; y <= 2 ; y++) 
+  {
+    for (int x = -2 ; x <= 2 ; x++) 
+    {
+      vec2 offset = vec2(x * xOffset, y * yOffset);
+      float depth = texture(u_shadow_map[shadow_index], proj_coords.xy + offset).x;
+      bool is_in_shadow = depth < (proj_coords.z - EPSILON);
+      factor += is_in_shadow ? 0 : 1;
+    }
+  }
+  return (0.5 + (factor / 50.0));
+}
 
 void main() 
 {
@@ -111,10 +133,8 @@ void main()
   for(int i = 0; i < u_numLights; i++)
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors);
   
-  vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[0]);
-  float depth = texture(u_shadow_map[0], proj_coords.xy).x;
-  bool is_in_shadow = depth < (proj_coords.z - EPSILON);
-  shade_color.xyz *= is_in_shadow ? .4 : 1.0 ;
+  
+  shade_color.xyz *= shadow_factor(0);
   //shade_color.rgb = is_in_shadow ? vec3(1, 0 ,0) : shade_color.rgb ;
 
   fragData = shade_color; 

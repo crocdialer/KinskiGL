@@ -98,6 +98,7 @@ namespace kinski{ namespace gl{
                         mat->uniform(buf, tex_unit);
                     }
                     mat->uniform("u_shadow_matrices", shadow_matrices);
+                    mat->uniform("u_shadow_map_size", m_shadow_fbos[0].getSize());
                 }
 
                 if(m->geometry()->hasBones())
