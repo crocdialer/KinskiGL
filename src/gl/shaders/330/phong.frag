@@ -25,7 +25,7 @@ struct Lightsource
   float quadraticAttenuation; 
 };
 
-vec3 projected_coords(vec4 the_lightspace_pos)
+vec3 projected_coords(in vec4 the_lightspace_pos)
 {
     vec3 proj_coords = the_lightspace_pos.xyz / the_lightspace_pos.w;
     proj_coords = (vec3(1) + proj_coords) * 0.5;
@@ -82,7 +82,9 @@ layout(std140) uniform LightBlock
 
 uniform int u_numTextures;
 
-uniform sampler2D u_sampler_2D[4]; 
+uniform sampler2D u_sampler_2D[4];
+
+#define EPSILON 0.00001
 uniform sampler2D u_shadow_map[4]; 
 
 in VertexData
@@ -111,8 +113,9 @@ void main()
   
   vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[0]);
   float depth = texture(u_shadow_map[0], proj_coords.xy).x;
-  bool is_in_shadow = depth < (proj_coords.z - 0.00001);
+  bool is_in_shadow = depth < (proj_coords.z - EPSILON);
   shade_color.xyz *= is_in_shadow ? .4 : 1.0 ;
+  //shade_color.rgb = is_in_shadow ? vec3(1, 0 ,0) : shade_color.rgb ;
 
   fragData = shade_color; 
 }

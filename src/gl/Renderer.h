@@ -75,6 +75,7 @@ namespace kinski{ namespace gl{
         void set_shadowmap_size(const glm::vec2 &the_size);
         std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
         std::vector<gl::PerspectiveCamera::Ptr>& shadow_cams() { return m_shadow_cams; }
+        void set_shadow_pass(bool b){ m_shadow_pass = b; }
         
     private:
         void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
@@ -83,8 +84,9 @@ namespace kinski{ namespace gl{
         gl::Buffer m_uniform_buffer[2];
         
         int m_num_shadow_lights;
-        std::vector<gl::Fbo> m_shadow_fbos{4};
-        std::vector<gl::PerspectiveCamera::Ptr> m_shadow_cams{4};
+        std::vector<gl::Fbo> m_shadow_fbos;
+        std::vector<gl::PerspectiveCamera::Ptr> m_shadow_cams;
+        bool m_shadow_pass;
         
     };
     

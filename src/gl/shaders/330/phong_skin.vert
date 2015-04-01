@@ -32,9 +32,10 @@ void main()
     newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i]; 
     newNormal += u_bones[a_boneIds[i]] * vec4(a_normal, 0.0) * a_boneWeights[i]; 
   }
+  newVertex = vec4(newVertex.xyz, 1.0);
   vertex_out.normal = normalize(u_normalMatrix * newNormal.xyz); 
   vertex_out.texCoord = u_textureMatrix * a_texCoord; 
   vertex_out.eyeVec = (u_modelViewMatrix * newVertex).xyz; 
-  vertex_out.lightspace_pos[0] = u_shadow_matrices[0] * a_vertex;
-  gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
+  vertex_out.lightspace_pos[0] = u_shadow_matrices[0] * newVertex;
+  gl_Position = u_modelViewProjectionMatrix * newVertex;
 }

@@ -160,6 +160,7 @@ namespace kinski { namespace gl {
                     LOG_WARNING << "too many lights with active shadows";
                     break;
                 }
+                m_renderer.set_shadow_pass(true);
                 
                 gl::PerspectiveCamera::Ptr
                 cam = gl::PerspectiveCamera::create(m_renderer.shadow_fbos()[i].getAspectRatio(),
@@ -173,9 +174,10 @@ namespace kinski { namespace gl {
                 gl::render_to_texture(m_renderer.shadow_fbos()[i], [&]()
                 {
                     glClear(GL_DEPTH_BUFFER_BIT);
-                    m_renderer.render(cull(cam));
+                    m_renderer.render(cull(m_renderer.shadow_cams()[i]));
                 });
                 i++;
+                m_renderer.set_shadow_pass(false);
             }
         }
         

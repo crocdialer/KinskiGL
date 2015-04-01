@@ -268,6 +268,7 @@ gl::PerspectiveCamera::Ptr ModelViewer::create_camera_from_viewport()
 {
     gl::PerspectiveCamera::Ptr ret = std::make_shared<gl::PerspectiveCamera>();
     *ret = *camera();
+    ret->setClippingPlanes(.1, 100.f);
     return ret;
 }
 

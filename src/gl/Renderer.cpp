@@ -21,7 +21,8 @@ namespace kinski{ namespace gl{
     
     Renderer::Renderer()
     {
-
+        m_shadow_fbos.resize(4);
+        m_shadow_cams.resize(4);
     }
     
     void Renderer::render(const RenderBinPtr &theBin)
@@ -65,8 +66,8 @@ namespace kinski{ namespace gl{
                                            const list<RenderBin::light> &light_list)
     {
         KINSKI_CHECK_GL_ERRORS();
-        typedef map<pair<Material*, Geometry*>, list<RenderBin::item> > MatMeshMap;
-        MatMeshMap mat_mesh_map;
+//        typedef map<pair<Material*, Geometry*>, list<RenderBin::item> > MatMeshMap;
+//        MatMeshMap mat_mesh_map;
         
         for (const RenderBin::item &item : item_list)
         {
@@ -82,16 +83,21 @@ namespace kinski{ namespace gl{
                 mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
                 mat->uniform("u_normalMatrix", normal_matrix);
                 
-                std::vector<glm::mat4> shadow_matrices;
-                char buf[32];
-                for(int i = 0; i < m_num_shadow_lights; i++)
+                if(!m_shadow_pass)
                 {
-                    shadow_matrices.push_back(m_shadow_cams[i]->getProjectionMatrix() *
-                                              m_shadow_cams[i]->getViewMatrix() * m->global_transform());
+                    std::vector<glm::mat4> shadow_matrices;
+                    char buf[32];
+                    for(int i = 0; i < m_num_shadow_lights; i++)
+                    {
+                        if(!m_shadow_cams[i]) break;
+                        int tex_unit = mat->textures().size() + i;
+                        shadow_matrices.push_back(m_shadow_cams[i]->getProjectionMatrix() *
+                                                  m_shadow_cams[i]->getViewMatrix() * m->global_transform());
+                        m_shadow_fbos[i].getDepthTexture().bind(tex_unit);
+                        sprintf(buf, "u_shadow_map[%d]", i);
+                        mat->uniform(buf, tex_unit);
+                    }
                     mat->uniform("u_shadow_matrices", shadow_matrices);
-                    m_shadow_fbos[i].getDepthTexture().bind(mat->textures().size());
-                    sprintf(buf, "u_shadow_map[%d]", i);
-                    mat->uniform(buf, (int)mat->textures().size() + i);
                 }
 
                 if(m->geometry()->hasBones())
@@ -287,12 +293,13 @@ namespace kinski{ namespace gl{
         gl::Fbo::Format fmt;
         fmt.setNumColorBuffers(0);
         
-        for(int i = 0; i < m_shadow_fbos.size(); i++)
+        for(int i = 0; i < 4; i++)
         {
             if(!m_shadow_fbos[i] || m_shadow_fbos[i].getSize() != the_size)
             {
                 m_shadow_fbos[i] = gl::Fbo(the_size.x, the_size.y, fmt);
             }
         }
+        
     }
 }}
