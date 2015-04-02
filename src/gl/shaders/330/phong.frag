@@ -113,7 +113,7 @@ vec2 rot2d( vec2 p, float a )
 }
 
 const int NUM_TAPS = 12;
-const float max_siz = 5.0;// * (0.5+0.5*sin(iGlobalTime));
+uniform float u_poisson_radius = 5.0;// * (0.5+0.5*sin(iGlobalTime));
 vec2 fTaps_Poisson[NUM_TAPS];
 	
 float shadow_factor(int shadow_index)
@@ -129,7 +129,7 @@ float shadow_factor(int shadow_index)
 	{
 		vec2 ofs = fTaps_Poisson[i]; ofs = vec2(dot(ofs,basis.xz),dot(ofs,basis.yw) );
 		//vec2 ofs = rot2d( fTaps_Poisson[i], rnd );
-		vec2 texcoord = proj_coords.xy + max_siz * ofs / u_shadow_map_size;
+		vec2 texcoord = proj_coords.xy + u_poisson_radius * ofs / u_shadow_map_size;
     float depth = texture(u_shadow_map[shadow_index], texcoord).x;
     bool is_in_shadow = depth < (proj_coords.z - EPSILON);
     factor += is_in_shadow ? 0 : 1;
@@ -175,7 +175,7 @@ void main()
   vec3 normal = normalize(vertex_in.normal); 
   vec4 shade_color = vec4(0); 
   
-  for(int i = 0; i < u_numLights; i++)
+  for(int i = 0; i < 2; i++)
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, shadow_factor(i));
 
   fragData = shade_color; 

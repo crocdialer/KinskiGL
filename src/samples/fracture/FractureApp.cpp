@@ -459,7 +459,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
         auto col_shape = std::make_shared<btBoxShape>(physics::type_cast(ground_aabb.halfExtents()));
         btRigidBody *rb =m_physics.add_mesh_to_simulation(ground, 0.f, col_shape);
         rb->setFriction(*m_friction);
-//        scene().addObject(ground);
+        scene().addObject(ground);
         
         // back plane
         auto back = gl::Mesh::create(gl::Geometry::createBox(vec3(.5f)), ground_mat);

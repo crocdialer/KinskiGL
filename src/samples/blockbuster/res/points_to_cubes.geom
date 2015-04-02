@@ -7,6 +7,7 @@ layout (triangle_strip, max_vertices = 24) out;
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_modelViewMatrix;
 uniform mat3 u_normalMatrix;
+uniform mat4 u_shadow_matrices[4];
 
 uniform float u_length = 10.0;
 uniform float u_width = 1.0;
@@ -26,6 +27,9 @@ vec4 texCoords[4];
 // cuboid vertices in eye coords
 vec3 eye_vecs[8];
 
+// cuboid vertices in lightspace
+vec4 lightspace_vecs[4 * 8];
+
 // cuboid normals
 vec3 normals[8]; 
 
@@ -38,12 +42,13 @@ in VertexData
     float pointSize;
 } vertex_in[1];
 
-out VertexData 
+out VertexData
 {
-  vec4 color;
+  vec4 color; 
   vec4 texCoord; 
   vec3 normal; 
   vec3 eyeVec;
+  vec4 lightspace_pos[4];
 } vertex_out;
 
 void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
@@ -80,6 +85,14 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     
     // calcualte eye coords
     for(int i = 0; i < 8; i++){ eye_vecs[i] = (u_modelViewMatrix * vec4(v[i], 1)).xyz; }
+    
+    for(int i = 0; i < 4; i++)
+    {
+      for(int j = 0; j < 8; j++)
+      {
+        lightspace_vecs[i * 8 + j] = u_shadow_matrices[i] * vec4(v[j], 1);
+      }
+    }
 
     // generate a triangle strip
     
@@ -94,18 +107,22 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     vertex_out.normal = dz;
     vertex_out.eyeVec = eye_vecs[0];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 0]; }
     gl_Position = vp[0];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[1];
     vertex_out.texCoord = texCoords[1];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 1]; }
     gl_Position = vp[1];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[4];
     vertex_out.texCoord = texCoords[2];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 4]; }
     gl_Position = vp[4];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[5];
     vertex_out.texCoord = texCoords[3];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 5]; }
     gl_Position = vp[5];
     EmitVertex();
     EndPrimitive();
@@ -114,18 +131,22 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     vertex_out.normal = dy;
     vertex_out.eyeVec = eye_vecs[4];
     vertex_out.texCoord = texCoords[2];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 4]; }
     gl_Position = vp[4];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[5];
     vertex_out.texCoord = texCoords[3];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 5]; }
     gl_Position = vp[5];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[7];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 7]; }
     gl_Position = vp[7];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[6];
     vertex_out.texCoord = texCoords[1];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 6]; }
     gl_Position = vp[6];
     EmitVertex();
     EndPrimitive();
@@ -134,18 +155,22 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     vertex_out.normal = -dz;
     vertex_out.eyeVec = eye_vecs[7];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 7]; }
     gl_Position = vp[7];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[6];
     vertex_out.texCoord = texCoords[1];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 6]; }
     gl_Position = vp[6];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[3];
     vertex_out.texCoord = texCoords[2];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 3]; }
     gl_Position = vp[3];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[2];
     vertex_out.texCoord = texCoords[3];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 2]; }
     gl_Position = vp[2];
     EmitVertex();
     EndPrimitive();
@@ -154,18 +179,22 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     vertex_out.normal = -dy;
     vertex_out.eyeVec = eye_vecs[3];
     vertex_out.texCoord = texCoords[2];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 3]; }
     gl_Position = vp[3];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[2];
     vertex_out.texCoord = texCoords[3];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 2]; }
     gl_Position = vp[2];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[0];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 0]; }
     gl_Position = vp[0];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[1];
     vertex_out.texCoord = texCoords[1];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 1]; }
     gl_Position = vp[1];
     EmitVertex();
     EndPrimitive();
@@ -174,18 +203,22 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     vertex_out.normal = -dx;
     vertex_out.eyeVec = eye_vecs[3];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 3]; }
     gl_Position = vp[3];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[0];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 0]; }
     gl_Position = vp[0];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[7];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 7]; }
     gl_Position = vp[7];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[4];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 4]; }
     gl_Position = vp[4];
     EmitVertex();
     EndPrimitive();
@@ -194,18 +227,22 @@ void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
     vertex_out.normal = dx;
     vertex_out.eyeVec = eye_vecs[1];
     vertex_out.texCoord = texCoords[0];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 1]; }
     gl_Position = vp[1];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[2];
     vertex_out.texCoord = texCoords[1];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 2]; }
     gl_Position = vp[2];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[5];
     vertex_out.texCoord = texCoords[2];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 5]; }
     gl_Position = vp[5];
     EmitVertex();
     vertex_out.eyeVec = eye_vecs[6];
     vertex_out.texCoord = texCoords[3];
+    for(int i = 0; i < 4; i++){ vertex_out.lightspace_pos[i] = lightspace_vecs[i * 8 + 6]; }
     gl_Position = vp[6];
     EmitVertex();
     EndPrimitive();

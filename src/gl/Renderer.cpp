@@ -83,7 +83,7 @@ namespace kinski{ namespace gl{
                 mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
                 mat->uniform("u_normalMatrix", normal_matrix);
                 
-                if(!m_shadow_pass)
+                if(!m_shadow_pass && m_num_shadow_lights)
                 {
                     std::vector<glm::mat4> shadow_matrices;
                     char buf[32];
@@ -99,6 +99,7 @@ namespace kinski{ namespace gl{
                     }
                     mat->uniform("u_shadow_matrices", shadow_matrices);
                     mat->uniform("u_shadow_map_size", m_shadow_fbos[0].getSize());
+                    mat->uniform("u_poisson_radius", 10.f);
                 }
 
                 if(m->geometry()->hasBones())
