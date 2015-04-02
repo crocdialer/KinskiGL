@@ -34,9 +34,9 @@ void ModelViewer::setup()
     auto ground_mesh = gl::Mesh::create(gl::Geometry::createPlane(400, 400),
                                         gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
     ground_mesh->transform() = glm::rotate(mat4(), -90.f, gl::X_AXIS);
-    uint8_t c = 255;
-    gl::Texture t(&c, GL_RED, 1, 1);
-    ground_mesh->material()->addTexture(t);
+//    uint8_t c = 255;
+//    gl::Texture t(&c, GL_RED, 1, 1);
+//    ground_mesh->material()->addTexture(t);
     
     scene().addObject(ground_mesh);
     

@@ -99,7 +99,7 @@ namespace kinski{ namespace gl{
                     }
                     mat->uniform("u_shadow_matrices", shadow_matrices);
                     mat->uniform("u_shadow_map_size", m_shadow_fbos[0].getSize());
-                    mat->uniform("u_poisson_radius", 10.f);
+                    mat->uniform("u_poisson_radius", 5.f);
                 }
 
                 if(m->geometry()->hasBones())

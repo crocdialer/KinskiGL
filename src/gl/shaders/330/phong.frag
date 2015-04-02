@@ -116,25 +116,22 @@ const int NUM_TAPS = 12;
 uniform float u_poisson_radius = 5.0;// * (0.5+0.5*sin(iGlobalTime));
 vec2 fTaps_Poisson[NUM_TAPS];
 	
-float shadow_factor(int shadow_index)
+float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
 {
-	
-
-  vec3 proj_coords = projected_coords(vertex_in.lightspace_pos[shadow_index]);
-  float rnd = 6.28 * nrand(proj_coords.xy);
+  float rnd = 6.28 * nrand(light_space_pos.xy);
   float factor = 0.0;
 
 	vec4 basis = vec4( rot2d(vec2(1,0),rnd), rot2d(vec2(0,1),rnd) );
-	for (int i = 0; i < NUM_TAPS; i++)
+	for(int i = 0; i < NUM_TAPS; i++)
 	{
 		vec2 ofs = fTaps_Poisson[i]; ofs = vec2(dot(ofs,basis.xz),dot(ofs,basis.yw) );
 		//vec2 ofs = rot2d( fTaps_Poisson[i], rnd );
-		vec2 texcoord = proj_coords.xy + u_poisson_radius * ofs / u_shadow_map_size;
-    float depth = texture(u_shadow_map[shadow_index], texcoord).x;
-    bool is_in_shadow = depth < (proj_coords.z - EPSILON);
+		vec2 texcoord = light_space_pos.xy + u_poisson_radius * ofs / u_shadow_map_size;
+    float depth = texture(shadow_map, texcoord).x;
+    bool is_in_shadow = depth < (light_space_pos.z - EPSILON);
     factor += is_in_shadow ? 0 : 1;
   }
-  
+  return factor / NUM_TAPS;
   //float xOffset = 1.0/u_shadow_map_size.x;
   //float yOffset = 1.0/u_shadow_map_size.y;
 
@@ -149,7 +146,6 @@ float shadow_factor(int shadow_index)
   //  }
   //}
   //return (0.5 + (factor / 50.0));
-  return (0.5 + (factor / NUM_TAPS / 2.0));
 }
 
 void main() 
@@ -175,8 +171,18 @@ void main()
   vec3 normal = normalize(vertex_in.normal); 
   vec4 shade_color = vec4(0); 
   
+  float factor[2];
+  factor[0] = shadow_factor(u_shadow_map[0], projected_coords(vertex_in.lightspace_pos[0]));
+  factor[1] = shadow_factor(u_shadow_map[1], projected_coords(vertex_in.lightspace_pos[1]));
+  
+  float min_shade = 0.1, max_shade = 1.0;
+  factor[0] = mix(min_shade, max_shade, factor[0]);
+  factor[1] = mix(min_shade, max_shade, factor[1]);
+
   for(int i = 0; i < 2; i++)
-    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, shadow_factor(i));
+  {
+    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, factor[i]);
+  }
 
   fragData = shade_color; 
 }
