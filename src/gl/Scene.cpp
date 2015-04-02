@@ -149,7 +149,7 @@ namespace kinski { namespace gl {
         m_root->accept(lv);
         
         int i = 0;
-        m_renderer.set_shadowmap_size(glm::vec2(1024));
+        m_renderer.set_shadowmap_size(glm::vec2(2048));
         
         for(gl::Light *l : lv.getObjects())
         {
