@@ -83,7 +83,7 @@ namespace kinski{ namespace gl{
         void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
                                      const std::list<RenderBin::light> &light_list);
         
-        gl::Buffer m_uniform_buffer[2];
+        gl::Buffer m_uniform_buffer[3];
         
         // shadow params
         int m_num_shadow_lights;
@@ -91,6 +91,7 @@ namespace kinski{ namespace gl{
         std::vector<gl::PerspectiveCamera::Ptr> m_shadow_cams;
         bool m_shadow_pass;
         
+        void update_uniform_buffer_shadows(const glm::mat4 &the_transform);
     };
     
 }}// namespace

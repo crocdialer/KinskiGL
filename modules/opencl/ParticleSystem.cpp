@@ -131,18 +131,18 @@ namespace kinski{ namespace gl{
     
     void ParticleSystem::update(float time_delta)
     {
-        // update global param buffer
-        Params params;
-        params.gravity = vec4(m_gravity, 0);
-        
-        params.contraints_min = m_mesh->transform() * (m_use_constraints ? vec4(m_contraints_aabb.min, 1) :
-            vec4(std::numeric_limits<float>::lowest()));
-        
-        params.contraints_max = m_mesh->transform() * (m_use_constraints ? vec4(m_contraints_aabb.max, 1) :
-            vec4(std::numeric_limits<float>::max()));
-        params.bouncyness = m_particle_bounce;
-        
-        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
+//        // update global param buffer
+//        Params params;
+//        params.gravity = vec4(m_gravity, 0);
+//        
+//        params.contraints_min = m_mesh->transform() * (m_use_constraints ? vec4(m_contraints_aabb.min, 1) :
+//            vec4(std::numeric_limits<float>::lowest()));
+//        
+//        params.contraints_max = m_mesh->transform() * (m_use_constraints ? vec4(m_contraints_aabb.max, 1) :
+//            vec4(std::numeric_limits<float>::max()));
+//        params.bouncyness = m_particle_bounce;
+//        
+//        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
         
         // apply our forces
         apply_forces(time_delta);
@@ -155,7 +155,7 @@ namespace kinski{ namespace gl{
             
             try
             {
-                vector<cl::Memory> glBuffers = {m_vertices, m_colors};
+                vector<cl::Memory> glBuffers = {m_vertices};
                 
                 // Make sure OpenGL is done using our VBOs
                 glFinish();
@@ -192,9 +192,7 @@ namespace kinski{ namespace gl{
         }
     }
     
-    void ParticleSystem::texture_input(gl::Texture &the_texture, int num_cols, int num_rows,
-                                       float the_min, float the_max, float the_multiplier,
-                                       float the_smoothing)
+    void ParticleSystem::texture_input(gl::Texture &the_texture)
     {
         auto iter = m_kernel_map.find("texture_input");
         if(iter != m_kernel_map.end())
@@ -204,27 +202,28 @@ namespace kinski{ namespace gl{
             
             try
             {
-                
                 cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.getTarget(), 0,
                                 the_texture.getId());
                 
-                vector<cl::Memory> glBuffers = {m_vertices};
-                
-                // Make sure OpenGL is done using our VBOs
-                glFinish();
-                
-                // map OpenGL buffer object for writing from OpenCL
-                // this passes in the vector of VBO buffer objects (position and color)
-                opencl().queue().enqueueAcquireGLObjects(&glBuffers);
+//                vector<cl::Memory> glBuffers = {m_vertices};
+//                
+//                // Make sure OpenGL is done using our VBOs
+//                glFinish();
+//                
+//                // map OpenGL buffer object for writing from OpenCL
+//                // this passes in the vector of VBO buffer objects (position and color)
+//                opencl().queue().enqueueAcquireGLObjects(&glBuffers);
                 
                 kernel.setArg(0, img);
-                kernel.setArg(1, m_vertices);
-                kernel.setArg(2, num_cols);
-                kernel.setArg(3, num_rows);
-                kernel.setArg(4, the_min);
-                kernel.setArg(5, the_max);
-                kernel.setArg(6, the_multiplier);
-                kernel.setArg(7, the_smoothing);
+                kernel.setArg(1, m_positionGen);
+                kernel.setArg(2, m_param_buffer);
+                
+//                kernel.setArg(2, num_cols);
+//                kernel.setArg(3, num_rows);
+//                kernel.setArg(4, the_min);
+//                kernel.setArg(5, the_max);
+//                kernel.setArg(6, the_multiplier);
+//                kernel.setArg(7, the_smoothing);
                 
                 int num = num_particles();
                 
@@ -236,8 +235,8 @@ namespace kinski{ namespace gl{
                 
                 m_opencl.queue().finish();
                 
-                // Release the VBOs again
-                opencl().queue().enqueueReleaseGLObjects(&glBuffers, nullptr);
+//                // Release the VBOs again
+//                opencl().queue().enqueueReleaseGLObjects(&glBuffers, nullptr);
             }
             catch(cl::Error &error)
             {
@@ -323,5 +322,10 @@ namespace kinski{ namespace gl{
     const glm::vec3& ParticleSystem::gravity() const
     {
         return m_gravity;
+    }
+    
+    void ParticleSystem::set_param_buffer(void *the_data, size_t num_bytes)
+    {
+        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, num_bytes, the_data);
     }
 }}

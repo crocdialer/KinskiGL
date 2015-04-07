@@ -53,8 +53,19 @@ namespace kinski{ namespace gl{
         {
             if(l.light->cast_shadow()){ m_num_shadow_lights++; }
         }
-            
-        // update uniform buffers (only lights at the moment)
+        
+        if(m_shadow_pass)
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_FRONT);
+        }
+        else
+        {
+            glEnable(GL_CULL_FACE);
+            glCullFace(GL_BACK);
+        }
+        
+        // update uniform buffers (global light settings)
         update_uniform_buffers(theBin->lights);
         
         // draw our stuff
@@ -82,7 +93,7 @@ namespace kinski{ namespace gl{
                 mat->uniform("u_modelViewMatrix", modelView);
                 mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
                 mat->uniform("u_normalMatrix", normal_matrix);
-                
+
                 if(!m_shadow_pass && m_num_shadow_lights)
                 {
                     std::vector<glm::mat4> shadow_matrices;
@@ -101,7 +112,10 @@ namespace kinski{ namespace gl{
                     mat->uniform("u_shadow_map_size", m_shadow_fbos[0].getSize());
                     mat->uniform("u_poisson_radius", 5.f);
                 }
-
+                
+                // update uniform buffers for matrices and shadows
+                update_uniform_buffer_shadows(m->global_transform());
+                
                 if(m->geometry()->hasBones())
                 {
                     mat->uniform("u_bones", m->boneMatrices());
@@ -117,6 +131,9 @@ namespace kinski{ namespace gl{
                 
 //                block_index = mat->shader().getUniformBlockIndex("MatrixBlock");
 //                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATRIX_BLOCK);
+                
+                block_index = mat->shader().getUniformBlockIndex("ShadowBlock");
+                glUniformBlockBinding(mat->shader().getHandle(), block_index, SHADOW_BLOCK);
 #else
                 set_light_uniforms(mat, light_list);
 #endif
@@ -303,5 +320,44 @@ namespace kinski{ namespace gl{
             }
         }
         
+    }
+    
+    void Renderer::update_uniform_buffer_shadows(const glm::mat4 &the_transform)
+    {
+#ifndef KINSKI_GLES
+        
+        struct shadowstruct_std140
+        {
+            mat4 matrix;
+            int shadow_map;
+            vec2 map_size;
+            float poisson_radius;
+            vec4 pad[15]; // padding
+        };
+        
+        if(!m_uniform_buffer[SHADOW_UNIFORM_BUFFER])
+        {
+            m_uniform_buffer[SHADOW_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+        }
+        
+        shadowstruct_std140 shadowstructs[4];
+
+        for(int i = 0; i < m_num_shadow_lights; i++)
+        {
+            if(!m_shadow_cams[i]) break;
+            int tex_unit = 1;//mat->textures().size() + i;
+            
+            shadowstructs[i].matrix = m_shadow_cams[i]->getProjectionMatrix() *
+                                     m_shadow_cams[i]->getViewMatrix() * the_transform;
+            m_shadow_fbos[i].getDepthTexture().bind(tex_unit);
+            
+            shadowstructs[i].shadow_map = tex_unit;
+            shadowstructs[i].map_size = m_shadow_fbos[0].getSize();
+            shadowstructs[i].poisson_radius = 5.f;
+        }
+        
+        m_uniform_buffer[SHADOW_UNIFORM_BUFFER].setData(&shadowstructs, sizeof(shadowstructs));
+        glBindBufferBase(GL_UNIFORM_BUFFER, SHADOW_BLOCK, m_uniform_buffer[SHADOW_UNIFORM_BUFFER].id());
+#endif
     }
 }}

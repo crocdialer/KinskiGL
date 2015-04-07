@@ -97,7 +97,7 @@ Fbo::Format::Format()
 	m_depthBufferAsTexture = false;
 #else
 	mColorInternalFormat = GL_RGBA8;
-	mDepthInternalFormat = GL_DEPTH24_STENCIL8;
+    mDepthInternalFormat = GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
 	m_depthBufferAsTexture = true;
 #endif
 	mSamples = 0;
@@ -193,8 +193,14 @@ void Fbo::init()
 				GLuint depthTextureId;
 				glGenTextures(1, &depthTextureId);
 				glBindTexture(getTarget(), depthTextureId);
-				glTexImage2D(getTarget(), 0, getFormat().getDepthInternalFormat(),
-                             m_obj->mWidth, m_obj->mHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+//				glTexImage2D(getTarget(), 0, getFormat().getDepthInternalFormat(),
+//                             m_obj->mWidth, m_obj->mHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+                
+                glTexImage2D(getTarget(), 0, getFormat().getDepthInternalFormat(),
+                             m_obj->mWidth, m_obj->mHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+                
 				glTexParameteri(getTarget(), GL_TEXTURE_MIN_FILTER, m_obj->mFormat.mMinFilter);
 				glTexParameteri(getTarget(), GL_TEXTURE_MAG_FILTER, m_obj->mFormat.mMagFilter);
 				glTexParameteri(getTarget(), GL_TEXTURE_WRAP_S, m_obj->mFormat.mWrapS);
@@ -205,11 +211,11 @@ void Fbo::init()
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, getTarget(),
                                        m_obj->m_depthTexture.getId(), 0);
                 
-                if(m_obj->mFormat.hasStencilBuffer())
-                {
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, getTarget(),
-                                           m_obj->m_depthTexture.getId(), 0);
-                }
+//                if(m_obj->mFormat.hasStencilBuffer())
+//                {
+//                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, getTarget(),
+//                                           m_obj->m_depthTexture.getId(), 0);
+//                }
 	#endif
 			}
             // implement depth buffer as RenderBuffer

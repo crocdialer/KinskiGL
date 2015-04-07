@@ -19,7 +19,13 @@ using namespace glm;
 void BlockbusterApp::setup()
 {
     ViewerApp::setup();
+    registerProperty(m_view_type);
     registerProperty(m_media_path);
+    registerProperty(m_use_syphon);
+    registerProperty(m_syphon_server_name);
+    registerProperty(m_fbo_cam_pos);
+    registerProperty(m_fbo_cam_fov);
+    registerProperty(m_fbo_resolution);
     registerProperty(m_num_tiles_x);
     registerProperty(m_num_tiles_y);
     registerProperty(m_spacing_x);
@@ -29,7 +35,8 @@ void BlockbusterApp::setup()
     registerProperty(m_depth_min);
     registerProperty(m_depth_max);
     registerProperty(m_depth_multiplier);
-    registerProperty(m_depth_smooth);
+    registerProperty(m_depth_smooth_fall);
+    registerProperty(m_depth_smooth_rise);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -43,6 +50,7 @@ void BlockbusterApp::setup()
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
     m_psystem.add_kernel("texture_input");
+    m_psystem.add_kernel("updateParticles");
     
     // openni
     m_open_ni = gl::OpenNIConnector::Ptr(new gl::OpenNIConnector());
@@ -73,25 +81,68 @@ void BlockbusterApp::update(float timeDelta)
 //        m_psystem.texture_input(textures()[0]);
 //    }
     
+    struct particle_params
+    {
+        int num_cols, num_rows;
+        float depth_min, depth_max, multiplier;
+        float smooth_fall, smooth_rise;
+    } p;
+    p.num_cols = *m_num_tiles_x;
+    p.num_rows = *m_num_tiles_y;
+    p.depth_min = *m_depth_min;
+    p.depth_max = *m_depth_max;
+    p.multiplier = *m_depth_multiplier;
+    p.smooth_fall = *m_depth_smooth_fall;
+    p.smooth_rise = *m_depth_smooth_rise;
+    m_psystem.set_param_buffer(&p, sizeof(particle_params));
+    
     if(m_open_ni->has_new_frame())
     {
         // get the depth+userID texture
         m_textures[0] = m_open_ni->get_depth_texture();
-        m_psystem.texture_input(textures()[0], *m_num_tiles_x, *m_num_tiles_y, *m_depth_min, *m_depth_max, *m_depth_multiplier,
-                                *m_depth_smooth);
+        m_psystem.texture_input(textures()[0]);
     }
+    
+    m_psystem.update(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
 
 void BlockbusterApp::draw()
 {
-    gl::setMatrices(camera());
-    if(*m_draw_grid){ gl::drawGrid(50, 50); }
+    // draw the output texture
+    if(m_fbos[0] && m_fbo_cam && *m_use_syphon)
+    {
+        auto tex = gl::render_to_texture(m_fbos[0],[&]
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            scene().render(m_fbo_cam);
+        });
+        textures()[TEXTURE_SYPHON] = tex;
+        m_syphon.publish_texture(tex);
+    }
     
-//    gl::drawPoints(m_user_positions);
-    
-    scene().render(camera());
+    switch (*m_view_type)
+    {
+        case VIEW_DEBUG:
+            gl::setMatrices(camera());
+            if(draw_grid()){ gl::drawGrid(50, 50); }
+            
+            if(m_light_component->draw_light_dummies())
+            {
+                for (auto l : lights()){ gl::drawLight(l); }
+            }
+            
+            scene().render(camera());
+            break;
+            
+        case VIEW_OUTPUT:
+            gl::drawTexture(textures()[TEXTURE_SYPHON], gl::windowDimension());
+            break;
+            
+        default:
+            break;
+    }
     
     if(m_light_component->draw_light_dummies())
     {
@@ -220,6 +271,26 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
             theProperty == m_spacing_y)
     {
         m_dirty = true;
+    }
+    else if(theProperty == m_fbo_resolution ||
+            theProperty == m_fbo_cam_pos ||
+            theProperty == m_fbo_cam_fov)
+    {
+        gl::Fbo::Format fmt;
+        fmt.setSamples(4);
+        m_fbos[0] = gl::Fbo(m_fbo_resolution->value().x, m_fbo_resolution->value().y, fmt);
+        float aspect = m_fbos[0].getAspectRatio();//m_obj_scale->value().x / m_obj_scale->value().y;
+        m_fbo_cam = gl::PerspectiveCamera::create(aspect, *m_fbo_cam_fov, .1f, 1000.f);
+        m_fbo_cam->position() = *m_fbo_cam_pos;
+    }
+    else if(theProperty == m_use_syphon)
+    {
+        m_syphon = *m_use_syphon ? syphon::Output(*m_syphon_server_name) : syphon::Output();
+    }
+    else if(theProperty == m_syphon_server_name)
+    {
+        try{m_syphon.setName(*m_syphon_server_name);}
+        catch(syphon::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
     }
 }
 

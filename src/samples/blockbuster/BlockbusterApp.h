@@ -17,12 +17,16 @@
 #include "video/CameraController.h"
 #include "video/MovieController.h"
 #include "openni/OpenNIConnector.h"
+#include "syphon/SyphonConnector.h"
 
 namespace kinski
 {
     class BlockbusterApp : public ViewerApp
     {
     private:
+        
+        enum ViewType{VIEW_NOTHING = 1, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
+        enum TextureEnum{TEXTURE_DEPTH = 0, TEXTURE_SYPHON = 1};
         
         gl::OpenNIConnector::Ptr m_open_ni;
         
@@ -41,6 +45,27 @@ namespace kinski
         
         bool m_dirty = true;
         
+        // fbo / syphon stuff
+        std::vector<gl::Fbo> m_fbos{2};
+        gl::CameraPtr m_fbo_cam;
+        Property_<glm::vec3>::Ptr
+        m_fbo_cam_pos = Property_<glm::vec3>::create("fbo camera position", glm::vec3(0, 0, 5.f));
+        
+        Property_<float>::Ptr
+        m_fbo_cam_fov = Property_<float>::create("fbo camera fov", 45.f);
+        
+        Property_<glm::vec2>::Ptr
+        m_fbo_resolution = Property_<glm::vec2>::create("Fbo resolution", glm::vec2(1280, 640));
+        
+        Property_<uint32_t>::Ptr
+        m_view_type = RangedProperty<uint32_t>::create("view type", VIEW_OUTPUT, 0, 2);
+        
+        // output via Syphon
+        syphon::Output m_syphon;
+        Property_<bool>::Ptr m_use_syphon = Property_<bool>::create("Use syphon", false);
+        Property_<std::string>::Ptr m_syphon_server_name =
+        Property_<std::string>::create("Syphon server name", "blockbuster");
+        
         Property_<uint32_t>::Ptr
         m_num_tiles_x = Property_<uint32_t>::create("num tiles x", 16),
         m_num_tiles_y = Property_<uint32_t>::create("num tiles y", 10),
@@ -53,7 +78,8 @@ namespace kinski
         m_depth_min = Property_<float>::create("depth min", 1.f),
         m_depth_max = Property_<float>::create("depth max", 3.f),
         m_depth_multiplier = Property_<float>::create("depth mutliplier", 10.f),
-        m_depth_smooth = Property_<float>::create("depth smooth", .05f);
+        m_depth_smooth_fall = Property_<float>::create("depth smooth falling", .95f),
+        m_depth_smooth_rise = Property_<float>::create("depth smooth rising", .7f);
         
         gl::MeshPtr create_mesh();
         glm::vec3 click_pos_on_ground(const glm::vec2 click_pos);

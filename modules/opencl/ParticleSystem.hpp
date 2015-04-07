@@ -49,8 +49,9 @@ namespace kinski{ namespace gl{
         
         void set_aabb(gl::AABB the_aabb){m_contraints_aabb = the_aabb;}
         
-        void texture_input(gl::Texture &the_texture, int num_cols, int num_rows,
-                           float the_min, float the_max, float the_multiplier, float the_smoothing);
+        void texture_input(gl::Texture &the_texture);
+        
+        void set_param_buffer(void *the_data, size_t num_bytes);
         
         cl::BufferGL& vertices() { return m_vertices; }
         cl::BufferGL& colors() { return m_colors; }
