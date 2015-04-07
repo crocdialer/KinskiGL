@@ -33,10 +33,10 @@ __kernel void texture_input(read_only image2d_t image, __global float4* pos_gen,
     //float depth = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x ;
     
     // depth value in meters here
-    float depth = color.x * 65535.0 / 1000.0;
+    float depth = color.x * 65535.f / 1000.f;
     
     //
-    float ratio = 0.0;
+    float ratio = 0.f;
     if(depth < p->depth_min || depth > p->depth_max){ depth = 0; }
     else
     {
@@ -46,7 +46,7 @@ __kernel void texture_input(read_only image2d_t image, __global float4* pos_gen,
     pos_gen[i].z = outval;//mix(pos_gen[i].z, outval, p->smoothing);
 }
 
-__kernel void updateParticles(  __global float3* pos,
+__kernel void updateParticles(  __global float4* pos,
                                 __global float4* color,
                                 __global float4* vel,
                                 __global float4* pos_gen,
@@ -60,7 +60,7 @@ __kernel void updateParticles(  __global float3* pos,
     //copy position and velocity for this iteration to a local variable
     //note: if we were doing many more calculations we would want to have opencl
     //copy to a local memory array to speed up memory access (this will be the subject of a later tutorial)
-    float3 p = pos[i];
+    float4 p = pos[i];
     float4 v = vel[i];
     
     //we've stored the life in the fourth component of our velocity array
@@ -79,8 +79,8 @@ __kernel void updateParticles(  __global float3* pos,
 
     //update the position with the new velocity
     //p.xyz += v.xyz * dt;
-    float3 target_pos = pos_gen[i].xyz;
-    p.xyz = p.z > target_pos.z ? mix(target_pos, p.xyz, params->smooth_fall) : mix(target_pos, p.xyz, params->smooth_rise);
+    float4 target_pos = pos_gen[i];
+    p = p.z > target_pos.z ? mix(target_pos, p, params->smooth_fall) : mix(target_pos, p, params->smooth_rise);
 
     //store the updated life in the velocity array
     v.w = life;
