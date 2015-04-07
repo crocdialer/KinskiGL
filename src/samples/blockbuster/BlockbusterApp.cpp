@@ -280,7 +280,7 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
         fmt.setSamples(4);
         m_fbos[0] = gl::Fbo(m_fbo_resolution->value().x, m_fbo_resolution->value().y, fmt);
         float aspect = m_fbos[0].getAspectRatio();//m_obj_scale->value().x / m_obj_scale->value().y;
-        m_fbo_cam = gl::PerspectiveCamera::create(aspect, *m_fbo_cam_fov, .1f, 1000.f);
+        m_fbo_cam = gl::PerspectiveCamera::create(aspect, *m_fbo_cam_fov, 5.f, 2000.f);
         m_fbo_cam->position() = *m_fbo_cam_pos;
     }
     else if(theProperty == m_use_syphon)

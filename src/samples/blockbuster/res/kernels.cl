@@ -30,7 +30,7 @@ __kernel void texture_input(read_only image2d_t image, __global float4* pos_gen,
     array_pos.y = h - array_pos.y;
     
     float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos);
-    //int depth_in_mm = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x;
+    //float depth = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x ;
     
     // depth value in meters here
     float depth = color.x * 65535.0 / 1000.0;
