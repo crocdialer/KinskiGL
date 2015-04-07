@@ -49,7 +49,7 @@ out VertexData
   vec4 texCoord; 
   vec3 normal; 
   vec3 eyeVec;
-  vec4 lightspace_pos[4];
+  vec4 lightspace_pos[NUM_SHADOW_LIGHTS];
 } vertex_out;
 
 void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)

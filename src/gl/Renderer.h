@@ -59,8 +59,10 @@ namespace kinski{ namespace gl{
         typedef std::shared_ptr<Renderer> Ptr;
         typedef std::shared_ptr<const Renderer> ConstPtr;
         
-        enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1};
-        enum UniformBlockBinding {MATERIAL_BLOCK = 0, LIGHT_BLOCK = 1, MATRIX_BLOCK = 2};
+        enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1,
+            SHADOW_UNIFORM_BUFFER = 2};
+        enum UniformBlockBinding {MATERIAL_BLOCK = 0, LIGHT_BLOCK = 1, MATRIX_BLOCK = 2,
+            SHADOW_BLOCK = 3};
         
         Renderer();
         virtual ~Renderer(){};
@@ -83,6 +85,7 @@ namespace kinski{ namespace gl{
         
         gl::Buffer m_uniform_buffer[2];
         
+        // shadow params
         int m_num_shadow_lights;
         std::vector<gl::Fbo> m_shadow_fbos;
         std::vector<gl::PerspectiveCamera::Ptr> m_shadow_cams;

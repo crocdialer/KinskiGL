@@ -86,8 +86,9 @@ uniform int u_numTextures;
 
 uniform sampler2D u_sampler_2D[4];
 
+#define NUM_SHADOW_LIGHTS 2
 #define EPSILON 0.00001
-uniform sampler2D u_shadow_map[4];
+uniform sampler2D u_shadow_map[NUM_SHADOW_LIGHTS];
 uniform vec2 u_shadow_map_size = vec2(1024);
 
 in VertexData
@@ -96,7 +97,7 @@ in VertexData
   vec4 texCoord;
   vec3 normal; 
   vec3 eyeVec; 
-  vec4 lightspace_pos[4];
+  vec4 lightspace_pos[NUM_SHADOW_LIGHTS];
 } vertex_in;
 
 out vec4 fragData; 
@@ -179,7 +180,7 @@ void main()
   factor[0] = mix(min_shade, max_shade, factor[0]);
   factor[1] = mix(min_shade, max_shade, factor[1]);
 
-  for(int i = 0; i < 2; i++)
+  for(int i = 0; i < NUM_SHADOW_LIGHTS; i++)
   {
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, factor[i]);
   }
