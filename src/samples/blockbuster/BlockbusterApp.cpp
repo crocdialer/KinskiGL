@@ -32,11 +32,13 @@ void BlockbusterApp::setup()
     registerProperty(m_spacing_y);
     registerProperty(m_block_length);
     registerProperty(m_block_width);
+    registerProperty(m_mirror_img);
     registerProperty(m_depth_min);
     registerProperty(m_depth_max);
     registerProperty(m_depth_multiplier);
     registerProperty(m_depth_smooth_fall);
     registerProperty(m_depth_smooth_rise);
+    registerProperty(m_poisson_radius);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -83,10 +85,11 @@ void BlockbusterApp::update(float timeDelta)
     
     struct particle_params
     {
-        int num_cols, num_rows;
+        int num_cols, num_rows, mirror;
         float depth_min, depth_max, multiplier;
         float smooth_fall, smooth_rise;
     } p;
+    p.mirror = *m_mirror_img;
     p.num_cols = *m_num_tiles_x;
     p.num_rows = *m_num_tiles_y;
     p.depth_min = *m_depth_min;
@@ -291,6 +294,11 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
     {
         try{m_syphon.setName(*m_syphon_server_name);}
         catch(syphon::SyphonNotRunningException &e){LOG_WARNING<<e.what();}
+    }
+    else if(theProperty == m_poisson_radius)
+    {
+        if(m_mesh)
+            m_mesh->material()->uniform("u_poisson_radius", *m_poisson_radius);
     }
 }
 

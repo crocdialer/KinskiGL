@@ -87,7 +87,7 @@ uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[4];
 
 #define NUM_SHADOW_LIGHTS 2
-#define EPSILON 0.00001
+#define EPSILON 0.00002
 
 //struct Shadow
 //{
@@ -103,7 +103,7 @@ uniform sampler2D u_sampler_2D[4];
 
 uniform sampler2D u_shadow_map[NUM_SHADOW_LIGHTS];
 uniform vec2 u_shadow_map_size = vec2(1024);
-uniform float u_poisson_radius = 5.0;
+uniform float u_poisson_radius = 3.0;
 
 in VertexData
 {

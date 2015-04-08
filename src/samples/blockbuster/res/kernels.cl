@@ -1,6 +1,6 @@
 typedef struct Params
 {
-    int num_cols, num_rows;
+    int num_cols, num_rows, mirror;
     float depth_min, depth_max, multiplier;
     float smooth_fall, smooth_rise;
 }Params;
@@ -28,6 +28,7 @@ __kernel void texture_input(read_only image2d_t image, __global float4* pos_gen,
     
     int2 array_pos = {w * (i % p->num_cols) / (float)(p->num_cols), h * (i / p->num_cols) / (float)(p->num_rows)};
     array_pos.y = h - array_pos.y;
+    array_pos.x = p->mirror ? w - array_pos.x : array_pos.x; 
     
     float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos);
     //float depth = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x ;
@@ -40,7 +41,8 @@ __kernel void texture_input(read_only image2d_t image, __global float4* pos_gen,
     if(depth < p->depth_min || depth > p->depth_max){ depth = 0; }
     else
     {
-        ratio = (depth - p->depth_min) / (p->depth_max - p->depth_min); 
+        ratio = (depth - p->depth_min) / (p->depth_max - p->depth_min);
+        ratio = 1.f - ratio;//p->multiplier < 0.f ? 1 - ratio : ratio; 
     }
     float outval = ratio * p->multiplier;
     pos_gen[i].z = outval;//mix(pos_gen[i].z, outval, p->smoothing);

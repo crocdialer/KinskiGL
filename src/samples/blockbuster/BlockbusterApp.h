@@ -79,7 +79,11 @@ namespace kinski
         m_depth_max = Property_<float>::create("depth max", 3.f),
         m_depth_multiplier = Property_<float>::create("depth mutliplier", 10.f),
         m_depth_smooth_fall = Property_<float>::create("depth smooth falling", .95f),
-        m_depth_smooth_rise = Property_<float>::create("depth smooth rising", .7f);
+        m_depth_smooth_rise = Property_<float>::create("depth smooth rising", .7f),
+        m_poisson_radius = Property_<float>::create("poisson radius", 3.f);
+        
+        Property_<bool>::Ptr
+        m_mirror_img = Property_<bool>::create("mirror image", false);
         
         gl::MeshPtr create_mesh();
         glm::vec3 click_pos_on_ground(const glm::vec2 click_pos);
