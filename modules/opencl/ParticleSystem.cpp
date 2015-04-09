@@ -205,25 +205,9 @@ namespace kinski{ namespace gl{
                 cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.getTarget(), 0,
                                 the_texture.getId());
                 
-//                vector<cl::Memory> glBuffers = {m_vertices};
-//                
-//                // Make sure OpenGL is done using our VBOs
-//                glFinish();
-//                
-//                // map OpenGL buffer object for writing from OpenCL
-//                // this passes in the vector of VBO buffer objects (position and color)
-//                opencl().queue().enqueueAcquireGLObjects(&glBuffers);
-                
                 kernel.setArg(0, img);
                 kernel.setArg(1, m_positionGen);
                 kernel.setArg(2, m_param_buffer);
-                
-//                kernel.setArg(2, num_cols);
-//                kernel.setArg(3, num_rows);
-//                kernel.setArg(4, the_min);
-//                kernel.setArg(5, the_max);
-//                kernel.setArg(6, the_multiplier);
-//                kernel.setArg(7, the_smoothing);
                 
                 int num = num_particles();
                 
@@ -234,9 +218,6 @@ namespace kinski{ namespace gl{
                                                       cl::NullRange);
                 
                 m_opencl.queue().finish();
-                
-//                // Release the VBOs again
-//                opencl().queue().enqueueReleaseGLObjects(&glBuffers, nullptr);
             }
             catch(cl::Error &error)
             {

@@ -19,22 +19,20 @@ inline float3 create_radial_force(float3 pos, float3 pos_particle, float strengt
     return strength * dir / dist2;
 }
 
-__kernel void texture_input(read_only image2d_t image, __global float4* pos_gen, __constant struct Params *p)
+__kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_gen, __constant struct Params *p)
 {
     unsigned int i = get_global_id(0);
 
-    int w = get_image_width(image);
-    int h = get_image_height(image);
+    int depth_img_w = get_image_width(depth_img);
+    int depth_img_h = get_image_height(depth_img);
     
-    int2 array_pos = {w * (i % p->num_cols) / (float)(p->num_cols), h * (i / p->num_cols) / (float)(p->num_rows)};
-    array_pos.y = h - array_pos.y;
-    array_pos.x = p->mirror ? w - array_pos.x : array_pos.x; 
-    
-    float4 color = read_imagef(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos);
-    //float depth = read_imageui(image, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x ;
+    int2 array_pos = {depth_img_w * ((i % p->num_cols) / (float)(p->num_cols)),
+                      depth_img_h * ((i / p->num_cols) / (float)(p->num_rows))};
+    array_pos.y = depth_img_h - array_pos.y - 1;
+    array_pos.x = p->mirror ? depth_img_w - array_pos.x - 1 : array_pos.x; 
     
     // depth value in meters here
-    float depth = color.x * 65535.f / 1000.f;
+    float depth = read_imagef(depth_img, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x * 65535.f / 1000.f;
     
     //
     float ratio = 0.f;
@@ -45,7 +43,7 @@ __kernel void texture_input(read_only image2d_t image, __global float4* pos_gen,
         ratio = 1.f - ratio;//p->multiplier < 0.f ? 1 - ratio : ratio; 
     }
     float outval = ratio * p->multiplier;
-    pos_gen[i].z = outval;//mix(pos_gen[i].z, outval, p->smoothing);
+    pos_gen[i].z = outval;
 }
 
 __kernel void updateParticles(  __global float4* pos,

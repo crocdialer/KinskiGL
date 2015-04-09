@@ -78,11 +78,6 @@ void BlockbusterApp::update(float timeDelta)
         m_dirty = false;
     }
     
-//    if(m_movie && m_movie->copy_frame_to_texture(textures()[0]))
-//    {
-//        m_psystem.texture_input(textures()[0]);
-//    }
-    
     struct particle_params
     {
         int num_cols, num_rows, mirror;
@@ -99,11 +94,23 @@ void BlockbusterApp::update(float timeDelta)
     p.smooth_rise = *m_depth_smooth_rise;
     m_psystem.set_param_buffer(&p, sizeof(particle_params));
     
+    if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
+    {
+        //        m_psystem.texture_input(textures()[0]);
+        m_has_new_texture = true;
+    }
+    
     if(m_open_ni->has_new_frame())
     {
         // get the depth+userID texture
-        m_textures[0] = m_open_ni->get_depth_texture();
-        m_psystem.texture_input(textures()[0]);
+        textures()[TEXTURE_DEPTH] = m_open_ni->get_depth_texture();
+        m_has_new_texture = true;
+    }
+    
+    if (m_has_new_texture)
+    {
+        m_has_new_texture = false;
+        m_psystem.texture_input({textures()[TEXTURE_DEPTH]});
     }
     
     m_psystem.update(timeDelta);

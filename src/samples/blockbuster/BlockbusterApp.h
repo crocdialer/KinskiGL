@@ -26,7 +26,7 @@ namespace kinski
     private:
         
         enum ViewType{VIEW_NOTHING = 1, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
-        enum TextureEnum{TEXTURE_DEPTH = 0, TEXTURE_SYPHON = 1};
+        enum TextureEnum{TEXTURE_DEPTH = 0, TEXTURE_MOVIE = 1, TEXTURE_SYPHON = 2};
         
         gl::OpenNIConnector::Ptr m_open_ni;
         
@@ -44,6 +44,7 @@ namespace kinski
         m_media_path = Property_<std::string>::create("media path", "");
         
         bool m_dirty = true;
+        bool m_has_new_texture = false;
         
         // fbo / syphon stuff
         std::vector<gl::Fbo> m_fbos{2};
