@@ -23,11 +23,21 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
 {
     unsigned int i = get_global_id(0);
 
+    //borders
+    int row = i / p->num_cols;
+    int col = i % p->num_cols;
+
+    if(row == 0 || col == 0 || col == p->num_cols - 1)
+    {
+      pos_gen[i].z = 0.f; 
+      return;
+    }
+
     int depth_img_w = get_image_width(depth_img);
     int depth_img_h = get_image_height(depth_img);
     
-    int2 array_pos = {depth_img_w * ((i % p->num_cols) / (float)(p->num_cols)),
-                      depth_img_h * ((i / p->num_cols) / (float)(p->num_rows))};
+    int2 array_pos = {depth_img_w * (col / (float)(p->num_cols)),
+                      depth_img_h * (row / (float)(p->num_rows))};
     array_pos.y = depth_img_h - array_pos.y - 1;
     array_pos.x = p->mirror ? depth_img_w - array_pos.x - 1 : array_pos.x; 
     
