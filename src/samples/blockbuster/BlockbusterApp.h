@@ -40,6 +40,8 @@ namespace kinski
         
         gl::Texture m_texture_input;
         
+        gl::Shader m_block_shader, m_block_shader_shadows;
+        
         Property_<std::string>::Ptr
         m_media_path = Property_<std::string>::create("media path", "");
         
@@ -84,8 +86,11 @@ namespace kinski
         m_poisson_radius = Property_<float>::create("poisson radius", 3.f);
         
         Property_<bool>::Ptr
-        m_mirror_img = Property_<bool>::create("mirror image", false);
+        m_mirror_img = Property_<bool>::create("mirror image", false),
+        m_use_border = Property_<bool>::create("use border", true),
+        m_use_shadows = Property_<bool>::create("use shadows", true);
         
+        void init_shaders();
         gl::MeshPtr create_mesh();
         glm::vec3 click_pos_on_ground(const glm::vec2 click_pos);
         

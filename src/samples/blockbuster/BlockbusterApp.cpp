@@ -33,6 +33,8 @@ void BlockbusterApp::setup()
     registerProperty(m_block_length);
     registerProperty(m_block_width);
     registerProperty(m_mirror_img);
+    registerProperty(m_use_border);
+    registerProperty(m_use_shadows);
     registerProperty(m_depth_min);
     registerProperty(m_depth_max);
     registerProperty(m_depth_multiplier);
@@ -48,6 +50,9 @@ void BlockbusterApp::setup()
     
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }
+    
+    // init our application specific shaders
+    init_shaders();
     
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
@@ -80,11 +85,12 @@ void BlockbusterApp::update(float timeDelta)
     
     struct particle_params
     {
-        int num_cols, num_rows, mirror;
+        int num_cols, num_rows, mirror, border;
         float depth_min, depth_max, multiplier;
         float smooth_fall, smooth_rise;
     } p;
     p.mirror = *m_mirror_img;
+    p.border = *m_use_border;
     p.num_cols = *m_num_tiles_x;
     p.num_rows = *m_num_tiles_y;
     p.depth_min = *m_depth_min;
@@ -278,7 +284,8 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_num_tiles_x ||
             theProperty == m_num_tiles_y ||
             theProperty == m_spacing_x ||
-            theProperty == m_spacing_y)
+            theProperty == m_spacing_y ||
+            theProperty == m_use_shadows)
     {
         m_dirty = true;
     }
@@ -330,11 +337,9 @@ gl::MeshPtr BlockbusterApp::create_mesh()
             verts[y * *m_num_tiles_x + x].xy() = offset + vec2(x, y) * step;
         }
     }
-    gl::Shader sh;
-    sh.loadFromData(read_file("geom_prepass.vert").c_str(),
-                    phong_frag,
-                    read_file("points_to_cubes.geom").c_str());
-    ret = gl::Mesh::create(geom, gl::Material::create(sh));
+   
+    ret = gl::Mesh::create(geom, gl::Material::create(*m_use_shadows ? m_block_shader_shadows :
+                                                      m_block_shader));
     ret->material()->uniform("u_length", *m_block_length);
     ret->material()->uniform("u_width", *m_block_width);
     return ret;
@@ -369,4 +374,17 @@ glm::vec3 BlockbusterApp::click_pos_on_ground(const glm::vec2 click_pos)
     auto intersect = ground_plane.intersect(ray);
     vec3 ret = ray * intersect.distance;
     return ret;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void BlockbusterApp::init_shaders()
+{
+    m_block_shader.loadFromData(read_file("geom_prepass.vert").c_str(),
+                                phong_frag,
+                                read_file("points_to_cubes.geom").c_str());
+    
+    m_block_shader_shadows.loadFromData(read_file("geom_prepass.vert").c_str(),
+                                        phong_shadows_frag,
+                                        read_file("points_to_cubes_shadows.geom").c_str());
 }

@@ -1,6 +1,6 @@
 typedef struct Params
 {
-    int num_cols, num_rows, mirror;
+    int num_cols, num_rows, mirror, border;
     float depth_min, depth_max, multiplier;
     float smooth_fall, smooth_rise;
 }Params;
@@ -27,12 +27,14 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
     int row = i / p->num_cols;
     int col = i % p->num_cols;
 
-    if(row == 0 || col == 0 || col == p->num_cols - 1)
+    if(p->border &&
+       (row == p->num_rows - 1 || col == 0 || col == p->num_cols - 1))
     {
       pos_gen[i].z = 0.f; 
       return;
     }
-
+    
+    // sample depth texture
     int depth_img_w = get_image_width(depth_img);
     int depth_img_h = get_image_height(depth_img);
     
