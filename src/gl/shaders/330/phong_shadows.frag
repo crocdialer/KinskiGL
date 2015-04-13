@@ -1,5 +1,8 @@
 #version 410
 
+#define NUM_SHADOW_LIGHTS 2
+#define EPSILON 0.000020
+
 struct Material
 {
   vec4 diffuse; 
@@ -86,21 +89,6 @@ layout(std140) uniform LightBlock
 uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[4];
 
-#define NUM_SHADOW_LIGHTS 2
-#define EPSILON 0.00002
-
-//struct Shadow
-//{
-//    mat4 matrix;
-//    int shadow_map;
-//    vec2 map_size;
-//    float poisson_radius;
-//};
-//layout(std140) uniform ShadowBlock
-//{
-//  Shadow u_shadow[NUM_SHADOW_LIGHTS];
-//};
-
 uniform sampler2D u_shadow_map[NUM_SHADOW_LIGHTS];
 uniform vec2 u_shadow_map_size = vec2(1024);
 uniform float u_poisson_radius = 3.0;
@@ -177,7 +165,7 @@ void main()
 	fTaps_Poisson[10] = vec2(-.322,-.933);
 	fTaps_Poisson[11] = vec2(-.792,-.598);
 
-  vec4 texColors = vec4(1); 
+  vec4 texColors = vertex_in.color;//vec4(1); 
   
   for(int i = 0; i < u_numTextures; i++) 
     texColors *= texture(u_sampler_2D[i], vertex_in.texCoord.st); 

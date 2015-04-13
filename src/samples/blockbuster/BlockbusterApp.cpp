@@ -32,8 +32,8 @@ void BlockbusterApp::setup()
     registerProperty(m_spacing_y);
     registerProperty(m_block_length);
     registerProperty(m_block_width);
+    registerProperty(m_border);
     registerProperty(m_mirror_img);
-    registerProperty(m_use_border);
     registerProperty(m_use_shadows);
     registerProperty(m_depth_min);
     registerProperty(m_depth_max);
@@ -91,7 +91,7 @@ void BlockbusterApp::update(float timeDelta)
         float smooth_fall, smooth_rise;
     } p;
     p.mirror = *m_mirror_img;
-    p.border = *m_use_border;
+    p.border = *m_border;
     p.num_cols = *m_num_tiles_x;
     p.num_rows = *m_num_tiles_y;
     p.depth_min = *m_depth_min;
@@ -335,6 +335,7 @@ gl::MeshPtr BlockbusterApp::create_mesh()
     geom->vertices().resize(*m_num_tiles_x * *m_num_tiles_y);
     geom->normals().resize(*m_num_tiles_x * *m_num_tiles_y, vec3(0, 0, 1));
     geom->point_sizes().resize(*m_num_tiles_x * *m_num_tiles_y, 1.f);
+    geom->colors().resize(*m_num_tiles_x * *m_num_tiles_y, gl::COLOR_WHITE);
     vec2 step(*m_spacing_x, *m_spacing_y), offset = - vec2(*m_num_tiles_x, *m_num_tiles_y) * step / 2.f;
     
     auto &verts = geom->vertices();
@@ -351,6 +352,7 @@ gl::MeshPtr BlockbusterApp::create_mesh()
                                                       m_block_shader));
     ret->material()->uniform("u_length", *m_block_length);
     ret->material()->uniform("u_width", *m_block_width);
+//    ret->material()->setBlending();
     return ret;
 }
 

@@ -73,7 +73,8 @@ namespace kinski
         m_num_tiles_x = Property_<uint32_t>::create("num tiles x", 16),
         m_num_tiles_y = Property_<uint32_t>::create("num tiles y", 10),
         m_spacing_x = Property_<uint32_t>::create("spacing x", 10),
-        m_spacing_y = Property_<uint32_t>::create("spacing y", 10);
+        m_spacing_y = Property_<uint32_t>::create("spacing y", 10),
+        m_border = Property_<uint32_t>::create("border", 1);
         
         Property_<float>::Ptr
         m_block_length = Property_<float>::create("block length", 1.f),
@@ -87,7 +88,6 @@ namespace kinski
         
         Property_<bool>::Ptr
         m_mirror_img = Property_<bool>::create("mirror image", false),
-        m_use_border = Property_<bool>::create("use border", true),
         m_use_shadows = Property_<bool>::create("use shadows", true);
         
         void init_shaders();

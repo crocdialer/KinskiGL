@@ -27,8 +27,7 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
     int row = i / p->num_cols;
     int col = i % p->num_cols;
 
-    if(p->border &&
-       (row == p->num_rows - 1 || col == 0 || col == p->num_cols - 1))
+    if(row >= p->num_rows - p->border || col <= p->border || col >= p->num_cols - p->border)
     {
       pos_gen[i].z = 0.f; 
       return;
@@ -67,8 +66,7 @@ __kernel void texture_input_2(read_only image2d_t depth_img, read_only image2d_t
     int row = i / p->num_cols;
     int col = i % p->num_cols;
 
-    if(p->border &&
-       (row == p->num_rows - 1 || col == 0 || col == p->num_cols - 1))
+    if(row >= p->num_rows - p->border || col < p->border || col >= p->num_cols - p->border)
     {
       pos_gen[i].z = 0.f; 
       return;
@@ -101,7 +99,7 @@ __kernel void texture_input_2(read_only image2d_t depth_img, read_only image2d_t
     int2 img_pos = {video_img_w * (col / (float)(p->num_cols)),
                       video_img_h * (row / (float)(p->num_rows))};
     img_pos.y = video_img_h - img_pos.y - 1;
-    float gray_val = (read_imagef(video_img, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, img_pos)).x;
+    float gray_val = gray(read_imagef(video_img, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, img_pos)).x;
     ratio = max(gray_val, ratio);
 
     float outval = ratio * p->multiplier;
@@ -150,4 +148,6 @@ __kernel void updateParticles(  __global float4* pos,
     //update the arrays with our newly computed values
     pos[i] = p;
     vel[i] = v;
+
+    //color[i] = float4(1, 0, 0, 0);//pos[i].z / params->multiplier;  
 }
