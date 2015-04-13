@@ -227,6 +227,45 @@ namespace kinski{ namespace gl{
         }
     }
     
+    void ParticleSystem::texture_input_2(gl::Texture &the_tex1, gl::Texture &the_tex2)
+    {
+        auto iter = m_kernel_map.find("texture_input_2");
+        if(iter != m_kernel_map.end())
+        {
+            // get a ref for our kernel
+            auto &kernel = iter->second;
+            
+            try
+            {
+                cl::ImageGL img1(opencl().context(), CL_MEM_READ_ONLY, the_tex1.getTarget(), 0,
+                                the_tex1.getId());
+                
+                cl::ImageGL img2(opencl().context(), CL_MEM_READ_ONLY, the_tex2.getTarget(), 0,
+                                 the_tex2.getId());
+                
+                kernel.setArg(0, img1);
+                kernel.setArg(1, img2);
+                kernel.setArg(2, m_positionGen);
+                kernel.setArg(3, m_param_buffer);
+                
+                int num = num_particles();
+                
+                // execute the kernel
+                m_opencl.queue().enqueueNDRangeKernel(kernel,
+                                                      cl::NullRange,
+                                                      cl::NDRange(num),
+                                                      cl::NullRange);
+                
+                m_opencl.queue().finish();
+            }
+            catch(cl::Error &error)
+            {
+                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            }
+            
+        }
+    }
+    
     void ParticleSystem::apply_forces(float time_delta)
     {
         auto iter = m_kernel_map.find("apply_forces");

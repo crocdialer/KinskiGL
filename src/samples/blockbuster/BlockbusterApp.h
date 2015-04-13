@@ -25,7 +25,7 @@ namespace kinski
     {
     private:
         
-        enum ViewType{VIEW_NOTHING = 1, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
+        enum ViewType{VIEW_NOTHING = 0, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
         enum TextureEnum{TEXTURE_DEPTH = 0, TEXTURE_MOVIE = 1, TEXTURE_SYPHON = 2};
         
         gl::OpenNIConnector::Ptr m_open_ni;

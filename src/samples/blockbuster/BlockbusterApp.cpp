@@ -57,6 +57,7 @@ void BlockbusterApp::setup()
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
     m_psystem.add_kernel("texture_input");
+    m_psystem.add_kernel("texture_input_2");
     m_psystem.add_kernel("updateParticles");
     
     // openni
@@ -100,7 +101,7 @@ void BlockbusterApp::update(float timeDelta)
     p.smooth_rise = *m_depth_smooth_rise;
     m_psystem.set_param_buffer(&p, sizeof(particle_params));
     
-    if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE]))
+    if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE], true))
     {
         //        m_psystem.texture_input(textures()[0]);
         m_has_new_texture = true;
@@ -116,7 +117,15 @@ void BlockbusterApp::update(float timeDelta)
     if (m_has_new_texture)
     {
         m_has_new_texture = false;
-        m_psystem.texture_input({textures()[TEXTURE_DEPTH]});
+        
+        if(textures()[TEXTURE_MOVIE] && textures()[TEXTURE_DEPTH])
+        {
+            m_psystem.texture_input_2(textures()[TEXTURE_DEPTH], textures()[TEXTURE_MOVIE]);
+        }
+        else if(textures()[TEXTURE_DEPTH])
+        {
+            m_psystem.texture_input(textures()[TEXTURE_DEPTH]);
+        }
     }
     
     m_psystem.update(timeDelta);
@@ -244,7 +253,6 @@ void BlockbusterApp::fileDrop(const MouseEvent &e, const std::vector<std::string
         auto ft = get_filetype(f);
         if(ft == FileType::FILE_IMAGE || ft == FileType::FILE_MOVIE)
         {
-        
             *m_media_path = f;
         }
     }
@@ -266,6 +274,7 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
     if(theProperty == m_media_path)
     {
         m_movie = MovieController::create(*m_media_path, true, true);
+        textures()[TEXTURE_MOVIE] = gl::Texture();
     }
     else if(theProperty == m_block_length)
     {
