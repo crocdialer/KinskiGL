@@ -52,7 +52,7 @@ namespace kinski{ namespace gl{
         void texture_input(gl::Texture &the_texture);
         
         // hacky ->remove when tex input is generic for multiple textures
-        void texture_input_2(gl::Texture &the_tex1, gl::Texture &the_tex2);
+        void texture_input_alt(gl::Texture &the_tex1, gl::Texture &the_tex2);
         
         void set_param_buffer(void *the_data, size_t num_bytes);
         

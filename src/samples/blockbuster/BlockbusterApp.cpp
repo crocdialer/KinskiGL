@@ -57,7 +57,7 @@ void BlockbusterApp::setup()
     m_psystem.opencl().init();
     m_psystem.opencl().set_sources("kernels.cl");
     m_psystem.add_kernel("texture_input");
-    m_psystem.add_kernel("texture_input_2");
+    m_psystem.add_kernel("texture_input_alt");
     m_psystem.add_kernel("updateParticles");
     
     // openni
@@ -120,7 +120,7 @@ void BlockbusterApp::update(float timeDelta)
         
         if(textures()[TEXTURE_MOVIE] && textures()[TEXTURE_DEPTH])
         {
-            m_psystem.texture_input_2(textures()[TEXTURE_DEPTH], textures()[TEXTURE_MOVIE]);
+            m_psystem.texture_input_alt(textures()[TEXTURE_DEPTH], textures()[TEXTURE_MOVIE]);
         }
         else if(textures()[TEXTURE_DEPTH])
         {

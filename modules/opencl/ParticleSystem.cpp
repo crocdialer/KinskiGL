@@ -227,9 +227,9 @@ namespace kinski{ namespace gl{
         }
     }
     
-    void ParticleSystem::texture_input_2(gl::Texture &the_tex1, gl::Texture &the_tex2)
+    void ParticleSystem::texture_input_alt(gl::Texture &the_tex1, gl::Texture &the_tex2)
     {
-        auto iter = m_kernel_map.find("texture_input_2");
+        auto iter = m_kernel_map.find("texture_input_alt");
         if(iter != m_kernel_map.end())
         {
             // get a ref for our kernel

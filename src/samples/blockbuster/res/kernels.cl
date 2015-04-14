@@ -47,7 +47,7 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
     
     //
     float ratio = 0.f;
-    if(depth < p->depth_min || depth > p->depth_max){ depth = 0; }
+    if(depth < p->depth_min || depth > p->depth_max){ depth = 0.f; }
     else
     {
         ratio = (depth - p->depth_min) / (p->depth_max - p->depth_min);
@@ -57,8 +57,8 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
     pos_gen[i].z = outval;
 }
 
-__kernel void texture_input_2(read_only image2d_t depth_img, read_only image2d_t video_img,
-                              __global float4* pos_gen, __constant struct Params *p)
+__kernel void texture_input_alt(read_only image2d_t depth_img, read_only image2d_t video_img,
+                                __global float4* pos_gen, __constant struct Params *p)
 {
     unsigned int i = get_global_id(0);
 
