@@ -109,7 +109,7 @@ __kernel void texture_input_alt(read_only image2d_t depth_img, read_only image2d
 
 __kernel void updateParticles(  __global float4* pos,
                                 __global float4* color,
-                                __global float4* point_sizes,
+                                __global float* point_sizes,
                                 __global float4* vel,
                                 __global float4* pos_gen,
                                 __global float4* vel_gen,

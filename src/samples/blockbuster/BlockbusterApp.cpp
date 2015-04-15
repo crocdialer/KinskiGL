@@ -292,13 +292,13 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh->material()->uniform("u_length", *m_block_length);
         }
     }
-    else if(theProperty == m_block_width)
-    {
-        if(m_mesh)
-        {
-            m_mesh->material()->uniform("u_width", *m_block_width);
-        }
-    }
+//    else if(theProperty == m_block_width)
+//    {
+//        if(m_mesh)
+//        {
+//            m_mesh->material()->uniform("u_width", *m_block_width);
+//        }
+//    }
     else if(theProperty == m_num_tiles_x ||
             theProperty == m_num_tiles_y ||
             theProperty == m_spacing_x ||
@@ -360,7 +360,7 @@ gl::MeshPtr BlockbusterApp::create_mesh()
     ret = gl::Mesh::create(geom, gl::Material::create(*m_use_shadows ? m_block_shader_shadows :
                                                       m_block_shader));
     ret->material()->uniform("u_length", *m_block_length);
-    ret->material()->uniform("u_width", *m_block_width);
+//    ret->material()->uniform("u_width", *m_block_width);
 //    ret->material()->setBlending();
     return ret;
 }

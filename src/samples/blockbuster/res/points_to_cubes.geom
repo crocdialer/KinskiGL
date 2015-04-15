@@ -10,7 +10,7 @@ uniform mat3 u_normalMatrix;
 uniform mat4 u_shadow_matrices[4];
 
 uniform float u_length = 10.0;
-uniform float u_width = 1.0;
+//uniform float u_width = 1.0;
 
 // placeholder for halfs of depth and height
 float depth2 = .5;
@@ -50,7 +50,7 @@ out VertexData
 void create_box(in vec3 p0, in vec3 p1, in vec3 up_vec)
 {
     // same for all verts
-    depth2 = height2 = max(u_width, vertex_in[0].pointSize) / 2.0;
+    depth2 = height2 = vertex_in[0].pointSize / 2.0;
     vertex_out.color = vertex_in[0].color;
 
     // basevectors for the cuboid
