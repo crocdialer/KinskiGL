@@ -10,6 +10,7 @@
 #define __gl__BlockbusterApp__
 
 #include "app/ViewerApp.h"
+#include "app/RemoteControl.h"
 #include "app/LightComponent.h"
 
 // module
@@ -27,6 +28,9 @@ namespace kinski
         
         enum ViewType{VIEW_NOTHING = 0, VIEW_DEBUG = 1, VIEW_OUTPUT = 2};
         enum TextureEnum{TEXTURE_DEPTH = 0, TEXTURE_MOVIE = 1, TEXTURE_SYPHON = 2};
+        
+        // web interface remote control
+        RemoteControl m_remote_control;
         
         gl::OpenNIConnector::Ptr m_open_ni;
         

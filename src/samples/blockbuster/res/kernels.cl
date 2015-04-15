@@ -149,5 +149,5 @@ __kernel void updateParticles(  __global float4* pos,
     pos[i] = p;
     vel[i] = v;
 
-    //color[i] = float4(1, 0, 0, 0);//pos[i].z / params->multiplier;  
+    //color[i] = float4(1, 0, 0, 0);//pos[i].z / params->multiplier;
 }
