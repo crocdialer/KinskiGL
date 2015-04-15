@@ -166,11 +166,12 @@ namespace kinski{ namespace gl{
                 
                 kernel.setArg(0, m_vertices);
                 kernel.setArg(1, m_colors);
-                kernel.setArg(2, m_velocities);
-                kernel.setArg(3, m_positionGen);
-                kernel.setArg(4, m_velocityGen);
-                kernel.setArg(5, time_delta); //pass in the timestep
-                kernel.setArg(6, m_param_buffer);
+                kernel.setArg(2, m_pointSizes);
+                kernel.setArg(3, m_velocities);
+                kernel.setArg(4, m_positionGen);
+                kernel.setArg(5, m_velocityGen);
+                kernel.setArg(6, time_delta); //pass in the timestep
+                kernel.setArg(7, m_param_buffer);
                 
                 int num = num_particles();
                 

@@ -3,6 +3,7 @@ typedef struct Params
     int num_cols, num_rows, mirror, border;
     float depth_min, depth_max, multiplier;
     float smooth_fall, smooth_rise;
+    float min_size, max_size;
 }Params;
 
 inline float4 gray(float4 color)
@@ -108,6 +109,7 @@ __kernel void texture_input_alt(read_only image2d_t depth_img, read_only image2d
 
 __kernel void updateParticles(  __global float4* pos,
                                 __global float4* color,
+                                __global float4* point_sizes,
                                 __global float4* vel,
                                 __global float4* pos_gen,
                                 __global float4* vel_gen,
@@ -150,4 +152,5 @@ __kernel void updateParticles(  __global float4* pos,
     vel[i] = v;
 
     //color[i] = float4(1, 0, 0, 0);//pos[i].z / params->multiplier;
+    point_sizes[i] = mix(params->min_size, params->max_size, pos[i].z / params->multiplier);
 }

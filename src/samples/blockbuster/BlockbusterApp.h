@@ -83,6 +83,7 @@ namespace kinski
         Property_<float>::Ptr
         m_block_length = Property_<float>::create("block length", 1.f),
         m_block_width = Property_<float>::create("block width", 1.f),
+        m_block_width_multiplier = Property_<float>::create("block width multiplier", 1.f),
         m_depth_min = Property_<float>::create("depth min", 1.f),
         m_depth_max = Property_<float>::create("depth max", 3.f),
         m_depth_multiplier = Property_<float>::create("depth mutliplier", 10.f),

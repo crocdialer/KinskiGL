@@ -32,6 +32,7 @@ void BlockbusterApp::setup()
     registerProperty(m_spacing_y);
     registerProperty(m_block_length);
     registerProperty(m_block_width);
+    registerProperty(m_block_width_multiplier);
     registerProperty(m_border);
     registerProperty(m_mirror_img);
     registerProperty(m_use_shadows);
@@ -93,6 +94,7 @@ void BlockbusterApp::update(float timeDelta)
         int num_cols, num_rows, mirror, border;
         float depth_min, depth_max, multiplier;
         float smooth_fall, smooth_rise;
+        float min_size, max_size;
     } p;
     p.mirror = *m_mirror_img;
     p.border = *m_border;
@@ -103,6 +105,9 @@ void BlockbusterApp::update(float timeDelta)
     p.multiplier = *m_depth_multiplier;
     p.smooth_fall = *m_depth_smooth_fall;
     p.smooth_rise = *m_depth_smooth_rise;
+    p.min_size = *m_block_width;
+    p.max_size = *m_block_width * *m_block_width_multiplier;
+    
     m_psystem.set_param_buffer(&p, sizeof(particle_params));
     
     if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE], true))
