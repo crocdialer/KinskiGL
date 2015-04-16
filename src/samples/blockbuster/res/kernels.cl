@@ -28,7 +28,7 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
     int row = i / p->num_cols;
     int col = i % p->num_cols;
 
-    if(row >= p->num_rows - p->border || col <= p->border || col >= p->num_cols - p->border)
+    if(row >= p->num_rows - p->border || col < p->border || col >= p->num_cols - p->border)
     {
       pos_gen[i].z = 0.f; 
       return;
@@ -41,7 +41,7 @@ __kernel void texture_input(read_only image2d_t depth_img, __global float4* pos_
     int2 array_pos = {depth_img_w * (col / (float)(p->num_cols)),
                       depth_img_h * (row / (float)(p->num_rows))};
     array_pos.y = depth_img_h - array_pos.y - 1;
-    array_pos.x = p->mirror ? depth_img_w - array_pos.x - 1 : array_pos.x; 
+    array_pos.x = p->mirror ? (depth_img_w - array_pos.x - 10) : array_pos.x; 
     
     // depth value in meters here
     float depth = read_imagef(depth_img, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x * 65535.f / 1000.f;
@@ -80,7 +80,7 @@ __kernel void texture_input_alt(read_only image2d_t depth_img, read_only image2d
     int2 array_pos = {depth_img_w * (col / (float)(p->num_cols)),
                       depth_img_h * (row / (float)(p->num_rows))};
     array_pos.y = depth_img_h - array_pos.y - 1;
-    array_pos.x = p->mirror ? depth_img_w - array_pos.x - 1 : array_pos.x; 
+    array_pos.x = p->mirror ? depth_img_w - array_pos.x - 10 : array_pos.x; 
     
     // depth value in meters here
     float depth = read_imagef(depth_img, CLK_FILTER_NEAREST | CLK_ADDRESS_CLAMP_TO_EDGE, array_pos).x * 65535.f / 1000.f;
