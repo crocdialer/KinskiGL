@@ -1521,8 +1521,12 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 frag_src = phong_frag;
                 break;
                 
-            case SHADER_PHONG_SHADWOS:
+            case SHADER_PHONG_SHADOWS:
                 vert_src = phong_shadows_vert;
+                frag_src = phong_shadows_frag;
+                break;
+            case SHADER_PHONG_SKIN_SHADOWS:
+                vert_src = phong_skin_vert;
                 frag_src = phong_shadows_frag;
                 break;
 #if !defined(KINSKI_GLES)

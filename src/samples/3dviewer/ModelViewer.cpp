@@ -32,7 +32,7 @@ void ModelViewer::setup()
     
     // add groundplane
     auto ground_mesh = gl::Mesh::create(gl::Geometry::createPlane(400, 400),
-                                        gl::Material::create(gl::createShader(gl::SHADER_PHONG)));
+                                        gl::Material::create(gl::createShader(gl::SHADER_PHONG_SHADOWS)));
     ground_mesh->transform() = glm::rotate(mat4(), -90.f, gl::X_AXIS);
 //    uint8_t c = 255;
 //    gl::Texture t(&c, GL_RED, 1, 1);
@@ -202,7 +202,9 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
             scene().addObject(m_mesh);
 
             
-//            m->material()->setShader(gl::createShader(gl::SHADER_PHONG_NORMALMAP));
+            m->material()->setShader(gl::createShader(false ?
+                                                      gl::SHADER_PHONG_SKIN_SHADOWS :
+                                                      gl::SHADER_PHONG_SHADOWS));
 //            m->material()->addTexture(gl::createTextureFromFile("~/Desktop/normal.png", true));
             
             auto aabb = m->boundingBox();
