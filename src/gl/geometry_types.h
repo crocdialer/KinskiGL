@@ -316,9 +316,9 @@ struct KINSKI_API OBB
         // point in axis space
         const glm::mat3& mat = *reinterpret_cast<const glm::mat3*>(&axis[0][0]);
         glm::vec3 p_in_axis_space = mat * p;
-        return  abs(p_in_axis_space.x) < half_lengths.x &&
-                abs(p_in_axis_space.y) < half_lengths.y &&
-                abs(p_in_axis_space.z) < half_lengths.z;
+        return  std::abs(p_in_axis_space.x) < half_lengths.x &&
+                std::abs(p_in_axis_space.y) < half_lengths.y &&
+                std::abs(p_in_axis_space.z) < half_lengths.z;
     };
 };
 

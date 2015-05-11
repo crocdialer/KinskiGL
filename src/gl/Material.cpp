@@ -14,9 +14,8 @@ using namespace glm;
 
 namespace kinski { namespace gl {
     
-    Material::Material(const Shader &theShader, const UniformMap &theUniforms):
+    Material::Material(const Shader &theShader):
     m_shader(theShader),
-    m_uniforms(theUniforms),
     m_dirty(true),
     m_polygonMode(GL_FRONT),
     m_twoSided(false),
@@ -36,7 +35,12 @@ namespace kinski { namespace gl {
         setPointAttenuation(1.f, 0.f, 0.f);
         m_shader = theShader? theShader : gl::createShader(gl::SHADER_UNLIT);
     }
-
+    
+    MaterialPtr Material::create(const Shader &theShader)
+    {
+        return MaterialPtr(new Material(theShader));
+    }
+    
     void Material::setDiffuse(const Color &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));

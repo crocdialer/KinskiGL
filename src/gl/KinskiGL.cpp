@@ -567,7 +567,7 @@ namespace kinski { namespace gl {
         //create material, if not yet here
         if(!material)
         {
-            try{material = gl::Material::Ptr(new gl::Material);}
+            try{material = gl::Material::create();}
             catch (Exception &e){LOG_ERROR<<e.what();}
             material->setDepthTest(false);
             material->setDepthWrite(false);
@@ -727,7 +727,7 @@ namespace kinski { namespace gl {
         {
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
-            gl::MaterialPtr mat(new gl::Material);
+            gl::MaterialPtr mat = gl::Material::create();
             MeshPtr mesh (gl::Mesh::create(geom, mat));
             
             vector<vec3> &points = geom->vertices();
@@ -784,7 +784,7 @@ namespace kinski { namespace gl {
             
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
-            gl::MaterialPtr mat(new gl::Material);
+            gl::MaterialPtr mat = gl::Material::create();
             MeshPtr line_mesh (gl::Mesh::create(geom, mat));
             AABB bb = m->boundingBox();
             vector<vec3> &thePoints = geom->vertices();
@@ -1101,7 +1101,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             if(m->geometry()->normals().empty()) return;
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
-            gl::MaterialPtr mat(new gl::Material);
+            gl::MaterialPtr mat = gl::Material::create();
             MeshPtr line_mesh = gl::Mesh::create(geom, mat);
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();

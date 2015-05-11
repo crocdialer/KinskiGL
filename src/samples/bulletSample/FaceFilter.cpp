@@ -20,7 +20,7 @@ namespace kinski
         set_name("FaceFilter");
         // find available cascades
         std::list<std::string> cascades;
-        for (auto &f : getDirectoryEntries(".", "xml", false))
+        for (auto &f : get_directory_entries(".", "xml", false))
         {
             if(f.find("cascade") != string::npos)
                 cascades.push_back(f);

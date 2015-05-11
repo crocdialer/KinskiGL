@@ -1,4 +1,4 @@
-#include "app/GLFW_App.h"
+#include "app/ViewerApp.h"
 
 #include "cv/CVThread.h"
 #include "cv/TextureIO.h"
@@ -10,11 +10,9 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class KeypointApp : public GLFW_App
+class KeypointApp : public ViewerApp
 {
 private:
-    
-    gl::Texture m_textures[4];
     
     Property_<bool>::Ptr m_activator;
     
@@ -34,23 +32,24 @@ public:
         m_imageIndex = RangedProperty<uint32_t>::create("Image Index", 2, 0, 2);
         registerProperty(m_imageIndex);
         
-        addPropertyListToTweakBar(getPropertyList());
+        create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
         // CV stuff 
         m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread( searchFile("kinder.jpg") )));
+        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread( search_file("~/Desktop/keypoint_test_01.jpg") )));
         
 //        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVDiskWriterNode
 //                                                           ("/Users/Fabian/Desktop/video.avi"));
         
         // trigger observer callbacks
         m_processNode->observeProperties();
+        create_tweakbar_from_component(m_processNode);
         
         m_cvThread->setProcessingNode(m_processNode);
 
-        //m_cvThread->streamUSBCamera();
-        m_cvThread->streamVideo("kinderFeat.mov", true);
+        m_cvThread->streamUSBCamera();
+//        m_cvThread->streamVideo("~/Desktop/keypoint_test_01.mov", true);
         
         if(m_processNode)
         {
@@ -92,17 +91,15 @@ public:
     void draw()
     {
         // draw fullscreen image
-        gl::drawTexture(m_textures[*m_imageIndex], windowSize());
+        gl::drawTexture(textures()[*m_imageIndex], windowSize());
         
         // draw process-results map(s)
         glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
         glm::vec2 step(0, - getHeight()/5.f - 10);
         
-        for(int i=0;i<m_cvThread->getImages().size();i++)
+        if(displayTweakBar())
         {
-            drawTexture(m_textures[i], windowSize()/5.f, offet);
-            
-            offet += step;
+            draw_textures(textures());
         }
         
     }

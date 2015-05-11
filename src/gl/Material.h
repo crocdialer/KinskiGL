@@ -34,12 +34,7 @@ namespace kinski { namespace gl {
         
         typedef std::map<std::string, UniformValue> UniformMap;
 
-        static Ptr create(const Shader &theShader = Shader())
-        {
-            return Ptr(new Material(theShader));
-        }
-        
-        Material(const Shader &theShader = Shader(), const UniformMap &theUniforms = UniformMap());
+        static Ptr create(const Shader &theShader = Shader());
 
         bool dirty() const { return m_dirty; };
         
@@ -97,6 +92,8 @@ namespace kinski { namespace gl {
         void setLineThickness(float t);
         
     private:
+        
+        Material(const Shader &theShader);
         
         Shader m_shader;
         

@@ -230,7 +230,7 @@ namespace kinski { namespace gl {
     {
         GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_TRIANGLES);
-        gl::MaterialPtr mat(new gl::Material);
+        gl::MaterialPtr mat = gl::Material::create();
         mat->setDiffuse(theColor);
         mat->addTexture(glyph_texture());
         mat->setBlending(true);

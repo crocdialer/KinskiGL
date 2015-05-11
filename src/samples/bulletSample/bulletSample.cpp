@@ -6,7 +6,7 @@ typedef kinski::Raspi_App BaseAppType;
 typedef kinski::ViewerApp BaseAppType;
 #endif
 
-#include "physics_context.h"
+#include "physics/physics_context.h"
 
 #include "cv/CVThread.h"
 #include "cv/TextureIO.h"
@@ -109,8 +109,8 @@ public:
     {
         BaseAppType::setup();
         
-        kinski::addSearchPath("~/Desktop");
-        kinski::addSearchPath("/Library/Fonts");
+        kinski::add_search_path("~/Desktop");
+        kinski::add_search_path("/Library/Fonts");
         
         m_font.load("Arial.ttf", 24);
         outstream_gl().set_font(m_font);
@@ -227,7 +227,6 @@ public:
         for (int i = 0; i < materials().size(); i++)
         {
             materials()[i]->uniform("u_time",getApplicationTime());
-            materials()[i]->uniform("u_lightDir", light_direction());
             materials()[i]->setAmbient(0.2 * clear_color());
         }
     }

@@ -69,8 +69,6 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   return base_color * (ambient + diffuse) + spec; 
 }
 
-
-//uniform Material u_material;
 layout(std140) uniform MaterialBlock
 {
   Material u_material;

@@ -1,16 +1,22 @@
-#version 150 core
+#version 330
 
 uniform int u_numTextures;
-uniform sampler2D u_textureMap[];
+uniform sampler2D u_sampler_2D[4];
 
-uniform struct
+struct Material
 {
-    vec4 diffuse;
-    vec4 ambient;
-    vec4 specular;
-    vec4 emission;
-    
-} u_material;
+  vec4 diffuse; 
+  vec4 ambient; 
+  vec4 specular; 
+  vec4 emission; 
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
+  float shinyness;
+};
+
+layout(std140) uniform MaterialBlock
+{
+  Material u_material;
+};
 
 in vec4 v_texCoord;
 out vec4 fragData;
@@ -96,10 +102,8 @@ float gray(in vec3 color)
 
 void main()
 {
-    vec4 color = texture(u_textureMap[0], v_texCoord.xy);
-    float confidence = texture(u_textureMap[1], v_texCoord.xy).r;
-    
-    //confidence = confidence > 0.25 ? confidence : 0.0 ;
+    vec4 color = texture(u_sampler_2D[0], v_texCoord.xy);
+    float confidence = texture(u_sampler_2D[1], v_texCoord.xy).r;
     
     fragData = jet(confidence);//mix(color, jet(confidence), confidence) ;
 }

@@ -173,15 +173,19 @@ void main()
   vec3 normal = normalize(vertex_in.normal); 
   vec4 shade_color = vec4(0); 
   
-  float factor[2];
-  factor[0] = shadow_factor(u_shadow_map[0], projected_coords(vertex_in.lightspace_pos[0]));
-  factor[1] = shadow_factor(u_shadow_map[1], projected_coords(vertex_in.lightspace_pos[1]));
-  
+  float factor[NUM_SHADOW_LIGHTS];
+
   float min_shade = 0.1, max_shade = 1.0;
-  factor[0] = mix(min_shade, max_shade, factor[0]);
-  factor[1] = mix(min_shade, max_shade, factor[1]);
 
   for(int i = 0; i < NUM_SHADOW_LIGHTS; i++)
+  {
+    factor[i] = shadow_factor(u_shadow_map[i], projected_coords(vertex_in.lightspace_pos[i]));
+    factor[i] = mix(min_shade, max_shade, factor[i]);
+  }
+  
+  int c = min(NUM_SHADOW_LIGHTS, u_numLights);
+
+  for(int i = 0; i < c; i++)
   {
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, factor[i]);
   }

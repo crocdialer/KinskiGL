@@ -17,17 +17,17 @@ using namespace boost::timer;
 namespace kinski
 {
     KeyPointNode::KeyPointNode(const Mat &refImage):
-    m_featureDetect(new ORB(250, 1.25, 6)),//FeatureDetector::create("ORB")),
-    m_featureExtract(DescriptorExtractor::create("ORB")),
-    m_matcher(new BFMatcher(NORM_HAMMING)),
+    m_featureDetect(ORB::create(250, 1.2, 10)),//FeatureDetector::create("ORB")),
+    m_featureExtract(m_featureDetect),
+    m_matcher(new BFMatcher(NORM_HAMMING2)),
     m_maxImageWidth(RangedProperty<uint32_t>::create("Max image width",
-                                                      800, 100, 1900)),
+                                                      1024, 100, 1920)),
     m_maxPatchWidth(RangedProperty<uint32_t>::create("Max patch width",
                                                       480, 50, 1024)),
     m_maxFeatureDist(RangedProperty<uint32_t>::create("Max feature distance",
-                                                       50, 0, 150)),
+                                                       110, 0, 150)),
     m_minMatchCount(RangedProperty<uint32_t>::create("Minimum match-count",
-                                                                      16, 4, 64))
+                                                                      8, 4, 64))
     {
         registerProperty(m_maxFeatureDist);
         registerProperty(m_maxImageWidth);
