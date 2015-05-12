@@ -34,7 +34,7 @@ namespace kinski
         cv::Ptr<cv::DescriptorMatcher> m_matcher;
         
         std::vector<cv::KeyPoint> m_trainKeypoints;
-        cv::Mat m_outImg, m_referenceImage, m_trainDescriptors, m_homography;
+        cv::UMat m_outImg, m_referenceImage, m_trainDescriptors, m_homography;
         
         cv::KalmanFilter m_kalmanFilter;
         
@@ -50,8 +50,6 @@ namespace kinski
                             const std::vector<cv::DMatch>& matches,
                             std::vector<cv::Point2f>& pts_train,
                             std::vector<cv::Point2f>& pts_query);
-        
     };
-
 }
 #endif /* defined(__gl__FeatureDetector__) */

@@ -4,8 +4,6 @@
 #include "cv/TextureIO.h"
 #include "KeyPointNode.h"
 
-#include "Data.h"
-
 using namespace std;
 using namespace kinski;
 using namespace glm;
@@ -14,33 +12,32 @@ class KeypointApp : public ViewerApp
 {
 private:
     
-    Property_<bool>::Ptr m_activator;
+    Property_<bool>::Ptr
+    m_activator = Property_<bool>::create("processing", true);
     
-    RangedProperty<uint32_t>::Ptr m_imageIndex;
+    Property_<std::string>::Ptr
+    m_img_path = Property_<std::string>::create("image path", "");
+    
+    RangedProperty<uint32_t>::Ptr
+    m_imageIndex = RangedProperty<uint32_t>::create("Image Index", 2, 0, 2);
     
     CVThread::Ptr m_cvThread;
-    
     CVProcessNode::Ptr m_processNode;
     
 public:
     
     void setup()
     {
-        m_activator = Property_<bool>::create("processing", true);
         registerProperty(m_activator);
-        
-        m_imageIndex = RangedProperty<uint32_t>::create("Image Index", 2, 0, 2);
+        registerProperty(m_img_path);
         registerProperty(m_imageIndex);
         
         create_tweakbar_from_component(shared_from_this());
         observeProperties();
         
         // CV stuff 
-        m_cvThread = CVThread::Ptr(new CVThread());
-        m_processNode = CVProcessNode::Ptr(new KeyPointNode(cv::imread( search_file("~/Desktop/keypoint_test_01.jpg") )));
-        
-//        m_processNode = m_processNode >> CVProcessNode::Ptr(new CVDiskWriterNode
-//                                                           ("/Users/Fabian/Desktop/video.avi"));
+        m_cvThread = std::make_shared<CVThread>();
+        m_processNode = std::make_shared<KeyPointNode>(cv::imread(search_file("~/Desktop/keypoint_test_01.jpg")));
         
         // trigger observer callbacks
         m_processNode->observeProperties();
@@ -49,7 +46,6 @@ public:
         m_cvThread->setProcessingNode(m_processNode);
 
         m_cvThread->streamUSBCamera();
-//        m_cvThread->streamVideo("~/Desktop/keypoint_test_01.mov", true);
         
         if(m_processNode)
         {
@@ -78,7 +74,7 @@ public:
             setWindowSize( vec2(getWidth(), getWidth() / imgAspect) );
             
             
-            for(int i=0;i<images.size();i++)
+            for(int i = 0; i < images.size(); i++)
                 gl::TextureIO::updateTexture(m_textures[i], images[i]);
             
             m_imageIndex->setRange(0, images.size() - 1);
@@ -91,23 +87,46 @@ public:
     void draw()
     {
         // draw fullscreen image
-        gl::drawTexture(textures()[*m_imageIndex], windowSize());
+        gl::drawTexture(textures()[*m_imageIndex], gl::windowDimension());
         
-        // draw process-results map(s)
-        glm::vec2 offet(getWidth() - getWidth()/5.f - 10, getHeight() - 10);
-        glm::vec2 step(0, - getHeight()/5.f - 10);
+        if(displayTweakBar()){ draw_textures(textures()); }
+    }
+    
+    void fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
+    {
+        ViewerApp::fileDrop(e, files);
         
-        if(displayTweakBar())
+        for(const string &f : files)
         {
-            draw_textures(textures());
+            LOG_DEBUG << f;
+            
+            switch (get_filetype(f))
+            {
+                case FileType::FILE_IMAGE:
+                    *m_img_path = f;
+                    break;
+                default:
+                    break;
+            }
         }
+    }
+    
+    void updateProperty(const Property::ConstPtr &theProperty)
+    {
+        ViewerApp::updateProperty(theProperty);
         
+        if(theProperty == m_img_path)
+        {
+            if(m_processNode)
+            {
+                std::dynamic_pointer_cast<KeyPointNode>(m_processNode)->setReferenceImage(cv::imread(search_file(*m_img_path)));
+            }
+        }
     }
 };
 
 int main(int argc, char *argv[])
 {
-    App::Ptr theApp(new KeypointApp);
-    
+    auto theApp = std::make_shared<KeypointApp>();    
     return theApp->run();
 }

@@ -222,7 +222,7 @@ namespace kinski { namespace gl {
     enum ShaderType {SHADER_UNLIT, SHADER_GOURAUD, SHADER_PHONG, SHADER_PHONG_SHADOWS,
         SHADER_PHONG_SKIN_SHADOWS,
         SHADER_PHONG_NORMALMAP, SHADER_PHONG_SKIN, SHADER_POINTS_TEXTURE, SHADER_LINES_2D,
-        SHADER_POINTS_COLOR, SHADER_POINTS_SPHERE, SHADER_2D_RECT};
+        SHADER_POINTS_COLOR, SHADER_POINTS_SPHERE, SHADER_2D_RECT, SHADER_NOISE_3D};
     KINSKI_API Shader createShader(ShaderType type);
     KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
                                            const std::string &geomPath="");

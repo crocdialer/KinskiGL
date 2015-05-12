@@ -79,7 +79,7 @@
 	[_videoOutput setAlwaysDiscardsLateVideoFrames:YES];
     
     // Use RGB frames instead of YUV to ease color processing
-    // TODO: do YUV colour conversion in shader
+    // TODO: do YUV colour conversion in shader?
 	[_videoOutput setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
     
     [_videoOutput setSampleBufferDelegate:self queue:dispatch_get_main_queue()];
@@ -140,7 +140,7 @@ namespace kinski
         uint8_t m_pbo_index;
         
         Impl(int device_id):
-        m_camera(NULL),
+        m_camera(nullptr),
         m_pbo_index(0)
         {
             m_camera = [[Camera alloc] initWithDeviceId: device_id];
@@ -152,10 +152,20 @@ namespace kinski
         };
     };
     
+    CameraControllerPtr CameraController::create(int device_id)
+    {
+        return CameraControllerPtr(new CameraController(device_id));
+    }
+    
     CameraController::CameraController(int device_id):
     m_impl(new Impl(device_id))
     {
         
+    }
+    
+    int CameraController::device_id() const
+    {
+        return -1;
     }
     
     CameraController::~CameraController()

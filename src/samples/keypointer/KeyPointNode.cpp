@@ -41,27 +41,25 @@ namespace kinski
     
     string KeyPointNode::getDescription()
     {
-        return "KeyPointNode: Object detection and pose estimation "
-        "using stable image features";
+        return "\n--------- KeyPointNode ---------\n"
+        "Object detection and pose estimation using stable image features";
     }
     
     vector<Mat> KeyPointNode::doProcessing(const Mat &img)
     {
         vector<KeyPoint> keypoints;
         vector<DMatch> matches;
-        Mat descriptors_scene, downSized;
+        UMat descriptors_scene, downSized, out_img;
         
         float scale = (float)*m_maxImageWidth / img.cols;
         scale = min(scale, 1.f);
-        resize(img, downSized, Size(), scale, scale);
+        resize(img.getUMat(ACCESS_READ), downSized, Size(), scale, scale);
         
         m_featureDetect->detect(downSized, keypoints);
         m_featureExtract->compute(downSized, keypoints,descriptors_scene);
         m_matcher->match(descriptors_scene, m_trainDescriptors, matches);
         
-        //Mat outImg = img.clone();
-
-        img.copyTo(m_outImg);
+        m_outImg = img.getUMat(ACCESS_RW);
         
         //-- Quick calculation of max and min distances between keypoints
         double max_dist = 0; double min_dist = 200;
@@ -81,7 +79,7 @@ namespace kinski
                 good_matches.push_back( matches[i]);
         }
         
-        m_homography = Mat();
+        m_homography = UMat();
         
         Mat camMatrix;
         Mat camRotation;
@@ -95,7 +93,7 @@ namespace kinski
             vector<Point2f> pts_train, pts_query;
             matches2points(m_trainKeypoints, keypoints, good_matches, pts_train,
                            pts_query);
-            m_homography = findHomography(pts_train, pts_query, CV_RANSAC, 3, inliers);
+            m_homography = findHomography(pts_train, pts_query, CV_RANSAC, 3, inliers).getUMat(ACCESS_READ);
             
             vector<Point3f> trainPts3;
             for (int i=0; i<pts_train.size(); i++)
@@ -112,8 +110,10 @@ namespace kinski
             camMatrix = Mat(3,3,CV_32FC1, bla);
             
             
-            solvePnP(trainPts3, pts_query, camMatrix, noArray(),
-                     camRotation, camTranslation, false, CV_EPNP);
+//            solvePnP(trainPts3, pts_query, camMatrix, noArray(),
+//                     camRotation, camTranslation, false, CV_EPNP);
+            
+            solvePnPRansac(trainPts3, pts_query, camMatrix, noArray(), camRotation, camTranslation);
         }
         
         // draw keypoints and patch-borders
@@ -162,16 +162,12 @@ namespace kinski
         //[   0.          465.94360054  323.30103704]
         //[   0.            0.            1.        ]]
         
-        vector<Mat> outMats;
-        outMats.push_back(m_referenceImage);
-        outMats.push_back(m_outImg);
-        
-        return outMats;
+        return { m_referenceImage.getMat(ACCESS_READ), m_outImg.getMat(ACCESS_READ) };
     }
     
     void KeyPointNode::setReferenceImage(const Mat &theImg)
     {
-        m_referenceImage = theImg;
+        m_referenceImage = theImg.getUMat(ACCESS_READ);
         
         GaussianBlur(theImg, m_referenceImage, Size(7, 7), 1.5);
 
