@@ -10,8 +10,8 @@
 // 
 #version 330
 
-uniform vec2 u_scale;
-uniform float u_seed;
+uniform vec2 u_scale = vec2(1.0);
+uniform float u_seed = 0.0;
 
 out vec4 fragData; 
 
