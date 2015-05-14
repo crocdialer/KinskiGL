@@ -38,9 +38,9 @@ namespace kinski
         setWindowSize(windowSize());
 
         // file search paths
-        kinski::addSearchPath("");
-        kinski::addSearchPath("./");
-        kinski::addSearchPath("./res/");
+        kinski::add_search_path("");
+        kinski::add_search_path("./");
+        kinski::add_search_path("./res/");
         
         // user setup hook
         setup();
