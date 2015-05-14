@@ -330,7 +330,7 @@ GLint Shader::getUniformBlockIndex(const std::string &name)
     else
         return it->second;
 #endif
-    return GL_INVALID_INDEX;
+    return -1;
 }
     
 GLint Shader::getAttribLocation(const std::string &name) const
