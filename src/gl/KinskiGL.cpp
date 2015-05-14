@@ -1521,6 +1521,8 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 frag_src = phong_frag;
                 break;
                 
+#if !defined(KINSKI_GLES)
+                
             case SHADER_PHONG_SHADOWS:
                 vert_src = phong_shadows_vert;
                 frag_src = phong_shadows_frag;
@@ -1534,8 +1536,6 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 vert_src = unlit_vert;
                 frag_src = noise_3D_frag;
                 break;
-                
-#if !defined(KINSKI_GLES)
             
             case SHADER_2D_RECT:
                 vert_src = unlit_rect_vert;
