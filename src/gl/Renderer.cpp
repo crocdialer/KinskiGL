@@ -309,6 +309,7 @@ namespace kinski{ namespace gl{
     
     void Renderer::set_shadowmap_size(const glm::vec2 &the_size)
     {
+#ifndef KINSKI_GLES
         gl::Fbo::Format fmt;
         fmt.setNumColorBuffers(0);
         
@@ -319,7 +320,7 @@ namespace kinski{ namespace gl{
                 m_shadow_fbos[i] = gl::Fbo(the_size.x, the_size.y, fmt);
             }
         }
-        
+#endif
     }
     
     void Renderer::update_uniform_buffer_shadows(const glm::mat4 &the_transform)
