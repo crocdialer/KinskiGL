@@ -96,7 +96,7 @@ out vec4 fragData;
 
 void main() 
 {
-  vec4 texColors = vec4(1); 
+  vec4 texColors = vertex_in.color; 
   
   for(int i = 0; i < u_numTextures; i++) 
     texColors *= texture(u_sampler_2D[i], vertex_in.texCoord.st); 

@@ -77,6 +77,7 @@ layout(std140) uniform LightBlock
 layout(location = 0) in vec4 a_vertex; 
 layout(location = 1) in vec3 a_normal; 
 layout(location = 2) in vec4 a_texCoord; 
+layout(location = 3) in vec4 a_color; 
 
 out VertexData 
 {
@@ -97,6 +98,6 @@ void main()
   if(u_numLights > 1)
     shade_color += shade(u_lights[1], u_material, normal, eyeVec, vec4(1));
   
-  vertex_out.color = shade_color; 
+  vertex_out.color = a_color * shade_color; 
   gl_Position = u_modelViewProjectionMatrix * a_vertex; 
 }

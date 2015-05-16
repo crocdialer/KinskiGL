@@ -11,15 +11,6 @@
 
 #include "core/Definitions.h"
 
-// forward declared io_service
-namespace boost
-{
-    namespace asio
-    {
-        class io_service;
-    }
-}
-
 namespace kinski
 {
     

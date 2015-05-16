@@ -48,7 +48,11 @@ namespace kinski { namespace gl {
         glm::vec2 g_viewportDim;
         std::stack<glm::mat4> g_projectionMatrixStack;
         std::stack<glm::mat4> g_modelViewMatrixStack;
+        gl::MaterialPtr g_line_material;
         std::map<std::string, string_mesh_container> g_string_mesh_map;
+        
+        vector<vec3> draw_line_points;
+        MaterialPtr draw_lines_material;
     };
     
     static glm::vec2 g_viewportDim;

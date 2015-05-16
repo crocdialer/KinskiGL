@@ -48,27 +48,6 @@ namespace kinski{ namespace gl{
         uint32_t m_max_lines;
         std::list<std::string> m_lines;
     };
-    
-    // This is the streambuffer; its function is to store formatted data and send
-    // it to a character output when solicited (sync/overflow methods) . You do not
-    // instantiate it by yourself on your application; it will be automatically used
-    // by an actual output stream (like the OutstreamGL class defined above)
-    class StreamBufferGL : public std::streambuf
-    {
-    public:
-        StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz = 4096);
-        
-    protected:
-        
-        // flush the characters in the buffer
-        int flushBuffer ();
-        virtual int overflow ( int c = EOF );
-        virtual int sync();
-        
-    private:
-        OutstreamGL* m_outstreamGL;
-        std::vector<char> m_buffer;
-    };
 }}//namespace
 
 #endif /* defined(__gl__OutstreamGL__) */

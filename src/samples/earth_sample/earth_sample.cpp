@@ -11,8 +11,8 @@ namespace kinski
         set_precise_selection(true);
         
         /******************** add search paths ************************/
-        kinski::addSearchPath("~/Desktop");
-        kinski::addSearchPath("/Library/Fonts");
+        kinski::add_search_path("~/Desktop");
+        kinski::add_search_path("/Library/Fonts");
         
         m_font.load("Courier New Bold.ttf", 24);
         
@@ -72,7 +72,7 @@ namespace kinski
         ViewerApp::update(timeDelta);
         
         m_earth_mesh->material()->uniform("u_time",getApplicationTime());
-        m_earth_mesh->material()->uniform("u_lightDir", light_direction());
+//        m_earth_mesh->material()->uniform("u_lightDir", light_direction());
     }
     
     void Earth_App::draw()

@@ -1,6 +1,4 @@
 #include "app/GLFW_App.h"
-#include "app/AppServer.h"
-
 #include "gl/Mesh.h"
 
 #include "core/networking.h"
@@ -31,7 +29,7 @@ public:
     
     void setup()
     {
-        m_line_material = gl::Material::create(gl::createShader(gl::SHADER_LINES));
+        m_line_material = gl::Material::create(gl::createShader(gl::SHADER_LINES_2D));
         
         registerProperty(m_line_width);
         registerProperty(m_line_color);
@@ -130,11 +128,7 @@ public:
     }
     
     /////////////////////////////////////////////////////////////////
-    
-    void got_message(const std::string &the_message)
-    {
-        LOG_INFO<<the_message;
-    }
+
     
     /////////////////////////////////////////////////////////////////
     

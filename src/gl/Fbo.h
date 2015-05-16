@@ -87,6 +87,8 @@ class KINSKI_API Fbo
 
 	//! Creates a NULL FBO
 	Fbo() {}
+    //! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
+    Fbo( const glm::vec2 &the_size, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
 	Fbo( int width, int height, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer

@@ -65,10 +65,10 @@ namespace kinski {
             if(m_player_item) [m_player_item release];
             if(m_output) [m_output release];
             if(m_loop_helper) [m_loop_helper release];
-//            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
-//            {
-//                IOSurfaceDecrementUseCount(m_io_surface);
-//            }
+            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
+            {
+                IOSurfaceDecrementUseCount(m_io_surface);
+            }
             if(m_output_tex_name){ glDeleteTextures(1, &m_output_tex_name); }
         };
     };
@@ -266,8 +266,8 @@ namespace kinski {
             
             if(!as_texture2D && io_surface)
             {
-//                if(m_impl->m_io_surface){ IOSurfaceDecrementUseCount(m_impl->m_io_surface); }
-//                IOSurfaceIncrementUseCount(io_surface);
+                if(m_impl->m_io_surface){ IOSurfaceDecrementUseCount(m_impl->m_io_surface); }
+                IOSurfaceIncrementUseCount(io_surface);
                 m_impl->m_io_surface = io_surface;
                 
                 if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);
@@ -298,15 +298,9 @@ namespace kinski {
                 // lock base adress
                 CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
                 
-                if(m_impl->m_pbo[m_impl->m_pbo_index].numBytes() != num_bytes)
-                {
-                    m_impl->m_pbo[m_impl->m_pbo_index].setData(nullptr, num_bytes);
-                }
-                
-                // map buffer, copy data
-                uint8_t *ptr = m_impl->m_pbo[m_impl->m_pbo_index].map();
-                memcpy(ptr, CVPixelBufferGetBaseAddress(buffer), num_bytes);
-                m_impl->m_pbo[m_impl->m_pbo_index].unmap();
+                // copy data to pbo buffer
+                m_impl->m_pbo[m_impl->m_pbo_index].setData(CVPixelBufferGetBaseAddress(buffer),
+                                                           num_bytes);
                 
                 // bind pbo and schedule texture upload
                 m_impl->m_pbo[m_impl->m_pbo_index].bind();

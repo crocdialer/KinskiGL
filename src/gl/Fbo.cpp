@@ -312,6 +312,8 @@ bool Fbo::initMultisample()
 #endif // ! KINSKI_GLES
 }
 
+Fbo::Fbo(const glm::vec2 &the_size, Format format): Fbo(the_size.x, the_size.y, format){}
+    
 Fbo::Fbo( int width, int height, Format format )
 	: m_obj(new Obj( width, height ))
 {

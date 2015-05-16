@@ -140,9 +140,7 @@ namespace kinski
             impl_ptr m_impl;
             void _start_receive(impl_ptr the_impl_ptr = impl_ptr());
         };
-        
     }// namespace net
-    
 }// namespace kinski
 
 #endif /* defined(__gl__networking__) */
