@@ -282,7 +282,7 @@ void BlockbusterApp::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_media_path)
     {
-        m_movie = MovieController::create(*m_media_path, true, true);
+        m_movie = video::MovieController::create(*m_media_path, true, true);
         textures()[TEXTURE_MOVIE] = gl::Texture();
     }
     else if(theProperty == m_block_length)

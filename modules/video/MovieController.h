@@ -7,8 +7,8 @@
 * This class controls playback of Movies and manages their assets.
 */
 
-namespace kinski
-{
+namespace kinski{ namespace video{
+
     class MovieController;
     typedef std::shared_ptr<MovieController> MovieControllerPtr;
     
@@ -75,6 +75,6 @@ namespace kinski
         MovieController(const std::string &filePath, bool autoplay = false, bool loop = false);
         std::unique_ptr<struct MovieControllerImpl> m_impl;
     };
-}
+}}// namespaces
 
 #endif

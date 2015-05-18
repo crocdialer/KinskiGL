@@ -34,7 +34,7 @@ namespace kinski
         
         gl::OpenNIConnector::Ptr m_open_ni;
         
-        MovieControllerPtr m_movie;
+        video::MovieControllerPtr m_movie;
         
         LightComponent::Ptr m_light_component;
         

@@ -190,7 +190,7 @@ namespace kinski {
         else if(e.isRight())
         {
             mouseDiff /= gl::windowDimension();
-            mouseDiff *= 200.f;
+            mouseDiff *= *m_distance;
             *m_look_at = m_look_at_tmp - camera()->side() * mouseDiff.x + camera()->up() * mouseDiff.y;
         }
     }

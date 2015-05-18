@@ -352,7 +352,7 @@ void MovieTimeshift::updateProperty(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_cam_id)
     {
-        m_camera = CameraController::create(*m_cam_id);
+        m_camera = video::CameraController::create(*m_cam_id);
         if(m_camera){ m_camera->start_capture(); }
     }
     else if(theProperty == m_flip_image)

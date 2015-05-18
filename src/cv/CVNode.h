@@ -19,10 +19,9 @@
 
 namespace kinski
 {
+    class CVSourceNode;
     
-    typedef std::shared_ptr<class CVSourceNode> CVSourceNodePtr;
-    typedef std::shared_ptr<CVSourceNode> Ptr;
-    typedef std::shared_ptr<CVSourceNode> Ptr;
+    typedef std::shared_ptr<CVSourceNode> CVSourceNodePtr;
     
     class CVNode : public Component
     {
@@ -42,11 +41,7 @@ namespace kinski
         // inherited from CVNode
         virtual std::string getDescription(){return "Generic Input-source";};
         
-        //virtual float getFramerate() = 0;
-        
         virtual bool getNextImage(cv::Mat &img) = 0;
-        
-        
     };
     
     class CVBufferedSourceNode : public CVSourceNode

@@ -31,8 +31,8 @@ namespace kinski
         
         RemoteControl m_remote_control;
         
-        MovieControllerPtr m_movie = MovieController::create();
-        CameraControllerPtr m_camera = CameraController::create();
+        video::MovieControllerPtr m_movie = video::MovieController::create();
+        video::CameraControllerPtr m_camera = video::CameraController::create();
         
         bool m_needs_movie_refresh = false;
         bool m_needs_array_refresh = true;

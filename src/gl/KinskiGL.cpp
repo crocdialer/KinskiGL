@@ -327,8 +327,23 @@ namespace kinski { namespace gl {
     
     gl::CameraPtr create_shadow_camera(const LightPtr &the_light)
     {
-        gl::PerspectiveCamera::Ptr cam = gl::PerspectiveCamera::create(1.f, the_light->spot_cutoff(),
-                                                                       .1f, 1000.f);
+        return create_shadow_camera(the_light.get());
+    }
+    
+    gl::CameraPtr create_shadow_camera(const Light *the_light)
+    {
+        gl::Camera::Ptr cam;
+        
+        if(the_light->type() == gl::Light::DIRECTIONAL)
+        {
+            float v = 100.f;
+            cam = gl::OrthographicCamera::create(-v, v, -v, v, .1f, 1000.f);
+        }
+        else
+        {
+            cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
+                                                .1f, 1000.f);
+        }
         cam->setTransform(the_light->global_transform());
         return cam;
     }

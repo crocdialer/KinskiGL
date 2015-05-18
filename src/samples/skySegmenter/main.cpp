@@ -24,7 +24,7 @@ public:
     
     void setup()
     {
-        m_material = gl::Material::Ptr(new gl::Material);
+        m_material = gl::Material::create();
         
         try
         {
@@ -119,11 +119,11 @@ public:
     {
         switch (e.getChar())
         {
-            case KeyEvent::KEY_s:
+            case GLFW_KEY_S:
                 Serializer::saveComponentState(m_processNode, "config.json", PropertyIO_GL());
                 break;
                 
-            case KeyEvent::KEY_r:
+            case GLFW_KEY_R:
                 try
             {
                 Serializer::loadComponentState(m_processNode, "config.json", PropertyIO_GL());

@@ -326,39 +326,7 @@ namespace kinski{ namespace gl{
     void Renderer::update_uniform_buffer_shadows(const glm::mat4 &the_transform)
     {
 #ifndef KINSKI_GLES
-        
-        struct shadowstruct_std140
-        {
-            mat4 matrix;
-            int shadow_map;
-            vec2 map_size;
-            float poisson_radius;
-            vec4 pad[15]; // padding
-        };
-        
-        if(!m_uniform_buffer[SHADOW_UNIFORM_BUFFER])
-        {
-            m_uniform_buffer[SHADOW_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-        }
-        
-        shadowstruct_std140 shadowstructs[4];
 
-        for(int i = 0; i < m_num_shadow_lights; i++)
-        {
-            if(!m_shadow_cams[i]) break;
-            int tex_unit = 1;//mat->textures().size() + i;
-            
-            shadowstructs[i].matrix = m_shadow_cams[i]->getProjectionMatrix() *
-                                     m_shadow_cams[i]->getViewMatrix() * the_transform;
-            m_shadow_fbos[i].getDepthTexture().bind(tex_unit);
-            
-            shadowstructs[i].shadow_map = tex_unit;
-            shadowstructs[i].map_size = m_shadow_fbos[0].getSize();
-            shadowstructs[i].poisson_radius = 5.f;
-        }
-        
-        m_uniform_buffer[SHADOW_UNIFORM_BUFFER].setData(&shadowstructs, sizeof(shadowstructs));
-        glBindBufferBase(GL_UNIFORM_BUFFER, SHADOW_BLOCK, m_uniform_buffer[SHADOW_UNIFORM_BUFFER].id());
 #endif
     }
 }}

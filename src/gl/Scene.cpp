@@ -161,12 +161,7 @@ namespace kinski { namespace gl {
                     break;
                 }
                 m_renderer.set_shadow_pass(true);
-                
-                gl::PerspectiveCamera::Ptr
-                cam = gl::PerspectiveCamera::create(m_renderer.shadow_fbos()[i].getAspectRatio(),
-                                                    2 * l->spot_cutoff(), .1f, 1000.f);
-                cam->setTransform(l->global_transform());
-                m_renderer.shadow_cams()[i] = cam;
+                m_renderer.shadow_cams()[i] = gl::create_shadow_camera(l);
                 
 //                LOG_DEBUG << "rendering shadowmap: " << i;
                 

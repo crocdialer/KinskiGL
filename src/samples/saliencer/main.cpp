@@ -37,7 +37,7 @@ public:
         setBarSize(ivec2(250, 500));
 
         // add 2 empty textures
-        m_material = gl::Material::Ptr(new gl::Material);
+        m_material = gl::Material::create();
         m_material->addTexture(m_textures[0]);
         m_material->addTexture(m_textures[1]);
         m_material->setDepthTest(false);

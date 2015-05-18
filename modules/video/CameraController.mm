@@ -132,6 +132,8 @@
 
 namespace kinski
 {
+    using namespace video;
+    
     struct CameraController::Impl
     {
         Camera* m_camera;

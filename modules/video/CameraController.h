@@ -7,8 +7,8 @@
 * This class controls a camera capture
 */
 
-namespace kinski
-{
+namespace kinski{ namespace video{
+
     class CameraController;
     typedef std::shared_ptr<CameraController> CameraControllerPtr;
     
@@ -49,6 +49,6 @@ namespace kinski
         struct Impl;
         std::shared_ptr<Impl> m_impl;
     };
-}
+}} // namespaces
 
 #endif

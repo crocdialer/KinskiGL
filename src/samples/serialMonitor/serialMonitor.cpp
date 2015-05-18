@@ -175,7 +175,7 @@ public:
         m_serial.drain();
         m_serial.flush();
         
-        m_ortho_cam.reset(new gl::OrthographicCamera(0, windowSize().x, 0, windowSize().y, 0, 1));
+        m_ortho_cam = gl::OrthographicCamera::create(0, windowSize().x, 0, windowSize().y, 0, 1);
         
         for(auto &m : m_analog_in)
         {

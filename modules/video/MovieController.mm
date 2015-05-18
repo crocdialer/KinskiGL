@@ -5,14 +5,14 @@
 
 @interface LoopHelper : NSObject
 {
-    kinski::MovieControllerImpl *m_movie_control_impl;
+    kinski::video::MovieControllerImpl *m_movie_control_impl;
 }
-- (void) initWith: (kinski::MovieControllerImpl*) the_impl;
+- (void) initWith: (kinski::video::MovieControllerImpl*) the_impl;
 
-@property(assign) kinski::MovieControllerImpl *movie_control_impl;
+@property(assign) kinski::video::MovieControllerImpl *movie_control_impl;
 @end
 
-namespace kinski {
+namespace kinski{ namespace video{
     
     struct MovieControllerImpl
     {
@@ -458,11 +458,11 @@ namespace kinski {
     {
         m_impl->m_movie_ended_cb = c;
     }
-}
+}}// namespaces
 
 @implementation LoopHelper
 
-- (void) initWith: (kinski::MovieControllerImpl*) the_impl
+- (void) initWith: (kinski::video::MovieControllerImpl*) the_impl
 {
     [self init];
     self.movie_control_impl = the_impl;

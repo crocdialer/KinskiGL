@@ -76,7 +76,7 @@ namespace kinski{ namespace gl{
         
         void set_shadowmap_size(const glm::vec2 &the_size);
         std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
-        std::vector<gl::PerspectiveCamera::Ptr>& shadow_cams() { return m_shadow_cams; }
+        std::vector<gl::Camera::Ptr>& shadow_cams() { return m_shadow_cams; }
         void set_shadow_pass(bool b){ m_shadow_pass = b; }
         
     private:
@@ -88,7 +88,7 @@ namespace kinski{ namespace gl{
         // shadow params
         int m_num_shadow_lights;
         std::vector<gl::Fbo> m_shadow_fbos;
-        std::vector<gl::PerspectiveCamera::Ptr> m_shadow_cams;
+        std::vector<gl::Camera::Ptr> m_shadow_cams;
         bool m_shadow_pass;
         
         void update_uniform_buffer_shadows(const glm::mat4 &the_transform);

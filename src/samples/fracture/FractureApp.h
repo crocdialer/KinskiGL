@@ -30,7 +30,7 @@ namespace kinski
         
         gl::MeshPtr m_mesh;
         physics::physics_context m_physics;
-        MovieControllerPtr m_movie, m_crosshair_movie;
+        video::MovieControllerPtr m_movie, m_crosshair_movie;
         LightComponent::Ptr m_light_component;
         
         Property_<std::string>::Ptr
