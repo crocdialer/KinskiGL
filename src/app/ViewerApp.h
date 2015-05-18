@@ -101,13 +101,18 @@ namespace kinski {
         
         bool m_precise_selection;
         bool m_center_selected;
+        glm::vec3 m_look_at_tmp;
         
         Property_<std::vector<std::string> >::Ptr m_search_paths;
         RangedProperty<int>::Ptr m_logger_severity;
         Property_<bool>::Ptr m_show_tweakbar;
         Property_<glm::vec2>::Ptr m_window_size;
+        
+        
         RangedProperty<float>::Ptr m_distance;
         Property_<glm::mat3>::Ptr m_rotation;
+        Property_<glm::vec3>::Ptr m_look_at;
+        
         RangedProperty<float>::Ptr m_rotationSpeed;
         Property_<bool>::Ptr m_draw_grid;
         Property_<bool>::Ptr m_wireFrame;

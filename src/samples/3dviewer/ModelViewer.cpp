@@ -144,7 +144,6 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
     {
         LOG_INFO << f;
         
-        
         // add path to searchpaths
         kinski::add_search_path(kinski::get_directory_part(f));
         
@@ -193,16 +192,12 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         if(m)
         {
             scene().removeObject(m_mesh);
-//            m = gl::Mesh::create(gl::Geometry::createBox(vec3(2.f)), gl::Material::create());
             m_mesh = m;
-            
             scene().addObject(m_mesh);
 
-            
             m->material()->setShader(gl::createShader(m->geometry()->hasBones() ?
                                                       gl::SHADER_PHONG_SKIN_SHADOWS :
                                                       gl::SHADER_PHONG_SHADOWS));
-//            m->material()->addTexture(gl::createTextureFromFile("~/Desktop/normal.png", true));
             
             auto aabb = m->boundingBox();
             float scale_factor = 50.f / aabb.width();

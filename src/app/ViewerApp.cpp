@@ -36,6 +36,9 @@ namespace kinski {
         m_window_size->setTweakable(false);
         registerProperty(m_window_size);
         
+        m_look_at = Property_<glm::vec3>::create("look at", glm::vec3());
+        registerProperty(m_look_at);
+        
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
         registerProperty(m_distance);
         
@@ -140,6 +143,7 @@ namespace kinski {
         
         m_clickPos = glm::vec2(e.getX(), e.getY());
         m_lastTransform = *m_rotation;
+        m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
         
         if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, glm::vec2(e.getX(),
@@ -159,7 +163,6 @@ namespace kinski {
         {
             if(e.isRight() && m_selected_mesh)
             {
-
                 m_selected_mesh.reset();
             }
         }
@@ -167,9 +170,10 @@ namespace kinski {
     
     void ViewerApp::mouseDrag(const MouseEvent &e)
     {
+        glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
+        
         if(e.isLeft())
         {
-            glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
             
             if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
             {
@@ -185,7 +189,9 @@ namespace kinski {
         }
         else if(e.isRight())
         {
-            
+            mouseDiff /= gl::windowDimension();
+            mouseDiff *= 200.f;
+            *m_look_at = m_look_at_tmp - camera()->side() * mouseDiff.x + camera()->up() * mouseDiff.y;
         }
     }
     
@@ -286,9 +292,10 @@ namespace kinski {
             gl::clearColor(*m_clear_color);
             outstream_gl().set_color(glm::vec4(1.f) - m_clear_color->value());
         }
-        else if(theProperty == m_distance || theProperty == m_rotation)
+        else if(theProperty == m_distance || theProperty == m_rotation ||
+                theProperty == m_look_at)
         {
-            glm::vec3 look_at;
+            glm::vec3 look_at = *m_look_at;
             if(m_selected_mesh && m_center_selected)
                 look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
             

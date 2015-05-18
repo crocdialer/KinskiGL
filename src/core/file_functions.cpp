@@ -18,9 +18,9 @@ using namespace boost::filesystem;
 
 namespace kinski {
     
-    /////////// implemantation internal /////////////
+    /////////// implementation internal /////////////
     
-    std::set<std::string> g_searchPaths;
+    static std::set<std::string> g_searchPaths;
     
     std::string expand_user(std::string path)
     {
@@ -328,14 +328,17 @@ namespace kinski {
     {
         string ext = kinski::to_lower(kinski::get_extension(file_name).substr(1));
         
-        std::list<string> image_exts{"png", "jpg", "jpeg"}, audio_exts{"wav", "m4a", "mp3"},
-        model_exts{"obj", "dae", "3ds", "ply", "md5mesh"}, movie_exts{"mpg", "mov", "avi", "mp4", "m4v"};
+        std::list<string>
+        image_exts{"png", "jpg", "jpeg"},
+        audio_exts{"wav", "m4a", "mp3"},
+        model_exts{"obj", "dae", "3ds", "ply", "md5mesh"},
+        movie_exts{"mpg", "mov", "avi", "mp4", "m4v"};
         
         if(is_directory(file_name)){ return FileType::FILE_DIRECTORY; }
-        if(kinski::is_in(ext, image_exts)){ return FileType::FILE_IMAGE; }
-        if(kinski::is_in(ext, model_exts)){ return FileType::FILE_MODEL; }
-        if(kinski::is_in(ext, audio_exts)){ return FileType::FILE_AUDIO; }
-        if(kinski::is_in(ext, movie_exts)){ return FileType::FILE_MOVIE; }
+        else if(kinski::is_in(ext, image_exts)){ return FileType::FILE_IMAGE; }
+        else if(kinski::is_in(ext, model_exts)){ return FileType::FILE_MODEL; }
+        else if(kinski::is_in(ext, audio_exts)){ return FileType::FILE_AUDIO; }
+        else if(kinski::is_in(ext, movie_exts)){ return FileType::FILE_MOVIE; }
         
         return FileType::FILE_OTHER;
     }
