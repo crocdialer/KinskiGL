@@ -16,7 +16,7 @@ if(USE_CXX11)
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     ELSE( APPLE )
-    SET (CMAKE_CXX_FLAGS "-std=c++0x -pthread -Wall")
+    SET (CMAKE_CXX_FLAGS "-std=c++11 -pthread -Wall")
     endif(APPLE)
 endif(USE_CXX11)
 

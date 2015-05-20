@@ -3,6 +3,7 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 OPTION (BUILD_APPLIB "Build App framework" ON)
 OPTION (BUILD_SAMPLES "Build Samples" ON)
+#OPTION (SAMPLE_DIRS "Sample Directories" "${CMAKE_SOURCE_DIR}/src/samples/;${CMAKE_SOURCE_DIR}/production")
 
 ADD_SUBDIRECTORY("core")
 SET(LIBS ${LIBS} "core")
@@ -25,8 +26,6 @@ if(BUILD_APPLIB)
 ADD_SUBDIRECTORY("app")
 SET(LIBS ${LIBS} "app")
 endif(BUILD_APPLIB)
-
-#SET(LIBS ${LIBS} "cv")
 
 if(BUILD_SAMPLES)
     if(KINSKI_RASPI)

@@ -20,11 +20,10 @@
 
 namespace kinski {
     
-#if defined(KINSKI_MAC)
-#define BaseApp GLFW_App
-#elif defined(KINSKI_RASPI)
+#if defined(KINSKI_RASPI)
 #define BaseApp Raspi_App
-
+#else
+#define BaseApp GLFW_App
 #endif
     
     class ViewerApp : public BaseApp
