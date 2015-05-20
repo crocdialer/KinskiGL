@@ -148,7 +148,7 @@ namespace kinski { namespace gl {
         SelectVisitor<Light> lv;
         m_root->accept(lv);
         
-        int i = 0;
+        uint32_t i = 0;
         m_renderer.set_shadowmap_size(glm::vec2(1024));
         
         for(gl::Light *l : lv.getObjects())

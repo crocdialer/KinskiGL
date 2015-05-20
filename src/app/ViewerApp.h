@@ -77,8 +77,8 @@ namespace kinski {
         void set_precise_selection(bool b){ m_precise_selection = b; };
         void set_camera(const gl::PerspectiveCamera::Ptr &theCam){m_camera = theCam;};
         
-        virtual void save_settings(const std::string &path = "");
-        virtual void load_settings(const std::string &path = "");
+        virtual bool save_settings(const std::string &path = "");
+        virtual bool load_settings(const std::string &path = "");
         
         void draw_textures(const std::vector<gl::Texture> &the_textures);
         

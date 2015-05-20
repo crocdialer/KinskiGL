@@ -320,7 +320,7 @@ namespace kinski {
         }
     }
     
-    void ViewerApp::save_settings(const std::string &path)
+    bool ViewerApp::save_settings(const std::string &path)
     {
         std::list<Component::Ptr> light_components, material_components;
         for (int i = 0; i < lights().size(); i++)
@@ -346,10 +346,15 @@ namespace kinski {
             Serializer::saveComponentState(material_components, "material_config.json", PropertyIO_GL());
             
         }
-        catch(Exception &e){LOG_ERROR<<e.what();}
+        catch(Exception &e)
+        {
+            LOG_ERROR<<e.what();
+            return false;
+        }
+        return true;
     }
     
-    void ViewerApp::load_settings(const std::string &path)
+    bool ViewerApp::load_settings(const std::string &path)
     {
         std::list<Component::Ptr> light_components, material_components;
         for (int i = 0; i < lights().size(); i++)
@@ -376,7 +381,12 @@ namespace kinski {
             Serializer::loadComponentState(light_components, "light_config.json", PropertyIO_GL());
             Serializer::loadComponentState(material_components, "material_config.json", PropertyIO_GL());
         }
-        catch(Exception &e){LOG_ERROR<<e.what();}
+        catch(Exception &e)
+        {
+            LOG_ERROR<<e.what();
+            return false;
+        }
+        return true;
     }
     
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
