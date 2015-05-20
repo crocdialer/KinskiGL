@@ -82,7 +82,7 @@ public:
         
         gl::clearColor(glm::vec4(0));
         // init FBO
-        m_frameBuffer = gl::Fbo(800, 600);
+        m_frameBuffer = gl::Fbo(864, 486);
 
         m_textures[0] = gl::createTextureFromFile(*m_imagePath);
         m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
@@ -150,11 +150,11 @@ public:
         gl::setMatrices(m_Camera);
         gl::drawGrid(500, 500);
         
-        m_scene.render(m_Camera);
+        //m_scene.render(m_Camera);
 
         // draw fbo content
-        //gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
-        //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
+        gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
+        gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
     }
     
     
