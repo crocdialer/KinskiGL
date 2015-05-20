@@ -144,9 +144,6 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
     {
         LOG_INFO << f;
         
-        // add path to searchpaths
-        kinski::add_search_path(kinski::get_directory_part(f));
-        
         switch (get_filetype(f))
         {
             case FileType::FILE_MODEL:
@@ -168,7 +165,7 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                 break;
         }
     }
-    if(m_mesh){ m_mesh->material()->textures() = dropped_textures; }
+    if(m_mesh && !dropped_textures.empty()){ m_mesh->material()->textures() = dropped_textures; }
 }
 
 /////////////////////////////////////////////////////////////////

@@ -218,6 +218,8 @@ namespace kinski {
         
         if(!displayTweakBar())
         {
+            int cam_index = 0;
+            
             switch (e.getCode())
             {
                 case GLFW_KEY_C:
@@ -244,6 +246,19 @@ namespace kinski {
                     {
                         LOG_WARNING << e.what();
                     }
+                    break;
+                
+                case GLFW_KEY_1:
+                case GLFW_KEY_2:
+                case GLFW_KEY_3:
+                case GLFW_KEY_4:
+                case GLFW_KEY_5:
+                case GLFW_KEY_6:
+                case GLFW_KEY_7:
+                case GLFW_KEY_8:
+                case GLFW_KEY_9:
+                    cam_index = e.getCode() - GLFW_KEY_1;
+                    LOG_DEBUG << "cam index: " << cam_index;
                     break;
                     
                 default:
