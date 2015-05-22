@@ -1,4 +1,4 @@
-#include "app/Raspi_App.h"
+#include "app/ViewerApp.h"
 #include "core/networking.h"
 
 #include "gl/SerializerGL.h"
@@ -17,7 +17,7 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-class SimpleRaspiApp : public Raspi_App
+class SimpleRaspiApp : public ViewerApp
 {
 private:
    
@@ -57,10 +57,10 @@ private:
     
 public:
     
-    //SimpleRaspiApp(int width, int height):Raspi_App(width, height){};
-
     void setup()
     {
+        ViewerApp::setup();
+
         /*********** init our application properties ******************/
         
         registerProperty(m_distance);
@@ -92,7 +92,7 @@ public:
         m_Camera->setLookAt(glm::vec3(0, 0, 0)); 
 
         // test box shape
-        gl::GeometryPtr myBox = gl::Geometry::createBox(glm::vec3(40, 40, 40));
+        gl::GeometryPtr myBox = gl::Geometry::createBox(glm::vec3(20, 20, 20));
         
         gl::MaterialPtr myMaterial = gl::Material::create();
         //myMaterial->setDepthTest(false);
@@ -150,11 +150,11 @@ public:
         gl::setMatrices(m_Camera);
         gl::drawGrid(500, 500);
         
-        //m_scene.render(m_Camera);
+        m_scene.render(m_Camera);
 
         // draw fbo content
-        gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
-        gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
+        //gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
+        //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
     }
     
     
@@ -223,7 +223,7 @@ public:
 
 int main(int argc, char *argv[])
 {
-    App::Ptr theApp(new SimpleRaspiApp);
+    auto theApp = std::make_shared<SimpleRaspiApp>();
     LOG_INFO<<"Running on IP: " << net::local_ip();
     return theApp->run();
 }

@@ -16,7 +16,7 @@ FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h RemoteControl.h ViewerApp.h LightCompo
 
 ##### RASPI
 else()
-FILE(GLOB FOLDER_SOURCES Raspi_App.cpp esUtil.c App.cpp OutstreamGL.cpp RemoteControl.cpp
+FILE(GLOB FOLDER_SOURCES Raspi_App.cpp ViewerApp.cpp esUtil.c App.cpp OutstreamGL.cpp RemoteControl.cpp
     LightComponent.cpp Object3DComponent.cpp MaterialComponent.cpp)
 FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h OutstreamGL.h RemoteControl.h 
     LightComponent.h Object3DComponent.h MaterialComponent.h)

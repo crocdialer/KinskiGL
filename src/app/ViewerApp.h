@@ -12,20 +12,20 @@
 #include "core/Timer.h"
 #include "core/Animation.h"
 #include "core/Measurement.hpp"
-#include "app/GLFW_App.h"
 #include "app/Arcball.h"
 #include "gl/SerializerGL.h"
 #include "gl/Scene.h"
 #include "gl/Font.h"
 
-namespace kinski {
-    
-#if defined(KINSKI_MAC)
-#define BaseApp GLFW_App
-#elif defined(KINSKI_RASPI)
-#define BaseApp Raspi_App
-
+#if defined(KINSKI_RASPI)
+    #include "app/Raspi_App.h"
+    #define BaseApp Raspi_App
+#else
+    #include "app/GLFW_App.h"
+    #define BaseApp GLFW_App
 #endif
+
+namespace kinski {
     
     class ViewerApp : public BaseApp
     {
