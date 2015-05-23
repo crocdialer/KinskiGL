@@ -330,7 +330,7 @@ namespace kinski {
         for (uint32_t i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());
-            tmp->set_name("Light " + as_string(i));
+            tmp->set_name("light_" + as_string(i));
             tmp->set_lights(lights());
             tmp->set_index(i);
             light_components.push_back(tmp);
@@ -338,7 +338,7 @@ namespace kinski {
         for (uint32_t i = 0; i < materials().size(); i++)
         {
             MaterialComponent::Ptr tmp(new MaterialComponent());
-            tmp->set_name("Material " + as_string(i));
+            tmp->set_name("material_" + as_string(i));
             tmp->set_materials(materials());
             tmp->set_index(i);
             material_components.push_back(tmp);
@@ -364,7 +364,7 @@ namespace kinski {
         for (uint32_t i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());
-            tmp->set_name("Light " + as_string(i));
+            tmp->set_name("light_" + as_string(i));
             tmp->set_lights(lights(), false);
             tmp->set_index(i);
             tmp->observeProperties();
@@ -373,7 +373,7 @@ namespace kinski {
         for (uint32_t i = 0; i < materials().size(); i++)
         {
             MaterialComponent::Ptr tmp(new MaterialComponent());
-            tmp->set_name("Material " + as_string(i));
+            tmp->set_name("material_" + as_string(i));
             tmp->set_materials(materials(), false);
             tmp->set_index(i);
             tmp->observeProperties();
