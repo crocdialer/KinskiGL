@@ -16,13 +16,6 @@ namespace kinski{ namespace gl{
 
 class KINSKI_API Buffer
 {
- private:
-    struct Obj;
-    typedef std::shared_ptr<Obj> ObjPtr;
-    ObjPtr m_Obj;
-    
-    void init(GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
-    
  public:
     
     Buffer(){};
@@ -62,6 +55,13 @@ class KINSKI_API Buffer
         GLsizei numBytes = theVec.size() * sizeof(T);
         setData((void*)&theVec[0], numBytes);
     };
+    
+private:
+    struct Obj;
+    typedef std::shared_ptr<Obj> ObjPtr;
+    ObjPtr m_Obj;
+    
+    void init(GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
 };
     
 }}

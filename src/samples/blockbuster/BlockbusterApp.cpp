@@ -367,7 +367,7 @@ gl::MeshPtr BlockbusterApp::create_mesh()
 
 /////////////////////////////////////////////////////////////////
 
-void BlockbusterApp::save_settings(const std::string &path)
+bool BlockbusterApp::save_settings(const std::string &path)
 {
     ViewerApp::save_settings(path);
     
@@ -377,7 +377,7 @@ void BlockbusterApp::save_settings(const std::string &path)
 
 /////////////////////////////////////////////////////////////////
 
-void BlockbusterApp::load_settings(const std::string &path)
+bool BlockbusterApp::load_settings(const std::string &path)
 {
     ViewerApp::load_settings(path);
     
