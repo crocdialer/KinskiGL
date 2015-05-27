@@ -12,19 +12,20 @@
 #include "core/Timer.h"
 #include "core/Animation.h"
 #include "core/Measurement.hpp"
-#include "app/GLFW_App.h"
 #include "app/Arcball.h"
 #include "gl/SerializerGL.h"
 #include "gl/Scene.h"
 #include "gl/Font.h"
 
-namespace kinski {
-    
 #if defined(KINSKI_RASPI)
-#define BaseApp Raspi_App
+    #include "app/Raspi_App.h"
+    #define BaseApp Raspi_App
 #else
-#define BaseApp GLFW_App
+    #include "app/GLFW_App.h"
+    #define BaseApp GLFW_App
 #endif
+
+namespace kinski {
     
     class ViewerApp : public BaseApp
     {
@@ -76,8 +77,8 @@ namespace kinski {
         void set_precise_selection(bool b){ m_precise_selection = b; };
         void set_camera(const gl::PerspectiveCamera::Ptr &theCam){m_camera = theCam;};
         
-        virtual void save_settings(const std::string &path = "");
-        virtual void load_settings(const std::string &path = "");
+        virtual bool save_settings(const std::string &path = "");
+        virtual bool load_settings(const std::string &path = "");
         
         void draw_textures(const std::vector<gl::Texture> &the_textures);
         

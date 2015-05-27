@@ -174,7 +174,7 @@ namespace kinski {
         
         if(e.isLeft())
         {
-            
+             
             if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
@@ -209,8 +209,9 @@ namespace kinski {
     
     void ViewerApp::keyPress(const KeyEvent &e)
     {
-        GLFW_App::keyPress(e);
+        BaseApp::keyPress(e);
         
+#if !defined(KINSKI_RASPI)
         if(e.getCode() == GLFW_KEY_SPACE)
         {
             *m_show_tweakbar = !*m_show_tweakbar;
@@ -265,10 +266,13 @@ namespace kinski {
                     break;
             }
         }
+#endif
     }
     
     void ViewerApp::resize(int w, int h)
     {
+        BaseApp::resize(w, h);
+
         *m_window_size = glm::vec2(w, h);
         
         m_arcball.setWindowSize( windowSize() );
@@ -320,21 +324,21 @@ namespace kinski {
         }
     }
     
-    void ViewerApp::save_settings(const std::string &path)
+    bool ViewerApp::save_settings(const std::string &path)
     {
         std::list<Component::Ptr> light_components, material_components;
-        for (int i = 0; i < lights().size(); i++)
+        for (uint32_t i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());
-            tmp->set_name("Light " + as_string(i));
+            tmp->set_name("light_" + as_string(i));
             tmp->set_lights(lights());
             tmp->set_index(i);
             light_components.push_back(tmp);
         }
-        for (int i = 0; i < materials().size(); i++)
+        for (uint32_t i = 0; i < materials().size(); i++)
         {
             MaterialComponent::Ptr tmp(new MaterialComponent());
-            tmp->set_name("Material " + as_string(i));
+            tmp->set_name("material_" + as_string(i));
             tmp->set_materials(materials());
             tmp->set_index(i);
             material_components.push_back(tmp);
@@ -346,25 +350,30 @@ namespace kinski {
             Serializer::saveComponentState(material_components, "material_config.json", PropertyIO_GL());
             
         }
-        catch(Exception &e){LOG_ERROR<<e.what();}
+        catch(Exception &e)
+        {
+            LOG_ERROR<<e.what();
+            return false;
+        }
+        return true;
     }
     
-    void ViewerApp::load_settings(const std::string &path)
+    bool ViewerApp::load_settings(const std::string &path)
     {
         std::list<Component::Ptr> light_components, material_components;
-        for (int i = 0; i < lights().size(); i++)
+        for (uint32_t i = 0; i < lights().size(); i++)
         {
             LightComponent::Ptr tmp(new LightComponent());
-            tmp->set_name("Light " + as_string(i));
+            tmp->set_name("light_" + as_string(i));
             tmp->set_lights(lights(), false);
             tmp->set_index(i);
             tmp->observeProperties();
             light_components.push_back(tmp);
         }
-        for (int i = 0; i < materials().size(); i++)
+        for (uint32_t i = 0; i < materials().size(); i++)
         {
             MaterialComponent::Ptr tmp(new MaterialComponent());
-            tmp->set_name("Material " + as_string(i));
+            tmp->set_name("material_" + as_string(i));
             tmp->set_materials(materials(), false);
             tmp->set_index(i);
             tmp->observeProperties();
@@ -376,7 +385,12 @@ namespace kinski {
             Serializer::loadComponentState(light_components, "light_config.json", PropertyIO_GL());
             Serializer::loadComponentState(material_components, "material_config.json", PropertyIO_GL());
         }
-        catch(Exception &e){LOG_ERROR<<e.what();}
+        catch(Exception &e)
+        {
+            LOG_ERROR<<e.what();
+            return false;
+        }
+        return true;
     }
     
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)

@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include "esUtil.h"
 #include "App.h"
+#include "OutstreamGL.h"
 
 namespace kinski
 {
@@ -19,15 +20,24 @@ class Raspi_App : public App
     void swapBuffers();
     double getApplicationTime();
     
+    void displayTweakBar(bool b){}
+    bool displayTweakBar(){return true;};
+    
+    const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
+    gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
+
  private:
 
     // internal initialization. performed when run is invoked
     void init();
+    void draw_internal();
     void pollEvents(){};
     
     timeval m_startTime;
     //struct ESContext;
     std::shared_ptr<ESContext> m_context;
+    
+    gl::OutstreamGL m_outstream_gl;
 };
     
 }

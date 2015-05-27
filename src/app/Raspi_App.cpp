@@ -31,6 +31,9 @@ namespace kinski
         esCreateWindow ( m_context.get(), getName().c_str(), getWidth(), getHeight(),
                         ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH  /*| ES_WINDOW_MULTISAMPLE*/);
 
+        // set graphical log stream
+        Logger::get()->add_outstream(&m_outstream_gl);
+
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
@@ -54,7 +57,18 @@ namespace kinski
         glViewport(0, 0, size[0], size[1]);
         if(running()) resize(size[0], size[1]);
     }
-    
+
+    void Raspi_App::draw_internal()
+    {
+        draw();
+        
+        // draw tweakbar
+        if(displayTweakBar())
+        {
+            // console output
+            outstream_gl().draw();
+        }
+    }
     void Raspi_App::swapBuffers()
     {
         eglSwapBuffers(m_context->eglDisplay, m_context->eglSurface);

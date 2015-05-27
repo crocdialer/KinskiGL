@@ -7,6 +7,7 @@ extern char const* const phong_normalmap_vert;
 extern char const* const unlit_rect_vert;
 extern char const* const phong_shadows_vert;
 extern char const* const phong_vert;
+<<<<<<< HEAD
 extern char const* const points_vert;
 extern char const* const phong_skin_vert;
 extern char const* const unlit_vert;
@@ -18,6 +19,22 @@ extern char const* const phong_shadows_frag;
 extern char const* const noise_3D_frag;
 extern char const* const points_sphere_frag;
 extern char const* const phong_normalmap_frag;
+=======
+extern char const* const phong_normalmap_vert;
+extern char const* const phong_shadows_vert;
+extern char const* const phong_skin_vert;
+extern char const* const points_vert;
+extern char const* const unlit_vert;
+extern char const* const unlit_rect_vert;
+extern char const* const lines_2D_geom;
+>>>>>>> 2566d4acee2d5125aafffda880fc33a4364d2b96
 extern char const* const gouraud_frag;
+extern char const* const noise_3D_frag;
+extern char const* const phong_frag;
+extern char const* const phong_normalmap_frag;
+extern char const* const phong_shadows_frag;
 extern char const* const points_frag;
+extern char const* const points_sphere_frag;
+extern char const* const unlit_frag;
+extern char const* const unlit_rect_frag;
 #endif

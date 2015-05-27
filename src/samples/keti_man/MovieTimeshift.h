@@ -18,7 +18,7 @@
 #include "syphon/SyphonConnector.h"
 
 #include "gl/Fbo.h"
-//#include "opencv2/opencv.hpp"
+#include "opencv2/opencv.hpp"
 
 namespace kinski
 {
@@ -55,9 +55,9 @@ namespace kinski
         Property_<std::string>::create("Syphon server name", "belgium");
         
         // properties
-        Property_<bool>::Ptr m_use_camera = Property_<bool>::create("use camera", false);
+        Property_<bool>::Ptr m_use_camera = Property_<bool>::create("use camera", true);
         Property_<int>::Ptr m_cam_id = Property_<int>::create("camera id", 0);
-        Property_<bool>::Ptr m_flip_image = Property_<bool>::create("flip image", false);
+        Property_<bool>::Ptr m_flip_image = Property_<bool>::create("flip image", true);
         Property_<bool>::Ptr m_use_gpu_noise = Property_<bool>::create("use gpu noise", true);
         Property_<string>::Ptr m_movie_path = Property_<string>::create("movie path", "");
         Property_<float>::Ptr m_movie_speed = Property_<float>::create("movie speed", 1.f);
@@ -75,23 +75,22 @@ namespace kinski
         Property_<float>::Ptr m_mog_learn_rate = Property_<float>::create("mog learn rate", -1.f);
         
         Property_<uint32_t>::Ptr
-        m_num_buffer_frames = Property_<uint32_t>::create("num buffer frames", 50);
+        m_num_buffer_frames = Property_<uint32_t>::create("num buffer frames", 90);
         
         gl::Texture create_noise_tex(float seed = 0.025f);
         
-//        cv::Mat create_foreground_image(std::vector<uint8_t> &the_data, int width, int height);
+        cv::UMat create_foreground_image(std::vector<uint8_t> &the_data, int width, int height);
         
     public:
         
-        void setup();
-        void update(float timeDelta);
-        void draw();
-        void got_message(const std::vector<uint8_t> &the_data);
-        void fileDrop(const MouseEvent &e, const std::vector<std::string> &files);
-        void tearDown();
-        void updateProperty(const Property::ConstPtr &theProperty);
-        
-        void keyPress(const KeyEvent &e);
+        void setup() override;
+        void update(float timeDelta) override;
+        void draw() override;
+        void got_message(const std::vector<uint8_t> &the_data) override;
+        void fileDrop(const MouseEvent &e, const std::vector<std::string> &files) override;
+        void tearDown() override;
+        void updateProperty(const Property::ConstPtr &theProperty) override;
+        void keyPress(const KeyEvent &e) override;
         
         void on_movie_load();
         

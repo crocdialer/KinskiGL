@@ -65,10 +65,10 @@ namespace kinski{ namespace video{
             if(m_player_item) [m_player_item release];
             if(m_output) [m_output release];
             if(m_loop_helper) [m_loop_helper release];
-            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
-            {
-                IOSurfaceDecrementUseCount(m_io_surface);
-            }
+//            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
+//            {
+//                IOSurfaceDecrementUseCount(m_io_surface);
+//            }
             if(m_output_tex_name){ glDeleteTextures(1, &m_output_tex_name); }
         };
     };
@@ -266,8 +266,8 @@ namespace kinski{ namespace video{
             
             if(!as_texture2D && io_surface)
             {
-                if(m_impl->m_io_surface){ IOSurfaceDecrementUseCount(m_impl->m_io_surface); }
-                IOSurfaceIncrementUseCount(io_surface);
+//                if(m_impl->m_io_surface){ IOSurfaceDecrementUseCount(m_impl->m_io_surface); }
+//                IOSurfaceIncrementUseCount(io_surface);
                 m_impl->m_io_surface = io_surface;
                 
                 if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);

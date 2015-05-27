@@ -10,7 +10,7 @@
 
 //#include "opencv2/opencv.hpp"
 //#include "opencv2/ocl/ocl.hpp"
-//#include "cv/TextureIO.h"
+#include "cv/TextureIO.h"
 
 using namespace std;
 using namespace kinski;
@@ -18,7 +18,7 @@ using namespace glm;
 
 //using namespace cv;
 //cv::ocl::MOG2 g_mog_ocl;
-//cv::BackgroundSubtractorMOG2 g_mog;
+cv::Ptr<cv::BackgroundSubtractorMOG2> g_mog2 = cv::createBackgroundSubtractorMOG2();
 
 /////////////////////////////////////////////////////////////////
 
@@ -66,7 +66,10 @@ void MovieTimeshift::setup()
     
     textures()[TEXTURE_NOISE] = create_noise_tex();
     
-    load_settings();
+    if(!load_settings())
+    {
+        m_camera->start_capture();
+    }
     
     // setup remote control
     m_remote_control = RemoteControl(io_service(), {shared_from_this()});
@@ -106,12 +109,13 @@ void MovieTimeshift::update(float timeDelta)
             textures()[TEXTURE_INPUT].update(&m_camera_data[0], GL_UNSIGNED_BYTE, GL_BGRA, w, h, *m_flip_image);
             
             // create a foreground image
-//            cv::Mat fg_image;
-//            if(*m_use_bg_substract)
-//            {
-//                fg_image = create_foreground_image(m_camera_data, w, h);
-//                gl::TextureIO::updateTexture(textures()[TEXTURE_FG_IMAGE], fg_image);
-//            }
+            cv::UMat fg_image;
+            if(*m_use_bg_substract)
+            {
+                fg_image = create_foreground_image(m_camera_data, w, h);
+                gl::TextureIO::updateTexture(textures()[TEXTURE_FG_IMAGE],
+                                             fg_image.getMat(cv::ACCESS_READ));
+            }
             
             if(m_needs_array_refresh)
             {
@@ -119,8 +123,10 @@ void MovieTimeshift::update(float timeDelta)
                 
                 gl::Texture::Format fmt;
                 fmt.setTarget(GL_TEXTURE_3D);
+//                fmt.setInternalFormat(GL_COMPRESSED_RGBA_S3TC_DXT5_EXT);
                 m_array_tex = gl::Texture(w, h, *m_num_buffer_frames, fmt);
                 m_array_tex.setFlipped(*m_flip_image);
+                
                 m_custom_mat->textures() = {m_array_tex};
                 m_custom_mat->uniform("u_num_frames", m_array_tex.getDepth());
             }
@@ -268,11 +274,11 @@ gl::Texture MovieTimeshift::create_noise_tex(float seed)
 
 /////////////////////////////////////////////////////////////////
 
-//cv::Mat MovieTimeshift::create_foreground_image(std::vector<uint8_t> &the_data, int width, int height)
-//{
-//    cv::Mat ret;
-//    
-//    static cv::Ptr<cv::ocl::FilterEngine_GPU> dilate_ocl, erode_ocl;
+cv::UMat MovieTimeshift::create_foreground_image(std::vector<uint8_t> &the_data, int width, int height)
+{
+    cv::UMat ret;
+    
+//    static cv::Ptr<cv::Filter> dilate_ocl, erode_ocl;
 //    
 //    if(!dilate_ocl || !erode_ocl)
 //    {
@@ -287,31 +293,31 @@ gl::Texture MovieTimeshift::create_noise_tex(float seed)
 //                                                    getStructuringElement(cv::MORPH_RECT,
 //                                                                          cv::Size(7, 7)));
 //    }
-//    
-//    cv::Mat outmat;
-//    cv::Mat m(height, width, CV_8UC4, &the_data[0]);
-//    
-//    
-//    cv::ocl::oclMat ocl_m(height, width, CV_8UC4, &the_data[0]), ocl_fg;
-//    g_mog_ocl(ocl_m, ocl_fg, *m_mog_learn_rate);
-//    
-//    // close operation
+    cv::UMat m = cv::Mat(height, width, CV_8UC4, &the_data[0]).getUMat(cv::ACCESS_RW);
+    
+    
+    static cv::UMat fg_mat;
+//    fg_mat.create(height, width, CV_8UC4);
+    
+    g_mog2->apply(m, fg_mat, *m_mog_learn_rate);
+    
+    // close operation
 //    dilate_ocl->apply(ocl_fg, ocl_fg);
 //    erode_ocl->apply(ocl_fg, ocl_fg);
-//    
-//    ocl::blur(ocl_fg, ocl_fg, cv::Size(11, 11));
-//    
+    
+    blur(fg_mat, fg_mat, cv::Size(11, 11));
+    
 //    // apply mask on input image
 //    ocl::oclMat tmp;
-//    
-//    std::vector<cv::ocl::oclMat> channels;
-//    ocl::split(ocl_m, channels);
-//    channels[3] = ocl_fg;
-//    ocl::merge(channels, tmp);
-//    
+    
+    std::vector<cv::UMat> channels;
+    split(m, channels);
+    channels[3] = fg_mat;
+    merge(channels, ret);
+    
 //    tmp.download(ret);
-//    return ret;
-//}
+    return ret;
+}
 
 /////////////////////////////////////////////////////////////////
 

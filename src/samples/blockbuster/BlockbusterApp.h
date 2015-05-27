@@ -117,8 +117,8 @@ namespace kinski
         void tearDown() override;
         void updateProperty(const Property::ConstPtr &theProperty) override;
         
-        void save_settings(const std::string &path = "") override;
-        void load_settings(const std::string &path = "") override;
+        bool save_settings(const std::string &path = "") override;
+        bool load_settings(const std::string &path = "") override;
     };
 }// namespace kinski
 

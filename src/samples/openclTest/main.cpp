@@ -1,13 +1,9 @@
 #include "app/ViewerApp.h"
-
-//#define __NO_STD_VECTOR
-#define __CL_ENABLE_EXCEPTIONS
-#include "cl_context.h"
-
 #include "app/LightComponent.h"
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
+// module headers
+#include "cl_context.h"
+
 
 using namespace std;
 using namespace kinski;
@@ -16,20 +12,6 @@ using namespace glm;
 class OpenCLTest : public ViewerApp
 {
 public:
-    OpenCLTest():ViewerApp(), m_timer(io_service(), boost::posix_time::seconds(1.f))
-    {
-        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this, _1));
-    };
-    
-    void tick(const boost::system::error_code& error)
-    {
-        if(!error)
-        {
-            LOG_DEBUG<<"io_service -> tick...";
-        }
-//        m_timer.expires_at(m_timer.expires_at() + boost::posix_time::seconds(1.f));
-//        m_timer.async_wait(boost::bind(&OpenCLTest::tick, this));
-    };
     
 private:
     
@@ -44,11 +26,7 @@ private:
     gl::MeshPtr m_mesh;
     gl::Font m_font;
     
-    // OpenCL standard stuff
-    cl::Context m_context;
-    cl::Device m_device;
-    cl::CommandQueue m_queue;
-    cl::Program m_program;
+    kinski::cl_context m_opencl;
     
     // particle system related
     GLsizei m_numParticles;
@@ -58,77 +36,6 @@ private:
     cl::ImageGL m_cl_image;
     
     LightComponent::Ptr m_light_component;
-    
-    boost::asio::deadline_timer m_timer;
-    
-    void initOpenCL()
-    {
-        // OpenCL
-        try
-        {
-            // Get available platforms
-            vector<cl::Platform> platforms;
-            cl::Platform::get(&platforms);
-            LOG_INFO<<platforms.front().getInfo<CL_PLATFORM_VERSION>();
-            
-            // context sharing is OS specific
-            #if defined (__APPLE__) || defined(MACOSX)
-                CGLContextObj curCGLContext = CGLGetCurrentContext();
-                CGLShareGroupObj curCGLShareGroup = CGLGetShareGroup(curCGLContext);
-                
-                cl_context_properties properties[] =
-                {
-                    CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE,
-                    (cl_context_properties)curCGLShareGroup,
-                    0
-                };
-            #elif defined WIN32
-                cl_context_properties properties[] =
-                {
-                    CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),
-                    CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),
-                    CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(),
-                    0
-                };
-            #else
-                cl_context_properties properties[] =
-                {
-                    CL_GL_CONTEXT_KHR, (cl_context_properties)glXGetCurrentContext(),
-                    CL_GLX_DISPLAY_KHR, (cl_context_properties)glXGetCurrentDisplay(),
-                    CL_CONTEXT_PLATFORM, (cl_context_properties)(platforms[0])(),
-                    0
-                };
-            #endif
-            
-            m_context = cl::Context( CL_DEVICE_TYPE_GPU, properties);
-            
-            // Get a list of devices on this platform
-            vector<cl::Device> devices = m_context.getInfo<CL_CONTEXT_DEVICES>();
-            m_device = devices[0];
-            
-            // Create a command queue and use the first device
-            m_queue = cl::CommandQueue(m_context, devices[0]);
-            
-            // Read source file
-            std::string sourceCode = kinski::read_file("kernels.cl");
-            
-            // Make program of the source code in the context
-            m_program = cl::Program(m_context, sourceCode);
-            
-            // Build program for these specific devices
-            m_program.build();
-            
-            m_particleKernel = cl::Kernel(m_program, "updateParticles");
-            m_imageKernel = cl::Kernel(m_program, "set_colors_from_image");
-        }
-        catch(cl::Error &error)
-        {
-            LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
-            LOG_ERROR << "Build Status: " << m_program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(m_device);
-            LOG_ERROR << "Build Options:\t" << m_program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(m_device);
-            LOG_ERROR << "Build Log:\t " << m_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(m_device);
-        }
-    }
     
     void initParticles(uint32_t num_particles)
     {
@@ -153,13 +60,13 @@ private:
         try
         {
             // shared position buffer for OpenGL / OpenCL
-            m_positions = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
-            m_colors = cl::BufferGL(m_context, CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
+            m_positions = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE, m_geom->vertexBuffer().id());
+            m_colors = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE, m_geom->colorBuffer().id());
             
             //create the OpenCL only arrays
-            m_velocities = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_positionGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
-            m_velocityGen = cl::Buffer( m_context, CL_MEM_WRITE_ONLY, numBytes );
+            m_velocities = cl::Buffer( m_opencl.context(), CL_MEM_WRITE_ONLY, numBytes );
+            m_positionGen = cl::Buffer( m_opencl.context(), CL_MEM_WRITE_ONLY, numBytes );
+            m_velocityGen = cl::Buffer( m_opencl.context(), CL_MEM_WRITE_ONLY, numBytes );
             
             vector<vec4> posGen, velGen;
             for (int i = 0; i < m_numParticles; i++)
@@ -173,9 +80,9 @@ private:
             }
             m_geom->createGLBuffers();
             
-            m_queue.enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
-            m_queue.enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
-            m_queue.enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_opencl.queue().enqueueWriteBuffer(m_velocities, CL_TRUE, 0, numBytes, &velGen[0]);
+            m_opencl.queue().enqueueWriteBuffer(m_positionGen, CL_TRUE, 0, numBytes, &posGen[0]);
+            m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, numBytes, &velGen[0]);
             
             m_particleKernel.setArg(0, m_positions);
             m_particleKernel.setArg(1, m_colors);
@@ -203,17 +110,17 @@ private:
             
             // map OpenGL buffer object for writing from OpenCL
             // this passes in the vector of VBO buffer objects (position and color)
-            m_queue.enqueueAcquireGLObjects(&glBuffers);
+            m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
             
             m_particleKernel.setArg(5, timeDelta); //pass in the timestep
             
             //execute the kernel
-            m_queue.enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
+            m_opencl.queue().enqueueNDRangeKernel(m_particleKernel, cl::NullRange, cl::NDRange(m_numParticles),
                                          cl::NullRange);
             //Release the VBOs so OpenGL can play with them
-            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+            m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
 
-            m_queue.finish();
+            m_opencl.queue().finish();
         }
         catch(cl::Error &error)
         {
@@ -236,7 +143,7 @@ private:
             
             // map OpenGL buffer object for writing from OpenCL
             // this passes in the vector of VBO buffer objects (position and color)
-            m_queue.enqueueAcquireGLObjects(&glBuffers);
+            m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
             
             
             m_imageKernel.setArg(0, m_cl_image);
@@ -244,14 +151,14 @@ private:
             m_imageKernel.setArg(2, m_colors);
             
             //execute the kernel
-            m_queue.enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(m_numParticles),
+            m_opencl.queue().enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(m_numParticles),
                                          cl::NullRange);
             
             
             //Release the VBOs so OpenGL can play with them
-            m_queue.enqueueReleaseGLObjects(&glBuffers, NULL);
+            m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
             
-            m_queue.finish();
+            m_opencl.queue().finish();
         }
         catch(cl::Error &error)
         {
@@ -299,7 +206,11 @@ public:
 //        m_pointMaterial->setDepthWrite(false);
 //        m_pointMaterial->addTexture(gl::createTextureFromFile("~/Desktop/harp_icon.png"));
         
-        initOpenCL();
+        m_opencl.init();
+        m_opencl.set_sources("kernels.cl");
+        m_particleKernel = cl::Kernel(m_opencl.program(), "updateParticles");
+        m_imageKernel = cl::Kernel(m_opencl.program(), "set_colors_from_image");
+        
         initParticles(*m_num_particles);
         
         m_light_component = std::make_shared<LightComponent>();
@@ -382,7 +293,7 @@ public:
                 if(m_textures[0])
                 {
                     // ->CL_INVALID_GL_OBJECT: internal format must be pow2 (RG, RGBA)
-                    m_cl_image = cl::ImageGL(m_context, CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
+                    m_cl_image = cl::ImageGL(m_opencl.context(), CL_MEM_READ_WRITE, GL_TEXTURE_2D, 0,
                                              m_textures[0].getId());
                 }
             }
@@ -400,10 +311,6 @@ public:
         else if(theProperty == m_point_size)
         {
             m_pointMaterial->setPointSize(*m_point_size);
-            
-            m_timer.cancel();
-            m_timer.expires_from_now(boost::posix_time::seconds(2.f));
-            m_timer.async_wait(boost::bind(&OpenCLTest::tick, this, _1));
         }
         else if(theProperty == m_point_color)
         {
