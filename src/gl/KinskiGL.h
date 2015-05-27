@@ -41,9 +41,14 @@
 #include <OpenGL/gl3.h>
 #include <OpenGL/gl3ext.h>
 #else
-#define GLCOREARB_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
 #include <GL/glcorearb.h>
-#include <GL/glext.h>
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
+#define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
+#define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
+#define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
 #endif
 
 // crossplattform helper-macros to append either nothing or "OES"
