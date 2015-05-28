@@ -1,4 +1,4 @@
-#version 410
+#version 330
 
 #define NUM_SHADOW_LIGHTS 2
 

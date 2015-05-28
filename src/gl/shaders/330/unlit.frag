@@ -1,4 +1,4 @@
-#version 410
+#version 330
 
 uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[1];

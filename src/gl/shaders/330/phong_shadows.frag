@@ -1,4 +1,4 @@
-#version 410
+#version 330
 
 #define NUM_SHADOW_LIGHTS 2
 #define EPSILON 0.000020
@@ -167,8 +167,9 @@ void main()
 
   vec4 texColors = vertex_in.color;//vec4(1); 
   
-  for(int i = 0; i < u_numTextures; i++) 
-    texColors *= texture(u_sampler_2D[i], vertex_in.texCoord.st); 
+  //for(int i = 0; i < u_numTextures; i++) 
+  if(u_numTextures > 0)  
+    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); 
   
   vec3 normal = normalize(vertex_in.normal); 
   vec4 shade_color = vec4(0); 
@@ -185,10 +186,12 @@ void main()
   
   int c = min(NUM_SHADOW_LIGHTS, u_numLights);
 
-  for(int i = 0; i < c; i++)
-  {
-    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, factor[i]);
-  }
+  //for(int i = 0; i < c; i++)
+  if(c > 0)
+    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, factor[0]);
+
+  if(c > 1)
+    shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, factor[1]);
 
   fragData = shade_color; 
 }

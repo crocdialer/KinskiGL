@@ -1,4 +1,4 @@
-#version 410
+#version 330
 
 struct Material
 {
@@ -98,16 +98,19 @@ void main()
 {
   vec4 texColors = vertex_in.color; 
   
-  for(int i = 0; i < u_numTextures; i++) 
-    texColors *= texture(u_sampler_2D[i], vertex_in.texCoord.st); 
+  //for(int i = 0; i < u_numTextures; i++) 
+  if(u_numTextures > 0)
+    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); 
   
   vec3 normal = normalize(vertex_in.normal); 
   vec4 shade_color = vec4(0); 
   
-  for(int i = 0; i < u_numLights; i++)
-  {
-    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
-  }
+  //for(int i = 0; i < u_numLights; i++)
+  if(u_numLights > 0)
+    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
+  
+  if(u_numLights > 1)
+    shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
 
   fragData = shade_color; 
 }
