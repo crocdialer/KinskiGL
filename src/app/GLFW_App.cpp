@@ -104,10 +104,12 @@ namespace kinski
         kinski::add_search_path("../Resources", true);
         
         //---------------------------------
-        #ifdef KINSKI_MAC
+#if defined(KINSKI_MAC)
         kinski::add_search_path("/Library/Fonts");
         kinski::add_search_path("~/Library/Fonts");
-        #endif
+#elif defined(KINSKI_LINUX)
+        kinski::add_search_path("~/.local/share/fonts");
+#endif
         //---------------------------------
         
         // AntTweakbar
