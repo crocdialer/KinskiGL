@@ -12,71 +12,71 @@
 #include "core/Logger.h"
 #include "core/file_functions.h"
 
-#define USE_PARALLEL_SOLVER 1 //experimental parallel solver
-#define USE_PARALLEL_DISPATCHER 1
+//#define USE_PARALLEL_SOLVER 1 //experimental parallel solver
+//#define USE_PARALLEL_DISPATCHER 1
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.h"
 #include "BulletCollision/CollisionDispatch/btSphereTriangleCollisionAlgorithm.h"
 #include "BulletCollision/CollisionDispatch/btSimulationIslandManager.h"
 
-#ifdef USE_PARALLEL_DISPATCHER
-#include "BulletMultiThreaded/SpuGatheringCollisionDispatcher.h"
-#include "BulletMultiThreaded/PlatformDefinitions.h"
-
-#ifdef USE_LIBSPE2
-#include "BulletMultiThreaded/SpuLibspe2Support.h"
-#elif defined (_WIN32)
-#include "BulletMultiThreaded/Win32ThreadSupport.h"
-#include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuGatheringCollisionTask.h"
-
-#elif defined (USE_PTHREADS)
-
-#include "BulletMultiThreaded/PosixThreadSupport.h"
-#include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuGatheringCollisionTask.h"
-
-#else
-//other platforms run the parallel code sequentially (until pthread support or other parallel implementation is added)
-
-#include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuGatheringCollisionTask.h"
-#endif //USE_LIBSPE2
-
-#ifdef USE_PARALLEL_SOLVER
-#include "BulletMultiThreaded/btParallelConstraintSolver.h"
-#include "BulletMultiThreaded/SequentialThreadSupport.h"
-
-
-std::shared_ptr<btThreadSupportInterface> createSolverThreadSupport(int maxNumThreads)
-{
-    //#define SEQUENTIAL
-#ifdef SEQUENTIAL
-	SequentialThreadSupport::SequentialThreadConstructionInfo tci("solverThreads",SolverThreadFunc,SolverlsMemoryFunc);
-	SequentialThreadSupport* threadSupport = new SequentialThreadSupport(tci);
-	threadSupport->startSPU();
-#else
-    
-#ifdef _WIN32
-	Win32ThreadSupport::Win32ThreadConstructionInfo threadConstructionInfo("solverThreads",SolverThreadFunc,SolverlsMemoryFunc,maxNumThreads);
-	Win32ThreadSupport* threadSupport = new Win32ThreadSupport(threadConstructionInfo);
-	threadSupport->startSPU();
-#elif defined (USE_PTHREADS)
-	PosixThreadSupport::ThreadConstructionInfo solverConstructionInfo("solver", SolverThreadFunc,
-																	  SolverlsMemoryFunc, maxNumThreads);
-	
-	PosixThreadSupport* threadSupport = new PosixThreadSupport(solverConstructionInfo);
-	
-#else
-	SequentialThreadSupport::SequentialThreadConstructionInfo tci("solverThreads",SolverThreadFunc,SolverlsMemoryFunc);
-	SequentialThreadSupport* threadSupport = new SequentialThreadSupport(tci);
-	threadSupport->startSPU();
-#endif
-	
-#endif
-    
-	return std::shared_ptr<btThreadSupportInterface>(threadSupport);
-}
-#endif //USE_PARALLEL_SOLVER
-#endif//USE_PARALLEL_DISPATCHER
+//#ifdef USE_PARALLEL_DISPATCHER
+//#include "BulletMultiThreaded/SpuGatheringCollisionDispatcher.h"
+//#include "BulletMultiThreaded/PlatformDefinitions.h"
+//
+//#ifdef USE_LIBSPE2
+//#include "BulletMultiThreaded/SpuLibspe2Support.h"
+//#elif defined (_WIN32)
+//#include "BulletMultiThreaded/Win32ThreadSupport.h"
+//#include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuGatheringCollisionTask.h"
+//
+//#elif defined (USE_PTHREADS)
+//
+//#include "BulletMultiThreaded/PosixThreadSupport.h"
+//#include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuGatheringCollisionTask.h"
+//
+//#else
+////other platforms run the parallel code sequentially (until pthread support or other parallel implementation is added)
+//
+//#include "BulletMultiThreaded/SpuNarrowPhaseCollisionTask/SpuGatheringCollisionTask.h"
+//#endif //USE_LIBSPE2
+//
+//#ifdef USE_PARALLEL_SOLVER
+//#include "BulletMultiThreaded/btParallelConstraintSolver.h"
+//#include "BulletMultiThreaded/SequentialThreadSupport.h"
+//
+//
+//std::shared_ptr<btThreadSupportInterface> createSolverThreadSupport(int maxNumThreads)
+//{
+//    //#define SEQUENTIAL
+//#ifdef SEQUENTIAL
+//	SequentialThreadSupport::SequentialThreadConstructionInfo tci("solverThreads",SolverThreadFunc,SolverlsMemoryFunc);
+//	SequentialThreadSupport* threadSupport = new SequentialThreadSupport(tci);
+//	threadSupport->startSPU();
+//#else
+//    
+//#ifdef _WIN32
+//	Win32ThreadSupport::Win32ThreadConstructionInfo threadConstructionInfo("solverThreads",SolverThreadFunc,SolverlsMemoryFunc,maxNumThreads);
+//	Win32ThreadSupport* threadSupport = new Win32ThreadSupport(threadConstructionInfo);
+//	threadSupport->startSPU();
+//#elif defined (USE_PTHREADS)
+//	PosixThreadSupport::ThreadConstructionInfo solverConstructionInfo("solver", SolverThreadFunc,
+//																	  SolverlsMemoryFunc, maxNumThreads);
+//	
+//	PosixThreadSupport* threadSupport = new PosixThreadSupport(solverConstructionInfo);
+//	
+//#else
+//	SequentialThreadSupport::SequentialThreadConstructionInfo tci("solverThreads",SolverThreadFunc,SolverlsMemoryFunc);
+//	SequentialThreadSupport* threadSupport = new SequentialThreadSupport(tci);
+//	threadSupport->startSPU();
+//#endif
+//	
+//#endif
+//    
+//	return std::shared_ptr<btThreadSupportInterface>(threadSupport);
+//}
+//#endif //USE_PARALLEL_SOLVER
+//#endif//USE_PARALLEL_DISPATCHER
 
 using namespace std;
 
@@ -156,37 +156,37 @@ namespace kinski{ namespace physics{
         ///the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
         m_solver = std::make_shared<btSequentialImpulseConstraintSolver>();
         
-        if(m_maxNumTasks > 1)
-        {
-            PosixThreadSupport::ThreadConstructionInfo constructionInfo("collision",
-                                                                        processCollisionTask,
-                                                                        createCollisionLocalStoreMemory,
-                                                                        m_maxNumTasks);
-            m_threadSupportCollision = std::make_shared<PosixThreadSupport>(constructionInfo);
-            m_dispatcher = std::make_shared<SpuGatheringCollisionDispatcher>(m_threadSupportCollision.get(),
-                                                                             m_maxNumTasks,
-                                                                             m_collisionConfiguration.get());
-            
-            m_threadSupportSolver = createSolverThreadSupport(m_maxNumTasks);
-            m_solver = std::make_shared<btParallelConstraintSolver>(m_threadSupportSolver.get());
-            
-            //this solver requires the contacts to be in a contiguous pool, so avoid dynamic allocation
-            m_dispatcher->setDispatcherFlags(btCollisionDispatcher::CD_DISABLE_CONTACTPOOL_DYNAMIC_ALLOCATION);
-        }
+        //if(m_maxNumTasks > 1)
+        //{
+        //    PosixThreadSupport::ThreadConstructionInfo constructionInfo("collision",
+        //                                                                processCollisionTask,
+        //                                                                createCollisionLocalStoreMemory,
+        //                                                                m_maxNumTasks);
+        //    m_threadSupportCollision = std::make_shared<PosixThreadSupport>(constructionInfo);
+        //    m_dispatcher = std::make_shared<SpuGatheringCollisionDispatcher>(m_threadSupportCollision.get(),
+        //                                                                     m_maxNumTasks,
+        //                                                                     m_collisionConfiguration.get());
+        //    
+        //    m_threadSupportSolver = createSolverThreadSupport(m_maxNumTasks);
+        //    m_solver = std::make_shared<btParallelConstraintSolver>(m_threadSupportSolver.get());
+        //    
+        //    //this solver requires the contacts to be in a contiguous pool, so avoid dynamic allocation
+        //    m_dispatcher->setDispatcherFlags(btCollisionDispatcher::CD_DISABLE_CONTACTPOOL_DYNAMIC_ALLOCATION);
+        //}
         
         m_dynamicsWorld = std::make_shared<btDiscreteDynamicsWorld>(m_dispatcher.get(),
                                                                     m_broadphase.get(),
                                                                     m_solver.get(),
                                                                     m_collisionConfiguration.get());
 
-        if(m_maxNumTasks > 1)
-        {
-            btDiscreteDynamicsWorld* world = (btDiscreteDynamicsWorld*) m_dynamicsWorld.get();
-            world->getSimulationIslandManager()->setSplitIslands(false);
-            world->getSolverInfo().m_numIterations = 4;
-            world->getSolverInfo().m_solverMode = SOLVER_SIMD+SOLVER_USE_WARMSTARTING;//+SOLVER_RANDMIZE_ORDER;
-            world->getDispatchInfo().m_enableSPU = true;
-        }
+        //if(m_maxNumTasks > 1)
+        //{
+        //    btDiscreteDynamicsWorld* world = (btDiscreteDynamicsWorld*) m_dynamicsWorld.get();
+        //    world->getSimulationIslandManager()->setSplitIslands(false);
+        //    world->getSolverInfo().m_numIterations = 4;
+        //    world->getSolverInfo().m_solverMode = SOLVER_SIMD+SOLVER_USE_WARMSTARTING;//+SOLVER_RANDMIZE_ORDER;
+        //    world->getDispatchInfo().m_enableSPU = true;
+        //}
         
         m_dynamicsWorld->setGravity(btVector3(0,-9.87,0));
         
@@ -238,7 +238,8 @@ namespace kinski{ namespace physics{
         m_collisionShapes.clear();
         m_mesh_shape_map.clear();
         m_mesh_rigidbody_map.clear();
-        deleteCollisionLocalStoreMemory();
+        
+        //deleteCollisionLocalStoreMemory();
     }
     
     void physics_context::near_callback(btBroadphasePair& collisionPair, btCollisionDispatcher& dispatcher,

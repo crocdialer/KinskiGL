@@ -7,9 +7,11 @@
 //
 
 #include "cl_context.h"
-#include "core/Definitions.h"
-#include "core/Logger.h"
 #include "core/file_functions.h"
+
+#if defined(KINSKI_LINUX)
+  #include <GL/glx.h>
+#endif
 
 using namespace std;
 
