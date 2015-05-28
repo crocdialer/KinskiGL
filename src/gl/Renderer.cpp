@@ -153,7 +153,7 @@ namespace kinski{ namespace gl{
 #ifndef KINSKI_GLES
                 if(!m->entries().empty())
                 {
-                    for (int i = 0; i < m->entries().size(); i++)
+                    for (uint32_t i = 0; i < m->entries().size(); i++)
                     {
                         // skip disabled entries
                         if(!m->entries()[i].enabled) continue;

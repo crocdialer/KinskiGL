@@ -88,9 +88,9 @@ namespace kinski { namespace gl {
         MaterialPtr& material() { return m_materials.front(); };
         
         void bindVertexPointers(int material_index = 0) const;
-        void bind_vertex_array(int i = 0);
+        void bind_vertex_array(uint32_t i = 0);
         void createVertexArray();
-        GLuint vertexArray(int i = 0) const;
+        GLuint vertexArray(uint32_t i = 0) const;
         
         void update(float time_delta);
         

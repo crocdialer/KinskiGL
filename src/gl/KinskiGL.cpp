@@ -915,7 +915,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 #ifndef KINSKI_GLES
             if(!theMesh->entries().empty())
             {
-                for (int i = 0; i < theMesh->entries().size(); i++)
+                for (uint32_t i = 0; i < theMesh->entries().size(); i++)
                 {
                     // skip disabled entries
                     if(!theMesh->entries()[i].enabled) continue;

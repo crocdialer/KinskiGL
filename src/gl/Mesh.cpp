@@ -37,7 +37,7 @@ namespace kinski { namespace gl {
     Mesh::~Mesh()
     {
 #ifndef KINSKI_NO_VAO
-        for (int i = 0; i < m_vertexArrays.size(); i++)
+        for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
         {
             if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
         }
@@ -333,7 +333,7 @@ namespace kinski { namespace gl {
         if(m_geometry->vertices().empty()) return;
         
 #ifndef KINSKI_NO_VAO
-        for (int i = 0; i < m_vertexArrays.size(); i++)
+        for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
         {
             if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
         }
@@ -342,7 +342,7 @@ namespace kinski { namespace gl {
         m_vertexArrays.resize(m_materials.size(), 0);
         m_shaders.resize(m_materials.size());
         
-        for (int i = 0; i < m_vertexArrays.size(); i++)
+        for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
         {
             if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
             
@@ -354,7 +354,7 @@ namespace kinski { namespace gl {
 #endif
     }
     
-    GLuint Mesh::vertexArray(int i) const
+    GLuint Mesh::vertexArray(uint32_t i) const
     {
         if(m_shaders[i] != m_materials[i]->shader())
         {
@@ -363,10 +363,10 @@ namespace kinski { namespace gl {
         return m_vertexArrays[i];
     };
     
-    void Mesh::bind_vertex_array(int i)
+    void Mesh::bind_vertex_array(uint32_t i)
     {
 #if !defined(KINSKI_NO_VAO)
-        i = std::max(0, i);
+        i = std::max<uint32_t>(0, i);
         
         if(i >= m_vertexArrays.size()){createVertexArray();}
         

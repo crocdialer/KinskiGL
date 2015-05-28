@@ -23,10 +23,6 @@
 #include <map>
 #include <stack>
 
-#include "Logger.h"
-#include "Exception.h"
-#include "Utils.h"
-
 //#include <boost/version.hpp>
 //#if BOOST_VERSION < 105300
 //#error "Kinski requires Boost version 1.53 or later"
@@ -66,30 +62,15 @@ namespace kinski
     #endif
 #endif
 
-// compiler has C++11 stdlib
-#if defined(KINSKI_CPP11) || defined(KINSKI_MSW) || defined (KINSKI_COCOA_TOUCH) || defined( _LIBCPP_VERSION )
-    #include <memory>
-    #include <functional>
-    #include <algorithm>
-#else
-    #include <boost/shared_ptr.hpp>
-    #include <boost/enable_shared_from_this.hpp>
-    #include <boost/functional.hpp>
-    namespace std
-    {
-        using boost::shared_ptr; // future-proof shared_ptr by putting it into std::
-        using boost::weak_ptr;
-        using boost::static_pointer_cast;
-        using boost::dynamic_pointer_cast;
-        using boost::const_pointer_cast;
-        using boost::enable_shared_from_this;
-        
-        // backwards compatibility hack
-        template<typename T> struct owner_less : public less<T>{};
-    }
-#endif
+#include <memory>
+#include <functional>
+#include <algorithm>
 
 // forward declare boost io_service
 namespace boost{ namespace asio{ class io_service; } }
+
+#include "Logger.h"
+#include "Exception.h"
+#include "Utils.h"
 
 #endif//gl_Definitions_h
