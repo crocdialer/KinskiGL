@@ -40,12 +40,16 @@ namespace kinski{ namespace gl{
         inline uint32_t height() const { return y2 - y1; };
     };
                 
-    struct Image
+    class Image
     {
-        uint8_t* data;
-        uint32_t rows, cols;
-        uint32_t bytes_per_pixel;
+    public:
+        
+        uint8_t* data = nullptr;
+        uint32_t rows = 0, cols = 0;
+        uint32_t bytes_per_pixel = 1;
         Area<uint32_t> roi;
+        bool do_not_dispose = false;
+        
         Image():data(nullptr), rows(0), cols(0), bytes_per_pixel(0){};
         
         Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
@@ -53,6 +57,8 @@ namespace kinski{ namespace gl{
         data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
         
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
+        
+        inline size_t num_bytes() const { return rows * cols * bytes_per_pixel; }
         
         ~Image(){};
     };
