@@ -90,9 +90,10 @@ void main()
 {
   vec4 texColors = vertex_in.color; 
   
-  for(int i = 0; i < u_numTextures; i++) 
+  //for(int i = 0; i < u_numTextures; i++)
+  if(u_numTextures > 0)
   { 
-    texColors *= texture(u_sampler_2D[i], gl_PointCoord); 
+    texColors *= texture(u_sampler_2D[0], gl_PointCoord); 
   }
   vec3 normal; 
   normal.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0); 

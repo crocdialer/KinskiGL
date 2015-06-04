@@ -20,6 +20,7 @@ void ModelViewer::setup()
     ViewerApp::setup();
     
     registerProperty(m_model_path);
+    registerProperty(m_cube_map_folder);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -146,6 +147,10 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
         
         switch (get_filetype(f))
         {
+            case FileType::FILE_DIRECTORY:
+                *m_cube_map_folder = f;
+                break;
+
             case FileType::FILE_MODEL:
                 *m_model_path = f;
                 break;
@@ -199,6 +204,21 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
             auto aabb = m->boundingBox();
             float scale_factor = 50.f / aabb.width();
             m->setScale(scale_factor);
+        }
+    }
+    else if(theProperty == m_cube_map_folder)
+    {
+        if(kinski::is_directory(*m_cube_map_folder))
+        {
+          vector<gl::Texture> cube_planes;
+          for(auto &f : kinski::get_directory_entries(*m_cube_map_folder))
+          {
+              if(kinski::get_filetype(f) == FileType::FILE_IMAGE)
+              {
+                  cube_planes.push_back(gl::createTextureFromFile(f));
+              }   
+          }
+          m_cube_map = gl::create_cube_texture(cube_planes);
         }
     }
 }

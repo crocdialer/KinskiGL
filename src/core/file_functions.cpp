@@ -326,16 +326,16 @@ namespace kinski {
     
     FileType get_filetype(const std::string &file_name)
     {
+        if(is_directory(file_name)){ return FileType::FILE_DIRECTORY; }
         string ext = kinski::to_lower(kinski::get_extension(file_name).substr(1));
         
         std::list<string>
-        image_exts{"png", "jpg", "jpeg"},
+        image_exts{"png", "jpg", "jpeg", "bmp", "tga"},
         audio_exts{"wav", "m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh"},
         movie_exts{"mpg", "mov", "avi", "mp4", "m4v"};
         
-        if(is_directory(file_name)){ return FileType::FILE_DIRECTORY; }
-        else if(kinski::is_in(ext, image_exts)){ return FileType::FILE_IMAGE; }
+        if(kinski::is_in(ext, image_exts)){ return FileType::FILE_IMAGE; }
         else if(kinski::is_in(ext, model_exts)){ return FileType::FILE_MODEL; }
         else if(kinski::is_in(ext, audio_exts)){ return FileType::FILE_AUDIO; }
         else if(kinski::is_in(ext, movie_exts)){ return FileType::FILE_MOVIE; }
