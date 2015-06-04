@@ -22,27 +22,24 @@ class SimpleRaspiApp : public ViewerApp
 private:
    
     gl::Fbo m_frameBuffer;
-    gl::Texture m_textures[4];
     
     gl::MaterialPtr m_material, m_pointMaterial;
     gl::GeometryPtr m_geometry;
     gl::GeometryPtr m_straightPlane;
     
     gl::MeshPtr m_mesh;
-    gl::PerspectiveCamera::Ptr m_Camera;
-    gl::Scene m_scene;
     
-    RangedProperty<float>::Ptr m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);;
-    
-    Property_<bool>::Ptr m_wireFrame = Property_<bool>::create("Wireframe", false);
-    Property_<bool>::Ptr m_drawNormals = Property_<bool>::create("Normals", false);
-    Property_<glm::vec3>::Ptr m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
-    
-    Property_<glm::vec4>::Ptr m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
-    Property_<glm::mat3>::Ptr m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());;
-    RangedProperty<float>::Ptr m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 15, -100, 100);
+    //RangedProperty<float>::Ptr m_distance = RangedProperty<float>::create("view distance", 25, 0, 5000);;
+    //
+    //Property_<bool>::Ptr m_wireFrame = Property_<bool>::create("Wireframe", false);
+    //Property_<bool>::Ptr m_drawNormals = Property_<bool>::create("Normals", false);
+    //Property_<glm::vec3>::Ptr m_lightDir = Property_<vec3>::create("Light dir", vec3(1));
+    //
+    //Property_<glm::vec4>::Ptr m_color = Property_<glm::vec4>::create("Material color", glm::vec4(1 ,1 ,0, 0.6));
+    //Property_<glm::mat3>::Ptr m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());;
+    //RangedProperty<float>::Ptr m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 15, -100, 100);
 
-    Property_<glm::vec3>::Ptr m_camPosition = Property_<glm::vec3>::create("Camera Position", vec3(0, 30, -120));
+    //Property_<glm::vec3>::Ptr m_camPosition = Property_<glm::vec3>::create("Camera Position", vec3(0, 30, -120));
     
     Property_<std::string>::Ptr m_imagePath = Property_<std::string>::create("Image path", "test.png");
 
@@ -63,14 +60,14 @@ public:
 
         /*********** init our application properties ******************/
         
-        registerProperty(m_distance);
-        registerProperty(m_wireFrame);
-        registerProperty(m_drawNormals);
-        registerProperty(m_lightDir);
-        registerProperty(m_color);
-        registerProperty(m_rotation);
-        registerProperty(m_rotationSpeed);
-        registerProperty(m_camPosition);
+        //registerProperty(m_distance);
+        //registerProperty(m_wireFrame);
+        //registerProperty(m_drawNormals);
+        //registerProperty(m_lightDir);
+        //registerProperty(m_color);
+        //registerProperty(m_rotation);
+        //registerProperty(m_rotationSpeed);
+        //registerProperty(m_camPosition);
         registerProperty(m_imagePath);
         registerProperty(m_dmx_start_index);
         registerProperty(m_dmx_color);
@@ -84,15 +81,15 @@ public:
         // init FBO
         m_frameBuffer = gl::Fbo(864, 486);
 
-        m_textures[0] = gl::createTextureFromFile(*m_imagePath);
-        m_Camera = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
-        m_Camera->setClippingPlanes(1, 5000);
-        m_Camera->setAspectRatio(getAspectRatio());
-        m_Camera->setPosition( m_camPosition->value() );
-        m_Camera->setLookAt(glm::vec3(0, 0, 0)); 
+        textures()[0] = gl::createTextureFromFile(*m_imagePath);
+        //camera() = gl::PerspectiveCamera::Ptr(new gl::PerspectiveCamera);
+        //camera()->setClippingPlanes(1, 5000);
+        //camera()->setAspectRatio(getAspectRatio());
+        //camera()->setPosition( m_camPosition->value() );
+        //camera()->setLookAt(glm::vec3(0, 0, 0)); 
 
         // test box shape
-        gl::GeometryPtr myBox = gl::Geometry::createBox(glm::vec3(20, 20, 20));
+        gl::GeometryPtr myBox = gl::Geometry::createBox(glm::vec3(1, 1, 1));
         
         gl::MaterialPtr myMaterial = gl::Material::create();
         //myMaterial->setDepthTest(false);
@@ -104,7 +101,7 @@ public:
 
         gl::MeshPtr myBoxMesh = gl::Mesh::create(myBox, myMaterial);
         myBoxMesh->setPosition(vec3(0, 0, 0));
-        m_scene.addObject(myBoxMesh);
+        scene().addObject(myBoxMesh);
        
         m_mesh = myBoxMesh;
         m_material = myMaterial;
@@ -117,18 +114,10 @@ public:
             255, 255,   0, 255  // Yellow
         };
 
-        m_textures[1].update(pixels, GL_UNSIGNED_BYTE, GL_RGBA, 2, 2, false);
-
-        // load state from config file
-        try
-        {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }catch(Exception &e)
-        {
-            LOG_WARNING << e.what();
-            Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-        }
+        textures()[1].update(pixels, GL_UNSIGNED_BYTE, GL_RGBA, 2, 2, false);
         
+        load_settings();
+
         // add tcp remote control
         m_remote_control = RemoteControl(io_service(), {shared_from_this()});
         m_remote_control.start_listen(); 
@@ -136,8 +125,9 @@ public:
     
     void update(const float timeDelta)
     {
+        ViewerApp::update(timeDelta);
         glm::mat4 newTrans = glm::rotate(m_mesh->transform(),
-                                         m_rotationSpeed->value() * timeDelta,
+                                         -m_rotationSpeed->value() * timeDelta,
                                          vec3(0, 1, .5));
         m_mesh->setTransform(newTrans);
         m_mesh->material()->uniform("u_time", getApplicationTime()); 
@@ -147,13 +137,13 @@ public:
     {
         gl::drawTexture(m_textures[0], windowSize());
         
-        gl::setMatrices(m_Camera);
+        gl::setMatrices(camera());
         gl::drawGrid(500, 500);
         
-        m_scene.render(m_Camera);
+        scene().render(camera());
 
         // draw fbo content
-        //gl::render_to_texture(m_scene, m_frameBuffer, m_Camera);
+        //gl::render_to_texture(scene(), m_frameBuffer, camera());
         //gl::drawTexture(m_frameBuffer.getTexture(), windowSize());
     }
     
@@ -172,28 +162,17 @@ public:
     {
         LOG_INFO<<"resize: "<< w <<" -- "<< h;
 
-        m_Camera->setAspectRatio(getAspectRatio());
+        //camera()->setAspectRatio(getAspectRatio());
     }
     
     // Property observer callback
     void updateProperty(const Property::ConstPtr &theProperty)
     {
-        // one of our porperties was changed
-        if(theProperty == m_color)
+        ViewerApp::updateProperty(theProperty);
+
+        if(theProperty == m_imagePath)
         {
-        }
-        else if(theProperty == m_lightDir )
-        {
-            //m_material->uniform("u_lightDir", m_lightDir->value());
-        }
-        else if(theProperty == m_camPosition)
-        {
-            m_Camera->setPosition( m_camPosition->value() );
-            m_Camera->setLookAt(glm::vec3(0, 0, 0));
-        }
-        else if(theProperty == m_imagePath)
-        {
-            m_textures[0] = gl::createTextureFromFile(m_imagePath->value());
+            textures()[0] = gl::createTextureFromFile(m_imagePath->value());
         }
         else if(theProperty == m_dmx_color)
         {

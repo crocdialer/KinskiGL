@@ -11,8 +11,6 @@
 #define _KINSKIGL_H
 
 #include "core/Definitions.h"
-#include "core/Exception.h"
-#include "core/Logger.h"
 #include "core/file_functions.h"
 
 //triggers checks with glGetError()
@@ -80,6 +78,7 @@ namespace kinski { namespace gl {
     class Buffer;
     class Shader;
     class Fbo;
+    class Image;
     class Texture;
     class Font;
     class Visitor;
@@ -88,7 +87,6 @@ namespace kinski { namespace gl {
     struct OBB;
     struct Sphere;
     struct Frustum;
-    struct Image;
     
     typedef glm::vec4 Color;
     typedef std::shared_ptr<class Material> MaterialPtr;
@@ -215,6 +213,12 @@ namespace kinski { namespace gl {
                                              bool mipmap = false,
                                              bool compress = false,
                                              GLfloat anisotropic_filter_lvl = 1.f);
+    
+    /*!
+     * create a gl::Texture object of type GL_TEXTURE_CUBE 
+     * from 6 individual gl::Texture objects of type GL_TEXTURE_2D of same size
+     */
+    KINSKI_API Texture create_cube_texture(const std::vector<gl::Texture> &the_planes);
     
     class ImageLoadException : public Exception
     {

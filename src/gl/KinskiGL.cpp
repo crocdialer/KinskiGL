@@ -1220,6 +1220,64 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
+    Texture create_cube_texture(const std::vector<gl::Texture> &the_planes)
+    {
+        gl::Texture ret;
+        
+#if !defined(KINSKI_GLES)
+        // check if number and sizes of input textures match
+        if(the_planes.size() != 6)
+        {
+            LOG_WARNING << "cube map creation failed. number of input textures must be 6 -- "
+            << the_planes.size() << " provided";
+            return ret;
+        }
+        
+        auto tex_sz = the_planes.front().getSize();
+        auto tex_target = the_planes.front().getTarget();
+        
+        for (auto &t : the_planes)
+        {
+            if(tex_sz != t.getSize() || tex_target != t.getTarget())
+            {
+                LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
+                return ret;
+            }
+        }
+        
+        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
+        pixel_buf.setData(nullptr, tex_sz.x * tex_sz.y * 4);
+        
+        
+        GLuint tex_name;
+        glGenTextures(1, &tex_name);
+        
+        pixel_buf.bind();
+        
+        for (uint32_t i = 0; i < 6; i++)
+        {
+            const gl::Texture &t = the_planes.front();
+            t.bind();
+            
+            // copy data to PBO
+            glGetTexImage(t.getTarget(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, nullptr);
+            
+            // bind cube map
+            glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
+            
+            // copy data from PBO to appropriate image plane
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t.getInternalFormat(), t.getWidth(),
+                         t.getHeight(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, nullptr);
+        }
+        pixel_buf.unbind();
+        
+        ret = gl::Texture(GL_TEXTURE_CUBE_MAP, tex_name, tex_sz.x, tex_sz.y, false);
+#endif
+        return ret;
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     void apply_material(const MaterialPtr &the_mat, bool force_apply)
     {
         static Material::WeakPtr weak_last;
