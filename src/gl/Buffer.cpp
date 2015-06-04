@@ -110,14 +110,14 @@ GLsizei Buffer::stride() const
     return m_Obj->stride;
 }
 
-void Buffer::bind() const
+void Buffer::bind(GLenum the_target) const
 {
-    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
+    glBindBuffer(the_target ? the_target : m_Obj->target, m_Obj->buffer_id);
 }
 
-void Buffer::unbind() const
+void Buffer::unbind(GLenum the_target) const
 {
-    glBindBuffer(m_Obj->target, 0);
+    glBindBuffer(the_target ? the_target : m_Obj->target, 0);
 }
     
     

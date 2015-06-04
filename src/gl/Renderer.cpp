@@ -132,8 +132,8 @@ namespace kinski{ namespace gl{
 //                block_index = mat->shader().getUniformBlockIndex("MatrixBlock");
 //                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATRIX_BLOCK);
                 
-                block_index = mat->shader().getUniformBlockIndex("ShadowBlock");
-                glUniformBlockBinding(mat->shader().getHandle(), block_index, SHADOW_BLOCK);
+//                block_index = mat->shader().getUniformBlockIndex("ShadowBlock");
+//                glUniformBlockBinding(mat->shader().getHandle(), block_index, SHADOW_BLOCK);
 #else
                 set_light_uniforms(mat, light_list);
 #endif

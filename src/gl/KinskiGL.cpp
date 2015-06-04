@@ -1245,31 +1245,32 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             }
         }
         
-        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
+        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         pixel_buf.setData(nullptr, tex_sz.x * tex_sz.y * 4);
-        
         
         GLuint tex_name;
         glGenTextures(1, &tex_name);
         
-        pixel_buf.bind();
+        pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+        pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
         
         for (uint32_t i = 0; i < 6; i++)
         {
-            const gl::Texture &t = the_planes.front();
+            const gl::Texture &t = the_planes[i];
             t.bind();
             
             // copy data to PBO
-            glGetTexImage(t.getTarget(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, nullptr);
+            glGetTexImage(t.getTarget(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
             
             // bind cube map
             glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
             
             // copy data from PBO to appropriate image plane
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t.getInternalFormat(), t.getWidth(),
-                         t.getHeight(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, nullptr);
+                         t.getHeight(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
         }
-        pixel_buf.unbind();
+        pixel_buf.unbind(GL_PIXEL_UNPACK_BUFFER);
+        pixel_buf.unbind(GL_PIXEL_PACK_BUFFER);
         
         ret = gl::Texture(GL_TEXTURE_CUBE_MAP, tex_name, tex_sz.x, tex_sz.y, false);
 #endif

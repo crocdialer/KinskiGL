@@ -4,7 +4,7 @@
 
 
 char const* const gouraud_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "struct Material\n"
    "{\n"
    "  vec4 diffuse; \n"
@@ -100,7 +100,7 @@ char const* const gouraud_vert =
 ;
 
 char const* const phong_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform mat4 u_modelViewMatrix; \n"
    "uniform mat4 u_modelViewProjectionMatrix; \n"
    "uniform mat3 u_normalMatrix; \n"
@@ -127,7 +127,7 @@ char const* const phong_vert =
 ;
 
 char const* const phong_normalmap_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform mat4 u_modelViewMatrix; \n"
    "uniform mat4 u_modelViewProjectionMatrix; \n"
    "uniform mat3 u_normalMatrix; \n"
@@ -180,7 +180,7 @@ char const* const phong_normalmap_vert =
 ;
 
 char const* const phong_shadows_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "#define NUM_SHADOW_LIGHTS 2\n"
    "uniform mat4 u_modelViewMatrix; \n"
    "uniform mat4 u_modelViewProjectionMatrix; \n"
@@ -214,7 +214,7 @@ char const* const phong_shadows_vert =
 ;
 
 char const* const phong_skin_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "#define NUM_SHADOW_LIGHTS 2\n"
    "uniform mat4 u_modelViewMatrix; \n"
    "uniform mat4 u_modelViewProjectionMatrix; \n"
@@ -260,7 +260,7 @@ char const* const phong_skin_vert =
 ;
 
 char const* const points_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform mat4 u_modelViewMatrix; \n"
    "uniform mat4 u_modelViewProjectionMatrix; \n"
    "struct Material\n"
@@ -297,7 +297,7 @@ char const* const points_vert =
 ;
 
 char const* const unlit_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform mat4 u_modelViewProjectionMatrix;\n"
    "uniform mat4 u_textureMatrix;\n"
    "layout(location = 0) in vec4 a_vertex; \n"
@@ -317,7 +317,7 @@ char const* const unlit_vert =
 ;
 
 char const* const unlit_rect_vert = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform mat4 u_modelViewProjectionMatrix;\n"
    "uniform mat4 u_textureMatrix;\n"
    "uniform vec2 u_texture_size = vec2(1.0);\n"
@@ -387,7 +387,7 @@ char const* const lines_2D_geom =
 ;
 
 char const* const gouraud_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2D u_sampler_2D[1]; \n"
    "in VertexData \n"
@@ -501,7 +501,7 @@ char const* const noise_3D_frag =
 ;
 
 char const* const phong_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "struct Material\n"
    "{\n"
    "  vec4 diffuse; \n"
@@ -591,22 +591,25 @@ char const* const phong_frag =
    "{\n"
    "  vec4 texColors = vertex_in.color; \n"
    "  \n"
-   "  for(int i = 0; i < u_numTextures; i++) \n"
-   "    texColors *= texture(u_sampler_2D[i], vertex_in.texCoord.st); \n"
+   "  //for(int i = 0; i < u_numTextures; i++) \n"
+   "  if(u_numTextures > 0)\n"
+   "    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); \n"
    "  \n"
    "  vec3 normal = normalize(vertex_in.normal); \n"
    "  vec4 shade_color = vec4(0); \n"
    "  \n"
-   "  for(int i = 0; i < u_numLights; i++)\n"
-   "  {\n"
-   "    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, 1.0);\n"
-   "  }\n"
+   "  //for(int i = 0; i < u_numLights; i++)\n"
+   "  if(u_numLights > 0)\n"
+   "    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, 1.0);\n"
+   "  \n"
+   "  if(u_numLights > 1)\n"
+   "    shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, 1.0);\n"
    "  fragData = shade_color; \n"
    "}\n"
 ;
 
 char const* const phong_normalmap_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform int u_numTextures; \n"
    "uniform sampler2D u_sampler_2D[4]; \n"
    "struct Material\n"
@@ -713,7 +716,7 @@ char const* const phong_normalmap_frag =
 ;
 
 char const* const phong_shadows_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "#define NUM_SHADOW_LIGHTS 2\n"
    "#define EPSILON 0.000020\n"
    "struct Material\n"
@@ -863,8 +866,9 @@ char const* const phong_shadows_frag =
    "	fTaps_Poisson[11] = vec2(-.792,-.598);\n"
    "  vec4 texColors = vertex_in.color;//vec4(1); \n"
    "  \n"
-   "  for(int i = 0; i < u_numTextures; i++) \n"
-   "    texColors *= texture(u_sampler_2D[i], vertex_in.texCoord.st); \n"
+   "  //for(int i = 0; i < u_numTextures; i++) \n"
+   "  if(u_numTextures > 0)  \n"
+   "    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); \n"
    "  \n"
    "  vec3 normal = normalize(vertex_in.normal); \n"
    "  vec4 shade_color = vec4(0); \n"
@@ -878,16 +882,17 @@ char const* const phong_shadows_frag =
    "  }\n"
    "  \n"
    "  int c = min(NUM_SHADOW_LIGHTS, u_numLights);\n"
-   "  for(int i = 0; i < c; i++)\n"
-   "  {\n"
-   "    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, factor[i]);\n"
-   "  }\n"
+   "  //for(int i = 0; i < c; i++)\n"
+   "  if(c > 0)\n"
+   "    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, factor[0]);\n"
+   "  if(c > 1)\n"
+   "    shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, factor[1]);\n"
    "  fragData = shade_color; \n"
    "}\n"
 ;
 
 char const* const points_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2D u_sampler_2D[1]; \n"
    "struct Material\n"
@@ -923,7 +928,7 @@ char const* const points_frag =
 ;
 
 char const* const points_sphere_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "struct Material\n"
    "{\n"
    "  vec4 diffuse; \n"
@@ -1006,9 +1011,10 @@ char const* const points_sphere_frag =
    "{\n"
    "  vec4 texColors = vertex_in.color; \n"
    "  \n"
-   "  for(int i = 0; i < u_numTextures; i++) \n"
+   "  //for(int i = 0; i < u_numTextures; i++)\n"
+   "  if(u_numTextures > 0)\n"
    "  { \n"
-   "    texColors *= texture(u_sampler_2D[i], gl_PointCoord); \n"
+   "    texColors *= texture(u_sampler_2D[0], gl_PointCoord); \n"
    "  }\n"
    "  vec3 normal; \n"
    "  normal.xy = gl_PointCoord * vec2(2.0, -2.0) + vec2(-1.0, 1.0); \n"
@@ -1035,7 +1041,7 @@ char const* const points_sphere_frag =
 ;
 
 char const* const unlit_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2D u_sampler_2D[1];\n"
    "struct Material\n"
@@ -1067,7 +1073,7 @@ char const* const unlit_frag =
 ;
 
 char const* const unlit_rect_frag = 
-   "#version 410\n"
+   "#version 330\n"
    "uniform int u_numTextures;\n"
    "uniform sampler2DRect u_sampler_2Drect[1];\n"
    "struct Material\n"
