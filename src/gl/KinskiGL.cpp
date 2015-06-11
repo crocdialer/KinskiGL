@@ -1204,7 +1204,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         return theFbo.getTexture();
     }
     
-#ifdef KINSKI_CPP11
+//#ifdef KINSKI_CPP11
     
     KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor)
     {
@@ -1216,7 +1216,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         return theFbo.getTexture();
     }
     
-#endif
+//#endif
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -1245,7 +1245,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             }
         }
         
-        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
+        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
         pixel_buf.setData(nullptr, tex_sz.x * tex_sz.y * 4);
         
         GLuint tex_name;

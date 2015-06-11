@@ -3,9 +3,7 @@
 
 #include "Definitions.h"
 
-#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-#include <termios.h>
-#else
+#if defined(KINSKI_MSW)
 #include <winbase.h>
 #include <tchar.h>
 #include <iostream>
@@ -14,10 +12,12 @@
 #include <regstr.h>
 #define MAX_SERIAL_PORTS 256
 #include <winioctl.h>
-#ifdef __MINGW32__
-#define INITGUID
-#include <initguid.h> // needed for dev-c++ & DEFINE_GUID
-#endif
+    #ifdef __MINGW32__
+    #define INITGUID
+    #include <initguid.h> // needed for dev-c++ & DEFINE_GUID
+    #endif
+#else
+#include <termios.h>
 #endif
 
 // serial error codes

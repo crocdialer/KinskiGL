@@ -1,12 +1,12 @@
 #include "Serial.h"
 #include "Logger.h"
 
-#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-    #include <unistd.h>
-	#include <sys/ioctl.h>
-	#include <getopt.h>
-	#include <dirent.h>
-    #include <cstring>
+#if !defined(KINSKI_MSW)
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <getopt.h>
+#include <dirent.h>
+#include <cstring>
 #endif
 
 #include <fcntl.h>
@@ -100,7 +100,6 @@ void Serial::enumerateWin32Ports()
 Serial::Serial():
 m_handle(0)
 {
-
 	//---------------------------------------------
 	#ifdef KINSKI_MSW
 	//---------------------------------------------
@@ -299,7 +298,6 @@ bool Serial::setup()
 //----------------------------------------------------------------
 bool Serial::setup(int deviceNumber, int baud)
 {
-
 	buildDeviceList();
 	if( deviceNumber < (int)devices.size() )
     {
@@ -310,7 +308,6 @@ bool Serial::setup(int deviceNumber, int baud)
 		LOG_ERROR << "couldn't find device " << deviceNumber << ", only " << devices.size() << " devices found";
 		return false;
 	}
-
 }
 
 //----------------------------------------------------------------
@@ -318,102 +315,6 @@ bool Serial::setup(string portName, int baud)
 {
 
 	close();
-
-	//---------------------------------------------
-	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-	//---------------------------------------------
-
-		//lets account for the name being passed in instead of the device path
-		if( portName.size() > 5 && portName.substr(0, 5) != "/dev/" )
-        {
-			portName = "/dev/" + portName;
-		}
-
-	    LOG_DEBUG << "opening " << portName << " @ " << baud << " bps";
-		m_handle = open(portName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
-		if(m_handle == -1)
-        {
-			LOG_ERROR << "unable to open " << portName;
-			return false;
-		}
-
-		struct termios options;
-		tcgetattr(m_handle, &m_old_options);
-		options = m_old_options;
-    switch(baud)
-    {
-        case 300:
-            cfsetispeed(&options, B300);
-            cfsetospeed(&options, B300);
-            break;
-        case 1200:
-            cfsetispeed(&options, B1200);
-            cfsetospeed(&options, B1200);
-            break;
-        case 2400:
-            cfsetispeed(&options, B2400);
-            cfsetospeed(&options, B2400);
-            break;
-        case 4800:
-            cfsetispeed(&options, B4800);
-            cfsetospeed(&options, B4800);
-            break;
-        case 9600:
-            cfsetispeed(&options, B9600);
-            cfsetospeed(&options, B9600);
-            break;
-        #ifndef KINSKI_LINUX
-            case 14400:
-                cfsetispeed(&options, B14400);
-                cfsetospeed(&options, B14400);
-                break;
-            case 28800:
-                cfsetispeed(&options, B28800);
-                cfsetospeed(&options, B28800);
-                break;
-        #endif
-        case 19200:
-            cfsetispeed(&options, B19200);
-            cfsetospeed(&options, B19200);
-            break;
-        case 38400:
-            cfsetispeed(&options, B38400);
-            cfsetospeed(&options, B38400);
-            break;
-        case 57600:
-            cfsetispeed(&options, B57600);
-            cfsetospeed(&options, B57600);
-            break;
-        case 115200:
-            cfsetispeed(&options, B115200);
-            cfsetospeed(&options, B115200);
-            break;
-        case 230400:
-            cfsetispeed(&options, B230400);
-            cfsetospeed(&options, B230400);
-            break;
-        default:
-            cfsetispeed(&options, B9600);
-            cfsetospeed(&options, B9600);
-            LOG_ERROR << "setup(): cannot set " << baud << " bps, setting to 9600";
-            break;
-    }
-
-		options.c_cflag |= (CLOCAL | CREAD);
-		options.c_cflag &= ~PARENB;
-		options.c_cflag &= ~CSTOPB;
-		options.c_cflag &= ~CSIZE;
-		options.c_cflag |= CS8;
-		tcsetattr(m_handle,TCSANOW,&options);
-
-		bInited = true;
-		LOG_DEBUG << "opened " << portName << "sucessfully @ " << baud << " bps";
-
-	    return true;
-	//---------------------------------------------
-    #endif
-    //---------------------------------------------
-
 
     //---------------------------------------------
 	#ifdef KINSKI_MSW
@@ -477,7 +378,6 @@ bool Serial::setup(string portName, int baud)
     {
 		LOG_ERROR << "setup(): couldn't set comm state: " << cfg.dcb.BaudRate << " bps, xio " << cfg.dcb.fInX << "/" << cfg.dcb.fOutX;;
 	}
-	//ofLogNotice("Serial") << "bps=" << cfg.dcb.BaudRate << ", xio=" << cfg.dcb.fInX << "/" << cfg.dcb.fOutX;
 
 	// Set communication timeouts (NT)
 	COMMTIMEOUTS tOut;
@@ -493,6 +393,96 @@ bool Serial::setup(string portName, int baud)
 	bInited = true;
 	return true;
 	//---------------------------------------------
+    #else
+    //---------------------------------------------
+    
+    //lets account for the name being passed in instead of the device path
+    if( portName.size() > 5 && portName.substr(0, 5) != "/dev/" )
+    {
+        portName = "/dev/" + portName;
+    }
+    
+    LOG_DEBUG << "opening " << portName << " @ " << baud << " bps";
+    m_handle = open(portName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+    if(m_handle == -1)
+    {
+        LOG_ERROR << "unable to open " << portName;
+        return false;
+    }
+    
+    struct termios options;
+    tcgetattr(m_handle, &m_old_options);
+    options = m_old_options;
+    switch(baud)
+    {
+        case 300:
+            cfsetispeed(&options, B300);
+            cfsetospeed(&options, B300);
+            break;
+        case 1200:
+            cfsetispeed(&options, B1200);
+            cfsetospeed(&options, B1200);
+            break;
+        case 2400:
+            cfsetispeed(&options, B2400);
+            cfsetospeed(&options, B2400);
+            break;
+        case 4800:
+            cfsetispeed(&options, B4800);
+            cfsetospeed(&options, B4800);
+            break;
+        case 9600:
+            cfsetispeed(&options, B9600);
+            cfsetospeed(&options, B9600);
+            break;
+#ifndef KINSKI_LINUX
+        case 14400:
+            cfsetispeed(&options, B14400);
+            cfsetospeed(&options, B14400);
+            break;
+        case 28800:
+            cfsetispeed(&options, B28800);
+            cfsetospeed(&options, B28800);
+            break;
+#endif
+        case 19200:
+            cfsetispeed(&options, B19200);
+            cfsetospeed(&options, B19200);
+            break;
+        case 38400:
+            cfsetispeed(&options, B38400);
+            cfsetospeed(&options, B38400);
+            break;
+        case 57600:
+            cfsetispeed(&options, B57600);
+            cfsetospeed(&options, B57600);
+            break;
+        case 115200:
+            cfsetispeed(&options, B115200);
+            cfsetospeed(&options, B115200);
+            break;
+        case 230400:
+            cfsetispeed(&options, B230400);
+            cfsetospeed(&options, B230400);
+            break;
+        default:
+            cfsetispeed(&options, B9600);
+            cfsetospeed(&options, B9600);
+            LOG_ERROR << "setup(): cannot set " << baud << " bps, setting to 9600";
+            break;
+    }
+    
+    options.c_cflag |= (CLOCAL | CREAD);
+    options.c_cflag &= ~PARENB;
+    options.c_cflag &= ~CSTOPB;
+    options.c_cflag &= ~CSIZE;
+    options.c_cflag |= CS8;
+    tcsetattr(m_handle,TCSANOW,&options);
+    
+    bInited = true;
+    LOG_DEBUG << "opened " << portName << "sucessfully @ " << baud << " bps";
+    
+    return true;
 	#endif
 	//---------------------------------------------
 }
@@ -514,23 +504,6 @@ int Serial::writeBytes(const void *buffer, int length)
 		return KINSKI_SERIAL_ERROR;
 	}
 
-	//---------------------------------------------
-	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-	    int numWritten = write(m_handle, buffer, length);
-		if(numWritten <= 0)
-        {
-			if ( errno == EAGAIN )
-				return 0;
-			LOG_ERROR << "writeBytes(): couldn't write to port: " << errno << " " << strerror(errno);
-			return KINSKI_SERIAL_ERROR;
-		}
-
-		LOG_TRACE << "wrote " << (int) numWritten << " bytes";
-
-	    return numWritten;
-    #endif
-    //---------------------------------------------
-
     //---------------------------------------------
 	#ifdef KINSKI_MSW
 		DWORD written;
@@ -541,7 +514,18 @@ int Serial::writeBytes(const void *buffer, int length)
 		ofLogVerbose("Serial") <<  "wrote " << (int) written << " bytes";
 		return (int)written;
 	#else
-		return 0;
+    int numWritten = (int)write(m_handle, buffer, length);
+    if(numWritten <= 0)
+    {
+        if ( errno == EAGAIN )
+            return 0;
+        LOG_ERROR << "writeBytes(): couldn't write to port: " << errno << " " << strerror(errno);
+        return KINSKI_SERIAL_ERROR;
+    }
+    
+    LOG_TRACE << "wrote " << (int) numWritten << " bytes";
+    
+    return numWritten;
 	#endif
 	//---------------------------------------------
 
@@ -557,30 +541,29 @@ int Serial::readBytes(void *buffer, int length)
 		return KINSKI_SERIAL_ERROR;
 	}
 
-	//---------------------------------------------
-	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-		int nRead = read(m_handle, buffer, length);
-		if(nRead < 0)
-        {
-			if ( errno == EAGAIN )
-				return KINSKI_SERIAL_NO_DATA;
-			LOG_ERROR << "readBytes(): couldn't read from port: " << errno << " " << strerror(errno);
-			return KINSKI_SERIAL_ERROR;
-		}
-		return nRead;
-    #endif
+    //---------------------------------------------
+#ifdef KINSKI_MSW
+    DWORD nRead = 0;
+    if (!ReadFile(hComm,buffer,length,&nRead,0)){
+        LOG_ERROR << "readBytes(): couldn't read from port";
+        return KINSKI_SERIAL_ERROR;
+    }
+    return (int)nRead;
+    //---------------------------------------------
+#else
+    //---------------------------------------------
+    int nRead = (int)read(m_handle, buffer, length);
+    if(nRead < 0)
+    {
+        if ( errno == EAGAIN )
+            return KINSKI_SERIAL_NO_DATA;
+        LOG_ERROR << "readBytes(): couldn't read from port: " << errno << " " << strerror(errno);
+        return KINSKI_SERIAL_ERROR;
+    }
+    return nRead;
+#endif
     //---------------------------------------------
 
-    //---------------------------------------------
-	#ifdef KINSKI_MSW
-		DWORD nRead = 0;
-		if (!ReadFile(hComm,buffer,length,&nRead,0)){
-			LOG_ERROR << "readBytes(): couldn't read from port";
-			return KINSKI_SERIAL_ERROR;
-		}
-		return (int)nRead;
-	#endif
-	//---------------------------------------------
 }
 
 //----------------------------------------------------------------
@@ -596,23 +579,6 @@ bool Serial::writeByte(unsigned char singleByte){
 	unsigned char tmpByte[1];
 	tmpByte[0] = singleByte;
 
-	//---------------------------------------------
-	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-	    int numWritten = 0;
-	    numWritten = write(m_handle, tmpByte, 1);
-		if(numWritten <= 0 )
-        {
-			if ( errno == EAGAIN )
-				return 0;
-			 LOG_ERROR << "writeByte(): couldn't write to port: " << errno << " " << strerror(errno);
-			 //return KINSKI_SERIAL_ERROR; // this looks wrong.
-			 return false;
-		}
-		LOG_TRACE << "wrote byte";
-
-		return (numWritten > 0 ? true : false);
-    #endif
-    //---------------------------------------------
 
     //---------------------------------------------
 	#ifdef KINSKI_MSW
@@ -626,8 +592,25 @@ bool Serial::writeByte(unsigned char singleByte){
 		ofLogVerbose("Serial") << "wrote byte";
 
 		return ((int)written > 0 ? true : false);
+    //---------------------------------------------
+    #else
+    //---------------------------------------------
+    size_t numWritten = 0;
+    numWritten = write(m_handle, tmpByte, 1);
+    if(numWritten <= 0 )
+    {
+        if ( errno == EAGAIN )
+            return 0;
+        LOG_ERROR << "writeByte(): couldn't write to port: " << errno << " " << strerror(errno);
+        //return KINSKI_SERIAL_ERROR; // this looks wrong.
+        return false;
+    }
+    LOG_TRACE << "wrote byte";
+    
+    return (numWritten > 0 ? true : false);
+
+    //---------------------------------------------
 	#endif
-	//---------------------------------------------
 
 }
 
