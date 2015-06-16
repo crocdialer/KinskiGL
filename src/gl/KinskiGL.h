@@ -27,8 +27,17 @@
 
 #ifdef KINSKI_GLES // GLES2
 #ifdef KINSKI_COCOA_TOUCH
+
+// tmp define here
+//#define KINSKI_GLES_3
+
+#ifdef KINSKI_GLES_3
+#import <OpenGLES/ES3/gl.h>
+#import <OpenGLES/ES3/glext.h>
+#else
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
+#endif
 
 #else // general
 #include <GLES2/gl2.h>
@@ -51,7 +60,7 @@
 
 // crossplattform helper-macros to append either nothing or "OES"
 // appropriately to a symbol based on either OpenGL3+ or OpenGLES2
-#if defined( KINSKI_GLES )
+#if defined(KINSKI_GLES) && !defined(KINSKI_GLES_3)
 #define GL_SUFFIX(sym) sym##OES
 #define GL_ENUM(sym) sym##_OES
 #else

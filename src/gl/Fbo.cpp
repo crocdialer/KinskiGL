@@ -92,7 +92,7 @@ Fbo::Format::Format()
 	mTarget = GL_TEXTURE_2D;
 #if defined( KINSKI_GLES )
 	mColorInternalFormat = GL_RGBA;
-	mDepthInternalFormat = GL_DEPTH_COMPONENT24_OES;
+	mDepthInternalFormat = GL_ENUM(GL_DEPTH_COMPONENT24);
     m_stencilInternalFormat = GL_STENCIL_INDEX8;
 	m_depthBufferAsTexture = false;
 #else

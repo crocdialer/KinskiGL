@@ -31,8 +31,8 @@ class KINSKI_API Buffer
     void reset() { m_Obj.reset(); }
     
     // map and unmap the buffer to local memory
-    uint8_t* map(GLenum mode = GL_ENUM(GL_WRITE_ONLY));
-    const uint8_t* map(GLenum mode = GL_ENUM(GL_WRITE_ONLY)) const;
+    uint8_t* map(GLenum access = 0);
+    const uint8_t* map(GLenum access = 0) const;
     void unmap() const;
     
     void bind(GLenum the_target = 0) const;

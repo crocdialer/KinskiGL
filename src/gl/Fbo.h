@@ -23,11 +23,9 @@ class KINSKI_API Renderbuffer
 	//! Creates a NULL Renderbuffer
 	Renderbuffer() {}
 	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8
-#if defined( KINSKI_GLES )
-	Renderbuffer(int width, int height, GLenum internalFormat = GL_RGBA8_OES);
-#else
-	Renderbuffer(int width, int height, GLenum internalFormat = GL_RGBA8);
-#endif
+
+	Renderbuffer(int width, int height, GLenum internalFormat = GL_ENUM(GL_RGBA8));
+
 	//! Create a Renderbuffer \a width pixels wide and \a heigh pixels high, with an internal format of \a internalFormat, defaulting to GL_RGBA8, MSAA samples \a msaaSamples
 	Renderbuffer(int width, int height, GLenum internalFormat, int msaaSamples);
 
