@@ -25,24 +25,21 @@
 #define GL_GLEXT_PROTOTYPES
 #endif
 
-#ifdef KINSKI_GLES // GLES2
-#ifdef KINSKI_COCOA_TOUCH
+#ifdef KINSKI_GLES // OpenGL ES
 
-// tmp define here
-//#define KINSKI_GLES_3
-
-#ifdef KINSKI_GLES_3
+#ifdef KINSKI_COCOA_TOUCH // iOS
+#ifdef KINSKI_GLES_3 // ES 3
 #import <OpenGLES/ES3/gl.h>
 #import <OpenGLES/ES3/glext.h>
-#else
+#else // ES 2
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
-#endif
+#endif // KINSKI_COCOA_TOUCH (iOS)
 
-#else // general
+#else // general ES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-#endif
+#endif // KINSKI_GLES (OpenGL ES)
 
 #elif defined(KINSKI_COCOA)// desktop GL3
 #include <OpenGL/gl3.h>
@@ -50,6 +47,7 @@
 #else
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glcorearb.h>
+//TODO: remove this extension definitions from here, when a better place is found
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #define GL_COMPRESSED_RGB_S3TC_DXT1_EXT   0x83F0
@@ -60,10 +58,10 @@
 
 // crossplattform helper-macros to append either nothing or "OES"
 // appropriately to a symbol based on either OpenGL3+ or OpenGLES2
-#if defined(KINSKI_GLES) && !defined(KINSKI_GLES_3)
+#if defined(KINSKI_GLES) && !defined(KINSKI_GLES_3) // all versions, except ES2
 #define GL_SUFFIX(sym) sym##OES
 #define GL_ENUM(sym) sym##_OES
-#else
+#else // only ES2 here
 #define GL_SUFFIX(sym) sym
 #define GL_ENUM(sym) sym
 #endif
