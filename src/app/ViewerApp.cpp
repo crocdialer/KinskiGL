@@ -42,6 +42,9 @@ namespace kinski {
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
         registerProperty(m_distance);
         
+        m_camera_fov = Property_<float>::create("camera fov", 45.f);
+        registerProperty(m_camera_fov);
+        
         m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
         m_rotation->setTweakable(false);
         registerProperty(m_rotation);
@@ -310,6 +313,10 @@ namespace kinski {
         {
             gl::clearColor(*m_clear_color);
             outstream_gl().set_color(glm::vec4(1.f) - m_clear_color->value());
+        }
+        else if(theProperty == m_camera_fov)
+        {
+            m_camera->setFov(*m_camera_fov);
         }
         else if(theProperty == m_distance || theProperty == m_rotation ||
                 theProperty == m_look_at)

@@ -111,6 +111,7 @@ namespace kinski {
         
         RangedProperty<float>::Ptr m_distance;
         Property_<glm::mat3>::Ptr m_rotation;
+        Property_<float>::Ptr m_camera_fov;
         Property_<glm::vec3>::Ptr m_look_at;
         
         RangedProperty<float>::Ptr m_rotationSpeed;
