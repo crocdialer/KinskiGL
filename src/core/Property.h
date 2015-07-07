@@ -13,7 +13,6 @@
 #include <boost/any.hpp>
 #include <boost/signals2.hpp>
 #include "Definitions.h"
-#include "Exception.h"
 
 namespace kinski
 {
@@ -44,9 +43,10 @@ public:
     {
         if (!isOfType<T>()) {throw WrongTypeSetException(m_name);}
         if(checkValue(theValue))
+        {
             m_value = theValue;
-        
-        notifyObservers();
+            notifyObservers();
+        }
     }
    
     template <typename T>

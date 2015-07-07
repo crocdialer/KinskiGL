@@ -1,21 +1,29 @@
 //
-//  EmptySample.h
+//  AsteroidField.h
 //  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#ifndef __gl__EmptySample__
-#define __gl__EmptySample__
+#ifndef __gl__AsteroidField__
+#define __gl__AsteroidField__
 
 #include "app/ViewerApp.h"
 
 namespace kinski
 {
-    class EmptySample : public ViewerApp
+    class AsteroidField : public ViewerApp
     {
     private:
+        
+        std::vector<gl::MeshPtr> m_proto_objects;
+        
+        gl::MeshPtr m_skybox_mesh;
+        
+        Property_<string>::Ptr
+        m_model_folder = Property_<string>::create("model folder", "."),
+        m_sky_box_path = Property_<string>::create("skybox path", "alienSky.jpg");
         
     public:
         
@@ -37,4 +45,4 @@ namespace kinski
     };
 }// namespace kinski
 
-#endif /* defined(__gl__EmptySample__) */
+#endif /* defined(__gl__AsteroidField__) */

@@ -88,7 +88,9 @@ namespace kinski {
         
         std::vector<gl::MaterialPtr> m_materials;
         gl::MeshPtr m_selected_mesh;
+        
         gl::PerspectiveCamera::Ptr m_camera;
+        
         gl::Scene m_scene;
         gl::Arcball m_arcball;
         
