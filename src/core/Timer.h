@@ -62,12 +62,12 @@ namespace kinski
         void cancel();
         
         /*!
-         * returns true if the timer is set to fire periodicly
+         * returns true if the timer is set to fire periodically
          */
         bool periodic() const;
         
         /*!
-         * set if the timer should fire periodicly
+         * set if the timer should fire periodically
          */
         void set_periodic(bool b);
         

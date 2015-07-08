@@ -90,6 +90,7 @@ namespace kinski {
             materials().push_back(material);
         }
         // viewer provides a directional light
+        lights().front()->position() = glm::vec3(1);
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         
         // enable observer mechanism

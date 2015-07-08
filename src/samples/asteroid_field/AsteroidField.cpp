@@ -7,7 +7,11 @@
 //
 
 #include "AsteroidField.h"
-#include "AssimpConnector.h"
+
+#include "gl/Visitor.h"
+
+// module headers
+#include "assimp/AssimpConnector.h"
 
 using namespace std;
 using namespace kinski;
@@ -21,16 +25,44 @@ void AsteroidField::setup()
     ViewerApp::setup();
     registerProperty(m_model_folder);
     registerProperty(m_sky_box_path);
+    registerProperty(m_half_extents);
+    registerProperty(m_velocity);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
+    
+    m_light_component = std::make_shared<LightComponent>();
+    m_light_component->set_lights(lights());
+    create_tweakbar_from_component(m_light_component);
+    
+    // add lights to scene
+    for (auto l : lights()){ scene().addObject(l ); }
     
     m_skybox_mesh = gl::Mesh::create(gl::Geometry::createSphere(1.f, 24), gl::Material::create());
     m_skybox_mesh->material()->setDepthWrite(false);
     m_skybox_mesh->material()->setTwoSided();
-    scene().addObject(m_skybox_mesh);
+    
+//    m_spawn_timer = Timer(io_service(), [](){ });
+//    m_spawn_timer.expires_from_now(3.f);
     
     // finally load state from file
     load_settings();
+    
+    for(int i = 0; i < 200; i++)
+    {    
+        auto test_mesh = m_proto_objects[0]->copy();
+        
+        // random spawn position
+        test_mesh->setPosition(glm::linearRand(m_aabb.min, m_aabb.max));
+        
+        // object rotation via update-functor
+        vec3 rot_vec = glm::ballRand(1.f);
+        float rot_speed = random<float>(10.f, 90.f);
+        test_mesh->set_update_function([test_mesh, rot_vec, rot_speed](float t)
+        {
+            test_mesh->transform() = glm::rotate(test_mesh->transform(), rot_speed * t, rot_vec);
+        });
+        scene().addObject(test_mesh);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -38,15 +70,44 @@ void AsteroidField::setup()
 void AsteroidField::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    
+    // fetch all model-objects in scene
+    gl::SelectVisitor<gl::Mesh> mv;
+    scene().root()->accept(mv);
+    
+    for(auto &m : mv.getObjects())
+    {
+        // translation update
+        m->position() += m_velocity->value() * timeDelta;
+        
+        // reposition within AABB if necessary
+        if(!m_aabb.contains(m->position()))
+        {
+            auto &p = m->position();
+            
+            // find out-of-bounds dimension
+            if(p.x < m_aabb.min.x){ p.x += m_aabb.width(); }
+            else if(p.x > m_aabb.max.x){ p.x -= m_aabb.width(); }
+            if(p.y < m_aabb.min.y){ p.y += m_aabb.height(); }
+            else if(p.y > m_aabb.max.y){ p.y -= m_aabb.height(); }
+            if(p.z < m_aabb.min.z){ p.z += m_aabb.depth(); }
+            else if(p.z > m_aabb.max.z){ p.z -= m_aabb.depth(); }
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
 
 void AsteroidField::draw()
 {
-    // adapt skybox position
-    m_skybox_mesh->setPosition(camera()->position());
-//    gl::drawMesh(m_skybox_mesh);
+    // skybox drawing
+    gl::setProjection(camera());
+    mat4 m = camera()->getViewMatrix();
+    m[3] = vec4(0, 0, 0, 1);
+    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m);
+    gl::drawMesh(m_skybox_mesh);
+    
+    /////////////////////////////////////////////////////////
     
     // draw asteroid field
     gl::setMatrices(camera());
@@ -149,6 +210,11 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
             auto mesh = gl::AssimpConnector::loadModel(p);
             if(mesh)
             {
+                auto &verts = mesh->geometry()->vertices();
+                vec3 centroid = gl::calculateCentroid(verts);
+                for(auto &v : verts){ v -= centroid; }
+                
+                mesh->material()->setShader(gl::createShader(gl::SHADER_GOURAUD));
                 m_proto_objects.push_back(mesh);
             }
         }
@@ -162,5 +228,9 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
             tex_vec.push_back(gl::createTextureFromFile(*m_sky_box_path));
         }
         catch (Exception &e){ LOG_WARNING << e.what(); }
+    }
+    else if(theProperty == m_half_extents)
+    {
+        m_aabb = gl::AABB(-m_half_extents->value(), m_half_extents->value());
     }
 }

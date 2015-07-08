@@ -10,6 +10,8 @@
 #define __gl__AsteroidField__
 
 #include "app/ViewerApp.h"
+#include "core/Timer.h"
+#include "app/LightComponent.h"
 
 namespace kinski
 {
@@ -17,13 +19,24 @@ namespace kinski
     {
     private:
         
+        LightComponent::Ptr m_light_component;
+        
         std::vector<gl::MeshPtr> m_proto_objects;
+        std::vector<gl::MeshPtr> m_objects;
         
         gl::MeshPtr m_skybox_mesh;
         
+        gl::AABB m_aabb;
+        
+        Timer m_spawn_timer;
+        
         Property_<string>::Ptr
         m_model_folder = Property_<string>::create("model folder", "."),
-        m_sky_box_path = Property_<string>::create("skybox path", "alienSky.jpg");
+        m_sky_box_path = Property_<string>::create("skybox path", "skybox_01.png");
+        
+        Property_<glm::vec3>::Ptr
+        m_half_extents = Property_<glm::vec3>::create("space half extents", glm::vec3(500.f)),
+        m_velocity = Property_<glm::vec3>::create("velocity", glm::vec3(0, 0, 20.f));
         
     public:
         
