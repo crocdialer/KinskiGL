@@ -25,6 +25,9 @@ void AsteroidField::setup()
     create_tweakbar_from_component(shared_from_this());
     
     m_skybox_mesh = gl::Mesh::create(gl::Geometry::createSphere(1.f, 24), gl::Material::create());
+    m_skybox_mesh->material()->setDepthWrite(false);
+    m_skybox_mesh->material()->setTwoSided();
+    scene().addObject(m_skybox_mesh);
     
     // finally load state from file
     load_settings();
@@ -41,11 +44,15 @@ void AsteroidField::update(float timeDelta)
 
 void AsteroidField::draw()
 {
-    // draw skybox
+    // adapt skybox position
+    m_skybox_mesh->setPosition(camera()->position());
+//    gl::drawMesh(m_skybox_mesh);
     
     // draw asteroid field
     gl::setMatrices(camera());
     if(*m_draw_grid){ gl::drawGrid(50, 50); }
+    
+    scene().render(camera());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -135,8 +142,10 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
     {
         m_proto_objects.clear();
         
+        add_search_path(get_directory_part(*m_model_folder));
         for (const auto &p : get_directory_entries(*m_model_folder))
         {
+            if(get_filetype(p) != FileType::FILE_MODEL){ continue; }
             auto mesh = gl::AssimpConnector::loadModel(p);
             if(mesh)
             {
