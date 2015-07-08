@@ -38,6 +38,11 @@ namespace kinski
         m_half_extents = Property_<glm::vec3>::create("space half extents", glm::vec3(500.f)),
         m_velocity = Property_<glm::vec3>::create("velocity", glm::vec3(0, 0, 20.f));
         
+        Property_<uint32_t>::Ptr
+        m_num_objects = Property_<uint32_t>::create("num objects", 150);
+        
+        void create_scene(int num_objects);
+        
     public:
         
         void setup() override;

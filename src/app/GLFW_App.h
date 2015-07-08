@@ -103,7 +103,7 @@ namespace kinski
         const std::vector<CTwBar*>& tweakBars() const { return m_tweakBars; };
         std::vector<CTwBar*>& tweakBars() { return m_tweakBars; };
         
-        void create_tweakbar_from_component(const Component::Ptr & the_component);
+        void create_tweakbar_from_component(const Component::Ptr & the_component) override;
         
         int get_num_monitors() const;
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};

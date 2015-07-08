@@ -41,6 +41,7 @@ namespace kinski
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
         virtual void tearDown(){};
+        virtual void create_tweakbar_from_component(const Component::Ptr &the_component){};
         
         // these are optional overrides
         virtual void setWindowSize(const glm::vec2 &size);

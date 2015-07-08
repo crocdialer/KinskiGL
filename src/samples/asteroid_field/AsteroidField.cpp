@@ -24,6 +24,7 @@ void AsteroidField::setup()
 {
     ViewerApp::setup();
     registerProperty(m_model_folder);
+    registerProperty(m_num_objects);
     registerProperty(m_sky_box_path);
     registerProperty(m_half_extents);
     registerProperty(m_velocity);
@@ -34,35 +35,12 @@ void AsteroidField::setup()
     m_light_component->set_lights(lights());
     create_tweakbar_from_component(m_light_component);
     
-    // add lights to scene
-    for (auto l : lights()){ scene().addObject(l ); }
-    
     m_skybox_mesh = gl::Mesh::create(gl::Geometry::createSphere(1.f, 24), gl::Material::create());
     m_skybox_mesh->material()->setDepthWrite(false);
     m_skybox_mesh->material()->setTwoSided();
     
-//    m_spawn_timer = Timer(io_service(), [](){ });
-//    m_spawn_timer.expires_from_now(3.f);
-    
     // finally load state from file
     load_settings();
-    
-    for(int i = 0; i < 200; i++)
-    {    
-        auto test_mesh = m_proto_objects[0]->copy();
-        
-        // random spawn position
-        test_mesh->setPosition(glm::linearRand(m_aabb.min, m_aabb.max));
-        
-        // object rotation via update-functor
-        vec3 rot_vec = glm::ballRand(1.f);
-        float rot_speed = random<float>(10.f, 90.f);
-        test_mesh->set_update_function([test_mesh, rot_vec, rot_speed](float t)
-        {
-            test_mesh->transform() = glm::rotate(test_mesh->transform(), rot_speed * t, rot_vec);
-        });
-        scene().addObject(test_mesh);
-    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -232,5 +210,34 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_half_extents)
     {
         m_aabb = gl::AABB(-m_half_extents->value(), m_half_extents->value());
+    }
+    else if(theProperty == m_num_objects)
+    {
+        create_scene(*m_num_objects);
+    }
+}
+
+void AsteroidField::create_scene(int num_objects)
+{
+    scene().clear();
+    
+    // add lights to scene
+    for (auto l : lights()){ scene().addObject(l ); }
+    
+    for(int i = 0; i < 200; i++)
+    {
+        auto test_mesh = m_proto_objects[0]->copy();
+        
+        // random spawn position
+        test_mesh->setPosition(glm::linearRand(m_aabb.min, m_aabb.max));
+        
+        // object rotation via update-functor
+        vec3 rot_vec = glm::ballRand(1.f);
+        float rot_speed = random<float>(10.f, 90.f);
+        test_mesh->set_update_function([test_mesh, rot_vec, rot_speed](float t)
+        {
+            test_mesh->transform() = glm::rotate(test_mesh->transform(), rot_speed * t, rot_vec);
+        });
+        scene().addObject(test_mesh);
     }
 }
