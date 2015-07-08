@@ -24,6 +24,7 @@ void AsteroidField::setup()
 {
     ViewerApp::setup();
     registerProperty(m_model_folder);
+    registerProperty(m_texture_folder);
     registerProperty(m_num_objects);
     registerProperty(m_sky_box_path);
     registerProperty(m_half_extents);
@@ -41,6 +42,8 @@ void AsteroidField::setup()
     
     // finally load state from file
     load_settings();
+    
+    load_assets();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -185,23 +188,11 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_model_folder)
     {
-        m_proto_objects.clear();
         
-        add_search_path(get_directory_part(*m_model_folder));
-        for (const auto &p : get_directory_entries(*m_model_folder))
-        {
-            if(get_filetype(p) != FileType::FILE_MODEL){ continue; }
-            auto mesh = gl::AssimpConnector::loadModel(p);
-            if(mesh)
-            {
-                auto &verts = mesh->geometry()->vertices();
-                vec3 centroid = gl::calculateCentroid(verts);
-                for(auto &v : verts){ v -= centroid; }
-                
-                mesh->material()->setShader(gl::createShader(gl::SHADER_GOURAUD));
-                m_proto_objects.push_back(mesh);
-            }
-        }
+    }
+    else if(theProperty == m_texture_folder)
+    {
+        
     }
     else if(theProperty == m_sky_box_path)
     {
@@ -224,16 +215,67 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
     }
 }
 
+void AsteroidField::load_assets()
+{
+    m_proto_objects.clear();
+    
+    add_search_path(*m_model_folder);
+    add_search_path(*m_texture_folder);
+    for (const auto &p : get_directory_entries(*m_model_folder))
+    {
+        if(get_filetype(p) != FileType::FILE_MODEL){ continue; }
+        auto mesh = gl::AssimpConnector::loadModel(p);
+        if(mesh)
+        {
+            auto &verts = mesh->geometry()->vertices();
+            vec3 centroid = gl::calculateCentroid(verts);
+            for(auto &v : verts){ v -= centroid; }
+            mesh->geometry()->createGLBuffers();
+            mesh->geometry()->computeBoundingBox();
+            
+            mesh->material()->setShader(gl::createShader(gl::SHADER_GOURAUD));
+            mesh->material()->setAmbient(gl::COLOR_WHITE);
+            
+            auto aabb = mesh->boundingBox();
+            float scale_factor = 50.f / aabb.width();
+            mesh->setScale(scale_factor);
+            
+            m_proto_objects.push_back(mesh);
+        }
+    }
+    
+    m_proto_textures.clear();
+    
+    for(auto &p : get_directory_entries(*m_texture_folder))
+    {
+        try
+        {
+            m_proto_textures.push_back(gl::createTextureFromFile(p, true, true));
+        }
+        catch (Exception &e){ LOG_WARNING << e.what(); }
+    }
+}
+
 void AsteroidField::create_scene(int num_objects)
 {
     scene().clear();
     
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }
+    m_light_component->set_lights(lights());
+    
+    int m = 0;
     
     for(int i = 0; i < num_objects; i++)
     {
-        auto test_mesh = m_proto_objects[0]->copy();
+        auto test_mesh = m_proto_objects[m % m_proto_objects.size()]->copy();
+        test_mesh->setScale(test_mesh->scale() * random<float>(.5f, 3.f));
+        m++;
+        
+        if(test_mesh->material()->textures().empty())
+        {
+            test_mesh->material()->addTexture(m_proto_textures[m % m_proto_textures.size()]);
+        }
         
         // random spawn position
         test_mesh->setPosition(glm::linearRand(m_aabb.min, m_aabb.max));

@@ -22,6 +22,7 @@ namespace kinski
         LightComponent::Ptr m_light_component;
         
         std::vector<gl::MeshPtr> m_proto_objects;
+        std::vector<gl::Texture> m_proto_textures;
         std::vector<gl::MeshPtr> m_objects;
         
         gl::MeshPtr m_skybox_mesh;
@@ -31,7 +32,8 @@ namespace kinski
         Timer m_spawn_timer;
         
         Property_<string>::Ptr
-        m_model_folder = Property_<string>::create("model folder", "."),
+        m_model_folder = Property_<string>::create("model folder", "~/asteroid_field/models"),
+        m_texture_folder = Property_<string>::create("texture folder", "~/asteroid_field/textures"),
         m_sky_box_path = Property_<string>::create("skybox path", "skybox_01.png");
         
         Property_<glm::vec3>::Ptr
@@ -42,6 +44,8 @@ namespace kinski
         m_num_objects = Property_<uint32_t>::create("num objects", 150);
         
         bool m_dirty_flag = true;
+        
+        void load_assets();
         
         void create_scene(int num_objects);
         
