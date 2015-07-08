@@ -41,6 +41,8 @@ namespace kinski
         Property_<uint32_t>::Ptr
         m_num_objects = Property_<uint32_t>::create("num objects", 150);
         
+        bool m_dirty_flag = true;
+        
         void create_scene(int num_objects);
         
     public:

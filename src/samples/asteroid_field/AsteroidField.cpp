@@ -49,6 +49,12 @@ void AsteroidField::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
+    if(m_dirty_flag)
+    {
+        m_dirty_flag = false;
+        create_scene(*m_num_objects);
+    }
+    
     // fetch all model-objects in scene
     gl::SelectVisitor<gl::Mesh> mv;
     scene().root()->accept(mv);
@@ -209,11 +215,12 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_half_extents)
     {
+        m_dirty_flag = true;
         m_aabb = gl::AABB(-m_half_extents->value(), m_half_extents->value());
     }
     else if(theProperty == m_num_objects)
     {
-        create_scene(*m_num_objects);
+        m_dirty_flag = true;
     }
 }
 
@@ -224,7 +231,7 @@ void AsteroidField::create_scene(int num_objects)
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }
     
-    for(int i = 0; i < 200; i++)
+    for(int i = 0; i < num_objects; i++)
     {
         auto test_mesh = m_proto_objects[0]->copy();
         
