@@ -20,9 +20,6 @@ class Raspi_App : public App
     void swapBuffers();
     double getApplicationTime();
     
-    void displayTweakBar(bool b){}
-    bool displayTweakBar(){return true;};
-    
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
 
