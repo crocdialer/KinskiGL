@@ -221,6 +221,8 @@ void AsteroidField::load_assets()
     
     add_search_path(*m_model_folder);
     add_search_path(*m_texture_folder);
+    auto shader = gl::createShader(gl::SHADER_GOURAUD);
+    
     for (const auto &p : get_directory_entries(*m_model_folder))
     {
         if(get_filetype(p) != FileType::FILE_MODEL){ continue; }
@@ -233,7 +235,7 @@ void AsteroidField::load_assets()
             mesh->geometry()->createGLBuffers();
             mesh->geometry()->computeBoundingBox();
             
-            mesh->material()->setShader(gl::createShader(gl::SHADER_GOURAUD));
+            mesh->material()->setShader(shader);
             mesh->material()->setAmbient(gl::COLOR_WHITE);
             
             auto aabb = mesh->boundingBox();

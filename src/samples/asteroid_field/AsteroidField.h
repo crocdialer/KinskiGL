@@ -19,6 +19,8 @@ namespace kinski
     {
     private:
         
+        enum Mode{MODE_NORMAL, MODE_LIGHTSPEED} m_mode = MODE_NORMAL;
+        
         LightComponent::Ptr m_light_component;
         
         std::vector<gl::MeshPtr> m_proto_objects;
