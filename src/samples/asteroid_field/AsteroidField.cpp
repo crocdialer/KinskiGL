@@ -37,7 +37,7 @@ void AsteroidField::setup()
     m_light_component->set_lights(lights());
     create_tweakbar_from_component(m_light_component);
     
-    m_skybox_mesh = gl::Mesh::create(gl::Geometry::createSphere(1.f, 24), gl::Material::create());
+    m_skybox_mesh = gl::Mesh::create(gl::Geometry::createSphere(1.f, 16), gl::Material::create());
     m_skybox_mesh->material()->setDepthWrite(false);
     m_skybox_mesh->material()->setTwoSided();
     
@@ -67,6 +67,8 @@ void AsteroidField::update(float timeDelta)
             
         case MODE_LIGHTSPEED:
             lights()[0]->set_enabled(false);
+            break;
+            
         default:
             break;
     }
