@@ -19,7 +19,7 @@ namespace kinski
     {
     private:
         
-        enum Mode{MODE_NORMAL, MODE_LIGHTSPEED} m_mode = MODE_NORMAL;
+        enum Mode{MODE_NORMAL = 0, MODE_LIGHTSPEED = 1};
         
         LightComponent::Ptr m_light_component;
         
@@ -44,6 +44,9 @@ namespace kinski
         
         Property_<uint32_t>::Ptr
         m_num_objects = Property_<uint32_t>::create("num objects", 150);
+        
+        RangedProperty<int>::Ptr
+        m_mode = RangedProperty<int>::create("lightspeed mode", MODE_NORMAL, 0, 1);
         
         bool m_dirty_flag = true;
         

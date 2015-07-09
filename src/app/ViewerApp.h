@@ -33,14 +33,17 @@ namespace kinski {
         ViewerApp();
         virtual ~ViewerApp();
         
-        void setup();
-        void update(float timeDelta);
-        void mousePress(const MouseEvent &e);
-        void mouseDrag(const MouseEvent &e);
-        void mouseRelease(const MouseEvent &e);
-        void mouseWheel(const MouseEvent &e);
-        void keyPress(const KeyEvent &e);
-        void resize(int w, int h);
+        void setup() override;
+        void update(float timeDelta) override;
+        void mousePress(const MouseEvent &e) override;
+        void mouseDrag(const MouseEvent &e) override;
+        void mouseRelease(const MouseEvent &e) override;
+        void mouseWheel(const MouseEvent &e) override;
+        void keyPress(const KeyEvent &e) override;
+        void resize(int w, int h) override;
+        
+        void displayTweakBar(bool b) override {*m_show_tweakbar = b;};
+        bool displayTweakBar() const override {return *m_show_tweakbar;};
         
         // Property observer callback
         void updateProperty(const Property::ConstPtr &theProperty);

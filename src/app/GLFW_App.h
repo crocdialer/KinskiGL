@@ -81,8 +81,8 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void displayTweakBar(bool b){m_displayTweakBar = b;};
-        bool displayTweakBar() const {return m_displayTweakBar;};
+        void displayTweakBar(bool b) override {m_displayTweakBar = b;};
+        bool displayTweakBar() const override {return m_displayTweakBar;};
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "",

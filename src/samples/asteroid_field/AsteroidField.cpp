@@ -29,6 +29,7 @@ void AsteroidField::setup()
     registerProperty(m_sky_box_path);
     registerProperty(m_half_extents);
     registerProperty(m_velocity);
+    registerProperty(m_mode);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -56,6 +57,18 @@ void AsteroidField::update(float timeDelta)
     {
         m_dirty_flag = false;
         create_scene(*m_num_objects);
+    }
+    
+    switch (*m_mode)
+    {
+        case MODE_NORMAL:
+            lights()[0]->set_enabled(true);
+            break;
+            
+        case MODE_LIGHTSPEED:
+            lights()[0]->set_enabled(false);
+        default:
+            break;
     }
     
     // fetch all model-objects in scene
@@ -88,11 +101,14 @@ void AsteroidField::update(float timeDelta)
 void AsteroidField::draw()
 {
     // skybox drawing
-    gl::setProjection(camera());
-    mat4 m = camera()->getViewMatrix();
-    m[3] = vec4(0, 0, 0, 1);
-    gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m);
-    gl::drawMesh(m_skybox_mesh);
+    if(*m_mode == MODE_NORMAL)
+    {
+        gl::setProjection(camera());
+        mat4 m = camera()->getViewMatrix();
+        m[3] = vec4(0, 0, 0, 1);
+        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m);
+        gl::drawMesh(m_skybox_mesh);
+    }
     
     /////////////////////////////////////////////////////////
     
@@ -177,7 +193,7 @@ void AsteroidField::fileDrop(const MouseEvent &e, const std::vector<std::string>
 
 void AsteroidField::tearDown()
 {
-    LOG_PRINT<<"ciao empty sample";
+    LOG_PRINT<<"ciao asteroid field";
 }
 
 /////////////////////////////////////////////////////////////////
@@ -200,7 +216,7 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
         tex_vec.clear();
         try
         {
-            tex_vec.push_back(gl::createTextureFromFile(*m_sky_box_path));
+            tex_vec.push_back(gl::createTextureFromFile(*m_sky_box_path, false, true));
         }
         catch (Exception &e){ LOG_WARNING << e.what(); }
     }
