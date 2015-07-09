@@ -216,7 +216,7 @@ void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
         tex_vec.clear();
         try
         {
-            tex_vec.push_back(gl::createTextureFromFile(*m_sky_box_path, false, true));
+            tex_vec.push_back(gl::createTextureFromFile(*m_sky_box_path, true, true));
         }
         catch (Exception &e){ LOG_WARNING << e.what(); }
     }
