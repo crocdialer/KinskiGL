@@ -7,18 +7,13 @@
 //
 
 #include "MovieTimeshift.h"
-
-//#include "opencv2/opencv.hpp"
-//#include "opencv2/ocl/ocl.hpp"
-#include "cv/TextureIO.h"
+//#include "cv/TextureIO.h"
 
 using namespace std;
 using namespace kinski;
 using namespace glm;
 
-//using namespace cv;
-//cv::ocl::MOG2 g_mog_ocl;
-cv::Ptr<cv::BackgroundSubtractorMOG2> g_mog2 = cv::createBackgroundSubtractorMOG2();
+//cv::Ptr<cv::BackgroundSubtractorMOG2> g_mog2 = cv::createBackgroundSubtractorMOG2();
 
 /////////////////////////////////////////////////////////////////
 
@@ -109,12 +104,12 @@ void MovieTimeshift::update(float timeDelta)
             textures()[TEXTURE_INPUT].update(&m_camera_data[0], GL_UNSIGNED_BYTE, GL_BGRA, w, h, *m_flip_image);
             
             // create a foreground image
-            cv::UMat fg_image;
+//            cv::UMat fg_image;
             if(*m_use_bg_substract)
             {
-                fg_image = create_foreground_image(m_camera_data, w, h);
-                gl::TextureIO::updateTexture(textures()[TEXTURE_FG_IMAGE],
-                                             fg_image.getMat(cv::ACCESS_READ));
+//                fg_image = create_foreground_image(m_camera_data, w, h);
+//                gl::TextureIO::updateTexture(textures()[TEXTURE_FG_IMAGE],
+//                                             fg_image.getMat(cv::ACCESS_READ));
             }
             
             if(m_needs_array_refresh)
@@ -274,50 +269,30 @@ gl::Texture MovieTimeshift::create_noise_tex(float seed)
 
 /////////////////////////////////////////////////////////////////
 
-cv::UMat MovieTimeshift::create_foreground_image(std::vector<uint8_t> &the_data, int width, int height)
+void MovieTimeshift::insert_data_into_array_texture(const std::vector<uint8_t> the_data,
+                                                    gl::Texture &the_array_tex,
+                                                    uint32_t the_width,
+                                                    uint32_t the_height,
+                                                    uint32_t the_index)
 {
-    cv::UMat ret;
-    
-//    static cv::Ptr<cv::Filter> dilate_ocl, erode_ocl;
-//    
-//    if(!dilate_ocl || !erode_ocl)
-//    {
-//        
-//        dilate_ocl = ocl::createMorphologyFilter_GPU(cv::MORPH_DILATE,
-//                                                     CV_8UC1,
-//                                                     getStructuringElement(cv::MORPH_ELLIPSE,
-//                                                                           cv::Size(11, 11)));
-//        
-//        erode_ocl = ocl::createMorphologyFilter_GPU(cv::MORPH_ERODE,
-//                                                    CV_8UC1,
-//                                                    getStructuringElement(cv::MORPH_RECT,
-//                                                                          cv::Size(7, 7)));
-//    }
-    cv::UMat m = cv::Mat(height, width, CV_8UC4, &the_data[0]).getUMat(cv::ACCESS_RW);
-    
-    
-    static cv::UMat fg_mat;
-//    fg_mat.create(height, width, CV_8UC4);
-    
-    g_mog2->apply(m, fg_mat, *m_mog_learn_rate);
-    
-    // close operation
-//    dilate_ocl->apply(ocl_fg, ocl_fg);
-//    erode_ocl->apply(ocl_fg, ocl_fg);
-    
-    blur(fg_mat, fg_mat, cv::Size(11, 11));
-    
-//    // apply mask on input image
-//    ocl::oclMat tmp;
-    
-    std::vector<cv::UMat> channels;
-    split(m, channels);
-    channels[3] = fg_mat;
-    merge(channels, ret);
-    
-//    tmp.download(ret);
-    return ret;
+
 }
+
+/////////////////////////////////////////////////////////////////
+
+//cv::UMat MovieTimeshift::create_foreground_image(std::vector<uint8_t> &the_data, int width, int height)
+//{
+//    cv::UMat ret;
+//    cv::UMat m = cv::Mat(height, width, CV_8UC4, &the_data[0]).getUMat(cv::ACCESS_RW);
+//    static cv::UMat fg_mat;
+//    g_mog2->apply(m, fg_mat, *m_mog_learn_rate);
+//    blur(fg_mat, fg_mat, cv::Size(11, 11));
+//    std::vector<cv::UMat> channels;
+//    split(m, channels);
+//    channels[3] = fg_mat;
+//    merge(channels, ret);
+//    return ret;
+//}
 
 /////////////////////////////////////////////////////////////////
 

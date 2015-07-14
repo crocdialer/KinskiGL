@@ -18,7 +18,7 @@
 #include "syphon/SyphonConnector.h"
 
 #include "gl/Fbo.h"
-#include "opencv2/opencv.hpp"
+//#include "opencv2/opencv.hpp"
 
 namespace kinski
 {
@@ -77,9 +77,24 @@ namespace kinski
         Property_<uint32_t>::Ptr
         m_num_buffer_frames = Property_<uint32_t>::create("num buffer frames", 90);
         
+        /*!
+         * create a procedural simplex noise texture
+         * params are read from m_noise_xxx properties (scale, velocity, seed)
+         */
         gl::Texture create_noise_tex(float seed = 0.025f);
         
-        cv::UMat create_foreground_image(std::vector<uint8_t> &the_data, int width, int height);
+        /*!
+         * copy a block of bytes (interpreted as a 2D-slice) into an array texture object
+         */
+        void insert_data_into_array_texture(const std::vector<uint8_t> the_data,
+                                            gl::Texture &the_array_tex,
+                                            uint32_t the_width, uint32_t the_height,
+                                            uint32_t the_index);
+        
+        /*!
+         * create a foreground image using a background substraction algorithm (e.g. MOG)
+         */
+//        cv::UMat create_foreground_image(std::vector<uint8_t> &the_data, int width, int height);
         
     public:
         
