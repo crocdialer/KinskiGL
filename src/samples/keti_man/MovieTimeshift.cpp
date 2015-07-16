@@ -99,20 +99,26 @@ void MovieTimeshift::update(float timeDelta)
     if(*m_input_source == INPUT_MOVIE && m_needs_movie_refresh)
     {
         m_needs_movie_refresh = false;
+        m_movie = video::MovieController::create(*m_movie_path);
         
         Stopwatch t;
         t.start();
-        m_movie->copy_frames_offline(m_array_tex);
-        LOG_DEBUG << "copying frames to Arraytexture took: " << t.time_elapsed() << " secs";
         
-        m_custom_mat->uniform("u_num_frames", m_array_tex.getDepth());
-        m_custom_mat->textures() = {m_array_tex};
+        if(m_movie->copy_frames_offline(m_array_tex))
+        {
+            LOG_DEBUG << "copying frames to Arraytexture took: " << t.time_elapsed() << " secs";
+            
+            m_custom_mat->uniform("u_num_frames", m_array_tex.getDepth());
+            m_custom_mat->textures() = {m_array_tex};
+        }
     }
+    
+    int w, h;
+    bool advance_index = false;
     
     // fetch data from camera, if available. then upload to array texture
     if(m_camera && m_camera->is_capturing())
     {
-        int w, h;
         
         if(m_camera->copy_frame(m_camera_data, &w, &h))
         {
@@ -144,7 +150,7 @@ void MovieTimeshift::update(float timeDelta)
             
             // insert camera raw data into array texture
             insert_data_into_array_texture(m_camera_data, m_array_tex, w, h, m_current_index);
-//            insert_texture_into_array_texture(textures()[TEXTURE_INPUT], m_array_tex, m_current_index);
+            advance_index = true;
         }
     }
     
@@ -159,16 +165,36 @@ void MovieTimeshift::update(float timeDelta)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             gl::drawTexture(textures()[TEXTURE_INPUT], m_fbo_transfer.getSize());
-            gl::drawQuad(gl::COLOR_DARK_RED, m_fbo_transfer.getSize() / 3.f);
         });
         
         textures()[TEXTURE_INPUT] = tex;
+        
+        w = textures()[TEXTURE_INPUT].getWidth();
+        h = textures()[TEXTURE_INPUT].getHeight();
+        
+        if(m_needs_array_refresh)
+        {
+            m_needs_array_refresh = false;
+            
+            gl::Texture::Format fmt;
+            fmt.setTarget(GL_TEXTURE_3D);
+            m_array_tex = gl::Texture(w, h, *m_num_buffer_frames, fmt);
+            m_array_tex.setFlipped(!*m_flip_image);
+            
+            m_custom_mat->textures() = {m_array_tex};
+            m_custom_mat->uniform("u_num_frames", m_array_tex.getDepth());
+        }
+        
         insert_texture_into_array_texture(textures()[TEXTURE_INPUT], m_array_tex, m_current_index);
+        advance_index = true;
     }
     
-    // advance index and set uniform variable
-    m_current_index = (m_current_index + 1) % *m_num_buffer_frames;
-    m_custom_mat->uniform("u_current_index", m_current_index);
+    if(advance_index)
+    {
+        // advance index and set uniform variable
+        m_current_index = (m_current_index + 1) % *m_num_buffer_frames;
+        m_custom_mat->uniform("u_current_index", m_current_index);
+    }
     
     // update procedural noise texture
     textures()[TEXTURE_NOISE] = create_noise_tex(getApplicationTime() * *m_noise_velocity + *m_noise_seed);
@@ -184,10 +210,6 @@ void MovieTimeshift::draw()
         textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this]()
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            if(textures()[TEXTURE_MOVIE])
-            {
-                gl::drawTexture(textures()[TEXTURE_MOVIE], gl::windowDimension());
-            }
             gl::drawQuad(m_custom_mat, gl::windowDimension());
         });
         
@@ -196,17 +218,12 @@ void MovieTimeshift::draw()
     }
     else
     {
-        if(textures()[TEXTURE_MOVIE])
-        {
-            gl::drawTexture(textures()[TEXTURE_MOVIE], gl::windowDimension());
-        }
         gl::drawQuad(m_custom_mat, gl::windowDimension());
     }
     
     if(displayTweakBar())
     {
         draw_textures(textures());
-        
         gl::drawText2D(m_input_source_names[InputSource(m_input_source->value())], fonts()[0]);
     }
 }
@@ -368,7 +385,7 @@ bool MovieTimeshift::insert_texture_into_array_texture(const gl::Texture &the_te
     // upload new frame from pbo to array texture
     the_array_tex.bind();
     glTexSubImage3D(the_array_tex.getTarget(), 0, 0, 0, the_index, the_texture.getWidth(),
-                    the_texture.getHeight(), 1, GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+                    the_texture.getHeight(), 1, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     the_array_tex.unbind();
     m_pbo.unbind(GL_PIXEL_UNPACK_BUFFER);
     
@@ -379,6 +396,7 @@ bool MovieTimeshift::insert_texture_into_array_texture(const gl::Texture &the_te
 
 bool MovieTimeshift::set_input_source(InputSource the_src)
 {
+    m_needs_array_refresh = true;
     m_movie.reset();
     m_camera.reset();
     m_camera_data.clear();
@@ -439,7 +457,7 @@ void MovieTimeshift::updateProperty(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_movie_speed)
     {
-        m_movie->set_rate(*m_movie_speed);
+        if(m_movie){ m_movie->set_rate(*m_movie_speed); }
     }
     else if(theProperty == m_use_camera)
     {
