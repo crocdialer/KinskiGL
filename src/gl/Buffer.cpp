@@ -160,7 +160,7 @@ void Buffer::setData(const void *theData, GLsizei numBytes)
     {
         //orphan buffer
         glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-        glBufferData(m_Obj->target, numBytes, NULL, m_Obj->usage);
+        glBufferData(m_Obj->target, numBytes, nullptr, m_Obj->usage);
     }
     
     m_Obj->numBytes = numBytes;

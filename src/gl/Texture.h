@@ -128,7 +128,7 @@ namespace kinski{ namespace gl{
         void update( const uint8_t *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
         
         //! Replaces the pixels of a texture with \a data
-        void update( const float *data,GLenum format, int theWidth, int theHeight, bool flipped = false );
+        void update( const float *data, GLenum format, int theWidth, int theHeight, bool flipped = false );
         
         void update(const void *data, GLenum dataType, GLenum format, int theWidth, int theHeight,
                     bool flipped = false);
