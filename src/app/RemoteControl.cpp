@@ -35,6 +35,9 @@ void RemoteControl::start_listen(uint16_t port)
         {
             comp->call_function("load_settings");
         }
+        
+        // send the state string via tcp
+        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
     
     add_command("save_settings", [this](net::tcp_connection_ptr con)
@@ -43,6 +46,9 @@ void RemoteControl::start_listen(uint16_t port)
         {
             comp->call_function("save_settings");
         }
+        
+        // send the state string via tcp
+        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
 }
 
