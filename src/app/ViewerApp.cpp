@@ -63,6 +63,9 @@ namespace kinski {
         
         m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
         registerProperty(m_clear_color);
+        
+        register_function("load_settings", [this](){ load_settings(); });
+        register_function("save_settings", [this](){ save_settings(); });
     }
     
     ViewerApp::~ViewerApp()
@@ -353,9 +356,15 @@ namespace kinski {
         }
         try
         {
-            Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            Serializer::saveComponentState(light_components, "light_config.json", PropertyIO_GL());
-            Serializer::saveComponentState(material_components, "material_config.json", PropertyIO_GL());
+            Serializer::saveComponentState(shared_from_this(),
+                                           join_paths(path ,"config.json"),
+                                           PropertyIO_GL());
+            Serializer::saveComponentState(light_components,
+                                           join_paths(path ,"light_config.json"),
+                                           PropertyIO_GL());
+            Serializer::saveComponentState(material_components,
+                                           join_paths(path ,"material_config.json"),
+                                           PropertyIO_GL());
             
         }
         catch(Exception &e)
@@ -389,9 +398,15 @@ namespace kinski {
         }
         try
         {
-            Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
-            Serializer::loadComponentState(light_components, "light_config.json", PropertyIO_GL());
-            Serializer::loadComponentState(material_components, "material_config.json", PropertyIO_GL());
+            Serializer::loadComponentState(shared_from_this(),
+                                           join_paths(path , "config.json"),
+                                           PropertyIO_GL());
+            Serializer::loadComponentState(light_components,
+                                           join_paths(path , "light_config.json"),
+                                           PropertyIO_GL());
+            Serializer::loadComponentState(material_components,
+                                           join_paths(path , "material_config.json"),
+                                           PropertyIO_GL());
         }
         catch(Exception &e)
         {

@@ -28,6 +28,22 @@ void RemoteControl::start_listen(uint16_t port)
         // send the state string via tcp
         con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
+    
+    add_command("load_settings", [this](net::tcp_connection_ptr con)
+    {
+        for(auto &comp : lock_components())
+        {
+            comp->call_function("load_settings");
+        }
+    });
+    
+    add_command("save_settings", [this](net::tcp_connection_ptr con)
+    {
+        for(auto &comp : lock_components())
+        {
+            comp->call_function("save_settings");
+        }
+    });
 }
 
 void RemoteControl::stop_listen()

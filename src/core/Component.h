@@ -23,24 +23,41 @@ namespace kinski
         typedef std::shared_ptr<const Component> ConstPtr;
         typedef std::weak_ptr<Component> WeakPtr;
         
+        typedef std::function<void()> Functor;
+        
         Component(const std::string &theName = "Component");
         virtual ~Component();
         
         void set_name(const std::string &n) { m_name = n; };
-        const std::string& getName() const { return m_name; };
+        const std::string& get_name() const { return m_name; };
         const std::list<Property::Ptr>& getPropertyList() const;
         Property::Ptr getPropertyByName(const std::string & thePropertyName);
 
+        /*!
+         * called whenever a registered propterty changes
+         * override this in a subclass
+         */
         virtual void updateProperty(const Property::ConstPtr &theProperty){};
+        
         void observeProperties(bool b = true);
         void observeProperties(const std::list<Property::Ptr>& theProps,  bool b = true);
+        
         void registerProperty(Property::Ptr theProperty);
+        void unregisterProperty(Property::Ptr theProperty);
         void unregister_all_properties();
+        
+        bool call_function(const std::string &the_function_name);
+        void register_function(const std::string &the_name, Functor the_functor);
+        void unregister_function(const std::string &the_name, Functor the_functor);
+        void unregister_all_functions();
+        
+        std::map<std::string, Functor>& function_map(){ return m_function_map; };
         
     private:
         
         std::string m_name;
         std::list<Property::Ptr> m_propertyList;
+        std::map<std::string, Functor> m_function_map;
         
     };
 

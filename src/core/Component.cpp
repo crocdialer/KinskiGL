@@ -44,6 +44,11 @@ void Component::registerProperty(Property::Ptr theProperty)
     m_propertyList.push_back(theProperty);
 }
 
+void Component::unregisterProperty(Property::Ptr theProperty)
+{
+    m_propertyList.remove(theProperty);
+}
+    
 void Component::observeProperties(const std::list<Property::Ptr>& theProps,  bool b)
 {
     std::list<Property::Ptr>::const_iterator it = theProps.begin();
@@ -65,6 +70,34 @@ void Component::observeProperties(bool b)
 void Component::unregister_all_properties()
 {
     m_propertyList.clear();
+}
+
+bool Component::call_function(const std::string &the_function_name)
+{
+    auto iter = m_function_map.find(the_function_name);
+    
+    if(iter != m_function_map.end())
+    {
+        iter->second();
+        return true;
+    }
+    return false;
+}
+    
+void Component::register_function(const std::string &the_name, Functor the_functor)
+{
+    m_function_map[the_name] = the_functor;
+}
+
+void Component::unregister_function(const std::string &the_name, Functor the_functor)
+{
+    auto iter = m_function_map.find(the_name);
+    if(iter != m_function_map.end()){ m_function_map.erase(iter); }
+}
+
+void Component::unregister_all_functions()
+{
+    m_function_map.clear();
 }
 
 }

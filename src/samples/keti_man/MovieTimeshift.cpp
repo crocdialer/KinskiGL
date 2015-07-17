@@ -25,7 +25,6 @@ void MovieTimeshift::setup()
     registerProperty(m_use_syphon);
     registerProperty(m_syphon_server_name);
     registerProperty(m_offscreen_size);
-    registerProperty(m_use_camera);
     registerProperty(m_flip_image);
     registerProperty(m_cam_id);
     registerProperty(m_syphon_in_index);
@@ -318,7 +317,7 @@ gl::Texture MovieTimeshift::create_noise_tex(float seed)
 
 /////////////////////////////////////////////////////////////////
 
-bool MovieTimeshift::insert_data_into_array_texture(const std::vector<uint8_t> the_data,
+bool MovieTimeshift::insert_data_into_array_texture(const std::vector<uint8_t> &the_data,
                                                     gl::Texture &the_array_tex,
                                                     uint32_t the_width,
                                                     uint32_t the_height,
@@ -458,10 +457,6 @@ void MovieTimeshift::updateProperty(const Property::ConstPtr &theProperty)
     else if(theProperty == m_movie_speed)
     {
         if(m_movie){ m_movie->set_rate(*m_movie_speed); }
-    }
-    else if(theProperty == m_use_camera)
-    {
-        m_input_source_changed = true;
     }
     else if(theProperty == m_num_buffer_frames)
     {

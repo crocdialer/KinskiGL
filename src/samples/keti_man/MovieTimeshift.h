@@ -76,7 +76,6 @@ namespace kinski
         m_syphon_in_index = RangedProperty<int>::create("syphon input", -1, -1, -1);
         
         // properties
-        Property_<bool>::Ptr m_use_camera = Property_<bool>::create("use camera", true);
         Property_<int>::Ptr m_cam_id = Property_<int>::create("camera id", 0);
         Property_<bool>::Ptr m_flip_image = Property_<bool>::create("flip image", true);
         Property_<bool>::Ptr m_use_gpu_noise = Property_<bool>::create("use gpu noise", true);
@@ -114,7 +113,7 @@ namespace kinski
         /*!
          * copy a block of bytes (interpreted as a 2D-slice) into an array texture object
          */
-        bool insert_data_into_array_texture(const std::vector<uint8_t> the_data,
+        bool insert_data_into_array_texture(const std::vector<uint8_t> &the_data,
                                             gl::Texture &the_array_tex,
                                             uint32_t the_width, uint32_t the_height,
                                             uint32_t the_index);
