@@ -59,7 +59,7 @@ void RemoteControl::stop_listen()
 
 void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 {
-    LOG_DEBUG << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
+    LOG_TRACE << "port: "<< con->port()<<" -- new connection with: " << con->remote_ip()
     << " : " << con->remote_port();
     
     // manage existing tcp connections
@@ -80,24 +80,29 @@ void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
                                const std::vector<uint8_t>& response)
 {
-    auto iter = m_command_map.find(std::string(response.begin(), response.end()));
+    auto tokens = split(std::string(response.begin(), response.end()));
     
-    if(iter != m_command_map.end())
+    if(!tokens.empty())
     {
-        LOG_DEBUG << "Executing command: " << iter->first;
+        auto iter = m_command_map.find(tokens.front());
         
-        // call the function object
-        iter->second(rec_con);
-    }
-    else
-    {
-        try
+        if(iter != m_command_map.end())
         {
-            Serializer::applyStateToComponents(lock_components(),
-                                               string(response.begin(),
-                                                      response.end()),
-                                               PropertyIO_GL());
-        } catch (std::exception &e){ LOG_ERROR << e.what(); }
+            LOG_DEBUG << "Executing command: " << iter->first;
+            
+            // call the function object
+            iter->second(rec_con);
+        }
+        else
+        {
+            try
+            {
+                Serializer::applyStateToComponents(lock_components(),
+                                                   string(response.begin(),
+                                                          response.end()),
+                                                   PropertyIO_GL());
+            } catch (std::exception &e){ LOG_ERROR << e.what(); }
+        }
     }
 }
 

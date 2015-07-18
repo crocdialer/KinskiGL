@@ -66,6 +66,7 @@ namespace kinski {
         
         register_function("load_settings", [this](){ load_settings(); });
         register_function("save_settings", [this](){ save_settings(); });
+        register_function("generate_spapshot", [this](){ generate_spapshot(); });
     }
     
     ViewerApp::~ViewerApp()
@@ -434,5 +435,24 @@ namespace kinski {
                            offset);
             offset += step;
         }
+    }
+    
+    gl::Texture ViewerApp::generate_spapshot()
+    {
+        gl::Texture ret;
+        
+        if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != windowSize())
+        {
+            gl::Fbo::Format fmt;
+            fmt.setSamples(8);
+            m_fbo_snapshot = gl::Fbo(windowSize(), fmt);
+        }
+        
+        ret = gl::render_to_texture(m_fbo_snapshot, [this]()
+        {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            draw();
+        });
+        return ret;
     }
 }

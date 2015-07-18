@@ -15,6 +15,7 @@
 #include "app/Arcball.h"
 #include "gl/SerializerGL.h"
 #include "gl/Scene.h"
+#include "gl/Fbo.h"
 #include "gl/Font.h"
 
 #if defined(KINSKI_RASPI)
@@ -85,6 +86,8 @@ namespace kinski {
         
         void draw_textures(const std::vector<gl::Texture> &the_textures);
         
+        gl::Texture generate_spapshot();
+        
     protected:
         
         std::vector<gl::Font> m_fonts{4};
@@ -107,6 +110,8 @@ namespace kinski {
         bool m_precise_selection;
         bool m_center_selected;
         glm::vec3 m_look_at_tmp;
+        
+        gl::Fbo m_fbo_snapshot;
         
         Property_<std::vector<std::string> >::Ptr m_search_paths;
         RangedProperty<int>::Ptr m_logger_severity;
