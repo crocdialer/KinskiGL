@@ -86,7 +86,8 @@ namespace kinski {
         
         void draw_textures(const std::vector<gl::Texture> &the_textures);
         
-        gl::Texture generate_spapshot();
+        gl::Texture generate_snapshot();
+        gl::Texture& snapshot_texture(){ return m_snapshot_texture; }
         
     protected:
         
@@ -104,6 +105,7 @@ namespace kinski {
         std::vector<gl::LightPtr> m_lights;
         
         std::vector<gl::Texture> m_textures {16};
+        gl::Texture m_snapshot_texture;
         
         std::vector<animation::AnimationPtr> m_animations{8};
         

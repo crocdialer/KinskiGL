@@ -66,7 +66,7 @@ namespace kinski {
         
         register_function("load_settings", [this](){ load_settings(); });
         register_function("save_settings", [this](){ save_settings(); });
-        register_function("generate_spapshot", [this](){ generate_spapshot(); });
+        register_function("generate_snapshot", [this](){ generate_snapshot(); });
     }
     
     ViewerApp::~ViewerApp()
@@ -437,7 +437,7 @@ namespace kinski {
         }
     }
     
-    gl::Texture ViewerApp::generate_spapshot()
+    gl::Texture ViewerApp::generate_snapshot()
     {
         gl::Texture ret;
         
@@ -453,6 +453,7 @@ namespace kinski {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             draw();
         });
+        m_snapshot_texture = ret;
         return ret;
     }
 }

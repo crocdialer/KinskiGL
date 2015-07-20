@@ -8,6 +8,8 @@
 
 #include "RemoteControl.h"
 #include "gl/SerializerGL.h"
+#include "app/ViewerApp.h"
+#include "cv/TextureIO.h"
 
 using namespace kinski;
 
@@ -50,6 +52,26 @@ void RemoteControl::start_listen(uint16_t port)
         // send the state string via tcp
         con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
+    
+    add_command("generate_snapshot", [this](net::tcp_connection_ptr con)
+    {
+        std::vector<uint8_t> bytes;
+        
+        for(auto &comp : lock_components())
+        {
+            comp->call_function("generate_snapshot");
+            if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
+            {
+                std::vector<uint8_t> jpg_bytes;
+                gl::TextureIO::encode_jpg(ptr->snapshot_texture(), jpg_bytes);
+                con->send(jpg_bytes);
+                return;
+            }
+        }
+        
+        // send the state string via tcp
+        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
+    });
 }
 
 void RemoteControl::stop_listen()
@@ -81,6 +103,7 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
                                const std::vector<uint8_t>& response)
 {
     auto tokens = split(std::string(response.begin(), response.end()));
+//    for(auto &t : tokens){ t = std::remo}
     
     if(!tokens.empty())
     {
