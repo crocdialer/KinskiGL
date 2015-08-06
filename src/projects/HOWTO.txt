@@ -1,0 +1,7 @@
+---------------------------------------------------------------------------------------------------
+KinskiGL - HOWTO use the project-folder
+---------------------------------------------------------------------------------------------------
+
+this folder will be searched for project-folders to be included in the generated make/project file.
+the easiest way is to symlink (ln -s <path_to_project> <path_to_this_folder>) your project folders into this one.
+

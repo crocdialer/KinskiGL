@@ -28,11 +28,6 @@ SET(LIBS ${LIBS} "app")
 endif(BUILD_APPLIB)
 
 if(BUILD_SAMPLES)
-    if(KINSKI_RASPI)
-    ADD_SUBDIRECTORY("samples_raspi")
-    else()
-    ADD_SUBDIRECTORY("samples")
-    ADD_SUBDIRECTORY("production")
-    endif(KINSKI_RASPI)
+  ADD_SUBDIRECTORY("projects")
 endif(BUILD_SAMPLES)
 
