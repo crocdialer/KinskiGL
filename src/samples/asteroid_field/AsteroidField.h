@@ -12,6 +12,7 @@
 #include "app/ViewerApp.h"
 #include "core/Timer.h"
 #include "app/LightComponent.h"
+#include "app/RemoteControl.h"
 
 namespace kinski
 {
@@ -21,6 +22,7 @@ namespace kinski
         
         enum Mode{MODE_NORMAL = 0, MODE_LIGHTSPEED = 1};
         
+        RemoteControl m_remote_control;
         LightComponent::Ptr m_light_component;
         
         std::vector<gl::MeshPtr> m_proto_objects;

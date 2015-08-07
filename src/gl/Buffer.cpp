@@ -68,7 +68,7 @@ uint8_t* Buffer::map(GLenum mode)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
     uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->numBytes, mode);
 #else
-    mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
+    mode = mode ? mode : GL_ENUM(GL_READ_WRITE);
     uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
 #endif
     
@@ -86,7 +86,7 @@ const uint8_t* Buffer::map(GLenum mode) const
     mode = mode ? mode : GL_MAP_WRITE_BIT;
     const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->numBytes, mode);
 #else
-    mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
+    mode = mode ? mode : GL_ENUM(GL_READ_WRITE);
     const uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
 #endif
     
