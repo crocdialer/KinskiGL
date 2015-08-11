@@ -120,7 +120,7 @@ namespace kinski { namespace gl {
         try {dataVec = kinski::read_binary_file(theFileName);}
         catch (FileNotFoundException &e)
         {
-            LOG_ERROR << e.what();
+            LOG_WARNING << e.what();
             return ret;
         }
         ret = createTextureFromData(dataVec, mipmap, compress, anisotropic_filter_lvl);

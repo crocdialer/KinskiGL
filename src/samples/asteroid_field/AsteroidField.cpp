@@ -31,10 +31,8 @@ void AsteroidField::setup()
     registerProperty(m_velocity);
     registerProperty(m_mode);
     observeProperties();
-    create_tweakbar_from_component(shared_from_this());
     
-    m_light_component = std::make_shared<LightComponent>();
-    m_light_component->set_lights(lights());
+    create_tweakbar_from_component(shared_from_this());
     create_tweakbar_from_component(m_light_component);
     
     m_skybox_mesh = gl::Mesh::create(gl::Geometry::createSphere(1.f, 16), gl::Material::create());
@@ -44,6 +42,7 @@ void AsteroidField::setup()
     // finally load state from file
     load_settings();
     
+    // and load our assets
     load_assets();
 }
 

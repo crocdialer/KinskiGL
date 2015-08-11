@@ -103,7 +103,7 @@ namespace kinski {
         // setup our light component
         m_light_component = std::make_shared<LightComponent>();
         m_light_component->set_lights(lights());
-        
+
         // setup remote control
         m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
         m_remote_control.start_listen();
