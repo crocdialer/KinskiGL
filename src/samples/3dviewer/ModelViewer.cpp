@@ -22,10 +22,9 @@ void ModelViewer::setup()
     registerProperty(m_model_path);
     registerProperty(m_cube_map_folder);
     observeProperties();
-    create_tweakbar_from_component(shared_from_this());
     
-    m_light_component = std::make_shared<LightComponent>();
-    m_light_component->set_lights(lights());
+    // create our UI
+    create_tweakbar_from_component(shared_from_this());
     create_tweakbar_from_component(m_light_component);
     
     // add lights to scene

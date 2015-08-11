@@ -9,7 +9,7 @@
 #include "RemoteControl.h"
 #include "gl/SerializerGL.h"
 #include "app/ViewerApp.h"
-#include "cv/TextureIO.h"
+//#include "cv/TextureIO.h"
 
 using namespace kinski;
 
@@ -57,15 +57,17 @@ void RemoteControl::start_listen(uint16_t port)
     {
         std::vector<uint8_t> bytes;
         
+        LOG_WARNING << "command 'generate_snapshot': not implemented";
+        
         for(auto &comp : lock_components())
         {
             comp->call_function("generate_snapshot");
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
-                std::vector<uint8_t> jpg_bytes;
-                gl::TextureIO::encode_jpg(ptr->snapshot_texture(), jpg_bytes);
-                con->send(jpg_bytes);
-                return;
+//                std::vector<uint8_t> jpg_bytes;
+//                gl::TextureIO::encode_jpg(ptr->snapshot_texture(), jpg_bytes);
+//                con->send(jpg_bytes);
+//                return;
             }
         }
         

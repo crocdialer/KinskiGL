@@ -13,6 +13,8 @@
 #include "core/Animation.h"
 #include "core/Measurement.hpp"
 #include "app/Arcball.h"
+#include "app/RemoteControl.h"
+#include "app/LightComponent.h"
 #include "gl/SerializerGL.h"
 #include "gl/Scene.h"
 #include "gl/Fbo.h"
@@ -138,6 +140,12 @@ namespace kinski {
         bool  m_mouse_down;
         glm::mat3 m_lastTransform;
         MovingAverage<glm::vec2> m_avg_filter;
+        
+        // tcp/json based remote control module
+        RemoteControl m_remote_control;
+        
+        // component for manipulation and persistance for lights within the scene
+        LightComponent::Ptr m_light_component;
     };
 }// namespace
 
