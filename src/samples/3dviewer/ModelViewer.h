@@ -10,7 +10,6 @@
 #define __gl__3dViewer__
 
 #include "app/ViewerApp.h"
-#include "app/LightComponent.h"
 
 namespace kinski
 {
@@ -20,8 +19,6 @@ namespace kinski
         
         gl::MeshPtr m_mesh;
         gl::Texture m_cube_map;
-
-        LightComponent::Ptr m_light_component;
         
         Property_<std::string>::Ptr m_model_path = Property_<std::string>::create("Model path", "");
         Property_<std::string>::Ptr m_cube_map_folder = Property_<std::string>::create("Cubemap folder", "");

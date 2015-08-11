@@ -78,10 +78,6 @@ void MovieTimeshift::setup()
     {
         m_camera->start_capture();
     }
-    
-    // setup remote control
-    m_remote_control = RemoteControl(io_service(), {shared_from_this()});
-    m_remote_control.start_listen();
 }
 
 /////////////////////////////////////////////////////////////////

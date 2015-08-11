@@ -97,8 +97,16 @@ namespace kinski {
         lights().front()->position() = glm::vec3(1);
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         
+        // setup the light control module
+        m_light_component = std::make_shared<LightComponent>();
+        m_light_component->set_lights(lights());
+        
         // enable observer mechanism
         observeProperties();
+        
+        // setup remote control
+        m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
+        m_remote_control.start_listen();
     }
     
     void ViewerApp::update(float timeDelta)

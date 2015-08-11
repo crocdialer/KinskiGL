@@ -10,7 +10,6 @@
 #define __gl__MovieTimeshift__
 
 #include "app/ViewerApp.h"
-#include "app/RemoteControl.h"
 #include "core/Timer.h"
 
 #include "video/MovieController.h"
@@ -44,8 +43,6 @@ namespace kinski
         
         RangedProperty<int>::Ptr
         m_input_source = RangedProperty<int>::create("input source", 0, 0, 3);
-        
-        RemoteControl m_remote_control;
         
         video::MovieControllerPtr m_movie = video::MovieController::create();
         video::CameraControllerPtr m_camera = video::CameraController::create();
