@@ -22,6 +22,8 @@ void SensorDebug::setup()
     ViewerApp::setup();
     
     registerProperty(m_serial_device_name);
+    registerProperty(m_sensor_refresh_rate);
+    
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
@@ -30,6 +32,14 @@ void SensorDebug::setup()
     
     // buffer incoming bytes from serial connection
     m_serial_read_buf.resize(2048);
+    
+    m_sensor_refresh_timer = Timer(io_service(), [this]()
+    {
+        *m_sensor_refresh_rate = m_sensor_refresh_count;
+        m_sensor_refresh_count = 0;
+    });
+    m_sensor_refresh_timer.set_periodic();
+    m_sensor_refresh_timer.expires_from_now(1.f);
     
     load_settings();
 }
@@ -65,6 +75,7 @@ void SensorDebug::update(float timeDelta)
                     if(m_serial_accumulator.size() == num_bytes)
                     {
                         memcpy(&m_sensor_vals[0], &m_serial_accumulator[0], num_bytes);
+                        m_sensor_refresh_count++;
                         break;
                     }
 //                    else
@@ -101,7 +112,8 @@ void SensorDebug::draw()
     }
     val = sum / (active_panels ? active_panels : 1);
     
-    gl::drawText2D(as_string(m_sensor_vals[0]) + " (" + as_string(100.f * val, 2) + "%)", fonts()[0]);
+    gl::drawText2D(as_string(m_sensor_vals[0]) + " (" + as_string(100.f * val, 2) + "%)",
+                   fonts()[0]);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -189,8 +201,8 @@ void SensorDebug::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_serial_device_name)
     {
-        if(m_serial_device_name->value().empty()){ m_serial.setup(0, 57600); }
-        else{ m_serial.setup(*m_serial_device_name, 57600); }
+        if(m_serial_device_name->value().empty()){ m_serial.setup(0, 115200); }
+        else{ m_serial.setup(*m_serial_device_name, 115200); }
         m_serial.flush();
     }
 }

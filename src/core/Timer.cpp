@@ -121,12 +121,6 @@ Timer::Timer()
 Timer::Timer(boost::asio::io_service &io, Callback cb):
 m_impl(new timer_impl(io, cb)){}
 
-Timer::Timer(float secs, boost::asio::io_service &io, Timer::Callback cb):
-m_impl(new timer_impl(io, cb))
-{
-    expires_from_now(secs);
-}
-
 void Timer::expires_from_now(float secs)
 {
     if(!m_impl) return;

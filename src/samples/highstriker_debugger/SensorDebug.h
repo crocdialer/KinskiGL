@@ -18,13 +18,23 @@ namespace kinski
     {
     private:
         
+        //////////////////////// sensor input ///////////////////////////////////
+        
         Serial m_serial;
         
         std::vector<uint16_t> m_sensor_vals;
         std::vector<uint8_t> m_serial_accumulator, m_serial_read_buf;
         
+        uint32_t m_sensor_refresh_count = 0;
+        Timer m_sensor_refresh_timer;
+        
         Property_<string>::Ptr
         m_serial_device_name = Property_<string>::create("serial device name", "");
+        
+        Property_<int>::Ptr
+        m_sensor_refresh_rate = Property_<int>::create("sensor refresh rate", 0);
+        
+        /////////////////////////////////////////////////////////////////////////
         
     public:
         
