@@ -11,6 +11,7 @@
 
 #include "app/ViewerApp.h"
 #include "core/Serial.h"
+#include "core/Measurement.hpp"
 
 namespace kinski
 {
@@ -18,11 +19,15 @@ namespace kinski
     {
     private:
         
+        enum FontEnum{FONT_CONSOLE = 0, FONT_LARGE = 1};
+        
         //////////////////////// sensor input ///////////////////////////////////
         
         Serial m_serial;
         
         std::vector<uint16_t> m_sensor_vals;
+        std::vector<Measurement<uint16_t>> m_measurements;
+        
         std::vector<uint8_t> m_serial_accumulator, m_serial_read_buf;
         
         uint32_t m_sensor_refresh_count = 0;
@@ -35,6 +40,8 @@ namespace kinski
         m_sensor_refresh_rate = Property_<int>::create("sensor refresh rate", 0);
         
         /////////////////////////////////////////////////////////////////////////
+        
+        void update_sensor_values();
         
     public:
         

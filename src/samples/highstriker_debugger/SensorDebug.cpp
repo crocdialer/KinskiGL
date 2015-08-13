@@ -21,14 +21,19 @@ void SensorDebug::setup()
 {
     ViewerApp::setup();
     
+    fonts()[FONT_LARGE].load("Courier New Bold.ttf", 64);
+    
     registerProperty(m_serial_device_name);
     registerProperty(m_sensor_refresh_rate);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
     
-    // holds 10 uint16_t values
+    // holds 10 uint16_t sensor-values
     m_sensor_vals.resize(10);
+    
+    // measure history for our 10 sensors
+    m_measurements.resize(10);
     
     // buffer incoming bytes from serial connection
     m_serial_read_buf.resize(2048);
@@ -50,46 +55,8 @@ void SensorDebug::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
     
-    size_t num_bytes = m_sensor_vals.size() * sizeof(m_sensor_vals[0]);
-    
-    // parse sensor input
-    if(m_serial.isInitialized())
-    {
-        size_t bytes_available = m_serial.available();
-        uint8_t *buf_ptr = &m_serial_read_buf[0];
-        
-        m_serial.readBytes(&m_serial_read_buf[0], std::min(bytes_available, m_serial_read_buf.size()));
-        
-        for(uint32_t i = 0; i < bytes_available; i++)
-        {
-            const uint8_t &byte = *buf_ptr++;
-            
-            switch (byte)
-            {
-                case SERIAL_START_CODE:
-                    m_serial_accumulator.clear();
-                    m_serial_accumulator.reserve(256);
-                    break;
-                
-                case SERIAL_END_CODE:
-                    if(m_serial_accumulator.size() == num_bytes)
-                    {
-                        memcpy(&m_sensor_vals[0], &m_serial_accumulator[0], num_bytes);
-                        m_sensor_refresh_count++;
-                        break;
-                    }
-//                    else
-//                    {
-//                        LOG_TRACE << "something fishy with serial input: expected " << num_bytes
-//                        << " got " << m_serial_accumulator.size() << " bytes";
-//                    }
-                    
-                default:
-                    m_serial_accumulator.push_back(byte);
-                    break;
-            }
-        }
-    }
+    // fetch new measurements
+    update_sensor_values();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -97,11 +64,11 @@ void SensorDebug::update(float timeDelta)
 void SensorDebug::draw()
 {
     // draw debug UI
-    vec2 offset(0, 50), step(0, 35);
+    vec2 offset(0, 100), step(0, 35);
     float val = 0.f, sum = 0.f;
     uint32_t active_panels = 0;
     
-    for(int i = 0; i < m_sensor_vals.size(); i++)
+    for(int i = 0; i < m_measurements.size(); i++)
     {
         val = (float) m_sensor_vals[i] / std::numeric_limits<uint16_t>::max();
         sum += val;
@@ -112,8 +79,7 @@ void SensorDebug::draw()
     }
     val = sum / (active_panels ? active_panels : 1);
     
-    gl::drawText2D(as_string(m_sensor_vals[0]) + " (" + as_string(100.f * val, 2) + "%)",
-                   fonts()[0]);
+    gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_LARGE], gl::COLOR_WHITE, vec2(15));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -201,8 +167,60 @@ void SensorDebug::updateProperty(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_serial_device_name)
     {
-        if(m_serial_device_name->value().empty()){ m_serial.setup(0, 115200); }
-        else{ m_serial.setup(*m_serial_device_name, 115200); }
+        if(m_serial_device_name->value().empty()){ m_serial.setup(0, 57600); }
+        else{ m_serial.setup(*m_serial_device_name, 57600); }
         m_serial.flush();
+        m_serial.drain();
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void SensorDebug::update_sensor_values()
+{
+    size_t num_bytes = m_sensor_vals.size() * sizeof(m_sensor_vals[0]);
+    
+    // parse sensor input
+    if(m_serial.isInitialized())
+    {
+        size_t bytes_to_read = std::min(m_serial.available(), m_serial_read_buf.size());
+        uint8_t *buf_ptr = &m_serial_read_buf[0];
+        
+        m_serial.readBytes(&m_serial_read_buf[0], bytes_to_read);
+        
+        for(uint32_t i = 0; i < bytes_to_read; i++)
+        {
+            const uint8_t &byte = *buf_ptr++;
+            bool reading_complete = false;
+            
+            switch(byte)
+            {
+                case SERIAL_END_CODE:
+                    if(m_serial_accumulator.size() >= num_bytes)
+                    {
+                        memcpy(&m_sensor_vals[0], &m_serial_accumulator[0], num_bytes);
+                        m_sensor_refresh_count++;
+                        m_serial_accumulator.clear();
+                        reading_complete = true;
+                    }
+                    else{ m_serial_accumulator.push_back(byte); }
+                    break;
+                    
+                case SERIAL_START_CODE:
+                    if(m_serial_accumulator.empty()){ break; }
+                    
+                default:
+                    m_serial_accumulator.push_back(byte);
+                    break;
+            }
+            
+            if(reading_complete)
+            {
+                for(size_t i = 0; i < m_sensor_vals.size(); i++)
+                {
+                    m_measurements[i].push(m_sensor_vals[i]);
+                }
+            }
+        }
     }
 }
