@@ -184,7 +184,7 @@ namespace kinski
             return m_values[idx];
         }
         
-        const T& operator[](std::size_t idx) const { return (*this)[idx]; }
+        inline const T& operator[](std::size_t idx) const { return (*this)[idx]; }
         
     private:
         std::string m_description;
