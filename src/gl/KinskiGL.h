@@ -146,13 +146,21 @@ namespace kinski { namespace gl {
 
     KINSKI_API const glm::vec2& windowDimension();
     KINSKI_API void setWindowDimension(const glm::vec2 &theDim);
-    KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 window_pos,
-                                    const glm::vec2 window_size = windowDimension());
+    KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 &window_pos,
+                                    const glm::vec2 &window_size = windowDimension());
     KINSKI_API gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices);
     KINSKI_API glm::vec3 calculateCentroid(const std::vector<glm::vec3> &theVertices);
     KINSKI_API gl::MeshPtr createFrustumMesh(const CameraPtr &cam);
     KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light);
     KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light);
+    
+    /*!
+     * project a 3D point (in world coords) onto the view plane, using the provided camera object.
+     * returns the 2D screen-coordinates of the projected 3D point
+     */
+    KINSKI_API glm::vec2 project_point_to_screen(const glm::vec3 &the_point,
+                                                 const CameraPtr &theCamera,
+                                                 const glm::vec2 &screen_size = windowDimension());
     
     /********************************* Drawing Functions *****************************************/
     

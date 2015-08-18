@@ -216,8 +216,8 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 window_pos,
-                         const glm::vec2 window_size)
+    gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 &window_pos,
+                         const glm::vec2 &window_size)
     {
         glm::vec3 cam_pos = theCamera->position();
         glm::vec3 lookAt = theCamera->lookAt(),
@@ -346,6 +346,35 @@ namespace kinski { namespace gl {
         }
         cam->setTransform(the_light->global_transform());
         return cam;
+    }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+    glm::vec2 project_point_to_screen(const glm::vec3 &the_point,
+                                      const CameraPtr &theCamera,
+                                      const glm::vec2 &screen_size)
+    {
+        glm::vec2 ret;
+        
+        if(theCamera)
+        {
+            // obtain normalized device coords (-1, 1)
+            glm::vec4 p = vec4(the_point, 1.f);
+            p = theCamera->getProjectionMatrix() * theCamera->getViewMatrix() * p;
+            
+            // divide by w
+            p /= p.w;
+            
+            // bring to range (0, 1)
+            p += vec4(1);
+            p /= 2.f;
+            
+            // flip to upper left coords
+            p.y = 1.f - p.y;
+            
+            ret = vec2(p.xy()) * screen_size;
+        }
+        return ret;
     }
     
 ///////////////////////////////////////////////////////////////////////////////
