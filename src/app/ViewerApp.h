@@ -128,7 +128,8 @@ namespace kinski {
         Property_<float>::Ptr m_camera_fov;
         Property_<glm::vec3>::Ptr m_look_at;
         
-        RangedProperty<float>::Ptr m_rotationSpeed;
+        RangedProperty<float>::Ptr m_rotation_speed;
+        Property_<glm::vec3>::Ptr m_rotation_axis;
         Property_<bool>::Ptr m_draw_grid;
         Property_<bool>::Ptr m_wireFrame;
         Property_<bool>::Ptr m_drawNormals;

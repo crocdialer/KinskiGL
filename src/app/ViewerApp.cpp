@@ -25,14 +25,14 @@ namespace kinski {
         m_search_paths->setTweakable(false);
         registerProperty(m_search_paths);
         
-        m_logger_severity = RangedProperty<int>::create("Logger Severity", kinski::SEV_INFO, 0, 7);
+        m_logger_severity = RangedProperty<int>::create("logger severity", kinski::SEV_INFO, 0, 7);
         registerProperty(m_logger_severity);
         
-        m_show_tweakbar = Property_<bool>::create("Show Tweakbar", true);
+        m_show_tweakbar = Property_<bool>::create("show Tweakbar", true);
         m_show_tweakbar->setTweakable(false);
         registerProperty(m_show_tweakbar);
         
-        m_window_size = Property_<glm::vec2>::create("Window Size", windowSize());
+        m_window_size = Property_<glm::vec2>::create("window Size", windowSize());
         m_window_size->setTweakable(false);
         registerProperty(m_window_size);
         
@@ -45,23 +45,26 @@ namespace kinski {
         m_camera_fov = Property_<float>::create("camera fov", 45.f);
         registerProperty(m_camera_fov);
         
-        m_rotation = Property_<glm::mat3>::create("Geometry Rotation", glm::mat3());
+        m_rotation = Property_<glm::mat3>::create("geometry rotation", glm::mat3());
         m_rotation->setTweakable(false);
         registerProperty(m_rotation);
         
-        m_rotationSpeed = RangedProperty<float>::create("Rotation Speed", 0, -100, 100);
-        registerProperty(m_rotationSpeed);
+        m_rotation_speed = RangedProperty<float>::create("rotation speed", 0, -100, 100);
+        registerProperty(m_rotation_speed);
         
-        m_draw_grid = Property_<bool>::create("Draw grid", true);
+        m_rotation_axis = Property_<glm::vec3>::create("rotation axis", glm::vec3(0, 1, 0));
+        registerProperty(m_rotation_axis);
+        
+        m_draw_grid = Property_<bool>::create("draw grid", true);
         registerProperty(m_draw_grid);
         
-        m_wireFrame = Property_<bool>::create("Wireframe", false);
+        m_wireFrame = Property_<bool>::create("wireframe", false);
         registerProperty(m_wireFrame);
         
-        m_drawNormals = Property_<bool>::create("Normals", false);
+        m_drawNormals = Property_<bool>::create("normals", false);
         registerProperty(m_drawNormals);
         
-        m_clear_color = Property_<glm::vec4>::create("Clear color", glm::vec4(0 ,0 ,0, 1.0));
+        m_clear_color = Property_<glm::vec4>::create("clear color", glm::vec4(0 ,0 ,0, 1.0));
         registerProperty(m_clear_color);
         
         register_function("load_settings", [this](){ load_settings(); });
@@ -126,8 +129,8 @@ namespace kinski {
         else if(!m_mouse_down || displayTweakBar())
         {
             *m_rotation = glm::mat3( glm::rotate(glm::mat4(m_rotation->value()),
-                                                 *m_rotationSpeed * timeDelta,
-                                                 glm::vec3(0, 1, .5)));
+                                                 *m_rotation_speed * timeDelta,
+                                                 m_rotation_axis->value()));
         }
         
         // update joysticks
