@@ -127,7 +127,7 @@ public:
     {
         ViewerApp::update(timeDelta);
         glm::mat4 newTrans = glm::rotate(m_mesh->transform(),
-                                         -m_rotationSpeed->value() * timeDelta,
+                                         -m_rotation_speed->value() * timeDelta,
                                          vec3(0, 1, .5));
         m_mesh->setTransform(newTrans);
         m_mesh->material()->uniform("u_time", getApplicationTime()); 
