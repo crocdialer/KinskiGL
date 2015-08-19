@@ -23,7 +23,7 @@ void SensorDebug::setup()
     
     auto font_path = "Courier New Bold.ttf";
     
-    fonts()[FONT_MEDIUM].load(font_path, 45);
+    fonts()[FONT_MEDIUM].load(font_path, 32);
     fonts()[FONT_LARGE].load(font_path, 64);
     
     registerProperty(m_serial_device_name);
@@ -36,7 +36,7 @@ void SensorDebug::setup()
     m_sensor_vals.resize(10);
     
     // measure history for our 10 sensors
-    m_measurements.resize(10, Measurement<float>(250));
+    m_measurements.resize(10, Measurement<float>(500));
     
     // buffer incoming bytes from serial connection
     m_serial_read_buf.resize(2048);
@@ -68,13 +68,13 @@ void SensorDebug::update(float timeDelta)
 void SensorDebug::draw()
 {
     // draw debug UI
-    vec2 offset(55, 110), step(0, 55);
+    vec2 offset(55, 110), step(0, 90);
     float val = 0.f, sum = 0.f;
     uint32_t active_panels = 0;
     
     std::vector<glm::vec3> points;
     
-    float h = 50.f, w = windowSize().x - 2.f * offset.x;
+    float h = 80.f, w = windowSize().x - 2.f * offset.x;
     
     for(size_t i = 0; i < m_measurements.size(); i++)
     {
@@ -86,6 +86,9 @@ void SensorDebug::draw()
         // rectangle for current value
         gl::drawQuad(gl::COLOR_GRAY, vec2(val * w, h), offset);
         
+        gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_MEDIUM], gl::COLOR_WHITE,
+                       offset + vec2(val * w, 0));
+        
         ////////////////////////////// measure history ///////////////////////////
         
         // generate point array for linestrip
@@ -93,7 +96,7 @@ void SensorDebug::draw()
         
         for (size_t j = 0, sz = m_measurements[i].history_size(); j < sz; j += 2)
         {
-            float x_val = offset.x + ((float)j / (float)sz) * w;
+            float x_val = offset.x + j / (float) sz * w;
             float y_val = gl::windowDimension().y - offset.y - h;
             
             points[sz - 1 - j] = vec3(x_val, y_val, 0.f);
