@@ -19,14 +19,14 @@ namespace kinski
     {
     private:
         
-        enum FontEnum{FONT_CONSOLE = 0, FONT_LARGE = 1};
+        enum FontEnum{FONT_CONSOLE = 0, FONT_MEDIUM = 1, FONT_LARGE = 2};
         
         //////////////////////// sensor input ///////////////////////////////////
         
         Serial m_serial;
         
         std::vector<uint16_t> m_sensor_vals;
-        std::vector<Measurement<uint16_t>> m_measurements;
+        std::vector<Measurement<float>> m_measurements;
         
         std::vector<uint8_t> m_serial_accumulator, m_serial_read_buf;
         

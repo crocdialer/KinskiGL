@@ -337,6 +337,36 @@ char const* const unlit_rect_vert =
    "}\n"
 ;
 
+char const* const unlit_skin_vert = 
+   "#version 330\n"
+   "uniform mat4 u_modelViewProjectionMatrix;\n"
+   "uniform mat4 u_textureMatrix;\n"
+   "uniform mat4 u_bones[110];\n"
+   "layout(location = 0) in vec4 a_vertex; \n"
+   "layout(location = 2) in vec4 a_texCoord;\n"
+   "layout(location = 3) in vec4 a_color; \n"
+   "layout(location = 6) in ivec4 a_boneIds; \n"
+   "layout(location = 7) in vec4 a_boneWeights;\n"
+   "out VertexData\n"
+   "{ \n"
+   "  vec4 color;\n"
+   "  vec2 texCoord;\n"
+   "} vertex_out;\n"
+   "void main() \n"
+   "{\n"
+   "  vertex_out.color = a_color;\n"
+   "  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;\n"
+   "  vec4 newVertex = vec4(0); \n"
+   "  \n"
+   "  for (int i = 0; i < 4; i++)\n"
+   "  {\n"
+   "    newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i]; \n"
+   "  }\n"
+   "  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;\n"
+   "  gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);; \n"
+   "}\n"
+;
+
 char const* const lines_2D_geom = 
    "#version 330\n"
    "layout(lines) in;\n"

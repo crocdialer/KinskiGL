@@ -21,7 +21,10 @@ void SensorDebug::setup()
 {
     ViewerApp::setup();
     
-    fonts()[FONT_LARGE].load("Courier New Bold.ttf", 64);
+    auto font_path = "Courier New Bold.ttf";
+    
+    fonts()[FONT_MEDIUM].load(font_path, 45);
+    fonts()[FONT_LARGE].load(font_path, 64);
     
     registerProperty(m_serial_device_name);
     registerProperty(m_sensor_refresh_rate);
@@ -33,11 +36,12 @@ void SensorDebug::setup()
     m_sensor_vals.resize(10);
     
     // measure history for our 10 sensors
-    m_measurements.resize(10);
+    m_measurements.resize(10, Measurement<float>(250));
     
     // buffer incoming bytes from serial connection
     m_serial_read_buf.resize(2048);
     
+    // setup a recurring timer for sensor-refresh-rate measurement
     m_sensor_refresh_timer = Timer(io_service(), [this]()
     {
         *m_sensor_refresh_rate = m_sensor_refresh_count;
@@ -64,22 +68,44 @@ void SensorDebug::update(float timeDelta)
 void SensorDebug::draw()
 {
     // draw debug UI
-    vec2 offset(0, 100), step(0, 35);
+    vec2 offset(55, 110), step(0, 55);
     float val = 0.f, sum = 0.f;
     uint32_t active_panels = 0;
     
-    for(int i = 0; i < m_measurements.size(); i++)
+    std::vector<glm::vec3> points;
+    
+    float h = 50.f, w = windowSize().x - 2.f * offset.x;
+    
+    for(size_t i = 0; i < m_measurements.size(); i++)
     {
-        val = (float) m_sensor_vals[i] / std::numeric_limits<uint16_t>::max();
+        val = (float) m_measurements[i].last_value();
         sum += val;
         if(m_sensor_vals[i]){ active_panels++; }
+        else{ continue; }
         
-        gl::drawQuad(gl::COLOR_WHITE, vec2(val * windowSize().x, 30), offset);
+        // rectangle for current value
+        gl::drawQuad(gl::COLOR_GRAY, vec2(val * w, h), offset);
+        
+        ////////////////////////////// measure history ///////////////////////////
+        
+        // generate point array for linestrip
+        points.resize(m_measurements[i].history_size());
+        
+        for (size_t j = 0, sz = m_measurements[i].history_size(); j < sz; j += 2)
+        {
+            float x_val = offset.x + ((float)j / (float)sz) * w;
+            float y_val = gl::windowDimension().y - offset.y - h;
+            
+            points[sz - 1 - j] = vec3(x_val, y_val, 0.f);
+            points[sz - 2 - j] = vec3(x_val, y_val + h * m_measurements[i][j], 0.f);
+        }
+        gl::drawLines2D(points, gl::COLOR_WHITE);
+        
         offset += step;
     }
     val = sum / (active_panels ? active_panels : 1);
     
-    gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_LARGE], gl::COLOR_WHITE, vec2(15));
+    gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_LARGE], gl::COLOR_WHITE, vec2(55));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -218,7 +244,7 @@ void SensorDebug::update_sensor_values()
             {
                 for(size_t i = 0; i < m_sensor_vals.size(); i++)
                 {
-                    m_measurements[i].push(m_sensor_vals[i]);
+                    m_measurements[i].push((float)m_sensor_vals[i] / std::numeric_limits<uint16_t>::max());
                 }
             }
         }

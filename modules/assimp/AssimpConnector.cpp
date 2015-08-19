@@ -108,7 +108,7 @@ namespace kinski { namespace gl{
     
     void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap)
     {
-        static int num_bones = 0;
+        int num_bones = 0;
         if(base_vertex == 0) num_bones = 0;
         
         if(aMesh->HasBones())
@@ -263,7 +263,7 @@ namespace kinski { namespace gl{
     gl::MeshPtr AssimpConnector::loadModel(const std::string &theModelPath)
     {
         Assimp::Importer importer;
-        LOG_DEBUG<<"trying to load model '"<<theModelPath<<"' ...";
+        LOG_DEBUG << "trying to load model '" << theModelPath << "' ...";
         std::string found_path;
         try { found_path = search_file(theModelPath); }
         catch (FileNotFoundException &e)

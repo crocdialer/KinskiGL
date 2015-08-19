@@ -40,7 +40,7 @@ namespace kinski
         virtual void setup() = 0;
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
-        virtual void tearDown(){};
+        virtual void tearDown() = 0;
 
         virtual void create_tweakbar_from_component(const Component::Ptr &the_component){};
         virtual void displayTweakBar(bool b){}

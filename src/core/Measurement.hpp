@@ -108,8 +108,8 @@ namespace kinski
     template <typename T> class Measurement
     {
     public:
-        explicit Measurement(const std::string &description = "generic value",
-                             uint32_t hist_size = 1000):
+        explicit Measurement(uint32_t hist_size = 1000,
+                             const std::string &description = "generic value"):
         m_description(description),
         m_min(std::numeric_limits<T>::max()),
         m_max(std::numeric_limits<T>::min()),
@@ -178,8 +178,7 @@ namespace kinski
         
         inline T& operator[](std::size_t idx)
         {
-//            idx = clamp<std::size_t>(idx, 0, history_size() - 1);
-            assert(idx < history_size() - 1);
+            assert(idx < history_size());
             idx = (m_current_index + idx) % history_size();
             return m_values[idx];
         }

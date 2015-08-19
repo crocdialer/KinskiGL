@@ -279,9 +279,9 @@ namespace kinski {
         return (path(p1) / path(p2)).string();
     }
     
-    std::string search_file(const std::string &theFileName)
+    std::string search_file(const std::string &theFileName, bool use_entire_path)
     {
-        std::string expanded_name = expand_user(theFileName);
+        std::string expanded_name = use_entire_path ? expand_user(theFileName) : get_filename_part(theFileName);
         boost::filesystem::path ret_path(expanded_name);
         
         if(ret_path.is_absolute() && is_regular_file(ret_path))
@@ -298,6 +298,7 @@ namespace kinski {
                 return ret_path.string();
             }
         }
+        if(use_entire_path){ return search_file(theFileName, false); }
         throw FileNotFoundException(theFileName);
     }
     
