@@ -108,7 +108,8 @@ void SensorDebug::draw()
     }
     val = sum / (active_panels ? active_panels : 1);
     
-    gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_LARGE], gl::COLOR_WHITE, vec2(55));
+    // global average
+    gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_LARGE], gl::COLOR_WHITE, vec2(45));
 }
 
 /////////////////////////////////////////////////////////////////
