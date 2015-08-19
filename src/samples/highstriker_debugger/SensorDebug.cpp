@@ -50,7 +50,7 @@ void SensorDebug::setup()
     m_sensor_refresh_timer.set_periodic();
     m_sensor_refresh_timer.expires_from_now(1.f);
     
-    load_settings();
+    if(!load_settings()){ save_settings(); }
 }
 
 /////////////////////////////////////////////////////////////////
