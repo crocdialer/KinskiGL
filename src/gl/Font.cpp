@@ -15,6 +15,16 @@
 
 namespace kinski { namespace gl {
     
+    struct string_mesh_container
+    {
+        std::string text;
+        MeshPtr mesh;
+        uint64_t counter;
+        string_mesh_container():counter(0){};
+        string_mesh_container(const std::string &t, const MeshPtr &m):text(t), mesh(m), counter(0){}
+        bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
+    };
+    
     void copy_image(const Image &src_mat, Image &dst_mat)
     {
         uint32_t bytes_per_pixel = 1;
@@ -82,7 +92,11 @@ namespace kinski { namespace gl {
         uint8_t* data;
         Texture texture;
         
-        Obj():bitmap_width(1024),bitmap_height(1024)
+        // how many string meshes are buffered at max
+        size_t max_mesh_buffer_size;
+        std::map<std::string, string_mesh_container> string_mesh_map;
+        
+        Obj():bitmap_width(1024), bitmap_height(1024), max_mesh_buffer_size(300)
         {
             data = new uint8_t[bitmap_width * bitmap_height];
             font_height = 64;
@@ -228,6 +242,16 @@ namespace kinski { namespace gl {
     
     gl::MeshPtr Font::create_mesh(const std::string &theText, const glm::vec4 &theColor) const
     {
+        // look for an existing mesh
+        auto mesh_iter = m_obj->string_mesh_map.find(theText);
+        
+        if(m_obj->string_mesh_map.find(theText) != m_obj->string_mesh_map.end())
+        {
+            mesh_iter->second.counter++;
+            return mesh_iter->second.mesh;
+        }
+        // create a new mesh object
+        
         GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat = gl::Material::create();
@@ -313,6 +337,27 @@ namespace kinski { namespace gl {
         }
         geom->computeVertexNormals();
         geom->computeBoundingBox();
+        
+        // free the less frequent used half of our buffered string-meshes
+        if(m_obj->string_mesh_map.size() >= m_obj->max_mesh_buffer_size)
+        {
+            LOG_TRACE<<"font-mesh buffersize: " << m_obj->max_mesh_buffer_size << " -> clearing ...";
+            std::list<string_mesh_container> tmp_list;
+
+            for (auto &item : m_obj->string_mesh_map){tmp_list.push_back(item.second);}
+            tmp_list.sort();
+            
+            std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
+            m_obj->string_mesh_map.clear();
+            
+            for (uint32_t i = 0; i < tmp_list.size() / 2; i++, ++list_it)
+            {
+                m_obj->string_mesh_map[list_it->text] = *list_it;
+            }
+        }
+        // insert the newly created mesh
+        m_obj->string_mesh_map[theText] = string_mesh_container(theText, ret);
+        
         return ret;
     }
     

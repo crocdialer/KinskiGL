@@ -24,20 +24,7 @@ using namespace std;
 // maximum matrix-stack size
 #define MAX_MATRIX_STACK_SIZE 100
 
-// how many string meshes are buffered at max
-#define STRING_MESH_BUFFER_SIZE 300
-
 namespace kinski { namespace gl {
-    
-    struct string_mesh_container
-    {
-        std::string text;
-        MeshPtr mesh;
-        uint64_t counter;
-        string_mesh_container():counter(0){};
-        string_mesh_container(const std::string &t, const MeshPtr &m):text(t), mesh(m), counter(0){}
-        bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
-    };
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -49,7 +36,6 @@ namespace kinski { namespace gl {
         std::stack<glm::mat4> g_projectionMatrixStack;
         std::stack<glm::mat4> g_modelViewMatrixStack;
         gl::MaterialPtr g_line_material;
-        std::map<std::string, string_mesh_container> g_string_mesh_map;
         
         vector<vec3> draw_line_points;
         MaterialPtr draw_lines_material;
@@ -59,7 +45,6 @@ namespace kinski { namespace gl {
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
     static gl::MaterialPtr g_line_material;
-    static std::map<std::string, string_mesh_container> g_string_mesh_map;
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -691,14 +676,9 @@ namespace kinski { namespace gl {
         if(!theFont.glyph_texture()) return;
         mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
         
-        if(g_string_mesh_map.find(theText) == g_string_mesh_map.end())
-        {
-            g_string_mesh_map[theText] = string_mesh_container(theText,
-                                                               theFont.create_mesh(theText, the_color));
-        }
-        string_mesh_container &item = g_string_mesh_map[theText];
-        item.counter++;
-        gl::MeshPtr m = item.mesh;
+        // create the font mesh
+        gl::MeshPtr m = theFont.create_mesh(theText, the_color);
+        
         m->material()->setDiffuse(the_color);
         m->material()->setDepthTest(false);
         m->setPosition(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
@@ -706,59 +686,14 @@ namespace kinski { namespace gl {
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
         drawMesh(m);
-        //drawAxes(m);
-        
-        // free the less frequent used half of our buffered string-meshes
-        if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)
-        {
-            LOG_TRACE<<"font-mesh buffersize: "<<STRING_MESH_BUFFER_SIZE<<" -> clearing ...";
-            std::list<string_mesh_container> tmp_list;
-            std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
-            for (; it != g_string_mesh_map.end(); ++it){tmp_list.push_back(it->second);}
-            tmp_list.sort();
-            
-            std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
-            g_string_mesh_map.clear();
-            
-            for (uint32_t i = 0; i < tmp_list.size() / 2; i++, ++list_it)
-            {
-                g_string_mesh_map[list_it->text] = *list_it;
-            }
-        }
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
     void drawText3D(const std::string &theText, const gl::Font &theFont)
     {
-        if(!theFont.glyph_texture()) return;
-        
-        if(g_string_mesh_map.find(theText) == g_string_mesh_map.end())
-        {
-            g_string_mesh_map[theText] = string_mesh_container(theText,
-                                                               theFont.create_mesh(theText));
-        }
-        string_mesh_container &item = g_string_mesh_map[theText];
-        item.counter++;
-        gl::MeshPtr m = item.mesh;
+        gl::MeshPtr m = theFont.create_mesh(theText);
         drawMesh(m);
-        
-        // free the less frequent used half of our buffered string-meshes
-        if(g_string_mesh_map.size() >= STRING_MESH_BUFFER_SIZE)
-        {
-            std::list<string_mesh_container> tmp_list;
-            std::map<std::string, string_mesh_container>::iterator it = g_string_mesh_map.begin();
-            for (; it != g_string_mesh_map.end(); ++it){tmp_list.push_back(it->second);}
-            tmp_list.sort();
-            
-            std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
-            g_string_mesh_map.clear();
-            
-            for (uint32_t i = 0; i < tmp_list.size() / 2; i++, ++list_it)
-            {
-                g_string_mesh_map[list_it->text] = *list_it;
-            }
-        }
     }
     
 ///////////////////////////////////////////////////////////////////////////////
