@@ -19,6 +19,8 @@ class AssimpConnector
     
     static MeshPtr loadModel(const std::string &thePath);
     static ScenePtr loadScene(const std::string &thePath);
+    static size_t add_animations_to_mesh(const std::string &thePath,
+                                         MeshPtr m);
 };
     
 }}//namespace

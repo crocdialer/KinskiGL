@@ -109,6 +109,9 @@ namespace kinski { namespace gl {
         std::vector<MeshAnimation>& animations() { return m_animations; };
         void addAnimation(const MeshAnimation &theAnim) { m_animations.push_back(theAnim); };
         
+        uint32_t animation_index() const { return m_animation_index; }
+        void set_animation_index(uint32_t the_index);
+        
         std::vector<mat4>& boneMatrices(){ return m_boneMatrices; };
         const std::vector<mat4>& boneMatrices() const { return m_boneMatrices; };
         

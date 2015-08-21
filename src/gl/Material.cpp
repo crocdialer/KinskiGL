@@ -16,7 +16,7 @@ namespace kinski { namespace gl {
     
     Material::Material(const Shader &theShader):
     m_shader(theShader),
-    m_dirty(true),
+    m_dirty_uniform_buffer(true),
     m_polygonMode(GL_FRONT),
     m_twoSided(false),
     m_wireFrame(false),
@@ -44,43 +44,43 @@ namespace kinski { namespace gl {
     void Material::setDiffuse(const Color &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     }
     
     void Material::setAmbient(const Color &theColor)
     {
         m_ambient = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     }
     
     void Material::setSpecular(const Color &theColor)
     {
         m_specular = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     }
     
     void Material::setEmission(const Color &theColor)
     {
         m_emission = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     }
     
     void Material::setShinyness(float s)
     {
         m_shinyness = s;
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     }
     
     void Material::setPointSize(float sz)
     {
         m_pointSize = sz;
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     }
     
     void Material::setPointAttenuation(float constant, float linear, float quadratic)
     {
         m_point_attenuation = PointAttenuation(constant, linear, quadratic);
-        m_dirty = true;
+        m_dirty_uniform_buffer = true;
     };
     
     void Material::update_uniform_buffer()
@@ -101,7 +101,7 @@ namespace kinski { namespace gl {
             uint32_t pad[3];
         };
         
-        if(m_dirty)
+        if(m_dirty_uniform_buffer)
         {
             material_struct_std140 m;
             m.diffuse = m_diffuse;
@@ -115,11 +115,11 @@ namespace kinski { namespace gl {
             m.shinyness = m_shinyness;
             
             m_uniform_buffer.setData(&m, sizeof(m));
-            m_dirty = false;
+            m_dirty_uniform_buffer = false;
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
 #else
-        if(m_dirty)
+        if(m_dirty_uniform_buffer)
         {
             m_uniforms["u_material.diffuse"] = m_diffuse;
             m_uniforms["u_material.ambient"] = m_ambient;
@@ -130,7 +130,7 @@ namespace kinski { namespace gl {
                                                        m_point_attenuation.constant,
                                                        m_point_attenuation.linear,
                                                        m_point_attenuation.quadratic);
-            m_dirty = false;
+            m_dirty_uniform_buffer = false;
         }
 #endif
     }

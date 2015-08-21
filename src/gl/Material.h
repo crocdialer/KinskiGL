@@ -36,7 +36,7 @@ namespace kinski { namespace gl {
 
         static Ptr create(const Shader &theShader = Shader());
 
-        bool dirty() const { return m_dirty; };
+        bool dirty() const { return m_dirty_uniform_buffer; };
         
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
@@ -100,7 +100,7 @@ namespace kinski { namespace gl {
         UniformMap m_uniforms;
         gl::Buffer m_uniform_buffer;
         
-        bool m_dirty;
+        bool m_dirty_uniform_buffer;
         
         GLenum m_polygonMode;
         bool m_twoSided;

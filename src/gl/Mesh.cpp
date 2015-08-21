@@ -395,6 +395,11 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    void Mesh::set_animation_index(uint32_t the_index)
+    {
+        m_animation_index = clamp<uint32_t>(the_index, 0, m_animations.size() - 1);
+    }
+    
     void Mesh::setVertexLocationName(const std::string &theName)
     {
         m_vertexLocationName = theName;
