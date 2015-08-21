@@ -115,11 +115,11 @@ namespace kinski{ namespace gl{
         void set_mipmapping( bool b = true );
         void set_anisotropic_filter(float f);
         
-        void setTextureMatrix( const glm::mat4 &theMatrix );
+        void setTextureMatrix( const mat4 &theMatrix );
         
         void set_swizzle(GLint red, GLint green, GLint blue, GLint alpha);
         
-        glm::mat4 getTextureMatrix() const;
+        mat4 getTextureMatrix() const;
         
         const bool isBound() const;
         const GLint getBoundTextureUnit() const;
@@ -142,7 +142,7 @@ namespace kinski{ namespace gl{
         
         //! the size of the texture in pixels
         //const Eigen::Vector2i getSize() const { return Eigen::Vector2i( getWidth(), getHeight() ); }	
-        const glm::vec2 getSize() const { return glm::vec2( getWidth(), getHeight() ); }	
+        const vec2 getSize() const { return vec2( getWidth(), getHeight() ); }	
         
         //! the aspect ratio of the texture (width / height)
         float getAspectRatio() const { return getWidth() / (float)getHeight(); }
@@ -285,7 +285,7 @@ namespace kinski{ namespace gl{
 
         void init(const void *data, GLenum dataType, GLint dataFormat, const Format &format);
         
-        glm::mat4           m_textureMatrix;
+        mat4           m_textureMatrix;
         
         // forward declared Implementation object
         struct Obj;

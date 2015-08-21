@@ -36,7 +36,7 @@ class KINSKI_API Renderbuffer
 	int getHeight() const { return m_obj->mHeight; }
     
 	//! Returns the size of the Renderbuffer in pixels
-    glm::ivec2 getSize() const { return glm::ivec2(m_obj->mWidth, m_obj->mHeight); }
+    ivec2 getSize() const { return ivec2(m_obj->mWidth, m_obj->mHeight); }
     
 	//! Returns the bounding area of the Renderbuffer in pixels
 	//Area	getBounds() const { return Area( 0, 0, m_obj->mWidth, m_obj->mHeight ); }
@@ -86,7 +86,7 @@ class KINSKI_API Fbo
 	//! Creates a NULL FBO
 	Fbo() {}
     //! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
-    Fbo( const glm::vec2 &the_size, Format format = Format() );
+    Fbo( const vec2 &the_size, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, using Fbo::Format \a format
 	Fbo( int width, int height, Format format = Format() );
 	//! Creates an FBO \a width pixels wide and \a height pixels high, with an optional alpha channel, color buffer and depth buffer
@@ -97,7 +97,7 @@ class KINSKI_API Fbo
 	//! Returns the height of the FBO in pixels
 	int				getHeight() const { return m_obj->mHeight; }
 	//! Returns the size of the FBO in pixels
-    glm::vec2  getSize() const { return glm::vec2( m_obj->mWidth, m_obj->mHeight ); }
+    vec2  getSize() const { return vec2( m_obj->mWidth, m_obj->mHeight ); }
     
 	//! Returns the bounding area of the FBO in pixels
 	//Area			getBounds() const { return Area( 0, 0, m_obj->mWidth, m_obj->mHeight ); }

@@ -81,6 +81,26 @@
 
 namespace kinski { namespace gl {
 
+    // promote some glm symbols
+    using glm::vec2;
+    using glm::vec3;
+    using glm::vec4;
+    using glm::ivec2;
+    using glm::ivec3;
+    using glm::ivec4;
+    using glm::mat2;
+    using glm::mat3;
+    using glm::mat4;
+    using glm::quat;
+    using glm::normalize;
+    using glm::dot;
+    using glm::cross;
+    using glm::length;
+    using glm::length2;
+    using glm::translate;
+    using glm::rotate;
+    using glm::scale;
+    
     // forward declarations
     class Buffer;
     class Shader;
@@ -95,7 +115,7 @@ namespace kinski { namespace gl {
     struct Sphere;
     struct Frustum;
     
-    typedef glm::vec4 Color;
+    typedef vec4 Color;
     typedef std::shared_ptr<class Material> MaterialPtr;
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;
@@ -111,19 +131,19 @@ namespace kinski { namespace gl {
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     KINSKI_API void pushMatrix(const Matrixtype type);
     KINSKI_API void popMatrix(const Matrixtype type);
-    KINSKI_API void multMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
-    KINSKI_API void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix);
+    KINSKI_API void multMatrix(const Matrixtype type, const mat4 &theMatrix);
+    KINSKI_API void loadMatrix(const Matrixtype type, const mat4 &theMatrix);
     KINSKI_API void loadIdentity(const Matrixtype type);
-    KINSKI_API void getMatrix(const Matrixtype type, glm::mat4 &theMatrix);
+    KINSKI_API void getMatrix(const Matrixtype type, mat4 &theMatrix);
     
     KINSKI_API void setMatrices( const CameraPtr &cam );
     KINSKI_API void setModelView( const CameraPtr &cam );
     KINSKI_API void setProjection( const CameraPtr &cam );
     KINSKI_API void setMatricesForWindow();
     
-    const glm::vec3 X_AXIS = glm::vec3(1, 0, 0);
-    const glm::vec3 Y_AXIS = glm::vec3(0, 1, 0);
-    const glm::vec3 Z_AXIS = glm::vec3(0, 0, 1);
+    const vec3 X_AXIS = vec3(1, 0, 0);
+    const vec3 Y_AXIS = vec3(0, 1, 0);
+    const vec3 Z_AXIS = vec3(0, 0, 1);
     
     static const Color COLOR_WHITE(1), COLOR_BLACK(0, 0, 0, 1), COLOR_GRAY(.6, .6, .6, 1.),
     COLOR_RED(1, 0,  0, 1), COLOR_GREEN(0, 1, 0, 1), COLOR_BLUE(0, 0, 1, 1),
@@ -131,7 +151,6 @@ namespace kinski { namespace gl {
     COLOR_OLIVE(.5, .5, 0, 1), COLOR_DARK_RED(.6, 0,  0, 1);
     
     class ScopedMatrixPush
-    
     {
     public:
         ScopedMatrixPush(const Matrixtype type):
@@ -144,12 +163,12 @@ namespace kinski { namespace gl {
         Matrixtype m_type;
     };
 
-    KINSKI_API const glm::vec2& windowDimension();
-    KINSKI_API void setWindowDimension(const glm::vec2 &theDim);
-    KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 &window_pos,
-                                    const glm::vec2 &window_size = windowDimension());
-    KINSKI_API gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices);
-    KINSKI_API glm::vec3 calculateCentroid(const std::vector<glm::vec3> &theVertices);
+    KINSKI_API const vec2& windowDimension();
+    KINSKI_API void setWindowDimension(const vec2 &theDim);
+    KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, const vec2 &window_pos,
+                                    const vec2 &window_size = windowDimension());
+    KINSKI_API gl::AABB calculateAABB(const std::vector<vec3> &theVertices);
+    KINSKI_API vec3 calculateCentroid(const std::vector<vec3> &theVertices);
     KINSKI_API gl::MeshPtr createFrustumMesh(const CameraPtr &cam);
     KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light);
     KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light);
@@ -158,51 +177,51 @@ namespace kinski { namespace gl {
      * project a 3D point (in world coords) onto the view plane, using the provided camera object.
      * returns the 2D screen-coordinates of the projected 3D point
      */
-    KINSKI_API glm::vec2 project_point_to_screen(const glm::vec3 &the_point,
+    KINSKI_API vec2 project_point_to_screen(const vec3 &the_point,
                                                  const CameraPtr &theCamera,
-                                                 const glm::vec2 &screen_size = windowDimension());
+                                                 const vec2 &screen_size = windowDimension());
     
     /********************************* Drawing Functions *****************************************/
     
     KINSKI_API void clearColor(const Color &theColor);
     KINSKI_API void drawMesh(const MeshPtr &theMesh);
     KINSKI_API void drawLight(const LightPtr &theLight);
-    KINSKI_API void drawLine(const glm::vec2 &a, const glm::vec2 &b,
+    KINSKI_API void drawLine(const vec2 &a, const vec2 &b,
                              const Color &theColor = Color(1),
                              float line_thickness = 1.f);
-    KINSKI_API void drawLines2D(const std::vector<glm::vec3> &thePoints, const glm::vec4 &theColor,
+    KINSKI_API void drawLines2D(const std::vector<vec3> &thePoints, const vec4 &theColor,
                                 float line_thickness = 1.f);
-    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const Color &theColor,
+    KINSKI_API void drawLines(const std::vector<vec3> &thePoints, const Color &theColor,
                               float line_thickness = 1.f);
-    KINSKI_API void drawLines(const std::vector<glm::vec3> &thePoints, const MaterialPtr &theMat,
+    KINSKI_API void drawLines(const std::vector<vec3> &thePoints, const MaterialPtr &theMat,
                               float line_thickness = 1.f);
-    KINSKI_API void drawLineStrip(const std::vector<glm::vec3> &thePoints,
-                                  const glm::vec4 &theColor,
+    KINSKI_API void drawLineStrip(const std::vector<vec3> &thePoints,
+                                  const vec4 &theColor,
                                   float line_thickness = 1.f);
     KINSKI_API void drawPoints(const gl::Buffer &the_point_buf,
                                const MaterialPtr &theMaterial = MaterialPtr(),
                                GLsizei offset = 0);
-    KINSKI_API void drawPoints(const std::vector<glm::vec3> &thePoints,
+    KINSKI_API void drawPoints(const std::vector<vec3> &thePoints,
                                const MaterialPtr &theMaterial = MaterialPtr());
-    KINSKI_API void drawTexture(const gl::Texture &theTexture, const glm::vec2 &theSize,
-                                const glm::vec2 &theTopLeft = glm::vec2(0));
-    KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const glm::vec2 &theSize,
-                             const glm::vec2 &theTopLeft = glm::vec2(0), bool filled = true);
-    KINSKI_API void drawQuad(const Color &theColor, const glm::vec2 &theSize,
-                             const glm::vec2 &theTopLeft = glm::vec2(0), bool filled = true);
+    KINSKI_API void drawTexture(const gl::Texture &theTexture, const vec2 &theSize,
+                                const vec2 &theTopLeft = vec2(0));
+    KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const vec2 &theSize,
+                             const vec2 &theTopLeft = vec2(0), bool filled = true);
+    KINSKI_API void drawQuad(const Color &theColor, const vec2 &theSize,
+                             const vec2 &theTopLeft = vec2(0), bool filled = true);
     KINSKI_API void drawQuad(const MaterialPtr &theMaterial,
                              float x0, float y0, float x1, float y1, bool filled = true);
     KINSKI_API void drawText2D(const std::string &theText, const gl::Font &theFont,
-                               const Color &the_color = glm::vec4(1),
-                               const glm::vec2 &theTopLeft = glm::vec2(0));
+                               const Color &the_color = vec4(1),
+                               const vec2 &theTopLeft = vec2(0));
     KINSKI_API void drawText3D(const std::string &theText, const gl::Font &theFont);
     
     KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
-    KINSKI_API void drawTransform(const glm::mat4& the_transform, float the_scale = 1.f);
+    KINSKI_API void drawTransform(const mat4& the_transform, float the_scale = 1.f);
     KINSKI_API void drawBoundingBox(const Object3DPtr &the_obj);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
-    KINSKI_API void drawCircle(const glm::vec2 &center, float radius, bool solid = true,
+    KINSKI_API void drawCircle(const vec2 &center, float radius, bool solid = true,
                                const MaterialPtr &theMaterial = MaterialPtr(),
                                int numSegments = 32 );
     
@@ -262,7 +281,7 @@ namespace kinski { namespace gl {
         SaveViewPort(){m_old_value = windowDimension();}
         ~SaveViewPort(){setWindowDimension(m_old_value);}
      private:
-        glm::vec2 m_old_value;
+        vec2 m_old_value;
     };
     
     //! Convenience class which pushes and pops the currently bound framebuffer
@@ -316,7 +335,7 @@ namespace kinski { namespace gl {
      * return true if point p is contained within the mesh's geometry 
      * TODO: only convex or concave?
      */
-    KINSKI_API bool is_point_inside_mesh(const glm::vec3& p, gl::MeshPtr m);
+    KINSKI_API bool is_point_inside_mesh(const vec3& p, gl::MeshPtr m);
     
     /*!
      * generate texcoords for dest mesh by raycasting the src mesh

@@ -23,7 +23,7 @@ namespace kinski{ namespace gl{
             //! the items mesh
             gl::Mesh *mesh;
             //! the items transform in eye-coords
-            glm::mat4 transform;
+            mat4 transform;
         };
         
         struct light
@@ -31,7 +31,7 @@ namespace kinski{ namespace gl{
             //! a lightsource
             gl::Light *light;
             //! the light´s transform in eye-coords
-            glm::mat4 transform;
+            mat4 transform;
         };
         
         struct sort_items_increasing
@@ -71,10 +71,10 @@ namespace kinski{ namespace gl{
         
         void set_light_uniforms(MaterialPtr &the_mat, const std::list<RenderBin::light> &light_list);
         void update_uniform_buffers(const std::list<RenderBin::light> &light_list);
-        void update_uniform_buffer_matrices(const glm::mat4 &model_view,
-                                            const glm::mat4 &projection);
+        void update_uniform_buffer_matrices(const mat4 &model_view,
+                                            const mat4 &projection);
         
-        void set_shadowmap_size(const glm::vec2 &the_size);
+        void set_shadowmap_size(const vec2 &the_size);
         std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
         std::vector<gl::Camera::Ptr>& shadow_cams() { return m_shadow_cams; }
         void set_shadow_pass(bool b){ m_shadow_pass = b; }
@@ -91,7 +91,7 @@ namespace kinski{ namespace gl{
         std::vector<gl::Camera::Ptr> m_shadow_cams;
         bool m_shadow_pass;
         
-        void update_uniform_buffer_shadows(const glm::mat4 &the_transform);
+        void update_uniform_buffer_shadows(const mat4 &the_transform);
     };
     
 }}// namespace

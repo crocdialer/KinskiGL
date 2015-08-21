@@ -34,29 +34,29 @@ ray_intersection intersect(const OBB &theOBB, const Ray& theRay);
     
 struct KINSKI_API Ray
 {
-    glm::vec3 origin;
-	glm::vec3 direction;
+    vec3 origin;
+	vec3 direction;
     
-    Ray(const glm::vec3& theOrigin, const glm::vec3& theDir):
-    origin(theOrigin), direction(glm::normalize(theDir)){}
+    Ray(const vec3& theOrigin, const vec3& theDir):
+    origin(theOrigin), direction(normalize(theDir)){}
     
-    inline Ray& transform(const glm::mat4& t)
+    inline Ray& transform(const mat4& t)
 	{
-		origin = (t * glm::vec4(origin, 1.0f)).xyz();
-		direction = glm::normalize(glm::mat3(t) * direction);
+		origin = (t * vec4(origin, 1.0f)).xyz();
+		direction = normalize(mat3(t) * direction);
 		return *this;
 	};
     
-    inline Ray transform(const glm::mat4& t) const
+    inline Ray transform(const mat4& t) const
 	{
         Ray ret = *this;
 		return ret.transform(t);
 	};
     
-    inline friend glm::vec3 operator*(const Ray &theRay, float t)
+    inline friend vec3 operator*(const Ray &theRay, float t)
     { return theRay.origin + t * theRay.direction; }
     
-    inline friend glm::vec3 operator*(float t, const Ray &theRay)
+    inline friend vec3 operator*(float t, const Ray &theRay)
     { return theRay.origin + t * theRay.direction; }
 };
 /*!
@@ -87,28 +87,28 @@ struct KINSKI_API ray_triangle_intersection : public ray_intersection
 struct KINSKI_API Plane
 {
     // Ax + By + Cz + D = 0
-    glm::vec4 coefficients;
+    vec4 coefficients;
     
 	Plane();
-    Plane(const glm::vec4 &theCoefficients);
+    Plane(const vec4 &theCoefficients);
     Plane(float theA, float theB, float theC, float theD);
-	Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);
-	Plane(const glm::vec3& f, const glm::vec3& n);
+	Plane(const vec3& v0, const vec3& v1, const vec3& v2);
+	Plane(const vec3& f, const vec3& n);
 	
-    inline const glm::vec3& normal() const { return *((glm::vec3*)(&coefficients[0])); };
+    inline const vec3& normal() const { return *((vec3*)(&coefficients[0])); };
     
-	inline float distance(const glm::vec3& p) const
+	inline float distance(const vec3& p) const
 	{
-		return glm::dot(p, coefficients.xyz()) + coefficients.w;
+		return dot(p, coefficients.xyz()) + coefficients.w;
 	};
 	
-	inline Plane& transform(const glm::mat4& t)
+	inline Plane& transform(const mat4& t)
 	{
         coefficients = glm::inverseTranspose(t) * coefficients;
 		return *this;
 	};
     
-    inline Plane transform(const glm::mat4& t) const
+    inline Plane transform(const mat4& t) const
 	{
         Plane ret = *this;
 		return ret.transform(t);
@@ -122,23 +122,23 @@ struct KINSKI_API Plane
 
 struct KINSKI_API Triangle
 {
-	glm::vec3 v0 ;
-	glm::vec3 v1 ;
-	glm::vec3 v2 ;
+	vec3 v0 ;
+	vec3 v1 ;
+	vec3 v2 ;
 	
-	Triangle(const glm::vec3& _v0, const glm::vec3& _v1, const glm::vec3& _v2)
+	Triangle(const vec3& _v0, const vec3& _v1, const vec3& _v2)
 	:v0(_v0),v1(_v1),v2(_v2)
 	{}
     
-    inline Triangle& transform(const glm::mat4& t)
+    inline Triangle& transform(const mat4& t)
 	{
-		v0 = (t * glm::vec4(v0, 1.0f)).xyz();
-		v1 = (t * glm::vec4(v1, 1.0f)).xyz();
-        v2 = (t * glm::vec4(v2, 1.0f)).xyz();
+		v0 = (t * vec4(v0, 1.0f)).xyz();
+		v1 = (t * vec4(v1, 1.0f)).xyz();
+        v2 = (t * vec4(v2, 1.0f)).xyz();
 		return *this;
 	};
     
-    inline Triangle transform(const glm::mat4& t) const
+    inline Triangle transform(const mat4& t) const
 	{
         Triangle ret = *this;
 		return ret.transform(t);
@@ -149,39 +149,39 @@ struct KINSKI_API Triangle
         return gl::intersect(*this, theRay);
     };
     
-    inline glm::vec3 normal() const
+    inline vec3 normal() const
     {
-        return glm::normalize(glm::cross(v1 - v0, v2 - v0));
+        return normalize(cross(v1 - v0, v2 - v0));
     };
 };
 
 struct KINSKI_API Sphere
 {
 
-	glm::vec3 center;
+	vec3 center;
 	float radius;
 
-	Sphere(const glm::vec3 &c,float r)
+	Sphere(const vec3 &c,float r)
 	{
 		center = c;
 		radius = r;
 	};
     
-    inline Sphere& transform(const glm::mat4& t)
+    inline Sphere& transform(const mat4& t)
 	{
-		center = (t * glm::vec4(center, 1.0f)).xyz();
+		center = (t * vec4(center, 1.0f)).xyz();
 		return *this;
 	};
     
-    inline Sphere transform(const glm::mat4& t) const
+    inline Sphere transform(const mat4& t) const
 	{
         Sphere ret = *this;
 		return ret.transform(t);
 	};
     
-    inline uint32_t intersect(const glm::vec3 &thePoint) const
+    inline uint32_t intersect(const vec3 &thePoint) const
     {
-        if(glm::length2(center - thePoint) > radius * radius)
+        if(length2(center - thePoint) > radius * radius)
             return REJECT;
         
         return INSIDE;
@@ -198,20 +198,20 @@ struct KINSKI_API Sphere
  */
 struct KINSKI_API AABB
 {	
-	glm::vec3 min;
-	glm::vec3 max;
+	vec3 min;
+	vec3 max;
 	
-    AABB():min(glm::vec3(0)), max(glm::vec3(0)){};
-	AABB(const glm::vec3& theMin,
-         const glm::vec3& theMax):
+    AABB():min(vec3(0)), max(vec3(0)){};
+	AABB(const vec3& theMin,
+         const vec3& theMax):
     min(theMin),
     max(theMax){}
     
 	inline float width() const { return max.x - min.x; }
 	inline float height() const	{ return max.y - min.y; }
 	inline float depth() const { return max.z - min.z; }
-	inline glm::vec3 halfExtents() const { return (max - min) / 2.f; }
-	inline glm::vec3 center() const	{ return max - halfExtents(); }
+	inline vec3 halfExtents() const { return (max - min) / 2.f; }
+	inline vec3 center() const	{ return max - halfExtents(); }
 	
     const AABB operator+(const AABB &theAABB) const
     {
@@ -237,9 +237,9 @@ struct KINSKI_API AABB
     }
     
 	/* used for fast AABB <-> Plane intersection test */
-	inline glm::vec3 posVertex(const glm::vec3& dir) const
+	inline vec3 posVertex(const vec3& dir) const
 	{
-		glm::vec3 ret = min;
+		vec3 ret = min;
 		
 		if (dir.x >= 0)
 			ret.x = max.x;
@@ -252,9 +252,9 @@ struct KINSKI_API AABB
 	}
 	
 	/* used for fast AABB <-> Plane intersection test */
-	inline glm::vec3 negVertex(const glm::vec3& dir) const
+	inline vec3 negVertex(const vec3& dir) const
 	{
-		glm::vec3 ret = max;
+		vec3 ret = max;
 		
 		if (dir.x >= 0)
 			ret.x = min.x;
@@ -266,15 +266,15 @@ struct KINSKI_API AABB
 		return ret;
 	}
 	
-    AABB& transform(const glm::mat4& t);
+    AABB& transform(const mat4& t);
     
-    inline AABB transform(const glm::mat4& t) const
+    inline AABB transform(const mat4& t) const
     {
         AABB ret = *this;
         return ret.transform(t);
     }
     
-    inline uint32_t intersect(const glm::vec3 &thePoint)
+    inline uint32_t intersect(const vec3 &thePoint)
     {
         if(thePoint.x < min.x || thePoint.x > max.x)
             return REJECT;
@@ -290,7 +290,7 @@ struct KINSKI_API AABB
     
 	uint32_t intersect(const Triangle& t) const ;
     
-    inline bool contains(const glm::vec3& p) const
+    inline bool contains(const vec3& p) const
     {
         return  p.x > min.x && p.x < max.x &&
                 p.y > min.y && p.y < max.y &&
@@ -300,22 +300,22 @@ struct KINSKI_API AABB
     
 struct KINSKI_API OBB
 {
-    glm::vec3 center;
-    glm::vec3 axis[3];
-    glm::vec3 half_lengths;
+    vec3 center;
+    vec3 axis[3];
+    vec3 half_lengths;
     
-    OBB(const AABB &theAABB, const glm::mat4 &t);
+    OBB(const AABB &theAABB, const mat4 &t);
     
     inline ray_intersection intersect(const Ray& theRay) const
     {
         return gl::intersect(*this, theRay);
     }
     
-    inline bool contains(const glm::vec3& p) const
+    inline bool contains(const vec3& p) const
     {
         // point in axis space
-        const glm::mat3& mat = *reinterpret_cast<const glm::mat3*>(&axis[0][0]);
-        glm::vec3 p_in_axis_space = mat * p;
+        const mat3& mat = *reinterpret_cast<const mat3*>(&axis[0][0]);
+        vec3 p_in_axis_space = mat * p;
         return  std::abs(p_in_axis_space.x) < half_lengths.x &&
                 std::abs(p_in_axis_space.y) < half_lengths.y &&
                 std::abs(p_in_axis_space.z) < half_lengths.z;
@@ -326,12 +326,12 @@ struct KINSKI_API Frustum
 {
 	Plane planes [6];
 
-    Frustum(const glm::mat4 &the_VP_martix);
+    Frustum(const mat4 &the_VP_martix);
 	Frustum(float aspect, float fov, float near, float far);
     Frustum(float left, float right,float bottom, float top,
             float near, float far);
 	
-	inline Frustum& transform(const glm::mat4& t)
+	inline Frustum& transform(const mat4& t)
 	{	
 		Plane* end = planes+6 ;
 		for (Plane *p = planes; p < end; p++)
@@ -340,13 +340,13 @@ struct KINSKI_API Frustum
 		return *this;
 	}
     
-    inline Frustum transform(const glm::mat4& t) const
+    inline Frustum transform(const mat4& t) const
 	{
         Frustum ret = *this;
 		return ret.transform(t);
 	};
 	
-    inline uint32_t intersect(const glm::vec3& v)
+    inline uint32_t intersect(const vec3& v)
 	{
 		Plane* end = planes+6 ;
 		for (Plane *p = planes; p < end; p++)

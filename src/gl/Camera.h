@@ -24,8 +24,8 @@ public:
     Camera():Object3D(){};
     virtual ~Camera(){};
     
-    glm::mat4 getProjectionMatrix() const {return m_projectionMatrix;};
-    glm::mat4 getViewMatrix() const;
+    mat4 getProjectionMatrix() const {return m_projectionMatrix;};
+    mat4 getViewMatrix() const;
     AABB boundingBox() const;
     
     virtual gl::Frustum frustum() const = 0;
@@ -35,11 +35,11 @@ public:
 protected:
 
     virtual void updateProjectionMatrix() = 0;
-    void setProjectionMatrix(const glm::mat4 &theMatrix) { m_projectionMatrix = theMatrix; };
+    void setProjectionMatrix(const mat4 &theMatrix) { m_projectionMatrix = theMatrix; };
     
 private:
     
-    glm::mat4 m_projectionMatrix;
+    mat4 m_projectionMatrix;
 };
    
 class KINSKI_API OrthographicCamera : public Camera

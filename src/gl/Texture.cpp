@@ -248,7 +248,7 @@ void Texture::setDoNotDispose( bool aDoNotDispose )
     m_Obj->m_DoNotDispose = aDoNotDispose; 
 }
 
-void Texture::setTextureMatrix( const glm::mat4 &theMatrix )
+void Texture::setTextureMatrix( const mat4 &theMatrix )
 {
     m_textureMatrix = theMatrix;
 }
@@ -269,12 +269,12 @@ void Texture::set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
     width = clamp<int>(width, 0, getWidth() - x);
     height = clamp<int>(height, 0, getHeight() - y);
     
-    glm::vec3 offset = glm::vec3((float)x / getWidth(),
+    vec3 offset = vec3((float)x / getWidth(),
                                  (float)y / getHeight(), 0);
-    glm::vec3 scale = glm::vec3((float)width / getWidth(),
+    vec3 sc = vec3((float)width / getWidth(),
                                 (float)height / getHeight(), 1);
     
-    m_textureMatrix = glm::translate(glm::mat4(), offset) * glm::scale(glm::mat4(), scale);
+    m_textureMatrix = translate(mat4(), offset) * scale(mat4(), sc);
 }
     
 void Texture::set_roi(const Area<uint32_t> &the_roi)
@@ -282,16 +282,16 @@ void Texture::set_roi(const Area<uint32_t> &the_roi)
     set_roi(the_roi.x1, the_roi.y1, the_roi.width(), the_roi.height());
 }
     
-glm::mat4 Texture::getTextureMatrix() const 
+mat4 Texture::getTextureMatrix() const 
 {
-    glm::mat4 ret = m_textureMatrix;
+    mat4 ret = m_textureMatrix;
     
     if(m_Obj->m_Flipped)
     {
-        static glm::mat4 flipY = glm::mat4(glm::vec4(1, 0, 0, 1),
-                                           glm::vec4(0, -1, 0, 1),// invert y-coords
-                                           glm::vec4(0, 0, 1, 1),
-                                           glm::vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
+        static mat4 flipY = mat4(vec4(1, 0, 0, 1),
+                                 vec4(0, -1, 0, 1),// invert y-coords
+                                 vec4(0, 0, 1, 1),
+                                 vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
         ret = flipY * ret;
     }
     return ret;
@@ -397,22 +397,22 @@ bool Texture::hasAlpha() const
 	
 float Texture::getLeft() const
 {
-	return (m_textureMatrix * glm::vec4(0, 0, 0, 1)).x;
+	return (m_textureMatrix * vec4(0, 0, 0, 1)).x;
 }
 
 float Texture::getRight() const
 {
-	return (m_textureMatrix * glm::vec4(1, 0, 0, 1)).x;
+	return (m_textureMatrix * vec4(1, 0, 0, 1)).x;
 }
 
 float Texture::getTop() const
 {
-	return (m_textureMatrix * glm::vec4(0, 1, 0, 1)).y;
+	return (m_textureMatrix * vec4(0, 1, 0, 1)).y;
 }
     
 float Texture::getBottom() const
 {
-    return (m_textureMatrix * glm::vec4(0, 0, 0, 1)).y;
+    return (m_textureMatrix * vec4(0, 0, 0, 1)).y;
 }
 
 GLint Texture::getInternalFormat() const

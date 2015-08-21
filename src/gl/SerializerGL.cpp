@@ -11,6 +11,8 @@
 
 namespace kinski {
     
+    using namespace gl;
+    
     const std::string PropertyIO_GL::PROPERTY_TYPE_VEC2 = "vec2";
     const std::string PropertyIO_GL::PROPERTY_TYPE_VEC3 = "vec3";
     const std::string PropertyIO_GL::PROPERTY_TYPE_VEC4 = "vec4";
@@ -25,11 +27,11 @@ namespace kinski {
         
         if(success) return true;
         
-        if (theProperty->isOfType<glm::vec2>())
+        if (theProperty->isOfType<vec2>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC2;
             
-            glm::vec2 vec = theProperty->getValue<glm::vec2>();
+            vec2 vec = theProperty->getValue<vec2>();
             float *ptr = &vec[0];
 
             for (int i = 0; i < 2; i++)
@@ -38,11 +40,11 @@ namespace kinski {
             success = true;
             
         }
-        else if (theProperty->isOfType<glm::vec3>())
+        else if (theProperty->isOfType<vec3>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC3;
             
-            glm::vec3 vec = theProperty->getValue<glm::vec3>();
+            vec3 vec = theProperty->getValue<vec3>();
             float *ptr = &vec[0];
             
             for (int i = 0; i < 3; i++)
@@ -50,11 +52,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<glm::vec4>())
+        else if (theProperty->isOfType<vec4>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC4;
             
-            glm::vec4 vec = theProperty->getValue<glm::vec4>();
+            vec4 vec = theProperty->getValue<vec4>();
             float *ptr = &vec[0];
             
             for (int i = 0; i < 4; i++)
@@ -63,11 +65,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<glm::quat>())
+        else if (theProperty->isOfType<quat>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_QUAT;
             
-            glm::quat vec = theProperty->getValue<glm::quat>();
+            quat vec = theProperty->getValue<quat>();
             float *ptr = &vec[0];
             
             for (int i = 0; i < 4; i++)
@@ -75,11 +77,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<glm::mat3>())
+        else if (theProperty->isOfType<mat3>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_MAT3;
             
-            glm::mat3 mat = theProperty->getValue<glm::mat3>();
+            mat3 mat = theProperty->getValue<mat3>();
             float *ptr = &mat[0][0];
             
             for (int i = 0; i < 9; i++)
@@ -87,11 +89,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<glm::mat4>())
+        else if (theProperty->isOfType<mat4>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_MAT4;
             
-            glm::mat4 mat = theProperty->getValue<glm::mat4>();
+            mat4 mat = theProperty->getValue<mat4>();
             float *ptr = &mat[0][0];
             
             for (int i = 0; i < 16; i++)
@@ -112,73 +114,73 @@ namespace kinski {
         
         if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_VEC2)
         {
-            glm::vec2 vec;
+            vec2 vec;
             float *ptr = &vec[0];
             
             for (int i = 0; i < 2; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
    
-            theProperty->setValue<glm::vec2>(vec);
+            theProperty->setValue<vec2>(vec);
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_VEC3)
         {
-            glm::vec3 vec;
+            vec3 vec;
             float *ptr = &vec[0];
             
             for (int i = 0; i < 3; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<glm::vec3>(vec);
+            theProperty->setValue<vec3>(vec);
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_VEC4)
         {
-            glm::vec4 vec;
+            vec4 vec;
             float *ptr = &vec[0];
             
             for (int i = 0; i < 4; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<glm::vec4>(vec);
+            theProperty->setValue<vec4>(vec);
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_QUAT)
         {
-            glm::quat vec;
+            quat vec;
             float *ptr = &vec[0];
             
             for (int i = 0; i < 4; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<glm::quat>(vec);
+            theProperty->setValue<quat>(vec);
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_MAT3)
         {
-            glm::mat3 mat;
+            mat3 mat;
             float *ptr = &mat[0][0];
             
             for (int i = 0; i < 9; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<glm::mat3>(mat);
+            theProperty->setValue<mat3>(mat);
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_MAT4)
         {
-            glm::mat4 mat;
+            mat4 mat;
             float *ptr = &mat[0][0];
             
             for (int i = 0; i < 16; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<glm::mat4>(mat);
+            theProperty->setValue<mat4>(mat);
             success = true;
             
         }

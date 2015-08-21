@@ -19,9 +19,9 @@ namespace kinski { namespace gl {
     struct Bone
     {
         std::string name;
-        glm::mat4 transform;
-        glm::mat4 worldtransform;
-        glm::mat4 offset;
+        mat4 transform;
+        mat4 worldtransform;
+        mat4 offset;
         uint32_t index;
         BonePtr parent;
         std::list<BonePtr> children;
@@ -37,9 +37,9 @@ namespace kinski { namespace gl {
     
     struct AnimationKeys
     {
-        std::vector< Key<glm::vec3> > positionkeys;
-        std::vector< Key<glm::quat> > rotationkeys;
-        std::vector< Key<glm::vec3> > scalekeys;
+        std::vector< Key<vec3> > positionkeys;
+        std::vector< Key<quat> > rotationkeys;
+        std::vector< Key<vec3> > scalekeys;
     };
     
     struct MeshAnimation
@@ -109,8 +109,8 @@ namespace kinski { namespace gl {
         std::vector<MeshAnimation>& animations() { return m_animations; };
         void addAnimation(const MeshAnimation &theAnim) { m_animations.push_back(theAnim); };
         
-        std::vector<glm::mat4>& boneMatrices(){ return m_boneMatrices; };
-        const std::vector<glm::mat4>& boneMatrices() const { return m_boneMatrices; };
+        std::vector<mat4>& boneMatrices(){ return m_boneMatrices; };
+        const std::vector<mat4>& boneMatrices() const { return m_boneMatrices; };
         
         void initBoneMatrices();
         
@@ -167,8 +167,8 @@ namespace kinski { namespace gl {
         Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
         
         void buildBoneMatrices(float time, BonePtr bone,
-                               glm::mat4 parentTransform,
-                               std::vector<glm::mat4> &matrices);
+                               mat4 parentTransform,
+                               std::vector<mat4> &matrices);
         
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;
@@ -181,7 +181,7 @@ namespace kinski { namespace gl {
         BonePtr m_rootBone;
         uint32_t m_animation_index;
         std::vector<MeshAnimation> m_animations;
-        std::vector<glm::mat4> m_boneMatrices;
+        std::vector<mat4> m_boneMatrices;
         
         std::string m_vertexLocationName;
         std::string m_normalLocationName;

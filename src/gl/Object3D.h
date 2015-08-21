@@ -32,30 +32,30 @@ namespace kinski { namespace gl {
         void set_enabled(bool b = true){m_enabled = b;}
         bool billboard() const {return m_billboard;};
         void set_billboard(bool b) {m_billboard = b;}
-        inline void setPosition(const glm::vec3 &thePos) {m_transform[3].xyz() = thePos;};
-        inline glm::vec3 position() const {return m_transform[3].xyz(); }
-        inline glm::vec3& position() {return *reinterpret_cast<glm::vec3*>(&m_transform[3]);}
-        inline glm::vec3 lookAt() const {return glm::normalize(-m_transform[2].xyz());}
-        inline glm::vec3 side() const {return glm::normalize(m_transform[0].xyz());}
-        inline glm::vec3 up() const {return glm::normalize(m_transform[1].xyz());}
-        void setRotation(const glm::quat &theRot);
-        void setRotation(const glm::mat3 &theRot);
+        inline void setPosition(const vec3 &thePos) {m_transform[3].xyz() = thePos;};
+        inline vec3 position() const {return m_transform[3].xyz(); }
+        inline vec3& position() {return *reinterpret_cast<vec3*>(&m_transform[3]);}
+        inline vec3 lookAt() const {return normalize(-m_transform[2].xyz());}
+        inline vec3 side() const {return normalize(m_transform[0].xyz());}
+        inline vec3 up() const {return normalize(m_transform[1].xyz());}
+        void setRotation(const quat &theRot);
+        void setRotation(const mat3 &theRot);
         void setRotation(float pitch, float yaw, float roll);
-        glm::quat rotation() const;
+        quat rotation() const;
         
-        inline glm::vec3 scale(){return glm::vec3(glm::length(m_transform[0]),
-                                                  glm::length(m_transform[1]),
-                                                  glm::length(m_transform[2]));};
+        inline vec3 scale(){return vec3(length(m_transform[0]),
+                                                  length(m_transform[1]),
+                                                  length(m_transform[2]));};
 
-        void setScale(const glm::vec3 &s);
-        inline void setScale(float s){setScale(glm::vec3(s));}
+        void setScale(const vec3 &s);
+        inline void setScale(float s){setScale(vec3(s));}
         
-        void setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp = glm::vec3(0, 1, 0));
+        void setLookAt(const vec3 &theLookAt, const vec3 &theUp = vec3(0, 1, 0));
         void setLookAt(const Object3DPtr &theLookAt);
         
-        inline void setTransform(const glm::mat4 &theTrans) {m_transform = theTrans;}
-        inline glm::mat4& transform() {return m_transform;}
-        inline const glm::mat4& transform() const {return m_transform;};
+        inline void setTransform(const mat4 &theTrans) {m_transform = theTrans;}
+        inline mat4& transform() {return m_transform;}
+        inline const mat4& transform() const {return m_transform;};
         
         void set_parent(const Object3DPtr &the_parent);
         inline Object3DPtr parent() const {return m_parent.lock();}
@@ -65,15 +65,15 @@ namespace kinski { namespace gl {
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
         
-        glm::mat4 global_transform() const;
-        glm::vec3 global_position() const;
-        glm::quat global_rotation() const;
-        glm::vec3 global_scale() const;
+        mat4 global_transform() const;
+        vec3 global_position() const;
+        quat global_rotation() const;
+        vec3 global_scale() const;
         
-        void set_global_transform(const glm::mat4 &transform);
-        void set_global_position(const glm::vec3 &position);
-        void set_global_rotation(const glm::quat &rotation);
-        void set_global_scale(const glm::vec3 &scale);
+        void set_global_transform(const mat4 &transform);
+        void set_global_position(const vec3 &position);
+        void set_global_rotation(const quat &rotation);
+        void set_global_scale(const vec3 &scale);
         
         virtual gl::AABB boundingBox() const;
         
@@ -109,7 +109,7 @@ namespace kinski { namespace gl {
         //! billboard hint, can be used by Visitors
         bool m_billboard;
         
-        glm::mat4 m_transform;
+        mat4 m_transform;
         std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;
         

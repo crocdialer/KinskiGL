@@ -12,11 +12,7 @@
 
 #include "gl/KinskiGL.h"
 #include "core/Component.h"
-#include "core/Logger.h"
 #include "core/file_functions.h"
-
-#include <boost/asio.hpp>
-#include "core/networking.h"
 #include "core/ThreadPool.h"
 
 namespace kinski

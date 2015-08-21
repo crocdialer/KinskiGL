@@ -52,7 +52,7 @@ namespace kinski
             T ret(0);
             typename std::list<T>::const_iterator it = m_values.begin();
             for (; it != m_values.end(); ++it){ret += *it;}
-            return ret / (float)m_values.size();;
+            return ret / (float)m_values.size();
         }
         
         inline const T filter(const T &theValue) override

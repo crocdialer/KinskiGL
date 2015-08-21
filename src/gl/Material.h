@@ -26,11 +26,11 @@ namespace kinski { namespace gl {
         typedef std::shared_ptr<const Material> ConstPtr;
         typedef std::weak_ptr<Material> WeakPtr;
         
-        typedef boost::variant<GLint, GLfloat, double, glm::vec2, glm::vec3, glm::vec4,
-        glm::mat3, glm::mat4,
+        typedef boost::variant<GLint, GLfloat, double, vec2, vec3, vec4,
+        mat3, mat4,
         std::vector<GLint>, std::vector<GLfloat>,
-        std::vector<glm::vec2>, std::vector<glm::vec3>, std::vector<glm::vec4>,
-        std::vector<glm::mat3>, std::vector<glm::mat4> > UniformValue;
+        std::vector<vec2>, std::vector<vec3>, std::vector<vec4>,
+        std::vector<mat3>, std::vector<mat4> > UniformValue;
         
         typedef std::map<std::string, UniformValue> UniformMap;
 
