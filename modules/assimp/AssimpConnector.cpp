@@ -545,7 +545,7 @@ namespace kinski { namespace gl{
         try { theScene = importer.ReadFile(search_file(thePath), 0); }
         catch (FileNotFoundException &e)
         {
-            LOG_ERROR << e.what();
+            LOG_WARNING << e.what();
             return 0;
         }
         
