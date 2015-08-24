@@ -153,6 +153,16 @@ namespace kinski { namespace gl{
                     weightmap[w.mVertexId + base_vertex].push_back( std::make_pair(bone_index, w.mWeight) );
                 }
             }
+            
+            // check for maximum number of bone weights, retarget here !?
+            size_t max_num_weights = 0;
+            
+            for(auto &entry : weightmap)
+            {
+                max_num_weights = std::max(max_num_weights, entry.second.size());
+            }
+            
+            LOG_DEBUG << "max num weights (per vertex): " << max_num_weights;
         }
     }
 

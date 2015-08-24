@@ -21,6 +21,8 @@ namespace kinski { namespace gl {
         
         typedef std::function<void (float)> UpdateFunction;
         
+        static Object3DPtr create();
+        
         Object3D();
         virtual ~Object3D(){};
         

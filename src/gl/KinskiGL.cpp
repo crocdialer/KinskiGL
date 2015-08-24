@@ -284,7 +284,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    gl::MeshPtr createFrustumMesh(const CameraPtr &cam)
+    gl::MeshPtr create_frustum_mesh(const CameraPtr &cam)
     {
         glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
         gl::GeometryPtr geom = Geometry::create();
