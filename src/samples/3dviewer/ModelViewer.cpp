@@ -146,15 +146,15 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
         
         switch (get_filetype(f))
         {
-            case FileType::FILE_DIRECTORY:
+            case FileType::DIRECTORY:
                 *m_cube_map_folder = f;
                 break;
 
-            case FileType::FILE_MODEL:
+            case FileType::MODEL:
                 *m_model_path = f;
                 break;
             
-            case FileType::FILE_IMAGE:
+            case FileType::IMAGE:
                 try
                 {
                     dropped_textures.push_back(gl::createTextureFromFile(f, true, false));
@@ -212,7 +212,7 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
           vector<gl::Texture> cube_planes;
           for(auto &f : kinski::get_directory_entries(*m_cube_map_folder))
           {
-              if(kinski::get_filetype(f) == FileType::FILE_IMAGE)
+              if(kinski::get_filetype(f) == FileType::IMAGE)
               {
                   cube_planes.push_back(gl::createTextureFromFile(f));
               }   

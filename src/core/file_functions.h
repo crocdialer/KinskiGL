@@ -15,6 +15,8 @@
 
 namespace kinski {
 
+    enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, OTHER};
+    
     int get_file_size(const std::string &theFilename);
     
     // manage known file locations
@@ -25,6 +27,9 @@ namespace kinski {
     std::list<std::string> get_directory_entries(const std::string &thePath,
                                                const std::string &theExtension = "",
                                                bool recursive = false);
+    std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
+                                            bool recursive = false);
+    
     bool file_exists(const std::string &theFilename);
     bool is_directory(const std::string &theFilename);
     bool create_directory(const std::string &theFilename);
@@ -39,9 +44,7 @@ namespace kinski {
     std::string get_extension(const std::string &thePath);
     std::string remove_extension(const std::string &theFileName);
     
-    enum class FileType{FILE_IMAGE, FILE_MODEL, FILE_AUDIO, FILE_MOVIE, FILE_DIRECTORY, FILE_OTHER};
-    
-    FileType get_filetype(const std::string &file_name);
+    FileType get_file_type(const std::string &file_name);
     
     /************************ Exceptions ************************/
     

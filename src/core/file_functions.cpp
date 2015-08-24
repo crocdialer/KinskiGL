@@ -180,6 +180,17 @@ namespace kinski {
         return ret;
     }
     
+    std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
+                                            bool recursive)
+    {
+        auto ret = get_directory_entries(thePath, "", recursive);
+        ret.erase(std::remove_if(ret.begin(), ret.end(), [the_type](const std::string &f)
+        {
+            return false;//get_file_type(f) != the_type;
+        }), ret.end());
+        return ret;
+    }
+    
     int get_file_size(const std::string &theFilename)
     {
         return boost::filesystem::file_size(theFilename);
@@ -325,9 +336,9 @@ namespace kinski {
         return path(theFileName).replace_extension().string();
     }
     
-    FileType get_filetype(const std::string &file_name)
+    FileType get_file_type(const std::string &file_name)
     {
-        if(is_directory(file_name)){ return FileType::FILE_DIRECTORY; }
+        if(is_directory(file_name)){ return FileType::DIRECTORY; }
         string ext = kinski::to_lower(kinski::get_extension(file_name).substr(1));
         
         std::list<string>
@@ -336,12 +347,12 @@ namespace kinski {
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx"},
         movie_exts{"mpg", "mov", "avi", "mp4", "m4v"};
         
-        if(kinski::is_in(ext, image_exts)){ return FileType::FILE_IMAGE; }
-        else if(kinski::is_in(ext, model_exts)){ return FileType::FILE_MODEL; }
-        else if(kinski::is_in(ext, audio_exts)){ return FileType::FILE_AUDIO; }
-        else if(kinski::is_in(ext, movie_exts)){ return FileType::FILE_MOVIE; }
+        if(kinski::is_in(ext, image_exts)){ return FileType::IMAGE; }
+        else if(kinski::is_in(ext, model_exts)){ return FileType::MODEL; }
+        else if(kinski::is_in(ext, audio_exts)){ return FileType::AUDIO; }
+        else if(kinski::is_in(ext, movie_exts)){ return FileType::MOVIE; }
         
-        return FileType::FILE_OTHER;
+        return FileType::OTHER;
     }
 }
 

@@ -298,14 +298,12 @@ namespace kinski { namespace gl{
         }
         const aiScene *theScene = importer.ReadFile(found_path, 0);
         
-        if(true)
-        {
-            theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
-                                                    | aiProcess_GenSmoothNormals
-                                                    | aiProcess_JoinIdenticalVertices
-                                                    | aiProcess_CalcTangentSpace
-                                                    | aiProcess_LimitBoneWeights);
-        }
+        // super useful postprocessing steps
+        theScene = importer.ApplyPostProcessing(aiProcess_Triangulate
+                                                | aiProcess_GenSmoothNormals
+                                                | aiProcess_JoinIdenticalVertices
+                                                | aiProcess_CalcTangentSpace
+                                                | aiProcess_LimitBoneWeights);
         if(theScene)
         {
             std::vector<gl::GeometryPtr> geometries;
