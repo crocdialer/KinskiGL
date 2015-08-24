@@ -27,6 +27,8 @@ namespace kinski{ namespace gl{
     
     void Renderer::render(const RenderBinPtr &theBin)
     {
+        LOG_TRACE << "rendering " << theBin->items.size() << " objects";
+        
         std::list<RenderBin::item> opaque_items, blended_items;
         for (auto &item :theBin->items)
         {
@@ -53,17 +55,6 @@ namespace kinski{ namespace gl{
         {
             if(l.light->cast_shadow()){ m_num_shadow_lights++; }
         }
-        
-//        if(m_shadow_pass)
-//        {
-//            glEnable(GL_CULL_FACE);
-//            glCullFace(GL_FRONT);
-//        }
-//        else
-//        {
-//            glEnable(GL_CULL_FACE);
-//            glCullFace(GL_BACK);
-//        }
         
         // update uniform buffers (global light settings)
         update_uniform_buffers(theBin->lights);

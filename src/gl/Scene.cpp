@@ -57,11 +57,10 @@ namespace kinski { namespace gl {
             if(!theNode.enabled()) return;
             
             gl::AABB boundingBox = theNode.geometry()->boundingBox();
-            //gl::Sphere s(theNode.position(), glm::length(boundingBox.halfExtents()));
             glm::mat4 model_view = transform_stack().top() * theNode.transform();
-            boundingBox.transform(theNode.transform());
+            boundingBox.transform(theNode.global_transform());
                     
-            if (m_frustum.intersect(boundingBox))
+            if(m_frustum.intersect(boundingBox))
             {
                 RenderBin::item item;
                 item.mesh = &theNode;

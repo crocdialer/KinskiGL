@@ -536,8 +536,9 @@ namespace kinski { namespace gl{
     size_t AssimpConnector::add_animations_to_mesh(const std::string &thePath,
                                                    MeshPtr m)
     {
+        LOG_TRACE << "loading animations from '" << thePath << "' ...";
+        
         Assimp::Importer importer;
-        LOG_DEBUG << "loading animations from '" << thePath << "' ...";
         std::string found_path;
         const aiScene *theScene = nullptr;
         
