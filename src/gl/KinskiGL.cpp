@@ -187,10 +187,10 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void setWindowDimension(const glm::vec2 &theDim)
+    void setWindowDimension(const glm::vec2 &theDim, const vec2 &the_offset)
     {
         g_viewport_dim = theDim;
-        glViewport(0, 0, theDim.x, theDim.y);
+        glViewport(the_offset.x, the_offset.y, theDim.x, theDim.y);
         
         if(g_projectionMatrixStack.empty())
             g_projectionMatrixStack.push(mat4());

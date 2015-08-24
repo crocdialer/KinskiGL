@@ -164,7 +164,7 @@ namespace kinski { namespace gl {
     };
 
     KINSKI_API const vec2& windowDimension();
-    KINSKI_API void setWindowDimension(const vec2 &theDim);
+    KINSKI_API void setWindowDimension(const vec2 &theDim, const vec2 &the_offset = vec2(0));
     KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, const vec2 &window_pos,
                                     const vec2 &window_size = windowDimension());
     KINSKI_API gl::AABB calculateAABB(const std::vector<vec3> &theVertices);
