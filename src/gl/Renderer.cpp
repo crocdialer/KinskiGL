@@ -26,9 +26,7 @@ namespace kinski{ namespace gl{
     }
     
     void Renderer::render(const RenderBinPtr &theBin)
-    {
-        LOG_TRACE << "rendering " << theBin->items.size() << " objects";
-        
+    {        
         std::list<RenderBin::item> opaque_items, blended_items;
         for (auto &item :theBin->items)
         {

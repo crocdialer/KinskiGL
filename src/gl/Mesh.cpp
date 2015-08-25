@@ -16,6 +16,7 @@ namespace kinski { namespace gl {
     Object3D(),
     m_geometry(theGeom),
     m_animation_index(0),
+    m_animation_speed(1.f),
     m_vertexLocationName("a_vertex"),
     m_normalLocationName("a_normal"),
     m_tangentLocationName("a_tangent"),
@@ -188,11 +189,13 @@ namespace kinski { namespace gl {
     {
         Object3D::update(time_delta);
         
-        if(!m_animations.empty())
+        if(m_animation_index < m_animations.size())
         {
             auto &anim = m_animations[m_animation_index];
-            anim.current_time = fmod(anim.current_time + time_delta * anim.ticksPerSec,
+            anim.current_time = fmodf(anim.current_time + time_delta * anim.ticksPerSec * m_animation_speed,
                                       anim.duration);
+            anim.current_time += anim.current_time < 0.f ? anim.duration : 0.f;
+            
             m_boneMatrices.resize(get_num_bones(m_rootBone));
             buildBoneMatrices(anim.current_time, m_rootBone, glm::mat4(), m_boneMatrices);
         }
@@ -308,7 +311,6 @@ namespace kinski { namespace gl {
         if(boneHasKeys)
             boneTransform = translation * rotation * scaleMatrix;
 
-        
         bone->worldtransform = parentTransform * boneTransform;
         
         // add final transform

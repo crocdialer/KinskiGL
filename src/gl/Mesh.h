@@ -112,6 +112,9 @@ namespace kinski { namespace gl {
         uint32_t animation_index() const { return m_animation_index; }
         void set_animation_index(uint32_t the_index);
         
+        float animation_speed() const { return m_animation_speed; }
+        void set_animation_speed(const float the_speed) { m_animation_speed = the_speed; }
+        
         std::vector<mat4>& boneMatrices(){ return m_boneMatrices; };
         const std::vector<mat4>& boneMatrices() const { return m_boneMatrices; };
         
@@ -184,6 +187,7 @@ namespace kinski { namespace gl {
         BonePtr m_rootBone;
         uint32_t m_animation_index;
         std::vector<MeshAnimation> m_animations;
+        float m_animation_speed;
         std::vector<mat4> m_boneMatrices;
         
         std::string m_vertexLocationName;
