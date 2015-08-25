@@ -115,7 +115,7 @@ void ModelViewer::keyPress(const KeyEvent &e)
         case GLFW_KEY_P:
             m_projector = create_camera_from_viewport();
             scene().removeObject(m_projector_mesh);
-            m_projector_mesh = gl::createFrustumMesh(m_projector);
+            m_projector_mesh = gl::create_frustum_mesh(m_projector);
             scene().addObject(m_projector_mesh);
             
             break;
@@ -187,13 +187,13 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
         kinski::add_search_path(dir_part);
         m_search_paths->value().push_back(dir_part);
 
-        switch (get_filetype(f))
+        switch (get_file_type(f))
         {
-            case FileType::FILE_MODEL:
+            case FileType::MODEL:
                 *m_model_path = f;
                 break;
             
-            case FileType::FILE_IMAGE:
+            case FileType::IMAGE:
                 try
                 {
                     textures().push_back(gl::createTextureFromFile(f, true, false));
@@ -211,7 +211,7 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
                 }
                 break;
                 
-            case FileType::FILE_MOVIE:
+            case FileType::MOVIE:
                 *m_movie_path = f;
                 break;
             default:

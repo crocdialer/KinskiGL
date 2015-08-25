@@ -168,13 +168,21 @@ namespace kinski { namespace gl {
         }
     }
     
-    void Object3D::remove_child(const Object3DPtr &the_child)
+    void Object3D::remove_child(const Object3DPtr &the_child, bool recursive)
     {
         std::list<Object3DPtr>::iterator it = std::find(m_children.begin(), m_children.end(), the_child);
         if(it != m_children.end())
         {
             m_children.erase(it);
             if(the_child){the_child->set_parent(Object3DPtr());}
+        }
+        // not a direct descendant, go on recursive if requested
+        else if(recursive)
+        {
+            for(auto &c : children())
+            {
+                c->remove_child(the_child, recursive);
+            }
         }
     }
     

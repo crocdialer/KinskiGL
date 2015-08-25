@@ -240,9 +240,8 @@ void AsteroidField::load_assets()
     add_search_path(*m_texture_folder);
     auto shader = gl::createShader(gl::SHADER_GOURAUD);
     
-    for (const auto &p : get_directory_entries(*m_model_folder))
+    for (const auto &p : get_directory_entries(*m_model_folder, FileType::MODEL))
     {
-        if(get_filetype(p) != FileType::FILE_MODEL){ continue; }
         auto mesh = gl::AssimpConnector::loadModel(p);
         if(mesh)
         {

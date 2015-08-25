@@ -63,7 +63,7 @@ namespace kinski { namespace gl {
         inline Object3DPtr parent() const {return m_parent.lock();}
         
         void add_child(const Object3DPtr &the_child);
-        void remove_child(const Object3DPtr &the_child);
+        void remove_child(const Object3DPtr &the_child, bool recursive = false);
         inline std::list<Object3DPtr>& children(){return m_children;}
         inline const std::list<Object3DPtr>& children() const {return m_children;}
         

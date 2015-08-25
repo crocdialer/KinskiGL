@@ -113,12 +113,12 @@ namespace kinski { namespace gl {
     
     void Scene::addObject(const Object3DPtr &theObject)
     {
-        m_root->children().push_back(theObject);
+        m_root->add_child(theObject);
     }
     
     void Scene::removeObject(const Object3DPtr &theObject)
     {
-        m_root->children().remove(theObject);
+        m_root->remove_child(theObject, true);
     }
     
     void Scene::clear()
