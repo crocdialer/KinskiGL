@@ -172,10 +172,7 @@ namespace kinski {
             LOG_TRACE<<"picked id: "<< picked_obj->getID();
             if( gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
             {
-                if(m_selected_mesh != m)
-                {
                     m_selected_mesh = m;
-                }
             }
         }
         else
@@ -252,7 +249,7 @@ namespace kinski {
                     break;
                 
                 case GLFW_KEY_F:
-                    setFullSceen(!fullSceen());
+//                    setFullSceen(!fullSceen());
                     break;
                     
                 case GLFW_KEY_R:
@@ -277,8 +274,8 @@ namespace kinski {
                 case GLFW_KEY_7:
                 case GLFW_KEY_8:
                 case GLFW_KEY_9:
-                    cam_index = e.getCode() - GLFW_KEY_1;
-                    LOG_DEBUG << "cam index: " << cam_index;
+                    m_cam_index = e.getCode() - GLFW_KEY_1;
+                    LOG_DEBUG << "cam index: " << m_cam_index;
                     break;
                     
                 default:

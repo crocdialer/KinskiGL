@@ -61,7 +61,7 @@ namespace kinski { namespace gl {
     
     void Object3D::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
     {
-        setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) );
+        setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) * glm::scale(mat4(), scale()));
     }
     
     void Object3D::setLookAt(const Object3DPtr &theLookAt)

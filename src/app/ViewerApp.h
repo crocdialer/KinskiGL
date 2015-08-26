@@ -82,6 +82,7 @@ namespace kinski {
         bool precise_selection() const { return m_precise_selection; };
         void set_precise_selection(bool b){ m_precise_selection = b; };
         void set_camera(const gl::PerspectiveCamera::Ptr &theCam){m_camera = theCam;};
+        uint32_t cam_index() const { return m_cam_index; }
         
         virtual bool save_settings(const std::string &path = "");
         virtual bool load_settings(const std::string &path = "");
@@ -99,6 +100,7 @@ namespace kinski {
         gl::MeshPtr m_selected_mesh;
         
         gl::PerspectiveCamera::Ptr m_camera;
+        uint32_t m_cam_index;
         
         gl::Scene m_scene;
         gl::Arcball m_arcball;

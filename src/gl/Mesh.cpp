@@ -189,7 +189,7 @@ namespace kinski { namespace gl {
     {
         Object3D::update(time_delta);
         
-        if(m_animation_index < m_animations.size())
+        if(m_rootBone && m_animation_index < m_animations.size())
         {
             auto &anim = m_animations[m_animation_index];
             anim.current_time = fmodf(anim.current_time + time_delta * anim.ticksPerSec * m_animation_speed,
@@ -203,6 +203,8 @@ namespace kinski { namespace gl {
     
     uint32_t Mesh::get_num_bones(const BonePtr &theRoot)
     {
+        if(!theRoot){ return 0; }
+        
         uint32_t ret = 1;
         std::list<BonePtr>::const_iterator it = theRoot->children.begin();
         for (; it != theRoot->children.end(); ++it)
