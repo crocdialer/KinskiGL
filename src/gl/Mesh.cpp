@@ -12,6 +12,12 @@
 
 namespace kinski { namespace gl {
   
+    void deep_copy_bones(BonePtr src, BonePtr dst)
+    {
+        if(!src){ return; }
+        // TODO: implement
+    }
+    
     Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
     Object3D(),
     m_geometry(theGeom),
@@ -393,15 +399,7 @@ namespace kinski { namespace gl {
     {
         MeshPtr ret = create(m_geometry, m_materials[0]);
         *ret = *this;
-        
-        if(rootBone())
-        {
-            // deep copy bones
-            BonePtr cp = std::make_shared<Bone>();
-            *cp = *rootBone();
-            cp->parent.reset();
-            cp->children.clear();
-        }
+        deep_copy_bones(rootBone(), ret->rootBone());
         
         ret->m_vertexArrays.clear();
         ret->m_shaders.clear();

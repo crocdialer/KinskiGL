@@ -27,6 +27,8 @@ namespace kinski { namespace gl {
         std::list<BonePtr> children;
     };
     
+    void deep_copy_bones(BonePtr src, BonePtr dst);
+    
     template<typename T> struct Key
     {
         float time;
