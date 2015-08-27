@@ -49,8 +49,11 @@ namespace kinski { namespace gl {
         
         void visit(T &theNode) override
         {
-            m_objects.push_back(&theNode);
-            Visitor::visit(static_cast<gl::Object3D&>(theNode));
+            if(theNode.enabled())
+            {
+                m_objects.push_back(&theNode);
+                Visitor::visit(static_cast<gl::Object3D&>(theNode));
+            }
         };
         
         const std::list<T*>& getObjects() const {return m_objects;};
