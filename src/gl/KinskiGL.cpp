@@ -1202,7 +1202,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         
         for (auto &t : the_planes)
         {
-            if(tex_sz != t.getSize() || tex_target != t.getTarget())
+            if(!t || tex_sz != t.getSize() || tex_target != t.getTarget())
             {
                 LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
                 return ret;
