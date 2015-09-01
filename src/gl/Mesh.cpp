@@ -410,7 +410,10 @@ namespace kinski { namespace gl {
     void Mesh::set_animation_index(uint32_t the_index)
     {
         m_animation_index = clamp<uint32_t>(the_index, 0, m_animations.size() - 1);
-        if(!m_animations.empty()){ m_animations[m_animation_index].current_time = 0.f; }
+        if(!m_animations.empty() && the_index != m_animation_index)
+        {
+            m_animations[m_animation_index].current_time = 0.f;
+        }
     }
     
     void Mesh::setVertexLocationName(const std::string &theName)
