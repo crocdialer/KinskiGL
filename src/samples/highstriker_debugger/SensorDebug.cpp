@@ -52,7 +52,7 @@ void SensorDebug::setup()
     m_timer_sensor_refresh.set_periodic();
     m_timer_sensor_refresh.expires_from_now(1.f);
     
-    m_timer_game_ready = Timer(io_service());
+    m_timer_game_ready = Timer(io_service(), [](){ LOG_INFO << "READY"; });
     
     if(!load_settings()){ save_settings(); }
 }
@@ -117,16 +117,20 @@ void SensorDebug::draw()
                    vec2(330, 45));
     
     
-    if(final_score)
+    if(m_timer_game_ready.has_expired())
     {
-        m_timer_game_ready.expires_from_now(*m_timeout_game_ready);
-        auto color_highscore = gl::COLOR_RED; color_highscore.a = .3f;
-        if(final_score == 999){ gl::drawQuad(color_highscore, gl::windowDimension()); }
-    }
-    else if(m_timer_game_ready.has_expired())
-    {
-        auto color_ready = gl::COLOR_GREEN; color_ready.a = .3f;
-        gl::drawQuad(color_ready, vec2(70), vec2(gl::windowDimension().x - 100, 25));
+        if(final_score)
+        {
+            m_timer_game_ready.expires_from_now(*m_timeout_game_ready);
+            auto color_highscore = gl::COLOR_RED; color_highscore.a = .3f;
+            
+            if(final_score == 999){ gl::drawQuad(color_highscore, gl::windowDimension()); }
+        }
+        else
+        {
+            auto color_ready = gl::COLOR_GREEN; color_ready.a = .3f;
+            gl::drawQuad(color_ready, vec2(70), vec2(gl::windowDimension().x - 100, 25));
+        }
     }
 }
 
@@ -280,7 +284,10 @@ void SensorDebug::update_sensor_values()
                     
                     sum += (float) m_measurements[i].last_value();
                 }
-                m_sensor_last_avg = sum / (num_active_panels ? num_active_panels : 1);
+                if(m_timer_game_ready.has_expired())
+                {
+                    m_sensor_last_avg = sum / (num_active_panels ? num_active_panels : 1);
+                }
             }
         }
     }
