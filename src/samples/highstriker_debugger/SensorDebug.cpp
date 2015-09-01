@@ -52,7 +52,7 @@ void SensorDebug::setup()
     m_timer_sensor_refresh.set_periodic();
     m_timer_sensor_refresh.expires_from_now(1.f);
     
-    m_timer_game_ready = Timer(io_service(), [](){ LOG_INFO << "READY"; });
+    m_timer_game_ready = Timer(io_service(), [](){ LOG_DEBUG << "READY"; });
     
     if(!load_settings()){ save_settings(); }
 }
@@ -279,12 +279,13 @@ void SensorDebug::update_sensor_values()
                 
                 for(size_t i = 0; i < m_measurements.size(); i++)
                 {
-                    if(m_sensor_vals[i]){ num_active_panels++; }
-                    else{ continue; }
-                    
-                    sum += (float) m_measurements[i].last_value();
+                    if(m_sensor_vals[i])
+                    {
+                        num_active_panels++;
+                        sum += (float) m_measurements[i].last_value();
+                    }
                 }
-                if(m_timer_game_ready.has_expired())
+//                if(m_timer_game_ready.has_expired())
                 {
                     m_sensor_last_avg = sum / (num_active_panels ? num_active_panels : 1);
                 }
