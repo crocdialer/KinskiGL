@@ -27,6 +27,7 @@ void SensorDebug::setup()
     fonts()[FONT_LARGE].load(font_path, 64);
     
     registerProperty(m_serial_device_name);
+    registerProperty(m_range_min_max);
     registerProperty(m_sensor_refresh_rate);
     
     observeProperties();
@@ -69,19 +70,14 @@ void SensorDebug::draw()
 {
     // draw debug UI
     vec2 offset(55, 110), step(0, 90);
-    float val = 0.f, sum = 0.f;
-    uint32_t active_panels = 0;
-    
     std::vector<glm::vec3> points;
     
     float h = 80.f, w = windowSize().x - 2.f * offset.x;
     
     for(size_t i = 0; i < m_measurements.size(); i++)
     {
-        val = (float) m_measurements[i].last_value();
-        sum += val;
-        if(m_sensor_vals[i]){ active_panels++; }
-        else{ continue; }
+        float val = (float) m_measurements[i].last_value();
+        if(!m_sensor_vals[i]){ continue; }
         
         // rectangle for current value
         gl::drawQuad(gl::COLOR_GRAY, vec2(val * w, h), offset);
@@ -106,10 +102,19 @@ void SensorDebug::draw()
         
         offset += step;
     }
-    val = sum / (active_panels ? active_panels : 1);
     
     // global average
-    gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_LARGE], gl::COLOR_WHITE, vec2(45));
+    gl::drawText2D(as_string(100.f * m_sensor_last_avg, 2) + "%", fonts()[FONT_LARGE],
+                   gl::COLOR_WHITE, vec2(45));
+    
+    // final score
+    int final_score = (int)round(map_value<float>(m_sensor_last_avg, m_range_min_max->value().x,
+                                                  m_range_min_max->value().y, 0, 999));
+    gl::drawText2D("score: " + as_string(final_score), fonts()[FONT_LARGE], gl::COLOR_RED,
+                   vec2(330, 45));
+    
+    auto c = gl::COLOR_RED; c.a = .3f;
+    if(final_score == 999){ gl::drawQuad(c, gl::windowDimension()); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -246,10 +251,23 @@ void SensorDebug::update_sensor_values()
             
             if(reading_complete)
             {
+                int num_active_panels = 0;
+                
                 for(size_t i = 0; i < m_sensor_vals.size(); i++)
                 {
                     m_measurements[i].push((float)m_sensor_vals[i] / std::numeric_limits<uint16_t>::max());
                 }
+                
+                float sum = 0.f;
+                
+                for(size_t i = 0; i < m_measurements.size(); i++)
+                {
+                    if(m_sensor_vals[i]){ num_active_panels++; }
+                    else{ continue; }
+                    
+                    sum += (float) m_measurements[i].last_value();
+                }
+                m_sensor_last_avg = sum / (num_active_panels ? num_active_panels : 1);
             }
         }
     }

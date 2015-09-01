@@ -30,6 +30,8 @@ namespace kinski
         
         std::vector<uint8_t> m_serial_accumulator, m_serial_read_buf;
         
+        float m_sensor_last_avg;
+        
         uint32_t m_sensor_refresh_count = 0;
         Timer m_sensor_refresh_timer;
         
@@ -38,6 +40,10 @@ namespace kinski
         
         Property_<int>::Ptr
         m_sensor_refresh_rate = Property_<int>::create("sensor refresh rate", 0);
+        
+        Property_<gl::vec2>::Ptr
+        m_range_min_max = Property_<gl::vec2>::create("sensor range min/max", gl::vec2(0.f, 1.f));
+        
         
         /////////////////////////////////////////////////////////////////////////
         
