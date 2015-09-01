@@ -33,13 +33,16 @@ namespace kinski
         float m_sensor_last_avg;
         
         uint32_t m_sensor_refresh_count = 0;
-        Timer m_sensor_refresh_timer;
+        Timer m_timer_sensor_refresh, m_timer_game_ready;
         
         Property_<string>::Ptr
         m_serial_device_name = Property_<string>::create("serial device name", "");
         
         Property_<int>::Ptr
         m_sensor_refresh_rate = Property_<int>::create("sensor refresh rate", 0);
+        
+        RangedProperty<float>::Ptr
+        m_timeout_game_ready = RangedProperty<float>::create("timeout game_ready", 1.f, 0.f, 60.f);
         
         Property_<gl::vec2>::Ptr
         m_range_min_max = Property_<gl::vec2>::create("sensor range min/max", gl::vec2(0.f, 1.f));

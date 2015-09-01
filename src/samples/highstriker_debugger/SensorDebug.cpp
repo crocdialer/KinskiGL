@@ -28,6 +28,7 @@ void SensorDebug::setup()
     
     registerProperty(m_serial_device_name);
     registerProperty(m_range_min_max);
+    registerProperty(m_timeout_game_ready);
     registerProperty(m_sensor_refresh_rate);
     
     observeProperties();
@@ -43,13 +44,15 @@ void SensorDebug::setup()
     m_serial_read_buf.resize(2048);
     
     // setup a recurring timer for sensor-refresh-rate measurement
-    m_sensor_refresh_timer = Timer(io_service(), [this]()
+    m_timer_sensor_refresh = Timer(io_service(), [this]()
     {
         *m_sensor_refresh_rate = m_sensor_refresh_count;
         m_sensor_refresh_count = 0;
     });
-    m_sensor_refresh_timer.set_periodic();
-    m_sensor_refresh_timer.expires_from_now(1.f);
+    m_timer_sensor_refresh.set_periodic();
+    m_timer_sensor_refresh.expires_from_now(1.f);
+    
+    m_timer_game_ready = Timer(io_service());
     
     if(!load_settings()){ save_settings(); }
 }
@@ -108,13 +111,23 @@ void SensorDebug::draw()
                    gl::COLOR_WHITE, vec2(45));
     
     // final score
-    int final_score = (int)round(map_value<float>(m_sensor_last_avg, m_range_min_max->value().x,
+    uint16_t final_score = (uint16_t)round(map_value<float>(m_sensor_last_avg, m_range_min_max->value().x,
                                                   m_range_min_max->value().y, 0, 999));
     gl::drawText2D("score: " + as_string(final_score), fonts()[FONT_LARGE], gl::COLOR_RED,
                    vec2(330, 45));
     
-    auto c = gl::COLOR_RED; c.a = .3f;
-    if(final_score == 999){ gl::drawQuad(c, gl::windowDimension()); }
+    
+    if(final_score)
+    {
+        m_timer_game_ready.expires_from_now(*m_timeout_game_ready);
+        auto color_highscore = gl::COLOR_RED; color_highscore.a = .3f;
+        if(final_score == 999){ gl::drawQuad(color_highscore, gl::windowDimension()); }
+    }
+    else if(m_timer_game_ready.has_expired())
+    {
+        auto color_ready = gl::COLOR_GREEN; color_ready.a = .3f;
+        gl::drawQuad(color_ready, vec2(70), vec2(gl::windowDimension().x - 100, 25));
+    }
 }
 
 /////////////////////////////////////////////////////////////////
