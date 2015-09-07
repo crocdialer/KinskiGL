@@ -205,6 +205,16 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
             m->setScale(scale_factor);
         }
     }
+    else if(theProperty == m_wireframe)
+    {
+        if(m_mesh)
+        {
+            for(auto &mat : m_mesh->materials())
+            {
+                mat->setWireframe(*m_wireframe);
+            }
+        }
+    }
     else if(theProperty == m_cube_map_folder)
     {
         if(kinski::is_directory(*m_cube_map_folder))

@@ -52,8 +52,8 @@ namespace kinski {
         void updateProperty(const Property::ConstPtr &theProperty);
         
         Property_<std::vector<std::string> >::Ptr search_paths(){return m_search_paths;}
-        bool wireframe() const { return *m_wireFrame; };
-        void set_wireframe(bool b) { *m_wireFrame = b; };
+        bool wireframe() const { return *m_wireframe; };
+        void set_wireframe(bool b) { *m_wireframe = b; };
         bool draw_grid() const { return *m_draw_grid; };
         bool normals() const { return *m_drawNormals; };
         const glm::vec4& clear_color(){ return *m_clear_color; };
@@ -133,7 +133,7 @@ namespace kinski {
         RangedProperty<float>::Ptr m_rotation_speed;
         Property_<glm::vec3>::Ptr m_rotation_axis;
         Property_<bool>::Ptr m_draw_grid;
-        Property_<bool>::Ptr m_wireFrame;
+        Property_<bool>::Ptr m_wireframe;
         Property_<bool>::Ptr m_drawNormals;
         Property_<glm::vec4>::Ptr m_clear_color;
         

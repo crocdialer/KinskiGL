@@ -58,8 +58,8 @@ namespace kinski {
         m_draw_grid = Property_<bool>::create("draw grid", true);
         registerProperty(m_draw_grid);
         
-        m_wireFrame = Property_<bool>::create("wireframe", false);
-        registerProperty(m_wireFrame);
+        m_wireframe = Property_<bool>::create("wireframe", false);
+        registerProperty(m_wireframe);
         
         m_drawNormals = Property_<bool>::create("normals", false);
         registerProperty(m_drawNormals);
