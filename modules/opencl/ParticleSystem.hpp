@@ -15,7 +15,9 @@
 
 namespace kinski{ namespace gl{
 
-    class ParticleSystem
+    typedef std::shared_ptr<class ParticleSystem> ParticleSystemPtr;
+    
+    KINSKI_API class ParticleSystem
     {
     public:
         

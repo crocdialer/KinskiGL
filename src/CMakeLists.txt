@@ -2,8 +2,7 @@ INCLUDE(Kinski_Helpers)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 OPTION (BUILD_APPLIB "Build App framework" ON)
-OPTION (BUILD_SAMPLES "Build Samples" ON)
-#OPTION (SAMPLE_DIRS "Sample Directories" "${CMAKE_SOURCE_DIR}/src/samples/;${CMAKE_SOURCE_DIR}/production")
+set(PROJECT_DIRS "${CMAKE_SOURCE_DIR}/src/projects" CACHE PROJECT_DIRS "Project directories")
 
 ADD_SUBDIRECTORY("core")
 SET(LIBS ${LIBS} "core")
@@ -27,7 +26,9 @@ ADD_SUBDIRECTORY("app")
 SET(LIBS ${LIBS} "app")
 endif(BUILD_APPLIB)
 
-if(BUILD_SAMPLES)
-  ADD_SUBDIRECTORY("projects")
-endif(BUILD_SAMPLES)
-
+# add all project directories
+foreach(P ${PROJECT_DIRS})
+  get_filename_component(FOLDER_NAME ${P} NAME)
+  #message(${FOLDER_NAME})
+  ADD_SUBDIRECTORY(${P} "${CMAKE_BINARY_DIR}/${FOLDER_NAME}")
+endforeach()
