@@ -318,7 +318,7 @@ namespace kinski {
         }
         else if(theProperty == m_window_size)
         {
-            setWindowSize(*m_window_size);
+            set_window_size(*m_window_size);
             // only set this once
             m_window_size->removeObserver(shared_from_this());
         }

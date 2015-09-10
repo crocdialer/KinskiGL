@@ -68,7 +68,7 @@ namespace kinski
         GLFW_App(const int width = 800, const int height = 600);
         virtual ~GLFW_App();
         
-        void setWindowSize(const glm::vec2 &size) override;
+        void set_window_size(const glm::vec2 &size) override;
         void swapBuffers() override;
         double getApplicationTime() override;
         
@@ -80,9 +80,6 @@ namespace kinski
         std::vector<JoystickState> get_joystick_states() const;
         
         ///////////////////////////////////////////////////////////////////////////////
-        
-        void displayTweakBar(bool b) override {m_displayTweakBar = b;};
-        bool displayTweakBar() const override {return m_displayTweakBar;};
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "",
@@ -138,7 +135,6 @@ namespace kinski
                                    uint32_t &keyModifiers);
         
         std::vector<CTwBar*> m_tweakBars;
-        bool m_displayTweakBar;
         
         std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
         

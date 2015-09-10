@@ -16,8 +16,7 @@ class Raspi_App : public App
     Raspi_App(const int width = 1920, const int height = 1080);
     virtual ~Raspi_App();
     
-    void setWindowSize(const glm::vec2 &size);
-    void swapBuffers();
+    void set_window_size(const glm::vec2 &size) override;
     double getApplicationTime();
     
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
@@ -26,9 +25,10 @@ class Raspi_App : public App
  private:
 
     // internal initialization. performed when run is invoked
-    void init();
-    void draw_internal();
-    void pollEvents(){};
+    void init() override;
+    void draw_internal() override;
+    void swapBuffers() override;
+    void pollEvents() override;
     
     timeval m_startTime;
     //struct ESContext;

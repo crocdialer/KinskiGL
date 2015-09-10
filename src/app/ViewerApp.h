@@ -45,9 +45,6 @@ namespace kinski {
         void keyPress(const KeyEvent &e) override;
         void resize(int w, int h) override;
         
-//        void displayTweakBar(bool b) override {*m_show_tweakbar = b;};
-//        bool displayTweakBar() const override {return *m_show_tweakbar;};
-        
         // Property observer callback
         void updateProperty(const Property::ConstPtr &theProperty);
         

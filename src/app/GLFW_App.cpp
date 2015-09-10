@@ -46,8 +46,7 @@ namespace kinski
     
     GLFW_App::GLFW_App(const int width, const int height):
     App(width, height),
-    m_lastWheelPos(0),
-    m_displayTweakBar(true)
+    m_lastWheelPos(0)
     {
         glfwSetErrorCallback(&s_error_cb);
     }
@@ -78,8 +77,8 @@ namespace kinski
         glfwWindowHint(GLFW_BLUE_BITS, num_color_bits);
         
         // request an OpenGl 4.1 Context
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_SAMPLES, 4);
@@ -128,9 +127,10 @@ namespace kinski
         }
     }
     
-    void GLFW_App::setWindowSize(const glm::vec2 &size)
+    void GLFW_App::set_window_size(const glm::vec2 &size)
     {
-        App::setWindowSize(size);
+        App::set_window_size(size);
+        gl::setWindowDimension(size);
         TwWindowSize(size.x, size.y);
         if(!m_windows.empty())
             glfwSetWindowSize(m_windows.back()->handle(), (int)size[0], (int)size[1]);
@@ -162,7 +162,7 @@ namespace kinski
         draw();
         
         // draw tweakbar
-        if(m_displayTweakBar)
+        if(displayTweakBar())
         {
             // console output
             outstream_gl().draw();
@@ -202,7 +202,7 @@ namespace kinski
         
         int w, h;
         glfwGetFramebufferSize(window->handle(), &w, &h);
-        setWindowSize(glm::vec2(w, h));
+        set_window_size(glm::vec2(w, h));
     }
     
     int GLFW_App::get_num_monitors() const
@@ -262,10 +262,7 @@ namespace kinski
     void GLFW_App::s_resize(GLFWwindow* window, int w, int h)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        app->setWindowSize(glm::vec2(w, h));
-        glViewport(0, 0, w, h);
-        gl::setWindowDimension(app->windowSize());
-        TwWindowSize(w, h);
+        app->set_window_size(glm::vec2(w, h));
         
         // user hook
         if(app->running()) app->resize(w, h);

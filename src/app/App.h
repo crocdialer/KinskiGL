@@ -27,7 +27,7 @@ namespace kinski
         typedef std::shared_ptr<App> Ptr;
         typedef std::weak_ptr<App> WeakPtr;
         
-        App(const int width = 800, const int height = 600);
+        App(const int width = 800, const int height = 600, const std::string &the_name = "KinskiGL");
         virtual ~App();
         
         int run();
@@ -39,11 +39,10 @@ namespace kinski
         virtual void tearDown() = 0;
 
         virtual void create_tweakbar_from_component(const Component::Ptr &the_component){};
-        virtual void displayTweakBar(bool b){}
-        virtual bool displayTweakBar() const {return false;};
         
         // these are optional overrides
-        virtual void setWindowSize(const glm::vec2 &size);
+        virtual void set_window_size(const glm::vec2 &size);
+        virtual void set_window_name(const std::string &the_name){};
         virtual void resize(int w, int h){};
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};
@@ -57,12 +56,15 @@ namespace kinski
         virtual void setCursorPosition(float x, float y){};
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
 
-        bool running() const {return m_running;};
-        void set_running(bool b){m_running = b;}
+        inline bool running() const {return m_running;};
+        inline void set_running(bool b){m_running = b;}
+
+        inline void displayTweakBar(bool b) {m_displayTweakBar = b;};
+        inline bool displayTweakBar() const {return m_displayTweakBar;};
         
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
-        inline void setWindowSize(uint32_t w, uint32_t h){setWindowSize(glm::vec2(w, h));};
+        inline void set_window_size(uint32_t w, uint32_t h){set_window_size(glm::vec2(w, h));};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
         inline const glm::vec2 windowSize(){return m_windowSize;};
         
@@ -103,6 +105,7 @@ namespace kinski
         glm::vec2 m_windowSize;
         bool m_running;
         bool m_fullscreen;
+        bool m_displayTweakBar;
         bool m_cursorVisible;
         float m_max_fps;
         

@@ -16,8 +16,8 @@ using namespace std;
 namespace kinski
 {
     
-    App::App(const int width, const int height):
-    Component("KinskiGL"),
+    App::App(const int width, const int height, const std::string &the_name):
+    Component(the_name),
     m_framesDrawn(0),
     m_lastMeasurementTimeStamp(0.0),
     m_framesPerSec(0.f),
@@ -25,6 +25,7 @@ namespace kinski
     m_windowSize(glm::ivec2(width, height)),
     m_running(false),
     m_fullscreen(false),
+    m_displayTweakBar(false),
     m_cursorVisible(true),
     m_max_fps(60.f),
     m_thread_pool(0)
@@ -90,7 +91,7 @@ namespace kinski
         return EXIT_SUCCESS;
     }
     
-    void App::setWindowSize(const glm::vec2 &size)
+    void App::set_window_size(const glm::vec2 &size)
     {
         m_windowSize = size;
         if(running())

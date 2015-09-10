@@ -74,6 +74,11 @@ namespace kinski
         eglSwapBuffers(m_context->eglDisplay, m_context->eglSurface);
     }
     
+    void Raspi_App::pollEvents()
+    {
+    
+    }
+
     double Raspi_App::getApplicationTime()
     {
         timeval now;
