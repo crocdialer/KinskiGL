@@ -42,7 +42,7 @@ namespace kinski
         
         // these are optional overrides
         virtual void set_window_size(const glm::vec2 &size);
-        virtual void set_window_name(const std::string &the_name){};
+        virtual void set_window_title(const std::string &the_name){};
         virtual void resize(int w, int h){};
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};

@@ -69,6 +69,7 @@ namespace kinski
         virtual ~GLFW_App();
         
         void set_window_size(const glm::vec2 &size) override;
+        void set_window_title(const std::string &the_title) override;
         void swapBuffers() override;
         double getApplicationTime() override;
         

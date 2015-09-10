@@ -137,6 +137,11 @@ namespace kinski
         
     }
     
+    void GLFW_App::set_window_title(const std::string &the_title)
+    {
+        for (auto &w : m_windows){ glfwSetWindowTitle(w->handle(), the_title.c_str()); }
+    }
+    
     void GLFW_App::setCursorVisible(bool b)
     {
         App::setCursorVisible(b);
