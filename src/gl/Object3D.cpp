@@ -165,11 +165,12 @@ namespace kinski { namespace gl {
         {
             the_child->set_parent(Object3DPtr());
             the_child->m_parent = shared_from_this();
-        }
-        // prevent multiple insertions
-        if(std::find(m_children.begin(), m_children.end(), the_child) == m_children.end())
-        {
-            m_children.push_back(the_child);
+
+            // prevent multiple insertions
+            if(std::find(m_children.begin(), m_children.end(), the_child) == m_children.end())
+            {
+                m_children.push_back(the_child);
+            }
         }
     }
     
