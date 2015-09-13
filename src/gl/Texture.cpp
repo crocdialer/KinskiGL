@@ -19,9 +19,10 @@ namespace gl {
     
 Texture::Format::Format()
 {
-	m_Target = GL_TEXTURE_2D;
-	m_WrapS = GL_CLAMP_TO_EDGE;//GL_REPEAT not working in ios
-	m_WrapT = GL_CLAMP_TO_EDGE;
+	m_target = GL_TEXTURE_2D;
+    m_datatype = GL_UNSIGNED_BYTE;
+	m_wrap_s = GL_CLAMP_TO_EDGE;//GL_REPEAT not working in ios
+	m_wrap_t = GL_CLAMP_TO_EDGE;
 	m_MinFilter = GL_LINEAR;
 	m_MagFilter = GL_LINEAR;
 	m_Mipmapping = false;
@@ -34,11 +35,11 @@ Texture::Format::Format()
 struct Texture::Obj
 {
     Obj() : m_Width( -1 ), m_Height( -1 ), m_depth(-1), m_InternalFormat( -1 ), m_dataType(-1),
-    m_Target(GL_TEXTURE_2D), m_TextureID(0), m_Flipped(false), m_mip_map(false),
+    m_target(GL_TEXTURE_2D), m_TextureID(0), m_Flipped(false), m_mip_map(false),
     m_DeallocatorFunc(0) {};
     
     Obj( int aWidth, int aHeight, int depth = 1 ) : m_Width(aWidth), m_Height(aHeight),
-    m_depth(depth), m_InternalFormat( -1 ), m_dataType(-1), m_Target(GL_TEXTURE_2D), m_TextureID(0),
+    m_depth(depth), m_InternalFormat( -1 ), m_dataType(-1), m_target(GL_TEXTURE_2D), m_TextureID(0),
     m_Flipped(false), m_mip_map(false), m_boundTextureUnit(-1), m_DeallocatorFunc(0){};
     
     ~Obj()
@@ -56,7 +57,7 @@ struct Texture::Obj
     GLint m_Width, m_Height, m_depth;
     GLint m_InternalFormat;
     GLenum m_dataType;
-    GLenum m_Target;
+    GLenum m_target;
     GLuint m_TextureID;
     
     bool m_DoNotDispose;
@@ -78,9 +79,9 @@ m_Obj(new Obj(aWidth, aHeight, aDepth))
 {
     if( format.m_InternalFormat == -1 ){ format.m_InternalFormat = GL_RGBA; }
     m_Obj->m_InternalFormat = format.m_InternalFormat;
-    m_Obj->m_Target = format.m_Target;
-//    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
-    init(nullptr, GL_UNSIGNED_BYTE, GL_RGBA, format);
+    m_Obj->m_target = format.m_target;
+    m_Obj->m_dataType = format.m_datatype;
+    init(nullptr, GL_RGBA, format);
 }
 
 Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, Format format)
@@ -92,9 +93,9 @@ Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHei
 {
     if( format.m_InternalFormat == -1 ){ format.m_InternalFormat = GL_RGBA; }
     m_Obj->m_InternalFormat = format.m_InternalFormat;
-    m_Obj->m_Target = format.m_Target;
-    m_Obj->m_dataType = GL_UNSIGNED_BYTE;
-    init(data, GL_UNSIGNED_BYTE, dataFormat, format);
+    m_Obj->m_target = format.m_target;
+    m_Obj->m_dataType = format.m_datatype;
+    init(data, dataFormat, format);
 }
 
 Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, bool aDoNotDispose)
@@ -104,28 +105,28 @@ Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, int
                  bool aDoNotDispose):
 m_Obj(new Obj(aWidth, aHeight, aDepth))
 {
-    m_Obj->m_Target = aTarget;
+    m_Obj->m_target = aTarget;
     m_Obj->m_TextureID = aTextureID;
     m_Obj->m_InternalFormat = GL_RGBA;
     m_Obj->m_dataType = GL_UNSIGNED_BYTE;
     m_Obj->m_DoNotDispose = aDoNotDispose;
 }
     
-void Texture::init(const void *data, GLenum dataType, GLint dataFormat, const Format &format)
+void Texture::init(const void *data, GLint dataFormat, const Format &format)
 {
     m_Obj->m_DoNotDispose = false;
-    m_Obj->m_dataType = dataType;
+    m_Obj->m_dataType = format.m_datatype;
     
     if(!m_Obj->m_TextureID)
     {
         glGenTextures( 1, &m_Obj->m_TextureID );
-        glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, format.m_WrapS );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, format.m_WrapT );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );
-        glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
+        glBindTexture( m_Obj->m_target, m_Obj->m_TextureID );
+        glTexParameteri( m_Obj->m_target, GL_TEXTURE_WRAP_S, format.m_wrap_s );
+        glTexParameteri( m_Obj->m_target, GL_TEXTURE_WRAP_T, format.m_wrap_t );
+        glTexParameteri( m_Obj->m_target, GL_TEXTURE_MIN_FILTER, format.m_MinFilter );
+        glTexParameteri( m_Obj->m_target, GL_TEXTURE_MAG_FILTER, format.m_MagFilter );
     }
-    else{ glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID ); }
+    else{ glBindTexture( m_Obj->m_target, m_Obj->m_TextureID ); }
     
     glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
     
@@ -133,18 +134,18 @@ void Texture::init(const void *data, GLenum dataType, GLint dataFormat, const Fo
 //    glPixelStorei( GL_UNPACK_ROW_LENGTH, unpackRowLength );
 //#endif
     
-    if(m_Obj->m_Target == GL_TEXTURE_2D)
+    if(m_Obj->m_target == GL_TEXTURE_2D)
     {
-        glTexImage2D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat,
+        glTexImage2D(m_Obj->m_target, 0, m_Obj->m_InternalFormat,
                      m_Obj->m_Width, m_Obj->m_Height, 0, dataFormat,
-                     dataType, data );
+                     m_Obj->m_dataType, data );
     }
 #if !defined(KINSKI_GLES)
-    else if (m_Obj->m_Target == GL_TEXTURE_3D ||
-             m_Obj->m_Target == GL_TEXTURE_2D_ARRAY)
+    else if (m_Obj->m_target == GL_TEXTURE_3D ||
+             m_Obj->m_target == GL_TEXTURE_2D_ARRAY)
     {
-        glTexImage3D(m_Obj->m_Target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
-                     m_Obj->m_depth, 0, dataFormat, dataType, data);
+        glTexImage3D(m_Obj->m_target, 0, m_Obj->m_InternalFormat, m_Obj->m_Width, m_Obj->m_Height,
+                     m_Obj->m_depth, 0, dataFormat, m_Obj->m_dataType, data);
     }
 #endif
     
@@ -152,14 +153,14 @@ void Texture::init(const void *data, GLenum dataType, GLint dataFormat, const Fo
     glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
 #endif
     
-    if( format.m_Mipmapping ){ glGenerateMipmap(m_Obj->m_Target); }
+    if( format.m_Mipmapping ){ glGenerateMipmap(m_Obj->m_target); }
     
 #ifndef KINSKI_GLES
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
     {
         GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
             GL_ONE};
-        glTexParameteriv(m_Obj->m_Target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        glTexParameteriv(m_Obj->m_target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
 #endif
     
@@ -176,7 +177,7 @@ void Texture::update(const float *data,GLenum format, int theWidth, int theHeigh
     update(data, GL_FLOAT, format, theWidth, theHeight, flipped);
 }
     
-void Texture::update(const void *data, GLenum dataType, GLenum format, int theWidth, int theHeight,
+void Texture::update(const void *data, GLenum data_type, GLenum data_format, int theWidth, int theHeight,
                      bool flipped)
 {
     if(!m_Obj){ m_Obj = ObjPtr(new Obj()); }
@@ -184,19 +185,20 @@ void Texture::update(const void *data, GLenum dataType, GLenum format, int theWi
     
     if(m_Obj->m_Width == theWidth && 
        m_Obj->m_Height == theHeight &&
-       m_Obj->m_dataType == dataType)
+       m_Obj->m_dataType == data_type)
     {
-        glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
-        glTexSubImage2D( m_Obj->m_Target, 0, 0, 0, m_Obj->m_Width, m_Obj->m_Height, format, dataType, data );
+        glBindTexture( m_Obj->m_target, m_Obj->m_TextureID );
+        glTexSubImage2D( m_Obj->m_target, 0, 0, 0, m_Obj->m_Width, m_Obj->m_Height, data_format, data_type, data );
     }
     else 
     {
-        m_Obj->m_dataType = dataType;
+        m_Obj->m_dataType = data_type;
         m_Obj->m_InternalFormat = GL_RGBA;
         m_Obj->m_Width = theWidth;
         m_Obj->m_Height = theHeight;
         Format f;
-        init(data, dataType, format, f);
+        f.m_datatype = data_type;
+        init(data, data_format, f);
     }
 }
     
@@ -231,7 +233,7 @@ bool Texture::dataFormatHasColor( GLint dataFormat )
 
 Texture	Texture::weakClone() const
 {
-	gl::Texture result = Texture( m_Obj->m_Target, m_Obj->m_TextureID, m_Obj->m_Width, m_Obj->m_Height, true );
+	gl::Texture result = Texture( m_Obj->m_target, m_Obj->m_TextureID, m_Obj->m_Width, m_Obj->m_Height, true );
 	result.m_Obj->m_InternalFormat = m_Obj->m_InternalFormat;
 	result.m_Obj->m_Flipped = m_Obj->m_Flipped;	
 	return result;
@@ -314,7 +316,7 @@ GLuint Texture::getId() const
 
 GLenum Texture::getTarget() const 
 { 
-    return m_Obj->m_Target; 
+    return m_Obj->m_target; 
 }
 
 //!	whether the texture is flipped vertically
@@ -331,22 +333,22 @@ void Texture::setFlipped( bool aFlipped )
     
 void Texture::setWrapS( GLenum wrapS )
 {
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_S, wrapS );
+	glTexParameteri( m_Obj->m_target, GL_TEXTURE_WRAP_S, wrapS );
 }
 
 void Texture::setWrapT( GLenum wrapT )
 {
-	glTexParameteri( m_Obj->m_Target, GL_TEXTURE_WRAP_T, wrapT );
+	glTexParameteri( m_Obj->m_target, GL_TEXTURE_WRAP_T, wrapT );
 }
 
 void Texture::setMinFilter( GLenum minFilter )
 {
-    glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MIN_FILTER, minFilter );
+    glTexParameteri( m_Obj->m_target, GL_TEXTURE_MIN_FILTER, minFilter );
 }
 
 void Texture::setMagFilter( GLenum magFilter )
 {
-    glTexParameteri( m_Obj->m_Target, GL_TEXTURE_MAG_FILTER, magFilter );
+    glTexParameteri( m_Obj->m_target, GL_TEXTURE_MAG_FILTER, magFilter );
 }
 
 void Texture::set_mipmapping(bool b)
@@ -354,7 +356,7 @@ void Texture::set_mipmapping(bool b)
     if(b && !m_Obj->m_mip_map)
     {
         setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
-        glGenerateMipmap(m_Obj->m_Target);
+        glGenerateMipmap(m_Obj->m_target);
     }
     else
     {
@@ -422,7 +424,7 @@ GLint Texture::getInternalFormat() const
 	if( m_Obj->m_InternalFormat == -1 )
     {
 		bind();
-		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_Obj->m_InternalFormat );
+		glGetTexLevelParameteriv( m_Obj->m_target, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_Obj->m_InternalFormat );
 	}
 #endif // ! defined( KINSKI_GLES )
 	
@@ -436,7 +438,7 @@ GLint Texture::getWidth() const
 	if( m_Obj->m_Width == -1 )
     {
 		bind();
-		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
+		glGetTexLevelParameteriv( m_Obj->m_target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
 	}
 #endif
 
@@ -450,7 +452,7 @@ GLint Texture::getHeight() const
 	if( m_Obj->m_Height == -1 )
     {
 		bind();
-		glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_Height );	
+		glGetTexLevelParameteriv( m_Obj->m_target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_Height );	
 	}
 #endif
 	return m_Obj->m_Height;
@@ -463,7 +465,7 @@ GLint Texture::getDepth() const
     if( m_Obj->m_depth == -1 )
     {
         bind();
-        glGetTexLevelParameteriv( m_Obj->m_Target, 0, GL_TEXTURE_DEPTH, &m_Obj->m_depth );
+        glGetTexLevelParameteriv( m_Obj->m_target, 0, GL_TEXTURE_DEPTH, &m_Obj->m_depth );
     }
 #endif
     return m_Obj->m_depth;
@@ -474,7 +476,7 @@ void Texture::bind( GLuint textureUnit ) const
     if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     m_Obj->m_boundTextureUnit = textureUnit;
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
-	glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
+	glBindTexture( m_Obj->m_target, m_Obj->m_TextureID );
 	glActiveTexture( GL_TEXTURE0 );
 }
 
@@ -483,19 +485,19 @@ void Texture::unbind( GLuint textureUnit ) const
     if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     m_Obj->m_boundTextureUnit = -1;
 	glActiveTexture( GL_TEXTURE0 + textureUnit );
-	glBindTexture( m_Obj->m_Target, 0 );
+	glBindTexture( m_Obj->m_target, 0 );
 	glActiveTexture( GL_TEXTURE0 );
 }
 
 void Texture::enableAndBind() const
 {
-	glEnable( m_Obj->m_Target );
-	glBindTexture( m_Obj->m_Target, m_Obj->m_TextureID );
+	glEnable( m_Obj->m_target );
+	glBindTexture( m_Obj->m_target, m_Obj->m_TextureID );
 }
 
 void Texture::disable() const
 {
-	glDisable( m_Obj->m_Target );
+	glDisable( m_Obj->m_target );
 }
 
 /////////////////////////////////////////////////////////////////////////////////

@@ -33,7 +33,7 @@ namespace kinski { namespace gl {
     m_pointSize(1.f)
     {
         setPointAttenuation(1.f, 0.f, 0.f);
-        m_shader = theShader? theShader : gl::createShader(gl::SHADER_UNLIT);
+        m_shader = theShader? theShader : gl::createShader(gl::ShaderType::UNLIT);
     }
     
     MaterialPtr Material::create(const Shader &theShader)

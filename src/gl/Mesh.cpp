@@ -368,7 +368,7 @@ namespace kinski { namespace gl {
     {
         if(m_shaders[i] != m_materials[i]->shader())
         {
-            throw WrongVertexArrayDefinedException(getID());
+            throw WrongVertexArrayDefinedException(get_id());
         }
         return m_vertexArrays[i];
     };

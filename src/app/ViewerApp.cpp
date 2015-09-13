@@ -83,7 +83,7 @@ namespace kinski {
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
         
-        gl::Shader unlit_shader = gl::createShader(gl::SHADER_UNLIT);
+        gl::Shader unlit_shader = gl::createShader(gl::ShaderType::UNLIT);
         
         for (int i = 0; i < 16; i++)
         {
@@ -169,7 +169,7 @@ namespace kinski {
                                                                                           e.getY())),
                                                      m_precise_selection))
         {
-            LOG_TRACE<<"picked id: "<< picked_obj->getID();
+            LOG_TRACE<<"picked id: "<< picked_obj->get_id();
             if( gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
             {
                     m_selected_mesh = m;

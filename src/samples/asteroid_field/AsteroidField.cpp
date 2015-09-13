@@ -238,7 +238,7 @@ void AsteroidField::load_assets()
     
     add_search_path(*m_model_folder);
     add_search_path(*m_texture_folder);
-    auto shader = gl::createShader(gl::SHADER_GOURAUD);
+    auto shader = gl::createShader(gl::ShaderType::GOURAUD);
     
     for (const auto &p : get_directory_entries(*m_model_folder, FileType::MODEL))
     {

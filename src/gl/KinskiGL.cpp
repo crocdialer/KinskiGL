@@ -45,6 +45,7 @@ namespace kinski { namespace gl {
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
     static gl::MaterialPtr g_line_material;
+    static std::map<ShaderType, Shader> g_shaders;
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -399,7 +400,7 @@ namespace kinski { namespace gl {
         static MaterialPtr material;
         if(!material)
         {
-            material = gl::Material::create(gl::createShader(gl::SHADER_LINES_2D));
+            material = gl::Material::create(gl::createShader(gl::ShaderType::LINES_2D));
         }
         material->setDiffuse(the_color);
         material->setBlending(the_color.a < 1.f);
@@ -419,7 +420,7 @@ namespace kinski { namespace gl {
         //create line mesh
         if(!mesh)
         {
-            material = gl::Material::create(gl::createShader(gl::SHADER_LINES_2D));
+            material = gl::Material::create(gl::createShader(gl::ShaderType::LINES_2D));
             material->setBlending();
             material->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
@@ -478,7 +479,7 @@ namespace kinski { namespace gl {
         //create shader
         if(!staticMat)
         {
-            staticMat = gl::Material::create(gl::createShader(gl::SHADER_POINTS_TEXTURE));
+            staticMat = gl::Material::create(gl::createShader(gl::ShaderType::POINTS_TEXTURE));
             staticMat->setPointSize(2.f);
         }
         
@@ -557,19 +558,19 @@ namespace kinski { namespace gl {
         }
         
 #if !defined(KINSKI_GLES)
-        static Shader shader_2D, shader_2Drect;
+        static Shader tex_2D, rect_2D;
         
         // create shaders
-        if(!shader_2D || !shader_2Drect)
+        if(!tex_2D || !rect_2D)
         {
-            shader_2D = material->shader();
-            shader_2Drect = gl::createShader(gl::SHADER_2D_RECT);
+            tex_2D = material->shader();
+            rect_2D = gl::createShader(gl::ShaderType::RECT_2D);
         }
 
-        if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(shader_2D); }
+        if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(tex_2D); }
         else if(theTexture.getTarget() == GL_TEXTURE_RECTANGLE)
         {
-            material->setShader(shader_2Drect);
+            material->setShader(rect_2D);
             material->uniform("u_texture_size", theTexture.getSize());
         }
         else
@@ -1542,79 +1543,90 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     Shader createShader(ShaderType type)
     {
         Shader ret;
+        auto it = g_shaders.find(type);
         
-        const char *vert_src = nullptr, *frag_src = nullptr, *geom_src = nullptr;
-        
-        switch (type)
+        if(it == g_shaders.end())
         {
-            case SHADER_UNLIT:
-                vert_src = unlit_vert;
-                frag_src = unlit_frag;
-                break;
-    
-            case SHADER_GOURAUD:
-                vert_src = gouraud_vert;
-                frag_src = gouraud_frag;
-                break;
-    
-            case SHADER_PHONG:
-                vert_src = phong_vert;
-                frag_src = phong_frag;
-                break;
-                
+            const char *vert_src = nullptr, *frag_src = nullptr, *geom_src = nullptr;
+            
+            switch (type)
+            {
+                case ShaderType::UNLIT:
+                    vert_src = unlit_vert;
+                    frag_src = unlit_frag;
+                    break;
+                    
+                case ShaderType::UNLIT_SKIN:
+                    vert_src = unlit_skin_vert;
+                    frag_src = unlit_frag;
+                    break;
+                    
+                case ShaderType::GOURAUD:
+                    vert_src = gouraud_vert;
+                    frag_src = gouraud_frag;
+                    break;
+                    
+                case ShaderType::PHONG:
+                    vert_src = phong_vert;
+                    frag_src = phong_frag;
+                    break;
+                    
 #if !defined(KINSKI_GLES)
-                
-            case SHADER_PHONG_SHADOWS:
-                vert_src = phong_shadows_vert;
-                frag_src = phong_shadows_frag;
-                break;
-            case SHADER_PHONG_SKIN_SHADOWS:
-                vert_src = phong_skin_vert;
-                frag_src = phong_shadows_frag;
-                break;
-                
-            case SHADER_NOISE_3D:
-                vert_src = unlit_vert;
-                frag_src = noise_3D_frag;
-                break;
-            
-            case SHADER_2D_RECT:
-                vert_src = unlit_rect_vert;
-                frag_src = unlit_rect_frag;
-                break;
-                
-            case SHADER_PHONG_NORMALMAP:
-                vert_src = phong_normalmap_vert;
-                frag_src = phong_normalmap_frag;
-                break;
-    
-            case SHADER_PHONG_SKIN:
-                vert_src = phong_skin_vert;
-                frag_src = phong_frag;
-                break;
-    
-            case SHADER_LINES_2D:
-                vert_src = unlit_vert;
-                frag_src = unlit_frag;
-                geom_src = lines_2D_geom;
-                break;
-            
-            case SHADER_POINTS_COLOR:
-            case SHADER_POINTS_TEXTURE:
-                vert_src = points_vert;
-                frag_src = points_frag;
-                break;
-                
-            case SHADER_POINTS_SPHERE:
-                vert_src = points_vert;
-                frag_src = points_sphere_frag;
-                break;
+                    
+                case ShaderType::PHONG_SHADOWS:
+                    vert_src = phong_shadows_vert;
+                    frag_src = phong_shadows_frag;
+                    break;
+                case ShaderType::PHONG_SKIN_SHADOWS:
+                    vert_src = phong_skin_vert;
+                    frag_src = phong_shadows_frag;
+                    break;
+                    
+                case ShaderType::NOISE_3D:
+                    vert_src = unlit_vert;
+                    frag_src = noise_3D_frag;
+                    break;
+                    
+                case ShaderType::RECT_2D:
+                    vert_src = unlit_rect_vert;
+                    frag_src = unlit_rect_frag;
+                    break;
+                    
+                case ShaderType::PHONG_NORMALMAP:
+                    vert_src = phong_normalmap_vert;
+                    frag_src = phong_normalmap_frag;
+                    break;
+                    
+                case ShaderType::PHONG_SKIN:
+                    vert_src = phong_skin_vert;
+                    frag_src = phong_frag;
+                    break;
+                    
+                case ShaderType::LINES_2D:
+                    vert_src = unlit_vert;
+                    frag_src = unlit_frag;
+                    geom_src = lines_2D_geom;
+                    break;
+                    
+                case ShaderType::POINTS_COLOR:
+                case ShaderType::POINTS_TEXTURE:
+                    vert_src = points_vert;
+                    frag_src = points_frag;
+                    break;
+                    
+                case ShaderType::POINTS_SPHERE:
+                    vert_src = points_vert;
+                    frag_src = points_sphere_frag;
+                    break;
 #endif
-            default:
-                break;
+                default:
+                    break;
+            }
+            ret.loadFromData(vert_src, frag_src, geom_src);
+            g_shaders[type] = ret;
+            KINSKI_CHECK_GL_ERRORS();
         }
-        ret.loadFromData(vert_src, frag_src, geom_src);
-        KINSKI_CHECK_GL_ERRORS();
+        else{ ret = it->second; }
         return ret;
     }
     

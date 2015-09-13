@@ -207,12 +207,12 @@ namespace kinski{ namespace gl{
             Format();
             
             //! Specifies the texture's target. The default is \c GL_TEXTURE_2D
-            void	setTarget( GLenum target ) { m_Target = target; }
+            void	setTarget( GLenum target ) { m_target = target; }
             
             //! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE_ARB. Not available in OpenGL ES.
             
             //#ifndef KINSKI_GLES
-            //		void	setTargetRect() { m_Target = GL_TEXTURE_RECTANGLE_ARB; }
+            //		void	setTargetRect() { m_target = GL_TEXTURE_RECTANGLE_ARB; }
             //#endif		
             
             //! Enables or disables mipmapping. Default is disabled.
@@ -232,11 +232,11 @@ namespace kinski{ namespace gl{
             
             /** \brief Sets the horizontal wrapping behavior when a texture coordinate falls outside the range of [0,1].
              Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE **/
-            void setWrapS( GLenum wrapS ) { m_WrapS = wrapS; }
+            void setWrapS( GLenum wrapS ) { m_wrap_s = wrapS; }
             
             /** \brief Sets the verical wrapping behavior when a texture coordinate falls outside the range of [0,1].
              Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE. The default is \c GL_CLAMP_TO_EDGE. **/
-            void setWrapT( GLenum wrapT ) { m_WrapT = wrapT; }
+            void setWrapT( GLenum wrapT ) { m_wrap_t = wrapT; }
             
             /** \brief Sets the filtering behavior when a texture is displayed at a lower resolution than its native resolution. Default is \c GL_LINEAR
              * Possible values are \li \c GL_NEAREST \li \c GL_LINEAR \li \c GL_NEAREST_MIPMAP_NEAREST \li \c GL_LINEAR_MIPMAP_NEAREST \li \c GL_NEAREST_MIPMAP_LINEAR \li \c GL_LINEAR_MIPMAP_LINEAR **/
@@ -247,7 +247,7 @@ namespace kinski{ namespace gl{
             void setMagFilter( GLenum magFilter ) { m_MagFilter = magFilter; }
             
             //! Returns the texture's target
-            GLenum	getTarget() const { return m_Target; }
+            GLenum	getTarget() const { return m_target; }
             
             //! Returns whether the texture has mipmapping enabled
             bool	hasMipmapping() const { return m_Mipmapping; }
@@ -259,10 +259,10 @@ namespace kinski{ namespace gl{
             bool	isAutoInternalFormat() const { return m_InternalFormat == -1; }
             
             //! Returns the horizontal wrapping behavior for the texture coordinates.
-            GLenum	getWrapS() const { return m_WrapS; }
+            GLenum	getWrapS() const { return m_wrap_s; }
             
             //! Returns the vertical wrapping behavior for the texture coordinates.
-            GLenum	getWrapT() const { return m_WrapT; }
+            GLenum	getWrapT() const { return m_wrap_t; }
             
             //! Returns the texture minifying function, which is used whenever the pixel being textured maps to an area greater than one texture element.
             GLenum	getMinFilter() const { return m_MinFilter; }
@@ -271,19 +271,19 @@ namespace kinski{ namespace gl{
             GLenum	getMagFilter() const { return m_MagFilter; }
             
         protected:
-            GLenum			m_Target;
-            GLenum			m_WrapS, m_WrapT;
+            GLenum			m_target;
+            GLenum			m_wrap_s, m_wrap_t;
             GLenum			m_MinFilter, m_MagFilter;
             float           m_anisotropic_filter_level;
             bool			m_Mipmapping;
-            GLint			m_InternalFormat;
+            GLint			m_InternalFormat, m_datatype;
             
             friend class Texture;
         };
         
     private:
 
-        void init(const void *data, GLenum dataType, GLint dataFormat, const Format &format);
+        void init(const void *data, GLint dataFormat, const Format &format);
         
         mat4           m_textureMatrix;
         

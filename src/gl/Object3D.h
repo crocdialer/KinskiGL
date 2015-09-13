@@ -26,9 +26,12 @@ namespace kinski { namespace gl {
         Object3D();
         virtual ~Object3D(){};
         
-        uint32_t getID() const {return m_id;};
+        uint32_t get_id() const {return m_id;};
         const std::string name() const { return m_name; }
         void set_name(const std::string &the_name){ m_name = the_name; }
+        const std::set<std::string>& tags() const { return m_tags; };
+        std::set<std::string>& tags() { return m_tags; };
+        bool has_tag(const std::string& the_tag) const;
         
         bool enabled() const {return m_enabled;}
         void set_enabled(bool b = true){m_enabled = b;}
@@ -101,6 +104,9 @@ namespace kinski { namespace gl {
         
         //! unique id
         uint32_t m_id;
+        
+        //! set of tags
+        std::set<std::string> m_tags;
         
         //! user definable name
         std::string m_name;

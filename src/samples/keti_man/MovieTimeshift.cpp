@@ -56,7 +56,7 @@ void MovieTimeshift::setup()
         m_custom_mat->setShader(sh);
     } catch (Exception &e) { LOG_ERROR << e.what();}
     
-    m_noise_gen_mat = gl::Material::create(gl::createShader(gl::SHADER_NOISE_3D));
+    m_noise_gen_mat = gl::Material::create(gl::createShader(gl::ShaderType::NOISE_3D));
     m_noise_gen_mat->setDepthTest(false);
     m_noise_gen_mat->setDepthWrite(false);
     

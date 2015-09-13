@@ -33,11 +33,13 @@ namespace kinski{ namespace gl{
         
         if(!m_impl->m_fbo || m_impl->m_fbo.getSize() != m_impl->m_tex_size)
         {
-            m_impl->m_fbo = gl::Fbo(m_impl->m_tex_size);
+            gl::Fbo::Format fmt;
+            fmt.setColorInternalFormat(GL_RED);
+            m_impl->m_fbo = gl::Fbo(m_impl->m_tex_size, fmt);
         }
         if(!m_impl->m_material)
         {
-            m_impl->m_material = gl::Material::create(gl::createShader(gl::SHADER_NOISE_3D));
+            m_impl->m_material = gl::Material::create(gl::createShader(gl::ShaderType::NOISE_3D));
             m_impl->m_material->setDepthTest(false);
             m_impl->m_material->setDepthWrite(false);
         }

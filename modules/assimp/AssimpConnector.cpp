@@ -359,9 +359,9 @@ namespace kinski { namespace gl{
             try
             {
                 if(geom->hasBones())
-                    shader = gl::createShader(gl::SHADER_PHONG_SKIN);
+                    shader = gl::createShader(gl::ShaderType::PHONG_SKIN);
                 else{
-                    shader = gl::createShader(gl::SHADER_PHONG);
+                    shader = gl::createShader(gl::ShaderType::PHONG);
                 }
                 
             }catch (std::exception &e){ LOG_WARNING<<e.what(); }
@@ -561,6 +561,6 @@ namespace kinski { namespace gl{
                 m->addAnimation(anim);
             }
         }
-        return theScene->mNumAnimations;
+        return theScene ? theScene->mNumAnimations : 0;
     }
 }}//namespace
