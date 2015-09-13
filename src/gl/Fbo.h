@@ -233,6 +233,7 @@ class KINSKI_API Fbo
 	  protected:
 		GLenum		mTarget;
 		GLenum		mColorInternalFormat, mDepthInternalFormat, m_stencilInternalFormat;
+        GLint       m_data_type;
 		int			mSamples;
 		int			mCoverageSamples;
 		bool		mMipmapping;

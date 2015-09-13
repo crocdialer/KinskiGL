@@ -107,7 +107,7 @@ namespace kinski
     template <typename T, typename C>
     inline bool is_in(const T &elem, const C &container)
     {
-        return std::find(begin(container), end(container), elem) != end(container);
+        return std::find(std::begin(container), std::end(container), elem) != std::end(container);
     }
     
     namespace details

@@ -44,7 +44,10 @@ namespace kinski { namespace gl {
     class CullVisitor : public Visitor
     {
     public:
-        CullVisitor(const CameraPtr &theCamera):Visitor(), m_frustum(theCamera->frustum()),
+        CullVisitor(const CameraPtr &theCamera, const std::set<std::string> &the_tags):
+        Visitor(),
+        m_frustum(theCamera->frustum()),
+        m_tags(the_tags),
         m_render_bin(new gl::RenderBin(theCamera))
         {
             transform_stack().push(theCamera->getViewMatrix());
@@ -54,7 +57,7 @@ namespace kinski { namespace gl {
         
         void visit(Mesh &theNode)
         {
-            if(!theNode.enabled()) return;
+            if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
             
             gl::AABB boundingBox = theNode.geometry()->boundingBox();
             glm::mat4 model_view = transform_stack().top() * theNode.transform();
@@ -74,7 +77,7 @@ namespace kinski { namespace gl {
         void visit(Light &theNode)
         {
             //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
-            if(theNode.enabled())
+            if(theNode.enabled() || !check_tags(m_tags, theNode.tags()))
             {
                 RenderBin::light light_item;
                 light_item.light = &theNode;
@@ -102,7 +105,18 @@ namespace kinski { namespace gl {
         
     private:
         gl::Frustum m_frustum;
+        std::set<std::string> m_tags;
         RenderBinPtr m_render_bin;
+        
+        bool check_tags(const std::set<std::string> &filter_tags,
+                        const std::set<std::string> &obj_tags)
+        {
+            for(const auto &t : obj_tags)
+            {
+                if(is_in(t, filter_tags)){ return true; }
+            }
+            return filter_tags.empty();
+        }
     };
     
     Scene::Scene():
@@ -132,16 +146,16 @@ namespace kinski { namespace gl {
         m_root->accept(uv);
     }
     
-    RenderBinPtr Scene::cull(const CameraPtr &theCamera) const
+    RenderBinPtr Scene::cull(const CameraPtr &theCamera, const std::set<std::string> &the_tags) const
     {
-        CullVisitor cull_visitor(theCamera);
+        CullVisitor cull_visitor(theCamera, the_tags);
         m_root->accept(cull_visitor);
         RenderBinPtr ret = cull_visitor.get_render_bin();
         m_num_visible_objects = ret->items.size();
         return ret;
     }
     
-    void Scene::render(const CameraPtr &theCamera) const
+    void Scene::render(const CameraPtr &theCamera, const std::set<std::string> &the_tags) const
     {
         // shadow passes
         SelectVisitor<Light> lv;
@@ -162,8 +176,6 @@ namespace kinski { namespace gl {
                 m_renderer.set_shadow_pass(true);
                 m_renderer.shadow_cams()[i] = gl::create_shadow_camera(l);
                 
-//                LOG_DEBUG << "rendering shadowmap: " << i;
-                
                 // offscreen render shadow map here
                 gl::render_to_texture(m_renderer.shadow_fbos()[i], [&]()
                 {
@@ -176,7 +188,7 @@ namespace kinski { namespace gl {
         }
         
         // forward render pass
-        m_renderer.render(cull(theCamera));
+        m_renderer.render(cull(theCamera, the_tags));
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const

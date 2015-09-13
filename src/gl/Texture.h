@@ -209,11 +209,8 @@ namespace kinski{ namespace gl{
             //! Specifies the texture's target. The default is \c GL_TEXTURE_2D
             void	setTarget( GLenum target ) { m_target = target; }
             
-            //! Sets the texture's target to be \c GL_TEXTURE_RECTANGLE_ARB. Not available in OpenGL ES.
-            
-            //#ifndef KINSKI_GLES
-            //		void	setTargetRect() { m_target = GL_TEXTURE_RECTANGLE_ARB; }
-            //#endif		
+            //! Specifies the texture's datatype. The default is GL_UNSIGNED_BYTE
+            void set_data_type(GLint the_data_type) { m_datatype = the_data_type; }
             
             //! Enables or disables mipmapping. Default is disabled.
             void set_mipmapping( bool b = true ) { m_Mipmapping = b; }
