@@ -33,7 +33,7 @@ namespace kinski { namespace gl{
     
     void loadBones(const aiMesh *aMesh, uint32_t base_vertex, BoneMap& bonemap, WeightMap &weightmap);
     
-    void insertBoneVertexData(GeometryPtr geom, const WeightMap &weightmap);
+    void insertBoneVertexData(GeometryPtr geom, const WeightMap &weightmap, uint32_t start_index = 0);
 
     
     BonePtr create_bone_hierarchy(const aiNode *theNode, const mat4 &parentTransform,
@@ -127,22 +127,18 @@ namespace kinski { namespace gl{
         int num_bones = 0;
         if(base_vertex == 0) num_bones = 0;
         
-        // clear existing data
-        bonemap.clear();
-        weightmap.clear();
-        
         if(aMesh->HasBones())
         {
-            int bone_index;
+            int bone_index = 0, start_index = bonemap.size();
             
             for (uint32_t i = 0; i < aMesh->mNumBones; ++i)
             {
                 aiBone* bone = aMesh->mBones[i];
                 if(bonemap.find(bone->mName.data) == bonemap.end())
                 {
-                    bonemap[bone->mName.data] = std::make_pair(num_bones,
+                    bone_index = num_bones + start_index;
+                    bonemap[bone->mName.data] = std::make_pair(bone_index,
                                                                aimatrix_to_glm_mat4(bone->mOffsetMatrix));
-                    bone_index = num_bones;
                     num_bones++;
                 }
                 else{ bone_index = bonemap[bone->mName.data].first; }
@@ -158,7 +154,7 @@ namespace kinski { namespace gl{
 
 /////////////////////////////////////////////////////////////////
     
-    void insertBoneVertexData(GeometryPtr geom, const WeightMap &weightmap)
+    void insertBoneVertexData(GeometryPtr geom, const WeightMap &weightmap, uint32_t start_index)
     {
         if(weightmap.empty()) return;
         
@@ -168,7 +164,7 @@ namespace kinski { namespace gl{
         for (WeightMap::const_iterator it = weightmap.begin(); it != weightmap.end(); ++it)
         {
             uint32_t i = 0;
-            gl::BoneVertexData &boneData = geom->boneVertexData()[it->first];
+            gl::BoneVertexData &boneData = geom->boneVertexData()[it->first + start_index];
             
             list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
             tmp_list.sort(boost::bind(&pair<uint32_t, float>::second, _1) >
@@ -280,6 +276,8 @@ namespace kinski { namespace gl{
         dst->tangents().insert(dst->tangents().end(), src->tangents().begin(), src->tangents().end());
         dst->appendTextCoords(src->texCoords());
         dst->appendIndices(src->indices());
+        dst->boneVertexData().insert(dst->boneVertexData().end(), src->boneVertexData().begin(),
+                                     src->boneVertexData().end());
         dst->faces().insert(dst->faces().end(), src->faces().begin(), src->faces().end());
     }
 
@@ -373,7 +371,7 @@ namespace kinski { namespace gl{
             mesh->createVertexArray();
             
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
-                geom->faces().size()<<" faces";
+            geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->rootBone()) << " bones";
             
             LOG_DEBUG<<"bounds: " <<to_string(mesh->boundingBox().min)<<" - "<<
                 to_string(mesh->boundingBox().max);
