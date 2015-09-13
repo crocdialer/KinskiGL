@@ -24,3 +24,4 @@ void main(void)
   }
   gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
 }
+
