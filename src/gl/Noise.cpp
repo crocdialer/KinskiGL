@@ -34,7 +34,9 @@ namespace kinski{ namespace gl{
         if(!m_impl->m_fbo || m_impl->m_fbo.getSize() != m_impl->m_tex_size)
         {
             gl::Fbo::Format fmt;
+#if !defined(KINSKI_GLES)
             fmt.setColorInternalFormat(GL_R32F);
+#endif
             m_impl->m_fbo = gl::Fbo(m_impl->m_tex_size, fmt);
         }
         if(!m_impl->m_material)
