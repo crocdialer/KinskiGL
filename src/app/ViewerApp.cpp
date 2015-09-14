@@ -427,7 +427,7 @@ namespace kinski {
     
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
     {
-        float w = (windowSize()/6.f).x;
+        float w = (windowSize()/8.f).x;
         glm::vec2 offset(getWidth() - w - 10, 10);
         
         for (const gl::Texture &t : the_textures)

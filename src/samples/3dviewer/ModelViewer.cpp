@@ -93,12 +93,20 @@ void ModelViewer::draw()
         }
     }
     
+    std::vector<gl::Texture> comb_texs;
+    
     // draw texture map(s)
     if(displayTweakBar() && m_mesh)
     {
         gl::MeshPtr m = m_mesh;
         if(selected_mesh()){ m = selected_mesh(); }
-        draw_textures(m->material()->textures());
+        
+        for(auto &mat : m->materials())
+        {
+            comb_texs = concat_containers<gl::Texture>(mat->textures(), comb_texs);
+        }
+        
+        draw_textures(comb_texs);
     }
 }
 
