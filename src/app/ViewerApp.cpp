@@ -235,8 +235,6 @@ namespace kinski {
         
         if(!displayTweakBar())
         {
-            int cam_index = 0;
-            
             switch (e.getCode())
             {
                 case GLFW_KEY_C:
@@ -244,7 +242,6 @@ namespace kinski {
                     break;
                     
                 case GLFW_KEY_S:
-                    Serializer::saveComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                     save_settings();
                     break;
                 
@@ -257,7 +254,6 @@ namespace kinski {
                     {
                         m_inertia = glm::vec2(0);
                         m_selected_mesh.reset();
-                        Serializer::loadComponentState(shared_from_this(), "config.json", PropertyIO_GL());
                         load_settings();
                     }catch(Exception &e)
                     {
