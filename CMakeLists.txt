@@ -25,8 +25,6 @@ IF (NOT BUILD_SHARED_LIBS)
   SET (LIB_TYPE STATIC)
 ENDIF (NOT BUILD_SHARED_LIBS)
 
-OPTION (BUILD_TESTS "Build Tests" ON)
-
 ##### BOOST
 set(Boost_USE_STATIC_LIBS ON)
 set(BOOST_COMPONENTS system filesystem)
@@ -38,6 +36,16 @@ find_package(Boost REQUIRED COMPONENTS ${BOOST_COMPONENTS})
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####
+
+# check if we are on raspberry pi
+find_file(BCMHOST bcm_host.h PATHS "/opt/vc/include/")
+if(NOT BCMHOST)
+else()
+  set(KINSKI_RASPI 1)
+  add_definitions(-DKINSKI_RASPI)
+endif()
+
+OPTION (BUILD_TESTS "Build Tests" ON)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
