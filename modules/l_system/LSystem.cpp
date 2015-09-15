@@ -459,7 +459,7 @@ gl::MeshPtr LSystem::create_mesh() const
     }
     ret->geometry()->setPrimitiveType(GL_LINES);
     ret->geometry()->computeBoundingBox();
-    ret->geometry()->createGLBuffers();
+//    ret->geometry()->createGLBuffers();
     
     return ret;
 }

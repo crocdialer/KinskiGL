@@ -20,12 +20,8 @@ void GrowthApp::setup()
 {
     ViewerApp::setup();
     
-    m_font.load("Courier New Bold.ttf", 18);
-    outstream_gl().set_color(gl::COLOR_WHITE);
-    outstream_gl().set_font(m_font);
     set_precise_selection(false);
     
-    registerProperty(m_local_udp_port);
     registerProperty(m_branch_angles);
     registerProperty(m_branch_randomness);
     registerProperty(m_increment);
@@ -41,20 +37,10 @@ void GrowthApp::setup()
         registerProperty(rule);
     
     registerProperty(m_use_bounding_mesh);
-    registerProperty(m_animate_growth);
-    registerProperty(m_animation_time);
-    registerProperty(m_light_rotation);
-    registerProperty(m_light_elevation);
-    
     registerProperty(m_shader_index);
     
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
-    
-    // udp server
-    m_udp_server = net::udp_server(io_service(), std::bind(&GrowthApp::got_message,
-                                                           this, std::placeholders::_1));
-    m_udp_server.start_listen(*m_local_udp_port);
     
     try
     {
@@ -67,37 +53,17 @@ void GrowthApp::setup()
         bound_mat->setDiffuse(gl::Color(bound_mat->diffuse().rgb(), .2));
         bound_mat->setBlending();
         bound_mat->setDepthWrite(false);
-//        scene().addObject(m_bounding_mesh);
         
         // load shaders
         m_lsystem_shaders[0] = gl::createShaderFromFile("shader_01.vert",
                                                         "shader_01.frag",
                                                         "shader_01.geom");
         
-        m_textures[0] = gl::createTextureFromFile("mask.png", true, false, 4);
-        m_textures[1] = gl::createTextureFromFile("snake_tex.jpg", true, true, 4);
+        m_lsystem_shaders[0] = gl::createShader(gl::ShaderType::UNLIT);
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
     load_settings();
-    
-    // light component
-    m_light_component.reset(new LightComponent());
-    m_light_component->set_lights(lights());
-    create_tweakbar_from_component(m_light_component);
-    
-    // add lights to scene
-    for (int i = 1; i < lights().size(); i++){ m_light_root->add_child(lights()[i]); }
-    
-    // first light supposed to be directional, hence attached to scene root
-    scene().addObject(lights()[0]);
-    scene().addObject(m_light_root);
-    
-    auto bounds = m_bounding_mesh->boundingBox();
-    m_animations[0] = animation::create(&m_light_root->position().y, bounds.min.y, bounds.max.y,
-                                        *m_light_elevation);
-    m_animations[0]->set_loop();
-    m_animations[0]->start();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -107,15 +73,6 @@ void GrowthApp::update(float timeDelta)
     ViewerApp::update(timeDelta);
     
     if(m_dirty_lsystem) refresh_lsystem();
-    
-    if(m_growth_animation)
-    {
-        m_growth_animation->update(timeDelta);
-    }
-    
-    // animation stuff here
-    animate_lights(timeDelta);
-    update_animations(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -136,36 +93,13 @@ void GrowthApp::draw()
         gl::drawMesh(m_bounding_mesh);
     }
     
-    if(m_light_component->draw_light_dummies())
-    {    
-        for(auto light : lights())
-        {
-            gl::drawLight(light);
-        }
-    }
-    
     // draw texture map(s)
     if(displayTweakBar())
     {
-        float w = (windowSize()/6.f).x;
-        float h = m_textures[0].getHeight() * w / m_textures[0].getWidth();
-        glm::vec2 offset(getWidth() - w - 10, 10);
-        glm::vec2 step(0, h + 10);
-        
-        for (const gl::Texture &t : m_textures)
-        {
-            if(!t) continue;
-            
-            float h = t.getHeight() * w / t.getWidth();
-            drawTexture(t, vec2(w, h), offset);
-            gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
-                           as_string(t.getHeight()), m_font, glm::vec4(1),
-                           offset);
-            offset += step;
-        }
+        draw_textures(textures());
         
         // draw fps string
-        gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
+        gl::drawText2D(kinski::as_string(framesPerSec()), fonts()[0],
                        vec4(vec3(1) - clear_color().xyz(), 1.f),
                        glm::vec2(windowSize().x - 110, windowSize().y - 70));
     }
@@ -303,14 +237,6 @@ void GrowthApp::mouseWheel(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void GrowthApp::got_message(const std::vector<uint8_t> &the_message)
-{
-    string msg = string(the_message.begin(), the_message.end());
-    LOG_DEBUG << msg;
-}
-
-/////////////////////////////////////////////////////////////////
-
 void GrowthApp::tearDown()
 {
     LOG_PRINT<<"ciao procedural growth";
@@ -347,18 +273,6 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
             m_mesh->entries().front().num_indices = *m_max_index;
         }
     }
-    else if(m_growth_animation && theProperty == m_animate_growth)
-    {
-        if(*m_animate_growth){m_growth_animation->start();}
-        else {m_growth_animation->stop();}
-    }
-    else if(theProperty == m_animation_time)
-    {
-        if(m_growth_animation)
-        {
-            m_growth_animation->set_duration(*m_animation_time);
-        }
-    }
     else if(theProperty == m_cap_bias)
     {
         if(m_mesh)
@@ -369,38 +283,9 @@ void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
             }
         }
     }
-    else if(theProperty == m_local_udp_port)
-    {
-        m_udp_server.start_listen(*m_local_udp_port);
-    }
-    else if(theProperty == m_light_elevation ||
-            theProperty == m_light_rotation)
-    {
-        auto bounds = m_bounding_mesh->boundingBox();
-        m_animations[0] = animation::create(&m_light_root->position().y, bounds.min.y, bounds.max.y,
-                                            *m_light_elevation);
-        m_animations[0]->set_loop();
-        m_animations[0]->start();
-    }
 }
 
-void GrowthApp::animate_lights(float time_delta)
-{
-    // rotation_speed
-    m_light_root->transform() = glm::rotate(m_light_root->transform(), *m_light_rotation * time_delta,
-                                            gl::Y_AXIS);
-}
-
-void GrowthApp::update_animations(float time_delta)
-{
-    for(auto anim : m_animations)
-    {
-        if(anim)
-        {
-            anim->update(time_delta);
-        }
-    }
-}
+/////////////////////////////////////////////////////////////////
 
 void GrowthApp::refresh_lsystem()
 {
@@ -464,23 +349,4 @@ void GrowthApp::refresh_lsystem()
     
     uint32_t min = 0, max = m_entries.front().num_indices - 1;
     m_max_index->setRange(min, max);
-
-    if(*m_animate_growth)
-    {
-        auto compound_anim = std::make_shared<animation::CompoundAnimation>();
-        float delay = 0.f;
-        for (auto &entry : m_mesh->entries())
-        {
-            auto anim = animation::create<uint32_t>(&entry.num_indices,
-                                                    0,
-                                                    entry.num_indices,
-                                                    *m_animation_time,
-                                                    delay);
-            compound_anim->children().push_back(*anim);
-            anim->start(delay);
-            delay += 2.f;
-        }
-        m_growth_animation = compound_anim;
-    }
-
 }

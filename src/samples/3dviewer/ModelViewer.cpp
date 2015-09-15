@@ -20,20 +20,13 @@ void ModelViewer::setup()
     ViewerApp::setup();
     
     registerProperty(m_model_path);
+    registerProperty(m_use_lighting);
     registerProperty(m_use_bones);
     registerProperty(m_display_bones);
     registerProperty(m_animation_index);
     registerProperty(m_animation_speed);
     registerProperty(m_cube_map_folder);
     observeProperties();
-    
-    // pre-create our shaders
-    m_shaders[SHADER_UNLIT] = gl::createShader(gl::ShaderType::UNLIT);
-    m_shaders[SHADER_UNLIT_SKIN] = gl::createShader(gl::ShaderType::UNLIT_SKIN);
-    m_shaders[SHADER_PHONG] = gl::createShader(gl::ShaderType::PHONG);
-    m_shaders[SHADER_PHONG_SKIN] = gl::createShader(gl::ShaderType::PHONG_SKIN);
-    m_shaders[SHADER_PHONG_SHADOWS] = gl::createShader(gl::ShaderType::PHONG_SHADOWS);
-    m_shaders[SHADER_PHONG_SKIN_SHADOWS] = gl::createShader(gl::ShaderType::PHONG_SKIN_SHADOWS);
     
     // create our UI
     create_tweakbar_from_component(shared_from_this());
@@ -44,7 +37,7 @@ void ModelViewer::setup()
     
     // add groundplane
     auto ground_mesh = gl::Mesh::create(gl::Geometry::createPlane(400, 400),
-                                        gl::Material::create(m_shaders[SHADER_PHONG_SHADOWS]));
+                                        gl::Material::create(gl::createShader(gl::ShaderType::PHONG_SHADOWS)));
     ground_mesh->transform() = glm::rotate(mat4(), -90.f, gl::X_AXIS);
     
     scene().addObject(ground_mesh);
@@ -58,6 +51,31 @@ void ModelViewer::setup()
 void ModelViewer::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    
+    if(m_mesh && m_dirty_shader)
+    {
+        m_dirty_shader  = false;
+        
+        bool use_bones = m_mesh->geometry()->hasBones() && *m_use_bones;
+        gl::Shader shader;
+        
+        if(use_bones)
+        {
+            shader = gl::createShader(*m_use_lighting ? gl::ShaderType::PHONG_SKIN_SHADOWS :
+                                                        gl::ShaderType::UNLIT_SKIN);
+        }
+        else
+        {
+            shader = gl::createShader(*m_use_lighting ? gl::ShaderType::PHONG_SHADOWS :
+                                                        gl::ShaderType::UNLIT);
+        }
+        
+        for(auto &mat : m_mesh->materials())
+        {
+            mat->setShader(shader);
+            mat->setBlending();
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -231,17 +249,8 @@ void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
         load_asset(*m_model_path);
         scene().addObject(m_mesh);
     }
-    else if(theProperty == m_use_bones)
-    {
-        if(m_mesh)
-        {
-            bool use_bones = m_mesh->geometry()->hasBones() && *m_use_bones;
-            for(auto &mat : m_mesh->materials())
-            {
-                mat->setShader(m_shaders[use_bones? SHADER_PHONG_SKIN_SHADOWS : SHADER_PHONG_SHADOWS]);
-            }
-        }
-    }
+    else if(theProperty == m_use_bones){ m_dirty_shader = true; }
+    else if(theProperty == m_use_lighting){ m_dirty_shader = true; }
     else if(theProperty == m_wireframe)
     {
         if(m_mesh)
@@ -331,7 +340,6 @@ bool ModelViewer::load_asset(const std::string &the_path)
                 auto geom = gl::Geometry::createPlane(t.getWidth(), t.getHeight(), 100, 100);
                 auto mat = gl::Material::create();
                 mat->addTexture(t);
-                mat->setDepthWrite(false);
                 m = gl::Mesh::create(geom, mat);
                 m->transform() = rotate(mat4(), 90.f, gl::Y_AXIS);
             }
@@ -343,14 +351,6 @@ bool ModelViewer::load_asset(const std::string &the_path)
     
     if(m)
     {
-        bool use_bones = m->geometry()->hasBones() && *m_use_bones;
-        
-        for(auto &mat : m->materials())
-        {
-            mat->setShader(m_shaders[use_bones? SHADER_PHONG_SKIN_SHADOWS : SHADER_PHONG_SHADOWS]);
-            mat->setBlending();
-        }
-        
         // apply scaling
         auto aabb = m->boundingBox();
         float scale_factor = 50.f / length(aabb.halfExtents());
@@ -364,6 +364,7 @@ bool ModelViewer::load_asset(const std::string &the_path)
             gl::AssimpConnector::add_animations_to_mesh(f, m);
         }
         m_mesh = m;
+        m_dirty_shader = true;
         return true;
     }
     return false;

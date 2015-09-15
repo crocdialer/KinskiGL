@@ -17,13 +17,13 @@ namespace kinski
     {
     private:
         
-        enum ShaderEnum{SHADER_UNLIT = 0, SHADER_UNLIT_SKIN = 1, SHADER_PHONG = 2,
-            SHADER_PHONG_SKIN = 3, SHADER_PHONG_SHADOWS = 4, SHADER_PHONG_SKIN_SHADOWS = 5};
-        
-        std::map<ShaderEnum, gl::Shader> m_shaders;
-        
         gl::MeshPtr m_mesh;
         gl::Texture m_cube_map;
+        
+        bool m_dirty_shader = true;
+        
+        Property_<bool>::Ptr
+        m_use_lighting = Property_<bool>::create("use lighting", true);
         
         Property_<std::string>::Ptr
         m_model_path = Property_<std::string>::create("Model path", ""),

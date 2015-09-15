@@ -10,33 +10,13 @@
 #define __gl__GrowthApp__
 
 #include "app/ViewerApp.h"
-#include "app/LightComponent.h"
-#include "gl/Texture.h"
-#include "core/Animation.h"
-#include "LSystem.h"
-
-// networking
-#include "core/networking.h"
+#include "l_system/LSystem.h"
 
 namespace kinski
 {
     class GrowthApp : public ViewerApp
     {
     private:
-        
-        gl::Font m_font;
-        std::vector<gl::Texture> m_textures{4};
-        
-        // udp receiver
-        net::udp_server m_udp_server;
-        Property_<uint32_t>::Ptr m_local_udp_port = Property_<uint32_t>::create("udp port", 11111);
-        
-        // light controls
-        LightComponent::Ptr m_light_component;
-        gl::Object3DPtr m_light_root{new gl::Object3D};
-        Property_<float>::Ptr
-        m_light_rotation = Property_<float>::create("light rotation speed", 5.f),
-        m_light_elevation = Property_<float>::create("light elevation speed", 5.f);
         
         gl::MeshPtr m_mesh, m_bounding_mesh;
         
@@ -51,8 +31,6 @@ namespace kinski
         //! needs to recalculate
         bool m_dirty_lsystem = false;
         
-        //! animate fractal growth
-        animation::AnimationPtr m_growth_animation;
         std::vector<gl::Mesh::Entry> m_entries;
         
         //! animations
@@ -92,32 +70,26 @@ namespace kinski
         };
         
         Property_<bool>::Ptr m_use_bounding_mesh = Property_<bool>::create("use bounding mesh", false);
-        Property_<bool>::Ptr m_animate_growth = Property_<bool>::create("animate growth", false);
-        RangedProperty<float>::Ptr m_animation_time = RangedProperty<float>::create("animation time",
-                                                                               5.f, 0.f, 120.f);
         
         Property_<uint32_t>::Ptr m_shader_index = Property_<uint32_t>::create("shader index", 0);
         
         void refresh_lsystem();
-        void animate_lights(float time_delta);
-        void update_animations(float time_delta);
         
     public:
         
-        void setup();
-        void update(float timeDelta);
-        void draw();
-        void resize(int w ,int h);
-        void keyPress(const KeyEvent &e);
-        void keyRelease(const KeyEvent &e);
-        void mousePress(const MouseEvent &e);
-        void mouseRelease(const MouseEvent &e);
-        void mouseMove(const MouseEvent &e);
-        void mouseDrag(const MouseEvent &e);
-        void mouseWheel(const MouseEvent &e);
-        void got_message(const std::vector<uint8_t> &the_message);
-        void tearDown();
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void setup() override;
+        void update(float timeDelta) override;
+        void draw() override;
+        void resize(int w ,int h) override;
+        void keyPress(const KeyEvent &e) override;
+        void keyRelease(const KeyEvent &e) override;
+        void mousePress(const MouseEvent &e) override;
+        void mouseRelease(const MouseEvent &e) override;
+        void mouseMove(const MouseEvent &e) override;
+        void mouseDrag(const MouseEvent &e) override;
+        void mouseWheel(const MouseEvent &e) override;
+        void tearDown() override;
+        void updateProperty(const Property::ConstPtr &theProperty) override;
     };
 }// namespace kinski
 
