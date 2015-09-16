@@ -8,6 +8,7 @@ SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake_modules
 # Allow the developer to select if Dynamic or Static libraries are built
 OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" OFF)
 OPTION (USE_CXX11 "Use C++11 language dialect and library" ON)
+OPTION (BUILD_TESTS "Build Tests" ON)
 
 if(USE_CXX11)
     add_definitions(-DKINSKI_CPP11)
@@ -44,8 +45,6 @@ else()
   set(KINSKI_RASPI 1)
   add_definitions(-DKINSKI_RASPI)
 endif()
-
-OPTION (BUILD_TESTS "Build Tests" ON)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
