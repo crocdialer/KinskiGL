@@ -209,18 +209,26 @@ namespace kinski { namespace gl {
                     if(gl::Mesh *m = the_object)
                     {
                         gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
-                        const auto& vertices = m->geometry()->vertices();
-                        for (const auto &face : m->geometry()->faces())
+                        const auto &vertices = m->geometry()->vertices();
+                        const auto &indices = m->geometry()->indices();
+                        
+                        for(const auto &e : m->entries())
                         {
-                            gl::Triangle t(vertices[face.a], vertices[face.b], vertices[face.c]);
-                            
-                            if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
+                            for(int i = 0; i < e.num_indices; i += 3)
                             {
-                                float distance_scale = glm::length(the_object->global_scale() *
-                                                                   ray_in_object_space.direction);
-                                ray_tri_hit.distance *= distance_scale;
-                                clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
-                                LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
+                                gl::Triangle t(vertices[indices[i + e.base_index] + e.base_vertex],
+                                               vertices[indices[i + e.base_index + 1] + e.base_vertex],
+                                               vertices[indices[i + e.base_index + 2] + e.base_vertex]);
+                                
+                                if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
+                                {
+                                    float distance_scale = glm::length(the_object->global_scale() *
+                                                                       ray_in_object_space.direction);
+                                    ray_tri_hit.distance *= distance_scale;
+                                    clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
+                                    LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
+                                    break;
+                                }
                             }
                         }
                     }

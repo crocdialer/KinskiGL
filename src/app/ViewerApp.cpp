@@ -165,22 +165,24 @@ namespace kinski {
         m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
         
-        if(gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, glm::vec2(e.getX(),
-                                                                                          e.getY())),
-                                                     m_precise_selection))
+        if(e.isLeft())
         {
-            LOG_TRACE<<"picked id: "<< picked_obj->get_id();
-            if( gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
+            gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, glm::vec2(e.getX(),
+                                                                                           e.getY())),
+                                                      m_precise_selection);
+            if(picked_obj)
             {
+                LOG_TRACE << "picked id: " << picked_obj->get_id();
+                if(gl::MeshPtr m = std::dynamic_pointer_cast<gl::Mesh>(picked_obj))
+                {
                     m_selected_mesh = m;
+                }
             }
         }
-        else
+        
+        if(e.isRight())
         {
-            if(e.isRight() && m_selected_mesh)
-            {
-                m_selected_mesh.reset();
-            }
+            m_selected_mesh.reset();
         }
     }
     

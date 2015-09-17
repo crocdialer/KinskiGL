@@ -94,7 +94,7 @@ namespace kinski { namespace gl {
         void createVertexArray();
         GLuint vertexArray(uint32_t i = 0) const;
         
-        void update(float time_delta);
+        void update(float time_delta) override;
         
         /*!
          * returns an AABB with global transform applied to it
@@ -168,7 +168,7 @@ namespace kinski { namespace gl {
          */
         MeshPtr copy();
         
-        virtual void accept(Visitor &theVisitor);
+        virtual void accept(Visitor &theVisitor) override;
         
     private:
         

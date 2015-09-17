@@ -331,14 +331,14 @@ void GrowthApp::refresh_lsystem()
     scene().addObject(m_mesh);
     
     // add our shader
-    for (auto m : m_mesh->materials())
+    for (auto &m : m_mesh->materials())
     {
-        m->setShader(m_lsystem_shaders[0]);
-        m->addTexture(m_textures[0]);
-        m->addTexture(m_textures[1]);
+//        m->setShader(m_lsystem_shaders[0]);
+//        m->addTexture(m_textures[0]);
+//        m->addTexture(m_textures[1]);
         m->setBlending();
-        m->setDepthTest(false);
-        m->setDepthWrite(false);
+//        m->setDepthTest(false);
+//        m->setDepthWrite(false);
         
         m->uniform("u_cap_bias", *m_cap_bias);
         

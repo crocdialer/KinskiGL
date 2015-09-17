@@ -65,7 +65,7 @@ namespace kinski
         typedef std::shared_ptr<GLFW_App> Ptr;
         typedef std::weak_ptr<GLFW_App> WeakPtr;
         
-        GLFW_App(const int width = 800, const int height = 600);
+        GLFW_App(const int width = 1280, const int height = 800);
         virtual ~GLFW_App();
         
         void set_window_size(const glm::vec2 &size) override;
@@ -78,7 +78,7 @@ namespace kinski
         void setCursorVisible(bool b = true) override;
         void setCursorPosition(float x, float y) override;
         
-        std::vector<JoystickState> get_joystick_states() const;
+        std::vector<JoystickState> get_joystick_states() const override;
         
         ///////////////////////////////////////////////////////////////////////////////
         
@@ -90,10 +90,10 @@ namespace kinski
                                        const std::string &group = "",
                                        CTwBar *theBar = NULL);
         
-        void setBarPosition(const glm::ivec2 &thePos, CTwBar *theBar = NULL);
-        void setBarSize(const glm::ivec2 &theSize, CTwBar *theBar = NULL);
-        void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = NULL);
-        void setBarTitle(const std::string &theTitle, CTwBar *theBar = NULL);
+        void setBarPosition(const glm::ivec2 &thePos, CTwBar *theBar = nullptr);
+        void setBarSize(const glm::ivec2 &theSize, CTwBar *theBar = nullptr);
+        void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
+        void setBarTitle(const std::string &theTitle, CTwBar *theBar = nullptr);
         
         const std::map<CTwBar*, std::list<Property::Ptr> >& 
         getTweakProperties() const {return m_tweakProperties;};
@@ -113,10 +113,10 @@ namespace kinski
         glm::ivec2 m_lastWheelPos;
         
         // internal initialization. performed when run is invoked
-        void init();
-        void pollEvents();
-        void draw_internal();
-        bool checkRunning();
+        void init() override;
+        void pollEvents() override;
+        void draw_internal() override;
+        bool checkRunning() override;
         
         // GLFW internal
         void addWindow(const GLFW_WindowPtr &the_window);
