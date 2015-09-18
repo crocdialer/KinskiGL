@@ -64,12 +64,13 @@ namespace kinski { namespace gl {
         
         struct Entry
         {
-            Entry():num_indices(0), base_vertex(0), base_index(0), material_index(-1), enabled(true){}
-            uint32_t num_indices;
-            uint32_t num_vertices;
-            uint32_t base_vertex;
-            uint32_t base_index;
-            int material_index;
+            Entry():num_indices(0), num_vertices(0), base_vertex(0), base_index(0),
+            material_index(-1), primitive_type(0), enabled(true){}
+            
+            uint32_t num_indices, num_vertices;
+            uint32_t base_vertex, base_index;
+            int32_t material_index;
+            uint32_t primitive_type;
             bool enabled;
         };
         

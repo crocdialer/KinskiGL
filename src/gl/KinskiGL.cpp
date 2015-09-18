@@ -885,13 +885,16 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     // skip disabled entries
                     if(!theMesh->entries()[i].enabled) continue;
                     
+                    uint32_t primitive_type = theMesh->entries()[i].primitive_type;
+                    primitive_type = primitive_type ? : theMesh->geometry()->primitiveType();
+                    
                     int mat_index = clamp<int>(theMesh->entries()[i].material_index,
                                                0,
                                                theMesh->materials().size() - 1);
                     theMesh->bind_vertex_array(mat_index);
                     apply_material(theMesh->materials()[mat_index]);
                     
-                    glDrawElementsBaseVertex(theMesh->geometry()->primitiveType(),
+                    glDrawElementsBaseVertex(primitive_type,
                                              theMesh->entries()[i].num_indices,
                                              theMesh->geometry()->indexType(),
                                              BUFFER_OFFSET(theMesh->entries()[i].base_index *

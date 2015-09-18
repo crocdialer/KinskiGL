@@ -147,6 +147,9 @@ namespace kinski{ namespace gl{
                         // skip disabled entries
                         if(!m->entries()[i].enabled) continue;
                         
+                        uint32_t primitive_type = m->entries()[i].primitive_type;
+                        primitive_type = primitive_type ? : m->geometry()->primitiveType();
+                        
                         int mat_index = clamp<int>(m->entries()[i].material_index,
                                                    0,
                                                    m->materials().size() - 1);
@@ -154,7 +157,7 @@ namespace kinski{ namespace gl{
                         apply_material(m->materials()[mat_index]);
                         KINSKI_CHECK_GL_ERRORS();
                         
-                        glDrawElementsBaseVertex(m->geometry()->primitiveType(),
+                        glDrawElementsBaseVertex(primitive_type,
                                                  m->entries()[i].num_indices,
                                                  m->geometry()->indexType(),
                                                  BUFFER_OFFSET(m->entries()[i].base_index
