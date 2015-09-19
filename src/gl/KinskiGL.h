@@ -66,7 +66,7 @@
 #define GL_ENUM(sym) sym
 #endif
 
-//#define GLM_FORCE_CXX11
+#define GLM_FORCE_CXX11
 #define GLM_SWIZZLE
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"

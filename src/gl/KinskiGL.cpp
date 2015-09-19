@@ -942,7 +942,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             spot_mesh = gl::Mesh::create(gl::Geometry::createCone(5.f, 10.f, 8),
                                          gl::Material::create());
             
-            glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), 90.f, gl::X_AXIS);
+            glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
             
             for(auto &vert : spot_mesh->geometry()->vertices())
             {
@@ -1144,7 +1144,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         our_mesh->material() = theMaterial ? theMaterial : default_mat;
         mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
         mat4 modelView = glm::scale(mat4(), vec3(radius));
-        modelView[3].xyz() = vec3(center.x, g_viewport_dim[1] - center.y, 0);
+        modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);
         
         ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
         loadMatrix(PROJECTION_MATRIX, projectionMatrix);

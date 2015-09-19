@@ -325,10 +325,7 @@ namespace kinski { namespace gl {
             tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y1));
             
             // create colors
-            for (int i = 0; i < 4; i++)
-            {
-                colors.push_back(glm::vec4(1));
-            }
+            for (int i = 0; i < 4; i++){ colors.push_back(glm::vec4(1)); }
         }
         for (uint32_t i = 0; i < vertices.size(); i += 4)
         {

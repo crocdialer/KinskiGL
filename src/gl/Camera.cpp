@@ -64,7 +64,7 @@ namespace kinski { namespace gl{
     
     void PerspectiveCamera::updateProjectionMatrix()
     {
-        setProjectionMatrix(glm::perspective(m_fov, m_aspect, m_near, m_far));
+        setProjectionMatrix(glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far));
     }
     
     gl::Frustum PerspectiveCamera::frustum() const

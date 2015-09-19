@@ -106,8 +106,7 @@ ray_intersection intersect(const OBB &theOBB, const Ray& theRay)
     
 Plane::Plane()
 {
-    coefficients.w = 0;
-    coefficients.xyz() = glm::vec3(0, 1, 0);
+    coefficients = glm::vec4(0, 1, 0, 0);
 }
 
 Plane::Plane(const glm::vec4 &theCoefficients)
@@ -125,14 +124,16 @@ Plane::Plane(float theA, float theB, float theC, float theD)
 
 Plane::Plane(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2)
 {
-    coefficients.xyz() = glm::normalize(glm::cross(v2 - v0, v1 - v0));
-    coefficients.w = -glm::dot(v0, glm::vec3(coefficients.xyz()));
+    vec3 normal = glm::normalize(glm::cross(v2 - v0, v1 - v0));
+    float distance = -glm::dot(v0, normal);
+    coefficients = vec4(normal, distance);
 }
 
 Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
 {
-    coefficients.xyz() = glm::normalize(theNormal);
-    coefficients.w = -glm::dot(theFoot, glm::vec3(coefficients.xyz()));
+    vec3 normal = glm::normalize(theNormal);
+    float distance = -glm::dot(theFoot, normal);
+    coefficients = vec4(normal, distance);
 }
     
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
@@ -215,8 +216,8 @@ Frustum::Frustum(float aspect, float fov, float near, float far)
     glm::mat4 t;
     static glm::vec3 lookAt = glm::vec3(0, 0, -1), eyePos = glm::vec3(0),
     side = glm::vec3(1, 0, 0), up = glm::vec3(0, 1, 0);
-    float angle_y = 90.0f - aspect * fov/2.0f ;
-    float angle_x = 90.0f - (fov/2.0f) ;
+    float angle_y = glm::radians(90.0f - aspect * fov/2.0f);
+    float angle_x = glm::radians(90.0f - (fov/2.0f));
     
 	planes[0] = Plane(eyePos + (near * lookAt), lookAt); // near plane
 	planes[1] = Plane(eyePos + (far * lookAt), -lookAt); // far plane

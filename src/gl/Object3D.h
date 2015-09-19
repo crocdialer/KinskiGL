@@ -37,7 +37,7 @@ namespace kinski { namespace gl {
         void set_enabled(bool b = true){m_enabled = b;}
         bool billboard() const {return m_billboard;};
         void set_billboard(bool b) {m_billboard = b;}
-        inline void setPosition(const vec3 &thePos) {m_transform[3].xyz() = thePos;};
+        inline void setPosition(const vec3 &thePos) { position() = thePos; };
         inline vec3 position() const {return m_transform[3].xyz(); }
         inline vec3& position() {return *reinterpret_cast<vec3*>(&m_transform[3]);}
         inline vec3 lookAt() const {return normalize(-m_transform[2].xyz());}
@@ -49,8 +49,8 @@ namespace kinski { namespace gl {
         quat rotation() const;
         
         inline vec3 scale(){return vec3(length(m_transform[0]),
-                                                  length(m_transform[1]),
-                                                  length(m_transform[2]));};
+                                        length(m_transform[1]),
+                                        length(m_transform[2]));};
 
         void setScale(const vec3 &s);
         inline void setScale(float s){setScale(vec3(s));}

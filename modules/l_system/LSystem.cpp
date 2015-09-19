@@ -231,8 +231,8 @@ gl::MeshPtr LSystem::create_mesh() const
         }
         
         // our current branch angles
-        vec3 current_branch_angles = branch_angle + glm::linearRand(-m_branch_randomness,
-                                                                      m_branch_randomness);
+        vec3 current_branch_angles = glm::radians(branch_angle + glm::linearRand(-m_branch_randomness,
+                                                                                 m_branch_randomness));
         
         // our current increment
         float current_increment = increment + kinski::random(-m_increment_randomness,

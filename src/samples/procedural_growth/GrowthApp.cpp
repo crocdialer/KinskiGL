@@ -7,6 +7,7 @@
 //
 
 #include "GrowthApp.h"
+#include "gl/ShaderLibrary.h"
 
 using namespace std;
 using namespace kinski;
@@ -55,11 +56,11 @@ void GrowthApp::setup()
         bound_mat->setDepthWrite(false);
         
         // load shaders
-        m_lsystem_shaders[0] = gl::createShaderFromFile("shader_01.vert",
-                                                        "shader_01.frag",
-                                                        "shader_01.geom");
+        m_lsystem_shaders[0].loadFromData(geom_prepass_vert,
+                                          phong_frag,
+                                          read_file("split_cuboids.geom").c_str());
         
-        m_lsystem_shaders[0] = gl::createShader(gl::ShaderType::UNLIT);
+//        m_lsystem_shaders[0] = gl::createShader(gl::ShaderType::UNLIT);
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     

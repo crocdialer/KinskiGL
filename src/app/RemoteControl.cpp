@@ -105,7 +105,6 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
                                const std::vector<uint8_t>& response)
 {
     auto tokens = split(std::string(response.begin(), response.end()));
-//    for(auto &t : tokens){ t = std::remo}
     
     if(!tokens.empty())
     {

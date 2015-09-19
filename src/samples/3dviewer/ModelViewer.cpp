@@ -38,7 +38,7 @@ void ModelViewer::setup()
     // add groundplane
     auto ground_mesh = gl::Mesh::create(gl::Geometry::createPlane(400, 400),
                                         gl::Material::create(gl::createShader(gl::ShaderType::PHONG_SHADOWS)));
-    ground_mesh->transform() = glm::rotate(mat4(), -90.f, gl::X_AXIS);
+    ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
     
     scene().addObject(ground_mesh);
     

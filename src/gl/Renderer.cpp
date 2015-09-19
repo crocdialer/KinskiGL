@@ -275,28 +275,28 @@ namespace kinski{ namespace gl{
     void Renderer::update_uniform_buffer_matrices(const glm::mat4 &model_view,
                                                   const glm::mat4 &projection)
     {
-#ifndef KINSKI_GLES
-        
-        struct matrixstruct_std140
-        {
-            mat4 modelViewMatrix;
-            mat4 modelViewProjectionMatrix;
-            mat3 normalMatrix;
-        };
-        
-        if(!m_uniform_buffer[MATRIX_UNIFORM_BUFFER])
-        {
-            m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-        }
-        
-        matrixstruct_std140 matrix_struct;
-        matrix_struct.modelViewMatrix = model_view;
-        matrix_struct.modelViewProjectionMatrix = projection * model_view;
-        matrix_struct.normalMatrix = glm::inverseTranspose(glm::mat3(model_view));
-        m_uniform_buffer[MATRIX_UNIFORM_BUFFER].setData(&matrix_struct, sizeof(matrix_struct));
-        
-        glBindBufferBase(GL_UNIFORM_BUFFER, MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());
-#endif
+//#ifndef KINSKI_GLES
+//        
+//        struct matrixstruct_std140
+//        {
+//            mat4 modelViewMatrix;
+//            mat4 modelViewProjectionMatrix;
+//            mat3 normalMatrix;
+//        };
+//        
+//        if(!m_uniform_buffer[MATRIX_UNIFORM_BUFFER])
+//        {
+//            m_uniform_buffer[MATRIX_UNIFORM_BUFFER] = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+//        }
+//        
+//        matrixstruct_std140 matrix_struct;
+//        matrix_struct.modelViewMatrix = model_view;
+//        matrix_struct.modelViewProjectionMatrix = projection * model_view;
+//        matrix_struct.normalMatrix = glm::inverseTranspose(glm::mat3(model_view));
+//        m_uniform_buffer[MATRIX_UNIFORM_BUFFER].setData(&matrix_struct, sizeof(matrix_struct));
+//        
+//        glBindBufferBase(GL_UNIFORM_BUFFER, MATRIX_BLOCK, m_uniform_buffer[MATRIX_UNIFORM_BUFFER].id());
+//#endif
     }
     
     void Renderer::set_shadowmap_size(const glm::vec2 &the_size)
