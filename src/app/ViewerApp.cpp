@@ -28,7 +28,7 @@ namespace kinski {
         m_logger_severity = RangedProperty<int>::create("logger severity", kinski::SEV_INFO, 0, 7);
         registerProperty(m_logger_severity);
         
-        m_show_tweakbar = Property_<bool>::create("show Tweakbar", true);
+        m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);
         m_show_tweakbar->setTweakable(false);
         registerProperty(m_show_tweakbar);
         
