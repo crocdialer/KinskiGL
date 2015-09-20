@@ -1,8 +1,9 @@
 #ifndef _KINSKI_MINI_APP_IS_INCLUDED_
 #define _KINSKI_MINI_APP_IS_INCLUDED_
 
-#include <sys/time.h>
 #include "esUtil.h"
+
+#undef countof
 #include "App.h"
 #include "OutstreamGL.h"
 
