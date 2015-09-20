@@ -178,8 +178,8 @@ namespace kinski { namespace gl {
      * returns the 2D screen-coordinates of the projected 3D point
      */
     KINSKI_API vec2 project_point_to_screen(const vec3 &the_point,
-                                                 const CameraPtr &theCamera,
-                                                 const vec2 &screen_size = windowDimension());
+                                            const CameraPtr &theCamera,
+                                            const vec2 &screen_size = windowDimension());
     
     /********************************* Drawing Functions *****************************************/
     

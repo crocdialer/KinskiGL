@@ -47,16 +47,6 @@ m_diameter(1.f),
 m_diameter_shrink_factor(1.f)
 {
     m_state_stack = {{glm::mat4(), false, m_diameter}};
-    // start in xz plane, face upward
-    
-    //    // head
-    //    m_state_stack.back().transform[0].xyz() = gl::Y_AXIS;
-    //
-    //    // left
-    //    m_state_stack.back().transform[1].xyz() = -gl::X_AXIS;
-    //
-    //    // up
-    //    m_state_stack.back().transform[2].xyz() = gl::Z_AXIS;
 }
 
 const glm::vec3& LSystem::head() const

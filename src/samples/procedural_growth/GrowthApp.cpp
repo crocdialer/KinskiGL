@@ -41,7 +41,10 @@ void GrowthApp::setup()
     registerProperty(m_shader_index);
     
     observeProperties();
+    
+    // create our UI
     create_tweakbar_from_component(shared_from_this());
+    create_tweakbar_from_component(m_light_component);
     
     try
     {
@@ -58,11 +61,12 @@ void GrowthApp::setup()
         // load shaders
         m_lsystem_shaders[0].loadFromData(geom_prepass_vert,
                                           phong_frag,
-                                          read_file("split_cuboids.geom").c_str());
-        
-//        m_lsystem_shaders[0] = gl::createShader(gl::ShaderType::UNLIT);
+                                          read_file("shader_02.geom").c_str());
     }
     catch(Exception &e){LOG_ERROR << e.what();}
+    
+    // add lights to scene
+    for (auto l : lights()){ scene().addObject(l ); }
     
     load_settings();
 }
@@ -81,7 +85,12 @@ void GrowthApp::update(float timeDelta)
 void GrowthApp::draw()
 {
     gl::setMatrices(camera());
-    if(draw_grid()){gl::drawGrid(500, 500);}
+    if(draw_grid()){ gl::drawGrid(50, 50); }
+    
+    if(m_light_component->draw_light_dummies())
+    {
+        for (auto l : lights()){ gl::drawLight(l); }
+    }
     
     // draw our scene
     scene().render(camera());
@@ -319,10 +328,7 @@ void GrowthApp::refresh_lsystem()
         });
     }
     // add an empty functor (clear position check)
-    else
-    {
-        m_lsystem.set_position_check(LSystem::PositionCheckFunctor());
-    }
+    else{ m_lsystem.set_position_check(LSystem::PositionCheckFunctor()); }
     
     // create a mesh from our lsystem geometry
     scene().removeObject(m_mesh);
@@ -334,7 +340,8 @@ void GrowthApp::refresh_lsystem()
     // add our shader
     for (auto &m : m_mesh->materials())
     {
-//        m->setShader(m_lsystem_shaders[0]);
+        m->setShader(m_lsystem_shaders[0]);
+        
 //        m->addTexture(m_textures[0]);
 //        m->addTexture(m_textures[1]);
         m->setBlending();
@@ -344,7 +351,7 @@ void GrowthApp::refresh_lsystem()
         m->uniform("u_cap_bias", *m_cap_bias);
         
         //TODO: remove this when submaterials are tested well enough
-        m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(1,1,1,.9)));
+        m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(.6,1,1,.9)));
         m->setPointAttenuation(0.1, .0002, 0);
     }
     

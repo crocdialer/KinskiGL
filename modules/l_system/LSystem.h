@@ -10,6 +10,7 @@
 #define __gl__LSystem__
 
 #include "gl/KinskiGL.h"
+#include <unordered_map>
 
 namespace kinski
 {
@@ -52,9 +53,9 @@ namespace kinski
         float diameter_shrink_factor() const {return m_diameter_shrink_factor;}
         void set_diameter_shrink_factor(float factor) {m_diameter_shrink_factor = factor;}
         
-        std::map<char, std::string>& rules() {return m_rules;}
-        const std::map<char, std::string>& rules() const {return m_rules;}
-        void set_rules(const std::map<char, std::string> &rule_map){m_rules = rule_map;}
+        std::unordered_map<char, std::string>& rules() {return m_rules;}
+        const std::unordered_map<char, std::string>& rules() const {return m_rules;}
+        void set_rules(const std::unordered_map<char, std::string> &rule_map){m_rules = rule_map;}
         
         void add_rule(const std::pair<char, string> the_rule);
         void add_rule(const std::string &the_rule);
@@ -82,7 +83,7 @@ namespace kinski
         };
         
         std::string m_axiom, m_buffer;
-        std::map<char, std::string> m_rules;
+        std::unordered_map<char, std::string> m_rules;
         
         //! euler angles, in degrees, to apply when rotating (Head, Left, Up)
         glm::vec3 m_branch_angle;

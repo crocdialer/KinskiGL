@@ -420,6 +420,9 @@ namespace kinski {
             LOG_ERROR<<e.what();
             return false;
         }
+        
+        m_light_component->refresh();
+        
         return true;
     }
     

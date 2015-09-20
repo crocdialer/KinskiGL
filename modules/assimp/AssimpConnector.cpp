@@ -306,6 +306,8 @@ namespace kinski { namespace gl{
         {
             std::vector<gl::GeometryPtr> geometries;
             std::vector<gl::MaterialPtr> materials;
+            materials.resize(theScene->mNumMaterials);
+            
             uint32_t current_index = 0, current_vertex = 0;
             GeometryPtr combined_geom = gl::Geometry::create();
             BoneMap bonemap;
@@ -329,7 +331,7 @@ namespace kinski { namespace gl{
                 
                 geometries.push_back(g);
                 mergeGeometries(g, combined_geom);
-                materials.push_back(createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]));
+                materials[aMesh->mMaterialIndex] = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             }
             combined_geom->computeBoundingBox();
             

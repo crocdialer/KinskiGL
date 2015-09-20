@@ -43,7 +43,6 @@ void ModelViewer::setup()
     scene().addObject(ground_mesh);
     
     load_settings();
-    m_light_component->refresh();
 }
 
 /////////////////////////////////////////////////////////////////
