@@ -161,6 +161,8 @@ namespace kinski { namespace gl {
         SelectVisitor<Light> lv;
         m_root->accept(lv);
         
+        float extents = 2.f * glm::length(m_root->boundingBox().halfExtents());
+        
         uint32_t i = 0;
         m_renderer.set_shadowmap_size(glm::vec2(1024));
         
@@ -174,7 +176,7 @@ namespace kinski { namespace gl {
                     break;
                 }
                 m_renderer.set_shadow_pass(true);
-                m_renderer.shadow_cams()[i] = gl::create_shadow_camera(l);
+                m_renderer.shadow_cams()[i] = gl::create_shadow_camera(l, extents);
                 
                 // offscreen render shadow map here
                 gl::render_to_texture(m_renderer.shadow_fbos()[i], [&]()

@@ -305,7 +305,7 @@ namespace kinski{ namespace gl{
         gl::Fbo::Format fmt;
         fmt.setNumColorBuffers(0);
         
-        for(int i = 0; i < 4; i++)
+        for(size_t i = 0; i < m_shadow_fbos.size(); i++)
         {
             if(!m_shadow_fbos[i] || m_shadow_fbos[i].getSize() != the_size)
             {

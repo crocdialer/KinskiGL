@@ -220,7 +220,7 @@ namespace kinski { namespace gl{
             theMaterial->setEmission(color);
         }
         
-        // transperant material
+        // transparent material
         if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &transparent))
         {
             //TODO: needed ?

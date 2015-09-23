@@ -170,8 +170,8 @@ namespace kinski { namespace gl {
     KINSKI_API gl::AABB calculateAABB(const std::vector<vec3> &theVertices);
     KINSKI_API vec3 calculateCentroid(const std::vector<vec3> &theVertices);
     KINSKI_API gl::MeshPtr create_frustum_mesh(const CameraPtr &cam);
-    KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light);
-    KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light);
+    KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light, float far_clip = 1000.f);
+    KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light, float far_clip = 1000.f);
     
     /*!
      * project a 3D point (in world coords) onto the view plane, using the provided camera object.
