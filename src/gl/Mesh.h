@@ -27,7 +27,7 @@ namespace kinski { namespace gl {
         std::list<BonePtr> children;
     };
     
-    void deep_copy_bones(BonePtr src, BonePtr dst);
+    BonePtr deep_copy_bones(BonePtr src);
     
     template<typename T> struct Key
     {

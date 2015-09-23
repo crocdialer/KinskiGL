@@ -12,10 +12,11 @@
 
 namespace kinski { namespace gl {
   
-    void deep_copy_bones(BonePtr src, BonePtr dst)
+    BonePtr deep_copy_bones(BonePtr src)
     {
-        if(!src){ return; }
-        // TODO: implement
+        if(!src){ return BonePtr(); }
+        BonePtr ret = src;
+        return ret;
     }
     
     Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
@@ -397,9 +398,9 @@ namespace kinski { namespace gl {
     
     MeshPtr Mesh::copy()
     {
-        MeshPtr ret = create(m_geometry, m_materials[0]);
+        MeshPtr ret = create(m_geometry, material());
         *ret = *this;
-        deep_copy_bones(rootBone(), ret->rootBone());
+        ret->rootBone() = deep_copy_bones(rootBone());
         
         ret->m_vertexArrays.clear();
         ret->m_shaders.clear();
