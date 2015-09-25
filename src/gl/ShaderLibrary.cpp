@@ -3,6 +3,34 @@
 #include "ShaderLibrary.h"
 
 
+char const* const geom_prepass_vert = 
+   "#version 410\n"
+   "uniform mat4 u_modelViewProjectionMatrix;\n"
+   "uniform mat3 u_normalMatrix;\n"
+   "uniform mat4 u_textureMatrix;\n"
+   "in vec4 a_vertex;\n"
+   "in vec3 a_normal;\n"
+   "in vec4 a_color;\n"
+   "in vec2 a_texCoord;\n"
+   "in float a_pointSize;\n"
+   "out VertexData \n"
+   "{\n"
+   "    vec3 position;\n"
+   "    vec3 normal;\n"
+   "    vec4 color;\n"
+   "    vec2 texCoord;\n"
+   "    float pointSize;\n"
+   "} vertex_out;\n"
+   "void main()\n"
+   "{\n"
+   "    vertex_out.position = a_vertex.xyz;\n"
+   "    vertex_out.normal = a_normal;\n"
+   "    vertex_out.pointSize = a_pointSize;\n"
+   "    vertex_out.color = a_color;\n"
+   "    vertex_out.texCoord =  (u_textureMatrix * vec4(a_texCoord, 0, 1)).xy;\n"
+   "}\n"
+;
+
 char const* const gouraud_vert = 
    "#version 330\n"
    "struct Material\n"

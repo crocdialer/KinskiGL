@@ -52,138 +52,114 @@ namespace kinski { namespace gl {
 #endif
     }
     
+    void Mesh::create_vertex_attribs()
+    {
+        m_vertex_attribs.clear();
+        m_geometry->createGLBuffers();
+        
+        VertexAttrib vertices(m_vertexLocationName, m_geometry->vertexBuffer());
+        m_vertex_attribs.push_back(vertices);
+        
+        if(m_geometry->hasTexCoords())
+        {
+            VertexAttrib tex_coords(m_texCoordLocationName, m_geometry->texCoordBuffer());
+            tex_coords.size = 2;
+            m_vertex_attribs.push_back(tex_coords);
+        }
+        
+        if(m_geometry->hasColors())
+        {
+            VertexAttrib colors(m_colorLocationName, m_geometry->colorBuffer());
+            colors.size = 4;
+            m_vertex_attribs.push_back(colors);
+        }
+        
+        if(m_geometry->hasNormals())
+        {
+            VertexAttrib normals(m_normalLocationName, m_geometry->normalBuffer());
+            normals.size = 3;
+            normals.normalize = true;
+            m_vertex_attribs.push_back(normals);
+        }
+        
+        if(m_geometry->hasTangents())
+        {
+            VertexAttrib tangents(m_tangentLocationName, m_geometry->tangentBuffer());
+            tangents.size = 3;
+            tangents.normalize = true;
+            m_vertex_attribs.push_back(tangents);
+        }
+        
+        if(m_geometry->hasPointSizes())
+        {
+            VertexAttrib point_sizes(m_pointSizeLocationName, m_geometry->pointSizeBuffer());
+            point_sizes.size = 1;
+            m_vertex_attribs.push_back(point_sizes);
+        }
+        
+        if(m_geometry->hasBones())
+        {
+            // bone IDs
+            VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->boneBuffer());
+            bone_IDs.size = 4;
+            bone_IDs.type = GL_INT;
+            m_vertex_attribs.push_back(bone_IDs);
+
+            // bone weights
+            VertexAttrib bone_weights(m_boneWeightsLocationName, m_geometry->boneBuffer());
+            bone_weights.size = 4;
+            bone_weights.type = GL_FLOAT;
+            bone_weights.offset = sizeof(glm::ivec4);
+            m_vertex_attribs.push_back(bone_weights);
+        }
+    }
+    
     void Mesh::bindVertexPointers(int material_index) const
     {
         Shader& shader = m_materials[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
         
-        // bind our shader, not sure if necessary here
-        //        shader.bind();
-        
-        // create VBOs if not yet existing
-        if(!m_geometry->vertexBuffer())
-            m_geometry->createGLBuffers();
-        
-        // define attrib pointer (vertex)
-        GLuint vertexAttribLocation = shader.getAttribLocation(m_vertexLocationName);
-        m_geometry->vertexBuffer().bind();
-        glEnableVertexAttribArray(vertexAttribLocation);
-        glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                              m_geometry->vertexBuffer().stride(), BUFFER_OFFSET(0));
-        KINSKI_CHECK_GL_ERRORS();
-        
-        if(m_geometry->hasTexCoords())
+        for(auto &vertex_attrib : m_vertex_attribs)
         {
-            GLint texCoordAttribLocation = shader.getAttribLocation(m_texCoordLocationName);
+            GLint location = shader.getAttribLocation(vertex_attrib.name);
             
-            if(texCoordAttribLocation >= 0)
+            if(location >= 0)
             {
-                m_geometry->texCoordBuffer().bind();
-                // define attrib pointer (texcoord)
-                glEnableVertexAttribArray(texCoordAttribLocation);
-                glVertexAttribPointer(texCoordAttribLocation, 2, GL_FLOAT, GL_FALSE,
-                                      m_geometry->texCoordBuffer().stride(), BUFFER_OFFSET(0));
+                vertex_attrib.buffer.bind();
+                glEnableVertexAttribArray(location);
+                
+                if(vertex_attrib.type == GL_FLOAT)
+                {
+                    glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
+                                          vertex_attrib.normalize, vertex_attrib.buffer.stride(),
+                                          BUFFER_OFFSET(vertex_attrib.offset));
+                }
+                else if(vertex_attrib.type == GL_INT)
+                {
+                    glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
+                                           vertex_attrib.buffer.stride(),
+                                           BUFFER_OFFSET(vertex_attrib.offset));
+                }
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
         
-        if(m_geometry->hasColors())
+        // set standard values for some attribs, in case they're not defined
+        if(!m_geometry->hasColors())
         {
             GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
-            
             if(colorAttribLocation >= 0)
             {
-                m_geometry->colorBuffer().bind();
-                // define attrib pointer (colors)
-                glEnableVertexAttribArray(colorAttribLocation);
-                glVertexAttribPointer(colorAttribLocation, 4, GL_FLOAT, GL_FALSE,
-                                      m_geometry->colorBuffer().stride(), BUFFER_OFFSET(0));
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }else{
-            GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
-            if(colorAttribLocation >= 0) glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-        }
-        
-        if(m_geometry->hasNormals())
-        {
-            GLint normalAttribLocation = shader.getAttribLocation(m_normalLocationName);
-            
-            if(normalAttribLocation >= 0)
-            {
-                m_geometry->normalBuffer().bind();
-                // define attrib pointer (normal)
-                glEnableVertexAttribArray(normalAttribLocation);
-                glVertexAttribPointer(normalAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                      m_geometry->normalBuffer().stride(), BUFFER_OFFSET(0));
-                KINSKI_CHECK_GL_ERRORS();
+                glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
-        
-        if(m_geometry->hasTangents())
-        {
-            GLint tangentAttribLocation = shader.getAttribLocation(m_tangentLocationName);
-            
-            if(tangentAttribLocation >= 0)
-            {
-                m_geometry->tangentBuffer().bind();
-                // define attrib pointer (tangent)
-                glEnableVertexAttribArray(tangentAttribLocation);
-                glVertexAttribPointer(tangentAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                      m_geometry->tangentBuffer().stride(), BUFFER_OFFSET(0));
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }
-        
-        if(m_geometry->hasPointSizes())
+        if(!m_geometry->hasPointSizes())
         {
             GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
-            
             if(pointSizeAttribLocation >= 0)
             {
-                m_geometry->pointSizeBuffer().bind();
-                // define attrib pointer (pointsize)
-                glEnableVertexAttribArray(pointSizeAttribLocation);
-                glVertexAttribPointer(pointSizeAttribLocation, 1, GL_FLOAT, GL_FALSE,
-                                      m_geometry->pointSizeBuffer().stride(), BUFFER_OFFSET(0));
-                KINSKI_CHECK_GL_ERRORS();
-            }
-        }else{
-            GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
-            if(pointSizeAttribLocation >= 0) glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
-        }
-
-        if(m_geometry->hasBones())
-        {
-            GLint boneIdsAttribLocation = shader.getAttribLocation(m_boneIDsLocationName);
-            GLint boneWeightsAttribLocation = shader.getAttribLocation(m_boneWeightsLocationName);
-            
-            if(boneIdsAttribLocation >= 0 && boneWeightsAttribLocation >= 0)
-            {
-                m_geometry->boneBuffer().bind();
-                // define attrib pointer (boneIDs)
-                glEnableVertexAttribArray(boneIdsAttribLocation);
-                
-                // use ivec4 to submit bone-indices on Dekstop GL
-#ifndef KINSKI_GLES
-                glVertexAttribIPointer(boneIdsAttribLocation, 4, GL_INT,
-                                       m_geometry->boneBuffer().stride(), BUFFER_OFFSET(0));
-                
-                // else fall back to float vec4 for GLES2
-#else
-                glVertexAttribPointer(boneIdsAttribLocation, 4, GL_INT, GL_FALSE,
-                                      m_geometry->boneBuffer().stride(), BUFFER_OFFSET(0));
-#endif
-                KINSKI_CHECK_GL_ERRORS();
-                
-                // define attrib pointer (boneWeights)
-                glEnableVertexAttribArray(boneWeightsAttribLocation);
-                glVertexAttribPointer(boneWeightsAttribLocation, 4, GL_FLOAT, GL_FALSE,
-                                      m_geometry->boneBuffer().stride(),
-                                      BUFFER_OFFSET(sizeof(glm::ivec4)));
-
-                KINSKI_CHECK_GL_ERRORS();
+                glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
             }
         }
         
@@ -214,10 +190,7 @@ namespace kinski { namespace gl {
         
         uint32_t ret = 1;
         std::list<BonePtr>::const_iterator it = theRoot->children.begin();
-        for (; it != theRoot->children.end(); ++it)
-        {
-            ret += get_num_bones(*it);
-        }
+        for (; it != theRoot->children.end(); ++it){ ret += get_num_bones(*it); }
         return ret;
     }
     
@@ -342,6 +315,8 @@ namespace kinski { namespace gl {
     void Mesh::createVertexArray()
     {
         if(m_geometry->vertices().empty()) return;
+
+        create_vertex_attribs();
         
 #ifndef KINSKI_NO_VAO
         for (uint32_t i = 0; i < m_vertexArrays.size(); i++)

@@ -53,11 +53,6 @@ namespace kinski { namespace gl {
         MeshAnimation():current_time(0), ticksPerSec(1.0f){};
     };
     
-    class KINSKI_API VertexAttrib
-    {
-        
-    };
-    
     class KINSKI_API Mesh : public Object3D
     {
     public:
@@ -72,6 +67,18 @@ namespace kinski { namespace gl {
             uint32_t material_index;
             uint32_t primitive_type;
             bool enabled;
+        };
+        
+        struct VertexAttrib
+        {
+            VertexAttrib(const std::string &the_name, const gl::Buffer &the_buffer):
+            name(the_name), buffer(the_buffer){}
+            std::string name;
+            gl::Buffer buffer;
+            size_t size = 3;
+            size_t offset = 0;
+            GLenum type = GL_FLOAT;
+            bool normalize = false;
         };
         
         typedef std::shared_ptr<Mesh> Ptr;
@@ -89,6 +96,10 @@ namespace kinski { namespace gl {
         
         const MaterialPtr& material() const { return m_materials.front(); };
         MaterialPtr& material() { return m_materials.front(); };
+        
+        //! create the vertex attrib structures corresponding to the attached Geometry
+        // and store them in <m_vertex_attribs>
+        void create_vertex_attribs();
         
         void bindVertexPointers(int material_index = 0) const;
         void bind_vertex_array(uint32_t i = 0);
@@ -192,6 +203,9 @@ namespace kinski { namespace gl {
         std::vector<MeshAnimation> m_animations;
         float m_animation_speed;
         std::vector<mat4> m_boneMatrices;
+        
+        //! holds our vertex attributes
+        std::vector<VertexAttrib> m_vertex_attribs;
         
         std::string m_vertexLocationName;
         std::string m_normalLocationName;
