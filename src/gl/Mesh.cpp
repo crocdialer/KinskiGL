@@ -78,7 +78,6 @@ namespace kinski { namespace gl {
         {
             VertexAttrib normals(m_normalLocationName, m_geometry->normalBuffer());
             normals.size = 3;
-            normals.normalize = true;
             m_vertex_attribs.push_back(normals);
         }
         
@@ -86,7 +85,6 @@ namespace kinski { namespace gl {
         {
             VertexAttrib tangents(m_tangentLocationName, m_geometry->tangentBuffer());
             tangents.size = 3;
-            tangents.normalize = true;
             m_vertex_attribs.push_back(tangents);
         }
         
@@ -129,6 +127,7 @@ namespace kinski { namespace gl {
                 vertex_attrib.buffer.bind();
                 glEnableVertexAttribArray(location);
                 
+#if !defined(KINSKI_GLES)
                 if(vertex_attrib.type == GL_FLOAT)
                 {
                     glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
@@ -141,6 +140,11 @@ namespace kinski { namespace gl {
                                            vertex_attrib.buffer.stride(),
                                            BUFFER_OFFSET(vertex_attrib.offset));
                 }
+#else
+                glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
+                                      vertex_attrib.normalize, vertex_attrib.buffer.stride(),
+                                      BUFFER_OFFSET(vertex_attrib.offset));
+#endif
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
