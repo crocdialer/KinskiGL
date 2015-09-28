@@ -323,12 +323,12 @@ namespace kinski { namespace gl {
         if(the_light->type() == gl::Light::DIRECTIONAL)
         {
             float v = 100.f;
-            cam = gl::OrthographicCamera::create(-v, v, -v, v, .1f, 1000.f);
+            cam = gl::OrthographicCamera::create(-v, v, -v, v, 1.f, far_clip);
         }
         else
         {
             cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
-                                                .1f, 500.f);
+                                                1.f, far_clip);
         }
         cam->setTransform(the_light->global_transform());
         return cam;

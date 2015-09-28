@@ -2,7 +2,6 @@
 
 #ifndef KINSKI_SHADER_LIBRARY
 #define KINSKI_SHADER_LIBRARY
-extern char const* const geom_prepass_vert;
 extern char const* const gouraud_vert;
 extern char const* const phong_vert;
 extern char const* const phong_normalmap_vert;

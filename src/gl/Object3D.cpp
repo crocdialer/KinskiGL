@@ -77,12 +77,7 @@ namespace kinski { namespace gl {
     void Object3D::setScale(const glm::vec3 &s)
     {
         glm::vec3 scale_vec = s / scale();
-        if(std::abs(s.x) > 0.f &&
-           std::abs(s.y) > 0.f &&
-           std::abs(s.z) > 0.f)
-        {
-            m_transform = glm::scale(m_transform, scale_vec);
-        }
+        m_transform = glm::scale(m_transform, scale_vec);
     }
     
     glm::mat4 Object3D::global_transform() const

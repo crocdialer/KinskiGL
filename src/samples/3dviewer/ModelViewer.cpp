@@ -100,7 +100,7 @@ void ModelViewer::draw()
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->global_transform());
         
         // draw bone data
-        gl::drawLines(skel_points, gl::COLOR_DARK_RED);
+        gl::drawLines(skel_points, gl::COLOR_DARK_RED, 15.f);
         
         for(const auto &p : skel_points)
         {
@@ -115,9 +115,6 @@ void ModelViewer::draw()
     // draw texture map(s)
     if(displayTweakBar() && m_mesh)
     {
-//        gl::MeshPtr m = m_mesh;
-//        if(selected_mesh()){ m = selected_mesh(); }
-        
         for(auto &mat : m_mesh->materials())
         {
             comb_texs = concat_containers<gl::Texture>(mat->textures(), comb_texs);
