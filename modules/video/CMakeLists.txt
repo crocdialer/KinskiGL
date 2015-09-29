@@ -6,13 +6,17 @@ if(APPLE)
   set(MODULE_LIBRARIES ${AVFoundation} ${CoreFoundation} ${CoreMedia} ${IOSurface} PARENT_SCOPE)
   
   # OSX specific implementation
-  FILE(GLOB MODULE_SOURCES MovieController.mm CameraController.mm PARENT_SCOPE)
+  FILE(GLOB MODULE_SOURCES MovieController.mm CameraController.mm)
 elseif(KINSKI_RASPI)
   # Raspian specific implementation
-  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp PARENT_SCOPE)
+  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp)
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)
 
 # common header files
-FILE(GLOB MODULE_HEADERS MovieController.h CameraController.h PARENT_SCOPE)
+FILE(GLOB MODULE_HEADERS MovieController.h CameraController.h)
+
+# forward variables to parent scope
+set(MODULE_HEADERS ${MODULE_HEADERS} PARENT_SCOPE)
+set(MODULE_SOURCES ${MODULE_SOURCES} PARENT_SCOPE)
