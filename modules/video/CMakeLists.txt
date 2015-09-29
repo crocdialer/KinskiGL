@@ -7,7 +7,7 @@ if(APPLE)
   
   # OSX specific implementation
   FILE(GLOB MODULE_SOURCES MovieController.mm CameraController.mm PARENT_SCOPE)
-else if(KINSKI_RASPI)
+elseif(KINSKI_RASPI)
   # Raspian specific implementation
   FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp PARENT_SCOPE)
 endif()
