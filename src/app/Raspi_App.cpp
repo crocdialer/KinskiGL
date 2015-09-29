@@ -1,11 +1,7 @@
 #include "Raspi_App.h"
-#ifdef KINSKI_RASPI
 
 #include <sys/time.h>
 #include "core/file_functions.h"
-//#include <GLES2/gl2.h>
-//#include <EGL/egl.h>
-//#include "esUtil.h"
 
 using namespace std;
 
@@ -86,5 +82,3 @@ namespace kinski
         return (double)(now.tv_sec - m_startTime.tv_sec + (now.tv_usec - m_startTime.tv_usec) * 1e-6);
     }
 }
-
-#endif

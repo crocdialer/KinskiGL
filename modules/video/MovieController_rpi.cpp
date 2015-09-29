@@ -1,6 +1,7 @@
 // Raspian includes
 #include "bcm_host.h"
 #include "ilclient.h"
+#undef countof
 
 #include "gl/Texture.h"
 #include "gl/Buffer.h"
