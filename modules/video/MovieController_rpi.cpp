@@ -137,7 +137,7 @@ namespace kinski{ namespace video{
     
     double MovieController::current_time() const
     {
-        return CMTimeGetSeconds([m_impl->m_player currentTime]);
+        return 0.f;
     }
     
     void MovieController::seek_to_time(float value)
