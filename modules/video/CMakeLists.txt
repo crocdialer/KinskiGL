@@ -8,8 +8,9 @@ if(APPLE)
   # OSX specific implementation
   FILE(GLOB MODULE_SOURCES MovieController.mm CameraController.mm)
 elseif(KINSKI_RASPI)
+
   # Raspian specific implementation
-  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp)
+  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp ilclient.h ilclient.c ilcore.c)
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)

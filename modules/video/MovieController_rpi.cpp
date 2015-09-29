@@ -14,14 +14,21 @@ namespace kinski{ namespace video{
         bool m_playing;
         bool m_loop;
         float m_rate;
-        
+         
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
+        
+        OMX_BUFFERHEADERTYPE* m_egl_buffer;
+        COMPONENT_T* m_egl_render;
+        void* m_egl_image;
 
         MovieControllerImpl():
         m_src_path(""),
         m_playing(false),
         m_loop(false),
-        m_rate(1.f)
+        m_rate(1.f),
+        m_egl_buffer(nullptr),
+        m_egl_render(nullptr),
+        m_egl_image(nullptr)
         {
 
         }
