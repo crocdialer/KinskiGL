@@ -10,7 +10,8 @@ if(APPLE)
 elseif(KINSKI_RASPI)
 
   # Raspian specific implementation
-  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp ilclient.h ilclient.c ilcore.c)
+  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp CameraController_rpi.cpp ilclient.h ilclient.c ilcore.c)
+  set(MODULE_LIBRARIES pthread vcos vchiq_arm vcilcs PARENT_SCOPE)
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)

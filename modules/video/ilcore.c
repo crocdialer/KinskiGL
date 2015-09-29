@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "IL/OMX_Component.h"
 #include "interface/vcos/vcos.h"
 
+#define USE_VCHIQ_ARM
 #include "interface/vmcs_host/vcilcs.h"
 #include "interface/vmcs_host/vchost.h"
 #include "interface/vmcs_host/vcilcs_common.h"

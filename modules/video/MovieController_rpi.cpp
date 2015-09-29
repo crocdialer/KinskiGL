@@ -1,4 +1,5 @@
 // Raspian includes
+#define USE_VCHIQ_ARM
 #include "bcm_host.h"
 #include "ilclient.h"
 #undef countof
@@ -126,7 +127,7 @@ namespace kinski{ namespace video{
     
     bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)
     {
-        LOG_WARNING << "implementation not available on RPI"
+        LOG_WARNING << "implementation not available on RPI";
         return false;
     }
     
