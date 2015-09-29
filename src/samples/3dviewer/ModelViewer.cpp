@@ -359,6 +359,7 @@ bool ModelViewer::load_asset(const std::string &the_path)
         {
             gl::AssimpConnector::add_animations_to_mesh(f, m);
         }
+        m->set_animation_speed(*m_animation_speed);
         m_mesh = m;
         m_dirty_shader = true;
         return true;
