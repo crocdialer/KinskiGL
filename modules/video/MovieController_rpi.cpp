@@ -38,6 +38,11 @@ namespace kinski{ namespace video{
         {
 
         };
+
+        void thread_func()
+        {
+            
+        }
     };
     
     MovieControllerPtr MovieController::create()
@@ -70,8 +75,46 @@ namespace kinski{ namespace video{
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-   
+        //if(!eglImage)
+        {
+            LOG_WARNING <<"eglImage is null";
+        }
+
+        OMX_VIDEO_PARAM_PORTFORMATTYPE format;
+        OMX_TIME_CONFIG_CLOCKSTATETYPE cstate;
+        COMPONENT_T *video_decode = NULL, *video_scheduler = NULL, *clock = NULL;
+        COMPONENT_T *list[5];
+        TUNNEL_T tunnel[4];
+        ILCLIENT_T *client;
+        FILE *in;
+        int status = 0;
+        unsigned int data_len = 0;
+
+        memset(list, 0, sizeof(list));
+        memset(tunnel, 0, sizeof(tunnel)); 
+        
+        auto path = search_file(filePath);
+
+        if((in = fopen(path.c_str(), "rb")) == NULL)
+        return;
+
+        if((client = ilclient_init()) == NULL)
+        {
+            fclose(in);
+            return;
+        }
+
+        if(OMX_Init() != OMX_ErrorNone)
+        {
+            ilclient_destroy(client);
+            fclose(in);
+            return;
+        }
+
+        // callback
+        //ilclient_set_fill_buffer_done_callback(client, my_fill_buffer_done, 0);
     }
+
     void MovieController::play()
     {
         LOG_TRACE << "starting movie playback";

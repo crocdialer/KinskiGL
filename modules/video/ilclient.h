@@ -46,6 +46,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "IL/OMX_Broadcom.h"
 #include "interface/vcos/vcos.h"
 
+#ifdef  __cplusplus
+    extern "C" {
+#endif  // __cplusplus
+
 /**
  * The <DFN>ILCLIENT_T</DFN> structure encapsulates the state needed for the IL
  * Client API.  It contains a set of callback functions used to
@@ -1035,5 +1039,9 @@ VCHPRE_ int VCHPOST_ ilclient_suggest_bufsize(COMPONENT_T *comp,
  * @return    Suggested stack size in bytes.
  ***********************************************************/
 VCHPRE_ unsigned int VCHPOST_ ilclient_stack_size(void);
+
+#ifdef  __cplusplus
+    }   // extern "C"
+#endif  // __cplusplus
 
 #endif /* ILCLIENT_H */
