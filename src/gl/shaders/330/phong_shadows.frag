@@ -1,7 +1,7 @@
 #version 330
 
 #define NUM_SHADOW_LIGHTS 2
-#define EPSILON 0.000020
+#define EPSILON 0.00010
 
 struct Material
 {

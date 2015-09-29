@@ -100,7 +100,7 @@ void ModelViewer::draw()
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->global_transform());
         
         // draw bone data
-        gl::drawLines(skel_points, gl::COLOR_DARK_RED, 15.f);
+        gl::drawLines(skel_points, gl::COLOR_DARK_RED, 5.f);
         
         for(const auto &p : skel_points)
         {

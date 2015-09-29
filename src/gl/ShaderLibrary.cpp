@@ -3,6 +3,34 @@
 #include "ShaderLibrary.h"
 
 
+char const* const geom_prepass_vert = 
+   "#version 410\n"
+   "uniform mat4 u_modelViewProjectionMatrix;\n"
+   "uniform mat3 u_normalMatrix;\n"
+   "uniform mat4 u_textureMatrix;\n"
+   "in vec4 a_vertex;\n"
+   "in vec3 a_normal;\n"
+   "in vec4 a_color;\n"
+   "in vec2 a_texCoord;\n"
+   "in float a_pointSize;\n"
+   "out VertexData \n"
+   "{\n"
+   "    vec3 position;\n"
+   "    vec3 normal;\n"
+   "    vec4 color;\n"
+   "    vec2 texCoord;\n"
+   "    float pointSize;\n"
+   "} vertex_out;\n"
+   "void main()\n"
+   "{\n"
+   "    vertex_out.position = a_vertex.xyz;\n"
+   "    vertex_out.normal = a_normal;\n"
+   "    vertex_out.pointSize = a_pointSize;\n"
+   "    vertex_out.color = a_color;\n"
+   "    vertex_out.texCoord =  (u_textureMatrix * vec4(a_texCoord, 0, 1)).xy;\n"
+   "}\n"
+;
+
 char const* const gouraud_vert = 
    "#version 330\n"
    "struct Material\n"
@@ -747,7 +775,7 @@ char const* const phong_normalmap_frag =
 char const* const phong_shadows_frag = 
    "#version 330\n"
    "#define NUM_SHADOW_LIGHTS 2\n"
-   "#define EPSILON 0.000040\n"
+   "#define EPSILON 0.00010\n"
    "struct Material\n"
    "{\n"
    "  vec4 diffuse; \n"
@@ -910,7 +938,7 @@ char const* const phong_shadows_frag =
    "    factor[i] = mix(min_shade, max_shade, factor[i]);\n"
    "  }\n"
    "  \n"
-   "  int c = NUM_SHADOW_LIGHTS;//min(NUM_SHADOW_LIGHTS, u_numLights);\n"
+   "  int c = min(NUM_SHADOW_LIGHTS, u_numLights);\n"
    "  //for(int i = 0; i < c; i++)\n"
    "  if(c > 0)\n"
    "    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, factor[0]);\n"

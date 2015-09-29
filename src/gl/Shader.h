@@ -12,7 +12,7 @@
 
 #include "KinskiGL.h"
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
 namespace kinski { namespace gl {
 
@@ -23,9 +23,7 @@ class KINSKI_API Shader
 	Shader();
     
 	Shader( const char *vertexShader, const char *fragmentShader,
-            const char *geometryShader = 0, GLint geometryInputType = GL_POINTS,
-            GLint geometryOutputType = GL_TRIANGLES,
-            GLint geometryOutputVertices = 0);
+            const char *geometryShader = nullptr);
 
 	void			bind() const;
 	static void		unbind();
