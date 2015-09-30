@@ -12,6 +12,14 @@
 
 namespace kinski{ namespace video{
     
+    void fill_buffer_done_cb(void* data, COMPONENT_T* comp)
+    {
+        //if (OMX_FillThisBuffer(ilclient_get_handle(egl_render), eglBuffer) != OMX_ErrorNone)
+        //{
+        //    printf("OMX_FillThisBuffer failed in callback\n");
+        //}
+    }
+
     struct MovieControllerImpl
     {
         std::string m_src_path;
@@ -22,7 +30,19 @@ namespace kinski{ namespace video{
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
         
         OMX_BUFFERHEADERTYPE* m_egl_buffer;
-        COMPONENT_T* m_egl_render;
+
+        COMPONENT_T* m_egl_render = nullptr;
+        COMPONENT_T* m_video_decode = nullptr;
+        COMPONENT_T* m_video_scheduler = nullptr;
+        COMPONENT_T* m_clock = nullptr;
+        COMPONENT_T* m_comp_list[5];
+
+        TUNNEL_T m_tunnels[4];
+        ILCLIENT_T* m_il_client;
+
+        OMX_VIDEO_PARAM_PORTFORMATTYPE m_port_format;
+        OMX_TIME_CONFIG_CLOCKSTATETYPE m_clock_state;
+
         void* m_egl_image;
         GLuint m_texture;
 
@@ -32,11 +52,24 @@ namespace kinski{ namespace video{
         m_loop(false),
         m_rate(1.f),
         m_egl_buffer(nullptr),
-        m_egl_render(nullptr),
         m_egl_image(nullptr),
         m_texture(0)
         {
+            memset(m_comp_list, 0, sizeof(m_comp_list));
+            memset(m_tunnels, 0, sizeof(m_tunnels));
+            
+            memset(&m_clock_state, 0, sizeof(m_clock_state));
+            m_clock_state.nSize = sizeof(m_clock_state);
+            m_clock_state.nVersion.nVersion = OMX_VERSION;
+            m_clock_state.eState = OMX_TIME_ClockStateWaitingForStartTime;
+            m_clock_state.nWaitMask = 1;
 
+            memset(&m_port_format, 0, sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE));
+            m_port_format.nSize = sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE);
+            m_port_format.nVersion.nVersion = OMX_VERSION;
+            m_port_format.nPortIndex = 130;
+            m_port_format.eCompressionFormat = OMX_VIDEO_CodingAVC;
+        
         }
         ~MovieControllerImpl()
         {
@@ -48,6 +81,11 @@ namespace kinski{ namespace video{
                     LOG_WARNING << "eglDestroyImageKHR failed.";
                 }
             }
+            ilclient_state_transition(m_comp_list, OMX_StateIdle);
+            ilclient_state_transition(m_comp_list, OMX_StateLoaded);
+            ilclient_cleanup_components(m_comp_list);
+            OMX_Deinit();
+            ilclient_destroy(m_il_client);
         };
 
         void thread_func()
@@ -94,28 +132,19 @@ namespace kinski{ namespace video{
                                                 0);
         if(!m_impl->m_egl_image){ LOG_WARNING << "eglImage is null"; }
 
-        OMX_VIDEO_PARAM_PORTFORMATTYPE format;
-        OMX_TIME_CONFIG_CLOCKSTATETYPE cstate;
-        COMPONENT_T *video_decode = nullptr, *video_scheduler = nullptr, *clock = nullptr;
-        COMPONENT_T *list[5];
-        TUNNEL_T tunnel[4];
-        ILCLIENT_T *client;
         FILE *in;
         int status = 0;
         unsigned int data_len = 0;
 
-        memset(list, 0, sizeof(list));
-        memset(tunnel, 0, sizeof(tunnel)); 
-        
         auto path = search_file(filePath);
 
         if((in = fopen(path.c_str(), "rb")) == NULL)
           return;
         
         // init the client
-        client = ilclient_init();
+        m_impl->m_il_client = ilclient_init();
 
-        if(!client)
+        if(!m_impl->m_il_client)
         {
             fclose(in);
             return;
@@ -123,43 +152,60 @@ namespace kinski{ namespace video{
 
         if(OMX_Init() != OMX_ErrorNone)
         {
-            ilclient_destroy(client);
+            ilclient_destroy(m_impl->m_il_client);
             fclose(in);
             return;
         }
 
         // callback
-        //ilclient_set_fill_buffer_done_callback(client, my_fill_buffer_done, 0);
+        ilclient_set_fill_buffer_done_callback(m_impl->m_il_client, fill_buffer_done_cb, 0);
 
         // create video_decode
-        if(ilclient_create_component(client, &video_decode, "video_decode",
+        if(ilclient_create_component(m_impl->m_il_client, &m_impl->m_video_decode, "video_decode",
                                      ILCLIENT_DISABLE_ALL_PORTS | ILCLIENT_ENABLE_INPUT_BUFFERS) != 0)
         { status = -14; }
-        list[0] = video_decode;
+        m_impl->m_comp_list[0] = m_impl->m_video_decode;
 
         // create egl_render
         if(status == 0 && 
-           ilclient_create_component(client, &m_impl->m_egl_render, "egl_render",
+           ilclient_create_component(m_impl->m_il_client, &m_impl->m_egl_render, "egl_render",
                                      ILCLIENT_DISABLE_ALL_PORTS | ILCLIENT_ENABLE_OUTPUT_BUFFERS) != 0)
         { status = -14; }
-        list[1] = m_impl->m_egl_render;
+        m_impl->m_comp_list[1] = m_impl->m_egl_render;
 
         // create clock
         if(status == 0 && 
-           ilclient_create_component(client, &clock, "clock",
+           ilclient_create_component(m_impl->m_il_client, &m_impl->m_clock, "clock",
                                      ILCLIENT_DISABLE_ALL_PORTS) != 0)
         { status = -14; }
-        list[2] = clock;
+        m_impl->m_comp_list[2] = m_impl->m_clock;
 
-        memset(&cstate, 0, sizeof(cstate));
-        cstate.nSize = sizeof(cstate);
-        cstate.nVersion.nVersion = OMX_VERSION;
-        cstate.eState = OMX_TIME_ClockStateWaitingForStartTime;
-        cstate.nWaitMask = 1;
-        if(clock && 
-           OMX_SetParameter(ILC_GET_HANDLE(clock), OMX_IndexConfigTimeClockState,
-                            &cstate) != OMX_ErrorNone)
+        if(m_impl->m_clock && 
+           OMX_SetParameter(ILC_GET_HANDLE(m_impl->m_clock), OMX_IndexConfigTimeClockState,
+                            &m_impl->m_clock_state) != OMX_ErrorNone)
         { status = -13; }
+
+        // create video_scheduler
+        if(status == 0 && 
+           ilclient_create_component(m_impl->m_il_client, &m_impl->m_video_scheduler,
+                                     "video_scheduler", ILCLIENT_DISABLE_ALL_PORTS) != 0)
+        { status = -14; }
+        m_impl->m_comp_list[3] = m_impl->m_video_scheduler;
+
+        set_tunnel(m_impl->m_tunnels, m_impl->m_video_decode, 131, m_impl->m_video_scheduler, 10);
+        set_tunnel(m_impl->m_tunnels + 1, m_impl->m_video_scheduler, 11, m_impl->m_egl_render, 220);
+        set_tunnel(m_impl->m_tunnels + 2, m_impl->m_clock, 80, m_impl->m_video_scheduler, 12);
+
+        // setup clock tunnel first
+        if(status == 0 && ilclient_setup_tunnel(m_impl->m_tunnels + 2, 0, 0) != 0)
+        { 
+          status = -15; 
+        }
+        else{ ilclient_change_component_state(m_impl->m_clock, OMX_StateExecuting); }
+
+        if(status == 0){ ilclient_change_component_state(m_impl->m_video_decode, OMX_StateIdle); }
+
+        
     }
 
     void MovieController::play()
