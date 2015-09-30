@@ -1,6 +1,8 @@
 // Raspian includes
 #define USE_VCHIQ_ARM
 #include "bcm_host.h"
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
 #include "ilclient.h"
 #undef countof
 
@@ -22,6 +24,7 @@ namespace kinski{ namespace video{
         OMX_BUFFERHEADERTYPE* m_egl_buffer;
         COMPONENT_T* m_egl_render;
         void* m_egl_image;
+        GLuint m_texture;
 
         MovieControllerImpl():
         m_src_path(""),
@@ -30,13 +33,21 @@ namespace kinski{ namespace video{
         m_rate(1.f),
         m_egl_buffer(nullptr),
         m_egl_render(nullptr),
-        m_egl_image(nullptr)
+        m_egl_image(nullptr),
+        m_texture(0)
         {
 
         }
         ~MovieControllerImpl()
         {
-
+            if(m_egl_image)
+            {
+                if(!eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                       (EGLImageKHR)m_egl_image))
+                {
+                    LOG_WARNING << "eglDestroyImageKHR failed.";
+                }
+            }
         };
 
         void thread_func()
@@ -75,14 +86,17 @@ namespace kinski{ namespace video{
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        //if(!eglImage)
-        {
-            LOG_WARNING <<"eglImage is null";
-        }
+
+        m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                                eglGetCurrentContext(),
+                                                EGL_GL_TEXTURE_2D_KHR,
+                                                (EGLClientBuffer)m_impl->m_texture,
+                                                0);
+        if(!m_impl->m_egl_image){ LOG_WARNING << "eglImage is null"; }
 
         OMX_VIDEO_PARAM_PORTFORMATTYPE format;
         OMX_TIME_CONFIG_CLOCKSTATETYPE cstate;
-        COMPONENT_T *video_decode = NULL, *video_scheduler = NULL, *clock = NULL;
+        COMPONENT_T *video_decode = nullptr, *video_scheduler = nullptr, *clock = nullptr;
         COMPONENT_T *list[5];
         TUNNEL_T tunnel[4];
         ILCLIENT_T *client;
@@ -96,9 +110,12 @@ namespace kinski{ namespace video{
         auto path = search_file(filePath);
 
         if((in = fopen(path.c_str(), "rb")) == NULL)
-        return;
+          return;
+        
+        // init the client
+        client = ilclient_init();
 
-        if((client = ilclient_init()) == NULL)
+        if(!client)
         {
             fclose(in);
             return;
@@ -113,6 +130,36 @@ namespace kinski{ namespace video{
 
         // callback
         //ilclient_set_fill_buffer_done_callback(client, my_fill_buffer_done, 0);
+
+        // create video_decode
+        if(ilclient_create_component(client, &video_decode, "video_decode",
+                                     ILCLIENT_DISABLE_ALL_PORTS | ILCLIENT_ENABLE_INPUT_BUFFERS) != 0)
+        { status = -14; }
+        list[0] = video_decode;
+
+        // create egl_render
+        if(status == 0 && 
+           ilclient_create_component(client, &m_impl->m_egl_render, "egl_render",
+                                     ILCLIENT_DISABLE_ALL_PORTS | ILCLIENT_ENABLE_OUTPUT_BUFFERS) != 0)
+        { status = -14; }
+        list[1] = m_impl->m_egl_render;
+
+        // create clock
+        if(status == 0 && 
+           ilclient_create_component(client, &clock, "clock",
+                                     ILCLIENT_DISABLE_ALL_PORTS) != 0)
+        { status = -14; }
+        list[2] = clock;
+
+        memset(&cstate, 0, sizeof(cstate));
+        cstate.nSize = sizeof(cstate);
+        cstate.nVersion.nVersion = OMX_VERSION;
+        cstate.eState = OMX_TIME_ClockStateWaitingForStartTime;
+        cstate.nWaitMask = 1;
+        if(clock && 
+           OMX_SetParameter(ILC_GET_HANDLE(clock), OMX_IndexConfigTimeClockState,
+                            &cstate) != OMX_ErrorNone)
+        { status = -13; }
     }
 
     void MovieController::play()

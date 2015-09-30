@@ -453,8 +453,8 @@ VCHPRE_ void VCHPOST_ ilclient_set_empty_buffer_done_callback(ILCLIENT_T *handle
  ***********************************************************/
 VCHPRE_ int VCHPOST_ ilclient_create_component(ILCLIENT_T *handle,
                                                COMPONENT_T **comp,
-                                               char *name,
-                                               ILCLIENT_CREATE_FLAGS_T flags);
+                                               const char *name,
+                                               int flags);
 
 /**
  * The <DFN>ilclient_cleanup_components()</DFN> function deallocates all

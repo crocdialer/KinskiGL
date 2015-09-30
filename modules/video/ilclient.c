@@ -292,8 +292,8 @@ void ilclient_set_configchanged_callback(ILCLIENT_T *st, ILCLIENT_CALLBACK_T fun
  *
  * Returns: 0 on success, -1 on failure
  ***********************************************************/
-int ilclient_create_component(ILCLIENT_T *client, COMPONENT_T **comp, char *name,
-                              ILCLIENT_CREATE_FLAGS_T flags)
+int ilclient_create_component(ILCLIENT_T *client, COMPONENT_T **comp, const char *name,
+                              int flags)
 {
    OMX_CALLBACKTYPE callbacks;
    OMX_ERRORTYPE error;

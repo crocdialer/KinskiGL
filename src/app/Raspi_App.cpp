@@ -16,7 +16,10 @@ namespace kinski
     
     Raspi_App::~Raspi_App()
     {
-        
+        eglMakeCurrent(m_context->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT );
+        eglDestroySurface(m_context->eglDisplay, m_context->eglSurface);
+        eglDestroyContext(m_context->eglDisplay, m_context->eglContext );
+        eglTerminate(m_context->eglDisplay); 
     }
     
     // internal initialization. performed when run is invoked
