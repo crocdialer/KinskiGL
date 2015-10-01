@@ -45,6 +45,9 @@ namespace kinski{ namespace video{
 
         void* m_egl_image;
         GLuint m_texture;
+        
+        // tmp -> use fstream
+        FILE *m_file_handle;
 
         MovieControllerImpl():
         m_src_path(""),
@@ -55,6 +58,9 @@ namespace kinski{ namespace video{
         m_egl_image(nullptr),
         m_texture(0)
         {
+            // init the client
+            m_il_client = ilclient_init();
+
             memset(m_comp_list, 0, sizeof(m_comp_list));
             memset(m_tunnels, 0, sizeof(m_tunnels));
             
@@ -81,16 +87,141 @@ namespace kinski{ namespace video{
                     LOG_WARNING << "eglDestroyImageKHR failed.";
                 }
             }
+            ilclient_disable_tunnel(m_tunnels);
+            ilclient_disable_tunnel(m_tunnels + 1);
+            ilclient_disable_tunnel(m_tunnels + 2);
+            ilclient_teardown_tunnels(m_tunnels);
+
             ilclient_state_transition(m_comp_list, OMX_StateIdle);
             ilclient_state_transition(m_comp_list, OMX_StateLoaded);
             ilclient_cleanup_components(m_comp_list);
             OMX_Deinit();
             ilclient_destroy(m_il_client);
+
+            fclose(m_file_handle);
         };
 
         void thread_func()
         {
+            bool is_running = true;
+            size_t data_len = 0;
+
+            m_file_handle = fopen(m_src_path.c_str(), "rb");
+
+            if(!m_file_handle)
+            { return; }
+
+            OMX_BUFFERHEADERTYPE *buf;
+            int port_settings_changed = 0;
+            int first_packet = 1;
+
+            ilclient_change_component_state(m_video_decode, OMX_StateExecuting);
             
+            while(is_running)
+            {
+                buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
+
+                if(!buf){ is_running = false; }
+
+                // feed data and wait until we get port settings changed
+                unsigned char *dest = buf->pBuffer;
+
+                // loop if at end
+                if(feof(m_file_handle)){ rewind(m_file_handle); }
+
+                data_len += fread(dest, 1, buf->nAllocLen-data_len, m_file_handle);
+
+                if(port_settings_changed == 0 &&
+                   ((data_len > 0 && ilclient_remove_event(m_video_decode,
+                                                           OMX_EventPortSettingsChanged,
+                                                           131, 0, 0, 1) == 0) ||
+                   (data_len == 0 && ilclient_wait_for_event(m_video_decode, 
+                                                             OMX_EventPortSettingsChanged,
+                                                             131, 0, 0, 1,
+                                                             ILCLIENT_EVENT_ERROR | ILCLIENT_PARAMETER_CHANGED,
+                                                             10000) == 0)))
+                {
+                    port_settings_changed = 1;
+
+                    if(ilclient_setup_tunnel(m_tunnels, 0, 0) != 0)
+                    {
+                       //status = -7;
+                       break;
+                    }
+
+                    ilclient_change_component_state(m_video_scheduler, OMX_StateExecuting);
+
+                    // now setup tunnel to egl_render
+                    if(ilclient_setup_tunnel(m_tunnels + 1, 0, 1000) != 0)
+                    {
+                        //status = -12;
+                        break;
+                    }
+
+                    // Set egl_render to idle
+                    ilclient_change_component_state(m_egl_render, OMX_StateIdle);
+
+                    // Enable the output port and tell egl_render to use the texture as a buffer
+                    //ilclient_enable_port(egl_render, 221); THIS BLOCKS SO CANT BE USED
+                    if(OMX_SendCommand(ILC_GET_HANDLE(m_egl_render), OMX_CommandPortEnable,
+                                       221, NULL) != OMX_ErrorNone)
+                    {
+                        LOG_ERROR << "OMX_CommandPortEnable failed.";
+                        is_running = false;
+                    }
+
+                    if(OMX_UseEGLImage(ILC_GET_HANDLE(m_egl_render), &m_egl_buffer, 221, NULL, m_egl_image) != OMX_ErrorNone)
+                    {
+                        LOG_ERROR << "OMX_UseEGLImage failed.";
+                        is_running = false;
+                    }
+
+                    // Set egl_render to executing
+                    ilclient_change_component_state(m_egl_render, OMX_StateExecuting);
+
+
+                    // Request egl_render to write data to the texture buffer
+                    if(OMX_FillThisBuffer(ILC_GET_HANDLE(m_egl_render), m_egl_buffer) != OMX_ErrorNone)
+                    {
+                        LOG_ERROR << "OMX_FillThisBuffer failed.";
+                        is_running = false;
+                    }
+                }
+                if(!data_len)
+                    break;
+
+                buf->nFilledLen = data_len;
+                data_len = 0;
+
+                buf->nOffset = 0;
+            
+                if(first_packet)
+                {
+                    buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
+                    first_packet = 0;
+                }
+                else
+                    buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN;
+
+                if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+                {
+                    //status = -6;
+                    break;
+                }
+            }
+
+            buf->nFilledLen = 0;
+            buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+
+            if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+            {  
+              //status = -20; 
+            }
+
+            // need to flush the renderer to allow m_video_decode to disable its input port
+            ilclient_flush_tunnels(m_tunnels, 0);
+
+            ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL); 
         }
     };
     
@@ -124,6 +255,8 @@ namespace kinski{ namespace video{
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
+        
+        m_impl->m_src_path = search_file(filePath);
 
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                 eglGetCurrentContext(),
@@ -132,28 +265,15 @@ namespace kinski{ namespace video{
                                                 0);
         if(!m_impl->m_egl_image){ LOG_WARNING << "eglImage is null"; }
 
-        FILE *in;
         int status = 0;
-        unsigned int data_len = 0;
-
-        auto path = search_file(filePath);
-
-        if((in = fopen(path.c_str(), "rb")) == NULL)
-          return;
-        
-        // init the client
-        m_impl->m_il_client = ilclient_init();
 
         if(!m_impl->m_il_client)
         {
-            fclose(in);
             return;
         }
 
         if(OMX_Init() != OMX_ErrorNone)
         {
-            ilclient_destroy(m_impl->m_il_client);
-            fclose(in);
             return;
         }
 
@@ -205,7 +325,15 @@ namespace kinski{ namespace video{
 
         if(status == 0){ ilclient_change_component_state(m_impl->m_video_decode, OMX_StateIdle); }
 
-        
+        if(status == 0 &&
+           OMX_SetParameter(ILC_GET_HANDLE(m_impl->m_video_decode),
+                            OMX_IndexParamVideoPortFormat,
+                            &m_impl->m_port_format) == OMX_ErrorNone &&
+           ilclient_enable_port_buffers(m_impl->m_video_decode, 130, NULL, NULL, NULL) == 0)
+        {
+            // start thread
+        }
+
     }
 
     void MovieController::play()
