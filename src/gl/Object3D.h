@@ -39,7 +39,7 @@ namespace kinski { namespace gl {
         void set_billboard(bool b) {m_billboard = b;}
         inline void setPosition(const vec3 &thePos) { position() = thePos; };
         inline vec3 position() const {return m_transform[3].xyz(); }
-        inline vec3& position() {return *reinterpret_cast<vec3*>(&m_transform[3]);}
+        inline vec3& position() {return *reinterpret_cast<vec3*>(&m_transform[3].x);}
         inline vec3 lookAt() const {return normalize(-m_transform[2].xyz());}
         inline vec3 side() const {return normalize(m_transform[0].xyz());}
         inline vec3 up() const {return normalize(m_transform[1].xyz());}
