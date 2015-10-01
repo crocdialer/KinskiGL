@@ -331,7 +331,7 @@ namespace kinski{ namespace video{
                             &m_impl->m_port_format) == OMX_ErrorNone &&
            ilclient_enable_port_buffers(m_impl->m_video_decode, 130, NULL, NULL, NULL) == 0)
         {
-            // start thread
+            //TODO: start thread
         }
 
     }
