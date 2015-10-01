@@ -1336,7 +1336,10 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 //        if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
         
         // add texturemaps
-        uint32_t tex_unit = 0, tex_2d = 0, tex_rect = 0, tex_3d = 0, tex_2d_array = 0;
+        uint32_t tex_unit = 0, tex_2d = 0;
+#if !defined(KINSKI_GLES)
+        uint32_t tex_rect = 0, tex_3d = 0, tex_2d_array = 0;
+#endif
         
         for(auto &t : the_mat->textures())
         {
