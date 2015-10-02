@@ -18,6 +18,7 @@ using namespace glm;
 void OMXWrapper::setup()
 {
     ViewerApp::setup();
+    registerProperty(m_host_names);
     registerProperty(m_is_master);
     registerProperty(m_movie_path);
     registerProperty(m_movie_delay);

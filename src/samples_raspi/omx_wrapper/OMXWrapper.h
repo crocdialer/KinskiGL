@@ -19,6 +19,12 @@ namespace kinski
     private:
         
         enum FontEnum{FONT_NORMAL = 0, FONT_LARGE = 1};
+        
+        Property_<std::vector<string>>::Ptr
+        m_host_names = Property_<std::vector<string>>::create("host names", 
+                                                              {"vellocet", 
+                                                              "synthemesc",
+                                                              "drencrome"});
 
         Property_<bool>::Ptr 
         m_is_master = Property_<bool>::create("is master", false);
