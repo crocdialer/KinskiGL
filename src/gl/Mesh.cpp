@@ -114,6 +114,8 @@ namespace kinski { namespace gl {
     
     void Mesh::bindVertexPointers(int material_index) const
     {
+        m_geometry->createGLBuffers();
+        
         Shader& shader = m_materials[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
