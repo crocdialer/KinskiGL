@@ -24,12 +24,15 @@ void OMXWrapper::setup()
     registerProperty(m_movie_delay);
     observeProperties();
     create_tweakbar_from_component(shared_from_this());
-    fonts()[FONT_LARGE].load("Courier New Bold.ttf", 256);
+    fonts()[FONT_LARGE].load("Courier New Bold.ttf", 64);
 
     // this will load settings or generate settings file, if not present
     if(!load_settings()){ save_settings(); }
 
-    //m_video_thread = std::thread(&OMXWrapper::thread_func, this);
+    m_timer = Timer(io_service(), bind(&OMXWrapper::stop_movie, this)); 
+    m_timer.expires_from_now(5.f);
+
+    start_movie(*m_movie_delay);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -135,12 +138,20 @@ void OMXWrapper::updateProperty(const Property::ConstPtr &theProperty)
 
 /////////////////////////////////////////////////////////////////
 
-void OMXWrapper::thread_func()
+void OMXWrapper::start_movie(float delay)
 {
-    LOG_DEBUG << "thread started";
-    int delay_secs = *m_movie_delay;
-    string cmd = "omxplayer --loop -b --pos " + as_string(delay_secs) +" "+ m_movie_path->value();
+    LOG_DEBUG << "start_movie";
+    int delay_secs = delay;
+    string cmd = "omxplayer --layer 0 --loop -b --pos " +
+      as_string(delay_secs) +" "+ m_movie_path->value() + " &";
     system(cmd.c_str());
+}
 
-    LOG_DEBUG << "thread terminated";
+/////////////////////////////////////////////////////////////////
+
+void OMXWrapper::stop_movie()
+{
+    LOG_DEBUG << "stop_movie";
+    string cmd = "killall 'omxplayer' && killall 'omxplayer.bin'";
+    system(cmd.c_str());
 }

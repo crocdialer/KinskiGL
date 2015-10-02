@@ -9,7 +9,7 @@
 #ifndef __gl__OMXWrapper__
 #define __gl__OMXWrapper__
 
-#include <thread> 
+#include "core/Timer.h"
 #include "app/ViewerApp.h"
 
 namespace kinski
@@ -34,9 +34,11 @@ namespace kinski
         
         Property_<float>::Ptr
         m_movie_delay = Property_<float>::create("movie start delay", 0.f);
+        
+        Timer m_timer;
 
-        std::thread m_video_thread;
-        void thread_func();
+        void start_movie(float delay = 0.f);
+        void stop_movie();
 
     public:
         
