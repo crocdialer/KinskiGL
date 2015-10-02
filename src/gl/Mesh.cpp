@@ -112,9 +112,9 @@ namespace kinski { namespace gl {
         }
     }
     
-    void Mesh::bindVertexPointers(int material_index) const
+    void Mesh::bindVertexPointers(int material_index)
     {
-        m_geometry->createGLBuffers();
+        if(m_vertex_attribs.empty()){ create_vertex_attribs(); }
         
         Shader& shader = m_materials[material_index]->shader();
         if(!shader)
