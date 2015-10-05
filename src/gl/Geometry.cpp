@@ -170,7 +170,7 @@ namespace kinski{ namespace gl{
     
     void Geometry::createGLBuffers()
     {
-        if(!m_vertices.empty() && m_dirty_vertexBuffer)// pad vec3 -> vec4 (OpenCL compat issue)
+        if(m_dirty_vertexBuffer && !m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
         {
             //m_vertexBuffer.setData(m_vertices);
             m_vertexBuffer.setData(NULL, m_vertices.size() * sizeof(glm::vec4));
@@ -189,7 +189,7 @@ namespace kinski{ namespace gl{
         }
         
         // insert normals
-        if(hasNormals() && m_dirty_normalBuffer)
+        if(m_dirty_normalBuffer && hasNormals())
         {
             m_normalBuffer.setData(m_normals);
             KINSKI_CHECK_GL_ERRORS();
@@ -197,7 +197,7 @@ namespace kinski{ namespace gl{
         }
         
         // insert normals
-        if(hasTexCoords() && m_dirty_texCoordBuffer)
+        if(m_dirty_texCoordBuffer && hasTexCoords())
         {
             m_texCoordBuffer.setData(m_texCoords);
             KINSKI_CHECK_GL_ERRORS();
@@ -205,7 +205,7 @@ namespace kinski{ namespace gl{
         }
         
         // insert tangents
-        if(hasTangents() && m_dirty_tangentBuffer)
+        if(m_dirty_tangentBuffer && hasTangents())
         {
             m_tangentBuffer.setData(m_tangents);
             KINSKI_CHECK_GL_ERRORS();
@@ -213,7 +213,7 @@ namespace kinski{ namespace gl{
         }
         
         // insert point sizes
-        if(hasPointSizes() && m_dirty_pointSizeBuffer)
+        if(m_dirty_pointSizeBuffer && hasPointSizes())
         {
             m_pointSizeBuffer.setData(m_point_sizes);
             KINSKI_CHECK_GL_ERRORS();
@@ -221,7 +221,7 @@ namespace kinski{ namespace gl{
         }
         
         // insert colors
-        if(hasColors() && m_dirty_colorBuffer)
+        if(m_dirty_colorBuffer && hasColors())
         {
             m_colorBuffer.setData(m_colors);
             KINSKI_CHECK_GL_ERRORS();
@@ -229,7 +229,7 @@ namespace kinski{ namespace gl{
         }
         
         // insert bone indices and weights
-        if(hasBones() && m_dirty_boneBuffer)
+        if(m_dirty_boneBuffer && hasBones())
         {
             m_boneBuffer.setData(m_boneVertexData);
             m_boneBuffer.setStride(sizeof(gl::BoneVertexData));
@@ -237,7 +237,7 @@ namespace kinski{ namespace gl{
             m_dirty_boneBuffer = false;
         }
         
-        if(hasIndices() && m_dirty_indexBuffer)
+        if(m_dirty_indexBuffer && hasIndices())
         {
             // index buffer
             m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);

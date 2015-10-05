@@ -29,8 +29,8 @@ struct Shader::Obj
     
 Shader::Obj::~Obj()
 {
-	if( m_Handle )
-		glDeleteProgram( (GLuint)m_Handle );
+	if(m_Handle)
+		glDeleteProgram(m_Handle);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -38,66 +38,58 @@ Shader::Obj::~Obj()
 
 Shader::Shader(){}
     
-Shader::Shader(const char *vertexShader, const char *fragmentShader,
-               const char *geometryShader, GLint geometryInputType,
-               GLint geometryOutputType, GLint geometryOutputVertices)
-: m_Obj( ObjPtr( new Obj ) )
+Shader::Shader(const char *vertexShader, const char *fragmentShader, const char *geometryShader):
+m_Obj(new Obj)
 {
-	if ( vertexShader )
-		loadShader( vertexShader, GL_VERTEX_SHADER );
+    if(vertexShader){ loadShader(vertexShader, GL_VERTEX_SHADER); }
     
-	if( fragmentShader )
-		loadShader( fragmentShader, GL_FRAGMENT_SHADER );
+    if(fragmentShader){ loadShader(fragmentShader, GL_FRAGMENT_SHADER); }
     
 #ifndef KINSKI_GLES
-	if( geometryShader )
-		loadShader( geometryShader, GL_GEOMETRY_SHADER );
+    if(geometryShader){ loadShader(geometryShader, GL_GEOMETRY_SHADER); }
 #endif
     
 	link();
 }
 
-void Shader::loadFromData(const char *vertSrc,
-                          const char *fragSrc,
-                          const char *geomSrc)
+void Shader::loadFromData(const char *vertSrc, const char *fragSrc, const char *geomSrc)
 {
     m_Obj = ObjPtr(new Obj);
     
-    loadShader( vertSrc, GL_VERTEX_SHADER );
-	loadShader( fragSrc, GL_FRAGMENT_SHADER );
+    loadShader(vertSrc, GL_VERTEX_SHADER);
+	loadShader(fragSrc, GL_FRAGMENT_SHADER);
 
 #ifndef KINSKI_GLES
-    if(geomSrc) 
-        loadShader(geomSrc, GL_GEOMETRY_SHADER);
+    if(geomSrc){ loadShader(geomSrc, GL_GEOMETRY_SHADER); }
 #endif
     
     link();
 }
         
-void Shader::loadShader( const char *shaderSource, GLint shaderType )
+void Shader::loadShader(const char *shaderSource, GLint shaderType)
 {
-	GLuint handle = glCreateShader( shaderType );
-	glShaderSource( handle, 1, reinterpret_cast<const GLchar**>( &shaderSource ), NULL );
-	glCompileShader( handle );
+	GLuint handle = glCreateShader(shaderType);
+	glShaderSource(handle, 1, reinterpret_cast<const GLchar**>(&shaderSource), nullptr);
+	glCompileShader(handle);
 	
 	GLint status;
-	glGetShaderiv( (GLuint) handle, GL_COMPILE_STATUS, &status );
-	if( status != GL_TRUE )
+	glGetShaderiv(handle, GL_COMPILE_STATUS, &status);
+	if(status != GL_TRUE)
     {
-		std::string log = getShaderLog( (GLuint)handle );
-		throw ShaderCompileExc( log, shaderType );
+		std::string log = getShaderLog(handle);
+		throw ShaderCompileExc(log, shaderType);
 	}
-	glAttachShader( m_Obj->m_Handle, handle );
+	glAttachShader(m_Obj->m_Handle, handle);
     glDeleteShader(handle);
 }
 
 void Shader::link()
 {
-    glLinkProgram( m_Obj->m_Handle );
+    glLinkProgram(m_Obj->m_Handle);
     
     GLint status;
-	glGetProgramiv( m_Obj->m_Handle, GL_LINK_STATUS, &status );
-	if( status != GL_TRUE )
+	glGetProgramiv(m_Obj->m_Handle, GL_LINK_STATUS, &status);
+	if(status != GL_TRUE)
     {
 		std::string log = getProgramLog();
 		throw ShaderLinkException(log);
@@ -114,7 +106,7 @@ void Shader::bind() const
 
 void Shader::unbind()
 {
-	glUseProgram( 0 );
+	glUseProgram(0);
 }
 
 GLuint Shader::getHandle() const
@@ -122,7 +114,7 @@ GLuint Shader::getHandle() const
     return m_Obj->m_Handle;
 }
     
-std::string Shader::getShaderLog( GLuint handle ) const
+std::string Shader::getShaderLog(GLuint handle) const
 {
 	std::string log;
 	
@@ -143,18 +135,17 @@ std::string Shader::getShaderLog( GLuint handle ) const
 std::string Shader::getProgramLog() const
 {
     std::string log;
-    
     GLchar *debugLog;
     GLint debugLength = 0, charsWritten = 0;
-    glGetProgramiv( m_Obj->m_Handle, GL_INFO_LOG_LENGTH, &debugLength );
+    glGetProgramiv(m_Obj->m_Handle, GL_INFO_LOG_LENGTH, &debugLength);
     
-    if( debugLength > 0 ) {
+    if(debugLength > 0)
+    {
         debugLog = new GLchar[debugLength];
-        glGetProgramInfoLog( m_Obj->m_Handle, debugLength, &charsWritten, debugLog );
-        log.append( debugLog, 0, debugLength );
+        glGetProgramInfoLog(m_Obj->m_Handle, debugLength, &charsWritten, debugLog);
+        log.append(debugLog, 0, debugLength);
         delete [] debugLog;
     }
-    
     return log;
 }
 

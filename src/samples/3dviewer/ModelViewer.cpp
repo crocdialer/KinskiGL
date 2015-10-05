@@ -100,7 +100,7 @@ void ModelViewer::draw()
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->global_transform());
         
         // draw bone data
-        gl::drawLines(skel_points, gl::COLOR_DARK_RED, 15.f);
+        gl::drawLines(skel_points, gl::COLOR_DARK_RED, 5.f);
         
         for(const auto &p : skel_points)
         {
@@ -359,6 +359,7 @@ bool ModelViewer::load_asset(const std::string &the_path)
         {
             gl::AssimpConnector::add_animations_to_mesh(f, m);
         }
+        m->set_animation_speed(*m_animation_speed);
         m_mesh = m;
         m_dirty_shader = true;
         return true;

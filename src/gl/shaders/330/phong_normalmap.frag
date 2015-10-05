@@ -39,15 +39,6 @@ layout(std140) uniform LightBlock
   Lightsource u_lights[16];
 };
 
-vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec3 lightDir,
-    in vec4 base_color)
-{
-//  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position; 
-  vec3 L = normalize(lightDir); 
-  vec3 E = normalize(-eyeVec); 
-  vec3 R = reflect(-L, normal); 
-  vec4 ambient = mat.ambient * light.ambient; 
-  float att = 1.0; 
   float nDotL = dot(normal, L); 
   
   if (light.type > 0)
@@ -70,8 +61,8 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   }
   nDotL = max(0.0, nDotL); 
   float specIntesity = clamp(pow( max(dot(R, E), 0.0), mat.shinyness), 0.0, 1.0); 
-  vec4 diffuse = att * mat.diffuse * light.diffuse * vec4(vec3(nDotL), 1.0); 
-  vec4 spec = att * mat.specular * light.specular * specIntesity; 
+  vec4 diffuse = mat.diffuse * light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0); 
+  vec4 spec = shade_factor * att * mat.specular * light.specular * specIntesity; 
   spec.a = 0.0; 
   return base_color * (ambient + diffuse) + spec; 
 }
@@ -108,7 +99,7 @@ void main()
   for(int i = 0; i < u_numLights; i++)
   {
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec,
-        vertex_in.lightDir[i], texColors);
+        vertex_in.lightDir[i], texColors, 1.0);
   }
   fragData = shade_color; 
 }

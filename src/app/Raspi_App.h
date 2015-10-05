@@ -18,7 +18,7 @@ class Raspi_App : public App
     virtual ~Raspi_App();
     
     void set_window_size(const glm::vec2 &size) override;
-    double getApplicationTime();
+    double getApplicationTime() override;
     
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};

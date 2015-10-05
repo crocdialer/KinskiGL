@@ -18,10 +18,7 @@ using namespace glm;
 void MovieTest::setup()
 {
     ViewerApp::setup();
-    
-    m_font.load("Courier New Bold.ttf", 18);
-    outstream_gl().set_color(gl::COLOR_WHITE);
-    outstream_gl().set_font(m_font);
+    set_window_title("movie tester");
     
     registerProperty(m_movie_speed);
     registerProperty(m_movie_path);
@@ -29,7 +26,6 @@ void MovieTest::setup()
     create_tweakbar_from_component(shared_from_this());
     
     m_movie->set_on_load_callback(bind(&MovieTest::on_movie_load, this));
-    
     m_camera_control->start_capture();
     
     load_settings();
@@ -69,29 +65,29 @@ void MovieTest::keyPress(const KeyEvent &e)
     
     switch (e.getCode())
     {
-        case GLFW_KEY_C:
+        case Key::KEY_C:
             if(m_camera_control->is_capturing())
                 m_camera_control->stop_capture();
             else
                 m_camera_control->start_capture();
             break;
             
-        case GLFW_KEY_P:
-            m_movie->pause();
+        case Key::KEY_P:
+            m_movie->isPlaying() ? m_movie->pause() : m_movie->play();
             break;
             
-        case GLFW_KEY_LEFT:
+        case Key::KEY_LEFT:
             m_movie->seek_to_time(m_movie->current_time() - 5);
             break;
         
-        case GLFW_KEY_RIGHT:
+        case Key::KEY_RIGHT:
             m_movie->seek_to_time(m_movie->current_time() + 5);
             break;
-        case GLFW_KEY_UP:
+        case Key::KEY_UP:
             m_movie->set_volume(m_movie->volume() + .1f);
             break;
             
-        case GLFW_KEY_DOWN:
+        case Key::KEY_DOWN:
             m_movie->set_volume(m_movie->volume() - .1f);
             break;
             

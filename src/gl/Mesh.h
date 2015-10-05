@@ -101,7 +101,7 @@ namespace kinski { namespace gl {
         // and store them in <m_vertex_attribs>
         void create_vertex_attribs();
         
-        void bindVertexPointers(int material_index = 0) const;
+        void bindVertexPointers(int material_index = 0);
         void bind_vertex_array(uint32_t i = 0);
         void createVertexArray();
         GLuint vertexArray(uint32_t i = 0) const;

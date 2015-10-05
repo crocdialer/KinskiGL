@@ -632,8 +632,6 @@ namespace kinski { namespace gl {
     void drawQuad(const gl::MaterialPtr &theMaterial,
                   float x0, float y0, float x1, float y1, bool filled)
     {
-        gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
-        
         // orthographic projection with a [0,1] coordinate space
         static MeshPtr quad_mesh;
         static mat4 projectionMatrix = ortho(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f);
@@ -662,6 +660,8 @@ namespace kinski { namespace gl {
         float scaleY = (y0 - y1) / g_viewport_dim[1];
         mat4 modelViewMatrix = glm::scale(mat4(), vec3(scaleX, scaleY, 1));
         modelViewMatrix[3] = vec4(x0 / g_viewport_dim[0], y1 / g_viewport_dim[1] , 0, 1);
+        
+        gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::loadMatrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
         drawMesh(quad_mesh);
@@ -1336,7 +1336,10 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 //        if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
         
         // add texturemaps
-        uint32_t tex_unit = 0, tex_2d = 0, tex_rect = 0, tex_3d = 0, tex_2d_array = 0;
+        uint32_t tex_unit = 0, tex_2d = 0;
+#if !defined(KINSKI_GLES)
+        uint32_t tex_rect = 0, tex_3d = 0, tex_2d_array = 0;
+#endif
         
         for(auto &t : the_mat->textures())
         {
