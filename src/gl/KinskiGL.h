@@ -267,7 +267,7 @@ namespace kinski { namespace gl {
         PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR, POINTS_SPHERE, RECT_2D,
         NOISE_3D};
     
-    KINSKI_API Shader createShader(ShaderType type);
+    KINSKI_API Shader createShader(ShaderType type, bool use_cached_shader = true);
     KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
                                            const std::string &geomPath="");
     

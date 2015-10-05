@@ -61,12 +61,12 @@ void ModelViewer::update(float timeDelta)
         if(use_bones)
         {
             shader = gl::createShader(*m_use_lighting ? gl::ShaderType::PHONG_SKIN_SHADOWS :
-                                                        gl::ShaderType::UNLIT_SKIN);
+                                                        gl::ShaderType::UNLIT_SKIN, false);
         }
         else
         {
             shader = gl::createShader(*m_use_lighting ? gl::ShaderType::PHONG_SHADOWS :
-                                                        gl::ShaderType::UNLIT);
+                                                        gl::ShaderType::UNLIT, false);
         }
         
         for(auto &mat : m_mesh->materials())

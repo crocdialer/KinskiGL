@@ -1546,10 +1546,10 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         return ret;
     }
     
-    Shader createShader(ShaderType type)
+    Shader createShader(ShaderType type, bool use_cached_shader)
     {
         Shader ret;
-        auto it = g_shaders.find(type);
+        auto it = use_cached_shader ? g_shaders.find(type) : g_shaders.end();
         
         if(it == g_shaders.end())
         {
