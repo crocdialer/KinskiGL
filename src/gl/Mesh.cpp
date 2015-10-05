@@ -258,11 +258,9 @@ namespace kinski { namespace gl {
             float endTime = key2.time < key1.time ? key2.time + anim.duration : key2.time;
             float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             
-            // quaternion interpolation produces glitches
-            //            glm::quat interpolRot = glm::mix(key1.value, key2.value, frac);
-            //            rotation = glm::mat4_cast(interpolRot);
-            glm::mat4 rot1 = glm::mat4_cast(key1.value), rot2 = glm::mat4_cast(key2.value);
-            rotation = rot1 + frac * (rot2 - rot1);
+            // quaternion spherical linear interpolation
+            glm::quat interpolRot = glm::slerp(key1.value, key2.value, frac);
+            rotation = glm::mat4_cast(interpolRot);
         }
         
         // scale
