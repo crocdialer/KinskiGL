@@ -163,19 +163,17 @@ namespace kinski { namespace gl{
         
         for (WeightMap::const_iterator it = weightmap.begin(); it != weightmap.end(); ++it)
         {
-            uint32_t i = 0;
             gl::BoneVertexData &boneData = geom->boneVertexData()[it->first + start_index];
+            uint32_t i = 0, max_num_weights = boneData.indices.length();
             
             list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
             tmp_list.sort(boost::bind(&pair<uint32_t, float>::second, _1) >
                           boost::bind(&pair<uint32_t, float>::second, _2));
-            
-            //if(it->second.size() > boneData.indices.length())
                 
             list< pair<uint32_t, float> >::const_iterator listIt = tmp_list.begin();
             for (; listIt != tmp_list.end(); ++listIt)
             {
-                if(i >= boneData.indices.length()) break;
+                if(i >= max_num_weights) break;
                 boneData.indices[i] = listIt->first;
                 boneData.weights[i] = listIt->second;
                 i++;
