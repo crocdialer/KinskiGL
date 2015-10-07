@@ -1536,13 +1536,8 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
         if (!geomPath.empty()) geomSrc = read_file(geomPath);
     
-        try {
-            ret.loadFromData(vertSrc.c_str(), fragSrc.c_str(), geomSrc.empty() ? NULL : geomSrc.c_str());
-        }
-        catch (Exception &e)
-        {
-            LOG_ERROR<<e.what();
-        }
+        try { ret.loadFromData(vertSrc, fragSrc, geomSrc); }
+        catch (Exception &e){ LOG_ERROR<<e.what(); }
         return ret;
     }
     
@@ -1553,7 +1548,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         
         if(it == g_shaders.end())
         {
-            const char *vert_src = nullptr, *frag_src = nullptr, *geom_src = nullptr;
+            std::string vert_src, frag_src, geom_src;
             
             switch (type)
             {

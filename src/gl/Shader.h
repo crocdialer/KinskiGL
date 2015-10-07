@@ -74,8 +74,8 @@ class KINSKI_API Shader
 	std::string getShaderLog( GLuint handle ) const;
     std::string getProgramLog() const;
     
-    void loadFromData(const char *vertSrc, const char *fragSrc,
-                      const char *geomSrc = NULL);
+    void loadFromData(const std::string &vertSrc, const std::string &fragSrc,
+                      const std::string &geomSrc = "");
     
   private:
 	void loadShader( const char *shaderSource, GLint shaderType );

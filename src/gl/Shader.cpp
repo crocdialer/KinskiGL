@@ -52,15 +52,16 @@ m_Obj(new Obj)
 	link();
 }
 
-void Shader::loadFromData(const char *vertSrc, const char *fragSrc, const char *geomSrc)
+    void Shader::loadFromData(const std::string &vertSrc, const std::string &fragSrc,
+                              const std::string &geomSrc)
 {
     m_Obj = ObjPtr(new Obj);
     
-    loadShader(vertSrc, GL_VERTEX_SHADER);
-	loadShader(fragSrc, GL_FRAGMENT_SHADER);
+    loadShader(vertSrc.c_str(), GL_VERTEX_SHADER);
+	loadShader(fragSrc.c_str(), GL_FRAGMENT_SHADER);
 
 #ifndef KINSKI_GLES
-    if(geomSrc){ loadShader(geomSrc, GL_GEOMETRY_SHADER); }
+    if(!geomSrc.empty()){ loadShader(geomSrc.c_str(), GL_GEOMETRY_SHADER); }
 #endif
     
     link();
