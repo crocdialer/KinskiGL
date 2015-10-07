@@ -29,10 +29,10 @@ void OMXWrapper::setup()
     // this will load settings or generate settings file, if not present
     if(!load_settings()){ save_settings(); }
 
-    m_timer = Timer(io_service(), bind(&OMXWrapper::stop_movie, this)); 
-    m_timer.expires_from_now(5.f);
-
     start_movie(*m_movie_delay);
+
+    m_timer = Timer(io_service(), bind(&OMXWrapper::stop_movie, this)); 
+    //m_timer.expires_from_now(5.f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -47,9 +47,7 @@ void OMXWrapper::update(float timeDelta)
 void OMXWrapper::draw()
 {   
     vec2 offset(20, gl::windowDimension().y / 2.f);
-    gl::drawText2D("poooop", fonts()[FONT_LARGE], glm::vec4(1), offset); 
-    
-    gl::drawQuad(gl::COLOR_ORANGE, vec2(80), vec2(120), true);
+    gl::drawText2D("crocdialer@googlemail.com", fonts()[FONT_LARGE], glm::vec4(1), offset); 
 }
 
 /////////////////////////////////////////////////////////////////
@@ -142,8 +140,11 @@ void OMXWrapper::start_movie(float delay)
 {
     LOG_DEBUG << "start_movie";
     int delay_secs = delay;
-    string cmd = "omxplayer --layer 0 --loop -b --pos " +
-      as_string(delay_secs) +" "+ m_movie_path->value() + " &";
+    string win_sz_str = " --win '0 0 " + as_string((int)gl::windowDimension().x - 1) + " " +
+        as_string((int)gl::windowDimension().y - 1) + "' "; 
+    string cmd = "omxplayer --layer 0 --loop --pos " +
+      as_string(delay_secs) + win_sz_str + m_movie_path->value() + " &";
+    LOG_DEBUG << cmd;
     system(cmd.c_str());
 }
 
@@ -153,5 +154,6 @@ void OMXWrapper::stop_movie()
 {
     LOG_DEBUG << "stop_movie";
     string cmd = "killall 'omxplayer' && killall 'omxplayer.bin'";
+    LOG_DEBUG << cmd;
     system(cmd.c_str());
 }

@@ -30,7 +30,7 @@ namespace kinski
         m_is_master = Property_<bool>::create("is master", false);
          
         Property_<string>::Ptr
-        m_movie_path = Property_<string>::create("movie path", "~/tess_content/berge_01.mp4");
+        m_movie_path = Property_<string>::create("movie path", "~/zug_ins_nirgendwo/content/berge_01.mp4");
         
         Property_<float>::Ptr
         m_movie_delay = Property_<float>::create("movie start delay", 0.f);
