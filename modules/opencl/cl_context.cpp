@@ -11,6 +11,8 @@
 
 #if defined(KINSKI_LINUX)
   #include <GL/glx.h>
+#elif defined (__APPLE__) || defined(MACOSX)
+#include <OpenGL/CGLCurrent.h>
 #endif
 
 using namespace std;
@@ -56,7 +58,7 @@ namespace kinski
             };
 #endif
             
-            m_context = cl::Context( CL_DEVICE_TYPE_GPU, properties);
+            m_context = cl::Context(CL_DEVICE_TYPE_GPU, properties);
             
             // Get a list of devices on this platform
             vector<cl::Device> devices = m_context.getInfo<CL_CONTEXT_DEVICES>();

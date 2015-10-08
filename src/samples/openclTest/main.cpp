@@ -192,7 +192,7 @@ public:
         observeProperties();
         create_tweakbar_from_component(shared_from_this());
         
-        m_pointMaterial = gl::Material::create(gl::createShader(gl::SHADER_POINTS_SPHERE));
+        m_pointMaterial = gl::Material::create(gl::createShader(gl::ShaderType::POINTS_SPHERE));
         //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         float vals[2];
         glGetFloatv(GL_POINT_SIZE_RANGE, vals);

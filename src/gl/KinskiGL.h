@@ -184,6 +184,8 @@ namespace kinski { namespace gl {
     /********************************* Drawing Functions *****************************************/
     
     KINSKI_API void clearColor(const Color &theColor);
+    
+    
     KINSKI_API void drawMesh(const MeshPtr &theMesh);
     KINSKI_API void drawLight(const LightPtr &theLight);
     KINSKI_API void drawLine(const vec2 &a, const vec2 &b,
@@ -228,9 +230,7 @@ namespace kinski { namespace gl {
     KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam);
     
-//#ifdef KINSKI_CPP11
     KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor);
-//#endif
 
     /*********************************** lazy state changing **********************************/
     

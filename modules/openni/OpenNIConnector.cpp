@@ -274,8 +274,12 @@ namespace kinski{ namespace gl{
     void OpenNIConnector::stop()
     {
         m_running = false;
-        try{m_thread.join();}
-        catch(std::exception &e){LOG_ERROR<<e.what();}
+        
+        if(m_thread.joinable())
+        {
+            try{m_thread.join();}
+            catch(std::exception &e){LOG_ERROR<<e.what();}
+        }
     }
     
     void OpenNIConnector::run()

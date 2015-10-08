@@ -45,6 +45,8 @@ namespace kinski{ namespace gl{
         {
             auto &geom = m_mesh->geometry();
             geom->createGLBuffers();
+            the_mesh->create_vertex_attribs();
+            
             m_contraints_aabb = geom->boundingBox();
             
             try
@@ -155,7 +157,7 @@ namespace kinski{ namespace gl{
             
             try
             {
-                vector<cl::Memory> glBuffers = {m_vertices};
+                vector<cl::Memory> glBuffers = {m_vertices, m_colors, m_pointSizes};
                 
                 // Make sure OpenGL is done using our VBOs
                 glFinish();

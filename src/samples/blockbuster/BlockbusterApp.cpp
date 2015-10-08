@@ -19,6 +19,8 @@ using namespace glm;
 void BlockbusterApp::setup()
 {
     ViewerApp::setup();
+    set_window_title("blockbuster");
+    
     registerProperty(m_view_type);
     registerProperty(m_media_path);
     registerProperty(m_use_syphon);
@@ -68,10 +70,6 @@ void BlockbusterApp::setup()
     
     load_settings();
     m_light_component->refresh();
-    
-    // setup remote control
-    m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component, m_open_ni});
-    m_remote_control.start_listen();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -112,7 +110,6 @@ void BlockbusterApp::update(float timeDelta)
     
     if(m_movie && m_movie->copy_frame_to_texture(textures()[TEXTURE_MOVIE], true))
     {
-        //        m_psystem.texture_input(textures()[0]);
         m_has_new_texture = true;
     }
     
@@ -123,7 +120,7 @@ void BlockbusterApp::update(float timeDelta)
         m_has_new_texture = true;
     }
     
-    if (m_has_new_texture)
+    if(m_has_new_texture)
     {
         m_has_new_texture = false;
         
@@ -259,8 +256,8 @@ void BlockbusterApp::fileDrop(const MouseEvent &e, const std::vector<std::string
     {
         LOG_DEBUG << f;
         
-        auto ft = get_filetype(f);
-        if(ft == FileType::FILE_IMAGE || ft == FileType::FILE_MOVIE)
+        auto ft = get_file_type(f);
+        if(ft == FileType::IMAGE || ft == FileType::MOVIE)
         {
             *m_media_path = f;
         }
@@ -353,7 +350,7 @@ gl::MeshPtr BlockbusterApp::create_mesh()
     {
         for (int x = 0; x < *m_num_tiles_x; x++)
         {
-            verts[y * *m_num_tiles_x + x].xy() = offset + vec2(x, y) * step;
+            verts[y * *m_num_tiles_x + x] = vec3(offset + vec2(x, y) * step, 0.f);
         }
     }
    
@@ -369,20 +366,30 @@ gl::MeshPtr BlockbusterApp::create_mesh()
 
 bool BlockbusterApp::save_settings(const std::string &path)
 {
-    ViewerApp::save_settings(path);
+    bool ret = true;
     
     try{ Serializer::saveComponentState(m_open_ni, "openni_config.json", PropertyIO_GL()); }
-    catch(Exception &e){LOG_ERROR<<e.what();}
+    catch(Exception &e)
+    {
+        LOG_ERROR<<e.what();
+        ret = false;
+    }
+    return ViewerApp::save_settings(path) && ret;
 }
 
 /////////////////////////////////////////////////////////////////
 
 bool BlockbusterApp::load_settings(const std::string &path)
 {
-    ViewerApp::load_settings(path);
+    bool ret = true;
     
     try{ Serializer::loadComponentState(m_open_ni, "openni_config.json", PropertyIO_GL()); }
-    catch(Exception &e){LOG_ERROR<<e.what();}
+    catch(Exception &e)
+    {
+        LOG_ERROR<<e.what();
+        ret = false;
+    }
+    return ViewerApp::load_settings(path) && ret;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -399,12 +406,12 @@ glm::vec3 BlockbusterApp::click_pos_on_ground(const glm::vec2 click_pos)
 /////////////////////////////////////////////////////////////////
 
 void BlockbusterApp::init_shaders()
-{
-    m_block_shader.loadFromData(read_file("geom_prepass.vert").c_str(),
+{    
+    m_block_shader.loadFromData(read_file("geom_prepass.vert"),
                                 phong_frag,
-                                read_file("points_to_cubes.geom").c_str());
+                                read_file("points_to_cubes.geom"));
     
-    m_block_shader_shadows.loadFromData(read_file("geom_prepass.vert").c_str(),
+    m_block_shader_shadows.loadFromData(read_file("geom_prepass.vert"),
                                         phong_shadows_frag,
-                                        read_file("points_to_cubes_shadows.geom").c_str());
+                                        read_file("points_to_cubes_shadows.geom"));
 }
