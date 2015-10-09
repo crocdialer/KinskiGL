@@ -37,6 +37,8 @@ namespace kinski
         
         Timer m_timer;
 
+        bool m_running = false;
+
         void start_movie(float delay = 0.f);
         void stop_movie();
 

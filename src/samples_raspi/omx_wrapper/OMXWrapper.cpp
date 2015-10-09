@@ -29,10 +29,13 @@ void OMXWrapper::setup()
     // this will load settings or generate settings file, if not present
     if(!load_settings()){ save_settings(); }
 
-    start_movie(*m_movie_delay);
+    m_remote_control.add_command("start_movie");
 
-    m_timer = Timer(io_service(), bind(&OMXWrapper::stop_movie, this)); 
-    //m_timer.expires_from_now(5.f);
+    if(*m_is_master)
+    {
+        start_movie(*m_movie_delay); 
+    }
+    else{ register_function("start_movie", [this](){ start_movie(*m_movie_delay); }); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -46,8 +49,8 @@ void OMXWrapper::update(float timeDelta)
 
 void OMXWrapper::draw()
 {   
-    vec2 offset(20, gl::windowDimension().y / 2.f);
-    gl::drawText2D("crocdialer@googlemail.com", fonts()[FONT_LARGE], glm::vec4(1), offset); 
+    vec2 offset(320, gl::windowDimension().y / 2.f);
+    gl::drawText2D("zug ins nirgendwo", fonts()[FONT_LARGE], glm::vec4(1), offset); 
 }
 
 /////////////////////////////////////////////////////////////////
@@ -132,20 +135,41 @@ void OMXWrapper::tearDown()
 void OMXWrapper::updateProperty(const Property::ConstPtr &theProperty)
 {
     ViewerApp::updateProperty(theProperty);
+
+    if(theProperty == m_movie_path)
+    {
+        if(*m_is_master){ start_movie(*m_movie_delay); }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
 
 void OMXWrapper::start_movie(float delay)
 {
-    LOG_DEBUG << "start_movie";
-    int delay_secs = delay;
-    string win_sz_str = " --win '0 0 " + as_string((int)gl::windowDimension().x - 1) + " " +
+    stop_movie();
+
+    m_timer = Timer(io_service(), [this]()
+    {
+        LOG_DEBUG << "start_movie";
+        string win_sz_str = " --win '0 0 " + as_string((int)gl::windowDimension().x - 1) + " " +
         as_string((int)gl::windowDimension().y - 1) + "' "; 
-    string cmd = "omxplayer --layer 0 --loop --pos " +
-      as_string(delay_secs) + win_sz_str + m_movie_path->value() + " &";
-    LOG_DEBUG << cmd;
-    system(cmd.c_str());
+        string cmd = "omxplayer --layer 0 --loop --pos " +
+            as_string(0) + win_sz_str + m_movie_path->value() + " &";
+        LOG_DEBUG << cmd;
+        system(cmd.c_str());
+        m_running = true; 
+    });
+    m_timer.expires_from_now(delay);
+
+    if(*m_is_master)
+    {
+        // master needs to trigger playback on other devices
+        std::list<string> dev_names(m_host_names->value().begin(), m_host_names->value().end());
+        for(auto &d : dev_names)
+        {
+            net::async_send_tcp(io_service(), "start_movie", d, 33333);
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -156,4 +180,5 @@ void OMXWrapper::stop_movie()
     string cmd = "killall 'omxplayer' && killall 'omxplayer.bin'";
     LOG_DEBUG << cmd;
     system(cmd.c_str());
+    m_running = false;
 }
