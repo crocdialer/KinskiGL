@@ -82,20 +82,20 @@ namespace kinski{ namespace gl{
                 //////////////// create the OpenCL only arrays //////////////////
                 
                 // combined velocity / life array
-                m_velocities = cl::Buffer(m_opencl.context(), CL_MEM_WRITE_ONLY,
+                m_velocities = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                           geom->vertexBuffer().numBytes());
                 
                 // spawn positions
-                m_positionGen = cl::Buffer(m_opencl.context(), CL_MEM_WRITE_ONLY,
+                m_positionGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                            geom->vertexBuffer().numBytes() );
                 
                 
-                m_velocityGen = cl::Buffer(m_opencl.context(), CL_MEM_WRITE_ONLY,
+                m_velocityGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                            geom->vertexBuffer().numBytes());
                 
                 
                 // reserve memory for 200 forces, seems enough
-                m_force_buffer = cl::Buffer(m_opencl.context(), CL_MEM_WRITE_ONLY,
+                m_force_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(glm::vec4));
                 
                 

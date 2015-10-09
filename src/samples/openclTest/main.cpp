@@ -152,7 +152,7 @@ private:
             
             //execute the kernel
             m_opencl.queue().enqueueNDRangeKernel(m_imageKernel, cl::NullRange, cl::NDRange(m_numParticles),
-                                         cl::NullRange);
+                                                  cl::NullRange);
             
             
             //Release the VBOs so OpenGL can play with them
@@ -241,7 +241,7 @@ public:
         
         ViewerApp::update(timeDelta);
         updateParticles(timeDelta);
-        //setColors();
+//        setColors();
     }
     
     void draw()

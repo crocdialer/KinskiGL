@@ -65,7 +65,7 @@ namespace kinski
             m_device = devices[0];
             
             // Create a command queue and use the first device
-            m_queue = cl::CommandQueue(m_context, devices[0]);
+            m_queue = cl::CommandQueue(m_context, m_device);
             
         }
         catch(cl::Error &error)
@@ -90,9 +90,6 @@ namespace kinski
     {
         try
         {
-            // Create a command queue and use the first device
-            m_queue = cl::CommandQueue(m_context, m_context.getInfo<CL_CONTEXT_DEVICES>()[0]);
-            
             // Make program of the source code in the context
             m_program = cl::Program(m_context, sources);
             

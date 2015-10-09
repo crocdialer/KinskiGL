@@ -177,7 +177,7 @@ void BlockbusterApp::draw()
     
     if(m_light_component->draw_light_dummies())
     {
-        for (auto l : lights()){ gl::drawLight(l); }
+        for (auto &l : lights()){ gl::drawLight(l); }
     }
     
     if(displayTweakBar()){ draw_textures(textures());}

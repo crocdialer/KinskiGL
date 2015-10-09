@@ -17,6 +17,8 @@ namespace kinski
     {
         using namespace boost::asio::ip;
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         std::string local_ip(bool ipV6)
         {
             std::string ret = "unknown_ip";
@@ -39,6 +41,8 @@ namespace kinski
             return ret;
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void send_tcp(const std::vector<uint8_t> &bytes,
                       const std::string &ip_string, int port)
         {
@@ -52,6 +56,18 @@ namespace kinski
             }
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void async_send_tcp(boost::asio::io_service& io_service,
+                            const std::string &str,
+                            const std::string &ip,
+                            int port)
+        {
+            async_send_tcp(io_service, std::vector<uint8_t>(str.begin(), str.end()), ip, port);
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void async_send_tcp(boost::asio::io_service& io_service,
                             const std::vector<uint8_t> &bytes,
@@ -75,6 +91,8 @@ namespace kinski
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void send_udp(const std::vector<uint8_t> &bytes,
                       const std::string &ip_string, int port)
         {
@@ -92,6 +110,8 @@ namespace kinski
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void async_send_udp(boost::asio::io_service& io_service,
                             const std::string &str,
                             const std::string &ip,
@@ -99,6 +119,8 @@ namespace kinski
         {
             async_send_udp(io_service, std::vector<uint8_t>(str.begin(), str.end()), ip, port);
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void async_send_udp(boost::asio::io_service& io_service, const std::vector<uint8_t> &bytes,
                             const std::string &ip_string, int port)
@@ -122,12 +144,16 @@ namespace kinski
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void async_send_udp_broadcast(boost::asio::io_service& io_service,
                                                  const std::string &str,
                                                  int port)
         {
             async_send_udp_broadcast(io_service, std::vector<uint8_t>(str.begin(), str.end()), port);
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void async_send_udp_broadcast(boost::asio::io_service& io_service,
                                       const std::vector<uint8_t> &bytes,
@@ -171,7 +197,11 @@ namespace kinski
             net::receive_function receive_function;
         };
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         udp_server::udp_server(){}
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         udp_server::udp_server(boost::asio::io_service& io_service, receive_function f):
         m_impl(new udp_server_impl(io_service, f))
@@ -179,15 +209,21 @@ namespace kinski
         
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void udp_server::set_receive_function(receive_function f)
         {
             m_impl->receive_function = f;
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void udp_server::set_receive_buffer_size(size_t sz)
         {
             m_impl->recv_buffer.resize(sz);
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void udp_server::start_listen(int port)
         {
@@ -222,11 +258,15 @@ namespace kinski
                 }
             });
         }
-            
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void udp_server::stop_listen()
         {
             m_impl->socket.close();
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         unsigned short udp_server::listening_port() const
         {
@@ -269,16 +309,24 @@ namespace kinski
             }
         };
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         tcp_server::tcp_server(){}
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         tcp_server::tcp_server(boost::asio::io_service& io_service, tcp_connection_callback ccb):
         m_impl(new tcp_server_impl(io_service, ccb))
         {}
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void tcp_server::set_connection_callback(tcp_connection_callback ccb)
         {
             m_impl->connection_callback = ccb;
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_server::start_listen(int port)
         {
@@ -309,10 +357,14 @@ namespace kinski
             m_impl->accept();
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         unsigned short tcp_server::listening_port() const
         {
             return m_impl->acceptor.local_endpoint().port();
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_server::stop_listen()
         {
@@ -327,8 +379,12 @@ namespace kinski
                                                   tcp_receive_callback f)
         { return tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f)); }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         tcp_connection_ptr tcp_connection::create(std::shared_ptr<tcp_connection_impl> the_impl)
         { return tcp_connection_ptr(new tcp_connection(the_impl)); }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         struct tcp_connection::tcp_connection_impl
         {
@@ -345,9 +401,13 @@ namespace kinski
             net::tcp_receive_callback tcp_receive_cb;
         };
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         tcp_connection::tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl):
         m_impl(the_impl)
         {}
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         tcp_connection::tcp_connection(boost::asio::io_service& io_service,
                                        std::string the_ip,
@@ -366,15 +426,21 @@ namespace kinski
             }
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         tcp_connection::~tcp_connection()
         {
             close();
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void tcp_connection::send(const std::string &str)
         {
             send(std::vector<uint8_t>(str.begin(), str.end()));
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_connection::send(const std::vector<uint8_t> &bytes)
         {
@@ -393,15 +459,21 @@ namespace kinski
             });
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void tcp_connection::set_receive_function(tcp_receive_callback tcp_cb)
         {
             m_impl->tcp_receive_cb = tcp_cb;
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void tcp_connection::start_receive()
         {
             _start_receive(m_impl);
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_connection::_start_receive(std::shared_ptr<tcp_connection_impl> impl_ptr)
         {
@@ -445,6 +517,8 @@ namespace kinski
             });
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         bool tcp_connection::close()
         {
             try
@@ -458,10 +532,14 @@ namespace kinski
             return false;
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         bool tcp_connection::is_open() const
         {
             return m_impl->socket.is_open();
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         int tcp_connection::port() const
         {
@@ -470,12 +548,16 @@ namespace kinski
             return -1;
         }
         
+        ///////////////////////////////////////////////////////////////////////////////
+        
         std::string tcp_connection::remote_ip() const
         {
             try{ return m_impl->socket.remote_endpoint().address().to_string(); }
             catch (std::exception &e) {}
             return "0.0.0.0";
         }
+        
+        ///////////////////////////////////////////////////////////////////////////////
         
         int tcp_connection::remote_port() const
         {
