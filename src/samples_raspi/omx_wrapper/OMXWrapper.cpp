@@ -30,12 +30,16 @@ void OMXWrapper::setup()
     if(!load_settings()){ save_settings(); }
 
     m_remote_control.add_command("start_movie");
+    register_function("start_movie", [this](){ start_movie(*m_movie_delay); });
 
     if(*m_is_master)
     {
         start_movie(*m_movie_delay); 
     }
-    else{ register_function("start_movie", [this](){ start_movie(*m_movie_delay); }); }
+    else
+    {
+        net::async_send_tcp(io_service(), "start_movie", m_host_names->value().front(), 33333); 
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -165,6 +169,8 @@ void OMXWrapper::start_movie(float delay)
     {
         // master needs to trigger playback on other devices
         std::list<string> dev_names(m_host_names->value().begin(), m_host_names->value().end());
+        dev_names.pop_front();
+
         for(auto &d : dev_names)
         {
             net::async_send_tcp(io_service(), "start_movie", d, 33333);
