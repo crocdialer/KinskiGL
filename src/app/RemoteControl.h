@@ -29,6 +29,8 @@ namespace kinski
         void start_listen(uint16_t port = 33333);
         void stop_listen();
         
+        void add_command(const std::string &the_cmd);
+        
         void add_command(const std::string &the_cmd,
                          std::function<void(net::tcp_connection_ptr)> the_action);
         void remove_command(const std::string &the_cmd);

@@ -144,6 +144,17 @@ RemoteControl::lock_components()
     return ret;
 }
 
+void RemoteControl::add_command(const std::string &the_cmd)
+{
+    m_command_map[the_cmd] = [this, the_cmd](net::tcp_connection_ptr con)
+    {
+        for(auto &comp : lock_components())
+        {
+            comp->call_function(the_cmd);
+        }
+    };
+}
+
 void RemoteControl::add_command(const std::string &the_cmd,
                                 std::function<void(net::tcp_connection_ptr)> the_action)
 {
