@@ -133,7 +133,7 @@ namespace kinski
         void addNode(const CVProcessNode::Ptr &theNode);
         const std::list<CVProcessNode::Ptr>& getNodes(){return m_processNodes;};
         
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
         
@@ -190,7 +190,7 @@ namespace kinski
         std::string getDescription();
         std::vector<cv::Mat> doProcessing(const cv::Mat &img);
         
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         
     private:
         Property_<std::string>::Ptr m_videoSrc;

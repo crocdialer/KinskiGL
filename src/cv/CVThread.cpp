@@ -19,7 +19,7 @@ namespace kinski
     CVThread::Ptr CVThread::create()
     {
         CVThread::Ptr ret(new CVThread());
-        ret->observeProperties();
+        ret->observe_properties();
         return ret;
     }
     
@@ -29,9 +29,9 @@ namespace kinski
     m_captureFPS(Property_<float>::create("max capture fps", 25.f)),
     m_newFrame(false)
     {
-        registerProperty(m_running);
-        registerProperty(m_processing);
-        registerProperty(m_captureFPS);
+        register_property(m_running);
+        register_property(m_processing);
+        register_property(m_captureFPS);
         LOG_INFO<<"OpenCV-Version: " << CV_VERSION;
     }
     
@@ -228,7 +228,7 @@ namespace kinski
         return m_lastProcessTime;
     }
     
-    void CVThread::updateProperty(const Property::ConstPtr &theProperty)
+    void CVThread::update_property(const Property::ConstPtr &theProperty)
     {
         if(theProperty == m_running)
         {

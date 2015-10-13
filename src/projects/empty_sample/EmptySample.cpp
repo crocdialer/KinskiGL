@@ -18,7 +18,7 @@ using namespace glm;
 void EmptySample::setup()
 {
     ViewerApp::setup();
-    observeProperties();
+    observe_properties();
     create_tweakbar_from_component(shared_from_this());
     load_settings();
 }
@@ -117,7 +117,7 @@ void EmptySample::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::updateProperty(const Property::ConstPtr &theProperty)
+void EmptySample::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
 }

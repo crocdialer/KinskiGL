@@ -23,49 +23,49 @@ namespace kinski {
         m_search_paths = Property_<std::vector<std::string> >::create("File search paths",
                                                                       std::vector<std::string>());
         m_search_paths->setTweakable(false);
-        registerProperty(m_search_paths);
+        register_property(m_search_paths);
         
         m_logger_severity = RangedProperty<int>::create("logger severity", kinski::SEV_INFO, 0, 7);
-        registerProperty(m_logger_severity);
+        register_property(m_logger_severity);
         
         m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);
         m_show_tweakbar->setTweakable(false);
-        registerProperty(m_show_tweakbar);
+        register_property(m_show_tweakbar);
         
         m_window_size = Property_<glm::vec2>::create("window Size", windowSize());
         m_window_size->setTweakable(false);
-        registerProperty(m_window_size);
+        register_property(m_window_size);
         
         m_look_at = Property_<glm::vec3>::create("look at", glm::vec3());
-        registerProperty(m_look_at);
+        register_property(m_look_at);
         
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
-        registerProperty(m_distance);
+        register_property(m_distance);
         
         m_camera_fov = Property_<float>::create("camera fov", 45.f);
-        registerProperty(m_camera_fov);
+        register_property(m_camera_fov);
         
         m_rotation = Property_<glm::mat3>::create("geometry rotation", glm::mat3());
         m_rotation->setTweakable(false);
-        registerProperty(m_rotation);
+        register_property(m_rotation);
         
         m_rotation_speed = RangedProperty<float>::create("rotation speed", 0, -100, 100);
-        registerProperty(m_rotation_speed);
+        register_property(m_rotation_speed);
         
         m_rotation_axis = Property_<glm::vec3>::create("rotation axis", glm::vec3(0, 1, 0));
-        registerProperty(m_rotation_axis);
+        register_property(m_rotation_axis);
         
         m_draw_grid = Property_<bool>::create("draw grid", true);
-        registerProperty(m_draw_grid);
+        register_property(m_draw_grid);
         
         m_wireframe = Property_<bool>::create("wireframe", false);
-        registerProperty(m_wireframe);
+        register_property(m_wireframe);
         
         m_drawNormals = Property_<bool>::create("normals", false);
-        registerProperty(m_drawNormals);
+        register_property(m_drawNormals);
         
         m_clear_color = Property_<glm::vec4>::create("clear color", glm::vec4(0 ,0 ,0, 1.0));
-        registerProperty(m_clear_color);
+        register_property(m_clear_color);
         
         register_function("load_settings", [this](){ load_settings(); });
         register_function("save_settings", [this](){ save_settings(); });
@@ -101,7 +101,7 @@ namespace kinski {
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         
         // enable observer mechanism
-        observeProperties();
+        observe_properties();
         
         // setup our light component
         m_light_component = std::make_shared<LightComponent>();
@@ -297,7 +297,7 @@ namespace kinski {
     }
     
     // Property observer callback
-    void ViewerApp::updateProperty(const Property::ConstPtr &theProperty)
+    void ViewerApp::update_property(const Property::ConstPtr &theProperty)
     {
         if(theProperty == m_search_paths)
         {
@@ -391,7 +391,7 @@ namespace kinski {
             tmp->set_name("light_" + as_string(i));
             tmp->set_lights(lights(), false);
             tmp->set_index(i);
-            tmp->observeProperties();
+            tmp->observe_properties();
             light_components.push_back(tmp);
         }
         for (uint32_t i = 0; i < materials().size(); i++)
@@ -400,7 +400,7 @@ namespace kinski {
             tmp->set_name("material_" + as_string(i));
             tmp->set_materials(materials(), false);
             tmp->set_index(i);
-            tmp->observeProperties();
+            tmp->observe_properties();
             material_components.push_back(tmp);
         }
         try

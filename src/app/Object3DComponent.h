@@ -22,7 +22,7 @@ namespace kinski
         Object3DComponent();
         ~Object3DComponent();
         
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         void set_object(const gl::Object3DPtr &theObject){set_objects({theObject});};
         void refresh();
         

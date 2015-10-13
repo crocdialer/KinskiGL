@@ -22,7 +22,7 @@ namespace kinski
         LightComponent();
         ~LightComponent();
         
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         void set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings = true);
         void set_index(int index);
         void set_drawLight_dummies(bool b);

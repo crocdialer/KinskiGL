@@ -170,22 +170,22 @@ namespace kinski
     void CVCombinedProcessNode::addNode(const CVProcessNode::Ptr &theNode)
     {
         m_processNodes.push_back(theNode);
-        list<Property::Ptr>::const_iterator it = theNode->getPropertyList().begin(),
-        end = theNode->getPropertyList().end();
+        list<Property::Ptr>::const_iterator it = theNode->get_property_list().begin(),
+        end = theNode->get_property_list().end();
         
         for (; it != end; ++it)
         {
-            registerProperty(*it);
+            register_property(*it);
         }
     }
     
-    void CVCombinedProcessNode::updateProperty(const Property::ConstPtr &theProperty)
+    void CVCombinedProcessNode::update_property(const Property::ConstPtr &theProperty)
     {
         list<CVProcessNode::Ptr>::iterator it = m_processNodes.begin();
         
         for (; it != m_processNodes.end(); it++)
         {
-            (*it)->updateProperty(theProperty);
+            (*it)->update_property(theProperty);
         }
     }
     
@@ -231,7 +231,7 @@ namespace kinski
     m_videoSrc(Property_<string>::create("VideoSrc", theFile)),
     m_codec(CV_FOURCC('X','V','I','D'))
     {
-        registerProperty(m_videoSrc);
+        register_property(m_videoSrc);
     }
     
     CVDiskWriterNode::~CVDiskWriterNode()
@@ -260,7 +260,7 @@ namespace kinski
         return vector<Mat>();
     }
     
-    void CVDiskWriterNode::updateProperty(const Property::ConstPtr &theProperty)
+    void CVDiskWriterNode::update_property(const Property::ConstPtr &theProperty)
     {
         if(theProperty == m_videoSrc)
         {

@@ -21,7 +21,7 @@ Component::~Component()
 {
 }
 
-Property::Ptr Component::getPropertyByName(const std::string & thePropertyName) 
+Property::Ptr Component::get_property_by_name(const std::string & thePropertyName) 
 {
     std::list<Property::Ptr>::iterator it = m_propertyList.begin();
     for (; it != m_propertyList.end(); ++it)
@@ -34,22 +34,22 @@ Property::Ptr Component::getPropertyByName(const std::string & thePropertyName)
 }
 
 const std::list<Property::Ptr>& 
-Component::getPropertyList() const
+Component::get_property_list() const
 {
     return m_propertyList;
 }
 
-void Component::registerProperty(Property::Ptr theProperty) 
+void Component::register_property(Property::Ptr theProperty) 
 {
     m_propertyList.push_back(theProperty);
 }
 
-void Component::unregisterProperty(Property::Ptr theProperty)
+void Component::unregister_property(Property::Ptr theProperty)
 {
     m_propertyList.remove(theProperty);
 }
     
-void Component::observeProperties(const std::list<Property::Ptr>& theProps,  bool b)
+void Component::observe_properties(const std::list<Property::Ptr>& theProps,  bool b)
 {
     std::list<Property::Ptr>::const_iterator it = theProps.begin();
     for (; it != theProps.end(); ++it)
@@ -62,9 +62,9 @@ void Component::observeProperties(const std::list<Property::Ptr>& theProps,  boo
     }
 }
     
-void Component::observeProperties(bool b)
+void Component::observe_properties(bool b)
 {
-    observeProperties(m_propertyList, b);
+    observe_properties(m_propertyList, b);
 }
     
 void Component::unregister_all_properties()

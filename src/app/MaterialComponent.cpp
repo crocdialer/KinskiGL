@@ -26,27 +26,27 @@ namespace kinski
     m_texture_path_3(Property_<std::string>::create("texture 3", "")),
     m_texture_path_4(Property_<std::string>::create("texture 4", ""))
     {
-        registerProperty(m_index);
-        registerProperty(m_ambient);
-        registerProperty(m_diffuse);
-        registerProperty(m_specular);
-        registerProperty(m_blending);
-        registerProperty(m_write_depth);
-        registerProperty(m_read_depth);
-        registerProperty(m_shader_vert);
-        registerProperty(m_shader_frag);
-        registerProperty(m_shader_geom);
-        registerProperty(m_texture_path_1);
-        registerProperty(m_texture_path_2);
-        registerProperty(m_texture_path_3);
-        registerProperty(m_texture_path_4);
+        register_property(m_index);
+        register_property(m_ambient);
+        register_property(m_diffuse);
+        register_property(m_specular);
+        register_property(m_blending);
+        register_property(m_write_depth);
+        register_property(m_read_depth);
+        register_property(m_shader_vert);
+        register_property(m_shader_frag);
+        register_property(m_shader_geom);
+        register_property(m_texture_path_1);
+        register_property(m_texture_path_2);
+        register_property(m_texture_path_3);
+        register_property(m_texture_path_4);
         
         set_name("Materials");
     }
     
     MaterialComponent::~MaterialComponent(){}
     
-    void MaterialComponent::updateProperty(const Property::ConstPtr &theProperty)
+    void MaterialComponent::update_property(const Property::ConstPtr &theProperty)
     {
         gl::MaterialPtr active_mat = m_materials.empty() ? gl::MaterialPtr() : m_materials[*m_index];
         if(!active_mat) return;
@@ -147,14 +147,14 @@ namespace kinski
         
         if(copy_settings)
         {
-            observeProperties();
+            observe_properties();
             m_index->set(*m_index);
         }
     }
     
     void MaterialComponent::refresh()
     {
-        observeProperties(false);
+        observe_properties(false);
         
         gl::MaterialPtr mat = m_materials.empty() ? gl::MaterialPtr() : m_materials[*m_index];
         if(!mat) return;
@@ -165,6 +165,6 @@ namespace kinski
         *m_blending = mat->blending();
         *m_write_depth = mat->depthWrite();
         *m_read_depth = mat->depthTest();
-        observeProperties(true);
+        observe_properties(true);
     }
 }

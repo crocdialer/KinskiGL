@@ -29,29 +29,29 @@ namespace kinski
     m_spot_cutoff(RangedProperty<float>::create("spot cutoff", 45.f, 0.f, 360.f)),
     m_spot_exponent(RangedProperty<float>::create("spot exponent", 0, 0, 256.f))
     {
-        registerProperty(m_draw_light_dummies);
-        registerProperty(m_light_index);
-        registerProperty(m_light_type);
-        registerProperty(m_enabled);
-        registerProperty(m_cast_shadows);
-        registerProperty(m_position_x);
-        registerProperty(m_position_y);
-        registerProperty(m_position_z);
-        registerProperty(m_direction);
-        registerProperty(m_ambient);
-        registerProperty(m_diffuse);
-        registerProperty(m_specular);
-        registerProperty(m_att_constant);
-        registerProperty(m_att_linear);
-        registerProperty(m_att_quadratic);
-        registerProperty(m_spot_cutoff);
-        registerProperty(m_spot_exponent);
+        register_property(m_draw_light_dummies);
+        register_property(m_light_index);
+        register_property(m_light_type);
+        register_property(m_enabled);
+        register_property(m_cast_shadows);
+        register_property(m_position_x);
+        register_property(m_position_y);
+        register_property(m_position_z);
+        register_property(m_direction);
+        register_property(m_ambient);
+        register_property(m_diffuse);
+        register_property(m_specular);
+        register_property(m_att_constant);
+        register_property(m_att_linear);
+        register_property(m_att_quadratic);
+        register_property(m_spot_cutoff);
+        register_property(m_spot_exponent);
         set_name("Lights");
     }
     
     LightComponent::~LightComponent(){}
     
-    void LightComponent::updateProperty(const Property::ConstPtr &theProperty)
+    void LightComponent::update_property(const Property::ConstPtr &theProperty)
     {
         gl::LightPtr active_light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
         if(!active_light) return;
@@ -147,14 +147,14 @@ namespace kinski
         
         if(copy_settings)
         {
-            observeProperties();
+            observe_properties();
             m_light_index->set(*m_light_index);
         }
     }
     
     void LightComponent::refresh()
     {
-        observeProperties(false);
+        observe_properties(false);
         
         gl::LightPtr light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
         if(!light) return;
@@ -176,6 +176,6 @@ namespace kinski
         *m_spot_cutoff = light->spot_cutoff();
         *m_spot_exponent = light->spot_exponent();
         
-        observeProperties(true);
+        observe_properties(true);
     }
 }

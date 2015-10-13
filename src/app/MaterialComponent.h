@@ -22,7 +22,7 @@ namespace kinski
         MaterialComponent();
         ~MaterialComponent();
         
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         void set_index(int index);
         void set_materials(const std::vector<gl::MaterialPtr> &m, bool copy_settings = true);
         void refresh();

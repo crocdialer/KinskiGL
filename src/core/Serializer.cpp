@@ -137,7 +137,7 @@ namespace kinski {
         {
             json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->get_name();
             
-            for ( const auto &property : theComponent->getPropertyList() )
+            for ( const auto &property : theComponent->get_property_list() )
             {
                 json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->getName();
                 
@@ -194,7 +194,7 @@ namespace kinski {
                     std::string myName =
                     myComponentNode[PropertyIO::PROPERTIES][i][PropertyIO::PROPERTY_NAME].asString();
                     
-                    Property::Ptr myProperty = theComponent->getPropertyByName(myName);
+                    Property::Ptr myProperty = theComponent->get_property_by_name(myName);
                     theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][i]);
                     
                 } catch (PropertyNotFoundException &myException)

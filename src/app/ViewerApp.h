@@ -46,7 +46,7 @@ namespace kinski {
         void resize(int w, int h) override;
         
         // Property observer callback
-        void updateProperty(const Property::ConstPtr &theProperty) override;
+        void update_property(const Property::ConstPtr &theProperty) override;
         
         Property_<std::vector<std::string> >::Ptr search_paths(){return m_search_paths;}
         bool wireframe() const { return *m_wireframe; };

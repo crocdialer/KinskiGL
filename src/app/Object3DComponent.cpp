@@ -20,19 +20,19 @@ namespace kinski
     m_scale(Property_<glm::vec3>::create("scale", glm::vec3(1))),
     m_rotation(Property_<glm::mat3>::create("rotation", glm::mat3()))
     {
-        registerProperty(m_object_index);
-        registerProperty(m_enabled);
-        registerProperty(m_position_x);
-        registerProperty(m_position_y);
-        registerProperty(m_position_z);
-        registerProperty(m_scale);
-        registerProperty(m_rotation);
+        register_property(m_object_index);
+        register_property(m_enabled);
+        register_property(m_position_x);
+        register_property(m_position_y);
+        register_property(m_position_z);
+        register_property(m_scale);
+        register_property(m_rotation);
         set_name("3D_Objects");
     }
     
     Object3DComponent::~Object3DComponent(){}
     
-    void Object3DComponent::updateProperty(const Property::ConstPtr &theProperty)
+    void Object3DComponent::update_property(const Property::ConstPtr &theProperty)
     {
         gl::Object3DPtr active_object = m_objects.empty() ? gl::Object3DPtr() : m_objects[*m_object_index];
         if(!active_object)
@@ -69,7 +69,7 @@ namespace kinski
         
         if(copy_settings)
         {
-            observeProperties();
+            observe_properties();
             m_object_index->set(*m_object_index);
         }
     }
@@ -87,7 +87,7 @@ namespace kinski
         
         if(copy_settings)
         {
-            observeProperties();
+            observe_properties();
             m_object_index->set(*m_object_index);
         }
     }
@@ -99,7 +99,7 @@ namespace kinski
     
     void Object3DComponent::refresh()
     {
-        observeProperties(false);
+        observe_properties(false);
         
         gl::Object3DPtr active_object = m_objects.empty() ? gl::Object3DPtr() : m_objects[*m_object_index];
         if(!active_object)
@@ -115,6 +115,6 @@ namespace kinski
         *m_scale = active_object->scale();
         *m_rotation = glm::mat3_cast(active_object->rotation());
         
-        observeProperties(true);
+        observe_properties(true);
     }
 }

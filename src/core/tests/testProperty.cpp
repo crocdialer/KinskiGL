@@ -17,7 +17,10 @@ public:
     TestObserver():m_triggered(false){};
     bool m_triggered;
     
-    void updateProperty(const Property::ConstPtr &theProperty){m_triggered = true;};
+    void update_property(const Property::ConstPtr &theProperty) override
+    {
+        m_triggered = true;
+    };
 };
 
 // test Property::Observer methods and behaviour

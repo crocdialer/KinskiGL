@@ -427,7 +427,7 @@ namespace kinski
         setBarSize(glm::ivec2(250, 500));
         glm::ivec2 offset(10);
         setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), m_tweakBars.back());
-        addPropertyListToTweakBar(the_component->getPropertyList(), "", m_tweakBars.back());
+        addPropertyListToTweakBar(the_component->get_property_list(), "", m_tweakBars.back());
     }
     
     void GLFW_App::addPropertyToTweakBar(const Property::Ptr propPtr,

@@ -75,7 +75,7 @@ namespace kinski
         // thread runs here
         void run();
         
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         
     private:
         

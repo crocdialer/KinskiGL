@@ -30,20 +30,20 @@ namespace kinski
         
         void set_name(const std::string &n) { m_name = n; };
         const std::string& get_name() const { return m_name; };
-        const std::list<Property::Ptr>& getPropertyList() const;
-        Property::Ptr getPropertyByName(const std::string & thePropertyName);
+        const std::list<Property::Ptr>& get_property_list() const;
+        Property::Ptr get_property_by_name(const std::string & thePropertyName);
 
         /*!
          * called whenever a registered propterty changes
          * override this in a subclass
          */
-        virtual void updateProperty(const Property::ConstPtr &theProperty){};
+        virtual void update_property(const Property::ConstPtr &theProperty){};
         
-        void observeProperties(bool b = true);
-        void observeProperties(const std::list<Property::Ptr>& theProps,  bool b = true);
+        void observe_properties(bool b = true);
+        void observe_properties(const std::list<Property::Ptr>& theProps,  bool b = true);
         
-        void registerProperty(Property::Ptr theProperty);
-        void unregisterProperty(Property::Ptr theProperty);
+        void register_property(Property::Ptr theProperty);
+        void unregister_property(Property::Ptr theProperty);
         void unregister_all_properties();
         
         bool call_function(const std::string &the_function_name);
