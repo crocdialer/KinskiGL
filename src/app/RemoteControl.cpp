@@ -25,13 +25,13 @@ void RemoteControl::start_listen(uint16_t port)
     m_tcp_server.set_connection_callback(std::bind(&RemoteControl::new_connection_cb,
                                                    this, std::placeholders::_1));
     
-    add_command("request_state", [this](net::tcp_connection_ptr con)
+    add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         // send the state string via tcp
         con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
     
-    add_command("load_settings", [this](net::tcp_connection_ptr con)
+    add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         for(auto &comp : lock_components())
         {
@@ -42,7 +42,7 @@ void RemoteControl::start_listen(uint16_t port)
         con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
     
-    add_command("save_settings", [this](net::tcp_connection_ptr con)
+    add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         for(auto &comp : lock_components())
         {
@@ -53,7 +53,7 @@ void RemoteControl::start_listen(uint16_t port)
         con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
     });
     
-    add_command("generate_snapshot", [this](net::tcp_connection_ptr con)
+    add_command("generate_snapshot", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         std::vector<uint8_t> bytes;
         
@@ -112,10 +112,14 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
         
         if(iter != m_command_map.end())
         {
+            std::vector<std::string> args(tokens.begin() + 1, tokens.end());
+            
             LOG_DEBUG << "Executing command: " << iter->first;
             
+            for(const auto &a : args){ LOG_DEBUG << "arg: " << a; }
+            
             // call the function object
-            iter->second(rec_con);
+            iter->second(rec_con, args);
         }
         else
         {
@@ -146,17 +150,17 @@ RemoteControl::lock_components()
 
 void RemoteControl::add_command(const std::string &the_cmd)
 {
-    m_command_map[the_cmd] = [this, the_cmd](net::tcp_connection_ptr con)
+    m_command_map[the_cmd] = [this, the_cmd](net::tcp_connection_ptr con,
+                                             const std::vector<std::string> &args)
     {
         for(auto &comp : lock_components())
         {
-            comp->call_function(the_cmd);
+            comp->call_function(the_cmd, args);
         }
     };
 }
 
-void RemoteControl::add_command(const std::string &the_cmd,
-                                std::function<void(net::tcp_connection_ptr)> the_action)
+void RemoteControl::add_command(const std::string &the_cmd, RCAction the_action)
 {
     m_command_map[the_cmd] = the_action;
 }

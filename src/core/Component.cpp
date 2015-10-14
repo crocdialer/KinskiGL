@@ -72,13 +72,14 @@ void Component::unregister_all_properties()
     m_propertyList.clear();
 }
 
-bool Component::call_function(const std::string &the_function_name)
+bool Component::call_function(const std::string &the_function_name,
+                              const std::vector<std::string> &the_params)
 {
     auto iter = m_function_map.find(the_function_name);
     
     if(iter != m_function_map.end())
     {
-        iter->second();
+        iter->second(the_params);
         return true;
     }
     return false;

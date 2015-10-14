@@ -67,9 +67,9 @@ namespace kinski {
         m_clear_color = Property_<glm::vec4>::create("clear color", glm::vec4(0 ,0 ,0, 1.0));
         register_property(m_clear_color);
         
-        register_function("load_settings", [this](){ load_settings(); });
-        register_function("save_settings", [this](){ save_settings(); });
-        register_function("generate_snapshot", [this](){ generate_snapshot(); });
+        register_function("load_settings", [this](const std::vector<std::string>&){ load_settings(); });
+        register_function("save_settings", [this](const std::vector<std::string>&){ save_settings(); });
+        register_function("generate_snapshot", [this](const std::vector<std::string>&){ generate_snapshot(); });
     }
     
     ViewerApp::~ViewerApp()

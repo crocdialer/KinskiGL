@@ -23,7 +23,7 @@ namespace kinski
         typedef std::shared_ptr<const Component> ConstPtr;
         typedef std::weak_ptr<Component> WeakPtr;
         
-        typedef std::function<void()> Functor;
+        typedef std::function<void(const std::vector<std::string>&)> Functor;
         
         Component(const std::string &theName = "Component");
         virtual ~Component();
@@ -46,7 +46,8 @@ namespace kinski
         void unregister_property(Property::Ptr theProperty);
         void unregister_all_properties();
         
-        bool call_function(const std::string &the_function_name);
+        bool call_function(const std::string &the_function_name,
+                           const std::vector<std::string> &the_params = {});
         void register_function(const std::string &the_name, Functor the_functor);
         void unregister_function(const std::string &the_name, Functor the_functor);
         void unregister_all_functions();
