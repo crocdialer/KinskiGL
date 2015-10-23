@@ -111,9 +111,10 @@ namespace kinski{ namespace animation{
     AnimationPtr create(T* value_ptr, const T &from_value, const T &to_value, float duration,
                         float delay = 0)
     {
-        return AnimationPtr(new Animation(duration, delay,
-                                          [=](float progress)
-                                          {*value_ptr = mix(from_value, to_value, progress);}));
+        return std::make_shared<Animation>(duration, delay, [=](float progress)
+        {
+            *value_ptr = kinski::mix(from_value, to_value, progress);
+        });
     };
     
     template<typename T>
@@ -123,12 +124,12 @@ namespace kinski{ namespace animation{
                         float duration,
                         float delay = 0)
     {
-        return AnimationPtr(new Animation(duration, delay,
+        return std::make_shared<Animation>(duration, delay,
                                           [=](float progress)
                                           {
                                               if(auto property = weak_property.lock())
                                                   *property = mix(from_value, to_value, progress);
-                                          }));
+                                          });
     };
     
 }}//namespace

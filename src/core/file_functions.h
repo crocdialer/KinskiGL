@@ -11,11 +11,10 @@
 #define _included_kinski_file_functions_
 
 #include "Definitions.h"
-#include "Exception.h"
 
 namespace kinski {
 
-    enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, OTHER};
+    enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, FONT, OTHER};
     
     int get_file_size(const std::string &theFilename);
     

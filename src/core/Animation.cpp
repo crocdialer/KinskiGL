@@ -109,11 +109,9 @@ namespace kinski{ namespace animation{
     
     float Animation::progress() const
     {
-        float val = clamp(duration_cast<float_second>(m_impl->current_time - m_impl->start_time).count() /
-                          duration_cast<float_second>(m_impl->end_time - m_impl->start_time).count(), 0.f, 1.f);
-        
-        if(m_impl->playing == PLAYBACK_BACKWARD){val = 1.f - val;}
-        return val;
+        return clamp(duration_cast<float_second>(m_impl->current_time - m_impl->start_time).count() /
+                     duration_cast<float_second>(m_impl->end_time - m_impl->start_time).count(),
+                     0.f, 1.f);
     }
     
     bool Animation::finished() const
@@ -150,15 +148,15 @@ namespace kinski{ namespace animation{
         // update timing
         m_impl->current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
         
-        //            if(m_current_time > m_start_time && m_current_time < m_end_time)
-        {
-            // this applies easing and passes it to an interpolation function
-            m_impl->interpolate_fn(m_impl->ease_fn(progress()));
+        // this applies easing and passes it to an interpolation function
+        float val = m_impl->ease_fn(progress());
+        
+        if(m_impl->playing == PLAYBACK_BACKWARD){ val = 1.f - val; }
+        m_impl->interpolate_fn(val);
             
-            // fire update callback, if any
-            if(m_impl->update_fn)
-                m_impl->update_fn();
-        }
+        // fire update callback, if any
+        if(m_impl->update_fn)
+            m_impl->update_fn();
     };
     
     /*!

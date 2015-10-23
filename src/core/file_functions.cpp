@@ -10,8 +10,6 @@
 #include "file_functions.h"
 #include <fstream>
 #include <boost/filesystem.hpp>
-#include "Exception.h"
-#include "Logger.h"
 
 using namespace std;
 using namespace boost::filesystem;
@@ -186,7 +184,7 @@ namespace kinski {
         auto ret = get_directory_entries(thePath, "", recursive);
         ret.erase(std::remove_if(ret.begin(), ret.end(), [the_type](const std::string &f)
         {
-            return false;//get_file_type(f) != the_type;
+            return get_file_type(f) != the_type;
         }), ret.end());
         return ret;
     }
@@ -345,12 +343,14 @@ namespace kinski {
         image_exts{"png", "jpg", "jpeg", "bmp", "tga"},
         audio_exts{"wav", "m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx"},
-        movie_exts{"mpg", "mov", "avi", "mp4", "m4v"};
+        movie_exts{"mpg", "mov", "avi", "mp4", "m4v"},
+        font_exts{"ttf", "otf", "ttc"};
         
         if(kinski::is_in(ext, image_exts)){ return FileType::IMAGE; }
         else if(kinski::is_in(ext, model_exts)){ return FileType::MODEL; }
         else if(kinski::is_in(ext, audio_exts)){ return FileType::AUDIO; }
         else if(kinski::is_in(ext, movie_exts)){ return FileType::MOVIE; }
+        else if(kinski::is_in(ext, font_exts)){ return FileType::FONT; }
         
         return FileType::OTHER;
     }
