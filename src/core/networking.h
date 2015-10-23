@@ -9,7 +9,7 @@
 #ifndef __gl__networking__
 #define __gl__networking__
 
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski
 {

@@ -1,7 +1,7 @@
 #ifndef __gl__MovieController__
 #define __gl__MovieController__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 
 /*
 * This class controls playback of Movies and manages their assets.

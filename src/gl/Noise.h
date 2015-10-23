@@ -9,7 +9,7 @@
 #ifndef __kinskiGL__Noise__
 #define __kinskiGL__Noise__
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski{ namespace gl{
 

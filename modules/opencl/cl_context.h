@@ -9,7 +9,7 @@
 #ifndef __gl__cl_context__
 #define __gl__cl_context__
 
-#include "core/Definitions.h"
+#include "core/core.h"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"

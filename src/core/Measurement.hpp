@@ -9,7 +9,7 @@
 #ifndef gl_Measurement_hpp
 #define gl_Measurement_hpp
 
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski
 {

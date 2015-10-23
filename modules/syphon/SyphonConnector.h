@@ -9,7 +9,7 @@
 #ifndef __gl__SyphonConnector__
 #define __gl__SyphonConnector__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski{ namespace syphon{
     

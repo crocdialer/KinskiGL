@@ -10,7 +10,7 @@
 #ifndef __gl__Geometry__
 #define __gl__Geometry__
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 #include "geometry_types.h"
 #include "Buffer.h"
 

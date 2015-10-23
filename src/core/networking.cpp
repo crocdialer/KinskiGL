@@ -7,7 +7,6 @@
 //
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include "Logger.h"
 #include "networking.h"
 

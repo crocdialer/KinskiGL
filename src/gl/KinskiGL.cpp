@@ -7,7 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "KinskiGL.h"
+#include "gl.h"
 #include "Material.h"
 #include "Shader.h"
 #include "ShaderLibrary.h"

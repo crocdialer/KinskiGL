@@ -6,7 +6,7 @@
 //
 //
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION

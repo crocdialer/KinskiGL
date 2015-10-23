@@ -8,7 +8,7 @@
 #ifndef KINSKI_GL_GEOMETRY_TYPES_H_
 #define KINSKI_GL_GEOMETRY_TYPES_H_
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski { namespace gl {
     

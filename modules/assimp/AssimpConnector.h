@@ -9,7 +9,7 @@
 #ifndef __gl__AssimpConnector__
 #define __gl__AssimpConnector__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski { namespace gl {
 

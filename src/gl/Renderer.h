@@ -9,7 +9,7 @@
 #ifndef __gl__Renderer__
 #define __gl__Renderer__
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 #include "Mesh.h"
 #include "Fbo.h"
 #include "Camera.h"

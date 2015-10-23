@@ -10,7 +10,7 @@
 #ifndef __gl__Object3D__
 #define __gl__Object3D__
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 #include "geometry_types.h"
 
 namespace kinski { namespace gl {

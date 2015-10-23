@@ -11,7 +11,7 @@
 #define __gl__SerializerGL__
 
 #include "core/Serializer.h"
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski
 {

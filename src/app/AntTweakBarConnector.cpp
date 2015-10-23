@@ -7,7 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #ifndef KINSKI_RASPI 
 #include "AntTweakBarConnector.h"
 #include <iostream>

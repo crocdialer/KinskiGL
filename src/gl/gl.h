@@ -10,7 +10,7 @@
 #ifndef _KINSKIGL_H
 #define _KINSKIGL_H
 
-#include "core/Definitions.h"
+#include "core/core.h"
 #include "core/file_functions.h"
 
 //triggers checks with glGetError()

@@ -9,7 +9,7 @@
 #ifndef __kinskiGL__RemoteControl__
 #define __kinskiGL__RemoteControl__
 
-#include "core/Definitions.h"
+#include "core/core.h"
 #include "core/Component.h"
 #include "core/networking.h"
 

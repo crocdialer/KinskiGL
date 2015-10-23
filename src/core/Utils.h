@@ -12,7 +12,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski
 {

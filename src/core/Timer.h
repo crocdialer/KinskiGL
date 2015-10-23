@@ -9,7 +9,7 @@
 #ifndef __gl__Timer__
 #define __gl__Timer__
 
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski
 {

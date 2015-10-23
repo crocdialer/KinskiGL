@@ -20,7 +20,7 @@ namespace kinski{ namespace animation{
     struct Animation::AnimationImpl
     {
         int id;
-        PlaybackType playing;
+        PlaybackType playback_type;
         LoopType loop_type;
         steady_clock::time_point start_time, end_time, current_time;
         EaseFunction ease_fn;
@@ -28,7 +28,7 @@ namespace kinski{ namespace animation{
         Callback start_fn, update_fn, finish_fn, reverse_start_fn, reverse_finish_fn;
         
         AnimationImpl():
-        playing(PLAYBACK_PAUSED),
+        playback_type(PLAYBACK_PAUSED),
         loop_type(LOOP_NONE),
         start_time(steady_clock::now()),
         end_time(start_time),
@@ -37,7 +37,7 @@ namespace kinski{ namespace animation{
         interpolate_fn([](float){}){}
         
         AnimationImpl(float duration, float delay, InterpolationFunction interpolate_fn):
-        playing(PLAYBACK_PAUSED),
+        playback_type(PLAYBACK_PAUSED),
         loop_type(LOOP_NONE),
         start_time(steady_clock::now()),
         end_time(start_time + duration_cast<steady_clock::duration>(float_second(duration))),
@@ -55,7 +55,7 @@ namespace kinski{ namespace animation{
     
     Animation::~Animation()
     {
-        switch (playing())
+        switch (playbacktype())
         {
             case PLAYBACK_FORWARD:
                 if(m_impl->finish_fn)
@@ -83,9 +83,17 @@ namespace kinski{ namespace animation{
         m_impl->end_time = m_impl->start_time + duration_cast<steady_clock::duration>(float_second(d));
     };
     
-    PlaybackType Animation::playing() const {return m_impl->playing;}
+    bool Animation::is_playing() const
+    {
+        return m_impl->playback_type && (m_impl->current_time >= m_impl->start_time);
+    }
     
-    void Animation::set_playing(PlaybackType playback_type){m_impl->playing = playback_type;}
+    PlaybackType Animation::playbacktype() const
+    {
+        return m_impl->playback_type;
+    }
+    
+    void Animation::set_playback_type(PlaybackType playback_type){m_impl->playback_type = playback_type;}
     
     LoopType Animation::loop() const {return m_impl->loop_type;}
     
@@ -116,26 +124,30 @@ namespace kinski{ namespace animation{
     
     bool Animation::finished() const
     {
-        return m_impl->current_time > m_impl->end_time;
+        return m_impl->current_time >= m_impl->end_time;
     }
     
     void Animation::update(float timeDelta)
     {
-        if(!playing()) return;
+        // update timing
+        m_impl->current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
+        
+        if(!is_playing()) return;
         
         if(finished())
         {
             // fire finish callback, if any
-            if(m_impl->playing == PLAYBACK_FORWARD && m_impl->finish_fn)
+            if(m_impl->playback_type == PLAYBACK_FORWARD && m_impl->finish_fn)
                 m_impl->finish_fn();
-            else if(m_impl->playing == PLAYBACK_BACKWARD && m_impl->reverse_finish_fn)
+            else if(m_impl->playback_type == PLAYBACK_BACKWARD && m_impl->reverse_finish_fn)
                 m_impl->reverse_finish_fn();
             
             if(loop())
             {
                 if(m_impl->loop_type == LOOP_BACK_FORTH)
                 {
-                    m_impl->playing = m_impl->playing == PLAYBACK_FORWARD ? PLAYBACK_BACKWARD : PLAYBACK_FORWARD;
+                    m_impl->playback_type = m_impl->playback_type == PLAYBACK_FORWARD ?
+                        PLAYBACK_BACKWARD : PLAYBACK_FORWARD;
                 }
                 start();
             }
@@ -145,13 +157,11 @@ namespace kinski{ namespace animation{
                 stop();
             }
         }
-        // update timing
-        m_impl->current_time += duration_cast<steady_clock::duration>(float_second(timeDelta));
         
         // this applies easing and passes it to an interpolation function
         float val = m_impl->ease_fn(progress());
         
-        if(m_impl->playing == PLAYBACK_BACKWARD){ val = 1.f - val; }
+        if(m_impl->playback_type == PLAYBACK_BACKWARD){ val = 1.f - val; }
         m_impl->interpolate_fn(val);
             
         // fire update callback, if any
@@ -164,8 +174,8 @@ namespace kinski{ namespace animation{
      */
     void Animation::start(float delay)
     {
-        if(!m_impl->playing)
-            m_impl->playing = PLAYBACK_FORWARD;
+        if(!is_playing())
+            m_impl->playback_type = PLAYBACK_FORWARD;
         
         float dur = duration();
         m_impl->current_time = steady_clock::now();
@@ -173,15 +183,15 @@ namespace kinski{ namespace animation{
         m_impl->end_time = m_impl->start_time + duration_cast<steady_clock::duration>(float_second(dur));
         
         // fire start callback, if any
-        if(m_impl->playing == PLAYBACK_FORWARD && m_impl->start_fn)
+        if(m_impl->playback_type == PLAYBACK_FORWARD && m_impl->start_fn)
             m_impl->start_fn();
-        else if(m_impl->playing == PLAYBACK_BACKWARD && m_impl->reverse_start_fn)
+        else if(m_impl->playback_type == PLAYBACK_BACKWARD && m_impl->reverse_start_fn)
             m_impl->reverse_start_fn();
     };
     
     void Animation::stop()
     {
-        m_impl->playing = PLAYBACK_PAUSED;
+        m_impl->playback_type = PLAYBACK_PAUSED;
     }
     
     //////////////////////////////////////////////////////////////////////////////////////////

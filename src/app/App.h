@@ -10,7 +10,7 @@
 #ifndef _KINSKI_APP_IS_INCLUDED_
 #define _KINSKI_APP_IS_INCLUDED_
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include "core/Component.h"
 #include "core/file_functions.h"
 #include "core/ThreadPool.h"

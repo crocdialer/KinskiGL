@@ -9,7 +9,7 @@
 #ifndef __gl__Font__
 #define __gl__Font__
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski { namespace gl {
     

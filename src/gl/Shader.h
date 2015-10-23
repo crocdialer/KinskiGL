@@ -10,7 +10,7 @@
 #ifndef _KINSKI_SHADER_INCLUDED_
 #define _KINSKI_SHADER_INCLUDED_
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 

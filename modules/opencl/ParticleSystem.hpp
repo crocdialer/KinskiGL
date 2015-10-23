@@ -9,7 +9,7 @@
 #ifndef __gl__ParticleSystem__
 #define __gl__ParticleSystem__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include "gl/geometry_types.h"
 #include "opencl/cl_context.h"
 

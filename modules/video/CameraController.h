@@ -1,7 +1,7 @@
 #ifndef __gl__CameraController__
 #define __gl__CameraController__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 
 /*
 * This class controls a camera capture

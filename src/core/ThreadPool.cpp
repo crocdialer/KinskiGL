@@ -5,12 +5,11 @@
 //  Created by Fabian on 6/12/13.
 //
 //
-#include "ThreadPool.h"
-#include "Logger.h"
-
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <thread>
+
+#include "ThreadPool.h"
 
 namespace kinski
 {
@@ -35,7 +34,7 @@ namespace kinski
         join_all();
     }
     
-    void ThreadPool::submit(Task t)
+    void ThreadPool::submit(std::function<void()> t)
     {
         m_impl->io_service.post(t);
     }
@@ -54,9 +53,13 @@ namespace kinski
     {
         for (auto &thread : m_impl->threads)
         {
-            try{thread.join();}
+            try
+            {
+                if(thread.joinable()){ thread.join(); }
+            }
             catch(std::exception &e){LOG_ERROR<<e.what();}
         }
+        m_impl->threads.clear();
     }
     
     void ThreadPool::set_num_threads(int num)

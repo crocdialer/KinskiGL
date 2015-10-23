@@ -11,7 +11,7 @@
 #define __gl__Material__
 
 #include <boost/variant.hpp>
-#include "KinskiGL.h"
+#include "gl/gl.h"
 #include "Shader.h"
 #include "Buffer.h"
 #include "Texture.h"

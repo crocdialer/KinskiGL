@@ -9,7 +9,7 @@
 #ifndef __gl__LSystem__
 #define __gl__LSystem__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include <unordered_map>
 
 namespace kinski

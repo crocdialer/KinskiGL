@@ -38,8 +38,9 @@ namespace kinski{ namespace animation{
         
         virtual void set_duration(float d);
         
-        virtual PlaybackType playing() const;
-        void set_playing(PlaybackType playback_type = PLAYBACK_FORWARD);
+        virtual bool is_playing() const;
+        virtual PlaybackType playbacktype() const;
+        void set_playback_type(PlaybackType playback_type = PLAYBACK_FORWARD);
         
         LoopType loop() const;
         void set_loop(LoopType loop_type = LOOP);
@@ -124,12 +125,13 @@ namespace kinski{ namespace animation{
                         float duration,
                         float delay = 0)
     {
-        return std::make_shared<Animation>(duration, delay,
-                                          [=](float progress)
-                                          {
-                                              if(auto property = weak_property.lock())
-                                                  *property = mix(from_value, to_value, progress);
-                                          });
+        return std::make_shared<Animation>(duration, delay, [=](float progress)
+        {
+            if(auto property = weak_property.lock())
+            {
+                *property = kinski::mix(from_value, to_value, progress);
+            }
+        });
     };
     
 }}//namespace

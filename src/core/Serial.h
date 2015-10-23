@@ -1,7 +1,7 @@
 #ifndef _KINSKI_SERIAL_INCLUDED__
 #define _KINSKI_SERIAL_INCLUDED__
 
-#include "Definitions.h"
+#include "core/core.h"
 
 #if defined(KINSKI_MSW)
 #include <winbase.h>

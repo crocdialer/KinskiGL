@@ -11,7 +11,7 @@
 #define _kinski_Logger_h_included_
 
 #include <sstream>
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski {
     enum Severity { SEV_DISABLED = 0, SEV_PRINT = 1, SEV_FATAL = 2, SEV_ERROR = 3, SEV_WARNING = 4,

@@ -10,7 +10,7 @@
 #ifndef _KINSKI_TEXTURE_INCLUDED_
 #define _KINSKI_TEXTURE_INCLUDED_
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski{ namespace gl{
     

@@ -12,7 +12,7 @@
 
 #include <boost/any.hpp>
 #include <boost/signals2.hpp>
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski
 {

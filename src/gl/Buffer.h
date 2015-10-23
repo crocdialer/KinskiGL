@@ -10,7 +10,7 @@
 #ifndef KINSKI_GL_BUFFER_H_
 #define KINSKI_GL_BUFFER_H_
 
-#include "KinskiGL.h"
+#include "gl/gl.h"
 
 namespace kinski{ namespace gl{
 

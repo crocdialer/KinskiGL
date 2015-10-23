@@ -9,7 +9,7 @@
 #ifndef __gl__ThreadPool__
 #define __gl__ThreadPool__
 
-#include "core/Definitions.h"
+#include "core/core.h"
 
 namespace kinski
 {
@@ -17,8 +17,6 @@ namespace kinski
     class ThreadPool
     {
     public:
-        
-        typedef std::function<void()> Task;
         
         ThreadPool(size_t num = 1);
         ~ThreadPool();
@@ -28,9 +26,9 @@ namespace kinski
         boost::asio::io_service& io_service();
         
         /*!
-         * submit an arbitrary task to be processed by the threadpool
+         * submit a task to be processed by the threadpool
          */
-        void submit(Task t);
+        void submit(std::function<void()> t);
         
     private:
         void join_all();

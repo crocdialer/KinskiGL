@@ -7,7 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include "GLFW_App.h"
 #include "core/file_functions.h"
 #include "AntTweakBarConnector.h"
@@ -140,6 +140,7 @@ namespace kinski
     void GLFW_App::set_window_title(const std::string &the_title)
     {
         for (auto &w : m_windows){ glfwSetWindowTitle(w->handle(), the_title.c_str()); }
+        set_name(the_title);
     }
     
     void GLFW_App::setCursorVisible(bool b)

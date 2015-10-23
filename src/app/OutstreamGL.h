@@ -9,7 +9,7 @@
 #ifndef __gl__OutstreamGL__
 #define __gl__OutstreamGL__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include "gl/Font.h"
 
 namespace kinski{ namespace gl{

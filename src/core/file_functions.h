@@ -10,7 +10,7 @@
 #ifndef _included_kinski_file_functions_
 #define _included_kinski_file_functions_
 
-#include "Definitions.h"
+#include "core/core.h"
 
 namespace kinski {
 
