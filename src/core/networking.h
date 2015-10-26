@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __gl__networking__
-#define __gl__networking__
+#ifndef __core__networking__
+#define __core__networking__
 
 #include "core/core.h"
 
@@ -16,10 +16,9 @@ namespace kinski
     namespace net
     {
         class tcp_server;
-        class tcp_connection;
         class udp_server;
         
-        typedef std::shared_ptr<tcp_connection> tcp_connection_ptr;
+        typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;
         
         // signature for a receive function
         typedef std::function<void (const std::vector<uint8_t>&)> receive_function;
@@ -148,4 +147,4 @@ namespace kinski
     }// namespace net
 }// namespace kinski
 
-#endif /* defined(__gl__networking__) */
+#endif /* defined(__core__networking__) */

@@ -69,6 +69,5 @@ namespace boost{ namespace asio{ class io_service; } }
 #include "Logger.h"
 #include "Exception.h"
 #include "Utils.h"
-#include "networking.h"
 
 #endif//gl_Definitions_h
