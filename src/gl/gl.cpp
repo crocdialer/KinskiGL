@@ -306,7 +306,8 @@ namespace kinski { namespace gl {
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
         m->setTransform(cam->transform());
-        return m->copy(); // workaround, remove again whenn issue is solved
+//        m->createVertexArray();
+        return m;
     }
 
 ///////////////////////////////////////////////////////////////////////////////

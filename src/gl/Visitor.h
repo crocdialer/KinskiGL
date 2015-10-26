@@ -56,6 +56,7 @@ namespace kinski { namespace gl {
             }
         };
         
+        void clear(){ m_objects.clear(); }
         const std::list<T*>& getObjects() const {return m_objects;};
         
     private:

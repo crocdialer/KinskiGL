@@ -317,12 +317,16 @@ namespace kinski { namespace gl {
     {
         if(m_geometry->vertices().empty()) return;
 
+#ifndef KINSKI_NO_VAO
+        GL_SUFFIX(glBindVertexArray)(0);
+#endif
         create_vertex_attribs();
         
 #ifndef KINSKI_NO_VAO
         m_shaders.clear();
         m_shaders.resize(m_materials.size());
         GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
+        m_vertexArrays.clear();
         m_vertexArrays.resize(m_materials.size(), 0);
         GL_SUFFIX(glGenVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
         
@@ -348,7 +352,6 @@ namespace kinski { namespace gl {
     void Mesh::bind_vertex_array(uint32_t i)
     {
 #if !defined(KINSKI_NO_VAO)
-        i = std::max<uint32_t>(0, i);
         
         if(i >= m_vertexArrays.size()){createVertexArray();}
         
