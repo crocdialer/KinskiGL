@@ -45,10 +45,7 @@ namespace kinski { namespace gl {
     Mesh::~Mesh()
     {
 #ifndef KINSKI_NO_VAO
-        for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
-        {
-            if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
-        }
+        GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
 #endif
     }
     
@@ -323,19 +320,14 @@ namespace kinski { namespace gl {
         create_vertex_attribs();
         
 #ifndef KINSKI_NO_VAO
-        for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
-        {
-            if(m_vertexArrays[i]) GL_SUFFIX(glDeleteVertexArrays)(1, &m_vertexArrays[i]);
-        }
-        m_vertexArrays.clear();
         m_shaders.clear();
-        m_vertexArrays.resize(m_materials.size(), 0);
         m_shaders.resize(m_materials.size());
+        GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
+        m_vertexArrays.resize(m_materials.size(), 0);
+        GL_SUFFIX(glGenVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
         
         for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
         {
-            if(!m_vertexArrays[i]){ GL_SUFFIX(glGenVertexArrays)(1, &m_vertexArrays[i]); }
-            
             GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
             bindVertexPointers(i);
             m_shaders[i] = m_materials[i]->shader();

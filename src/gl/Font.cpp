@@ -277,7 +277,7 @@ namespace kinski { namespace gl {
             uint32_t codepoint = 0;
             uint32_t state = UTF8_ACCEPT;
             
-            while (decode(&state, &codepoint, (uint8_t)*it)){ ++it; }
+            while (it != theText.end() && decode(&state, &codepoint, (uint8_t)*it)){ ++it; }
             
             //new line
             if(codepoint == 10)

@@ -9,9 +9,7 @@
 #ifndef __gl__Sound__
 #define __gl__Sound__
 
-#include "core/Definitions.h"
-#include "core/Exception.h"
-#include "core/Logger.h"
+#include "core/core.h"
 
 namespace kinski{ namespace audio{
     
