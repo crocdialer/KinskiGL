@@ -26,12 +26,12 @@ void SensorDebug::setup()
     fonts()[FONT_MEDIUM].load(font_path, 32);
     fonts()[FONT_LARGE].load(font_path, 64);
     
-    registerProperty(m_serial_device_name);
-    registerProperty(m_range_min_max);
-    registerProperty(m_timeout_game_ready);
-    registerProperty(m_sensor_refresh_rate);
+    register_property(m_serial_device_name);
+    register_property(m_range_min_max);
+    register_property(m_timeout_game_ready);
+    register_property(m_sensor_refresh_rate);
     
-    observeProperties();
+    observe_properties();
     create_tweakbar_from_component(shared_from_this());
     
     // holds 10 uint16_t sensor-values
@@ -213,9 +213,9 @@ void SensorDebug::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void SensorDebug::updateProperty(const Property::ConstPtr &theProperty)
+void SensorDebug::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_serial_device_name)
     {

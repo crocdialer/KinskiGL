@@ -19,9 +19,9 @@ void ModelViewer::setup()
 {
     ViewerApp::setup();
     
-    registerProperty(m_model_path);
-    registerProperty(m_movie_path);
-    observeProperties();
+    register_property(m_model_path);
+    register_property(m_movie_path);
+    observe_properties();
     create_tweakbar_from_component(shared_from_this());
     
     m_light_component = std::make_shared<LightComponent>();
@@ -229,9 +229,9 @@ void ModelViewer::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
+void ModelViewer::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_model_path)
     {

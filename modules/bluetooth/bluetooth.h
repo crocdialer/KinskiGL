@@ -9,7 +9,7 @@
 #ifndef __kinski__Bluetooth__
 #define __kinski__Bluetooth__
 
-#include "core/Definitions.h"
+#include "core/core.h"
 
 namespace kinski{ namespace bluetooth{
     

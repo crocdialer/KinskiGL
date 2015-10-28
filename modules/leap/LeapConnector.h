@@ -9,7 +9,7 @@
 #ifndef __gl__LeapConnector__
 #define __gl__LeapConnector__
 
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include "boost/thread.hpp"
 #include "boost/signals2.hpp"
 #include "boost/asio.hpp"

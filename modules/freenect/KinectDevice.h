@@ -10,7 +10,7 @@
 #ifndef __KINECT_DEVICE_INCLUDED_
 #define __KINECT_DEVICE_INCLUDED_
 
-#include "core/Definitions.h"
+#include "core/core.h"
 
 // Lib-Freenect
 #include <libfreenect.h>

@@ -12,7 +12,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "gl/KinskiGL.h"
+#include "gl/gl.h"
 #include "core/Component.h"
 
 // forward declare OpenNI stuff to avoid header inclusion
