@@ -175,21 +175,21 @@ public:
         kinski::add_search_path("~/Pictures");
         
         m_texturePath = Property_<string>::create("Texture path", "smoketex.png");
-        registerProperty(m_texturePath);
+        register_property(m_texturePath);
         
         m_videoPath = Property_<string>::create("Video path", "");
-        registerProperty(m_videoPath);
+        register_property(m_videoPath);
         
         m_num_particles = RangedProperty<int>::create("Num particles", 100000, 1, 2000000);
-        registerProperty(m_num_particles);
+        register_property(m_num_particles);
         
         m_point_size = RangedProperty<float>::create("Point size", 3.f, 1.f, 64.f);
-        registerProperty(m_point_size);
+        register_property(m_point_size);
         
         m_point_color = Property_<vec4>::create("Point color", vec4(1));
-        registerProperty(m_point_color);
+        register_property(m_point_color);
         
-        observeProperties();
+        observe_properties();
         create_tweakbar_from_component(shared_from_this());
         
         m_pointMaterial = gl::Material::create(gl::createShader(gl::ShaderType::POINTS_SPHERE));
@@ -279,9 +279,9 @@ public:
         }
     }
     
-    void updateProperty(const Property::ConstPtr &theProperty)
+    void update_property(const Property::ConstPtr &theProperty)
     {
-        ViewerApp::updateProperty(theProperty);
+        ViewerApp::update_property(theProperty);
         
         // one of our porperties was changed
         if(theProperty == m_texturePath)

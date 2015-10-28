@@ -20,9 +20,9 @@ void MovieTest::setup()
     ViewerApp::setup();
     set_window_title("movie tester");
     
-    registerProperty(m_movie_speed);
-    registerProperty(m_movie_path);
-    observeProperties();
+    register_property(m_movie_speed);
+    register_property(m_movie_path);
+    observe_properties();
     create_tweakbar_from_component(shared_from_this());
     
     m_movie->set_on_load_callback(bind(&MovieTest::on_movie_load, this));
@@ -126,9 +126,9 @@ void MovieTest::on_movie_load()
 
 /////////////////////////////////////////////////////////////////
 
-void MovieTest::updateProperty(const Property::ConstPtr &theProperty)
+void MovieTest::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_movie_path)
     {

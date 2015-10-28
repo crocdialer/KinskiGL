@@ -19,14 +19,14 @@ void ModelViewer::setup()
 {
     ViewerApp::setup();
     
-    registerProperty(m_model_path);
-    registerProperty(m_use_lighting);
-    registerProperty(m_use_bones);
-    registerProperty(m_display_bones);
-    registerProperty(m_animation_index);
-    registerProperty(m_animation_speed);
-    registerProperty(m_cube_map_folder);
-    observeProperties();
+    register_property(m_model_path);
+    register_property(m_use_lighting);
+    register_property(m_use_bones);
+    register_property(m_display_bones);
+    register_property(m_animation_index);
+    register_property(m_animation_speed);
+    register_property(m_cube_map_folder);
+    observe_properties();
     
     // create our UI
     create_tweakbar_from_component(shared_from_this());
@@ -234,9 +234,9 @@ void ModelViewer::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void ModelViewer::updateProperty(const Property::ConstPtr &theProperty)
+void ModelViewer::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_model_path)
     {

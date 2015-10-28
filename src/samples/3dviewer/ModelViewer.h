@@ -47,21 +47,21 @@ namespace kinski
         bool load_asset(const std::string &the_path);
     public:
         
-        void setup();
-        void update(float timeDelta);
-        void draw();
-        void resize(int w ,int h);
-        void keyPress(const KeyEvent &e);
-        void keyRelease(const KeyEvent &e);
-        void mousePress(const MouseEvent &e);
-        void mouseRelease(const MouseEvent &e);
-        void mouseMove(const MouseEvent &e);
-        void mouseDrag(const MouseEvent &e);
-        void mouseWheel(const MouseEvent &e);
-        void got_message(const std::vector<uint8_t> &the_message);
-        void fileDrop(const MouseEvent &e, const std::vector<std::string> &files);
-        void tearDown();
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void setup() override;
+        void update(float timeDelta) override;
+        void draw() override;
+        void resize(int w ,int h) override;
+        void keyPress(const KeyEvent &e) override;
+        void keyRelease(const KeyEvent &e) override;
+        void mousePress(const MouseEvent &e) override;
+        void mouseRelease(const MouseEvent &e) override;
+        void mouseMove(const MouseEvent &e) override;
+        void mouseDrag(const MouseEvent &e) override;
+        void mouseWheel(const MouseEvent &e) override;
+        void got_message(const std::vector<uint8_t> &the_message) override;
+        void fileDrop(const MouseEvent &e, const std::vector<std::string> &files) override;
+        void tearDown() override;
+        void update_property(const Property::ConstPtr &theProperty) override;
     };
 }// namespace kinski
 

@@ -23,24 +23,24 @@ void GrowthApp::setup()
     
     set_precise_selection(false);
     
-    registerProperty(m_branch_angles);
-    registerProperty(m_branch_randomness);
-    registerProperty(m_increment);
-    registerProperty(m_increment_randomness);
-    registerProperty(m_diameter);
-    registerProperty(m_diameter_shrink);
-    registerProperty(m_cap_bias);
-    registerProperty(m_num_iterations);
-    registerProperty(m_max_index);
-    registerProperty(m_axiom);
+    register_property(m_branch_angles);
+    register_property(m_branch_randomness);
+    register_property(m_increment);
+    register_property(m_increment_randomness);
+    register_property(m_diameter);
+    register_property(m_diameter_shrink);
+    register_property(m_cap_bias);
+    register_property(m_num_iterations);
+    register_property(m_max_index);
+    register_property(m_axiom);
     
     for(auto rule : m_rules)
-        registerProperty(rule);
+        register_property(rule);
     
-    registerProperty(m_use_bounding_mesh);
-    registerProperty(m_shader_index);
+    register_property(m_use_bounding_mesh);
+    register_property(m_shader_index);
     
-    observeProperties();
+    observe_properties();
     
     // create our UI
     create_tweakbar_from_component(shared_from_this());
@@ -61,7 +61,7 @@ void GrowthApp::setup()
         // load shaders
         m_lsystem_shaders[0].loadFromData(geom_prepass_vert,
                                           phong_frag,
-                                          read_file("shader_02.geom").c_str());
+                                          read_file("lines_to_cuboids.geom").c_str());
     }
     catch(Exception &e){LOG_ERROR << e.what();}
     
@@ -254,9 +254,9 @@ void GrowthApp::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void GrowthApp::updateProperty(const Property::ConstPtr &theProperty)
+void GrowthApp::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     bool rule_changed = false;
     

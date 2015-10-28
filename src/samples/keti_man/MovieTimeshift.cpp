@@ -21,26 +21,26 @@ void MovieTimeshift::setup()
 {
     ViewerApp::setup();
     
-    registerProperty(m_input_source);
-    registerProperty(m_use_syphon);
-    registerProperty(m_syphon_server_name);
-    registerProperty(m_offscreen_size);
-    registerProperty(m_flip_image);
-    registerProperty(m_cam_id);
-    registerProperty(m_syphon_in_index);
-    registerProperty(m_movie_speed);
-    registerProperty(m_movie_path);
-    registerProperty(m_noise_map_size);
-    registerProperty(m_noise_scale_x);
-    registerProperty(m_noise_scale_y);
-    registerProperty(m_noise_velocity);
-    registerProperty(m_noise_seed);
-    registerProperty(m_use_gpu_noise);
-    registerProperty(m_num_buffer_frames);
-    registerProperty(m_use_bg_substract);
-    registerProperty(m_mog_learn_rate);
+    register_property(m_input_source);
+    register_property(m_use_syphon);
+    register_property(m_syphon_server_name);
+    register_property(m_offscreen_size);
+    register_property(m_flip_image);
+    register_property(m_cam_id);
+    register_property(m_syphon_in_index);
+    register_property(m_movie_speed);
+    register_property(m_movie_path);
+    register_property(m_noise_map_size);
+    register_property(m_noise_scale_x);
+    register_property(m_noise_scale_y);
+    register_property(m_noise_velocity);
+    register_property(m_noise_seed);
+    register_property(m_use_gpu_noise);
+    register_property(m_num_buffer_frames);
+    register_property(m_use_bg_substract);
+    register_property(m_mog_learn_rate);
     
-    observeProperties();
+    observe_properties();
     create_tweakbar_from_component(shared_from_this());
     
     m_movie->set_on_load_callback(bind(&MovieTimeshift::on_movie_load, this));
@@ -438,9 +438,9 @@ bool MovieTimeshift::set_input_source(InputSource the_src)
 
 /////////////////////////////////////////////////////////////////
 
-void MovieTimeshift::updateProperty(const Property::ConstPtr &theProperty)
+void MovieTimeshift::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_input_source)
     {

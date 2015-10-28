@@ -67,7 +67,7 @@ namespace kinski
         void got_message(const std::vector<uint8_t> &the_message) override;
         void fileDrop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void tearDown() override;
-        void updateProperty(const Property::ConstPtr &theProperty) override;
+        void update_property(const Property::ConstPtr &theProperty) override;
     };
 }// namespace kinski
 

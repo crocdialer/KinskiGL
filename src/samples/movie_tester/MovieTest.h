@@ -39,7 +39,7 @@ namespace kinski
         void got_message(const std::vector<uint8_t> &the_data);
         void fileDrop(const MouseEvent &e, const std::vector<std::string> &files);
         void tearDown();
-        void updateProperty(const Property::ConstPtr &theProperty);
+        void update_property(const Property::ConstPtr &theProperty);
         
         void keyPress(const KeyEvent &e);
         

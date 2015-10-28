@@ -135,7 +135,7 @@ namespace kinski
         void got_message(const std::vector<uint8_t> &the_data) override;
         void fileDrop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void tearDown() override;
-        void updateProperty(const Property::ConstPtr &theProperty) override;
+        void update_property(const Property::ConstPtr &theProperty) override;
         void keyPress(const KeyEvent &e) override;
         
         void on_movie_load();

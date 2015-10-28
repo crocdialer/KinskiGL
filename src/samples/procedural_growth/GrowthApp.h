@@ -89,7 +89,7 @@ namespace kinski
         void mouseDrag(const MouseEvent &e) override;
         void mouseWheel(const MouseEvent &e) override;
         void tearDown() override;
-        void updateProperty(const Property::ConstPtr &theProperty) override;
+        void update_property(const Property::ConstPtr &theProperty) override;
     };
 }// namespace kinski
 

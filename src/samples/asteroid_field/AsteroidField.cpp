@@ -23,14 +23,14 @@ using namespace glm;
 void AsteroidField::setup()
 {
     ViewerApp::setup();
-    registerProperty(m_model_folder);
-    registerProperty(m_texture_folder);
-    registerProperty(m_num_objects);
-    registerProperty(m_sky_box_path);
-    registerProperty(m_half_extents);
-    registerProperty(m_velocity);
-    registerProperty(m_mode);
-    observeProperties();
+    register_property(m_model_folder);
+    register_property(m_texture_folder);
+    register_property(m_num_objects);
+    register_property(m_sky_box_path);
+    register_property(m_half_extents);
+    register_property(m_velocity);
+    register_property(m_mode);
+    observe_properties();
     
     create_tweakbar_from_component(shared_from_this());
     create_tweakbar_from_component(m_light_component);
@@ -199,9 +199,9 @@ void AsteroidField::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void AsteroidField::updateProperty(const Property::ConstPtr &theProperty)
+void AsteroidField::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_model_folder)
     {
@@ -300,7 +300,7 @@ void AsteroidField::create_scene(int num_objects)
         
         // object rotation via update-functor
         vec3 rot_vec = glm::ballRand(1.f);
-        float rot_speed = random<float>(10.f, 90.f);
+        float rot_speed = glm::radians(random<float>(10.f, 90.f));
         test_mesh->set_update_function([test_mesh, rot_vec, rot_speed](float t)
         {
             test_mesh->transform() = glm::rotate(test_mesh->transform(), rot_speed * t, rot_vec);
