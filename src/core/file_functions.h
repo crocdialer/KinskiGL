@@ -14,7 +14,7 @@
 
 namespace kinski {
 
-    enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, FONT, OTHER};
+    enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, FONT, OTHER, NOT_A_FILE};
     
     int get_file_size(const std::string &theFilename);
     

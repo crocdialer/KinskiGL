@@ -336,8 +336,10 @@ namespace kinski {
     
     FileType get_file_type(const std::string &file_name)
     {
+        if(!file_exists(file_name)){ return FileType::NOT_A_FILE; }
         if(is_directory(file_name)){ return FileType::DIRECTORY; }
-        string ext = kinski::to_lower(kinski::get_extension(file_name).substr(1));
+        string ext = kinski::get_extension(file_name);
+        ext = ext.empty() ? ext : kinski::to_lower(ext.substr(1));
         
         std::list<string>
         image_exts{"png", "jpg", "jpeg", "bmp", "tga"},
