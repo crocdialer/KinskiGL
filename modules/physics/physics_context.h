@@ -9,7 +9,7 @@
 #ifndef __gl__physics_context__
 #define __gl__physics_context__
 
-#include "core/Definitions.h"
+#include "core/core.h"
 #include <unordered_map>
 
 //#define BT_USE_DOUBLE_PRECISION
