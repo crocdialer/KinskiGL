@@ -15,8 +15,28 @@ namespace kinski { namespace gl {
     BonePtr deep_copy_bones(BonePtr src)
     {
         if(!src){ return BonePtr(); }
-        BonePtr ret = src;
+        BonePtr ret = std::make_shared<Bone>();
+        *ret = *src;
+        ret->children.clear();
+        
+        for(const auto &c : src->children)
+        {
+            auto b = deep_copy_bones(c);
+            b->parent = ret;
+            ret->children.push_back(b);
+        }
         return ret;
+    }
+    
+    BonePtr get_bone_by_name(BonePtr root, const std::string &the_name)
+    {
+        if(root->name == the_name){ return root; }
+        for(const auto &c : root->children)
+        {
+            auto b = get_bone_by_name(c, the_name);
+            if(b){ return b; }
+        }
+        return BonePtr();
     }
     
     Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
@@ -374,7 +394,25 @@ namespace kinski { namespace gl {
     {
         MeshPtr ret = create(m_geometry, material());
         *ret = *this;
-        ret->rootBone() = deep_copy_bones(rootBone());
+        
+        // deep copy bones
+//        ret->rootBone() = deep_copy_bones(rootBone());
+//        
+//        // remap animations
+//        std::vector<MeshAnimation> anim_cp;
+//        
+//        for(const auto &anim : m_animations)
+//        {
+//            auto cp = anim;
+//            cp.boneKeys.clear();
+//            
+//            for(const auto &bone_key : anim.boneKeys)
+//            {
+//                cp.boneKeys[get_bone_by_name(ret->rootBone(), bone_key.first->name)] = bone_key.second;
+//            }
+//            anim_cp.push_back(anim);
+//        }
+//        ret->m_animations = anim_cp;
         
         ret->m_vertexArrays.clear();
         ret->m_shaders.clear();

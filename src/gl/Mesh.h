@@ -28,6 +28,7 @@ namespace kinski { namespace gl {
     };
     
     BonePtr deep_copy_bones(BonePtr src);
+    BonePtr get_bone_by_name(BonePtr root, const std::string &the_name);
     
     template<typename T> struct Key
     {

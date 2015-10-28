@@ -306,7 +306,6 @@ namespace kinski { namespace gl {
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
         m->setTransform(cam->transform());
-//        m->createVertexArray();
         return m;
     }
 
@@ -370,6 +369,13 @@ namespace kinski { namespace gl {
     {
         glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);
     }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+    void clear()
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -381,6 +387,8 @@ namespace kinski { namespace gl {
         thePoints.push_back(vec3(b, 0));
         drawLines2D(thePoints, theColor, line_thickness);
     }
+
+///////////////////////////////////////////////////////////////////////////////
     
     void drawLines2D(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
     {

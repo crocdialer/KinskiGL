@@ -183,6 +183,7 @@ namespace kinski { namespace gl {
     
     /********************************* Drawing Functions *****************************************/
     
+    KINSKI_API void clear();
     KINSKI_API void clearColor(const Color &theColor);
     
     
