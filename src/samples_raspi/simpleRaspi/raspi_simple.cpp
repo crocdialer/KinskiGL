@@ -60,20 +60,20 @@ public:
 
         /*********** init our application properties ******************/
         
-        //registerProperty(m_distance);
-        //registerProperty(m_wireFrame);
-        //registerProperty(m_drawNormals);
-        //registerProperty(m_lightDir);
-        //registerProperty(m_color);
-        //registerProperty(m_rotation);
-        //registerProperty(m_rotationSpeed);
-        //registerProperty(m_camPosition);
-        registerProperty(m_imagePath);
-        registerProperty(m_dmx_start_index);
-        registerProperty(m_dmx_color);
+        //register_property(m_distance);
+        //register_property(m_wireFrame);
+        //register_property(m_drawNormals);
+        //register_property(m_lightDir);
+        //register_property(m_color);
+        //register_property(m_rotation);
+        //register_property(m_rotationSpeed);
+        //register_property(m_camPosition);
+        register_property(m_imagePath);
+        register_property(m_dmx_start_index);
+        register_property(m_dmx_color);
 
         // enable observer mechanism
-        observeProperties();
+        observe_properties();
         
         /********************** construct a simple scene ***********************/
         
@@ -166,9 +166,9 @@ public:
     }
     
     // Property observer callback
-    void updateProperty(const Property::ConstPtr &theProperty)
+    void update_property(const Property::ConstPtr &theProperty)
     {
-        ViewerApp::updateProperty(theProperty);
+        ViewerApp::update_property(theProperty);
 
         if(theProperty == m_imagePath)
         {
