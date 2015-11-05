@@ -135,7 +135,7 @@ namespace kinski {
         
         for (const auto &theComponent : theComponentList)
         {
-            json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->get_name();
+            json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->name();
             
             for ( const auto &property : theComponent->get_property_list() )
             {
@@ -185,7 +185,7 @@ namespace kinski {
         for (unsigned int i=0; i<myRoot.size(); i++)
         {
             Json::Value myComponentNode = myRoot[i];
-            if(myComponentNode[PropertyIO::PROPERTY_NAME] != theComponent->get_name()){continue;}
+            if(myComponentNode[PropertyIO::PROPERTY_NAME] != theComponent->name()){continue;}
             
             for (unsigned int i=0; i < myComponentNode[PropertyIO::PROPERTIES].size(); i++)
             {

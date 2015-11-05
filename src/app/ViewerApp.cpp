@@ -79,6 +79,8 @@ namespace kinski {
     
     void ViewerApp::setup()
     {
+        set_window_title(name());
+                              
         fonts()[0].load("Courier New Bold.ttf", 18);
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);

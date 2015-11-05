@@ -84,7 +84,7 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
-        addWindow(GLFW_Window::create(getWidth(), getHeight(), get_name(), fullSceen()));
+        addWindow(GLFW_Window::create(getWidth(), getHeight(), name(), fullSceen()));
         gl::setWindowDimension(windowSize());
         
         // set graphical log stream
@@ -140,7 +140,6 @@ namespace kinski
     void GLFW_App::set_window_title(const std::string &the_title)
     {
         for (auto &w : m_windows){ glfwSetWindowTitle(w->handle(), the_title.c_str()); }
-        set_name(the_title);
     }
     
     void GLFW_App::setCursorVisible(bool b)
@@ -201,7 +200,7 @@ namespace kinski
         
         if(m_windows.empty()) return;
         
-        GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), get_name(), b, monitor_index,
+        GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), name(), b, monitor_index,
                                                     m_windows.back()->handle());
         m_windows.clear();
         addWindow(window);
@@ -423,7 +422,7 @@ namespace kinski
     void GLFW_App::create_tweakbar_from_component(const Component::Ptr &the_component)
     {
         if(!the_component) return;
-        m_tweakBars.push_back(TwNewBar(the_component->get_name().c_str()));
+        m_tweakBars.push_back(TwNewBar(the_component->name().c_str()));
         setBarColor(glm::vec4(0, 0, 0, .5), m_tweakBars.back());
         setBarSize(glm::ivec2(250, 500));
         glm::ivec2 offset(10);

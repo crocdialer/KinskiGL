@@ -112,7 +112,7 @@ void EmptySample::fileDrop(const MouseEvent &e, const std::vector<std::string> &
 
 void EmptySample::tearDown()
 {
-    LOG_PRINT<<"ciao empty sample";
+    LOG_PRINT << "ciao " << name();
 }
 
 /////////////////////////////////////////////////////////////////
