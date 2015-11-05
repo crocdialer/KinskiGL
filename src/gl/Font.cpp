@@ -10,8 +10,10 @@
 #include "Mesh.h"
 #include "Font.h"
 
+#define STB_RECT_PACK_IMPLEMENTATION
+#include "stb_rect_pack.inl"
 #define STB_TRUETYPE_IMPLEMENTATION
-#include "stb_truetype.h"
+#include "stb_truetype.inl"
 
 // no support on gcc 4.8
 //#include <codecvt>
@@ -25,10 +27,10 @@ std::wstring utf8_to_wstring(const std::string& str)
     return utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
 }
 
-std::string wstring_to_utf8(const std::wstring& str)
-{
-    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
-}
+//std::string wstring_to_utf8(const std::wstring& str)
+//{
+//    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
+//}
 
 namespace kinski { namespace gl {
     
