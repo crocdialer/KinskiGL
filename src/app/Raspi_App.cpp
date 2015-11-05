@@ -28,7 +28,7 @@ namespace kinski
         gettimeofday(&m_startTime, NULL);
 
         esInitContext ( m_context.get() );
-        esCreateWindow ( m_context.get(), get_name().c_str(), getWidth(), getHeight(),
+        esCreateWindow ( m_context.get(), name().c_str(), getWidth(), getHeight(),
                         ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH  /*| ES_WINDOW_MULTISAMPLE*/);
 
         // set graphical log stream
