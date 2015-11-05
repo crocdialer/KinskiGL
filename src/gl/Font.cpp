@@ -155,7 +155,11 @@ namespace kinski { namespace gl {
     Texture Font::create_texture(const std::string &theText, const glm::vec4 &theColor) const
     {
         Texture ret;
-        float x = 0, y = 0;
+        
+        // workaround for weirdness in stb_truetype (blank 1st characters on line)
+        const float start_x = .6f;
+        
+        float x = start_x, y = 0.f;
         uint32_t max_x = 0, max_y = 0;
         stbtt_aligned_quad q;
         typedef std::list< std::pair<Area<uint32_t>, Area<uint32_t> > > Area_Pairs;
@@ -174,7 +178,7 @@ namespace kinski { namespace gl {
             //new line
             if(codepoint == '\n')
             {
-                x = 0;
+                x = start_x;
                 y += m_obj->line_height;
                 continue;
             }
@@ -255,7 +259,10 @@ namespace kinski { namespace gl {
         std::vector<glm::vec2>& tex_coords = geom->texCoords();
         std::vector<glm::vec4>& colors = geom->colors();
         
-        float x = 0, y = 0;
+        // workaround for weirdness in stb_truetype (blank 1st characters on line)
+        const float start_x = .6f;
+        
+        float x = start_x, y = 0.f;
         uint32_t max_y = 0;
         stbtt_aligned_quad q;
         std::list<stbtt_aligned_quad> quads;
@@ -273,7 +280,7 @@ namespace kinski { namespace gl {
             //new line
             if(codepoint == '\n')
             {
-                x = 0;
+                x = start_x;
                 y += m_obj->line_height;
                 continue;
             }
@@ -298,9 +305,9 @@ namespace kinski { namespace gl {
             int h = quad.y1 - quad.y0;
 
             Area<float> tex_Area (quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
-            Area<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0),
+            Area<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0 - start_x),
                                       static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0)),
-                                      static_cast<uint32_t>(quad.x0 + w),
+                                      static_cast<uint32_t>(quad.x0 + w - start_x),
                                       static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0 + h)));
             
             // CREATE QUAD
