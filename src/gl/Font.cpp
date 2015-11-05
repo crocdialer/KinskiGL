@@ -15,16 +15,19 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.inl"
 
-// no support on gcc 4.8
+// no support in libstdc++ as of gcc 4.8
 //#include <codecvt>
 
+// -> fallback to boost/locale
 #include <boost/locale/encoding_utf.hpp>
-
-using boost::locale::conv::utf_to_utf;
 
 std::wstring utf8_to_wstring(const std::string& str)
 {
-    return utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
+    // the UTF-8 / UTF-16 standard conversion facet
+//    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> utf16conv;
+//    return utf16conv.from_bytes(str);
+    
+    return boost::locale::conv::utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
 }
 
 //std::string wstring_to_utf8(const std::wstring& str)
@@ -165,10 +168,6 @@ namespace kinski { namespace gl {
         typedef std::list< std::pair<Area<uint32_t>, Area<uint32_t> > > Area_Pairs;
         Area_Pairs area_pairs;
         
-        // no support in libstdc++ as of gcc 4.8
-        // the UTF-8 / UTF-16 standard conversion facet
-//        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
-//        std::u16string utf16 = utf16conv.from_bytes(theText);
         auto wstr = utf8_to_wstring(theText);
         
         for (auto it = wstr.begin(); it != wstr.end(); ++it)
@@ -267,10 +266,6 @@ namespace kinski { namespace gl {
         stbtt_aligned_quad q;
         std::list<stbtt_aligned_quad> quads;
         
-        // no support in libstdc++ as of gcc 4.8
-        // the UTF-8 / UTF-16 standard conversion facet
-        //        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> utf16conv;
-        //        std::u16string utf16 = utf16conv.from_bytes(theText);
         auto wstr = utf8_to_wstring(theText);
         
         for (auto it = wstr.begin(); it != wstr.end(); ++it)
