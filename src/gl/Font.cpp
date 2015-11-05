@@ -196,9 +196,9 @@ namespace kinski { namespace gl {
                                 static_cast<uint32_t>(q.t0 * m_obj->bitmap_height),
                                 static_cast<uint32_t>(q.s0 * m_obj->bitmap_width + w),
                                 static_cast<uint32_t>(q.t0 * m_obj->bitmap_height + h));
-            Area<uint32_t> dst (static_cast<uint32_t>(q.x0),
+            Area<uint32_t> dst (static_cast<uint32_t>(q.x0 - start_x),
                                 static_cast<uint32_t>(m_obj->font_height + q.y0),
-                                static_cast<uint32_t>(q.x0 + w),
+                                static_cast<uint32_t>(q.x0 + w - start_x),
                                 static_cast<uint32_t>(m_obj->font_height + q.y0 + h));
 
             area_pairs.push_back(std::make_pair(src, dst));
