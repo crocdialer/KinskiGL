@@ -10,6 +10,8 @@
 #include "Mesh.h"
 #include "Font.h"
 
+#include <unordered_map>
+
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "stb_rect_pack.inl"
 #define STB_TRUETYPE_IMPLEMENTATION
@@ -83,7 +85,7 @@ namespace kinski { namespace gl {
         
         // how many string meshes are buffered at max
         size_t max_mesh_buffer_size;
-        std::map<std::string, string_mesh_container> string_mesh_map;
+        std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
         Obj():bitmap_width(1024), bitmap_height(1024), max_mesh_buffer_size(300)
         {

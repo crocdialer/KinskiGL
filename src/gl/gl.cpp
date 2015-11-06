@@ -1580,6 +1580,11 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     vert_src = phong_vert;
                     frag_src = phong_frag;
                     break;
+                
+                case ShaderType::NOISE_3D:
+                    vert_src = unlit_vert;
+                    frag_src = noise_3D_frag;
+                    break;
                     
 #if !defined(KINSKI_GLES)
                     
@@ -1590,11 +1595,6 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                 case ShaderType::PHONG_SKIN_SHADOWS:
                     vert_src = phong_skin_vert;
                     frag_src = phong_shadows_frag;
-                    break;
-                    
-                case ShaderType::NOISE_3D:
-                    vert_src = unlit_vert;
-                    frag_src = noise_3D_frag;
                     break;
                     
                 case ShaderType::RECT_2D:
@@ -1633,7 +1633,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     break;
             }
             ret.loadFromData(vert_src, frag_src, geom_src);
-            g_shaders[type] = ret;
+            if(use_cached_shader){ g_shaders[type] = ret; }
             KINSKI_CHECK_GL_ERRORS();
         }
         else{ ret = it->second; }

@@ -309,7 +309,7 @@ namespace kinski{ namespace gl{
             }
         }
         geom->computeTangents();
-        geom->createGLBuffers();
+//        geom->createGLBuffers();
         geom->computeBoundingBox();
         return geom;
     }
