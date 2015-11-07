@@ -125,9 +125,11 @@ namespace kinski { namespace gl {
         //TODO: check extension
         try
         {
+            std::vector<uint8_t> font_file = kinski::read_binary_file(thePath);
+            m_obj->string_mesh_map.clear();
             m_obj->font_height = theSize;
             m_obj->line_height = line_height > 0 ? line_height : theSize;
-            std::vector<uint8_t> font_file = kinski::read_binary_file(thePath);
+            
             stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
                                  m_obj->font_height, m_obj->data, m_obj->bitmap_width,
                                  m_obj->bitmap_height, 32, 768, m_obj->char_data);
@@ -345,6 +347,7 @@ namespace kinski { namespace gl {
             
             for (uint32_t i = 0; i < tmp_list.size() / 2; i++, ++list_it)
             {
+                list_it->counter--;
                 m_obj->string_mesh_map[list_it->text] = *list_it;
             }
         }

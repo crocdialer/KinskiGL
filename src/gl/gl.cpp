@@ -1587,6 +1587,11 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
                     break;
                     
 #if !defined(KINSKI_GLES)
+                
+                case ShaderType::BLUR:
+                    vert_src = unlit_vert;
+                    frag_src = blur_poisson_frag;
+                    break;
                     
                 case ShaderType::PHONG_SHADOWS:
                     vert_src = phong_shadows_vert;

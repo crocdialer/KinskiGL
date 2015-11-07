@@ -265,16 +265,11 @@ void Texture::set_swizzle(GLint red, GLint green, GLint blue, GLint alpha)
 
 void Texture::set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
-    // clamp values
-    x = clamp<int>(x, 0, getWidth() - 1);
-    y = clamp<int>(y, 0, getHeight() - 1);
-    width = clamp<int>(width, 0, getWidth() - x);
-    height = clamp<int>(height, 0, getHeight() - y);
+    int y_inv = getHeight() - height - y;
     
-    vec3 offset = vec3((float)x / getWidth(),
-                                 (float)y / getHeight(), 0);
-    vec3 sc = vec3((float)width / getWidth(),
-                                (float)height / getHeight(), 1);
+    vec3 offset = vec3((float)x / getWidth(), (float)y_inv / getHeight(), 0);
+    
+    vec3 sc = vec3((float)width / getWidth(), (float)height / getHeight(), 1);
     
     m_textureMatrix = translate(mat4(), offset) * scale(mat4(), sc);
 }

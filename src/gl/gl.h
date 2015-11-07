@@ -264,7 +264,7 @@ namespace kinski { namespace gl {
     
     /*********************************** Shader loading *******************************************/
     
-    enum class ShaderType {UNLIT, UNLIT_SKIN, GOURAUD, PHONG, PHONG_SHADOWS, PHONG_SKIN_SHADOWS,
+    enum class ShaderType {UNLIT, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS, PHONG_SKIN_SHADOWS,
         PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR, POINTS_SPHERE, RECT_2D,
         NOISE_3D};
     
