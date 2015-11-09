@@ -146,8 +146,10 @@ namespace kinski { namespace gl {
                 rgba_ptr[3] = *dst_ptr;
             }
             
-            m_obj->texture.update(rgba_data, GL_UNSIGNED_BYTE, GL_RGBA, m_obj->bitmap_width,
-                                  m_obj->bitmap_height, true);
+            // create a new texture object for our glyphs
+            m_obj->texture = gl::Texture(rgba_data, GL_RGBA, m_obj->bitmap_width,
+                                         m_obj->bitmap_height);
+            m_obj->texture.setFlipped();
             m_obj->texture.set_mipmapping(true);
             
         } catch (const Exception &e)
