@@ -32,7 +32,7 @@ namespace kinski { namespace gl {
     public:
         UpdateVisitor(float time_step):Visitor(), m_time_step(time_step){};
 
-        void visit(Mesh &theNode)
+        void visit(gl::Object3D &theNode) override
         {
             theNode.update(m_time_step);
             Visitor::visit(static_cast<gl::Object3D&>(theNode));
