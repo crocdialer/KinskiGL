@@ -226,8 +226,7 @@ namespace kinski{ namespace video{
         {
 //            [m_impl->m_player_item removeOutput:m_impl->m_output];
 //            [m_impl->m_player_item addOutput:m_impl->m_output];
-            
-            return false;
+//            return false;
         }
         
         CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
