@@ -198,8 +198,8 @@ namespace kinski{ namespace gl{
         static GeometryPtr createPlane(float width, float height,
                                        uint32_t numSegments_W = 1,
                                        uint32_t numSegments_H = 1);
-        static GeometryPtr createSolidUnitCircle(int numSegments);
-        static GeometryPtr createUnitCircle(int numSegments);
+        static GeometryPtr createSolidCircle(int numSegments, float the_radius = 1.f);
+        static GeometryPtr createCircle(int numSegments, float the_radius = 1.f);
         static GeometryPtr createBox(const vec3 &theHalfExtents);
         static GeometryPtr createSphere(float radius, int numSlices);
         static GeometryPtr createCone(float radius, float height, int numSegments);

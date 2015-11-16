@@ -314,7 +314,7 @@ namespace kinski{ namespace gl{
         return geom;
     }
     
-    GeometryPtr Geometry::createSolidUnitCircle(int numSegments)
+    GeometryPtr Geometry::createSolidCircle(int numSegments, float the_radius)
     {
         GeometryPtr ret = Geometry::create();
         ret->setPrimitiveType(GL_TRIANGLE_FAN);
@@ -341,7 +341,7 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
-    GeometryPtr Geometry::createUnitCircle(int numSegments)
+    GeometryPtr Geometry::createCircle(int numSegments, float the_radius)
     {
         GeometryPtr ret = Geometry::create();
         ret->setPrimitiveType(GL_LINE_STRIP);
@@ -355,7 +355,7 @@ namespace kinski{ namespace gl{
         for(int s = 0; s <= numSegments; s++)
         {
             float t = s / (float)numSegments * 2.0f * M_PI;
-            verts[s] = glm::vec3(glm::vec2(cos(t), sin(t)), 0);
+            verts[s] = the_radius * glm::vec3(glm::vec2(cos(t), sin(t)), 0);
         }
         ret->computeBoundingBox();
         return ret;

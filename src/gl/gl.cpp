@@ -1140,8 +1140,8 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         
         if(!our_mesh)
         {
-            GeometryPtr geom = solid ? Geometry::createSolidUnitCircle(numSegments) :
-                Geometry::createUnitCircle(numSegments);
+            GeometryPtr geom = solid ? Geometry::createSolidCircle(numSegments) :
+                Geometry::createCircle(numSegments);
             default_mat = gl::Material::create();
             default_mat->setDepthWrite(false);
             our_mesh = gl::Mesh::create(geom, default_mat);
