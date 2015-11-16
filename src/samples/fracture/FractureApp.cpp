@@ -23,24 +23,24 @@ void FractureApp::setup()
     
     m_texture_paths->setTweakable(false);
     
-    registerProperty(m_view_type);
-    registerProperty(m_model_path);
-    registerProperty(m_crosshair_path);
-    registerProperty(m_texture_paths);
-    registerProperty(m_physics_running);
-    registerProperty(m_physics_debug_draw);
-    registerProperty(m_num_fracture_shards);
-    registerProperty(m_breaking_thresh);
-    registerProperty(m_gravity);
-    registerProperty(m_friction);
-    registerProperty(m_shoot_velocity);
-    registerProperty(m_shots_per_sec);
-    registerProperty(m_obj_scale);
-    registerProperty(m_fbo_resolution);
-    registerProperty(m_fbo_cam_pos);
-    registerProperty(m_use_syphon);
-    registerProperty(m_syphon_server_name);
-    observeProperties();
+    register_property(m_view_type);
+    register_property(m_model_path);
+    register_property(m_crosshair_path);
+    register_property(m_texture_paths);
+    register_property(m_physics_running);
+    register_property(m_physics_debug_draw);
+    register_property(m_num_fracture_shards);
+    register_property(m_breaking_thresh);
+    register_property(m_gravity);
+    register_property(m_friction);
+    register_property(m_shoot_velocity);
+    register_property(m_shots_per_sec);
+    register_property(m_obj_scale);
+    register_property(m_fbo_resolution);
+    register_property(m_fbo_cam_pos);
+    register_property(m_use_syphon);
+    register_property(m_syphon_server_name);
+    observe_properties();
     create_tweakbar_from_component(shared_from_this());
     
     m_light_component = std::make_shared<LightComponent>();
@@ -279,14 +279,14 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
         kinski::add_search_path(kinski::get_directory_part(f));
         m_search_paths->value().push_back(f);
         
-        switch (get_filetype(f))
+        switch (get_file_type(f))
         {
-            case FileType::FILE_MODEL:
+            case FileType::MODEL:
                 *m_model_path = f;
                 break;
             
-            case FileType::FILE_IMAGE:
-            case FileType::FILE_MOVIE:
+            case FileType::IMAGE:
+            case FileType::MOVIE:
                 m_texture_paths->value().push_back(f);
                 if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
                 {
@@ -309,9 +309,9 @@ void FractureApp::tearDown()
 
 /////////////////////////////////////////////////////////////////
 
-void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
+void FractureApp::update_property(const Property::ConstPtr &theProperty)
 {
-    ViewerApp::updateProperty(theProperty);
+    ViewerApp::update_property(theProperty);
     
     if(theProperty == m_model_path)
     {
@@ -336,12 +336,12 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_crosshair_path)
     {
-        auto ft = get_filetype(*m_crosshair_path);
-        if(ft == FileType::FILE_MOVIE)
+        auto ft = get_file_type(*m_crosshair_path);
+        if(ft == FileType::MOVIE)
         {
             m_crosshair_movie = video::MovieController::create(*m_crosshair_path, true, true);
         }
-        else if(ft == FileType::FILE_IMAGE)
+        else if(ft == FileType::IMAGE)
         {
             m_crosshair_movie.reset();
             
@@ -356,11 +356,11 @@ void FractureApp::updateProperty(const Property::ConstPtr &theProperty)
         std::vector<gl::Texture> tex_array;
         for(const string &f : m_texture_paths->value())
         {
-            if(get_filetype(f) == FileType::FILE_IMAGE)
+            if(get_file_type(f) == FileType::IMAGE)
             {
                 try{ tex_array.push_back(gl::createTextureFromFile(f, true, true, 8.f)); }
                 catch (Exception &e) { LOG_WARNING << e.what(); }
-            }else if(get_filetype(f) == FileType::FILE_MOVIE)
+            }else if(get_file_type(f) == FileType::MOVIE)
             {
                 m_movie = video::MovieController::create(f, true, true);
             }
@@ -422,7 +422,7 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
 {
 //    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
     static gl::Shader phong_shader;
-    if(!phong_shader){ phong_shader = gl::createShader(gl::SHADER_PHONG); }
+    if(!phong_shader){ phong_shader = gl::createShader(gl::ShaderType::PHONG); }
     gl::MeshPtr mesh = gl::Mesh::create(m_box_geom, gl::Material::create(phong_shader));
     mesh->setScale(.2f * the_half_extents);
     mesh->setPosition(the_ray.origin);
@@ -444,7 +444,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     m_physics.init();
     m_gravity->notifyObservers();
     
-    auto phong_shader = gl::createShader(gl::SHADER_PHONG);
+    auto phong_shader = gl::createShader(gl::ShaderType::PHONG);
     
 //    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 100 - .3f));
     btRigidBody *wall;

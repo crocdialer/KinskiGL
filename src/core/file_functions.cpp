@@ -169,8 +169,7 @@ namespace kinski {
                     }
                 }
             }
-            else
-                LOG_DEBUG<< p <<" does not exist";
+            else{ LOG_DEBUG<< p <<" does not exist"; }
         }
         catch (const std::exception& e)
         {
