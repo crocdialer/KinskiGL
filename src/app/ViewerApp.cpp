@@ -15,6 +15,7 @@ namespace kinski {
     
     ViewerApp::ViewerApp():BaseApp(),
     m_camera(new gl::PerspectiveCamera),
+    m_gui_camera(gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1)),
     m_precise_selection(true),
     m_center_selected(false),
     m_rotation_damping (.9)
@@ -319,8 +320,11 @@ namespace kinski {
         else if(theProperty == m_window_size)
         {
             set_window_size(*m_window_size);
+            
+            m_gui_camera = gl::OrthographicCamera::create(0, gl::windowDimension().x, 0, gl::windowDimension().y,
+                                                          0, 1.f);
             // only set this once
-            m_window_size->removeObserver(shared_from_this());
+//            m_window_size->removeObserver(shared_from_this());
         }
         else if(theProperty == m_clear_color)
         {

@@ -211,6 +211,7 @@ struct KINSKI_API AABB
 	inline float height() const	{ return max.y - min.y; }
 	inline float depth() const { return max.z - min.z; }
 	inline vec3 halfExtents() const { return (max - min) / 2.f; }
+    inline vec3 size() const { return (max - min); }
 	inline vec3 center() const	{ return max - halfExtents(); }
 	
     const AABB operator+(const AABB &theAABB) const
