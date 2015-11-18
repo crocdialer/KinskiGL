@@ -193,7 +193,7 @@ namespace kinski { namespace gl {
         std::list<Object3DPtr>::const_iterator it = m_children.begin();
         for (; it != m_children.end(); ++it)
         {
-            ret += (*it)->boundingBox().transform((*it)->global_transform());
+            ret += (*it)->boundingBox().transform(transform() * (*it)->transform());
         }
         return ret;
     }
