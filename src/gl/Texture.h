@@ -175,7 +175,7 @@ namespace kinski{ namespace gl{
         void setFlipped( bool aFlipped = true );
         
         //!	set a region of interest (subimage), this function will alter the texture matrix appropriately
-        void set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height);
+        void set_roi(int x, int y, uint32_t width, uint32_t height);
         
         //!	set a region of interest (subimage), this function will alter the texture matrix appropriately
         void set_roi(const Area<uint32_t> &the_roi);

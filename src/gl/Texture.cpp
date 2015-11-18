@@ -263,7 +263,7 @@ void Texture::set_swizzle(GLint red, GLint green, GLint blue, GLint alpha)
 #endif
 }
 
-void Texture::set_roi(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+void Texture::set_roi(int x, int y, uint32_t width, uint32_t height)
 {
     int y_inv = getHeight() - height - y;
     
