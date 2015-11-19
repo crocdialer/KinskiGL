@@ -246,6 +246,7 @@ namespace kinski { namespace gl {
         if(m_obj->string_mesh_map.find(theText) != m_obj->string_mesh_map.end())
         {
             mesh_iter->second.counter++;
+            mesh_iter->second.mesh->setTransform(mat4());
             return mesh_iter->second.mesh;
         }
         // create a new mesh object

@@ -80,5 +80,5 @@ void main()
   if(u_numTextures > 0) 
     texColors *= poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); 
 
-  fragData = u_material.diffuse * texColors; 
+  fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a); 
 }

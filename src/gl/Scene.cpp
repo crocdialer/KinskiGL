@@ -77,7 +77,7 @@ namespace kinski { namespace gl {
         void visit(Light &theNode)
         {
             //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
-            if(theNode.enabled() || !check_tags(m_tags, theNode.tags()))
+            if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
             {
                 RenderBin::light light_item;
                 light_item.light = &theNode;

@@ -45,11 +45,13 @@ namespace kinski { namespace gl {
     class SelectVisitor : public Visitor
     {
     public:
-        SelectVisitor():Visitor(){};
+        SelectVisitor(const std::set<std::string> &the_tags = {}):
+        Visitor(),
+        m_tags(the_tags){};
         
         void visit(T &theNode) override
         {
-            if(theNode.enabled())
+            if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
             {
                 m_objects.push_back(&theNode);
                 Visitor::visit(static_cast<gl::Object3D&>(theNode));
@@ -61,6 +63,17 @@ namespace kinski { namespace gl {
         
     private:
         std::list<T*> m_objects;
+        std::set<std::string> m_tags;
+        
+        inline bool check_tags(const std::set<std::string> &filter_tags,
+                               const std::set<std::string> &obj_tags)
+        {
+            for(const auto &t : obj_tags)
+            {
+                if(is_in(t, filter_tags)){ return true; }
+            }
+            return filter_tags.empty();
+        }
     };
     
 }}//namespace

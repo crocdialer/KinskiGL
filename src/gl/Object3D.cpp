@@ -198,6 +198,33 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    void Object3D::add_tag(const std::string& the_tag, bool recursive)
+    {
+        m_tags.insert(the_tag);
+        
+        if(recursive)
+        {
+            for (auto &c : children())
+            {
+                c->add_tag(the_tag, recursive);
+            }
+        }
+
+    }
+    
+    void Object3D::remove_tag(const std::string& the_tag, bool recursive)
+    {
+        m_tags.erase(the_tag);
+        
+        if(recursive)
+        {
+            for (auto &c : children())
+            {
+                c->remove_tag(the_tag, recursive);
+            }
+        }
+    }
+    
     void Object3D::accept(Visitor &theVisitor)
     {
         theVisitor.visit(*this);

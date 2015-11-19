@@ -511,7 +511,7 @@ char const* const blur_poisson_frag =
    "  vec4 texColors = vertex_in.color;\n"
    "  if(u_numTextures > 0) \n"
    "    texColors *= poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); \n"
-   "  fragData = u_material.diffuse * texColors; \n"
+   "  fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a); \n"
    "}\n"
 ;
 

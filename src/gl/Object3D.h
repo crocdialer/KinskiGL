@@ -26,14 +26,17 @@ namespace kinski { namespace gl {
         Object3D();
         virtual ~Object3D(){};
         
-        uint32_t get_id() const {return m_id;};
-        const std::string name() const { return m_name; }
-        void set_name(const std::string &the_name){ m_name = the_name; }
-        const std::set<std::string>& tags() const { return m_tags; };
-        std::set<std::string>& tags() { return m_tags; };
-        bool has_tag(const std::string& the_tag) const;
+        inline uint32_t get_id() const {return m_id;};
+        inline const std::string name() const { return m_name; }
+        inline void set_name(const std::string &the_name){ m_name = the_name; }
+        inline const std::set<std::string>& tags() const { return m_tags; };
+        inline std::set<std::string>& tags() { return m_tags; };
+        inline bool has_tag(const std::string& the_tag) const;
         
-        bool enabled() const {return m_enabled;}
+        void add_tag(const std::string& the_tag, bool recursive = false);
+        void remove_tag(const std::string& the_tag, bool recursive = false);
+        
+        inline bool enabled() const {return m_enabled;}
         void set_enabled(bool b = true){m_enabled = b;}
         bool billboard() const {return m_billboard;};
         void set_billboard(bool b) {m_billboard = b;}
