@@ -51,9 +51,9 @@ namespace kinski { namespace gl {
         
         void visit(T &theNode) override
         {
-            if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
+            if(theNode.enabled())
             {
-                m_objects.push_back(&theNode);
+                if(check_tags(m_tags, theNode.tags())){ m_objects.push_back(&theNode); }
                 Visitor::visit(static_cast<gl::Object3D&>(theNode));
             }
         };
