@@ -543,12 +543,12 @@ namespace kinski{ namespace physics{
     
     void Mesh::preallocateVertices(int numverts)
     {
-        m_mesh->geometry()->vertices().resize(numverts);
+//        m_mesh->geometry()->vertices().resize(numverts);
     }
     
     void Mesh::preallocateIndices(int numindices)
     {
-        m_mesh->geometry()->indices().resize(numindices);
+//        m_mesh->geometry()->indices().resize(numindices);
     }
     
 /**************************************************************************************************/

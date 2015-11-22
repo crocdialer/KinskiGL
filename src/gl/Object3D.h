@@ -84,6 +84,7 @@ namespace kinski { namespace gl {
         void set_global_scale(const vec3 &scale);
         
         virtual gl::AABB boundingBox() const;
+        virtual gl::OBB obb() const;
         
         /*!
          * Performs an update on this scenegraph node.

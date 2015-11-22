@@ -151,17 +151,14 @@ namespace kinski{ namespace video{
                  
                  if(!error)
                  {
-                     if(autoplay)
-                         play();
-                     else
-                         pause();
-                     
                      set_loop(loop || m_impl->m_loop);
                      
                      [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                   
-                     if(m_impl->m_on_load_cb)
-                         m_impl->m_on_load_cb(shared_from_this());
+                     if(autoplay){ play(); }
+                     else{ pause(); }
+                     
+                     if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
                  }
                  else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
              }

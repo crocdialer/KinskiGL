@@ -202,7 +202,8 @@ namespace kinski { namespace gl {
         std::list<range_item_t> clicked_items;
         for (const auto &the_object : sv.getObjects())
         {
-            gl::OBB boundingBox (the_object->boundingBox(), the_object->global_transform());
+            gl::OBB boundingBox = the_object->obb();
+            //(the_object->boundingBox(), the_object->global_transform());
 
             if (ray_intersection ray_hit = boundingBox.intersect(ray))
             {

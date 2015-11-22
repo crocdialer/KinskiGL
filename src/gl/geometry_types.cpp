@@ -142,10 +142,26 @@ OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
     glm::vec3 scale (glm::length(t[0]),
                      glm::length(t[1]),
                      glm::length(t[2]));
-    axis[0] = t[0].xyz() / scale[0];
-    axis[1] = t[1].xyz() / scale[1];
-    axis[2] = t[2].xyz() / scale[2];
+    axis[0] = normalize(t[0].xyz());
+    axis[1] = normalize(t[1].xyz());
+    axis[2] = normalize(t[2].xyz());
     half_lengths = theAABB.halfExtents() * scale;
+}
+
+OBB& OBB::transform(const mat4& t)
+{
+    glm::vec3 scale (glm::length(t[0]),
+                     glm::length(t[1]),
+                     glm::length(t[2]));
+    half_lengths *= scale;
+    
+    mat3 normal_mat = glm::inverseTranspose(mat3(t));
+    axis[0] = normalize(normal_mat * axis[0]);
+    axis[1] = normalize(normal_mat * axis[1]);
+    axis[2] = normalize(normal_mat * axis[2]);
+    center += t[3].xyz();
+    
+    return *this;
 }
     
 AABB& AABB::transform(const glm::mat4& t)

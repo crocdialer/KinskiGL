@@ -508,9 +508,9 @@ char const* const blur_poisson_frag =
    "	fTaps_Poisson[9]  = vec2( .896, .412);\n"
    "	fTaps_Poisson[10] = vec2(-.322,-.933);\n"
    "	fTaps_Poisson[11] = vec2(-.792,-.598);\n"
-   "  vec4 texColors = vertex_in.color;\n"
+   "  vec4 texColors = vec4(0, 0, 0, 1);//vertex_in.color;\n"
    "  if(u_numTextures > 0) \n"
-   "    texColors *= poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); \n"
+   "    texColors = poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); \n"
    "  fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a); \n"
    "}\n"
 ;

@@ -114,6 +114,8 @@ namespace kinski { namespace gl {
          */
         AABB boundingBox() const override;
         
+        gl::OBB obb() const override;
+        
         const std::vector<Entry>& entries() const {return m_entries;};
         std::vector<Entry>& entries() {return m_entries;};
         

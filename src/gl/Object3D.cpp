@@ -190,11 +190,19 @@ namespace kinski { namespace gl {
     AABB Object3D::boundingBox() const
     {
         AABB ret;
-        std::list<Object3DPtr>::const_iterator it = m_children.begin();
-        for (; it != m_children.end(); ++it)
+        mat4 global_trans = global_transform();
+        ret.transform(global_trans);
+        
+        for (auto &c :children())
         {
-            ret += (*it)->boundingBox().transform(transform() * (*it)->transform());
+            ret += c->boundingBox();
         }
+        return ret;
+    }
+    
+    gl::OBB Object3D::obb() const
+    {
+        gl::OBB ret(boundingBox(), mat4());
         return ret;
     }
     

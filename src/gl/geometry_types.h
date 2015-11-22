@@ -307,6 +307,14 @@ struct KINSKI_API OBB
     
     OBB(const AABB &theAABB, const mat4 &t);
     
+    OBB& transform(const mat4& t);
+    
+    inline OBB transform(const mat4& t) const
+    {
+        OBB ret = *this;
+        return ret.transform(t);
+    }
+    
     inline ray_intersection intersect(const Ray& theRay) const
     {
         return gl::intersect(*this, theRay);

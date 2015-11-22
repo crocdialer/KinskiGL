@@ -76,9 +76,9 @@ void main()
 	fTaps_Poisson[10] = vec2(-.322,-.933);
 	fTaps_Poisson[11] = vec2(-.792,-.598);
 
-  vec4 texColors = vertex_in.color;
+  vec4 texColors = vec4(0, 0, 0, 1);//vertex_in.color;
   if(u_numTextures > 0) 
-    texColors *= poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); 
+    texColors = poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); 
 
   fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a); 
 }

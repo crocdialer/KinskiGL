@@ -481,7 +481,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
 //        scene().addObject(back);
         
         // wall left/right
-        m_physics.set_world_boundaries(vec3(m_obj_scale->value().x / 2.f, 100, 1000));
+//        m_physics.set_world_boundaries(vec3(m_obj_scale->value().x / 2.f, 100, 1000));
     }
     
     
