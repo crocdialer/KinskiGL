@@ -50,6 +50,17 @@ namespace kinski { namespace gl{
         //return gl::Frustum(getProjectionMatrix()).transform(transform());
     }
     
+    void OrthographicCamera::set_size(const gl::vec2 &the_sz)
+    {
+        m_left = 0.f;
+        m_right = the_sz.x;
+        m_bottom = 0.f;
+        m_top = the_sz.y;
+        m_near = 0.f;
+        m_far = 1.f;
+        updateProjectionMatrix();
+    }
+    
     /****************** PerspectiveCamera *******************/
     
     PerspectiveCamera::PerspectiveCamera(float ascpect, float fov, float near, float far):

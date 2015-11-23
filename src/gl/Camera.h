@@ -91,6 +91,8 @@ public:
     {
         m_top = val; updateProjectionMatrix();
     };
+    
+    void set_size(const gl::vec2 &the_sz);
 
 protected:
     
