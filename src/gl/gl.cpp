@@ -240,6 +240,8 @@ namespace kinski { namespace gl {
     
     gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices)
     {
+        if(theVertices.empty()){ return AABB(); }
+        
         AABB ret = AABB(glm::vec3(numeric_limits<float>::max()),
                         glm::vec3(numeric_limits<float>::min()));
         
