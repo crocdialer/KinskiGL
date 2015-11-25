@@ -9,8 +9,9 @@
 #ifndef __gl__MovieTimeshift__
 #define __gl__MovieTimeshift__
 
-#include "app/ViewerApp.h"
 #include "core/Timer.h"
+#include "gl/Noise.h"
+#include "app/ViewerApp.h"
 
 #include "video/MovieController.h"
 #include "video/CameraController.h"
@@ -52,10 +53,10 @@ namespace kinski
         std::vector<uint8_t> m_camera_data;
         
         gl::Texture m_array_tex;
-        gl::MaterialPtr m_custom_mat, m_noise_gen_mat;
+        gl::MaterialPtr m_custom_mat;
         int m_current_index = 0;
         
-        gl::Fbo m_offscreen_fbo, m_noise_fbo, m_fbo_transfer;
+        gl::Fbo m_offscreen_fbo, m_fbo_transfer;
         
         Property_<glm::vec2>::Ptr
         m_offscreen_size = Property_<glm::vec2>::create("Offscreen size", glm::vec2(800, 600)),
@@ -75,7 +76,6 @@ namespace kinski
         // properties
         Property_<int>::Ptr m_cam_id = Property_<int>::create("camera id", 0);
         Property_<bool>::Ptr m_flip_image = Property_<bool>::create("flip image", true);
-        Property_<bool>::Ptr m_use_gpu_noise = Property_<bool>::create("use gpu noise", true);
         Property_<string>::Ptr m_movie_path = Property_<string>::create("movie path", "");
         Property_<float>::Ptr m_movie_speed = Property_<float>::create("movie speed", 1.f);
         
@@ -84,6 +84,7 @@ namespace kinski
         Property_<float>::Ptr m_noise_scale_y = Property_<float>::create("noise scale y", 0.0125f);
         Property_<float>::Ptr m_noise_velocity = Property_<float>::create("noise velocity", 0.1f);
         Property_<float>::Ptr m_noise_seed = Property_<float>::create("noise seed", 0.f);
+        gl::Noise m_noise;
         
         // MOG params
         Property_<bool>::Ptr
@@ -98,7 +99,7 @@ namespace kinski
          * create a procedural simplex noise texture
          * params are read from m_noise_xxx properties (scale, velocity, seed)
          */
-        gl::Texture create_noise_tex(float seed = 0.025f);
+//        gl::Texture create_noise_tex(float seed = 0.025f);
         
         gl::Buffer m_pbo;
         

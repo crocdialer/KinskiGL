@@ -13,8 +13,6 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
-//cv::Ptr<cv::BackgroundSubtractorMOG2> g_mog2 = cv::createBackgroundSubtractorMOG2();
-
 /////////////////////////////////////////////////////////////////
 
 void MovieTimeshift::setup()
@@ -35,7 +33,6 @@ void MovieTimeshift::setup()
     register_property(m_noise_scale_y);
     register_property(m_noise_velocity);
     register_property(m_noise_seed);
-    register_property(m_use_gpu_noise);
     register_property(m_num_buffer_frames);
     register_property(m_use_bg_substract);
     register_property(m_mog_learn_rate);
@@ -55,12 +52,6 @@ void MovieTimeshift::setup()
         auto sh = gl::createShaderFromFile("array_shader.vert", "array_shader.frag");
         m_custom_mat->setShader(sh);
     } catch (Exception &e) { LOG_ERROR << e.what();}
-    
-    m_noise_gen_mat = gl::Material::create(gl::createShader(gl::ShaderType::NOISE_3D));
-    m_noise_gen_mat->setDepthTest(false);
-    m_noise_gen_mat->setDepthWrite(false);
-    
-    textures()[TEXTURE_NOISE] = create_noise_tex();
     
     // init buffer as PixelBuffer
     m_pbo = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STREAM_COPY);
@@ -122,6 +113,7 @@ void MovieTimeshift::update(float timeDelta)
             
             // create a foreground image
 //            cv::UMat fg_image;
+            
             if(*m_use_bg_substract)
             {
 //                fg_image = create_foreground_image(m_camera_data, w, h);
@@ -192,7 +184,7 @@ void MovieTimeshift::update(float timeDelta)
     }
     
     // update procedural noise texture
-    textures()[TEXTURE_NOISE] = create_noise_tex(getApplicationTime() * *m_noise_velocity + *m_noise_seed);
+    textures()[TEXTURE_NOISE] = m_noise.simplex(getApplicationTime() * *m_noise_velocity + *m_noise_seed);
     m_custom_mat->textures() = {m_array_tex, textures()[TEXTURE_NOISE]};
 }
 
@@ -272,44 +264,28 @@ void MovieTimeshift::on_movie_load()
 
 /////////////////////////////////////////////////////////////////
 
-gl::Texture MovieTimeshift::create_noise_tex(float seed)
-{
-    gl::Texture noise_tex;
-    
-    if(*m_use_gpu_noise)
-    {
-        if(!m_noise_fbo || m_noise_fbo.getSize() != m_noise_map_size->value())
-        {
-            m_noise_fbo = gl::Fbo(*m_noise_map_size);
-        }
-        m_noise_gen_mat->uniform("u_scale", vec2(*m_noise_scale_x, *m_noise_scale_y));
-        m_noise_gen_mat->uniform("u_seed", seed);
-        
-        noise_tex = gl::render_to_texture(m_noise_fbo, [this]()
-        {
-            gl::drawQuad(m_noise_gen_mat, m_noise_fbo.getSize());
-        });
-    }
-    else
-    {
-        int w = m_noise_map_size->value().x, h = m_noise_map_size->value().y;
-        float data[w * h];
-        
-        for (int i = 0; i < h; i++)
-        {
-            for (int j = 0; j < w; j++)
-            {
-                data[i * h + j] = (glm::simplex( vec3(vec2(i * *m_noise_scale_x,
-                                                           j * * m_noise_scale_y), seed)) + 1) / 2.f;
-            }
-        }
-        gl::Texture::Format fmt;
-        fmt.setInternalFormat(GL_RED);
-        noise_tex = gl::Texture (w, h, fmt);
-        noise_tex.update(data, GL_RED, w, h, true);
-    }
-    return noise_tex;
-}
+//gl::Texture MovieTimeshift::create_noise_tex(float seed)
+//{
+//    
+//    gl::Texture noise_tex;
+//
+//    int w = m_noise_map_size->value().x, h = m_noise_map_size->value().y;
+//    float data[w * h];
+//    
+//    for (int i = 0; i < h; i++)
+//    {
+//        for (int j = 0; j < w; j++)
+//        {
+//            data[i * h + j] = (glm::simplex( vec3(vec2(i * *m_noise_scale_x,
+//                                                       j * * m_noise_scale_y), seed)) + 1) / 2.f;
+//        }
+//    }
+//    gl::Texture::Format fmt;
+//    fmt.setInternalFormat(GL_RED);
+//    noise_tex = gl::Texture (w, h, fmt);
+//    noise_tex.update(data, GL_RED, w, h, true);
+//    return noise_tex;
+//}
 
 /////////////////////////////////////////////////////////////////
 
@@ -424,9 +400,11 @@ bool MovieTimeshift::set_input_source(InputSource the_src)
 
 //cv::UMat MovieTimeshift::create_foreground_image(std::vector<uint8_t> &the_data, int width, int height)
 //{
+//    static cv::Ptr<cv::BackgroundSubtractorMOG2> g_mog2 = cv::createBackgroundSubtractorMOG2();
+//    static cv::UMat fg_mat;
+//    
 //    cv::UMat ret;
 //    cv::UMat m = cv::Mat(height, width, CV_8UC4, &the_data[0]).getUMat(cv::ACCESS_RW);
-//    static cv::UMat fg_mat;
 //    g_mog2->apply(m, fg_mat, *m_mog_learn_rate);
 //    blur(fg_mat, fg_mat, cv::Size(11, 11));
 //    std::vector<cv::UMat> channels;
@@ -457,6 +435,12 @@ void MovieTimeshift::update_property(const Property::ConstPtr &theProperty)
     else if(theProperty == m_num_buffer_frames)
     {
         m_needs_array_refresh = true;
+    }
+    else if(theProperty == m_noise_map_size || theProperty == m_noise_scale_x ||
+            theProperty == m_noise_scale_y)
+    {
+        m_noise.set_tex_size(*m_noise_map_size);
+        m_noise.set_scale(vec2(*m_noise_scale_x, *m_noise_scale_y));
     }
     else if(theProperty == m_offscreen_size)
     {
