@@ -17,7 +17,7 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.inl"
 
-// no support in libstdc++ as of gcc 4.8
+// no support in libstdc++ as of gcc 4.9
 //#include <codecvt>
 
 // -> fallback to boost/locale
