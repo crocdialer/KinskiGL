@@ -285,10 +285,10 @@ mat4 Texture::getTextureMatrix() const
     
     if(m_Obj->m_Flipped)
     {
-        static mat4 flipY = mat4(vec4(1, 0, 0, 1),
-                                 vec4(0, -1, 0, 1),// invert y-coords
-                                 vec4(0, 0, 1, 1),
-                                 vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
+        static const mat4 flipY = mat4(vec4(1, 0, 0, 1),
+                                       vec4(0, -1, 0, 1),// invert y-coords
+                                       vec4(0, 0, 1, 1),
+                                       vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
         ret = flipY * ret;
     }
     return ret;
