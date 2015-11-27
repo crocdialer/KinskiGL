@@ -360,4 +360,86 @@ namespace kinski { namespace gl {
         return ret;
     }
     
+    gl::Object3DPtr Font::create_text_obj(const std::string &the_text, float the_linewidth,
+                                          Align the_align) const
+    {
+        gl::Object3DPtr ret = gl::Object3D::create();
+        
+        // create text meshes (1 per line)
+        auto lines = split(the_text, '\n', false);
+        
+        vec2 line_offset;
+        
+        for(uint32_t i = 0; i < lines.size(); i++)
+        {
+            //        bool inserted_new_line = false;
+            
+            string l = lines[i];
+            
+            auto line_mesh = create_mesh(l)->copy();
+            
+            // center line_mesh
+            auto line_aabb = line_mesh->boundingBox();
+            
+            //split line, if necessary
+            while(line_aabb.width() > the_linewidth)
+            {
+                // split up line into words (seperated by ' ')
+                auto words = split(l);
+                
+                if(words.size() < 2){ break; }
+                //            line_mesh->material()->setDiffuse(gl::COLOR_DARK_RED);
+                
+                std::string last_word = words.back();
+                words.pop_back();
+                
+                // rebuild string
+                l.clear();
+                
+                for (auto &w : words){ l.append(w + " "); }
+                
+                // cut last ' ' char
+                if(!l.empty()){ l = l.substr(0, l.size() - 1); }
+                
+                if(i + 1 < lines.size())
+                {
+                    //                if(fresh_line){ lines.insert(lines.begin() + i + 1, ""); inserted_new_line = true; }
+                    lines[i + 1] = last_word + " " + lines[i + 1];
+                }
+                else{ lines.push_back(last_word); }
+                
+                // recreate cut mesh
+                line_mesh = create_mesh(l)->copy();
+                
+                // new aabb
+                line_aabb = line_mesh->boundingBox();
+            }
+            
+//            if(the_advance){ line_offset.y = *the_advance; }
+            
+            switch (the_align)
+            {
+                case Align::LEFT:
+                    line_offset.x = 0.f;
+                    break;
+                case Align::CENTER:
+                    line_offset.x = (the_linewidth - line_aabb.width()) / 2.f;
+                    break;
+                case Align::RIGHT:
+                    line_offset.x = (the_linewidth - line_aabb.width());
+                    break;
+            }
+            
+            line_mesh->setPosition(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
+            
+            // advance offset
+            line_offset.y -= getLineHeight();
+            
+            if(!l.empty())
+            { ret->add_child(line_mesh); }
+        }
+        
+        return ret;
+    }
+    
 }}// namespace
