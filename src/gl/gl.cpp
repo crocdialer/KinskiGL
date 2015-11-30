@@ -1134,7 +1134,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 ///////////////////////////////////////////////////////////////////////////////
     
     void drawCircle(const glm::vec2 &center, float radius, bool solid,
-                         const MaterialPtr &theMaterial, int numSegments)
+                    const MaterialPtr &theMaterial, int numSegments)
     {
         static gl::MeshPtr solid_mesh, line_mesh;
         static gl::MaterialPtr default_mat;

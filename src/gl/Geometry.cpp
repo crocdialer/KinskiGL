@@ -293,6 +293,9 @@ namespace kinski{ namespace gl{
             }
         }
         
+        // fill in colors
+        geom->colors().resize(geom->vertices().size(), gl::COLOR_WHITE);
+        
         // create faces and texcoords
         for ( uint32_t iz = 0; iz < gridZ; iz ++ )
         {
@@ -309,7 +312,6 @@ namespace kinski{ namespace gl{
             }
         }
         geom->computeTangents();
-//        geom->createGLBuffers();
         geom->computeBoundingBox();
         return geom;
     }
