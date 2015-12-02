@@ -414,9 +414,7 @@ namespace kinski { namespace gl {
                 // new aabb
                 line_aabb = line_mesh->boundingBox();
             }
-            
-//            if(the_advance){ line_offset.y = *the_advance; }
-            
+
             switch (the_align)
             {
                 case Align::LEFT:
