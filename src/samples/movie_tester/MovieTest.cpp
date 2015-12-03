@@ -46,14 +46,18 @@ void MovieTest::update(float timeDelta)
 void MovieTest::draw()
 {
     if(m_textures[0])
-        gl::drawTexture(m_textures[0], gl::windowDimension());
+    {
+//        gl::drawTexture(m_textures[0], gl::windowDimension());
+    }
+    m_quad_warp.render_output(m_textures[0]);
+    m_quad_warp.render_control_points();
     
     if(displayTweakBar())
     {
         gl::drawText2D(m_movie->get_path() + " : " +
                        kinski::as_string(m_movie->current_time(), 2) + " / " +
                        kinski::as_string(m_movie->duration(), 2),
-                       m_font);
+                       fonts()[0]);
     }
 }
 
