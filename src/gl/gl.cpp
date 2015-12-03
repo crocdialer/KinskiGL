@@ -720,46 +720,10 @@ namespace kinski { namespace gl {
 
         if(theMap.find(conf) == theMap.end())
         {
-            GeometryPtr geom = Geometry::create();
-            geom->setPrimitiveType(GL_LINES);
-            gl::MaterialPtr mat = gl::Material::create();
-            MeshPtr mesh (gl::Mesh::create(geom, mat));
+            auto mesh = gl::Mesh::create(gl::Geometry::create_grid(width, height, numW, numH),
+                                         gl::Material::create());
             
-            vector<vec3> &points = geom->vertices();
-            vector<vec4> &colors = geom->colors();
-            
-            float stepX = width / numW, stepZ = height / numH;
-            float w2 = width / 2.f, h2 = height / 2.f;
-            
-            glm::vec4 *color;
-            for (int x = 0; x < numW + 1; x ++ )
-            {
-                if(x == 0) color = &colorBlue;
-                else color = &colorGrey;
-                
-                // line Z
-                points.push_back(vec3(- w2 + x * stepX, 0.f, -h2));
-                points.push_back(vec3(- w2 + x * stepX, 0.f, h2));
-                colors.push_back(*color);
-                colors.push_back(*color);
-            }
-            for (int z = 0; z < numH + 1; z++ )
-            {
-                if(z == 0) color = &colorRed;
-                else color = &colorGrey;
-                
-                // line X
-                points.push_back(vec3(- w2 , 0.f, -h2 + z * stepZ));
-                points.push_back(vec3( w2 , 0.f, -h2 + z * stepZ));
-                colors.push_back(*color);
-                colors.push_back(*color);
-            }
-            
-            theMap.clear();
-            
-            geom->createGLBuffers();
-            mesh->createVertexArray();
-            
+//            theMap.clear();
             theMap[conf] = mesh;
         }
         drawMesh(theMap[conf]);

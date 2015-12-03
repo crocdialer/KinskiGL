@@ -26,9 +26,11 @@ void MovieTest::setup()
     create_tweakbar_from_component(shared_from_this());
     
     m_movie->set_on_load_callback(bind(&MovieTest::on_movie_load, this));
-    m_camera_control->start_capture();
     
     load_settings();
+    
+    m_quad_warp.set_control_point(0, 0, vec2(.3f, 0.1f));
+    m_quad_warp.set_control_point(1, 0, vec2(.8f, 0.3f));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -45,11 +47,8 @@ void MovieTest::update(float timeDelta)
 
 void MovieTest::draw()
 {
-    if(m_textures[0])
-    {
-//        gl::drawTexture(m_textures[0], gl::windowDimension());
-    }
     m_quad_warp.render_output(m_textures[0]);
+    m_quad_warp.render_grid();
     m_quad_warp.render_control_points();
     
     if(displayTweakBar())

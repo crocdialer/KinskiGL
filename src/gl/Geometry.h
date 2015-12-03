@@ -195,6 +195,9 @@ namespace kinski{ namespace gl{
         /********************************* Factory methods ****************************************/
          
         static GeometryPtr create(){return Ptr(new Geometry());};
+        static GeometryPtr create_grid(float width, float height,
+                                       uint32_t numSegments_W = 20,
+                                       uint32_t numSegments_H = 20);
         static GeometryPtr createPlane(float width, float height,
                                        uint32_t numSegments_W = 1,
                                        uint32_t numSegments_H = 1);

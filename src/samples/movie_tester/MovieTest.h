@@ -25,15 +25,17 @@ namespace kinski
         {
         public:
             
-            QuadWarp()
+            QuadWarp():
+            m_grid_num_w(10),
+            m_grid_num_h(10)
             {
-                
+                m_control_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1), gl::vec2(1, 1)};
             }
             
             void init()
             {
                 // adjust grid density here
-                auto geom = gl::Geometry::createPlane(1, 1, 4, 4);
+                auto geom = gl::Geometry::createPlane(1, 1, m_grid_num_w, m_grid_num_h);
                 for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
                 geom->computeBoundingBox();
                 gl::Shader shader;
@@ -43,9 +45,17 @@ namespace kinski
                 mat->setDepthWrite(false);
                 m_mesh = gl::Mesh::create(geom, mat);
                 
-                m_handle_material = gl::Material::create();
+                auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
+                for(auto &v : grid_geom->vertices())
+                {
+                    v = vec3(v.x, -v.z, v.y) + vec3(0.5f, 0.5f, 0.f);
+                }
                 
-                m_control_points = {gl::vec2(0, 0), gl::vec2(0, 1), gl::vec2(1, 1), gl::vec2(1, 0)};
+                auto grid_mat = gl::Material::create(shader);
+                grid_mat->setDepthTest(false);
+                grid_mat->setDepthWrite(false);
+                m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
+                m_handle_material = gl::Material::create();
             }
             
             void render_output(gl::Texture &the_texture)
@@ -54,7 +64,10 @@ namespace kinski
                 if(!m_mesh){ init(); }
                 
                 m_mesh->material()->textures() = {the_texture};
-                m_mesh->material()->uniform("u_control_points", m_control_points);
+                
+                auto cp = m_control_points;
+                for(auto &p : cp){ p.y = 1.f - p.y; }
+                m_mesh->material()->uniform("u_control_points", cp);
                 
                 gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
                 gl::setMatrices(m_camera);
@@ -63,19 +76,33 @@ namespace kinski
             
             void render_control_points()
             {
-                const gl::Color colors[4] = {gl::COLOR_RED, gl::COLOR_GREEN, gl::COLOR_BLUE,
-                    gl::COLOR_YELLOW};
+                if(!m_handle_material){ init(); }
+                
+//                const gl::Color colors[4] = {gl::COLOR_RED, gl::COLOR_GREEN, gl::COLOR_BLUE,
+//                    gl::COLOR_YELLOW};
                 
                 for(int i = 0; i < m_control_points.size(); i++)
                 {
-                    m_handle_material->setDiffuse(colors[i]);
+//                    m_handle_material->setDiffuse(colors[i]);
                     gl::drawCircle(m_control_points[i] * gl::windowDimension(), 20.f, false,
                                    m_handle_material);
                 }
             }
             
-//            uint32_t num_sub_divisions_w() const { return m_num_w; };
-//            uint32_t num_sub_divisions_h() const { return m_num_h; };
+            void render_grid()
+            {
+                if(!m_grid_mesh){ init(); }
+                auto cp = m_control_points;
+                for(auto &p : cp){ p.y = 1.f - p.y; }
+                m_grid_mesh->material()->uniform("u_control_points", cp);
+                
+                gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
+                gl::setMatrices(m_camera);
+                gl::drawMesh(m_grid_mesh);
+            }
+            
+            uint32_t grid_num_w() const { return m_grid_num_w; };
+            uint32_t grid_num_h() const { return m_grid_num_h; };
             
             const gl::vec2& control_point(int the_x, int the_y) const
             {
@@ -96,13 +123,15 @@ namespace kinski
             
         private:
             
+            uint32_t m_grid_num_w, m_grid_num_h;
+            
             std::vector<gl::vec2> m_control_points;
             std::set<uint32_t> m_selected_indices;
             
             gl::OrthographicCamera::Ptr
             m_camera = gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1);
             
-            gl::MeshPtr m_mesh;
+            gl::MeshPtr m_mesh, m_grid_mesh;
             gl::MaterialPtr m_handle_material;
         };
     }

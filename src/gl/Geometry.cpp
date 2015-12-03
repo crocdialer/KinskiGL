@@ -546,4 +546,42 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
+    GeometryPtr Geometry::create_grid(float width, float height, uint32_t numSegments_W,
+                                      uint32_t numSegments_H)
+    {
+        GeometryPtr ret = Geometry::create();
+        ret->setPrimitiveType(GL_LINES);
+        
+        vector<vec3> &points = ret->vertices();
+        vector<vec4> &colors = ret->colors();
+        
+        float stepX = width / numSegments_W, stepZ = height / numSegments_H;
+        float w2 = width / 2.f, h2 = height / 2.f;
+        
+        glm::vec4 color;
+        for (int x = 0; x < numSegments_W + 1; x ++ )
+        {
+            if(x == 0){ color = gl::COLOR_BLUE; }
+            else{ color = gl::COLOR_GRAY; }
+            
+            // line Z
+            points.push_back(vec3(- w2 + x * stepX, 0.f, -h2));
+            points.push_back(vec3(- w2 + x * stepX, 0.f, h2));
+            colors.push_back(color);
+            colors.push_back(color);
+        }
+        for (int z = 0; z < numSegments_H + 1; z++ )
+        {
+            if(z == 0){ color = gl::COLOR_RED; }
+            else{ color = gl::COLOR_GRAY; }
+            
+            // line X
+            points.push_back(vec3(- w2 , 0.f, -h2 + z * stepZ));
+            points.push_back(vec3( w2 , 0.f, -h2 + z * stepZ));
+            colors.push_back(color);
+            colors.push_back(color);
+        }
+        return ret;
+    }
+    
 }}//namespace
