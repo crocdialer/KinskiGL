@@ -27,7 +27,7 @@ namespace kinski{ namespace gl{
         gl::MaterialPtr m_handle_material;
         
         Impl():
-        m_grid_num_w(10), m_grid_num_h(10)
+        m_grid_num_w(16), m_grid_num_h(9)
         {
             m_control_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1), gl::vec2(1, 1)};
             
@@ -47,6 +47,7 @@ namespace kinski{ namespace gl{
             {
                 v = vec3(v.x, -v.z, v.y) + vec3(0.5f, 0.5f, 0.f);
             }
+            for(auto &c : grid_geom->colors()){ c = gl::COLOR_WHITE; }
             
             auto grid_mat = gl::Material::create(shader);
             grid_mat->setDepthTest(false);
