@@ -18,9 +18,7 @@ namespace kinski{ namespace gl{
     public:
         
         QuadWarp();
-        
-        void init();
-        
+
         void render_output(gl::Texture &the_texture);
         
         void render_control_points();

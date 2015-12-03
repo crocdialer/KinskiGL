@@ -62,11 +62,6 @@ namespace kinski{ namespace gl{
 
     }
     
-    void QuadWarp::init()
-    {
-        
-    }
-    
     void QuadWarp::render_output(gl::Texture &the_texture)
     {
         if(!the_texture){ return; }
