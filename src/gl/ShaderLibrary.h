@@ -9,6 +9,7 @@ extern char const* const phong_normalmap_vert;
 extern char const* const phong_shadows_vert;
 extern char const* const phong_skin_vert;
 extern char const* const points_vert;
+extern char const* const quad_warp_vert;
 extern char const* const unlit_vert;
 extern char const* const unlit_displace_vert;
 extern char const* const unlit_rect_vert;

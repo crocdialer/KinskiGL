@@ -324,6 +324,38 @@ char const* const points_vert =
    "}\n"
 ;
 
+char const* const quad_warp_vert = 
+   "#version 330\n"
+   "uniform mat4 u_modelViewProjectionMatrix;\n"
+   "uniform mat4 u_textureMatrix;\n"
+   "// {TL, BL, BR, TR}\n"
+   "// {TL, TR, BL, BR}\n"
+   "uniform vec2[4] u_control_points;\n"
+   "layout(location = 0) in vec4 a_vertex; \n"
+   "layout(location = 2) in vec4 a_texCoord;\n"
+   "layout(location = 3) in vec4 a_color; \n"
+   "out VertexData\n"
+   "{ \n"
+   "  vec4 color;\n"
+   "  vec2 texCoord;\n"
+   "} vertex_out;\n"
+   "void main() \n"
+   "{\n"
+   "  // vertices are on a normalized quad\n"
+   "  \n"
+   "  //vec2 vertex = a_vertex.xy;\n"
+   "  // interpolate bottom edge x coordinate\n"
+   "  vec2 x1 = mix(u_control_points[2], u_control_points[3], a_vertex.x);\n"
+   "  // interpolate top edge x coordinate\n"
+   "  vec2 x2 = mix(u_control_points[0], u_control_points[1], a_vertex.x);\n"
+   "  // interpolate y position\n"
+   "  vec2 p = mix(x1, x2, a_vertex.y);\n"
+   "  vertex_out.color = a_color;\n"
+   "  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;\n"
+   "  gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1); \n"
+   "}\n"
+;
+
 char const* const unlit_vert = 
    "#version 330\n"
    "uniform mat4 u_modelViewProjectionMatrix;\n"
