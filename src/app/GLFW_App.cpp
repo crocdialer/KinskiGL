@@ -161,20 +161,29 @@ namespace kinski
     
     void GLFW_App::draw_internal()
     {
-        glDepthMask(GL_TRUE);
-        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        draw();
-        
-        // draw tweakbar
-        if(displayTweakBar())
+        for(uint32_t i = 0; i < m_windows.size(); i++)
         {
-            // console output
-            outstream_gl().draw();
+            glfwMakeContextCurrent(m_windows[0]->handle());
+            int w, h;
+            glfwGetFramebufferSize(m_windows[0]->handle(), &w, &h);
+            gl::setWindowDimension(gl::vec2(w, h));
             
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            TwDraw();
+            glDepthMask(GL_TRUE);
+            glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            
+            draw();
+            
+            // draw tweakbar
+            if(displayTweakBar())
+            {
+                // console output
+                outstream_gl().draw();
+                
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                TwDraw();
+            }
         }
+        
     }
     
     bool GLFW_App::checkRunning()
@@ -419,15 +428,28 @@ namespace kinski
     
 /****************************  TweakBar + Properties **************************/
     
-    void GLFW_App::create_tweakbar_from_component(const Component::Ptr &the_component)
+    void GLFW_App::add_tweakbar_for_component(const Component::Ptr &the_component)
     {
         if(!the_component) return;
-        m_tweakBars.push_back(TwNewBar(the_component->name().c_str()));
-        setBarColor(glm::vec4(0, 0, 0, .5), m_tweakBars.back());
+        auto tw_bar = TwNewBar(the_component->name().c_str());
+        m_tweakBars[the_component] = tw_bar;
+        
+        setBarColor(glm::vec4(0, 0, 0, .5), tw_bar);
         setBarSize(glm::ivec2(250, 500));
         glm::ivec2 offset(10);
-        setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), m_tweakBars.back());
-        addPropertyListToTweakBar(the_component->get_property_list(), "", m_tweakBars.back());
+        setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), tw_bar);
+        addPropertyListToTweakBar(the_component->get_property_list(), "", tw_bar);
+    }
+    
+    void GLFW_App::remove_tweakbar_for_component(const Component::Ptr &the_component)
+    {
+        auto it = m_tweakBars.find(the_component);
+        
+        if(it != m_tweakBars.end())
+        {
+            TwDeleteBar(it->second);
+            m_tweakBars.erase(it);
+        }
     }
     
     void GLFW_App::addPropertyToTweakBar(const Property::Ptr propPtr,
@@ -435,10 +457,11 @@ namespace kinski
                                          TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBars.empty()) return;
-            theBar = m_tweakBars.front();
+        {
+            if(m_tweakBars.empty()){ return; }
+            theBar = m_tweakBars[shared_from_this()];
         }
-        m_tweakProperties[theBar].push_back(propPtr);
+//        m_tweakProperties[theBar].push_back(propPtr);
         
         try {
             AntTweakBarConnector::connect(theBar, propPtr, group);
@@ -452,8 +475,9 @@ namespace kinski
                                              TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBars.empty()) return;
-            theBar = m_tweakBars.front();
+        {
+            if(m_tweakBars.empty()){ return; }
+            theBar = m_tweakBars[shared_from_this()];
         }
         for (const auto &property : theProps)
         {   
@@ -465,8 +489,9 @@ namespace kinski
     void GLFW_App::setBarPosition(const glm::ivec2 &thePos, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBars.empty()) return;
-            theBar = m_tweakBars.front();
+        {
+            if(m_tweakBars.empty()){ return; }
+            theBar = m_tweakBars[shared_from_this()];
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " position='" <<thePos.x
@@ -477,8 +502,9 @@ namespace kinski
     void GLFW_App::setBarSize(const glm::ivec2 &theSize, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBars.empty()) return;
-            theBar = m_tweakBars.front();
+        {
+            if(m_tweakBars.empty()){ return; }
+            theBar = m_tweakBars[shared_from_this()];
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " size='" <<theSize.x
@@ -489,8 +515,9 @@ namespace kinski
     void GLFW_App::setBarColor(const glm::vec4 &theColor, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBars.empty()) return;
-            theBar = m_tweakBars.front();
+        {
+            if(m_tweakBars.empty()){ return; }
+            theBar = m_tweakBars[shared_from_this()];
         }
         std::stringstream ss;
         glm::ivec4 color(theColor * 255.f);
@@ -502,8 +529,9 @@ namespace kinski
     void GLFW_App::setBarTitle(const std::string &theTitle, TwBar *theBar)
     {
         if(!theBar)
-        {   if(m_tweakBars.empty()) return;
-            theBar = m_tweakBars.front();
+        {
+            if(m_tweakBars.empty()){ return; }
+            theBar = m_tweakBars[shared_from_this()];
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " label='" << theTitle <<"'";

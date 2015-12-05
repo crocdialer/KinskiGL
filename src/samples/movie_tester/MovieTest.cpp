@@ -23,14 +23,22 @@ void MovieTest::setup()
     register_property(m_movie_speed);
     register_property(m_movie_path);
     observe_properties();
-    create_tweakbar_from_component(shared_from_this());
+    add_tweakbar_for_component(shared_from_this());
     
     m_movie->set_on_load_callback(bind(&MovieTest::on_movie_load, this));
     
+    // warp component
+    m_warp = std::make_shared<WarpComponent>();
+    m_warp->observe_properties();
+    add_tweakbar_for_component(m_warp);
+    remove_tweakbar_for_component(m_warp);
+    add_tweakbar_for_component(m_warp);
+    
     load_settings();
     
-    m_quad_warp.set_control_point(0, 0, vec2(.3f, 0.1f));
-    m_quad_warp.set_control_point(1, 0, vec2(.8f, 0.3f));
+//    m_warp->quad_warp().set_control_point(0, 0, vec2(.3f, 0.1f));
+//    m_warp->quad_warp().set_control_point(1, 0, vec2(.8f, 0.3f));
+//    m_warp->quad_warp().set_control_point(0, 1, vec2(.15f, 0.9f));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -47,9 +55,9 @@ void MovieTest::update(float timeDelta)
 
 void MovieTest::draw()
 {
-    m_quad_warp.render_output(m_textures[0]);
-    m_quad_warp.render_grid();
-    m_quad_warp.render_control_points();
+    m_warp->quad_warp().render_output(m_textures[0]);
+    m_warp->quad_warp().render_grid();
+    m_warp->quad_warp().render_control_points();
     
     if(displayTweakBar())
     {

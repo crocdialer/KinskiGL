@@ -26,8 +26,8 @@ namespace kinski{ namespace gl{
         gl::MeshPtr m_mesh, m_grid_mesh;
         gl::MaterialPtr m_handle_material;
         
-        Impl():
-        m_grid_num_w(16), m_grid_num_h(9)
+        Impl(uint32_t the_res_w = 16, uint32_t the_res_h = 9):
+        m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
         {
             m_control_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1), gl::vec2(1, 1)};
             
@@ -35,9 +35,11 @@ namespace kinski{ namespace gl{
             auto geom = gl::Geometry::createPlane(1, 1, m_grid_num_w, m_grid_num_h);
             for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
             geom->computeBoundingBox();
-            gl::Shader shader;
-            shader.loadFromData(quad_warp_vert, unlit_frag);
-            auto mat = gl::Material::create(shader);
+            gl::Shader shader_warp_vert, shader_warp_frag;
+            shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
+            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
+            
+            auto mat = gl::Material::create(shader_warp_vert);
             mat->setDepthTest(false);
             mat->setDepthWrite(false);
             m_mesh = gl::Mesh::create(geom, mat);
@@ -49,7 +51,7 @@ namespace kinski{ namespace gl{
             }
             for(auto &c : grid_geom->colors()){ c = gl::COLOR_WHITE; }
             
-            auto grid_mat = gl::Material::create(shader);
+            auto grid_mat = gl::Material::create(shader_warp_vert);
             grid_mat->setDepthTest(false);
             grid_mat->setDepthWrite(false);
             m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
@@ -101,8 +103,22 @@ namespace kinski{ namespace gl{
         gl::drawMesh(m_impl->m_grid_mesh);
     }
     
-    uint32_t QuadWarp::grid_num_w() const { return m_impl->m_grid_num_w; };
-    uint32_t QuadWarp::grid_num_h() const { return m_impl->m_grid_num_h; };
+    ivec2 QuadWarp::grid_resolution() const
+    {
+        return m_impl ? ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h) : ivec2();
+    }
+    
+    void QuadWarp::set_grid_resolution(const gl::ivec2 &the_res)
+    {
+        set_grid_resolution(the_res.x, the_res.y);
+    }
+    
+    void QuadWarp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
+    {
+        auto new_impl = std::make_shared<Impl>(the_res_w, the_res_h);
+        if(m_impl){ new_impl->m_control_points = m_impl->m_control_points; }
+        m_impl = new_impl;
+    }
     
     const gl::vec2& QuadWarp::control_point(int the_x, int the_y) const
     {

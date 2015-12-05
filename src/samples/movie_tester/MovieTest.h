@@ -9,9 +9,9 @@
 #define __gl__MovieTest__
 
 #include "app/ViewerApp.h"
+#include "app/WarpComponent.h"
 
 #include "gl/Texture.h"
-#include "gl/QuadWarp.h"
 
 #include "video/MovieController.h"
 #include "video/CameraController.h"
@@ -22,7 +22,7 @@ namespace kinski
     {
     private:
         
-        gl::QuadWarp m_quad_warp;
+        WarpComponent::Ptr m_warp;
         
         video::MovieControllerPtr m_movie = video::MovieController::create();
         video::CameraControllerPtr m_camera_control = video::CameraController::create();

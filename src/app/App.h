@@ -38,7 +38,8 @@ namespace kinski
         virtual void draw() = 0;
         virtual void tearDown() = 0;
 
-        virtual void create_tweakbar_from_component(const Component::Ptr &the_component){};
+        virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
+        virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
         
         // these are optional overrides
         virtual void set_window_size(const glm::vec2 &size);

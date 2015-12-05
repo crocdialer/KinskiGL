@@ -31,7 +31,8 @@ namespace kinski
     public:
         
         static GLFW_WindowPtr create(int width, int height, const std::string &theName,
-                                     bool fullscreen, int monitor_index = 0, GLFWwindow* share = NULL)
+                                     bool fullscreen, int monitor_index = 0,
+                                     GLFWwindow* share = nullptr)
         {
             return GLFW_WindowPtr(new GLFW_Window(width, height, theName, fullscreen,
                                                   monitor_index, share));
@@ -95,13 +96,14 @@ namespace kinski
         void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
         void setBarTitle(const std::string &theTitle, CTwBar *theBar = nullptr);
         
-        const std::map<CTwBar*, std::list<Property::Ptr> >& 
-        getTweakProperties() const {return m_tweakProperties;};
+//        const std::map<CTwBar*, std::list<Property::Ptr> >& 
+//        getTweakProperties() const {return m_tweakProperties;};
+                
+//        const std::vector<CTwBar*>& tweakBars() const { return m_tweakBars; };
+//        std::vector<CTwBar*>& tweakBars() { return m_tweakBars; };
         
-        const std::vector<CTwBar*>& tweakBars() const { return m_tweakBars; };
-        std::vector<CTwBar*>& tweakBars() { return m_tweakBars; };
-        
-        void create_tweakbar_from_component(const Component::Ptr & the_component) override;
+        void add_tweakbar_for_component(const Component::Ptr &the_component) override;
+        void remove_tweakbar_for_component(const Component::Ptr &the_component) override;
         
         int get_num_monitors() const;
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
@@ -135,9 +137,9 @@ namespace kinski
         static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
                                    uint32_t &keyModifiers);
         
-        std::vector<CTwBar*> m_tweakBars;
+        std::map<Component::Ptr, CTwBar*> m_tweakBars;
         
-        std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
+//        std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
         
         gl::OutstreamGL m_outstream_gl;
     };

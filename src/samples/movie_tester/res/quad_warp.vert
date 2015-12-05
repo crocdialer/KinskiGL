@@ -3,7 +3,6 @@
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
-// {TL, BL, BR, TR}
 // {TL, TR, BL, BR}
 uniform vec2[4] u_control_points;
 
@@ -21,8 +20,6 @@ void main()
 {
   // vertices are on a normalized quad
   
-  //vec2 vertex = a_vertex.xy;
-
   // interpolate bottom edge x coordinate
   vec2 x1 = mix(u_control_points[2], u_control_points[3], a_vertex.x);
 

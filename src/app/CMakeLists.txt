@@ -10,16 +10,16 @@ find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
 FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp 
-        AntTweakBarConnector.cpp OutstreamGL.cpp MaterialComponent.cpp)
+        AntTweakBarConnector.cpp OutstreamGL.cpp MaterialComponent.cpp WarpComponent.cpp)
 FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h RemoteControl.h ViewerApp.h LightComponent.h Object3DComponent.h 
-        AntTweakBarConnector.h OutstreamGL.h MaterialComponent.h)
+        AntTweakBarConnector.h OutstreamGL.h MaterialComponent.h WarpComponent.h)
 
 ##### RASPI
 else()
 FILE(GLOB FOLDER_SOURCES Raspi_App.cpp ViewerApp.cpp esUtil.c App.cpp OutstreamGL.cpp RemoteControl.cpp
-    LightComponent.cpp Object3DComponent.cpp MaterialComponent.cpp)
+    LightComponent.cpp Object3DComponent.cpp MaterialComponent.cpp WarpComponent.cpp)
 FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h OutstreamGL.h RemoteControl.h 
-    LightComponent.h Object3DComponent.h MaterialComponent.h)
+    LightComponent.h Object3DComponent.h MaterialComponent.h WarpComponent.h)
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
 link_directories("/opt/vc/lib")
