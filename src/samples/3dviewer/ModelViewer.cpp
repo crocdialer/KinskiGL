@@ -29,8 +29,8 @@ void ModelViewer::setup()
     observe_properties();
     
     // create our UI
-    create_tweakbar_from_component(shared_from_this());
-    create_tweakbar_from_component(m_light_component);
+    add_tweakbar_for_component(shared_from_this());
+    add_tweakbar_for_component(m_light_component);
     
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }

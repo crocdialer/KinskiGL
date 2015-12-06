@@ -29,6 +29,7 @@ namespace kinski
     class GLFW_Window
     {
     public:
+        typedef std::function<void()> DrawFunction;
         
         static GLFW_WindowPtr create(int width, int height, const std::string &theName,
                                      bool fullscreen, int monitor_index = 0,
@@ -45,11 +46,18 @@ namespace kinski
         
         ~GLFW_Window();
         inline GLFWwindow* handle(){return m_handle;};
+        
+        void draw();
+        
+        void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
+        
     private:
         GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
                     int monitor_index, GLFWwindow* share);
         GLFW_Window(int width, int height, const std::string &theName);
         GLFWwindow* m_handle;
+        
+        DrawFunction m_draw_function;
     };
     
     class CreateWindowException: public Exception
@@ -109,6 +117,11 @@ namespace kinski
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
         gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
         
+        // GLFW window creation
+        void addWindow(const GLFW_WindowPtr &the_window);
+        
+        const std::vector<GLFW_WindowPtr>& windows() const { return m_windows; }
+        
     private:
         
         std::vector<GLFW_WindowPtr> m_windows;
@@ -119,9 +132,6 @@ namespace kinski
         void pollEvents() override;
         void draw_internal() override;
         bool checkRunning() override;
-        
-        // GLFW internal
-        void addWindow(const GLFW_WindowPtr &the_window);
         
         // GLFW static callbacks
         static void s_error_cb(int error_code, const char* error_msg);

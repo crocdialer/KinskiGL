@@ -31,7 +31,8 @@ namespace kinski
     private:
         gl::QuadWarp m_quad_warp;
         
-        Property_<gl::vec2>::Ptr m_top_left, m_top_right, m_bottom_left, m_bottom_right;
+        Property_<float>::Ptr m_top_left_x, m_top_right_x, m_bottom_left_x, m_bottom_right_x,
+        m_top_left_y, m_top_right_y, m_bottom_left_y, m_bottom_right_y;
     };
 }
 #endif /* defined(__app__WarpComponent__) */

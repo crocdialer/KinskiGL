@@ -19,7 +19,7 @@ void EmptySample::setup()
 {
     ViewerApp::setup();
     observe_properties();
-    create_tweakbar_from_component(shared_from_this());
+    add_tweakbar_for_component(shared_from_this());
     load_settings();
 }
 

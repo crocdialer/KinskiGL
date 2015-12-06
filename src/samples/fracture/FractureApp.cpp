@@ -41,11 +41,11 @@ void FractureApp::setup()
     register_property(m_use_syphon);
     register_property(m_syphon_server_name);
     observe_properties();
-    create_tweakbar_from_component(shared_from_this());
+    add_tweakbar_for_component(shared_from_this());
     
     m_light_component = std::make_shared<LightComponent>();
     m_light_component->set_lights(lights());
-    create_tweakbar_from_component(m_light_component);
+    add_tweakbar_for_component(m_light_component);
     
     // add lights to scene
     for (auto l : lights()){ scene().addObject(l ); }

@@ -190,7 +190,7 @@ public:
         register_property(m_point_color);
         
         observe_properties();
-        create_tweakbar_from_component(shared_from_this());
+        add_tweakbar_for_component(shared_from_this());
         
         m_pointMaterial = gl::Material::create(gl::createShader(gl::ShaderType::POINTS_SPHERE));
         //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
@@ -215,7 +215,7 @@ public:
         
         m_light_component = std::make_shared<LightComponent>();
         m_light_component->set_lights(lights());
-        create_tweakbar_from_component(m_light_component);
+        add_tweakbar_for_component(m_light_component);
         
         load_settings();
         m_light_component->refresh();

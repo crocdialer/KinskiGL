@@ -44,6 +44,19 @@ namespace kinski
         glfwDestroyWindow(m_handle);
     }
     
+    void GLFW_Window::draw()
+    {
+        glfwMakeContextCurrent(m_handle);
+        int w, h;
+        glfwGetFramebufferSize(m_handle, &w, &h);
+        gl::setWindowDimension(gl::vec2(w, h));
+        
+        glDepthMask(GL_TRUE);
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        if(m_draw_function){ m_draw_function(); }
+    }
+    
     GLFW_App::GLFW_App(const int width, const int height):
     App(width, height),
     m_lastWheelPos(0)
@@ -84,8 +97,24 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
-        addWindow(GLFW_Window::create(getWidth(), getHeight(), name(), fullSceen()));
+        auto main_window = GLFW_Window::create(getWidth(), getHeight(), name(), fullSceen());
+        addWindow(main_window);
         gl::setWindowDimension(windowSize());
+        
+        main_window->set_draw_function([this]()
+        {        
+            draw();
+            
+            // draw tweakbar
+            if(displayTweakBar())
+            {
+                // console output
+                outstream_gl().draw();
+                
+//                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                TwDraw();
+            }
+        });
         
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);
@@ -133,7 +162,7 @@ namespace kinski
         gl::setWindowDimension(size);
         TwWindowSize(size.x, size.y);
         if(!m_windows.empty())
-            glfwSetWindowSize(m_windows.back()->handle(), (int)size[0], (int)size[1]);
+            glfwSetWindowSize(m_windows.front()->handle(), (int)size[0], (int)size[1]);
         
     }
     
@@ -145,13 +174,13 @@ namespace kinski
     void GLFW_App::setCursorVisible(bool b)
     {
         App::setCursorVisible(b);
-        glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR,
+        glfwSetInputMode(m_windows.front()->handle(), GLFW_CURSOR,
                          b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
     }
     
     void GLFW_App::setCursorPosition(float x, float y)
     {
-        glfwSetCursorPos(m_windows.back()->handle(), x, y);
+        glfwSetCursorPos(m_windows.front()->handle(), x, y);
     }
     
     void GLFW_App::pollEvents()
@@ -163,25 +192,7 @@ namespace kinski
     {
         for(uint32_t i = 0; i < m_windows.size(); i++)
         {
-            glfwMakeContextCurrent(m_windows[0]->handle());
-            int w, h;
-            glfwGetFramebufferSize(m_windows[0]->handle(), &w, &h);
-            gl::setWindowDimension(gl::vec2(w, h));
-            
-            glDepthMask(GL_TRUE);
-            glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            
-            draw();
-            
-            // draw tweakbar
-            if(displayTweakBar())
-            {
-                // console output
-                outstream_gl().draw();
-                
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                TwDraw();
-            }
+            m_windows[i]->draw();
         }
         
     }
@@ -189,8 +200,8 @@ namespace kinski
     bool GLFW_App::checkRunning()
     {
         return  running() &&
-                !glfwGetKey(m_windows.back()->handle(), GLFW_KEY_ESCAPE ) &&
-                !glfwWindowShouldClose(m_windows.back()->handle());
+                !glfwGetKey(m_windows.front()->handle(), GLFW_KEY_ESCAPE ) &&
+                !glfwWindowShouldClose(m_windows.front()->handle());
     }
     
     double GLFW_App::getApplicationTime()
@@ -210,7 +221,7 @@ namespace kinski
         if(m_windows.empty()) return;
         
         GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), name(), b, monitor_index,
-                                                    m_windows.back()->handle());
+                                                    m_windows.front()->handle());
         m_windows.clear();
         addWindow(window);
         

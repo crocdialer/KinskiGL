@@ -38,7 +38,7 @@ void MovieTimeshift::setup()
     register_property(m_mog_learn_rate);
     
     observe_properties();
-    create_tweakbar_from_component(shared_from_this());
+    add_tweakbar_for_component(shared_from_this());
     
     m_movie->set_on_load_callback(bind(&MovieTimeshift::on_movie_load, this));
     

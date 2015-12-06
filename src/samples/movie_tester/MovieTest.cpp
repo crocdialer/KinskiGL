@@ -36,9 +36,17 @@ void MovieTest::setup()
     
     load_settings();
     
-//    m_warp->quad_warp().set_control_point(0, 0, vec2(.3f, 0.1f));
-//    m_warp->quad_warp().set_control_point(1, 0, vec2(.8f, 0.3f));
-//    m_warp->quad_warp().set_control_point(0, 1, vec2(.15f, 0.9f));
+    auto new_window = GLFW_Window::create(320, 180, "output", false, 0, windows().back()->handle());
+    addWindow(new_window);
+    new_window->set_draw_function([this]()
+    {
+        static auto mat = gl::Material::create();
+        gl::apply_material(mat);
+        
+        m_warp->quad_warp().render_output(m_textures[0]);
+        m_warp->quad_warp().render_grid();
+        m_warp->quad_warp().render_control_points();
+    });
 }
 
 /////////////////////////////////////////////////////////////////
@@ -55,9 +63,7 @@ void MovieTest::update(float timeDelta)
 
 void MovieTest::draw()
 {
-    m_warp->quad_warp().render_output(m_textures[0]);
-    m_warp->quad_warp().render_grid();
-    m_warp->quad_warp().render_control_points();
+    gl::drawTexture(m_textures[0], gl::windowDimension());
     
     if(displayTweakBar())
     {
