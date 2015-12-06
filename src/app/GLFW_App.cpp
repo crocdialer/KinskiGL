@@ -52,7 +52,6 @@ namespace kinski
         gl::setWindowDimension(gl::vec2(w, h));
         
         glDepthMask(GL_TRUE);
-        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         if(m_draw_function){ m_draw_function(); }
     }
@@ -102,7 +101,9 @@ namespace kinski
         gl::setWindowDimension(windowSize());
         
         main_window->set_draw_function([this]()
-        {        
+        {
+            gl::clear();
+            
             draw();
             
             // draw tweakbar
@@ -190,18 +191,24 @@ namespace kinski
     
     void GLFW_App::draw_internal()
     {
-        for(uint32_t i = 0; i < m_windows.size(); i++)
+        for(auto &w : m_windows)
         {
-            m_windows[i]->draw();
+            w->draw();
         }
-        
     }
     
     bool GLFW_App::checkRunning()
     {
-        return  running() &&
-                !glfwGetKey(m_windows.front()->handle(), GLFW_KEY_ESCAPE ) &&
-                !glfwWindowShouldClose(m_windows.front()->handle());
+        for(uint32_t i = 0; i < m_windows.size(); i++)
+        {
+            if(glfwWindowShouldClose(m_windows[i]->handle()))
+            {
+                m_windows.erase(m_windows.begin() + i);
+            }
+        }
+        
+        return  running() && !m_windows.empty() &&
+            !glfwGetKey(m_windows.front()->handle(), GLFW_KEY_ESCAPE );
     }
     
     double GLFW_App::getApplicationTime()
