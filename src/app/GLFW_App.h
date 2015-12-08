@@ -26,11 +26,9 @@ namespace kinski
     
     typedef std::shared_ptr<GLFW_Window> GLFW_WindowPtr;
     
-    class GLFW_Window
+    class GLFW_Window : public Window
     {
     public:
-        typedef std::function<void()> DrawFunction;
-        
         static GLFW_WindowPtr create(int width, int height, const std::string &theName,
                                      bool fullscreen, int monitor_index = 0,
                                      GLFWwindow* share = nullptr)
@@ -45,19 +43,18 @@ namespace kinski
         }
         
         ~GLFW_Window();
+        
+        gl::vec2 framebuffer_size() const override;
+        
+        void draw() override;
+        
         inline GLFWwindow* handle(){return m_handle;};
-        
-        void draw();
-        
-        void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
         
     private:
         GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
                     int monitor_index, GLFWwindow* share);
         GLFW_Window(int width, int height, const std::string &theName);
         GLFWwindow* m_handle;
-        
-        DrawFunction m_draw_function;
     };
     
     class CreateWindowException: public Exception

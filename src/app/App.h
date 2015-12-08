@@ -21,6 +21,21 @@ namespace kinski
     class KeyEvent;
     class JoystickState;
     
+    class KINSKI_API Window
+    {
+    public:
+        typedef std::shared_ptr<Window> Ptr;
+        typedef std::function<void()> DrawFunction;
+        
+        virtual void draw() = 0;
+        virtual gl::vec2 framebuffer_size() const = 0;
+        
+        void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
+
+    protected:
+        DrawFunction m_draw_function;
+    };
+        
     class KINSKI_API App : public Component
     {
     public:
@@ -81,9 +96,13 @@ namespace kinski
         
         virtual double getApplicationTime() = 0;
         
-        float framesPerSec() const {return m_framesPerSec;};
+        /*!
+         * return current frames per second
+         */
+        float fps() const {return m_framesPerSec;};
         
         boost::asio::io_service& io_service(){return m_thread_pool.io_service();};
+        
         ThreadPool& thread_pool(){return m_thread_pool;}
         const ThreadPool& thread_pool() const {return m_thread_pool;}
         

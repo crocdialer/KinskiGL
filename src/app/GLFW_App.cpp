@@ -44,12 +44,18 @@ namespace kinski
         glfwDestroyWindow(m_handle);
     }
     
+    gl::vec2 GLFW_Window::framebuffer_size() const
+    {
+        int w, h;
+        glfwGetFramebufferSize(m_handle, &w, &h);
+        return gl::vec2(w, h);
+    }
+    
     void GLFW_Window::draw()
     {
         glfwMakeContextCurrent(m_handle);
-        int w, h;
-        glfwGetFramebufferSize(m_handle, &w, &h);
-        gl::setWindowDimension(gl::vec2(w, h));
+        
+        gl::setWindowDimension(framebuffer_size());
         
         glDepthMask(GL_TRUE);
         

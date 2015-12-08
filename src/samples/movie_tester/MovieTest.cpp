@@ -31,22 +31,8 @@ void MovieTest::setup()
     m_warp = std::make_shared<WarpComponent>();
     m_warp->observe_properties();
     add_tweakbar_for_component(m_warp);
-    remove_tweakbar_for_component(m_warp);
-    add_tweakbar_for_component(m_warp);
     
     load_settings();
-    
-    auto new_window = GLFW_Window::create(320, 180, "output", false, 0, windows().back()->handle());
-    addWindow(new_window);
-    new_window->set_draw_function([this]()
-    {
-        static auto mat = gl::Material::create();
-        gl::apply_material(mat);
-        
-        m_warp->quad_warp().render_output(m_textures[0]);
-        m_warp->quad_warp().render_grid();
-        m_warp->quad_warp().render_control_points();
-    });
 }
 
 /////////////////////////////////////////////////////////////////
@@ -107,6 +93,23 @@ void MovieTest::keyPress(const KeyEvent &e)
         case Key::KEY_DOWN:
             m_movie->set_volume(m_movie->volume() - .1f);
             break;
+        
+        case KEY_O:
+        {
+            auto new_window = GLFW_Window::create(320, 180, "output", false, 0, windows().back()->handle());
+            addWindow(new_window);
+            new_window->set_draw_function([this]()
+            {
+                static auto mat = gl::Material::create();
+                gl::apply_material(mat);
+              
+                gl::clear();
+                m_warp->quad_warp().render_output(m_textures[0]);
+                m_warp->quad_warp().render_grid();
+                m_warp->quad_warp().render_control_points();
+            });
+        }
+            break;
             
         default:
             break;
@@ -149,6 +152,7 @@ void MovieTest::update_property(const Property::ConstPtr &theProperty)
     
     if(theProperty == m_movie_path)
     {
+//        glfwMakeContextCurrent(windows().front()->handle());
         m_movie->load(*m_movie_path);
         m_movie->set_loop(true);
     }
