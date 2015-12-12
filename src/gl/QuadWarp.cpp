@@ -35,9 +35,10 @@ namespace kinski{ namespace gl{
             auto geom = gl::Geometry::createPlane(1, 1, m_grid_num_w, m_grid_num_h);
             for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
             geom->computeBoundingBox();
-            gl::Shader shader_warp_vert, shader_warp_frag;
+            gl::Shader shader_warp_vert;
             shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
-            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
+//            gl::Shader shader_warp_frag;
+//            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
             
             auto mat = gl::Material::create(shader_warp_vert);
             mat->setDepthTest(false);
@@ -84,7 +85,7 @@ namespace kinski{ namespace gl{
     {
         if(!m_impl){ m_impl.reset(new Impl); }
         
-        for(int i = 0; i < m_impl->m_control_points.size(); i++)
+        for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
             gl::drawCircle(m_impl->m_control_points[i] * gl::windowDimension(), 20.f, false,
                            m_impl->m_handle_material);
