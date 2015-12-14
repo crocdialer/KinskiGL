@@ -30,6 +30,7 @@ void MovieTest::setup()
     // warp component
     m_warp = std::make_shared<WarpComponent>();
     m_warp->observe_properties();
+//    m_warp->quad_warp().set_grid_resolution(gl::vec2(1));
     add_tweakbar_for_component(m_warp);
     
     load_settings();

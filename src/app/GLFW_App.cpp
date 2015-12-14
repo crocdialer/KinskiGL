@@ -253,9 +253,8 @@ namespace kinski
     
     void GLFW_App::addWindow(const GLFW_WindowPtr &the_window)
     {
-        m_windows.push_back(the_window);
         glfwSetWindowUserPointer(the_window->handle(), this);
-        glfwSetInputMode(m_windows.back()->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        glfwSetInputMode(the_window->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         
         // static callbacks
         glfwSetMouseButtonCallback(the_window->handle(), &GLFW_App::s_mouseButton);
@@ -263,11 +262,16 @@ namespace kinski
         glfwSetScrollCallback(the_window->handle(), &GLFW_App::s_mouseWheel);
         glfwSetKeyCallback(the_window->handle(), &GLFW_App::s_keyFunc);
         glfwSetCharCallback(the_window->handle(), &GLFW_App::s_charFunc);
-        glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
+        
+        if(m_windows.empty())
+        {
+            glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
+        }
         
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 1
         glfwSetDropCallback(the_window->handle(), &GLFW_App::s_file_drop_func);
 #endif
+        m_windows.push_back(the_window);
     }
     
     std::vector<JoystickState> GLFW_App::get_joystick_states() const
@@ -309,7 +313,7 @@ namespace kinski
     void GLFW_App::s_mouseMove(GLFWwindow* window, double x, double y)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar())
+        if(app->displayTweakBar() && app->windows().front()->handle() == window)
             TwEventMousePosGLFW((int)x, (int)y);
         uint32_t buttonModifiers, keyModifiers, bothMods;
         s_getModifiers(window, buttonModifiers, keyModifiers);
@@ -325,7 +329,7 @@ namespace kinski
     void GLFW_App::s_mouseButton(GLFWwindow* window,int button, int action, int modifier_mask)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar())
+        if(app->displayTweakBar() && app->windows().front()->handle() == window)
             TwEventMouseButtonGLFW(button, action);
         
         uint32_t initiator, keyModifiers, bothMods;
@@ -354,7 +358,7 @@ namespace kinski
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
         app->m_lastWheelPos -= offset;
-        if(app->displayTweakBar())
+        if(app->displayTweakBar() && app->windows().front()->handle() == window)
             TwMouseWheel(app->m_lastWheelPos.y);
         
         double posX, posY;
@@ -368,7 +372,7 @@ namespace kinski
     void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar())
+        if(app->displayTweakBar() && app->windows().front()->handle() == window)
             TwEventKeyGLFW(key, action);
         
         uint32_t buttonMod, keyMod;
@@ -396,7 +400,7 @@ namespace kinski
     void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar())
+        if(app->displayTweakBar() && app->windows().front()->handle() == window)
             TwEventCharGLFW(key, GLFW_PRESS);
         
         if(key == GLFW_KEY_SPACE){return;}

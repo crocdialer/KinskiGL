@@ -3,7 +3,6 @@
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
-// {TL, BL, BR, TR}
 // {TL, TR, BL, BR}
 uniform vec2[4] u_control_points;
 
@@ -15,14 +14,13 @@ out VertexData
 { 
   vec4 color;
   vec2 texCoord;
+  vec3 pos;
 } vertex_out;
 
 void main() 
 {
   // vertices are on a normalized quad
   
-  //vec2 vertex = a_vertex.xy;
-
   // interpolate bottom edge x coordinate
   vec2 x1 = mix(u_control_points[2], u_control_points[3], a_vertex.x);
 
@@ -32,6 +30,7 @@ void main()
   // interpolate y position
   vec2 p = mix(x1, x2, a_vertex.y);
 
+  vertex_out.pos = (u_textureMatrix * a_vertex).xyz;
   vertex_out.color = a_color;
   vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;
   gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1); 
