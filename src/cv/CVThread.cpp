@@ -189,7 +189,7 @@ namespace kinski
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         while (!m_newFrame)
-            m_conditionVar. wait(lock);
+            m_conditionVar.wait(lock);
     }
     
     void CVThread::setImage(const cv::Mat& img)
