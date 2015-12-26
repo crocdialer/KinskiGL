@@ -90,22 +90,16 @@ namespace kinski
         
         void addPropertyToTweakBar(const Property::Ptr propPtr,
                                    const std::string &group = "",
-                                   CTwBar *theBar = NULL);
+                                   CTwBar *theBar = nullptr);
         
         void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
                                        const std::string &group = "",
-                                       CTwBar *theBar = NULL);
+                                       CTwBar *theBar = nullptr);
         
         void setBarPosition(const glm::ivec2 &thePos, CTwBar *theBar = nullptr);
         void setBarSize(const glm::ivec2 &theSize, CTwBar *theBar = nullptr);
         void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
         void setBarTitle(const std::string &theTitle, CTwBar *theBar = nullptr);
-        
-//        const std::map<CTwBar*, std::list<Property::Ptr> >& 
-//        getTweakProperties() const {return m_tweakProperties;};
-                
-//        const std::vector<CTwBar*>& tweakBars() const { return m_tweakBars; };
-//        std::vector<CTwBar*>& tweakBars() { return m_tweakBars; };
         
         void add_tweakbar_for_component(const Component::Ptr &the_component) override;
         void remove_tweakbar_for_component(const Component::Ptr &the_component) override;
@@ -132,6 +126,7 @@ namespace kinski
         
         // GLFW static callbacks
         static void s_error_cb(int error_code, const char* error_msg);
+        static void s_window_refresh(GLFWwindow* window);
         static void s_resize(GLFWwindow* window, int w, int h);
         static void s_mouseMove(GLFWwindow* window,double x, double y);
         static void s_mouseButton(GLFWwindow* window,int button, int action, int modifier_mask);

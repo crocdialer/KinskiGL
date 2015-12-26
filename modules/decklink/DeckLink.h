@@ -15,9 +15,12 @@ namespace kinski{ namespace decklink{
         Input();
         virtual ~Input();
         
-        std::string name() const { return ""; };
+        std::string name() const { return "pupu"; };
         
         std::vector<std::string> get_displaymode_names() const;
+        
+        void start_capture();
+        void stop_capture();
         
         /*!
          * upload the current frame to the_texture with target GL_TEXTURE_2D

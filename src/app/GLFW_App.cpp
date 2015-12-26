@@ -263,6 +263,10 @@ namespace kinski
         glfwSetKeyCallback(the_window->handle(), &GLFW_App::s_keyFunc);
         glfwSetCharCallback(the_window->handle(), &GLFW_App::s_charFunc);
         
+        // called during resize, move and similar events
+        glfwSetWindowRefreshCallback(the_window->handle(), &GLFW_App::s_window_refresh);
+        
+        // first added window
         if(m_windows.empty())
         {
             glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
@@ -299,6 +303,18 @@ namespace kinski
     void GLFW_App::s_error_cb(int error_code, const char* error_msg)
     {
         LOG_ERROR<<"GLFW Error ("<< error_code <<"): "<<error_msg;
+    }
+    
+    void GLFW_App::s_window_refresh(GLFWwindow* window)
+    {
+        GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
+        
+        LOG_DEBUG << "window refresh";
+        
+        for(auto &w : app->windows())
+        {
+            if(w->handle() == window){ w->draw(); }
+        }
     }
     
     void GLFW_App::s_resize(GLFWwindow* window, int w, int h)
@@ -435,7 +451,7 @@ namespace kinski
             keyModifiers |= KeyEvent::META_DOWN;
     }
     
-    void GLFW_App::s_file_drop_func(GLFWwindow* window, int num_files,const char **paths)
+    void GLFW_App::s_file_drop_func(GLFWwindow* window, int num_files, const char **paths)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         std::vector<std::string> files;
