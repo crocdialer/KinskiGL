@@ -8,6 +8,7 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "gl/gl.h"
+#include "gl/Material.h"
 #include "GLFW_App.h"
 #include "core/file_functions.h"
 #include "AntTweakBarConnector.h"
@@ -102,26 +103,9 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
         
         // create the window
-        auto main_window = GLFW_Window::create(getWidth(), getHeight(), name(), fullSceen());
-        addWindow(main_window);
-        gl::setWindowDimension(windowSize());
-        
-        main_window->set_draw_function([this]()
-        {
-            gl::clear();
-            
-            draw();
-            
-            // draw tweakbar
-            if(displayTweakBar())
-            {
-                // console output
-                outstream_gl().draw();
-                
-//                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                TwDraw();
-            }
-        });
+        auto main_window = GLFW_Window::create(getWidth(), getHeight(), name(), fullscreen());
+        add_window(main_window);
+//        gl::setWindowDimension(windowSize());
         
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);
@@ -222,25 +206,39 @@ namespace kinski
         return glfwGetTime();
     }
     
-    void GLFW_App::setFullSceen(bool b)
+    void GLFW_App::set_fullscreen(bool b, int monitor_index)
     {
-        setFullSceen(b, 0);
-    }
-    
-    void GLFW_App::setFullSceen(bool b, int monitor_index)
-    {
-        App::setFullSceen(b);
-        
         if(m_windows.empty()) return;
         
-        GLFW_WindowPtr window = GLFW_Window::create(getWidth(), getHeight(), name(), b, monitor_index,
-                                                    m_windows.front()->handle());
-        m_windows.clear();
-        addWindow(window);
+        int num;
+        GLFWmonitor** monitors = glfwGetMonitors(&num);
         
-        int w, h;
-        glfwGetFramebufferSize(window->handle(), &w, &h);
-        set_window_size(glm::vec2(w, h));
+        monitor_index = clamp(monitor_index, 0, num - 1);
+        auto m = monitors[monitor_index];
+//        const GLFWvidmode* video_modes = glfwGetVideoModes(m, &num);
+        
+        // currently not in fullscreen mode
+        if(!fullscreen()){ m_last_res_before_fs = m_windows.front()->framebuffer_size(); }
+        
+        const GLFWvidmode* mode = glfwGetVideoMode(m);
+        glfwWindowHint(GLFW_RED_BITS, mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
+        
+        gl::ivec2 new_res = b ? gl::ivec2(mode->width, mode->height) : m_last_res_before_fs;
+        
+        GLFW_WindowPtr window = GLFW_Window::create(new_res.x, new_res.y, name(), b, monitor_index,
+                                                    m_windows.front()->handle());
+        
+        
+        // remove first elem from vector
+        m_windows.erase(m_windows.begin());
+        add_window(window);
+        
+        s_resize(window->handle(), new_res.x, new_res.y);
+        gl::apply_material(gl::Material::create());
+        App::set_fullscreen(b, monitor_index);
     }
     
     int GLFW_App::get_num_monitors() const
@@ -251,31 +249,51 @@ namespace kinski
         return ret;
     }
     
-    void GLFW_App::addWindow(const GLFW_WindowPtr &the_window)
+    void GLFW_App::add_window(WindowPtr the_window)
     {
-        glfwSetWindowUserPointer(the_window->handle(), this);
-        glfwSetInputMode(the_window->handle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        auto glfw_win = dynamic_pointer_cast<GLFW_Window>(the_window);
+        GLFWwindow *w = nullptr;
+        
+        if(glfw_win){ w = static_cast<GLFWwindow*>(glfw_win->handle()); }
+        
+        if(!w){LOG_ERROR << "add_window failed"; return;}
+        
+        glfwSetWindowUserPointer(w, this);
+        glfwSetInputMode(w, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         
         // static callbacks
-        glfwSetMouseButtonCallback(the_window->handle(), &GLFW_App::s_mouseButton);
-        glfwSetCursorPosCallback(the_window->handle(), &GLFW_App::s_mouseMove);
-        glfwSetScrollCallback(the_window->handle(), &GLFW_App::s_mouseWheel);
-        glfwSetKeyCallback(the_window->handle(), &GLFW_App::s_keyFunc);
-        glfwSetCharCallback(the_window->handle(), &GLFW_App::s_charFunc);
+        glfwSetMouseButtonCallback(w, &GLFW_App::s_mouseButton);
+        glfwSetCursorPosCallback(w, &GLFW_App::s_mouseMove);
+        glfwSetScrollCallback(w, &GLFW_App::s_mouseWheel);
+        glfwSetKeyCallback(w, &GLFW_App::s_keyFunc);
+        glfwSetCharCallback(w, &GLFW_App::s_charFunc);
         
         // called during resize, move and similar events
-        glfwSetWindowRefreshCallback(the_window->handle(), &GLFW_App::s_window_refresh);
+        glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
         
         // first added window
         if(m_windows.empty())
         {
-            glfwSetWindowSizeCallback(the_window->handle(), &GLFW_App::s_resize);
+            glfwSetWindowSizeCallback(w, &GLFW_App::s_resize);
+            the_window->set_draw_function([this]()
+            {
+                gl::clear();
+                draw();
+               
+                // draw tweakbar
+                if(displayTweakBar())
+                {
+                    // console output
+                    outstream_gl().draw();
+                    TwDraw();
+                }
+            });
         }
         
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 1
-        glfwSetDropCallback(the_window->handle(), &GLFW_App::s_file_drop_func);
+        glfwSetDropCallback(w, &GLFW_App::s_file_drop_func);
 #endif
-        m_windows.push_back(the_window);
+        m_windows.push_back(glfw_win);
     }
     
     std::vector<JoystickState> GLFW_App::get_joystick_states() const
@@ -315,6 +333,7 @@ namespace kinski
         {
             if(w->handle() == window){ w->draw(); }
         }
+        app->swapBuffers();
     }
     
     void GLFW_App::s_resize(GLFWwindow* window, int w, int h)
@@ -505,13 +524,9 @@ namespace kinski
             if(m_tweakBars.empty()){ return; }
             theBar = m_tweakBars[shared_from_this()];
         }
-//        m_tweakProperties[theBar].push_back(propPtr);
         
-        try {
-            AntTweakBarConnector::connect(theBar, propPtr, group);
-        } catch (AntTweakBarConnector::PropertyUnsupportedException &e) {
-            LOG_ERROR<<e.what();
-        }
+        try { AntTweakBarConnector::connect(theBar, propPtr, group); }
+        catch (AntTweakBarConnector::PropertyUnsupportedException &e){ LOG_ERROR<<e.what(); }
     }
     
     void GLFW_App::addPropertyListToTweakBar(const list<Property::Ptr> &theProps,

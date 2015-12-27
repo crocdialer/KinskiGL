@@ -251,7 +251,7 @@ namespace kinski {
                     break;
                 
                 case GLFW_KEY_F:
-//                    setFullSceen(!fullSceen());
+                    set_fullscreen(!fullscreen(), 0);
                     break;
                     
                 case GLFW_KEY_R:

@@ -17,6 +17,8 @@
 
 namespace kinski
 {
+    class Window;
+    typedef std::shared_ptr<Window> WindowPtr;
     class MouseEvent;
     class KeyEvent;
     class JoystickState;
@@ -42,7 +44,7 @@ namespace kinski
         typedef std::shared_ptr<App> Ptr;
         typedef std::weak_ptr<App> WeakPtr;
         
-        App(const int width = 800, const int height = 600, const std::string &the_name = "KinskiGL");
+        App(const int width = 1280, const int height = 720, const std::string &the_name = "KinskiGL");
         virtual ~App();
         
         int run();
@@ -53,9 +55,6 @@ namespace kinski
         virtual void draw() = 0;
         virtual void tearDown() = 0;
 
-        virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
-        virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
-        
         // these are optional overrides
         virtual void set_window_size(const glm::vec2 &size);
         virtual void set_window_title(const std::string &the_name){};
@@ -70,6 +69,9 @@ namespace kinski
         virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
         virtual void got_message(const std::vector<uint8_t> &the_data){};
         virtual void setCursorPosition(float x, float y){};
+        virtual void add_window(WindowPtr the_window){};
+        virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
+        virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
 
         inline bool running() const {return m_running;};
@@ -87,8 +89,9 @@ namespace kinski
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};
         
-        virtual bool fullSceen() const {return m_fullscreen;};
-        virtual void setFullSceen(bool b = true){m_fullscreen = b;};
+        virtual bool fullscreen() const {return m_fullscreen;};
+        virtual void set_fullscreen(bool b, int monitor_index){ m_fullscreen = b; };
+        void set_fullscreen(bool b = true){ set_fullscreen(b, 0); };
         
         virtual bool cursorVisible() const { return m_cursorVisible;};
         virtual void setCursorVisible(bool b = true){ m_cursorVisible = b;};

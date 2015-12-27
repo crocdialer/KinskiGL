@@ -79,8 +79,7 @@ namespace kinski
         void swapBuffers() override;
         double getApplicationTime() override;
         
-        void setFullSceen(bool b = true) override;
-        void setFullSceen(bool b, int monitor_index);
+        void set_fullscreen(bool b, int monitor_index) override;
         void setCursorVisible(bool b = true) override;
         void setCursorPosition(float x, float y) override;
         
@@ -108,8 +107,8 @@ namespace kinski
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
         gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
         
-        // GLFW window creation
-        void addWindow(const GLFW_WindowPtr &the_window);
+        // window creation
+        void add_window(WindowPtr the_window) override;
         
         const std::vector<GLFW_WindowPtr>& windows() const { return m_windows; }
         
@@ -117,6 +116,7 @@ namespace kinski
         
         std::vector<GLFW_WindowPtr> m_windows;
         glm::ivec2 m_lastWheelPos;
+        glm::ivec2 m_last_res_before_fs;
         
         // internal initialization. performed when run is invoked
         void init() override;
