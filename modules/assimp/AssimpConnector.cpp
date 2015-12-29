@@ -333,6 +333,9 @@ namespace kinski { namespace gl{
             }
             combined_geom->computeBoundingBox();
             
+            // insert colors, if not present
+            combined_geom->colors().resize(combined_geom->vertices().size(), gl::COLOR_WHITE);
+            
             insertBoneVertexData(combined_geom, weightmap);
             
             gl::GeometryPtr geom = combined_geom;

@@ -31,22 +31,15 @@ namespace kinski
     public:
         static GLFW_WindowPtr create(int width, int height, const std::string &theName,
                                      bool fullscreen, int monitor_index = 0,
-                                     GLFWwindow* share = nullptr)
-        {
-            return GLFW_WindowPtr(new GLFW_Window(width, height, theName, fullscreen,
-                                                  monitor_index, share));
-        }
+                                     GLFWwindow* share = nullptr);
         
-        static GLFW_WindowPtr create(int width, int height, const std::string &theName = "KinskiGL")
-        {
-            return GLFW_WindowPtr(new GLFW_Window(width, height, theName));
-        }
+        static GLFW_WindowPtr create(int width, int height, const std::string &theName = "KinskiGL");
         
         ~GLFW_Window();
         
         gl::vec2 framebuffer_size() const override;
-        
         void draw() override;
+        void set_title(const std::string &the_name) override;
         
         inline GLFWwindow* handle(){return m_handle;};
         

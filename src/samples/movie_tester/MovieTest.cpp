@@ -97,8 +97,8 @@ void MovieTest::keyPress(const KeyEvent &e)
         
         case KEY_O:
         {
-            auto new_window = GLFW_Window::create(320, 180, "output", false, 0, windows().back()->handle());
-            addWindow(new_window);
+            auto new_window = GLFW_Window::create(640, 480, "output", false, 0, windows().back()->handle());
+            add_window(new_window);
             new_window->set_draw_function([this]()
             {
                 static auto mat = gl::Material::create();

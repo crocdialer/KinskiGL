@@ -17,6 +17,18 @@ using namespace std;
 
 namespace kinski
 {
+    GLFW_WindowPtr GLFW_Window::create(int width, int height, const std::string &theName,
+                                       bool fullscreen, int monitor_index, GLFWwindow* share)
+    {
+        return GLFW_WindowPtr(new GLFW_Window(width, height, theName, fullscreen,
+                                              monitor_index, share));
+    }
+    
+    GLFW_WindowPtr GLFW_Window::create(int width, int height, const std::string &theName)
+    {
+        return GLFW_WindowPtr(new GLFW_Window(width, height, theName));
+    }
+    
     GLFW_Window::GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
                              int monitor_index, GLFWwindow* share)
      {
@@ -38,6 +50,11 @@ namespace kinski
         m_handle = glfwCreateWindow(width, height, theName.c_str(), NULL, NULL);
         if(!m_handle) throw CreateWindowException();
         glfwMakeContextCurrent(m_handle);
+    }
+    
+    void GLFW_Window::set_title(const std::string &the_title)
+    {
+        glfwSetWindowTitle(m_handle, the_title.c_str());
     }
     
     GLFW_Window::~GLFW_Window()
@@ -159,7 +176,7 @@ namespace kinski
     
     void GLFW_App::set_window_title(const std::string &the_title)
     {
-        for (auto &w : m_windows){ glfwSetWindowTitle(w->handle(), the_title.c_str()); }
+        for (auto &w : m_windows){ w->set_title(the_title); }
     }
     
     void GLFW_App::setCursorVisible(bool b)
@@ -327,7 +344,7 @@ namespace kinski
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         
-        LOG_DEBUG << "window refresh";
+        LOG_TRACE << "window refresh";
         
         for(auto &w : app->windows())
         {

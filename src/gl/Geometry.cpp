@@ -353,6 +353,7 @@ namespace kinski{ namespace gl{
         //        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
         //        numSegments = std::max(numSegments, 2);
         verts.resize(numSegments+1);
+        ret->colors().resize(verts.size(), gl::COLOR_WHITE);
         
         for(int s = 0; s <= numSegments; s++)
         {
