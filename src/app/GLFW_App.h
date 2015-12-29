@@ -37,8 +37,15 @@ namespace kinski
         
         ~GLFW_Window();
         
+        void draw() const override;
+        
+        virtual gl::vec2 size() const override;
         gl::vec2 framebuffer_size() const override;
-        void draw() override;
+        
+        virtual gl::vec2 position() const override;
+        virtual void set_position(const gl::vec2 &the_pos) override;
+        
+        virtual std::string title(const std::string &the_name) const override;
         void set_title(const std::string &the_name) override;
         
         inline GLFWwindow* handle(){return m_handle;};
@@ -109,7 +116,9 @@ namespace kinski
         
         std::vector<GLFW_WindowPtr> m_windows;
         glm::ivec2 m_lastWheelPos;
-        glm::ivec2 m_last_res_before_fs;
+        
+        //! holds last window size and position, when in fullscreen mode
+        glm::ivec4 m_win_params;
         
         // internal initialization. performed when run is invoked
         void init() override;

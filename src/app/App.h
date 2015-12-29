@@ -29,8 +29,13 @@ namespace kinski
         typedef std::shared_ptr<Window> Ptr;
         typedef std::function<void()> DrawFunction;
         
-        virtual void draw() = 0;
+        virtual void draw() const = 0;
         virtual gl::vec2 framebuffer_size() const = 0;
+        
+        virtual gl::vec2 size() const = 0;
+        virtual gl::vec2 position() const = 0;
+        virtual void set_position(const gl::vec2 &the_pos) = 0;
+        virtual std::string title(const std::string &the_name) const = 0;
         virtual void set_title(const std::string &the_name) = 0;
         
         void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
