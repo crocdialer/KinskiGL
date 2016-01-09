@@ -560,7 +560,7 @@ namespace kinski{ namespace gl{
         float w2 = width / 2.f, h2 = height / 2.f;
         
         glm::vec4 color;
-        for (int x = 0; x < numSegments_W + 1; x ++ )
+        for (uint32_t x = 0; x <= numSegments_W; x ++ )
         {
             if(x == 0){ color = gl::COLOR_BLUE; }
             else{ color = gl::COLOR_GRAY; }
@@ -571,7 +571,7 @@ namespace kinski{ namespace gl{
             colors.push_back(color);
             colors.push_back(color);
         }
-        for (int z = 0; z < numSegments_H + 1; z++ )
+        for (uint32_t z = 0; z <= numSegments_H; z++ )
         {
             if(z == 0){ color = gl::COLOR_RED; }
             else{ color = gl::COLOR_GRAY; }

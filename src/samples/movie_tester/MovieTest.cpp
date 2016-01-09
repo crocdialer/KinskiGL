@@ -25,12 +25,12 @@ void MovieTest::setup()
     observe_properties();
     add_tweakbar_for_component(shared_from_this());
     
-    m_movie->set_on_load_callback(bind(&MovieTest::on_movie_load, this));
+//    m_movie->set_on_load_callback(bind(&MovieTest::on_movie_load, this));
     
     // warp component
     m_warp = std::make_shared<WarpComponent>();
     m_warp->observe_properties();
-//    m_warp->quad_warp().set_grid_resolution(gl::vec2(1));
+    m_warp->quad_warp().set_grid_resolution(gl::vec2(1));
     add_tweakbar_for_component(m_warp);
     
     load_settings();
@@ -154,8 +154,7 @@ void MovieTest::update_property(const Property::ConstPtr &theProperty)
     if(theProperty == m_movie_path)
     {
 //        glfwMakeContextCurrent(windows().front()->handle());
-        m_movie->load(*m_movie_path);
-        m_movie->set_loop(true);
+        m_movie->load(*m_movie_path, true, true);
     }
     else if(theProperty == m_movie_speed)
     {

@@ -55,6 +55,7 @@ namespace kinski
                     int monitor_index, GLFWwindow* share);
         GLFW_Window(int width, int height, const std::string &theName);
         GLFWwindow* m_handle;
+        std::string m_title;
     };
     
     class CreateWindowException: public Exception

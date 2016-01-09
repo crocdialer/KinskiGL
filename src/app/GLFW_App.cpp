@@ -72,12 +72,12 @@ namespace kinski
     
     std::string GLFW_Window::title(const std::string &the_name) const
     {
-//        glfwGetWindowAttrib(m_handle, GLFW_W)
-        return "";
+        return m_title;
     }
     
     void GLFW_Window::set_title(const std::string &the_title)
     {
+        m_title = the_title;
         glfwSetWindowTitle(m_handle, the_title.c_str());
     }
 
@@ -221,10 +221,7 @@ namespace kinski
 
     void GLFW_App::draw_internal()
     {
-        for(auto &w : m_windows)
-        {
-            w->draw();
-        }
+        for(auto &w : m_windows){ w->draw(); }
     }
 
     bool GLFW_App::checkRunning()
@@ -258,8 +255,11 @@ namespace kinski
 //        const GLFWvidmode* video_modes = glfwGetVideoModes(m, &num);
 
         // currently not in fullscreen mode
-        if(!fullscreen()){ m_win_params = gl::ivec4(m_windows.front()->framebuffer_size(),
-                                                    m_windows.front()->position()); }
+        if(!fullscreen())
+        {
+            m_win_params = gl::ivec4(m_windows.front()->framebuffer_size(),
+                                     m_windows.front()->position());
+        }
 
         const GLFWvidmode* mode = glfwGetVideoMode(m);
         glfwWindowHint(GLFW_RED_BITS, mode->redBits);
@@ -279,7 +279,7 @@ namespace kinski
         add_window(window);
 
         s_resize(window->handle(), new_res.x, new_res.y);
-//        gl::apply_material(gl::Material::create());
+        gl::apply_material(gl::Material::create());
         App::set_fullscreen(b, monitor_index);
     }
 

@@ -26,8 +26,10 @@ namespace kinski
     class KINSKI_API Window
     {
     public:
-        typedef std::shared_ptr<Window> Ptr;
         typedef std::function<void()> DrawFunction;
+        typedef std::function<void()> CloseFunction;
+        
+        virtual ~Window(){ if(m_close_function) m_close_function(); };
         
         virtual void draw() const = 0;
         virtual gl::vec2 framebuffer_size() const = 0;
@@ -39,9 +41,11 @@ namespace kinski
         virtual void set_title(const std::string &the_name) = 0;
         
         void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
-
+        void set_close_function(CloseFunction the_close_function){ m_close_function = the_close_function; }
+        
     protected:
         DrawFunction m_draw_function;
+        CloseFunction m_close_function;
     };
         
     class KINSKI_API App : public Component

@@ -13,6 +13,12 @@
 
 namespace kinski{ namespace gl{
 
+    namespace
+    {
+        const std::vector<gl::vec2> default_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1),
+            gl::vec2(1, 1)};
+    };
+    
     struct QuadWarp::Impl
     {
         uint32_t m_grid_num_w, m_grid_num_h;
@@ -29,7 +35,7 @@ namespace kinski{ namespace gl{
         Impl(uint32_t the_res_w = 16, uint32_t the_res_h = 9):
         m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
         {
-            m_control_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1), gl::vec2(1, 1)};
+            m_control_points = default_points;
             
             // adjust grid density here
             auto geom = gl::Geometry::createPlane(1, 1, m_grid_num_w, m_grid_num_h);
@@ -37,10 +43,10 @@ namespace kinski{ namespace gl{
             geom->computeBoundingBox();
             gl::Shader shader_warp_vert;
             shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
-//            gl::Shader shader_warp_frag;
-//            shader_warp_frag.loadFromData(quad_warp_vert, quad_warp_frag);
+            gl::Shader shader_warp_frag;
+            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
             
-            auto mat = gl::Material::create(shader_warp_vert);
+            auto mat = gl::Material::create(shader_warp_frag);
             mat->setDepthTest(false);
             mat->setDepthWrite(false);
             m_mesh = gl::Mesh::create(geom, mat);
@@ -73,7 +79,18 @@ namespace kinski{ namespace gl{
         m_impl->m_mesh->material()->textures() = {the_texture};
         
         auto cp = m_impl->m_control_points;
-        for(auto &p : cp){ p.y = 1.f - p.y; }
+        auto mat = the_texture.getTextureMatrix();
+        
+        for(auto &p : cp)
+        {
+            p = (mat * gl::vec4(p, 0, 1.f)).xy();
+        }
+
+//        cp[0].x = 0.f - cp[0].x;
+//        cp[1].x = 2.f - cp[1].x;
+//        cp[2].x = 0.f - cp[2].x;
+//        cp[3].x = 2.f - cp[3].x;
+        
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
