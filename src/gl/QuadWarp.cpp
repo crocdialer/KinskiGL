@@ -43,10 +43,10 @@ namespace kinski{ namespace gl{
             geom->computeBoundingBox();
             gl::Shader shader_warp_vert;
             shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
-            gl::Shader shader_warp_frag;
-            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
+//            gl::Shader shader_warp_frag;
+//            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
             
-            auto mat = gl::Material::create(shader_warp_frag);
+            auto mat = gl::Material::create(shader_warp_vert);
             mat->setDepthTest(false);
             mat->setDepthWrite(false);
             m_mesh = gl::Mesh::create(geom, mat);

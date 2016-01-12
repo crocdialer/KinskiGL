@@ -351,7 +351,7 @@ void GrowthApp::refresh_lsystem()
         m->uniform("u_cap_bias", *m_cap_bias);
         
         //TODO: remove this when submaterials are tested well enough
-        m->setDiffuse(glm::linearRand(vec4(0,0,.2,.8), vec4(.6,1,1,.9)));
+        m->setDiffuse(glm::linearRand(vec4(0,0,.3,.8), vec4(.3,1,1,.9)));
         m->setPointAttenuation(0.1, .0002, 0);
     }
     
