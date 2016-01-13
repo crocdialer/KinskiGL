@@ -15,18 +15,19 @@ using namespace std;
 
 namespace kinski{ namespace net{
     
-typedef std::map<CURL*, Downloader::ActionPtr> HandleMap;
+typedef std::shared_ptr<class Action> ActionPtr;
+typedef std::map<CURL*, ActionPtr> HandleMap;
 
-struct Downloader_impl
+struct Downloader::Impl
 {
     boost::asio::io_service *m_io_service;
     CURLM *m_curl_multi_handle;
     HandleMap m_handle_map;
     
-    Downloader_impl(boost::asio::io_service *io):
+    Impl(boost::asio::io_service *io):
     m_io_service(io),
     m_curl_multi_handle(curl_multi_init()){};
-    virtual ~Downloader_impl(){curl_multi_cleanup(m_curl_multi_handle);}
+    virtual ~Impl(){curl_multi_cleanup(m_curl_multi_handle);}
 };
     
 class Action
@@ -127,7 +128,7 @@ public:
 
     
 // Timeout interval for http requests
-const long Downloader::DEFAULT_TIMEOUT = 1L;
+const long Downloader::DEFAULT_TIMEOUT = 0;
 
 class GetURLAction: public Action
 {
@@ -147,7 +148,7 @@ public:
 };
 
 Downloader::Downloader() :
-m_impl(new Downloader_impl(NULL)),
+m_impl(new Downloader::Impl(nullptr)),
 m_timeout(DEFAULT_TIMEOUT),
 m_running(0)
 {
@@ -155,7 +156,7 @@ m_running(0)
 }
     
 Downloader::Downloader(boost::asio::io_service &io) :
-    m_impl(new Downloader_impl(&io)),
+    m_impl(new Downloader::Impl(&io)),
     m_timeout(DEFAULT_TIMEOUT),
     m_running(0)
 {
@@ -167,7 +168,7 @@ Downloader::~Downloader()
 
 }
 
-std::vector<uint8_t> Downloader::getURL(const std::string &the_url)
+std::vector<uint8_t> Downloader::get_url(const std::string &the_url)
 {
 	ActionPtr url_action = make_shared<GetURLAction>(the_url);
     curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_timeout);
@@ -201,7 +202,8 @@ void Downloader::poll()
                 {
                     if(!res)
                     {
-                        LOG_DEBUG << "'" << itr->second->connection_info().url << "' completed successfully";
+                        auto ci = itr->second->connection_info();
+                        LOG_DEBUG <<"'"<<ci.url<<"' completed successfully ("<< ci.dl_total<<")";
                         if(itr->second->completion_handler())
                         {
                             itr->second->completion_handler()(itr->second->connection_info(),
@@ -221,9 +223,9 @@ void Downloader::poll()
     }
 }
     
-void Downloader::async_getURL(const std::string &the_url,
-                              CompletionHandler ch,
-                              ProgressHandler ph)
+void Downloader::async_get_url(const std::string &the_url,
+                               CompletionHandler ch,
+                               ProgressHandler ph)
 {
     LOG_DEBUG << "trying to fetch url: '" << the_url << "' async";
     
@@ -248,14 +250,14 @@ void Downloader::async_getURL(const std::string &the_url,
     }
 }
 
-long Downloader::getTimeOut()
+long Downloader::timeout()
 {
     return m_timeout;
 }
     
-void Downloader::setTimeOut(long t)
+void Downloader::set_timeout(long t)
 {
-    m_timeout=t;
+    m_timeout = t;
 }
     
 }}// namespace

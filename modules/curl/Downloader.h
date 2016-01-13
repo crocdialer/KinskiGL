@@ -23,8 +23,6 @@ namespace kinski{ namespace net{
     {
     public:
         
-        typedef std::shared_ptr<class Action> ActionPtr;
-        
         static const long DEFAULT_TIMEOUT;
         
         typedef std::function<void(ConnectionInfo)> ProgressHandler;
@@ -37,23 +35,24 @@ namespace kinski{ namespace net{
         /*!
          * Download the resource at the given url (blocking) 
          */
-        std::vector<uint8_t> getURL(const std::string &the_url);
+        std::vector<uint8_t> get_url(const std::string &the_url);
         
         /*!
          * Download the resource at the given url (nonblocking)
          */
-        void async_getURL(const std::string &the_url,
-                          CompletionHandler ch = CompletionHandler(),
-                          ProgressHandler ph = ProgressHandler());
+        void async_get_url(const std::string &the_url,
+                           CompletionHandler ch = CompletionHandler(),
+                           ProgressHandler ph = ProgressHandler());
         
-        long getTimeOut();
-        void setTimeOut(long t);
+        long timeout();
+        void set_timeout(long t);
 
         void poll();
         
     private:
         
-        std::shared_ptr<struct Downloader_impl> m_impl;
+        struct Impl;
+        std::shared_ptr<Impl> m_impl;
         
         // connection timeout in ms
         long m_timeout;
