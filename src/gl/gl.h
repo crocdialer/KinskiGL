@@ -225,8 +225,7 @@ namespace kinski { namespace gl {
     KINSKI_API void drawBoundingBox(const Object3DPtr &the_obj);
     KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
     KINSKI_API void drawCircle(const vec2 &center, float radius, bool solid = true,
-                               const MaterialPtr &theMaterial = MaterialPtr(),
-                               int numSegments = 32 );
+                               int numSegments = 32, const MaterialPtr &theMaterial = MaterialPtr());
     
     KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam);

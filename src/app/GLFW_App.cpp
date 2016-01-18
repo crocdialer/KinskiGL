@@ -330,6 +330,7 @@ namespace kinski
                     TwDraw();
                 }
             });
+//            resize(glfw_win->size().x, glfw_win->size().y);
         }
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 1

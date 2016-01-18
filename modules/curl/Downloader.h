@@ -13,20 +13,20 @@
 
 namespace kinski{ namespace net{
     
-    struct ConnectionInfo
-    {
-        std::string url;
-        double dl_total, dl_now, ul_total, ul_now;
-    };
-    
     class Downloader
     {
     public:
         
         static const long DEFAULT_TIMEOUT;
         
+        struct ConnectionInfo
+        {
+            std::string url;
+            double dl_total, dl_now, ul_total, ul_now;
+        };
         typedef std::function<void(ConnectionInfo)> ProgressHandler;
         typedef std::function<void(ConnectionInfo, const std::vector<uint8_t>&)> CompletionHandler;
+        
         
         Downloader();
         Downloader(boost::asio::io_service &io);
@@ -44,21 +44,17 @@ namespace kinski{ namespace net{
                            CompletionHandler ch = CompletionHandler(),
                            ProgressHandler ph = ProgressHandler());
         
-        long timeout();
+        long timeout() const;
         void set_timeout(long t);
 
         void poll();
+        
+        void set_io_service(boost::asio::io_service &io);
         
     private:
         
         struct Impl;
         std::shared_ptr<Impl> m_impl;
-        
-        // connection timeout in ms
-        long m_timeout;
-        
-        // number of running transfers
-        int m_running;
     };
     
 }}// namespace

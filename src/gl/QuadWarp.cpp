@@ -105,7 +105,7 @@ namespace kinski{ namespace gl{
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
             gl::drawCircle(m_impl->m_control_points[i] * gl::windowDimension(), 20.f, false,
-                           m_impl->m_handle_material);
+                           32, m_impl->m_handle_material);
         }
     }
     

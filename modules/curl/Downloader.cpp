@@ -8,7 +8,6 @@
 
 #include "curl/curl.h"
 #include <boost/asio.hpp>
-#include "core/Logger.h"
 #include "Downloader.h"
 
 using namespace std;
@@ -24,9 +23,18 @@ struct Downloader::Impl
     CURLM *m_curl_multi_handle;
     HandleMap m_handle_map;
     
+    // connection timeout in ms
+    long m_timeout;
+    
+    // number of running transfers
+    int m_running;
+    
     Impl(boost::asio::io_service *io):
     m_io_service(io),
-    m_curl_multi_handle(curl_multi_init()){};
+    m_curl_multi_handle(curl_multi_init()),
+    m_timeout(DEFAULT_TIMEOUT),
+    m_running(0){};
+    
     virtual ~Impl(){curl_multi_cleanup(m_curl_multi_handle);}
 };
     
@@ -34,7 +42,7 @@ class Action
 {
 protected:
     CURL *m_curl_handle;
-    ConnectionInfo m_connection_info;
+    Downloader::ConnectionInfo m_connection_info;
     Downloader::CompletionHandler m_completion_handler;
     Downloader::ProgressHandler m_progress_handler;
     
@@ -113,7 +121,7 @@ public:
     }
     
     CURL* handle() const {return m_curl_handle;}
-    ConnectionInfo connection_info() const {return m_connection_info;}
+    Downloader::ConnectionInfo connection_info() const {return m_connection_info;}
     
     void set_handle(CURL *handle)
     {
@@ -148,17 +156,13 @@ public:
 };
 
 Downloader::Downloader() :
-m_impl(new Downloader::Impl(nullptr)),
-m_timeout(DEFAULT_TIMEOUT),
-m_running(0)
+m_impl(new Downloader::Impl(nullptr))
 {
     
 }
     
 Downloader::Downloader(boost::asio::io_service &io) :
-    m_impl(new Downloader::Impl(&io)),
-    m_timeout(DEFAULT_TIMEOUT),
-    m_running(0)
+    m_impl(new Downloader::Impl(&io))
 {
 
 }
@@ -171,7 +175,7 @@ Downloader::~Downloader()
 std::vector<uint8_t> Downloader::get_url(const std::string &the_url)
 {
 	ActionPtr url_action = make_shared<GetURLAction>(the_url);
-    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_timeout);
+    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_impl->m_timeout);
     LOG_DEBUG << "trying to fetch url: '" << the_url << "'";
 	url_action->perform();
 	return url_action->getResponse();
@@ -179,9 +183,9 @@ std::vector<uint8_t> Downloader::get_url(const std::string &the_url)
 
 void Downloader::poll()
 {
-    if(m_running)
+    if(m_impl->m_running)
     {
-        curl_multi_perform(m_impl->m_curl_multi_handle, &m_running);
+        curl_multi_perform(m_impl->m_curl_multi_handle, &m_impl->m_running);
         
         CURLMsg *msg;
         int msgs_left;
@@ -203,7 +207,9 @@ void Downloader::poll()
                     if(!res)
                     {
                         auto ci = itr->second->connection_info();
-                        LOG_DEBUG <<"'"<<ci.url<<"' completed successfully ("<< ci.dl_total<<")";
+                        int num_kb = ci.dl_total / 1024;
+                        
+                        LOG_DEBUG <<"'"<<ci.url<<"' completed successfully ("<<num_kb<<"kB)";
                         if(itr->second->completion_handler())
                         {
                             itr->second->completion_handler()(itr->second->connection_info(),
@@ -218,7 +224,7 @@ void Downloader::poll()
                 }
             }
         }
-        if(m_running && m_impl->m_io_service)
+        if(m_impl->m_running && m_impl->m_io_service)
             m_impl->m_io_service->post(std::bind(&Downloader::poll, this));
     }
 }
@@ -233,7 +239,7 @@ void Downloader::async_get_url(const std::string &the_url,
     ActionPtr url_action = make_shared<GetURLAction>(the_url);
     
     // set options for this handle
-    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_timeout);
+    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_impl->m_timeout);
     
     url_action->set_completion_handler(ch);
     url_action->set_progress_handler(ph);
@@ -242,22 +248,32 @@ void Downloader::async_get_url(const std::string &the_url,
     // add handle to multi
     curl_multi_add_handle(m_impl->m_curl_multi_handle, url_action->handle());
     
-    curl_multi_perform(m_impl->m_curl_multi_handle, &m_running);
+    curl_multi_perform(m_impl->m_curl_multi_handle, &m_impl->m_running);
     
     if(m_impl->m_io_service)
     {
         m_impl->m_io_service->post(std::bind(&Downloader::poll, this));
     }
+    else
+    {
+        LOG_WARNING << "async_get_url called without specifying an io_service object.\n"
+        "you have to call poll() manually or provide an io_service!";
+    }
 }
 
-long Downloader::timeout()
+long Downloader::timeout() const
 {
-    return m_timeout;
+    return m_impl->m_timeout;
 }
     
 void Downloader::set_timeout(long t)
 {
-    m_timeout = t;
+    m_impl->m_timeout = t;
+}
+    
+void Downloader::set_io_service(boost::asio::io_service &io)
+{
+    m_impl->m_io_service = &io;
 }
     
 }}// namespace

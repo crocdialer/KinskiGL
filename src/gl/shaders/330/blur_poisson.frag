@@ -8,11 +8,11 @@ uniform vec2 u_window_dimension = vec2(1280, 720);
 
 struct Material
 {
-  vec4 diffuse; 
-  vec4 ambient; 
-  vec4 specular; 
-  vec4 emission; 
-  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
+  vec4 diffuse;
+  vec4 ambient;
+  vec4 specular;
+  vec4 emission;
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att)
   float shinyness;
 };
 
@@ -23,9 +23,9 @@ layout(std140) uniform MaterialBlock
 
 in VertexData
 {
-  vec4 color; 
+  vec4 color;
   vec2 texCoord;
-} vertex_in; 
+} vertex_in;
 
 out vec4 fragData;
 
@@ -33,12 +33,12 @@ out vec4 fragData;
 const int NUM_TAPS = 12;
 vec2 fTaps_Poisson[NUM_TAPS];
 
-float nrand( vec2 n ) 
+float nrand( vec2 n )
 {
 	return fract(sin(dot(n.xy, vec2(12.9898, 78.233)))* 43758.5453);
 }
 
-vec2 rot2d( vec2 p, float a ) 
+vec2 rot2d( vec2 p, float a )
 {
 	vec2 sc = vec2(sin(a),cos(a));
 	return vec2( dot( p, vec2(sc.y, -sc.x) ), dot( p, sc.xy ) );
@@ -61,7 +61,7 @@ vec4 poisson_blur(in sampler2D the_texture, in vec2 tex_coord)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-void main() 
+void main()
 {
   fTaps_Poisson[0]  = vec2(-.326,-.406);
 	fTaps_Poisson[1]  = vec2(-.840,-.074);
@@ -77,8 +77,6 @@ void main()
 	fTaps_Poisson[11] = vec2(-.792,-.598);
 
   vec4 texColors = vec4(0, 0, 0, 1);//vertex_in.color;
-  if(u_numTextures > 0) 
-    texColors = poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); 
-
-  fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a); 
+  texColors = poisson_blur(u_sampler_2D[0], vertex_in.texCoord.st); 
+  fragData = vec4(mix(texColors.rgb, u_material.diffuse.rgb, u_material.diffuse.a), texColors.a);
 }

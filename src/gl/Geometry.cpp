@@ -322,12 +322,14 @@ namespace kinski{ namespace gl{
         ret->setPrimitiveType(GL_TRIANGLE_FAN);
         std::vector<glm::vec3> &verts = ret->vertices();
         std::vector<glm::vec2> &texCoords = ret->texCoords();
+        std::vector<glm::vec4> &colors = ret->colors();
         
         // automatically determine the number of segments from the circumference
 //        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
 //        numSegments = std::max(numSegments, 2);
         verts.resize((numSegments+2));
         texCoords.resize((numSegments+2));
+        colors.resize(verts.size(), gl::COLOR_WHITE);
         verts[0] = glm::vec3(0);
         texCoords[0] = glm::vec2(.5f);
         
@@ -492,6 +494,7 @@ namespace kinski{ namespace gl{
         geom->vertices().resize(rings * sectors);
         geom->normals().resize(rings * sectors);
         geom->texCoords().resize(rings * sectors);
+        geom->colors().resize(rings * sectors, gl::COLOR_WHITE);
         std::vector<glm::vec3>::iterator v = geom->vertices().begin();
         std::vector<glm::vec3>::iterator n = geom->normals().begin();
         std::vector<glm::vec2>::iterator t = geom->texCoords().begin();
@@ -529,7 +532,7 @@ namespace kinski{ namespace gl{
         verts.resize(numSegments + 2);
         verts[0] = glm::vec3(0);
         verts[1] = glm::vec3(0, height, 0);
-        
+        ret->colors().resize(verts.size(), gl::COLOR_WHITE);
         for(int s = 2; s < numSegments + 2; s++)
         {
             float t = s / (float)numSegments * 2.0f * M_PI;

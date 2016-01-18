@@ -198,7 +198,7 @@ namespace kinski {
     const std::string read_file(const std::string & theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
-        ifstream inStream(path.c_str());
+        std::ifstream inStream(path.c_str());
         
         if(!inStream.good())
         {
@@ -211,7 +211,7 @@ namespace kinski {
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
-        ifstream inStream(path.c_str());
+        std::ifstream inStream(path.c_str());
         
         if(!inStream.good())
         {
