@@ -13,9 +13,12 @@
 using namespace std;
 
 namespace kinski{ namespace net{
-    
+
 typedef std::shared_ptr<class Action> ActionPtr;
 typedef std::map<CURL*, ActionPtr> HandleMap;
+    
+// Timeout interval for http requests
+static const long DEFAULT_TIMEOUT = 0;
 
 struct Downloader::Impl
 {
@@ -133,10 +136,6 @@ public:
     void set_completion_handler(Downloader::CompletionHandler ch){m_completion_handler = ch;}
     void set_progress_handler(Downloader::ProgressHandler ph){m_progress_handler = ph;}
 };
-
-    
-// Timeout interval for http requests
-const long Downloader::DEFAULT_TIMEOUT = 0;
 
 class GetURLAction: public Action
 {

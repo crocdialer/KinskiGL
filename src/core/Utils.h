@@ -171,6 +171,78 @@ namespace kinski
         float mix_val = clamp<float>((val - src_min) / (float)(src_max - src_min), 0.f, 1.f);
         return mix<T>(dst_min, dst_max, mix_val);
     }
+    
+    template<typename T>
+    class CircularBuffer
+    {
+    public:
+        
+        CircularBuffer(uint32_t the_cap = 10):
+        m_array_size(the_cap + 1),
+        m_first(0),
+        m_last(0)
+        {
+            m_data = new T[m_array_size];
+        }
+        
+        virtual ~CircularBuffer()
+        {
+            delete[](m_data);
+        }
+        
+        inline void clear()
+        {
+            m_first = m_last = 0;
+        }
+        
+        inline void push(const T &the_val)
+        {
+            m_data[m_last] = the_val;
+            m_last = (m_last + 1) % m_array_size;
+            
+            if(m_first == m_last){ m_first = (m_first + 1) % m_array_size; }
+        }
+        
+        inline const T pop()
+        {
+            if(!empty())
+            {
+                const T ret = m_data[m_first];
+                m_first = (m_first + 1) % m_array_size;
+                return ret;
+            }
+            else{ return T(0); }
+        }
+        
+        inline uint32_t capacity() const { return m_array_size - 1; };
+        void set_capacity(uint32_t the_cap)
+        {
+            delete[](m_data);
+            m_data = new T[the_cap + 1];
+            m_array_size = the_cap + 1;
+            clear();
+        }
+        
+        inline uint32_t size() const
+        {
+            int diff = m_last - m_first;
+            if(diff < 0){ diff += m_array_size; }
+            return (diff % m_array_size);
+        };
+        
+        inline bool empty() const { return m_first == m_last; }
+        
+        const T operator[](uint32_t the_index) const
+        {
+            if(the_index < size()){ return m_data[(m_first + the_index) % m_array_size]; }
+            else{ return T(0); }
+        };
+        
+    private:
+        
+        int32_t m_array_size, m_first, m_last;
+        T* m_data;
+    };
 }
 
 #endif

@@ -368,12 +368,15 @@ namespace kinski { namespace gl {
         // create text meshes (1 per line)
         auto lines = split(the_text, '\n', false);
         
+        // common material
+//        gl::MaterialPtr mat = gl::Material::create();
+//        mat->setDepthTest(false);
+//        mat->setDepthWrite(false);
+        
         vec2 line_offset;
         
         for(uint32_t i = 0; i < lines.size(); i++)
         {
-            //        bool inserted_new_line = false;
-            
             string l = lines[i];
             
             auto line_mesh = create_mesh(l)->copy();
@@ -403,7 +406,6 @@ namespace kinski { namespace gl {
                 
                 if(i + 1 < lines.size())
                 {
-                    //                if(fresh_line){ lines.insert(lines.begin() + i + 1, ""); inserted_new_line = true; }
                     lines[i + 1] = last_word + " " + lines[i + 1];
                 }
                 else{ lines.push_back(last_word); }
@@ -429,6 +431,8 @@ namespace kinski { namespace gl {
             }
             
             line_mesh->setPosition(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
+            
+//            line_mesh->material() = mat;
             
             // advance offset
             line_offset.y -= getLineHeight();

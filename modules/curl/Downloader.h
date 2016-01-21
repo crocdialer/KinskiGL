@@ -17,8 +17,6 @@ namespace kinski{ namespace net{
     {
     public:
         
-        static const long DEFAULT_TIMEOUT;
-        
         struct ConnectionInfo
         {
             std::string url;
