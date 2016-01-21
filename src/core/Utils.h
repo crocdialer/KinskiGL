@@ -178,11 +178,12 @@ namespace kinski
     public:
         
         CircularBuffer(uint32_t the_cap = 10):
-        m_array_size(the_cap + 1),
+        m_array_size(0),
         m_first(0),
-        m_last(0)
+        m_last(0),
+        m_data(NULL)
         {
-            m_data = new T[m_array_size];
+            set_capacity(the_cap);
         }
         
         virtual ~CircularBuffer()
@@ -217,7 +218,7 @@ namespace kinski
         inline uint32_t capacity() const { return m_array_size - 1; };
         void set_capacity(uint32_t the_cap)
         {
-            delete[](m_data);
+            if(m_data){ delete[](m_data); }
             m_data = new T[the_cap + 1];
             m_array_size = the_cap + 1;
             clear();

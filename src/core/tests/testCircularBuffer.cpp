@@ -11,11 +11,12 @@
 using namespace kinski;
 //____________________________________________________________________________//
 
-// test Property::Observer methods and behaviour
 BOOST_AUTO_TEST_CASE( testCircularBuffer )
 {
-    CircularBuffer<int> circ_buf(6);
+    CircularBuffer<int> circ_buf(8);
+    BOOST_CHECK(circ_buf.capacity() == 8);
     BOOST_CHECK(circ_buf.empty());
+    circ_buf.set_capacity(6);
     BOOST_CHECK(circ_buf.capacity() == 6);
     
     circ_buf.push(1);
