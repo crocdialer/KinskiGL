@@ -88,7 +88,7 @@ namespace kinski { namespace gl {
         size_t max_mesh_buffer_size;
         std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
-        Obj():bitmap_width(1024), bitmap_height(1024), max_mesh_buffer_size(300)
+        Obj():bitmap_width(2048), bitmap_height(2048), max_mesh_buffer_size(300)
         {
             data = new uint8_t[bitmap_width * bitmap_height];
             font_height = 64;
@@ -148,7 +148,7 @@ namespace kinski { namespace gl {
 
             // create RGBA data
             size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
-            uint8_t rgba_data[num_bytes];
+            uint8_t *rgba_data = new uint8_t[num_bytes];
             uint8_t *dst_ptr = m_obj->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
             for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
             {
@@ -163,7 +163,7 @@ namespace kinski { namespace gl {
                                          m_obj->bitmap_height);
             m_obj->texture.setFlipped();
             m_obj->texture.set_mipmapping(true);
-            
+            delete [](rgba_data);
         } catch (const Exception &e)
         {
             LOG_ERROR<<e.what();
