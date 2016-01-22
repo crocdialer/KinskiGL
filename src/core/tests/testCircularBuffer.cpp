@@ -51,6 +51,9 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     BOOST_CHECK(circ_buf[3] == 101);
     BOOST_CHECK(circ_buf[4] == 102);
     BOOST_CHECK(circ_buf[5] == 103);
+    
+    circ_buf.clear();
+    BOOST_CHECK(circ_buf.empty());
 }
 
 //____________________________________________________________________________//

@@ -188,7 +188,7 @@ namespace kinski
         
         virtual ~CircularBuffer()
         {
-            delete[](m_data);
+            if(m_data){ delete[](m_data); }
         }
         
         inline void clear()
@@ -226,14 +226,14 @@ namespace kinski
         
         inline uint32_t size() const
         {
-            int diff = m_last - m_first;
-            if(diff < 0){ diff += m_array_size; }
-            return (diff % m_array_size);
+            int ret = m_last - m_first;
+            if(ret < 0){ ret += m_array_size; }
+            return ret;
         };
         
         inline bool empty() const { return m_first == m_last; }
         
-        const T operator[](uint32_t the_index) const
+        inline const T operator[](uint32_t the_index) const
         {
             if(the_index < size()){ return m_data[(m_first + the_index) % m_array_size]; }
             else{ return T(0); }
