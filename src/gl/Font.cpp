@@ -76,7 +76,8 @@ namespace kinski { namespace gl {
     
     struct Font::Obj
     {
-        stbtt_bakedchar char_data[1024];
+//        stbtt_bakedchar char_data[1024];
+        stbtt_packedchar char_data[1024];
         uint32_t font_height;
         uint32_t line_height;
         uint32_t bitmap_width, bitmap_height;
@@ -130,9 +131,20 @@ namespace kinski { namespace gl {
             m_obj->font_height = theSize;
             m_obj->line_height = line_height > 0 ? line_height : theSize;
             
-            stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
-                                 m_obj->font_height, m_obj->data, m_obj->bitmap_width,
-                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
+            //TODO: rect pack here
+            stbtt_pack_context spc;
+            stbtt_PackBegin(&spc, m_obj->data, m_obj->bitmap_width,
+                            m_obj->bitmap_height, 0, 1, nullptr);
+            
+//            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
+            stbtt_PackFontRange(&spc, &font_file[0], 0,
+                                m_obj->font_height, 32, 768, m_obj->char_data);
+            
+            stbtt_PackEnd(&spc);
+            
+//            stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
+//                                 m_obj->font_height, m_obj->data, m_obj->bitmap_width,
+//                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
 
             // create RGBA data
             size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
@@ -188,8 +200,11 @@ namespace kinski { namespace gl {
                 continue;
             }
             
-            stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
-                               codepoint - 32, &x, &y, &q, 1);
+//            stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
+//                               codepoint - 32, &x, &y, &q, 1);
+            
+            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
+                                codepoint - 32, &x, &y, &q, 1);
             
             int w = q.x1 - q.x0;
             int h = q.y1 - q.y0;
@@ -286,8 +301,8 @@ namespace kinski { namespace gl {
                 y += m_obj->line_height;
                 continue;
             }
-            stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
-                               codepoint - 32, &x, &y, &q, 1);
+            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
+                                codepoint - 32, &x, &y, &q, 1);
             
             if(max_y < q.y1 + m_obj->font_height){ max_y = q.y1 + m_obj->font_height;}
             quads.push_back(q);
