@@ -337,6 +337,8 @@ namespace kinski
         glfwSetDropCallback(w, &GLFW_App::s_file_drop_func);
 #endif
         m_windows.push_back(glfw_win);
+        
+//        glfwMakeContextCurrent(w);
     }
 
     std::vector<JoystickState> GLFW_App::get_joystick_states() const
