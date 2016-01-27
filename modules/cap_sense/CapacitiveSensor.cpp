@@ -114,11 +114,21 @@ namespace kinski
         m_impl->m_touch_status = current_touches;
     }
     
-    bool CapacitiveSensor::is_touched(int the_index)
+    bool CapacitiveSensor::is_touched(int the_index) const
     {
         if(the_index < 0 || the_index >= NUM_SENSOR_PADS){ return m_impl->m_touch_status; }
         uint16_t mask = 1 << the_index;
         return m_impl->m_touch_status & mask;
+    }
+    
+    uint16_t CapacitiveSensor::touch_state() const
+    {
+        return m_impl->m_touch_status;
+    }
+    
+    uint16_t CapacitiveSensor::num_touchpads() const
+    {
+        return NUM_SENSOR_PADS;
     }
     
     bool CapacitiveSensor::connect(const std::string &dev_name)

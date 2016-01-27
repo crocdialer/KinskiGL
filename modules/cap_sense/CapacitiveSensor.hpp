@@ -7,6 +7,7 @@
 //
 #pragma once
 #include "core/core.h"
+#include "core/Serial.h"
 
 namespace kinski
 {
@@ -18,13 +19,17 @@ namespace kinski
         
         CapacitiveSensor(const std::string &dev_name = "");
         
+        bool connect(const std::string &dev_name = "");
+        
         void update(float time_delta);
+        
+        uint16_t touch_state() const;
+        
+        uint16_t num_touchpads() const;
         
         //! return touch state for provided index,
         //  or "any" touch, if index is out of bounds or not provided
-        bool is_touched(int the_index = -1);
-        
-        bool connect(const std::string &dev_name = "");
+        bool is_touched(int the_index = -1) const;
         
         void set_touch_callback(Callback cb);
         void set_release_callback(Callback cb);
