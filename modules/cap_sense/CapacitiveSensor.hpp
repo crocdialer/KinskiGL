@@ -7,7 +7,6 @@
 //
 #pragma once
 #include "core/core.h"
-#include "core/Serial.h"
 
 namespace kinski
 {
@@ -33,6 +32,9 @@ namespace kinski
         
         void set_touch_callback(Callback cb);
         void set_release_callback(Callback cb);
+        
+        float timeout_reconnect() const;
+        void set_timeout_reconnect(float val);
         
     private:
         

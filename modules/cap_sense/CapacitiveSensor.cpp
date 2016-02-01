@@ -9,11 +9,12 @@
 #include "CapacitiveSensor.hpp"
 #include "core/Serial.h"
 
-#define NUM_SENSOR_PADS 12
+#define NUM_SENSOR_PADS 13
 #define SERIAL_START_CODE 0x7E
 #define SERIAL_END_CODE 0xE7
 
-#define TIMEOUT_RECONNECT 5.f
+#define STD_TIMEOUT_RECONNECT 5.f
+#include <thread>
 
 namespace kinski
 {
@@ -23,7 +24,9 @@ namespace kinski
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_touch_status = 0;
-        float m_last_reading;
+        float m_last_reading, m_timeout_reconnect;
+        
+        std::thread m_reconnect_thread;
         
         Callback m_touch_callback, m_release_callback;
     };
@@ -33,6 +36,7 @@ namespace kinski
     {
         m_impl->m_device_name = dev_name;
         m_impl->m_sensor_read_buf.resize(2048);
+        m_impl->m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         
         if(!connect(dev_name))
         {
@@ -57,11 +61,13 @@ namespace kinski
             {
                 m_impl->m_last_reading += time_delta;
                 
-                if(m_impl->m_last_reading > TIMEOUT_RECONNECT)
+                if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
                 {
-                    LOG_WARNING << "no response from sensor: trying reconnect";
+                    LOG_WARNING << "no response from sensor: trying reconnect ...";
                     m_impl->m_last_reading = 0.f;
-                    connect();
+                    try { m_impl->m_reconnect_thread.join(); }
+                    catch (std::exception &e) { LOG_WARNING << e.what(); }
+                    m_impl->m_reconnect_thread = std::thread([this](){ connect(); });
                     return;
                 }
             }
@@ -154,5 +160,15 @@ namespace kinski
     void CapacitiveSensor::set_release_callback(Callback cb)
     {
         m_impl->m_release_callback = cb;
-    };
+    }
+    
+    float CapacitiveSensor::timeout_reconnect() const
+    {
+        return m_impl->m_timeout_reconnect;
+    }
+    
+    void CapacitiveSensor::set_timeout_reconnect(float val)
+    {
+        m_impl->m_timeout_reconnect = std::max(val, 0.f);
+    }
 }

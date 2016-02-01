@@ -311,7 +311,7 @@ namespace kinski
         glfwSetCharCallback(w, &GLFW_App::s_charFunc);
 
         // called during resize, move and similar events
-        glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
+//        glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
 
         // first added window
         if(m_windows.empty())
