@@ -66,12 +66,12 @@ namespace kinski
         bool periodic() const;
         
         /*!
-         * set if the timer should fire periodically
+         * sets if the timer should fire periodically
          */
         void set_periodic(bool b = true);
         
         /*!
-         * set the function object to call when the timer fires
+         * set the function object to call when the timer expires
          */
         void set_callback(Callback cb);
         

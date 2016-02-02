@@ -67,7 +67,7 @@ namespace kinski
                     m_impl->m_last_reading = 0.f;
                     try { m_impl->m_reconnect_thread.join(); }
                     catch (std::exception &e) { LOG_WARNING << e.what(); }
-                    m_impl->m_reconnect_thread = std::thread([this](){ connect(); });
+                    m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
                     return;
                 }
             }
@@ -139,8 +139,10 @@ namespace kinski
     
     bool CapacitiveSensor::connect(const std::string &dev_name)
     {
-        if(m_impl->m_device_name.empty()){ m_impl->m_sensor_device.setup(0, 57600); }
-        else{ m_impl->m_sensor_device.setup(m_impl->m_device_name, 57600); }
+        if(dev_name.empty()){ m_impl->m_sensor_device.setup(0, 57600); }
+        else{ m_impl->m_sensor_device.setup(dev_name, 57600); }
+        
+        m_impl->m_device_name = dev_name;
         
         // finally flush the newly initialized device
         if(m_impl->m_sensor_device.isInitialized())
