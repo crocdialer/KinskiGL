@@ -137,8 +137,9 @@ namespace kinski { namespace gl {
                             m_obj->bitmap_height, 0, 1, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
+            int num_chars = 768;
             stbtt_PackFontRange(&spc, &font_file[0], 0,
-                                m_obj->font_height, 32, 768, m_obj->char_data);
+                                m_obj->font_height, 32, num_chars, m_obj->char_data);
             
             stbtt_PackEnd(&spc);
             

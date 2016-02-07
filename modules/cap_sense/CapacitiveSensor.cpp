@@ -38,7 +38,7 @@ namespace kinski
         m_impl->m_sensor_read_buf.resize(2048);
         m_impl->m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         
-        if(!connect(dev_name))
+        if(!dev_name.empty() && !connect(dev_name))
         {
             LOG_ERROR << "unable to connect capacitve touch sensor";
         }
@@ -49,29 +49,17 @@ namespace kinski
     {
         // init with unchanged status
         uint16_t current_touches = m_impl->m_touch_status;
+        size_t bytes_to_read = 0;
+        m_impl->m_last_reading += time_delta;
         
         if(m_impl->m_sensor_device.isInitialized())
         {
             size_t num_bytes = sizeof(m_impl->m_touch_status);
             
-            size_t bytes_to_read = std::min(m_impl->m_sensor_device.available(),
-                                            m_impl->m_sensor_read_buf.size());
+            bytes_to_read = std::min(m_impl->m_sensor_device.available(),
+                                     m_impl->m_sensor_read_buf.size());
             
-            if(!bytes_to_read)
-            {
-                m_impl->m_last_reading += time_delta;
-                
-                if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
-                {
-                    LOG_WARNING << "no response from sensor: trying reconnect ...";
-                    m_impl->m_last_reading = 0.f;
-                    try { m_impl->m_reconnect_thread.join(); }
-                    catch (std::exception &e) { LOG_WARNING << e.what(); }
-                    m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
-                    return;
-                }
-            }
-            else{ m_impl->m_last_reading = 0.f; }
+            if(bytes_to_read){ m_impl->m_last_reading = 0.f; }
             
             uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
             m_impl->m_sensor_device.readBytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
@@ -118,6 +106,16 @@ namespace kinski
             }
         }
         m_impl->m_touch_status = current_touches;
+        
+        if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
+        {
+            LOG_WARNING << "no response from sensor: trying reconnect ...";
+            m_impl->m_last_reading = 0.f;
+            try { m_impl->m_reconnect_thread.join(); }
+            catch (std::exception &e) { LOG_WARNING << e.what(); }
+            m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
+            return;
+        }
     }
     
     bool CapacitiveSensor::is_touched(int the_index) const
@@ -139,7 +137,10 @@ namespace kinski
     
     bool CapacitiveSensor::connect(const std::string &dev_name)
     {
-        if(dev_name.empty()){ m_impl->m_sensor_device.setup(0, 57600); }
+        if(dev_name.empty())
+        {
+//            m_impl->m_sensor_device.setup(0, 57600);
+        }
         else{ m_impl->m_sensor_device.setup(dev_name, 57600); }
         
         m_impl->m_device_name = dev_name;
@@ -172,5 +173,10 @@ namespace kinski
     void CapacitiveSensor::set_timeout_reconnect(float val)
     {
         m_impl->m_timeout_reconnect = std::max(val, 0.f);
+    }
+    
+    bool CapacitiveSensor::is_initialized() const
+    {
+        return m_impl->m_sensor_device.isInitialized();
     }
 }

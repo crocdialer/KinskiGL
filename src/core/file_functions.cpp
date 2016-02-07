@@ -263,7 +263,7 @@ namespace kinski {
     
     bool is_directory(const std::string &theFilename)
     {
-        return boost::filesystem::is_directory(theFilename);
+        return boost::filesystem::is_directory(expand_user(theFilename));
     }
     
     bool file_exists(const std::string& theFilename)

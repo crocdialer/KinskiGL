@@ -71,7 +71,7 @@ namespace kinski{ namespace gl{
 
     }
     
-    void QuadWarp::render_output(gl::Texture &the_texture)
+    void QuadWarp::render_output(const gl::Texture &the_texture)
     {
         if(!the_texture){ return; }
         if(!m_impl){ m_impl.reset(new Impl); }

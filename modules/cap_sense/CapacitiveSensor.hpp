@@ -36,6 +36,8 @@ namespace kinski
         float timeout_reconnect() const;
         void set_timeout_reconnect(float val);
         
+        bool is_initialized() const;
+        
     private:
         
         struct Impl;

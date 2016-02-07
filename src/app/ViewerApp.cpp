@@ -275,8 +275,8 @@ namespace kinski {
                 case GLFW_KEY_7:
                 case GLFW_KEY_8:
                 case GLFW_KEY_9:
-                    m_cam_index = e.getCode() - GLFW_KEY_1;
-                    LOG_DEBUG << "cam index: " << m_cam_index;
+//                    m_cam_index = e.getCode() - GLFW_KEY_1;
+//                    LOG_DEBUG << "cam index: " << m_cam_index;
                     break;
                     
                 default:
