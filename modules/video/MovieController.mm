@@ -61,10 +61,13 @@ namespace kinski{ namespace video{
             if(m_videoOut) [m_videoOut release];
             if(m_audioOut) [m_audioOut release];
             if(m_assetReader) [m_assetReader release];
-            if(m_player) [m_player release];
+            if(m_player)
+            {
+                [m_player release];
+            }
             if(m_player_item) [m_player_item release];
             if(m_output) [m_output release];
-            if(m_loop_helper) [m_loop_helper release];
+            if(m_loop_helper) [m_loop_helper dealloc];
 //            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
 //            {
 //                IOSurfaceDecrementUseCount(m_io_surface);
@@ -122,6 +125,7 @@ namespace kinski{ namespace video{
         NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
         
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
+//        AVURLAsset *asset = [[[AVURLAsset alloc] initWithURL:url options:nil] autorelease];
         NSString *tracksKey = @"tracks";
         
         [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:tracksKey] 
@@ -138,9 +142,11 @@ namespace kinski{ namespace video{
                  NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
                  m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
              
-                 m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
+//                 m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
+                 m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
+//                 m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
+                 m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
                  [m_impl->m_player_item addOutput:m_impl->m_output];
-                 m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
                  m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
                                                         AVPlayerActionAtItemEndPause;
                  
@@ -259,7 +265,7 @@ namespace kinski{ namespace video{
         {
 //            [m_impl->m_player_item removeOutput:m_impl->m_output];
 //            [m_impl->m_player_item addOutput:m_impl->m_output];
-//            return false;
+            return false;
         }
         
         CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
