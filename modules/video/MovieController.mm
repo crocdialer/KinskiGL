@@ -139,34 +139,38 @@ namespace kinski{ namespace video{
              
              if([videoTrackArray count])
              {
-                 NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
-                 m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
-             
-//                 m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
-                 m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
-//                 m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
-                 m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
-                 [m_impl->m_player_item addOutput:m_impl->m_output];
-                 m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
-                                                        AVPlayerActionAtItemEndPause;
-                 
-                 m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
-                 
-                 AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
-                 m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
-                 
-                 if(!error)
+                 @try
                  {
-                     set_loop(loop || m_impl->m_loop);
+                     NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
+                     m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
                      
-                     [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
-                  
-                     if(autoplay){ play(); }
-                     else{ pause(); }
+                     // m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
+                     m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
+                     // m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
+                     m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
+                     [m_impl->m_player_item addOutput:m_impl->m_output];
+                     m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
+                     AVPlayerActionAtItemEndPause;
                      
-                     if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+                     m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
+                     
+                     AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
+                     m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
+                     
+                     if(!error)
+                     {
+                         set_loop(loop || m_impl->m_loop);
+                         
+                         [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
+                         
+                         if(autoplay){ play(); }
+                         else{ pause(); }
+                         
+                         if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+                     }
+                     else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
                  }
-                 else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
+                 @catch(NSException *e){ LOG_ERROR << [[e reason] UTF8String]; }
              }
              else{ LOG_ERROR << "No video tracks found in: " << m_impl->m_src_path; }
          }];
@@ -224,12 +228,12 @@ namespace kinski{ namespace video{
         CMTime ct = [m_impl->m_player currentTime];
         
         // appears to be bugged in OSX 10.11.1
-        // TODO: try to narrow this down, readding the AVPlayerItemVideoOutput might help
+        // TODO: try to narrow this down, re-adding the AVPlayerItemVideoOutput might help
         if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])
         {
 //            [m_impl->m_player_item removeOutput:m_impl->m_output];
 //            [m_impl->m_player_item addOutput:m_impl->m_output];
-//            return false;
+            return false;
         }
         
         CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];

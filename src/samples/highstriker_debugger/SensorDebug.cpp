@@ -32,7 +32,7 @@ void SensorDebug::setup()
     register_property(m_sensor_refresh_rate);
     
     observe_properties();
-    create_tweakbar_from_component(shared_from_this());
+    add_tweakbar_for_component(shared_from_this());
     
     // holds 10 uint16_t sensor-values
     m_sensor_vals.resize(10);
