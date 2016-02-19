@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-   
+
 ///
 //  Macros
 //
@@ -39,15 +39,15 @@ extern "C" {
 /// esCreateWindow flag - RGB color buffer
 #define ES_WINDOW_RGB           0
 /// esCreateWindow flag - ALPHA color buffer
-#define ES_WINDOW_ALPHA         1 
+#define ES_WINDOW_ALPHA         1
 /// esCreateWindow flag - depth buffer
-#define ES_WINDOW_DEPTH         2 
+#define ES_WINDOW_DEPTH         2
 /// esCreateWindow flag - stencil buffer
 #define ES_WINDOW_STENCIL       4
 /// esCreateWindow flag - multi-sample buffer
 #define ES_WINDOW_MULTISAMPLE   8
 
-typedef struct _escontext
+typedef struct ESContext
 {
    /// Window width
    GLint       width;
@@ -60,7 +60,7 @@ typedef struct _escontext
 
    /// EGL display
    EGLDisplay  eglDisplay;
-      
+
    /// EGL context
    EGLContext  eglContext;
 
@@ -87,7 +87,7 @@ void ESUTIL_API esInitContext ( ESContext *esContext );
 /// \param title Name for title bar of window
 /// \param width Width in pixels of window to create
 /// \param height Height in pixels of window to create
-/// \param flags Bitfield for the window creation flags 
+/// \param flags Bitfield for the window creation flags
 ///         ES_WINDOW_RGB     - specifies that the color buffer should have R,G,B channels
 ///         ES_WINDOW_ALPHA   - specifies that the color buffer should have alpha
 ///         ES_WINDOW_DEPTH   - specifies that a depth buffer should be created

@@ -1,11 +1,9 @@
-#ifndef _KINSKI_MINI_APP_IS_INCLUDED_
-#define _KINSKI_MINI_APP_IS_INCLUDED_
+#pragma once
 
-#include "esUtil.h"
-
-#undef countof
 #include "App.h"
 #include "OutstreamGL.h"
+
+struct ESContext;
 
 namespace kinski
 {
@@ -13,13 +11,13 @@ namespace kinski
 class Raspi_App : public App
 {
  public:
-    
+
     Raspi_App(const int width = 1920, const int height = 1080);
     virtual ~Raspi_App();
-    
+
     void set_window_size(const glm::vec2 &size) override;
     double getApplicationTime() override;
-    
+
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
 
@@ -30,13 +28,15 @@ class Raspi_App : public App
     void draw_internal() override;
     void swapBuffers() override;
     void pollEvents() override;
-    
+
     timeval m_startTime;
-    //struct ESContext;
+
     std::shared_ptr<ESContext> m_context;
-    
+
     gl::OutstreamGL m_outstream_gl;
+
+    // input file descriptors
+    int m_mouse_fd, m_keyboard_fd;
 };
-    
+
 }
-#endif // _KINSKI_MINI_APP_IS_INCLUDED_
