@@ -22,6 +22,7 @@ namespace kinski
     namespace
     {
         gl::vec2 current_mouse_pos;
+        // int current_wheel_pos = 0;
         uint32_t button_modifiers = 0, key_modifiers = 0;
     };
 
@@ -171,12 +172,13 @@ namespace kinski
                     // }
                 }
 
-                // mouse move
+                // mouse move / wheel
                 else if(evp->type == 2)
                 {
                     // Mouse Left/Right or Up/Down
-                    if(evp->code == 0){ current_mouse_pos.x += evp->value; }
-                    else if(evp->code == 1){ current_mouse_pos.y += evp->value; }
+                    if(evp->code == REL_X){ current_mouse_pos.x += evp->value; }
+                    else if(evp->code == REL_Y){ current_mouse_pos.y += evp->value; }
+                    // else if(evp->code == REL_WHEEL){ current_wheel_pos += evp->value; }
 
                     current_mouse_pos = glm::clamp(current_mouse_pos, gl::vec2(0),
                                                    gl::windowDimension() - gl::vec2(1));
@@ -185,11 +187,14 @@ namespace kinski
 
                     uint32_t bothMods = key_modifiers | button_modifiers;
                     MouseEvent e(button_modifiers, current_mouse_pos.x,
-                                 current_mouse_pos.y, bothMods, glm::ivec2(0));
+                                 current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value));
 
-                    if(button_modifiers){ mouseDrag(e); }
+                    if(evp->code == REL_WHEEL){ mouseWheel(e); }
+                    else if(button_modifiers){ mouseDrag(e); }
                     else{ mouseMove(e);}
                 }
+                // else
+                // { LOG_DEBUG << evp->type << " - " << evp->value; }
             }
         }
 

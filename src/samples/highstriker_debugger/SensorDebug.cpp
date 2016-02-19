@@ -192,6 +192,7 @@ void SensorDebug::mouseDrag(const MouseEvent &e)
 void SensorDebug::mouseWheel(const MouseEvent &e)
 {
     ViewerApp::mouseWheel(e);
+    LOG_DEBUG << "wheel: " << e.getWheelIncrement().y;
 }
 
 /////////////////////////////////////////////////////////////////
