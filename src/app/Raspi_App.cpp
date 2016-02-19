@@ -13,9 +13,18 @@
 using namespace std;
 
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd);
+void handle_input_events(kinski::App *the_app, const int mouse_fd,
+                         const int kb_fd){};
 
 namespace kinski
 {
+
+    namespace
+    {
+        gl::vec2 current_mouse_pos;
+        uint32_t button_modifiers = 0, key_modifiers = 0;
+    };
+
     Raspi_App::Raspi_App(const int width, const int height):
     App(width, height),
     m_context(new ESContext),
@@ -98,6 +107,8 @@ namespace kinski
 
     void Raspi_App::pollEvents()
     {
+        handle_input_events(this, m_mouse_fd, m_keyboard_fd);
+
         struct input_event ev[64];
         int rd;
 
@@ -115,84 +126,109 @@ namespace kinski
             while(count--)
             {
                 evp = &ev[n++];
+
+                // mouse press / release
                 if(evp->type == 1)
                 {
-                    if(evp->code == BTN_LEFT)
+                    switch(evp->code)
                     {
-                        if(evp->value == 1)   // Press
-                        {
-                            printf("Left button pressed\n");
-                        }
-                        else
-                        {
-                            printf("Left button released\n");
-                        }
+                        case BTN_LEFT:
+                          if(evp->value){ button_modifiers |= MouseEvent::LEFT_DOWN; }
+                          else{ button_modifiers ^= MouseEvent::LEFT_DOWN; }
+                          break;
+
+                        case BTN_MIDDLE:
+                          if(evp->value){ button_modifiers |= MouseEvent::MIDDLE_DOWN; }
+                          else{ button_modifiers ^= MouseEvent::MIDDLE_DOWN;}
+                          break;
+
+                        case BTN_RIGHT:
+                          if(evp->value){ button_modifiers |= MouseEvent::RIGHT_DOWN; }
+                          else{ button_modifiers ^= MouseEvent::RIGHT_DOWN;}
+                          break;
+
+                        default:
+                          break;
                     }
+                    uint32_t bothMods = key_modifiers | button_modifiers;
+
+                    MouseEvent e(button_modifiers, current_mouse_pos.x,
+                                 current_mouse_pos.y, bothMods, glm::ivec2(0));
+                    if(evp->value){ mousePress(e); }
+                    else{ mouseRelease(e); }
+
+                    // if(evp->code == BTN_LEFT)
+                    // {
+                    //     // Press
+                    //     if(evp->value == 1)
+                    //     {
+                    //         // printf("Left button pressed\n");
+                    //     }
+                    //     else
+                    //     {
+                    //         // printf("Left button released\n");
+                    //     }
+                    // }
                 }
 
-                if(evp->type == 2)
+                // mouse move
+                else if(evp->type == 2)
                 {
-                    if(evp->code == 0)
-                    {
-                        // Mouse Left/Right
-                        printf("Mouse moved left/right %d\n",evp->value);
-                    }
+                    // Mouse Left/Right or Up/Down
+                    if(evp->code == 0){ current_mouse_pos.x += evp->value; }
+                    else if(evp->code == 1){ current_mouse_pos.y += evp->value; }
 
-                    if(evp->code == 1)
-                    {
-                        // Mouse Up/Down
-                        printf("Mouse moved up/down %d\n",evp->value);
-                    }
+                    current_mouse_pos = glm::clamp(current_mouse_pos, gl::vec2(0),
+                                                   gl::windowDimension() - gl::vec2(1));
+                    // LOG_DEBUG << "mouse: " << current_mouse_pos.x << " - " <<
+                    //     current_mouse_pos.y;
+
+                    uint32_t bothMods = key_modifiers | button_modifiers;
+                    MouseEvent e(button_modifiers, current_mouse_pos.x,
+                                 current_mouse_pos.y, bothMods, glm::ivec2(0));
+
+                    if(button_modifiers){ mouseDrag(e); }
+                    else{ mouseMove(e);}
                 }
             }
         }
 
-    //   // Read events from keyboard
-    //
-    //   rd = read(keyboardFd,ev,sizeof(ev));
-    //   if(rd > 0)
-    //   {
-    // int count,n;
-    // struct input_event *evp;
-    //
-    // count = rd / sizeof(struct input_event);
-    // n = 0;
-    // while(count--)
-    // {
-    //     evp = &ev[n++];
-    //     if(evp->type == 1)
-    //     {
-    //   if(evp->value == 1)
-    //   {
-    //       if(evp->code == KEY_LEFTCTRL)
-    //
-    //       {
-    //     printf("Left Control key pressed\n");
-    //
-    //       }
-    //       if(evp->code == KEY_LEFTMETA )
-    //       {
-    //     printf("Left Meta key pressed\n");
-    //
-    //       }
-    //       if(evp->code == KEY_LEFTSHIFT)
-    //       {
-    //     printf("Left Shift key pressed\n");
-    //
-    //       }
-    //   }
-    //
-    //
-    //   if((evp->code == KEY_Q) && (evp->value == 1))
-    //       ret = true;;
-    //
-    //
-    //     }
-    // }
-    //
-    //   }
-    }
-}
+        // Read events from keyboard
+        rd = read(m_keyboard_fd, ev, sizeof(ev));
+
+        if(rd > 0)
+        {
+            int count, n = 0;
+            struct input_event *evp;
+            count = rd / sizeof(struct input_event);
+            while(count--)
+            {
+                evp = &ev[n++];
+                if(evp->type == 1)
+                {
+                    if(evp->value == 1)
+                    {
+                        if(evp->code == KEY_LEFTCTRL)
+                        {
+                            printf("Left Control key pressed\n");
+                        }
+                        else if(evp->code == KEY_LEFTMETA )
+                        {
+                            printf("Left Meta key pressed\n");
+                        }
+                        else if(evp->code == KEY_LEFTSHIFT)
+                        {
+                            printf("Left Shift key pressed\n");
+                        }
+                    }
+
+                }
+            }
+        }
+
+    }// pollEvents
+
+}// namespace
 
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd)
 {
@@ -218,6 +254,9 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd)
     {
         LOG_ERROR << "couldn't open '/dev/input/by-id'";
     }
+
+    int result = -1;
+    (void)result;
 
     // Find any files that match the regex for keyboard or mouse
     do
