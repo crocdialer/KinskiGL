@@ -146,6 +146,7 @@ void SensorDebug::resize(int w ,int h)
 void SensorDebug::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
+    LOG_DEBUG << "press: " << e.getCode();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -153,6 +154,7 @@ void SensorDebug::keyPress(const KeyEvent &e)
 void SensorDebug::keyRelease(const KeyEvent &e)
 {
     ViewerApp::keyRelease(e);
+    LOG_DEBUG << "release: " << e.getCode();
 }
 
 /////////////////////////////////////////////////////////////////

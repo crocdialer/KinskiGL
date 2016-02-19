@@ -22,7 +22,6 @@ namespace kinski
     namespace
     {
         gl::vec2 current_mouse_pos;
-        // int current_wheel_pos = 0;
         uint32_t button_modifiers = 0, key_modifiers = 0;
     };
 
@@ -157,19 +156,6 @@ namespace kinski
                                  current_mouse_pos.y, bothMods, glm::ivec2(0));
                     if(evp->value){ mousePress(e); }
                     else{ mouseRelease(e); }
-
-                    // if(evp->code == BTN_LEFT)
-                    // {
-                    //     // Press
-                    //     if(evp->value == 1)
-                    //     {
-                    //         // printf("Left button pressed\n");
-                    //     }
-                    //     else
-                    //     {
-                    //         // printf("Left button released\n");
-                    //     }
-                    // }
                 }
 
                 // mouse move / wheel
@@ -178,12 +164,9 @@ namespace kinski
                     // Mouse Left/Right or Up/Down
                     if(evp->code == REL_X){ current_mouse_pos.x += evp->value; }
                     else if(evp->code == REL_Y){ current_mouse_pos.y += evp->value; }
-                    // else if(evp->code == REL_WHEEL){ current_wheel_pos += evp->value; }
 
                     current_mouse_pos = glm::clamp(current_mouse_pos, gl::vec2(0),
                                                    gl::windowDimension() - gl::vec2(1));
-                    // LOG_DEBUG << "mouse: " << current_mouse_pos.x << " - " <<
-                    //     current_mouse_pos.y;
 
                     uint32_t bothMods = key_modifiers | button_modifiers;
                     MouseEvent e(button_modifiers, current_mouse_pos.x,
@@ -193,8 +176,6 @@ namespace kinski
                     else if(button_modifiers){ mouseDrag(e); }
                     else{ mouseMove(e);}
                 }
-                // else
-                // { LOG_DEBUG << evp->type << " - " << evp->value; }
             }
         }
 
@@ -211,22 +192,40 @@ namespace kinski
                 evp = &ev[n++];
                 if(evp->type == 1)
                 {
-                    if(evp->value == 1)
+                    switch(evp->code)
                     {
-                        if(evp->code == KEY_LEFTCTRL)
-                        {
-                            printf("Left Control key pressed\n");
-                        }
-                        else if(evp->code == KEY_LEFTMETA )
-                        {
-                            printf("Left Meta key pressed\n");
-                        }
-                        else if(evp->code == KEY_LEFTSHIFT)
-                        {
-                            printf("Left Shift key pressed\n");
-                        }
-                    }
+                        case KEY_LEFTCTRL:
+                        case KEY_RIGHTCTRL:
+                            if(evp->value == 1){ key_modifiers |= KeyEvent::CTRL_DOWN; }
+                            else{ key_modifiers ^= KeyEvent::CTRL_DOWN; }
+                            break;
 
+                        case KEY_LEFTSHIFT:
+                        case KEY_RIGHTSHIFT:
+                            if(evp->value == 1){ key_modifiers |= KeyEvent::SHIFT_DOWN; }
+                            else{ key_modifiers ^= KeyEvent::SHIFT_DOWN; }
+                            break;
+
+                        case KEY_LEFTALT:
+                        case KEY_RIGHTALT:
+                            if(evp->value == 1){ key_modifiers |= KeyEvent::ALT_DOWN; }
+                            else{ key_modifiers ^= KeyEvent::ALT_DOWN; }
+                            break;
+
+                        case KEY_LEFTMETA:
+                        case KEY_RIGHTMETA:
+                            if(evp->value == 1){ key_modifiers |= KeyEvent::META_DOWN; }
+                            else{ key_modifiers ^= KeyEvent::META_DOWN; }
+                            break;
+
+                        default:
+                            break;
+                    }
+                    KeyEvent e(evp->code, evp->code, key_modifiers);
+
+                    if(evp->value == 0){ keyRelease(e); }
+                    else if(evp->value == 1){ keyPress(e); }
+                    else if(evp->value == 2){ keyPress(e); }
                 }
             }
         }
