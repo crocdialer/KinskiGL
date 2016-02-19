@@ -37,6 +37,12 @@ std::wstring utf8_to_wstring(const std::string& str)
 //    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
 //}
 
+#if defined(KINSKI_RASPI)
+    #define BITMAP_WIDTH 1024
+#else 
+    #define BITMAP_WIDTH 2048
+#endif
+
 namespace kinski { namespace gl {
     
     struct string_mesh_container
@@ -88,7 +94,7 @@ namespace kinski { namespace gl {
         size_t max_mesh_buffer_size;
         std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
-        Obj():bitmap_width(2048), bitmap_height(2048), max_mesh_buffer_size(300)
+        Obj():bitmap_width(BITMAP_WIDTH), bitmap_height(BITMAP_WIDTH), max_mesh_buffer_size(300)
         {
             data = new uint8_t[bitmap_width * bitmap_height];
             font_height = 64;
