@@ -406,7 +406,7 @@ namespace kinski
             app->mouseMove(e);
     }
 
-    void GLFW_App::s_mouseButton(GLFWwindow* window,int button, int action, int modifier_mask)
+    void GLFW_App::s_mouseButton(GLFWwindow* window, int button, int action, int modifier_mask)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         if(app->displayTweakBar() && app->windows().front()->handle() == window)

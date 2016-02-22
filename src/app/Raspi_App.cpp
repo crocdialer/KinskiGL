@@ -197,25 +197,25 @@ namespace kinski
                         case KEY_LEFTCTRL:
                         case KEY_RIGHTCTRL:
                             if(evp->value == 1){ key_modifiers |= KeyEvent::CTRL_DOWN; }
-                            else{ key_modifiers ^= KeyEvent::CTRL_DOWN; }
+                            else if(evp->value == 0){ key_modifiers ^= KeyEvent::CTRL_DOWN; }
                             break;
 
                         case KEY_LEFTSHIFT:
                         case KEY_RIGHTSHIFT:
                             if(evp->value == 1){ key_modifiers |= KeyEvent::SHIFT_DOWN; }
-                            else{ key_modifiers ^= KeyEvent::SHIFT_DOWN; }
+                            else if(evp->value == 0){ key_modifiers ^= KeyEvent::SHIFT_DOWN; }
                             break;
 
                         case KEY_LEFTALT:
                         case KEY_RIGHTALT:
                             if(evp->value == 1){ key_modifiers |= KeyEvent::ALT_DOWN; }
-                            else{ key_modifiers ^= KeyEvent::ALT_DOWN; }
+                            else if(evp->value == 0){ key_modifiers ^= KeyEvent::ALT_DOWN; }
                             break;
 
                         case KEY_LEFTMETA:
                         case KEY_RIGHTMETA:
                             if(evp->value == 1){ key_modifiers |= KeyEvent::META_DOWN; }
-                            else{ key_modifiers ^= KeyEvent::META_DOWN; }
+                            else if(evp->value == 0){ key_modifiers ^= KeyEvent::META_DOWN; }
                             break;
 
                         default:
