@@ -31,6 +31,8 @@ namespace kinski { namespace gl {
         void removeObject(const Object3DPtr &theObject);
         void clear();
         
+        std::vector<gl::Object3DPtr> get_objects_by_tag(const std::string &the_tag) const;
+        
         inline const Object3DPtr& root() const {return m_root;};
         inline Object3DPtr& root() {return m_root;};
         uint32_t num_visible_objects() const {return m_num_visible_objects;};

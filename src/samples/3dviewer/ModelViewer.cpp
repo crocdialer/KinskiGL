@@ -13,6 +13,11 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
+namespace
+{
+    const std::string tag_ground_plane = "ground_plane";
+};
+
 /////////////////////////////////////////////////////////////////
 
 void ModelViewer::setup()
@@ -21,6 +26,7 @@ void ModelViewer::setup()
     
     register_property(m_model_path);
     register_property(m_use_lighting);
+    register_property(m_use_ground_plane);
     register_property(m_use_bones);
     register_property(m_display_bones);
     register_property(m_animation_index);
@@ -39,6 +45,7 @@ void ModelViewer::setup()
     auto ground_mesh = gl::Mesh::create(gl::Geometry::createPlane(400, 400),
                                         gl::Material::create(gl::createShader(gl::ShaderType::PHONG_SHADOWS)));
     ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
+    ground_mesh->add_tag(tag_ground_plane);
     
     scene().addObject(ground_mesh);
     
@@ -281,6 +288,15 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
               cube_planes.push_back(gl::createTextureFromFile(f));
           }
           m_cube_map = gl::create_cube_texture(cube_planes);
+        }
+    }
+    else if(theProperty == m_use_ground_plane)
+    {
+        auto objs = scene().get_objects_by_tag(tag_ground_plane);
+        
+        for(auto &o : objs)
+        {
+            o->set_enabled(*m_use_ground_plane);
         }
     }
 }
