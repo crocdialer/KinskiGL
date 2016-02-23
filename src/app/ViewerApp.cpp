@@ -33,7 +33,7 @@ namespace kinski {
         m_show_tweakbar->setTweakable(false);
         register_property(m_show_tweakbar);
         
-        m_window_size = Property_<glm::vec2>::create("window Size", windowSize());
+        m_window_size = Property_<glm::vec2>::create("window Size", gl::windowDimension());
         m_window_size->setTweakable(false);
         register_property(m_window_size);
         
@@ -290,9 +290,9 @@ namespace kinski {
 
         *m_window_size = glm::vec2(w, h);
         
-        m_arcball.setWindowSize( windowSize() );
-        m_arcball.setCenter( windowSize() / 2.f );
-        m_arcball.setRadius( 150 );
+        m_arcball.setWindowSize(gl::windowDimension());
+        m_arcball.setCenter(gl::windowDimension() / 2.f);
+        m_arcball.setRadius(150);
         
         set_clear_color(clear_color());
     }
@@ -432,7 +432,7 @@ namespace kinski {
     
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
     {
-        float w = (windowSize()/12.f).x;
+        float w = (gl::windowDimension()/12.f).x;
         glm::vec2 offset(getWidth() - w - 10, 10);
         
         for (const gl::Texture &t : the_textures)
@@ -454,11 +454,11 @@ namespace kinski {
     {
         gl::Texture ret;
         
-        if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != windowSize())
+        if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != gl::windowDimension())
         {
             gl::Fbo::Format fmt;
             fmt.setSamples(8);
-            m_fbo_snapshot = gl::Fbo(windowSize(), fmt);
+            m_fbo_snapshot = gl::Fbo(gl::windowDimension(), fmt);
         }
         
         ret = gl::render_to_texture(m_fbo_snapshot, [this]()
