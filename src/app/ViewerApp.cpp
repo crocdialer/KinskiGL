@@ -232,8 +232,7 @@ namespace kinski {
     {
         BaseApp::keyPress(e);
         
-#if !defined(KINSKI_RASPI)
-        if(e.getCode() == GLFW_KEY_SPACE)
+        if(e.getCode() == KEY_SPACE)
         {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
@@ -242,19 +241,19 @@ namespace kinski {
         {
             switch (e.getCode())
             {
-                case GLFW_KEY_C:
+                case KEY_C:
                     m_center_selected = !m_center_selected;
                     break;
                     
-                case GLFW_KEY_S:
+                case KEY_S:
                     save_settings();
                     break;
                 
-                case GLFW_KEY_F:
+                case KEY_F:
                     set_fullscreen(!fullscreen(), 0);
                     break;
                     
-                case GLFW_KEY_R:
+                case KEY_R:
                     try
                     {
                         m_inertia = glm::vec2(0);
@@ -266,15 +265,15 @@ namespace kinski {
                     }
                     break;
                 
-                case GLFW_KEY_1:
-                case GLFW_KEY_2:
-                case GLFW_KEY_3:
-                case GLFW_KEY_4:
-                case GLFW_KEY_5:
-                case GLFW_KEY_6:
-                case GLFW_KEY_7:
-                case GLFW_KEY_8:
-                case GLFW_KEY_9:
+                case KEY_1:
+                case KEY_2:
+                case KEY_3:
+                case KEY_4:
+                case KEY_5:
+                case KEY_6:
+                case KEY_7:
+                case KEY_8:
+                case KEY_9:
 //                    m_cam_index = e.getCode() - GLFW_KEY_1;
 //                    LOG_DEBUG << "cam index: " << m_cam_index;
                     break;
@@ -283,7 +282,6 @@ namespace kinski {
                     break;
             }
         }
-#endif
     }
     
     void ViewerApp::resize(int w, int h)

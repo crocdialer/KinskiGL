@@ -68,7 +68,7 @@ namespace kinski{ namespace video{
             if(m_player_item) [m_player_item release];
             if(m_output) [m_output release];
             if(m_loop_helper) [m_loop_helper dealloc];
-//            if(m_io_surface && IOSurfaceGetUseCount(m_io_surface) > 0)
+//            if(m_io_surface && IOSurfaceIsInUse(m_io_surface))
 //            {
 //                IOSurfaceDecrementUseCount(m_io_surface);
 //            }
@@ -107,7 +107,7 @@ namespace kinski{ namespace video{
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
         MovieCallback on_load = m_impl->m_on_load_cb, on_end = m_impl->m_movie_ended_cb;
-        m_impl.reset(new MovieControllerImpl);
+        m_impl.reset(new MovieControllerImpl());
         m_impl->m_movie_control = this;
         m_impl->m_on_load_cb = on_load;
         m_impl->m_movie_ended_cb = on_end;
@@ -283,8 +283,11 @@ namespace kinski{ namespace video{
             
             if(!as_texture2D && io_surface)
             {
-//                if(m_impl->m_io_surface){ IOSurfaceDecrementUseCount(m_impl->m_io_surface); }
-//                IOSurfaceIncrementUseCount(io_surface);
+                if(m_impl->m_io_surface && IOSurfaceGetUseCount(m_impl->m_io_surface))
+                {
+                    IOSurfaceDecrementUseCount(m_impl->m_io_surface);
+                }
+                IOSurfaceIncrementUseCount(io_surface);
                 m_impl->m_io_surface = io_surface;
                 
                 if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);
@@ -309,6 +312,9 @@ namespace kinski{ namespace video{
             {
                 // ping pong our pbo index
                 m_impl->m_pbo_index = (m_impl->m_pbo_index + 1) % 2;
+                
+                // bool is_planar = CVPixelBufferIsPlanar(buffer);// false
+                // int num_planes = CVPixelBufferGetPlaneCount(buffer);// 0
                 
                 size_t num_bytes = CVPixelBufferGetDataSize(buffer);
                 
