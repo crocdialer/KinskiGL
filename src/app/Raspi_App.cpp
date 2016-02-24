@@ -12,11 +12,10 @@
 
 using namespace std;
 
-uint32_t lookup_table[512];
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd);
 void handle_input_events(kinski::App *the_app, const int mouse_fd,
                          const int kb_fd){};
-uint32_t code_lookup(uint32_t the_keycode);
+int32_t code_lookup(uint32_t the_keycode);
 
 namespace kinski
 {
@@ -313,16 +312,134 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd)
     else{ LOG_WARNING << "couldn't open a mouse file-descriptor"; }
 }
 
-uint32_t code_lookup(uint32_t the_keycode)
+int32_t code_lookup(uint32_t the_keycode)
 {
-    static uint32_t *ptr = nullptr;
+    static int32_t lookup_table[1024];
+    static int32_t *ptr = nullptr;
     if(!ptr)
     {
       memset(lookup_table, 0, sizeof(lookup_table));
       ptr = lookup_table;
-      // ptr[]
+
+      ptr[KEY_RESERVED] = 0;
+      ptr[KEY_ESC] = (int32_t)(kinski::KEY_ESCAPE);
+      // ptr[KEY_1] = (int32_t)(kinski::KEY_1);
+      // ptr[KEY_2] = (int32_t)(kinski::KEY_2);
+      // ptr[KEY_3] = (int32_t)(kinski::KEY_3);
+      // ptr[KEY_4] = (int32_t)(kinski::KEY_4);
+      // ptr[KEY_5] = (int32_t)(kinski::KEY_5);
+      // ptr[KEY_6] = (int32_t)(kinski::KEY_6);
+      // ptr[KEY_7] = (int32_t)(kinski::KEY_7);
+      // ptr[KEY_8] = (int32_t)(kinski::KEY_8);
+      // ptr[KEY_9] = (int32_t)(kinski::KEY_9);
+      // ptr[KEY_0] = (int32_t)(kinski::KEY_0);
+      // ptr[KEY_MINUS] = (int32_t)(kinski::KEY_MINUS);
+      // ptr[KEY_EQUAL] = (int32_t)(kinski::KEY_EQUAL);
+      // ptr[KEY_BACKSPACE] = (int32_t)(kinski::KEY_BACKSPACE);
+      // ptr[KEY_TAB] = (int32_t)(kinski::KEY_TAB);
+      // ptr[KEY_Q] = (int32_t)(kinski::KEY_Q);
+      // ptr[KEY_W] = (int32_t)(kinski::KEY_W);
+      // ptr[KEY_E] = (int32_t)(kinski::KEY_E);
+      // ptr[KEY_R] = (int32_t)(kinski::KEY_R);
+      // ptr[KEY_T] = (int32_t)(kinski::KEY_T);
+      // ptr[KEY_Y] = (int32_t)(kinski::KEY_Y);
+      // ptr[KEY_U] = (int32_t)(kinski::KEY_U);
+      // ptr[KEY_I] = (int32_t)(kinski::KEY_I);
+      // ptr[KEY_O] = (int32_t)(kinski::KEY_O);
+      // ptr[KEY_P] = (int32_t)(kinski::KEY_P);
+      // ptr[KEY_ENTER] = (int32_t)(kinski::KEY_ENTER);
+      // ptr[KEY_LEFTCTRL] = (int32_t)(kinski::KEY_LEFT_CONTROL);
+      // ptr[KEY_A] = (int32_t)(kinski::KEY_A);
+      // ptr[KEY_S] = (int32_t)(kinski::KEY_S);
+      // ptr[KEY_D] = (int32_t)(kinski::KEY_D);
+      // ptr[KEY_F] = (int32_t)(kinski::KEY_F);
+      // ptr[KEY_G] = (int32_t)(kinski::KEY_G);
+      // ptr[KEY_H] = (int32_t)(kinski::KEY_H);
+      // ptr[KEY_J] = (int32_t)(kinski::KEY_J);
+      // ptr[KEY_K] = (int32_t)(kinski::KEY_K);
+      // ptr[KEY_L] = (int32_t)(kinski::KEY_L);
+      // ptr[KEY_SEMICOLON] = (int32_t)(kinski::KEY_SEMICOLON);
+      // ptr[KEY_APOSTROPHE] = (int32_t)(kinski::KEY_APOSTROPHE);
+      // ptr[KEY_GRAVE] = (int32_t)(kinski::KEY_GRAVE_ACCENT);
+      // ptr[KEY_LEFTSHIFT] = (int32_t)(kinski::KEY_LEFT_SHIFT);
+      // ptr[KEY_BACKSLASH] = (int32_t)(kinski::KEY_BACKSLASH);
+      // ptr[KEY_Z] = (int32_t)(kinski::KEY_Z);
+      // ptr[KEY_X] = (int32_t)(kinski::KEY_X);
+      // ptr[KEY_C] = (int32_t)(kinski::KEY_C);
+      // ptr[KEY_V] = (int32_t)(kinski::KEY_V);
+      // ptr[KEY_B] = (int32_t)(kinski::KEY_B);
+      // ptr[KEY_N] = (int32_t)(kinski::KEY_N);
+      // ptr[KEY_M] = (int32_t)(kinski::KEY_M);
+      // ptr[KEY_COMMA] = (int32_t)(kinski::KEY_COMMA);
+      // ptr[KEY_SLASH] = (int32_t)(kinski::KEY_SLASH);
+      // ptr[KEY_RIGHTSHIFT] = (int32_t)(kinski::KEY_RIGHT_SHIFT);
+      // ptr[KEY_KPASTERISK] = (int32_t)(kinski::KEY_L);
+      // ptr[KEY_LEFTALT] = (int32_t)(kinski::KEY_LEFT_ALT);
+      // ptr[KEY_SPACE] = (int32_t)(kinski::KEY_SPACE);
+      // ptr[KEY_CAPSLOCK] = (int32_t)(kinski::KEY_CAPS_LOCK);
+      // ptr[KEY_SCROLLLOCK] = (int32_t)(kinski::KEY_SCROLL_LOCK);
+      // ptr[KEY_F1] = (int32_t)(kinski::KEY_F1);
+      // ptr[KEY_F2] = (int32_t)(kinski::KEY_F2);
+      // ptr[KEY_F3] = (int32_t)(kinski::KEY_F3);
+      // ptr[KEY_F4] = (int32_t)(kinski::KEY_F4);
+      // ptr[KEY_F5] = (int32_t)(kinski::KEY_F5);
+      // ptr[KEY_F6] = (int32_t)(kinski::KEY_F6);
+      // ptr[KEY_F7] = (int32_t)(kinski::KEY_F7);
+      // ptr[KEY_F8] = (int32_t)(kinski::KEY_F8);
+      // ptr[KEY_F9] = (int32_t)(kinski::KEY_F9);
+      // ptr[KEY_F10] = (int32_t)(kinski::KEY_F10);
+      // ptr[KEY_F11] = (int32_t)(kinski::KEY_F11);
+      // ptr[KEY_F12] = (int32_t)(kinski::KEY_F12);
+      // ptr[KEY_F13] = (int32_t)(kinski::KEY_F13);
+      // ptr[KEY_F14] = (int32_t)(kinski::KEY_F14);
+      // ptr[KEY_F15] = (int32_t)(kinski::KEY_F15);
+      // ptr[KEY_F16] = (int32_t)(kinski::KEY_F16);
+      // ptr[KEY_F17] = (int32_t)(kinski::KEY_F17);
+      // ptr[KEY_F18] = (int32_t)(kinski::KEY_F18);
+      // ptr[KEY_F19] = (int32_t)(kinski::KEY_F19);
+      // ptr[KEY_F20] = (int32_t)(kinski::KEY_F20);
+      // ptr[KEY_F21] = (int32_t)(kinski::KEY_F21);
+      // ptr[KEY_F22] = (int32_t)(kinski::KEY_F22);
+      // ptr[KEY_F23] = (int32_t)(kinski::KEY_F23);
+      // ptr[KEY_F24] = (int32_t)(kinski::KEY_F24);
+      // ptr[KEY_NUMLOCK] = (int32_t)(kinski::KEY_NUM_LOCK);
+      // ptr[KEY_KP0] = (int32_t)(kinski::KEY_KP_0);
+      // ptr[KEY_KP1] = (int32_t)(kinski::KEY_KP_1);
+      // ptr[KEY_KP2] = (int32_t)(kinski::KEY_KP_2);
+      // ptr[KEY_KP3] = (int32_t)(kinski::KEY_KP_3);
+      // ptr[KEY_KP4] = (int32_t)(kinski::KEY_KP_4);
+      // ptr[KEY_KP5] = (int32_t)(kinski::KEY_KP_5);
+      // ptr[KEY_KP6] = (int32_t)(kinski::KEY_KP_6);
+      // ptr[KEY_KP7] = (int32_t)(kinski::KEY_KP_7);
+      // ptr[KEY_KP8] = (int32_t)(kinski::KEY_KP_8);
+      // ptr[KEY_KP9] = (int32_t)(kinski::KEY_KP_9);
+      // ptr[KEY_KPMINUS] = (int32_t)(kinski::KEY_KP_SUBTRACT);
+      // ptr[KEY_KPPLUS] = (int32_t)(kinski::KEY_KP_ADD);
+      // ptr[KEY_KPDOT] = (int32_t)(kinski::KEY_KP_DECIMAL);
+      // ptr[KEY_RIGHTCTRL] = (int32_t)(kinski::KEY_RIGHT_CONTROL);
+      // ptr[KEY_KPSLASH] = 0;
+      // ptr[KEY_RIGHTALT] = (int32_t)(kinski::KEY_RIGHT_ALT);
+      // ptr[KEY_HOME] = (int32_t)(kinski::KEY_HOME);
+      // ptr[KEY_UP] = (int32_t)(kinski::KEY_UP);
+      // ptr[KEY_PAGEUP] = (int32_t)(kinski::KEY_PAGE_UP);
+      // ptr[KEY_LEFT] = (int32_t)(kinski::KEY_LEFT);
+      // ptr[KEY_RIGHT] = (int32_t)(kinski::KEY_RIGHT);
+      // ptr[KEY_END	] = (int32_t)(kinski::KEY_END);
+      // ptr[KEY_DOWN] = (int32_t)(kinski::KEY_DOWN);
+      // ptr[KEY_PAGEDOWN] = (int32_t)(kinski::KEY_PAGE_DOWN);
+      // ptr[KEY_INSERT] = (int32_t)(kinski::KEY_INSERT);
+      // ptr[KEY_DELETE] = (int32_t)(kinski::KEY_DELETE);
+      // ptr[KEY_KPEQUAL] = (int32_t)(kinski::KEY_KP_EQUAL);
+      // ptr[KEY_LEFTMETA] = 0;
+      // ptr[KEY_RIGHTMETA] = 0;
+      // ptr[KEY_MENU] = (int32_t)(kinski::KEY_MENU);
+      // ptr[KEY_SCROLLUP] = 0;
+      // ptr[KEY_SCROLLDOWN] = 0;
+      // ptr[KEY_KPLEFTPAREN] = 0;
+      // ptr[KEY_KPRIGHTPAREN] = 0;
+      ptr[KEY_UNKNOWN] = -1;
     }
-    uint32_t ret = lookup_table[the_keycode];
+    int32_t ret = lookup_table[the_keycode];
     if(!ret){ ret = the_keycode; }
     return ret;
 }
