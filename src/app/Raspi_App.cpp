@@ -85,6 +85,10 @@ namespace kinski
 
     void Raspi_App::draw_internal()
     {
+        // clear framebuffer
+        gl::clear();
+
+        // fire user draw-callback
         draw();
 
         // draw tweakbar
