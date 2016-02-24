@@ -15,6 +15,7 @@ using namespace std;
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd);
 void handle_input_events(kinski::App *the_app, const int mouse_fd,
                          const int kb_fd){};
+uint32_t code_lookup(uint32_t the_keycode);
 
 namespace kinski
 {
@@ -50,9 +51,9 @@ namespace kinski
     {
         gettimeofday(&m_startTime, NULL);
 
-        esInitContext ( m_context.get() );
-        esCreateWindow ( m_context.get(), name().c_str(), getWidth(), getHeight(),
-                        ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH  /*| ES_WINDOW_MULTISAMPLE*/);
+        esInitContext(m_context.get());
+        esCreateWindow(m_context.get(), name().c_str(), getWidth(), getHeight(),
+                       ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH | ES_WINDOW_MULTISAMPLE);
 
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);
@@ -190,7 +191,7 @@ namespace kinski
             while(count--)
             {
                 evp = &ev[n++];
-                if(evp->type == 1)
+                if(evp->type == EV_KEY)
                 {
                     switch(evp->code)
                     {
@@ -299,13 +300,15 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd)
     regfree(&kbd);
     regfree(&mouse);
 
-    if((keyboardFd == -1) || (mouseFd == -1))
-    {
-        LOG_ERROR << "couldn't open input file descriptors";
-    }
-    else
-    {
-        *mouse_fd = mouseFd;
-        *kb_fd = keyboardFd;
-    }
+    if(keyboardFd != -1){ *kb_fd = keyboardFd; }
+    else{ LOG_WARNING << "couldn't open a keyboard file-descriptor"; }
+
+    if(mouseFd != -1){ *mouse_fd = mouseFd; }
+    else{ LOG_WARNING << "couldn't open a mouse file-descriptor"; }
+}
+
+uint32_t code_lookup(uint32_t the_keycode)
+{
+    static uint32_t lookup_table[512];
+    return 0;
 }
