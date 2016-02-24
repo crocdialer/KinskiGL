@@ -54,7 +54,7 @@ namespace kinski
 
         esInitContext(m_context.get());
         esCreateWindow(m_context.get(), name().c_str(), getWidth(), getHeight(),
-                       ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH | ES_WINDOW_MULTISAMPLE);
+                       ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH /*| ES_WINDOW_MULTISAMPLE*/);
 
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);
@@ -223,7 +223,8 @@ namespace kinski
                         default:
                             break;
                     }
-                    KeyEvent e(evp->code, evp->code, key_modifiers);
+                    uint32_t key_code = code_lookup(evp->code);
+                    KeyEvent e(key_code, key_code, key_modifiers);
 
                     if(evp->value == 0){ keyRelease(e); }
                     else if(evp->value == 1){ keyPress(e); }
@@ -310,6 +311,14 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd)
 
 uint32_t code_lookup(uint32_t the_keycode)
 {
-    static uint32_t lookup_table[512];
-    return 0;
+    static uint32_t *ptr = nullptr;
+    if(!ptr)
+    {
+      memset(lookup_table, sizeof(lookup_table), 0);
+      ptr = lookup_table;
+      // ptr[]
+    }
+    uint32_t ret = lookup_table[the_keycode];
+    if(!ret){ ret = the_keycode; }
+    return ret;
 }
