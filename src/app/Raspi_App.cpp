@@ -314,7 +314,7 @@ uint32_t code_lookup(uint32_t the_keycode)
     static uint32_t *ptr = nullptr;
     if(!ptr)
     {
-      memset(lookup_table, sizeof(lookup_table), 0);
+      memset(lookup_table, 0, sizeof(lookup_table));
       ptr = lookup_table;
       // ptr[]
     }
