@@ -12,6 +12,7 @@
 
 using namespace std;
 
+uint32_t lookup_table[512];
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd);
 void handle_input_events(kinski::App *the_app, const int mouse_fd,
                          const int kb_fd){};

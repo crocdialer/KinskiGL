@@ -1142,7 +1142,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::setWindowDimension(theFbo.getSize());
         theFbo.bindFramebuffer();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        gl::clear();
         theScene.render(theCam);
         return theFbo.getTexture();
     }

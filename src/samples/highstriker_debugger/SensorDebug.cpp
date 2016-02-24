@@ -75,7 +75,7 @@ void SensorDebug::draw()
     vec2 offset(55, 110), step(0, 90);
     std::vector<glm::vec3> points;
 
-    float h = 80.f, w = windowSize().x - 2.f * offset.x;
+    float h = 80.f, w = gl::windowDimension().x - 2.f * offset.x;
 
     for(size_t i = 0; i < m_measurements.size(); i++)
     {
@@ -215,7 +215,7 @@ void SensorDebug::fileDrop(const MouseEvent &e, const std::vector<std::string> &
 
 void SensorDebug::tearDown()
 {
-    LOG_PRINT<<"ciao sensor debugger";
+    LOG_PRINT << "ciao " << name();
 }
 
 /////////////////////////////////////////////////////////////////
