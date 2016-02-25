@@ -34,6 +34,7 @@ void EmptySample::update(float timeDelta)
 
 void EmptySample::draw()
 {
+    gl::drawQuad(gl::Color(1.f, 0, 0, 1.f), gl::windowDimension());
     gl::setMatrices(camera());
     if(*m_draw_grid){ gl::drawGrid(50, 50); }
 }

@@ -115,10 +115,10 @@ namespace kinski
         handle_input_events(this, m_mouse_fd, m_keyboard_fd);
 
         struct input_event ev[64];
-        int rd;
+        int rd = 0;
 
         // Read events from mouse
-        rd = read(m_mouse_fd, ev, sizeof(ev));
+        if(m_mouse_fd){ rd = read(m_mouse_fd, ev, sizeof(ev)); }
 
         if(rd > 0)
         {
@@ -185,7 +185,9 @@ namespace kinski
         }
 
         // Read events from keyboard
-        rd = read(m_keyboard_fd, ev, sizeof(ev));
+        rd = 0;
+
+        if(m_keyboard_fd){ rd = read(m_keyboard_fd, ev, sizeof(ev)); }
 
         if(rd > 0)
         {

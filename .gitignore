@@ -6,3 +6,4 @@
 *.apk
 .DS_Store
 .gitignore
+src/gl/ShaderLibrary.*
