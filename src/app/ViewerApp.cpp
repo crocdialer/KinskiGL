@@ -232,7 +232,7 @@ namespace kinski {
     {
         BaseApp::keyPress(e);
         
-        if(e.getCode() == KEY_SPACE)
+        if(e.getCode() == Key::KEY_SPACE)
         {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
@@ -241,19 +241,19 @@ namespace kinski {
         {
             switch (e.getCode())
             {
-                case KEY_C:
+                case Key::KEY_C:
                     m_center_selected = !m_center_selected;
                     break;
                     
-                case KEY_S:
+                case Key::KEY_S:
                     save_settings();
                     break;
                 
-                case KEY_F:
+                case Key::KEY_F:
                     set_fullscreen(!fullscreen(), 0);
                     break;
                     
-                case KEY_R:
+                case Key::KEY_R:
                     try
                     {
                         m_inertia = glm::vec2(0);
@@ -265,15 +265,15 @@ namespace kinski {
                     }
                     break;
                 
-                case KEY_1:
-                case KEY_2:
-                case KEY_3:
-                case KEY_4:
-                case KEY_5:
-                case KEY_6:
-                case KEY_7:
-                case KEY_8:
-                case KEY_9:
+                case Key::KEY_1:
+                case Key::KEY_2:
+                case Key::KEY_3:
+                case Key::KEY_4:
+                case Key::KEY_5:
+                case Key::KEY_6:
+                case Key::KEY_7:
+                case Key::KEY_8:
+                case Key::KEY_9:
 //                    m_cam_index = e.getCode() - GLFW_KEY_1;
 //                    LOG_DEBUG << "cam index: " << m_cam_index;
                     break;
