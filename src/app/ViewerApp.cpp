@@ -12,7 +12,7 @@
 #include "app/MaterialComponent.h"
 
 namespace kinski {
-    
+
     ViewerApp::ViewerApp():BaseApp(),
     m_camera(new gl::PerspectiveCamera),
     m_gui_camera(gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1)),
@@ -25,76 +25,76 @@ namespace kinski {
                                                                       std::vector<std::string>());
         m_search_paths->setTweakable(false);
         register_property(m_search_paths);
-        
+
         m_logger_severity = RangedProperty<int>::create("logger severity", kinski::SEV_INFO, 0, 7);
         register_property(m_logger_severity);
-        
+
         m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);
         m_show_tweakbar->setTweakable(false);
         register_property(m_show_tweakbar);
-        
+
         m_window_size = Property_<glm::vec2>::create("window Size", gl::windowDimension());
         m_window_size->setTweakable(false);
         register_property(m_window_size);
-        
+
         m_look_at = Property_<glm::vec3>::create("look at", glm::vec3());
         register_property(m_look_at);
-        
+
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
         register_property(m_distance);
-        
+
         m_camera_fov = Property_<float>::create("camera fov", 45.f);
         register_property(m_camera_fov);
-        
+
         m_rotation = Property_<glm::mat3>::create("geometry rotation", glm::mat3());
         m_rotation->setTweakable(false);
         register_property(m_rotation);
-        
+
         m_rotation_speed = RangedProperty<float>::create("rotation speed", 0, -100, 100);
         register_property(m_rotation_speed);
-        
+
         m_rotation_axis = Property_<glm::vec3>::create("rotation axis", glm::vec3(0, 1, 0));
         register_property(m_rotation_axis);
-        
+
         m_draw_grid = Property_<bool>::create("draw grid", true);
         register_property(m_draw_grid);
-        
+
         m_wireframe = Property_<bool>::create("wireframe", false);
         register_property(m_wireframe);
-        
+
         m_drawNormals = Property_<bool>::create("normals", false);
         register_property(m_drawNormals);
-        
+
         m_clear_color = Property_<glm::vec4>::create("clear color", glm::vec4(0 ,0 ,0, 1.0));
         register_property(m_clear_color);
-        
+
         register_function("load_settings", [this](const std::vector<std::string>&){ load_settings(); });
         register_function("save_settings", [this](const std::vector<std::string>&){ save_settings(); });
         register_function("generate_snapshot", [this](const std::vector<std::string>&){ generate_snapshot(); });
     }
-    
+
     ViewerApp::~ViewerApp()
     {
-        
+
     }
-    
+
     void ViewerApp::setup()
     {
         set_window_title(name());
-                              
+
         fonts()[0].load("Courier New Bold.ttf", 18);
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
-        
+
         gl::Shader unlit_shader = gl::createShader(gl::ShaderType::UNLIT);
-        
+
         for (int i = 0; i < 16; i++)
         {
             // lights
             auto light = std::make_shared<gl::Light>(gl::Light::POINT);
             light->set_enabled(false);
             lights().push_back(light);
-            
+
             // materials
             auto material = gl::Material::create(unlit_shader);
             materials().push_back(material);
@@ -102,10 +102,10 @@ namespace kinski {
         // viewer provides a directional light
         lights().front()->position() = glm::vec3(1);
         lights().front()->set_type(gl::Light::DIRECTIONAL);
-        
+
         // enable observer mechanism
         observe_properties();
-        
+
         // setup our light component
         m_light_component = std::make_shared<LightComponent>();
         m_light_component->set_lights(lights());
@@ -114,13 +114,13 @@ namespace kinski {
         m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
         m_remote_control.start_listen();
     }
-    
+
     void ViewerApp::update(float timeDelta)
     {
         m_camera->setAspectRatio(getAspectRatio());
         m_avg_filter.push(glm::vec2(0));
         m_inertia *= m_rotation_damping;
-        
+
         // rotation from inertia
         if(!m_mouse_down && glm::length2(m_inertia) > 0.0025)
         {
@@ -135,39 +135,39 @@ namespace kinski {
                                                  *m_rotation_speed * timeDelta,
                                                  m_rotation_axis->value()));
         }
-        
+
         // update joysticks
 //        for(auto &joystick : get_joystick_states())
 //        {
 //            float min_val = .38f, multiplier = 1.2f;
 //            float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
 //            float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
-//            
+//
 //            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * x_axis, gl::Y_AXIS));
 //            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * y_axis, gl::Z_AXIS));
-//            
+//
 //            if(joystick.buttons()[4]){ *m_distance += 5.f; }
 //            if(joystick.buttons()[5]){ *m_distance -= 5.f; }
 //        }
-        
+
         // update animations
         for(auto &anim : m_animations)
         {
             if(anim){ anim->update(timeDelta); }
         }
-        
+
         m_scene.update(timeDelta);
     }
-    
+
     void ViewerApp::mousePress(const MouseEvent &e)
     {
         m_arcball.mouseDown(e.getPos());
-        
+
         m_clickPos = glm::vec2(e.getX(), e.getY());
         m_lastTransform = *m_rotation;
         m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
-        
+
         if(e.isLeft())
         {
             gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, glm::vec2(e.getX(),
@@ -182,26 +182,26 @@ namespace kinski {
                 }
             }
         }
-        
+
         if(e.isRight())
         {
             m_selected_mesh.reset();
         }
     }
-    
+
     void ViewerApp::mouseDrag(const MouseEvent &e)
     {
         glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
-        
+
         if(e.isLeft())
         {
-             
+
             if(e.isLeft() && (e.isAltDown() || !displayTweakBar()))
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
                                                                  glm::radians(-mouseDiff.x), 0)));
-                
+
                 //            m_arcball.mouseDrag(e.getPos());
                 //            *m_rotation = glm::mat3_cast(m_arcball.getQuat());
             }
@@ -215,45 +215,45 @@ namespace kinski {
             *m_look_at = m_look_at_tmp - camera()->side() * mouseDiff.x + camera()->up() * mouseDiff.y;
         }
     }
-    
+
     void ViewerApp::mouseRelease(const MouseEvent &e)
     {
         m_mouse_down = false;
         if(!displayTweakBar())
             m_inertia = m_avg_filter.filter();
     }
-    
+
     void ViewerApp::mouseWheel(const MouseEvent &e)
     {
         *m_distance -= e.getWheelIncrement().y;
     }
-    
+
     void ViewerApp::keyPress(const KeyEvent &e)
     {
         BaseApp::keyPress(e);
-        
-        if(e.getCode() == Key::KEY_SPACE)
+
+        if(e.getCode() == Key::_SPACE)
         {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
-        
+
         if(!displayTweakBar())
         {
             switch (e.getCode())
             {
-                case Key::KEY_C:
+                case Key::_C:
                     m_center_selected = !m_center_selected;
                     break;
-                    
-                case Key::KEY_S:
+
+                case Key::_S:
                     save_settings();
                     break;
-                
-                case Key::KEY_F:
+
+                case Key::_F:
                     set_fullscreen(!fullscreen(), 0);
                     break;
-                    
-                case Key::KEY_R:
+
+                case Key::_R:
                     try
                     {
                         m_inertia = glm::vec2(0);
@@ -264,39 +264,39 @@ namespace kinski {
                         LOG_WARNING << e.what();
                     }
                     break;
-                
-                case Key::KEY_1:
-                case Key::KEY_2:
-                case Key::KEY_3:
-                case Key::KEY_4:
-                case Key::KEY_5:
-                case Key::KEY_6:
-                case Key::KEY_7:
-                case Key::KEY_8:
-                case Key::KEY_9:
-//                    m_cam_index = e.getCode() - GLFW_KEY_1;
+
+                case Key::_1:
+                case Key::_2:
+                case Key::_3:
+                case Key::_4:
+                case Key::_5:
+                case Key::_6:
+                case Key::_7:
+                case Key::_8:
+                case Key::_9:
+//                    m_cam_index = e.getCode() - GLFW__1;
 //                    LOG_DEBUG << "cam index: " << m_cam_index;
                     break;
-                    
+
                 default:
                     break;
             }
         }
     }
-    
+
     void ViewerApp::resize(int w, int h)
     {
         BaseApp::resize(w, h);
 
         *m_window_size = glm::vec2(w, h);
-        
+
         m_arcball.setWindowSize(gl::windowDimension());
         m_arcball.setCenter(gl::windowDimension() / 2.f);
         m_arcball.setRadius(150);
-        
+
         set_clear_color(clear_color());
     }
-    
+
     // Property observer callback
     void ViewerApp::update_property(const Property::ConstPtr &theProperty)
     {
@@ -318,7 +318,7 @@ namespace kinski {
         else if(theProperty == m_window_size)
         {
             set_window_size(*m_window_size);
-            
+
             m_gui_camera = gl::OrthographicCamera::create(0, gl::windowDimension().x, 0, gl::windowDimension().y,
                                                           0, 1.f);
             // only set this once
@@ -339,13 +339,13 @@ namespace kinski {
             glm::vec3 look_at = *m_look_at;
             if(m_selected_mesh && m_center_selected)
                 look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
-            
+
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
             m_camera->transform() = tmp;
         }
     }
-    
+
     bool ViewerApp::save_settings(const std::string &path)
     {
         std::list<Component::Ptr> light_components, material_components;
@@ -376,7 +376,7 @@ namespace kinski {
             Serializer::saveComponentState(material_components,
                                            join_paths(path ,"material_config.json"),
                                            PropertyIO_GL());
-            
+
         }
         catch(Exception &e)
         {
@@ -385,7 +385,7 @@ namespace kinski {
         }
         return true;
     }
-    
+
     bool ViewerApp::load_settings(const std::string &path)
     {
         std::list<Component::Ptr> light_components, material_components;
@@ -424,24 +424,24 @@ namespace kinski {
             LOG_ERROR<<e.what();
             return false;
         }
-        
+
         m_light_component->refresh();
-        
+
         return true;
     }
-    
+
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
     {
         float w = (gl::windowDimension()/12.f).x;
         glm::vec2 offset(getWidth() - w - 10, 10);
-        
+
         for (const gl::Texture &t : the_textures)
         {
             if(!t) continue;
-            
+
             float h = t.getHeight() * w / t.getWidth();
             glm::vec2 step(0, h + 10);
-            
+
             drawTexture(t, glm::vec2(w, h), offset);
             gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
                            as_string(t.getHeight()), m_fonts[0], glm::vec4(1),
@@ -449,18 +449,18 @@ namespace kinski {
             offset += step;
         }
     }
-    
+
     gl::Texture ViewerApp::generate_snapshot()
     {
         gl::Texture ret;
-        
+
         if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != gl::windowDimension())
         {
             gl::Fbo::Format fmt;
             fmt.setSamples(8);
             m_fbo_snapshot = gl::Fbo(gl::windowDimension(), fmt);
         }
-        
+
         ret = gl::render_to_texture(m_fbo_snapshot, [this]()
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
