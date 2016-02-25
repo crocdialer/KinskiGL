@@ -69,33 +69,33 @@ void MovieTest::keyPress(const KeyEvent &e)
     
     switch (e.getCode())
     {
-        case Key::KEY_C:
+        case Key::_C:
             if(m_camera_control->is_capturing())
                 m_camera_control->stop_capture();
             else
                 m_camera_control->start_capture();
             break;
             
-        case Key::KEY_P:
+        case Key::_P:
             m_movie->isPlaying() ? m_movie->pause() : m_movie->play();
             break;
             
-        case Key::KEY_LEFT:
+        case Key::_LEFT:
             m_movie->seek_to_time(m_movie->current_time() - 5);
             break;
         
-        case Key::KEY_RIGHT:
+        case Key::_RIGHT:
             m_movie->seek_to_time(m_movie->current_time() + 5);
             break;
-        case Key::KEY_UP:
+        case Key::_UP:
             m_movie->set_volume(m_movie->volume() + .1f);
             break;
             
-        case Key::KEY_DOWN:
+        case Key::_DOWN:
             m_movie->set_volume(m_movie->volume() - .1f);
             break;
         
-        case KEY_O:
+        case Key::_O:
         {
             auto new_window = GLFW_Window::create(640, 480, "output", false, 0, windows().back()->handle());
             add_window(new_window);
