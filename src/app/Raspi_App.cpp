@@ -232,6 +232,9 @@ namespace kinski
                     if(evp->value == 0){ keyRelease(e); }
                     else if(evp->value == 1){ keyPress(e); }
                     else if(evp->value == 2){ keyPress(e); }
+
+                    // right place here !?
+                    if(key_code == Key::_ESCAPE){ set_running(false); }
                 }
             }
         }
