@@ -112,11 +112,21 @@ namespace kinski{ namespace gl{
                 
                 // lighting parameters
 #if !defined(KINSKI_GLES)
-                GLuint block_index = mat->shader().getUniformBlockIndex("LightBlock");
-                glUniformBlockBinding(mat->shader().getHandle(), block_index, LIGHT_BLOCK);
+                GLint block_index = mat->shader().getUniformBlockIndex("LightBlock");
+                
+                if(block_index >= 0)
+                {
+                    glUniformBlockBinding(mat->shader().getHandle(), block_index, LIGHT_BLOCK);
+                    KINSKI_CHECK_GL_ERRORS();
+                }
                 
                 block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
-                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATERIAL_BLOCK);
+                
+                if(block_index >= 0)
+                {
+                    glUniformBlockBinding(mat->shader().getHandle(), block_index, MATERIAL_BLOCK);
+                    KINSKI_CHECK_GL_ERRORS();
+                }
                 
 //                block_index = mat->shader().getUniformBlockIndex("MatrixBlock");
 //                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATRIX_BLOCK);

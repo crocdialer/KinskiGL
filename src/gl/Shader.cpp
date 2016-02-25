@@ -23,7 +23,7 @@ struct Shader::Obj
     
     GLuint						m_Handle;
     std::map<std::string,int>	m_UniformLocs;
-    std::map<std::string,int>	m_UniformBlockIndices;
+    std::map<std::string, GLuint>	m_UniformBlockIndices;
 
 };
     
@@ -315,8 +315,8 @@ GLint Shader::getUniformBlockIndex(const std::string &name)
     auto it = m_Obj->m_UniformBlockIndices.find(name);
     if(it == m_Obj->m_UniformBlockIndices.end())
     {
-        GLint loc = glGetUniformBlockIndex(m_Obj->m_Handle, name.c_str());
-        m_Obj->m_UniformBlockIndices[name] = loc;
+        GLuint loc = glGetUniformBlockIndex(m_Obj->m_Handle, name.c_str());
+        m_Obj->m_UniformBlockIndices[name] = (loc == GL_INVALID_INDEX) ? -1 : loc;
         return loc;
     }
     else

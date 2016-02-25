@@ -223,16 +223,16 @@ namespace kinski { namespace gl{
         {
             //TODO: needed ?
         }
-        float opacity = 1.f;
-        mtl->Get(AI_MATKEY_OPACITY, opacity);
-        if(opacity < 1.f)
-        {
-            Color d = theMaterial->diffuse();
-            d.a = opacity;
-            theMaterial->setDiffuse(d);
-            theMaterial->setBlending();
-            //theMaterial->setDepthWrite(false);
-        }
+//        float opacity = 1.f;
+//        mtl->Get(AI_MATKEY_OPACITY, opacity);
+//        if(opacity < 1.f)
+//        {
+//            Color d = theMaterial->diffuse();
+//            d.a = opacity;
+//            theMaterial->setDiffuse(d);
+//            theMaterial->setBlending();
+//            //theMaterial->setDepthWrite(false);
+//        }
         
         ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
         ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
