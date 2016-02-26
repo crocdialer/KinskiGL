@@ -6,8 +6,7 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef CHTHREAD_H
-#define CHTHREAD_H
+#pragma once
 
 #include <thread>
 #include <mutex>
@@ -104,4 +103,3 @@ namespace kinski
     };
     
 } // namespace kinski
-#endif // CHTHREAD_H

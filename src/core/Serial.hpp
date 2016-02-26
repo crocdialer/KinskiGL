@@ -1,7 +1,6 @@
-#ifndef _KINSKI_SERIAL_INCLUDED__
-#define _KINSKI_SERIAL_INCLUDED__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 #if defined(KINSKI_MSW)
 #include <winbase.h>
@@ -128,4 +127,3 @@ namespace kinski
     
     
 }
-#endif //_KINSKI_SERIAL_INCLUDED__

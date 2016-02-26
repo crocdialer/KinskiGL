@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__ParticleSystem__
-#define __gl__ParticleSystem__
+#pragma once
 
-#include "gl/gl.h"
-#include "gl/geometry_types.h"
+#include "gl/gl.hpp"
+#include "gl/geometry_types.hpp"
 #include "opencl/cl_context.h"
 
 namespace kinski{ namespace gl{
@@ -96,5 +95,3 @@ namespace kinski{ namespace gl{
     };
     
 }}
-
-#endif /* defined(__gl__ParticleSystem__) */

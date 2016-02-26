@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include "core/core.h"
-#include "core/file_functions.h"
+#include "core/core.hpp"
+#include "core/file_functions.hpp"
 
 //triggers checks with glGetError()
 //#define KINSKI_GL_REPORT_ERRORS

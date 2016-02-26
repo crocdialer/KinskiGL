@@ -7,7 +7,7 @@
 //
 
 #include "CapacitiveSensor.hpp"
-#include "core/Serial.h"
+#include "core/Serial.hpp"
 
 #define NUM_SENSOR_PADS 13
 #define SERIAL_START_CODE 0x7E

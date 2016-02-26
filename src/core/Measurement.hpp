@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef gl_Measurement_hpp
-#define gl_Measurement_hpp
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski
 {
@@ -193,4 +192,3 @@ namespace kinski
         std::size_t m_current_index;
     };
 }// namespace kinski
-#endif

@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __core__networking__
-#define __core__networking__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski
 {
@@ -146,5 +145,3 @@ namespace kinski
         };
     }// namespace net
 }// namespace kinski
-
-#endif /* defined(__core__networking__) */

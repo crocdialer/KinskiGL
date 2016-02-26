@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "core/Serializer.h"
+#include "core/Serializer.hpp"
 #include "gl/gl.hpp"
 
 namespace kinski

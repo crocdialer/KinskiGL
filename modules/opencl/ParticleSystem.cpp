@@ -7,7 +7,7 @@
 //
 
 #include "ParticleSystem.hpp"
-#include "gl/Mesh.h"
+#include "gl/Mesh.hpp"
 
 using namespace std;
 using namespace glm;

@@ -10,7 +10,6 @@
 #include "gl/gl.hpp"
 #include "gl/Material.hpp"
 #include "GLFW_App.h"
-#include "core/file_functions.h"
 #include "AntTweakBarConnector.h"
 
 using namespace std;

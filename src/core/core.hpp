@@ -7,8 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef gl_Definitions_h
-#define gl_Definitions_h
+#pragma once
 
 #ifdef WIN32
 #define KINSKI_API __declspec(dllexport)
@@ -66,8 +65,6 @@ namespace kinski
 // forward declare boost io_service
 namespace boost{ namespace asio{ class io_service; } }
 
-#include "Logger.h"
-#include "Exception.h"
-#include "Utils.h"
-
-#endif//gl_Definitions_h
+#include "Logger.hpp"
+#include "Exception.hpp"
+#include "Utils.hpp"

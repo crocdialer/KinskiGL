@@ -7,8 +7,8 @@
 //
 
 #include "CVNode.h"
-#include "core/file_functions.h"
-#include "core/Logger.h"
+#include "core/file_functions.hpp"
+#include "core/Logger.hpp"
 #include <boost/format.hpp>
 
 using namespace std;

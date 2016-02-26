@@ -8,9 +8,9 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include <fstream>
-#include "file_functions.h"
-#include "Logger.h"
-#include "Serializer.h"
+#include "file_functions.hpp"
+#include "Logger.hpp"
+#include "Serializer.hpp"
 
 using namespace std;
 

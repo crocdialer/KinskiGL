@@ -7,7 +7,7 @@
 //
 
 #include "cl_context.h"
-#include "core/file_functions.h"
+#include "core/file_functions.hpp"
 
 #if defined(KINSKI_LINUX)
   #include <GL/glx.h>

@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__DMXController__
-#define __gl__DMXController__
+#pragma once
 
-#include "core/core.h"
-#include "core/Serial.h"
+#include "core/core.hpp"
+#include "core/Serial.hpp"
 
 namespace kinski
 {
@@ -40,5 +39,3 @@ namespace kinski
         std::vector<uint8_t> m_dmx_values;
     };
 }// namespace
-
-#endif /* defined(__gl__DMXController__) */

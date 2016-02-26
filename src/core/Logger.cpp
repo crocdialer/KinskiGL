@@ -10,9 +10,9 @@
 #include <iostream>
 #include <limits>
 #include <thread>
-#include "Logger.h"
-#include "Exception.h"
-#include "file_functions.h"
+#include "Logger.hpp"
+#include "Exception.hpp"
+#include "file_functions.hpp"
 
 namespace kinski {
     

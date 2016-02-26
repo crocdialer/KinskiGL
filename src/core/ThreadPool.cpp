@@ -9,7 +9,7 @@
 #include <boost/bind.hpp>
 #include <thread>
 
-#include "ThreadPool.h"
+#include "ThreadPool.hpp"
 
 namespace kinski
 {

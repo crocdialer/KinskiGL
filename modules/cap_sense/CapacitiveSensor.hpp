@@ -6,7 +6,8 @@
 //
 //
 #pragma once
-#include "core/core.h"
+
+#include "core/core.hpp"
 
 namespace kinski
 {

@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include "core/Timer.h"
-#include "core/Animation.h"
+#include "core/Timer.hpp"
+#include "core/Animation.hpp"
 #include "core/Measurement.hpp"
 #include "app/Arcball.h"
 #include "app/RemoteControl.h"

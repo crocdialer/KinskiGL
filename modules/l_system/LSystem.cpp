@@ -7,7 +7,7 @@
 //
 
 #include "LSystem.h"
-#include "gl/Mesh.h"
+#include "gl/Mesh.hpp"
 
 using namespace kinski;
 using namespace std;

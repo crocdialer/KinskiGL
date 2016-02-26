@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__ThreadPool__
-#define __gl__ThreadPool__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski
 {
@@ -38,5 +37,3 @@ namespace kinski
     };
     
 }//namespace
-
-#endif /* defined(__gl__ThreadPool__) */

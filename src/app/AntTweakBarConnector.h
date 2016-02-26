@@ -9,7 +9,7 @@
 
 #include <AntTweakBar.h>
 #include <sstream>
-#include "core/Property.h"
+#include "core/Property.hpp"
 
 namespace kinski {
 

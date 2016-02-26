@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__Timer__
-#define __gl__Timer__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski
 {
@@ -80,6 +79,3 @@ namespace kinski
         std::shared_ptr<timer_impl> m_impl;
     };
 }
-
-
-#endif /* defined(__gl__Timer__) */

@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __gl__Fmod_Sound__
-#define __gl__Fmod_Sound__
+#pragma once
 
 #include "fmod.hpp"
 #include "fmod_errors.h"
@@ -74,5 +73,3 @@ namespace kinski{ namespace audio{
     typedef std::shared_ptr<Fmod_Sound> Fmod_SoundPtr;
     
 }}//namespace
-
-#endif /* defined(__gl__Fmod_Sound__) */

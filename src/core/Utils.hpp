@@ -6,13 +6,11 @@
 //
 //
 
-#ifndef gl_Utils_h
-#define gl_Utils_h
+#pragma once
 
-#include <sstream>
+//#include <sstream>
 #include <iomanip>
-#include <algorithm>
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski
 {
@@ -245,5 +243,3 @@ namespace kinski
         T* m_data;
     };
 }
-
-#endif

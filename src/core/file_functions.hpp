@@ -7,10 +7,9 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _included_kinski_file_functions_
-#define _included_kinski_file_functions_
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski {
 
@@ -75,6 +74,3 @@ namespace kinski {
         virtual ~OpenFileFailed() noexcept {};
     };
 }
-
-#endif
-

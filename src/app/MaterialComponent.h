@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "core/Component.h"
+#include "core/Component.hpp"
 #include "gl/Material.hpp"
 
 namespace kinski

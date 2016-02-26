@@ -6,19 +6,17 @@
 //
 //
 
-#ifndef __gl__MovieTimeshift__
-#define __gl__MovieTimeshift__
+#pragma once
 
-#include "core/Timer.h"
-#include "gl/Noise.h"
+#include "core/Timer.hpp"
+#include "gl/Noise.hpp"
 #include "app/ViewerApp.h"
 
 #include "video/MovieController.h"
 #include "video/CameraController.h"
 #include "syphon/SyphonConnector.h"
 
-#include "gl/Fbo.h"
-//#include "opencv2/opencv.hpp"
+#include "gl/Fbo.hpp"
 
 namespace kinski
 {
@@ -143,5 +141,3 @@ namespace kinski
         
     };
 }// namespace kinski
-
-#endif /* defined(__gl__MovieTimeshift__) */

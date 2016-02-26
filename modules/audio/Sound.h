@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__Sound__
-#define __gl__Sound__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski{ namespace audio{
     
@@ -158,5 +157,3 @@ namespace kinski{ namespace audio{
     };
     
 }}//namespace
-
-#endif /* defined(__gl__Sound__) */

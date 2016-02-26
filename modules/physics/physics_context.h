@@ -6,16 +6,15 @@
 //
 //
 
-#ifndef __gl__physics_context__
-#define __gl__physics_context__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 #include <unordered_map>
 
 //#define BT_USE_DOUBLE_PRECISION
 #include "btBulletDynamicsCommon.h"
 
-#include "gl/Mesh.h"
+#include "gl/Mesh.hpp"
 
 class btThreadSupportInterface;
 
@@ -293,5 +292,3 @@ namespace kinski{ namespace physics{
                                 const std::vector<glm::vec3>& the_voronoi_points);
     
 }}//namespace
-
-#endif /* defined(__gl__physics_context__) */

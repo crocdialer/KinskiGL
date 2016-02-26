@@ -7,11 +7,10 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef __gl__Serializer__
-#define __gl__Serializer__
+#pragma once
 
 #include "json/json.h"
-#include "Component.h"
+#include "Component.hpp"
 
 namespace kinski
 {
@@ -130,5 +129,3 @@ namespace kinski
         Exception(std::string("Could not open file for writing configuration: ") + theFilename) {}
     };
 }
-
-#endif /* defined(__gl__Serializer__) */

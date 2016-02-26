@@ -7,11 +7,10 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _kinski_Logger_h_included_
-#define _kinski_Logger_h_included_
+#pragma once
 
 #include <sstream>
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski {
     enum Severity { SEV_DISABLED = 0, SEV_PRINT = 1, SEV_FATAL = 2, SEV_ERROR = 3, SEV_WARNING = 4,
@@ -117,4 +116,3 @@ class MessagePort
 #define LOG_WARNING_IF(b) b && LOG_WARNING
 
 }//namespace
-#endif

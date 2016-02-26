@@ -9,13 +9,12 @@
 #pragma once
 
 #include "opencv2/opencv.hpp"
-//#include "boost/thread.hpp"
 
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 
-#include "core/Component.h"
+#include "core/Component.hpp"
 
 namespace kinski
 {

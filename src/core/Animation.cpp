@@ -6,7 +6,7 @@
 //
 //
 
-#include "Animation.h"
+#include "Animation.hpp"
 
 using std::chrono::duration_cast;
 using std::chrono::microseconds;
@@ -100,8 +100,8 @@ namespace kinski{ namespace animation{
     void Animation::set_loop(LoopType loop_type)
     {m_impl->loop_type = loop_type;}
     
-    steady_clock::time_point Animation::start_time() const {return m_impl->start_time;}
-    steady_clock::time_point Animation::end_time() const {return m_impl->end_time;}
+//    steady_clock::time_point Animation::start_time() const {return m_impl->start_time;}
+//    steady_clock::time_point Animation::end_time() const {return m_impl->end_time;}
     
     void Animation::set_interpolation_function(InterpolationFunction fn)
     {
@@ -218,14 +218,13 @@ namespace kinski{ namespace animation{
         steady_clock::time_point start_tp = steady_clock::time_point::max(),
         end_tp = steady_clock::time_point::min();
         
-        for(auto &child_anim : m_animations)
-        {
-            if(child_anim.start_time() < start_tp)
-                start_tp = child_anim.start_time();
-            if(child_anim.end_time() > end_tp)
-                end_tp = child_anim.end_time();
-            
-        }
+//        for(auto &child_anim : m_animations)
+//        {
+//            if(child_anim.start_time() < start_tp)
+//                start_tp = child_anim.start_time();
+//            if(child_anim.end_time() > end_tp)
+//                end_tp = child_anim.end_time();
+//        }
         return duration_cast<float_second>(end_tp - start_tp).count();
     }
     

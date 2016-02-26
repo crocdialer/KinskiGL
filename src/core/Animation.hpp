@@ -6,12 +6,11 @@
 //
 //
 
-#ifndef __gl__Animation__
-#define __gl__Animation__
+#pragma once
 
 #include <chrono>
-#include "Property.h"
-#include "Easing.h"
+#include "Property.hpp"
+#include "Easing.hpp"
 
 namespace kinski{ namespace animation{
     
@@ -45,8 +44,8 @@ namespace kinski{ namespace animation{
         LoopType loop() const;
         void set_loop(LoopType loop_type = LOOP);
         
-        std::chrono::steady_clock::time_point start_time() const;
-        std::chrono::steady_clock::time_point end_time() const;
+//        std::chrono::steady_clock::time_point start_time() const;
+//        std::chrono::steady_clock::time_point end_time() const;
         
         void set_interpolation_function(InterpolationFunction fn);
         void set_ease_function(EaseFunction fn);
@@ -135,5 +134,3 @@ namespace kinski{ namespace animation{
     };
     
 }}//namespace
-
-#endif /* defined(__gl__Animation__) */

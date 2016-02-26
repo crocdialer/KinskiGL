@@ -7,8 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "file_functions.h"
-#include <fstream>
+#include "file_functions.hpp"
 #include <boost/filesystem.hpp>
 
 using namespace std;

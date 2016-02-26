@@ -7,13 +7,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _KINSKI_APP_IS_INCLUDED_
-#define _KINSKI_APP_IS_INCLUDED_
+#pragma once
 
 #include "gl/gl.hpp"
-#include "core/Component.h"
-#include "core/file_functions.h"
-#include "core/ThreadPool.h"
+#include "core/Component.hpp"
+#include "core/ThreadPool.hpp"
 
 namespace kinski
 {
@@ -92,9 +90,10 @@ namespace kinski
 
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
-        inline void set_window_size(uint32_t w, uint32_t h){set_window_size(glm::vec2(w, h));};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
-        inline const glm::vec2 windowSize(){return m_windowSize;};
+        
+//        inline const glm::vec2 windowSize(){return m_windowSize;};
+//        inline void set_window_size(uint32_t w, uint32_t h){set_window_size(glm::vec2(w, h));};
 
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};
@@ -411,4 +410,3 @@ namespace kinski
         };
     };
 }
-#endif // _KINSKI_APP_IS_INCLUDED_

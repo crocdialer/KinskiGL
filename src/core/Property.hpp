@@ -7,12 +7,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _KINSKIProperty__INCLUDED__
-#define _KINSKIProperty__INCLUDED__
+#pragma once
 
 #include <boost/any.hpp>
 #include <boost/signals2.hpp>
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski
 {
@@ -296,5 +295,3 @@ private:
 };
 
 }
-
-#endif // _KINSKIProperty__INCLUDED__

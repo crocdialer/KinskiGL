@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__LSystem__
-#define __gl__LSystem__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 #include <unordered_map>
 
 namespace kinski
@@ -134,5 +133,3 @@ namespace kinski
         static std::string lex_rule(const std::pair<char, std::string> &the_rule);
     };
 }
-
-#endif /* defined(__gl__LSystem__) */

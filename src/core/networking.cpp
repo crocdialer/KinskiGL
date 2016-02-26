@@ -7,8 +7,7 @@
 //
 
 #include <boost/asio.hpp>
-#include "Logger.h"
-#include "networking.h"
+#include "networking.hpp"
 
 namespace kinski
 {

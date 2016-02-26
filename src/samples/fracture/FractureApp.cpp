@@ -6,7 +6,7 @@
 //
 //
 
-#include "core/Timer.h"
+#include "core/Timer.hpp"
 #include "FractureApp.h"
 #include "assimp/AssimpConnector.h"
 #include "gl/ShaderLibrary.h"

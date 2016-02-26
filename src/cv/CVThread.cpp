@@ -6,7 +6,7 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 #include "CVThread.h"
-#include "core/Logger.h"
+#include "core/Logger.hpp"
 #include <chrono>
 
 typedef std::chrono::duration<float> float_second;

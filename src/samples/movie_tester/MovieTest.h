@@ -5,13 +5,12 @@
 //  Created by Fabian on 29/01/14.
 //
 //
-#ifndef __gl__MovieTest__
-#define __gl__MovieTest__
+#pragma once
 
 #include "app/ViewerApp.h"
 #include "app/WarpComponent.h"
 
-#include "gl/Texture.h"
+#include "gl/Texture.hpp"
 
 #include "video/MovieController.h"
 #include "video/CameraController.h"
@@ -48,5 +47,3 @@ namespace kinski
         
     };
 }// namespace kinski
-
-#endif /* defined(__gl__MovieTest__) */

@@ -6,12 +6,11 @@
 //
 //
 
-#ifndef __kinskiGL__RemoteControl__
-#define __kinskiGL__RemoteControl__
+#pragma once
 
-#include "core/core.h"
-#include "core/Component.h"
-#include "core/networking.h"
+#include "core/core.hpp"
+#include "core/Component.hpp"
+#include "core/networking.hpp"
 
 namespace kinski
 {
@@ -60,5 +59,3 @@ namespace kinski
         std::vector<net::tcp_connection_ptr> m_tcp_connections;
     };
 }
-
-#endif /* defined(__kinskiGL__RemoteControl__) */

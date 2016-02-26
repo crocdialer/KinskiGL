@@ -7,10 +7,9 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef __KINSKI_COMPONENT_INCLUDED__
-#define __KINSKI_COMPONENT_INCLUDED__
+#pragma once
 
-#include "Property.h"
+#include "Property.hpp"
 
 namespace kinski 
 {
@@ -79,5 +78,3 @@ namespace kinski
         {}
     }; 
 }
-
-#endif // __KINSKI_COMPONENT_INCLUDED__

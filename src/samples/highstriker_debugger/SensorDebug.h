@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__SensorDebug__
-#define __gl__SensorDebug__
+#pragma once
 
 #include "app/ViewerApp.h"
-#include "core/Serial.h"
+#include "core/Serial.hpp"
 #include "core/Measurement.hpp"
 
 namespace kinski
@@ -71,5 +70,3 @@ namespace kinski
         void update_property(const Property::ConstPtr &theProperty) override;
     };
 }// namespace kinski
-
-#endif /* defined(__gl__SensorDebug__) */

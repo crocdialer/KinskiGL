@@ -6,10 +6,9 @@
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef kinski__Downloader_h_INCLUDED
-#define kinski__Downloader_h_INCLUDED
+#pragma once
 
-#include "core/networking.h"
+#include "core/networking.hpp"
 
 namespace kinski{ namespace net{
     
@@ -56,4 +55,3 @@ namespace kinski{ namespace net{
     };
     
 }}// namespace
-#endif

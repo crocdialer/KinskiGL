@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__cl_context__
-#define __gl__cl_context__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
 #include "cl.hpp"
@@ -41,4 +40,3 @@ namespace kinski
 // *********************************************************************
     const char* oclErrorString(int error);
 }
-#endif /* defined(__gl__cl_util__) */

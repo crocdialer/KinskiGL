@@ -1,6 +1,6 @@
 #include "EmptySample.h"
-#include "core/networking.h"
-#include "core/file_functions.h"
+#include "core/networking.hpp"
+#include "core/file_functions.hpp"
 
 int main(int argc, char *argv[])
 {

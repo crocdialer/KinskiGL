@@ -1,5 +1,5 @@
-#include "Serial.h"
-#include "Logger.h"
+#include "Serial.hpp"
+#include "Logger.hpp"
 
 #if !defined(KINSKI_MSW)
 #include <unistd.h>
