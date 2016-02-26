@@ -362,7 +362,7 @@ void Texture::set_mipmapping(bool b)
 
 void Texture::set_anisotropic_filter(float f)
 {
-    if(gl::isExtensionSupported("GL_EXT_texture_filter_anisotropic"))
+    if(gl::is_extension_supported("GL_EXT_texture_filter_anisotropic"))
     {
         GLfloat fLargest;
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);

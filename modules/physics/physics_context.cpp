@@ -251,7 +251,7 @@ namespace kinski{ namespace physics{
     void physics_context::debug_render(gl::CameraPtr the_cam)
     {
         gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
-        gl::setMatrices(the_cam);
+        gl::set_matrices(the_cam);
         
         if(m_dynamicsWorld)
         {

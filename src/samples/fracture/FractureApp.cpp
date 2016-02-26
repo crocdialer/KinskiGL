@@ -64,7 +64,7 @@ void FractureApp::setup()
     
     fracture_test(*m_num_fracture_shards);
     
-    m_gui_cam = gl::OrthographicCamera::create(0, gl::windowDimension().x, gl::windowDimension().y,
+    m_gui_cam = gl::OrthographicCamera::create(0, gl::window_dimension().x, gl::window_dimension().y,
                                                0, 0, 1);
     
     // init joystick crosshairs
@@ -106,7 +106,7 @@ void FractureApp::update(float timeDelta)
         
         if(joystick.buttons()[0] && m_fbo_cam && m_time_since_last_shot > 1.f / *m_shots_per_sec)
         {
-            auto ray = gl::calculateRay(m_fbo_cam, m_crosshair_pos[i], m_fbos[0].getSize());
+            auto ray = gl::calculate_ray(m_fbo_cam, m_crosshair_pos[i], m_fbos[0].getSize());
             shoot_box(ray, *m_shoot_velocity);
             m_time_since_last_shot = 0.f;
         }
@@ -134,13 +134,13 @@ void FractureApp::draw()
             scene().render(m_fbo_cam);
             
             // gui stuff
-            gl::setMatrices(m_gui_cam);
+            gl::set_matrices(m_gui_cam);
             int crosshair_width = 70;
             
             for(auto &p : m_crosshair_pos)
             {
 //                gl::drawCircle(p, 15.f, false);
-                gl::drawTexture(m_crosshair_tex, vec2(crosshair_width), p - vec2(crosshair_width) / 2.f);
+                gl::draw_texture(m_crosshair_tex, vec2(crosshair_width), p - vec2(crosshair_width) / 2.f);
             }
             
         });
@@ -151,12 +151,12 @@ void FractureApp::draw()
     switch (*m_view_type)
     {
         case VIEW_DEBUG:
-            gl::setMatrices(camera());
-            if(draw_grid()){ gl::drawGrid(50, 50); }
+            gl::set_matrices(camera());
+            if(draw_grid()){ gl::draw_grid(50, 50); }
             
             if(m_light_component->draw_light_dummies())
             {
-                for (auto l : lights()){ gl::drawLight(l); }
+                for (auto l : lights()){ gl::draw_light(l); }
             }
             
             if(*m_physics_debug_draw){ m_physics.debug_render(camera()); }
@@ -164,7 +164,7 @@ void FractureApp::draw()
             break;
             
         case VIEW_OUTPUT:
-            gl::drawTexture(textures()[TEXTURE_SYPHON], gl::windowDimension());
+            gl::draw_texture(textures()[TEXTURE_SYPHON], gl::window_dimension());
 //            m_dof_material->textures() = { textures()[TEXTURE_SYPHON], m_fbos[0].getDepthTexture() };
 //            gl::drawQuad(m_dof_material, gl::windowDimension());
             break;
@@ -225,7 +225,7 @@ void FractureApp::mousePress(const MouseEvent &e)
     if(e.isRight())
     {
         gl::CameraPtr cam = *m_view_type == VIEW_OUTPUT ? m_fbo_cam : camera();
-        auto ray = gl::calculateRay(cam, vec2(e.getX(), e.getY()));
+        auto ray = gl::calculate_ray(cam, vec2(e.getX(), e.getY()));
         shoot_box(ray, *m_shoot_velocity);
     }
 }
@@ -288,7 +288,7 @@ void FractureApp::fileDrop(const MouseEvent &e, const std::vector<std::string> &
             case FileType::IMAGE:
             case FileType::MOVIE:
                 m_texture_paths->value().push_back(f);
-                if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
+                if(scene().pick(gl::calculate_ray(camera(), vec2(e.getX(), e.getY()))))
                 {
                     LOG_DEBUG << "texture drop on model";
                 }
@@ -347,7 +347,7 @@ void FractureApp::update_property(const Property::ConstPtr &theProperty)
             
             try
             {
-                m_crosshair_tex  = gl::createTextureFromFile(*m_crosshair_path);
+                m_crosshair_tex  = gl::create_texture_from_file(*m_crosshair_path);
             } catch (FileNotFoundException &e) { LOG_WARNING << e.what(); }
         }
     }
@@ -358,7 +358,7 @@ void FractureApp::update_property(const Property::ConstPtr &theProperty)
         {
             if(get_file_type(f) == FileType::IMAGE)
             {
-                try{ tex_array.push_back(gl::createTextureFromFile(f, true, true, 8.f)); }
+                try{ tex_array.push_back(gl::create_texture_from_file(f, true, true, 8.f)); }
                 catch (Exception &e) { LOG_WARNING << e.what(); }
             }else if(get_file_type(f) == FileType::MOVIE)
             {
@@ -422,7 +422,7 @@ void FractureApp::shoot_box(const gl::Ray &the_ray, float the_velocity,
 {
 //    auto box_shape = std::make_shared<btBoxShape>(physics::type_cast(the_half_extents));
     static gl::Shader phong_shader;
-    if(!phong_shader){ phong_shader = gl::createShader(gl::ShaderType::PHONG); }
+    if(!phong_shader){ phong_shader = gl::create_shader(gl::ShaderType::PHONG); }
     gl::MeshPtr mesh = gl::Mesh::create(m_box_geom, gl::Material::create(phong_shader));
     mesh->setScale(.2f * the_half_extents);
     mesh->setPosition(the_ray.origin);
@@ -444,7 +444,7 @@ void FractureApp::fracture_test(uint32_t num_shards)
     m_physics.init();
     m_gravity->notifyObservers();
     
-    auto phong_shader = gl::createShader(gl::ShaderType::PHONG);
+    auto phong_shader = gl::create_shader(gl::ShaderType::PHONG);
     
 //    m_physics.set_world_boundaries(vec3(100), vec3(0, 100, 100 - .3f));
     btRigidBody *wall;

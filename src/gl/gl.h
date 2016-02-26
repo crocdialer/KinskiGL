@@ -129,17 +129,17 @@ namespace kinski { namespace gl {
     typedef std::shared_ptr<struct RenderBin> RenderBinPtr;
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
-    KINSKI_API void pushMatrix(const Matrixtype type);
-    KINSKI_API void popMatrix(const Matrixtype type);
-    KINSKI_API void multMatrix(const Matrixtype type, const mat4 &theMatrix);
-    KINSKI_API void loadMatrix(const Matrixtype type, const mat4 &theMatrix);
-    KINSKI_API void loadIdentity(const Matrixtype type);
-    KINSKI_API void getMatrix(const Matrixtype type, mat4 &theMatrix);
+    KINSKI_API void push_matrix(const Matrixtype type);
+    KINSKI_API void pop_matrix(const Matrixtype type);
+    KINSKI_API void mult_matrix(const Matrixtype type, const mat4 &theMatrix);
+    KINSKI_API void load_matrix(const Matrixtype type, const mat4 &theMatrix);
+    KINSKI_API void load_identity(const Matrixtype type);
+    KINSKI_API void get_matrix(const Matrixtype type, mat4 &theMatrix);
     
-    KINSKI_API void setMatrices( const CameraPtr &cam );
-    KINSKI_API void setModelView( const CameraPtr &cam );
-    KINSKI_API void setProjection( const CameraPtr &cam );
-    KINSKI_API void setMatricesForWindow();
+    KINSKI_API void set_matrices( const CameraPtr &cam );
+    KINSKI_API void set_modelview( const CameraPtr &cam );
+    KINSKI_API void set_projection( const CameraPtr &cam );
+    KINSKI_API void set_matrices_for_window();
     
     const vec3 X_AXIS = vec3(1, 0, 0);
     const vec3 Y_AXIS = vec3(0, 1, 0);
@@ -155,20 +155,20 @@ namespace kinski { namespace gl {
     public:
         ScopedMatrixPush(const Matrixtype type):
         m_type(type)
-        {pushMatrix(type);}
+        {push_matrix(type);}
         
         ~ScopedMatrixPush()
-        {popMatrix(m_type);}
+        {pop_matrix(m_type);}
     private:
         Matrixtype m_type;
     };
 
-    KINSKI_API const vec2& windowDimension();
-    KINSKI_API void setWindowDimension(const vec2 &theDim, const vec2 &the_offset = vec2(0));
-    KINSKI_API gl::Ray calculateRay(const CameraPtr &theCamera, const vec2 &window_pos,
-                                    const vec2 &window_size = windowDimension());
-    KINSKI_API gl::AABB calculateAABB(const std::vector<vec3> &theVertices);
-    KINSKI_API vec3 calculateCentroid(const std::vector<vec3> &theVertices);
+    KINSKI_API const vec2& window_dimension();
+    KINSKI_API void set_window_dimension(const vec2 &theDim, const vec2 &the_offset = vec2(0));
+    KINSKI_API gl::Ray calculate_ray(const CameraPtr &theCamera, const vec2 &window_pos,
+                                     const vec2 &window_size = window_dimension());
+    KINSKI_API gl::AABB calculate_AABB(const std::vector<vec3> &theVertices);
+    KINSKI_API vec3 calculate_centroid(const std::vector<vec3> &theVertices);
     KINSKI_API gl::MeshPtr create_frustum_mesh(const CameraPtr &cam);
     KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light, float far_clip = 1000.f);
     KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light, float far_clip = 1000.f);
@@ -179,53 +179,53 @@ namespace kinski { namespace gl {
      */
     KINSKI_API vec2 project_point_to_screen(const vec3 &the_point,
                                             const CameraPtr &theCamera,
-                                            const vec2 &screen_size = windowDimension());
+                                            const vec2 &screen_size = window_dimension());
     
     /********************************* Drawing Functions *****************************************/
     
     KINSKI_API void clear();
-    KINSKI_API void clearColor(const Color &theColor);
+    KINSKI_API void clear_color(const Color &theColor);
     
     
-    KINSKI_API void drawMesh(const MeshPtr &theMesh);
-    KINSKI_API void drawLight(const LightPtr &theLight);
-    KINSKI_API void drawLine(const vec2 &a, const vec2 &b,
-                             const Color &theColor = Color(1),
-                             float line_thickness = 1.f);
-    KINSKI_API void drawLines2D(const std::vector<vec3> &thePoints, const vec4 &theColor,
-                                float line_thickness = 1.f);
-    KINSKI_API void drawLines(const std::vector<vec3> &thePoints, const Color &theColor,
+    KINSKI_API void draw_mesh(const MeshPtr &theMesh);
+    KINSKI_API void draw_light(const LightPtr &theLight);
+    KINSKI_API void draw_line(const vec2 &a, const vec2 &b,
+                              const Color &theColor = Color(1),
                               float line_thickness = 1.f);
-    KINSKI_API void drawLines(const std::vector<vec3> &thePoints, const MaterialPtr &theMat,
-                              float line_thickness = 1.f);
-    KINSKI_API void drawLineStrip(const std::vector<vec3> &thePoints,
-                                  const vec4 &theColor,
+    KINSKI_API void draw_lines_2D(const std::vector<vec3> &thePoints, const vec4 &theColor,
                                   float line_thickness = 1.f);
-    KINSKI_API void drawPoints(const gl::Buffer &the_point_buf,
-                               const MaterialPtr &theMaterial = MaterialPtr(),
-                               GLsizei offset = 0);
-    KINSKI_API void drawPoints(const std::vector<vec3> &thePoints,
-                               const MaterialPtr &theMaterial = MaterialPtr());
-    KINSKI_API void drawTexture(const gl::Texture &theTexture, const vec2 &theSize,
-                                const vec2 &theTopLeft = vec2(0));
-    KINSKI_API void drawQuad(const MaterialPtr &theMaterial, const vec2 &theSize,
-                             const vec2 &theTopLeft = vec2(0), bool filled = true);
-    KINSKI_API void drawQuad(const Color &theColor, const vec2 &theSize,
-                             const vec2 &theTopLeft = vec2(0), bool filled = true);
-    KINSKI_API void drawQuad(const MaterialPtr &theMaterial,
-                             float x0, float y0, float x1, float y1, bool filled = true);
-    KINSKI_API void drawText2D(const std::string &theText, const gl::Font &theFont,
-                               const Color &the_color = vec4(1),
-                               const vec2 &theTopLeft = vec2(0));
-    KINSKI_API void drawText3D(const std::string &theText, const gl::Font &theFont);
+    KINSKI_API void draw_lines(const std::vector<vec3> &thePoints, const Color &theColor,
+                               float line_thickness = 1.f);
+    KINSKI_API void draw_lines(const std::vector<vec3> &thePoints, const MaterialPtr &theMat,
+                               float line_thickness = 1.f);
+    KINSKI_API void draw_linestrip(const std::vector<vec3> &thePoints,
+                                   const vec4 &theColor,
+                                   float line_thickness = 1.f);
+    KINSKI_API void draw_points(const gl::Buffer &the_point_buf,
+                                const MaterialPtr &theMaterial = MaterialPtr(),
+                                GLsizei offset = 0);
+    KINSKI_API void draw_points(const std::vector<vec3> &thePoints,
+                                const MaterialPtr &theMaterial = MaterialPtr());
+    KINSKI_API void draw_texture(const gl::Texture &theTexture, const vec2 &theSize,
+                                 const vec2 &theTopLeft = vec2(0));
+    KINSKI_API void draw_quad(const MaterialPtr &theMaterial, const vec2 &theSize,
+                              const vec2 &theTopLeft = vec2(0), bool filled = true);
+    KINSKI_API void draw_quad(const Color &theColor, const vec2 &theSize,
+                              const vec2 &theTopLeft = vec2(0), bool filled = true);
+    KINSKI_API void draw_quad(const MaterialPtr &theMaterial,
+                              float x0, float y0, float x1, float y1, bool filled = true);
+    KINSKI_API void draw_text_2D(const std::string &theText, const gl::Font &theFont,
+                                 const Color &the_color = vec4(1),
+                                 const vec2 &theTopLeft = vec2(0));
+    KINSKI_API void draw_text_3D(const std::string &theText, const gl::Font &theFont);
     
-    KINSKI_API void drawGrid(float width, float height, int numW = 20, int numH = 20);
-    KINSKI_API void drawAxes(const MeshWeakPtr &theMesh);
-    KINSKI_API void drawTransform(const mat4& the_transform, float the_scale = 1.f);
-    KINSKI_API void drawBoundingBox(const Object3DPtr &the_obj);
-    KINSKI_API void drawNormals(const MeshWeakPtr &theMesh);
-    KINSKI_API void drawCircle(const vec2 &center, float radius, bool solid = true,
-                               int numSegments = 32, const MaterialPtr &theMaterial = MaterialPtr());
+    KINSKI_API void draw_grid(float width, float height, int numW = 20, int numH = 20);
+    KINSKI_API void draw_axes(const MeshWeakPtr &theMesh);
+    KINSKI_API void draw_transform(const mat4& the_transform, float the_scale = 1.f);
+    KINSKI_API void draw_boundingbox(const Object3DPtr &the_obj);
+    KINSKI_API void draw_normals(const MeshWeakPtr &theMesh);
+    KINSKI_API void draw_circle(const vec2 &center, float radius, bool solid = true,
+                                int numSegments = 32, const MaterialPtr &theMaterial = MaterialPtr());
     
     KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam);
@@ -244,14 +244,14 @@ namespace kinski { namespace gl {
     /*********************************** inbuilt Texture loading **********************************/
     
     KINSKI_API Image decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
-    KINSKI_API Texture createTextureFromFile(const std::string &theFileName,
-                                             bool mipmap = false,
-                                             bool compress = false,
-                                             GLfloat anisotropic_filter_lvl = 1.f);
-    KINSKI_API Texture createTextureFromData(const std::vector<uint8_t> &the_data,
-                                             bool mipmap = false,
-                                             bool compress = false,
-                                             GLfloat anisotropic_filter_lvl = 1.f);
+    KINSKI_API Texture create_texture_from_file(const std::string &theFileName,
+                                                bool mipmap = false,
+                                                bool compress = false,
+                                                GLfloat anisotropic_filter_lvl = 1.f);
+    KINSKI_API Texture create_texture_from_data(const std::vector<uint8_t> &the_data,
+                                                bool mipmap = false,
+                                                bool compress = false,
+                                                GLfloat anisotropic_filter_lvl = 1.f);
     
     /*!
      * create a gl::Texture object of type GL_TEXTURE_CUBE 
@@ -272,19 +272,19 @@ namespace kinski { namespace gl {
         PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR, POINTS_SPHERE, RECT_2D,
         NOISE_3D};
     
-    KINSKI_API Shader createShader(ShaderType type, bool use_cached_shader = true);
-    KINSKI_API Shader createShaderFromFile(const std::string &vertPath, const std::string &fragPath,
-                                           const std::string &geomPath="");
+    KINSKI_API Shader create_shader(ShaderType type, bool use_cached_shader = true);
+    KINSKI_API Shader create_shader_from_file(const std::string &vertPath, const std::string &fragPath,
+                                              const std::string &geomPath="");
     
-    KINSKI_API const std::set<std::string>& getExtensions();
-    KINSKI_API bool isExtensionSupported(const std::string &theName);
+    KINSKI_API const std::set<std::string>& get_extensions();
+    KINSKI_API bool is_extension_supported(const std::string &theName);
     
     //! Convenience class which pushes and pops the current viewport dimension
     class SaveViewPort
     {
      public:
-        SaveViewPort(){m_old_value = windowDimension();}
-        ~SaveViewPort(){setWindowDimension(m_old_value);}
+        SaveViewPort(){m_old_value = window_dimension();}
+        ~SaveViewPort(){set_window_dimension(m_old_value);}
      private:
         vec2 m_old_value;
     };

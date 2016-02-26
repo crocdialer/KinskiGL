@@ -41,7 +41,7 @@ namespace kinski{ namespace gl{
         }
         if(!m_impl->m_material)
         {
-            m_impl->m_material = gl::Material::create(gl::createShader(gl::ShaderType::NOISE_3D));
+            m_impl->m_material = gl::Material::create(gl::create_shader(gl::ShaderType::NOISE_3D));
             m_impl->m_material->setDepthTest(false);
             m_impl->m_material->setDepthWrite(false);
         }
@@ -50,7 +50,7 @@ namespace kinski{ namespace gl{
         
         noise_tex = gl::render_to_texture(m_impl->m_fbo, [this]()
         {
-            gl::drawQuad(m_impl->m_material, m_impl->m_tex_size);
+            gl::draw_quad(m_impl->m_material, m_impl->m_tex_size);
         });
         return noise_tex;
     }

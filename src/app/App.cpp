@@ -95,7 +95,7 @@ namespace kinski
     {
         m_windowSize = size;
         if(running())
-            gl::setWindowDimension(size);
+            gl::set_window_dimension(size);
     }
     
     void App::draw_internal()

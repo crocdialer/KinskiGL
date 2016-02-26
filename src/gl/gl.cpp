@@ -49,7 +49,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void pushMatrix(const Matrixtype type)
+    void push_matrix(const Matrixtype type)
     {
         if(g_modelViewMatrixStack.size() > MAX_MATRIX_STACK_SIZE ||
            g_projectionMatrixStack.size() > MAX_MATRIX_STACK_SIZE)
@@ -73,7 +73,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void popMatrix(const Matrixtype type)
+    void pop_matrix(const Matrixtype type)
     {
         switch (type)
         {
@@ -91,7 +91,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void multMatrix(const Matrixtype type, const glm::mat4 &theMatrix)
+    void mult_matrix(const Matrixtype type, const glm::mat4 &theMatrix)
     {
         switch (type)
         {
@@ -109,7 +109,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void loadMatrix(const Matrixtype type, const glm::mat4 &theMatrix)
+    void load_matrix(const Matrixtype type, const glm::mat4 &theMatrix)
     {
         switch (type)
         {
@@ -127,14 +127,14 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void loadIdentity(const Matrixtype type)
+    void load_identity(const Matrixtype type)
     {
-        loadMatrix(type, glm::mat4());
+        load_matrix(type, glm::mat4());
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void getMatrix(const Matrixtype type, glm::mat4 &theMatrix)
+    void get_matrix(const Matrixtype type, glm::mat4 &theMatrix)
     {
         switch (type)
         {
@@ -152,43 +152,43 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void setMatrices(const CameraPtr &cam)
+    void set_matrices(const CameraPtr &cam)
     {
-        setProjection(cam);
-        setModelView(cam);
+        set_projection(cam);
+        set_modelview(cam);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void setModelView( const CameraPtr &cam )
+    void set_modelview( const CameraPtr &cam )
     {
-        loadMatrix(MODEL_VIEW_MATRIX, cam->getViewMatrix());
+        load_matrix(MODEL_VIEW_MATRIX, cam->getViewMatrix());
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void setProjection( const CameraPtr &cam )
+    void set_projection( const CameraPtr &cam )
     {
-        loadMatrix(PROJECTION_MATRIX, cam->getProjectionMatrix());
+        load_matrix(PROJECTION_MATRIX, cam->getProjectionMatrix());
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     
-    void setMatricesForWindow()
+    void set_matrices_for_window()
     {
-        loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, gl::windowDimension().x,
-                                                     0.f, gl::windowDimension().y,
+        load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, gl::window_dimension().x,
+                                                     0.f, gl::window_dimension().y,
                                                      0.f, 1.f));
-        loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
+        load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    const glm::vec2& windowDimension(){ return g_viewport_dim; }
+    const glm::vec2& window_dimension(){ return g_viewport_dim; }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void setWindowDimension(const glm::vec2 &theDim, const vec2 &the_offset)
+    void set_window_dimension(const glm::vec2 &theDim, const vec2 &the_offset)
     {
         g_viewport_dim = theDim;
         glViewport(the_offset.x, the_offset.y, theDim.x, theDim.y);
@@ -202,7 +202,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    gl::Ray calculateRay(const CameraPtr &theCamera, const glm::vec2 &window_pos,
+    gl::Ray calculate_ray(const CameraPtr &theCamera, const glm::vec2 &window_pos,
                          const glm::vec2 &window_size)
     {
         glm::vec3 cam_pos = theCamera->position();
@@ -238,7 +238,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    gl::AABB calculateAABB(const std::vector<glm::vec3> &theVertices)
+    gl::AABB calculate_AABB(const std::vector<glm::vec3> &theVertices)
     {
         if(theVertices.empty()){ return AABB(); }
         
@@ -268,7 +268,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    vec3 calculateCentroid(const vector<vec3> &theVertices)
+    vec3 calculate_centroid(const vector<vec3> &theVertices)
     {
         if(theVertices.empty())
         {
@@ -367,7 +367,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void clearColor(const Color &theColor)
+    void clear_color(const Color &theColor)
     {
         glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);
     }
@@ -381,47 +381,47 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLine(const vec2 &a, const vec2 &b, const Color &theColor, float line_thickness)
+    void draw_line(const vec2 &a, const vec2 &b, const Color &theColor, float line_thickness)
     {
         static vector<vec3> thePoints;
         thePoints.clear();
         thePoints.push_back(vec3(a, 0));
         thePoints.push_back(vec3(b, 0));
-        drawLines2D(thePoints, theColor, line_thickness);
+        draw_lines_2D(thePoints, theColor, line_thickness);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLines2D(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
+    void draw_lines_2D(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
     {
         ScopedMatrixPush pro(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
         
-        loadMatrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewport_dim[0],
+        load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewport_dim[0],
                                                      0.f, g_viewport_dim[1],
                                                      0.f, 1.f));
-        loadMatrix(gl::MODEL_VIEW_MATRIX, mat4());
-        drawLines(thePoints, theColor, line_thickness);
+        load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
+        draw_lines(thePoints, theColor, line_thickness);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLines(const vector<vec3> &thePoints, const Color &the_color,
+    void draw_lines(const vector<vec3> &thePoints, const Color &the_color,
                    float line_thickness)
     {
         static MaterialPtr material;
         if(!material)
         {
-            material = gl::Material::create(gl::createShader(gl::ShaderType::LINES_2D));
+            material = gl::Material::create(gl::create_shader(gl::ShaderType::LINES_2D));
         }
         material->setDiffuse(the_color);
         material->setBlending(the_color.a < 1.f);
         
-        drawLines(thePoints, material, line_thickness);
+        draw_lines(thePoints, material, line_thickness);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLines(const vector<vec3> &thePoints, const MaterialPtr &the_material,
+    void draw_lines(const vector<vec3> &thePoints, const MaterialPtr &the_material,
                    float line_thickness)
     {
         if(thePoints.empty()) return;
@@ -431,7 +431,7 @@ namespace kinski { namespace gl {
         //create line mesh
         if(!mesh)
         {
-            material = gl::Material::create(gl::createShader(gl::ShaderType::LINES_2D));
+            material = gl::Material::create(gl::create_shader(gl::ShaderType::LINES_2D));
             material->setBlending();
             material->setTwoSided();
             gl::GeometryPtr geom = Geometry::create();
@@ -442,13 +442,13 @@ namespace kinski { namespace gl {
         }
         
         mesh->material() = (the_material ? the_material : material);
-        mesh->material()->uniform("u_window_size", windowDimension());
+        mesh->material()->uniform("u_window_size", window_dimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
         
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
         mesh->geometry()->createGLBuffers();
-        gl::drawMesh(mesh);
+        gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
         mesh->geometry()->indices().clear();
@@ -456,7 +456,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLineStrip(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
+    void draw_linestrip(const vector<vec3> &thePoints, const vec4 &theColor, float line_thickness)
     {
         if(thePoints.empty()) return;
         static gl::MeshPtr mesh;
@@ -470,19 +470,19 @@ namespace kinski { namespace gl {
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINE_STRIP);
         }
-        mesh->material()->uniform("u_window_size", windowDimension());
+        mesh->material()->uniform("u_window_size", window_dimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);
         mesh->geometry()->createGLBuffers();
-        gl::drawMesh(mesh);
+        gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawPoints(const gl::Buffer &the_point_buf, const MaterialPtr &theMaterial, GLsizei offset)
+    void draw_points(const gl::Buffer &the_point_buf, const MaterialPtr &theMaterial, GLsizei offset)
     {
         static MaterialPtr staticMat;
         static GLuint pointVAO = 0;
@@ -490,7 +490,7 @@ namespace kinski { namespace gl {
         //create shader
         if(!staticMat)
         {
-            staticMat = gl::Material::create(gl::createShader(gl::ShaderType::POINTS_TEXTURE));
+            staticMat = gl::Material::create(gl::create_shader(gl::ShaderType::POINTS_TEXTURE));
             staticMat->setPointSize(2.f);
         }
         
@@ -541,17 +541,17 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawPoints(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
+    void draw_points(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
     {
         static gl::Buffer point_buf;
         if(!point_buf){point_buf = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);}
         point_buf.setData(thePoints);
-        drawPoints(point_buf, theMaterial);
+        draw_points(point_buf, theMaterial);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawTexture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
+    void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
     {
         static gl::MaterialPtr material;
         
@@ -575,7 +575,7 @@ namespace kinski { namespace gl {
         if(!tex_2D || !rect_2D)
         {
             tex_2D = material->shader();
-            rect_2D = gl::createShader(gl::ShaderType::RECT_2D);
+            rect_2D = gl::create_shader(gl::ShaderType::RECT_2D);
         }
 
         if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(tex_2D); }
@@ -597,12 +597,12 @@ namespace kinski { namespace gl {
         vec2 sz = theSize;
         // flip to OpenGL coords
         vec2 tl = vec2(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y);
-        drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawQuad(const gl::Color &theColor,
+    void draw_quad(const gl::Color &theColor,
                   const vec2 &theSize,
                   const vec2 &theTopLeft,
                   bool filled)
@@ -623,24 +623,24 @@ namespace kinski { namespace gl {
         vec2 sz = theSize;
         // flip to OpenGL coords
         vec2 tl = vec2(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y);
-        drawQuad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawQuad(const gl::MaterialPtr &theMaterial,
+    void draw_quad(const gl::MaterialPtr &theMaterial,
                   const vec2 &theSize,
                   const vec2 &theTl,
                   bool filled)
     {
         // flip to OpenGL coords
         vec2 tl = vec2(theTl.x, g_viewport_dim[1] - theTl.y);
-        drawQuad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1], filled);
+        draw_quad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1], filled);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawQuad(const gl::MaterialPtr &theMaterial,
+    void draw_quad(const gl::MaterialPtr &theMaterial,
                   float x0, float y0, float x1, float y1, bool filled)
     {
         // orthographic projection with a [0,1] coordinate space
@@ -673,15 +673,15 @@ namespace kinski { namespace gl {
         modelViewMatrix[3] = vec4(x0 / g_viewport_dim[0], y1 / g_viewport_dim[1] , 0, 1);
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
-        gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
-        drawMesh(quad_mesh);
+        gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, modelViewMatrix * quad_mesh->transform());
+        draw_mesh(quad_mesh);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawText2D(const std::string &theText, const gl::Font &theFont, const Color &the_color,
-                    const glm::vec2 &theTopLeft)
+    void draw_text_2D(const std::string &theText, const gl::Font &theFont, const Color &the_color,
+                      const glm::vec2 &theTopLeft)
     {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         
@@ -695,22 +695,22 @@ namespace kinski { namespace gl {
         m->material()->setDepthTest(false);
         m->setPosition(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
                                  m->geometry()->boundingBox().height(), 0.f));
-        gl::loadMatrix(gl::PROJECTION_MATRIX, projectionMatrix);
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, m->transform());
-        drawMesh(m);
+        gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
+        draw_mesh(m);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawText3D(const std::string &theText, const gl::Font &theFont)
+    void draw_text_3D(const std::string &theText, const gl::Font &theFont)
     {
         gl::MeshPtr m = theFont.create_mesh(theText);
-        drawMesh(m);
+        draw_mesh(m);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawGrid(float width, float height, int numW, int numH)
+    void draw_grid(float width, float height, int numW, int numH)
     {
         static std::map<std::tuple<float,float,int,int>, MeshPtr> theMap;
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
@@ -726,12 +726,12 @@ namespace kinski { namespace gl {
 //            theMap.clear();
             theMap[conf] = mesh;
         }
-        drawMesh(theMap[conf]);
+        draw_mesh(theMap[conf]);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawAxes(const MeshWeakPtr &weakMesh)
+    void draw_axes(const MeshWeakPtr &weakMesh)
     {
         static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorRed(1.0, 0, 0 ,1.0), colorGreen(0, 1.0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
@@ -770,7 +770,7 @@ namespace kinski { namespace gl {
             line_mesh->createVertexArray();
             theMap[weakMesh] = line_mesh;
         }
-        gl::drawMesh(theMap[weakMesh]);
+        gl::draw_mesh(theMap[weakMesh]);
         
         // cleanup
         map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
@@ -783,7 +783,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
-void drawTransform(const glm::mat4& the_transform, float the_scale)
+void draw_transform(const glm::mat4& the_transform, float the_scale)
 {
     static gl::MeshPtr transform_mesh;
     
@@ -808,13 +808,13 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         transform_mesh->createVertexArray();
     }
     gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-    gl::multMatrix(gl::MODEL_VIEW_MATRIX, glm::scale(the_transform, glm::vec3(the_scale)));
-    gl::drawMesh(transform_mesh);
+    gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(the_transform, glm::vec3(the_scale)));
+    gl::draw_mesh(transform_mesh);
 }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawMesh(const MeshPtr &theMesh)
+    void draw_mesh(const MeshPtr &theMesh)
     {
         if(!theMesh || theMesh->geometry()->vertices().empty()) return;
         
@@ -901,13 +901,13 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawLight(const LightPtr &theLight)
+    void draw_light(const LightPtr &theLight)
     {
         static gl::MeshPtr directional_mesh, point_mesh, spot_mesh;
         
 
         gl::ScopedMatrixPush mat_push(gl::MODEL_VIEW_MATRIX);
-        gl::multMatrix(gl::MODEL_VIEW_MATRIX, theLight->global_transform());
+        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, theLight->global_transform());
         
         if(!directional_mesh)
         {
@@ -968,12 +968,12 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         }
         
         // draw the configured mesh
-        gl::drawMesh(light_mesh);
+        gl::draw_mesh(light_mesh);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawBoundingBox(const Object3DPtr &the_obj)
+    void draw_boundingbox(const Object3DPtr &the_obj)
     {
         static vec4 colorWhite(1.0), colorRed(1.0, 0, 0 ,1.0);
         static MeshPtr line_mesh;
@@ -1046,13 +1046,13 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         
     
         gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-        gl::multMatrix(gl::MODEL_VIEW_MATRIX, center_mat * scale_mat);
-        gl::drawMesh(line_mesh);
+        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, center_mat * scale_mat);
+        gl::draw_mesh(line_mesh);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawNormals(const MeshWeakPtr &theMesh)
+    void draw_normals(const MeshWeakPtr &theMesh)
     {
         static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
@@ -1084,7 +1084,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             line_mesh->createVertexArray();
             theMap[theMesh] = line_mesh;
         }
-        gl::drawMesh(theMap[theMesh]);
+        gl::draw_mesh(theMap[theMesh]);
         
         // cleanup
         map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
@@ -1097,7 +1097,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void drawCircle(const glm::vec2 &center, float radius, bool solid, int numSegments,
+    void draw_circle(const glm::vec2 &center, float radius, bool solid, int numSegments,
                     const MaterialPtr &theMaterial)
     {
         static gl::MeshPtr solid_mesh, line_mesh;
@@ -1122,9 +1122,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);
         
         ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);
-        loadMatrix(PROJECTION_MATRIX, projectionMatrix);
-        loadMatrix(MODEL_VIEW_MATRIX, modelView);
-        drawMesh(our_mesh);
+        load_matrix(PROJECTION_MATRIX, projectionMatrix);
+        load_matrix(MODEL_VIEW_MATRIX, modelView);
+        draw_mesh(our_mesh);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1140,7 +1140,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(theFbo.getSize());
+        gl::set_window_dimension(theFbo.getSize());
         theFbo.bindFramebuffer();
         gl::clear();
         theScene.render(theCam);
@@ -1158,7 +1158,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         }
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::setWindowDimension(theFbo.getSize());
+        gl::set_window_dimension(theFbo.getSize());
         theFbo.bindFramebuffer();
         functor();
         return theFbo.getTexture();
@@ -1377,7 +1377,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    const std::set<std::string>& getExtensions()
+    const std::set<std::string>& get_extensions()
     {
         static std::set<std::string> s_extensions;
         
@@ -1396,9 +1396,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool isExtensionSupported(const std::string &theName)
+    bool is_extension_supported(const std::string &theName)
     {
-        return getExtensions().find(theName) != getExtensions().end();
+        return get_extensions().find(theName) != get_extensions().end();
     }
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -1513,9 +1513,9 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
     //////////////////////////////////////////////////////////////////////////
     // global shader creation functions
     
-    Shader createShaderFromFile(const std::string &vertPath,
-                                const std::string &fragPath,
-                                const std::string &geomPath)
+    Shader create_shader_from_file(const std::string &vertPath,
+                                   const std::string &fragPath,
+                                   const std::string &geomPath)
     {
         Shader ret;
         std::string vertSrc, fragSrc, geomSrc;
@@ -1529,7 +1529,7 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
         return ret;
     }
     
-    Shader createShader(ShaderType type, bool use_cached_shader)
+    Shader create_shader(ShaderType type, bool use_cached_shader)
     {
         Shader ret;
         auto it = use_cached_shader ? g_shaders.find(type) : g_shaders.end();

@@ -43,7 +43,7 @@ void ModelViewer::setup()
     
     // add groundplane
     auto ground_mesh = gl::Mesh::create(gl::Geometry::createPlane(400, 400),
-                                        gl::Material::create(gl::createShader(gl::ShaderType::PHONG_SHADOWS)));
+                                        gl::Material::create(gl::create_shader(gl::ShaderType::PHONG_SHADOWS)));
     ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
     ground_mesh->add_tag(tag_ground_plane);
     
@@ -67,12 +67,12 @@ void ModelViewer::update(float timeDelta)
         
         if(use_bones)
         {
-            shader = gl::createShader(*m_use_lighting ? gl::ShaderType::PHONG_SKIN_SHADOWS :
+            shader = gl::create_shader(*m_use_lighting ? gl::ShaderType::PHONG_SKIN_SHADOWS :
                                                         gl::ShaderType::UNLIT_SKIN, false);
         }
         else
         {
-            shader = gl::createShader(*m_use_lighting ? gl::ShaderType::PHONG_SHADOWS :
+            shader = gl::create_shader(*m_use_lighting ? gl::ShaderType::PHONG_SHADOWS :
                                                         gl::ShaderType::UNLIT, false);
         }
         
@@ -88,12 +88,12 @@ void ModelViewer::update(float timeDelta)
 
 void ModelViewer::draw()
 {
-    gl::setMatrices(camera());
-    if(draw_grid()){ gl::drawGrid(50, 50); }
+    gl::set_matrices(camera());
+    if(draw_grid()){ gl::draw_grid(50, 50); }
     
     if(m_light_component->draw_light_dummies())
     {
-        for (auto l : lights()){ gl::drawLight(l); }
+        for (auto l : lights()){ gl::draw_light(l); }
     }
     
     scene().render(camera());
@@ -104,16 +104,16 @@ void ModelViewer::draw()
         vector<vec3> skel_points;
         vector<string> bone_names;
         build_skeleton(m_mesh->rootBone(), skel_points, bone_names);
-        gl::loadMatrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->global_transform());
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, camera()->getViewMatrix() * m_mesh->global_transform());
         
         // draw bone data
-        gl::drawLines(skel_points, gl::COLOR_DARK_RED, 5.f);
+        gl::draw_lines(skel_points, gl::COLOR_DARK_RED, 5.f);
         
         for(const auto &p : skel_points)
         {
             vec3 p_trans = (m_mesh->global_transform() * vec4(p, 1.f)).xyz();
             vec2 p2d = gl::project_point_to_screen(p_trans, camera());
-            gl::drawCircle(p2d, 5.f, false);
+            gl::draw_circle(p2d, 5.f, false);
         }
     }
     
@@ -217,10 +217,10 @@ void ModelViewer::fileDrop(const MouseEvent &e, const std::vector<std::string> &
             case FileType::IMAGE:
                 try
                 {
-                    dropped_textures.push_back(gl::createTextureFromFile(f, true, false));
+                    dropped_textures.push_back(gl::create_texture_from_file(f, true, false));
                 }
                 catch (Exception &e) { LOG_WARNING << e.what();}
-                if(scene().pick(gl::calculateRay(camera(), vec2(e.getX(), e.getY()))))
+                if(scene().pick(gl::calculate_ray(camera(), vec2(e.getX(), e.getY()))))
                 {
                     LOG_INFO << "texture drop on model";
                 }
@@ -285,7 +285,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
           vector<gl::Texture> cube_planes;
           for(auto &f : kinski::get_directory_entries(*m_cube_map_folder, FileType::IMAGE))
           {
-              cube_planes.push_back(gl::createTextureFromFile(f));
+              cube_planes.push_back(gl::create_texture_from_file(f));
           }
           m_cube_map = gl::create_cube_texture(cube_planes);
         }
@@ -344,7 +344,7 @@ bool ModelViewer::load_asset(const std::string &the_path)
             
         case FileType::IMAGE:
             
-            try { t = gl::createTextureFromFile(the_path, true, true); }
+            try { t = gl::create_texture_from_file(the_path, true, true); }
             catch (Exception &e) { LOG_WARNING << e.what(); }
             
             if(t)

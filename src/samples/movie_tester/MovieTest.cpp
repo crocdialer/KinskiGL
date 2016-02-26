@@ -50,11 +50,11 @@ void MovieTest::update(float timeDelta)
 
 void MovieTest::draw()
 {
-    gl::drawTexture(m_textures[0], gl::windowDimension());
+    gl::draw_texture(m_textures[0], gl::window_dimension());
     
     if(displayTweakBar())
     {
-        gl::drawText2D(m_movie->get_path() + " : " +
+        gl::draw_text_2D(m_movie->get_path() + " : " +
                        kinski::as_string(m_movie->current_time(), 2) + " / " +
                        kinski::as_string(m_movie->duration(), 2),
                        fonts()[0]);

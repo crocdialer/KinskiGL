@@ -89,7 +89,7 @@ namespace kinski
             {
                 try
                 {
-                    shader = gl::createShaderFromFile(*m_shader_vert, *m_shader_frag, *m_shader_geom);
+                    shader = gl::create_shader_from_file(*m_shader_vert, *m_shader_frag, *m_shader_geom);
                 }
                 catch (FileNotFoundException &fe)
                 {
@@ -121,7 +121,7 @@ namespace kinski
                 
                 try
                 {
-                    auto tex = gl::createTextureFromFile(n);
+                    auto tex = gl::create_texture_from_file(n);
                     if(tex)
                     {
                         active_mat->addTexture(tex);

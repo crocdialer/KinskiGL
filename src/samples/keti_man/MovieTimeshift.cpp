@@ -49,7 +49,7 @@ void MovieTimeshift::setup()
     
     try
     {
-        auto sh = gl::createShaderFromFile("array_shader.vert", "array_shader.frag");
+        auto sh = gl::create_shader_from_file("array_shader.vert", "array_shader.frag");
         m_custom_mat->setShader(sh);
     } catch (Exception &e) { LOG_ERROR << e.what();}
     
@@ -151,7 +151,7 @@ void MovieTimeshift::update(float timeDelta)
         auto tex = gl::render_to_texture(m_fbo_transfer, [&]()
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            gl::drawTexture(textures()[TEXTURE_INPUT], m_fbo_transfer.getSize());
+            gl::draw_texture(textures()[TEXTURE_INPUT], m_fbo_transfer.getSize());
         });
         
         textures()[TEXTURE_INPUT] = tex;
@@ -197,21 +197,21 @@ void MovieTimeshift::draw()
         textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this]()
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            gl::drawQuad(m_custom_mat, gl::windowDimension());
+            gl::draw_quad(m_custom_mat, gl::window_dimension());
         });
         
         m_syphon_out.publish_texture(textures()[TEXTURE_OUTPUT]);
-        gl::drawTexture(textures()[TEXTURE_OUTPUT], gl::windowDimension());
+        gl::draw_texture(textures()[TEXTURE_OUTPUT], gl::window_dimension());
     }
     else
     {
-        gl::drawQuad(m_custom_mat, gl::windowDimension());
+        gl::draw_quad(m_custom_mat, gl::window_dimension());
     }
     
     if(displayTweakBar())
     {
         draw_textures(textures());
-        gl::drawText2D(m_input_source_names[InputSource(m_input_source->value())], fonts()[0]);
+        gl::draw_text_2D(m_input_source_names[InputSource(m_input_source->value())], fonts()[0]);
     }
 }
 

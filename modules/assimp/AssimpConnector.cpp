@@ -254,7 +254,7 @@ namespace kinski { namespace gl{
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
             {
-                try{theMaterial->addTexture(gl::createTextureFromFile(string(texPath.data), true, true));}
+                try{theMaterial->addTexture(gl::create_texture_from_file(string(texPath.data), true, true));}
                 catch(Exception &e){LOG_ERROR<<e.what();}
             }
         }
@@ -357,9 +357,9 @@ namespace kinski { namespace gl{
             try
             {
                 if(geom->hasBones())
-                    shader = gl::createShader(gl::ShaderType::PHONG_SKIN);
+                    shader = gl::create_shader(gl::ShaderType::PHONG_SKIN);
                 else{
-                    shader = gl::createShader(gl::ShaderType::PHONG);
+                    shader = gl::create_shader(gl::ShaderType::PHONG);
                 }
                 
             }catch (std::exception &e){ LOG_WARNING<<e.what(); }

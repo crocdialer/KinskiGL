@@ -97,7 +97,7 @@ namespace kinski
     {
         glfwMakeContextCurrent(m_handle);
 
-        gl::setWindowDimension(framebuffer_size());
+        gl::set_window_dimension(framebuffer_size());
 
         glDepthMask(GL_TRUE);
 
@@ -190,7 +190,7 @@ namespace kinski
     void GLFW_App::set_window_size(const glm::vec2 &size)
     {
         App::set_window_size(size);
-        gl::setWindowDimension(size);
+        gl::set_window_dimension(size);
         TwWindowSize(size.x, size.y);
         if(!m_windows.empty())
             glfwSetWindowSize(m_windows.front()->handle(), (int)size[0], (int)size[1]);

@@ -40,7 +40,7 @@ namespace kinski{ namespace gl{
 
     void Geometry::computeBoundingBox()
     {
-        m_boundingBox = gl::calculateAABB(m_vertices);
+        m_boundingBox = gl::calculate_AABB(m_vertices);
     }
     
     void Geometry::computeFaceNormals()

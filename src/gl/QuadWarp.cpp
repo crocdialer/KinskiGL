@@ -94,8 +94,8 @@ namespace kinski{ namespace gl{
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
-        gl::setMatrices(m_impl->m_camera);
-        gl::drawMesh(m_impl->m_mesh);
+        gl::set_matrices(m_impl->m_camera);
+        gl::draw_mesh(m_impl->m_mesh);
     }
     
     void QuadWarp::render_control_points()
@@ -104,8 +104,8 @@ namespace kinski{ namespace gl{
         
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
-            gl::drawCircle(m_impl->m_control_points[i] * gl::windowDimension(), 20.f, false,
-                           32, m_impl->m_handle_material);
+            gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f, false,
+                            32, m_impl->m_handle_material);
         }
     }
     
@@ -117,8 +117,8 @@ namespace kinski{ namespace gl{
         m_impl->m_grid_mesh->material()->uniform("u_control_points", cp);
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
-        gl::setMatrices(m_impl->m_camera);
-        gl::drawMesh(m_impl->m_grid_mesh);
+        gl::set_matrices(m_impl->m_camera);
+        gl::draw_mesh(m_impl->m_grid_mesh);
     }
     
     ivec2 QuadWarp::grid_resolution() const

@@ -192,7 +192,7 @@ public:
         observe_properties();
         add_tweakbar_for_component(shared_from_this());
         
-        m_pointMaterial = gl::Material::create(gl::createShader(gl::ShaderType::POINTS_SPHERE));
+        m_pointMaterial = gl::Material::create(gl::create_shader(gl::ShaderType::POINTS_SPHERE));
         //m_pointMaterial->addTexture(gl::createTextureFromFile("smoketex.png"));
         float vals[2];
         glGetFloatv(GL_POINT_SIZE_RANGE, vals);
@@ -246,8 +246,8 @@ public:
     
     void draw()
     {
-        gl::setMatrices(camera());
-        if(draw_grid()) gl::drawGrid(200, 200);
+        gl::set_matrices(camera());
+        if(draw_grid()) gl::draw_grid(200, 200);
         scene().render(camera());
         
         //gl::drawPoints(m_geom->vertexBuffer().id(), m_numParticles, gl::MaterialPtr(), sizeof(vec4));
@@ -265,17 +265,17 @@ public:
                 
                 float h = t.getHeight() * w / t.getWidth();
                 glm::vec2 step(0, h + 10);
-                drawTexture(t, vec2(w, h), offset);
-                gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
-                               as_string(t.getHeight()), m_font, glm::vec4(1),
-                               offset);
+                draw_texture(t, vec2(w, h), offset);
+                gl::draw_text_2D(as_string(t.getWidth()) + std::string(" x ") +
+                                 as_string(t.getHeight()), m_font, glm::vec4(1),
+                                 offset);
                 offset += step;
             }
             
             // draw fps string
-            gl::drawText2D(kinski::as_string(framesPerSec()), m_font,
-                           vec4(vec3(1) - clear_color().xyz(), 1.f),
-                           glm::vec2(windowSize().x - 115, windowSize().y - 30));
+            gl::draw_text_2D(kinski::as_string(fps()), m_font,
+                             vec4(vec3(1) - clear_color().xyz(), 1.f),
+                             glm::vec2(gl::window_dimension().x - 115, gl::window_dimension().y - 30));
         }
     }
     
@@ -288,7 +288,7 @@ public:
         {
             try
             {
-                m_textures[0] = gl::createTextureFromFile(*m_texturePath);
+                m_textures[0] = gl::create_texture_from_file(*m_texturePath);
                 
                 if(m_textures[0])
                 {

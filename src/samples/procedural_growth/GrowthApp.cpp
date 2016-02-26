@@ -84,12 +84,12 @@ void GrowthApp::update(float timeDelta)
 
 void GrowthApp::draw()
 {
-    gl::setMatrices(camera());
-    if(draw_grid()){ gl::drawGrid(50, 50); }
+    gl::set_matrices(camera());
+    if(draw_grid()){ gl::draw_grid(50, 50); }
     
     if(m_light_component->draw_light_dummies())
     {
-        for (auto l : lights()){ gl::drawLight(l); }
+        for (auto l : lights()){ gl::draw_light(l); }
     }
     
     // draw our scene
@@ -99,8 +99,8 @@ void GrowthApp::draw()
     if(wireframe())
     {
         gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-        gl::multMatrix(gl::MODEL_VIEW_MATRIX, m_bounding_mesh->global_transform());
-        gl::drawMesh(m_bounding_mesh);
+        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, m_bounding_mesh->global_transform());
+        gl::draw_mesh(m_bounding_mesh);
     }
     
     // draw texture map(s)
@@ -109,12 +109,12 @@ void GrowthApp::draw()
         draw_textures(textures());
         
         // draw fps string
-        gl::drawText2D(kinski::as_string(fps()), fonts()[0],
+        gl::draw_text_2D(kinski::as_string(fps()), fonts()[0],
                        vec4(vec3(1) - clear_color().xyz(), 1.f),
-                       glm::vec2(windowSize().x - 110, windowSize().y - 70));
+                       glm::vec2(gl::window_dimension().x - 110, gl::window_dimension().y - 70));
     }
     
-    gl::drawTransform(m_lsystem.turtle_transform(), 10);
+    gl::draw_transform(m_lsystem.turtle_transform(), 10);
 }
 
 /////////////////////////////////////////////////////////////////

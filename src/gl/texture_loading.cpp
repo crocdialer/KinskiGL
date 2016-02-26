@@ -41,8 +41,8 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    Texture createTextureFromData(const std::vector<uint8_t> &the_data, bool mipmap, bool compress,
-                                  GLfloat anisotropic_filter_lvl)
+    Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
+                                     bool compress, GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
         Image img;
@@ -111,8 +111,8 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    Texture createTextureFromFile(const std::string &theFileName, bool mipmap, bool compress,
-                                  GLfloat anisotropic_filter_lvl)
+    Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bool compress,
+                                     GLfloat anisotropic_filter_lvl)
     {
         std::vector<uint8_t> dataVec;
         Texture ret;
@@ -123,7 +123,7 @@ namespace kinski { namespace gl {
             LOG_WARNING << e.what();
             return ret;
         }
-        ret = createTextureFromData(dataVec, mipmap, compress, anisotropic_filter_lvl);
+        ret = create_texture_from_data(dataVec, mipmap, compress, anisotropic_filter_lvl);
         return ret;
     }
     

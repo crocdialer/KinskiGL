@@ -33,7 +33,7 @@ namespace kinski {
         m_show_tweakbar->setTweakable(false);
         register_property(m_show_tweakbar);
 
-        m_window_size = Property_<glm::vec2>::create("window Size", gl::windowDimension());
+        m_window_size = Property_<glm::vec2>::create("window Size", gl::window_dimension());
         m_window_size->setTweakable(false);
         register_property(m_window_size);
 
@@ -86,7 +86,7 @@ namespace kinski {
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
 
-        gl::Shader unlit_shader = gl::createShader(gl::ShaderType::UNLIT);
+        gl::Shader unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
         for (int i = 0; i < 16; i++)
         {
@@ -170,7 +170,7 @@ namespace kinski {
 
         if(e.isLeft())
         {
-            gl::Object3DPtr picked_obj = m_scene.pick(gl::calculateRay(m_camera, glm::vec2(e.getX(),
+            gl::Object3DPtr picked_obj = m_scene.pick(gl::calculate_ray(m_camera, glm::vec2(e.getX(),
                                                                                            e.getY())),
                                                       m_precise_selection);
             if(picked_obj)
@@ -210,7 +210,7 @@ namespace kinski {
         }
         else if(e.isRight())
         {
-            mouseDiff /= gl::windowDimension();
+            mouseDiff /= gl::window_dimension();
             mouseDiff *= *m_distance;
             *m_look_at = m_look_at_tmp - camera()->side() * mouseDiff.x + camera()->up() * mouseDiff.y;
         }
@@ -292,8 +292,8 @@ namespace kinski {
         glm::vec2 &ref = m_window_size->value();
         ref = glm::vec2(w, h);
 
-        m_arcball.setWindowSize(gl::windowDimension());
-        m_arcball.setCenter(gl::windowDimension() / 2.f);
+        m_arcball.setWindowSize(gl::window_dimension());
+        m_arcball.setCenter(gl::window_dimension() / 2.f);
         m_arcball.setRadius(150);
 
         set_clear_color(clear_color());
@@ -321,14 +321,12 @@ namespace kinski {
         {
             set_window_size(*m_window_size);
 
-            m_gui_camera = gl::OrthographicCamera::create(0, gl::windowDimension().x, 0, gl::windowDimension().y,
-                                                          0, 1.f);
-            // only set this once
-//            m_window_size->removeObserver(shared_from_this());
+            m_gui_camera = gl::OrthographicCamera::create(0, gl::window_dimension().x, 0,
+                                                          gl::window_dimension().y, 0, 1.f);
         }
         else if(theProperty == m_clear_color)
         {
-            gl::clearColor(*m_clear_color);
+            gl::clear_color(*m_clear_color);
             outstream_gl().set_color(glm::vec4(1.f) - m_clear_color->value());
         }
         else if(theProperty == m_camera_fov)
@@ -434,7 +432,7 @@ namespace kinski {
 
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
     {
-        float w = (gl::windowDimension()/12.f).x;
+        float w = (gl::window_dimension()/12.f).x;
         glm::vec2 offset(getWidth() - w - 10, 10);
 
         for (const gl::Texture &t : the_textures)
@@ -444,8 +442,8 @@ namespace kinski {
             float h = t.getHeight() * w / t.getWidth();
             glm::vec2 step(0, h + 10);
 
-            drawTexture(t, glm::vec2(w, h), offset);
-            gl::drawText2D(as_string(t.getWidth()) + std::string(" x ") +
+            gl::draw_texture(t, glm::vec2(w, h), offset);
+            gl::draw_text_2D(as_string(t.getWidth()) + std::string(" x ") +
                            as_string(t.getHeight()), m_fonts[0], glm::vec4(1),
                            offset);
             offset += step;
@@ -456,11 +454,11 @@ namespace kinski {
     {
         gl::Texture ret;
 
-        if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != gl::windowDimension())
+        if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != gl::window_dimension())
         {
             gl::Fbo::Format fmt;
             fmt.setSamples(8);
-            m_fbo_snapshot = gl::Fbo(gl::windowDimension(), fmt);
+            m_fbo_snapshot = gl::Fbo(gl::window_dimension(), fmt);
         }
 
         ret = gl::render_to_texture(m_fbo_snapshot, [this]()

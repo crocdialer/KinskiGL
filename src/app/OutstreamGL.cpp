@@ -67,7 +67,7 @@ namespace kinski{ namespace gl{
         if(!m_font) return;
         
         glm::vec2 step(0, m_font.getLineHeight() * 1.1f);
-        glm::vec2 offset(10, windowDimension().y - step.y);
+        glm::vec2 offset(10, window_dimension().y - step.y);
         
         int i = m_lines.size();
         for (const string &line : m_lines)
@@ -77,7 +77,7 @@ namespace kinski{ namespace gl{
             if(line.find("WARNING") != std::string::npos){color = gl::COLOR_ORANGE;}
             else if(line.find("ERROR") != std::string::npos){color = gl::COLOR_RED;}
 
-            gl::drawText2D(line.substr(0, line.size() - 1), m_font, color, offset);
+            gl::draw_text_2D(line.substr(0, line.size() - 1), m_font, color, offset);
             offset -= step;
             i--;
         }

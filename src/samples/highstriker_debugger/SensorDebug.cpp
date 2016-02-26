@@ -75,7 +75,7 @@ void SensorDebug::draw()
     vec2 offset(55, 110), step(0, 90);
     std::vector<glm::vec3> points;
 
-    float h = 80.f, w = gl::windowDimension().x - 2.f * offset.x;
+    float h = 80.f, w = gl::window_dimension().x - 2.f * offset.x;
 
     for(size_t i = 0; i < m_measurements.size(); i++)
     {
@@ -83,10 +83,10 @@ void SensorDebug::draw()
         if(!m_sensor_vals[i]){ continue; }
 
         // rectangle for current value
-        gl::drawQuad(gl::COLOR_GRAY, vec2(val * w, h), offset);
+        gl::draw_quad(gl::COLOR_GRAY, vec2(val * w, h), offset);
 
-        gl::drawText2D(as_string(100.f * val, 2) + "%", fonts()[FONT_MEDIUM], gl::COLOR_WHITE,
-                       offset + vec2(val * w, 0));
+        gl::draw_text_2D(as_string(100.f * val, 2) + "%", fonts()[FONT_MEDIUM], gl::COLOR_WHITE,
+                         offset + vec2(val * w, 0));
 
         ////////////////////////////// measure history ///////////////////////////
 
@@ -96,25 +96,25 @@ void SensorDebug::draw()
         for (size_t j = 0, sz = m_measurements[i].history_size(); j < sz; j += 2)
         {
             float x_val = offset.x + j / (float) sz * w;
-            float y_val = gl::windowDimension().y - offset.y - h;
+            float y_val = gl::window_dimension().y - offset.y - h;
 
             points[sz - 1 - j] = vec3(x_val, y_val, 0.f);
             points[sz - 2 - j] = vec3(x_val, y_val + h * m_measurements[i][j], 0.f);
         }
-        gl::drawLines2D(points, gl::COLOR_WHITE);
+        gl::draw_lines_2D(points, gl::COLOR_WHITE);
 
         offset += step;
     }
 
     // global average
-    gl::drawText2D(as_string(100.f * m_sensor_last_avg, 2) + "%", fonts()[FONT_LARGE],
-                   gl::COLOR_WHITE, vec2(45));
+    gl::draw_text_2D(as_string(100.f * m_sensor_last_avg, 2) + "%", fonts()[FONT_LARGE],
+                     gl::COLOR_WHITE, vec2(45));
 
     // final score
     uint16_t final_score = (uint16_t)round(map_value<float>(m_sensor_last_avg, m_range_min_max->value().x,
                                                   m_range_min_max->value().y, 0, 999));
-    gl::drawText2D("score: " + as_string(final_score), fonts()[FONT_LARGE], gl::COLOR_RED,
-                   vec2(330, 45));
+    gl::draw_text_2D("score: " + as_string(final_score), fonts()[FONT_LARGE], gl::COLOR_RED,
+                     vec2(330, 45));
 
 
     if(m_timer_game_ready.has_expired())
@@ -124,12 +124,12 @@ void SensorDebug::draw()
             m_timer_game_ready.expires_from_now(*m_timeout_game_ready);
             auto color_highscore = gl::COLOR_RED; color_highscore.a = .3f;
 
-            if(final_score == 999){ gl::drawQuad(color_highscore, gl::windowDimension()); }
+            if(final_score == 999){ gl::draw_quad(color_highscore, gl::window_dimension()); }
         }
         else
         {
             auto color_ready = gl::COLOR_GREEN; color_ready.a = .3f;
-            gl::drawQuad(color_ready, vec2(70), vec2(gl::windowDimension().x - 100, 25));
+            gl::draw_quad(color_ready, vec2(70), vec2(gl::window_dimension().x - 100, 25));
         }
     }
 }

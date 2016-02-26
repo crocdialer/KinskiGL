@@ -76,7 +76,7 @@ namespace kinski{ namespace physics{
         {
             m_mesh_lines->geometry()->createGLBuffers();
             
-            gl::drawMesh(m_mesh_lines);
+            gl::draw_mesh(m_mesh_lines);
             m_mesh_lines->geometry()->vertices().clear();
             m_mesh_lines->geometry()->colors().clear();
             m_mesh_lines->geometry()->vertices().reserve(1024);

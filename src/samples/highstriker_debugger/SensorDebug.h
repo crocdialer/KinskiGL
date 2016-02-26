@@ -30,7 +30,7 @@ namespace kinski
         
         std::vector<uint8_t> m_serial_accumulator, m_serial_read_buf;
         
-        float m_sensor_last_avg;
+        float m_sensor_last_avg = 0.f;
         
         uint32_t m_sensor_refresh_count = 0;
         Timer m_timer_sensor_refresh, m_timer_game_ready;
