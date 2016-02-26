@@ -378,7 +378,6 @@ int32_t code_lookup(int32_t the_keycode)
       ptr[KEY_COMMA] = kinski::Key::_COMMA;
       ptr[KEY_SLASH] = kinski::Key::_SLASH;
       ptr[KEY_RIGHTSHIFT] = kinski::Key::_RIGHT_SHIFT;
-      // ptr[KEY_KPASTERISK] = kinski::Key::_L;
       ptr[KEY_LEFTALT] = kinski::Key::_LEFT_ALT;
       ptr[KEY_SPACE] = kinski::Key::_SPACE;
       ptr[KEY_CAPSLOCK] = kinski::Key::_CAPS_LOCK;
@@ -421,15 +420,16 @@ int32_t code_lookup(int32_t the_keycode)
       ptr[KEY_KPMINUS] = kinski::Key::_KP_SUBTRACT;
       ptr[KEY_KPPLUS] = kinski::Key::_KP_ADD;
       ptr[KEY_KPDOT] = kinski::Key::_KP_DECIMAL;
+      ptr[KEY_KPASTERISK] = kinski::Key::_KP_MULTIPLY;
+      ptr[KEY_KPSLASH] = kinski::Key::_KP_DIVIDE;
       ptr[KEY_RIGHTCTRL] = kinski::Key::_RIGHT_CONTROL;
-      ptr[KEY_KPSLASH] = 0;
       ptr[KEY_RIGHTALT] = kinski::Key::_RIGHT_ALT;
       ptr[KEY_HOME] = kinski::Key::_HOME;
       ptr[KEY_UP] = kinski::Key::_UP;
       ptr[KEY_PAGEUP] = kinski::Key::_PAGE_UP;
       ptr[KEY_LEFT] = kinski::Key::_LEFT;
       ptr[KEY_RIGHT] = kinski::Key::_RIGHT;
-      ptr[KEY_END	] = kinski::Key::_END;
+      ptr[KEY_END] = kinski::Key::_END;
       ptr[KEY_DOWN] = kinski::Key::_DOWN;
       ptr[KEY_PAGEDOWN] = kinski::Key::_PAGE_DOWN;
       ptr[KEY_INSERT] = kinski::Key::_INSERT;
