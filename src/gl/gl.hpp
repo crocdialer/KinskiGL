@@ -189,7 +189,7 @@ namespace kinski { namespace gl {
     KINSKI_API void draw_mesh(const MeshPtr &theMesh);
     KINSKI_API void draw_light(const LightPtr &theLight);
     KINSKI_API void draw_line(const vec2 &a, const vec2 &b,
-                              const Color &theColor = Color(1),
+                              const Color &theColor = COLOR_WHITE,
                               float line_thickness = 1.f);
     KINSKI_API void draw_lines_2D(const std::vector<vec3> &thePoints, const vec4 &theColor,
                                   float line_thickness = 1.f);
