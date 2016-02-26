@@ -123,11 +123,11 @@ namespace kinski
         {
             l.insert(std::end(l), std::begin(r), std::end(r));
         }
-//        template<typename C1, typename C2> void concat_helper(C1& l, C2&& r)
-//        {
-//            l.insert(std::end(l), std::make_move_iterator(std::begin(r)),
-//                     std::make_move_iterator(std::end(r)));
-//        }
+        template<typename C1, typename C2> void concat_helper(C1& l, C2&& r)
+        {
+            l.insert(std::end(l), std::make_move_iterator(std::begin(r)),
+                     std::make_move_iterator(std::end(r)));
+        }
     } // namespace details
     
     template<typename T, typename... C>
@@ -160,6 +160,12 @@ namespace kinski
     inline T mix(const T &lhs, const T &rhs, float ratio)
     {
         return lhs + ratio * (rhs - lhs);
+    }
+    
+    template <typename T>
+    inline T mix_slow(const T &lhs, const T &rhs, float ratio)
+    {
+        return lhs * (1.f - ratio) + rhs * ratio;
     }
     
     template <typename T>
