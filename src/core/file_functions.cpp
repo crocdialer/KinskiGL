@@ -8,17 +8,18 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "file_functions.hpp"
+#include <fstream>
 #include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace boost::filesystem;
 
 namespace kinski {
-    
+
     /////////// implementation internal /////////////
-    
+
     static std::set<std::string> g_searchPaths;
-    
+
     std::string expand_user(std::string path)
     {
         if (!path.empty() && path[0] == '~')
@@ -39,14 +40,14 @@ namespace kinski {
         }
         return path;
     }
-    
+
     /////////// end implemantation internal /////////////
-    
+
     const std::set<std::string>& get_search_paths()
     {
         return g_searchPaths;
     }
-    
+
     void add_search_path(const std::string &thePath, bool recursive)
     {
         boost::filesystem::path path_expanded (expand_user(thePath));
@@ -55,7 +56,7 @@ namespace kinski {
             LOG_DEBUG<<"directory "<<path_expanded<<" not existing";
             return;
         }
-            
+
         if(recursive)
         {
             g_searchPaths.insert(get_directory_part(path_expanded.string()));
@@ -64,7 +65,7 @@ namespace kinski {
             {
                 it = recursive_directory_iterator(path_expanded);
                 recursive_directory_iterator end;
-                
+
                 while(it != end)
                 {
                     if(is_directory(*it)) g_searchPaths.insert(canonical(it->path()).string());
@@ -92,18 +93,18 @@ namespace kinski {
             g_searchPaths.insert(canonical(path_expanded).string());
         }
     }
-    
+
     void clear_search_paths()
     {
         g_searchPaths.clear();
     }
-    
+
     list<string> get_directory_entries(const std::string &thePath, const std::string &theExtension,
                                        bool recursive)
     {
         list<string> ret;
         path p (expand_user(thePath));
-        
+
         try
         {
             if (exists(p))    // does p actually exist?
@@ -126,7 +127,7 @@ namespace kinski {
                                 if(theExtension == ext){ ret.push_back(it->path().string()); }
                             }
                         }
-                        
+
                         try{ ++it; }
                         catch(std::exception& e)
                         {
@@ -159,7 +160,7 @@ namespace kinski {
                                 if(theExtension == ext){ ret.push_back(it->path().string()); }
                             }
                         }
-                        
+
                         try{ ++it; }
                         catch(std::exception& e)
                         {
@@ -176,7 +177,7 @@ namespace kinski {
         }
         return ret;
     }
-    
+
     std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
                                             bool recursive)
     {
@@ -187,7 +188,7 @@ namespace kinski {
         }), ret.end());
         return ret;
     }
-    
+
     int get_file_size(const std::string &theFilename)
     {
         return boost::filesystem::file_size(theFilename);
@@ -198,7 +199,7 @@ namespace kinski {
     {
         string path = search_file(theUTF8Filename);
         std::ifstream inStream(path.c_str());
-        
+
         if(!inStream.good())
         {
             throw OpenFileFailed(path);
@@ -211,7 +212,7 @@ namespace kinski {
     {
         string path = search_file(theUTF8Filename);
         std::ifstream inStream(path.c_str());
-        
+
         if(!inStream.good())
         {
             throw OpenFileFailed(theUTF8Filename);
@@ -221,7 +222,7 @@ namespace kinski {
                        istreambuf_iterator<char>());
         return content;
     }
-    
+
     std::vector<std::string> read_file_line_by_line(const std::string &theUTF8Filename)
     {
         std::vector<std::string> ret;
@@ -259,17 +260,17 @@ namespace kinski {
     {
         return path(theFileName).filename().string();
     }
-    
+
     bool is_directory(const std::string &theFilename)
     {
         return boost::filesystem::is_directory(expand_user(theFilename));
     }
-    
+
     bool file_exists(const std::string& theFilename)
     {
         return boost::filesystem::exists(theFilename);
     }
-    
+
     bool create_directory(const std::string &theFilename)
     {
         if(!file_exists(theFilename))
@@ -281,17 +282,17 @@ namespace kinski {
         }
         return false;
     }
-    
+
     std::string join_paths(const std::string &p1, const std::string &p2)
     {
         return (path(p1) / path(p2)).string();
     }
-    
+
     std::string search_file(const std::string &theFileName, bool use_entire_path)
     {
         std::string expanded_name = use_entire_path ? expand_user(theFileName) : get_filename_part(theFileName);
         boost::filesystem::path ret_path(expanded_name);
-        
+
         if(ret_path.is_absolute() && is_regular_file(ret_path))
         {
             return ret_path.string();
@@ -309,12 +310,12 @@ namespace kinski {
         if(use_entire_path){ return search_file(theFileName, false); }
         throw FileNotFoundException(theFileName);
     }
-    
+
     std::string get_working_directory()
     {
         return boost::filesystem::current_path().string();
     }
-    
+
     std::string get_directory_part(const std::string &theFileName)
     {
         if(is_directory(theFileName))
@@ -332,28 +333,27 @@ namespace kinski {
     {
         return path(theFileName).replace_extension().string();
     }
-    
+
     FileType get_file_type(const std::string &file_name)
     {
         if(!file_exists(file_name)){ return FileType::NOT_A_FILE; }
         if(is_directory(file_name)){ return FileType::DIRECTORY; }
         string ext = kinski::get_extension(file_name);
         ext = ext.empty() ? ext : kinski::to_lower(ext.substr(1));
-        
+
         std::list<string>
         image_exts{"png", "jpg", "jpeg", "bmp", "tga"},
         audio_exts{"wav", "m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx"},
         movie_exts{"mpg", "mov", "avi", "mp4", "m4v"},
         font_exts{"ttf", "otf", "ttc"};
-        
+
         if(kinski::is_in(ext, image_exts)){ return FileType::IMAGE; }
         else if(kinski::is_in(ext, model_exts)){ return FileType::MODEL; }
         else if(kinski::is_in(ext, audio_exts)){ return FileType::AUDIO; }
         else if(kinski::is_in(ext, movie_exts)){ return FileType::MOVIE; }
         else if(kinski::is_in(ext, font_exts)){ return FileType::FONT; }
-        
+
         return FileType::OTHER;
     }
 }
-

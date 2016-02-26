@@ -8,7 +8,7 @@
 #include "esUtil.h"
 #undef countof
 
-#include "core/file_functions.h"
+#include "core/file_functions.hpp"
 
 using namespace std;
 
@@ -62,7 +62,7 @@ namespace kinski
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-        set_window_size(windowSize());
+        set_window_size(gl::vec2(getWidth(), getHeight()));
 
         // file search paths
         kinski::add_search_path("");
@@ -78,7 +78,7 @@ namespace kinski
     void Raspi_App::set_window_size(const glm::vec2 &size)
     {
         App::set_window_size(size);
-        gl::setWindowDimension(size);
+        gl::set_window_dimension(size);
         if(running()) resize(size[0], size[1]);
     }
 
@@ -171,7 +171,7 @@ namespace kinski
                     else if(evp->code == REL_Y){ current_mouse_pos.y += evp->value; }
 
                     current_mouse_pos = glm::clamp(current_mouse_pos, gl::vec2(0),
-                                                   gl::windowDimension() - gl::vec2(1));
+                                                   gl::window_dimension() - gl::vec2(1));
 
                     uint32_t bothMods = key_modifiers | button_modifiers;
                     MouseEvent e(button_modifiers, current_mouse_pos.x,

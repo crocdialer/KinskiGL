@@ -11,7 +11,7 @@
 #include "MovieController.h"
 
 namespace kinski{ namespace video{
-    
+
     void fill_buffer_done_cb(void* data, COMPONENT_T* comp)
     {
         //if (OMX_FillThisBuffer(ilclient_get_handle(egl_render), eglBuffer) != OMX_ErrorNone)
@@ -26,9 +26,9 @@ namespace kinski{ namespace video{
         bool m_playing;
         bool m_loop;
         float m_rate;
-         
+
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
-        
+
         OMX_BUFFERHEADERTYPE* m_egl_buffer;
 
         COMPONENT_T* m_egl_render = nullptr;
@@ -45,7 +45,7 @@ namespace kinski{ namespace video{
 
         void* m_egl_image;
         GLuint m_texture;
-        
+
         // tmp -> use fstream
         FILE *m_file_handle;
 
@@ -63,7 +63,7 @@ namespace kinski{ namespace video{
 
             memset(m_comp_list, 0, sizeof(m_comp_list));
             memset(m_tunnels, 0, sizeof(m_tunnels));
-            
+
             memset(&m_clock_state, 0, sizeof(m_clock_state));
             m_clock_state.nSize = sizeof(m_clock_state);
             m_clock_state.nVersion.nVersion = OMX_VERSION;
@@ -75,7 +75,7 @@ namespace kinski{ namespace video{
             m_port_format.nVersion.nVersion = OMX_VERSION;
             m_port_format.nPortIndex = 130;
             m_port_format.eCompressionFormat = OMX_VIDEO_CodingAVC;
-        
+
         }
         ~MovieControllerImpl()
         {
@@ -116,7 +116,7 @@ namespace kinski{ namespace video{
             int first_packet = 1;
 
             ilclient_change_component_state(m_video_decode, OMX_StateExecuting);
-            
+
             while(is_running)
             {
                 buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
@@ -135,7 +135,7 @@ namespace kinski{ namespace video{
                    ((data_len > 0 && ilclient_remove_event(m_video_decode,
                                                            OMX_EventPortSettingsChanged,
                                                            131, 0, 0, 1) == 0) ||
-                   (data_len == 0 && ilclient_wait_for_event(m_video_decode, 
+                   (data_len == 0 && ilclient_wait_for_event(m_video_decode,
                                                              OMX_EventPortSettingsChanged,
                                                              131, 0, 0, 1,
                                                              ILCLIENT_EVENT_ERROR | ILCLIENT_PARAMETER_CHANGED,
@@ -194,7 +194,7 @@ namespace kinski{ namespace video{
                 data_len = 0;
 
                 buf->nOffset = 0;
-            
+
                 if(first_packet)
                 {
                     buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
@@ -214,40 +214,40 @@ namespace kinski{ namespace video{
             buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
 
             if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
-            {  
-              //status = -20; 
+            {
+              //status = -20;
             }
 
             // need to flush the renderer to allow m_video_decode to disable its input port
             ilclient_flush_tunnels(m_tunnels, 0);
 
-            ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL); 
+            ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
         }
     };
-    
+
     MovieControllerPtr MovieController::create()
     {
         return MovieControllerPtr(new MovieController());
     }
-    
+
     MovieControllerPtr MovieController::create(const std::string &filePath, bool autoplay,
                                                bool loop)
     {
         return MovieControllerPtr(new MovieController(filePath, autoplay, loop));
     }
-    
+
     MovieController::MovieController():
     m_impl(new MovieControllerImpl)
     {
-        
+
     }
-    
+
     MovieController::MovieController(const std::string &filePath, bool autoplay, bool loop):
     m_impl(new MovieControllerImpl)
     {
         load(filePath, autoplay, loop);
     }
-    
+
     MovieController::~MovieController()
     {
 
@@ -255,7 +255,7 @@ namespace kinski{ namespace video{
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        
+
         m_impl->m_src_path = search_file(filePath);
 
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
@@ -287,26 +287,26 @@ namespace kinski{ namespace video{
         m_impl->m_comp_list[0] = m_impl->m_video_decode;
 
         // create egl_render
-        if(status == 0 && 
+        if(status == 0 &&
            ilclient_create_component(m_impl->m_il_client, &m_impl->m_egl_render, "egl_render",
                                      ILCLIENT_DISABLE_ALL_PORTS | ILCLIENT_ENABLE_OUTPUT_BUFFERS) != 0)
         { status = -14; }
         m_impl->m_comp_list[1] = m_impl->m_egl_render;
 
         // create clock
-        if(status == 0 && 
+        if(status == 0 &&
            ilclient_create_component(m_impl->m_il_client, &m_impl->m_clock, "clock",
                                      ILCLIENT_DISABLE_ALL_PORTS) != 0)
         { status = -14; }
         m_impl->m_comp_list[2] = m_impl->m_clock;
 
-        if(m_impl->m_clock && 
+        if(m_impl->m_clock &&
            OMX_SetParameter(ILC_GET_HANDLE(m_impl->m_clock), OMX_IndexConfigTimeClockState,
                             &m_impl->m_clock_state) != OMX_ErrorNone)
         { status = -13; }
 
         // create video_scheduler
-        if(status == 0 && 
+        if(status == 0 &&
            ilclient_create_component(m_impl->m_il_client, &m_impl->m_video_scheduler,
                                      "video_scheduler", ILCLIENT_DISABLE_ALL_PORTS) != 0)
         { status = -14; }
@@ -318,8 +318,8 @@ namespace kinski{ namespace video{
 
         // setup clock tunnel first
         if(status == 0 && ilclient_setup_tunnel(m_impl->m_tunnels + 2, 0, 0) != 0)
-        { 
-          status = -15; 
+        {
+          status = -15;
         }
         else{ ilclient_change_component_state(m_impl->m_clock, OMX_StateExecuting); }
 
@@ -343,101 +343,101 @@ namespace kinski{ namespace video{
         //[m_impl->m_player setRate: m_impl->m_rate];
         m_impl->m_playing = true;
     }
-    
+
     void MovieController::unload()
     {
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_playing = false;
     }
-    
+
     void MovieController::pause()
     {
         //[m_impl->m_player pause];
         //[m_impl->m_player setRate: 0.f];
         m_impl->m_playing = false;
     }
-    
+
     bool MovieController::isPlaying() const
     {
         return m_impl->m_playing;
     }
-    
+
     void MovieController::restart()
     {
         //[m_impl->m_player seekToTime:kCMTimeZero];
         play();
     }
-    
+
     float MovieController::volume() const
     {
         return 0.f;//m_impl->m_player.volume;
     }
-    
+
     void MovieController::set_volume(float newVolume)
     {
         float val = clamp(newVolume, 0.f, 1.f);
         //m_impl->m_player.volume = val;
     }
-    
+
     bool MovieController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
         return false;
     }
-    
+
     bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
-      return false;
-    }
-    
-    bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)
-    {
-        LOG_WARNING << "implementation not available on RPI";
         return false;
     }
-    
+
+    bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)
+    {
+        LOG_WARNING << "copy_frames_offline not available on RPI";
+        return false;
+    }
+
     double MovieController::duration() const
     {
         return 0.f;
     }
-    
+
     double MovieController::current_time() const
     {
         return 0.f;
     }
-    
+
     void MovieController::seek_to_time(float value)
     {
         //CMTime t = CMTimeMakeWithSeconds(value, NSEC_PER_SEC);
         //[m_impl->m_player seekToTime:t];
         //[m_impl->m_player setRate: m_impl->m_rate];
     }
-    
+
     void MovieController::set_loop(bool b)
     {
 
     }
-    
+
     bool MovieController::loop() const
     {
         return m_impl->m_loop;
     }
-    
+
     void MovieController::set_rate(float r)
     {
         m_impl->m_rate = r;
         //[m_impl->m_player setRate: r];
     }
-    
+
     const std::string& MovieController::get_path() const
     {
         return m_impl->m_src_path;
     }
-    
+
     void MovieController::set_on_load_callback(MovieCallback c)
     {
         m_impl->m_on_load_cb = c;
     }
-    
+
     void MovieController::set_movie_ended_callback(MovieCallback c)
     {
         m_impl->m_movie_ended_cb = c;
