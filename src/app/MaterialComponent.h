@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__MaterialComponent__
-#define __gl__MaterialComponent__
+#pragma once
 
 #include "core/Component.h"
-#include "gl/Material.h"
+#include "gl/Material.hpp"
 
 namespace kinski
 {
@@ -37,4 +36,3 @@ namespace kinski
             m_texture_path_1, m_texture_path_2, m_texture_path_3, m_texture_path_4;
     };
 }
-#endif /* defined(__gl__MaterialComponent__) */

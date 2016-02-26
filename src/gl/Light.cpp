@@ -6,8 +6,8 @@
 //
 //
 
-#include "Light.h"
-#include "Visitor.h"
+#include "Light.hpp"
+#include "Visitor.hpp"
 
 namespace kinski { namespace gl {
 

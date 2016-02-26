@@ -6,9 +6,9 @@
 //
 //
 
-#include "QuadWarp.h"
-#include "gl/Mesh.h"
-#include "gl/Camera.h"
+#include "QuadWarp.hpp"
+#include "gl/Mesh.hpp"
+#include "gl/Camera.hpp"
 #include "gl/ShaderLibrary.h"
 
 namespace kinski{ namespace gl{

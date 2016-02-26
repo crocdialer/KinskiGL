@@ -7,7 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "Buffer.h"
+#include "Buffer.hpp"
 
 namespace kinski{ namespace gl{
 

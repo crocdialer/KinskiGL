@@ -7,11 +7,10 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef __gl__SerializerGL__
-#define __gl__SerializerGL__
+#pragma once
 
 #include "core/Serializer.h"
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski
 {
@@ -37,5 +36,3 @@ namespace kinski
     };
     
 }//namespace
-
-#endif /* defined(__gl__SerializerGL__) */

@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __gl__ViewerApp__
-#define __gl__ViewerApp__
+#pragma once
 
 #include "core/Timer.h"
 #include "core/Animation.h"
@@ -15,10 +14,10 @@
 #include "app/Arcball.h"
 #include "app/RemoteControl.h"
 #include "app/LightComponent.h"
-#include "gl/SerializerGL.h"
-#include "gl/Scene.h"
-#include "gl/Fbo.h"
-#include "gl/Font.h"
+#include "gl/SerializerGL.hpp"
+#include "gl/Scene.hpp"
+#include "gl/Fbo.hpp"
+#include "gl/Font.hpp"
 
 #if defined(KINSKI_RASPI)
     #include "app/Raspi_App.h"
@@ -153,6 +152,3 @@ namespace kinski {
         RemoteControl m_remote_control;
     };
 }// namespace
-
-
-#endif /* defined(__gl__ViewerApp__) */

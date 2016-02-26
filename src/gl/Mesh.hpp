@@ -7,12 +7,11 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef KINSKI_GL_MESH_H_
-#define KINSKI_GL_MESH_H_
+#pragma once
 
-#include "Object3D.h"
-#include "Geometry.h"
-#include "Material.h"
+#include "Object3D.hpp"
+#include "Geometry.hpp"
+#include "Material.hpp"
 
 namespace kinski { namespace gl {
     
@@ -227,5 +226,3 @@ namespace kinski { namespace gl {
         Exception("wrong vertex array defined for object: " + kinski::as_string(theID)){}
     };    
 }}
-
-#endif /* defined(__gl__Mesh__) */

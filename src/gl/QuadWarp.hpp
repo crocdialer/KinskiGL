@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __kinskiGL__QuadWarp__
-#define __kinskiGL__QuadWarp__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
     
@@ -42,5 +41,3 @@ namespace kinski{ namespace gl{
     
 
 }}// namespaces
-
-#endif /* defined(__kinskiGL__Noise__) */

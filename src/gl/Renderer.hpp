@@ -6,13 +6,10 @@
 //
 //
 
-#ifndef __gl__Renderer__
-#define __gl__Renderer__
+#pragma once
 
-#include "gl/gl.h"
-#include "Mesh.h"
-#include "Fbo.h"
-#include "Camera.h"
+#include "gl/gl.hpp"
+#include "gl/Buffer.hpp"
 
 namespace kinski{ namespace gl{
     
@@ -76,7 +73,7 @@ namespace kinski{ namespace gl{
         
         void set_shadowmap_size(const vec2 &the_size);
         std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
-        std::vector<gl::Camera::Ptr>& shadow_cams() { return m_shadow_cams; }
+        std::vector<gl::CameraPtr>& shadow_cams() { return m_shadow_cams; }
         void set_shadow_pass(bool b){ m_shadow_pass = b; }
         
     private:
@@ -88,12 +85,10 @@ namespace kinski{ namespace gl{
         // shadow params
         int m_num_shadow_lights;
         std::vector<gl::Fbo> m_shadow_fbos;
-        std::vector<gl::Camera::Ptr> m_shadow_cams;
+        std::vector<gl::CameraPtr> m_shadow_cams;
         bool m_shadow_pass;
         
         void update_uniform_buffer_shadows(const mat4 &the_transform);
     };
     
 }}// namespace
-
-#endif /* defined(__gl__Renderer__) */

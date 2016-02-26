@@ -6,9 +6,9 @@
 //
 //
 
-#include "Texture.h"
-#include "Mesh.h"
-#include "Font.h"
+#include "Texture.hpp"
+#include "Mesh.hpp"
+#include "Font.hpp"
 
 #include <unordered_map>
 

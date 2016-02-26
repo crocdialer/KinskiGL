@@ -9,7 +9,7 @@
 #ifndef __gl__Light__
 #define __gl__Light__
 
-#include "Object3D.h"
+#include "Object3D.hpp"
 
 namespace kinski { namespace gl {
     

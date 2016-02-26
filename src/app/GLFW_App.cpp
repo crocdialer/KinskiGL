@@ -7,8 +7,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "gl/gl.h"
-#include "gl/Material.h"
+#include "gl/gl.hpp"
+#include "gl/Material.hpp"
 #include "GLFW_App.h"
 #include "core/file_functions.h"
 #include "AntTweakBarConnector.h"

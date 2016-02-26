@@ -7,10 +7,9 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _KINSKI_SHADER_INCLUDED_
-#define _KINSKI_SHADER_INCLUDED_
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 #define BUFFER_OFFSET(i) ((char *)nullptr + (i))
 
@@ -124,4 +123,3 @@ class ShaderNullProgramExc : public Exception
 };
 
 }}//namespace
-#endif // _KINSKI_SHADER_INCLUDED_

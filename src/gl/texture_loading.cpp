@@ -6,8 +6,8 @@
 //
 //
 
-#include "gl/gl.h"
-#include "Texture.h"
+#include "gl/gl.hpp"
+#include "Texture.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.inl"

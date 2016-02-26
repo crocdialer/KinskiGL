@@ -6,9 +6,9 @@
 //
 //
 
-#include "Noise.h"
-#include "gl/Fbo.h"
-#include "gl/Material.h"
+#include "Noise.hpp"
+#include "gl/Fbo.hpp"
+#include "gl/Material.hpp"
 
 namespace kinski{ namespace gl{
 

@@ -7,11 +7,9 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef KINSKI_GL_FBO_H_
-#define KINSKI_GL_FBO_H_
+#pragma once
 
-#include <vector>
-#include "Texture.h"
+#include "Texture.hpp"
 
 namespace kinski {
 namespace gl {
@@ -297,4 +295,3 @@ class FboExceptionInvalidSpecification : public FboException {
 };
 
 }}// namespace gl
-#endif

@@ -6,12 +6,11 @@
 //
 //
 
-#ifndef kinskiGL_Visitor_h
-#define kinskiGL_Visitor_h
+#pragma once
 
-#include "Mesh.h"
-#include "Light.h"
-#include "Camera.h"
+#include "Mesh.hpp"
+#include "Light.hpp"
+#include "Camera.hpp"
 
 namespace kinski { namespace gl {
     
@@ -81,4 +80,3 @@ namespace kinski { namespace gl {
     };
     
 }}//namespace
-#endif

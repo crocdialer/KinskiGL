@@ -7,8 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _KINSKIGL_H
-#define _KINSKIGL_H
+#pragma once
 
 #include "core/core.h"
 #include "core/file_functions.h"
@@ -77,7 +76,7 @@
 #include "glm/gtx/norm.hpp"
 #include "glm/gtx/string_cast.hpp"
 
-#include "SerializerGL.h"
+#include "SerializerGL.hpp"
 
 namespace kinski { namespace gl {
 
@@ -370,5 +369,3 @@ namespace kinski { namespace gl {
     #endif
     
 }}//namespace
-
-#endif //_KINSKIGL_H

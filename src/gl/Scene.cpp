@@ -7,12 +7,13 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "Scene.h"
-#include "Visitor.h"
-#include "Mesh.h"
-#include "Camera.h"
-#include "Renderer.h"
-#include "geometry_types.h"
+#include "Scene.hpp"
+#include "Visitor.hpp"
+#include "Mesh.hpp"
+#include "Camera.hpp"
+#include "Renderer.hpp"
+#include "Fbo.hpp"
+#include "geometry_types.hpp"
 
 using namespace std;
 

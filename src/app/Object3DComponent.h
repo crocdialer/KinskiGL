@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__Object3DComponent__
-#define __gl__Object3DComponent__
+#pragma once
 
 #include "core/Component.h"
-#include "gl/Object3D.h"
+#include "gl/Object3D.hpp"
 
 namespace kinski
 {
@@ -44,4 +43,3 @@ namespace kinski
         std::vector<gl::Object3DPtr> m_objects;
     };
 }
-#endif /* defined(__gl__LightComponent__) */

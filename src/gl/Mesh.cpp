@@ -7,8 +7,8 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "Mesh.h"
-#include "Visitor.h"
+#include "Mesh.hpp"
+#include "Visitor.hpp"
 
 namespace kinski { namespace gl {
   

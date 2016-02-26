@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 /*
 * This class provides capture Input from Decklink Black magic devices

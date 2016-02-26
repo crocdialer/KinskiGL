@@ -5,10 +5,9 @@
  *      Author: Fabian
  */
 
-#ifndef KINSKI_GL_GEOMETRY_TYPES_H_
-#define KINSKI_GL_GEOMETRY_TYPES_H_
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski { namespace gl {
     
@@ -400,5 +399,3 @@ struct KINSKI_API Frustum
 KINSKI_API int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);
 
 }}//namespace
-
-#endif /* KINSKI_GL_GEOMETRY_TYPES_H_ */

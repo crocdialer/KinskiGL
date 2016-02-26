@@ -7,11 +7,10 @@
 //  http://www.boost.org/LICENSE_1_0.txt )
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef __gl__Object3D__
-#define __gl__Object3D__
+#pragma once
 
-#include "gl/gl.h"
-#include "geometry_types.h"
+#include "gl/gl.hpp"
+#include "geometry_types.hpp"
 
 namespace kinski { namespace gl {
 
@@ -129,5 +128,3 @@ namespace kinski { namespace gl {
     };
 
 }}//namespace
-
-#endif /* defined(__gl__Object3D__) */

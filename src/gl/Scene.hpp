@@ -7,13 +7,12 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef __gl__Scene__
-#define __gl__Scene__
+#pragma once
 
-#include "Mesh.h"
-#include "Light.h"
-#include "Camera.h"
-#include "Renderer.h"
+#include "Mesh.hpp"
+#include "Light.hpp"
+#include "Camera.hpp"
+#include "Renderer.hpp"
 
 namespace kinski { namespace gl {
     
@@ -48,5 +47,3 @@ namespace kinski { namespace gl {
     };
     
 }}//namespace
-
-#endif /* defined(__gl__Scene__) */

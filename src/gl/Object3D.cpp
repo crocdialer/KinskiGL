@@ -8,9 +8,9 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include <algorithm>
-#include "gl/geometry_types.h"
-#include "Object3D.h"
-#include "Visitor.h"
+#include "gl/geometry_types.hpp"
+#include "Object3D.hpp"
+#include "Visitor.hpp"
 
 namespace kinski { namespace gl {
     

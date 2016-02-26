@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__Font__
-#define __gl__Font__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski { namespace gl {
     
@@ -44,5 +43,3 @@ namespace kinski { namespace gl {
     };
     
 }}// namespace
-
-#endif /* defined(__gl__Font__) */

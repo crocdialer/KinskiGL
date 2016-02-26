@@ -7,7 +7,7 @@
 //
 
 #include "Object3DComponent.h"
-#include "gl/Mesh.h"
+#include "gl/Mesh.hpp"
 
 namespace kinski
 {

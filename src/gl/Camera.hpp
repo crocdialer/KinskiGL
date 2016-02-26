@@ -10,7 +10,7 @@
 #ifndef KINSKI_GL_CAMERA_H_
 #define KINSKI_GL_CAMERA_H_
 
-#include "Object3D.h"
+#include "Object3D.hpp"
 
 namespace kinski { namespace gl{
 

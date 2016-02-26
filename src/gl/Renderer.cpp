@@ -6,10 +6,11 @@
 //
 //
 
-#include "Renderer.h"
-#include "Mesh.h"
-#include "Camera.h"
-#include "Light.h"
+#include "Renderer.hpp"
+#include "Mesh.hpp"
+#include "Camera.hpp"
+#include "Light.hpp"
+#include "Fbo.hpp"
 
 namespace kinski{ namespace gl{
 

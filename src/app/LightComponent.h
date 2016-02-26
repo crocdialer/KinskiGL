@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__LightComponent__
-#define __gl__LightComponent__
+#pragma once
 
 #include "core/Component.h"
-#include "gl/Light.h"
+#include "gl/Light.hpp"
 
 namespace kinski
 {
@@ -43,4 +42,3 @@ namespace kinski
         RangedProperty<float>::Ptr m_spot_cutoff, m_spot_exponent;
     };
 }
-#endif /* defined(__gl__LightComponent__) */

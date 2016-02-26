@@ -8,7 +8,7 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "TextureIO.h"
-#include "gl/Buffer.h"
+#include "gl/Buffer.hpp"
 
 using namespace std;
 using namespace cv;

@@ -7,10 +7,9 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _TEXTUREIO_IS_INCLUDED_
-#define _TEXTUREIO_IS_INCLUDED_
+#pragma once
 
-#include "Texture.h"
+#include "Texture.hpp"
 #include "opencv2/opencv.hpp"
 
 namespace kinski{ namespace gl{
@@ -32,4 +31,3 @@ namespace kinski{ namespace gl{
                                   bool compress = false);
     };
 }}
-#endif //_TEXTUREIO_IS_INCLUDED_

@@ -8,7 +8,7 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "core/file_functions.h"
-#include "Shader.h"
+#include "Shader.hpp"
 
 using namespace std;
 

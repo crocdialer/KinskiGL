@@ -7,8 +7,8 @@
 //
 
 #include "SyphonConnector.h"
-#include "gl/Texture.h"
-#include "gl/Buffer.h"
+#include "gl/Texture.hpp"
+#include "gl/Buffer.hpp"
 #import <Syphon/Syphon.h>
 
 namespace kinski{ namespace syphon{

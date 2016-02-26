@@ -7,14 +7,13 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef __gl__Material__
-#define __gl__Material__
+#pragma once
 
 #include <boost/variant.hpp>
-#include "gl/gl.h"
-#include "Shader.h"
-#include "Buffer.h"
-#include "Texture.h"
+#include "gl/gl.hpp"
+#include "Shader.hpp"
+#include "Buffer.hpp"
+#include "Texture.hpp"
 
 namespace kinski { namespace gl {
     
@@ -149,5 +148,3 @@ namespace kinski { namespace gl {
     };
    
 }} // namespace
-
-#endif 

@@ -1,7 +1,6 @@
-#ifndef __gl__MovieController__
-#define __gl__MovieController__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 /*
 * This class controls playback of Movies and manages their assets.
@@ -76,5 +75,3 @@ namespace kinski{ namespace video{
         std::unique_ptr<struct MovieControllerImpl> m_impl;
     };
 }}// namespaces
-
-#endif

@@ -9,7 +9,7 @@
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include "gl/Mesh.h"
+#include "gl/Mesh.hpp"
 #include "AssimpConnector.h"
 
 using namespace std;

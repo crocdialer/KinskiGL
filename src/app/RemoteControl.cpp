@@ -7,9 +7,7 @@
 //
 
 #include "RemoteControl.h"
-#include "gl/SerializerGL.h"
-//#include "app/ViewerApp.h"
-//#include "cv/TextureIO.h"
+#include "gl/SerializerGL.hpp"
 
 using namespace kinski;
 

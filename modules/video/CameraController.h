@@ -1,7 +1,6 @@
-#ifndef __gl__CameraController__
-#define __gl__CameraController__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 /*
 * This class controls a camera capture
@@ -50,5 +49,3 @@ namespace kinski{ namespace video{
         std::shared_ptr<Impl> m_impl;
     };
 }} // namespaces
-
-#endif

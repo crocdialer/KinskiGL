@@ -7,10 +7,9 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _KINSKI_TEXTURE_INCLUDED_
-#define _KINSKI_TEXTURE_INCLUDED_
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
     
@@ -301,4 +300,3 @@ namespace kinski{ namespace gl{
         TextureDataExc(const std::string &log):Exception("TextureData Error: " + log){};
     };
 }}// namespace
-#endif // _KINSKI_TEXTURE_INCLUDED_

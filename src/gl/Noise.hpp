@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __kinskiGL__Noise__
-#define __kinskiGL__Noise__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
 
@@ -35,5 +34,3 @@ class KINSKI_API Noise
 };
 
 }}// namespaces
-
-#endif /* defined(__kinskiGL__Noise__) */

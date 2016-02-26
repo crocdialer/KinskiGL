@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __gl__OutstreamGL__
-#define __gl__OutstreamGL__
+#pragma once
 
-#include "gl/gl.h"
-#include "gl/Font.h"
+#include "gl/gl.hpp"
+#include "gl/Font.hpp"
 
 namespace kinski{ namespace gl{
     
@@ -49,5 +48,3 @@ namespace kinski{ namespace gl{
         std::list<std::string> m_lines;
     };
 }}//namespace
-
-#endif /* defined(__gl__OutstreamGL__) */

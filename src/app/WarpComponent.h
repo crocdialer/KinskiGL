@@ -6,11 +6,10 @@
 //
 //
 
-#ifndef __app__WarpComponent__
-#define __app__WarpComponent__
+#pragma once
 
 #include "core/Component.h"
-#include "gl/QuadWarp.h"
+#include "gl/QuadWarp.hpp"
 
 namespace kinski
 {
@@ -35,4 +34,3 @@ namespace kinski
         m_top_left_y, m_top_right_y, m_bottom_left_y, m_bottom_right_y;
     };
 }
-#endif /* defined(__app__WarpComponent__) */

@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __gl__SyphonConnector__
-#define __gl__SyphonConnector__
+#pragma once
 
-#include "gl/gl.h"
+#include "gl/gl.hpp"
 
 namespace kinski{ namespace syphon{
     
@@ -80,5 +79,3 @@ namespace kinski{ namespace syphon{
     };
     
 }}//namespace
-
-#endif /* defined(__gl__SyphonConnector__) */

@@ -7,16 +7,16 @@
 //  http://www.boost.org/LICENSE_1_0.txt)
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "gl.h"
-#include "Material.h"
-#include "Shader.h"
+#include "gl.hpp"
+#include "Material.hpp"
+#include "Shader.hpp"
 #include "ShaderLibrary.h"
-#include "Texture.h"
-#include "Camera.h"
-#include "Mesh.h"
-#include "Font.h"
-#include "Scene.h"
-#include "Fbo.h"
+#include "Texture.hpp"
+#include "Camera.hpp"
+#include "Mesh.hpp"
+#include "Font.hpp"
+#include "Scene.hpp"
+#include "Fbo.hpp"
 
 using namespace glm;
 using namespace std;

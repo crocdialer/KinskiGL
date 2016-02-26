@@ -7,7 +7,7 @@
 //
 
 #include "OutstreamGL.h"
-#include "gl/Material.h"
+#include "gl/Material.hpp"
 
 using namespace std;
 
