@@ -6,13 +6,10 @@
 //
 //
 
-#include <boost/bind.hpp>
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include "gl/Mesh.h"
-#include "gl/Geometry.h"
-#include "gl/Material.h"
 #include "AssimpConnector.h"
 
 using namespace std;

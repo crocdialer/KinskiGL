@@ -1366,6 +1366,14 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
             KINSKI_CHECK_GL_ERRORS();
         }
     }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+    void reset_state()
+    {
+        static auto mat = gl::Material::create();
+        gl::apply_material(mat, true);
+    }
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -1607,6 +1615,14 @@ void drawTransform(const glm::mat4& the_transform, float the_scale)
 #endif
                 default:
                     break;
+            }
+            
+            if(vert_src.empty() || frag_src.empty())
+            {
+                LOG_WARNING << "requested shader not available, falling back to UNLIT";
+                vert_src = unlit_vert;
+                frag_src = unlit_frag;
+                type = ShaderType::UNLIT;
             }
             ret.loadFromData(vert_src, frag_src, geom_src);
             if(use_cached_shader){ g_shaders[type] = ret; }

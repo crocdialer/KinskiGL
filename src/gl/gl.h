@@ -236,6 +236,11 @@ namespace kinski { namespace gl {
     
     KINSKI_API void apply_material(const MaterialPtr &the_mat, bool force_apply = false);
     
+    /*!
+     * resets the OpenGL state to default values
+     */
+    KINSKI_API void reset_state();
+    
     /*********************************** inbuilt Texture loading **********************************/
     
     KINSKI_API Image decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
