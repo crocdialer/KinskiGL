@@ -107,16 +107,6 @@ namespace kinski { namespace gl {
         gl::Frustum m_frustum;
         std::set<std::string> m_tags;
         RenderBinPtr m_render_bin;
-        
-        bool check_tags(const std::set<std::string> &filter_tags,
-                        const std::set<std::string> &obj_tags)
-        {
-            for(const auto &t : obj_tags)
-            {
-                if(is_in(t, filter_tags)){ return true; }
-            }
-            return filter_tags.empty();
-        }
     };
     
     Scene::Scene():
@@ -254,7 +244,7 @@ namespace kinski { namespace gl {
     std::vector<gl::Object3DPtr> Scene::get_objects_by_tag(const std::string &the_tag) const
     {
         std::vector<gl::Object3DPtr> ret;
-        gl::SelectVisitor<gl::Object3D> sv({the_tag});
+        gl::SelectVisitor<gl::Object3D> sv({the_tag}, false);
         root()->accept(sv);
         
         for(gl::Object3D *o : sv.getObjects()){ ret.push_back(o->shared_from_this()); }

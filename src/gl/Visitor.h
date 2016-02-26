@@ -36,6 +36,18 @@ namespace kinski { namespace gl {
         virtual void visit(gl::Mesh &theNode){ visit(static_cast<Object3D&>(theNode)); };
         virtual void visit(gl::Light &theNode){ visit(static_cast<Object3D&>(theNode)); };
         virtual void visit(gl::Camera &theNode){ visit(static_cast<Object3D&>(theNode)); };
+
+    protected:
+        
+        inline bool check_tags(const std::set<std::string> &filter_tags,
+                               const std::set<std::string> &obj_tags)
+        {
+            for(const auto &t : obj_tags)
+            {
+                if(is_in(t, filter_tags)){ return true; }
+            }
+            return filter_tags.empty();
+        }
         
     private:
         std::stack<glm::mat4> m_transform_stack;
@@ -45,13 +57,14 @@ namespace kinski { namespace gl {
     class SelectVisitor : public Visitor
     {
     public:
-        SelectVisitor(const std::set<std::string> &the_tags = {}):
+        SelectVisitor(const std::set<std::string> &the_tags = {}, bool select_only_enabled = true):
         Visitor(),
-        m_tags(the_tags){};
+        m_tags(the_tags),
+        m_select_only_enabled(select_only_enabled){};
         
         void visit(T &theNode) override
         {
-            if(theNode.enabled())
+            if(theNode.enabled() || !m_select_only_enabled)
             {
                 if(check_tags(m_tags, theNode.tags())){ m_objects.push_back(&theNode); }
                 Visitor::visit(static_cast<gl::Object3D&>(theNode));
@@ -64,16 +77,7 @@ namespace kinski { namespace gl {
     private:
         std::list<T*> m_objects;
         std::set<std::string> m_tags;
-        
-        inline bool check_tags(const std::set<std::string> &filter_tags,
-                               const std::set<std::string> &obj_tags)
-        {
-            for(const auto &t : obj_tags)
-            {
-                if(is_in(t, filter_tags)){ return true; }
-            }
-            return filter_tags.empty();
-        }
+        bool m_select_only_enabled;
     };
     
 }}//namespace
