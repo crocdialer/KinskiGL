@@ -31,7 +31,7 @@ namespace kinski { namespace gl {
         std::vector<vec2>, std::vector<vec3>, std::vector<vec4>,
         std::vector<mat3>, std::vector<mat4> > UniformValue;
         
-        typedef std::map<std::string, UniformValue> UniformMap;
+        typedef std::unordered_map<std::string, UniformValue> UniformMap;
 
         static Ptr create(const Shader &theShader = Shader());
 
@@ -46,7 +46,7 @@ namespace kinski { namespace gl {
         
         Shader& shader() {return m_shader;};
         const Shader& shader() const {return m_shader;};
-        void setShader(const Shader &theShader) { m_shader = theShader; };
+        void setShader(const Shader &theShader);
         
         std::vector<Texture>& textures() {return m_textures;};
         const std::vector<Texture>& textures() const {return m_textures;};

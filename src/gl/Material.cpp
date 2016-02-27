@@ -83,6 +83,12 @@ namespace kinski { namespace gl {
         m_dirty_uniform_buffer = true;
     };
     
+    void Material::setShader(const Shader &theShader)
+    {
+        m_shader = theShader;
+        m_load_queue_shader.clear();
+    };
+    
     void Material::update_uniform_buffer()
     {
         

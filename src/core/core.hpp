@@ -20,7 +20,8 @@
 #include <list>
 #include <set>
 #include <map>
-#include <stack>
+#include <unordered_map>
+//#include <stack>
 
 //#include <boost/version.hpp>
 //#if BOOST_VERSION < 105300
