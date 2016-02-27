@@ -1641,9 +1641,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             if(vert_src.empty() || frag_src.empty())
             {
                 LOG_WARNING << "requested shader not available, falling back to UNLIT";
-                vert_src = unlit_vert;
-                frag_src = unlit_frag;
-                type = ShaderType::UNLIT;
+                return create_shader(gl::ShaderType::UNLIT);
             }
             ret.loadFromData(vert_src, frag_src, geom_src);
             if(use_cached_shader){ g_shaders[type] = ret; }
