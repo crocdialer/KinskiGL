@@ -558,6 +558,7 @@ namespace kinski{ namespace gl{
         
         vector<vec3> &points = ret->vertices();
         vector<vec4> &colors = ret->colors();
+        vector<vec2> &tex_coords = ret->texCoords();
         
         float stepX = width / numSegments_W, stepZ = height / numSegments_H;
         float w2 = width / 2.f, h2 = height / 2.f;
@@ -573,6 +574,9 @@ namespace kinski{ namespace gl{
             points.push_back(vec3(- w2 + x * stepX, 0.f, h2));
             colors.push_back(color);
             colors.push_back(color);
+            tex_coords.push_back(vec2(x / (float)numSegments_W, 0.f));
+            tex_coords.push_back(vec2(x / (float)numSegments_W, 1.f));
+            
         }
         for (uint32_t z = 0; z <= numSegments_H; z++ )
         {
@@ -584,6 +588,8 @@ namespace kinski{ namespace gl{
             points.push_back(vec3( w2 , 0.f, -h2 + z * stepZ));
             colors.push_back(color);
             colors.push_back(color);
+            tex_coords.push_back(vec2(0.f, z / (float)numSegments_H));
+            tex_coords.push_back(vec2(1.f, z / (float)numSegments_H));
         }
         return ret;
     }
