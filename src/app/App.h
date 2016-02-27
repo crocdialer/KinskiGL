@@ -113,10 +113,10 @@ namespace kinski
          */
         float fps() const {return m_framesPerSec;};
 
-        boost::asio::io_service& io_service(){return m_thread_pool.io_service();};
+        boost::asio::io_service& io_service(){return m_main_queue.io_service();};
 
-        ThreadPool& thread_pool(){return m_thread_pool;}
-        const ThreadPool& thread_pool() const {return m_thread_pool;}
+        ThreadPool& main_queue(){return m_main_queue;}
+        const ThreadPool& main_queue() const {return m_main_queue;}
 
     private:
 
@@ -141,7 +141,7 @@ namespace kinski
         bool m_cursorVisible;
         float m_max_fps;
 
-        kinski::ThreadPool m_thread_pool;
+        kinski::ThreadPool m_main_queue;
     };
 
     //! Base class for all Events

@@ -28,7 +28,7 @@ namespace kinski
     m_displayTweakBar(false),
     m_cursorVisible(true),
     m_max_fps(60.f),
-    m_thread_pool(0)
+    m_main_queue(0)
     {
         srand(clock());
     }
@@ -51,7 +51,7 @@ namespace kinski
             timeStamp = getApplicationTime();
             
             // poll io_service if no seperate worker-threads exist
-            if(!m_thread_pool.get_num_threads()) m_thread_pool.io_service().poll();
+            if(!m_main_queue.get_num_threads()) m_main_queue.io_service().poll();
             
             // poll input events
             pollEvents();

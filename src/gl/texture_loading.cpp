@@ -124,7 +124,7 @@ namespace kinski { namespace gl {
         std::vector<uint8_t> dataVec;
         Texture ret;
         
-        try {dataVec = kinski::read_binary_file(theFileName);}
+        try{ dataVec = kinski::read_binary_file(theFileName); }
         catch (FileNotFoundException &e)
         {
             LOG_WARNING << e.what();

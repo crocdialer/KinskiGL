@@ -59,7 +59,10 @@ namespace kinski{ namespace gl{
         
         inline size_t num_bytes() const { return rows * cols * bytes_per_pixel; }
         
-        ~Image(){};
+        ~Image()
+        {
+//            if(data){ free(data); }
+        };
     };
                 
     /** \brief Represents an OpenGL Texture. \ImplShared*/
