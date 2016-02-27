@@ -1,13 +1,15 @@
-// Raspian includes
+// Raspian defines and includes
 #define USE_VCHIQ_ARM
+#define OMX_SKIP64BIT
+
 #include "bcm_host.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
 #include "ilclient.h"
 #undef countof
 
-#include "gl/Texture.h"
-#include "gl/Buffer.h"
+#include "gl/Texture.hpp"
+#include "gl/Buffer.hpp"
 #include "MovieController.h"
 
 namespace kinski{ namespace video{

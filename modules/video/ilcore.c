@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <string.h>
 
+#define OMX_SKIP64BIT
 #include "IL/OMX_Component.h"
 #include "interface/vcos/vcos.h"
 
@@ -72,7 +73,7 @@ OMX_ERRORTYPE OMX_APIENTRY OMX_Init(void)
    vcos_demand(status == VCOS_SUCCESS);
 
    vcos_mutex_lock(&lock);
-   
+
    if(coreInit == 0)
    {
       // we need to connect via an ILCS connection to VideoCore
@@ -120,7 +121,7 @@ OMX_ERRORTYPE OMX_APIENTRY OMX_Deinit(void)
    }
 
    vcos_mutex_unlock(&lock);
-   
+
    return OMX_ErrorNone;
 }
 
@@ -180,7 +181,7 @@ OMX_ERRORTYPE OMX_APIENTRY OMX_GetHandle(
 
          if(eError != OMX_ErrorNone && pComp->ComponentDeInit)
             pComp->ComponentDeInit(hHandle);
-      }      
+      }
 
       if (eError == OMX_ErrorNone) {
          eError = pComp->SetCallbacks(hHandle,pCallBacks,pAppData);
@@ -194,7 +195,7 @@ OMX_ERRORTYPE OMX_APIENTRY OMX_GetHandle(
          *pHandle = NULL;
          free(pComp);
       }
-   } 
+   }
 
    if (eError == OMX_ErrorNone) {
       vcos_mutex_lock(&lock);
@@ -306,4 +307,3 @@ OMX_ERRORTYPE OMX_GetDebugInformation (
 
 
 /* File EOF */
-
