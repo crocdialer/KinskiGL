@@ -44,7 +44,6 @@ namespace kinski { namespace gl {
                                       bool compress, GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
-        
         GLenum format = 0, internal_format = 0;
         
         switch(the_img.bytes_per_pixel)
@@ -83,7 +82,6 @@ namespace kinski { namespace gl {
                 break;
 #endif
         }
-        
         Texture::Format fmt;
         fmt.setInternalFormat(internal_format);
         
@@ -92,13 +90,11 @@ namespace kinski { namespace gl {
             fmt.set_mipmapping();
             fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         }
-        
-        ret = Texture (the_img.data, format, the_img.cols, the_img.rows, fmt);
+        ret = Texture(the_img.data, format, the_img.cols, the_img.rows, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         
         ret.set_anisotropic_filter(anisotropic_filter_lvl);
-        
         return ret;
     }
     
