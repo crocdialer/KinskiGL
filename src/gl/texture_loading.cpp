@@ -29,8 +29,7 @@ namespace kinski { namespace gl {
         
         if(!data) throw ImageLoadException();
         
-        LOG_TRACE<<"decoded image: "<<width
-        <<" x "<<height<<" ("<<num_components<<" ch)";
+        LOG_TRACE << "decoded image: " << width << " x " << height << " (" <<num_components<<" ch)";
         
         // ... process data if not NULL ...
         // ... x = width, y = height, n = # 8-bit components per pixel ...
@@ -41,21 +40,14 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
-                                     bool compress, GLfloat anisotropic_filter_lvl)
+    Texture create_texture_from_image(const Image& the_img, bool mipmap,
+                                      bool compress, GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
-        Image img;
-        try {img = decode_image(the_data);}
-        catch (ImageLoadException &e)
-        {
-            LOG_ERROR << e.what();
-            return ret;
-        }
         
         GLenum format = 0, internal_format = 0;
         
-        switch(img.bytes_per_pixel)
+        switch(the_img.bytes_per_pixel)
         {
 #ifdef KINSKI_GLES
             case 1:
@@ -101,13 +93,28 @@ namespace kinski { namespace gl {
             fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         }
         
-        ret = Texture (img.data, format, img.cols, img.rows, fmt);
+        ret = Texture (the_img.data, format, the_img.cols, the_img.rows, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         
         ret.set_anisotropic_filter(anisotropic_filter_lvl);
-        stbi_image_free(img.data);
         
+        return ret;
+    }
+    
+    Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
+                                     bool compress, GLfloat anisotropic_filter_lvl)
+    {
+        Image img;
+        Texture ret;
+        try {img = decode_image(the_data);}
+        catch (ImageLoadException &e)
+        {
+            LOG_ERROR << e.what();
+            return ret;
+        }
+        ret = create_texture_from_image(img, mipmap, compress, anisotropic_filter_lvl);
+        stbi_image_free(img.data);
         return ret;
     }
     
@@ -126,5 +133,4 @@ namespace kinski { namespace gl {
         ret = create_texture_from_data(dataVec, mipmap, compress, anisotropic_filter_lvl);
         return ret;
     }
-    
 }}

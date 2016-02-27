@@ -51,6 +51,12 @@ namespace kinski { namespace gl {
         std::vector<Texture>& textures() {return m_textures;};
         const std::vector<Texture>& textures() const {return m_textures;};
         
+        std::vector<std::string>& load_queue_textures(){ return m_load_queue_textures; }
+        const std::vector<std::string>& load_queue_textures() const { return m_load_queue_textures; }
+        
+        std::vector<gl::ShaderType>& load_queue_shader(){ return m_load_queue_shader; }
+        const std::vector<gl::ShaderType>& load_queue_shader() const { return m_load_queue_shader; }
+        
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
         
@@ -116,7 +122,10 @@ namespace kinski { namespace gl {
         Color m_emission;
         float m_shinyness;
         
+        std::vector<std::string> m_load_queue_textures;
         std::vector<Texture> m_textures;
+        
+        std::vector<gl::ShaderType> m_load_queue_shader;
         
         // point attributes
         float m_pointSize;

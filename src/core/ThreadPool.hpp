@@ -17,7 +17,7 @@ namespace kinski
     {
     public:
         
-        ThreadPool(size_t num = 1);
+        explicit ThreadPool(size_t num = 1);
         ~ThreadPool();
         
         void set_num_threads(int num);

@@ -1238,6 +1238,26 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // weak copy of current mat
         weak_last = the_mat;
         
+        // process load queues
+        // texture queue
+        for(const auto &tex_path : the_mat->load_queue_textures())
+        {
+            try{ the_mat->addTexture(gl::create_texture_from_file(tex_path, true, true)); }
+            catch(Exception &e){ LOG_WARNING << e.what(); }
+            
+        }
+        the_mat->load_queue_textures().clear();
+        
+        // shader queue
+        for(auto &sh_type : the_mat->load_queue_shader())
+        {
+            try{ the_mat->setShader(gl::create_shader(sh_type)); }
+            catch(Exception &e){ LOG_WARNING << e.what(); }
+            
+        }
+        the_mat->load_queue_shader().clear();
+        
+        // bind the shader
         the_mat->shader().bind();
         
         char buf[512];

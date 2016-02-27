@@ -243,10 +243,16 @@ namespace kinski { namespace gl {
     /*********************************** inbuilt Texture loading **********************************/
     
     KINSKI_API Image decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
+    
     KINSKI_API Texture create_texture_from_file(const std::string &theFileName,
                                                 bool mipmap = false,
                                                 bool compress = false,
                                                 GLfloat anisotropic_filter_lvl = 1.f);
+    
+    KINSKI_API Texture create_texture_from_image(const Image& the_img, bool mipmap = false,
+                                                 bool compress = false,
+                                                 GLfloat anisotropic_filter_lvl = 1.f);
+    
     KINSKI_API Texture create_texture_from_data(const std::vector<uint8_t> &the_data,
                                                 bool mipmap = false,
                                                 bool compress = false,

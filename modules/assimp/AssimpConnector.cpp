@@ -254,9 +254,14 @@ namespace kinski { namespace gl{
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
             {
-                try{theMaterial->addTexture(gl::create_texture_from_file(string(texPath.data), true, true));}
-                catch(Exception &e){LOG_ERROR<<e.what();}
+                theMaterial->load_queue_textures().push_back(string(texPath.data));
             }
+        }
+        
+        if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
+        {
+            LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
+            theMaterial->load_queue_textures().push_back(string(texPath.data));
         }
         return theMaterial;
     }
@@ -353,22 +358,30 @@ namespace kinski { namespace gl{
                 mesh->addAnimation(anim);
             }
             
-            gl::Shader shader;
+//            gl::Shader shader;
+            gl::ShaderType sh_type;
+            
             try
             {
                 if(geom->hasBones())
-                    shader = gl::create_shader(gl::ShaderType::PHONG_SKIN);
-                else{
-                    shader = gl::create_shader(gl::ShaderType::PHONG);
+                {
+//                    shader = gl::create_shader(gl::ShaderType::PHONG_SKIN);
+                    sh_type = gl::ShaderType::PHONG_SKIN;
+                }
+                else
+                {
+//                    shader = gl::create_shader(gl::ShaderType::PHONG);
+                    sh_type = gl::ShaderType::PHONG;
                 }
                 
             }catch (std::exception &e){ LOG_WARNING<<e.what(); }
             
             for (uint32_t i = 0; i < materials.size(); i++)
             {
-                materials[i]->setShader(shader);
+//                materials[i]->setShader(shader);
+                materials[i]->load_queue_shader().push_back(sh_type);
             }
-            mesh->createVertexArray();
+//            mesh->createVertexArray();
             
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
             geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->rootBone()) << " bones";
