@@ -128,6 +128,9 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
       return EGL_FALSE;
    }
 
+   esContext->width = display_width;
+   esContext->height = display_height;
+
    // You can hardcode the resolution here:
    //display_width = 640;
    //display_height = 480;
