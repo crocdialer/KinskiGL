@@ -289,8 +289,6 @@ namespace kinski {
         BaseApp::resize(w, h);
 
         *m_window_size = glm::vec2(w, h);
-        // glm::vec2 &ref = m_window_size->value();
-        // ref = glm::vec2(w, h);
 
         m_arcball.setWindowSize(gl::window_dimension());
         m_arcball.setCenter(gl::window_dimension() / 2.f);
@@ -322,6 +320,8 @@ namespace kinski {
             gl::set_window_dimension(*m_window_size);
             m_gui_camera = gl::OrthographicCamera::create(0, gl::window_dimension().x, 0,
                                                           gl::window_dimension().y, 0, 1.f);
+            
+            if(!windows().empty()){ windows().front()->set_size(*m_window_size); }
         }
         else if(theProperty == m_clear_color)
         {

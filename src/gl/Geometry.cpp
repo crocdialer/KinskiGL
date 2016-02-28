@@ -231,8 +231,23 @@ namespace kinski{ namespace gl{
         // insert bone indices and weights
         if(m_dirty_boneBuffer && hasBones())
         {
+#if !defined(KINSKI_GLES)
             m_boneBuffer.setData(m_boneVertexData);
             m_boneBuffer.setStride(sizeof(gl::BoneVertexData));
+#else
+            // crunch bone-indices to floats
+            size_t bone_stride = 2 * sizeof(glm::vec4);
+            m_boneBuffer.setData(nullptr, m_boneVertexData.size() * bone_stride);
+            m_boneBuffer.setStride(bone_stride);
+            glm::vec4 *buf_ptr = (glm::vec4*) m_boneBuffer.map();
+            
+            for (const auto &b : m_boneVertexData)
+            {
+                *buf_ptr++ = gl::vec4(b.indices);
+                *buf_ptr++ = b.weights;
+            }
+            m_boneBuffer.unmap();
+#endif
             KINSKI_CHECK_GL_ERRORS();
             m_dirty_boneBuffer = false;
         }

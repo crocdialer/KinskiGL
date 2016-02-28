@@ -117,7 +117,11 @@ namespace kinski { namespace gl {
             // bone IDs
             VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->boneBuffer());
             bone_IDs.size = 4;
+#if !defined(KINSKI_GLES)
             bone_IDs.type = GL_INT;
+#else
+            bone_IDs.type = GL_FLOAT;
+#endif
             m_vertex_attribs.push_back(bone_IDs);
 
             // bone weights
@@ -175,6 +179,14 @@ namespace kinski { namespace gl {
             if(colorAttribLocation >= 0)
             {
                 glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+            }
+        }
+        if(!m_geometry->hasTexCoords())
+        {
+            GLint texCoordLocation = shader.getAttribLocation(m_texCoordLocationName);
+            if(texCoordLocation >= 0)
+            {
+                glVertexAttrib2f(texCoordLocation, 0.f, 0.f);
             }
         }
         if(!m_geometry->hasPointSizes())

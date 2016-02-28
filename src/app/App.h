@@ -33,6 +33,7 @@ namespace kinski
         virtual gl::vec2 framebuffer_size() const = 0;
 
         virtual gl::vec2 size() const = 0;
+        virtual void set_size(const gl::vec2 &the_sz) = 0;
         virtual gl::vec2 position() const = 0;
         virtual void set_position(const gl::vec2 &the_pos) = 0;
         virtual std::string title(const std::string &the_name) const = 0;
@@ -115,9 +116,12 @@ namespace kinski
 
         boost::asio::io_service& io_service(){return m_main_queue.io_service();};
 
-        ThreadPool& main_queue(){return m_main_queue;}
-        const ThreadPool& main_queue() const {return m_main_queue;}
+        ThreadPool& main_queue(){ return m_main_queue; }
+        const ThreadPool& main_queue() const { return m_main_queue; }
 
+        ThreadPool& background_queue(){ return m_background_queue; }
+        const ThreadPool& background_queue() const { return m_background_queue; }
+        
     private:
 
         virtual void init() = 0;
@@ -141,7 +145,7 @@ namespace kinski
         bool m_cursorVisible;
         float m_max_fps;
 
-        kinski::ThreadPool m_main_queue;
+        kinski::ThreadPool m_main_queue, m_background_queue;
     };
 
     //! Base class for all Events

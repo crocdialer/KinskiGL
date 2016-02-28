@@ -57,6 +57,11 @@ namespace kinski
         return gl::vec2(w, h);
     }
     
+    void GLFW_Window::set_size(const gl::vec2 &the_sz)
+    {
+        glfwSetWindowSize(m_handle, the_sz.x, the_sz.y);
+    }
+    
     gl::vec2 GLFW_Window::position() const
     {
         int x, y;
@@ -191,9 +196,9 @@ namespace kinski
         App::set_window_size(size);
         gl::set_window_dimension(size);
         TwWindowSize(size.x, size.y);
-        if(!m_windows.empty())
-            glfwSetWindowSize(m_windows.front()->handle(), (int)size[0], (int)size[1]);
-
+        resize(size.x, size.y);
+        
+        if(!m_windows.empty()){ m_windows.front()->set_size(size); }
     }
 
     void GLFW_App::set_window_title(const std::string &the_title)
@@ -278,7 +283,7 @@ namespace kinski
         add_window(window);
 
         s_resize(window->handle(), new_res.x, new_res.y);
-        gl::apply_material(gl::Material::create());
+        gl::reset_state();
         App::set_fullscreen(b, monitor_index);
     }
 

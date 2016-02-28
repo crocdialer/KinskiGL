@@ -447,6 +447,7 @@ namespace kinski { namespace gl {
         
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
+//        mesh->geometry()->texCoords().resize(thePoints.size(), gl::vec2(0));
         mesh->geometry()->createGLBuffers();
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
@@ -1641,7 +1642,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             if(vert_src.empty() || frag_src.empty())
             {
                 LOG_WARNING << "requested shader not available, falling back to UNLIT";
-                return create_shader(gl::ShaderType::UNLIT);
+                return create_shader(gl::ShaderType::UNLIT, false);
             }
             ret.loadFromData(vert_src, frag_src, geom_src);
             if(use_cached_shader){ g_shaders[type] = ret; }

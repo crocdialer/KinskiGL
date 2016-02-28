@@ -39,13 +39,14 @@ namespace kinski
         
         void draw() const override;
         
-        virtual gl::vec2 size() const override;
+        gl::vec2 size() const override;
+        void set_size(const gl::vec2 &the_sz) override;
         gl::vec2 framebuffer_size() const override;
         
-        virtual gl::vec2 position() const override;
-        virtual void set_position(const gl::vec2 &the_pos) override;
+        gl::vec2 position() const override;
+        void set_position(const gl::vec2 &the_pos) override;
         
-        virtual std::string title(const std::string &the_name) const override;
+        std::string title(const std::string &the_name) const override;
         void set_title(const std::string &the_name) override;
         
         inline GLFWwindow* handle(){return m_handle;};
