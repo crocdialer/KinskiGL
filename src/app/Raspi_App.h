@@ -18,10 +18,13 @@ class Raspi_App : public App
     void set_window_size(const glm::vec2 &size) override;
     double getApplicationTime() override;
 
+    void set_cursor_position(float x, float y) override;
+    gl::vec2 cursor_position() const override;
+
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
 
-    const std::vector<WindowPtr>& windows() const { {}; }
+    std::vector<WindowPtr> windows() const { return {}; }
 
  private:
 
