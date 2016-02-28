@@ -447,7 +447,7 @@ namespace kinski { namespace gl {
         
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
-//        mesh->geometry()->texCoords().resize(thePoints.size(), gl::vec2(0));
+        mesh->geometry()->texCoords().resize(thePoints.size(), gl::vec2(0));
         mesh->geometry()->createGLBuffers();
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
@@ -826,6 +826,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         for(auto &mat : theMesh->materials())
         {
             mat->uniform("u_modelViewMatrix", modelView);
+            
             if(theMesh->geometry()->hasNormals())
             {
                 mat->uniform("u_normalMatrix", normal_matrix);

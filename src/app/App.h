@@ -63,6 +63,7 @@ namespace kinski
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
         virtual void tearDown() = 0;
+        virtual double getApplicationTime() = 0;
 
         // these are optional overrides
         virtual void set_window_size(const glm::vec2 &size);
@@ -92,9 +93,6 @@ namespace kinski
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
-        
-//        inline const glm::vec2 windowSize(){return m_windowSize;};
-//        inline void set_window_size(uint32_t w, uint32_t h){set_window_size(glm::vec2(w, h));};
 
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};
@@ -108,19 +106,22 @@ namespace kinski
         virtual bool cursor_visible() const { return m_cursorVisible;};
         virtual void set_cursor_visible(bool b = true){ m_cursorVisible = b;};
 
-
-        virtual double getApplicationTime() = 0;
-
         /*!
          * return current frames per second
          */
         float fps() const {return m_framesPerSec;};
 
         boost::asio::io_service& io_service(){return m_main_queue.io_service();};
-
+        
+        /*!
+         * this queue is being processed the main thread
+         */
         ThreadPool& main_queue(){ return m_main_queue; }
         const ThreadPool& main_queue() const { return m_main_queue; }
-
+        
+        /*!
+         * the background queue is being processed by a background threadpool
+         */
         ThreadPool& background_queue(){ return m_background_queue; }
         const ThreadPool& background_queue() const { return m_background_queue; }
         
