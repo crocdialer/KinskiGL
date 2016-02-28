@@ -412,6 +412,7 @@ namespace kinski { namespace gl {
         if(!material)
         {
             material = gl::Material::create(gl::create_shader(gl::ShaderType::LINES_2D));
+            material->setDepthTest(false);
         }
         material->setDiffuse(the_color);
         material->setBlending(the_color.a < 1.f);
@@ -1100,7 +1101,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 ///////////////////////////////////////////////////////////////////////////////
     
     void draw_circle(const glm::vec2 &center, float radius, bool solid, int numSegments,
-                    const MaterialPtr &theMaterial)
+                     const MaterialPtr &theMaterial)
     {
         static gl::MeshPtr solid_mesh, line_mesh;
         static gl::MaterialPtr default_mat;
@@ -1111,6 +1112,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             GeometryPtr geom = solid ? Geometry::createSolidCircle(numSegments) :
                 Geometry::createCircle(numSegments);
             default_mat = gl::Material::create();
+            default_mat->setDepthTest(false);
             default_mat->setDepthWrite(false);
             our_mesh = gl::Mesh::create(geom, default_mat);
             if(solid)
