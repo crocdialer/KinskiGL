@@ -81,6 +81,9 @@ namespace kinski { namespace gl {
         bool depthWrite() const { return m_depthWrite; };
         float pointSize() const { return m_pointSize; };
         
+        void set_line_width(float the_line_width) { m_line_width = the_line_width; };
+        float line_width() const { return m_line_width; };
+        
         const Color& diffuse() const { return m_diffuse; };
         const Color& ambient() const { return m_ambient; };
         const Color& specular() const { return m_specular; };
@@ -121,6 +124,8 @@ namespace kinski { namespace gl {
         Color m_specular;
         Color m_emission;
         float m_shinyness;
+        
+        float m_line_width;
         
         std::vector<std::string> m_load_queue_textures;
         std::vector<Texture> m_textures;

@@ -445,6 +445,7 @@ namespace kinski { namespace gl {
         mesh->material() = (the_material ? the_material : material);
         mesh->material()->uniform("u_window_size", window_dimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
+        mesh->material()->set_line_width(line_thickness);
         
         mesh->geometry()->appendVertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
@@ -1330,6 +1331,16 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
+        
+        if(!last_mat || last_mat->line_width() != the_mat->line_width())
+        {
+            if(the_mat->line_width() > 0.f)
+            {
+                glLineWidth(the_mat->line_width());
+                KINSKI_CHECK_GL_ERRORS();
+            }
+        }
+        
         // texture matrix from first texture, if any
         the_mat->shader().uniform("u_textureMatrix",
                          (the_mat->textures().empty() || !the_mat->textures().front()) ?
