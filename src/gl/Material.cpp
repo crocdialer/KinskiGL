@@ -30,6 +30,7 @@ namespace kinski { namespace gl {
     m_specular(Color(1)),
     m_emission(Color(0)),
     m_shinyness(10.0f),
+    m_line_width(1.f),
     m_pointSize(1.f)
     {
         setPointAttenuation(1.f, 0.f, 0.f);

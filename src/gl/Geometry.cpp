@@ -351,8 +351,9 @@ namespace kinski{ namespace gl{
         for( int s = 0; s <= numSegments; s++ )
         {
             float t = s / (float)numSegments * 2.0f * M_PI;
-            verts[s + 1] = glm::vec3(glm::vec2(cos(t), sin(t)), 0);
-            texCoords[s + 1] = (glm::vec2(verts[s +1]) + glm::vec2(1)) / 2.f;
+            gl::vec3 unit_val = glm::vec3(glm::vec2(cos(t), sin(t)), 0);
+            verts[s + 1] = the_radius * unit_val;
+            texCoords[s + 1] = (unit_val.xy() + glm::vec2(1)) / 2.f;
         }
         ret->computeVertexNormals();
         ret->computeTangents();
@@ -364,18 +365,22 @@ namespace kinski{ namespace gl{
     {
         GeometryPtr ret = Geometry::create();
         ret->setPrimitiveType(GL_LINE_STRIP);
-        std::vector<glm::vec3> &verts = ret->vertices();
+        auto &verts = ret->vertices();
+        auto &texCoords = ret->texCoords();
         
         // automatically determine the number of segments from the circumference
         //        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
         //        numSegments = std::max(numSegments, 2);
-        verts.resize(numSegments+1);
+        verts.resize(numSegments + 1);
+        texCoords.resize(verts.size());
         ret->colors().resize(verts.size(), gl::COLOR_WHITE);
         
         for(int s = 0; s <= numSegments; s++)
         {
             float t = s / (float)numSegments * 2.0f * M_PI;
-            verts[s] = the_radius * glm::vec3(glm::vec2(cos(t), sin(t)), 0);
+            gl::vec3 unit_val = glm::vec3(glm::vec2(cos(t), sin(t)), 0);
+            verts[s] = the_radius * unit_val;
+            texCoords[s] = (unit_val.xy() + glm::vec2(1)) / 2.f;
         }
         ret->computeBoundingBox();
         return ret;
