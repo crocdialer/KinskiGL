@@ -112,6 +112,17 @@ namespace kinski
         return (double)(now.tv_sec - m_startTime.tv_sec + (now.tv_usec - m_startTime.tv_usec) * 1e-6);
     }
 
+    void Raspi_App::set_cursor_position(float x, float y)
+    {
+        current_mouse_pos = glm::clamp(gl::vec2(x, y), gl::vec2(0),
+                                       gl::window_dimension() - gl::vec2(1));
+    }
+
+    gl::vec2 Raspi_App::cursor_position() const
+    {
+        return current_mouse_pos;
+    }
+
     void Raspi_App::pollEvents()
     {
         handle_input_events(this, m_mouse_fd, m_keyboard_fd);

@@ -21,6 +21,8 @@ class Raspi_App : public App
     const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
     gl::OutstreamGL& outstream_gl(){return m_outstream_gl;};
 
+    const std::vector<WindowPtr>& windows() const { {}; }
+
  private:
 
     // internal initialization. performed when run is invoked

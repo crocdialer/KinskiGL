@@ -102,9 +102,11 @@ namespace kinski
         virtual bool fullscreen() const {return m_fullscreen;};
         virtual void set_fullscreen(bool b, int monitor_index){ m_fullscreen = b; };
         void set_fullscreen(bool b = true){ set_fullscreen(b, 0); };
-
-        virtual bool cursorVisible() const { return m_cursorVisible;};
-        virtual void setCursorVisible(bool b = true){ m_cursorVisible = b;};
+        
+        virtual void set_cursor_position(float x, float y){};
+        virtual gl::vec2 cursor_position() const { return gl::vec2(); };
+        virtual bool cursor_visible() const { return m_cursorVisible;};
+        virtual void set_cursor_visible(bool b = true){ m_cursorVisible = b;};
 
 
         virtual double getApplicationTime() = 0;
@@ -243,11 +245,13 @@ namespace kinski
         //! Maps a platform-native key-code to the key code enum
         static int		translateNativeKeyCode( int nativeKeyCode );
 
-        enum {	SHIFT_DOWN	= 0x0008,
+        enum
+        {
+            SHIFT_DOWN	= 0x0008,
 			ALT_DOWN	= 0x0010,
 			CTRL_DOWN	= 0x0020,
 			META_DOWN	= 0x0040,
-#if defined( CINDER_MSW )
+#if defined(KINSKI_MSW)
 			ACCEL_DOWN	= CTRL_DOWN
 #else
 			ACCEL_DOWN	= META_DOWN

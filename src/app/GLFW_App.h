@@ -82,8 +82,9 @@ namespace kinski
         double getApplicationTime() override;
         
         void set_fullscreen(bool b, int monitor_index) override;
-        void setCursorVisible(bool b = true) override;
-        void setCursorPosition(float x, float y) override;
+        void set_cursor_visible(bool b = true) override;
+        void set_cursor_position(float x, float y) override;
+        gl::vec2 cursor_position() const override;
         
         std::vector<JoystickState> get_joystick_states() const override;
         

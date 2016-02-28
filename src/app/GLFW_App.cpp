@@ -206,16 +206,31 @@ namespace kinski
         for (auto &w : m_windows){ w->set_title(the_title); }
     }
 
-    void GLFW_App::setCursorVisible(bool b)
+    void GLFW_App::set_cursor_visible(bool b)
     {
-        App::setCursorVisible(b);
+        App::set_cursor_visible(b);
         glfwSetInputMode(m_windows.front()->handle(), GLFW_CURSOR,
                          b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
     }
-
-    void GLFW_App::setCursorPosition(float x, float y)
+    
+    gl::vec2 GLFW_App::cursor_position() const
     {
-        glfwSetCursorPos(m_windows.front()->handle(), x, y);
+        gl::vec2 ret;
+        if(!windows().empty())
+        {
+            double x_pos, y_pos;
+            glfwGetCursorPos(windows().front()->handle(), &x_pos, &y_pos);
+            ret = gl::vec2(x_pos, y_pos);
+        }
+        return ret;
+    }
+    
+    void GLFW_App::set_cursor_position(float x, float y)
+    {
+        if(!windows().empty())
+        {
+            glfwSetCursorPos(m_windows.front()->handle(), x, y);
+        }
     }
 
     void GLFW_App::pollEvents()
