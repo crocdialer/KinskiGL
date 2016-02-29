@@ -57,10 +57,12 @@ namespace kinski { namespace gl {
                 break;
             case 3:
                 format = GL_RGB;
-                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
+                internal_format = GL_RGB;
+                // needs precompressed image and call to glCompressedTexImage2D
+//                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
                 break;
             case 4:
-                internal_format =  format = GL_RGBA;
+                internal_format = format = GL_RGBA;
             default:
                 break;
 #else
