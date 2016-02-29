@@ -16,13 +16,13 @@ using namespace std;
 namespace kinski
 {
     
-    App::App(const int width, const int height, const std::string &the_name):
-    Component(the_name),
+    App::App(int argc, char *argv[]):
+    Component(argc ? kinski::get_filename_part(argv[0]) : "KinskiApp"),
     m_framesDrawn(0),
     m_lastMeasurementTimeStamp(0.0),
     m_framesPerSec(0.f),
     m_timingInterval(1.0),
-    m_windowSize(glm::ivec2(width, height)),
+    m_windowSize(glm::ivec2(1280, 720)),
     m_running(false),
     m_fullscreen(false),
     m_displayTweakBar(false),
@@ -32,6 +32,8 @@ namespace kinski
     m_background_queue(1)
     {
         srand(clock());
+        std::vector<std::string> args;
+        for(uint32_t i = 0; i < argc; i++){ args.push_back(argv[i]); }
     }
     
     App::~App()

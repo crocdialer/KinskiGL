@@ -13,7 +13,7 @@
 
 namespace kinski {
 
-    ViewerApp::ViewerApp():BaseApp(),
+    ViewerApp::ViewerApp(int argc, char *argv[]):BaseApp(argc, argv),
     m_camera(new gl::PerspectiveCamera),
     m_gui_camera(gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1)),
     m_precise_selection(true),
@@ -65,7 +65,7 @@ namespace kinski {
         m_drawNormals = Property_<bool>::create("normals", false);
         register_property(m_drawNormals);
 
-        m_clear_color = Property_<glm::vec4>::create("clear color", glm::vec4(0 ,0 ,0, 1.0));
+        m_clear_color = Property_<glm::vec4>::create("clear color", gl::COLOR_BLACK);
         register_property(m_clear_color);
 
         register_function("load_settings", [this](const std::vector<std::string>&){ load_settings(); });

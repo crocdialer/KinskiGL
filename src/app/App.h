@@ -53,7 +53,7 @@ namespace kinski
         typedef std::shared_ptr<App> Ptr;
         typedef std::weak_ptr<App> WeakPtr;
 
-        App(const int width = 1280, const int height = 720, const std::string &the_name = "KinskiGL");
+        App(int argc = 0, char *argv[] = nullptr);
         virtual ~App();
 
         int run();
@@ -113,6 +113,8 @@ namespace kinski
 
         boost::asio::io_service& io_service(){return m_main_queue.io_service();};
         
+        const std::vector<std::string>& cmdl_args() const{ return m_cmdl_args; };
+        
         /*!
          * this queue is being processed the main thread
          */
@@ -147,7 +149,9 @@ namespace kinski
         bool m_displayTweakBar;
         bool m_cursorVisible;
         float m_max_fps;
-
+        
+        std::vector<std::string> m_cmdl_args;
+        
         kinski::ThreadPool m_main_queue, m_background_queue;
     };
 

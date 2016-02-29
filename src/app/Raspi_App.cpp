@@ -26,8 +26,8 @@ namespace kinski
         uint32_t button_modifiers = 0, key_modifiers = 0;
     };
 
-    Raspi_App::Raspi_App(const int width, const int height):
-    App(width, height),
+    Raspi_App::Raspi_App(int argc, char *argv[]):
+    App(argc, argv),
     m_context(new ESContext),
     m_mouse_fd(0),
     m_keyboard_fd(0)

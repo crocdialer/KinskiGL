@@ -32,7 +32,7 @@ namespace kinski {
     class ViewerApp : public BaseApp
     {
     public:
-        ViewerApp();
+        ViewerApp(int argc = 0, char *argv[] = nullptr);
         virtual ~ViewerApp();
         
         void setup() override;

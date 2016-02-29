@@ -108,8 +108,8 @@ namespace kinski
         if(m_draw_function){ m_draw_function(); }
     }
 
-    GLFW_App::GLFW_App(const int width, const int height):
-    App(width, height),
+    GLFW_App::GLFW_App(int argc, char *argv[]):
+    App(argc, argv),
     m_lastWheelPos(0)
     {
         glfwSetErrorCallback(&s_error_cb);

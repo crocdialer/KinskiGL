@@ -73,7 +73,7 @@ namespace kinski
         typedef std::shared_ptr<GLFW_App> Ptr;
         typedef std::weak_ptr<GLFW_App> WeakPtr;
         
-        GLFW_App(const int width = 1280, const int height = 800);
+        GLFW_App(int argc = 0, char *argv[] = nullptr);
         virtual ~GLFW_App();
         
         void set_window_size(const glm::vec2 &size) override;

@@ -198,12 +198,9 @@ namespace kinski {
     const std::string read_file(const std::string & theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
-        std::ifstream inStream(path.c_str());
+        std::ifstream inStream(path);
 
-        if(!inStream.good())
-        {
-            throw OpenFileFailed(path);
-        }
+        if(!inStream.good()){ throw OpenFileFailed(path); }
         return string ((istreambuf_iterator<char>(inStream)),
                        istreambuf_iterator<char>());
     }
@@ -211,7 +208,7 @@ namespace kinski {
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
-        std::ifstream inStream(path.c_str());
+        std::ifstream inStream(path.c_str(), ios::in | ios::binary);
 
         if(!inStream.good())
         {
@@ -222,38 +219,23 @@ namespace kinski {
                        istreambuf_iterator<char>());
         return content;
     }
-
-    std::vector<std::string> read_file_line_by_line(const std::string &theUTF8Filename)
+    
+    bool write_file(const std::string &the_file_name, const std::string &the_data)
     {
-        std::vector<std::string> ret;
-        const size_t MAX_LENGTH = 1000;
-        char buffer[MAX_LENGTH];
-        std::string newPart;
-        std::string filepath = search_file(theUTF8Filename);
-        FILE *file;
-        if ((file = fopen(filepath.c_str(), "rb")) == NULL) {
-            throw OpenFileFailed("Error opening file " + theUTF8Filename);
-        }
-        size_t size = fread(buffer, 1, MAX_LENGTH,file);
-        bool endedWithNewLine = false;
-        while (size > 0) {
-            newPart = std::string(buffer, size);
-            std::stringstream stream(newPart);
-            std::string item;
-            bool first = true;
-            while (std::getline(stream, item, '\n')) {
-                if (first && !endedWithNewLine && ret.size() >0) {
-                    ret.back().append(item);
-                } else {
-                    ret.push_back(item);
-                }
-                first = false;
-            }
-            endedWithNewLine = (item.size() == 0);
-            size = fread(buffer, 1, MAX_LENGTH,file);
-        }
-        fclose(file);
-        return ret;
+        std::ofstream file_out(the_file_name);
+        if(!file_out){ return false; }
+        file_out << the_data;
+        file_out.close();
+        return true;
+    }
+    
+    bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data)
+    {
+        std::ofstream file_out(the_file_name, ios::out | ios::binary);
+        if(!file_out){ return false; }
+        file_out.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size());
+        file_out.close();
+        return true;
     }
 
     std::string get_filename_part(const std::string &theFileName)

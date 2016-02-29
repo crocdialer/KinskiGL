@@ -217,13 +217,7 @@ namespace kinski {
                                         const PropertyIO &theIO)
     {
         std::string state = serializeComponent(theComponent, theIO);
-        std::ofstream myFileOut(theFileName.c_str());
-        if(!myFileOut)
-        {
-            throw OutputFileException(theFileName);
-        }
-        myFileOut << state;
-        myFileOut.close();
+        write_file(theFileName, state);
     }
     
     void Serializer::saveComponentState(const std::list<Component::Ptr> &theComponentList,
@@ -234,14 +228,7 @@ namespace kinski {
         add_to_json_object(theComponentList, myRoot, theIO);
         Json::StyledWriter myWriter;
         std::string state = myWriter.write(myRoot);
-        
-        std::ofstream myFileOut(theFileName.c_str());
-        if(!myFileOut)
-        {
-            throw OutputFileException(theFileName);
-        }
-        myFileOut << state;
-        myFileOut.close();
+        write_file(theFileName, state);
     }
     
     void Serializer::loadComponentState(const Component::Ptr &theComponent,

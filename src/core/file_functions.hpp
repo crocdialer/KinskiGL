@@ -34,9 +34,10 @@ namespace kinski {
     std::string join_paths(const std::string &p1, const std::string &p2);
     const std::string read_file(const std::string &theUTF8Filename);
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename);
+    bool write_file(const std::string &the_file_name, const std::string &the_data);
+    bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data);
     std::string get_filename_part(const std::string &theFileName);
     std::string get_directory_part(const std::string &theFileName);
-    std::vector<std::string> read_file_line_by_line(const std::string &theUTF8Filename);
     std::string search_file(const std::string &theFileName, bool use_entire_path = true);
     std::string get_working_directory();
     std::string get_extension(const std::string &thePath);

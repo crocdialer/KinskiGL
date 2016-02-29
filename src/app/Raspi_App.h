@@ -12,7 +12,7 @@ class Raspi_App : public App
 {
  public:
 
-    Raspi_App(const int width = 1920, const int height = 1080);
+    Raspi_App(int argc = 0, char *argv[] = nullptr);
     virtual ~Raspi_App();
 
     void set_window_size(const glm::vec2 &size) override;
