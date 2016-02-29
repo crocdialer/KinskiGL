@@ -56,7 +56,8 @@ namespace kinski { namespace gl {
                 internal_format = format = GL_LUMINANCE_ALPHA;
                 break;
             case 3:
-                internal_format = format = GL_RGB;
+                format = GL_RGB;
+                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
                 break;
             case 4:
                 internal_format =  format = GL_RGBA;
