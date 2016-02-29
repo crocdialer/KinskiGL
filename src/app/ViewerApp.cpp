@@ -289,7 +289,8 @@ namespace kinski {
         BaseApp::resize(w, h);
 
         *m_window_size = glm::vec2(w, h);
-
+        App::set_window_size(*m_window_size);
+        
         m_arcball.setWindowSize(gl::window_dimension());
         m_arcball.setCenter(gl::window_dimension() / 2.f);
         m_arcball.setRadius(150);
