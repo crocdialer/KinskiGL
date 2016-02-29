@@ -42,7 +42,10 @@ namespace kinski{ namespace gl{
             for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
             geom->computeBoundingBox();
             gl::Shader shader_warp_vert;
-            shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
+            
+            try{ shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag); }
+            catch(Exception &e){ LOG_ERROR << e.what(); }
+            
 //            gl::Shader shader_warp_frag;
 //            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
             
