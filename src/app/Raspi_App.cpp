@@ -66,6 +66,7 @@ namespace kinski
         LOG_INFO<<"Context: " << gl::window_dimension().x << " x " << gl::window_dimension().y;
 
         // file search paths
+        if(!args().empty()){ kinski::add_search_path(get_directory_part(args().front())); }
         kinski::add_search_path("");
         kinski::add_search_path("./");
         kinski::add_search_path("./res/");

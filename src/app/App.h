@@ -113,7 +113,10 @@ namespace kinski
 
         boost::asio::io_service& io_service(){return m_main_queue.io_service();};
         
-        const std::vector<std::string>& cmdl_args() const{ return m_cmdl_args; };
+        /*!
+         * the commandline arguments provided at application start
+         */
+        const std::vector<std::string>& args() const{ return m_args; };
         
         /*!
          * this queue is being processed the main thread
@@ -150,7 +153,7 @@ namespace kinski
         bool m_cursorVisible;
         float m_max_fps;
         
-        std::vector<std::string> m_cmdl_args;
+        std::vector<std::string> m_args;
         
         kinski::ThreadPool m_main_queue, m_background_queue;
     };

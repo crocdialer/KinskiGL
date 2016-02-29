@@ -32,8 +32,7 @@ namespace kinski
     m_background_queue(1)
     {
         srand(clock());
-        std::vector<std::string> args;
-        for(uint32_t i = 0; i < argc; i++){ args.push_back(argv[i]); }
+        for(uint32_t i = 0; i < argc; i++){ m_args.push_back(argv[i]); }
     }
     
     App::~App()
