@@ -195,7 +195,6 @@ namespace kinski
     void GLFW_App::set_window_size(const glm::vec2 &size)
     {
         App::set_window_size(size);
-        gl::set_window_dimension(size);
         TwWindowSize(size.x, size.y);
         resize(size.x, size.y);
         
