@@ -283,11 +283,11 @@ namespace kinski{ namespace video{
             
             if(!as_texture2D && io_surface)
             {
-                if(m_impl->m_io_surface && IOSurfaceGetUseCount(m_impl->m_io_surface))
-                {
-                    IOSurfaceDecrementUseCount(m_impl->m_io_surface);
-                }
-                IOSurfaceIncrementUseCount(io_surface);
+//                if(m_impl->m_io_surface && IOSurfaceGetUseCount(m_impl->m_io_surface))
+//                {
+//                    IOSurfaceDecrementUseCount(m_impl->m_io_surface);
+//                }
+//                IOSurfaceIncrementUseCount(io_surface);
                 m_impl->m_io_surface = io_surface;
                 
                 if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);
