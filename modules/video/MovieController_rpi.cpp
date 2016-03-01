@@ -18,9 +18,9 @@ namespace kinski{ namespace video{
     struct MovieControllerImpl
     {
         std::string m_src_path;
-        bool m_playing;
-        bool m_has_new_frame;
-        bool m_loop;
+        volatile bool m_playing;
+        volatile bool m_has_new_frame;
+        volatile bool m_loop;
         float m_rate;
 
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
@@ -78,7 +78,9 @@ namespace kinski{ namespace video{
             m_playing = false;
 
             try{ if(m_thread.joinable()){ m_thread.join(); } }
-            catch(std::exception &e){ LOG_ERROR<<e.what(); }
+            catch(std::exception &e){ LOG_ERROR << e.what(); }
+
+            // ilclient_set_fill_buffer_done_callback(m_il_client, nullptr, nullptr);
 
             if(m_egl_image)
             {
@@ -106,10 +108,14 @@ namespace kinski{ namespace video{
             ilclient_cleanup_components(m_comp_list);
             OMX_Deinit();
             ilclient_destroy(m_il_client);
+
+            LOG_DEBUG << "impl desctructor finished";
         };
 
         void thread_func()
         {
+            LOG_DEBUG << "starting movie decode thread";
+
             size_t data_len = 0;
 
             FILE *file_handle = fopen(m_src_path.c_str(), "rb");
@@ -230,15 +236,18 @@ namespace kinski{ namespace video{
 
             if(buf)
             {
-              buf->nFilledLen = 0;
-              buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+                buf->nFilledLen = 0;
+                buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
 
-              if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
-              {
-                //status = -20;
-              }
+                if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+                {
+                  //status = -20;
+                }
             }
-        }
+
+            LOG_DEBUG << "movie decode thread ended";
+
+        }//thread func
     };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -247,10 +256,16 @@ namespace kinski{ namespace video{
     {
         MovieControllerImpl *impl = static_cast<MovieControllerImpl*>(data);
 
-        if(!impl || OMX_FillThisBuffer(ilclient_get_handle(impl->m_egl_render),
-                                       impl->m_egl_buffer) != OMX_ErrorNone)
+        if(impl)
         {
-           LOG_ERROR << "OMX_FillThisBuffer failed in callback";
+            // OMX_BUFFERHEADERTYPE *write_buf = impl->m_playing ? impl->m_egl_buffer : nullptr;
+            OMX_BUFFERHEADERTYPE *write_buf = impl->m_egl_buffer;
+            
+            if(OMX_FillThisBuffer(ilclient_get_handle(impl->m_egl_render),
+                                  write_buf) != OMX_ErrorNone)
+            {
+              LOG_ERROR << "OMX_FillThisBuffer failed in callback";
+            }
         }
     }
 

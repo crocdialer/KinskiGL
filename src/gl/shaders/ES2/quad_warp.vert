@@ -1,13 +1,13 @@
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
-// {TL, BL, BR, TR}
-// {TL, TR, BL, BR}
-uniform vec2[4] u_control_points;
+// TL, TR, BL, BR
+uniform vec2 u_control_points[4];
 
 attribute vec4 a_vertex;
 attribute vec4 a_texCoord;
 attribute vec4 a_color;
+
 varying lowp vec4 v_color;
 varying lowp vec4 v_texCoord;
 
