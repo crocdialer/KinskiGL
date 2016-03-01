@@ -52,7 +52,7 @@ namespace kinski{ namespace video{
         m_rate(1.f),
         m_egl_buffer(nullptr),
         m_egl_image(nullptr),
-        m_texture(1280, 706)
+        m_texture(1920, 1080)
         {
             // init the client
             m_il_client = ilclient_init();
@@ -102,14 +102,15 @@ namespace kinski{ namespace video{
 
         void thread_func()
         {
-            LOG_INFO << "starting thread";
-
             size_t data_len = 0;
 
             FILE *file_handle = fopen(m_src_path.c_str(), "rb");
 
             if(!file_handle)
-            { return; }
+            {
+                LOG_ERROR << "could not open file";
+                return;
+            }
 
             OMX_BUFFERHEADERTYPE *buf = nullptr;
             int port_settings_changed = 0;
@@ -248,7 +249,6 @@ namespace kinski{ namespace video{
         {
            LOG_ERROR << "OMX_FillThisBuffer failed in callback";
         }
-        LOG_INFO << "fill_buffer_done_cb";
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -287,15 +287,16 @@ namespace kinski{ namespace video{
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        m_impl.reset(new MovieControllerImpl);
-        LOG_INFO << "loading: " << filePath;
-
-        try{ m_impl->m_src_path = search_file(filePath); }
+        LOG_DEBUG << "loading movie: " << filePath;
+        string p;
+        try{ p = search_file(filePath); }
         catch(FileNotFoundException &e)
         {
            LOG_WARNING << e.what();
            return;
         }
+        m_impl.reset(new MovieControllerImpl);
+        m_impl->m_src_path = p;
 
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                 eglGetCurrentContext(),
@@ -309,7 +310,7 @@ namespace kinski{ namespace video{
         if(!m_impl->m_il_client || OMX_Init() != OMX_ErrorNone){ return; }
 
         // callback
-        ilclient_set_fill_buffer_done_callback(m_impl->m_il_client, fill_buffer_done_cb, this);
+        ilclient_set_fill_buffer_done_callback(m_impl->m_il_client, fill_buffer_done_cb, m_impl.get());
 
         // create video_decode
         if(ilclient_create_component(m_impl->m_il_client, &m_impl->m_video_decode, "video_decode",
@@ -370,7 +371,7 @@ namespace kinski{ namespace video{
 
     void MovieController::play()
     {
-        LOG_INFO << "starting movie playback";
+        LOG_DEBUG << "starting movie playback";
 
         if(m_impl->m_playing){ return; }
 
@@ -424,6 +425,7 @@ namespace kinski{ namespace video{
     {
         if(!m_impl->m_has_new_frame){ return false; }
         tex = m_impl->m_texture;
+        tex.setFlipped();
         return true;
     }
 
