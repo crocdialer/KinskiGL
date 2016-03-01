@@ -13,7 +13,7 @@ using namespace kinski;
 
 RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list)
 {
-    m_components.assign(the_list.begin(), the_list.end());
+    set_components(the_list);
     m_tcp_server = net::tcp_server(io, net::tcp_server::tcp_connection_callback());
 }
 
@@ -26,29 +26,29 @@ void RemoteControl::start_listen(uint16_t port)
     add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
+        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
     add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
-        for(auto &comp : lock_components())
+        for(auto &comp : components())
         {
             comp->call_function("load_settings");
         }
         
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
+        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
     add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
-        for(auto &comp : lock_components())
+        for(auto &comp : components())
         {
             comp->call_function("save_settings");
         }
         
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
+        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
     add_command("generate_snapshot", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -57,7 +57,7 @@ void RemoteControl::start_listen(uint16_t port)
         
         LOG_WARNING << "command 'generate_snapshot': not implemented";
         
-        for(auto &comp : lock_components())
+        for(auto &comp : components())
         {
             comp->call_function("generate_snapshot");
 //            if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
@@ -70,9 +70,15 @@ void RemoteControl::start_listen(uint16_t port)
         }
         
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(lock_components(), PropertyIO_GL()));
+        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
 }
+
+void RemoteControl::set_components(const std::list<Component::Ptr>& the_components)
+{
+    m_components.assign(the_components.begin(), the_components.end());
+}
+
 
 void RemoteControl::stop_listen()
 {
@@ -123,7 +129,7 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
         {
             try
             {
-                Serializer::applyStateToComponents(lock_components(),
+                Serializer::applyStateToComponents(components(),
                                                    string(response.begin(),
                                                           response.end()),
                                                    PropertyIO_GL());
@@ -133,7 +139,7 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
 }
 
 std::list<Component::Ptr>
-RemoteControl::lock_components()
+RemoteControl::components()
 {
     std::list<Component::Ptr> ret;
 
@@ -151,7 +157,7 @@ void RemoteControl::add_command(const std::string &the_cmd)
     m_command_map[the_cmd] = [this, the_cmd](net::tcp_connection_ptr con,
                                              const std::vector<std::string> &args)
     {
-        for(auto &comp : lock_components())
+        for(auto &comp : components())
         {
             comp->call_function(the_cmd, args);
         }

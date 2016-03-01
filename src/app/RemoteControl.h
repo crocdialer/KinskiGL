@@ -38,13 +38,15 @@ namespace kinski
         const CommandMap& command_map() const { return m_command_map; }
         CommandMap& command_map() { return m_command_map; }
         
+        std::list<Component::Ptr> components();
+        void set_components(const std::list<Component::Ptr>& the_components);
+        
     private:
         
         void new_connection_cb(net::tcp_connection_ptr con);
         void receive_cb(net::tcp_connection_ptr rec_con,
                         const std::vector<uint8_t>& response);
         
-        std::list<Component::Ptr> lock_components();
         
         //!
         CommandMap m_command_map;
