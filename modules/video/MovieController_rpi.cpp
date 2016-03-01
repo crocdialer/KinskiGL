@@ -88,6 +88,14 @@ namespace kinski{ namespace video{
                     LOG_WARNING << "eglDestroyImageKHR failed.";
                 }
             }
+            // need to flush the renderer to allow m_video_decode to disable its input port
+            ilclient_flush_tunnels(m_tunnels, 0);
+
+            if(m_video_decode)
+            {
+                ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
+            }
+
             ilclient_disable_tunnel(m_tunnels);
             ilclient_disable_tunnel(m_tunnels + 1);
             ilclient_disable_tunnel(m_tunnels + 2);
@@ -122,7 +130,7 @@ namespace kinski{ namespace video{
             {
                 buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
 
-                if(!buf){ m_playing = false; }
+                if(!buf){ m_playing = false; break;}
 
                 // feed data and wait until we get port settings changed
                 unsigned char *dest = buf->pBuffer;
@@ -230,11 +238,6 @@ namespace kinski{ namespace video{
                 //status = -20;
               }
             }
-
-            // need to flush the renderer to allow m_video_decode to disable its input port
-            ilclient_flush_tunnels(m_tunnels, 0);
-
-            ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
         }
     };
 
@@ -295,6 +298,7 @@ namespace kinski{ namespace video{
            LOG_WARNING << e.what();
            return;
         }
+        // m_impl.reset();
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_src_path = p;
 
@@ -426,6 +430,7 @@ namespace kinski{ namespace video{
         if(!m_impl->m_has_new_frame){ return false; }
         tex = m_impl->m_texture;
         tex.setFlipped();
+        m_impl->m_has_new_frame = false;
         return true;
     }
 
