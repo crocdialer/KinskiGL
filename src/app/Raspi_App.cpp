@@ -81,6 +81,7 @@ namespace kinski
     {
         App::set_window_size(size);
         gl::set_window_dimension(size);
+
         // if(running())
         resize(size[0], size[1]);
     }

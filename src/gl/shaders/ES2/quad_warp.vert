@@ -1,5 +1,3 @@
-#version 330
-
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
@@ -13,7 +11,7 @@ attribute vec4 a_color;
 varying lowp vec4 v_color;
 varying lowp vec4 v_texCoord;
 
-void main() 
+void main()
 {
   // interpolate bottom edge x coordinate
   vec2 x1 = mix(u_control_points[2], u_control_points[3], a_vertex.x);
@@ -26,5 +24,5 @@ void main()
 
   v_color = a_color;
   v_texCoord =  u_textureMatrix * a_texCoord;
-  gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1); 
+  gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1);
 }

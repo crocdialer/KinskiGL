@@ -8,24 +8,18 @@
 #include "ilclient.h"
 #undef countof
 
+#include <thread>
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
 #include "MovieController.h"
 
 namespace kinski{ namespace video{
 
-    void fill_buffer_done_cb(void* data, COMPONENT_T* comp)
-    {
-        //if (OMX_FillThisBuffer(ilclient_get_handle(egl_render), eglBuffer) != OMX_ErrorNone)
-        //{
-        //    printf("OMX_FillThisBuffer failed in callback\n");
-        //}
-    }
-
     struct MovieControllerImpl
     {
         std::string m_src_path;
         bool m_playing;
+        bool m_has_new_frame;
         bool m_loop;
         float m_rate;
 
@@ -46,19 +40,19 @@ namespace kinski{ namespace video{
         OMX_TIME_CONFIG_CLOCKSTATETYPE m_clock_state;
 
         void* m_egl_image;
-        GLuint m_texture;
+        gl::Texture m_texture;
 
-        // tmp -> use fstream
-        FILE *m_file_handle;
+        std::thread m_thread;
 
         MovieControllerImpl():
         m_src_path(""),
         m_playing(false),
+        m_has_new_frame(false),
         m_loop(false),
         m_rate(1.f),
         m_egl_buffer(nullptr),
         m_egl_image(nullptr),
-        m_texture(0)
+        m_texture(1280, 706)
         {
             // init the client
             m_il_client = ilclient_init();
@@ -81,6 +75,11 @@ namespace kinski{ namespace video{
         }
         ~MovieControllerImpl()
         {
+            m_playing = false;
+
+            try{ if(m_thread.joinable()){ m_thread.join(); } }
+            catch(std::exception &e){ LOG_ERROR<<e.what(); }
+
             if(m_egl_image)
             {
                 if(!eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
@@ -99,39 +98,42 @@ namespace kinski{ namespace video{
             ilclient_cleanup_components(m_comp_list);
             OMX_Deinit();
             ilclient_destroy(m_il_client);
-
-            fclose(m_file_handle);
         };
 
         void thread_func()
         {
-            bool is_running = true;
+            LOG_INFO << "starting thread";
+
             size_t data_len = 0;
 
-            m_file_handle = fopen(m_src_path.c_str(), "rb");
+            FILE *file_handle = fopen(m_src_path.c_str(), "rb");
 
-            if(!m_file_handle)
+            if(!file_handle)
             { return; }
 
-            OMX_BUFFERHEADERTYPE *buf;
+            OMX_BUFFERHEADERTYPE *buf = nullptr;
             int port_settings_changed = 0;
             int first_packet = 1;
 
             ilclient_change_component_state(m_video_decode, OMX_StateExecuting);
 
-            while(is_running)
+            while(m_playing)
             {
                 buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
 
-                if(!buf){ is_running = false; }
+                if(!buf){ m_playing = false; }
 
                 // feed data and wait until we get port settings changed
                 unsigned char *dest = buf->pBuffer;
 
                 // loop if at end
-                if(feof(m_file_handle)){ rewind(m_file_handle); }
+                if(feof(file_handle))
+                {
+                   if(m_loop){ rewind(file_handle); }
+                   else{ break; }
+                }
 
-                data_len += fread(dest, 1, buf->nAllocLen-data_len, m_file_handle);
+                data_len += fread(dest, 1, buf->nAllocLen-data_len, file_handle);
 
                 if(port_settings_changed == 0 &&
                    ((data_len > 0 && ilclient_remove_event(m_video_decode,
@@ -148,6 +150,7 @@ namespace kinski{ namespace video{
                     if(ilclient_setup_tunnel(m_tunnels, 0, 0) != 0)
                     {
                        //status = -7;
+                       LOG_ERROR << "setup tunnel failed";
                        break;
                     }
 
@@ -157,6 +160,7 @@ namespace kinski{ namespace video{
                     if(ilclient_setup_tunnel(m_tunnels + 1, 0, 1000) != 0)
                     {
                         //status = -12;
+                        LOG_ERROR << "setup tunnel failed";
                         break;
                     }
 
@@ -169,13 +173,13 @@ namespace kinski{ namespace video{
                                        221, NULL) != OMX_ErrorNone)
                     {
                         LOG_ERROR << "OMX_CommandPortEnable failed.";
-                        is_running = false;
+                        m_playing = false;
                     }
 
                     if(OMX_UseEGLImage(ILC_GET_HANDLE(m_egl_render), &m_egl_buffer, 221, NULL, m_egl_image) != OMX_ErrorNone)
                     {
                         LOG_ERROR << "OMX_UseEGLImage failed.";
-                        is_running = false;
+                        m_playing = false;
                     }
 
                     // Set egl_render to executing
@@ -186,8 +190,9 @@ namespace kinski{ namespace video{
                     if(OMX_FillThisBuffer(ILC_GET_HANDLE(m_egl_render), m_egl_buffer) != OMX_ErrorNone)
                     {
                         LOG_ERROR << "OMX_FillThisBuffer failed.";
-                        is_running = false;
+                        m_playing = false;
                     }
+                    m_has_new_frame = true;
                 }
                 if(!data_len)
                     break;
@@ -210,14 +215,19 @@ namespace kinski{ namespace video{
                     //status = -6;
                     break;
                 }
-            }
+            }// while(m_playing)
 
-            buf->nFilledLen = 0;
-            buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+            if(file_handle){ fclose(file_handle); }
 
-            if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+            if(buf)
             {
-              //status = -20;
+              buf->nFilledLen = 0;
+              buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+
+              if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+              {
+                //status = -20;
+              }
             }
 
             // need to flush the renderer to allow m_video_decode to disable its input port
@@ -226,6 +236,22 @@ namespace kinski{ namespace video{
             ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
         }
     };
+
+///////////////////////////////////////////////////////////////////////////////
+
+    void fill_buffer_done_cb(void* data, COMPONENT_T* comp)
+    {
+        MovieControllerImpl *impl = static_cast<MovieControllerImpl*>(data);
+
+        if(!impl || OMX_FillThisBuffer(ilclient_get_handle(impl->m_egl_render),
+                                       impl->m_egl_buffer) != OMX_ErrorNone)
+        {
+           LOG_ERROR << "OMX_FillThisBuffer failed in callback";
+        }
+        LOG_INFO << "fill_buffer_done_cb";
+    }
+
+///////////////////////////////////////////////////////////////////////////////
 
     MovieControllerPtr MovieController::create()
     {
@@ -237,6 +263,8 @@ namespace kinski{ namespace video{
     {
         return MovieControllerPtr(new MovieController(filePath, autoplay, loop));
     }
+
+///////////////////////////////////////////////////////////////////////////////
 
     MovieController::MovieController():
     m_impl(new MovieControllerImpl)
@@ -255,32 +283,33 @@ namespace kinski{ namespace video{
 
     }
 
+///////////////////////////////////////////////////////////////////////////////
+
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
+        m_impl.reset(new MovieControllerImpl);
+        LOG_INFO << "loading: " << filePath;
 
-        m_impl->m_src_path = search_file(filePath);
+        try{ m_impl->m_src_path = search_file(filePath); }
+        catch(FileNotFoundException &e)
+        {
+           LOG_WARNING << e.what();
+           return;
+        }
 
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                 eglGetCurrentContext(),
                                                 EGL_GL_TEXTURE_2D_KHR,
-                                                (EGLClientBuffer)m_impl->m_texture,
+                                                (EGLClientBuffer)m_impl->m_texture.getId(),
                                                 0);
-        if(!m_impl->m_egl_image){ LOG_WARNING << "eglImage is null"; }
+        if(m_impl->m_egl_image == EGL_NO_IMAGE_KHR){ LOG_WARNING << "eglImage is null"; }
 
         int status = 0;
 
-        if(!m_impl->m_il_client)
-        {
-            return;
-        }
-
-        if(OMX_Init() != OMX_ErrorNone)
-        {
-            return;
-        }
+        if(!m_impl->m_il_client || OMX_Init() != OMX_ErrorNone){ return; }
 
         // callback
-        ilclient_set_fill_buffer_done_callback(m_impl->m_il_client, fill_buffer_done_cb, 0);
+        ilclient_set_fill_buffer_done_callback(m_impl->m_il_client, fill_buffer_done_cb, this);
 
         // create video_decode
         if(ilclient_create_component(m_impl->m_il_client, &m_impl->m_video_decode, "video_decode",
@@ -333,30 +362,35 @@ namespace kinski{ namespace video{
                             &m_impl->m_port_format) == OMX_ErrorNone &&
            ilclient_enable_port_buffers(m_impl->m_video_decode, 130, NULL, NULL, NULL) == 0)
         {
-            //TODO: start thread
+            if(autoplay){ play(); }
+            m_impl->m_loop = loop;
         }
 
     }
 
     void MovieController::play()
     {
-        LOG_TRACE << "starting movie playback";
-        //[m_impl->m_player play];
-        //[m_impl->m_player setRate: m_impl->m_rate];
+        LOG_INFO << "starting movie playback";
+
+        if(m_impl->m_playing){ return; }
+
+        pause();
         m_impl->m_playing = true;
+        m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
+
+        //[m_impl->m_player setRate: m_impl->m_rate];
     }
 
     void MovieController::unload()
     {
         m_impl.reset(new MovieControllerImpl);
-        m_impl->m_playing = false;
     }
 
     void MovieController::pause()
     {
-        //[m_impl->m_player pause];
-        //[m_impl->m_player setRate: 0.f];
         m_impl->m_playing = false;
+        try{ if(m_impl->m_thread.joinable()){ m_impl->m_thread.join(); } }
+        catch(std::exception &e){ LOG_ERROR<<e.what(); }
     }
 
     bool MovieController::isPlaying() const
@@ -378,7 +412,7 @@ namespace kinski{ namespace video{
     void MovieController::set_volume(float newVolume)
     {
         float val = clamp(newVolume, 0.f, 1.f);
-        //m_impl->m_player.volume = val;
+        LOG_WARNING << "set_volume NOT IMPLRMENTED: " << val;
     }
 
     bool MovieController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
@@ -388,7 +422,9 @@ namespace kinski{ namespace video{
 
     bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
-        return false;
+        if(!m_impl->m_has_new_frame){ return false; }
+        tex = m_impl->m_texture;
+        return true;
     }
 
     bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)

@@ -11,14 +11,14 @@
 #include "Visitor.hpp"
 
 namespace kinski { namespace gl {
-  
+
     BonePtr deep_copy_bones(BonePtr src)
     {
         if(!src){ return BonePtr(); }
         BonePtr ret = std::make_shared<Bone>();
         *ret = *src;
         ret->children.clear();
-        
+
         for(const auto &c : src->children)
         {
             auto b = deep_copy_bones(c);
@@ -27,7 +27,7 @@ namespace kinski { namespace gl {
         }
         return ret;
     }
-    
+
     BonePtr get_bone_by_name(BonePtr root, const std::string &the_name)
     {
         if(root->name == the_name){ return root; }
@@ -38,7 +38,7 @@ namespace kinski { namespace gl {
         }
         return BonePtr();
     }
-    
+
     Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
     Object3D(),
     m_geometry(theGeom),
@@ -61,57 +61,57 @@ namespace kinski { namespace gl {
         entry.material_index = 0;
         m_entries.push_back(entry);
     }
-    
+
     Mesh::~Mesh()
     {
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
 #endif
     }
-    
+
     void Mesh::create_vertex_attribs()
     {
         m_vertex_attribs.clear();
         m_geometry->createGLBuffers();
-        
+
         VertexAttrib vertices(m_vertexLocationName, m_geometry->vertexBuffer());
         m_vertex_attribs.push_back(vertices);
-        
+
         if(m_geometry->hasTexCoords())
         {
             VertexAttrib tex_coords(m_texCoordLocationName, m_geometry->texCoordBuffer());
             tex_coords.size = 2;
             m_vertex_attribs.push_back(tex_coords);
         }
-        
+
         if(m_geometry->hasColors())
         {
             VertexAttrib colors(m_colorLocationName, m_geometry->colorBuffer());
             colors.size = 4;
             m_vertex_attribs.push_back(colors);
         }
-        
+
         if(m_geometry->hasNormals())
         {
             VertexAttrib normals(m_normalLocationName, m_geometry->normalBuffer());
             normals.size = 3;
             m_vertex_attribs.push_back(normals);
         }
-        
+
         if(m_geometry->hasTangents())
         {
             VertexAttrib tangents(m_tangentLocationName, m_geometry->tangentBuffer());
             tangents.size = 3;
             m_vertex_attribs.push_back(tangents);
         }
-        
+
         if(m_geometry->hasPointSizes())
         {
             VertexAttrib point_sizes(m_pointSizeLocationName, m_geometry->pointSizeBuffer());
             point_sizes.size = 1;
             m_vertex_attribs.push_back(point_sizes);
         }
-        
+
         if(m_geometry->hasBones())
         {
             // bone IDs
@@ -132,24 +132,26 @@ namespace kinski { namespace gl {
             m_vertex_attribs.push_back(bone_weights);
         }
     }
-    
+
     void Mesh::bindVertexPointers(int material_index)
     {
         if(m_vertex_attribs.empty()){ create_vertex_attribs(); }
-        
+
         Shader& shader = m_materials[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::createVertexArray()");
-        
+
+        // shader.bind();
+
         for(auto &vertex_attrib : m_vertex_attribs)
         {
             GLint location = shader.getAttribLocation(vertex_attrib.name);
-            
+
             if(location >= 0)
             {
                 vertex_attrib.buffer.bind();
                 glEnableVertexAttribArray(location);
-                
+
 #if !defined(KINSKI_GLES)
                 if(vertex_attrib.type == GL_FLOAT)
                 {
@@ -171,7 +173,7 @@ namespace kinski { namespace gl {
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
-        
+
         // set standard values for some attribs, in case they're not defined
         if(!m_geometry->hasColors())
         {
@@ -181,14 +183,14 @@ namespace kinski { namespace gl {
                 glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
             }
         }
-        if(!m_geometry->hasTexCoords())
-        {
-            GLint texCoordLocation = shader.getAttribLocation(m_texCoordLocationName);
-            if(texCoordLocation >= 0)
-            {
-                glVertexAttrib2f(texCoordLocation, 0.f, 0.f);
-            }
-        }
+        // if(!m_geometry->hasTexCoords())
+        // {
+        //     GLint texCoordLocation = shader.getAttribLocation(m_texCoordLocationName);
+        //     if(texCoordLocation >= 0)
+        //     {
+        //         glVertexAttrib2f(texCoordLocation, 0.f, 0.f);
+        //     }
+        // }
         if(!m_geometry->hasPointSizes())
         {
             GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
@@ -197,55 +199,55 @@ namespace kinski { namespace gl {
                 glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
             }
         }
-        
+
         // index buffer
         if(m_geometry->hasIndices())
             m_geometry->indexBuffer().bind();
     }
-    
+
     void Mesh::update(float time_delta)
     {
         Object3D::update(time_delta);
-        
+
         if(m_rootBone && m_animation_index < m_animations.size())
         {
             auto &anim = m_animations[m_animation_index];
             anim.current_time = fmodf(anim.current_time + time_delta * anim.ticksPerSec * m_animation_speed,
                                       anim.duration);
             anim.current_time += anim.current_time < 0.f ? anim.duration : 0.f;
-            
+
             m_boneMatrices.resize(get_num_bones(m_rootBone));
             buildBoneMatrices(anim.current_time, m_rootBone, glm::mat4(), m_boneMatrices);
         }
     }
-    
+
     uint32_t Mesh::get_num_bones(const BonePtr &theRoot)
     {
         if(!theRoot){ return 0; }
-        
+
         uint32_t ret = 1;
         std::list<BonePtr>::const_iterator it = theRoot->children.begin();
         for (; it != theRoot->children.end(); ++it){ ret += get_num_bones(*it); }
         return ret;
     }
-    
+
     void Mesh::initBoneMatrices()
     {
         m_boneMatrices.resize(get_num_bones(m_rootBone));
         buildBoneMatrices(0, m_rootBone, glm::mat4(), m_boneMatrices);
     }
-    
+
     void Mesh::buildBoneMatrices(float time, BonePtr bone, glm::mat4 parentTransform,
                                  std::vector<glm::mat4> &matrices)
     {
         if(m_animations.empty()) return;
-        
+
         auto &anim = m_animations[m_animation_index];
         glm::mat4 boneTransform = bone->transform;
-        
+
         const AnimationKeys &bonekeys = anim.boneKeys[bone];
         bool boneHasKeys = false;
-        
+
         // translation
         glm::mat4 translation;
         if(!bonekeys.positionkeys.empty())
@@ -261,14 +263,14 @@ namespace kinski { namespace gl {
             // i now holds the correct time index
             const Key<glm::vec3> &key1 = bonekeys.positionkeys[i],
             key2 = bonekeys.positionkeys[(i + 1) % bonekeys.positionkeys.size()];
-            
+
             float startTime = key1.time;
             float endTime = key2.time < key1.time ? key2.time + anim.duration : key2.time;
             float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
             glm::vec3 pos = glm::mix(key1.value, key2.value, frac);
             translation = glm::translate(translation, pos);
         }
-        
+
         // rotation
         glm::mat4 rotation;
         if(!bonekeys.rotationkeys.empty())
@@ -284,16 +286,16 @@ namespace kinski { namespace gl {
             // i now holds the correct time index
             const Key<glm::quat> &key1 = bonekeys.rotationkeys[i],
             key2 = bonekeys.rotationkeys[(i + 1) % bonekeys.rotationkeys.size()];
-            
+
             float startTime = key1.time;
             float endTime = key2.time < key1.time ? key2.time + anim.duration : key2.time;
             float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
-            
+
             // quaternion spherical linear interpolation
             glm::quat interpolRot = glm::slerp(key1.value, key2.value, frac);
             rotation = glm::mat4_cast(interpolRot);
         }
-        
+
         // scale
         glm::mat4 scaleMatrix;
         if(!bonekeys.scalekeys.empty())
@@ -315,7 +317,7 @@ namespace kinski { namespace gl {
                 // i now holds the correct time index
                 const Key<glm::vec3> &key1 = bonekeys.scalekeys[i],
                 key2 = bonekeys.scalekeys[(i + 1) % bonekeys.scalekeys.size()];
-                
+
                 float startTime = key1.time;
                 float endTime = key2.time < key1.time ? key2.time + anim.duration : key2.time;
                 float frac = std::max( (time - startTime) / (endTime - startTime), 0.0f);
@@ -327,10 +329,10 @@ namespace kinski { namespace gl {
             boneTransform = translation * rotation * scaleMatrix;
 
         bone->worldtransform = parentTransform * boneTransform;
-        
+
         // add final transform
         matrices[bone->index] = bone->worldtransform * bone->offset;
-        
+
         // recursion through all children
         std::list<BonePtr>::iterator it = bone->children.begin();
         for (; it != bone->children.end(); ++it)
@@ -338,26 +340,26 @@ namespace kinski { namespace gl {
             buildBoneMatrices(time, *it, bone->worldtransform, matrices);
         }
     }
-    
+
     AABB Mesh::boundingBox() const
     {
         AABB ret = m_geometry->boundingBox();
         mat4 global_trans = global_transform();
         ret.transform(global_trans);
-        
+
         for (auto &c :children())
         {
             ret += c->boundingBox();
         }
         return ret;
     }
-    
+
     gl::OBB Mesh::obb() const
     {
         gl::OBB ret(m_geometry->boundingBox(), global_transform());
         return ret;
     }
-    
+
     void Mesh::createVertexArray()
     {
         if(m_geometry->vertices().empty()) return;
@@ -366,7 +368,7 @@ namespace kinski { namespace gl {
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
         create_vertex_attribs();
-        
+
 #ifndef KINSKI_NO_VAO
         m_shaders.clear();
         m_shaders.resize(m_materials.size());
@@ -374,7 +376,7 @@ namespace kinski { namespace gl {
         m_vertexArrays.clear();
         m_vertexArrays.resize(m_materials.size(), 0);
         GL_SUFFIX(glGenVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
-        
+
         for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
         {
             GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
@@ -384,7 +386,7 @@ namespace kinski { namespace gl {
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
     }
-    
+
     GLuint Mesh::vertexArray(uint32_t i) const
     {
         if(m_shaders[i] != m_materials[i]->shader())
@@ -393,13 +395,13 @@ namespace kinski { namespace gl {
         }
         return m_vertexArrays[i];
     };
-    
+
     void Mesh::bind_vertex_array(uint32_t i)
     {
 #if !defined(KINSKI_NO_VAO)
-        
+
         if(i >= m_vertexArrays.size()){createVertexArray();}
-        
+
         try{GL_SUFFIX(glBindVertexArray)(vertexArray(i));}
         catch(const WrongVertexArrayDefinedException &e)
         {
@@ -414,23 +416,23 @@ namespace kinski { namespace gl {
         }
 #endif
     }
-    
+
     MeshPtr Mesh::copy()
     {
         MeshPtr ret = create(m_geometry, material());
         *ret = *this;
-        
+
         // deep copy bones
 //        ret->rootBone() = deep_copy_bones(rootBone());
-//        
+//
 //        // remap animations
 //        std::vector<MeshAnimation> anim_cp;
-//        
+//
 //        for(const auto &anim : m_animations)
 //        {
 //            auto cp = anim;
 //            cp.boneKeys.clear();
-//            
+//
 //            for(const auto &bone_key : anim.boneKeys)
 //            {
 //                cp.boneKeys[get_bone_by_name(ret->rootBone(), bone_key.first->name)] = bone_key.second;
@@ -438,13 +440,13 @@ namespace kinski { namespace gl {
 //            anim_cp.push_back(anim);
 //        }
 //        ret->m_animations = anim_cp;
-        
+
         ret->m_vertexArrays.clear();
         ret->m_shaders.clear();
         ret->createVertexArray();
         return ret;
     }
-    
+
     void Mesh::set_animation_index(uint32_t the_index)
     {
         m_animation_index = clamp<uint32_t>(the_index, 0, m_animations.size() - 1);
@@ -453,7 +455,7 @@ namespace kinski { namespace gl {
             m_animations[m_animation_index].current_time = 0.f;
         }
     }
-    
+
     void Mesh::setVertexLocationName(const std::string &theName)
     {
         m_vertexLocationName = theName;
@@ -471,19 +473,19 @@ namespace kinski { namespace gl {
         m_tangentLocationName = theName;
         createVertexArray();
     }
-    
+
     void Mesh::setPointSizeLocationName(const std::string &theName)
     {
         m_pointSizeLocationName = theName;
         createVertexArray();
     }
-    
+
     void Mesh::setTexCoordLocationName(const std::string &theName)
     {
         m_texCoordLocationName = theName;
         createVertexArray();
     }
-    
+
     void Mesh::accept(Visitor &theVisitor)
     {
         theVisitor.visit(*this);
