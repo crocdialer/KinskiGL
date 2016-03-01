@@ -91,6 +91,8 @@ namespace kinski {
         gl::Texture generate_snapshot();
         gl::Texture& snapshot_texture(){ return m_snapshot_texture; }
         
+        RemoteControl& remote_control(){ return m_remote_control; }
+        
     protected:
         
         std::vector<gl::Font> m_fonts{4};
