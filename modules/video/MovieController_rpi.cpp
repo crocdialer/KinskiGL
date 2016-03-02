@@ -52,10 +52,12 @@ namespace kinski{ namespace video{
         m_rate(1.f),
         m_egl_buffer(nullptr),
         m_egl_image(nullptr),
-        m_texture(1920, 1080)
+        m_texture(1280, 720)
         {
             // init the client
             m_il_client = ilclient_init();
+
+            LOG_ERROR_IF(OMX_Init() != OMX_ErrorNone)  << "OMX_Init failed.";
 
             memset(m_comp_list, 0, sizeof(m_comp_list));
             memset(m_tunnels, 0, sizeof(m_tunnels));
@@ -84,28 +86,37 @@ namespace kinski{ namespace video{
 
             if(m_egl_image)
             {
+                LOG_DEBUG << "destroy egl_image";
+
                 if(!eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                        (EGLImageKHR)m_egl_image))
                 {
                     LOG_WARNING << "eglDestroyImageKHR failed.";
                 }
             }
+            LOG_DEBUG << "flush video_decode tunnel";
+
             // need to flush the renderer to allow m_video_decode to disable its input port
             ilclient_flush_tunnels(m_tunnels, 0);
 
             if(m_video_decode)
             {
+                LOG_DEBUG << "disable video_decode port buffers";
                 ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
             }
 
+            LOG_DEBUG << "destroy tunnels";
             ilclient_disable_tunnel(m_tunnels);
             ilclient_disable_tunnel(m_tunnels + 1);
             ilclient_disable_tunnel(m_tunnels + 2);
             ilclient_teardown_tunnels(m_tunnels);
 
+            LOG_DEBUG << "shutdown components";
             ilclient_state_transition(m_comp_list, OMX_StateIdle);
             ilclient_state_transition(m_comp_list, OMX_StateLoaded);
             ilclient_cleanup_components(m_comp_list);
+
+            LOG_DEBUG << "shutdown OMX";
             OMX_Deinit();
             ilclient_destroy(m_il_client);
 
@@ -260,7 +271,7 @@ namespace kinski{ namespace video{
         {
             // OMX_BUFFERHEADERTYPE *write_buf = impl->m_playing ? impl->m_egl_buffer : nullptr;
             OMX_BUFFERHEADERTYPE *write_buf = impl->m_egl_buffer;
-            
+
             if(OMX_FillThisBuffer(ilclient_get_handle(impl->m_egl_render),
                                   write_buf) != OMX_ErrorNone)
             {
@@ -284,8 +295,7 @@ namespace kinski{ namespace video{
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    MovieController::MovieController():
-    m_impl(new MovieControllerImpl)
+    MovieController::MovieController()
     {
 
     }
@@ -313,7 +323,6 @@ namespace kinski{ namespace video{
            LOG_WARNING << e.what();
            return;
         }
-        // m_impl.reset();
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_src_path = p;
 
@@ -326,7 +335,7 @@ namespace kinski{ namespace video{
 
         int status = 0;
 
-        if(!m_impl->m_il_client || OMX_Init() != OMX_ErrorNone){ return; }
+        if(!m_impl->m_il_client){ return; }
 
         // callback
         ilclient_set_fill_buffer_done_callback(m_impl->m_il_client, fill_buffer_done_cb, m_impl.get());
@@ -392,7 +401,7 @@ namespace kinski{ namespace video{
     {
         LOG_DEBUG << "starting movie playback";
 
-        if(m_impl->m_playing){ return; }
+        if(!m_impl || m_impl->m_playing){ return; }
 
         pause();
         m_impl->m_playing = true;
@@ -408,6 +417,7 @@ namespace kinski{ namespace video{
 
     void MovieController::pause()
     {
+        if(!m_impl){ return; }
         m_impl->m_playing = false;
         try{ if(m_impl->m_thread.joinable()){ m_impl->m_thread.join(); } }
         catch(std::exception &e){ LOG_ERROR<<e.what(); }
@@ -415,7 +425,7 @@ namespace kinski{ namespace video{
 
     bool MovieController::isPlaying() const
     {
-        return m_impl->m_playing;
+        return m_impl && m_impl->m_playing;
     }
 
     void MovieController::restart()
@@ -442,7 +452,7 @@ namespace kinski{ namespace video{
 
     bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
-        if(!m_impl->m_has_new_frame){ return false; }
+        if(!m_impl || !m_impl->m_has_new_frame){ return false; }
         tex = m_impl->m_texture;
         tex.setFlipped();
         m_impl->m_has_new_frame = false;
@@ -479,27 +489,32 @@ namespace kinski{ namespace video{
 
     bool MovieController::loop() const
     {
-        return m_impl->m_loop;
+        return m_impl && m_impl->m_loop;
     }
 
     void MovieController::set_rate(float r)
     {
+        if(!m_impl){ return; }
+
         m_impl->m_rate = r;
         //[m_impl->m_player setRate: r];
     }
 
     const std::string& MovieController::get_path() const
     {
-        return m_impl->m_src_path;
+        static std::string ret;
+        return m_impl ? m_impl->m_src_path : ret;
     }
 
     void MovieController::set_on_load_callback(MovieCallback c)
     {
+        if(!m_impl){ return; }
         m_impl->m_on_load_cb = c;
     }
 
     void MovieController::set_movie_ended_callback(MovieCallback c)
     {
+        if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
     }
 }}// namespaces
