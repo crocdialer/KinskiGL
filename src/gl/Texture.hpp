@@ -143,7 +143,6 @@ namespace kinski{ namespace gl{
         GLint getDepth() const;
         
         //! the size of the texture in pixels
-        //const Eigen::Vector2i getSize() const { return Eigen::Vector2i( getWidth(), getHeight() ); }	
         const vec2 getSize() const { return vec2( getWidth(), getHeight() ); }	
         
         //! the aspect ratio of the texture (width / height)
@@ -157,9 +156,6 @@ namespace kinski{ namespace gl{
         float getRight() const;	
         float getTop() const;		
         float getBottom() const;
-        
-        //	//! Returns the UV coordinates which correspond to the pixels contained in \a area. Does not compensate for clean coordinates. Does compensate for flipping.
-        //	Rectf			getAreaTexCoords( const Area &area ) const;
         
         //! the Texture's internal format, which is the format that OpenGL stores the texture data in memory. Common values include \c GL_RGB, \c GL_RGBA and \c GL_LUMINANCE
         GLint getInternalFormat() const;
@@ -204,12 +200,13 @@ namespace kinski{ namespace gl{
         //! Creates a clone of this texture which does not have ownership, but points to the same resource
         Texture weakClone() const;
         
-        struct Format {
+        struct Format
+        {
             //! Default constructor, sets the target to \c GL_TEXTURE_2D, wrap to \c GL_CLAMP, disables mipmapping, the internal format to "automatic"
             Format();
             
             //! Specifies the texture's target. The default is \c GL_TEXTURE_2D
-            void	setTarget( GLenum target ) { m_target = target; }
+            void setTarget( GLenum target ) { m_target = target; }
             
             //! Specifies the texture's datatype. The default is GL_UNSIGNED_BYTE
             void set_data_type(GLint the_data_type) { m_datatype = the_data_type; }
@@ -269,7 +266,6 @@ namespace kinski{ namespace gl{
             //! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
             GLenum	getMagFilter() const { return m_MagFilter; }
             
-        protected:
             GLenum			m_target;
             GLenum			m_wrap_s, m_wrap_t;
             GLenum			m_MinFilter, m_MagFilter;
@@ -277,7 +273,6 @@ namespace kinski{ namespace gl{
             bool			m_Mipmapping;
             GLint			m_InternalFormat, m_datatype;
             
-            friend class Texture;
         };
         
     private:

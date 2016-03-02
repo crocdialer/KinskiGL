@@ -52,6 +52,8 @@ namespace kinski{ namespace gl{
             auto mat = gl::Material::create(shader_warp_vert);
             mat->setDepthTest(false);
             mat->setDepthWrite(false);
+            mat->setBlending(true);
+//            mat->setTwoSided();
             m_mesh = gl::Mesh::create(geom, mat);
             
             auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
@@ -82,17 +84,12 @@ namespace kinski{ namespace gl{
         m_impl->m_mesh->material()->textures() = {the_texture};
         
         auto cp = m_impl->m_control_points;
-        auto mat = the_texture.getTextureMatrix();
+        const mat4 flipY = mat4(vec4(1, 0, 0, 1),
+                                vec4(0, -1, 0, 1),// invert y-coords
+                                vec4(0, 0, 1, 1),
+                                vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
         
-        for(auto &p : cp)
-        {
-            p = (mat * gl::vec4(p, 0, 1.f)).xy();
-        }
-
-//        cp[0].x = 0.f - cp[0].x;
-//        cp[1].x = 2.f - cp[1].x;
-//        cp[2].x = 0.f - cp[2].x;
-//        cp[3].x = 2.f - cp[3].x;
+        for(auto &p : cp){ p = (flipY * gl::vec4(p, 0, 1.f)).xy(); }
         
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
         

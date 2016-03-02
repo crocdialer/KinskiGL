@@ -27,8 +27,13 @@ namespace kinski
         
         gl::QuadWarp& quad_warp(){ return m_quad_warp; }
         
+        void render_output(const gl::Texture &the_tex);
+        
     private:
         gl::QuadWarp m_quad_warp;
+        
+        Property_<uint32_t>::Ptr m_grid_sz_x, m_grid_sz_y;
+        Property_<bool>::Ptr m_draw_grid, m_draw_control_points;
         
         Property_<float>::Ptr m_top_left_x, m_top_right_x, m_bottom_left_x, m_bottom_right_x,
         m_top_left_y, m_top_right_y, m_bottom_left_y, m_bottom_right_y;

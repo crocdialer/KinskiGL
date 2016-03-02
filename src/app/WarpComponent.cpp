@@ -14,6 +14,10 @@ namespace kinski
     {
         set_name("QuadWarping");
         
+        m_grid_sz_x = RangedProperty<uint32_t>::create("grid size x", 16, 1, 512);
+        m_grid_sz_y = RangedProperty<uint32_t>::create("grid size y", 9, 1, 512);
+        m_draw_grid = Property_<bool>::create("draw grid", false);
+        m_draw_control_points = Property_<bool>::create("draw control points", false);
         m_top_left_x = RangedProperty<float>::create("top left x", 0.f, -.2f, 1.2f);
         m_top_right_x = RangedProperty<float>::create("top right x", 1.f, -.2f, 1.2f);
         m_bottom_left_x = RangedProperty<float>::create("bottom left x", 0.f, -.2f, 1.2f);
@@ -23,7 +27,11 @@ namespace kinski
         m_top_right_y = RangedProperty<float>::create("top right y", 0.f, -.2f, 1.2f);
         m_bottom_left_y = RangedProperty<float>::create("bottom left y", 1.f, -.2f, 1.2f);
         m_bottom_right_y = RangedProperty<float>::create("bottom right y", 1.f, -.2f, 1.2f);
-
+        
+        register_property(m_grid_sz_x);
+        register_property(m_grid_sz_y);
+        register_property(m_draw_grid);
+        register_property(m_draw_control_points);
         register_property(m_top_left_x);
         register_property(m_top_left_y);
         register_property(m_top_right_x);
@@ -69,5 +77,16 @@ namespace kinski
         {
             m_quad_warp.control_point(1, 1) = gl::vec2(*m_bottom_right_x, *m_bottom_right_y);
         }
+        if(the_property == m_grid_sz_x || the_property == m_grid_sz_y)
+        {
+            m_quad_warp.set_grid_resolution(*m_grid_sz_x, *m_grid_sz_y);
+        }
+    }
+    
+    void WarpComponent::render_output(const gl::Texture &the_tex)
+    {
+        m_quad_warp.render_output(the_tex);
+        if(*m_draw_grid){ m_quad_warp.render_grid(); }
+        if(*m_draw_control_points){ m_quad_warp.render_control_points(); }
     }
 }

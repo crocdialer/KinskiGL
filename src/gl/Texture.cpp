@@ -283,7 +283,7 @@ mat4 Texture::getTextureMatrix() const
 {
     mat4 ret = m_textureMatrix;
     
-    if(m_Obj->m_Flipped)
+    if(m_Obj && m_Obj->m_Flipped)
     {
         static const mat4 flipY = mat4(vec4(1, 0, 0, 1),
                                        vec4(0, -1, 0, 1),// invert y-coords
@@ -301,63 +301,63 @@ const bool Texture::isBound() const
 
 const GLint Texture::getBoundTextureUnit() const
 {
-    return m_Obj->m_boundTextureUnit;
+    return m_Obj ? m_Obj->m_boundTextureUnit : -1;
 }
     
 GLuint Texture::getId() const 
 { 
-    return m_Obj->m_TextureID; 
+    return m_Obj ? m_Obj->m_TextureID : 0;
 }
 
 GLenum Texture::getTarget() const 
 { 
-    return m_Obj->m_target; 
+    return m_Obj ? m_Obj->m_target : 0;
 }
 
 //!	whether the texture is flipped vertically
 bool Texture::isFlipped() const 
 {
-    return m_Obj->m_Flipped; 
+    return m_Obj && m_Obj->m_Flipped;
 }
 
 //!	Marks the texture as being flipped vertically or not
-void Texture::setFlipped( bool aFlipped ) 
+void Texture::setFlipped(bool aFlipped) 
 {
-    m_Obj->m_Flipped = aFlipped;
+    if(m_Obj){ m_Obj->m_Flipped = aFlipped; }
 }
     
-void Texture::setWrapS( GLenum wrapS )
+void Texture::setWrapS(GLenum wrapS)
 {
-	glTexParameteri( m_Obj->m_target, GL_TEXTURE_WRAP_S, wrapS );
+    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_WRAP_S, wrapS); }
 }
 
-void Texture::setWrapT( GLenum wrapT )
+void Texture::setWrapT(GLenum wrapT)
 {
-	glTexParameteri( m_Obj->m_target, GL_TEXTURE_WRAP_T, wrapT );
+    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_WRAP_T, wrapT); }
 }
 
-void Texture::setMinFilter( GLenum minFilter )
+void Texture::setMinFilter(GLenum minFilter)
 {
-    glTexParameteri( m_Obj->m_target, GL_TEXTURE_MIN_FILTER, minFilter );
+    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_MIN_FILTER, minFilter); }
 }
 
-void Texture::setMagFilter( GLenum magFilter )
+void Texture::setMagFilter(GLenum magFilter)
 {
-    glTexParameteri( m_Obj->m_target, GL_TEXTURE_MAG_FILTER, magFilter );
+    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_MAG_FILTER, magFilter); };
 }
 
 void Texture::set_mipmapping(bool b)
 {
-    if(b && !m_Obj->m_mip_map)
+    if(m_Obj)
     {
-        setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
-        glGenerateMipmap(m_Obj->m_target);
+        if(b && !m_Obj->m_mip_map)
+        {
+            setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
+            glGenerateMipmap(m_Obj->m_target);
+        }
+        else{ setMinFilter(GL_LINEAR); }
+        m_Obj->m_mip_map = b;
     }
-    else
-    {
-        setMinFilter(GL_LINEAR);
-    }
-    m_Obj->m_mip_map = b;
 }
 
 void Texture::set_anisotropic_filter(float f)
@@ -428,7 +428,8 @@ GLint Texture::getInternalFormat() const
 
 GLint Texture::getWidth() const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+    if(!m_Obj){ return 0; };
+    
 #if ! defined( KINSKI_GLES )
 	if( m_Obj->m_Width == -1 )
     {
@@ -436,13 +437,13 @@ GLint Texture::getWidth() const
 		glGetTexLevelParameteriv( m_Obj->m_target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_Width );
 	}
 #endif
-
 	return m_Obj->m_Width;
 }
 
 GLint Texture::getHeight() const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+    if(!m_Obj){ return 0; };
+    
 #if ! defined( KINSKI_GLES )
 	if( m_Obj->m_Height == -1 )
     {
@@ -455,7 +456,8 @@ GLint Texture::getHeight() const
     
 GLint Texture::getDepth() const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+    if(!m_Obj){ return 0; };
+    
 #if ! defined( KINSKI_GLES )
     if( m_Obj->m_depth == -1 )
     {
@@ -466,7 +468,7 @@ GLint Texture::getDepth() const
     return m_Obj->m_depth;
 }
 
-void Texture::bind( GLuint textureUnit ) const
+void Texture::bind(GLuint textureUnit) const
 {
     if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     m_Obj->m_boundTextureUnit = textureUnit;
@@ -475,7 +477,7 @@ void Texture::bind( GLuint textureUnit ) const
 	glActiveTexture( GL_TEXTURE0 );
 }
 
-void Texture::unbind( GLuint textureUnit ) const
+void Texture::unbind(GLuint textureUnit) const
 {
     if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
     m_Obj->m_boundTextureUnit = -1;
