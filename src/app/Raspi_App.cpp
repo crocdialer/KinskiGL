@@ -87,6 +87,10 @@ namespace kinski
 
         get_input_file_descriptors(&m_mouse_fd, &m_keyboard_fd, &m_touch_fd);
 
+        // make sure touchscreen backlight stays on
+        // TODO: use timer here
+        set_lcd_backlight(true);
+
         // center cursor
         current_mouse_pos = gl::window_dimension() / 2.f;
 
@@ -140,6 +144,12 @@ namespace kinski
     gl::vec2 Raspi_App::cursor_position() const
     {
         return current_mouse_pos;
+    }
+
+    void Raspi_App::set_lcd_backlight(bool b) const
+    {
+        kinski::syscall("sudo bash -c \"echo " << (b ? 0 : 1) <<
+            " > /sys/class/backlight/rpi_backlight/bl_power\"");
     }
 
     void Raspi_App::pollEvents()
