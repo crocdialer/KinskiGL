@@ -26,6 +26,8 @@ class Raspi_App : public App
 
     std::vector<WindowPtr> windows() const { return {}; }
 
+    void set_lcd_backlight(bool b) const
+
  private:
 
     // internal initialization. performed when run is invoked
