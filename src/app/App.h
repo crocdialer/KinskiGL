@@ -225,6 +225,7 @@ namespace kinski
         //! the current touch id
         int	touch_index() const { return m_touch_index; }
 
+        
         enum
         {
             LEFT_DOWN	= 1 << 1,
