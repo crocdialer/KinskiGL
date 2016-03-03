@@ -283,30 +283,30 @@ namespace kinski{ namespace video{
             
             if(!as_texture2D && io_surface)
             {
-//                if(m_impl->m_io_surface && IOSurfaceGetUseCount(m_impl->m_io_surface))
-//                {
+                if(m_impl->m_io_surface != io_surface) //*IOSurfaceIsInUse(m_impl->m_io_surface)*/)
+                {
 //                    IOSurfaceDecrementUseCount(m_impl->m_io_surface);
-//                }
-//                IOSurfaceIncrementUseCount(io_surface);
-                m_impl->m_io_surface = io_surface;
-                
-                if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);
-                
-                tex = gl::Texture(GL_TEXTURE_RECTANGLE,
-                                  m_impl->m_output_tex_name,
-                                  width,
-                                  height, true);
-                gl::scoped_bind<gl::Texture> tex_bind(tex);
-                CGLTexImageIOSurface2D(CGLGetCurrentContext(),
-                                       GL_TEXTURE_RECTANGLE,
-                                       GL_RGBA,
-                                       width,
-                                       height,
-                                       GL_BGRA,
-                                       GL_UNSIGNED_INT_8_8_8_8_REV,
-                                       m_impl->m_io_surface,
-                                       0);
-                tex.setFlipped();
+                    IOSurfaceIncrementUseCount(io_surface);
+                    m_impl->m_io_surface = io_surface;
+                    
+                    if(!m_impl->m_output_tex_name) glGenTextures(1, &m_impl->m_output_tex_name);
+                    
+                    tex = gl::Texture(GL_TEXTURE_RECTANGLE,
+                                      m_impl->m_output_tex_name,
+                                      width,
+                                      height, true);
+                    gl::scoped_bind<gl::Texture> tex_bind(tex);
+                    CGLTexImageIOSurface2D(CGLGetCurrentContext(),
+                                           GL_TEXTURE_RECTANGLE,
+                                           GL_RGBA,
+                                           width,
+                                           height,
+                                           GL_BGRA,
+                                           GL_UNSIGNED_INT_8_8_8_8_REV,
+                                           m_impl->m_io_surface,
+                                           0);
+                    tex.setFlipped();
+                }
             }
             else
             {

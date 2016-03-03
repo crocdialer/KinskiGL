@@ -176,6 +176,15 @@ namespace kinski
         return mix<T>(dst_min, dst_max, mix_val);
     }
     
+    inline std::string syscall(const std::string& cmd)
+    {
+        std::string ret;
+        std::shared_ptr<FILE> pipe(popen(cmd.c_str(), "r"), pclose);
+        char buf[1024] = "\0";
+        while (fgets(buf, sizeof(buf), pipe.get())){ ret.append(buf); }
+        return ret;
+    }
+    
     template<typename T>
     class CircularBuffer
     {
