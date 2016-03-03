@@ -349,7 +349,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 
     // init inputs
     DIR *dirp;
-    struct dirent *dp;
+    struct dirent *dp = nullptr;
     regex_t kbd, mouse;
 
     char fullPath[1024];
@@ -365,7 +365,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     }
     if(!(dirp = opendir(dirName)))
     {
-        LOG_ERROR << "couldn't open '/dev/input/by-id'";
+        // LOG_ERROR << "couldn't open '/dev/input/by-id'";
     }
 
     int result = -1;
@@ -375,7 +375,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     do
     {
         errno = 0;
-        if ((dp = readdir(dirp)) != NULL)
+        if (dirp && (dp = readdir(dirp)))
         {
             // printf("readdir (%s)\n", dp->d_name);
             if(regexec (&kbd, dp->d_name, 0, NULL, 0) == 0)
@@ -395,9 +395,9 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
                 LOG_INFO_IF(!result) << "found input: " << name;
             }
         }
-    } while (dp != NULL);
+    } while (dp);
 
-    closedir(dirp);
+    if(dirp){ closedir(dirp); }
     regfree(&kbd);
     regfree(&mouse);
 
@@ -413,7 +413,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
         // printf("%s Fd = %d\n", fullPath, mouseFd);
         // printf("Getting exclusive access: ");
         result = ioctl(touchFd, EVIOCGRAB, 1);
-        printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
+        // printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
 
         char name[256] = "Unknown";
         result = ioctl(touchFd, EVIOCGNAME(sizeof(name)), name);
