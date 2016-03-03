@@ -31,6 +31,7 @@ namespace kinski{ namespace gl{
         
         gl::MeshPtr m_mesh, m_grid_mesh;
         gl::MaterialPtr m_handle_material;
+        gl::Shader m_shader_warp_vert, m_shader_warp_vert_rect;
         
         Impl(uint32_t the_res_w = 16, uint32_t the_res_h = 9):
         m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
@@ -41,15 +42,22 @@ namespace kinski{ namespace gl{
             auto geom = gl::Geometry::createPlane(1, 1, m_grid_num_w, m_grid_num_h);
             for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
             geom->computeBoundingBox();
-            gl::Shader shader_warp_vert;
             
-            try{ shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag); }
+            try
+            {
+                m_shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
+#if !defined(KINSKI_GLES)
+                m_shader_warp_vert_rect.loadFromData(quad_warp_rect_vert, unlit_rect_frag);
+#else
+                m_shader_warp_vert_rect = m_shader_warp_vert;
+#endif
+            }
             catch(Exception &e){ LOG_ERROR << e.what(); }
             
 //            gl::Shader shader_warp_frag;
 //            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
             
-            auto mat = gl::Material::create(shader_warp_vert);
+            auto mat = gl::Material::create(m_shader_warp_vert);
             mat->setDepthTest(false);
             mat->setDepthWrite(false);
             mat->setBlending(true);
@@ -63,7 +71,7 @@ namespace kinski{ namespace gl{
             }
             for(auto &c : grid_geom->colors()){ c = gl::COLOR_WHITE; }
             
-            auto grid_mat = gl::Material::create(shader_warp_vert);
+            auto grid_mat = gl::Material::create(m_shader_warp_vert);
             grid_mat->setDepthTest(false);
             grid_mat->setDepthWrite(false);
             m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
@@ -80,6 +88,13 @@ namespace kinski{ namespace gl{
     {
         if(!the_texture){ return; }
         if(!m_impl){ m_impl.reset(new Impl); }
+        
+        if(the_texture.getTarget() == GL_TEXTURE_RECTANGLE)
+        {
+            m_impl->m_mesh->material()->setShader(m_impl->m_shader_warp_vert_rect);
+            m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.getSize());
+        }
+        else{ m_impl->m_mesh->material()->setShader(m_impl->m_shader_warp_vert); }
         
         m_impl->m_mesh->material()->textures() = {the_texture};
         

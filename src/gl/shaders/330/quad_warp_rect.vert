@@ -2,6 +2,7 @@
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
+uniform vec2 u_texture_size = vec2(1.0);
 
 // {TL, TR, BL, BR}
 uniform vec2[4] u_control_points;
@@ -30,6 +31,6 @@ void main()
   vec2 p = mix(x1, x2, a_vertex.y);
 
   vertex_out.color = a_color;
-  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;
+  vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy * u_texture_size;
   gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1);
 }
