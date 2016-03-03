@@ -36,12 +36,12 @@ class Raspi_App : public App
 
     timeval m_startTime;
 
-    std::shared_ptr<ESContext> m_context;
+    std::unique_ptr<ESContext> m_context;
 
     gl::OutstreamGL m_outstream_gl;
 
     // input file descriptors
-    int m_mouse_fd, m_keyboard_fd;
+    int m_mouse_fd, m_keyboard_fd, m_touch_fd;
 };
 
 }
