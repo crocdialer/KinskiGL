@@ -186,35 +186,39 @@ namespace kinski
 
         //! Returns the X coordinate of the mouse event
         int			getX() const { return mX; }
+        
         //! Returns the Y coordinate of the mouse event
         int			getY() const { return mY; }
+        
         //! Returns the coordinates of the mouse event
         glm::ivec2	getPos() const { return glm::ivec2( mX, mY ); }
-        //! Returns whether the initiator for the event was the left mouse button
-        bool		isLeft() const { return mInitiator & LEFT_DOWN; }
-        //! Returns whether the initiator for the event was the right mouse button
-        bool		isRight() const { return mInitiator & RIGHT_DOWN; }
-        //! Returns whether the initiator for the event was the middle mouse button
-        bool		isMiddle() const { return mInitiator & MIDDLE_DOWN; }
-        //! Returns whether the left mouse button was pressed during the event
-        bool		isLeftDown() const { return mModifiers & LEFT_DOWN; }
-        //! Returns whether the right mouse button was pressed during the event
-        bool		isRightDown() const { return mModifiers & RIGHT_DOWN; }
-        //! Returns whether the middle mouse button was pressed during the event
-        bool		isMiddleDown() const { return mModifiers & MIDDLE_DOWN; }
-        //! Returns whether the Shift key was pressed during the event.
-        bool		isShiftDown() const { return mModifiers & SHIFT_DOWN; }
-        //! Returns whether the Alt (or Option) key was pressed during the event.
-        bool		isAltDown() const { return mModifiers & ALT_DOWN; }
-        //! Returns whether the Control key was pressed during the event.
-        bool		isControlDown() const { return mModifiers & CTRL_DOWN; }
-        //! Returns whether the meta key was pressed during the event. Maps to the Windows key on Windows and the Command key on Mac OS X.
-        bool		isMetaDown() const { return mModifiers & META_DOWN; }
-        //! Returns whether the accelerator key was pressed during the event. Maps to the Control key on Windows and the Command key on Mac OS X.
-        bool		isAccelDown() const { return mModifiers & ACCEL_DOWN; }
+        
         //! Returns the number of detents the user has wheeled through. Positive values correspond to wheel-up and negative to wheel-down.
         glm::ivec2 getWheelIncrement() const { return mWheelIncrement; }
-
+        
+        //! Returns whether the initiator for the event was the left mouse button
+        bool isLeft() const { return mInitiator & LEFT_DOWN; }
+        //! Returns whether the initiator for the event was the right mouse button
+        bool isRight() const { return mInitiator & RIGHT_DOWN; }
+        //! Returns whether the initiator for the event was the middle mouse button
+        bool isMiddle() const { return mInitiator & MIDDLE_DOWN; }
+        //! Returns whether the left mouse button was pressed during the event
+        bool isLeftDown() const { return mModifiers & LEFT_DOWN; }
+        //! Returns whether the right mouse button was pressed during the event
+        bool isRightDown() const { return mModifiers & RIGHT_DOWN; }
+        //! Returns whether the middle mouse button was pressed during the event
+        bool isMiddleDown() const { return mModifiers & MIDDLE_DOWN; }
+        //! Returns whether the Shift key was pressed during the event.
+        bool isShiftDown() const { return mModifiers & SHIFT_DOWN; }
+        //! Returns whether the Alt (or Option) key was pressed during the event.
+        bool isAltDown() const { return mModifiers & ALT_DOWN; }
+        //! Returns whether the Control key was pressed during the event.
+        bool isControlDown() const { return mModifiers & CTRL_DOWN; }
+        //! Returns whether the meta key was pressed during the event. Maps to the Windows key on Windows and the Command key on Mac OS X.
+        bool isMetaDown() const { return mModifiers & META_DOWN; }
+        
+        bool is_touched() const { return mModifiers & TOUCH_DOWN; }
+        
         //! the current touch id
         int	touch_id() const { return m_touch_id; }
 
@@ -223,15 +227,14 @@ namespace kinski
 
         enum
         {
-            LEFT_DOWN	= 0x0001,
-            RIGHT_DOWN	= 0x0002,
-            MIDDLE_DOWN = 0x0004,
-            SHIFT_DOWN	= 0x0008,
-            ALT_DOWN	= 0x0010,
-            CTRL_DOWN	= 0x0020,
-            META_DOWN	= 0x0040,
-            TOUCH_DOWN	= 0x0080,
-			      ACCEL_DOWN = META_DOWN
+            LEFT_DOWN	= 1 << 1,
+            RIGHT_DOWN	= 1 << 2,
+            MIDDLE_DOWN = 1 << 3,
+            SHIFT_DOWN	= 1 << 4,
+            ALT_DOWN	= 1 << 5,
+            CTRL_DOWN	= 1 << 6,
+            META_DOWN	= 1 << 7,
+            TOUCH_DOWN	= 1 << 8
         };
 
     private:

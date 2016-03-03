@@ -22,7 +22,7 @@ namespace kinski{ namespace gl{
     {
     public:
         
-        explicit OutstreamGL(uint32_t max_lines = 10);
+        explicit OutstreamGL(uint32_t max_lines = 11);
         explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 10);
         virtual ~OutstreamGL();
         
