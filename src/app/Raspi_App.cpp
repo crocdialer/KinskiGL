@@ -12,6 +12,7 @@
 
 using namespace std;
 
+std::string find_device_handler(const std::string &the_dev_name);
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd);
 void handle_input_events(kinski::App *the_app, const int mouse_fd,
                          const int kb_fd){};
@@ -341,7 +342,33 @@ namespace kinski
     }
 }// namespace
 
+std::string find_device_handler(const std::string &the_dev_name)
+{
+    // get list of input-devices
+    string dev_str = kinski::read_file("/proc/bus/input/devices");
+    auto lines = kinski::split(dev_str, '\n');
+    const std::string handler_token = "H:";
+    bool found_dev_name = false;
+    string evt_handler_name = "not_found";
 
+    for(const auto &l : lines)
+    {
+        if(!found_dev_name && (l.find(the_dev_name) != std::string::npos))
+        { found_dev_name = true; }
+
+        if(found_dev_name)
+        {
+            if(l.find(handler_token) != std::string::npos)
+            {
+                auto splits = kinski::split(l, '=');
+
+                if(!splits.empty()){ splits = kinski::split(splits.back(), ' '); }
+                if(!splits.empty()){ evt_handler_name = splits.back(); break; }
+            }
+        }
+    }
+    return kinski::join_paths("/dev/input/", evt_handler_name);
+}
 
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 {
@@ -401,7 +428,8 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     regfree(&kbd);
     regfree(&mouse);
 
-    string touch_dev_path = "/dev/input/event2";
+    // find touch device name
+    auto touch_dev_path = find_device_handler("FT5406");
 
     if(kinski::file_exists(touch_dev_path))
     {
