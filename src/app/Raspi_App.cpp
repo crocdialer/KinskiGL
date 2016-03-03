@@ -20,10 +20,18 @@ int32_t code_lookup(int32_t the_keycode);
 namespace kinski
 {
 
+    struct touch_struct
+    {
+        int32_t m_id = -1;
+        gl::vec2 m_current_pos;
+    };
+
     namespace
     {
         gl::vec2 current_mouse_pos;
         uint32_t button_modifiers = 0, key_modifiers = 0;
+        uint32_t current_touch_index = 0;
+        touch_struct current_touches[10];
     };
 
     void read_keyboard(kinski::App* the_app, int the_file_descriptor);
@@ -220,7 +228,7 @@ namespace kinski
             {
                 evp = &ev[n++];
 
-                // LOG_DEBUG << "type: " << evp->type << "-- code:" << evp->code;
+                // LOG_DEBUG << "type: " << evp->type << " -- code:" << evp->code;
 
                 // mouse press / release or touch
                 if(evp->type == 1)
@@ -243,7 +251,9 @@ namespace kinski
                           break;
 
                         case BTN_TOUCH:
-                          LOG_DEBUG << "TOUCH " << (evp->value ? "press" : "release");
+                          // LOG_DEBUG << "TOUCH " << (evp->value ? "press" : "release");
+                          if(evp->value){ button_modifiers |= MouseEvent::TOUCH_DOWN; }
+                          else{ button_modifiers ^= MouseEvent::TOUCH_DOWN;}
                           break;
 
                         default:
@@ -252,7 +262,8 @@ namespace kinski
                     uint32_t bothMods = key_modifiers | button_modifiers;
 
                     MouseEvent e(button_modifiers, current_mouse_pos.x,
-                                 current_mouse_pos.y, bothMods, glm::ivec2(0));
+                                 current_mouse_pos.y, bothMods, glm::ivec2(0), current_touch_index,
+                                 current_touches[current_touch_index].m_id);
                     if(evp->value){ the_app->mousePress(e); }
                     else{ the_app->mouseRelease(e); }
                 }
@@ -277,31 +288,29 @@ namespace kinski
                         // MT slot being modified
                         case ABS_MT_SLOT:
                             // LOG_DEBUG << "ABS_MT_SLOT: " << evp->value;
+                            current_touch_index = evp->value;
                             break;
 
                         // ABS_MT_TRACKING_ID
                         case ABS_MT_TRACKING_ID:
-                            LOG_DEBUG << "ABS_MT_TRACKING_ID: "  << evp->value;
+                            // LOG_DEBUG << "ABS_MT_TRACKING_ID: "  << evp->value;
+                            current_touches[current_touch_index].m_id = evp->value;
                             break;
 
                         case ABS_X:
-                            // LOG_DEBUG << "x: "  << evp->value;
-                            // current_mouse_pos.x = evp->value;
                             break;
 
                         case ABS_Y:
-                            // LOG_DEBUG << "y: "  << evp->value;
-                            // current_mouse_pos.y = evp->value;
                             break;
 
                         case ABS_MT_POSITION_X:
-                            // LOG_DEBUG << "x: "  << evp->value;
-                            current_mouse_pos.x = evp->value;
+                            current_touches[current_touch_index].m_current_pos.x = evp->value;
+                            current_mouse_pos.x = current_touches[0].m_current_pos.x;
                             break;
 
                         case ABS_MT_POSITION_Y:
-                            // LOG_DEBUG << "y: "  << evp->value;
-                            current_mouse_pos.y = evp->value;
+                            current_touches[current_touch_index].m_current_pos.y = evp->value;
+                            current_mouse_pos.y = current_touches[0].m_current_pos.y;
                             break;
 
                         default:
@@ -320,7 +329,8 @@ namespace kinski
                 {
                     uint32_t bothMods = key_modifiers | button_modifiers;
                     MouseEvent e(button_modifiers, current_mouse_pos.x,
-                    current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value));
+                    current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value), current_touch_index,
+                        current_touches[current_touch_index].m_id);
 
                     if(evp->code == REL_WHEEL){ the_app->mouseWheel(e); }
                     else if(button_modifiers){ the_app->mouseDrag(e); }
@@ -409,7 +419,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
         result = ioctl(touchFd, EVIOCGNAME(sizeof(name)), name);
         LOG_INFO_IF(!result) << "found input: " << name;
     }
-    
+
     if(keyboardFd != -1)
     {
         *kb_fd = keyboardFd;

@@ -100,7 +100,7 @@ namespace kinski
         virtual bool fullscreen() const {return m_fullscreen;};
         virtual void set_fullscreen(bool b, int monitor_index){ m_fullscreen = b; };
         void set_fullscreen(bool b = true){ set_fullscreen(b, 0); };
-        
+
         virtual void set_cursor_position(float x, float y){};
         virtual gl::vec2 cursor_position() const { return gl::vec2(); };
         virtual bool cursor_visible() const { return m_cursorVisible;};
@@ -112,24 +112,24 @@ namespace kinski
         float fps() const {return m_framesPerSec;};
 
         boost::asio::io_service& io_service(){return m_main_queue.io_service();};
-        
+
         /*!
          * the commandline arguments provided at application start
          */
         const std::vector<std::string>& args() const{ return m_args; };
-        
+
         /*!
          * this queue is being processed the main thread
          */
         ThreadPool& main_queue(){ return m_main_queue; }
         const ThreadPool& main_queue() const { return m_main_queue; }
-        
+
         /*!
          * the background queue is being processed by a background threadpool
          */
         ThreadPool& background_queue(){ return m_background_queue; }
         const ThreadPool& background_queue() const { return m_background_queue; }
-        
+
     private:
 
         virtual void init() = 0;
@@ -152,9 +152,9 @@ namespace kinski
         bool m_displayTweakBar;
         bool m_cursorVisible;
         float m_max_fps;
-        
+
         std::vector<std::string> m_args;
-        
+
         kinski::ThreadPool m_main_queue, m_background_queue;
     };
 
@@ -172,8 +172,16 @@ namespace kinski
     {
     public:
         MouseEvent() : Event() {}
-        MouseEvent( int aInitiator, int aX, int aY, unsigned int aModifiers, glm::ivec2 aWheelIncrement )
-		: Event(), mInitiator( aInitiator ), mX( aX ), mY( aY ), mModifiers( aModifiers ), mWheelIncrement( aWheelIncrement )
+        MouseEvent(int aInitiator, int aX, int aY, unsigned int aModifiers,
+                   glm::ivec2 aWheelIncrement, int the_touch_idx = 0, int the_touch_id = 0):
+            Event(),
+            mInitiator(aInitiator),
+            mX(aX),
+            mY(aY),
+            mModifiers(aModifiers),
+            mWheelIncrement(aWheelIncrement),
+            m_touch_index(the_touch_idx),
+            m_touch_id(the_touch_id)
         {}
 
         //! Returns the X coordinate of the mouse event
@@ -183,42 +191,47 @@ namespace kinski
         //! Returns the coordinates of the mouse event
         glm::ivec2	getPos() const { return glm::ivec2( mX, mY ); }
         //! Returns whether the initiator for the event was the left mouse button
-        bool		isLeft() const { return ( mInitiator & LEFT_DOWN ) ? true : false; }
+        bool		isLeft() const { return mInitiator & LEFT_DOWN; }
         //! Returns whether the initiator for the event was the right mouse button
-        bool		isRight() const { return ( mInitiator & RIGHT_DOWN ) ? true : false; }
+        bool		isRight() const { return mInitiator & RIGHT_DOWN; }
         //! Returns whether the initiator for the event was the middle mouse button
-        bool		isMiddle() const { return ( mInitiator & MIDDLE_DOWN ) ? true : false; }
+        bool		isMiddle() const { return mInitiator & MIDDLE_DOWN; }
         //! Returns whether the left mouse button was pressed during the event
-        bool		isLeftDown() const { return (mModifiers & LEFT_DOWN) ? true : false; }
+        bool		isLeftDown() const { return mModifiers & LEFT_DOWN; }
         //! Returns whether the right mouse button was pressed during the event
-        bool		isRightDown() const { return (mModifiers & RIGHT_DOWN) ? true : false; }
+        bool		isRightDown() const { return mModifiers & RIGHT_DOWN; }
         //! Returns whether the middle mouse button was pressed during the event
-        bool		isMiddleDown() const { return (mModifiers & MIDDLE_DOWN) ? true : false; }
+        bool		isMiddleDown() const { return mModifiers & MIDDLE_DOWN; }
         //! Returns whether the Shift key was pressed during the event.
-        bool		isShiftDown() const { return (mModifiers & SHIFT_DOWN) ? true : false; }
+        bool		isShiftDown() const { return mModifiers & SHIFT_DOWN; }
         //! Returns whether the Alt (or Option) key was pressed during the event.
-        bool		isAltDown() const { return (mModifiers & ALT_DOWN) ? true : false; }
+        bool		isAltDown() const { return mModifiers & ALT_DOWN; }
         //! Returns whether the Control key was pressed during the event.
-        bool		isControlDown() const { return (mModifiers & CTRL_DOWN) ? true : false; }
+        bool		isControlDown() const { return mModifiers & CTRL_DOWN; }
         //! Returns whether the meta key was pressed during the event. Maps to the Windows key on Windows and the Command key on Mac OS X.
-        bool		isMetaDown() const { return (mModifiers & META_DOWN) ? true : false; }
+        bool		isMetaDown() const { return mModifiers & META_DOWN; }
         //! Returns whether the accelerator key was pressed during the event. Maps to the Control key on Windows and the Command key on Mac OS X.
-        bool		isAccelDown() const { return (mModifiers & ACCEL_DOWN) ? true : false; }
+        bool		isAccelDown() const { return mModifiers & ACCEL_DOWN; }
         //! Returns the number of detents the user has wheeled through. Positive values correspond to wheel-up and negative to wheel-down.
         glm::ivec2 getWheelIncrement() const { return mWheelIncrement; }
 
-        enum {	LEFT_DOWN	= 0x0001,
-                RIGHT_DOWN	= 0x0002,
-                MIDDLE_DOWN = 0x0004,
-                SHIFT_DOWN	= 0x0008,
-                ALT_DOWN	= 0x0010,
-                CTRL_DOWN	= 0x0020,
-                META_DOWN	= 0x0040,
-#if defined( KINSKI_MSW )
-			ACCEL_DOWN	= CTRL_DOWN
-#else
-			ACCEL_DOWN	= META_DOWN
-#endif
+        //! the current touch id
+        int	touch_id() const { return m_touch_id; }
+
+        //! the current touch id
+        int	touch_index() const { return m_touch_index; }
+
+        enum
+        {
+            LEFT_DOWN	= 0x0001,
+            RIGHT_DOWN	= 0x0002,
+            MIDDLE_DOWN = 0x0004,
+            SHIFT_DOWN	= 0x0008,
+            ALT_DOWN	= 0x0010,
+            CTRL_DOWN	= 0x0020,
+            META_DOWN	= 0x0040,
+            TOUCH_DOWN	= 0x0080,
+			      ACCEL_DOWN = META_DOWN
         };
 
     private:
@@ -226,6 +239,7 @@ namespace kinski
         int				mX, mY;
         unsigned int	mModifiers;
         glm::ivec2		mWheelIncrement;
+        int m_touch_index = 0, m_touch_id = 0;
     };
 
     //! Represents a keyboard event
