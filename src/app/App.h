@@ -227,14 +227,15 @@ namespace kinski
 
         enum
         {
-            LEFT_DOWN	= 1 << 1,
-            RIGHT_DOWN	= 1 << 2,
-            MIDDLE_DOWN = 1 << 3,
-            SHIFT_DOWN	= 1 << 4,
-            ALT_DOWN	= 1 << 5,
-            CTRL_DOWN	= 1 << 6,
-            META_DOWN	= 1 << 7,
-            TOUCH_DOWN	= 1 << 8
+            LEFT_DOWN	= 0x0001,
+            RIGHT_DOWN	= 0x0002,
+            MIDDLE_DOWN = 0x0004,
+            SHIFT_DOWN	= 0x0008,
+            ALT_DOWN	= 0x0010,
+            CTRL_DOWN	= 0x0020,
+            META_DOWN	= 0x0040,
+            TOUCH_DOWN	= 0x0080,
+            ACCEL_DOWN = META_DOWN
         };
 
     private:
