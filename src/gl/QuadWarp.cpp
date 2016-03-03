@@ -89,13 +89,14 @@ namespace kinski{ namespace gl{
         if(!the_texture){ return; }
         if(!m_impl){ m_impl.reset(new Impl); }
         
+#if !defined(KINSKI_GLES)
         if(the_texture.getTarget() == GL_TEXTURE_RECTANGLE)
         {
             m_impl->m_mesh->material()->setShader(m_impl->m_shader_warp_vert_rect);
             m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.getSize());
         }
         else{ m_impl->m_mesh->material()->setShader(m_impl->m_shader_warp_vert); }
-        
+#endif
         m_impl->m_mesh->material()->textures() = {the_texture};
         
         auto cp = m_impl->m_control_points;
