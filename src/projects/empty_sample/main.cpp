@@ -1,4 +1,4 @@
-#include "EmptySample.h"
+#include "EmptySample.hpp"
 #include "core/networking.hpp"
 
 int main(int argc, char *argv[])

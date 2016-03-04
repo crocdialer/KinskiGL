@@ -12,6 +12,22 @@ using namespace std;
 using namespace kinski;
 using namespace glm;
 
+namespace
+{
+    gl::Color color_palette[10] =
+    {
+        gl::COLOR_DARK_RED,
+        gl::COLOR_OLIVE,
+        gl::COLOR_ORANGE,
+        gl::COLOR_PURPLE,
+        gl::COLOR_WHITE,
+        gl::COLOR_RED,
+        gl::COLOR_GREEN,
+        gl::COLOR_BLUE,
+        gl::COLOR_YELLOW,
+        gl::COLOR_GRAY
+    };
+}
 
 /////////////////////////////////////////////////////////////////
 
@@ -19,6 +35,7 @@ void TouchSample::setup()
 {
     ViewerApp::setup();
     observe_properties();
+    register_property(m_circle_radius);
     add_tweakbar_for_component(shared_from_this());
     load_settings();
 }
@@ -34,7 +51,10 @@ void TouchSample::update(float timeDelta)
 
 void TouchSample::draw()
 {
-    
+    for(const auto &t : m_current_touches)
+    {
+        gl::draw_circle(t->m_position, *m_circle_radius, color_palette[t->m_slot_index]);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -83,21 +103,21 @@ void TouchSample::mouseMove(const MouseEvent &e)
 
 void TouchSample::touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches)
 {
-
+    m_current_touches = the_touches;
 }
 
 /////////////////////////////////////////////////////////////////
 
 void TouchSample::touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches)
 {
-
+    m_current_touches = the_touches;
 }
 
 /////////////////////////////////////////////////////////////////
 
 void TouchSample::touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches)
 {
-
+    m_current_touches = the_touches;
 }
 
 /////////////////////////////////////////////////////////////////

@@ -30,7 +30,6 @@ namespace kinski{ namespace gl{
         m_camera = gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1);
         
         gl::MeshPtr m_mesh, m_grid_mesh;
-        gl::MaterialPtr m_handle_material;
         gl::Shader m_shader_warp_vert, m_shader_warp_vert_rect;
         
         Impl(uint32_t the_res_w = 16, uint32_t the_res_h = 9):
@@ -75,7 +74,6 @@ namespace kinski{ namespace gl{
             grid_mat->setDepthTest(false);
             grid_mat->setDepthWrite(false);
             m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
-            m_handle_material = gl::Material::create();
         }
     };
     
@@ -120,8 +118,8 @@ namespace kinski{ namespace gl{
         
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
-            gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f, false,
-                            32, m_impl->m_handle_material);
+            gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f,
+                            gl::COLOR_WHITE, false);
         }
     }
     

@@ -15,7 +15,11 @@ namespace kinski
     class TouchSample : public ViewerApp
     {
     private:
+        
         std::set<const Touch*> m_current_touches;
+        
+        // properties
+        Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 15.f);
         
     public:
         TouchSample(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

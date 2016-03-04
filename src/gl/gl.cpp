@@ -1101,8 +1101,24 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_circle(const glm::vec2 &center, float radius, bool solid, int numSegments,
-                     const MaterialPtr &theMaterial)
+    void draw_circle(const vec2 &center, float radius, const gl::Color &the_color, bool solid)
+    {
+        static gl::MaterialPtr color_mat;
+        
+        if(!color_mat)
+        {
+            color_mat = gl::Material::create();
+            color_mat->setDepthTest(false);
+            color_mat->setDepthWrite(false);
+        }
+        color_mat->setDiffuse(the_color);
+        draw_circle(center, radius, solid, color_mat);
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    void draw_circle(const glm::vec2 &center, float radius, bool solid,
+                     const MaterialPtr &theMaterial, int numSegments)
     {
         static gl::MeshPtr solid_mesh, line_mesh;
         static gl::MaterialPtr default_mat;
