@@ -21,161 +21,161 @@ namespace kinski
     class KeyEvent;
     class JoystickState;
     struct Touch;
-
+    
     class KINSKI_API Window
     {
     public:
         typedef std::function<void()> DrawFunction;
         typedef std::function<void()> CloseFunction;
-
+        
         virtual ~Window(){ if(m_close_function) m_close_function(); };
-
+        
         virtual void draw() const = 0;
         virtual gl::vec2 framebuffer_size() const = 0;
-
+        
         virtual gl::vec2 size() const = 0;
         virtual void set_size(const gl::vec2 &the_sz) = 0;
         virtual gl::vec2 position() const = 0;
         virtual void set_position(const gl::vec2 &the_pos) = 0;
         virtual std::string title(const std::string &the_name) const = 0;
         virtual void set_title(const std::string &the_name) = 0;
-
+        
         void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
         void set_close_function(CloseFunction the_close_function){ m_close_function = the_close_function; }
-
+        
     protected:
         DrawFunction m_draw_function;
         CloseFunction m_close_function;
     };
-
+    
     class KINSKI_API App : public Component
     {
     public:
         typedef std::shared_ptr<App> Ptr;
         typedef std::weak_ptr<App> WeakPtr;
-
+        
         App(int argc = 0, char *argv[] = nullptr);
         virtual ~App();
-
+        
         int run();
-
+        
         // you are supposed to implement these in a subclass
         virtual void setup() = 0;
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
         virtual void tearDown() = 0;
         virtual double getApplicationTime() = 0;
-
+        
         // these are optional overrides
         virtual void set_window_size(const glm::vec2 &size);
         virtual void set_window_title(const std::string &the_name){};
         virtual void resize(int w, int h){};
-
+        
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};
         virtual void mouseMove(const MouseEvent &e){};
         virtual void mouseDrag(const MouseEvent &e){};
         virtual void mouseWheel(const MouseEvent &e){};
-
+        
         virtual void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         virtual void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         virtual void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
-
+        
         virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
-
+        
         virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
-
+        
         virtual void add_window(WindowPtr the_window){};
-
+        
         virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
         virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
-
+        
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
-
+        
         inline bool running() const {return m_running;};
         inline void set_running(bool b){m_running = b;}
-
+        
         inline void displayTweakBar(bool b) {m_displayTweakBar = b;};
         inline bool displayTweakBar() const {return m_displayTweakBar;};
-
+        
         inline float getWidth(){return m_windowSize[0];};
         inline float getHeight(){return m_windowSize[1];};
         inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
-
+        
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};
-
+        
         virtual bool fullscreen() const {return m_fullscreen;};
         virtual void set_fullscreen(bool b, int monitor_index){ m_fullscreen = b; };
         void set_fullscreen(bool b = true){ set_fullscreen(b, 0); };
-
+        
         virtual void set_cursor_position(float x, float y){};
         virtual gl::vec2 cursor_position() const { return gl::vec2(); };
         virtual bool cursor_visible() const { return m_cursorVisible;};
         virtual void set_cursor_visible(bool b = true){ m_cursorVisible = b;};
-
+        
         /*!
          * return current frames per second
          */
         float fps() const {return m_framesPerSec;};
-
+        
         boost::asio::io_service& io_service(){return m_main_queue.io_service();};
-
+        
         /*!
          * the commandline arguments provided at application start
          */
         const std::vector<std::string>& args() const{ return m_args; };
-
+        
         /*!
          * this queue is processed by the main thread
          */
         ThreadPool& main_queue(){ return m_main_queue; }
         const ThreadPool& main_queue() const { return m_main_queue; }
-
+        
         /*!
          * the background queue is processed by a background threadpool
          */
         ThreadPool& background_queue(){ return m_background_queue; }
         const ThreadPool& background_queue() const { return m_background_queue; }
-
+        
     private:
-
+        
         virtual void init() = 0;
         virtual void pollEvents() = 0;
         virtual void swapBuffers() = 0;
-
+        
         void timing(double timeStamp);
         virtual void draw_internal();
         virtual bool checkRunning(){return m_running;};
-
+        
         uint32_t m_framesDrawn;
         double m_lastTimeStamp;
         double m_lastMeasurementTimeStamp;
         float m_framesPerSec;
         double m_timingInterval;
-
+        
         glm::vec2 m_windowSize;
         bool m_running;
         bool m_fullscreen;
         bool m_displayTweakBar;
         bool m_cursorVisible;
         float m_max_fps;
-
+        
         std::vector<std::string> m_args;
-
+        
         kinski::ThreadPool m_main_queue, m_background_queue;
     };
-
+    
     //! Base class for all Events
     class Event {
     protected:
         Event() {}
-
+        
     public:
         virtual ~Event() {}
     };
-
+    
     //! Represents a mouse event
     class KINSKI_API MouseEvent : public Event
     {
@@ -192,19 +192,19 @@ namespace kinski
         m_touch_index(the_touch_idx),
         m_touch_id(the_touch_id)
         {}
-
+        
         //! Returns the X coordinate of the mouse event
         int getX() const { return m_x; }
-
+        
         //! Returns the Y coordinate of the mouse event
         int getY() const { return m_y; }
-
+        
         //! Returns the coordinates of the mouse event
         glm::ivec2 getPos() const { return glm::ivec2(m_x, m_y); }
-
+        
         //! Returns the number of detents the user has wheeled through. Positive values correspond to wheel-up and negative to wheel-down.
         glm::ivec2 getWheelIncrement() const { return m_wheel_inc; }
-
+        
         //! Returns whether the initiator for the event was the left mouse button
         bool isLeft() const { return m_initiator & LEFT_DOWN; }
         //! Returns whether the initiator for the event was the right mouse button
@@ -225,16 +225,16 @@ namespace kinski
         bool isControlDown() const { return m_modifiers & CTRL_DOWN; }
         //! Returns whether the meta key was pressed during the event. Maps to the Windows key on Windows and the Command key on Mac OS X.
         bool isMetaDown() const { return m_modifiers & META_DOWN; }
-
+        
         //! true if this MouseEvent is generated by a touch-interface
         bool is_touch() const { return m_modifiers & TOUCH_DOWN; }
-
+        
         //! the current touch id
         int	touch_id() const { return m_touch_id; }
-
+        
         //! the current touch id
         int	touch_index() const { return m_touch_index; }
-
+        
         enum
         {
             LEFT_DOWN	= (1 << 0),
@@ -246,7 +246,7 @@ namespace kinski
             META_DOWN	= (1 << 6),
             TOUCH_DOWN	= (1 << 7)
         };
-
+        
     private:
         int m_initiator = 0;
         int	m_x = 0, m_y = 0;
@@ -255,7 +255,7 @@ namespace kinski
         int m_touch_index = 0;
         int m_touch_id = 0;
     };
-
+    
     //! Represents a keyboard event
     class KINSKI_API KeyEvent : public Event
     {
@@ -265,28 +265,28 @@ namespace kinski
         m_code(the_code),
         m_char(the_char),
         m_modifiers(the_modifiers){}
-
+        
         //! Returns the key code associated with the event, which maps into the enum listed below
         int getCode() const { return m_code; }
-
+        
         //! Returns the ASCII character associated with the event.
         uint8_t	getChar() const { return m_char; }
-
+        
         //! Returns whether the Shift key was pressed during the event.
         bool isShiftDown() const { return m_modifiers & SHIFT_DOWN; }
-
+        
         //! Returns whether the Alt (or Option) key was pressed during the event.
         bool isAltDown() const { return m_modifiers & ALT_DOWN; }
-
+        
         //! Returns whether the Control key was pressed during the event.
         bool isControlDown() const { return m_modifiers & CTRL_DOWN; }
-
+        
         //! Returns whether the meta key was pressed during the event. Maps to the Windows key on Windows and the Command key on Mac OS X.
         bool isMetaDown() const { return m_modifiers & META_DOWN; }
-
+        
         //! Maps a platform-native key-code to the key code enum
         static int translate_native_keycode(int the_code);
-
+        
         enum
         {
             SHIFT_DOWN	= (1 << 3),
@@ -294,13 +294,13 @@ namespace kinski
             CTRL_DOWN	= (1 << 5),
             META_DOWN	= (1 << 6)
         };
-
+        
     protected:
         int m_code = 0;
         char m_char = 0;
         uint32_t m_modifiers = 0;
     };
-
+    
     class JoystickState
     {
     public:
@@ -310,31 +310,31 @@ namespace kinski
         m_name(n),
         m_buttons(b),
         m_axis(a){}
-
+        
         const std::string& name() const { return m_name; };
         const std::vector<uint8_t>& buttons() const { return m_buttons; };
         const std::vector<float>& axis() const { return m_axis; };
-
+        
     private:
         std::string m_name;
         std::vector<uint8_t> m_buttons;
         std::vector<float> m_axis;
     };
-
+    
     struct Touch
     {
         int32_t m_id = -1;
         uint32_t m_slot_index = 0;
         gl::vec2 m_position;
     };
-
+    
     struct Key
     {
         enum Type
         {
             /* The unknown key */
             _UNKNOWN = -1,
-
+            
             /* Printable keys */
             _SPACE = 32,
             _APOSTROPHE = 39,  /* ' */
@@ -386,7 +386,7 @@ namespace kinski
             _GRAVE_ACCENT = 96,  /* ` */
             _WORLD_1 = 161, /* non-US #1 */
             _WORLD_2 = 162, /* non-US #2 */
-
+            
             /* Function keys */
             _ESCAPE = 256,
             _ENTER = 257,
@@ -462,4 +462,3 @@ namespace kinski
         };
     };
 }
-                                               
