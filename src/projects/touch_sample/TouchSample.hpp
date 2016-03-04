@@ -9,6 +9,7 @@
 #pragma once
 
 #include "app/ViewerApp.h"
+#include "gl/Noise.hpp"
 
 namespace kinski
 {
@@ -17,6 +18,8 @@ namespace kinski
     private:
         
         std::set<const Touch*> m_current_touches;
+        
+        gl::Noise m_noise;
         
         // properties
         Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 65.f);

@@ -45,6 +45,7 @@ void TouchSample::setup()
 void TouchSample::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
+    textures()[0] = m_noise.simplex(getApplicationTime());
 }
 
 /////////////////////////////////////////////////////////////////
@@ -55,6 +56,7 @@ void TouchSample::draw()
     {
         gl::draw_circle(t->m_position, *m_circle_radius, color_palette[t->m_slot_index]);
     }
+    if(displayTweakBar()){ draw_textures(textures()); }
 }
 
 /////////////////////////////////////////////////////////////////
