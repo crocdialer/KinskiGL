@@ -18,19 +18,12 @@ int32_t code_lookup(int32_t the_keycode);
 
 namespace kinski
 {
-
-    struct touch_struct
-    {
-        int32_t m_id = -1;
-        gl::vec2 m_current_pos;
-    };
-
     namespace
     {
         gl::vec2 current_mouse_pos;
         uint32_t button_modifiers = 0, key_modifiers = 0;
         uint32_t current_touch_index = 0;
-        touch_struct current_touches[10];
+        Touch current_touches[10];
     };
 
     void read_keyboard(kinski::App* the_app, int the_file_descriptor);
@@ -228,7 +221,7 @@ namespace kinski
 
         if(rd > 0)
         {
-            int count,n;
+            int count, n;
             struct input_event *evp;
 
             count = rd / sizeof(struct input_event);
@@ -238,6 +231,7 @@ namespace kinski
             {
                 evp = &ev[n++];
                 // LOG_DEBUG << "type: " << evp->type << " -- code:" << evp->code;
+                bool touch_id_changed = false, generate_event = true;
 
                 // mouse press / release or touch
                 if(evp->type == 1)
@@ -267,13 +261,6 @@ namespace kinski
                         default:
                           break;
                     }
-                    uint32_t bothMods = key_modifiers | button_modifiers;
-
-                    MouseEvent e(button_modifiers, current_mouse_pos.x,
-                                 current_mouse_pos.y, bothMods, glm::ivec2(0), current_touch_index,
-                                 current_touches[current_touch_index].m_id);
-                    if(evp->value){ the_app->mousePress(e); }
-                    else{ the_app->mouseRelease(e); }
                 }
 
                 // mouse move / wheel
@@ -297,28 +284,29 @@ namespace kinski
                         case ABS_MT_SLOT:
                             // LOG_DEBUG << "ABS_MT_SLOT: " << evp->value;
                             current_touch_index = evp->value;
+                            generate_event = false;
                             break;
 
                         // ABS_MT_TRACKING_ID
                         case ABS_MT_TRACKING_ID:
                             // LOG_DEBUG << "ABS_MT_TRACKING_ID: "  << evp->value;
+                            current_touches[current_touch_index].m_slot_index = current_touch_index;
                             current_touches[current_touch_index].m_id = evp->value;
+                            touch_id_changed = true;
                             break;
 
                         case ABS_X:
-                            break;
-
                         case ABS_Y:
                             break;
 
                         case ABS_MT_POSITION_X:
-                            current_touches[current_touch_index].m_current_pos.x = evp->value;
-                            current_mouse_pos.x = current_touches[0].m_current_pos.x;
+                            current_touches[current_touch_index].m_position.x = evp->value;
+                            current_mouse_pos.x = current_touches[0].m_position.x;
                             break;
 
                         case ABS_MT_POSITION_Y:
-                            current_touches[current_touch_index].m_current_pos.y = evp->value;
-                            current_mouse_pos.y = current_touches[0].m_current_pos.y;
+                            current_touches[current_touch_index].m_position.y = evp->value;
+                            current_mouse_pos.y = current_touches[0].m_position.y;
                             break;
 
                         default:
@@ -332,17 +320,44 @@ namespace kinski
                     // LOG_DEBUG << "unhandled event -- type: " << evp->type << " -- code:" << evp->code;
                 }
 
-                // generate mouse event
-                if(evp->type == 2 || evp->type == 3)
-                {
-                    uint32_t bothMods = key_modifiers | button_modifiers;
-                    MouseEvent e(button_modifiers, current_mouse_pos.x,
-                    current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value), current_touch_index,
-                        current_touches[current_touch_index].m_id);
+                // skip event generation, continue loop
+                if(!generate_event){ continue; }
 
+                uint32_t bothMods = key_modifiers | button_modifiers;
+                MouseEvent e(button_modifiers, current_mouse_pos.x,
+                current_mouse_pos.y, bothMods, glm::ivec2(0, evp->value), current_touch_index,
+                    current_touches[current_touch_index].m_id);
+
+                // press /release
+                if(evp->type == 1)
+                {
+                    if(evp->value){ the_app->mousePress(e); }
+                    else{ the_app->mouseRelease(e); }
+                }
+                else if(evp->type == 2 || evp->type == 3)
+                {
                     if(evp->code == REL_WHEEL){ the_app->mouseWheel(e); }
                     else if(button_modifiers){ the_app->mouseDrag(e); }
                     else{ the_app->mouseMove(e);}
+                }
+
+                if(e.is_touch() || touch_id_changed)
+                {
+                    // generate touch-set
+                    std::set<const Touch*> touches;
+
+                    // for(uint32_t i = 0; i < 10; i++)
+                    for(Touch &t : current_touches)
+                    {
+                        if(t.m_id != -1){ touches.insert(&t); }
+                    }
+
+                    if(touch_id_changed)
+                    {
+                        if(evp->value == -1){ the_app->touch_end(e, touches); }
+                        else{ the_app->touch_begin(e, touches); }
+                    }
+                    else{ the_app->touch_move(e, touches); }
                 }
             }
         }
