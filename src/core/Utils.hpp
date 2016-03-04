@@ -194,7 +194,7 @@ namespace kinski
         m_array_size(0),
         m_first(0),
         m_last(0),
-        m_data(NULL)
+        m_data(nullptr)
         {
             set_capacity(the_cap);
         }

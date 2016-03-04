@@ -6,14 +6,13 @@
 //
 //
 
-#ifndef __gl__OpenNIConnector__
-#define __gl__OpenNIConnector__
+#pragma once
 
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-#include "gl/gl.h"
-#include "core/Component.h"
+#include "gl/gl.hpp"
+#include "core/Component.hpp"
 
 // forward declare OpenNI stuff to avoid header inclusion
 namespace xn
@@ -96,5 +95,3 @@ namespace kinski{ namespace gl{
     };
     
 }}//namespace
-
-#endif /* defined(__gl__OpenNIConnector__) */

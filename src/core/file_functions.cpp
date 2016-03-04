@@ -237,7 +237,16 @@ namespace kinski {
         file_out.close();
         return true;
     }
-
+    
+    bool append_to_file(const std::string &the_file_name, const std::string &the_data)
+    {
+        std::ofstream file_out(the_file_name, ios::out | ios::app);
+        if(!file_out){ return false; }
+        file_out << the_data;
+        file_out.close();
+        return true;
+    }
+    
     std::string get_filename_part(const std::string &theFileName)
     {
         return path(theFileName).filename().string();

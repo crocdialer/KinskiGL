@@ -36,6 +36,7 @@ namespace kinski {
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename);
     bool write_file(const std::string &the_file_name, const std::string &the_data);
     bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data);
+    bool append_to_file(const std::string &the_file_name, const std::string &the_data);
     std::string get_filename_part(const std::string &theFileName);
     std::string get_directory_part(const std::string &theFileName);
     std::string search_file(const std::string &theFileName, bool use_entire_path = true);

@@ -14,8 +14,6 @@ using namespace std;
 
 std::string find_device_handler(const std::string &the_dev_name);
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd);
-void handle_input_events(kinski::App *the_app, const int mouse_fd,
-                         const int kb_fd){};
 int32_t code_lookup(int32_t the_keycode);
 
 namespace kinski
@@ -239,7 +237,6 @@ namespace kinski
             while(count--)
             {
                 evp = &ev[n++];
-
                 // LOG_DEBUG << "type: " << evp->type << " -- code:" << evp->code;
 
                 // mouse press / release or touch
@@ -263,7 +260,6 @@ namespace kinski
                           break;
 
                         case BTN_TOUCH:
-                          // LOG_DEBUG << "TOUCH " << (evp->value ? "press" : "release");
                           if(evp->value){ button_modifiers |= MouseEvent::TOUCH_DOWN; }
                           else{ button_modifiers ^= MouseEvent::TOUCH_DOWN;}
                           break;
@@ -444,8 +440,6 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 
     if(kinski::file_exists(touch_dev_path))
     {
-        // printf("match for the mouse = %s\n", dp->d_name);
-        // sprintf(fullPath,"%s/%s", dirName, dp->d_name);
         sprintf(fullPath,touch_dev_path.c_str());
         touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);
 

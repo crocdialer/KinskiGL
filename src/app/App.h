@@ -20,6 +20,7 @@ namespace kinski
     class MouseEvent;
     class KeyEvent;
     class JoystickState;
+    struct Touch;
 
     class KINSKI_API Window
     {
@@ -74,11 +75,13 @@ namespace kinski
         virtual void mouseMove(const MouseEvent &e){};
         virtual void mouseDrag(const MouseEvent &e){};
         virtual void mouseWheel(const MouseEvent &e){};
+        virtual void touch_begin(const MouseEvent &e, const std::set<Touch> &the_touches){};
+        virtual void touch_end(const MouseEvent &e, const std::set<Touch> &the_touches){};
+        virtual void touch_move(const MouseEvent &e, const std::set<Touch> &the_touches){};
         virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
         virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
         virtual void got_message(const std::vector<uint8_t> &the_data){};
-        virtual void setCursorPosition(float x, float y){};
         virtual void add_window(WindowPtr the_window){};
         virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
         virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
@@ -119,13 +122,13 @@ namespace kinski
         const std::vector<std::string>& args() const{ return m_args; };
 
         /*!
-         * this queue is being processed the main thread
+         * this queue is processed by the main thread
          */
         ThreadPool& main_queue(){ return m_main_queue; }
         const ThreadPool& main_queue() const { return m_main_queue; }
 
         /*!
-         * the background queue is being processed by a background threadpool
+         * the background queue is processed by a background threadpool
          */
         ThreadPool& background_queue(){ return m_background_queue; }
         const ThreadPool& background_queue() const { return m_background_queue; }
@@ -310,7 +313,14 @@ namespace kinski
         std::vector<uint8_t> m_buttons;
         std::vector<float> m_axis;
     };
-
+    
+    struct Touch
+    {
+        int32_t m_id;
+        uint32_t m_slot_index;
+        gl::vec2 m_position;
+    };
+    
     struct Key
     {
         enum Type

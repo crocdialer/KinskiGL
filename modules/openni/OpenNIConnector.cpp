@@ -13,8 +13,8 @@
 
 //#include <ni2/OpenNI.h>
 
-#include "gl/Texture.h"
-#include "gl/Buffer.h"
+#include "gl/Texture.hpp"
+#include "gl/Buffer.hpp"
 #include <boost/timer/timer.hpp>
 #include "OpenNIConnector.h"
 
@@ -76,9 +76,9 @@ namespace kinski{ namespace gl{
     m_oni_path(Property_<string>::create("Oni path", ""))
     {
         set_name("OpenNIConnector");
-        registerProperty(m_live_input);
-        registerProperty(m_config_path);
-        registerProperty(m_oni_path);
+        register_property(m_live_input);
+        register_property(m_config_path);
+        register_property(m_oni_path);
         
         m_user_colors.resize(50);
         for (int i= 0; i < m_user_colors.size(); ++i)
