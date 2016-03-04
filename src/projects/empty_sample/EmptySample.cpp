@@ -82,6 +82,27 @@ void EmptySample::mouseMove(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
+void EmptySample::touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////
+
+void EmptySample::touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////
+
+void EmptySample::touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////
+
 void EmptySample::mouseDrag(const MouseEvent &e)
 {
     ViewerApp::mouseDrag(e);

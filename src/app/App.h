@@ -70,21 +70,27 @@ namespace kinski
         virtual void set_window_size(const glm::vec2 &size);
         virtual void set_window_title(const std::string &the_name){};
         virtual void resize(int w, int h){};
+        
         virtual void mousePress(const MouseEvent &e){};
         virtual void mouseRelease(const MouseEvent &e){};
         virtual void mouseMove(const MouseEvent &e){};
         virtual void mouseDrag(const MouseEvent &e){};
         virtual void mouseWheel(const MouseEvent &e){};
+        
         virtual void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         virtual void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         virtual void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
+        
         virtual void keyPress(const KeyEvent &e){};
         virtual void keyRelease(const KeyEvent &e){};
+        
         virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
-        virtual void got_message(const std::vector<uint8_t> &the_data){};
+        
         virtual void add_window(WindowPtr the_window){};
+        
         virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
         virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
+        
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
 
         inline bool running() const {return m_running;};

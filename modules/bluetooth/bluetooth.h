@@ -6,10 +6,9 @@
 //
 //
 
-#ifndef __kinski__Bluetooth__
-#define __kinski__Bluetooth__
+#pragma once
 
-#include "core/core.h"
+#include "core/core.hpp"
 
 namespace kinski{ namespace bluetooth{
     
@@ -38,5 +37,3 @@ namespace kinski{ namespace bluetooth{
     };
     
 }}//namespace
-
-#endif /* defined(__kinski__Bluetooth__) */
