@@ -19,7 +19,7 @@ namespace kinski
         std::set<const Touch*> m_current_touches;
         
         // properties
-        Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 15.f);
+        Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 65.f);
         
     public:
         TouchSample(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};
