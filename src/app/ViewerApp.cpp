@@ -168,7 +168,7 @@ namespace kinski {
         m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
 
-        if(e.isLeft() || e.is_touched())
+        if(e.isLeft() || e.is_touch())
         {
             gl::Object3DPtr picked_obj = m_scene.pick(gl::calculate_ray(m_camera, glm::vec2(e.getX(),
                                                                                            e.getY())),
@@ -193,7 +193,7 @@ namespace kinski {
     {
         glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
 
-        if(e.isLeft() || e.is_touched())
+        if(e.isLeft() || e.is_touch())
         {
 
             if(e.isAltDown() || !displayTweakBar())
