@@ -454,7 +454,30 @@ namespace kinski {
             offset += step;
         }
     }
-
+    
+    void ViewerApp::async_load_texture(const std::string &the_path,
+                                       std::function<void(const gl::Texture&)> the_callback,
+                                       bool mip_map, bool compress)
+    {
+        background_queue().submit([this, the_path, the_callback, mip_map, compress]()
+        {
+            gl::Image img;
+            try
+            {
+                auto dataVec = kinski::read_binary_file(the_path);
+                img = gl::decode_image(dataVec);
+            }
+            catch (Exception &e) { LOG_WARNING << e.what(); }
+          
+            main_queue().submit([this, img, the_callback, mip_map, compress]()
+            {
+                auto tex = gl::create_texture_from_image(img, mip_map, compress);
+                free(img.data);
+                the_callback(tex);
+            });
+        });
+    }
+    
     gl::Texture ViewerApp::generate_snapshot()
     {
         gl::Texture ret;

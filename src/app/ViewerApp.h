@@ -88,6 +88,10 @@ namespace kinski {
         
         void draw_textures(const std::vector<gl::Texture> &the_textures);
         
+        void async_load_texture(const std::string &the_path,
+                                std::function<void(const gl::Texture&)> the_callback,
+                                bool mip_map = false, bool compress = false);
+        
         gl::Texture generate_snapshot();
         gl::Texture& snapshot_texture(){ return m_snapshot_texture; }
         
