@@ -178,8 +178,8 @@ namespace kinski
         //---------------------------------
 
         // AntTweakbar
-        TwInit(TW_OPENGL_CORE, NULL);
-        TwWindowSize(main_window->size().x, main_window->size().y);
+        TwInit(TW_OPENGL_CORE, nullptr);
+        set_window_size(main_window->size());
 
         // call user defined setup callback
         setup();

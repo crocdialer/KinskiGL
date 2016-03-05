@@ -17,6 +17,8 @@ namespace kinski
     {
     private:
         
+        enum FontEnum{FONT_NORMAL = 0, FONT_LARGE = 1};
+        
         std::set<const Touch*> m_current_touches;
         
         gl::Noise m_noise;

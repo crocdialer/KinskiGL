@@ -271,8 +271,8 @@ namespace kinski { namespace gl {
             mesh_iter->second.mesh->setTransform(mat4());
             return mesh_iter->second.mesh;
         }
-        // create a new mesh object
         
+        // create a new mesh object
         GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat = gl::Material::create();
@@ -288,7 +288,7 @@ namespace kinski { namespace gl {
         std::vector<glm::vec4>& colors = geom->colors();
         
         // workaround for weirdness in stb_truetype (blank 1st characters on line)
-        const float start_x = .6f;
+        const float start_x = 0.f;
         
         float x = start_x, y = 0.f;
         uint32_t max_y = 0;

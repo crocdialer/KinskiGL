@@ -57,10 +57,10 @@
 
 // crossplattform helper-macros to append either nothing or "OES"
 // appropriately to a symbol based on either OpenGL3+ or OpenGLES2
-#if defined(KINSKI_GLES) && !defined(KINSKI_GLES_3) // all versions, except ES2
+#if defined(KINSKI_GLES) && !defined(KINSKI_GLES_3) // only ES2 here
 #define GL_SUFFIX(sym) sym##OES
 #define GL_ENUM(sym) sym##_OES
-#else // only ES2 here
+#else // all versions, except ES2
 #define GL_SUFFIX(sym) sym
 #define GL_ENUM(sym) sym
 #endif
@@ -215,9 +215,8 @@ namespace kinski { namespace gl {
     KINSKI_API void draw_quad(const MaterialPtr &theMaterial,
                               float x0, float y0, float x1, float y1, bool filled = true);
     KINSKI_API void draw_text_2D(const std::string &theText, const gl::Font &theFont,
-                                 const Color &the_color = vec4(1),
+                                 const Color &the_color = gl::COLOR_WHITE,
                                  const vec2 &theTopLeft = vec2(0));
-    KINSKI_API void draw_text_3D(const std::string &theText, const gl::Font &theFont);
     
     KINSKI_API void draw_grid(float width, float height, int numW = 20, int numH = 20);
     KINSKI_API void draw_axes(const MeshWeakPtr &theMesh);

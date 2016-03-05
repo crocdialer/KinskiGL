@@ -67,13 +67,13 @@ namespace kinski{ namespace physics{
             //TODO: font rendering here
         }
         void setDebugMode(int debugMode){ LOG_WARNING << "unsupported operation"; }
-        int	getDebugMode() const {return DBG_DrawWireframe;}
+        int	getDebugMode() const {return DBG_DrawWireframe | DBG_DrawAabb;}
         
         //!
         // issue the actual draw command
         inline void flush()
         {
-            m_mesh_lines->geometry()->createGLBuffers();
+//            m_mesh_lines->geometry()->createGLBuffers();
             
             gl::draw_mesh(m_mesh_lines);
             m_mesh_lines->geometry()->vertices().clear();

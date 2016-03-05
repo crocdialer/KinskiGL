@@ -28,7 +28,7 @@ namespace kinski
     m_cursorVisible(true),
     m_max_fps(60.f),
     m_main_queue(0),
-    m_background_queue(1)
+    m_background_queue(2)
     {
         srand(clock());
         for(int i = 0; i < argc; i++){ m_args.push_back(argv[i]); }

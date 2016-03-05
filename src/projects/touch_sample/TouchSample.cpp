@@ -34,6 +34,8 @@ namespace
 void TouchSample::setup()
 {
     ViewerApp::setup();
+    fonts()[FONT_LARGE].load("Courier New Bold.ttf", 63.f);
+    
     observe_properties();
     register_property(m_circle_radius);
     add_tweakbar_for_component(shared_from_this());
@@ -52,6 +54,8 @@ void TouchSample::update(float timeDelta)
 
 void TouchSample::draw()
 {
+    gl::draw_text_2D(name(), fonts()[FONT_LARGE], gl::COLOR_WHITE, gl::vec2(20));
+    
     for(const auto &t : m_current_touches)
     {
         gl::draw_circle(t->m_position, *m_circle_radius, color_palette[t->m_slot_index]);

@@ -709,14 +709,6 @@ namespace kinski { namespace gl {
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
         draw_mesh(m);
     }
-
-///////////////////////////////////////////////////////////////////////////////
-    
-    void draw_text_3D(const std::string &theText, const gl::Font &theFont)
-    {
-        gl::MeshPtr m = theFont.create_mesh(theText);
-        draw_mesh(m);
-    }
     
 ///////////////////////////////////////////////////////////////////////////////
     

@@ -365,9 +365,6 @@ namespace kinski{namespace physics{
 //                        break;
 //                }
             }
-            
-//            m->geometry()->createGLBuffers();
-            
             // push to return structure
             ret.push_back({m, volume});
         }
