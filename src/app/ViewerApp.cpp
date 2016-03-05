@@ -36,6 +36,9 @@ namespace kinski {
         m_window_size = Property_<glm::vec2>::create("window Size", gl::window_dimension());
         m_window_size->setTweakable(false);
         register_property(m_window_size);
+        
+        m_fullscreen = Property_<bool>::create("fullscreen", false);
+        register_property(m_fullscreen);
 
         m_look_at = Property_<glm::vec3>::create("look at", glm::vec3());
         register_property(m_look_at);
@@ -252,7 +255,7 @@ namespace kinski {
                     break;
 
                 case Key::_F:
-                    set_fullscreen(!fullscreen(), 0);
+                    set_fullscreen(!fullscreen(), windows().front()->monitor_index());
                     break;
 
                 case Key::_R:
@@ -327,6 +330,13 @@ namespace kinski {
                                                               gl::window_dimension().y, 0, 1.f);
                 
                 if(!windows().empty()){ windows().front()->set_size(*m_window_size); }
+            }
+        }
+        else if(theProperty == m_fullscreen)
+        {
+            if(*m_fullscreen != fullscreen())
+            {
+                set_fullscreen(*m_fullscreen, windows().front()->monitor_index());
             }
         }
         else if(theProperty == m_clear_color)

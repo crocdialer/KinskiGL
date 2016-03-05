@@ -107,6 +107,41 @@ namespace kinski
 
         if(m_draw_function){ m_draw_function(); }
     }
+    
+    uint32_t GLFW_Window::monitor_index() const
+    {
+        uint32_t ret = 0;
+        int nmonitors, i;
+        int wx, wy, ww, wh;
+        int mx, my, mw, mh;
+        int overlap, bestoverlap;
+        GLFWmonitor **monitors;
+        const GLFWvidmode *mode;
+        bestoverlap = 0;
+        
+        glfwGetWindowPos(m_handle, &wx, &wy);
+        glfwGetWindowSize(m_handle, &ww, &wh);
+        monitors = glfwGetMonitors(&nmonitors);
+        
+        for (i = 0; i < nmonitors; i++)
+        {
+            mode = glfwGetVideoMode(monitors[i]);
+            glfwGetMonitorPos(monitors[i], &mx, &my);
+            mw = mode->width;
+            mh = mode->height;
+            
+            overlap =
+            max(0, min(wx + ww, mx + mw) - max(wx, mx)) *
+            max(0, min(wy + wh, my + mh) - max(wy, my));
+            
+            if (bestoverlap < overlap)
+            {
+                bestoverlap = overlap;
+                ret = i;
+            }
+        }
+        return ret;
+    }
 
     GLFW_App::GLFW_App(int argc, char *argv[]):
     App(argc, argv),
@@ -158,7 +193,8 @@ namespace kinski
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
-
+        
+        glfwSetMonitorCallback(&GLFW_App::s_monitor_func);
         glfwSwapInterval(1);
         glClearColor(0, 0, 0, 1);
 
@@ -553,7 +589,15 @@ namespace kinski
 
         app->fileDrop(e, files);
     }
-
+    
+    void GLFW_App::s_monitor_func(GLFWmonitor* the_monitor, int status)
+    {
+        string name = glfwGetMonitorName(the_monitor);
+        
+        if(status == GLFW_CONNECTED){ LOG_DEBUG << "monitor connected: " << name; }
+        else if(status == GLFW_DISCONNECTED){ LOG_DEBUG << "monitor disconnected: " << name; }
+    }
+    
 /****************************  TweakBar + Properties **************************/
 
     void GLFW_App::add_tweakbar_for_component(const Component::Ptr &the_component)

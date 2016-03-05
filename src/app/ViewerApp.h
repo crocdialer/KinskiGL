@@ -130,6 +130,7 @@ namespace kinski {
         RangedProperty<int>::Ptr m_logger_severity;
         Property_<bool>::Ptr m_show_tweakbar;
         Property_<glm::vec2>::Ptr m_window_size;
+        Property_<bool>::Ptr m_fullscreen;
         
         
         RangedProperty<float>::Ptr m_distance;

@@ -49,6 +49,8 @@ namespace kinski
         std::string title(const std::string &the_name) const override;
         void set_title(const std::string &the_name) override;
         
+        uint32_t monitor_index() const;
+        
         inline GLFWwindow* handle(){return m_handle;};
         
     private:
@@ -139,6 +141,7 @@ namespace kinski
         static void s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask);
         static void s_charFunc(GLFWwindow* window, unsigned int key);
         static void s_file_drop_func(GLFWwindow* window, int num_files, const char **paths);
+        static void s_monitor_func(GLFWmonitor* the_monitor, int);
 
         // return the current key and mouse button modifier mask
         static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
