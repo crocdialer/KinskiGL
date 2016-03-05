@@ -49,7 +49,7 @@ namespace kinski
         std::string title(const std::string &the_name) const override;
         void set_title(const std::string &the_name) override;
         
-        uint32_t monitor_index() const;
+        uint32_t monitor_index() const override;
         
         inline GLFWwindow* handle(){return m_handle;};
         

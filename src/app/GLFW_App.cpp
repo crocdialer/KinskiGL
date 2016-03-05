@@ -333,8 +333,8 @@ namespace kinski
         // remove first elem from vector
         m_windows.erase(m_windows.begin());
         add_window(window);
-
-        s_resize(window->handle(), new_res.x, new_res.y);
+        set_window_size(new_res);
+        
         gl::reset_state();
         App::set_fullscreen(b, monitor_index);
     }

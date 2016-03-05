@@ -39,6 +39,7 @@ namespace kinski
         virtual void set_position(const gl::vec2 &the_pos) = 0;
         virtual std::string title(const std::string &the_name) const = 0;
         virtual void set_title(const std::string &the_name) = 0;
+        virtual uint32_t monitor_index() const = 0;
         
         void set_draw_function(DrawFunction the_draw_function){ m_draw_function = the_draw_function; }
         void set_close_function(CloseFunction the_close_function){ m_close_function = the_close_function; }
