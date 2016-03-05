@@ -27,8 +27,8 @@ namespace kinski { namespace gl {
         gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;
         gl::Object3DPtr create_text_obj(const std::string &the_text, float the_linewidth,
                                         Align the_align = Align::LEFT) const;
-        uint32_t getFontSize() const;
-        uint32_t getLineHeight() const;
+        uint32_t font_size() const;
+        uint32_t line_height() const;
         
     private:
         // forward declared Implementation object

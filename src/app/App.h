@@ -99,10 +99,6 @@ namespace kinski
         inline void displayTweakBar(bool b) {m_displayTweakBar = b;};
         inline bool displayTweakBar() const {return m_displayTweakBar;};
         
-        inline float getWidth(){return m_windowSize[0];};
-        inline float getHeight(){return m_windowSize[1];};
-        inline float getAspectRatio(){return fabsf(m_windowSize[0]/(float)m_windowSize[1]);};
-        
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};
         
@@ -155,7 +151,6 @@ namespace kinski
         float m_framesPerSec;
         double m_timingInterval;
         
-        glm::vec2 m_windowSize;
         bool m_running;
         bool m_fullscreen;
         bool m_displayTweakBar;

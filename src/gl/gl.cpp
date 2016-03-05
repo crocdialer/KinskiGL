@@ -202,6 +202,13 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
+    float aspect_ratio()
+    {
+        return (g_viewport_dim.y) != 0 ? (g_viewport_dim.x / g_viewport_dim.y) : (16.f / 9.f);
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     gl::Ray calculate_ray(const CameraPtr &theCamera, const glm::vec2 &window_pos,
                          const glm::vec2 &window_size)
     {

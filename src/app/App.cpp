@@ -22,7 +22,6 @@ namespace kinski
     m_lastMeasurementTimeStamp(0.0),
     m_framesPerSec(0.f),
     m_timingInterval(1.0),
-    m_windowSize(glm::ivec2(1280, 720)),
     m_running(false),
     m_fullscreen(false),
     m_displayTweakBar(false),
@@ -95,7 +94,6 @@ namespace kinski
     
     void App::set_window_size(const glm::vec2 &size)
     {
-        m_windowSize = size;
         if(running())
             gl::set_window_dimension(size);
     }

@@ -57,7 +57,7 @@ namespace kinski
         gettimeofday(&m_startTime, NULL);
 
         esInitContext(m_context.get());
-        esCreateWindow(m_context.get(), name().c_str(), getWidth(), getHeight(),
+        esCreateWindow(m_context.get(), name().c_str(),
                        ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH /*| ES_WINDOW_MULTISAMPLE*/);
 
         // set graphical log stream
@@ -93,8 +93,6 @@ namespace kinski
     {
         App::set_window_size(size);
         gl::set_window_dimension(size);
-
-        // if(running())
         resize(size[0], size[1]);
     }
 
@@ -122,7 +120,6 @@ namespace kinski
     {
         timeval now;
         gettimeofday(&now, NULL);
-
         return (double)(now.tv_sec - m_startTime.tv_sec + (now.tv_usec - m_startTime.tv_usec) * 1e-6);
     }
 
@@ -149,7 +146,7 @@ namespace kinski
         read_mouse_and_touch(this, m_mouse_fd);
         read_mouse_and_touch(this, m_touch_fd);
         read_keyboard(this, m_keyboard_fd);
-    }// pollEvents
+    }
 
     void read_keyboard(kinski::App* the_app, int the_file_descriptor)
     {

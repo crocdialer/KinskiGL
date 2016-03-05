@@ -148,7 +148,8 @@ namespace kinski
         glfwWindowHint(GLFW_SAMPLES, 4);
 
         // create the window
-        auto main_window = GLFW_Window::create(getWidth(), getHeight(), name(), fullscreen());
+        gl::vec2 default_sz(1280, 720);
+        auto main_window = GLFW_Window::create(default_sz.x, default_sz.y, name(), fullscreen());
         add_window(main_window);
 
         // set graphical log stream
@@ -178,7 +179,7 @@ namespace kinski
 
         // AntTweakbar
         TwInit(TW_OPENGL_CORE, NULL);
-        TwWindowSize(getWidth(), getHeight());
+        TwWindowSize(main_window->size().x, main_window->size().y);
 
         // call user defined setup callback
         setup();

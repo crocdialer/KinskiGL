@@ -66,7 +66,7 @@ namespace kinski{ namespace gl{
     {
         if(!m_font) return;
         
-        glm::vec2 step(0, m_font.getLineHeight() * 1.1f);
+        glm::vec2 step(0, m_font.line_height() * 1.1f);
         glm::vec2 offset(10, window_dimension().y - step.y);
         
         int i = m_lines.size();

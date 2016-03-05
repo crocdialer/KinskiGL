@@ -117,12 +117,12 @@ namespace kinski { namespace gl {
         return m_obj->texture;
     }
     
-    uint32_t Font::getFontSize() const
+    uint32_t Font::font_size() const
     {
         return m_obj->font_height;
     }
     
-    uint32_t Font::getLineHeight() const
+    uint32_t Font::line_height() const
     {
         return m_obj->line_height;
     }
@@ -185,7 +185,7 @@ namespace kinski { namespace gl {
         Texture ret;
         
         // workaround for weirdness in stb_truetype (blank 1st characters on line)
-        const float start_x = .6f;
+        const float start_x = 0.f;
         
         float x = start_x, y = 0.f;
         uint32_t max_x = 0, max_y = 0;
@@ -457,7 +457,7 @@ namespace kinski { namespace gl {
 //            line_mesh->material() = mat;
             
             // advance offset
-            line_offset.y -= getLineHeight();
+            line_offset.y -= line_height();
             
             if(!l.empty())
             { ret->add_child(line_mesh); }

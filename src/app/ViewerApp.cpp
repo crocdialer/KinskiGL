@@ -88,7 +88,7 @@ namespace kinski {
 
         gl::Shader unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < 8; i++)
         {
             // lights
             auto light = std::make_shared<gl::Light>(gl::Light::POINT);
@@ -102,7 +102,9 @@ namespace kinski {
         // viewer provides a directional light
         lights().front()->position() = glm::vec3(1);
         lights().front()->set_type(gl::Light::DIRECTIONAL);
-
+        
+        for(auto l : lights()){ scene().addObject(l); }
+        
         // enable observer mechanism
         observe_properties();
 
@@ -117,7 +119,7 @@ namespace kinski {
 
     void ViewerApp::update(float timeDelta)
     {
-        m_camera->setAspectRatio(getAspectRatio());
+        m_camera->setAspectRatio(gl::aspect_ratio());
         m_avg_filter.push(glm::vec2(0));
         m_inertia *= m_rotation_damping;
 
@@ -435,8 +437,8 @@ namespace kinski {
 
     void ViewerApp::draw_textures(const std::vector<gl::Texture> &the_textures)
     {
-        float w = (gl::window_dimension()/12.f).x;
-        glm::vec2 offset(getWidth() - w - 10, 10);
+        float w = (gl::window_dimension() / 12.f).x;
+        glm::vec2 offset(gl::window_dimension().x - w - 10, 10);
 
         for (const gl::Texture &t : the_textures)
         {
