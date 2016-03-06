@@ -33,6 +33,9 @@ namespace kinski {
         m_show_tweakbar->setTweakable(false);
         register_property(m_show_tweakbar);
 
+        m_hide_cursor = Property_<bool>::create("hide cursor", false);
+        register_property(m_hide_cursor);
+        
         m_window_size = Property_<glm::vec2>::create("window Size", gl::window_dimension());
         m_window_size->setTweakable(false);
         register_property(m_window_size);
@@ -257,6 +260,10 @@ namespace kinski {
                 case Key::_F:
                     set_fullscreen(!fullscreen(), windows().front()->monitor_index());
                     break;
+                    
+                case Key::_H:
+                    *m_hide_cursor = !*m_hide_cursor;
+                    break;
 
                 case Key::_R:
                     try
@@ -321,6 +328,10 @@ namespace kinski {
         {
             displayTweakBar(*m_show_tweakbar);
         }
+        else if(theProperty == m_hide_cursor)
+        {
+            set_cursor_visible(!*m_hide_cursor);
+        }
         else if(theProperty == m_window_size)
         {
             if(!fullscreen())
@@ -363,6 +374,8 @@ namespace kinski {
 
     bool ViewerApp::save_settings(const std::string &path)
     {
+        App::Task t(this);
+        
         std::list<Component::Ptr> light_components, material_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
@@ -395,7 +408,7 @@ namespace kinski {
         }
         catch(Exception &e)
         {
-            LOG_ERROR<<e.what();
+            LOG_ERROR << e.what();
             return false;
         }
         return true;
@@ -403,6 +416,8 @@ namespace kinski {
 
     bool ViewerApp::load_settings(const std::string &path)
     {
+        App::Task t(this);
+        
         std::list<Component::Ptr> light_components, material_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
@@ -469,6 +484,8 @@ namespace kinski {
                                        std::function<void(const gl::Texture&)> the_callback,
                                        bool mip_map, bool compress)
     {
+        inc_task();
+        
         background_queue().submit([this, the_path, the_callback, mip_map, compress]()
         {
             gl::Image img;
@@ -484,6 +501,7 @@ namespace kinski {
                 auto tex = gl::create_texture_from_image(img, mip_map, compress);
                 free(img.data);
                 the_callback(tex);
+                dec_task();
             });
         });
     }

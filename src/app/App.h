@@ -125,6 +125,33 @@ namespace kinski
         const std::vector<std::string>& args() const{ return m_args; };
         
         /*!
+         * increase the internal task count by 1, indicating that a loading operation started
+         */
+        void inc_task();
+        
+        /*!
+         * decrease the internal task count by 1, indicating that a loading operation ended
+         */
+        void dec_task();
+        
+        //! RAII helper class
+        class Task
+        {
+        public:
+            explicit Task(App *the_app):m_app(the_app){ m_app->inc_task(); }
+            virtual ~Task(){ m_app->dec_task(); }
+        private:
+            App* m_app;
+        };
+        
+        /*!
+         * returns true if some loading operation is in progress,
+         * meaning the number of active tasks is greater than 0.
+         * tasks can be announced and removed with calls to inc_task() and dec_task() respectively
+         */
+        bool is_loading() const;
+        
+        /*!
          * this queue is processed by the main thread
          */
         ThreadPool& main_queue(){ return m_main_queue; }

@@ -8,13 +8,21 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "App.h"
-#include <boost/asio/io_service.hpp>
+
 #include <thread>
+#include <mutex>
+#include <boost/asio/io_service.hpp>
 
 using namespace std;
 
 namespace kinski
 {
+    // threadsafe task-counting internals
+    namespace
+    {
+        uint32_t num_tasks = 0;
+        std::mutex mutex;
+    }
     
     App::App(int argc, char *argv[]):
     Component(argc ? kinski::get_filename_part(argv[0]) : "KinskiApp"),
@@ -79,6 +87,7 @@ namespace kinski
             
             // fps managment
             float current_fps = 1.f / time_delta;
+            
             if(current_fps > m_max_fps)
             {
                 double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
@@ -101,7 +110,7 @@ namespace kinski
     void App::draw_internal()
     {
         draw();
-    };
+    }
     
     void App::timing(double timeStamp)
     {
@@ -114,7 +123,26 @@ namespace kinski
             m_framesPerSec = m_framesDrawn / diff;
             m_framesDrawn = 0;
             m_lastMeasurementTimeStamp = timeStamp;
-            //LOG_TRACE<< m_framesPerSec << "fps -- "<<getApplicationTime()<<" sec running ...";
         }
+    }
+    
+    void App::inc_task()
+    {
+        std::unique_lock<std::mutex> lock(mutex);
+        num_tasks++;
+    }
+    
+    void App::dec_task()
+    {
+        if(num_tasks)
+        {        
+            std::unique_lock<std::mutex> lock(mutex);
+            num_tasks--;
+        }
+    }
+    
+    bool App::is_loading() const
+    {
+        return num_tasks;
     }
 }
