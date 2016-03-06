@@ -8,12 +8,19 @@
 #include "ilclient.h"
 #undef countof
 
+extern "C"
+{
+  #include <libavcodec/avcodec.h>
+  #include <libavformat/avformat.h>
+}
+
 #include <thread>
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
 #include "MovieController.h"
 
 namespace kinski{ namespace video{
+
 
     struct MovieControllerImpl
     {
@@ -25,6 +32,7 @@ namespace kinski{ namespace video{
 
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
 
+
         OMX_BUFFERHEADERTYPE* m_egl_buffer;
 
         COMPONENT_T* m_egl_render = nullptr;
@@ -33,7 +41,7 @@ namespace kinski{ namespace video{
         COMPONENT_T* m_clock = nullptr;
         COMPONENT_T* m_comp_list[5];
 
-        TUNNEL_T m_tunnels[4];
+        TUNNEL_T m_tunnels[5];
         ILCLIENT_T* m_il_client;
 
         OMX_VIDEO_PARAM_PORTFORMATTYPE m_port_format;
@@ -41,6 +49,8 @@ namespace kinski{ namespace video{
 
         void* m_egl_image;
         gl::Texture m_texture;
+
+        AVFormatContext* m_av_format_context = nullptr;
 
         std::thread m_thread;
 
@@ -54,7 +64,10 @@ namespace kinski{ namespace video{
         m_egl_image(nullptr),
         m_texture(1280, 720)
         {
-            // init the client
+            // ffmpeg init
+            av_register_all();
+
+            // init the IL-client library
             m_il_client = ilclient_init();
 
             LOG_ERROR_IF(OMX_Init() != OMX_ErrorNone)  << "OMX_Init failed.";
@@ -84,36 +97,35 @@ namespace kinski{ namespace video{
 
             // ilclient_set_fill_buffer_done_callback(m_il_client, nullptr, nullptr);
 
-            LOG_DEBUG << "destroy tunnels";
+            // LOG_DEBUG << "destroy tunnels";
             ilclient_disable_tunnel(m_tunnels);
             ilclient_disable_tunnel(m_tunnels + 1);
             ilclient_disable_tunnel(m_tunnels + 2);
             ilclient_disable_tunnel(m_tunnels + 3);
             ilclient_teardown_tunnels(m_tunnels);
 
-            LOG_DEBUG << "shutdown components (skipped)";
+            // LOG_DEBUG << "shutdown components (skipped)";
             ilclient_state_transition(m_comp_list, OMX_StateIdle);
             // ilclient_state_transition(m_comp_list, OMX_StateLoaded);
 
-            LOG_DEBUG << "cleanup components";
+            // LOG_DEBUG << "cleanup components";
             ilclient_cleanup_components(m_comp_list);
 
-            LOG_DEBUG << "shutdown OMX";
+            // LOG_DEBUG << "shutdown OMX";
             OMX_Deinit();
             ilclient_destroy(m_il_client);
 
             if(m_egl_image)
             {
-                LOG_DEBUG << "destroy egl_image";
+                // LOG_DEBUG << "destroy egl_image";
 
                 if(!eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                        (EGLImageKHR)m_egl_image))
                 {
-                    LOG_WARNING << "eglDestroyImageKHR failed.";
+                    LOG_ERROR << "eglDestroyImageKHR failed.";
                 }
             }
-
-            LOG_DEBUG << "impl desctructor finished";
+            // LOG_DEBUG << "impl desctructor finished";
         };
 
         void thread_func()
@@ -121,6 +133,23 @@ namespace kinski{ namespace video{
             LOG_DEBUG << "starting movie decode thread";
 
             size_t data_len = 0;
+
+            // Open video file
+            if(avformat_open_input(&m_av_format_context, m_src_path.c_str(), nullptr, nullptr) != 0)
+            {
+                LOG_ERROR << "avformat_open_input failed";
+                return;
+            }
+
+            // Retrieve stream information
+            if(avformat_find_stream_info(m_av_format_context, nullptr) < 0)
+            {
+                LOG_ERROR << "avformat_find_stream_info failed";
+                return;
+            }
+
+            // Dump information about file onto standard error
+            av_dump_format(m_av_format_context, 0, m_src_path.c_str(), 0);
 
             FILE *file_handle = fopen(m_src_path.c_str(), "rb");
 
@@ -231,24 +260,33 @@ namespace kinski{ namespace video{
 
                 if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
                 {
-                    //status = -6;
-                    break;
+                    LOG_ERROR << "OMX_EmptyThisBuffer failed.";
+                    m_playing = false;
                 }
             }// while(m_playing)
 
-            buf->nFilledLen = 0;
-            buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
-
-            if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+            if(buf)
             {
-              //status = -20;
+              buf->nFilledLen = 0;
+              buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+
+              if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+              {
+                  LOG_ERROR << "OMX_EmptyThisBuffer failed.";
+              }
             }
+
             // need to flush the renderer to allow m_video_decode to disable its input port
-            LOG_DEBUG << "flush video_decode tunnel";
+            // LOG_DEBUG << "flush video_decode tunnel";
             ilclient_flush_tunnels(m_tunnels, 0);
 
-            LOG_DEBUG << "disable video_decode port buffers (skipped)";
+            // LOG_DEBUG << "disable video_decode port buffers ... (skipped)";
             // ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
+            // if(OMX_SendCommand(ILC_GET_HANDLE(m_video_decode),
+            //                    OMX_CommandPortDisable, 130, NULL) != OMX_ErrorNone)
+            // {
+            //     LOG_ERROR << "disable video_decode port buffers failed";
+            // }
 
             if(file_handle){ fclose(file_handle); }
 
