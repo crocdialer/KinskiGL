@@ -51,6 +51,7 @@ namespace kinski{ namespace video{
         gl::Texture m_texture;
 
         AVFormatContext* m_av_format_context = nullptr;
+        int m_av_stream_idx = -1;
 
         std::thread m_thread;
 
@@ -61,8 +62,7 @@ namespace kinski{ namespace video{
         m_loop(false),
         m_rate(1.f),
         m_egl_buffer(nullptr),
-        m_egl_image(nullptr),
-        m_texture(1280, 720)
+        m_egl_image(nullptr)
         {
             // ffmpeg init
             av_register_all();
@@ -125,6 +125,11 @@ namespace kinski{ namespace video{
                     LOG_ERROR << "eglDestroyImageKHR failed.";
                 }
             }
+
+            if(m_av_format_context)
+            {
+                avformat_close_input(&m_av_format_context);
+            }
             // LOG_DEBUG << "impl desctructor finished";
         };
 
@@ -134,22 +139,7 @@ namespace kinski{ namespace video{
 
             size_t data_len = 0;
 
-            // Open video file
-            if(avformat_open_input(&m_av_format_context, m_src_path.c_str(), nullptr, nullptr) != 0)
-            {
-                LOG_ERROR << "avformat_open_input failed";
-                return;
-            }
-
-            // Retrieve stream information
-            if(avformat_find_stream_info(m_av_format_context, nullptr) < 0)
-            {
-                LOG_ERROR << "avformat_find_stream_info failed";
-                return;
-            }
-
-            // Dump information about file onto standard error
-            av_dump_format(m_av_format_context, 0, m_src_path.c_str(), 0);
+            ///////////////////////////////////////////////////////////////////
 
             FILE *file_handle = fopen(m_src_path.c_str(), "rb");
 
@@ -165,8 +155,21 @@ namespace kinski{ namespace video{
 
             ilclient_change_component_state(m_video_decode, OMX_StateExecuting);
 
+            // allocate ffmpeg frame structure
+            // AvFrame *frame = av_frame_alloc();
+            AVPacket packet;
+
             while(m_playing)
             {
+                if(av_read_frame(m_av_format_context, &packet) >= 0)
+                {
+                    if(packet.stream_index == m_av_stream_idx)
+                    {
+                        // LOG_DEBUG << "got a frame";
+
+                        
+                    }
+                }
                 buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
 
                 if(!buf){ m_playing = false; break;}
@@ -181,6 +184,7 @@ namespace kinski{ namespace video{
                    else{ break; }
                 }
 
+                // read h264 data directly from file
                 data_len += fread(dest, 1, buf->nAllocLen-data_len, file_handle);
 
                 if(port_settings_changed == 0 &&
@@ -359,6 +363,79 @@ namespace kinski{ namespace video{
         }
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_src_path = p;
+
+        ////////////////////////////////////////////////////////////////////////////
+
+        // Open video file
+        if(avformat_open_input(&m_impl->m_av_format_context, p.c_str(), nullptr, nullptr) != 0)
+        {
+            LOG_ERROR << "avformat_open_input failed";
+            return;
+        }
+
+        // Retrieve stream information
+        if(avformat_find_stream_info(m_impl->m_av_format_context, nullptr) < 0)
+        {
+            LOG_ERROR << "avformat_find_stream_info failed";
+            return;
+        }
+
+        // Dump information about file onto standard error
+        av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
+
+        AVCodecContext *av_code_ctx = nullptr, *av_code_ctx_orig = nullptr;
+
+        // Find the first video stream
+        m_impl->m_av_stream_idx = -1;
+
+        for(uint32_t i = 0; i < m_impl->m_av_format_context->nb_streams; i++)
+        {
+            if(m_impl->m_av_format_context->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+            {
+                m_impl->m_av_stream_idx = i;
+                break;
+            }
+        }
+
+        if(m_impl->m_av_stream_idx == -1)
+        {
+            LOG_ERROR << "no video streams found";
+            return;
+        }
+
+        // Get a pointer to the codec context for the video stream
+        av_code_ctx_orig = m_impl->m_av_format_context->streams[m_impl->m_av_stream_idx]->codec;
+
+        LOG_DEBUG << "movie: " << av_code_ctx_orig->width << " x " << av_code_ctx_orig->height;
+
+        // allocate texture memory
+        m_impl->m_texture = gl::Texture(av_code_ctx_orig->width, av_code_ctx_orig->height);
+
+        AVCodec *av_codec = nullptr;
+
+        // Find the decoder for the video stream
+        av_codec = avcodec_find_decoder(av_code_ctx_orig->codec_id);
+
+        if(!av_codec)
+        {
+            LOG_ERROR << "Unsupported codec!";
+            return; // Codec not found
+        }
+        // Copy context
+        av_code_ctx = avcodec_alloc_context3(av_codec);
+        if(avcodec_copy_context(av_code_ctx, av_code_ctx_orig) != 0)
+        {
+            LOG_ERROR << "Couldn't copy codec context";
+            return ; // Error copying codec context
+        }
+        // Open codec
+        if(avcodec_open2(av_code_ctx, av_codec, nullptr) < 0)
+        {
+            LOG_ERROR << "Could not open codec";
+            return; // Could not open codec
+        }
+
+        ////////////////////////////////////////////////////////////////////////////
 
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                 eglGetCurrentContext(),
