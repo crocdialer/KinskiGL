@@ -84,6 +84,24 @@ namespace kinski{ namespace video{
 
             // ilclient_set_fill_buffer_done_callback(m_il_client, nullptr, nullptr);
 
+            LOG_DEBUG << "destroy tunnels";
+            ilclient_disable_tunnel(m_tunnels);
+            ilclient_disable_tunnel(m_tunnels + 1);
+            ilclient_disable_tunnel(m_tunnels + 2);
+            ilclient_disable_tunnel(m_tunnels + 3);
+            ilclient_teardown_tunnels(m_tunnels);
+
+            LOG_DEBUG << "shutdown components (skipped)";
+            ilclient_state_transition(m_comp_list, OMX_StateIdle);
+            // ilclient_state_transition(m_comp_list, OMX_StateLoaded);
+
+            LOG_DEBUG << "cleanup components";
+            ilclient_cleanup_components(m_comp_list);
+
+            LOG_DEBUG << "shutdown OMX";
+            OMX_Deinit();
+            ilclient_destroy(m_il_client);
+
             if(m_egl_image)
             {
                 LOG_DEBUG << "destroy egl_image";
@@ -94,31 +112,6 @@ namespace kinski{ namespace video{
                     LOG_WARNING << "eglDestroyImageKHR failed.";
                 }
             }
-            LOG_DEBUG << "flush video_decode tunnel";
-
-            // need to flush the renderer to allow m_video_decode to disable its input port
-            ilclient_flush_tunnels(m_tunnels, 0);
-
-            if(m_video_decode)
-            {
-                LOG_DEBUG << "disable video_decode port buffers";
-                ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
-            }
-
-            LOG_DEBUG << "destroy tunnels";
-            ilclient_disable_tunnel(m_tunnels);
-            ilclient_disable_tunnel(m_tunnels + 1);
-            ilclient_disable_tunnel(m_tunnels + 2);
-            ilclient_teardown_tunnels(m_tunnels);
-
-            LOG_DEBUG << "shutdown components";
-            ilclient_state_transition(m_comp_list, OMX_StateIdle);
-            ilclient_state_transition(m_comp_list, OMX_StateLoaded);
-            ilclient_cleanup_components(m_comp_list);
-
-            LOG_DEBUG << "shutdown OMX";
-            OMX_Deinit();
-            ilclient_destroy(m_il_client);
 
             LOG_DEBUG << "impl desctructor finished";
         };
@@ -243,18 +236,21 @@ namespace kinski{ namespace video{
                 }
             }// while(m_playing)
 
-            if(file_handle){ fclose(file_handle); }
+            buf->nFilledLen = 0;
+            buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
 
-            if(buf)
+            if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
             {
-                buf->nFilledLen = 0;
-                buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
-
-                if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
-                {
-                  //status = -20;
-                }
+              //status = -20;
             }
+            // need to flush the renderer to allow m_video_decode to disable its input port
+            LOG_DEBUG << "flush video_decode tunnel";
+            ilclient_flush_tunnels(m_tunnels, 0);
+
+            LOG_DEBUG << "disable video_decode port buffers (skipped)";
+            // ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
+
+            if(file_handle){ fclose(file_handle); }
 
             LOG_DEBUG << "movie decode thread ended";
 
