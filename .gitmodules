@@ -1,3 +1,0 @@
-[submodule "src/production"]
-	path = src/production
-	url = git@github.com:Projektil/gl_projects.git
