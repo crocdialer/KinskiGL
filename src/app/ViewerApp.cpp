@@ -482,11 +482,14 @@ namespace kinski {
     
     void ViewerApp::async_load_texture(const std::string &the_path,
                                        std::function<void(const gl::Texture&)> the_callback,
-                                       bool mip_map, bool compress)
+                                       bool mip_map,
+                                       bool compress,
+                                       GLfloat anisotropic_filter_lvl)
     {
         inc_task();
         
-        background_queue().submit([this, the_path, the_callback, mip_map, compress]()
+        background_queue().submit([this, the_path, the_callback, mip_map, compress,
+                                   anisotropic_filter_lvl]()
         {
             gl::Image img;
             try
@@ -496,9 +499,10 @@ namespace kinski {
             }
             catch (Exception &e) { LOG_WARNING << e.what(); }
           
-            main_queue().submit([this, img, the_callback, mip_map, compress]()
+            main_queue().submit([this, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
             {
-                auto tex = gl::create_texture_from_image(img, mip_map, compress);
+                auto tex = gl::create_texture_from_image(img, mip_map, compress,
+                                                         anisotropic_filter_lvl);
                 free(img.data);
                 the_callback(tex);
                 dec_task();

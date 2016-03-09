@@ -1,11 +1,3 @@
-//
-//  SyphonConnector.h
-//  gl
-//
-//  Created by Fabian on 5/3/13.
-//
-//
-
 #pragma once
 
 #include "core/core.hpp"

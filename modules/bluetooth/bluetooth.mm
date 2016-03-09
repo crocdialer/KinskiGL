@@ -5,7 +5,7 @@
 //
 //
 
-#include "bluetooth.h"
+#include "bluetooth.hpp"
 #include "CoreBluetooth/CoreBluetooth.h"
 
 @interface CentralManagerDelegate : NSObject<CBCentralManagerDelegate>

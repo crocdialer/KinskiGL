@@ -90,7 +90,9 @@ namespace kinski {
         
         void async_load_texture(const std::string &the_path,
                                 std::function<void(const gl::Texture&)> the_callback,
-                                bool mip_map = false, bool compress = false);
+                                bool mip_map = false,
+                                bool compress = false,
+                                GLfloat anisotropic_filter_lvl = 1.f);
         
         gl::Texture generate_snapshot();
         gl::Texture& snapshot_texture(){ return m_snapshot_texture; }

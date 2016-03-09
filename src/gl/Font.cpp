@@ -288,7 +288,7 @@ namespace kinski { namespace gl {
         std::vector<glm::vec4>& colors = geom->colors();
         
         // workaround for weirdness in stb_truetype (blank 1st characters on line)
-        const float start_x = 0.f;
+        const float start_x = 0.6f;
         
         float x = start_x, y = 0.f;
         uint32_t max_y = 0;
