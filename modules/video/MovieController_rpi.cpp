@@ -158,24 +158,38 @@ namespace kinski{ namespace video{
             // allocate ffmpeg frame structure
             // AvFrame *frame = av_frame_alloc();
             AVPacket packet;
+            uint8_t* packet_data = nullptr;
 
             while(m_playing)
             {
-                if(av_read_frame(m_av_format_context, &packet) >= 0)
-                {
-                    if(packet.stream_index == m_av_stream_idx)
-                    {
-                        // LOG_DEBUG << "got a frame";
-
-                        
-                    }
-                }
                 buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
 
-                if(!buf){ m_playing = false; break;}
+                // no input-buffer -> quit
+                if(!buf)
+                {
+                    LOG_ERROR << "could not get an input-buffer";
+                    m_playing = false; break;
+                }
 
                 // feed data and wait until we get port settings changed
-                unsigned char *dest = buf->pBuffer;
+                unsigned char *buf_ptr = buf->pBuffer, *buf_end = buf->pBuffer + buf->nAllocLen;
+
+                // fill up buffer
+                // if(av_read_frame(m_av_format_context, &packet) >= 0)
+                // {
+                //     if(packet.stream_index == m_av_stream_idx)
+                //     {
+                //         data_len = packet.size;
+                //         packet_data = packet.data;
+                //
+                //         // while()
+                //         size_t bytes_to_read = std::min(buf->nAllocLen, data_len);
+                //         memcpy(buf_ptr, packet_data, bytes_to_read);
+                //         data_len -= bytes_to_read;
+                //     }
+                //
+                //     av_free_packet(&packet);
+                // }
 
                 // loop if at end
                 if(feof(file_handle))
@@ -185,7 +199,7 @@ namespace kinski{ namespace video{
                 }
 
                 // read h264 data directly from file
-                data_len += fread(dest, 1, buf->nAllocLen-data_len, file_handle);
+                data_len += fread(buf_ptr, 1, buf->nAllocLen - data_len, file_handle);
 
                 if(port_settings_changed == 0 &&
                    ((data_len > 0 && ilclient_remove_event(m_video_decode,
