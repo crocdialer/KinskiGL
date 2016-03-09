@@ -8,12 +8,19 @@
 #include "ilclient.h"
 #undef countof
 
+extern "C"
+{
+  #include <libavcodec/avcodec.h>
+  #include <libavformat/avformat.h>
+}
+
 #include <thread>
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
 #include "MovieController.h"
 
 namespace kinski{ namespace video{
+
 
     struct MovieControllerImpl
     {
@@ -25,6 +32,7 @@ namespace kinski{ namespace video{
 
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
 
+
         OMX_BUFFERHEADERTYPE* m_egl_buffer;
 
         COMPONENT_T* m_egl_render = nullptr;
@@ -33,7 +41,7 @@ namespace kinski{ namespace video{
         COMPONENT_T* m_clock = nullptr;
         COMPONENT_T* m_comp_list[5];
 
-        TUNNEL_T m_tunnels[4];
+        TUNNEL_T m_tunnels[5];
         ILCLIENT_T* m_il_client;
 
         OMX_VIDEO_PARAM_PORTFORMATTYPE m_port_format;
@@ -41,6 +49,9 @@ namespace kinski{ namespace video{
 
         void* m_egl_image;
         gl::Texture m_texture;
+
+        AVFormatContext* m_av_format_context = nullptr;
+        int m_av_stream_idx = -1;
 
         std::thread m_thread;
 
@@ -51,10 +62,12 @@ namespace kinski{ namespace video{
         m_loop(false),
         m_rate(1.f),
         m_egl_buffer(nullptr),
-        m_egl_image(nullptr),
-        m_texture(1280, 720)
+        m_egl_image(nullptr)
         {
-            // init the client
+            // ffmpeg init
+            av_register_all();
+
+            // init the IL-client library
             m_il_client = ilclient_init();
 
             LOG_ERROR_IF(OMX_Init() != OMX_ErrorNone)  << "OMX_Init failed.";
@@ -84,36 +97,40 @@ namespace kinski{ namespace video{
 
             // ilclient_set_fill_buffer_done_callback(m_il_client, nullptr, nullptr);
 
-            LOG_DEBUG << "destroy tunnels";
+            // LOG_DEBUG << "destroy tunnels";
             ilclient_disable_tunnel(m_tunnels);
             ilclient_disable_tunnel(m_tunnels + 1);
             ilclient_disable_tunnel(m_tunnels + 2);
             ilclient_disable_tunnel(m_tunnels + 3);
             ilclient_teardown_tunnels(m_tunnels);
 
-            LOG_DEBUG << "shutdown components (skipped)";
+            // LOG_DEBUG << "shutdown components (skipped)";
             ilclient_state_transition(m_comp_list, OMX_StateIdle);
             // ilclient_state_transition(m_comp_list, OMX_StateLoaded);
 
-            LOG_DEBUG << "cleanup components";
+            // LOG_DEBUG << "cleanup components";
             ilclient_cleanup_components(m_comp_list);
 
-            LOG_DEBUG << "shutdown OMX";
+            // LOG_DEBUG << "shutdown OMX";
             OMX_Deinit();
             ilclient_destroy(m_il_client);
 
             if(m_egl_image)
             {
-                LOG_DEBUG << "destroy egl_image";
+                // LOG_DEBUG << "destroy egl_image";
 
                 if(!eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                        (EGLImageKHR)m_egl_image))
                 {
-                    LOG_WARNING << "eglDestroyImageKHR failed.";
+                    LOG_ERROR << "eglDestroyImageKHR failed.";
                 }
             }
 
-            LOG_DEBUG << "impl desctructor finished";
+            if(m_av_format_context)
+            {
+                avformat_close_input(&m_av_format_context);
+            }
+            // LOG_DEBUG << "impl desctructor finished";
         };
 
         void thread_func()
@@ -121,6 +138,8 @@ namespace kinski{ namespace video{
             LOG_DEBUG << "starting movie decode thread";
 
             size_t data_len = 0;
+
+            ///////////////////////////////////////////////////////////////////
 
             FILE *file_handle = fopen(m_src_path.c_str(), "rb");
 
@@ -136,8 +155,21 @@ namespace kinski{ namespace video{
 
             ilclient_change_component_state(m_video_decode, OMX_StateExecuting);
 
+            // allocate ffmpeg frame structure
+            // AvFrame *frame = av_frame_alloc();
+            AVPacket packet;
+
             while(m_playing)
             {
+                if(av_read_frame(m_av_format_context, &packet) >= 0)
+                {
+                    if(packet.stream_index == m_av_stream_idx)
+                    {
+                        // LOG_DEBUG << "got a frame";
+
+                        
+                    }
+                }
                 buf = ilclient_get_input_buffer(m_video_decode, 130, 1);
 
                 if(!buf){ m_playing = false; break;}
@@ -152,6 +184,7 @@ namespace kinski{ namespace video{
                    else{ break; }
                 }
 
+                // read h264 data directly from file
                 data_len += fread(dest, 1, buf->nAllocLen-data_len, file_handle);
 
                 if(port_settings_changed == 0 &&
@@ -231,24 +264,33 @@ namespace kinski{ namespace video{
 
                 if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
                 {
-                    //status = -6;
-                    break;
+                    LOG_ERROR << "OMX_EmptyThisBuffer failed.";
+                    m_playing = false;
                 }
             }// while(m_playing)
 
-            buf->nFilledLen = 0;
-            buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
-
-            if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+            if(buf)
             {
-              //status = -20;
+              buf->nFilledLen = 0;
+              buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+
+              if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+              {
+                  LOG_ERROR << "OMX_EmptyThisBuffer failed.";
+              }
             }
+
             // need to flush the renderer to allow m_video_decode to disable its input port
-            LOG_DEBUG << "flush video_decode tunnel";
+            // LOG_DEBUG << "flush video_decode tunnel";
             ilclient_flush_tunnels(m_tunnels, 0);
 
-            LOG_DEBUG << "disable video_decode port buffers (skipped)";
+            // LOG_DEBUG << "disable video_decode port buffers ... (skipped)";
             // ilclient_disable_port_buffers(m_video_decode, 130, NULL, NULL, NULL);
+            // if(OMX_SendCommand(ILC_GET_HANDLE(m_video_decode),
+            //                    OMX_CommandPortDisable, 130, NULL) != OMX_ErrorNone)
+            // {
+            //     LOG_ERROR << "disable video_decode port buffers failed";
+            // }
 
             if(file_handle){ fclose(file_handle); }
 
@@ -321,6 +363,79 @@ namespace kinski{ namespace video{
         }
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_src_path = p;
+
+        ////////////////////////////////////////////////////////////////////////////
+
+        // Open video file
+        if(avformat_open_input(&m_impl->m_av_format_context, p.c_str(), nullptr, nullptr) != 0)
+        {
+            LOG_ERROR << "avformat_open_input failed";
+            return;
+        }
+
+        // Retrieve stream information
+        if(avformat_find_stream_info(m_impl->m_av_format_context, nullptr) < 0)
+        {
+            LOG_ERROR << "avformat_find_stream_info failed";
+            return;
+        }
+
+        // Dump information about file onto standard error
+        av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
+
+        AVCodecContext *av_code_ctx = nullptr, *av_code_ctx_orig = nullptr;
+
+        // Find the first video stream
+        m_impl->m_av_stream_idx = -1;
+
+        for(uint32_t i = 0; i < m_impl->m_av_format_context->nb_streams; i++)
+        {
+            if(m_impl->m_av_format_context->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+            {
+                m_impl->m_av_stream_idx = i;
+                break;
+            }
+        }
+
+        if(m_impl->m_av_stream_idx == -1)
+        {
+            LOG_ERROR << "no video streams found";
+            return;
+        }
+
+        // Get a pointer to the codec context for the video stream
+        av_code_ctx_orig = m_impl->m_av_format_context->streams[m_impl->m_av_stream_idx]->codec;
+
+        LOG_DEBUG << "movie: " << av_code_ctx_orig->width << " x " << av_code_ctx_orig->height;
+
+        // allocate texture memory
+        m_impl->m_texture = gl::Texture(av_code_ctx_orig->width, av_code_ctx_orig->height);
+
+        AVCodec *av_codec = nullptr;
+
+        // Find the decoder for the video stream
+        av_codec = avcodec_find_decoder(av_code_ctx_orig->codec_id);
+
+        if(!av_codec)
+        {
+            LOG_ERROR << "Unsupported codec!";
+            return; // Codec not found
+        }
+        // Copy context
+        av_code_ctx = avcodec_alloc_context3(av_codec);
+        if(avcodec_copy_context(av_code_ctx, av_code_ctx_orig) != 0)
+        {
+            LOG_ERROR << "Couldn't copy codec context";
+            return ; // Error copying codec context
+        }
+        // Open codec
+        if(avcodec_open2(av_code_ctx, av_codec, nullptr) < 0)
+        {
+            LOG_ERROR << "Could not open codec";
+            return; // Could not open codec
+        }
+
+        ////////////////////////////////////////////////////////////////////////////
 
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                 eglGetCurrentContext(),

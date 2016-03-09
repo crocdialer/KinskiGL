@@ -4,14 +4,18 @@ if(APPLE)
   find_library(CoreFoundation NAMES CoreFoundation)
   find_library(IOSurface NAMES IOSurface)
   set(MODULE_LIBRARIES ${AVFoundation} ${CoreFoundation} ${CoreMedia} ${IOSurface} PARENT_SCOPE)
-  
+
   # OSX specific implementation
   FILE(GLOB MODULE_SOURCES MovieController.mm CameraController.mm)
 elseif(KINSKI_RASPI)
 
   # Raspian specific implementation
   FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp CameraController_rpi.cpp ilclient.h ilclient.c ilcore.c)
-  set(MODULE_LIBRARIES pthread vcos vchiq_arm vcilcs PARENT_SCOPE)
+
+  find_library(AVFormat NAMES avformat)
+  find_library(AVCodec NAMES avcodec)
+  find_library(AVUtil NAMES avutil)
+  set(MODULE_LIBRARIES pthread ${AVFormat} ${AVCodec} ${AVUtil} vcos vchiq_arm vcilcs PARENT_SCOPE)
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)
