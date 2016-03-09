@@ -51,7 +51,7 @@ namespace kinski{ namespace video{
         gl::Texture m_texture;
 
         AVFormatContext* m_av_format_context = nullptr;
-        int m_av_stream_idx = -1;
+        int m_av_video_stream_idx = -1;
 
         std::thread m_thread;
 
@@ -136,18 +136,7 @@ namespace kinski{ namespace video{
         void thread_func()
         {
             LOG_DEBUG << "starting movie decode thread";
-
             size_t data_len = 0;
-
-            ///////////////////////////////////////////////////////////////////
-
-            FILE *file_handle = fopen(m_src_path.c_str(), "rb");
-
-            if(!file_handle)
-            {
-                LOG_ERROR << "could not open file";
-                return;
-            }
 
             OMX_BUFFERHEADERTYPE *buf = nullptr;
             int port_settings_changed = 0;
@@ -157,8 +146,8 @@ namespace kinski{ namespace video{
 
             // allocate ffmpeg frame structure
             // AvFrame *frame = av_frame_alloc();
-            AVPacket packet;
-            uint8_t* packet_data = nullptr;
+            AVPacket current_packet;
+            std::list<AVPacket> packet_queue;
 
             while(m_playing)
             {
@@ -172,34 +161,48 @@ namespace kinski{ namespace video{
                 }
 
                 // feed data and wait until we get port settings changed
-                unsigned char *buf_ptr = buf->pBuffer, *buf_end = buf->pBuffer + buf->nAllocLen;
+                uint8_t *buf_ptr = buf->pBuffer;
 
                 // fill up buffer
-                // if(av_read_frame(m_av_format_context, &packet) >= 0)
-                // {
-                //     if(packet.stream_index == m_av_stream_idx)
-                //     {
-                //         data_len = packet.size;
-                //         packet_data = packet.data;
-                //
-                //         // while()
-                //         size_t bytes_to_read = std::min(buf->nAllocLen, data_len);
-                //         memcpy(buf_ptr, packet_data, bytes_to_read);
-                //         data_len -= bytes_to_read;
-                //     }
-                //
-                //     av_free_packet(&packet);
-                // }
-
-                // loop if at end
-                if(feof(file_handle))
+                while(true)
                 {
-                   if(m_loop){ rewind(file_handle); }
-                   else{ break; }
-                }
+                    // some packets left to feed into buffer?
+                    if(!packet_queue.empty())
+                    {
+                        current_packet = packet_queue.front();
+                        packet_queue.pop_front();
+                    }
+                    else
+                    {
+                        int ret = av_read_frame(m_av_format_context, &current_packet);
+                        if(ret < 0){ continue; }
+                    }
 
-                // read h264 data directly from file
-                data_len += fread(buf_ptr, 1, buf->nAllocLen - data_len, file_handle);
+                    if(current_packet.stream_index == m_av_video_stream_idx)
+                    {
+                        if(data_len + current_packet.size <= buf->nAllocLen)
+                        {
+                            uint8_t *packet_data =
+                            current_packet.buf ? current_packet.buf->data : current_packet.data;
+
+                            data_len += current_packet.size;
+                            memcpy(buf_ptr, packet_data, current_packet.size);
+                            buf_ptr += current_packet.size;
+                            av_free_packet(&current_packet);
+                        }
+                        else
+                        {
+                            packet_queue.push_back(current_packet);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        // not a video packet -> release
+                        // TODO: handle audio packets
+                        av_free_packet(&current_packet);
+                    }
+                }
 
                 if(port_settings_changed == 0 &&
                    ((data_len > 0 && ilclient_remove_event(m_video_decode,
@@ -261,11 +264,12 @@ namespace kinski{ namespace video{
                     m_has_new_frame = true;
                 }
                 if(!data_len)
+                {
+                    LOG_ERROR << "buffer underrun";
                     break;
-
+                }
                 buf->nFilledLen = data_len;
                 data_len = 0;
-
                 buf->nOffset = 0;
 
                 if(first_packet)
@@ -273,8 +277,7 @@ namespace kinski{ namespace video{
                     buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
                     first_packet = 0;
                 }
-                else
-                    buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN;
+                else{ buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN; }
 
                 if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
                 {
@@ -285,13 +288,13 @@ namespace kinski{ namespace video{
 
             if(buf)
             {
-              buf->nFilledLen = 0;
-              buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
+                buf->nFilledLen = 0;
+                buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN | OMX_BUFFERFLAG_EOS;
 
-              if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
-              {
-                  LOG_ERROR << "OMX_EmptyThisBuffer failed.";
-              }
+                if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+                {
+                    LOG_ERROR << "OMX_EmptyThisBuffer failed.";
+                }
             }
 
             // need to flush the renderer to allow m_video_decode to disable its input port
@@ -306,10 +309,7 @@ namespace kinski{ namespace video{
             //     LOG_ERROR << "disable video_decode port buffers failed";
             // }
 
-            if(file_handle){ fclose(file_handle); }
-
             LOG_DEBUG << "movie decode thread ended";
-
         }//thread func
     };
 
@@ -400,25 +400,25 @@ namespace kinski{ namespace video{
         AVCodecContext *av_code_ctx = nullptr, *av_code_ctx_orig = nullptr;
 
         // Find the first video stream
-        m_impl->m_av_stream_idx = -1;
+        m_impl->m_av_video_stream_idx = -1;
 
         for(uint32_t i = 0; i < m_impl->m_av_format_context->nb_streams; i++)
         {
             if(m_impl->m_av_format_context->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO)
             {
-                m_impl->m_av_stream_idx = i;
+                m_impl->m_av_video_stream_idx = i;
                 break;
             }
         }
 
-        if(m_impl->m_av_stream_idx == -1)
+        if(m_impl->m_av_video_stream_idx == -1)
         {
             LOG_ERROR << "no video streams found";
             return;
         }
 
         // Get a pointer to the codec context for the video stream
-        av_code_ctx_orig = m_impl->m_av_format_context->streams[m_impl->m_av_stream_idx]->codec;
+        av_code_ctx_orig = m_impl->m_av_format_context->streams[m_impl->m_av_video_stream_idx]->codec;
 
         LOG_DEBUG << "movie: " << av_code_ctx_orig->width << " x " << av_code_ctx_orig->height;
 
