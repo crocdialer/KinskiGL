@@ -47,10 +47,13 @@ namespace kinski{ namespace video{
         OMX_VIDEO_PARAM_PORTFORMATTYPE m_port_format;
         OMX_TIME_CONFIG_CLOCKSTATETYPE m_clock_state;
 
+        // EGL bridge -> gl::Texture
         void* m_egl_image;
         gl::Texture m_texture;
 
+        // libav stuff
         AVFormatContext* m_av_format_context = nullptr;
+        AVCodecContext* m_av_codec_ctx = nullptr;
         int m_av_video_stream_idx = -1;
 
         std::thread m_thread;
@@ -126,10 +129,9 @@ namespace kinski{ namespace video{
                 }
             }
 
-            if(m_av_format_context)
-            {
-                avformat_close_input(&m_av_format_context);
-            }
+            // close codec
+            if(m_av_codec_ctx){ avcodec_close(m_av_codec_ctx); }
+            if(m_av_format_context){ avformat_close_input(&m_av_format_context); }
             // LOG_DEBUG << "impl desctructor finished";
         };
 
@@ -175,12 +177,12 @@ namespace kinski{ namespace video{
                     else
                     {
                         int ret = av_read_frame(m_av_format_context, &current_packet);
-                        if(ret < 0){ continue; }
+                        if(ret < 0){ m_playing = false; break; }
                     }
 
                     if(current_packet.stream_index == m_av_video_stream_idx)
                     {
-                        if(data_len + current_packet.size <= buf->nAllocLen)
+                        if((data_len + current_packet.size) <= buf->nAllocLen)
                         {
                             uint8_t *packet_data =
                             current_packet.buf ? current_packet.buf->data : current_packet.data;
@@ -395,9 +397,7 @@ namespace kinski{ namespace video{
         }
 
         // Dump information about file onto standard error
-        av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
-
-        AVCodecContext *av_code_ctx = nullptr, *av_code_ctx_orig = nullptr;
+        // av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
 
         // Find the first video stream
         m_impl->m_av_video_stream_idx = -1;
@@ -418,36 +418,37 @@ namespace kinski{ namespace video{
         }
 
         // Get a pointer to the codec context for the video stream
-        av_code_ctx_orig = m_impl->m_av_format_context->streams[m_impl->m_av_video_stream_idx]->codec;
+        m_impl->m_av_codec_ctx =
+            m_impl->m_av_format_context->streams[m_impl->m_av_video_stream_idx]->codec;
 
-        LOG_DEBUG << "movie: " << av_code_ctx_orig->width << " x " << av_code_ctx_orig->height;
+        LOG_DEBUG << "movie: " << m_impl->m_av_codec_ctx->width << " x " << m_impl->m_av_codec_ctx->height;
 
         // allocate texture memory
-        m_impl->m_texture = gl::Texture(av_code_ctx_orig->width, av_code_ctx_orig->height);
+        m_impl->m_texture = gl::Texture(m_impl->m_av_codec_ctx->width, m_impl->m_av_codec_ctx->height);
 
-        AVCodec *av_codec = nullptr;
-
-        // Find the decoder for the video stream
-        av_codec = avcodec_find_decoder(av_code_ctx_orig->codec_id);
-
-        if(!av_codec)
-        {
-            LOG_ERROR << "Unsupported codec!";
-            return; // Codec not found
-        }
-        // Copy context
-        av_code_ctx = avcodec_alloc_context3(av_codec);
-        if(avcodec_copy_context(av_code_ctx, av_code_ctx_orig) != 0)
-        {
-            LOG_ERROR << "Couldn't copy codec context";
-            return ; // Error copying codec context
-        }
-        // Open codec
-        if(avcodec_open2(av_code_ctx, av_codec, nullptr) < 0)
-        {
-            LOG_ERROR << "Could not open codec";
-            return; // Could not open codec
-        }
+        // AVCodec *av_codec = nullptr;
+        //
+        // // Find the decoder for the video stream
+        // av_codec = avcodec_find_decoder(m_impl->m_av_codec_ctx->codec_id);
+        //
+        // if(!av_codec)
+        // {
+        //     LOG_ERROR << "Unsupported codec!";
+        //     return; // Codec not found
+        // }
+        // // Copy context
+        // av_code_ctx = avcodec_alloc_context3(av_codec);
+        // if(avcodec_copy_context(av_code_ctx, m_impl->m_av_codec_ctx) != 0)
+        // {
+        //     LOG_ERROR << "Couldn't copy codec context";
+        //     return ; // Error copying codec context
+        // }
+        // // Open codec
+        // if(avcodec_open2(av_code_ctx, av_codec, nullptr) < 0)
+        // {
+        //     LOG_ERROR << "Could not open codec";
+        //     return; // Could not open codec
+        // }
 
         ////////////////////////////////////////////////////////////////////////////
 
@@ -548,7 +549,7 @@ namespace kinski{ namespace video{
         catch(std::exception &e){ LOG_ERROR<<e.what(); }
     }
 
-    bool MovieController::isPlaying() const
+    bool MovieController::is_playing() const
     {
         return m_impl && m_impl->m_playing;
     }

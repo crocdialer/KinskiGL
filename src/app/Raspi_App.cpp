@@ -139,7 +139,7 @@ namespace kinski
         std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
             " > /sys/class/backlight/rpi_backlight/bl_power\"";
         kinski::syscall(cmd);
-        kinski::syscall("setterm -powersave off -powerdown 0 -blank 0");
+        kinski::syscall("setterm --powersave off --powerdown 0 --blank 0");
     }
 
     void Raspi_App::pollEvents()
