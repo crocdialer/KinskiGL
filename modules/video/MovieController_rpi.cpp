@@ -138,6 +138,7 @@ namespace kinski{ namespace video{
         void thread_func()
         {
             LOG_DEBUG << "starting movie decode thread";
+            m_playing = true;
             size_t data_len = 0;
 
             OMX_BUFFERHEADERTYPE *buf = nullptr;
@@ -176,8 +177,14 @@ namespace kinski{ namespace video{
                     }
                     else
                     {
+                        // LOG_DEBUG << "av_read_frame";
+
                         int ret = av_read_frame(m_av_format_context, &current_packet);
-                        if(ret < 0){ m_playing = false; break; }
+                        if(ret < 0)
+                        {
+                             m_playing = false; break;
+                             LOG_ERROR << "av_read_frame failed";
+                         }
                     }
 
                     if(current_packet.stream_index == m_av_video_stream_idx)
@@ -311,7 +318,7 @@ namespace kinski{ namespace video{
             //     LOG_ERROR << "disable video_decode port buffers failed";
             // }
 
-            LOG_DEBUG << "movie decode thread ended";
+            LOG_DEBUG << "movie decode thread ended: " << m_playing;
         }//thread func
     };
 
@@ -397,7 +404,7 @@ namespace kinski{ namespace video{
         }
 
         // Dump information about file onto standard error
-        // av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
+        av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
 
         // Find the first video stream
         m_impl->m_av_video_stream_idx = -1;
@@ -418,37 +425,39 @@ namespace kinski{ namespace video{
         }
 
         // Get a pointer to the codec context for the video stream
-        m_impl->m_av_codec_ctx =
-            m_impl->m_av_format_context->streams[m_impl->m_av_video_stream_idx]->codec;
+        AVCodecContext* av_codec_ctx = nullptr;
+        av_codec_ctx = m_impl->m_av_format_context->streams[m_impl->m_av_video_stream_idx]->codec;
 
-        LOG_DEBUG << "movie: " << m_impl->m_av_codec_ctx->width << " x " << m_impl->m_av_codec_ctx->height;
+        LOG_DEBUG << "movie: " << av_codec_ctx->width << " x " << av_codec_ctx->height;
 
         // allocate texture memory
-        m_impl->m_texture = gl::Texture(m_impl->m_av_codec_ctx->width, m_impl->m_av_codec_ctx->height);
+        m_impl->m_texture = gl::Texture(av_codec_ctx->width, av_codec_ctx->height);
 
-        // AVCodec *av_codec = nullptr;
-        //
-        // // Find the decoder for the video stream
-        // av_codec = avcodec_find_decoder(m_impl->m_av_codec_ctx->codec_id);
-        //
-        // if(!av_codec)
-        // {
-        //     LOG_ERROR << "Unsupported codec!";
-        //     return; // Codec not found
-        // }
+        AVCodec *av_codec = nullptr;
+
+        // Find the decoder for the video stream
+        av_codec = avcodec_find_decoder(av_codec_ctx->codec_id);
+
+        if(!av_codec)
+        {
+            LOG_ERROR << "Unsupported codec!";
+            return; // Codec not found
+        }
         // // Copy context
-        // av_code_ctx = avcodec_alloc_context3(av_codec);
-        // if(avcodec_copy_context(av_code_ctx, m_impl->m_av_codec_ctx) != 0)
-        // {
-        //     LOG_ERROR << "Couldn't copy codec context";
-        //     return ; // Error copying codec context
-        // }
-        // // Open codec
-        // if(avcodec_open2(av_code_ctx, av_codec, nullptr) < 0)
-        // {
-        //     LOG_ERROR << "Could not open codec";
-        //     return; // Could not open codec
-        // }
+        m_impl->m_av_codec_ctx = avcodec_alloc_context3(av_codec);
+        if(avcodec_copy_context(m_impl->m_av_codec_ctx, av_codec_ctx) != 0)
+        {
+            LOG_ERROR << "Couldn't copy codec context";
+            return ; // Error copying codec context
+        }
+        // Open codec
+        if(avcodec_open2(m_impl->m_av_codec_ctx, av_codec, nullptr) < 0)
+        {
+            LOG_ERROR << "Could not open codec";
+            return; // Could not open codec
+        }
+
+        // avcodec_close(av_codec_ctx);
 
         ////////////////////////////////////////////////////////////////////////////
 
