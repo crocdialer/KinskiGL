@@ -153,6 +153,7 @@ namespace kinski{ namespace video{
             // AvFrame *frame = av_frame_alloc();
             AVPacket current_packet;
             std::list<AVPacket> packet_queue;
+            size_t packet_bytes_left = 0;
 
             while(m_playing)
             {
@@ -167,9 +168,10 @@ namespace kinski{ namespace video{
 
                 // feed data and wait until we get port settings changed
                 uint8_t *buf_ptr = buf->pBuffer;
+                bool buffer_filled = false;
 
                 // fill up buffer
-                while(true)
+                while(!buffer_filled)
                 {
                     // some packets left to feed into buffer?
                     if(packet_queue.empty())
@@ -182,6 +184,7 @@ namespace kinski{ namespace video{
                             LOG_ERROR << "av_read_frame failed";
                             m_playing = false; break;
                         }
+                        packet_bytes_left = current_packet.size;
                     }
                     else
                     {
@@ -191,21 +194,25 @@ namespace kinski{ namespace video{
 
                     if(current_packet.stream_index == m_av_video_stream_idx)
                     {
-                        if((data_len + current_packet.size) <= buf->nAllocLen)
-                        {
-                            uint8_t *packet_data =
-                            current_packet.buf ? current_packet.buf->data : current_packet.data;
+                        uint8_t *packet_data =
+                        current_packet.buf ? current_packet.buf->data : current_packet.data;
 
-                            data_len += current_packet.size;
-                            memcpy(buf_ptr, packet_data, current_packet.size);
-                            buf_ptr += current_packet.size;
-                            av_free_packet(&current_packet);
-                        }
-                        else
+                        packet_data += current_packet.size - packet_bytes_left;
+
+                        size_t bytes_to_copy = std::min(packet_bytes_left, buf->nAllocLen - data_len);
+
+                        data_len += bytes_to_copy;
+                        memcpy(buf_ptr, packet_data, bytes_to_copy);
+                        buf_ptr += bytes_to_copy;
+                        packet_bytes_left -= bytes_to_copy;
+
+                        if(data_len == buf->nAllocLen){ buffer_filled = true; }
+
+                        if(packet_bytes_left)
                         {
                             packet_queue.push_back(current_packet);
-                            break;
                         }
+                        else{ av_free_packet(&current_packet); }
                     }
                     else
                     {
@@ -297,16 +304,16 @@ namespace kinski{ namespace video{
                 }
 
                 // playback time
-                OMX_TIME_CONFIG_TIMESTAMPTYPE tstamp;
-                tstamp.nPortIndex = OMX_ALL;
-                if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
-                                 OMX_IndexConfigTimeCurrentMediaTime,
-                                 &tstamp) == OMX_ErrorNone)
-                {
-                    int64_t t = tstamp.nTimestamp.nHighPart;
-                    t = (t << 32) | tstamp.nTimestamp.nLowPart;
-                    m_current_time = t / (double)OMX_TICKS_PER_SECOND;
-                }
+                // OMX_TIME_CONFIG_TIMESTAMPTYPE tstamp;
+                // tstamp.nPortIndex = OMX_ALL;
+                // if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
+                //                  OMX_IndexConfigTimeCurrentMediaTime,
+                //                  &tstamp) == OMX_ErrorNone)
+                // {
+                //     int64_t t = tstamp.nTimestamp.nHighPart;
+                //     t = (t << 32) | tstamp.nTimestamp.nLowPart;
+                //     m_current_time = t / (double)OMX_TICKS_PER_SECOND;
+                // }
             }// while(m_playing)
 
             if(buf)
