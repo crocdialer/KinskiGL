@@ -12,6 +12,8 @@ extern "C"
 {
   #include <libavcodec/avcodec.h>
   #include <libavformat/avformat.h>
+  // #include <libavutil/avutil.h>
+  #include <libavutil/mathematics.h>
 }
 
 #include <thread>
@@ -29,7 +31,7 @@ namespace kinski{ namespace video{
         volatile bool m_has_new_frame;
         volatile bool m_loop;
         float m_rate;
-
+        std::weak_ptr<MovieController> m_movie_controller;
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
 
 
@@ -152,6 +154,9 @@ namespace kinski{ namespace video{
             // allocate ffmpeg frame structure
             // AvFrame *frame = av_frame_alloc();
             AVPacket current_packet;
+            current_packet.size = 0;
+            current_packet.data = nullptr;
+            current_packet.stream_index = -1;
             std::list<AVPacket> packet_queue;
             size_t packet_bytes_left = 0;
 
@@ -182,8 +187,31 @@ namespace kinski{ namespace video{
                         if(ret < 0)
                         {
                             LOG_ERROR << "av_read_frame failed";
-                            m_playing = false; break;
+
+                            if(m_movie_ended_cb)
+                            {
+                                auto mc = m_movie_controller.lock();
+                                if(mc){ m_movie_ended_cb(mc); }
+                            }
+
+                            if(m_loop)
+                            {
+                                AVRational timeBase =
+                                    m_av_format_context->streams[m_av_video_stream_idx]->time_base;
+                                int flags = (true) ? AVSEEK_FLAG_BACKWARD : 0;
+                                int64_t seek_pos = (int64_t)(0.0 * AV_TIME_BASE);
+                                int64_t seek_target = av_rescale_q(seek_pos, AV_TIME_BASE_Q, timeBase);
+                                ret = av_seek_frame(m_av_format_context, m_av_video_stream_idx,
+                                                    seek_target, flags);
+                                avcodec_flush_buffers(m_av_codec_ctx);
+                                first_packet = 1;
+                                continue;
+                            }
+                            else{ m_playing = false; break; }
                         }
+                        // else{ LOG_DEBUG << "av_read_frame succeeded";}
+
+                        if(current_packet.size < 0){ av_free_packet(&current_packet); continue; }
                         packet_bytes_left = current_packet.size;
                     }
                     else
@@ -194,6 +222,8 @@ namespace kinski{ namespace video{
 
                     if(current_packet.stream_index == m_av_video_stream_idx)
                     {
+                        // LOG_DEBUG << "video packet";
+
                         uint8_t *packet_data =
                         current_packet.buf ? current_packet.buf->data : current_packet.data;
 
@@ -206,7 +236,11 @@ namespace kinski{ namespace video{
                         buf_ptr += bytes_to_copy;
                         packet_bytes_left -= bytes_to_copy;
 
-                        if(data_len == buf->nAllocLen){ buffer_filled = true; }
+                        if(data_len == buf->nAllocLen)
+                        {
+                            // LOG_DEBUG << "buffer filled";
+                            buffer_filled = true;
+                        }
 
                         if(packet_bytes_left)
                         {
@@ -304,16 +338,16 @@ namespace kinski{ namespace video{
                 }
 
                 // playback time
-                // OMX_TIME_CONFIG_TIMESTAMPTYPE tstamp;
-                // tstamp.nPortIndex = OMX_ALL;
-                // if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
-                //                  OMX_IndexConfigTimeCurrentMediaTime,
-                //                  &tstamp) == OMX_ErrorNone)
-                // {
-                //     int64_t t = tstamp.nTimestamp.nHighPart;
-                //     t = (t << 32) | tstamp.nTimestamp.nLowPart;
-                //     m_current_time = t / (double)OMX_TICKS_PER_SECOND;
-                // }
+                OMX_TIME_CONFIG_TIMESTAMPTYPE tstamp;
+                tstamp.nPortIndex = OMX_ALL;
+                if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
+                                 OMX_IndexConfigTimeCurrentMediaTime,
+                                 &tstamp) == OMX_ErrorNone)
+                {
+                    int64_t t = tstamp.nTimestamp.nHighPart;
+                    t = (t << 32) | tstamp.nTimestamp.nLowPart;
+                    m_current_time = t / (double)OMX_TICKS_PER_SECOND;
+                }
             }// while(m_playing)
 
             if(buf)
@@ -407,6 +441,7 @@ namespace kinski{ namespace video{
         }
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_src_path = p;
+        m_impl->m_movie_controller = shared_from_this();
 
         ////////////////////////////////////////////////////////////////////////////
 
@@ -467,7 +502,9 @@ namespace kinski{ namespace video{
             LOG_ERROR << "Unsupported codec!";
             return; // Codec not found
         }
-        // // Copy context
+        // m_impl->m_av_codec_ctx = av_codec_ctx;
+
+        // Copy context
         m_impl->m_av_codec_ctx = avcodec_alloc_context3(av_codec);
         if(avcodec_copy_context(m_impl->m_av_codec_ctx, av_codec_ctx) != 0)
         {
@@ -553,7 +590,7 @@ namespace kinski{ namespace video{
             if(autoplay){ play(); }
             m_impl->m_loop = loop;
         }
-
+        LOG_WARNING_IF(status) << "unsmooth movie init: " << status;
     }
 
     void MovieController::play()
@@ -565,7 +602,7 @@ namespace kinski{ namespace video{
         pause();
         m_impl->m_playing = true;
         m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
-
+        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
         //[m_impl->m_player setRate: m_impl->m_rate];
     }
 
