@@ -55,6 +55,7 @@ namespace kinski{ namespace video{
         AVFormatContext* m_av_format_context = nullptr;
         AVCodecContext* m_av_codec_ctx = nullptr;
         int m_av_video_stream_idx = -1;
+        double m_duration = 0, m_current_time = 0;
 
         std::thread m_thread;
 
@@ -89,6 +90,7 @@ namespace kinski{ namespace video{
             m_port_format.nVersion.nVersion = OMX_VERSION;
             m_port_format.nPortIndex = 130;
             m_port_format.eCompressionFormat = OMX_VIDEO_CodingAVC;
+            // m_port_format.eCompressionFormat = OMX_VIDEO_CodingAutoDetect;
 
         }
         ~MovieControllerImpl()
@@ -170,21 +172,21 @@ namespace kinski{ namespace video{
                 while(true)
                 {
                     // some packets left to feed into buffer?
-                    if(!packet_queue.empty())
-                    {
-                        current_packet = packet_queue.front();
-                        packet_queue.pop_front();
-                    }
-                    else
+                    if(packet_queue.empty())
                     {
                         // LOG_DEBUG << "av_read_frame";
 
                         int ret = av_read_frame(m_av_format_context, &current_packet);
                         if(ret < 0)
                         {
-                             m_playing = false; break;
-                             LOG_ERROR << "av_read_frame failed";
-                         }
+                            LOG_ERROR << "av_read_frame failed";
+                            m_playing = false; break;
+                        }
+                    }
+                    else
+                    {
+                        current_packet = packet_queue.front();
+                        packet_queue.pop_front();
                     }
 
                     if(current_packet.stream_index == m_av_video_stream_idx)
@@ -292,6 +294,18 @@ namespace kinski{ namespace video{
                 {
                     LOG_ERROR << "OMX_EmptyThisBuffer failed.";
                     m_playing = false;
+                }
+
+                // playback time
+                OMX_TIME_CONFIG_TIMESTAMPTYPE tstamp;
+                tstamp.nPortIndex = OMX_ALL;
+                if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
+                                 OMX_IndexConfigTimeCurrentMediaTime,
+                                 &tstamp) == OMX_ErrorNone)
+                {
+                    int64_t t = tstamp.nTimestamp.nHighPart;
+                    t = (t << 32) | tstamp.nTimestamp.nLowPart;
+                    m_current_time = t / (double)OMX_TICKS_PER_SECOND;
                 }
             }// while(m_playing)
 
@@ -405,6 +419,9 @@ namespace kinski{ namespace video{
 
         // Dump information about file onto standard error
         av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
+
+        // media duration
+        m_impl->m_duration = m_impl->m_av_format_context->duration / (double) AV_TIME_BASE;
 
         // Find the first video stream
         m_impl->m_av_video_stream_idx = -1;
@@ -602,12 +619,12 @@ namespace kinski{ namespace video{
 
     double MovieController::duration() const
     {
-        return 0.f;
+        return m_impl ? m_impl->m_duration : 0.0;
     }
 
     double MovieController::current_time() const
     {
-        return 0.f;
+        return m_impl ? m_impl->m_current_time : 0.0;
     }
 
     void MovieController::seek_to_time(float value)
