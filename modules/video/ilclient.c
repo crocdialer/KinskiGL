@@ -47,8 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <ctype.h>
 #include <assert.h>
 
-#define OMX_SKIP64BIT
-
 #include "interface/vcos/vcos.h"
 #include "interface/vcos/vcos_logging.h"
 #include "interface/vmcs_host/vchost.h"

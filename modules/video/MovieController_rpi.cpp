@@ -1,19 +1,18 @@
 // Raspian defines and includes
-#define USE_VCHIQ_ARM
-#define OMX_SKIP64BIT
+// #define USE_VCHIQ_ARM
+// #define OMX_SKIP64BIT
 
 #include "bcm_host.h"
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
-#include "ilclient.h"
 #undef countof
 
 extern "C"
 {
-  #include <libavcodec/avcodec.h>
-  #include <libavformat/avformat.h>
-  // #include <libavutil/avutil.h>
-  #include <libavutil/mathematics.h>
+    #include "ilclient.h"
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libavutil/mathematics.h>
 }
 
 #include <thread>
@@ -344,8 +343,13 @@ namespace kinski{ namespace video{
                                  OMX_IndexConfigTimeCurrentMediaTime,
                                  &tstamp) == OMX_ErrorNone)
                 {
-                    int64_t t = tstamp.nTimestamp.nHighPart;
+                    int64_t t;
+#if defined(OMX_SKIP64BIT)
+                    t = tstamp.nTimestamp.nHighPart;
                     t = (t << 32) | tstamp.nTimestamp.nLowPart;
+#else
+                    t = tstamp.nTimestamp;
+#endif
                     m_current_time = t / (double)OMX_TICKS_PER_SECOND;
                 }
             }// while(m_playing)

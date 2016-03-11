@@ -34,6 +34,8 @@ function(KINSKI_ADD_SAMPLE theName thePath)
       include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
       link_directories("/opt/vc/lib")
+      add_definitions(-DUSE_VCHIQ_ARM)
+      add_definitions(-DOMX_SKIP64BIT)
 
     endif(KINSKI_RASPI)
     add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS} ${MODULE_FILES})
