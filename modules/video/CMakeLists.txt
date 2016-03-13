@@ -6,7 +6,7 @@ if(APPLE)
   set(MODULE_LIBRARIES ${AVFoundation} ${CoreFoundation} ${CoreMedia} ${IOSurface} PARENT_SCOPE)
 
   # OSX specific implementation
-  FILE(GLOB MODULE_SOURCES MovieController.mm CameraController.mm)
+  FILE(GLOB MODULE_SOURCES osx/*.mm)
 elseif(KINSKI_RASPI)
 
   # Raspian specific implementation
