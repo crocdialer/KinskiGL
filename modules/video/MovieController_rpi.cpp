@@ -15,6 +15,7 @@ extern "C"
     #include <libavutil/mathematics.h>
 }
 
+#include <queue>
 #include <thread>
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
@@ -22,6 +23,13 @@ extern "C"
 
 namespace kinski{ namespace video{
 
+    #define OMX_INIT_STRUCTURE(a) \
+    memset(&(a), 0, sizeof(a)); \
+    (a).nSize = sizeof(a); \
+    (a).nVersion.s.nVersionMajor = OMX_VERSION_MAJOR; \
+    (a).nVersion.s.nVersionMinor = OMX_VERSION_MINOR; \
+    (a).nVersion.s.nRevision = OMX_VERSION_REVISION; \
+    (a).nVersion.s.nStep = OMX_VERSION_STEP
 
     struct MovieControllerImpl
     {
@@ -80,15 +88,16 @@ namespace kinski{ namespace video{
             memset(m_comp_list, 0, sizeof(m_comp_list));
             memset(m_tunnels, 0, sizeof(m_tunnels));
 
-            memset(&m_clock_state, 0, sizeof(m_clock_state));
-            m_clock_state.nSize = sizeof(m_clock_state);
-            m_clock_state.nVersion.nVersion = OMX_VERSION;
+            OMX_INIT_STRUCTURE(m_clock_state);
             m_clock_state.eState = OMX_TIME_ClockStateWaitingForStartTime;
-            m_clock_state.nWaitMask = 1;
+            // if(has_audio){ clock->nWaitMask |= OMX_CLOCKPORT0; }
+            // if(has_video)
+            {
+                 m_clock_state.nWaitMask |= OMX_CLOCKPORT0;
+            }
+            // m_clock_state.nWaitMask = 1;
 
-            memset(&m_port_format, 0, sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE));
-            m_port_format.nSize = sizeof(OMX_VIDEO_PARAM_PORTFORMATTYPE);
-            m_port_format.nVersion.nVersion = OMX_VERSION;
+            OMX_INIT_STRUCTURE(m_port_format);
             m_port_format.nPortIndex = 130;
             m_port_format.eCompressionFormat = OMX_VIDEO_CodingAVC;
             // m_port_format.eCompressionFormat = OMX_VIDEO_CodingAutoDetect;
@@ -142,6 +151,7 @@ namespace kinski{ namespace video{
         {
             LOG_DEBUG << "starting movie decode thread";
             m_playing = true;
+            size_t num_frames = 0;
             size_t data_len = 0;
 
             OMX_BUFFERHEADERTYPE *buf = nullptr;
@@ -156,8 +166,9 @@ namespace kinski{ namespace video{
             current_packet.size = 0;
             current_packet.data = nullptr;
             current_packet.stream_index = -1;
-            std::list<AVPacket> packet_queue;
+            std::queue<AVPacket> packet_queue;
             size_t packet_bytes_left = 0;
+
 
             while(m_playing)
             {
@@ -173,9 +184,11 @@ namespace kinski{ namespace video{
                 // feed data and wait until we get port settings changed
                 uint8_t *buf_ptr = buf->pBuffer;
                 bool buffer_filled = false;
+                bool packet_completed = false;
+                uint64_t dts = 0, pts = 0;
 
                 // fill up buffer
-                while(!buffer_filled)
+                while(!buffer_filled || !packet_completed)
                 {
                     // some packets left to feed into buffer?
                     if(packet_queue.empty())
@@ -185,7 +198,7 @@ namespace kinski{ namespace video{
                         int ret = av_read_frame(m_av_format_context, &current_packet);
                         if(ret < 0)
                         {
-                            LOG_ERROR << "av_read_frame failed";
+                            LOG_ERROR << "av_read_frame failed:" << num_frames;
 
                             if(m_movie_ended_cb)
                             {
@@ -195,33 +208,34 @@ namespace kinski{ namespace video{
 
                             if(m_loop)
                             {
-                                AVRational timeBase =
-                                    m_av_format_context->streams[m_av_video_stream_idx]->time_base;
-                                int flags = (true) ? AVSEEK_FLAG_BACKWARD : 0;
-                                int64_t seek_pos = (int64_t)(0.0 * AV_TIME_BASE);
-                                int64_t seek_target = av_rescale_q(seek_pos, AV_TIME_BASE_Q, timeBase);
-                                ret = av_seek_frame(m_av_format_context, m_av_video_stream_idx,
-                                                    seek_target, flags);
-                                avcodec_flush_buffers(m_av_codec_ctx);
+                                if(auto p = m_movie_controller.lock()){ p->seek_to_time(0.f); }
                                 first_packet = 1;
+                                num_frames = 0;
                                 continue;
                             }
                             else{ m_playing = false; break; }
                         }
                         // else{ LOG_DEBUG << "av_read_frame succeeded";}
-
                         if(current_packet.size < 0){ av_free_packet(&current_packet); continue; }
+
+                        // finally a good packet for sure
                         packet_bytes_left = current_packet.size;
                     }
                     else
                     {
                         current_packet = packet_queue.front();
-                        packet_queue.pop_front();
+                        packet_queue.pop();
                     }
 
                     if(current_packet.stream_index == m_av_video_stream_idx)
                     {
-                        // LOG_DEBUG << "video packet";
+                        // LOG_DEBUG << "video packet - pts: " << current_packet.pts <<" - dts: " <<
+                        //     current_packet.dts;
+                        // std::this_thread::sleep_for(std::chrono::milliseconds(35));
+                        LOG_WARNING_IF((int64_t)buf->nAllocLen < current_packet.size) << "buffer size too small";
+
+                        dts = current_packet.dts;
+                        pts = current_packet.pts;
 
                         uint8_t *packet_data =
                         current_packet.buf ? current_packet.buf->data : current_packet.data;
@@ -230,9 +244,10 @@ namespace kinski{ namespace video{
 
                         size_t bytes_to_copy = std::min(packet_bytes_left, buf->nAllocLen - data_len);
 
-                        data_len += bytes_to_copy;
+                        // copy into decoder-buffer
                         memcpy(buf_ptr, packet_data, bytes_to_copy);
                         buf_ptr += bytes_to_copy;
+                        data_len += bytes_to_copy;
                         packet_bytes_left -= bytes_to_copy;
 
                         if(data_len == buf->nAllocLen)
@@ -241,11 +256,13 @@ namespace kinski{ namespace video{
                             buffer_filled = true;
                         }
 
-                        if(packet_bytes_left)
+                        if(packet_bytes_left){ packet_queue.push(current_packet); }
+                        else
                         {
-                            packet_queue.push_back(current_packet);
+                            packet_completed = true;
+                            num_frames++;
+                            av_free_packet(&current_packet);
                         }
-                        else{ av_free_packet(&current_packet); }
                     }
                     else
                     {
@@ -253,7 +270,7 @@ namespace kinski{ namespace video{
                         // TODO: handle audio packets
                         av_free_packet(&current_packet);
                     }
-                }
+                }//while(!buffer_filled || !packet_completed)
 
                 if(port_settings_changed == 0 &&
                    ((data_len > 0 && ilclient_remove_event(m_video_decode,
@@ -312,46 +329,66 @@ namespace kinski{ namespace video{
                         LOG_ERROR << "OMX_FillThisBuffer failed.";
                         m_playing = false;
                     }
-                    m_has_new_frame = true;
                 }
                 if(!data_len)
                 {
                     LOG_ERROR << "buffer underrun";
                     break;
                 }
-                buf->nFilledLen = data_len;
-                data_len = 0;
-                buf->nOffset = 0;
 
-                if(first_packet)
+                if(packet_completed || buffer_filled)
                 {
-                    buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
-                    first_packet = 0;
-                }
-                else{ buf->nFlags = OMX_BUFFERFLAG_TIME_UNKNOWN; }
+                    buf->nFilledLen = data_len;
+                    buf->nTimeStamp = omx_ticks_from_s64(pts != AV_NOPTS_VALUE ? pts : dts != AV_NOPTS_VALUE ? dts : 0);
+                    buf->nOffset = 0;
+                    buf->nFlags = 0;
+                    data_len = 0;
 
-                if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
-                {
-                    LOG_ERROR << "OMX_EmptyThisBuffer failed.";
-                    m_playing = false;
+                    if(pts == AV_NOPTS_VALUE && dts == AV_NOPTS_VALUE)
+                    {
+                        buf->nFlags |= OMX_BUFFERFLAG_TIME_UNKNOWN;
+                    }
+                    else if(pts == AV_NOPTS_VALUE)
+                    {
+                        buf->nFlags |= OMX_BUFFERFLAG_TIME_IS_DTS;
+                    }
+
+                    if(first_packet)
+                    {
+                        buf->nFlags |= OMX_BUFFERFLAG_STARTTIME;
+                        buf->nFlags |= OMX_BUFFERFLAG_TIME_UNKNOWN;
+                        buf->nFlags ^= OMX_BUFFERFLAG_TIME_UNKNOWN;
+                        first_packet = 0;
+                    }
+
+                    if(packet_completed)
+                    {
+                        if(!(buf->nFlags & OMX_BUFFERFLAG_TIME_UNKNOWN))
+                        { buf->nFlags |= OMX_BUFFERFLAG_ENDOFFRAME; }
+                        m_has_new_frame = true;
+                    }
+
+                    if(OMX_EmptyThisBuffer(ILC_GET_HANDLE(m_video_decode), buf) != OMX_ErrorNone)
+                    {
+                        LOG_ERROR << "OMX_EmptyThisBuffer failed.";
+                        m_playing = false;
+                    }
+
+                    // playback time
+                    OMX_TIME_CONFIG_TIMESTAMPTYPE time_stamp;
+                    OMX_INIT_STRUCTURE(time_stamp);
+                    // time_stamp.nPortIndex = OMX_ALL;
+                    time_stamp.nPortIndex = OMX_CLOCKPORT0;
+                    if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
+                                     OMX_IndexConfigTimeCurrentMediaTime,
+                                     &time_stamp) == OMX_ErrorNone)
+                    {
+                        m_current_time =
+                            omx_ticks_to_s64(time_stamp.nTimestamp) / (double)OMX_TICKS_PER_SECOND;
+                    }else{ LOG_ERROR << "OMX_IndexConfigTimeCurrentMediaTime failed"; }
+
                 }
 
-                // playback time
-                OMX_TIME_CONFIG_TIMESTAMPTYPE tstamp;
-                tstamp.nPortIndex = OMX_ALL;
-                if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
-                                 OMX_IndexConfigTimeCurrentMediaTime,
-                                 &tstamp) == OMX_ErrorNone)
-                {
-                    int64_t t;
-#if defined(OMX_SKIP64BIT)
-                    t = tstamp.nTimestamp.nHighPart;
-                    t = (t << 32) | tstamp.nTimestamp.nLowPart;
-#else
-                    t = tstamp.nTimestamp;
-#endif
-                    m_current_time = t / (double)OMX_TICKS_PER_SECOND;
-                }
             }// while(m_playing)
 
             if(buf)
@@ -385,6 +422,7 @@ namespace kinski{ namespace video{
 
     void fill_buffer_done_cb(void* data, COMPONENT_T* comp)
     {
+        // LOG_DEBUG << "fill_buffer_done_cb";
         MovieControllerImpl *impl = static_cast<MovieControllerImpl*>(data);
 
         if(impl)
@@ -395,7 +433,7 @@ namespace kinski{ namespace video{
             if(OMX_FillThisBuffer(ilclient_get_handle(impl->m_egl_render),
                                   write_buf) != OMX_ErrorNone)
             {
-              LOG_ERROR << "OMX_FillThisBuffer failed in callback";
+                LOG_ERROR << "OMX_FillThisBuffer failed in callback";
             }
         }
     }
@@ -455,6 +493,7 @@ namespace kinski{ namespace video{
             LOG_ERROR << "avformat_open_input failed";
             return;
         }
+        m_impl->m_av_format_context->pb->seekable = AVIO_SEEKABLE_NORMAL;
 
         // Retrieve stream information
         if(avformat_find_stream_info(m_impl->m_av_format_context, nullptr) < 0)
@@ -464,7 +503,7 @@ namespace kinski{ namespace video{
         }
 
         // Dump information about file onto standard error
-        av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
+        // av_dump_format(m_impl->m_av_format_context, 0, p.c_str(), 0);
 
         // media duration
         m_impl->m_duration = m_impl->m_av_format_context->duration / (double) AV_TIME_BASE;
@@ -556,7 +595,7 @@ namespace kinski{ namespace video{
         // create clock
         if(status == 0 &&
            ilclient_create_component(m_impl->m_il_client, &m_impl->m_clock, "clock",
-                                     ILCLIENT_DISABLE_ALL_PORTS) != 0)
+                                     ILCLIENT_DISABLE_ALL_PORTS) != 0)//ILCLIENT_FLAGS_NONE
         { status = -14; }
         m_impl->m_comp_list[2] = m_impl->m_clock;
 
@@ -630,7 +669,7 @@ namespace kinski{ namespace video{
 
     void MovieController::restart()
     {
-        //[m_impl->m_player seekToTime:kCMTimeZero];
+        seek_to_time(0);
         play();
     }
 
@@ -677,14 +716,22 @@ namespace kinski{ namespace video{
 
     void MovieController::seek_to_time(float value)
     {
-        //CMTime t = CMTimeMakeWithSeconds(value, NSEC_PER_SEC);
-        //[m_impl->m_player seekToTime:t];
-        //[m_impl->m_player setRate: m_impl->m_rate];
+        if(!m_impl){ return; }
+
+        AVRational timeBase =
+            m_impl->m_av_format_context->streams[m_impl->m_av_video_stream_idx]->time_base;
+        int flags = (true) ? AVSEEK_FLAG_BACKWARD : 0;
+        int64_t seek_pos = (int64_t)(value * AV_TIME_BASE);
+        int64_t seek_target = av_rescale_q(seek_pos, AV_TIME_BASE_Q, timeBase);
+        int ret = av_seek_frame(m_impl->m_av_format_context, m_impl->m_av_video_stream_idx,
+                                seek_target, flags);
+        (void)ret;
+        avcodec_flush_buffers(m_impl->m_av_codec_ctx);
     }
 
     void MovieController::set_loop(bool b)
     {
-
+        if(m_impl){ m_impl->m_loop = b; }
     }
 
     bool MovieController::loop() const
