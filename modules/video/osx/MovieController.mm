@@ -196,7 +196,7 @@ namespace kinski{ namespace video{
         m_impl->m_playing = false;
     }
     
-    bool MovieController::isPlaying() const
+    bool MovieController::is_playing() const
     {
         return [m_impl->m_player rate] != 0.0f;
     }
@@ -261,7 +261,7 @@ namespace kinski{ namespace video{
     
     bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
-        if(!isPlaying() || !m_impl->m_output || !m_impl->m_player_item) return false;
+        if(!is_playing() || !m_impl->m_output || !m_impl->m_player_item) return false;
         
         CMTime ct = [m_impl->m_player currentTime];
         
