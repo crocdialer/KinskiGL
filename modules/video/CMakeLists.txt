@@ -10,7 +10,7 @@ if(APPLE)
 elseif(KINSKI_RASPI)
 
   # Raspian specific implementation
-  FILE(GLOB MODULE_SOURCES rpi/*.c*)
+  FILE(GLOB MODULE_SOURCES rpi/*.c* rpi/utils/*.c* rpi/linux/*.c*)
 
   find_library(AVFormat NAMES avformat)
   find_library(AVCodec NAMES avcodec)
