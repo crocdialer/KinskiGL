@@ -43,8 +43,8 @@ class KINSKI_API Logger
     */
     bool ifLog(Severity theSeverity, const char *theModule, int theId);
     void log(Severity theSeverity, const char *theModule, int theId, const std::string &theText);
+    
     void setLoggerTopLevelTag(const std::string & theTagString);
-
     void setSeverity(const Severity theSeverity);
     Severity getSeverity() const { return m_globalSeverity; };
     
@@ -98,6 +98,9 @@ class MessagePort
     const int m_Id;
 };
 
+// convenience xprintf style log-function
+void log(Severity theSeverity, const char *the_format_text, ...);
+    
 #define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->ifLog(SEVERITY,MODULE,MSGID) \
     && (kinski::MessagePort(SEVERITY,MODULE,MSGID).getStream())
 

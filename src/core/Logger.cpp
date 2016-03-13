@@ -16,6 +16,11 @@
 
 namespace kinski {
     
+    namespace
+    {
+        char g_log_buf[2048];
+    }
+    
     const std::string currentDateTime()
     {
         time_t     now = time(0);
@@ -50,7 +55,7 @@ namespace kinski {
     {
     
     }
-
+    
     void Logger::setLoggerTopLevelTag(const std::string &theTagString)
     {
         _myTopLevelLogTag = theTagString;
@@ -190,5 +195,21 @@ namespace kinski {
     void Logger::clear_streams()
     {
         m_out_streams.clear();
+    }
+    
+    void log(Severity the_severity, const char *the_format_text, ...)
+    {
+        size_t buf_sz = 1024 * 16;
+        char buf[buf_sz];
+        va_list argptr;
+        va_start(argptr, the_format_text);
+        vsnprintf(buf, buf_sz, the_format_text, argptr);
+        va_end(argptr);
+        Logger *l = Logger::get();
+        
+        if(the_severity <= l->getSeverity())
+        {
+            l->log(the_severity, "", 0, buf);
+        }
     }
 };
