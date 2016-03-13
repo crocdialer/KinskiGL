@@ -93,9 +93,9 @@ namespace kinski{ namespace video{
             // if(has_audio){ clock->nWaitMask |= OMX_CLOCKPORT0; }
             // if(has_video)
             {
-                 m_clock_state.nWaitMask |= OMX_CLOCKPORT1;
+                 m_clock_state.nWaitMask |= OMX_CLOCKPORT0;
             }
-            m_clock_state.nWaitMask = 1;
+            // m_clock_state.nWaitMask = 1;
 
             OMX_INIT_STRUCTURE(m_port_format);
             m_port_format.nPortIndex = 130;
@@ -355,7 +355,7 @@ namespace kinski{ namespace video{
 
                     if(first_packet)
                     {
-                        buf->nFlags = OMX_BUFFERFLAG_STARTTIME;
+                        buf->nFlags |= OMX_BUFFERFLAG_STARTTIME;
                         buf->nFlags |= OMX_BUFFERFLAG_TIME_UNKNOWN;
                         buf->nFlags ^= OMX_BUFFERFLAG_TIME_UNKNOWN;
                         first_packet = 0;
@@ -377,8 +377,8 @@ namespace kinski{ namespace video{
                     // playback time
                     OMX_TIME_CONFIG_TIMESTAMPTYPE time_stamp;
                     OMX_INIT_STRUCTURE(time_stamp);
-                    // time_stamp.nPortIndex = OMX_CLOCKPORT1;
-                    time_stamp.nPortIndex = OMX_ALL;
+                    // time_stamp.nPortIndex = OMX_ALL;
+                    time_stamp.nPortIndex = OMX_CLOCKPORT0;
                     if(OMX_GetConfig(ILC_GET_HANDLE(m_clock),
                                      OMX_IndexConfigTimeCurrentMediaTime,
                                      &time_stamp) == OMX_ErrorNone)
@@ -422,6 +422,7 @@ namespace kinski{ namespace video{
 
     void fill_buffer_done_cb(void* data, COMPONENT_T* comp)
     {
+        // LOG_DEBUG << "fill_buffer_done_cb";
         MovieControllerImpl *impl = static_cast<MovieControllerImpl*>(data);
 
         if(impl)
