@@ -10,12 +10,12 @@ if(APPLE)
 elseif(KINSKI_RASPI)
 
   # Raspian specific implementation
-  FILE(GLOB MODULE_SOURCES MovieController_rpi.cpp CameraController_rpi.cpp ilclient.h ilclient.c ilcore.c)
+  FILE(GLOB MODULE_SOURCES rpi/*.c*)
 
   find_library(AVFormat NAMES avformat)
   find_library(AVCodec NAMES avcodec)
   find_library(AVUtil NAMES avutil)
-  set(MODULE_LIBRARIES pthread ${AVFormat} ${AVCodec} ${AVUtil} vcos vchiq_arm vcilcs PARENT_SCOPE)
+  set(MODULE_LIBRARIES openmaxil pthread ${AVFormat} ${AVCodec} ${AVUtil} vcos vchiq_arm vcilcs PARENT_SCOPE)
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)
