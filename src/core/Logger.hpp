@@ -12,9 +12,19 @@
 #include <sstream>
 #include "core/core.hpp"
 
-namespace kinski {
-    enum Severity { SEV_DISABLED = 0, SEV_PRINT = 1, SEV_FATAL = 2, SEV_ERROR = 3, SEV_WARNING = 4,
-                    SEV_INFO = 5, SEV_DEBUG = 6, SEV_TRACE = 7};
+namespace kinski
+{
+    enum class Severity
+    {
+        DISABLED = 0,
+        PRINT = 1,
+        FATAL = 2,
+        ERROR = 3,
+        WARNING = 4,
+        INFO = 5,
+        DEBUG = 6,
+        TRACE = 7
+    };
 
 class KINSKI_API Logger
 {
@@ -104,12 +114,12 @@ void log(Severity theSeverity, const char *the_format_text, ...);
 #define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->ifLog(SEVERITY,MODULE,MSGID) \
     && (kinski::MessagePort(SEVERITY,MODULE,MSGID).getStream())
 
-#define LOG_INFO KINSKI_LOG_CHECK(kinski::SEV_INFO, __FILE__ ,__LINE__)
-#define LOG_TRACE KINSKI_LOG_CHECK(kinski::SEV_TRACE, __FILE__ ,__LINE__)
-#define LOG_DEBUG KINSKI_LOG_CHECK(kinski::SEV_DEBUG, __FILE__ ,__LINE__)
-#define LOG_PRINT KINSKI_LOG_CHECK(kinski::SEV_PRINT, __FILE__ ,__LINE__)
-#define LOG_ERROR KINSKI_LOG_CHECK(kinski::SEV_ERROR, __FILE__ ,__LINE__)
-#define LOG_WARNING KINSKI_LOG_CHECK(kinski::SEV_WARNING, __FILE__ ,__LINE__)
+#define LOG_INFO KINSKI_LOG_CHECK(kinski::Severity::INFO, __FILE__ ,__LINE__)
+#define LOG_TRACE KINSKI_LOG_CHECK(kinski::Severity::TRACE, __FILE__ ,__LINE__)
+#define LOG_DEBUG KINSKI_LOG_CHECK(kinski::Severity::DEBUG, __FILE__ ,__LINE__)
+#define LOG_PRINT KINSKI_LOG_CHECK(kinski::Severity::PRINT, __FILE__ ,__LINE__)
+#define LOG_ERROR KINSKI_LOG_CHECK(kinski::Severity::ERROR, __FILE__ ,__LINE__)
+#define LOG_WARNING KINSKI_LOG_CHECK(kinski::Severity::WARNING, __FILE__ ,__LINE__)
 
 #define LOG_INFO_IF(b) b && LOG_INFO
 #define LOG_TRACE_IF(b) b && LOG_TRACE

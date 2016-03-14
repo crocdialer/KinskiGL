@@ -48,7 +48,7 @@ namespace kinski {
     
     Logger::Logger():
     _myTopLevelLogTag(""),
-    m_globalSeverity(SEV_INFO),
+    m_globalSeverity(Severity::INFO),
     m_use_timestamp(true),
     m_use_thread_id(false)
     {
@@ -142,7 +142,7 @@ namespace kinski {
         std::ostringstream myText;
         myText << theText;
         
-        if (theSeverity > SEV_PRINT)
+        if (theSeverity > Severity::PRINT)
         {
             if(m_use_timestamp)
                 stream << currentDateTime();
@@ -154,22 +154,22 @@ namespace kinski {
     
         switch (theSeverity)
         {
-            case SEV_TRACE:
+            case Severity::TRACE:
                 stream <<" TRACE: " << myText.str();
                 break;
-            case SEV_DEBUG:
+            case Severity::DEBUG:
                 stream <<" DEBUG: " << myText.str();
                 break;
-            case SEV_INFO:
+            case Severity::INFO:
                 stream <<" INFO: " << myText.str();
                 break;
-            case SEV_WARNING:
+            case Severity::WARNING:
                 stream <<" WARNING: " << myText.str();
                 break;
-            case SEV_PRINT:
+            case Severity::PRINT:
                 stream << myText.str();
                 break;
-            case SEV_ERROR:
+            case Severity::ERROR:
                 stream <<" ERROR: " << myText.str();
                 break;
             default:
