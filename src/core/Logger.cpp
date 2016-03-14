@@ -10,16 +10,12 @@
 #include <iostream>
 #include <limits>
 #include <thread>
+#include <cstdarg>
 #include "Logger.hpp"
 #include "Exception.hpp"
 #include "file_functions.hpp"
 
 namespace kinski {
-    
-    namespace
-    {
-        char g_log_buf[2048];
-    }
     
     const std::string currentDateTime()
     {
@@ -199,7 +195,7 @@ namespace kinski {
     
     void log(Severity the_severity, const char *the_format_text, ...)
     {
-        size_t buf_sz = 1024 * 16;
+        size_t buf_sz = 1024 * 2;
         char buf[buf_sz];
         va_list argptr;
         va_start(argptr, the_format_text);
