@@ -10,11 +10,21 @@
 #include <iostream>
 #include <limits>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <cstdarg>
 #include "Logger.hpp"
 #include "Exception.hpp"
 #include "file_functions.hpp"
 
 namespace kinski {
+    
+    namespace
+    {
+        bool is_busy = false;
+        std::mutex mutex;
+        std::condition_variable condition_var;
+    }
     
     const std::string currentDateTime()
     {
@@ -38,27 +48,41 @@ namespace kinski {
     
     Logger::Logger():
     _myTopLevelLogTag(""),
-    m_globalSeverity(SEV_INFO),
+    m_globalSeverity(Severity::INFO),
     m_use_timestamp(true),
     m_use_thread_id(false)
     {
         clear_streams();
-        m_out_streams.push_back(&std::cout);
+        add_outstream(&std::cout);
     }
 
     Logger::~Logger()
     {
     
     }
-
+    
     void Logger::setLoggerTopLevelTag(const std::string &theTagString)
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        while (is_busy){ condition_var.wait(lock); }
+
+        // change state
         _myTopLevelLogTag = theTagString;
+        
+        condition_var.notify_all();
     }
     
     void Logger::setSeverity(const Severity theSeverity)
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        while (is_busy){ condition_var.wait(lock); }
+        is_busy = true;
+        
+        // change state
         m_globalSeverity = theSeverity;
+        
+        is_busy = false;
+        condition_var.notify_all();
     }
 
     /**
@@ -109,12 +133,16 @@ namespace kinski {
     void Logger::log(Severity theSeverity, const char *theModule, int theId,
                      const std::string &theText)
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        while (is_busy){ condition_var.wait(lock); }
+        is_busy = true;
+        
         std::stringstream stream;
         std::string myLogTag(_myTopLevelLogTag);
         std::ostringstream myText;
         myText << theText;
         
-        if (theSeverity > SEV_PRINT)
+        if (theSeverity > Severity::PRINT)
         {
             if(m_use_timestamp)
                 stream << currentDateTime();
@@ -126,22 +154,22 @@ namespace kinski {
     
         switch (theSeverity)
         {
-            case SEV_TRACE:
+            case Severity::TRACE:
                 stream <<" TRACE: " << myText.str();
                 break;
-            case SEV_DEBUG:
+            case Severity::DEBUG:
                 stream <<" DEBUG: " << myText.str();
                 break;
-            case SEV_INFO:
+            case Severity::INFO:
                 stream <<" INFO: " << myText.str();
                 break;
-            case SEV_WARNING:
+            case Severity::WARNING:
                 stream <<" WARNING: " << myText.str();
                 break;
-            case SEV_PRINT:
+            case Severity::PRINT:
                 stream << myText.str();
                 break;
-            case SEV_ERROR:
+            case Severity::ERROR:
                 stream <<" ERROR: " << myText.str();
                 break;
             default:
@@ -179,16 +207,47 @@ namespace kinski {
                 break;
         }
         #endif
-
+        
+        is_busy = false;
+        condition_var.notify_all();
     }
     
     void Logger::add_outstream(std::ostream *the_stream)
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        while (is_busy){ condition_var.wait(lock); }
+        is_busy = true;
+        
+        // change state
         m_out_streams.push_back(the_stream);
+        
+        is_busy = false;
+        condition_var.notify_all();
     }
     
     void Logger::clear_streams()
     {
+        std::unique_lock<std::mutex> lock(mutex);
+        while (is_busy){ condition_var.wait(lock); }
+        is_busy = true;
+        
+        // change state
         m_out_streams.clear();
+        
+        is_busy = false;
+        condition_var.notify_all();
+    }
+    
+    void log(Severity the_severity, const char *the_format_text, ...)
+    {
+        size_t buf_sz = 1024 * 2;
+        char buf[buf_sz];
+        va_list argptr;
+        va_start(argptr, the_format_text);
+        vsnprintf(buf, buf_sz, the_format_text, argptr);
+        va_end(argptr);
+        Logger *l = Logger::get();
+        
+        if(the_severity <= l->getSeverity()){ l->log(the_severity, "", 0, buf); }
     }
 };
