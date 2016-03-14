@@ -18,12 +18,9 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-// #include "config.h"
 #include "OMXVideo.h"
 
 #include "OMXStreamInfo.h"
-#include "utils/log.h"
 #include "linux/XMemUtils.h"
 
 #include <sys/time.h>
