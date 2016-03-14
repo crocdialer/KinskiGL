@@ -19,12 +19,11 @@
  *
  */
 
-#ifndef _OMX_THREAD_H_
-#define _OMX_THREAD_H_
+#pragma once
 
 #include <pthread.h>
 
-class OMXThread 
+class OMXThread
 {
 protected:
   pthread_attr_t      m_tattr;
@@ -46,4 +45,3 @@ public:
   void Lock();
   void UnLock();
 };
-#endif

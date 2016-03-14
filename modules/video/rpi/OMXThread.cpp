@@ -18,20 +18,13 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-#if (defined HAVE_CONFIG_H) && (!defined WIN32)
-  #include "config.h"
-#elif defined(_WIN32)
-#include "system.h"
-#endif
-
 #include "OMXThread.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "utils/log.h"
+#include "core/Logger.hpp"
 
 #ifdef CLASSNAME
 #undef CLASSNAME
@@ -58,7 +51,7 @@ bool OMXThread::StopThread()
 {
   if(!m_running)
   {
-    CLog::Log(LOGDEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::DEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
     return false;
   }
 
@@ -68,7 +61,7 @@ bool OMXThread::StopThread()
 
   m_thread = 0;
 
-  CLog::Log(LOGDEBUG, "%s::%s - Thread stopped\n", CLASSNAME, __func__);
+  kinski::log(kinski::Severity::DEBUG, "%s::%s - Thread stopped\n", CLASSNAME, __func__);
   return true;
 }
 
@@ -76,7 +69,7 @@ bool OMXThread::Create()
 {
   if(m_running)
   {
-    CLog::Log(LOGERROR, "%s::%s - Thread already running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::ERROR, "%s::%s - Thread already running\n", CLASSNAME, __func__);
     return false;
   }
 
@@ -85,7 +78,7 @@ bool OMXThread::Create()
 
   pthread_create(&m_thread, &m_tattr, &OMXThread::Run, this);
 
-  CLog::Log(LOGDEBUG, "%s::%s - Thread with id %d started\n", CLASSNAME, __func__, (int)m_thread);
+  kinski::log(kinski::Severity::DEBUG, "%s::%s - Thread with id %d started\n", CLASSNAME, __func__, (int)m_thread);
   return true;
 }
 
@@ -104,7 +97,7 @@ void *OMXThread::Run(void *arg)
   OMXThread *thread = static_cast<OMXThread *>(arg);
   thread->Process();
 
-  CLog::Log(LOGDEBUG, "%s::%s - Exited thread with  id %d\n", CLASSNAME, __func__, (int)thread->ThreadHandle());
+  kinski::log(kinski::Severity::DEBUG, "%s::%s - Exited thread with  id %d\n", CLASSNAME, __func__, (int)thread->ThreadHandle());
   pthread_exit(NULL);
 }
 
@@ -112,7 +105,7 @@ void OMXThread::Lock()
 {
   if(!m_running)
   {
-    CLog::Log(LOGDEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::DEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
     return;
   }
 
@@ -123,10 +116,9 @@ void OMXThread::UnLock()
 {
   if(!m_running)
   {
-    CLog::Log(LOGDEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::DEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
     return;
   }
 
   pthread_mutex_unlock(&m_lock);
 }
-

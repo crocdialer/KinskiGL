@@ -28,6 +28,7 @@
 #endif
 
 #include <algorithm>
+#include "core/Logger.hpp"
 
 using namespace std;
 
@@ -115,7 +116,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_decoder.GetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - error m_omx_decoder GetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_decoder GetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
 
@@ -129,11 +130,11 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_mixer.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - error m_omx_mixer SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_mixer SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
 
-    CLog::Log(LOGDEBUG, "%s::%s - Output bps %d samplerate %d channels %d buffer size %d bytes per second %d",
+    kinski::log(kinski::Severity::DEBUG, "%s::%s - Output bps %d samplerate %d channels %d buffer size %d bytes per second %d",
         CLASSNAME, __func__, (int)m_pcm_output.nBitPerSample, (int)m_pcm_output.nSamplingRate, (int)m_pcm_output.nChannels, m_BufferLen, m_BytesPerSec);
     PrintPCM(&m_pcm_output, std::string("output"));
 
@@ -143,7 +144,7 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_splitter.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        CLog::Log(LOGERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
 
@@ -151,14 +152,14 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_splitter.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        CLog::Log(LOGERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
       m_pcm_output.nPortIndex = m_omx_splitter.GetOutputPort() + 1;
       omx_err = m_omx_splitter.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        CLog::Log(LOGERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_splitter SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -169,7 +170,7 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_render_analog.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        CLog::Log(LOGERROR, "%s::%s - error m_omx_render_analog SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_render_analog SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -180,7 +181,7 @@ bool COMXAudio::PortSettingsChanged()
       omx_err = m_omx_render_hdmi.SetParameter(OMX_IndexParamAudioPcm, &m_pcm_output);
       if(omx_err != OMX_ErrorNone)
       {
-        CLog::Log(LOGERROR, "%s::%s - error m_omx_render_hdmi SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - error m_omx_render_hdmi SetParameter omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
         return false;
       }
     }
@@ -193,7 +194,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_clock_analog.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_tunnel_clock_analog.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_clock_analog.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
     m_omx_render_analog.ResetEos();
@@ -206,7 +207,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_clock_hdmi.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_tunnel_clock_hdmi.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_clock_hdmi.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
     m_omx_render_hdmi.ResetEos();
@@ -231,7 +232,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_analog.SetConfig(OMX_IndexConfigBrcmAudioDestination, &audioDest);
     if (omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_render_analog.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_analog.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -254,7 +255,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_hdmi.SetConfig(OMX_IndexConfigBrcmAudioDestination, &audioDest);
     if (omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_render_hdmi.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_hdmi.SetConfig omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -265,7 +266,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_splitter_analog.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_analog.Establish 0x%08x", omx_err);
+      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_analog.Establish 0x%08x", omx_err);
       return false;
     }
 
@@ -273,7 +274,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_splitter_hdmi.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_hdmi.Establish 0x%08x", omx_err);
+      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error m_omx_tunnel_splitter_hdmi.Establish 0x%08x", omx_err);
       return false;
     }
   }
@@ -295,7 +296,7 @@ bool COMXAudio::PortSettingsChanged()
         m_omx_tunnel_mixer.Initialize(&m_omx_mixer, m_omx_mixer.GetOutputPort(), &m_omx_render_hdmi, m_omx_render_hdmi.GetInputPort());
       }
     }
-    CLog::Log(LOGDEBUG, "%s::%s - bits:%d mode:%d channels:%d srate:%d nopassthrough", CLASSNAME, __func__,
+    kinski::log(kinski::Severity::DEBUG, "%s::%s - bits:%d mode:%d channels:%d srate:%d nopassthrough", CLASSNAME, __func__,
             (int)m_pcm_input.nBitPerSample, m_pcm_input.ePCMMode, (int)m_pcm_input.nChannels, (int)m_pcm_input.nSamplingRate);
   }
   else
@@ -308,14 +309,14 @@ bool COMXAudio::PortSettingsChanged()
     {
       m_omx_tunnel_decoder.Initialize(&m_omx_decoder, m_omx_decoder.GetOutputPort(), &m_omx_render_hdmi, m_omx_render_hdmi.GetInputPort());
     }
-    CLog::Log(LOGDEBUG, "%s::%s - bits:%d mode:%d channels:%d srate:%d passthrough", CLASSNAME, __func__,
+    kinski::log(kinski::Severity::DEBUG, "%s::%s - bits:%d mode:%d channels:%d srate:%d passthrough", CLASSNAME, __func__,
             0, 0, 0, 0);
   }
 
   omx_err = m_omx_tunnel_decoder.Establish();
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
   }
 
@@ -323,7 +324,7 @@ bool COMXAudio::PortSettingsChanged()
   {
     omx_err = m_omx_mixer.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone) {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_mixer OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_mixer OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -333,7 +334,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_tunnel_mixer.Establish();
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_tunnel_decoder.Establish omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -343,7 +344,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_splitter.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_splitter OMX_StateExecuting 0x%08x", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_splitter OMX_StateExecuting 0x%08x", CLASSNAME, __func__, omx_err);
      return false;
     }
   }
@@ -352,7 +353,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_analog.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_render_analog OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_analog OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -361,7 +362,7 @@ bool COMXAudio::PortSettingsChanged()
     omx_err = m_omx_render_hdmi.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - m_omx_render_hdmi OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render_hdmi OMX_StateExecuting omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
       return false;
     }
   }
@@ -482,7 +483,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamBrcmDecoderPassThrough, &boolType);
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "COMXAudio::Initialize - Error OMX_IndexParamBrcmDecoderPassThrough 0x%08x", omx_err);
+    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error OMX_IndexParamBrcmDecoderPassThrough 0x%08x", omx_err);
     printf("OMX_IndexParamBrcmDecoderPassThrough omx_err(0x%08x)\n", omx_err);
     return false;
   }
@@ -495,7 +496,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (input) omx_err(0x%08x)\n", omx_err);
+    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (input) omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -506,7 +507,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (intput) omx_err(0x%08x)\n", omx_err);
+    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (intput) omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -517,7 +518,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.GetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (output) omx_err(0x%08x)\n", omx_err);
+    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error get OMX_IndexParamPortDefinition (output) omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -526,7 +527,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.SetParameter(OMX_IndexParamPortDefinition, &port_param);
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (output) omx_err(0x%08x)\n", omx_err);
+    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error set OMX_IndexParamPortDefinition (output) omx_err(0x%08x)\n", omx_err);
     return false;
   }
 
@@ -540,7 +541,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
     omx_err = m_omx_decoder.SetParameter(OMX_IndexParamAudioPortFormat, &formatType);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "COMXAudio::Initialize error OMX_IndexParamAudioPortFormat omx_err(0x%08x)\n", omx_err);
+      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize error OMX_IndexParamAudioPortFormat omx_err(0x%08x)\n", omx_err);
       return false;
     }
   }
@@ -548,13 +549,13 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   omx_err = m_omx_decoder.AllocInputBuffers();
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "COMXAudio::Initialize - Error alloc buffers 0x%08x", omx_err);
+    kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error alloc buffers 0x%08x", omx_err);
     return false;
   }
 
     omx_err = m_omx_decoder.SetStateForComponent(OMX_StateExecuting);
     if(omx_err != OMX_ErrorNone) {
-      CLog::Log(LOGERROR, "COMXAudio::Initialize - Error setting OMX_StateExecuting 0x%08x", omx_err);
+      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - Error setting OMX_StateExecuting 0x%08x", omx_err);
       return false;
     }
 
@@ -564,7 +565,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
     OMX_BUFFERHEADERTYPE *omx_buffer = m_omx_decoder.GetInputBuffer();
     if(omx_buffer == NULL)
     {
-      CLog::Log(LOGERROR, "COMXAudio::Initialize - buffer error 0x%08x", omx_err);
+      kinski::log(kinski::Severity::ERROR, "COMXAudio::Initialize - buffer error 0x%08x", omx_err);
       return false;
     }
 
@@ -578,7 +579,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
     omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
     if (omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
       m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
       return false;
     }
@@ -592,7 +593,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
 
       if(omx_buffer == NULL)
       {
-        CLog::Log(LOGERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
         return false;
       }
 
@@ -606,7 +607,7 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
       omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
       if (omx_err != OMX_ErrorNone)
       {
-        CLog::Log(LOGERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
         m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
         return false;
       }
@@ -637,10 +638,10 @@ bool COMXAudio::Initialize(OMXClock *clock, const OMXAudioConfig &config, uint64
   m_submitted     = 0.0f;
   m_maxLevel      = 0.0f;
 
-  CLog::Log(LOGDEBUG, "COMXAudio::Initialize Input bps %d samplerate %d channels %d buffer size %d bytes per second %d",
+  kinski::log(kinski::Severity::DEBUG, "COMXAudio::Initialize Input bps %d samplerate %d channels %d buffer size %d bytes per second %d",
       (int)m_pcm_input.nBitPerSample, (int)m_pcm_input.nSamplingRate, (int)m_pcm_input.nChannels, m_BufferLen, m_InputBytesPerSec);
   PrintPCM(&m_pcm_input, std::string("input"));
-  CLog::Log(LOGDEBUG, "COMXAudio::Initialize device %s passthrough %d hwdecode %d",
+  kinski::log(kinski::Severity::DEBUG, "COMXAudio::Initialize device %s passthrough %d hwdecode %d",
       m_config.device.c_str(), m_config.passthrough, m_config.hwdecode);
 
   return true;
@@ -795,7 +796,7 @@ bool COMXAudio::ApplyVolume(void)
     omx_err = m_omx_decoder.SetConfig(OMX_IndexConfigBrcmAudioDownmixCoefficients8x8, &mix);
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - error setting decoder OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x\n",
+      kinski::log(kinski::Severity::ERROR, "%s::%s - error setting decoder OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x\n",
             CLASSNAME, __func__, omx_err);
       return false;
     }
@@ -807,11 +808,11 @@ bool COMXAudio::ApplyVolume(void)
   omx_err = m_omx_mixer.SetConfig(OMX_IndexConfigBrcmAudioDownmixCoefficients8x8, &mix);
   if(omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "%s::%s - error setting mixer OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x\n",
+    kinski::log(kinski::Severity::ERROR, "%s::%s - error setting mixer OMX_IndexConfigBrcmAudioDownmixCoefficients, error 0x%08x\n",
               CLASSNAME, __func__, omx_err);
     return false;
   }
-  CLog::Log(LOGINFO, "%s::%s - Volume=%.2f (* %.2f * %.2f)\n", CLASSNAME, __func__, fVolume, m_amplification, m_attenuation);
+  kinski::log(kinski::Severity::TRACE, "%s::%s - Volume=%.2f (* %.2f * %.2f)\n", CLASSNAME, __func__, fVolume, m_amplification, m_attenuation);
   return true;
 }
 
@@ -829,7 +830,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
 
   if(!m_Initialized)
   {
-    CLog::Log(LOGERROR,"COMXAudio::AddPackets - sanity failed. no valid play handle!");
+    kinski::log(kinski::Severity::ERROR,"COMXAudio::AddPackets - sanity failed. no valid play handle!");
     return len;
   }
 
@@ -849,7 +850,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
 
     if(omx_buffer == NULL)
     {
-      CLog::Log(LOGERROR, "COMXAudio::Decode timeout\n");
+      kinski::log(kinski::Severity::ERROR, "COMXAudio::Decode timeout\n");
       printf("COMXAudio::Decode timeout\n");
       return len;
     }
@@ -874,7 +875,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
       const unsigned int frame_samples  = frame_size / pitch;
       const unsigned int plane_size     = frame_samples * sample_pitch;
       const unsigned int out_plane_size = samples * sample_pitch;
-      //CLog::Log(LOGDEBUG, "%s::%s samples:%d/%d ps:%d ops:%d fs:%d pitch:%d filled:%d frames=%d", CLASSNAME, __func__, samples, demuxer_samples, plane_size, out_plane_size, frame_size, pitch, omx_buffer
+      //kinski::log(kinski::Severity::DEBUG, "%s::%s samples:%d/%d ps:%d ops:%d fs:%d pitch:%d filled:%d frames=%d", CLASSNAME, __func__, samples, demuxer_samples, plane_size, out_plane_size, frame_size, pitch, omx_buffer
       for (unsigned int sample = 0; sample < samples; )
       {
         unsigned int frame = (demuxer_samples_sent + sample) / frame_samples;
@@ -884,7 +885,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
         uint8_t *dst = (uint8_t *)omx_buffer->pBuffer + sample * sample_pitch;
         for (unsigned int channel = 0; channel < m_InputChannels; channel++)
         {
-          //CLog::Log(LOGDEBUG, "%s::%s copy(%d,%d,%d) (s:%d f:%d sin:%d c:%d)", CLASSNAME, __func__, dst-(uint8_t *)omx_buffer->pBuffer, src-demuxer_content, out_remaining, sample, frame, sample_in_frame
+          //kinski::log(kinski::Severity::DEBUG, "%s::%s copy(%d,%d,%d) (s:%d f:%d sin:%d c:%d)", CLASSNAME, __func__, dst-(uint8_t *)omx_buffer->pBuffer, src-demuxer_content, out_remaining, sample, frame, sample_in_frame
           memcpy(dst, src, out_remaining * sample_pitch);
           src += plane_size;
           dst += out_plane_size;
@@ -907,7 +908,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
 
       m_last_pts = pts;
 
-      CLog::Log(LOGDEBUG, "COMXAudio::Decode ADec : setStartTime %f\n", (float)val / DVD_TIME_BASE);
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::Decode ADec : setStartTime %f\n", (float)val / DVD_TIME_BASE);
       m_setStartTime = false;
     }
     else
@@ -940,19 +941,19 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
     omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
     if (omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+      kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
       printf("%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
       m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
       return 0;
     }
-    //CLog::Log(LOGINFO, "AudiD: dts:%.0f pts:%.0f size:%d\n", dts, pts, len);
+    //kinski::log(kinski::Severity::TRACE, "AudiD: dts:%.0f pts:%.0f size:%d\n", dts, pts, len);
 
     omx_err = m_omx_decoder.WaitForEvent(OMX_EventPortSettingsChanged, 0);
     if (omx_err == OMX_ErrorNone)
     {
       if(!PortSettingsChanged())
       {
-        CLog::Log(LOGERROR, "%s::%s - error PortSettingsChanged omx_err(0x%08x)\n", CLASSNAME, __func__, omx_err);
+        kinski::log(kinski::Severity::ERROR, "%s::%s - error PortSettingsChanged omx_err(0x%08x)\n", CLASSNAME, __func__, omx_err);
       }
     }
   }
@@ -1049,13 +1050,13 @@ float COMXAudio::GetDelay()
   if (stamp != DVD_NOPTS_VALUE)
   {
     ret = (m_last_pts - stamp) * (1.0 / DVD_TIME_BASE);
-    //CLog::Log(LOGINFO, "%s::%s - %.2f %.0f %.0f", CLASSNAME, __func__, ret, stamp, m_last_pts);
+    //kinski::log(kinski::Severity::TRACE, "%s::%s - %.2f %.0f %.0f", CLASSNAME, __func__, ret, stamp, m_last_pts);
   }
   else // just measure the input fifo
   {
     unsigned int used = m_omx_decoder.GetInputBufferSize() - m_omx_decoder.GetInputBufferSpace();
     ret = m_InputBytesPerSec ? (float)used / (float)m_InputBytesPerSec : 0.0f;
-    //CLog::Log(LOGINFO, "%s::%s - %.2f %d, %d, %d", CLASSNAME, __func__, ret, used, m_omx_decoder.GetInputBufferSize(), m_omx_decoder.GetInputBufferSpace());
+    //kinski::log(kinski::Severity::TRACE, "%s::%s - %.2f %d, %d, %d", CLASSNAME, __func__, ret, used, m_omx_decoder.GetInputBufferSize(), m_omx_decoder.GetInputBufferSpace());
   }
   return ret;
 }
@@ -1096,7 +1097,7 @@ unsigned int COMXAudio::GetAudioRenderingLatency()
 
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x\n",
+      kinski::log(kinski::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x\n",
         CLASSNAME, __func__, omx_err);
       return 0;
     }
@@ -1109,7 +1110,7 @@ unsigned int COMXAudio::GetAudioRenderingLatency()
 
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x\n",
+      kinski::log(kinski::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigAudioRenderingLatency error 0x%08x\n",
         CLASSNAME, __func__, omx_err);
       return 0;
     }
@@ -1135,7 +1136,7 @@ float COMXAudio::GetMaxLevel(double &pts)
 
     if(omx_err != OMX_ErrorNone)
     {
-      CLog::Log(LOGERROR, "%s::%s - error getting OMX_IndexConfigBrcmAudioMaxSample error 0x%08x\n",
+      kinski::log(kinski::Severity::ERROR, "%s::%s - error getting OMX_IndexConfigBrcmAudioMaxSample error 0x%08x\n",
         CLASSNAME, __func__, omx_err);
       return 0;
     }
@@ -1159,7 +1160,7 @@ void COMXAudio::SubmitEOS()
 
   if(omx_buffer == NULL)
   {
-    CLog::Log(LOGERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
+    kinski::log(kinski::Severity::ERROR, "%s::%s - buffer error 0x%08x", CLASSNAME, __func__, omx_err);
     m_failed_eos = true;
     return;
   }
@@ -1173,11 +1174,11 @@ void COMXAudio::SubmitEOS()
   omx_err = m_omx_decoder.EmptyThisBuffer(omx_buffer);
   if (omx_err != OMX_ErrorNone)
   {
-    CLog::Log(LOGERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
+    kinski::log(kinski::Severity::ERROR, "%s::%s - OMX_EmptyThisBuffer() failed with result(0x%x)\n", CLASSNAME, __func__, omx_err);
     m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
     return;
   }
-  CLog::Log(LOGINFO, "%s::%s", CLASSNAME, __func__);
+  kinski::log(kinski::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
 }
 
 bool COMXAudio::IsEOS()
@@ -1192,7 +1193,7 @@ bool COMXAudio::IsEOS()
 
   if (m_submitted_eos)
   {
-    CLog::Log(LOGINFO, "%s::%s", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
     m_submitted_eos = false;
   }
   return true;
@@ -1203,16 +1204,16 @@ void COMXAudio::SetCodingType(AVCodecID codec)
   switch(codec)
   {
     case AV_CODEC_ID_DTS:
-      CLog::Log(LOGDEBUG, "COMXAudio::SetCodingType OMX_AUDIO_CodingDTS\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::SetCodingType OMX_AUDIO_CodingDTS\n");
       m_eEncoding = OMX_AUDIO_CodingDTS;
       break;
     case AV_CODEC_ID_AC3:
     case AV_CODEC_ID_EAC3:
-      CLog::Log(LOGDEBUG, "COMXAudio::SetCodingType OMX_AUDIO_CodingDDP\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::SetCodingType OMX_AUDIO_CodingDDP\n");
       m_eEncoding = OMX_AUDIO_CodingDDP;
       break;
     default:
-      CLog::Log(LOGDEBUG, "COMXAudio::SetCodingType OMX_AUDIO_CodingPCM\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::SetCodingType OMX_AUDIO_CodingPCM\n");
       m_eEncoding = OMX_AUDIO_CodingPCM;
       break;
   }
@@ -1224,35 +1225,35 @@ bool COMXAudio::CanHWDecode(AVCodecID codec)
   {
     /*
     case AV_CODEC_ID_VORBIS:
-      CLog::Log(LOGDEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingVORBIS\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingVORBIS\n");
       m_eEncoding = OMX_AUDIO_CodingVORBIS;
       m_config.hwdecode = true;
       break;
     case AV_CODEC_ID_AAC:
-      CLog::Log(LOGDEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingAAC\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingAAC\n");
       m_eEncoding = OMX_AUDIO_CodingAAC;
       m_config.hwdecode = true;
       break;
     */
     case AV_CODEC_ID_MP2:
     case AV_CODEC_ID_MP3:
-      CLog::Log(LOGDEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingMP3\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingMP3\n");
       m_eEncoding = OMX_AUDIO_CodingMP3;
       m_config.hwdecode = true;
       break;
     case AV_CODEC_ID_DTS:
-      CLog::Log(LOGDEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDTS\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDTS\n");
       m_eEncoding = OMX_AUDIO_CodingDTS;
       m_config.hwdecode = true;
       break;
     case AV_CODEC_ID_AC3:
     case AV_CODEC_ID_EAC3:
-      CLog::Log(LOGDEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDDP\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingDDP\n");
       m_eEncoding = OMX_AUDIO_CodingDDP;
       m_config.hwdecode = true;
       break;
     default:
-      CLog::Log(LOGDEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingPCM\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::CanHWDecode OMX_AUDIO_CodingPCM\n");
       m_eEncoding = OMX_AUDIO_CodingPCM;
       m_config.hwdecode = false;
       break;
@@ -1269,26 +1270,26 @@ bool COMXAudio::HWDecode(AVCodecID codec)
   {
     /*
     case AV_CODEC_ID_VORBIS:
-      CLog::Log(LOGDEBUG, "COMXAudio::HWDecode AV_CODEC_ID_VORBIS\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::HWDecode AV_CODEC_ID_VORBIS\n");
       ret = true;
       break;
     case AV_CODEC_ID_AAC:
-      CLog::Log(LOGDEBUG, "COMXAudio::HWDecode AV_CODEC_ID_AAC\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::HWDecode AV_CODEC_ID_AAC\n");
       ret = true;
       break;
     */
     case AV_CODEC_ID_MP2:
     case AV_CODEC_ID_MP3:
-      CLog::Log(LOGDEBUG, "COMXAudio::HWDecode AV_CODEC_ID_MP2 / AV_CODEC_ID_MP3\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::HWDecode AV_CODEC_ID_MP2 / AV_CODEC_ID_MP3\n");
       ret = true;
       break;
     case AV_CODEC_ID_DTS:
-      CLog::Log(LOGDEBUG, "COMXAudio::HWDecode AV_CODEC_ID_DTS\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::HWDecode AV_CODEC_ID_DTS\n");
       ret = true;
       break;
     case AV_CODEC_ID_AC3:
     case AV_CODEC_ID_EAC3:
-      CLog::Log(LOGDEBUG, "COMXAudio::HWDecode AV_CODEC_ID_AC3 / AV_CODEC_ID_EAC3\n");
+      kinski::log(kinski::Severity::DEBUG, "COMXAudio::HWDecode AV_CODEC_ID_AC3 / AV_CODEC_ID_EAC3\n");
       ret = true;
       break;
     default:
@@ -1306,31 +1307,31 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
     switch(eChannelMapping[i])
     {
       case OMX_AUDIO_ChannelLF:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelLF\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLF\n");
         break;
       case OMX_AUDIO_ChannelRF:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelRF\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelRF\n");
         break;
       case OMX_AUDIO_ChannelCF:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelCF\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelCF\n");
         break;
       case OMX_AUDIO_ChannelLS:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelLS\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLS\n");
         break;
       case OMX_AUDIO_ChannelRS:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelRS\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelRS\n");
         break;
       case OMX_AUDIO_ChannelLFE:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelLFE\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLFE\n");
         break;
       case OMX_AUDIO_ChannelCS:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelCS\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelCS\n");
         break;
       case OMX_AUDIO_ChannelLR:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelLR\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLR\n");
         break;
       case OMX_AUDIO_ChannelRR:
-        CLog::Log(LOGDEBUG, "OMX_AUDIO_ChannelRR\n");
+        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelRR\n");
         break;
       case OMX_AUDIO_ChannelNone:
       case OMX_AUDIO_ChannelKhronosExtensions:
@@ -1344,15 +1345,15 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
 
 void COMXAudio::PrintPCM(OMX_AUDIO_PARAM_PCMMODETYPE *pcm, std::string direction)
 {
-  CLog::Log(LOGDEBUG, "pcm->direction      : %s\n", direction.c_str());
-  CLog::Log(LOGDEBUG, "pcm->nPortIndex     : %d\n", (int)pcm->nPortIndex);
-  CLog::Log(LOGDEBUG, "pcm->eNumData       : %d\n", pcm->eNumData);
-  CLog::Log(LOGDEBUG, "pcm->eEndian        : %d\n", pcm->eEndian);
-  CLog::Log(LOGDEBUG, "pcm->bInterleaved   : %d\n", (int)pcm->bInterleaved);
-  CLog::Log(LOGDEBUG, "pcm->nBitPerSample  : %d\n", (int)pcm->nBitPerSample);
-  CLog::Log(LOGDEBUG, "pcm->ePCMMode       : %d\n", pcm->ePCMMode);
-  CLog::Log(LOGDEBUG, "pcm->nChannels      : %d\n", (int)pcm->nChannels);
-  CLog::Log(LOGDEBUG, "pcm->nSamplingRate  : %d\n", (int)pcm->nSamplingRate);
+  kinski::log(kinski::Severity::DEBUG, "pcm->direction      : %s\n", direction.c_str());
+  kinski::log(kinski::Severity::DEBUG, "pcm->nPortIndex     : %d\n", (int)pcm->nPortIndex);
+  kinski::log(kinski::Severity::DEBUG, "pcm->eNumData       : %d\n", pcm->eNumData);
+  kinski::log(kinski::Severity::DEBUG, "pcm->eEndian        : %d\n", pcm->eEndian);
+  kinski::log(kinski::Severity::DEBUG, "pcm->bInterleaved   : %d\n", (int)pcm->bInterleaved);
+  kinski::log(kinski::Severity::DEBUG, "pcm->nBitPerSample  : %d\n", (int)pcm->nBitPerSample);
+  kinski::log(kinski::Severity::DEBUG, "pcm->ePCMMode       : %d\n", pcm->ePCMMode);
+  kinski::log(kinski::Severity::DEBUG, "pcm->nChannels      : %d\n", (int)pcm->nChannels);
+  kinski::log(kinski::Severity::DEBUG, "pcm->nSamplingRate  : %d\n", (int)pcm->nSamplingRate);
 
   PrintChannels(pcm->eChannelMapping);
 }
