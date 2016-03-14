@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  *      Copyright (C) 2005-2008 Team XBMC
  *      http://www.xbmc.org
@@ -20,11 +18,14 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma once
 
-#include "DllAvCodec.h"
-#include "DllAvFormat.h"
-#include "DllAvUtil.h"
-#include "DllSwResample.h"
+extern "C"
+{
+    #include "libavcodec/avcodec.h"
+    #include "libavutil/avutil.h"
+    #include "libswresample/swresample.h"
+}
 
 #include "OMXStreamInfo.h"
 #include "utils/PCMRemap.h"
@@ -69,7 +70,4 @@ protected:
   bool m_bNoConcatenate;
   unsigned int  m_frameSize;
   double m_dts, m_pts;
-  DllAvCodec m_dllAvCodec;
-  DllAvUtil m_dllAvUtil;
-  DllSwResample m_dllSwResample;
 };

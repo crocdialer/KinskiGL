@@ -18,13 +18,6 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-#if (defined HAVE_CONFIG_H) && (!defined WIN32)
-  #include "config.h"
-#elif defined(_WIN32)
-#include "system.h"
-#endif
-
 #include "OMXPlayerVideo.h"
 
 #include <stdio.h>
@@ -32,6 +25,12 @@
 #include <sys/time.h>
 
 #include "linux/XMemUtils.h"
+#include "core/Logger.hpp"
+
+namespace
+{
+    char g_log_buf[512];
+}
 
 OMXPlayerVideo::OMXPlayerVideo()
 {
@@ -89,13 +88,10 @@ void OMXPlayerVideo::UnLockDecoder()
 
 bool OMXPlayerVideo::Open(OMXClock *av_clock, const OMXVideoConfig &config)
 {
-  if (!m_dllAvUtil.Load() || !m_dllAvCodec.Load() || !m_dllAvFormat.Load() || !av_clock)
-    return false;
-  
   if(ThreadHandle())
     Close();
 
-  m_dllAvFormat.av_register_all();
+  av_register_all();
 
   m_config      = config;
   m_av_clock    = av_clock;
@@ -127,7 +123,7 @@ bool OMXPlayerVideo::Reset()
   // the start or a new position.  This replaces a combination of Close and then
   // Open calls but does away with the DLL unloading/loading, decoder reset, and
   // thread reset.
-  Flush();   
+  Flush();
   m_stream_id         = -1;
   m_pStream           = NULL;
   m_iCurrentPts       = DVD_NOPTS_VALUE;
@@ -161,10 +157,6 @@ bool OMXPlayerVideo::Close()
   }
 
   CloseDecoder();
-
-  m_dllAvUtil.Unload();
-  m_dllAvCodec.Unload();
-  m_dllAvFormat.Unload();
 
   m_open          = false;
   m_stream_id     = -1;
@@ -212,7 +204,9 @@ bool OMXPlayerVideo::Decode(OMXPacket *pkt)
     if(m_flush_requested) return true;
   }
 
-  CLog::Log(LOGINFO, "CDVDPlayerVideo::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d", pkt->dts, pkt->pts, m_iCurrentPts, pkt->size);
+  sprintf(g_log_buf, "CDVDPlayerVideo::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d",
+          pkt->dts, pkt->pts, m_iCurrentPts, pkt->size);
+  LOG_TRACE << g_log_buf;
   m_decoder->Decode(pkt->data, pkt->size, dts, pts);
   return true;
 }
@@ -275,7 +269,7 @@ void OMXPlayerVideo::Flush()
   m_flush = true;
   while (!m_packets.empty())
   {
-    OMXPacket *pkt = m_packets.front(); 
+    OMXPacket *pkt = m_packets.front();
     m_packets.pop_front();
     OMXReader::FreePacket(pkt);
   }
@@ -377,4 +371,3 @@ bool OMXPlayerVideo::IsEOS()
     return false;
   return m_packets.empty() && (!m_decoder || m_decoder->IsEOS());
 }
-

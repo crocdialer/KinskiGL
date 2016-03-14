@@ -21,6 +21,10 @@
 
 #pragma once
 
+#include <sys/types.h>
+#include <string>
+#include <queue>
+
 extern "C"
 {
     #include "libavformat/avformat.h"
@@ -30,14 +34,8 @@ extern "C"
 
 #include "OMXStreamInfo.h"
 #include "OMXThread.h"
-#include <queue>
-
 #include "OMXStreamInfo.h"
-
 #include "File.h"
-
-#include <sys/types.h>
-#include <string>
 
 using namespace XFILE;
 using namespace std;

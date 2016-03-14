@@ -23,11 +23,7 @@
 
 #include "OMXCore.h"
 #include "OMXClock.h"
-
-#ifdef TARGET_LINUX
 #include "linux/XMemUtils.h"
-#endif
-
 #include "core/Logger.hpp"
 
 //#define OMX_DEBUG_EVENTS

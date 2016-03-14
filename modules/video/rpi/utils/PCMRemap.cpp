@@ -30,10 +30,8 @@
 
 #include "MathUtils.h"
 #include "PCMRemap.h"
-#include "utils/log.h"
-#ifdef _WIN32
-#include "../win32/PlatformDefs.h"
-#endif
+
+#include "core/Logger.hpp"
 
 static enum PCMChannels PCMLayoutMap[PCM_MAX_LAYOUT][PCM_MAX_CH + 1] =
 {
@@ -78,7 +76,7 @@ static struct PCMMapInfo PCMDownmixTable[PCM_MAX_CH][PCM_MAX_MIX] =
       but due to horrible clipping when normalize
       is disabled we set this to 1.0
     */
-    {PCM_FRONT_LEFT           , 1.0},//3.5}, 
+    {PCM_FRONT_LEFT           , 1.0},//3.5},
     {PCM_FRONT_RIGHT          , 1.0},//3.5},
     {PCM_INVALID}
   },
@@ -247,7 +245,7 @@ void CPCMRemap::ResolveChannels()
   unsigned int in_ch, out_ch;
   bool hasSide = false;
   bool hasBack = false;
-  
+
   memset(m_useable, 0, sizeof(m_useable));
 
   if (!m_outSet)
@@ -284,7 +282,7 @@ void CPCMRemap::ResolveChannels()
   if (!m_ignoreLayout && m_inChannels == 1 && m_inMap[0] == PCM_FRONT_CENTER
       && m_useable[PCM_FRONT_LEFT] && m_useable[PCM_FRONT_RIGHT])
   {
-    CLog::Log(LOGDEBUG, "CPCMRemap: Mapping mono audio to front left and front right");
+    LOG_DEBUG << "CPCMRemap: Mapping mono audio to front left and front right";
     m_useable[PCM_FRONT_CENTER] = false;
     m_useable[PCM_FRONT_LEFT_OF_CENTER] = false;
     m_useable[PCM_FRONT_RIGHT_OF_CENTER] = false;
@@ -310,10 +308,10 @@ void CPCMRemap::ResolveChannels()
   /* if our input has side, and not back channels, and our output doesnt have side channels */
   if (hasSide && !hasBack && (!m_useable[PCM_SIDE_LEFT] || !m_useable[PCM_SIDE_RIGHT]))
   {
-    CLog::Log(LOGDEBUG, "CPCMRemap: Forcing side channel map to back channels");
+    LOG_DEBUG << "CPCMRemap: Forcing side channel map to back channels";
     for(in_ch = 0; in_ch < m_inChannels; ++in_ch)
            if (m_inMap[in_ch] == PCM_SIDE_LEFT ) m_inMap[in_ch] = PCM_BACK_LEFT;
-      else if (m_inMap[in_ch] == PCM_SIDE_RIGHT) m_inMap[in_ch] = PCM_BACK_RIGHT;   
+      else if (m_inMap[in_ch] == PCM_SIDE_RIGHT) m_inMap[in_ch] = PCM_BACK_RIGHT;
   }
 
   /* resolve all the channels */
@@ -363,7 +361,7 @@ void CPCMRemap::BuildMap()
 
   /* see if we need to normalize the levels */
   bool dontnormalize = m_dontnormalize;
-  CLog::Log(LOGDEBUG, "CPCMRemap: Downmix normalization is %s", (dontnormalize ? "disabled" : "enabled"));
+  LOG_DEBUG << "CPCMRemap: Downmix normalization is " << (dontnormalize ? "disabled" : "enabled");
 
   ResolveChannels();
 
@@ -387,7 +385,7 @@ void CPCMRemap::BuildMap()
     dst = m_lookupMap[m_outMap[out_ch]];
     if (count == 1 && dst->level > 0.99 && dst->level < 1.01)
       dst->copy = true;
-    
+
     /* normalize the levels if it is turned on */
     if (!dontnormalize)
       for(dst = m_lookupMap[m_outMap[out_ch]]; dst->channel != PCM_INVALID; ++dst)
@@ -401,7 +399,7 @@ void CPCMRemap::BuildMap()
         }
       }
   }
-  
+
   /* adjust the channels that are too loud */
   for(out_ch = 0; out_ch < m_outChannels; ++out_ch)
   {
@@ -417,7 +415,7 @@ void CPCMRemap::BuildMap()
       f.Format("%s(%f%s) ",  PCMChannelStr(dst->channel).c_str(), dst->level, dst->copy ? "*" : "");
       s += f;
     }
-    CLog::Log(LOGDEBUG, "CPCMRemap: %s = %s\n", PCMChannelStr(m_outMap[out_ch]).c_str(), s.c_str());
+    LOG_DEBUG << "CPCMRemap: " << PCMChannelStr(m_outMap[out_ch]) << " = " << s;
   }
 }
 
@@ -425,7 +423,7 @@ void CPCMRemap::DumpMap(CStdString info, unsigned int channels, enum PCMChannels
 {
   if (channelMap == NULL)
   {
-    CLog::Log(LOGINFO, "CPCMRemap: %s channel map: NULL", info.c_str());
+    LOG_DEBUG << "CPCMRemap: " << info << " channel map: NULL";
     return;
   }
 
@@ -433,7 +431,7 @@ void CPCMRemap::DumpMap(CStdString info, unsigned int channels, enum PCMChannels
   for(unsigned int i = 0; i < channels; ++i)
     mapping += ((i == 0) ? "" : ",") + PCMChannelStr(channelMap[i]);
 
-  CLog::Log(LOGINFO, "CPCMRemap: %s channel map: %s\n", info.c_str(), mapping.c_str());
+  LOG_DEBUG << "CPCMRemap: " << info <<" channel map: " << mapping;
 }
 
 void CPCMRemap::Reset()
@@ -458,7 +456,7 @@ enum PCMChannels *CPCMRemap::SetInputFormat(unsigned int channels, enum PCMChann
   m_dontnormalize = dontnormalize;
   if (m_channelLayout >= PCM_MAX_LAYOUT) m_channelLayout = PCM_LAYOUT_2_0;
 
-  
+
   DumpMap("I", channels, channelMap);
   BuildMap();
 
@@ -608,7 +606,7 @@ void CPCMRemap::ProcessLimiter(unsigned int samples, float gain)
   m_attenuationMin = 1.0f;
 
   //if one of the channels can clip, enable a limiter
-  if (highestgain > 1.0001f) 
+  if (highestgain > 1.0001f)
   {
     m_attenuationMin = m_attenuation;
 

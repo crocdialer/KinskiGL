@@ -19,17 +19,9 @@
 */
 
 //////////////////////////////////////////////////////////////////////
-
-#ifndef __OPENMAXAUDIORENDER_H__
-#define __OPENMAXAUDIORENDER_H__
-
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include "linux/PlatformDefs.h"
-#include "DllAvCodec.h"
-#include "DllAvUtil.h"
 #include "utils/PCMRemap.h"
 #include "OMXCore.h"
 #include "OMXClock.h"
@@ -37,6 +29,12 @@
 #include "BitstreamConverter.h"
 #include "utils/PCMRemap.h"
 #include "utils/SingleLock.h"
+
+extern "C"
+{
+    #include "libavcodec/avcodec.h"
+    #include "libavutil/avutil.h"
+}
 
 #define AUDIO_BUFFER_SECONDS 3
 
@@ -172,8 +170,5 @@ protected:
   COMXCoreTunel     m_omx_tunnel_decoder;
   COMXCoreTunel     m_omx_tunnel_splitter_analog;
   COMXCoreTunel     m_omx_tunnel_splitter_hdmi;
-  DllAvUtil         m_dllAvUtil;
   CCriticalSection m_critSection;
 };
-#endif
-

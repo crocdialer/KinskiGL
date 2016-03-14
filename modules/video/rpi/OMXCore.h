@@ -22,11 +22,6 @@
 #include <string>
 #include <queue>
 
-// TODO: should this be in configure
-#ifndef OMX_SKIP64BIT
-#define OMX_SKIP64BIT
-#endif
-
 #include <IL/OMX_Core.h>
 #include <IL/OMX_Component.h>
 #include <IL/OMX_Index.h>

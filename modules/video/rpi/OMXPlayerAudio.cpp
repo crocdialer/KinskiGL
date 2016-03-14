@@ -18,19 +18,13 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-#if (defined HAVE_CONFIG_H) && (!defined WIN32)
-  #include "config.h"
-#elif defined(_WIN32)
-#include "system.h"
-#endif
-
 #include "OMXPlayerAudio.h"
 
 #include <stdio.h>
 #include <unistd.h>
 
 #include "linux/XMemUtils.h"
+#include "core/Logger.hpp"
 
 OMXPlayerAudio::OMXPlayerAudio()
 {
@@ -94,10 +88,7 @@ bool OMXPlayerAudio::Open(OMXClock *av_clock, const OMXAudioConfig &config, OMXR
   if(ThreadHandle())
     Close();
 
-  if (!m_dllAvUtil.Load() || !m_dllAvCodec.Load() || !m_dllAvFormat.Load() || !av_clock)
-    return false;
-  
-  m_dllAvFormat.av_register_all();
+  av_register_all();
 
   m_config      = config;
   m_av_clock    = av_clock;
@@ -156,10 +147,6 @@ bool OMXPlayerAudio::Close()
   m_iCurrentPts   = DVD_NOPTS_VALUE;
   m_pStream       = NULL;
 
-  m_dllAvUtil.Unload();
-  m_dllAvCodec.Unload();
-  m_dllAvFormat.Unload();
-
   return true;
 }
 
@@ -174,7 +161,7 @@ bool OMXPlayerAudio::Decode(OMXPacket *pkt)
     return true;
 
   if(!m_omx_reader->IsActive(OMXSTREAM_AUDIO, pkt->stream_index))
-    return true; 
+    return true;
 
   int channels = pkt->hints.channels;
 
@@ -214,7 +201,7 @@ bool OMXPlayerAudio::Decode(OMXPacket *pkt)
       return false;
   }
 
-  CLog::Log(LOGINFO, "CDVDPlayerAudio::Decode dts:%.0f pts:%.0f size:%d", pkt->dts, pkt->pts, pkt->size);
+  // LOG_TRACE << "CDVDPlayerAudio::Decode dts:%.0f pts:%.0f size:%d", pkt->dts, pkt->pts, pkt->size);
 
   if(pkt->pts != DVD_NOPTS_VALUE)
     m_iCurrentPts = pkt->pts;
@@ -303,7 +290,7 @@ void OMXPlayerAudio::Process()
       m_packets.pop_front();
     }
     UnLock();
-    
+
     LockDecoder();
     if(m_flush && omx_pkt)
     {
@@ -334,7 +321,7 @@ void OMXPlayerAudio::Flush()
   m_flush = true;
   while (!m_packets.empty())
   {
-    OMXPacket *pkt = m_packets.front(); 
+    OMXPacket *pkt = m_packets.front();
     m_packets.pop_front();
     OMXReader::FreePacket(pkt);
   }
@@ -430,10 +417,10 @@ bool OMXPlayerAudio::OpenDecoder()
   bAudioRenderOpen = m_decoder->Initialize(m_av_clock, m_config, m_pAudioCodec->GetChannelMap(), m_pAudioCodec->GetBitsPerSample());
 
   m_codec_name = m_omx_reader->GetCodecName(OMXSTREAM_AUDIO);
-  
+
   if(!bAudioRenderOpen)
   {
-    delete m_decoder; 
+    delete m_decoder;
     m_decoder = NULL;
     return false;
   }
@@ -511,17 +498,16 @@ void OMXPlayerAudio::WaitCompletion()
   {
     if(IsEOS())
     {
-      CLog::Log(LOGDEBUG, "%s::%s - got eos\n", "OMXPlayerAudio", __func__);
+      LOG_DEBUG << "got eos";
       break;
     }
 
     if(nTimeOut == 0)
     {
-      CLog::Log(LOGERROR, "%s::%s - wait for eos timed out\n", "OMXPlayerAudio", __func__);
+      LOG_ERROR << "wait for eos timed out";
       break;
     }
     OMXClock::OMXSleep(50);
     nTimeOut -= 50;
   }
-} 
-
+}

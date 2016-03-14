@@ -18,13 +18,14 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
+#pragma once
 
-#ifndef _OMX_PLAYERAUDIO_H_
-#define _OMX_PLAYERAUDIO_H_
-
-#include "DllAvUtil.h"
-#include "DllAvFormat.h"
-#include "DllAvCodec.h"
+extern "C"
+{
+    #include "libavformat/avformat.h"
+    #include "libavcodec/avcodec.h"
+    #include "libavutil/avutil.h"
+}
 
 #include "utils/PCMRemap.h"
 
@@ -48,9 +49,6 @@ protected:
   AVStream                  *m_pStream;
   int                       m_stream_id;
   std::deque<OMXPacket *>   m_packets;
-  DllAvUtil                 m_dllAvUtil;
-  DllAvCodec                m_dllAvCodec;
-  DllAvFormat               m_dllAvFormat;
   bool                      m_open;
   COMXStreamInfo            m_hints;
   double                    m_iCurrentPts;
@@ -92,7 +90,7 @@ public:
   void Flush();
   bool AddPacket(OMXPacket *pkt);
   bool OpenAudioCodec();
-  void CloseAudioCodec();      
+  void CloseAudioCodec();
   bool IsPassthrough(COMXStreamInfo hints);
   bool OpenDecoder();
   bool CloseDecoder();
@@ -112,4 +110,3 @@ public:
   void SetDynamicRangeCompression(long drc)              { m_amplification = drc; if(m_decoder) m_decoder->SetDynamicRangeCompression(drc); }
   bool Error() { return !m_player_error; };
 };
-#endif

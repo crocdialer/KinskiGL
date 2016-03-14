@@ -18,14 +18,16 @@
  *  http://www.gnu.org/copyleft/gpl.html
  *
  */
-
-#ifndef _BITSTREAMCONVERTER_H_
-#define _BITSTREAMCONVERTER_H_
+#pragma once
 
 #include <stdint.h>
-#include "DllAvUtil.h"
-#include "DllAvFormat.h"
-#include "DllAvCodec.h"
+
+extern "C"
+{
+    #include "libavformat/avformat.h"
+    #include "libavcodec/avcodec.h"
+    #include "libavutil/avutil.h"
+}
 
 typedef struct {
   uint8_t *buffer, *start;
@@ -161,9 +163,5 @@ protected:
   int               m_extrasize;
   bool              m_convert_3byteTo4byteNALSize;
   bool              m_convert_bytestream;
-  DllAvUtil         *m_dllAvUtil;
-  DllAvFormat       *m_dllAvFormat;
   AVCodecID         m_codec;
 };
-
-#endif
