@@ -59,6 +59,7 @@ class KINSKI_API Logger
     Severity getSeverity() const { return m_globalSeverity; };
     
     void add_outstream(std::ostream *the_stream);
+    void remove_outstream(std::ostream *the_stream);
     void clear_streams();
     
     bool use_time_stamp() const{ return m_use_timestamp;};
