@@ -82,8 +82,6 @@ public:
   }
 };
 
-class DllAvUtil;
-class DllAvFormat;
 class COMXVideo
 {
 public:
