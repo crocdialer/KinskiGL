@@ -11,10 +11,8 @@
 #include <limits>
 #include <thread>
 #include <mutex>
-#include <condition_variable>
 #include <cstdarg>
 #include "Logger.hpp"
-#include "Exception.hpp"
 #include "file_functions.hpp"
 
 namespace kinski {
@@ -205,6 +203,14 @@ namespace kinski {
         m_out_streams.push_back(the_stream);
     }
     
+    void Logger::remove_outstream(std::ostream *the_stream)
+    {
+        std::lock_guard<std::mutex> lock(mutex);
+        
+        // change state
+        m_out_streams.remove(the_stream);
+    }
+    
     void Logger::clear_streams()
     {
         std::lock_guard<std::mutex> lock(mutex);
@@ -215,14 +221,17 @@ namespace kinski {
     
     void log(Severity the_severity, const char *the_format_text, ...)
     {
+        Logger *l = Logger::get();
+        
+        if(the_severity > l->getSeverity()){ return; }
+        
         size_t buf_sz = 1024 * 2;
         char buf[buf_sz];
         va_list argptr;
         va_start(argptr, the_format_text);
         vsnprintf(buf, buf_sz, the_format_text, argptr);
         va_end(argptr);
-        Logger *l = Logger::get();
         
-        if(the_severity <= l->getSeverity()){ l->log(the_severity, "", 0, buf); }
+        l->log(the_severity, "", 0, buf);
     }
 };
