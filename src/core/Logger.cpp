@@ -21,9 +21,7 @@ namespace kinski {
     
     namespace
     {
-        bool is_busy = false;
         std::mutex mutex;
-        std::condition_variable condition_var;
     }
     
     const std::string currentDateTime()
@@ -63,26 +61,18 @@ namespace kinski {
     
     void Logger::setLoggerTopLevelTag(const std::string &theTagString)
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        while (is_busy){ condition_var.wait(lock); }
+        std::lock_guard<std::mutex> lock(mutex);
 
         // change state
         _myTopLevelLogTag = theTagString;
-        
-        condition_var.notify_all();
     }
     
     void Logger::setSeverity(const Severity theSeverity)
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        while (is_busy){ condition_var.wait(lock); }
-        is_busy = true;
+        std::lock_guard<std::mutex> lock(mutex);
         
         // change state
         m_globalSeverity = theSeverity;
-        
-        is_busy = false;
-        condition_var.notify_all();
     }
 
     /**
@@ -133,14 +123,12 @@ namespace kinski {
     void Logger::log(Severity theSeverity, const char *theModule, int theId,
                      const std::string &theText)
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        while (is_busy){ condition_var.wait(lock); }
-        is_busy = true;
-        
         std::stringstream stream;
         std::string myLogTag(_myTopLevelLogTag);
         std::ostringstream myText;
         myText << theText;
+        
+        std::lock_guard<std::mutex> lock(mutex);
         
         if (theSeverity > Severity::PRINT)
         {
@@ -207,35 +195,22 @@ namespace kinski {
                 break;
         }
         #endif
-        
-        is_busy = false;
-        condition_var.notify_all();
     }
     
     void Logger::add_outstream(std::ostream *the_stream)
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        while (is_busy){ condition_var.wait(lock); }
-        is_busy = true;
+        std::lock_guard<std::mutex> lock(mutex);
         
         // change state
         m_out_streams.push_back(the_stream);
-        
-        is_busy = false;
-        condition_var.notify_all();
     }
     
     void Logger::clear_streams()
     {
-        std::unique_lock<std::mutex> lock(mutex);
-        while (is_busy){ condition_var.wait(lock); }
-        is_busy = true;
+        std::lock_guard<std::mutex> lock(mutex);
         
         // change state
         m_out_streams.clear();
-        
-        is_busy = false;
-        condition_var.notify_all();
     }
     
     void log(Severity the_severity, const char *the_format_text, ...)
