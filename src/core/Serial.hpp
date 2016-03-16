@@ -25,52 +25,35 @@
 
 namespace kinski
 {
-    class Serial;
-    
-    class SerialDeviceInfo
-    {
-        
-	public:
-        
-        friend class Serial;
-        
-		SerialDeviceInfo(std::string devicePathIn, std::string deviceNameIn, int deviceIDIn)
-        {
-			devicePath			= devicePathIn;
-			deviceName			= deviceNameIn;
-			deviceID			= deviceIDIn;
-		}
-        
-		SerialDeviceInfo()
-        {
-			deviceName = "device undefined";
-			deviceID   = -1;
-		}
-        
-        std::string getDevicePath(){return devicePath;}
-        std::string getDeviceName(){return deviceName;}
-        
-		int getDeviceID(){return deviceID;}
-        
-    private:
-        std::string devicePath;			//eg: /dev/tty.cu/usbdevice-a440
-        std::string deviceName;			//eg: usbdevice-a440 / COM4
-		int deviceID;				//eg: 0,1,2,3 etc
-    };
-    
     class Serial
     {
         
     public:
+        
+        struct DeviceInfo
+        {
+            DeviceInfo(std::string devicePathIn, std::string deviceNameIn, int deviceIDIn)
+            {
+                devicePath			= devicePathIn;
+                deviceName			= deviceNameIn;
+                deviceID			= deviceIDIn;
+            }
+            
+            DeviceInfo()
+            {
+                deviceName = "device undefined";
+                deviceID   = -1;
+            }
+            std::string devicePath;			//eg: /dev/tty.cu/usbdevice-a440
+            std::string deviceName;			//eg: usbdevice-a440 / COM4
+            int deviceID;				//eg: 0,1,2,3 etc
+        };
+        
         Serial();
         virtual ~Serial();
         
-        void			listDevices();
-        
-        //old method - deprecated
-        void 			enumerateDevices();
-        
-        std::vector <SerialDeviceInfo> getDeviceList();
+        void list_devices();
+        std::vector<Serial::DeviceInfo> device_list();
         
         void 			close();
         bool			setup();	// use default port, baud (0,9600)
@@ -96,7 +79,7 @@ namespace kinski
         void			buildDeviceList();
         
         std::string				deviceType;
-        std::vector <SerialDeviceInfo> devices;
+        std::vector <DeviceInfo> devices;
         
         bool bHaveEnumeratedDevices;
         
@@ -124,6 +107,4 @@ namespace kinski
     };
     
     //----------------------------------------------------------------------
-    
-    
 }

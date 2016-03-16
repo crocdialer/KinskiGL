@@ -145,16 +145,14 @@ Serial::~Serial()
 }
 
 //----------------------------------------------------------------
-static bool isDeviceArduino( SerialDeviceInfo & A )
+    static bool isDeviceArduino(Serial::DeviceInfo & A)
 {
-	return ( strstr(A.getDeviceName().c_str(), "usbserial") ||
-		 strstr(A.getDeviceName().c_str(), "usbmodem") );
+	return (strstr(A.deviceName.c_str(), "usbserial") || strstr(A.devicePath.c_str(), "usbmodem"));
 }
 
 //----------------------------------------------------------------
 void Serial::buildDeviceList()
 {
-
 	deviceType = "serial";
 	devices.clear();
 
@@ -170,7 +168,6 @@ void Serial::buildDeviceList()
 		prefixMatch.push_back("ttyUSB");
 		prefixMatch.push_back("rfc");
 	#endif
-
 
 	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
 
@@ -195,7 +192,7 @@ void Serial::buildDeviceList()
 				if( deviceName.size() > prefixMatch[k].size() ){
 					//do they match ?
 					if( deviceName.substr(0, prefixMatch[k].size()) == prefixMatch[k].c_str() ){
-						devices.push_back(SerialDeviceInfo("/dev/"+deviceName, deviceName, deviceCount));
+						devices.push_back(DeviceInfo("/dev/"+deviceName, deviceName, deviceCount));
 						deviceCount++;
 						break;
 					}
@@ -214,7 +211,7 @@ void Serial::buildDeviceList()
 	ofLogNotice("Serial") << "found " << nPorts << " devices";
 	for (int i = 0; i < nPorts; i++){
 		//NOTE: we give the short port name for both as that is what the user should pass and the short name is more friendly
-		devices.push_back(SerialDeviceInfo(string(portNamesShort[i]), string(portNamesShort[i]), i));
+		devices.push_back(DeviceInfo(string(portNamesShort[i]), string(portNamesShort[i]), i));
 	}
 	//---------------------------------------------
 	#endif
@@ -223,7 +220,8 @@ void Serial::buildDeviceList()
 	//here we sort the device to have the aruino ones first.
 	partition(devices.begin(), devices.end(), isDeviceArduino);
 	//we are reordering the device ids. too!
-	for(int k = 0; k < (int)devices.size(); k++){
+	for(int k = 0; k < (int)devices.size(); k++)
+    {
 		devices[k].deviceID = k;
 	}
 
@@ -232,32 +230,28 @@ void Serial::buildDeviceList()
 
 
 //----------------------------------------------------------------
-void Serial::listDevices()
+    
+void Serial::list_devices()
 {
 	buildDeviceList();
 	for(int k = 0; k < (int)devices.size(); k++)
     {
-		LOG_INFO << "[" << devices[k].getDeviceID() << "] = "<< devices[k].getDeviceName().c_str();
+		LOG_INFO << "[" << devices[k].deviceID << "] = "<< devices[k].deviceName.c_str();
 	}
 }
 
 //----------------------------------------------------------------
-vector <SerialDeviceInfo> Serial::getDeviceList()
+    
+std::vector<Serial::DeviceInfo> Serial::device_list()
 {
 	buildDeviceList();
 	return devices;
 }
 
 //----------------------------------------------------------------
-void Serial::enumerateDevices()
-{
-	listDevices();
-}
-
-//----------------------------------------------------------------
 void Serial::close()
 {
-    if(bInited){LOG_DEBUG<<"closing serial port";}
+    if(bInited){ LOG_DEBUG<<"closing serial port"; }
     
 	//---------------------------------------------
 	#ifdef KINSKI_MSW
@@ -286,20 +280,19 @@ void Serial::close()
     //---------------------------------------------
     #endif
     //---------------------------------------------
-
 }
 
 //----------------------------------------------------------------
 bool Serial::setup()
 {
-	return setup(0,9600);		// the first one, at 9600 is a good choice...
+	return setup(0, 9600);		// the first one, at 9600 is a good choice...
 }
 
 //----------------------------------------------------------------
 bool Serial::setup(int deviceNumber, int baud)
 {
 	buildDeviceList();
-	if( deviceNumber < (int)devices.size() )
+	if(deviceNumber < (int)devices.size())
     {
 		return setup(devices[deviceNumber].devicePath, baud);
 	}
@@ -313,7 +306,6 @@ bool Serial::setup(int deviceNumber, int baud)
 //----------------------------------------------------------------
 bool Serial::setup(string portName, int baud)
 {
-
 	close();
 
     //---------------------------------------------
@@ -520,6 +512,7 @@ int Serial::writeBytes(const void *buffer, int length)
         if ( errno == EAGAIN )
             return 0;
         LOG_WARNING << "writeBytes(): couldn't write to port: " << errno << " " << strerror(errno);
+
         return KINSKI_SERIAL_ERROR;
     }
     
