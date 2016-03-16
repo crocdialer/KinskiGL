@@ -94,7 +94,7 @@ namespace kinski { namespace gl {
         size_t max_mesh_buffer_size;
         std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
-        Obj():bitmap_width(BITMAP_WIDTH), bitmap_height(BITMAP_WIDTH), max_mesh_buffer_size(300)
+        Obj():bitmap_width(BITMAP_WIDTH), bitmap_height(BITMAP_WIDTH), max_mesh_buffer_size(500)
         {
             data = new uint8_t[bitmap_width * bitmap_height];
             font_height = 64;
