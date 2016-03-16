@@ -204,22 +204,20 @@ bool COMXVideo::PortSettingsChanged()
   else
     m_deinterlace = interlace.eMode != OMX_InterlaceProgressive;
 
-  OMX_CALLBACKTYPE cb_t;
-  cb_t.FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback;
-  // cb_t.FillBufferDone = nullptr;
+  OMX_CALLBACKTYPE callbacks  =
+  {
+      .EventHandler = nullptr,
+      .EmptyBufferDone = nullptr,
+      .FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback
+  };
+  // cb_t.FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback;
 
   if(!m_omx_render.Initialize(m_config.egl_image ? "OMX.broadcom.egl_render" :
-                              "OMX.broadcom.video_render", OMX_IndexParamVideoInit))
+                              "OMX.broadcom.video_render", OMX_IndexParamVideoInit),
+                              m_config.egl_image ? nullptr : nullptr)
   { return false; }
 
   m_omx_render.ResetEos();
-  if(m_config.egl_image && m_omx_render.UseEGLImage(m_config.egl_buffer_ptr,
-                                                    m_omx_render.GetInputPort(), nullptr,
-                                                    m_config.egl_image) == OMX_ErrorNone)
-  {
-    // LOG_ERROR << "m_omx_render.UseEGLImage failed";
-    m_omx_render.FillThisBuffer(*m_config.egl_buffer_ptr);
-  }
 
   PortSettingsChangedLogger(port_image, interlace.eMode);
 
@@ -382,6 +380,17 @@ bool COMXVideo::PortSettingsChanged()
   {
     kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
     return false;
+  }
+  if(m_config.egl_image)
+  {
+      // m_omx_render.m_callbacks.FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback;
+      auto err = m_omx_render.UseEGLImage(m_config.egl_buffer_ptr, m_omx_render.GetOutputPort(), nullptr,
+                                          m_config.egl_image);
+      if(err != OMX_ErrorNone)
+      {
+          LOG_ERROR << "m_omx_render.UseEGLImage failed";
+      }
+      else{ m_omx_render.FillThisBuffer(*m_config.egl_buffer_ptr); }
   }
 
   m_settings_changed = true;
