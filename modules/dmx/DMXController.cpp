@@ -5,7 +5,9 @@
 //  Created by Fabian on 18/11/13.
 //
 //
-#include "DMXController.h"
+#include <thread>
+#include "DMXController.hpp"
+#include "core/Serial.hpp"
 
 // Enttec Pro definitions
 #define GET_WIDGET_PARAMS 3
@@ -27,50 +29,119 @@
 #define NO_RESPONSE 0
 #define DMX_PACKET_SIZE 512
 
+#define STD_TIMEOUT_RECONNECT 5.f
+
 namespace kinski
 {
-    DMXController::DMXController(const std::string &the_device_name)
+    struct DMXController::DMXControllerImpl
+    {
+        Serial m_serial;
+        std::string m_device_name;
+        std::vector<uint8_t> m_dmx_values;
+        float m_last_reading = 0.f, m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
+        std::thread m_reconnect_thread;
+
+        void transmit(uint8_t label, const uint8_t* data, size_t data_length)
+        {
+            vector<uint8_t> bytes =
+            {
+                DMX_START_CODE,
+                label,
+                static_cast<unsigned char>(data_length & 0xFF),
+                static_cast<unsigned char>((data_length >> 8) & 0xFF)
+            };
+            bytes.insert(bytes.end(), data, data + data_length);
+            bytes.push_back(DMX_END_CODE);
+
+            // write our data block
+            int bytes_written = m_serial.writeBytes(&bytes[0], bytes.size());
+            if(bytes_written > 0){ m_last_reading = 0.f; }
+        }
+    };
+
+    DMXController::DMXController(const std::string &the_device_name):
+    m_impl(new DMXControllerImpl)
+    {
+        connect(the_device_name);
+        m_impl->m_dmx_values.resize(512, 0);
+    }
+
+    void DMXController::update(float time_delta)
+    {
+        m_impl->m_last_reading += time_delta;
+        
+        // update only when serial connection is initialized
+        if(m_impl->m_serial.isInitialized())
+        {
+            // send values
+            m_impl->transmit(SET_DMX_TX_MODE, &m_impl->m_dmx_values[0], m_impl->m_dmx_values.size());
+            
+            // receive values
+//            m_impl->transmit(SET_DMX_RX_MODE, nullptr, 0);
+        }
+        
+        if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
+        {
+            LOG_WARNING << "no response from sensor: trying reconnect ...";
+            m_impl->m_last_reading = 0.f;
+            try { m_impl->m_reconnect_thread.join(); }
+            catch (std::exception &e) { LOG_WARNING << e.what(); }
+            m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
+            return;
+        }
+    }
+    
+    const std::string& DMXController::device_name() const
+    {
+        return m_impl->m_device_name;
+    }
+    
+    bool DMXController::connect(const std::string &the_device_name)
     {
         std::list<std::string> device_names = {"/dev/tty.usbserial-EN138300", the_device_name};
-        bool success = false;
+        std::string found_name;
+        
         for (const auto &n : device_names)
         {
-            if(m_serial.setup(n, 57600))
-            {
-                success = true;
-                break;
-            }
+            if(m_impl->m_serial.setup(n, 57600)){ found_name = n; break; }
         }
-        LOG_ERROR_IF(!success) << "No DMX-Usb device found";
-        m_dmx_values.resize(512, 0);
-    }
-    
-    void DMXController::update()
-    {
-        // update only when serial connection is initialized
-        if(m_serial.isInitialized())
-            transmit(SET_DMX_TX_MODE, &m_dmx_values[0], m_dmx_values.size());
-    }
-    
-    void DMXController::transmit(uint8_t label, const uint8_t* data, size_t data_length)
-    {
-        vector<uint8_t> bytes =
-        {
-            DMX_START_CODE,
-            label,
-            static_cast<unsigned char>(data_length & 0xFF),
-            static_cast<unsigned char>((data_length >> 8) & 0xFF)
-        };
-        bytes.insert(bytes.end(), data, data + data_length);
-        bytes.push_back(DMX_END_CODE);
         
-        // write our data block
-        m_serial.writeBytes(&bytes[0], bytes.size());
+        // finally flush the newly initialized device
+        if(m_impl->m_serial.isInitialized())
+        {
+            m_impl->m_serial.flush();
+            m_impl->m_last_reading = 0.f;
+            m_impl->m_device_name = found_name;
+            LOG_DEBUG << "successfully connected dmx-device: " << found_name;
+            return true;
+        }
+        LOG_ERROR << "no DMX-usb device found";
+        return false;
     }
-    
-    void DMXController::set_device_name(const std::string &the_device_name)
+
+    uint8_t& DMXController::operator[](int address)
     {
-        m_serial.setup(the_device_name, 57600);
+        return m_impl->m_dmx_values[clamp(address, 0, 511)];
+    }
+
+    const uint8_t& DMXController::operator[](int address) const
+    {
+        return m_impl->m_dmx_values[clamp(address, 0, 511)];
     }
     
+    float DMXController::timeout_reconnect() const
+    {
+        return m_impl->m_timeout_reconnect;
+    }
+    
+    void DMXController::set_timeout_reconnect(float val)
+    {
+        m_impl->m_timeout_reconnect = std::max(val, 0.f);
+    }
+    
+    bool DMXController::is_initialized() const
+    {
+        return m_impl->m_serial.isInitialized();
+    }
+
 }// namespace
