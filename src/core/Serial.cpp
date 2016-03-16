@@ -519,7 +519,7 @@ int Serial::writeBytes(const void *buffer, int length)
     {
         if ( errno == EAGAIN )
             return 0;
-        LOG_ERROR << "writeBytes(): couldn't write to port: " << errno << " " << strerror(errno);
+        LOG_WARNING << "writeBytes(): couldn't write to port: " << errno << " " << strerror(errno);
         return KINSKI_SERIAL_ERROR;
     }
     

@@ -5,8 +5,8 @@
 //  Created by Fabian on 18/11/13.
 //
 //
-#include "DMXController.hpp"
 #include <thread>
+#include "DMXController.hpp"
 #include "core/Serial.hpp"
 
 // Enttec Pro definitions
@@ -54,24 +54,15 @@ namespace kinski
             bytes.push_back(DMX_END_CODE);
 
             // write our data block
-            m_serial.writeBytes(&bytes[0], bytes.size());
+            int bytes_written = m_serial.writeBytes(&bytes[0], bytes.size());
+            if(bytes_written > 0){ m_last_reading = 0.f; }
         }
     };
 
     DMXController::DMXController(const std::string &the_device_name):
     m_impl(new DMXControllerImpl)
     {
-        std::list<std::string> device_names = {"/dev/tty.usbserial-EN138300", the_device_name};
-        bool success = false;
-        for (const auto &n : device_names)
-        {
-            if(m_impl->m_serial.setup(n, 57600))
-            {
-                success = true;
-                break;
-            }
-        }
-        LOG_ERROR_IF(!success) << "No DMX-Usb device found";
+        connect(the_device_name);
         m_impl->m_dmx_values.resize(512, 0);
     }
 
@@ -82,7 +73,11 @@ namespace kinski
         // update only when serial connection is initialized
         if(m_impl->m_serial.isInitialized())
         {
+            // send values
             m_impl->transmit(SET_DMX_TX_MODE, &m_impl->m_dmx_values[0], m_impl->m_dmx_values.size());
+            
+            // receive values
+//            m_impl->transmit(SET_DMX_RX_MODE, nullptr, 0);
         }
         
         if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
@@ -103,16 +98,24 @@ namespace kinski
     
     bool DMXController::connect(const std::string &the_device_name)
     {
-        m_impl->m_serial.setup(the_device_name, 57600);
+        std::list<std::string> device_names = {"/dev/tty.usbserial-EN138300", the_device_name};
+        std::string found_name;
+        
+        for (const auto &n : device_names)
+        {
+            if(m_impl->m_serial.setup(n, 57600)){ found_name = n; break; }
+        }
         
         // finally flush the newly initialized device
         if(m_impl->m_serial.isInitialized())
         {
             m_impl->m_serial.flush();
             m_impl->m_last_reading = 0.f;
-            m_impl->m_device_name = the_device_name;
+            m_impl->m_device_name = found_name;
+            LOG_DEBUG << "successfully connected dmx-device: " << found_name;
             return true;
         }
+        LOG_ERROR << "no DMX-usb device found";
         return false;
     }
 
