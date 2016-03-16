@@ -394,11 +394,12 @@ bool Serial::setup(string portName, int baud)
         portName = "/dev/" + portName;
     }
     
-    LOG_DEBUG << "opening " << portName << " @ " << baud << " bps";
+    LOG_TRACE << "opening '" << portName << "' @ " << baud << " bps";
     m_handle = open(portName.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
+    
     if(m_handle == -1)
     {
-        LOG_ERROR << "unable to open " << portName;
+        LOG_WARNING << "unable to open " << portName;
         return false;
     }
     
@@ -472,7 +473,7 @@ bool Serial::setup(string portName, int baud)
     tcsetattr(m_handle,TCSANOW,&options);
     
     bInited = true;
-    LOG_DEBUG << "opened " << portName << "sucessfully @ " << baud << " bps";
+    LOG_DEBUG << "opened '" << portName << "' sucessfully @ " << baud << " bps";
     
     return true;
 	#endif
