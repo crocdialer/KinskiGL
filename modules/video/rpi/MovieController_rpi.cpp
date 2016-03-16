@@ -470,6 +470,7 @@ namespace kinski{ namespace video
         LOG_DEBUG << "starting movie playback";
 
         m_impl->m_playing = true;
+        set_rate(m_impl->m_rate);
         m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
     }
 
@@ -485,7 +486,7 @@ namespace kinski{ namespace video
 
     bool MovieController::is_playing() const
     {
-        return m_impl && false;
+        return m_impl && m_impl->m_playing;
     }
 
     void MovieController::restart()
@@ -542,7 +543,8 @@ namespace kinski{ namespace video
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            //  m_impl->m_incr = -30.0;
+            m_impl->m_incr = - m_impl->m_av_clock->OMXMediaTime();
+            m_impl->m_seek_flush = true;
         }
     }
 
