@@ -61,7 +61,7 @@ public:
   int layer;
   float queue_size;
   float fifo_size;
-  OMX_BUFFERHEADERTYPE* egl_buffer = nullptr;
+  OMX_BUFFERHEADERTYPE** egl_buffer_ptr = nullptr;
   void* egl_image = nullptr;
 
   OMXVideoConfig()
@@ -112,6 +112,9 @@ public:
   bool IsEOS();
   bool SubmittedEOS() { return m_submitted_eos; }
   bool BadState() { return m_omx_decoder.BadState(); };
+  static OMX_ERRORTYPE DecoderFillBufferDoneCallback(OMX_HANDLETYPE hComponent,
+                                                     OMX_PTR pAppData,
+                                                     OMX_BUFFERHEADERTYPE* pBufferHeader);
 protected:
   // Video format
   bool              m_drop_state;

@@ -70,6 +70,24 @@ COMXVideo::~COMXVideo()
   Close();
 }
 
+// DecoderFillBufferDone -- OMXCore output buffer has been filled
+OMX_ERRORTYPE COMXVideo::DecoderFillBufferDoneCallback(OMX_HANDLETYPE hComponent, OMX_PTR pAppData,
+                                                       OMX_BUFFERHEADERTYPE* pBuffer)
+{
+  if(!pAppData)
+    return OMX_ErrorNone;
+
+  COMXVideo *ctx = static_cast<COMXVideo*>(pAppData);
+  OMX_BUFFERHEADERTYPE* egl_buffer = *ctx->m_config.egl_buffer_ptr;
+
+  auto err = OMX_FillThisBuffer(ctx->m_omx_render.GetComponent(), egl_buffer);
+  if(err != OMX_ErrorNone)
+  {
+      LOG_ERROR << "OMX_FillThisBuffer failed in callback";
+  }
+  return err;
+}
+
 bool COMXVideo::SendDecoderConfig()
 {
   CSingleLock lock (m_critSection);
@@ -186,18 +204,22 @@ bool COMXVideo::PortSettingsChanged()
   else
     m_deinterlace = interlace.eMode != OMX_InterlaceProgressive;
 
+  OMX_CALLBACKTYPE cb_t;
+  cb_t.FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback;
+  // cb_t.FillBufferDone = nullptr;
+
   if(!m_omx_render.Initialize(m_config.egl_image ? "OMX.broadcom.egl_render" :
                               "OMX.broadcom.video_render", OMX_IndexParamVideoInit))
-    return false;
+  { return false; }
 
-
-  if(m_config.egl_image && m_omx_render.UseEGLImage(&m_config.egl_buffer,
-                                                    m_omx_render.GetInputPort(), nullptr,
-                                                    m_config.egl_image) != OMX_ErrorNone)
-  {
-    LOG_ERROR << "m_omx_render.UseEGLImage failed";
-  }
   m_omx_render.ResetEos();
+  if(m_config.egl_image && m_omx_render.UseEGLImage(m_config.egl_buffer_ptr,
+                                                    m_omx_render.GetInputPort(), nullptr,
+                                                    m_config.egl_image) == OMX_ErrorNone)
+  {
+    // LOG_ERROR << "m_omx_render.UseEGLImage failed";
+    m_omx_render.FillThisBuffer(*m_config.egl_buffer_ptr);
+  }
 
   PortSettingsChangedLogger(port_image, interlace.eMode);
 

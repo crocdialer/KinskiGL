@@ -36,8 +36,8 @@ namespace kinski{ namespace video
 
         COMXCore m_OMX;
         OMXReader m_omx_reader;
-        OMXPlayerVideo m_player_video;
-        OMXPlayerAudio m_player_audio;
+        std::shared_ptr<OMXPlayerVideo> m_player_video;
+        std::shared_ptr<OMXPlayerAudio> m_player_audio;
         OMXClock* m_av_clock = new OMXClock();
         OMXPacket* m_omx_pkt = nullptr;
         OMXAudioConfig m_config_audio;
@@ -76,8 +76,8 @@ namespace kinski{ namespace video
             m_av_clock->OMXStateIdle();
 
             // m_player_subtitles.Close();
-            m_player_video.Close();
-            m_player_audio.Close();
+            m_player_video->Close();
+            m_player_audio->Close();
 
             if(m_omx_pkt)
             {
@@ -103,8 +103,8 @@ namespace kinski{ namespace video
         {
             m_av_clock->OMXStop();
             m_av_clock->OMXPause();
-            if(m_has_video){ m_player_video.Flush(); }
-            if(m_has_audio){ m_player_audio.Flush(); }
+            if(m_has_video){ m_player_video->Flush(); }
+            if(m_has_audio){ m_player_audio->Flush(); }
             if(pts != DVD_NOPTS_VALUE){ m_av_clock->OMXMediaTime(pts); }
             // if(m_has_subtitle){ m_player_subtitles.Flush(); }
             if(m_omx_pkt)
@@ -161,9 +161,9 @@ namespace kinski{ namespace video
                     if(m_omx_reader.IsEof()){ break; }
 
                     // Quick reset to reduce delay during loop & seek.
-                    if(m_has_video && !m_player_video.Reset())
+                    if(m_has_video && !m_player_video->Reset())
                     {
-                        LOG_ERROR << "m_player_video.Reset() failed";
+                        LOG_ERROR << "m_player_video->Reset() failed";
                         break;
                     }
 
@@ -198,7 +198,7 @@ namespace kinski{ namespace video
                 }
 
                 /* player got in an error state */
-                if(m_player_audio.Error())
+                if(m_player_audio->Error())
                 {
                     LOG_ERROR << "audio player error. emergency exit!!!";
                     break;
@@ -208,8 +208,8 @@ namespace kinski{ namespace video
                 {
                     /* when the video/audio fifos are low, we pause clock, when high we resume */
                     double stamp = m_av_clock->OMXMediaTime();
-                    double audio_pts = m_player_audio.GetCurrentPTS();
-                    double video_pts = m_player_video.GetCurrentPTS();
+                    double audio_pts = m_player_audio->GetCurrentPTS();
+                    double video_pts = m_player_video->GetCurrentPTS();
 
                     if (0 && m_av_clock->OMXIsPaused())
                     {
@@ -227,7 +227,7 @@ namespace kinski{ namespace video
 
                     float audio_fifo = audio_pts == DVD_NOPTS_VALUE ? 0.0f : audio_pts / DVD_TIME_BASE - stamp * 1e-6;
                     float video_fifo = video_pts == DVD_NOPTS_VALUE ? 0.0f : video_pts / DVD_TIME_BASE - stamp * 1e-6;
-                    float threshold = std::min(0.1f, (float)m_player_audio.GetCacheTotal() * 0.1f);
+                    float threshold = std::min(0.1f, (float)m_player_audio->GetCacheTotal() * 0.1f);
                     bool audio_fifo_low = false, video_fifo_low = false, audio_fifo_high = false,
                         video_fifo_high = false;
 
@@ -279,18 +279,18 @@ namespace kinski{ namespace video
                 if(m_omx_reader.IsEof() && !m_omx_pkt)
                 {
                     // demuxer EOF, but may have not played out data yet
-                    if( (m_has_video && m_player_video.GetCached()) ||
-                       (m_has_audio && m_player_audio.GetCached()) )
+                    if( (m_has_video && m_player_video->GetCached()) ||
+                       (m_has_audio && m_player_audio->GetCached()) )
                     {
                         OMXClock::OMXSleep(10);
                         continue;
                     }
-                    if(!m_send_eos && m_has_video){ m_player_video.SubmitEOS(); }
-                    if (!m_send_eos && m_has_audio){ m_player_audio.SubmitEOS(); }
+                    if(!m_send_eos && m_has_video){ m_player_video->SubmitEOS(); }
+                    if (!m_send_eos && m_has_audio){ m_player_audio->SubmitEOS(); }
                     m_send_eos = true;
 
-                    if( (m_has_video && !m_player_video.IsEOS()) ||
-                       (m_has_audio && !m_player_audio.IsEOS()) )
+                    if( (m_has_video && !m_player_video->IsEOS()) ||
+                       (m_has_audio && !m_player_audio->IsEOS()) )
                     {
                         OMXClock::OMXSleep(10);
                         continue;
@@ -310,7 +310,7 @@ namespace kinski{ namespace video
                     {
                         m_packet_after_seek = true;
                     }
-                    if(m_player_video.AddPacket(m_omx_pkt))
+                    if(m_player_video->AddPacket(m_omx_pkt))
                     {
                          m_omx_pkt = nullptr;
                          num_frames++;
@@ -321,7 +321,7 @@ namespace kinski{ namespace video
                 else if(m_has_audio && m_omx_pkt && !TRICKPLAY(m_av_clock->OMXPlaySpeed()) &&
                         m_omx_pkt->codec_type == AVMEDIA_TYPE_AUDIO)
                 {
-                    if(m_player_audio.AddPacket(m_omx_pkt)){ m_omx_pkt = nullptr; }
+                    if(m_player_audio->AddPacket(m_omx_pkt)){ m_omx_pkt = nullptr; }
                     else{ OMXClock::OMXSleep(10); }
                 }
                 // else if(m_has_subtitle && m_omx_pkt && !TRICKPLAY(m_av_clock->OMXPlaySpeed()) &&
@@ -395,6 +395,8 @@ namespace kinski{ namespace video
         m_impl.reset(new MovieControllerImpl);
         m_impl->m_src_path = p;
         m_impl->m_movie_controller = shared_from_this();
+        m_impl->m_player_audio.reset(new OMXPlayerAudio());
+        m_impl->m_player_video.reset(new OMXPlayerVideo());
 
         if(!m_impl->m_omx_reader.Open(p.c_str(), true/*m_dump_format*/))
         {
@@ -430,7 +432,7 @@ namespace kinski{ namespace video
         m_impl->m_omx_reader.GetHints(OMXSTREAM_AUDIO, m_impl->m_config_audio.hints);
         m_impl->m_omx_reader.GetHints(OMXSTREAM_VIDEO, m_impl->m_config_video.hints);
 
-        m_impl->m_config_video.egl_buffer = m_impl->m_egl_buffer;
+        m_impl->m_config_video.egl_buffer_ptr = &m_impl->m_egl_buffer;
         // m_impl->m_config_video.egl_image = m_impl->m_egl_image;
 
         if (m_impl->m_config_audio.device == "")
@@ -445,14 +447,14 @@ namespace kinski{ namespace video
         // if (m_fps > 0.0f)
         //   m_config_video.hints.fpsrate = m_fps * DVD_TIME_BASE, m_config_video.hints.fpsscale = DVD_TIME_BASE;
 
-        if(m_impl->m_has_video && !m_impl->m_player_video.Open(m_impl->m_av_clock,
+        if(m_impl->m_has_video && !m_impl->m_player_video->Open(m_impl->m_av_clock,
                                                                m_impl->m_config_video))
         {
             m_impl.reset();
             LOG_WARNING << "could not open video player";
             return;
         }
-        if(m_impl->m_has_audio && !m_impl->m_player_audio.Open(m_impl->m_av_clock,
+        if(m_impl->m_has_audio && !m_impl->m_player_audio->Open(m_impl->m_av_clock,
                                                                m_impl->m_config_audio,
                                                                &m_impl->m_omx_reader))
         {
@@ -462,9 +464,9 @@ namespace kinski{ namespace video
         }
         if(m_impl->m_has_audio)
         {
-            m_impl->m_player_audio.SetVolume(m_impl->m_volume);
+            m_impl->m_player_audio->SetVolume(m_impl->m_volume);
         //   if(m_Amplification)
-        //     m_player_audio.SetDynamicRangeCompression(m_Amplification);
+        //     m_player_audio->SetDynamicRangeCompression(m_Amplification);
         }
         m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
         m_impl->m_av_clock->OMXStateExecute();
@@ -516,7 +518,7 @@ namespace kinski{ namespace video
     {
         if(!m_impl){ return; }
         m_impl->m_volume = clamp(newVolume, 0.f, 1.f);
-        m_impl->m_player_audio.SetVolume(m_impl->m_volume);
+        m_impl->m_player_audio->SetVolume(m_impl->m_volume);
     }
 
     bool MovieController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
