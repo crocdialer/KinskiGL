@@ -186,9 +186,17 @@ bool COMXVideo::PortSettingsChanged()
   else
     m_deinterlace = interlace.eMode != OMX_InterlaceProgressive;
 
-  if(!m_omx_render.Initialize("OMX.broadcom.video_render", OMX_IndexParamVideoInit))
+  if(!m_omx_render.Initialize(m_config.egl_image ? "OMX.broadcom.egl_render" :
+                              "OMX.broadcom.video_render", OMX_IndexParamVideoInit))
     return false;
 
+
+  if(m_config.egl_image && m_omx_render.UseEGLImage(&m_config.egl_buffer,
+                                                    m_omx_render.GetInputPort(), nullptr,
+                                                    m_config.egl_image) != OMX_ErrorNone)
+  {
+    LOG_ERROR << "m_omx_render.UseEGLImage failed";
+  }
   m_omx_render.ResetEos();
 
   PortSettingsChangedLogger(port_image, interlace.eMode);

@@ -430,6 +430,9 @@ namespace kinski{ namespace video
         m_impl->m_omx_reader.GetHints(OMXSTREAM_AUDIO, m_impl->m_config_audio.hints);
         m_impl->m_omx_reader.GetHints(OMXSTREAM_VIDEO, m_impl->m_config_video.hints);
 
+        m_impl->m_config_video.egl_buffer = m_impl->m_egl_buffer;
+        // m_impl->m_config_video.egl_image = m_impl->m_egl_image;
+
         if (m_impl->m_config_audio.device == "")
         {
         //   if(vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2, EDID_AudioSampleRate_e44KHz,
