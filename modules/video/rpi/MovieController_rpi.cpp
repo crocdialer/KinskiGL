@@ -430,6 +430,15 @@ namespace kinski{ namespace video
         m_impl->m_omx_reader.GetHints(OMXSTREAM_AUDIO, m_impl->m_config_audio.hints);
         m_impl->m_omx_reader.GetHints(OMXSTREAM_VIDEO, m_impl->m_config_video.hints);
 
+        if (m_impl->m_config_audio.device == "")
+        {
+        //   if(vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2, EDID_AudioSampleRate_e44KHz,
+        //                                 EDID_AudioSampleSize_16bit ) == 0)
+        //   { m_config_audio.device = "omx:hdmi"; }
+        //   else
+            { m_impl->m_config_audio.device = "omx:local"; }
+        }
+
         // if (m_fps > 0.0f)
         //   m_config_video.hints.fpsrate = m_fps * DVD_TIME_BASE, m_config_video.hints.fpsscale = DVD_TIME_BASE;
 
