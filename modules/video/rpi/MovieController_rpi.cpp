@@ -45,6 +45,21 @@ namespace kinski{ namespace video
         bool m_has_video = false;
         bool m_has_audio = false;
         bool m_has_subtitle = false;
+        bool m_pause = false;
+        bool m_seek_flush = false;
+        bool m_packet_after_seek = false;
+        bool sentStarted = false;
+        bool m_send_eos = false;
+        bool m_chapter_seek = false;
+        double startpts = 0;
+        double m_incr = 0;
+        double m_loop_from = 0;
+        double last_seek_pos = 0;
+        float m_threshold = 0.2f; // amount of audio/video required to come out of buffering
+        float m_timeout = 10.0f; // amount of time file/network operation can stall for before timing out
+
+        // int playspeed_current = 14;
+        double m_last_check_time = 0.0;
 
         MovieControllerImpl()
         {
@@ -101,10 +116,236 @@ namespace kinski{ namespace video
 
         void thread_func()
         {
+            LOG_DEBUG << "starting movie decode thread";
+            m_playing = true;
+            sentStarted = true;
+            size_t num_frames = 0;
+
             while(m_playing)
             {
+                double now = m_av_clock->GetAbsoluteClock();
+                bool update = false;
+                if (m_last_check_time == 0.0 || m_last_check_time + DVD_MSEC_TO_TIME(20) <= now)
+                {
+                  update = true;
+                  m_last_check_time = now;
+                }
 
+                if(m_seek_flush || m_incr != 0)
+                {
+                    double seek_pos = 0;
+                    double pts = 0;
+
+                    // if(m_has_subtitle)
+                    //     m_player_subtitles.Pause();
+                    if(!m_chapter_seek)
+                    {
+                        pts = m_av_clock->OMXMediaTime();
+
+                        seek_pos = (pts ? pts / DVD_TIME_BASE : last_seek_pos) + m_incr;
+                        last_seek_pos = seek_pos;
+
+                        seek_pos *= 1000.0;
+
+                        if(m_omx_reader.SeekTime((int)seek_pos, m_incr < 0.0f, &startpts))
+                        {
+                            //   unsigned t = (unsigned)(startpts*1e-6);
+                            //   auto dur = m_omx_reader.GetStreamLength() / 1000;
+                            //   printf("Seek to: %02d:%02d:%02d\n", (t/3600), (t/60)%60, t%60);
+                            flush_stream(startpts);
+                        }
+                    }
+
+                    sentStarted = false;
+
+                    if(m_omx_reader.IsEof()){ break; }
+
+                    // Quick reset to reduce delay during loop & seek.
+                    if(m_has_video && !m_player_video.Reset())
+                    {
+                        LOG_ERROR << "m_player_video.Reset() failed";
+                        break;
+                    }
+
+                    kinski::log(Severity::DEBUG, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
+                                startpts, m_av_clock->OMXMediaTime());
+
+                    m_av_clock->OMXPause();
+
+                    // if(m_has_subtitle)
+                    //     m_player_subtitles.Resume();
+
+                    m_packet_after_seek = false;
+                    m_seek_flush = false;
+                    m_incr = 0;
+                }
+                else if(m_packet_after_seek && TRICKPLAY(m_av_clock->OMXPlaySpeed()))
+                {
+                    double seek_pos = 0;
+                    double pts = 0;
+
+                    pts = m_av_clock->OMXMediaTime();
+                    seek_pos = (pts / DVD_TIME_BASE);
+
+                    seek_pos *= 1000.0;
+
+                    if(m_omx_reader.SeekTime((int)seek_pos, m_av_clock->OMXPlaySpeed() < 0, &startpts))
+                    ; //FlushStreams(DVD_NOPTS_VALUE);
+
+                    kinski::log(Severity::DEBUG, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
+                                startpts, m_av_clock->OMXMediaTime());
+                    m_packet_after_seek = false;
+                }
+
+                /* player got in an error state */
+                if(m_player_audio.Error())
+                {
+                    LOG_ERROR << "audio player error. emergency exit!!!";
+                    break;
+                }
+
+                if(update)
+                {
+                    /* when the video/audio fifos are low, we pause clock, when high we resume */
+                    double stamp = m_av_clock->OMXMediaTime();
+                    double audio_pts = m_player_audio.GetCurrentPTS();
+                    double video_pts = m_player_video.GetCurrentPTS();
+
+                    if (0 && m_av_clock->OMXIsPaused())
+                    {
+                        double old_stamp = stamp;
+                        if (audio_pts != DVD_NOPTS_VALUE && (stamp == 0 || audio_pts < stamp))
+                          stamp = audio_pts;
+                        if (video_pts != DVD_NOPTS_VALUE && (stamp == 0 || video_pts < stamp))
+                          stamp = video_pts;
+                        if (old_stamp != stamp)
+                        {
+                          m_av_clock->OMXMediaTime(stamp);
+                          stamp = m_av_clock->OMXMediaTime();
+                        }
+                    }
+
+                    float audio_fifo = audio_pts == DVD_NOPTS_VALUE ? 0.0f : audio_pts / DVD_TIME_BASE - stamp * 1e-6;
+                    float video_fifo = video_pts == DVD_NOPTS_VALUE ? 0.0f : video_pts / DVD_TIME_BASE - stamp * 1e-6;
+                    float threshold = std::min(0.1f, (float)m_player_audio.GetCacheTotal() * 0.1f);
+                    bool audio_fifo_low = false, video_fifo_low = false, audio_fifo_high = false,
+                        video_fifo_high = false;
+
+                    if(audio_pts != DVD_NOPTS_VALUE)
+                    {
+                        audio_fifo_low = m_has_audio && audio_fifo < threshold;
+                        audio_fifo_high = !m_has_audio || (audio_pts != DVD_NOPTS_VALUE && audio_fifo > m_threshold);
+                    }
+                    if (video_pts != DVD_NOPTS_VALUE)
+                    {
+                        video_fifo_low = m_has_video && video_fifo < threshold;
+                        video_fifo_high = !m_has_video || (video_pts != DVD_NOPTS_VALUE && video_fifo > m_threshold);
+                    }
+
+                    if(!m_pause && (m_omx_reader.IsEof() || m_omx_pkt ||
+                            TRICKPLAY(m_av_clock->OMXPlaySpeed()) || (audio_fifo_high && video_fifo_high)))
+                    {
+                        if(m_av_clock->OMXIsPaused())
+                        {
+                            kinski::log(Severity::DEBUG, "Resume %.2f,%.2f (%d,%d,%d,%d) EOF:%d PKT:%p",
+                                        audio_fifo, video_fifo, audio_fifo_low, video_fifo_low,
+                                        audio_fifo_high, video_fifo_high, m_omx_reader.IsEof(),
+                                        m_omx_pkt);
+                            m_av_clock->OMXResume();
+                        }
+                    }
+                    else if(m_pause || audio_fifo_low || video_fifo_low)
+                    {
+                        if(!m_av_clock->OMXIsPaused())
+                        {
+                            if(!m_pause){ m_threshold = std::min(2.0f * m_threshold, 16.0f); }
+                            kinski::log(Severity::DEBUG, "Pause %.2f,%.2f (%d,%d,%d,%d) %.2f",
+                                        audio_fifo, video_fifo, audio_fifo_low, video_fifo_low,
+                                        audio_fifo_high, video_fifo_high, m_threshold);
+                            m_av_clock->OMXPause();
+                        }
+                    }
+                }
+                if(!sentStarted)
+                {
+                    kinski::log(Severity::DEBUG, "COMXPlayer::HandleMessages - player started RESET");
+                    m_av_clock->OMXReset(m_has_video, m_has_audio);
+                    sentStarted = true;
+                }
+
+                if(!m_omx_pkt){ m_omx_pkt = m_omx_reader.Read(); }
+                if(m_omx_pkt){ m_send_eos = false; }
+
+                if(m_omx_reader.IsEof() && !m_omx_pkt)
+                {
+                    // demuxer EOF, but may have not played out data yet
+                    if( (m_has_video && m_player_video.GetCached()) ||
+                       (m_has_audio && m_player_audio.GetCached()) )
+                    {
+                        OMXClock::OMXSleep(10);
+                        continue;
+                    }
+                    if(!m_send_eos && m_has_video){ m_player_video.SubmitEOS(); }
+                    if (!m_send_eos && m_has_audio){ m_player_audio.SubmitEOS(); }
+                    m_send_eos = true;
+
+                    if( (m_has_video && !m_player_video.IsEOS()) ||
+                       (m_has_audio && !m_player_audio.IsEOS()) )
+                    {
+                        OMXClock::OMXSleep(10);
+                        continue;
+                    }
+
+                    if(m_loop)
+                    {
+                        m_incr = m_loop_from - (m_av_clock->OMXMediaTime() ? m_av_clock->OMXMediaTime() / DVD_TIME_BASE : last_seek_pos);
+                        continue;
+                    }
+                    break;
+                }
+
+                if(m_has_video && m_omx_pkt && m_omx_reader.IsActive(OMXSTREAM_VIDEO, m_omx_pkt->stream_index))
+                {
+                    if(TRICKPLAY(m_av_clock->OMXPlaySpeed()))
+                    {
+                        m_packet_after_seek = true;
+                    }
+                    if(m_player_video.AddPacket(m_omx_pkt))
+                    {
+                         m_omx_pkt = nullptr;
+                         num_frames++;
+                         m_has_new_frame = true;
+                    }
+                    else{ OMXClock::OMXSleep(10); }
+                }
+                else if(m_has_audio && m_omx_pkt && !TRICKPLAY(m_av_clock->OMXPlaySpeed()) &&
+                        m_omx_pkt->codec_type == AVMEDIA_TYPE_AUDIO)
+                {
+                    if(m_player_audio.AddPacket(m_omx_pkt)){ m_omx_pkt = nullptr; }
+                    else{ OMXClock::OMXSleep(10); }
+                }
+                // else if(m_has_subtitle && m_omx_pkt && !TRICKPLAY(m_av_clock->OMXPlaySpeed()) &&
+                //         m_omx_pkt->codec_type == AVMEDIA_TYPE_SUBTITLE)
+                // {
+                //     auto result = m_player_subtitles.AddPacket(m_omx_pkt,
+                //                   m_omx_reader.GetRelativeIndex(m_omx_pkt->stream_index));
+                //     if (result){ m_omx_pkt = nullptr; }
+                //     else{ OMXClock::OMXSleep(10); }
+                // }
+                else
+                {
+                    if(m_omx_pkt)
+                    {
+                        m_omx_reader.FreePacket(m_omx_pkt);
+                        m_omx_pkt = nullptr;
+                    }
+                    else{ OMXClock::OMXSleep(10); }
+                }
+
+                // std::this_thread::sleep_for(std::chrono::milliseconds(35));
             }
+            m_playing = false;
+            LOG_DEBUG << "movie decode thread ended: " << m_playing;
         }
     };
 
@@ -215,22 +456,31 @@ namespace kinski{ namespace video
         }
         m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
         m_impl->m_av_clock->OMXStateExecute();
+
+        // fire on load callback, if any
+        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+
+        // autoplay
+        if(autoplay){ play(); }
     }
 
     void MovieController::play()
     {
+        if(!m_impl || m_impl->m_playing){ return; }
         LOG_DEBUG << "starting movie playback";
-        if(!m_impl){ return; }
+
+        m_impl->m_playing = true;
+        m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
     }
 
     void MovieController::unload()
     {
-        m_impl.reset(new MovieControllerImpl);
+        m_impl.reset();
     }
 
     void MovieController::pause()
     {
-        if(!m_impl){ return; }
+        if(m_impl){ m_impl->m_pause = !m_impl->m_pause; }
     }
 
     bool MovieController::is_playing() const
@@ -252,8 +502,7 @@ namespace kinski{ namespace video
     void MovieController::set_volume(float newVolume)
     {
         if(!m_impl){ return; }
-        float val = clamp(newVolume, 0.f, 1.f);
-        m_impl->m_volume = val;
+        m_impl->m_volume = clamp(newVolume, 0.f, 1.f);
         m_impl->m_player_audio.SetVolume(m_impl->m_volume);
     }
 
@@ -279,27 +528,32 @@ namespace kinski{ namespace video
 
     double MovieController::duration() const
     {
-        return 0.0;
+        return m_impl ? (m_impl->m_omx_reader.GetStreamLength() / (double)DVD_TIME_BASE) : 0.0;
     }
 
     double MovieController::current_time() const
     {
-        return 0.0;
+        return m_impl ? m_impl->m_av_clock->OMXMediaTime() * 1e-6 : 0.0;
     }
 
     void MovieController::seek_to_time(float value)
     {
         if(!m_impl){ return; }
+
+        if(m_impl->m_omx_reader.CanSeek())
+        {
+            //  m_impl->m_incr = -30.0;
+        }
     }
 
     void MovieController::set_loop(bool b)
     {
-
+        if(m_impl){ m_impl->m_loop = b; }
     }
 
     bool MovieController::loop() const
     {
-        return m_impl && false;
+        return m_impl && m_impl->m_loop;
     }
 
     void MovieController::set_rate(float r)
