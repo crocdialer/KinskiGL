@@ -6,6 +6,7 @@
 //
 //
 
+#include <cstring>
 #include "CapacitiveSensor.hpp"
 #include "core/Serial.hpp"
 
@@ -28,7 +29,7 @@ namespace kinski
         
         std::thread m_reconnect_thread;
         
-        Callback m_touch_callback, m_release_callback;
+        TouchCallback m_touch_callback, m_release_callback;
     };
     
     CapacitiveSensor::CapacitiveSensor(const std::string &dev_name):
@@ -111,7 +112,7 @@ namespace kinski
         {
             LOG_WARNING << "no response from sensor: trying reconnect ...";
             m_impl->m_last_reading = 0.f;
-            try { m_impl->m_reconnect_thread.join(); }
+            try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
             catch (std::exception &e) { LOG_WARNING << e.what(); }
             m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
             return;
@@ -155,12 +156,12 @@ namespace kinski
         return false;
     }
     
-    void CapacitiveSensor::set_touch_callback(Callback cb)
+    void CapacitiveSensor::set_touch_callback(TouchCallback cb)
     {
         m_impl->m_touch_callback = cb;
     }
     
-    void CapacitiveSensor::set_release_callback(Callback cb)
+    void CapacitiveSensor::set_release_callback(TouchCallback cb)
     {
         m_impl->m_release_callback = cb;
     }

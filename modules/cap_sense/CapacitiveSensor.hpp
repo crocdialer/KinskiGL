@@ -15,7 +15,7 @@ namespace kinski
     {
     public:
         
-        typedef std::function<void(int)> Callback;
+        typedef std::function<void(int)> TouchCallback;
         
         CapacitiveSensor(const std::string &dev_name = "");
         
@@ -31,8 +31,8 @@ namespace kinski
         //  or "any" touch, if index is out of bounds or not provided
         bool is_touched(int the_index = -1) const;
         
-        void set_touch_callback(Callback cb);
-        void set_release_callback(Callback cb);
+        void set_touch_callback(TouchCallback cb);
+        void set_release_callback(TouchCallback cb);
         
         float timeout_reconnect() const;
         void set_timeout_reconnect(float val);
