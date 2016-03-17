@@ -38,7 +38,7 @@ namespace kinski{ namespace video
         OMXReader m_omx_reader;
         std::shared_ptr<OMXPlayerVideo> m_player_video;
         std::shared_ptr<OMXPlayerAudio> m_player_audio;
-        OMXClock* m_av_clock = new OMXClock();
+        std::shared_ptr<OMXClock> m_av_clock;
         OMXPacket* m_omx_pkt = nullptr;
         OMXAudioConfig m_config_audio;
         OMXVideoConfig m_config_video;
@@ -64,6 +64,7 @@ namespace kinski{ namespace video
         MovieControllerImpl()
         {
             m_OMX.Initialize();
+            m_av_clock.reset(new OMXClock());
         }
         ~MovieControllerImpl()
         {
@@ -86,7 +87,6 @@ namespace kinski{ namespace video
             }
             m_omx_reader.Close();
             m_av_clock->OMXDeinitialize();
-            if(m_av_clock){ delete m_av_clock; }
 
             if(m_egl_image)
             {
@@ -198,7 +198,7 @@ namespace kinski{ namespace video
                 }
 
                 /* player got in an error state */
-                if(m_player_audio->Error())
+                if(m_player_audio && m_player_audio->Error())
                 {
                     LOG_ERROR << "audio player error. emergency exit!!!";
                     break;
@@ -208,7 +208,7 @@ namespace kinski{ namespace video
                 {
                     /* when the video/audio fifos are low, we pause clock, when high we resume */
                     double stamp = m_av_clock->OMXMediaTime();
-                    double audio_pts = m_player_audio->GetCurrentPTS();
+                    double audio_pts = m_player_audio ? m_player_audio->GetCurrentPTS() : DVD_NOPTS_VALUE;
                     double video_pts = m_player_video->GetCurrentPTS();
 
                     if (0 && m_av_clock->OMXIsPaused())
@@ -227,7 +227,8 @@ namespace kinski{ namespace video
 
                     float audio_fifo = audio_pts == DVD_NOPTS_VALUE ? 0.0f : audio_pts / DVD_TIME_BASE - stamp * 1e-6;
                     float video_fifo = video_pts == DVD_NOPTS_VALUE ? 0.0f : video_pts / DVD_TIME_BASE - stamp * 1e-6;
-                    float threshold = std::min(0.1f, (float)m_player_audio->GetCacheTotal() * 0.1f);
+                    float threshold = std::min(0.1f,
+                                               m_player_audio ? (float)m_player_audio->GetCacheTotal() * 0.1f : 0.f);
                     bool audio_fifo_low = false, video_fifo_low = false, audio_fifo_high = false,
                         video_fifo_high = false;
 
@@ -447,16 +448,16 @@ namespace kinski{ namespace video
         // if (m_fps > 0.0f)
         //   m_config_video.hints.fpsrate = m_fps * DVD_TIME_BASE, m_config_video.hints.fpsscale = DVD_TIME_BASE;
 
-        if(m_impl->m_has_video && !m_impl->m_player_video->Open(m_impl->m_av_clock,
-                                                               m_impl->m_config_video))
+        if(m_impl->m_has_video && !m_impl->m_player_video->Open(m_impl->m_av_clock.get(),
+                                                                m_impl->m_config_video))
         {
             m_impl.reset();
             LOG_WARNING << "could not open video player";
             return;
         }
-        if(m_impl->m_has_audio && !m_impl->m_player_audio->Open(m_impl->m_av_clock,
-                                                               m_impl->m_config_audio,
-                                                               &m_impl->m_omx_reader))
+        if(m_impl->m_has_audio && !m_impl->m_player_audio->Open(m_impl->m_av_clock.get(),
+                                                                m_impl->m_config_audio,
+                                                                &m_impl->m_omx_reader))
         {
             m_impl.reset();
             LOG_WARNING << "could not open audio player";
@@ -516,7 +517,7 @@ namespace kinski{ namespace video
 
     void MovieController::set_volume(float newVolume)
     {
-        if(!m_impl){ return; }
+        if(!m_impl || !m_impl->m_has_audio){ return; }
         m_impl->m_volume = clamp(newVolume, 0.f, 1.f);
         m_impl->m_player_audio->SetVolume(m_impl->m_volume);
     }

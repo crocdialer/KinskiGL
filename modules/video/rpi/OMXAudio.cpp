@@ -1307,31 +1307,31 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
     switch(eChannelMapping[i])
     {
       case OMX_AUDIO_ChannelLF:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLF");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLF");
         break;
       case OMX_AUDIO_ChannelRF:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelRF");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelRF");
         break;
       case OMX_AUDIO_ChannelCF:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelCF");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelCF");
         break;
       case OMX_AUDIO_ChannelLS:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLS");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLS");
         break;
       case OMX_AUDIO_ChannelRS:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelRS");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelRS");
         break;
       case OMX_AUDIO_ChannelLFE:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLFE");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLFE");
         break;
       case OMX_AUDIO_ChannelCS:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelCS");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelCS");
         break;
       case OMX_AUDIO_ChannelLR:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelLR");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLR");
         break;
       case OMX_AUDIO_ChannelRR:
-        kinski::log(kinski::Severity::DEBUG, "OMX_AUDIO_ChannelRR");
+        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelRR");
         break;
       case OMX_AUDIO_ChannelNone:
       case OMX_AUDIO_ChannelKhronosExtensions:
