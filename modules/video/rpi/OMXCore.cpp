@@ -1656,13 +1656,20 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderFillBufferDone(OMX_HANDLETYPE hComponent
           m_componentName.c_str(), pBuffer, m_omx_output_available.size(), m_output_buffer_count);
   LOG_DEBUG << g_log_buf;
   #endif
-  pthread_mutex_lock(&m_omx_output_mutex);
-  m_omx_output_available.push(pBuffer);
 
-  // this allows (all) blocked tasks to be awoken
-  pthread_cond_broadcast(&m_output_buffer_cond);
+  if(CustomFillBufferDoneHandler)
+  {
+    auto error = (*(CustomFillBufferDoneHandler))(hComponent, this, pBuffer);
+  }
+  else
+  {
+    pthread_mutex_lock(&m_omx_output_mutex);
+    m_omx_output_available.push(pBuffer);
 
-  pthread_mutex_unlock(&m_omx_output_mutex);
+    // this allows (all) blocked tasks to be awoken
+    pthread_cond_broadcast(&m_output_buffer_cond);
+    pthread_mutex_unlock(&m_omx_output_mutex);
+  }
 
   return OMX_ErrorNone;
 }

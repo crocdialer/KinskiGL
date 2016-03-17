@@ -70,22 +70,18 @@ COMXVideo::~COMXVideo()
   Close();
 }
 
+namespace
+{
+    OMX_BUFFERHEADERTYPE* egl_buffer = nullptr;
+    COMXCoreComponent* egl_render = nullptr;
+}
+
 // DecoderFillBufferDone -- OMXCore output buffer has been filled
 OMX_ERRORTYPE COMXVideo::DecoderFillBufferDoneCallback(OMX_HANDLETYPE hComponent, OMX_PTR pAppData,
                                                        OMX_BUFFERHEADERTYPE* pBuffer)
 {
-  if(!pAppData)
-    return OMX_ErrorNone;
-
-  COMXVideo *ctx = static_cast<COMXVideo*>(pAppData);
-  OMX_BUFFERHEADERTYPE* egl_buffer = *ctx->m_config.egl_buffer_ptr;
-
-  auto err = OMX_FillThisBuffer(ctx->m_omx_render.GetComponent(), egl_buffer);
-  if(err != OMX_ErrorNone)
-  {
-      LOG_ERROR << "OMX_FillThisBuffer failed in callback";
-  }
-  return err;
+  if(!egl_buffer | !egl_render){ return OMX_ErrorNone; }
+  return egl_render->FillThisBuffer(egl_buffer);
 }
 
 bool COMXVideo::SendDecoderConfig()
@@ -204,17 +200,8 @@ bool COMXVideo::PortSettingsChanged()
   else
     m_deinterlace = interlace.eMode != OMX_InterlaceProgressive;
 
-  OMX_CALLBACKTYPE callbacks  =
-  {
-      .EventHandler = nullptr,
-      .EmptyBufferDone = nullptr,
-      .FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback
-  };
-  // cb_t.FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback;
-
   if(!m_omx_render.Initialize(m_config.egl_image ? "OMX.broadcom.egl_render" :
-                              "OMX.broadcom.video_render", OMX_IndexParamVideoInit),
-                              m_config.egl_image ? nullptr : nullptr)
+                              "OMX.broadcom.video_render", OMX_IndexParamVideoInit, nullptr))
   { return false; }
 
   m_omx_render.ResetEos();
@@ -234,16 +221,19 @@ bool COMXVideo::PortSettingsChanged()
   OMX_INIT_STRUCTURE(configDisplay);
   configDisplay.nPortIndex = m_omx_render.GetInputPort();
 
-  configDisplay.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_NUM);
-  configDisplay.alpha = m_config.alpha;
-  configDisplay.num = m_config.display;
-  configDisplay.layer = m_config.layer;
-  configDisplay.transform = m_transform;
-  omx_err = m_omx_render.SetConfig(OMX_IndexConfigDisplayRegion, &configDisplay);
-  if(omx_err != OMX_ErrorNone)
+  if(!m_config.egl_image)
   {
-    kinski::log(kinski::Severity::WARNING, "%s::%s - could not set transform : %d", CLASSNAME, __func__, m_transform);
-    return false;
+      configDisplay.set = (OMX_DISPLAYSETTYPE)(OMX_DISPLAY_SET_ALPHA | OMX_DISPLAY_SET_TRANSFORM | OMX_DISPLAY_SET_LAYER | OMX_DISPLAY_SET_NUM);
+      configDisplay.alpha = m_config.alpha;
+      configDisplay.num = m_config.display;
+      configDisplay.layer = m_config.layer;
+      configDisplay.transform = m_transform;
+      omx_err = m_omx_render.SetConfig(OMX_IndexConfigDisplayRegion, &configDisplay);
+      if(omx_err != OMX_ErrorNone)
+      {
+          kinski::log(kinski::Severity::WARNING, "%s::%s - could not set transform : %d", CLASSNAME, __func__, m_transform);
+          return false;
+      }
   }
 
   SetVideoRect();
@@ -375,22 +365,37 @@ bool COMXVideo::PortSettingsChanged()
     return false;
   }
 
-  omx_err = m_omx_render.SetStateForComponent(OMX_StateExecuting);
-  if(omx_err != OMX_ErrorNone)
-  {
-    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
-    return false;
-  }
   if(m_config.egl_image)
   {
-      // m_omx_render.m_callbacks.FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback;
+      // Alloc buffers for the renderComponent input port.
+  	  omx_err = m_omx_render.AllocInputBuffers();
+      LOG_WARNING_IF(omx_err != OMX_ErrorNone) << "m_omx_render.AllocInputBuffers() failed";
+
+    //   omx_err = m_omx_render.SetStateForComponent(OMX_StateIdle);
+    //   LOG_WARNING_IF(omx_err != OMX_ErrorNone) << "m_omx_render.SetStateForComponent() failed";
+
+      omx_err = m_omx_render.EnablePort(m_omx_render.GetOutputPort());
+      LOG_WARNING_IF(omx_err != OMX_ErrorNone) << "m_omx_render.EnablePort() failed";
+
+      m_omx_render.CustomFillBufferDoneHandler = &COMXVideo::DecoderFillBufferDoneCallback;
       auto err = m_omx_render.UseEGLImage(m_config.egl_buffer_ptr, m_omx_render.GetOutputPort(), nullptr,
                                           m_config.egl_image);
       if(err != OMX_ErrorNone)
       {
           LOG_ERROR << "m_omx_render.UseEGLImage failed";
       }
-      else{ m_omx_render.FillThisBuffer(*m_config.egl_buffer_ptr); }
+      else
+      {
+          egl_buffer = *m_config.egl_buffer_ptr;
+          egl_render = &m_omx_render;
+          m_omx_render.FillThisBuffer(egl_buffer);
+      }
+  }
+  omx_err = m_omx_render.SetStateForComponent(OMX_StateExecuting);
+  if(omx_err != OMX_ErrorNone)
+  {
+    kinski::log(kinski::Severity::ERROR, "%s::%s - m_omx_render.SetStateForComponent omx_err(0x%08x)", CLASSNAME, __func__, omx_err);
+    return false;
   }
 
   m_settings_changed = true;
@@ -532,6 +537,14 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
       return false;
     break;
   }
+
+  // OMX_CALLBACKTYPE callbacks =
+  // {
+  //     .EventHandler = nullptr,
+  //     .EmptyBufferDone = nullptr,
+  //     .FillBufferDone = &COMXVideo::DecoderFillBufferDoneCallback
+  // };
+  //m_config.egl_image ? &callbacks : nullptr
 
   if(!m_omx_decoder.Initialize(decoder_name, OMX_IndexParamVideoInit))
     return false;
@@ -860,7 +873,7 @@ void COMXVideo::SetVideoRect(int aspectMode)
 void COMXVideo::SetVideoRect()
 {
   CSingleLock lock (m_critSection);
-  if(!m_is_open)
+  if(!m_is_open || m_config.egl_image)
     return;
 
   OMX_ERRORTYPE omx_err;

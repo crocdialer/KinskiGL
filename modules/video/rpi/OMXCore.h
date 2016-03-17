@@ -116,6 +116,7 @@ public:
   static OMX_ERRORTYPE DecoderFillBufferDoneCallback(
     OMX_HANDLETYPE hComponent, OMX_PTR pAppData, OMX_BUFFERHEADERTYPE* pBufferHeader);
 
+
   // OMXCore decoder callback routines.
   OMX_ERRORTYPE DecoderEventHandler(OMX_HANDLETYPE hComponent,
     OMX_EVENTTYPE eEvent, OMX_U32 nData1, OMX_U32 nData2, OMX_PTR pEventData);
@@ -123,6 +124,10 @@ public:
     OMX_HANDLETYPE hComponent, OMX_BUFFERHEADERTYPE* pBuffer);
   OMX_ERRORTYPE DecoderFillBufferDone(
     OMX_HANDLETYPE hComponent, OMX_BUFFERHEADERTYPE* pBuffer);
+
+  //additional event handlers
+  OMX_ERRORTYPE (*CustomFillBufferDoneHandler)(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*) = nullptr;
+  OMX_ERRORTYPE (*CustomEmptyBufferDoneHandler)(OMX_HANDLETYPE, OMX_PTR, OMX_BUFFERHEADERTYPE*) = nullptr;
 
   void TransitionToStateLoaded();
 

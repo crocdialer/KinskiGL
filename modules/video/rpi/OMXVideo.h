@@ -127,6 +127,7 @@ protected:
   COMXCoreComponent m_omx_image_fx;
   COMXCoreComponent *m_omx_clock;
   OMXClock           *m_av_clock;
+  OMX_BUFFERHEADERTYPE* m_egl_buffer = nullptr;
 
   COMXCoreTunel     m_omx_tunnel_decoder;
   COMXCoreTunel     m_omx_tunnel_clock;
