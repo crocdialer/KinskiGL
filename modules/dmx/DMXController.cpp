@@ -80,11 +80,11 @@ namespace kinski
 //            m_impl->transmit(SET_DMX_RX_MODE, nullptr, 0);
         }
         
-        if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
+        if(m_impl->m_timeout_reconnect > 0 && (m_impl->m_last_reading > m_impl->m_timeout_reconnect))
         {
             LOG_WARNING << "no response from sensor: trying reconnect ...";
             m_impl->m_last_reading = 0.f;
-            try { m_impl->m_reconnect_thread.join(); }
+            try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
             catch (std::exception &e) { LOG_WARNING << e.what(); }
             m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
             return;
