@@ -25,7 +25,8 @@ namespace kinski
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_touch_status = 0;
-        float m_last_reading, m_timeout_reconnect;
+        float m_last_reading = 0.f;
+        float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         
         std::thread m_reconnect_thread;
         
@@ -37,7 +38,6 @@ namespace kinski
     {
         m_impl->m_device_name = dev_name;
         m_impl->m_sensor_read_buf.resize(2048);
-        m_impl->m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         
         if(!dev_name.empty() && !connect(dev_name))
         {
@@ -108,7 +108,7 @@ namespace kinski
         }
         m_impl->m_touch_status = current_touches;
         
-        if(m_impl->m_last_reading > m_impl->m_timeout_reconnect)
+        if((m_impl->m_timeout_reconnect > 0.f) && m_impl->m_last_reading > m_impl->m_timeout_reconnect)
         {
             LOG_WARNING << "no response from sensor: trying reconnect ...";
             m_impl->m_last_reading = 0.f;
