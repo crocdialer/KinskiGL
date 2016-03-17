@@ -367,15 +367,27 @@ bool COMXVideo::PortSettingsChanged()
 
   if(m_config.egl_image)
   {
-      // Alloc buffers for the renderComponent input port.
-  	  omx_err = m_omx_render.AllocInputBuffers();
-      LOG_WARNING_IF(omx_err != OMX_ErrorNone) << "m_omx_render.AllocInputBuffers() failed";
+      omx_err = m_omx_render.SetStateForComponent(OMX_StateIdle);
+      if(omx_err != OMX_ErrorNone)
+      {
+        LOG_ERROR << "m_omx_render.SetStateForComponent() failed";
+        return false;
+      }
 
-    //   omx_err = m_omx_render.SetStateForComponent(OMX_StateIdle);
-    //   LOG_WARNING_IF(omx_err != OMX_ErrorNone) << "m_omx_render.SetStateForComponent() failed";
+    //   // Alloc buffers for the renderComponent input port.
+ //  	  omx_err = m_omx_render.AllocInputBuffers();
+    //   if(omx_err != OMX_ErrorNone)
+    //   {
+    //     LOG_ERROR << "m_omx_render.AllocInputBuffers() failed";
+    //     return false;
+    //   }
 
-      omx_err = m_omx_render.EnablePort(m_omx_render.GetOutputPort());
-      LOG_WARNING_IF(omx_err != OMX_ErrorNone) << "m_omx_render.EnablePort() failed";
+    //   omx_err = m_omx_render.EnablePort(m_omx_render.GetOutputPort());
+    //   if(omx_err != OMX_ErrorNone)
+    //   {
+    //     LOG_ERROR << "m_omx_render.EnablePort() failed";
+    //     return false;
+    //   }
 
       m_omx_render.CustomFillBufferDoneHandler = &COMXVideo::DecoderFillBufferDoneCallback;
       auto err = m_omx_render.UseEGLImage(m_config.egl_buffer_ptr, m_omx_render.GetOutputPort(), nullptr,
@@ -383,11 +395,13 @@ bool COMXVideo::PortSettingsChanged()
       if(err != OMX_ErrorNone)
       {
           LOG_ERROR << "m_omx_render.UseEGLImage failed";
+          return false;
       }
       else
       {
           egl_buffer = *m_config.egl_buffer_ptr;
           egl_render = &m_omx_render;
+          omx_err = m_omx_render.SetStateForComponent(OMX_StateExecuting);
           m_omx_render.FillThisBuffer(egl_buffer);
       }
   }
@@ -654,7 +668,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
     }
   }
 
-  // Alloc buffers for the omx intput port.
+  // Alloc buffers for the omx input port.
   omx_err = m_omx_decoder.AllocInputBuffers();
   if (omx_err != OMX_ErrorNone)
   {

@@ -1345,15 +1345,15 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
 
 void COMXAudio::PrintPCM(OMX_AUDIO_PARAM_PCMMODETYPE *pcm, std::string direction)
 {
-  kinski::log(kinski::Severity::DEBUG, "pcm->direction      : %s", direction.c_str());
-  kinski::log(kinski::Severity::DEBUG, "pcm->nPortIndex     : %d", (int)pcm->nPortIndex);
-  kinski::log(kinski::Severity::DEBUG, "pcm->eNumData       : %d", pcm->eNumData);
-  kinski::log(kinski::Severity::DEBUG, "pcm->eEndian        : %d", pcm->eEndian);
-  kinski::log(kinski::Severity::DEBUG, "pcm->bInterleaved   : %d", (int)pcm->bInterleaved);
-  kinski::log(kinski::Severity::DEBUG, "pcm->nBitPerSample  : %d", (int)pcm->nBitPerSample);
-  kinski::log(kinski::Severity::DEBUG, "pcm->ePCMMode       : %d", pcm->ePCMMode);
-  kinski::log(kinski::Severity::DEBUG, "pcm->nChannels      : %d", (int)pcm->nChannels);
-  kinski::log(kinski::Severity::DEBUG, "pcm->nSamplingRate  : %d", (int)pcm->nSamplingRate);
+  kinski::log(kinski::Severity::TRACE, "pcm->direction      : %s", direction.c_str());
+  kinski::log(kinski::Severity::TRACE, "pcm->nPortIndex     : %d", (int)pcm->nPortIndex);
+  kinski::log(kinski::Severity::TRACE, "pcm->eNumData       : %d", pcm->eNumData);
+  kinski::log(kinski::Severity::TRACE, "pcm->eEndian        : %d", pcm->eEndian);
+  kinski::log(kinski::Severity::TRACE, "pcm->bInterleaved   : %d", (int)pcm->bInterleaved);
+  kinski::log(kinski::Severity::TRACE, "pcm->nBitPerSample  : %d", (int)pcm->nBitPerSample);
+  kinski::log(kinski::Severity::TRACE, "pcm->ePCMMode       : %d", pcm->ePCMMode);
+  kinski::log(kinski::Severity::TRACE, "pcm->nChannels      : %d", (int)pcm->nChannels);
+  kinski::log(kinski::Severity::TRACE, "pcm->nSamplingRate  : %d", (int)pcm->nSamplingRate);
 
   PrintChannels(pcm->eChannelMapping);
 }
