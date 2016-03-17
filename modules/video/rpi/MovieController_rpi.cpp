@@ -433,7 +433,7 @@ namespace kinski{ namespace video
         m_impl->m_omx_reader.GetHints(OMXSTREAM_VIDEO, m_impl->m_config_video.hints);
 
         m_impl->m_config_video.egl_buffer_ptr = &m_impl->m_egl_buffer;
-        // m_impl->m_config_video.egl_image = m_impl->m_egl_image;
+        m_impl->m_config_video.egl_image = m_impl->m_egl_image;
 
         if (m_impl->m_config_audio.device == "")
         {
