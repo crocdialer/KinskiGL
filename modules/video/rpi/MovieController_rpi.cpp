@@ -573,7 +573,7 @@ namespace kinski{ namespace video
 
     double MovieController::duration() const
     {
-        return m_impl ? (m_impl->m_omx_reader.GetStreamLength() / (double)DVD_TIME_BASE) : 0.0;
+        return m_impl ? (m_impl->m_omx_reader.GetStreamLength() / 1000.0) : 0.0;
     }
 
     double MovieController::current_time() const

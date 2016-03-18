@@ -17,7 +17,7 @@ elseif(KINSKI_RASPI)
   #find_library(AVUtil NAMES avutil)
   #find_library(SWResample NAMES swresample)
 
-  INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/blocks/ffmpeg/include")
+  set(MODULE_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/include")
   set(AVFormat "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavformat.a")
   set(AVCodec "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavcodec.a")
   set(AVUtil "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavutil.a")
@@ -35,5 +35,6 @@ set(MODULE_INCLUDES "" PARENT_SCOPE)
 FILE(GLOB MODULE_HEADERS MovieController.h CameraController.h)
 
 # forward variables to parent scope
+set(MODULE_INCLUDE_DIRS ${MODULE_INCLUDE_DIRS} PARENT_SCOPE)
 set(MODULE_HEADERS ${MODULE_HEADERS} PARENT_SCOPE)
 set(MODULE_SOURCES ${MODULE_SOURCES} PARENT_SCOPE)
