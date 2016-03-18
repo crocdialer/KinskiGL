@@ -61,7 +61,6 @@ public:
   int layer;
   float queue_size;
   float fifo_size;
-  OMX_BUFFERHEADERTYPE** egl_buffer_ptr = nullptr;
   void* egl_image = nullptr;
 
   OMXVideoConfig()

@@ -368,14 +368,14 @@ bool COMXVideo::PortSettingsChanged()
   if(m_config.egl_image)
   {
       omx_err = m_omx_render.SetStateForComponent(OMX_StateIdle);
-      
+
       if(omx_err != OMX_ErrorNone)
       {
         LOG_ERROR << "m_omx_render.SetStateForComponent() failed";
         return false;
       }
       m_omx_render.CustomFillBufferDoneHandler = &COMXVideo::DecoderFillBufferDoneCallback;
-      auto err = m_omx_render.UseEGLImage(m_config.egl_buffer_ptr, m_omx_render.GetOutputPort(), nullptr,
+      auto err = m_omx_render.UseEGLImage(&egl_buffer, m_omx_render.GetOutputPort(), nullptr,
                                           m_config.egl_image);
       if(err != OMX_ErrorNone)
       {
@@ -384,7 +384,6 @@ bool COMXVideo::PortSettingsChanged()
       }
       else
       {
-          egl_buffer = *m_config.egl_buffer_ptr;
           egl_render = &m_omx_render;
           omx_err = m_omx_render.SetStateForComponent(OMX_StateExecuting);
           m_omx_render.FillThisBuffer(egl_buffer);

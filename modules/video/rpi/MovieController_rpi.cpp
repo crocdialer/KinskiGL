@@ -32,7 +32,6 @@ namespace kinski{ namespace video
         std::thread m_thread;
 
         // bridge EGL -> gl::Texture
-        OMX_BUFFERHEADERTYPE* m_egl_buffer = nullptr;
         void* m_egl_image = nullptr;
 
         COMXCore m_OMX;
@@ -128,8 +127,8 @@ namespace kinski{ namespace video
                 bool update = false;
                 if (m_last_check_time == 0.0 || m_last_check_time + DVD_MSEC_TO_TIME(20) <= now)
                 {
-                  update = true;
-                  m_last_check_time = now;
+                    update = true;
+                    m_last_check_time = now;
                 }
 
                 if(m_seek_flush || m_incr != 0)
@@ -298,6 +297,9 @@ namespace kinski{ namespace video
                         continue;
                     }
 
+                    // fire movie ended callback
+                    if(m_movie_ended_cb){ m_movie_ended_cb(m_movie_controller.lock()); }
+
                     if(m_loop)
                     {
                         m_incr = m_loop_from - (m_av_clock->OMXMediaTime() ? m_av_clock->OMXMediaTime() / DVD_TIME_BASE : last_seek_pos);
@@ -386,24 +388,27 @@ namespace kinski{ namespace video
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        LOG_DEBUG << "loading movie: " << filePath;
-        string p;
-        try{ p = search_file(filePath); }
+        MovieCallback on_load = m_impl ? m_impl->m_on_load_cb : MovieCallback();
+        MovieCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MovieCallback();
+        m_impl.reset(new MovieControllerImpl());
+        m_impl->m_movie_controller = shared_from_this();
+        m_impl->m_on_load_cb = on_load;
+        m_impl->m_movie_ended_cb = on_end;
+
+        try{ m_impl->m_src_path = kinski::search_file(filePath); }
         catch(FileNotFoundException &e)
         {
-           LOG_WARNING << e.what();
-           return;
+            LOG_ERROR << e.what();
+            return;
         }
-        m_impl.reset(new MovieControllerImpl);
-        m_impl->m_src_path = p;
-        m_impl->m_movie_controller = shared_from_this();
+
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
 
-        if(!m_impl->m_omx_reader.Open(p.c_str(), true/*m_dump_format*/))
+        if(!m_impl->m_omx_reader.Open(m_impl->m_src_path.c_str(), true/*m_dump_format*/))
         {
             m_impl.reset();
-            LOG_WARNING << "could not open file: " << p;
+            LOG_WARNING << "could not open file: " << m_impl->m_src_path;
             return;
         }
 
@@ -421,6 +426,8 @@ namespace kinski{ namespace video
                                                 EGL_GL_TEXTURE_2D_KHR,
                                                 (EGLClientBuffer)m_impl->m_texture.getId(),
                                                 0);
+        // pass our egl_image for buffer creation
+        m_impl->m_config_video.egl_image = m_impl->m_egl_image;
 
         if(!m_impl->m_av_clock->OMXInitialize())
         {
@@ -433,9 +440,6 @@ namespace kinski{ namespace video
         m_impl->m_av_clock->OMXPause();
         m_impl->m_omx_reader.GetHints(OMXSTREAM_AUDIO, m_impl->m_config_audio.hints);
         m_impl->m_omx_reader.GetHints(OMXSTREAM_VIDEO, m_impl->m_config_video.hints);
-
-        m_impl->m_config_video.egl_buffer_ptr = &m_impl->m_egl_buffer;
-        m_impl->m_config_video.egl_image = m_impl->m_egl_image;
 
         if (m_impl->m_config_audio.device == "")
         {
@@ -493,9 +497,24 @@ namespace kinski{ namespace video
         m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
     }
 
+    bool MovieController::is_loaded() const
+    {
+        return m_impl.get();
+    }
+
     void MovieController::unload()
     {
         m_impl.reset();
+    }
+
+    bool MovieController::has_video() const
+    {
+        return m_impl && m_impl->m_has_video;
+    }
+
+    bool MovieController::has_audio() const
+    {
+        return m_impl && m_impl->m_has_audio;
     }
 
     void MovieController::pause()
@@ -562,7 +581,7 @@ namespace kinski{ namespace video
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            m_impl->m_incr = - m_impl->m_av_clock->OMXMediaTime();
+            m_impl->m_incr = -m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE + value;
             m_impl->m_seek_flush = true;
         }
     }
