@@ -572,7 +572,7 @@ namespace kinski{ namespace video
 
     double MovieController::current_time() const
     {
-        return m_impl ? m_impl->m_av_clock->OMXMediaTime() * 1e-6 : 0.0;
+        return m_impl ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
     }
 
     void MovieController::seek_to_time(float value)
@@ -581,7 +581,7 @@ namespace kinski{ namespace video
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            m_impl->m_incr = -m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE + value;
+            m_impl->m_incr = -current_time() + value;
             m_impl->m_seek_flush = true;
         }
     }
