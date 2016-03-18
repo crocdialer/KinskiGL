@@ -87,7 +87,14 @@ namespace kinski {
     void ViewerApp::setup()
     {
         set_window_title(name());
-
+        
+        // find font file
+//        for(auto &search_path : kinski::get_search_paths())
+//        {
+//            auto font_paths = get_directory_entries(search_path, FileType::FONT, true);
+//            if(!font_paths.empty()){ fonts()[0].load(font_paths.front(), 18); break; }
+//        }
+        
         fonts()[0].load("Courier New Bold.ttf", 18);
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);

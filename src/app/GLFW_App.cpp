@@ -200,7 +200,7 @@ namespace kinski
 
         // file search paths
         if(!args().empty()){ kinski::add_search_path(get_directory_part(args().front())); }
-        kinski::add_search_path(".", true);
+        kinski::add_search_path("./", true);
         kinski::add_search_path("./res", true);
         kinski::add_search_path("../Resources", true);
 

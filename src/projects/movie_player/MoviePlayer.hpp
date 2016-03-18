@@ -36,6 +36,7 @@ namespace kinski
         Property_<bool>::Ptr m_use_warping = Property_<bool>::create("use warping", false);
         
         std::string secs_to_time_str(float the_secs) const;
+        void setup_rpc_interface();
         
     public:
 

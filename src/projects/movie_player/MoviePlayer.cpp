@@ -256,3 +256,47 @@ std::string MoviePlayer::secs_to_time_str(float the_secs) const
     return as_string((int)the_secs / 3600) + ":" + as_string(((int)the_secs / 60) % 60) + ":" +
                as_string(fmodf(the_secs, 60), 1);
 }
+
+/////////////////////////////////////////////////////////////////
+
+void MoviePlayer::setup_rpc_interface()
+{
+    remote_control().add_command("play");
+    register_function("play", [this](const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ *m_movie_path = rpc_args.front(); }
+        else{ m_movie->play(); }
+    });
+    remote_control().add_command("pause");
+    register_function("pause", [this](const std::vector<std::string> &rpc_args)
+    {
+        m_movie->pause();
+    });
+    remote_control().add_command("load");
+    register_function("load", [this](const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ *m_movie_path = rpc_args.front(); }
+    });
+    remote_control().add_command("unload");
+    register_function("unload", [this](const std::vector<std::string> &rpc_args)
+    {
+        m_movie->unload();
+    });
+    remote_control().add_command("set_volume");
+    register_function("set_volume", [this](const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
+    });
+    
+    remote_control().add_command("set_rate");
+    register_function("set_rate", [this](const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
+    });
+    
+    remote_control().add_command("seek_to");
+    register_function("seek_to", [this](const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ m_movie->seek_to_time(kinski::string_as<float>(rpc_args.front())); }
+    });
+}
