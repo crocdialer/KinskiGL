@@ -446,8 +446,11 @@ namespace kinski{ namespace video
             { m_impl->m_config_audio.device = "omx:local"; }
         }
 
-        if (m_fps > 0.0f)
-          m_config_video.hints.fpsrate = m_fps * DVD_TIME_BASE, m_config_video.hints.fpsscale = DVD_TIME_BASE;
+        if (m_impl->m_fps > 0.0f)
+        {
+            m_impl->m_config_video.hints.fpsrate = m_impl->m_fps * DVD_TIME_BASE,
+            m_impl->m_config_video.hints.fpsscale = DVD_TIME_BASE;
+        }
 
         if(m_impl->m_has_video && !m_impl->m_player_video->Open(m_impl->m_av_clock.get(),
                                                                 m_impl->m_config_video))
