@@ -26,7 +26,6 @@ namespace kinski{ namespace video{
         IOSurfaceRef m_io_surface = nullptr;
         GLuint m_output_tex_name = 0;
         
-        MovieController *m_movie_control = nullptr;
         LoopHelper *m_loop_helper = nullptr;
         
         std::string m_src_path;
@@ -37,6 +36,7 @@ namespace kinski{ namespace video{
         float m_rate = 1.f;
         
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
+        std::weak_ptr<MovieController> m_movie_controller;
         
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
@@ -96,14 +96,12 @@ namespace kinski{ namespace video{
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        MovieCallback on_load = m_impl->m_on_load_cb, on_end = m_impl->m_movie_ended_cb;
+        MovieCallback on_load = m_impl ? m_impl->m_on_load_cb : MovieCallback();
+        MovieCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MovieCallback();
         m_impl.reset(new MovieControllerImpl());
-        m_impl->m_movie_control = this;
+        m_impl->m_movie_controller = shared_from_this();
         m_impl->m_on_load_cb = on_load;
         m_impl->m_movie_ended_cb = on_end;
-        
-        m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
-        m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         
         try{ m_impl->m_src_path = kinski::search_file(filePath); }
         catch(FileNotFoundException &e)
@@ -111,6 +109,8 @@ namespace kinski{ namespace video{
             LOG_ERROR << e.what();
             return;
         }
+        m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
+        m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         
         NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
         
@@ -522,7 +522,10 @@ namespace kinski{ namespace video{
     else{ self.movie_control_impl->m_playing = false; }
     
     if(self.movie_control_impl->m_movie_ended_cb)
-        self.movie_control_impl->m_movie_ended_cb(self.movie_control_impl->m_movie_control->shared_from_this());
+    {
+        auto mc = self.movie_control_impl->m_movie_controller.lock();
+        if(mc){ self.movie_control_impl->m_movie_ended_cb(mc); }
+    }
     
     LOG_TRACE << "playerItemDidReachEnd";
 }
