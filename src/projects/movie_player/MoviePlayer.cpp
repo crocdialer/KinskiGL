@@ -21,6 +21,7 @@ void MoviePlayer::setup()
     
     fonts()[1].load(fonts()[0].path(), 28);
     register_property(m_movie_path);
+    register_property(m_loop);
     register_property(m_movie_speed);
     register_property(m_use_warping);
     observe_properties();
@@ -43,7 +44,7 @@ void MoviePlayer::update(float timeDelta)
 {
     if(m_reload_movie)
     {
-        m_movie->load(*m_movie_path, true, true);
+        m_movie->load(*m_movie_path, true, *m_loop);
         m_reload_movie = false;
     }
     
@@ -202,6 +203,10 @@ void MoviePlayer::update_property(const Property::ConstPtr &theProperty)
     if(theProperty == m_movie_path)
     {
         m_reload_movie = true;
+    }
+    else if(theProperty == m_loop)
+    {
+        m_movie->set_loop(*m_loop);
     }
     else if(theProperty == m_movie_speed)
     {

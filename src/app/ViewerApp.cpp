@@ -452,6 +452,7 @@ namespace kinski {
         catch(Exception &e)
         {
             LOG_ERROR<<e.what();
+            for(auto p : get_property_list()){ p->notifyObservers(); }
             return false;
         }
 

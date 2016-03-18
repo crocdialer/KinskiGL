@@ -31,6 +31,7 @@ namespace kinski
         
         // properties
         Property_<string>::Ptr m_movie_path = Property_<string>::create("movie path", "");
+        Property_<bool>::Ptr m_loop = Property_<bool>::create("loop", false);
         Property_<float>::Ptr m_movie_speed = Property_<float>::create("movie speed", 1.f);
         Property_<bool>::Ptr m_use_warping = Property_<bool>::create("use warping", false);
         
