@@ -82,6 +82,7 @@ namespace kinski { namespace gl {
     
     struct Font::Obj
     {
+        std::string path;
 //        stbtt_bakedchar char_data[1024];
         stbtt_packedchar char_data[1024];
         uint32_t font_height;
@@ -112,6 +113,11 @@ namespace kinski { namespace gl {
         
     }
     
+    const std::string Font::path() const
+    {
+        return m_obj->path;
+    }
+    
     Texture Font::glyph_texture() const
     {
         return m_obj->texture;
@@ -132,7 +138,9 @@ namespace kinski { namespace gl {
         //TODO: check extension
         try
         {
-            std::vector<uint8_t> font_file = kinski::read_binary_file(thePath);
+            auto p = search_file(thePath);
+            std::vector<uint8_t> font_file = kinski::read_binary_file(p);
+            m_obj->path = p;
             m_obj->string_mesh_map.clear();
             m_obj->font_height = theSize;
             m_obj->line_height = line_height > 0 ? line_height : theSize;

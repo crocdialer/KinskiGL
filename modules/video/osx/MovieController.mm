@@ -16,23 +16,25 @@ namespace kinski{ namespace video{
     
     struct MovieControllerImpl
     {
-        AVAssetReaderTrackOutput *m_videoOut, *m_audioOut;
-        AVAssetReader *m_assetReader;
+        AVAssetReaderTrackOutput *m_videoOut = nullptr, *m_audioOut = nullptr;
+        AVAssetReader *m_assetReader = nullptr;
         
-        AVPlayer *m_player;
-        AVPlayerItem *m_player_item;
-        AVPlayerItemVideoOutput *m_output;
+        AVPlayer *m_player = nullptr;
+        AVPlayerItem *m_player_item = nullptr;
+        AVPlayerItemVideoOutput *m_output = nullptr;
         
-        IOSurfaceRef m_io_surface;
-        GLuint m_output_tex_name;
+        IOSurfaceRef m_io_surface = nullptr;
+        GLuint m_output_tex_name = 0;
         
-        MovieController *m_movie_control;
-        LoopHelper *m_loop_helper;
+        MovieController *m_movie_control = nullptr;
+        LoopHelper *m_loop_helper = nullptr;
         
         std::string m_src_path;
-        bool m_playing;
-        bool m_loop;
-        float m_rate;
+        bool m_has_video = false;
+        bool m_has_audio = false;
+        bool m_playing = false;
+        bool m_loop = false;
+        float m_rate = 1.f;
         
         MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
         
@@ -40,17 +42,7 @@ namespace kinski{ namespace video{
         uint8_t m_pbo_index;
         
         MovieControllerImpl():
-        m_videoOut(nullptr),
-        m_audioOut(nullptr),
-        m_assetReader(nullptr),
-        m_player(nullptr),
-        m_player_item(nullptr),
-        m_output(nullptr),
-        m_io_surface(nullptr),
         m_output_tex_name(0),
-        m_playing(false),
-        m_loop(false),
-        m_rate(1.f),
         m_pbo_index(0)
         {
             m_loop_helper = [[LoopHelper alloc] init];
@@ -87,14 +79,12 @@ namespace kinski{ namespace video{
         return MovieControllerPtr(new MovieController(filePath, autoplay, loop));
     }
     
-    MovieController::MovieController():
-    m_impl(new MovieControllerImpl)
+    MovieController::MovieController()
     {
         
     }
     
-    MovieController::MovieController(const std::string &filePath, bool autoplay, bool loop):
-    m_impl(new MovieControllerImpl)
+    MovieController::MovieController(const std::string &filePath, bool autoplay, bool loop)
     {
         load(filePath, autoplay, loop);
     }
@@ -125,7 +115,6 @@ namespace kinski{ namespace video{
         NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
         
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
-//        AVURLAsset *asset = [[[AVURLAsset alloc] initWithURL:url options:nil] autorelease];
         NSString *tracksKey = @"tracks";
         
         [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:tracksKey] 
@@ -135,18 +124,18 @@ namespace kinski{ namespace video{
              NSError *error = nil;
              
              NSArray *videoTrackArray = [asset tracksWithMediaType:AVMediaTypeVideo];
-//             NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
+             NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
              
-             if([videoTrackArray count])
+             m_impl->m_has_video = [videoTrackArray count];
+             m_impl->m_has_audio = [audioTrackArray count];
+             
+             if(m_impl->m_has_video)
              {
                  @try
                  {
                      NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
                      m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
-                     
-                     // m_impl->m_player_item = [[AVPlayerItem playerItemWithAsset:asset] retain];
                      m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
-                     // m_impl->m_player = [[AVPlayer playerWithPlayerItem:m_impl->m_player_item] retain];
                      m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
                      [m_impl->m_player_item addOutput:m_impl->m_output];
                      m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
@@ -175,22 +164,42 @@ namespace kinski{ namespace video{
              else{ LOG_ERROR << "No video tracks found in: " << m_impl->m_src_path; }
          }];
     }
+    
+    bool MovieController::is_loaded() const
+    {
+        return m_impl.get();
+    }
+    
+    void MovieController::unload()
+    {
+        m_impl.reset();
+    }
+    
+    bool MovieController::has_video() const
+    {
+        return m_impl && m_impl->m_has_video;
+    }
+    
+    bool MovieController::has_audio() const
+    {
+        return m_impl && m_impl->m_has_audio;
+    }
+    
     void MovieController::play()
     {
+        if(!is_loaded()){ return; }
+        
         LOG_TRACE << "starting movie playback";
         [m_impl->m_player play];
         [m_impl->m_player setRate: m_impl->m_rate];
         m_impl->m_playing = true;
     }
     
-    void MovieController::unload()
-    {
-        m_impl.reset(new MovieControllerImpl);
-        m_impl->m_playing = false;
-    }
     
     void MovieController::pause()
     {
+        if(!is_loaded()){ return; }
+        
         [m_impl->m_player pause];
         [m_impl->m_player setRate: 0.f];
         m_impl->m_playing = false;
@@ -198,41 +207,36 @@ namespace kinski{ namespace video{
     
     bool MovieController::is_playing() const
     {
-        return [m_impl->m_player rate] != 0.0f;
+        return m_impl && [m_impl->m_player rate] != 0.0f;
     }
     
     void MovieController::restart()
     {
+        if(!is_loaded()){ return; }
+        
         [m_impl->m_player seekToTime:kCMTimeZero];
         play();
     }
     
     float MovieController::volume() const
     {
-        return m_impl->m_player.volume;
+        return m_impl ? m_impl->m_player.volume : 0.f;
     }
     
-    void MovieController::set_volume(float newVolume)
+    void MovieController::set_volume(float the_volume)
     {
-        float val = newVolume;
-        if(val < 0.f) val = 0.f;
-        if(val > 1.f) val = 1.f;
-        
-        m_impl->m_player.volume = val;
+        if(!is_loaded()){ return; }
+        m_impl->m_player.volume = clamp(the_volume, 0.f, 1.f);
     }
     
     bool MovieController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
-        if(!m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
+        if(!m_impl || !m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
         
         CMTime ct = [m_impl->m_player currentTime];
         
-        // appears to be bugged in OSX 10.11.1
-        // TODO: try to narrow this down, re-adding the AVPlayerItemVideoOutput might help
         if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])
         {
-//            [m_impl->m_player_item removeOutput:m_impl->m_output];
-//            [m_impl->m_player_item addOutput:m_impl->m_output];
             return false;
         }
         
@@ -261,14 +265,12 @@ namespace kinski{ namespace video{
     
     bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
-        if(!is_playing() || !m_impl->m_output || !m_impl->m_player_item) return false;
+        if(!m_impl || !is_playing() || !m_impl->m_output || !m_impl->m_player_item) return false;
         
         CMTime ct = [m_impl->m_player currentTime];
         
         if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])
         {
-//            [m_impl->m_player_item removeOutput:m_impl->m_output];
-//            [m_impl->m_player_item addOutput:m_impl->m_output];
             return false;
         }
         
@@ -343,7 +345,7 @@ namespace kinski{ namespace video{
     
     bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)
     {
-        if(!m_impl->m_videoOut) return false;
+        if(!m_impl || !m_impl->m_videoOut) return false;
         
         std::list<CMSampleBufferRef> samples;
         
@@ -420,6 +422,7 @@ namespace kinski{ namespace video{
     
     double MovieController::duration() const
     {
+        if(!m_impl){ return 0.0; }
         AVPlayerItem *playerItem = [m_impl->m_player currentItem];
         
         if ([playerItem status] == AVPlayerItemStatusReadyToPlay)
@@ -430,11 +433,12 @@ namespace kinski{ namespace video{
     
     double MovieController::current_time() const
     {
-        return CMTimeGetSeconds([m_impl->m_player currentTime]);
+        return is_loaded() && is_playing() ? CMTimeGetSeconds([m_impl->m_player currentTime]) : 0.0;
     }
     
     void MovieController::seek_to_time(float value)
     {
+        if(!m_impl){ return; }
         CMTime t = CMTimeMakeWithSeconds(value, NSEC_PER_SEC);
         [m_impl->m_player seekToTime:t];
         [m_impl->m_player setRate: m_impl->m_rate];
@@ -442,6 +446,8 @@ namespace kinski{ namespace video{
     
     void MovieController::set_loop(bool b)
     {
+        if(!m_impl){ return; }
+        
         // remove any existing observer
         [[NSNotificationCenter defaultCenter] removeObserver:m_impl->m_loop_helper];
         
@@ -458,27 +464,32 @@ namespace kinski{ namespace video{
     
     bool MovieController::loop() const
     {
-        return m_impl->m_loop;
+        return m_impl && m_impl->m_loop;
     }
     
     void MovieController::set_rate(float r)
     {
+        if(!m_impl){ return; }
+        
         m_impl->m_rate = r;
         [m_impl->m_player setRate: r];
     }
     
     const std::string& MovieController::get_path() const
     {
-        return m_impl->m_src_path;
+        static std::string ret = "";
+        return m_impl ? m_impl->m_src_path : ret;
     }
     
     void MovieController::set_on_load_callback(MovieCallback c)
     {
+        if(!m_impl){ return; }
         m_impl->m_on_load_cb = c;
     }
     
     void MovieController::set_movie_ended_callback(MovieCallback c)
     {
+        if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
     }
 }}// namespaces

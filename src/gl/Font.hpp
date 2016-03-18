@@ -20,7 +20,8 @@ namespace kinski { namespace gl {
         
         Font();
         
-        void load(const std::string &thePath, size_t theSize, size_t line_height = 0);
+        void load(const std::string &the_path, size_t the_size, size_t line_height = 0);
+        const std::string path() const;
         Texture glyph_texture() const;
         
         Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;

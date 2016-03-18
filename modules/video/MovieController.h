@@ -26,6 +26,9 @@ namespace kinski{ namespace video{
 
         void load(const std::string &filePath, bool autoplay = false, bool loop = false);
         void unload();
+        bool is_loaded() const;
+        bool has_video() const;
+        bool has_audio() const;
         void play();
         void restart();
         void pause();
