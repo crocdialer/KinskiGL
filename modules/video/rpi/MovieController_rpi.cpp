@@ -17,6 +17,8 @@
 
 namespace kinski{ namespace video
 {
+    std::shared_ptr<COMXCore> m_OMX;
+
     struct MovieControllerImpl
     {
         std::string m_src_path;
@@ -34,7 +36,7 @@ namespace kinski{ namespace video
         // bridge EGL -> gl::Texture
         void* m_egl_image = nullptr;
 
-        COMXCore m_OMX;
+        // COMXCore m_OMX;
         OMXReader m_omx_reader;
         std::shared_ptr<OMXPlayerVideo> m_player_video;
         std::shared_ptr<OMXPlayerAudio> m_player_audio;
@@ -63,7 +65,11 @@ namespace kinski{ namespace video
 
         MovieControllerImpl()
         {
-            m_OMX.Initialize();
+            if(!m_OMX)
+            {
+                m_OMX.reset(new COMXCore(), [](COMXCore *c){c->Deinitialize();});
+                m_OMX->Initialize();
+            }
             m_av_clock.reset(new OMXClock());
         }
         ~MovieControllerImpl()
@@ -96,7 +102,7 @@ namespace kinski{ namespace video
                     LOG_ERROR << "eglDestroyImageKHR failed.";
                 }
             }
-            m_OMX.Deinitialize();
+            // m_OMX.Deinitialize();
         };
 
         void flush_stream(double pts)

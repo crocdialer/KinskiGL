@@ -12,10 +12,17 @@ elseif(KINSKI_RASPI)
   # Raspian specific implementation
   FILE(GLOB MODULE_SOURCES rpi/*.c* rpi/utils/*.c* rpi/linux/*.c*)
 
-  find_library(AVFormat NAMES avformat)
-  find_library(AVCodec NAMES avcodec)
-  find_library(AVUtil NAMES avutil)
-  find_library(SWResample NAMES swresample)
+  #find_library(AVFormat NAMES avformat)
+  #find_library(AVCodec NAMES avcodec)
+  #find_library(AVUtil NAMES avutil)
+  #find_library(SWResample NAMES swresample)
+
+  INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/blocks/ffmpeg/include")
+  set(AVFormat "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavformat.a")
+  set(AVCodec "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavcodec.a")
+  set(AVUtil "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavutil.a")
+  set(SWResample "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libswresample.a")
+
   find_package(ZLIB REQUIRED)
   find_library(M_LIB NAMES m)
 
