@@ -8,10 +8,13 @@
 
 #include "OutstreamGL.h"
 #include "gl/Material.hpp"
+#include <mutex>
 
 using namespace std;
 
 namespace kinski{ namespace gl{
+    
+    namespace{ std::mutex mutex; }
     
     // This is the streambuffer; its function is to store formatted data and send
     // it to a character output when solicited (sync/overflow methods) . You do not
@@ -58,6 +61,8 @@ namespace kinski{ namespace gl{
     
     void OutstreamGL::add_line(const std::string &line)
     {
+        std::unique_lock<std::mutex> scoped_lock(mutex);
+        
         while(m_lines.size() >= m_max_lines) m_lines.pop_back();
         m_lines.push_front(line);
     }
@@ -68,6 +73,8 @@ namespace kinski{ namespace gl{
         
         glm::vec2 step(0, m_font.line_height() * 1.1f);
         glm::vec2 offset(10, window_dimension().y - step.y);
+        
+        std::unique_lock<std::mutex> scoped_lock(mutex);
         
         int i = m_lines.size();
         for (const string &line : m_lines)
