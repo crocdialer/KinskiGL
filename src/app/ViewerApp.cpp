@@ -89,13 +89,20 @@ namespace kinski {
         set_window_title(name());
         
         // find font file
-//        for(auto &search_path : kinski::get_search_paths())
-//        {
-//            auto font_paths = get_directory_entries(search_path, FileType::FONT, true);
-//            if(!font_paths.empty()){ fonts()[0].load(font_paths.front(), 18); break; }
-//        }
+        std::string font_path;
+        try { font_path = search_file("Courier New Bold.ttf"); }
+        catch (FileNotFoundException &e){ LOG_WARNING << e.what(); }
         
-        fonts()[0].load("Courier New Bold.ttf", 18);
+        if(font_path.empty())
+        {
+            for(auto &search_path : kinski::get_search_paths())
+            {
+                auto font_paths = get_directory_entries(search_path, FileType::FONT, true);
+                if(!font_paths.empty()){ font_path = font_paths.front(); break; }
+            }
+        }
+        fonts()[0].load(font_path, 18);
+        
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
 
