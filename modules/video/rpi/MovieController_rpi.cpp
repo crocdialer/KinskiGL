@@ -311,6 +311,7 @@ namespace kinski{ namespace video
                         m_incr = m_loop_from - (m_av_clock->OMXMediaTime() ? m_av_clock->OMXMediaTime() / DVD_TIME_BASE : last_seek_pos);
                         continue;
                     }
+                    m_av_clock->OMXPause();
                     break;
                 }
 
@@ -483,11 +484,12 @@ namespace kinski{ namespace video
         //   if(m_Amplification)
         //     m_player_audio->SetDynamicRangeCompression(m_Amplification);
         }
-        m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
-        m_impl->m_av_clock->OMXStateExecute();
 
         // fire on load callback, if any
         if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+
+        m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
+        m_impl->m_av_clock->OMXStateExecute();
 
         // autoplay
         if(autoplay){ play(); }
@@ -495,12 +497,9 @@ namespace kinski{ namespace video
 
     void MovieController::play()
     {
-        if(!m_impl || m_impl->m_playing){ return; }
-        LOG_DEBUG << "starting movie playback";
-
-        m_impl->m_playing = true;
-        set_rate(m_impl->m_rate);
-        m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
+        if(!m_impl || (m_impl->m_playing && !m_impl->m_pause)){ return; }
+        if(m_impl->m_playing && m_impl->m_pause){ m_impl->m_pause = false; }
+        else{ restart(); }
     }
 
     bool MovieController::is_loaded() const
@@ -525,18 +524,28 @@ namespace kinski{ namespace video
 
     void MovieController::pause()
     {
-        if(m_impl){ m_impl->m_pause = !m_impl->m_pause; }
+        if(m_impl && m_impl->m_playing){ m_impl->m_pause = true; }
     }
 
     bool MovieController::is_playing() const
     {
-        return m_impl && m_impl->m_playing;
+        return m_impl && m_impl->m_playing && !m_impl->m_pause;
     }
 
     void MovieController::restart()
     {
+        LOG_DEBUG << "restarting movie playback";
+        m_impl->m_playing = false;
+        try{ if(m_impl->m_thread.joinable()){ m_impl->m_thread.join(); } }
+        catch(std::exception &e){ LOG_ERROR << e.what(); }
+
         seek_to_time(0);
-        play();
+        m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
+        m_impl->m_playing = true;
+        m_impl->m_pause = false;
+        set_rate(m_impl->m_rate);
+
+        m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
     }
 
     float MovieController::volume() const
@@ -587,7 +596,7 @@ namespace kinski{ namespace video
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            m_impl->m_incr = -current_time() + value;
+            m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
             m_impl->m_seek_flush = true;
         }
     }
