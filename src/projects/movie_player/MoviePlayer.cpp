@@ -294,8 +294,8 @@ void MoviePlayer::setup_rpc_interface()
     remote_control().add_command("volume", [this](net::tcp_connection_ptr con,
                                                   const std::vector<std::string> &rpc_args)
     {
-        if(rpc_args.empty()){ con->send(as_string(m_movie->volume())); }
-        else{ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
+        con->send(as_string(m_movie->volume()));
     });
     
     remote_control().add_command("set_rate");
@@ -307,8 +307,8 @@ void MoviePlayer::setup_rpc_interface()
     remote_control().add_command("rate", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(rpc_args.empty()){ con->send(as_string(m_movie->rate())); }
-        else{ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
+        con->send(as_string(m_movie->rate()));
     });
                                                  
     remote_control().add_command("seek_to_time");
@@ -327,5 +327,18 @@ void MoviePlayer::setup_rpc_interface()
                                                 const std::vector<std::string> &rpc_args)
     {
         con->send(as_string(m_movie->duration(), 1));
+    });
+    
+    remote_control().add_command("set_loop");
+    register_function("set_loop", [this](const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_as<bool>(rpc_args.front())); }
+    });
+    
+    remote_control().add_command("loop", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_as<bool>(rpc_args.front())); }
+        con->send(as_string(m_movie->loop()));
     });
 }
