@@ -467,6 +467,11 @@ namespace kinski{ namespace video{
         return m_impl && m_impl->m_loop;
     }
     
+    float MovieController::rate() const
+    {
+        return m_impl ? [m_impl->m_player rate] : 1.f;
+    }
+    
     void MovieController::set_rate(float r)
     {
         if(!m_impl){ return; }

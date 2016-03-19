@@ -40,6 +40,7 @@ namespace kinski{ namespace video{
         void set_volume(float volume);
         bool loop() const;
         void set_loop(bool b);
+        float rate() const;
         void set_rate(float r);
         const std::string& get_path() const;
 

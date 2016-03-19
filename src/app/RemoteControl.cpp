@@ -129,10 +129,12 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
         {
             try
             {
-                Serializer::applyStateToComponents(components(),
-                                                   string(response.begin(),
-                                                          response.end()),
-                                                   PropertyIO_GL());
+                string str(response.begin(), response.end());
+                
+                if(Serializer::is_json(str))
+                {
+                    Serializer::applyStateToComponents(components(), str, PropertyIO_GL());
+                }
             } catch (std::exception &e){ LOG_ERROR << e.what(); }
         }
     }

@@ -46,6 +46,9 @@ namespace kinski
     class KINSKI_API Serializer
     {
     public:
+        
+        static bool is_json(const std::string &the_string);
+        
         /*!
          * Save a single component´s state to file using json file formatting
          */

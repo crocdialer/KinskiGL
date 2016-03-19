@@ -126,6 +126,13 @@ namespace kinski {
         return success;
     }
     
+    bool Serializer::is_json(const std::string &the_string)
+    {
+        Json::Reader json_reader;
+        Json::Value root;
+        return json_reader.parse(the_string, root);
+    }
+    
     void Serializer::add_to_json_object(const std::list<Component::Ptr> &theComponentList,
                                         Json::Value &json_val,
                                         const PropertyIO &theIO)
