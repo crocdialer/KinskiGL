@@ -29,6 +29,7 @@ namespace kinski
         
         void start_listen(uint16_t port = 33333);
         void stop_listen();
+        uint16_t listening_port() const;
         
         void add_command(const std::string &the_cmd);
         

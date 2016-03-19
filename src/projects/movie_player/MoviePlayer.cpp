@@ -36,6 +36,9 @@ void MoviePlayer::setup()
     
     // check for command line input
     if(args().size() > 1 && file_exists(args()[1])){ *m_movie_path = args()[1]; }
+    
+    // setup our components to receive rpc calls
+    setup_rpc_interface();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -288,15 +291,41 @@ void MoviePlayer::setup_rpc_interface()
         if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
     });
     
+    remote_control().add_command("volume", [this](net::tcp_connection_ptr con,
+                                                  const std::vector<std::string> &rpc_args)
+    {
+        if(rpc_args.empty()){ con->send(as_string(m_movie->volume())); }
+        else{ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
+    });
+    
     remote_control().add_command("set_rate");
     register_function("set_rate", [this](const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
     });
     
-    remote_control().add_command("seek_to");
-    register_function("seek_to", [this](const std::vector<std::string> &rpc_args)
+    remote_control().add_command("rate", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        if(rpc_args.empty()){ con->send(as_string(m_movie->rate())); }
+        else{ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
+    });
+                                                 
+    remote_control().add_command("seek_to_time");
+    register_function("seek_to_time", [this](const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_movie->seek_to_time(kinski::string_as<float>(rpc_args.front())); }
+    });
+    
+    remote_control().add_command("current_time", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        con->send(as_string(m_movie->current_time(), 1));
+    });
+    
+    remote_control().add_command("duration", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        con->send(as_string(m_movie->duration(), 1));
     });
 }

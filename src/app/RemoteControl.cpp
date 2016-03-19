@@ -74,6 +74,11 @@ void RemoteControl::start_listen(uint16_t port)
     });
 }
 
+uint16_t RemoteControl::listening_port() const
+{
+    return m_tcp_server.listening_port();
+}
+
 void RemoteControl::set_components(const std::list<Component::Ptr>& the_components)
 {
     m_components.assign(the_components.begin(), the_components.end());
@@ -108,35 +113,42 @@ void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
 void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
                                const std::vector<uint8_t>& response)
 {
-    auto tokens = split(std::string(response.begin(), response.end()));
+    auto lines = split(std::string(response.begin(), response.end()), '\n');
+    bool cmd_found = false;
     
-    if(!tokens.empty())
+    for(const auto &l : lines)
     {
-        auto iter = m_command_map.find(tokens.front());
+        auto tokens = split(l, ' ');
         
-        if(iter != m_command_map.end())
+        if(!tokens.empty())
         {
-            std::vector<std::string> args(tokens.begin() + 1, tokens.end());
+            auto iter = m_command_map.find(tokens.front());
             
-            LOG_DEBUG << "Executing command: " << iter->first;
-            
-            for(const auto &a : args){ LOG_DEBUG << "arg: " << a; }
-            
-            // call the function object
-            iter->second(rec_con, args);
-        }
-        else
-        {
-            try
+            if(iter != m_command_map.end())
             {
-                string str(response.begin(), response.end());
+                std::vector<std::string> args(tokens.begin() + 1, tokens.end());
                 
-                if(Serializer::is_json(str))
-                {
-                    Serializer::applyStateToComponents(components(), str, PropertyIO_GL());
-                }
-            } catch (std::exception &e){ LOG_ERROR << e.what(); }
+                LOG_DEBUG << "Executing command: " << iter->first;
+                cmd_found = true;
+                
+                for(const auto &a : args){ LOG_DEBUG << "arg: " << a; }
+                
+                // call the function object
+                iter->second(rec_con, args);
+            }
         }
+    }
+    if(!cmd_found)
+    {
+        try
+        {
+            string str(response.begin(), response.end());
+            
+            if(Serializer::is_json(str))
+            {
+                Serializer::applyStateToComponents(components(), str, PropertyIO_GL());
+            }
+        } catch (std::exception &e){ LOG_ERROR << e.what(); }
     }
 }
 
