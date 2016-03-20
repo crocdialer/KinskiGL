@@ -91,6 +91,9 @@ namespace kinski
                 }
             }
         }
+#if defined(KINSKI_RASPI)
+        current_touches = swap_endian(current_touches);
+#endif
         
         for (int i = 0; i < NUM_SENSOR_PADS; i++)
         {

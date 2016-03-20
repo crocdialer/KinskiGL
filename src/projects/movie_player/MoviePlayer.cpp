@@ -256,8 +256,9 @@ bool MoviePlayer::load_settings(const std::string &path)
 
 std::string MoviePlayer::secs_to_time_str(float the_secs) const
 {
-    return as_string((int)the_secs / 3600) + ":" + as_string(((int)the_secs / 60) % 60) + ":" +
-               as_string(fmodf(the_secs, 60), 1);
+    char buf[32];
+    sprintf(buf, "%d:%02d:%.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
+    return buf;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -318,13 +319,13 @@ void MoviePlayer::setup_rpc_interface()
     });
     
     remote_control().add_command("current_time", [this](net::tcp_connection_ptr con,
-                                                const std::vector<std::string> &rpc_args)
+                                                        const std::vector<std::string> &rpc_args)
     {
         con->send(as_string(m_movie->current_time(), 1));
     });
     
     remote_control().add_command("duration", [this](net::tcp_connection_ptr con,
-                                                const std::vector<std::string> &rpc_args)
+                                                    const std::vector<std::string> &rpc_args)
     {
         con->send(as_string(m_movie->duration(), 1));
     });
