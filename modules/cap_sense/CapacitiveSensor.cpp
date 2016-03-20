@@ -11,8 +11,7 @@
 #include "core/Serial.hpp"
 
 #define NUM_SENSOR_PADS 13
-#define SERIAL_START_CODE 0x7E
-#define SERIAL_END_CODE 0xE7
+#define SERIAL_END_CODE '\n'
 
 #define STD_TIMEOUT_RECONNECT 5.f
 #include <thread>
@@ -55,7 +54,7 @@ namespace kinski
         
         if(m_impl->m_sensor_device.isInitialized())
         {
-            size_t num_bytes = sizeof(m_impl->m_touch_status);
+//            size_t num_bytes = sizeof(m_impl->m_touch_status);
             
             bytes_to_read = std::min(m_impl->m_sensor_device.available(),
                                      m_impl->m_sensor_read_buf.size());
@@ -73,17 +72,11 @@ namespace kinski
                 switch(byte)
                 {
                     case SERIAL_END_CODE:
-                        if(m_impl->m_sensor_accumulator.size() >= num_bytes)
-                        {
-                            memcpy(&current_touches, &m_impl->m_sensor_accumulator[0], num_bytes);
-                            m_impl->m_sensor_accumulator.clear();
-                            reading_complete = true;
-                        }
-                        else{ m_impl->m_sensor_accumulator.push_back(byte); }
+                        current_touches = string_as<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
+                                                                     m_impl->m_sensor_accumulator.end()));
+                        m_impl->m_sensor_accumulator.clear();
+                        reading_complete = true;
                         break;
-                        
-                    case SERIAL_START_CODE:
-                        if(m_impl->m_sensor_accumulator.empty()){ break; }
                         
                     default:
                         m_impl->m_sensor_accumulator.push_back(byte);
@@ -91,9 +84,6 @@ namespace kinski
                 }
             }
         }
-#if defined(KINSKI_RASPI)
-        current_touches = swap_endian(current_touches);
-#endif
         
         for (int i = 0; i < NUM_SENSOR_PADS; i++)
         {
