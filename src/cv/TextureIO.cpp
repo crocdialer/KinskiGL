@@ -60,9 +60,9 @@ bool TextureIO::encode_jpg(const gl::Texture &texture, std::vector<uint8_t> &out
         Mat mat_uncompressed(texture.getHeight(), texture.getWidth(), CV_8UC4), mat_jpg;
         
         size_t num_bytes = texture.getWidth() * texture.getHeight() * 4;
-        if(pixel_buf.numBytes() != num_bytes)
+        if(pixel_buf.num_bytes() != num_bytes)
         {
-            pixel_buf.setData(nullptr, num_bytes);
+            pixel_buf.set_data(nullptr, num_bytes);
         }
         pixel_buf.bind();
         glGetTexImage(texture.getTarget(), 0, texture.getInternalFormat(), GL_UNSIGNED_BYTE, nullptr);

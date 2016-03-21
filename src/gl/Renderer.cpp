@@ -277,7 +277,7 @@ namespace kinski{ namespace gl{
         uint8_t buf[num_bytes];
         memcpy(buf, &num_lights, 4);
         memcpy(buf + 16, &light_structs[0], sizeof(lightstruct_std140) * light_structs.size());
-        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].setData(buf, num_bytes);
+        m_uniform_buffer[LIGHT_UNIFORM_BUFFER].set_data(buf, num_bytes);
         
         glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BLOCK, m_uniform_buffer[LIGHT_UNIFORM_BUFFER].id());
 #endif

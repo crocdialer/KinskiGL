@@ -359,7 +359,7 @@ namespace kinski{ namespace gl{
         m_new_frame = false;
         if(m_obj && !m_obj->m_point_buffer.empty())
         {
-            the_vertex_buf.setData(m_obj->m_point_buffer);
+            the_vertex_buf.set_data(m_obj->m_point_buffer);
         }
     }
     

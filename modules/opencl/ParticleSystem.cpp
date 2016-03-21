@@ -83,15 +83,15 @@ namespace kinski{ namespace gl{
                 
                 // combined velocity / life array
                 m_velocities = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                          geom->vertexBuffer().numBytes());
+                                          geom->vertexBuffer().num_bytes());
                 
                 // spawn positions
                 m_positionGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                           geom->vertexBuffer().numBytes() );
+                                           geom->vertexBuffer().num_bytes() );
                 
                 
                 m_velocityGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                           geom->vertexBuffer().numBytes());
+                                           geom->vertexBuffer().num_bytes());
                 
                 
                 // reserve memory for 200 forces, seems enough
@@ -111,7 +111,7 @@ namespace kinski{ namespace gl{
                 }
                 
                 // all buffer are holding vec4s and have same size in bytes
-                int num_bytes = geom->vertexBuffer().numBytes();
+                int num_bytes = geom->vertexBuffer().num_bytes();
                 
                 m_opencl.queue().enqueueWriteBuffer(m_velocities, CL_TRUE, 0, num_bytes, &velGen[0]);
                 m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_bytes, &velGen[0]);
@@ -119,7 +119,7 @@ namespace kinski{ namespace gl{
                 // generate spawn positions from original positions
                 uint8_t *vert_buf = geom->vertexBuffer().map();
                 m_opencl.queue().enqueueWriteBuffer(m_positionGen, CL_TRUE, 0,
-                                                    geom->vertexBuffer().numBytes(),
+                                                    geom->vertexBuffer().num_bytes(),
                                                     vert_buf);
                 geom->vertexBuffer().unmap();
             }

@@ -242,9 +242,9 @@ namespace kinski
             // lock base adress
             CVPixelBufferLockBaseAddress(buffer, 0);
             
-            if(m_impl->m_pbo[m_impl->m_pbo_index].numBytes() != num_bytes)
+            if(m_impl->m_pbo[m_impl->m_pbo_index].num_bytes() != num_bytes)
             {
-                m_impl->m_pbo[m_impl->m_pbo_index].setData(NULL, num_bytes);
+                m_impl->m_pbo[m_impl->m_pbo_index].set_data(NULL, num_bytes);
             }
             
             // map buffer, copy data

@@ -13,14 +13,14 @@ namespace kinski{ namespace gl{
 
 struct Buffer::Obj
 {
-    Obj():buffer_id(0), target(0), usage(0), numBytes(0), stride(0), doNotDispose(false)
+    Obj():buffer_id(0), target(0), usage(0), num_bytes(0), stride(0), do_not_dispose(false)
     {
         glGenBuffers(1, &buffer_id);
     };
     
     ~Obj()
     {
-        if(buffer_id && (!doNotDispose))
+        if(buffer_id && (!do_not_dispose))
         {
             glDeleteBuffers(1, &buffer_id);
         }
@@ -29,21 +29,14 @@ struct Buffer::Obj
     GLuint buffer_id;
     GLenum target;
     GLenum usage;
-    GLsizei numBytes;
+    GLsizei num_bytes;
     GLsizei stride;
-    bool doNotDispose;
+    bool do_not_dispose;
 };
     
 Buffer::Buffer(GLenum target, GLenum usage)
 {
     init(target, usage);
-}
-    
-template <class T>
-Buffer::Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage)
-{
-    init(target, usage);
-    setData(theVec);
 }
     
 Buffer::~Buffer(){}
@@ -66,7 +59,7 @@ uint8_t* Buffer::map(GLenum mode)
 
 #if defined(KINSKI_GLES_3)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
-    uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->numBytes, mode);
+    uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->num_bytes, mode);
 #else
     mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
     uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
@@ -84,7 +77,7 @@ const uint8_t* Buffer::map(GLenum mode) const
 
 #if defined(KINSKI_GLES_3)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
-    const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->numBytes, mode);
+    const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->num_bytes, mode);
 #else
     mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
     const uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
@@ -113,9 +106,9 @@ GLenum Buffer::usage() const
     return m_Obj->usage;
 }
 
-GLsizei Buffer::numBytes() const
+GLsizei Buffer::num_bytes() const
 {
-    return m_Obj->numBytes;
+    return m_Obj->num_bytes;
 }
 
 GLsizei Buffer::stride() const
@@ -134,22 +127,22 @@ void Buffer::unbind(GLenum the_target) const
 }
     
     
-void Buffer::setTarget(GLenum theTarget)
+void Buffer::set_target(GLenum theTarget)
 {
     if(m_Obj) m_Obj->target = theTarget;
 }
     
-void Buffer::setUsage(GLenum theUsage)
+void Buffer::set_usage(GLenum theUsage)
 {
     if(m_Obj) m_Obj->usage = theUsage;
 }
     
-void Buffer::setStride(GLsizei theStride)
+void Buffer::set_stride(GLsizei theStride)
 {
     m_Obj->stride = theStride;
 }
     
-void Buffer::setData(const void *theData, GLsizei numBytes)
+void Buffer::set_data(const void *the_data, GLsizei num_bytes)
 {
     if(!m_Obj)
     {
@@ -160,11 +153,11 @@ void Buffer::setData(const void *theData, GLsizei numBytes)
     {
         //orphan buffer
         glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-        glBufferData(m_Obj->target, numBytes, nullptr, m_Obj->usage);
+        glBufferData(m_Obj->target, num_bytes, nullptr, m_Obj->usage);
     }
     
-    m_Obj->numBytes = numBytes;
-    glBufferData(m_Obj->target, numBytes, theData, m_Obj->usage);
+    m_Obj->num_bytes = num_bytes;
+    glBufferData(m_Obj->target, num_bytes, the_data, m_Obj->usage);
     glBindBuffer(m_Obj->target, 0);
 }
     

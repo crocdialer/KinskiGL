@@ -541,7 +541,7 @@ namespace kinski { namespace gl {
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(pointVAO);
 #endif
-        glDrawArrays(GL_POINTS, 0, the_point_buf.numBytes() / sizeof(glm::vec3));
+        glDrawArrays(GL_POINTS, 0, the_point_buf.num_bytes() / sizeof(glm::vec3));
 #ifndef KINSKI_NO_VAO
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
@@ -555,7 +555,7 @@ namespace kinski { namespace gl {
     {
         static gl::Buffer point_buf;
         if(!point_buf){point_buf = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);}
-        point_buf.setData(thePoints);
+        point_buf.set_data(thePoints);
         draw_points(point_buf, theMaterial);
     }
 
@@ -1215,7 +1215,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         }
         
         gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
-        pixel_buf.setData(nullptr, tex_sz.x * tex_sz.y * 4);
+        pixel_buf.set_data(nullptr, tex_sz.x * tex_sz.y * 4);
         
         GLuint tex_name;
         glGenTextures(1, &tex_name);

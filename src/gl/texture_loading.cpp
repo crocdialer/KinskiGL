@@ -8,6 +8,7 @@
 
 #include "gl/gl.hpp"
 #include "Texture.hpp"
+#include "Buffer.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.inl"
@@ -93,7 +94,15 @@ namespace kinski { namespace gl {
             fmt.set_mipmapping();
             fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         }
-        ret = Texture(the_img.data, format, the_img.cols, the_img.rows, fmt);
+        uint8_t *data = the_img.data;
+        
+#if !defined(KINSKI_GLES)
+        gl::Buffer pixel_buf;
+        pixel_buf.set_data(the_img.data, the_img.cols * the_img.rows * the_img.bytes_per_pixel);
+        pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+        data = nullptr;
+#endif
+        ret = Texture(data, format, the_img.cols, the_img.rows, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         

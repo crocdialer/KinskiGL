@@ -324,7 +324,7 @@ namespace kinski{ namespace video{
                 CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
                 
                 // copy data to pbo buffer
-                m_impl->m_pbo[m_impl->m_pbo_index].setData(CVPixelBufferGetBaseAddress(buffer),
+                m_impl->m_pbo[m_impl->m_pbo_index].set_data(CVPixelBufferGetBaseAddress(buffer),
                                                            num_bytes);
                 
                 // bind pbo and schedule texture upload

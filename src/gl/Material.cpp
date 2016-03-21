@@ -121,7 +121,7 @@ namespace kinski { namespace gl {
             m.point_vals[3] = m_point_attenuation.quadratic;
             m.shinyness = m_shinyness;
             
-            m_uniform_buffer.setData(&m, sizeof(m));
+            m_uniform_buffer.set_data(&m, sizeof(m));
             m_dirty_uniform_buffer = false;
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());

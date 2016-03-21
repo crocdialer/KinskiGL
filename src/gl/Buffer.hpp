@@ -21,8 +21,11 @@ class KINSKI_API Buffer
     Buffer(){};
     Buffer(GLenum target, GLenum usage);
     
-    template <typename T>
-    Buffer(const std::vector<T> &theVec, GLenum target, GLenum usage);
+    template <class T> Buffer(const std::vector<T> &the_vec, GLenum target, GLenum usage)
+    {
+        init(target, usage);
+        set_data(the_vec);
+    }
     
     ~Buffer();
     
@@ -41,19 +44,19 @@ class KINSKI_API Buffer
     GLint id() const;
     GLenum target() const;
     GLenum usage() const;
-    GLsizei numBytes() const;
+    GLsizei num_bytes() const;
     GLsizei stride() const;
     
-    void setTarget(GLenum theTarget);
-    void setUsage(GLenum theUsage);
-    void setStride(GLsizei theStride);
-    void setData(const void *theData, GLsizei numBytes);
+    void set_target(GLenum theTarget);
+    void set_usage(GLenum theUsage);
+    void set_stride(GLsizei theStride);
+    void set_data(const void *theData, GLsizei num_bytes);
     
     template <typename T>
-    inline void setData(const std::vector<T> &theVec)
+    inline void set_data(const std::vector<T> &the_vec)
     {
-        GLsizei numBytes = theVec.size() * sizeof(T);
-        setData((void*)&theVec[0], numBytes);
+        GLsizei num_bytes = the_vec.size() * sizeof(T);
+        set_data((void*)&the_vec[0], num_bytes);
     };
     
 private:
