@@ -172,7 +172,7 @@ namespace kinski{ namespace gl{
     {
         if(m_dirty_vertexBuffer && !m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
         {
-            //m_vertexBuffer.setData(m_vertices);
+            //m_vertexBuffer.set_data(m_vertices);
             m_vertexBuffer.set_data(NULL, m_vertices.size() * sizeof(glm::vec4));
             m_vertexBuffer.set_stride(sizeof(glm::vec4));
             
@@ -237,7 +237,7 @@ namespace kinski{ namespace gl{
 #else
             // crunch bone-indices to floats
             size_t bone_stride = 2 * sizeof(glm::vec4);
-            m_boneBuffer.setData(nullptr, m_boneVertexData.size() * bone_stride);
+            m_boneBuffer.set_data(nullptr, m_boneVertexData.size() * bone_stride);
             m_boneBuffer.setStride(bone_stride);
             glm::vec4 *buf_ptr = (glm::vec4*) m_boneBuffer.map();
             
