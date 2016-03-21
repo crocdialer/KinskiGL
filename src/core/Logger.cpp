@@ -11,15 +11,19 @@
 #include <limits>
 #include <thread>
 #include <mutex>
+#include <fstream>
 #include <cstdarg>
-#include "Logger.hpp"
 #include "file_functions.hpp"
+#include "ThreadPool.hpp"
+#include "Logger.hpp"
 
 namespace kinski {
     
     namespace
     {
         std::mutex mutex;
+        std::ofstream log_file_stream;
+        kinski::ThreadPool thread_pool;
     }
     
     const std::string currentDateTime()
@@ -43,8 +47,7 @@ namespace kinski {
     }
     
     Logger::Logger():
-    _myTopLevelLogTag(""),
-    m_globalSeverity(Severity::INFO),
+    m_global_severity(Severity::INFO),
     m_use_timestamp(true),
     m_use_thread_id(false)
     {
@@ -54,23 +57,15 @@ namespace kinski {
 
     Logger::~Logger()
     {
-    
+        log_file_stream.close();
     }
     
-    void Logger::setLoggerTopLevelTag(const std::string &theTagString)
-    {
-        std::lock_guard<std::mutex> lock(mutex);
-
-        // change state
-        _myTopLevelLogTag = theTagString;
-    }
-    
-    void Logger::setSeverity(const Severity theSeverity)
+    void Logger::set_severity(const Severity theSeverity)
     {
         std::lock_guard<std::mutex> lock(mutex);
         
         // change state
-        m_globalSeverity = theSeverity;
+        m_global_severity = theSeverity;
     }
 
     /**
@@ -79,50 +74,49 @@ namespace kinski {
     verbosity settings for an overlapping id region in the same module, the setting for the
     smallest id-range takes precedence.
     */
-    bool Logger::ifLog(Severity theSeverity, const char *theModule, int theId)
+    bool Logger::if_log(Severity theSeverity, const char *theModule, int theId)
     {
-        if (!m_severitySettings.empty())
-        {
-            Severity mySeverity = m_globalSeverity;
-            const std::string myModule(theModule); // remove everything before the last backslash
-            
-            // find all setting for a particular module
-            std::multimap<std::string,ModuleSeverity>::const_iterator myLowerBound =
-                m_severitySettings.lower_bound(myModule);
-            if (myLowerBound != m_severitySettings.end()) {
-                std::multimap<std::string,ModuleSeverity>::const_iterator myUpperBound =
-                    m_severitySettings.upper_bound(myModule);
-    
-                // find smallest range containing theId with matching module name
-                unsigned int myRange = std::numeric_limits<unsigned int>::max();
-                for (std::multimap<std::string,ModuleSeverity>::const_iterator myIter = myLowerBound;
-                    myIter != myUpperBound; ++myIter)
-                {
-                    if (myIter->first == myModule) {
-                        int myMinId = myIter->second.m_minId;
-                        int myMaxId = myIter->second.m_maxId;
-                        if (theId >= myMinId && theId <= myMaxId)
-                        {
-                            unsigned int myNewRange = myMaxId - myMinId;
-                            if (myNewRange < myRange)
-                            {
-                                mySeverity = myIter->second.m_severity;
-                                myRange = myNewRange;
-                            }
-                        }
-                    }
-                }
-            }
-            return theSeverity <= mySeverity;
-        }
-        return theSeverity <= m_globalSeverity;
+//        if (!m_severitySettings.empty())
+//        {
+//            Severity mySeverity = m_globalSeverity;
+//            const std::string myModule(theModule); // remove everything before the last backslash
+//            
+//            // find all setting for a particular module
+//            std::multimap<std::string,ModuleSeverity>::const_iterator myLowerBound =
+//                m_severitySettings.lower_bound(myModule);
+//            if (myLowerBound != m_severitySettings.end()) {
+//                std::multimap<std::string,ModuleSeverity>::const_iterator myUpperBound =
+//                    m_severitySettings.upper_bound(myModule);
+//    
+//                // find smallest range containing theId with matching module name
+//                unsigned int myRange = std::numeric_limits<unsigned int>::max();
+//                for (std::multimap<std::string,ModuleSeverity>::const_iterator myIter = myLowerBound;
+//                    myIter != myUpperBound; ++myIter)
+//                {
+//                    if (myIter->first == myModule) {
+//                        int myMinId = myIter->second.m_minId;
+//                        int myMaxId = myIter->second.m_maxId;
+//                        if (theId >= myMinId && theId <= myMaxId)
+//                        {
+//                            unsigned int myNewRange = myMaxId - myMinId;
+//                            if (myNewRange < myRange)
+//                            {
+//                                mySeverity = myIter->second.m_severity;
+//                                myRange = myNewRange;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            return theSeverity <= mySeverity;
+//        }
+        return theSeverity <= m_global_severity;
     }
 
     void Logger::log(Severity theSeverity, const char *theModule, int theId,
                      const std::string &theText)
     {
         std::stringstream stream;
-        std::string myLogTag(_myTopLevelLogTag);
         std::ostringstream myText;
         myText << theText;
         
@@ -163,36 +157,18 @@ namespace kinski {
                 break;
         }
         
+        std::string log_str = stream.str();
+        
         // pass log string to outstreams
         std::list<std::ostream*>::iterator stream_it = m_out_streams.begin();
         for (; stream_it != m_out_streams.end(); ++stream_it)
         {
-            (**stream_it) << stream.str() << std::endl;
+            auto &out_stream = (**stream_it);
+            thread_pool.submit([&out_stream, log_str]()
+            {
+                out_stream << log_str << std::endl;
+            });
         }
-        
-        #if ANDROID
-        switch (theSeverity) {
-            case SEV_TRACE :
-                __android_log_print(ANDROID_LOG_VERBOSE, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
-                break;
-            case SEV_DEBUG :
-                __android_log_print(ANDROID_LOG_DEBUG, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
-                break;
-            case SEV_WARNING :
-                __android_log_print(ANDROID_LOG_WARN, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
-                break;
-            case SEV_INFO :
-            case SEV_PRINT :
-                __android_log_print(ANDROID_LOG_INFO, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
-                break;
-            case SEV_ERROR :
-                __android_log_print(ANDROID_LOG_ERROR, myLogTag.c_str(), myText.str().c_str());//__VA_ARGS__)
-                break;
-            default:
-                throw Exception("Unknown logger severity");
-                break;
-        }
-        #endif
     }
     
     void Logger::add_outstream(std::ostream *the_stream)
@@ -219,11 +195,31 @@ namespace kinski {
         m_out_streams.clear();
     }
     
+    bool Logger::use_log_file() const
+    {
+        return log_file_stream.is_open();
+    }
+    
+    void Logger::set_use_log_file(bool b, const std::string &the_log_file)
+    {
+        if(b)
+        {
+            log_file_stream.open(the_log_file);
+            add_outstream(&log_file_stream);
+        }
+        else
+        {
+            remove_outstream(&log_file_stream);
+            log_file_stream.close();
+        }
+        
+    }
+    
     void log(Severity the_severity, const char *the_format_text, ...)
     {
         Logger *l = Logger::get();
         
-        if(the_severity > l->getSeverity()){ return; }
+        if(the_severity > l->severity()){ return; }
         
         size_t buf_sz = 1024 * 2;
         char buf[buf_sz];

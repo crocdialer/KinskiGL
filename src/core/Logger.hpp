@@ -51,12 +51,11 @@ class KINSKI_API Logger
     verbosity settings for an overlapping id region in the same module, the setting for the
     smallest id-range takes precedence.
     */
-    bool ifLog(Severity theSeverity, const char *theModule, int theId);
-    void log(Severity theSeverity, const char *theModule, int theId, const std::string &theText);
+    bool if_log(Severity the_severity, const char *theModule, int theId);
+    void log(Severity the_severity, const char *theModule, int theId, const std::string &theText);
     
-    void setLoggerTopLevelTag(const std::string & theTagString);
-    void setSeverity(const Severity theSeverity);
-    Severity getSeverity() const { return m_globalSeverity; };
+    void set_severity(const Severity the_severity);
+    Severity severity() const { return m_global_severity; };
     
     void add_outstream(std::ostream *the_stream);
     void remove_outstream(std::ostream *the_stream);
@@ -65,6 +64,9 @@ class KINSKI_API Logger
     bool use_time_stamp() const{ return m_use_timestamp;};
     void set_use_time_stamp(bool b){m_use_timestamp = b;}
     
+    bool use_log_file() const;
+    void set_use_log_file(bool b, const std::string &the_log_file = "kinski.log");
+    
     bool use_thread_id() const{ return m_use_thread_id;};
     void set_use_thread_id(bool b){m_use_thread_id = b;}
 
@@ -72,11 +74,7 @@ class KINSKI_API Logger
     
         Logger();
         static Logger *s_instance;
-    
-        std::string _myTopLevelLogTag;
-        Severity m_globalSeverity;
-        std::multimap<std::string, ModuleSeverity> m_severitySettings;
-    
+        Severity m_global_severity;
         std::list<std::ostream*> m_out_streams;
     
         bool m_use_timestamp, m_use_thread_id;
@@ -112,7 +110,7 @@ class MessagePort
 // convenience xprintf style log-function
 void log(Severity theSeverity, const char *the_format_text, ...);
     
-#define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->ifLog(SEVERITY,MODULE,MSGID) \
+#define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->if_log(SEVERITY,MODULE,MSGID) \
     && (kinski::MessagePort(SEVERITY,MODULE,MSGID).getStream())
 
 #define LOG_INFO KINSKI_LOG_CHECK(kinski::Severity::INFO, __FILE__ ,__LINE__)

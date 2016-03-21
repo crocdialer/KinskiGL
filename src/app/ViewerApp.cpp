@@ -336,7 +336,7 @@ namespace kinski {
         }
         else if(theProperty == m_logger_severity)
         {
-            Logger::get()->setSeverity(static_cast<Severity>(m_logger_severity->value()));
+            Logger::get()->set_severity(static_cast<Severity>(m_logger_severity->value()));
         }
         else if(theProperty == m_show_tweakbar)
         {
