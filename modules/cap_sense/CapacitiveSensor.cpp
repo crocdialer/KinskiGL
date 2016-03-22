@@ -44,7 +44,6 @@ namespace kinski
         {
             LOG_ERROR << "unable to connect capacitve touch sensor";
         }
-        
     }
     
     void CapacitiveSensor::update(float time_delta)
@@ -56,8 +55,6 @@ namespace kinski
         
         if(m_impl->m_sensor_device.isInitialized())
         {
-//            size_t num_bytes = sizeof(m_impl->m_touch_status);
-            
             bytes_to_read = std::min(m_impl->m_sensor_device.available(),
                                      m_impl->m_sensor_read_buf.size());
             
