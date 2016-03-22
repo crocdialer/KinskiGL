@@ -29,7 +29,7 @@
 #define NO_RESPONSE 0
 #define DMX_PACKET_SIZE 512
 
-#define STD_TIMEOUT_RECONNECT 5.f
+#define STD_TIMEOUT_RECONNECT 0.f
 
 namespace kinski
 {

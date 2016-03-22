@@ -18,6 +18,7 @@ using namespace glm;
 void MoviePlayer::setup()
 {
     ViewerApp::setup();
+    Logger::get()->set_use_log_file(true);
     
     fonts()[1].load(fonts()[0].path(), 28);
     register_property(m_movie_path);
@@ -341,5 +342,11 @@ void MoviePlayer::setup_rpc_interface()
     {
         if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_as<bool>(rpc_args.front())); }
         con->send(as_string(m_movie->loop()));
+    });
+    
+    remote_control().add_command("is_playing", [this](net::tcp_connection_ptr con,
+                                                const std::vector<std::string> &rpc_args)
+    {
+        con->send(as_string(m_movie->is_playing()));
     });
 }

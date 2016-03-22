@@ -13,7 +13,7 @@
 #define NUM_SENSOR_PADS 13
 #define SERIAL_END_CODE '\n'
 
-#define STD_TIMEOUT_RECONNECT 5.f
+#define STD_TIMEOUT_RECONNECT 0.f
 #include <thread>
 
 namespace kinski

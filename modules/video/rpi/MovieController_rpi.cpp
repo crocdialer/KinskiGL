@@ -395,19 +395,20 @@ namespace kinski{ namespace video
 
     void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
     {
-        MovieCallback on_load = m_impl ? m_impl->m_on_load_cb : MovieCallback();
-        MovieCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MovieCallback();
-        m_impl.reset(new MovieControllerImpl());
-        m_impl->m_movie_controller = shared_from_this();
-        m_impl->m_on_load_cb = on_load;
-        m_impl->m_movie_ended_cb = on_end;
-
-        try{ m_impl->m_src_path = kinski::search_file(filePath); }
+        std::string found_path;
+        try{ found_path = kinski::search_file(filePath); }
         catch(FileNotFoundException &e)
         {
             LOG_ERROR << e.what();
             return;
         }
+        MovieCallback on_load = m_impl ? m_impl->m_on_load_cb : MovieCallback();
+        MovieCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MovieCallback();
+        m_impl.reset(new MovieControllerImpl());
+        m_impl->m_src_path = found_path;
+        m_impl->m_movie_controller = shared_from_this();
+        m_impl->m_on_load_cb = on_load;
+        m_impl->m_movie_ended_cb = on_end;
 
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
