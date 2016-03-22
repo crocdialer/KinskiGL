@@ -40,9 +40,14 @@ namespace kinski
         void set_thresholds(uint16_t the_touch_thresh, uint16_t the_rel_thresh);
         void thresholds(uint16_t& the_touch_thresh, uint16_t& the_rel_thresh) const;
         
+        void set_charge_current(uint8_t the_charge_current);
+        uint32_t charge_current() const;
+        
         bool is_initialized() const;
         
     private:
+        
+        bool update_config();
         
         struct Impl;
         std::shared_ptr<Impl> m_impl;
