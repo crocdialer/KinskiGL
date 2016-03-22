@@ -26,6 +26,7 @@ namespace kinski
         uint16_t m_touch_status = 0;
         float m_last_reading = 0.f;
         float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
+        uint16_t m_thresh_touch = 12, m_thresh_release = 6;
         
         std::thread m_reconnect_thread;
         
@@ -144,9 +145,29 @@ namespace kinski
         {
             m_impl->m_sensor_device.flush();
             m_impl->m_last_reading = 0.f;
+            set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
             return true;
         }
         return false;
+    }
+    
+    void CapacitiveSensor::set_thresholds(uint16_t the_touch_thresh, uint16_t the_rel_thresh)
+    {
+        if(m_impl->m_sensor_device.isInitialized())
+        {
+            int bytes_written =
+            m_impl->m_sensor_device.write_string(as_string(the_touch_thresh) + " " +
+                                                 as_string(the_rel_thresh) + "\n");
+            if(bytes_written){}
+        }
+        m_impl->m_thresh_touch = the_touch_thresh;
+        m_impl->m_thresh_release = the_rel_thresh;
+    }
+    
+    void CapacitiveSensor::thresholds(uint16_t& the_touch_thresh, uint16_t& the_rel_thresh) const
+    {
+        the_touch_thresh = m_impl->m_thresh_touch;
+        the_rel_thresh = m_impl->m_thresh_release;
     }
     
     void CapacitiveSensor::set_touch_callback(TouchCallback cb)

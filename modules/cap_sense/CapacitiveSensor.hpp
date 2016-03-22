@@ -37,6 +37,9 @@ namespace kinski
         float timeout_reconnect() const;
         void set_timeout_reconnect(float val);
         
+        void set_thresholds(uint16_t the_touch_thresh, uint16_t the_rel_thresh);
+        void thresholds(uint16_t& the_touch_thresh, uint16_t& the_rel_thresh) const;
+        
         bool is_initialized() const;
         
     private:

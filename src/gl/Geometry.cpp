@@ -238,7 +238,7 @@ namespace kinski{ namespace gl{
             // crunch bone-indices to floats
             size_t bone_stride = 2 * sizeof(glm::vec4);
             m_boneBuffer.set_data(nullptr, m_boneVertexData.size() * bone_stride);
-            m_boneBuffer.setStride(bone_stride);
+            m_boneBuffer.set_stride(bone_stride);
             glm::vec4 *buf_ptr = (glm::vec4*) m_boneBuffer.map();
             
             for (const auto &b : m_boneVertexData)

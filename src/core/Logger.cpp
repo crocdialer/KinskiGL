@@ -28,21 +28,19 @@ namespace kinski {
     
     const std::string currentDateTime()
     {
-        time_t     now = time(0);
+        time_t now = time(0);
         struct tm  tstruct;
-        char       buf[80];
+        char buf[80];
         tstruct = *localtime(&now);
         strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
         return buf;
     }
     
-    Logger *Logger::s_instance = NULL;
+    Logger *Logger::s_instance = nullptr;
     
     Logger* Logger::get()
     {
-        if(!s_instance)
-            s_instance = new Logger();
-        
+        if(!s_instance){ s_instance = new Logger(); }
         return s_instance;
     }
     
@@ -117,40 +115,37 @@ namespace kinski {
                      const std::string &theText)
     {
         std::stringstream stream;
-        std::ostringstream myText;
-        myText << theText;
+        std::ostringstream postfix;
+        postfix << theText;
         
         std::lock_guard<std::mutex> lock(mutex);
         
         if (theSeverity > Severity::PRINT)
         {
-            if(m_use_timestamp)
-                stream << currentDateTime();
-            
-            myText<<" [" << get_filename_part(theModule) << " at:" << theId << "]";
-            if(m_use_thread_id)
-                myText<<" [thread-id: "<< std::this_thread::get_id() <<"]";
+            if(m_use_timestamp){ stream << currentDateTime(); }
+            postfix <<" [" << get_filename_part(theModule) << " at:" << theId << "]";
+            if(m_use_thread_id){ postfix << " [thread-id: "<< std::this_thread::get_id() <<"]"; }
         }
     
         switch (theSeverity)
         {
             case Severity::TRACE:
-                stream <<" TRACE: " << myText.str();
+                stream <<" TRACE: " << postfix.str();
                 break;
             case Severity::DEBUG:
-                stream <<" DEBUG: " << myText.str();
+                stream <<" DEBUG: " << postfix.str();
                 break;
             case Severity::INFO:
-                stream <<" INFO: " << myText.str();
+                stream <<" INFO: " << postfix.str();
                 break;
             case Severity::WARNING:
-                stream <<" WARNING: " << myText.str();
+                stream <<" WARNING: " << postfix.str();
                 break;
             case Severity::PRINT:
-                stream << myText.str();
+                stream << postfix.str();
                 break;
             case Severity::ERROR:
-                stream <<" ERROR: " << myText.str();
+                stream <<" ERROR: " << postfix.str();
                 break;
             default:
                 throw Exception("Unknown logger severity");
@@ -160,15 +155,10 @@ namespace kinski {
         std::string log_str = stream.str();
         
         // pass log string to outstreams
-        std::list<std::ostream*>::iterator stream_it = m_out_streams.begin();
-        for (; stream_it != m_out_streams.end(); ++stream_it)
+        thread_pool.submit([this, log_str]()
         {
-            auto &out_stream = (**stream_it);
-            thread_pool.submit([&out_stream, log_str]()
-            {
-                out_stream << log_str << std::endl;
-            });
-        }
+            for (auto &os : m_out_streams){ *os << log_str << std::endl; }
+        });
     }
     
     void Logger::add_outstream(std::ostream *the_stream)
@@ -228,6 +218,6 @@ namespace kinski {
         vsnprintf(buf, buf_sz, the_format_text, argptr);
         va_end(argptr);
         
-        l->log(the_severity, "", 0, buf);
+        l->log(the_severity, "unknown module", 0, buf);
     }
 };
