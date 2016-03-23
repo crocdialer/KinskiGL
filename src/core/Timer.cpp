@@ -143,13 +143,14 @@ void Timer::expires_from_now(float secs)
 
 float Timer::expires_from_now() const
 {
+    if(!m_impl) return 0.f;
     auto duration = m_impl->m_timer.expires_from_now();
     return duration_cast<float_second>(duration).count();
 }
 
 bool Timer::has_expired() const
 {
-    return m_impl && !m_impl->running;
+    return !m_impl || !m_impl->running;
 }
 
 void Timer::cancel()
