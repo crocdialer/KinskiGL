@@ -1,6 +1,6 @@
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
-#include "CameraController.h"
+#include "CameraController.hpp"
 
 namespace kinski
 {

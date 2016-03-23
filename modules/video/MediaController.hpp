@@ -3,28 +3,31 @@
 #include "gl/gl.hpp"
 
 /*
-* This class controls playback of Movies and manages their assets.
+* This class controls playback of Media files or streams and manages their assets.
 */
 
 namespace kinski{ namespace video{
 
-    class MovieController;
-    typedef std::shared_ptr<MovieController> MovieControllerPtr;
+    class MediaController;
+    typedef std::shared_ptr<MediaController> MediaControllerPtr;
+    
+    typedef MediaController MovieController;
+    typedef MediaControllerPtr MovieControllerPtr;
 
-    class MovieController : public std::enable_shared_from_this<MovieController>
+    class MediaController : public std::enable_shared_from_this<MediaController>
     {
     public:
 
-        typedef std::function<void(MovieControllerPtr the_movie)> MovieCallback;
+        typedef std::function<void(MediaControllerPtr the_movie)> MediaCallback;
 
-        static MovieControllerPtr create();
-        static MovieControllerPtr create(const std::string &filePath, bool autoplay = false,
+        static MediaControllerPtr create();
+        static MediaControllerPtr create(const std::string &filePath, bool autoplay = false,
                                          bool loop = false);
 
 
-        virtual ~MovieController();
+        virtual ~MediaController();
 
-        void load(const std::string &filePath, bool autoplay = false, bool loop = false);
+        void load(const std::string &the_path, bool autoplay = false, bool loop = false);
         void unload();
         bool is_loaded() const;
         bool has_video() const;
@@ -42,10 +45,10 @@ namespace kinski{ namespace video{
         void set_loop(bool b);
         float rate() const;
         void set_rate(float r);
-        const std::string& get_path() const;
+        const std::string& path() const;
 
-        void set_on_load_callback(MovieCallback c);
-        void set_movie_ended_callback(MovieCallback c);
+        void set_on_load_callback(MediaCallback c);
+        void set_media_ended_callback(MediaCallback c);
 
         /*!
          * upload the current frame to the_texture with target GL_RECTANGLE as default
@@ -71,8 +74,8 @@ namespace kinski{ namespace video{
 
     private:
 
-        MovieController();
-        MovieController(const std::string &filePath, bool autoplay = false, bool loop = false);
-        std::unique_ptr<struct MovieControllerImpl> m_impl;
+        MediaController();
+        MediaController(const std::string &the_path, bool autoplay = false, bool loop = false);
+        std::unique_ptr<struct MediaControllerImpl> m_impl;
     };
 }}// namespaces

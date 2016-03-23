@@ -10,7 +10,7 @@
 #include "OMXPlayerAudio.h"
 
 #include "gl/Texture.hpp"
-#include "MovieController.h"
+#include "MediaController.hpp"
 
 // when we repeatedly seek, rather than play continuously
 #define TRICKPLAY(speed) (speed < 0 || speed > 4 * DVD_PLAYSPEED_NORMAL)
@@ -19,7 +19,7 @@ namespace kinski{ namespace video
 {
     std::shared_ptr<COMXCore> m_OMX;
 
-    struct MovieControllerImpl
+    struct MediaControllerImpl
     {
         std::string m_src_path;
         gl::Texture m_texture;
@@ -29,8 +29,8 @@ namespace kinski{ namespace video
         bool m_loop = false;
         bool m_playing = false;
         bool m_has_new_frame = false;
-        MovieController::MovieCallback m_on_load_cb, m_movie_ended_cb;
-        std::weak_ptr<MovieController> m_movie_controller;
+        MediaController::MediaCallback m_on_load_cb, m_movie_ended_cb;
+        std::weak_ptr<MediaController> m_movie_controller;
         std::thread m_thread;
 
         // bridge EGL -> gl::Texture
@@ -63,7 +63,7 @@ namespace kinski{ namespace video
         // int playspeed_current = 14;
         double m_last_check_time = 0.0;
 
-        MovieControllerImpl()
+        MediaControllerImpl()
         {
             if(!m_OMX)
             {
@@ -72,7 +72,7 @@ namespace kinski{ namespace video
             }
             m_av_clock.reset(new OMXClock());
         }
-        ~MovieControllerImpl()
+        ~MediaControllerImpl()
         {
             m_playing = false;
 
@@ -362,38 +362,38 @@ namespace kinski{ namespace video
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    MovieControllerPtr MovieController::create()
+    MediaControllerPtr MediaController::create()
     {
-        return MovieControllerPtr(new MovieController());
+        return MediaControllerPtr(new MediaController());
     }
 
-    MovieControllerPtr MovieController::create(const std::string &filePath, bool autoplay,
+    MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
                                                bool loop)
     {
-        return MovieControllerPtr(new MovieController(filePath, autoplay, loop));
+        return MediaControllerPtr(new MediaController(filePath, autoplay, loop));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    MovieController::MovieController()
+    MediaController::MediaController()
     {
 
     }
 
-    MovieController::MovieController(const std::string &filePath, bool autoplay, bool loop):
-    m_impl(new MovieControllerImpl)
+    MediaController::MediaController(const std::string &filePath, bool autoplay, bool loop):
+    m_impl(new MediaControllerImpl)
     {
         load(filePath, autoplay, loop);
     }
 
-    MovieController::~MovieController()
+    MediaController::~MediaController()
     {
 
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void MovieController::load(const std::string &filePath, bool autoplay, bool loop)
+    void MediaController::load(const std::string &filePath, bool autoplay, bool loop)
     {
         std::string found_path;
         try{ found_path = kinski::search_file(filePath); }
@@ -402,9 +402,9 @@ namespace kinski{ namespace video
             LOG_ERROR << e.what();
             return;
         }
-        MovieCallback on_load = m_impl ? m_impl->m_on_load_cb : MovieCallback();
-        MovieCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MovieCallback();
-        m_impl.reset(new MovieControllerImpl());
+        MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
+        MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
+        m_impl.reset(new MediaControllerImpl());
         m_impl->m_src_path = found_path;
         m_impl->m_movie_controller = shared_from_this();
         m_impl->m_on_load_cb = on_load;
@@ -496,44 +496,44 @@ namespace kinski{ namespace video
         if(autoplay){ play(); }
     }
 
-    void MovieController::play()
+    void MediaController::play()
     {
         if(!m_impl || (m_impl->m_playing && !m_impl->m_pause)){ return; }
         if(m_impl->m_playing && m_impl->m_pause){ m_impl->m_pause = false; }
         else{ restart(); }
     }
 
-    bool MovieController::is_loaded() const
+    bool MediaController::is_loaded() const
     {
         return m_impl.get();
     }
 
-    void MovieController::unload()
+    void MediaController::unload()
     {
         m_impl.reset();
     }
 
-    bool MovieController::has_video() const
+    bool MediaController::has_video() const
     {
         return m_impl && m_impl->m_has_video;
     }
 
-    bool MovieController::has_audio() const
+    bool MediaController::has_audio() const
     {
         return m_impl && m_impl->m_has_audio;
     }
 
-    void MovieController::pause()
+    void MediaController::pause()
     {
         if(m_impl && m_impl->m_playing){ m_impl->m_pause = true; }
     }
 
-    bool MovieController::is_playing() const
+    bool MediaController::is_playing() const
     {
         return m_impl && m_impl->m_playing && !m_impl->m_pause;
     }
 
-    void MovieController::restart()
+    void MediaController::restart()
     {
         LOG_DEBUG << "restarting movie playback";
         m_impl->m_playing = false;
@@ -546,27 +546,27 @@ namespace kinski{ namespace video
         m_impl->m_pause = false;
         set_rate(m_impl->m_rate);
 
-        m_impl->m_thread = std::thread(std::bind(&MovieControllerImpl::thread_func, m_impl.get()));
+        m_impl->m_thread = std::thread(std::bind(&MediaControllerImpl::thread_func, m_impl.get()));
     }
 
-    float MovieController::volume() const
+    float MediaController::volume() const
     {
         return m_impl ? m_impl->m_volume : 0.f;
     }
 
-    void MovieController::set_volume(float newVolume)
+    void MediaController::set_volume(float newVolume)
     {
         if(!m_impl || !m_impl->m_has_audio){ return; }
         m_impl->m_volume = clamp(newVolume, 0.f, 1.f);
         m_impl->m_player_audio->SetVolume(m_impl->m_volume);
     }
 
-    bool MovieController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
+    bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
         return false;
     }
 
-    bool MovieController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
+    bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
         if(!m_impl || !m_impl->m_has_new_frame){ return false; }
         tex = m_impl->m_texture;
@@ -575,23 +575,23 @@ namespace kinski{ namespace video
         return true;
     }
 
-    bool MovieController::copy_frames_offline(gl::Texture &tex, bool compress)
+    bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
     {
         LOG_WARNING << "copy_frames_offline not available on RPI";
         return false;
     }
 
-    double MovieController::duration() const
+    double MediaController::duration() const
     {
         return m_impl ? (m_impl->m_omx_reader.GetStreamLength() / 1000.0) : 0.0;
     }
 
-    double MovieController::current_time() const
+    double MediaController::current_time() const
     {
         return m_impl ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
     }
 
-    void MovieController::seek_to_time(float value)
+    void MediaController::seek_to_time(float value)
     {
         if(!m_impl){ return; }
 
@@ -602,22 +602,22 @@ namespace kinski{ namespace video
         }
     }
 
-    void MovieController::set_loop(bool b)
+    void MediaController::set_loop(bool b)
     {
         if(m_impl){ m_impl->m_loop = b; }
     }
 
-    bool MovieController::loop() const
+    bool MediaController::loop() const
     {
         return m_impl && m_impl->m_loop;
     }
 
-    float MovieController::rate() const
+    float MediaController::rate() const
     {
         return m_impl ? m_impl->m_rate : 1.f;
     }
 
-    void MovieController::set_rate(float r)
+    void MediaController::set_rate(float r)
     {
         if(!m_impl || !m_impl->m_av_clock){ return; }
 
@@ -633,19 +633,19 @@ namespace kinski{ namespace video
         m_impl->m_rate = r;
     }
 
-    const std::string& MovieController::get_path() const
+    const std::string& MediaController::path() const
     {
         static std::string ret;
         return m_impl ? m_impl->m_src_path : ret;
     }
 
-    void MovieController::set_on_load_callback(MovieCallback c)
+    void MediaController::set_on_load_callback(MediaCallback c)
     {
         if(!m_impl){ return; }
         m_impl->m_on_load_cb = c;
     }
 
-    void MovieController::set_movie_ended_callback(MovieCallback c)
+    void MediaController::set_media_ended_callback(MediaCallback c)
     {
         if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;

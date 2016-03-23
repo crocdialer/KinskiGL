@@ -69,7 +69,7 @@ void MoviePlayer::draw()
     {
         gl::draw_text_2D(secs_to_time_str(m_movie->current_time()) + " / " +
                          secs_to_time_str(m_movie->duration()) + " - " +
-                         get_filename_part(m_movie->get_path()),
+                         get_filename_part(m_movie->path()),
                          fonts()[1], gl::COLOR_WHITE, gl::vec2(10));
         draw_textures(textures());
     }

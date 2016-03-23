@@ -9,11 +9,9 @@
 
 #include "app/ViewerApp.h"
 #include "app/WarpComponent.h"
-
 #include "gl/Texture.hpp"
 
-#include "video/MovieController.h"
-#include "video/CameraController.h"
+#include "video/video.h"
 
 namespace kinski
 {

@@ -1,7 +1,7 @@
 #import <AVFoundation/AVFoundation.h>
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
-#include "CameraController.h"
+#include "CameraController.hpp"
 
 @interface Camera : NSObject <AVCaptureVideoDataOutputSampleBufferDelegate>
 {

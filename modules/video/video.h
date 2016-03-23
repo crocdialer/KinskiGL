@@ -1,3 +1,3 @@
 #pragma once
-#include "MovieController.h"
-#include "CameraController.h"
+#include "MediaController.hpp"
+#include "CameraController.hpp"

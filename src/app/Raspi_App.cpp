@@ -136,10 +136,14 @@ namespace kinski
 
     void Raspi_App::set_lcd_backlight(bool b) const
     {
-        std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
-            " > /sys/class/backlight/rpi_backlight/bl_power\"";
-        kinski::syscall(cmd);
-        kinski::syscall("setterm --powersave off --powerdown 0 --blank 0");
+        const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power"''
+        if(kinski::file_exists(bl_path))
+        {
+            std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
+            " >  " + bl_path + "\"";
+            kinski::syscall(cmd);
+        }
+        kinski::syscall("setterm --blank 0");//--powersave off --powerdown 0
     }
 
     void Raspi_App::pollEvents()
