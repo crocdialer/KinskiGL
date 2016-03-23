@@ -199,7 +199,7 @@ bool  OMXClock::OMXStop(bool lock /* = true */)
   if(lock)
     Lock();
 
-  LOG_DEBUG << "OMXClock::OMXStop";
+  LOG_TRACE << "OMXClock::OMXStop";
 
   OMX_ERRORTYPE omx_err = OMX_ErrorNone;
   OMX_TIME_CONFIG_CLOCKSTATETYPE clock;
@@ -253,7 +253,7 @@ bool OMXClock::OMXStep(int steps /* = 1 */, bool lock /* = true */)
   if(lock)
     UnLock();
 
-  LOG_DEBUG << "OMXClock::Step " << steps;
+  LOG_TRACE << "OMXClock::Step " << steps;
   return true;
 }
 
@@ -295,7 +295,7 @@ bool OMXClock::OMXReset(bool has_video, bool has_audio, bool lock /* = true */)
 
       sprintf(g_log_buf, "OMXClock::OMXReset audio / video : %d / %d wait mask %d->%d state : %d->%d\n",
           has_audio, has_video, m_WaitMask, clock.nWaitMask, m_eState, clock.eState);
-      LOG_DEBUG << g_log_buf;
+      LOG_TRACE << g_log_buf;
       if (m_eState != OMX_TIME_ClockStateStopped)
         m_WaitMask = clock.nWaitMask;
       m_eState = clock.eState;
@@ -422,7 +422,7 @@ bool OMXClock::OMXMediaTime(double pts, bool lock /* = true*/)
   sprintf(g_log_buf, "OMXClock::OMXMediaTime set config %s = %.2f",
           index == OMX_IndexConfigTimeCurrentAudioReference ?
        "OMX_IndexConfigTimeCurrentAudioReference":"OMX_IndexConfigTimeCurrentVideoReference", pts);
-  LOG_DEBUG << g_log_buf;
+  LOG_TRACE << g_log_buf;
 
   m_last_media_time = 0.0f;
   if(lock)
@@ -481,7 +481,7 @@ bool OMXClock::OMXSetSpeed(int speed, bool lock /* = true */, bool pause_resume 
 
   sprintf(g_log_buf, "OMXClock::OMXSetSpeed(%.2f) pause_resume:%d",
           (float)speed / (float)DVD_PLAYSPEED_NORMAL, pause_resume);
-  LOG_DEBUG << g_log_buf;
+  LOG_TRACE << g_log_buf;
 
   if (pause_resume)
   {

@@ -136,7 +136,8 @@ namespace kinski
 
     void Raspi_App::set_lcd_backlight(bool b) const
     {
-        const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power"''
+        const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power";
+        
         if(kinski::file_exists(bl_path))
         {
             std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
