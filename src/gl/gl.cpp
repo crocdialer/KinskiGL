@@ -177,8 +177,8 @@ namespace kinski { namespace gl {
     void set_matrices_for_window()
     {
         load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, gl::window_dimension().x,
-                                                     0.f, gl::window_dimension().y,
-                                                     0.f, 1.f));
+                                                      0.f, gl::window_dimension().y,
+                                                      0.f, 1.f));
         load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
     }
     
@@ -816,82 +816,88 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_mesh(const MeshPtr &theMesh)
+    void draw_mesh(const MeshPtr &the_mesh)
     {
-        if(!theMesh || theMesh->geometry()->vertices().empty()) return;
+        if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
+        
+        // create or update Gl buffers, if necessary
+        the_mesh->geometry()->createGLBuffers();
         
         const glm::mat4 &modelView = g_modelViewMatrixStack.top();
         mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
         mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
         
-        for(auto &mat : theMesh->materials())
+        for(auto &mat : the_mesh->materials())
         {
             mat->uniform("u_modelViewMatrix", modelView);
             
-            if(theMesh->geometry()->hasNormals())
+            if(the_mesh->geometry()->hasNormals())
             {
                 mat->uniform("u_normalMatrix", normal_matrix);
             }
             mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
             
-            if(theMesh->geometry()->hasBones())
+            if(the_mesh->geometry()->hasBones())
             {
-                mat->uniform("u_bones", theMesh->boneMatrices());
+                mat->uniform("u_bones", the_mesh->boneMatrices());
             }
             
 #if !defined(KINSKI_GLES)
-            GLuint block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
-            glUniformBlockBinding(mat->shader().getHandle(), block_index, 0);
+            if(mat->shader())
+            {
+                GLuint block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
+                glUniformBlockBinding(mat->shader().getHandle(), block_index, 0);
+            }
 #endif
         }
-        gl::apply_material(theMesh->material());
+        gl::apply_material(the_mesh->material());
         KINSKI_CHECK_GL_ERRORS();
         
 #ifndef KINSKI_NO_VAO
-        theMesh->bind_vertex_array();
+        the_mesh->bind_vertex_array();
 #else
-        theMesh->bindVertexPointers();
+        the_mesh->bindVertexPointers();
 #endif
         
-        if(theMesh->geometry()->hasIndices())
+        if(the_mesh->geometry()->hasIndices())
         {
 #ifndef KINSKI_GLES
-            if(!theMesh->entries().empty())
+            if(!the_mesh->entries().empty())
             {
-                for (uint32_t i = 0; i < theMesh->entries().size(); i++)
+                for (uint32_t i = 0; i < the_mesh->entries().size(); i++)
                 {
                     // skip disabled entries
-                    if(!theMesh->entries()[i].enabled) continue;
+                    if(!the_mesh->entries()[i].enabled) continue;
                     
-                    uint32_t primitive_type = theMesh->entries()[i].primitive_type;
-                    primitive_type = primitive_type ? : theMesh->geometry()->primitiveType();
+                    uint32_t primitive_type = the_mesh->entries()[i].primitive_type;
+                    primitive_type = primitive_type ? : the_mesh->geometry()->primitiveType();
                     
-                    int mat_index = clamp<int>(theMesh->entries()[i].material_index,
+                    int mat_index = clamp<int>(the_mesh->entries()[i].material_index,
                                                0,
-                                               theMesh->materials().size() - 1);
-                    theMesh->bind_vertex_array(mat_index);
-                    apply_material(theMesh->materials()[mat_index]);
+                                               the_mesh->materials().size() - 1);
+                    the_mesh->bind_vertex_array(mat_index);
+                    apply_material(the_mesh->materials()[mat_index]);
                     
                     glDrawElementsBaseVertex(primitive_type,
-                                             theMesh->entries()[i].num_indices,
-                                             theMesh->geometry()->indexType(),
-                                             BUFFER_OFFSET(theMesh->entries()[i].base_index *
-                                                           sizeof(theMesh->geometry()->indexType())),
-                                             theMesh->entries()[i].base_vertex);
+                                             the_mesh->entries()[i].num_indices,
+                                             the_mesh->geometry()->indexType(),
+                                             BUFFER_OFFSET(the_mesh->entries()[i].base_index *
+                                                           sizeof(the_mesh->geometry()->indexType())),
+                                             the_mesh->entries()[i].base_vertex);
                 }
             }
             else
 #endif
             {
-                glDrawElements(theMesh->geometry()->primitiveType(),
-                               theMesh->geometry()->indices().size(), theMesh->geometry()->indexType(),
+                glDrawElements(the_mesh->geometry()->primitiveType(),
+                               the_mesh->geometry()->indices().size(), the_mesh->geometry()->indexType(),
                                BUFFER_OFFSET(0));
             }
         }
         else
         {
-            glDrawArrays(theMesh->geometry()->primitiveType(), 0,
-                         theMesh->geometry()->vertices().size());
+            glDrawArrays(the_mesh->geometry()->primitiveType(), 0,
+                         the_mesh->geometry()->vertices().size());
         }
         KINSKI_CHECK_GL_ERRORS();
     
@@ -1055,14 +1061,14 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_normals(const MeshWeakPtr &theMesh)
+    void draw_normals(const MeshWeakPtr &the_mesh)
     {
         static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
         static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
         
-        if(theMap.find(theMesh) == theMap.end())
+        if(theMap.find(the_mesh) == theMap.end())
         {
-            Mesh::ConstPtr m = theMesh.lock();
+            Mesh::ConstPtr m = the_mesh.lock();
             if(m->geometry()->normals().empty()) return;
             GeometryPtr geom = Geometry::create();
             geom->setPrimitiveType(GL_LINES);
@@ -1085,9 +1091,9 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             }
             geom->createGLBuffers();
             line_mesh->createVertexArray();
-            theMap[theMesh] = line_mesh;
+            theMap[the_mesh] = line_mesh;
         }
-        gl::draw_mesh(theMap[theMesh]);
+        gl::draw_mesh(theMap[the_mesh]);
         
         // cleanup
         map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
@@ -1277,6 +1283,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             
         }
         the_mat->load_queue_shader().clear();
+        if(!the_mat->shader()){ the_mat->setShader(gl::create_shader(gl::ShaderType::UNLIT)); }
         
         // bind the shader
         the_mat->shader().bind();
