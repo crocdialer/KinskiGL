@@ -6,7 +6,7 @@
 * This class controls playback of Media files or streams and manages their assets.
 */
 
-namespace kinski{ namespace video{
+namespace kinski{ namespace media{
 
     class MediaController;
     typedef std::shared_ptr<MediaController> MediaControllerPtr;

@@ -5,14 +5,14 @@
 
 @interface LoopHelper : NSObject
 {
-    kinski::video::MediaControllerImpl *m_movie_control_impl;
+    kinski::media::MediaControllerImpl *m_movie_control_impl;
 }
-- (void) initWith: (kinski::video::MediaControllerImpl*) the_impl;
+- (void) initWith: (kinski::media::MediaControllerImpl*) the_impl;
 
-@property(assign) kinski::video::MediaControllerImpl *movie_control_impl;
+@property(assign) kinski::media::MediaControllerImpl *movie_control_impl;
 @end
 
-namespace kinski{ namespace video{
+namespace kinski{ namespace media{
     
     struct MediaControllerImpl
     {
@@ -129,7 +129,7 @@ namespace kinski{ namespace video{
              m_impl->m_has_video = [videoTrackArray count];
              m_impl->m_has_audio = [audioTrackArray count];
              
-             LOG_DEBUG << "v: " << m_impl->m_has_video << "a:" << m_impl->m_has_audio;
+             LOG_DEBUG << "video-tracks: " << [videoTrackArray count] << " -- audio-tracks: " << [audioTrackArray count];
              
              if(m_impl->m_has_video || m_impl->m_has_audio)
              {
@@ -505,7 +505,7 @@ namespace kinski{ namespace video{
 
 @implementation LoopHelper
 
-- (void) initWith: (kinski::video::MediaControllerImpl*) the_impl
+- (void) initWith: (kinski::media::MediaControllerImpl*) the_impl
 {
     [self init];
     self.movie_control_impl = the_impl;

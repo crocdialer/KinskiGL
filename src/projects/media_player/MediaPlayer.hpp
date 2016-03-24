@@ -23,7 +23,7 @@ namespace kinski
 
         WarpComponent::Ptr m_warp;
 
-        video::MovieControllerPtr m_movie = video::MovieController::create();
+        media::MediaControllerPtr m_movie = media::MovieController::create();
         video::CameraControllerPtr m_camera_control = video::CameraController::create();
         bool m_reload_movie = false;
         
