@@ -15,7 +15,7 @@
 // when we repeatedly seek, rather than play continuously
 #define TRICKPLAY(speed) (speed < 0 || speed > 4 * DVD_PLAYSPEED_NORMAL)
 
-namespace kinski{ namespace video
+namespace kinski{ namespace media
 {
     std::shared_ptr<COMXCore> m_OMX;
 
