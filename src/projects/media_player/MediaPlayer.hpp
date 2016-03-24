@@ -11,7 +11,7 @@
 #include "app/WarpComponent.h"
 #include "gl/Texture.hpp"
 
-#include "video/video.h"
+#include "media/media.h"
 
 namespace kinski
 {
