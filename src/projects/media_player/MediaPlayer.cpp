@@ -49,6 +49,7 @@ void MediaPlayer::update(float timeDelta)
     if(m_reload_movie)
     {
         m_movie->load(*m_movie_path, true, *m_loop);
+        m_movie->set_rate(*m_movie_speed);
         m_reload_movie = false;
     }
     
