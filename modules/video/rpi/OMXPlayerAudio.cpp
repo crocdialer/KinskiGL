@@ -498,7 +498,7 @@ void OMXPlayerAudio::WaitCompletion()
   {
     if(IsEOS())
     {
-      LOG_DEBUG << "got eos";
+      LOG_TRACE_1 << "got eos";
       break;
     }
 

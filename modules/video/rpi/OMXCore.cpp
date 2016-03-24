@@ -364,7 +364,7 @@ OMX_ERRORTYPE COMXCoreComponent::EmptyThisBuffer(OMX_BUFFERHEADERTYPE *omx_buffe
 
   #if defined(OMX_DEBUG_EVENTHANDLER)
   sprintf(g_log_buf, "COMXCoreComponent::EmptyThisBuffer component(%s) %p", m_componentName.c_str(), omx_buffer);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
   #endif
   if(!m_handle || !omx_buffer)
     return OMX_ErrorUndefined;
@@ -387,7 +387,7 @@ OMX_ERRORTYPE COMXCoreComponent::FillThisBuffer(OMX_BUFFERHEADERTYPE *omx_buffer
   #if defined(OMX_DEBUG_EVENTHANDLER)
   sprintf(g_log_buf, "COMXCoreComponent::FillThisBuffer component(%s) %p", m_componentName.c_str(),
          omx_buffer);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
   #endif
   if(!m_handle || !omx_buffer)
     return OMX_ErrorUndefined;
@@ -629,7 +629,7 @@ OMX_ERRORTYPE COMXCoreComponent::AllocInputBuffers(bool use_buffers /* = false *
   sprintf(g_log_buf, "COMXCoreComponent::AllocInputBuffers component(%s) - port(%d), nBufferCountMin(%u), nBufferCountActual(%u), nBufferSize(%u), nBufferAlignmen(%u)",
             m_componentName.c_str(), GetInputPort(), portFormat.nBufferCountMin,
             portFormat.nBufferCountActual, portFormat.nBufferSize, portFormat.nBufferAlignment);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
 
   for (size_t i = 0; i < portFormat.nBufferCountActual; i++)
   {
@@ -714,7 +714,7 @@ OMX_ERRORTYPE COMXCoreComponent::AllocOutputBuffers(bool use_buffers /* = false 
   sprintf(g_log_buf, "COMXCoreComponent::AllocOutputBuffers component(%s) - port(%d), nBufferCountMin(%u), nBufferCountActual(%u), nBufferSize(%u) nBufferAlignmen(%u)",
             m_componentName.c_str(), m_output_port, portFormat.nBufferCountMin,
             portFormat.nBufferCountActual, portFormat.nBufferSize, portFormat.nBufferAlignment);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
 
   for (size_t i = 0; i < portFormat.nBufferCountActual; i++)
   {
@@ -969,7 +969,7 @@ OMX_ERRORTYPE COMXCoreComponent::AddEvent(OMX_EVENTTYPE eEvent, OMX_U32 nData1, 
 #ifdef OMX_DEBUG_EVENTS
   sprintf(g_log_buf, "COMXCoreComponent::AddEvent %s add event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d",
           m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
 #endif
 
   return OMX_ErrorNone;
@@ -981,7 +981,7 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForEvent(OMX_EVENTTYPE eventType, long time
 #ifdef OMX_DEBUG_EVENTS
   sprintf(g_log_buf, "COMXCoreComponent::WaitForEvent %s wait event 0x%08x",
       m_componentName.c_str(), (int)eventType);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
 #endif
 
   pthread_mutex_lock(&m_omx_event_mutex);
@@ -997,7 +997,7 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForEvent(OMX_EVENTTYPE eventType, long time
 #ifdef OMX_DEBUG_EVENTS
       sprintf(g_log_buf, "COMXCoreComponent::WaitForEvent %s inlist event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d",
           m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
 #endif
 
 
@@ -1006,7 +1006,7 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForEvent(OMX_EVENTTYPE eventType, long time
 #ifdef OMX_DEBUG_EVENTS
         sprintf(g_log_buf, "COMXCoreComponent::WaitForEvent %s remove event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d",
           m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-        LOG_TRACE << g_log_buf;
+        LOG_TRACE_2 << g_log_buf;
 #endif
         m_omx_events.erase(it);
         pthread_mutex_unlock(&m_omx_event_mutex);
@@ -1023,7 +1023,7 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForEvent(OMX_EVENTTYPE eventType, long time
 #ifdef OMX_DEBUG_EVENTS
         sprintf(g_log_buf, "COMXCoreComponent::WaitForEvent %s remove event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d\n",
           m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-        LOG_TRACE << g_log_buf;
+        LOG_TRACE_2 << g_log_buf;
 #endif
 
         m_omx_events.erase(it);
@@ -1055,7 +1055,7 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForEvent(OMX_EVENTTYPE eventType, long time
 OMX_ERRORTYPE COMXCoreComponent::WaitForCommand(OMX_U32 command, OMX_U32 nData2, long timeout)
 {
 #ifdef OMX_DEBUG_EVENTS
-  LOG_TRACE << "COMXCoreComponent::WaitForCommand %s wait event.eEvent 0x%08x event.command 0x%08x event.nData2 %d\n",
+  LOG_TRACE_2 << "COMXCoreComponent::WaitForCommand %s wait event.eEvent 0x%08x event.command 0x%08x event.nData2 %d\n",
       m_componentName.c_str(), (int)OMX_EventCmdComplete, (int)command, (int)nData2);
 #endif
 
@@ -1072,14 +1072,14 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForCommand(OMX_U32 command, OMX_U32 nData2,
 #ifdef OMX_DEBUG_EVENTS
       sprintf(g_log_buf, "COMXCoreComponent::WaitForCommand %s inlist event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d",
               m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
 #endif
       if(event.eEvent == OMX_EventError && event.nData1 == (OMX_U32)OMX_ErrorSameState && event.nData2 == 1)
       {
 #ifdef OMX_DEBUG_EVENTS
         sprintf(g_log_buf, "COMXCoreComponent::WaitForCommand %s remove event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d",
           m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-        LOG_TRACE << g_log_buf;
+        LOG_TRACE_2 << g_log_buf;
 #endif
 
         m_omx_events.erase(it);
@@ -1098,7 +1098,7 @@ OMX_ERRORTYPE COMXCoreComponent::WaitForCommand(OMX_U32 command, OMX_U32 nData2,
 #ifdef OMX_DEBUG_EVENTS
         sprintf(g_log_buf, "COMXCoreComponent::WaitForCommand %s remove event event.eEvent 0x%08x event.nData1 0x%08x event.nData2 %d",
           m_componentName.c_str(), (int)event.eEvent, (int)event.nData1, (int)event.nData2);
-        LOG_TRACE << g_log_buf;
+        LOG_TRACE_2 << g_log_buf;
 #endif
 
         m_omx_events.erase(it);
@@ -1391,7 +1391,7 @@ if (m_callbacks.FillBufferDone == &COMXCoreComponent::DecoderFillBufferDoneCallb
   sprintf(g_log_buf, "component(%s) - port(%d), nBufferCountMin(%u), nBufferCountActual(%u), nBufferSize(%u) nBufferAlignmen(%u)",
           m_componentName.c_str(), m_output_port, portFormat.nBufferCountMin,
           portFormat.nBufferCountActual, portFormat.nBufferSize, portFormat.nBufferAlignment);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
 
   for (size_t i = 0; i < portFormat.nBufferCountActual; i++)
   {
@@ -1527,7 +1527,7 @@ bool COMXCoreComponent::Initialize( const std::string &component_name, OMX_INDEX
 
   sprintf(g_log_buf, "COMXCoreComponent::Initialize %s input port %d output port %d m_handle %p",
           m_componentName.c_str(), m_input_port, m_output_port, m_handle);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
 
   m_exit = false;
   m_flush_input   = false;
@@ -1563,7 +1563,7 @@ bool COMXCoreComponent::Deinitialize()
 
     sprintf(g_log_buf, "COMXCoreComponent::Deinitialize : %s handle %p",
             m_componentName.c_str(), m_handle);
-    LOG_TRACE << g_log_buf;
+    LOG_TRACE_2 << g_log_buf;
     omx_err = OMX_FreeHandle(m_handle);
     if (omx_err != OMX_ErrorNone)
     {
@@ -1633,7 +1633,7 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEmptyBufferDone(OMX_HANDLETYPE hComponen
   #if defined(OMX_DEBUG_EVENTHANDLER)
   sprintf(g_log_buf, "COMXCoreComponent::DecoderEmptyBufferDone component(%s) %p %d/%d",
           m_componentName.c_str(), pBuffer, m_omx_input_avaliable.size(), m_input_buffer_count);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
   #endif
 
   if(CustomEmptyBufferDoneHandler)
@@ -1662,7 +1662,7 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderFillBufferDone(OMX_HANDLETYPE hComponent
   #if defined(OMX_DEBUG_EVENTHANDLER)
   sprintf(g_log_buf, "COMXCoreComponent::DecoderFillBufferDone component(%s) %p %d/%d",
           m_componentName.c_str(), pBuffer, m_omx_output_available.size(), m_output_buffer_count);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
   #endif
 
   if(CustomFillBufferDoneHandler)
@@ -1696,7 +1696,7 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEventHandler(
 #ifdef OMX_DEBUG_EVENTS
     sprintf(g_log_buf, "%s eEvent(0x%x), nData1(0x%x), nData2(0x%x), pEventData(0x%p)",
             GetName().c_str(), eEvent, nData1, nData2, pEventData);
-    LOG_TRACE << g_log_buf;
+    LOG_TRACE_2 << g_log_buf;
 #endif
 
   // if the error is expected, then we can skip it
@@ -1704,7 +1704,7 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEventHandler(
   {
     sprintf(g_log_buf, "%s Ignoring expected event: eEvent(0x%x), nData1(0x%x), nData2(0x%x), pEventData(0x%p)",
             GetName().c_str(), eEvent, nData1, nData2, pEventData);
-    LOG_TRACE << g_log_buf;
+    LOG_TRACE_2 << g_log_buf;
     m_ignore_error = OMX_ErrorNone;
     return OMX_ErrorNone;
   }
@@ -1721,38 +1721,38 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEventHandler(
           {
             case OMX_StateInvalid:
             #if defined(OMX_DEBUG_EVENTHANDLER)
-              LOG_TRACE << GetName() << " - OMX_StateInvalid";
+              LOG_TRACE_2 << GetName() << " - OMX_StateInvalid";
             #endif
             break;
             case OMX_StateLoaded:
             #if defined(OMX_DEBUG_EVENTHANDLER)
-              LOG_TRACE << GetName() << " - OMX_StateLoaded";
+              LOG_TRACE_2 << GetName() << " - OMX_StateLoaded";
             #endif
             break;
             case OMX_StateIdle:
             #if defined(OMX_DEBUG_EVENTHANDLER)
-              LOG_TRACE << GetName() << " - OMX_StateIdle";
+              LOG_TRACE_2 << GetName() << " - OMX_StateIdle";
             #endif
             break;
             case OMX_StateExecuting:
             #if defined(OMX_DEBUG_EVENTHANDLER)
-              LOG_TRACE << GetName() << " - OMX_StateExecuting";
+              LOG_TRACE_2 << GetName() << " - OMX_StateExecuting";
             #endif
             break;
             case OMX_StatePause:
             #if defined(OMX_DEBUG_EVENTHANDLER)
-              LOG_TRACE << GetName() << " - OMX_StatePause";
+              LOG_TRACE_2 << GetName() << " - OMX_StatePause";
             #endif
             break;
             case OMX_StateWaitForResources:
             #if defined(OMX_DEBUG_EVENTHANDLER)
-              LOG_TRACE << GetName() << " - OMX_StateWaitForResources";
+              LOG_TRACE_2 << GetName() << " - OMX_StateWaitForResources";
             #endif
             break;
             default:
             #if defined(OMX_DEBUG_EVENTHANDLER)
               sprintf(g_log_buf, "%s - Unknown OMX_Statexxxxx, state(%d)", GetName().c_str(), (int)nData2);
-              LOG_TRACE << g_log_buf;
+              LOG_TRACE_2 << g_log_buf;
             #endif
             break;
           }
@@ -1760,28 +1760,28 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEventHandler(
         case OMX_CommandFlush:
           #if defined(OMX_DEBUG_EVENTHANDLER)
           sprintf(g_log_buf, "%s - OMX_CommandFlush, port %d", GetName().c_str(), (int)nData2);
-          LOG_TRACE << g_log_buf;
+          LOG_TRACE_2 << g_log_buf;
           #endif
         break;
         case OMX_CommandPortDisable:
           #if defined(OMX_DEBUG_EVENTHANDLER)
           sprintf(g_log_buf, "%s - OMX_CommandPortDisable, nData1(0x%x), port %d",
                   GetName().c_str(), nData1, (int)nData2);
-          LOG_TRACE << g_log_buf;
+          LOG_TRACE_2 << g_log_buf;
           #endif
         break;
         case OMX_CommandPortEnable:
           #if defined(OMX_DEBUG_EVENTHANDLER)
           sprintf(g_log_buf, "%s::%s %s - OMX_CommandPortEnable, nData1(0x%x), port %d",
                   GetName().c_str(), nData1, (int)nData2);
-          LOG_TRACE << g_log_buf;
+          LOG_TRACE_2 << g_log_buf;
           #endif
         break;
         #if defined(OMX_DEBUG_EVENTHANDLER)
         case OMX_CommandMarkBuffer:
           sprintf(g_log_buf, "%s - OMX_CommandMarkBuffer, nData1(0x%x), port %d",
                   GetName().c_str(), nData1, (int)nData2);
-          LOG_TRACE << g_log_buf;
+          LOG_TRACE_2 << g_log_buf;
         break;
         #endif
       }
@@ -1789,7 +1789,7 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEventHandler(
     case OMX_EventBufferFlag:
       #if defined(OMX_DEBUG_EVENTHANDLER)
       sprintf(g_log_buf, "%s::%s %s - OMX_EventBufferFlag(input)", GetName().c_str());
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
       #endif
       if(nData2 & OMX_BUFFERFLAG_EOS)
       {
@@ -1801,23 +1801,23 @@ OMX_ERRORTYPE COMXCoreComponent::DecoderEventHandler(
     case OMX_EventPortSettingsChanged:
       #if defined(OMX_DEBUG_EVENTHANDLER)
       sprintf(g_log_buf, "%s - OMX_EventPortSettingsChanged(output)", GetName().c_str());
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
       #endif
     break;
     case OMX_EventParamOrConfigChanged:
       #if defined(OMX_DEBUG_EVENTHANDLER)
       sprintf(g_log_buf, "%s - OMX_EventParamOrConfigChanged(output)", GetName().c_str());
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
       #endif
     break;
     #if defined(OMX_DEBUG_EVENTHANDLER)
     case OMX_EventMark:
       sprintf(g_log_buf, "%s - OMX_EventMark",GetName().c_str());
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
     break;
     case OMX_EventResourcesAcquired:
       sprintf(g_log_buf, "%s- OMX_EventResourcesAcquired", GetName().c_str());
-      LOG_TRACE << g_log_buf;
+      LOG_TRACE_2 << g_log_buf;
     break;
     #endif
     case OMX_EventError:

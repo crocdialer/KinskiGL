@@ -451,7 +451,7 @@ bool CBitstreamConverter::Open(enum AVCodecID codec, uint8_t *in_extradata, int 
       {
         if ( *(char*)in_extradata == 1 )
         {
-          LOG_DEBUG << "CBitstreamConverter::Open bitstream to annexb init";
+          LOG_TRACE_2 << "CBitstreamConverter::Open bitstream to annexb init";
           m_convert_bitstream = BitstreamConvertInit(in_extradata, in_extrasize);
           return true;
         }
@@ -463,7 +463,7 @@ bool CBitstreamConverter::Open(enum AVCodecID codec, uint8_t *in_extradata, int 
         {
           if (in_extradata[0] == 0 && in_extradata[1] == 0 && in_extradata[2] == 0 && in_extradata[3] == 1)
           {
-            LOG_DEBUG << "CBitstreamConverter::Open annexb to bitstream init";
+            LOG_TRACE_2 << "CBitstreamConverter::Open annexb to bitstream init";
             // video content is from x264 or from bytestream h264 (AnnexB format)
             // NAL reformating to bitstream format needed
 

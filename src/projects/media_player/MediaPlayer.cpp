@@ -1,12 +1,12 @@
 //
-//  MoviePlayer.cpp
+//  MediaPlayer.cpp
 //  gl
 //
 //  Created by Fabian on 29/01/14.
 //
 //
 
-#include "MoviePlayer.hpp"
+#include "MediaPlayer.hpp"
 
 using namespace std;
 using namespace kinski;
@@ -15,7 +15,7 @@ using namespace glm;
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::setup()
+void MediaPlayer::setup()
 {
     ViewerApp::setup();
     Logger::get()->set_use_log_file(true);
@@ -44,7 +44,7 @@ void MoviePlayer::setup()
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::update(float timeDelta)
+void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_movie)
     {
@@ -60,7 +60,7 @@ void MoviePlayer::update(float timeDelta)
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::draw()
+void MediaPlayer::draw()
 {
     if(*m_use_warping){ m_warp->render_output(textures()[TEXTURE_INPUT]); }
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension()); }
@@ -77,7 +77,7 @@ void MoviePlayer::draw()
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::keyPress(const KeyEvent &e)
+void MediaPlayer::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
 
@@ -116,91 +116,91 @@ void MoviePlayer::keyPress(const KeyEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::resize(int w ,int h)
+void MediaPlayer::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::keyRelease(const KeyEvent &e)
+void MediaPlayer::keyRelease(const KeyEvent &e)
 {
     ViewerApp::keyRelease(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::mousePress(const MouseEvent &e)
+void MediaPlayer::mousePress(const MouseEvent &e)
 {
     ViewerApp::mousePress(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::mouseRelease(const MouseEvent &e)
+void MediaPlayer::mouseRelease(const MouseEvent &e)
 {
     ViewerApp::mouseRelease(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::mouseMove(const MouseEvent &e)
+void MediaPlayer::mouseMove(const MouseEvent &e)
 {
     ViewerApp::mouseMove(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::mouseDrag(const MouseEvent &e)
+void MediaPlayer::mouseDrag(const MouseEvent &e)
 {
     ViewerApp::mouseDrag(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::mouseWheel(const MouseEvent &e)
+void MediaPlayer::mouseWheel(const MouseEvent &e)
 {
     ViewerApp::mouseWheel(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+void MediaPlayer::touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches)
 {
 
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+void MediaPlayer::touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches)
 {
 
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches)
+void MediaPlayer::touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches)
 {
 
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
+void MediaPlayer::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
 {
     *m_movie_path = files.back();
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::tearDown()
+void MediaPlayer::tearDown()
 {
     LOG_PRINT << "ciao " << name();
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::update_property(const Property::ConstPtr &theProperty)
+void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
 {
     ViewerApp::update_property(theProperty);
 
@@ -225,7 +225,7 @@ void MoviePlayer::update_property(const Property::ConstPtr &theProperty)
 
 /////////////////////////////////////////////////////////////////
 
-bool MoviePlayer::save_settings(const std::string &path)
+bool MediaPlayer::save_settings(const std::string &path)
 {
     bool ret = ViewerApp::save_settings(path);
     try
@@ -240,7 +240,7 @@ bool MoviePlayer::save_settings(const std::string &path)
 
 /////////////////////////////////////////////////////////////////
 
-bool MoviePlayer::load_settings(const std::string &path)
+bool MediaPlayer::load_settings(const std::string &path)
 {
     bool ret = ViewerApp::load_settings(path);
     try
@@ -255,7 +255,7 @@ bool MoviePlayer::load_settings(const std::string &path)
 
 /////////////////////////////////////////////////////////////////
 
-std::string MoviePlayer::secs_to_time_str(float the_secs) const
+std::string MediaPlayer::secs_to_time_str(float the_secs) const
 {
     char buf[32];
     sprintf(buf, "%d:%02d:%.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
@@ -264,7 +264,7 @@ std::string MoviePlayer::secs_to_time_str(float the_secs) const
 
 /////////////////////////////////////////////////////////////////
 
-void MoviePlayer::setup_rpc_interface()
+void MediaPlayer::setup_rpc_interface()
 {
     remote_control().add_command("play");
     register_function("play", [this](const std::vector<std::string> &rpc_args)

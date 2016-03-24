@@ -23,7 +23,10 @@ namespace kinski
         WARNING = 4,
         INFO = 5,
         DEBUG = 6,
-        TRACE = 7
+        TRACE_1 = 7,
+        TRACE_2 = 8,
+        TRACE_3 = 9,
+        TRACE = TRACE_1
     };
 
 class KINSKI_API Logger
@@ -115,6 +118,9 @@ void log(Severity theSeverity, const char *the_format_text, ...);
 
 #define LOG_INFO KINSKI_LOG_CHECK(kinski::Severity::INFO, __FILE__ ,__LINE__)
 #define LOG_TRACE KINSKI_LOG_CHECK(kinski::Severity::TRACE, __FILE__ ,__LINE__)
+#define LOG_TRACE_1 KINSKI_LOG_CHECK(kinski::Severity::TRACE_1, __FILE__ ,__LINE__)
+#define LOG_TRACE_2 KINSKI_LOG_CHECK(kinski::Severity::TRACE_2, __FILE__ ,__LINE__)
+#define LOG_TRACE_3 KINSKI_LOG_CHECK(kinski::Severity::TRACE_3, __FILE__ ,__LINE__)
 #define LOG_DEBUG KINSKI_LOG_CHECK(kinski::Severity::DEBUG, __FILE__ ,__LINE__)
 #define LOG_PRINT KINSKI_LOG_CHECK(kinski::Severity::PRINT, __FILE__ ,__LINE__)
 #define LOG_ERROR KINSKI_LOG_CHECK(kinski::Severity::ERROR, __FILE__ ,__LINE__)

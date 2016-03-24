@@ -129,28 +129,32 @@ namespace kinski{ namespace video{
              m_impl->m_has_video = [videoTrackArray count];
              m_impl->m_has_audio = [audioTrackArray count];
              
-             if(m_impl->m_has_video)
+             LOG_DEBUG << "v: " << m_impl->m_has_video << "a:" << m_impl->m_has_audio;
+             
+             if(m_impl->m_has_video || m_impl->m_has_audio)
              {
                  @try
                  {
-                     NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
-                     m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
                      m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
                      m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
-                     [m_impl->m_player_item addOutput:m_impl->m_output];
                      m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
                      AVPlayerActionAtItemEndPause;
                      
-                     m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
-                     
-                     AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
-                     m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
-                     
+                     if(m_impl->m_has_video)
+                     {
+                         NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
+                         m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
+                         [m_impl->m_player_item addOutput:m_impl->m_output];
+                         
+                         m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
+                         AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
+                         m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
+                         [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
+                     }
                      if(!error)
                      {
                          set_loop(loop || m_impl->m_loop);
                          
-                         [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
                          
                          if(autoplay){ play(); }
                          else{ pause(); }

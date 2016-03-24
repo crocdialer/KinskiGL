@@ -152,11 +152,6 @@ namespace kinski{ namespace gl{
         m_impl = new_impl;
     }
     
-    const gl::vec2& QuadWarp::control_point(int the_x, int the_y) const
-    {
-        return control_point(the_x, the_y);
-    }
-    
     gl::vec2& QuadWarp::control_point(int the_x, int the_y)
     {
         if(!m_impl){ m_impl.reset(new Impl); }

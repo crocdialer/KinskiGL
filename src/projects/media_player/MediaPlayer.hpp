@@ -1,5 +1,5 @@
 //
-//  MoviePlayer.h
+//  MediaPlayer.h
 //  gl
 //
 //  Created by Fabian on 29/01/14.
@@ -15,7 +15,7 @@
 
 namespace kinski
 {
-    class MoviePlayer : public ViewerApp
+    class MediaPlayer : public ViewerApp
     {
     private:
 
@@ -38,7 +38,7 @@ namespace kinski
         
     public:
 
-        MoviePlayer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};
+        MediaPlayer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};
         void setup() override;
         void update(float timeDelta) override;
         void draw() override;

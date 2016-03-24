@@ -205,11 +205,11 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
           av_dict_set(&d, "user_agent", user_agent.c_str(), 0);
        }
     }
-    LOG_DEBUG << "COMXPlayer::OpenFile - avformat_open_input " << m_filename.c_str();
+    LOG_TRACE_2 << "COMXPlayer::OpenFile - avformat_open_input " << m_filename.c_str();
     result = avformat_open_input(&m_pFormatContext, m_filename.c_str(), iformat, &d);
     if(av_dict_count(d) == 0)
     {
-       LOG_DEBUG << "COMXPlayer::OpenFile - avformat_open_input enabled SEEKING";
+       LOG_TRACE_2 << "COMXPlayer::OpenFile - avformat_open_input enabled SEEKING";
        if(m_filename.substr(0,7) == "http://")
          m_pFormatContext->pb->seekable = AVIO_SEEKABLE_NORMAL;
     }
@@ -295,7 +295,7 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
       unsigned rate = len * 1000 / tim;
       unsigned maxrate = rate + 1024 * 1024 / 8;
       if(m_pFile->IoControl(IOCTRL_CACHE_SETRATE, &maxrate) >= 0)
-        LOG_DEBUG << "COMXPlayer::OpenFile - set cache throttle rate to %u bytes per second" << maxrate;
+        LOG_TRACE_2 << "COMXPlayer::OpenFile - set cache throttle rate to %u bytes per second" << maxrate;
     }
   }
 
@@ -410,7 +410,7 @@ bool OMXReader::SeekTime(int time, bool backwords, double *startpts)
 
   if(m_pFile && !m_pFile->IoControl(IOCTRL_SEEK_POSSIBLE, NULL))
   {
-    LOG_DEBUG << "input stream reports it is not seekable";
+    LOG_TRACE_2 << "input stream reports it is not seekable";
     return false;
   }
 
@@ -443,7 +443,7 @@ bool OMXReader::SeekTime(int time, bool backwords, double *startpts)
     ret = 0;
   }
 
-  LOG_DEBUG << "OMXReader::SeekTime(" << time << ") - seek ended up on time " << (int)(m_iCurrentPts / DVD_TIME_BASE * 1000);
+  LOG_TRACE_2 << "OMXReader::SeekTime(" << time << ") - seek ended up on time " << (int)(m_iCurrentPts / DVD_TIME_BASE * 1000);
 
   UnLock();
 
