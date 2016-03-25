@@ -370,26 +370,15 @@ namespace kinski{ namespace media
     MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
                                                bool loop)
     {
-        return MediaControllerPtr(new MediaController(filePath, autoplay, loop));
+        auto ptr = MediaControllerPtr(new MediaController());
+        ptr->load(filePath, autoplay, loop);
+        return ptr;
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    MediaController::MediaController()
-    {
-
-    }
-
-    MediaController::MediaController(const std::string &filePath, bool autoplay, bool loop):
-    m_impl(new MediaControllerImpl)
-    {
-        load(filePath, autoplay, loop);
-    }
-
-    MediaController::~MediaController()
-    {
-
-    }
+    MediaController::MediaController(){}
+    MediaController::~MediaController(){}
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -75,7 +75,6 @@ namespace kinski{ namespace media{
     private:
 
         MediaController();
-        MediaController(const std::string &the_path, bool autoplay = false, bool loop = false);
         std::unique_ptr<struct MediaControllerImpl> m_impl;
     };
 }}// namespaces
