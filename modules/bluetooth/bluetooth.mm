@@ -36,7 +36,12 @@
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
      advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    LOG_DEBUG << "discovered: " << [peripheral.name UTF8String];
+    std::string name = peripheral.name ? [peripheral.name UTF8String] : "unknown";
+    uint8_t uuid[16];
+    memcpy(uuid, peripheral.identifier, 16);
+    std::string uuid_str(std::begin(uuid), std::end(uuid));
+    
+    LOG_DEBUG << "discovered: " << name << " - uuid: " << uuid_str << " - rssi: " << RSSI.floatValue;
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
@@ -69,6 +74,7 @@ namespace kinski{ namespace bluetooth{
         }
         ~CentralImpl()
         {
+            [central_manager stopScan];
             [central_manager dealloc];
             [delegate dealloc];
         }
