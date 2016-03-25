@@ -163,18 +163,16 @@ namespace kinski
         return min + (max - min) * (rand() / (float) RAND_MAX);
     }
     
-    template <typename T>
-    inline T random_2(const T &min, const T &max)
+    template <typename T = int32_t>
+    inline T random_int(const T &min, const T &max)
     {
         // Seed with a real random value, if available
         std::random_device r;
         
-        // Choose a random mean between 1 and 6
+        // random mean
         std::default_random_engine e1(r());
         std::uniform_int_distribution<T> uniform_dist(min, max);
-        T mean = uniform_dist(e1);
-        
-        return min + (max - min) * (rand() / (float) RAND_MAX);
+        return uniform_dist(e1);
     }
     
     template <typename T>
