@@ -23,7 +23,12 @@
 {}
 
 - (void)centralManager:(CBCentralManager *)central didRetrievePeripherals:(NSArray *)peripherals
-{}
+{
+    for(CBPeripheral* p in peripherals)
+    {
+        LOG_DEBUG << "retrieved: " << [p.name UTF8String];
+    }
+}
 
 - (void)centralManager:(CBCentralManager *)central didRetrieveConnectedPeripherals:(NSArray *)peripherals
 {}
@@ -35,11 +40,15 @@
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
-{}
+{
+    LOG_DEBUG << "connected: " << [peripheral.name UTF8String];
+}
 
 - (void)centralManager:(CBCentralManager *)central
     didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
-{}
+{
+    LOG_DEBUG << "failed to connect: " << [peripheral.name UTF8String];
+}
 
 - (void)centralManager:(CBCentralManager *)central
     didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
@@ -73,6 +82,7 @@ namespace kinski{ namespace bluetooth{
     
     void Central::scan_for_peripherals()
     {
+        LOG_DEBUG << "scan_for_peripherals";
         [m_impl->central_manager scanForPeripheralsWithServices:nil options:nil];
     }
     

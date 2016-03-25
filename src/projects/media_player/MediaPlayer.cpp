@@ -317,7 +317,34 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("seek_to_time");
     register_function("seek_to_time", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->seek_to_time(kinski::string_as<float>(rpc_args.front())); }
+        if(!rpc_args.empty())
+        {
+            float secs = 0.f;
+            
+            auto splits = split(rpc_args.front(), ':');
+            
+            switch (splits.size())
+            {
+                case 3:
+                    secs = kinski::string_as<float>(splits[2]) +
+                           60.f * kinski::string_as<float>(splits[1]) +
+                           3600.f * kinski::string_as<float>(splits[0]) ;
+                    break;
+                    
+                case 2:
+                    secs = kinski::string_as<float>(splits[1]) +
+                    60.f * kinski::string_as<float>(splits[0]);
+                    break;
+                    
+                case 1:
+                    secs = kinski::string_as<float>(splits[0]);
+                    break;
+                    
+                default:
+                    break;
+            }
+            m_movie->seek_to_time(secs);
+        }
     });
     
     remote_control().add_command("current_time", [this](net::tcp_connection_ptr con,
