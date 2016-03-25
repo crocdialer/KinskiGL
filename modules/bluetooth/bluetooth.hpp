@@ -4,28 +4,35 @@
 
 namespace kinski{ namespace bluetooth{
     
-    class UUID;
+    struct UUID;
     class Central;
-    class Peripheral;
+    struct Peripheral;
     
-    typedef std::function<void(const Central&, Peripheral&, std::vector<uint8_t>, float)>
-    DiscoveredPeripheralCallback;
+    typedef std::function<void(Peripheral&, const UUID&, float)>
+    PeripheralDiscoveredCallback;
     
     class Central
     {
     public:
+        
         Central();
         void scan_for_peripherals();
         void connect_peripheral(const Peripheral &the_peripheral);
+        void set_peripheral_discovered_cb(PeripheralDiscoveredCallback cb);
         
     private:
-        struct CentralImpl;
-        std::shared_ptr<CentralImpl> m_impl;
+        std::shared_ptr<struct CentralImpl> m_impl;
     };
     
-    class Peripheral
+    struct UUID
     {
-        std::string m_name;
+        char data[16];
+    };
+    
+    struct Peripheral
+    {
+        UUID uuid;
+        std::string name;
     };
     
 }}//namespace
