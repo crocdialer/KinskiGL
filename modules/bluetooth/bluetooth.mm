@@ -18,14 +18,17 @@
 @end
 
 namespace kinski{ namespace bluetooth{
-
+    
+    typedef std::map<PeripheralPtr, CBPeripheral*> PeripheralMap;
+    
     struct CentralImpl
     {
         CBCentralManager* central_manager;
-        std::map<CBPeripheral*, Peripheral> m_peripheral_map;
+        PeripheralMap m_peripheral_map;
         CentralManagerDelegate* delegate;
         PeripheralDiscoveredCallback peripheral_discovered_cb;
-        Central *central = nullptr;
+        PeripheralConnectedCallback peripheral_connected_cb;
+        std::weak_ptr<Central> central_ref;
         
         CentralImpl()
         {
@@ -40,26 +43,47 @@ namespace kinski{ namespace bluetooth{
         }
     };
     
+    CentralPtr Central::create(){ return CentralPtr(new Central()); }
+    
     Central::Central():
-    m_impl(new CentralImpl)
-    {
-        m_impl->central = this;
-    }
+    m_impl(new CentralImpl){ }
     
     void Central::scan_for_peripherals()
     {
         LOG_DEBUG << "scan_for_peripherals";
+        m_impl->central_ref = shared_from_this();
         [m_impl->central_manager scanForPeripheralsWithServices:nil options:nil];
     }
     
-    void Central::connect_peripheral(const Peripheral &the_peripheral)
+    void Central::connect_peripheral(const PeripheralPtr &p)
     {
+        // connect peripheral
+        if(p->is_connectable)
+        {
+            LOG_DEBUG << "connecting: " << p->name;
+            auto it = m_impl->m_peripheral_map.find(p);
+            if(it != m_impl->m_peripheral_map.end())
+            {
+                [m_impl->central_manager connectPeripheral:it->second options:nil];
+            }
+        }
+    }
     
+    std::set<PeripheralPtr> Central::peripherals() const
+    {
+        std::set<PeripheralPtr> ret;
+        for(const auto &pair : m_impl->m_peripheral_map){ ret.insert(pair.first); }
+        return ret;
     }
     
     void Central::set_peripheral_discovered_cb(PeripheralDiscoveredCallback cb)
     {
         m_impl->peripheral_discovered_cb = cb;
+    }
+    
+    void Central::set_peripheral_connected_cb(PeripheralConnectedCallback cb)
+    {
+        m_impl->peripheral_connected_cb = cb;
     }
     
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -96,56 +120,87 @@ namespace kinski{ namespace bluetooth{
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral
      advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI
 {
-    kinski::bluetooth::Peripheral p;
+    auto p = std::make_shared<kinski::bluetooth::Peripheral>();
     
-    p.name = peripheral.name ? [peripheral.name UTF8String] : "unknown";
+    p->name = peripheral.name ? [peripheral.name UTF8String] : "unknown";
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
-    if(local_name){ p.name = [local_name UTF8String]; }
-    p.is_connectable = [[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue];
-    memcpy(&p.uuid, peripheral.identifier, 16);
+    if(local_name){ p->name = [local_name UTF8String]; }
+    p->is_connectable = [[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue];
+    memcpy(&p->uuid, peripheral.identifier, 16);
     
-    self.central_impl->m_peripheral_map[[peripheral retain]] = p;
+    self.central_impl->m_peripheral_map[p] = [peripheral retain];
     
     if(self.central_impl->peripheral_discovered_cb)
     {
-        self.central_impl->peripheral_discovered_cb(*self.central_impl->central, p, p.uuid,
+        self.central_impl->peripheral_discovered_cb(self.central_impl->central_ref.lock(), p,
                                                     RSSI.floatValue);
     }
     
-    // connect peripheral
-    if(p.is_connectable)
+    if(!p->is_connectable)
     {
-        LOG_DEBUG << "connecting: " << p.name;
-        [central connectPeripheral:peripheral options:nil];
-    }
-    else
-    {
-//        LOG_DEBUG << "not connectable";
-        self.central_impl->m_peripheral_map.erase(peripheral);
+        self.central_impl->m_peripheral_map.erase(p);
         [peripheral release];
     }
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
-    LOG_DEBUG << "connected: " << self.central_impl->m_peripheral_map[peripheral].name;
+    auto it = std::find_if(self.central_impl->m_peripheral_map.begin(),
+                           self.central_impl->m_peripheral_map.end(),
+                           [peripheral](kinski::bluetooth::PeripheralMap::value_type pair)
+    {
+        return pair.second == peripheral;
+    });
+    
+    if(it != self.central_impl->m_peripheral_map.end())
+    {
+        auto p = it->first;
+        LOG_DEBUG << "connected: " << p->name;
+        
+        if(self.central_impl->peripheral_connected_cb)
+        {
+            self.central_impl->peripheral_connected_cb(self.central_impl->central_ref.lock(), p);
+        }
+    }
     
 }
 
 - (void)centralManager:(CBCentralManager *)central
 didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-    LOG_DEBUG << "failed to connect: " << self.central_impl->m_peripheral_map[peripheral].name;
-    self.central_impl->m_peripheral_map.erase(peripheral);
-    [peripheral release];
+    auto it = std::find_if(self.central_impl->m_peripheral_map.begin(),
+                           self.central_impl->m_peripheral_map.end(),
+                           [peripheral](kinski::bluetooth::PeripheralMap::value_type pair)
+    {
+        return pair.second == peripheral;
+    });
+    
+    if(it != self.central_impl->m_peripheral_map.end())
+    {
+        auto p = it->first;
+        LOG_DEBUG << "failed to connect: " << p->name;
+        [it->second release];
+        self.central_impl->m_peripheral_map.erase(p);
+    }
 }
 
 - (void)centralManager:(CBCentralManager *)central
 didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-    LOG_DEBUG << "disconnected: " << self.central_impl->m_peripheral_map[peripheral].name;
-    self.central_impl->m_peripheral_map.erase(peripheral);
-    [peripheral release];
+    auto it = std::find_if(self.central_impl->m_peripheral_map.begin(),
+                           self.central_impl->m_peripheral_map.end(),
+                           [peripheral](kinski::bluetooth::PeripheralMap::value_type pair)
+    {
+        return pair.second == peripheral;
+    });
+    
+    if(it != self.central_impl->m_peripheral_map.end())
+    {
+        auto p = it->first;
+        LOG_DEBUG << "disconnected: " << p->name;
+        [it->second release];
+        self.central_impl->m_peripheral_map.erase(p);
+    }
 }
 
 @end
