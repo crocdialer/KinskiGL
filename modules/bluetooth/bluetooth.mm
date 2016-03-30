@@ -24,6 +24,7 @@ namespace kinski{ namespace bluetooth{
         CBCentralManager* central_manager;
         CentralManagerDelegate* delegate;
         PeripheralDiscoveredCallback peripheral_discovered_cb;
+        Central *central = nullptr;
         
         CentralImpl()
         {
@@ -41,7 +42,7 @@ namespace kinski{ namespace bluetooth{
     Central::Central():
     m_impl(new CentralImpl)
     {
-        
+        m_impl->central = this;
     }
     
     void Central::scan_for_peripherals()
@@ -97,17 +98,26 @@ namespace kinski{ namespace bluetooth{
     kinski::bluetooth::Peripheral p;
     
     p.name = peripheral.name ? [peripheral.name UTF8String] : "unknown";
+    NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+    if(local_name){ p.name = [local_name UTF8String]; }
+    bool is_connectable = [[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue];
+    
     memcpy(&p.uuid, peripheral.identifier, 16);
     
     if(self.central_impl->peripheral_discovered_cb)
     {
-        self.central_impl->peripheral_discovered_cb(p, p.uuid, RSSI.floatValue);
+        self.central_impl->peripheral_discovered_cb(*self.central_impl->central, p, p.uuid,
+                                                    RSSI.floatValue);
     }
+    
+    // connect peripheral
+    if(is_connectable){ [central connectPeripheral:peripheral options:nil]; }
+    else{ LOG_DEBUG << "not connectable";}
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
-    LOG_DEBUG << "connected: " << [peripheral.name UTF8String];
+    LOG_DEBUG << "connected: " << peripheral.name ? [peripheral.name UTF8String] : "unknown";
 }
 
 - (void)centralManager:(CBCentralManager *)central

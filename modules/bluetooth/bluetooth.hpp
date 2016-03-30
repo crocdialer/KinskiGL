@@ -8,10 +8,10 @@ namespace kinski{ namespace bluetooth{
     class Central;
     struct Peripheral;
     
-    typedef std::function<void(Peripheral&, const UUID&, float)>
+    typedef std::function<void(const Central&, const Peripheral&, const UUID&, float)>
     PeripheralDiscoveredCallback;
     
-    class Central
+    class Central : public std::enable_shared_from_this<Central>
     {
     public:
         

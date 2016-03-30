@@ -158,24 +158,6 @@ namespace kinski
     }
     
     template <typename T>
-    inline T random(const T &min, const T &max)
-    {
-        return min + (max - min) * (rand() / (float) RAND_MAX);
-    }
-    
-    template <typename T = int32_t>
-    inline T random_int(const T &min, const T &max)
-    {
-        // Seed with a real random value, if available
-        std::random_device r;
-        
-        // random mean
-        std::default_random_engine e1(r());
-        std::uniform_int_distribution<T> uniform_dist(min, max);
-        return uniform_dist(e1);
-    }
-    
-    template <typename T>
     inline const T& clamp(const T &val, const T &min, const T &max)
     {
         return val < min ? min : (val > max ? max : val);
@@ -199,6 +181,30 @@ namespace kinski
     {
         float mix_val = clamp<float>((val - src_min) / (float)(src_max - src_min), 0.f, 1.f);
         return mix<T>(dst_min, dst_max, mix_val);
+    }
+    
+    template <typename T>
+    inline T random(const T &min, const T &max)
+    {
+        // Seed with a real random value, if available
+        std::random_device r;
+        
+        // random mean
+        std::default_random_engine e1(r());
+        std::uniform_int_distribution<uint64_t> uniform_dist(0, std::numeric_limits<uint64_t>::max());
+        return mix_slow<T>(min, max, uniform_dist(e1) / (float) std::numeric_limits<uint64_t>::max());
+    }
+    
+    template <typename T = int32_t>
+    inline T random_int(const T &min, const T &max)
+    {
+        // Seed with a real random value, if available
+        std::random_device r;
+        
+        // random mean
+        std::default_random_engine e1(r());
+        std::uniform_int_distribution<T> uniform_dist(min, max);
+        return uniform_dist(e1);
     }
     
     inline std::string syscall(const std::string& cmd)
