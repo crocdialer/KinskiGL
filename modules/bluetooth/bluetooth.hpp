@@ -32,7 +32,8 @@ namespace kinski{ namespace bluetooth{
     struct Peripheral
     {
         UUID uuid;
-        std::string name;
+        std::string name = "unknown";
+        bool is_connectable = false;
     };
     
 }}//namespace

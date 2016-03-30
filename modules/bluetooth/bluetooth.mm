@@ -22,6 +22,7 @@ namespace kinski{ namespace bluetooth{
     struct CentralImpl
     {
         CBCentralManager* central_manager;
+        std::map<CBPeripheral*, Peripheral> m_peripheral_map;
         CentralManagerDelegate* delegate;
         PeripheralDiscoveredCallback peripheral_discovered_cb;
         Central *central = nullptr;
@@ -100,9 +101,10 @@ namespace kinski{ namespace bluetooth{
     p.name = peripheral.name ? [peripheral.name UTF8String] : "unknown";
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
     if(local_name){ p.name = [local_name UTF8String]; }
-    bool is_connectable = [[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue];
-    
+    p.is_connectable = [[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue];
     memcpy(&p.uuid, peripheral.identifier, 16);
+    
+    self.central_impl->m_peripheral_map[[peripheral retain]] = p;
     
     if(self.central_impl->peripheral_discovered_cb)
     {
@@ -111,23 +113,39 @@ namespace kinski{ namespace bluetooth{
     }
     
     // connect peripheral
-    if(is_connectable){ [central connectPeripheral:peripheral options:nil]; }
-    else{ LOG_DEBUG << "not connectable";}
+    if(p.is_connectable)
+    {
+        LOG_DEBUG << "connecting: " << p.name;
+        [central connectPeripheral:peripheral options:nil];
+    }
+    else
+    {
+//        LOG_DEBUG << "not connectable";
+        self.central_impl->m_peripheral_map.erase(peripheral);
+        [peripheral release];
+    }
 }
 
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
-    LOG_DEBUG << "connected: " << peripheral.name ? [peripheral.name UTF8String] : "unknown";
+    LOG_DEBUG << "connected: " << self.central_impl->m_peripheral_map[peripheral].name;
+    
 }
 
 - (void)centralManager:(CBCentralManager *)central
 didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
-    LOG_DEBUG << "failed to connect: " << [peripheral.name UTF8String];
+    LOG_DEBUG << "failed to connect: " << self.central_impl->m_peripheral_map[peripheral].name;
+    self.central_impl->m_peripheral_map.erase(peripheral);
+    [peripheral release];
 }
 
 - (void)centralManager:(CBCentralManager *)central
 didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
-{}
+{
+    LOG_DEBUG << "disconnected: " << self.central_impl->m_peripheral_map[peripheral].name;
+    self.central_impl->m_peripheral_map.erase(peripheral);
+    [peripheral release];
+}
 
 @end
