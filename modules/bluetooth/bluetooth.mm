@@ -8,7 +8,7 @@
 #include "bluetooth.hpp"
 #include "CoreBluetooth/CoreBluetooth.h"
 
-@interface CentralManagerDelegate : NSObject<CBCentralManagerDelegate, CBPeripheralDelegate>
+@interface CoreBluetoothDelegate : NSObject<CBCentralManagerDelegate, CBPeripheralDelegate>
 {
     kinski::bluetooth::CentralImpl *m_central_impl;
 }
@@ -29,7 +29,7 @@ namespace kinski{ namespace bluetooth{
         PeripheralMap m_peripheral_map;
         PeripheralReverseMap m_peripheral_reverse_map;
         
-        CentralManagerDelegate* delegate;
+        CoreBluetoothDelegate* delegate;
         
         PeripheralCallback
         peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
@@ -38,7 +38,7 @@ namespace kinski{ namespace bluetooth{
         
         CentralImpl()
         {
-            delegate = [[CentralManagerDelegate alloc] initWithImpl:this];
+            delegate = [[CoreBluetoothDelegate alloc] initWithImpl:this];
             central_manager = [[CBCentralManager alloc] initWithDelegate:delegate queue:nil options:nil];
         }
         ~CentralImpl()
@@ -149,7 +149,7 @@ namespace kinski{ namespace bluetooth{
     
 }}//namespace
 
-@implementation CentralManagerDelegate
+@implementation CoreBluetoothDelegate
 
 - (instancetype) initWithImpl: (kinski::bluetooth::CentralImpl*) the_impl
 {
@@ -212,14 +212,16 @@ namespace kinski{ namespace bluetooth{
     if(it != self.central_impl->m_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        LOG_DEBUG << "connected: " << p->name();
+        LOG_DEBUG << "connected: " << p->name() << " (" << kinski::as_string(p->rssi(), 1) << ")";
         
         if(self.central_impl->peripheral_connected_cb)
         {
             self.central_impl->peripheral_connected_cb(self.central_impl->central_ref.lock(), p);
         }
+        
+        // scan for services
+        [peripheral discoverServices:nil];
     }
-    
 }
 
 - (void)centralManager:(CBCentralManager *)central
@@ -261,6 +263,38 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         auto p = it->second;
         p->set_rssi([[peripheral RSSI] floatValue]);
         LOG_DEBUG << p->name() << ": " << kinski::as_string(p->rssi(), 1);
+    }
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(nullable NSError *)error
+{
+    for (CBService *service in peripheral.services)
+    {
+        LOG_DEBUG << "discovered service: " << [service.description UTF8String];
+        [peripheral discoverCharacteristics:nil forService:service];
+    }
+}
+
+- (void)peripheralDidUpdateName:(CBPeripheral *)peripheral
+{
+    auto it = self.central_impl->m_peripheral_reverse_map.find(peripheral);
+    
+    if(it != self.central_impl->m_peripheral_reverse_map.end())
+    {
+        auto p = it->second;
+        p->set_name([[peripheral name] UTF8String]);
+    }
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral
+        didDiscoverCharacteristicsForService:(CBService *)service
+        error:(nullable NSError *)error
+{
+    LOG_DEBUG << "discovered characteristics for service: " << [service.description UTF8String];
+    
+    for (CBCharacteristic *c in service.characteristics)
+    {
+        LOG_DEBUG << "discovered characteristic: " << [c.description UTF8String];
     }
 }
 

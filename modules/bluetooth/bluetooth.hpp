@@ -29,14 +29,17 @@ namespace kinski{ namespace bluetooth
         
     private:
         Central();
-        std::shared_ptr<struct CentralImpl> m_impl;
+        std::unique_ptr<struct CentralImpl> m_impl;
     };
     
     class Peripheral
     {
     public:
         
-        static PeripheralPtr create(uint8_t *the_uuid);
+        class Service;
+        class Characteristic;
+        
+        static PeripheralPtr create(uint8_t the_uuid[16]);
         
         std::string uuid() const;
         std::string name() const;
@@ -47,6 +50,8 @@ namespace kinski{ namespace bluetooth
         
         float rssi() const;
         void set_rssi(float the_rssi);
+        
+        std::map<Service, std::list<Characteristic>> characteristics_map();
         
     private:
         Peripheral();
