@@ -2,12 +2,12 @@
 
 #include "core/core.hpp"
 
-namespace kinski{ namespace bluetooth{
+namespace kinski{ namespace bluetooth
+{
     
     typedef std::shared_ptr<class Central> CentralPtr;
-    typedef std::shared_ptr<struct Peripheral> PeripheralPtr;
-    typedef std::function<void(CentralPtr, PeripheralPtr, float)> PeripheralDiscoveredCallback;
-    typedef std::function<void(CentralPtr, PeripheralPtr)> PeripheralConnectedCallback;
+    typedef std::shared_ptr<class Peripheral> PeripheralPtr;
+    typedef std::function<void(CentralPtr, PeripheralPtr)> PeripheralCallback;
     
     class Central : public std::enable_shared_from_this<Central>
     {
@@ -16,9 +16,14 @@ namespace kinski{ namespace bluetooth{
         static CentralPtr create();
         
         void scan_for_peripherals();
-        void connect_peripheral(const PeripheralPtr &the_peripheral);
-        void set_peripheral_discovered_cb(PeripheralDiscoveredCallback cb);
-        void set_peripheral_connected_cb(PeripheralConnectedCallback cb);
+        
+        void connect_peripheral(const PeripheralPtr &the_peripheral,
+                                PeripheralCallback cb = PeripheralCallback());
+        void disconnect_peripheral(const PeripheralPtr &the_peripheral);
+        
+        void set_peripheral_discovered_cb(PeripheralCallback cb);
+        void set_peripheral_connected_cb(PeripheralCallback cb);
+        void set_peripheral_disconnected_cb(PeripheralCallback cb);
         
         std::set<PeripheralPtr> peripherals() const;
         
@@ -27,11 +32,25 @@ namespace kinski{ namespace bluetooth{
         std::shared_ptr<struct CentralImpl> m_impl;
     };
     
-    struct Peripheral
+    class Peripheral
     {
-        char uuid[16];
-        std::string name = "unknown";
-        bool is_connectable = false;
+    public:
+        
+        static PeripheralPtr create(uint8_t *the_uuid);
+        
+        std::string uuid() const;
+        std::string name() const;
+        void set_name(const std::string &the_name);
+        
+        bool is_connectable() const;
+        void set_connectable(bool b);
+        
+        float rssi() const;
+        void set_rssi(float the_rssi);
+        
+    private:
+        Peripheral();
+        std::unique_ptr<struct PeripheralImpl> m_impl;
     };
     
 }}//namespace
