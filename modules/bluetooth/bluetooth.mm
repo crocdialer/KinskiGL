@@ -278,8 +278,8 @@ namespace kinski{ namespace bluetooth{
         
         if(p && cb_characteristic)
         {
-            NSData *ns_data = [NSData dataWithBytesNoCopy:(void*)&the_data[0] length:the_data.size()];
-            [p writeValue: ns_data forCharacteristic: cb_characteristic type: CBCharacteristicWriteWithoutResponse];
+            NSData *ns_data = [NSData dataWithBytes:(void*)&the_data[0] length:the_data.size()];
+            [p writeValue: ns_data forCharacteristic: cb_characteristic type: CBCharacteristicWriteWithResponse];
         }
     }
     
@@ -502,7 +502,6 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
             }
         }
     }
-    
 }
 
 - (void)peripheralDidUpdateName:(CBPeripheral *)peripheral
@@ -520,7 +519,8 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         didDiscoverCharacteristicsForService:(CBService *)service
         error:(nullable NSError *)error
 {
-    LOG_DEBUG << "discovered characteristics for service: " << [service.description UTF8String];
+    LOG_DEBUG << "discovered " << service.characteristics.count << " characteristics for service: "
+        << [service.description UTF8String];
     
     auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
     
@@ -557,6 +557,18 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
                                        (uint8_t*)[characteristic.value bytes] + [characteristic.value length]);
         
         if(p->value_updated_cb()){ p->value_updated_cb()(characteristic_uuid, value_vec); }
+    }
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral
+        didWriteValueForCharacteristic:(CBCharacteristic *)characteristic
+        error:(nullable NSError *)error
+{
+    LOG_DEBUG << "wrote something";
+    
+    if(error)
+    {
+        LOG_WARNING << "Error writing characteristic value: " << [error localizedDescription].UTF8String;
     }
 }
 
