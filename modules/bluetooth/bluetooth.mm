@@ -25,6 +25,10 @@ namespace kinski{ namespace bluetooth{
     PeripheralMap g_peripheral_map;
     PeripheralReverseMap g_peripheral_reverse_map;
     
+    CBCharacteristic* find_characteristic(PeripheralPtr the_peripheral,
+                                          const UUID& the_characteristic_uuid);
+    CBPeripheral* find_peripheral(PeripheralPtr the_peripheral);
+    
     std::string uuid_to_str(CBUUID *the_uuid)
     {
         return [the_uuid.UUIDString UTF8String];
@@ -57,9 +61,9 @@ namespace kinski{ namespace bluetooth{
         memcpy(m_data, the_bytes, 16);
     }
     
-    const uint8_t* UUID::as_bytes() const{ return m_data; }
+    const uint8_t* UUID::bytes() const{ return m_data; }
     
-    const std::string UUID::as_string() const
+    const std::string UUID::string() const
     {
         std::stringstream ss;
         
@@ -130,7 +134,7 @@ namespace kinski{ namespace bluetooth{
         
         for(const auto &uuid : the_service_uuids)
         {
-            [services addObject:kinski::bluetooth::str_to_uuid(uuid.as_string())];
+            [services addObject:kinski::bluetooth::str_to_uuid(uuid.string())];
         }
         
         [m_impl->central_manager scanForPeripheralsWithServices:services options:nil];
@@ -199,27 +203,28 @@ namespace kinski{ namespace bluetooth{
     struct PeripheralImpl
     {
         std::weak_ptr<Central> central_ref;
-        
-        char uuid[16];
+        UUID uuid;
         std::string name = "unknown";
         bool connectable = false;
         bool connected = false;
         float rssi;
+        std::map<UUID, std::list<UUID>> known_services;
+        Peripheral::ValueUpdatedCallback value_updated_cb;
     };
     
-    PeripheralPtr Peripheral::create(CentralPtr the_central, uint8_t *the_uuid)
+    PeripheralPtr Peripheral::create(CentralPtr the_central, UUID the_uuid)
     {
         auto ret = PeripheralPtr(new Peripheral);
-        memcpy(ret->m_impl->uuid, the_uuid, 16);
+        ret->m_impl->uuid = the_uuid;
         ret->m_impl->central_ref = the_central;
         return ret;
     }
     
     Peripheral::Peripheral():m_impl(new PeripheralImpl()){}
     
-    std::string Peripheral::uuid() const{ return m_impl->uuid; }
+    const UUID& Peripheral::uuid() const{ return m_impl->uuid; }
     
-    std::string Peripheral::name() const{ return m_impl->name; }
+    const std::string& Peripheral::name() const{ return m_impl->name; }
     
     void Peripheral::set_name(const std::string &the_name){ m_impl->name = the_name; }
     
@@ -257,11 +262,98 @@ namespace kinski{ namespace bluetooth{
             NSMutableArray<CBUUID *> *services = [NSMutableArray<CBUUID *> array];
             for(const auto &uuid : the_uuids)
             {
-                [services addObject:kinski::bluetooth::str_to_uuid(uuid.as_string())];
+                [services addObject:kinski::bluetooth::str_to_uuid(uuid.string())];
             }
             
             [p discoverServices:services];
         }
+    }
+    
+    void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
+                                                    const std::vector<uint8_t> &the_data)
+    {
+        CBCharacteristic *cb_characteristic = find_characteristic(shared_from_this(),
+                                                                  the_characteristic);
+        CBPeripheral* p = find_peripheral(shared_from_this());
+        
+        if(p && cb_characteristic)
+        {
+            NSData *ns_data = [NSData dataWithBytesNoCopy:(void*)&the_data[0] length:the_data.size()];
+            [p writeValue: ns_data forCharacteristic: cb_characteristic type: CBCharacteristicWriteWithoutResponse];
+        }
+    }
+    
+    void Peripheral::read_value_for_characteristic(const UUID &the_characteristic,
+                                                   Peripheral::ValueUpdatedCallback cb)
+    {
+        CBCharacteristic *cb_characteristic = find_characteristic(shared_from_this(),
+                                                                  the_characteristic);
+        CBPeripheral* p = find_peripheral(shared_from_this());
+        
+        if(p && cb_characteristic)
+        {
+            [p readValueForCharacteristic:cb_characteristic];
+        }
+    }
+    
+    void Peripheral::add_service(const UUID& the_service_uuid)
+    {
+        auto it = m_impl->known_services.find(the_service_uuid);
+        
+        if(it == m_impl->known_services.end())
+        {
+            m_impl->known_services[the_service_uuid] = {};
+        }
+    }
+    
+    void Peripheral::add_characteristic(const UUID& the_service_uuid,
+                                        const UUID& the_characteristic_uuid)
+    {
+        add_service(the_service_uuid);
+        m_impl->known_services[the_service_uuid].push_back(the_characteristic_uuid);
+    }
+    
+    const std::map<UUID, std::list<UUID>>& Peripheral::known_services()
+    {
+        return m_impl->known_services;
+    }
+    
+    Peripheral::ValueUpdatedCallback Peripheral::value_updated_cb(){ return m_impl->value_updated_cb; }
+    
+    void Peripheral::set_value_updated_cb(ValueUpdatedCallback cb){ m_impl->value_updated_cb = cb; }
+    
+    CBPeripheral* find_peripheral(PeripheralPtr the_peripheral)
+    {
+        auto it = g_peripheral_map.find(the_peripheral);
+        
+        if(it != g_peripheral_map.end())
+        {
+            return it->second;
+        }
+        return nullptr;
+    }
+    
+    CBCharacteristic* find_characteristic(PeripheralPtr the_peripheral,
+                                          const UUID& the_characteristic_uuid)
+    {
+        CBCharacteristic* ret = nullptr;
+        CBPeripheral* p = find_peripheral(the_peripheral);
+        
+        if(p)
+        {
+            // search for CB characteristic
+            for(CBService *service in p.services)
+            {
+                for(CBCharacteristic *c in service.characteristics)
+                {
+                    auto characteristic_uuid =
+                    kinski::bluetooth::UUID([c.UUID.UUIDString UTF8String]);
+                    
+                    if(characteristic_uuid == the_characteristic_uuid){ ret = c;}
+                }
+            }
+        }
+        return ret;
     }
     
 }}//namespace
@@ -299,7 +391,7 @@ namespace kinski{ namespace bluetooth{
         RSSI:(NSNumber *)RSSI
 {
     auto p = kinski::bluetooth::Peripheral::create(self.central_impl->central_ref.lock(),
-                                                   (uint8_t*)peripheral.identifier);
+                                                   kinski::bluetooth::UUID((uint8_t*)peripheral.identifier));
     
     p->set_name(peripheral.name ? [peripheral.name UTF8String] : "unknown");
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
@@ -388,11 +480,29 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(nullable NSError *)error
 {
-    for (CBService *service in peripheral.services)
+    auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
+    
+    if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
-        LOG_DEBUG << "discovered service: " << [service.description UTF8String];
-        [peripheral discoverCharacteristics:nil forService:service];
+        auto p = it->second;
+
+        for (CBService *service in peripheral.services)
+        {
+            LOG_DEBUG << "discovered service: " << [service.description UTF8String];
+            
+            auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
+            auto service_it = p->known_services().find(service_uuid);
+            
+            if(service_it == p->known_services().end())
+            {
+                p->add_service(service_uuid);
+                
+                // now look for the characteristics for this service
+                [peripheral discoverCharacteristics:nil forService:service];
+            }
+        }
     }
+    
 }
 
 - (void)peripheralDidUpdateName:(CBPeripheral *)peripheral
@@ -412,10 +522,22 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
     LOG_DEBUG << "discovered characteristics for service: " << [service.description UTF8String];
     
-    for (CBCharacteristic *c in service.characteristics)
+    auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
+    
+    auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
+    
+    if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
-        LOG_DEBUG << "subscribed to characteristic: " << [c.description UTF8String];
-        [peripheral setNotifyValue:YES forCharacteristic: c];
+        auto p = it->second;
+        
+        for (CBCharacteristic *c in service.characteristics)
+        {
+            auto characteristic_uuid = kinski::bluetooth::UUID([c.UUID.UUIDString UTF8String]);
+            p->add_characteristic(service_uuid, characteristic_uuid);
+            
+            LOG_TRACE_1 << "subscribed to characteristic: " << [c.description UTF8String];
+            [peripheral setNotifyValue:YES forCharacteristic: c];
+        }
     }
 }
 
@@ -423,7 +545,19 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic
         error:(nullable NSError *)error
 {
-    LOG_DEBUG << "characteristic updated: " << (char*)[characteristic.value bytes];
+    LOG_TRACE_2 << "characteristic updated: " << (char*)[characteristic.value bytes];
+    
+    auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
+    
+    if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
+    {
+        auto p = it->second;
+        auto characteristic_uuid = kinski::bluetooth::UUID([characteristic.UUID.UUIDString UTF8String]);
+        std::vector<uint8_t> value_vec((uint8_t*)[characteristic.value bytes],
+                                       (uint8_t*)[characteristic.value bytes] + [characteristic.value length]);
+        
+        if(p->value_updated_cb()){ p->value_updated_cb()(characteristic_uuid, value_vec); }
+    }
 }
 
 @end

@@ -16,8 +16,8 @@ namespace kinski{ namespace bluetooth
         UUID(const std::string &the_str);
         explicit UUID(uint8_t the_bytes[16]);
         
-        const uint8_t* as_bytes() const;
-        const std::string as_string() const;
+        const uint8_t* bytes() const;
+        const std::string string() const;
         
         bool operator==(const UUID &the_other) const;
         bool operator!=(const UUID &the_other) const;
@@ -57,10 +57,11 @@ namespace kinski{ namespace bluetooth
         
         typedef std::function<void(const UUID&, const std::vector<uint8_t>&)> ValueUpdatedCallback;
         
-        static PeripheralPtr create(CentralPtr the_central, uint8_t the_uuid[16]);
+        static PeripheralPtr create(CentralPtr the_central, UUID the_uuid);
         
-        std::string uuid() const;
-        std::string name() const;
+        const UUID& uuid() const;
+        
+        const std::string& name() const;
         void set_name(const std::string &the_name);
         
         bool is_connected() const;
@@ -80,9 +81,13 @@ namespace kinski{ namespace bluetooth
         void read_value_for_characteristic(const UUID &the_characteristic,
                                            ValueUpdatedCallback cb);
         
+        ValueUpdatedCallback value_updated_cb();
         void set_value_updated_cb(ValueUpdatedCallback cb);
         
-//        std::map<Service, std::list<Characteristic>> characteristics_map();
+        void add_service(const UUID& the_service_uuid);
+        void add_characteristic(const UUID& the_service_uuid, const UUID& the_characteristic_uuid);
+        
+        const std::map<UUID, std::list<UUID>>& known_services();
         
     private:
         Peripheral();
