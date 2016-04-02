@@ -26,7 +26,8 @@ namespace kinski {
         m_search_paths->setTweakable(false);
         register_property(m_search_paths);
 
-        m_logger_severity = RangedProperty<int>::create("logger severity", (int)kinski::Severity::INFO, 0, 7);
+        m_logger_severity = RangedProperty<int>::create("logger severity",
+                                                        (int)kinski::Severity::INFO, 0, 9);
         register_property(m_logger_severity);
 
         m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);

@@ -16,6 +16,8 @@ class Bluetooth_UART
 {
 public:
     
+    typedef std::function<void(const Bluetooth_UART&, std::vector<uint8_t>&)> ReceiveCallback;
+    
     bool setup();
     void close();
     
@@ -28,10 +30,13 @@ public:
     void drain();
     bool is_initialized() const;
     
+    void set_receive_cb(ReceiveCallback cb);
+    
 private:
     CentralPtr m_central;
     PeripheralPtr m_peripheral;
     std::vector<uint8_t> m_buffer;
+    ReceiveCallback m_receive_cb;
 };
     
 }}// namespaces

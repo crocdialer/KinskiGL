@@ -239,7 +239,8 @@ namespace kinski { namespace gl {
         {
             click_world_pos = cam_pos + lookAt * near + side * click_2D.x + up  * click_2D.y;
         }
-        LOG_TRACE<<"clicked_world: ("<<click_world_pos.x<<",  "<<click_world_pos.y<<",  "<<click_world_pos.z<<")";
+        LOG_TRACE_2 << "clicked_world: (" << click_world_pos.x << ",  " << click_world_pos.y
+            << ",  " << click_world_pos.z << ")";
         return Ray(click_world_pos, click_world_pos - cam_pos);
     }
     

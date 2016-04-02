@@ -543,7 +543,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
             auto characteristic_uuid = kinski::bluetooth::UUID([c.UUID.UUIDString UTF8String]);
             p->add_characteristic(service_uuid, characteristic_uuid);
             
-            LOG_TRACE_1 << "subscribed to characteristic: " << [c.description UTF8String];
+            LOG_TRACE_1 << "subscribed to characteristic: " << characteristic_uuid.string();
             [peripheral setNotifyValue:YES forCharacteristic: c];
         }
     }
@@ -572,8 +572,6 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         didWriteValueForCharacteristic:(CBCharacteristic *)characteristic
         error:(nullable NSError *)error
 {
-    LOG_DEBUG << "wrote something";
-    
     if(error)
     {
         LOG_WARNING << "Error writing characteristic value: " << [error localizedDescription].UTF8String;

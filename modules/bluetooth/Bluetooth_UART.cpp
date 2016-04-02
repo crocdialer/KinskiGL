@@ -40,9 +40,13 @@ namespace kinski{ namespace bluetooth{
                 {
                     LOG_DEBUG << string(the_data.begin(), the_data.end());
                     m_buffer.insert(m_buffer.end(), the_data.begin(), the_data.end());
+                    
+                    // fire receive callback
+                    if(m_receive_cb){ m_receive_cb(*this, m_buffer); }
                 }
             });
         });
+        m_central->discover_peripherals({UART_SERVICE_UUID});
         return true;
     }
     
@@ -115,4 +119,8 @@ namespace kinski{ namespace bluetooth{
     
 ///////////////////////////////////////////////////////////////////////////////
     
+    void Bluetooth_UART::set_receive_cb(ReceiveCallback cb)
+    {
+        m_receive_cb = cb;
+    }
 }}
