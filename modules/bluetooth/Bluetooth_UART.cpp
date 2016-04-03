@@ -7,22 +7,30 @@
 //
 
 #include "Bluetooth_UART.hpp"
+#include <mutex>
 
 namespace kinski{ namespace bluetooth{
     
-    namespace{ }
+    namespace{ std::mutex mutex; }
     
 #define UART_SERVICE_UUID bluetooth::UUID("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
 #define UART_CHARACTERISTIC_TX bluetooth::UUID("6e400002-b5a3-f393-e0a9-e50e24dcca9e")
 #define UART_CHARACTERISTIC_RX bluetooth::UUID("6e400003-b5a3-f393-e0a9-e50e24dcca9e")
-
+    
+    Bluetooth_UART::Bluetooth_UART(){}
+    
+    Bluetooth_UART::~Bluetooth_UART()
+    {
+        close();
+    }
+    
     bool Bluetooth_UART::setup()
     {
         m_central = bluetooth::Central::create();
         m_central->set_peripheral_discovered_cb([this](bluetooth::CentralPtr c,
                                                        bluetooth::PeripheralPtr p)
         {
-            LOG_DEBUG << p->name() << " - " << p->rssi() /*<< " (" << p->uuid << ")"*/;
+//            LOG_DEBUG << p->name() << " - " << p->rssi() /*<< " (" << p->uuid << ")"*/;
             if(p->connectable()){ c->connect_peripheral(p); }
         });
         
@@ -38,11 +46,16 @@ namespace kinski{ namespace bluetooth{
             {
                 if(the_uuid == UART_CHARACTERISTIC_RX)
                 {
-                    LOG_DEBUG << string(the_data.begin(), the_data.end());
+                    LOG_TRACE_2 << string(the_data.begin(), the_data.end());
+                    std::unique_lock<std::mutex> lock(mutex);
                     m_buffer.insert(m_buffer.end(), the_data.begin(), the_data.end());
-                    
+    
                     // fire receive callback
-                    if(m_receive_cb){ m_receive_cb(*this, m_buffer); }
+                    if(m_receive_cb)
+                    {
+                        m_receive_cb(*this, m_buffer);
+                        m_buffer.clear();
+                    }
                 }
             });
         });
@@ -62,9 +75,11 @@ namespace kinski{ namespace bluetooth{
     
     size_t Bluetooth_UART::read_bytes(void *buffer, size_t sz)
     {
+        std::unique_lock<std::mutex> lock(mutex);
         size_t num_bytes = std::min(m_buffer.size(), sz);
         memcpy(buffer, &m_buffer[0], num_bytes);
-        m_buffer.clear();
+        std::vector<uint8_t> tmp(m_buffer.end() - num_bytes, m_buffer.end());
+        m_buffer = tmp;
         return num_bytes;
     }
 
@@ -100,6 +115,7 @@ namespace kinski{ namespace bluetooth{
     
     size_t Bluetooth_UART::available()
     {
+        std::unique_lock<std::mutex> lock(mutex);
         return m_buffer.size();
     }
     
@@ -107,6 +123,7 @@ namespace kinski{ namespace bluetooth{
     
     void Bluetooth_UART::drain()
     {
+        std::unique_lock<std::mutex> lock(mutex);
         m_buffer.clear();
     }
 
@@ -114,7 +131,7 @@ namespace kinski{ namespace bluetooth{
     
     bool Bluetooth_UART::is_initialized() const
     {
-        return m_central.get();
+        return m_peripheral.get();
     }
     
 ///////////////////////////////////////////////////////////////////////////////

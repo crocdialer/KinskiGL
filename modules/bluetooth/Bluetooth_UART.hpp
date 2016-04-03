@@ -16,18 +16,28 @@ class Bluetooth_UART
 {
 public:
     
-    typedef std::function<void(const Bluetooth_UART&, std::vector<uint8_t>&)> ReceiveCallback;
+    typedef std::function<void(Bluetooth_UART&, const std::vector<uint8_t>&)> ReceiveCallback;
+    
+    Bluetooth_UART();
+    
+    ~Bluetooth_UART();
     
     bool setup();
+    
     void close();
     
     size_t read_bytes(void *buffer, size_t sz);
+    
     size_t write_string(const std::string &the_str);
+    
     size_t write_bytes(const void *buffer, size_t sz);
+    
     size_t write_bytes(const std::vector<uint8_t> &the_data);
+    
     size_t available();
     
     void drain();
+    
     bool is_initialized() const;
     
     void set_receive_cb(ReceiveCallback cb);

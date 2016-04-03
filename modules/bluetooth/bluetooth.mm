@@ -450,7 +450,7 @@ didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        LOG_DEBUG << "failed to connect: " << p->name();
+        LOG_WARNING << "failed to connect: " << p->name();
         [peripheral release];
         kinski::bluetooth::g_peripheral_map.erase(p);
         kinski::bluetooth::g_peripheral_reverse_map.erase(peripheral);
@@ -482,7 +482,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     {
         auto p = it->second;
         p->set_rssi([[peripheral RSSI] floatValue]);
-        LOG_DEBUG << p->name() << ": " << kinski::as_string(p->rssi(), 1);
+        LOG_TRACE_1 << p->name() << ": " << kinski::as_string(p->rssi(), 1);
     }
 }
 
@@ -496,9 +496,9 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 
         for (CBService *service in peripheral.services)
         {
-            LOG_DEBUG << "discovered service: " << [service.description UTF8String];
-            
             auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
+            LOG_TRACE_1 << "discovered service: " << service_uuid.string();
+            
             auto service_it = p->known_services().find(service_uuid);
             
             if(service_it == p->known_services().end())
@@ -527,10 +527,11 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         didDiscoverCharacteristicsForService:(CBService *)service
         error:(nullable NSError *)error
 {
-    LOG_DEBUG << "discovered " << service.characteristics.count << " characteristics for service: "
-        << [service.description UTF8String];
-    
     auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
+    
+    LOG_TRACE_1 << "discovered " << service.characteristics.count << " characteristics for service: "
+        << service_uuid.string();
+    
     
     auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
     
