@@ -479,16 +479,9 @@ bool Serial::setup(string portName, int baud)
 	#endif
 	//---------------------------------------------
 }
-
-//----------------------------------------------------------------
-    
-int Serial::write_string(const std::string &str)
-{
-    return writeBytes(str.c_str(), str.length() + 1);
-}
     
 //----------------------------------------------------------------
-int Serial::writeBytes(const void *buffer, int length)
+size_t Serial::write_bytes(const void *buffer, size_t length)
 {
 
 	if (!bInited)
@@ -507,7 +500,7 @@ int Serial::writeBytes(const void *buffer, int length)
 		ofLogVerbose("Serial") <<  "wrote " << (int) written << " bytes";
 		return (int)written;
 	#else
-    int numWritten = (int)write(m_handle, buffer, length);
+    int numWritten = (int)::write(m_handle, buffer, length);
     if(numWritten <= 0)
     {
         if ( errno == EAGAIN )
@@ -526,7 +519,7 @@ int Serial::writeBytes(const void *buffer, int length)
 }
 
 //----------------------------------------------------------------
-int Serial::readBytes(void *buffer, int length)
+size_t Serial::read_bytes(void *buffer, size_t sz)
 {
 
 	if (!bInited)
@@ -546,7 +539,7 @@ int Serial::readBytes(void *buffer, int length)
     //---------------------------------------------
 #else
     //---------------------------------------------
-    int nRead = (int)read(m_handle, buffer, length);
+    int nRead = (int)::read(m_handle, buffer, sz);
     if(nRead < 0)
     {
         if ( errno == EAGAIN )
@@ -561,96 +554,11 @@ int Serial::readBytes(void *buffer, int length)
 }
 
 //----------------------------------------------------------------
-bool Serial::writeByte(unsigned char singleByte){
+void Serial::flush(bool flushIn, bool flushOut)
+{
 
 	if (!bInited)
     {
-		LOG_ERROR << "writeByte(): serial not inited";
-		//return KINSKI_SERIAL_ERROR; // this looks wrong.
-		return false;
-	}
-
-	unsigned char tmpByte[1];
-	tmpByte[0] = singleByte;
-
-
-    //---------------------------------------------
-	#ifdef KINSKI_MSW
-		DWORD written = 0;
-		if(!WriteFile(hComm, tmpByte, 1, &written,0)){
-			 LOG_ERROR << "writeByte(): couldn't write to port";
-			 //return KINSKI_SERIAL_ERROR; // this looks wrong.
-			 return false;
-		}
-
-		ofLogVerbose("Serial") << "wrote byte";
-
-		return ((int)written > 0 ? true : false);
-    //---------------------------------------------
-    #else
-    //---------------------------------------------
-    size_t numWritten = 0;
-    numWritten = write(m_handle, tmpByte, 1);
-    if(numWritten <= 0 )
-    {
-        if ( errno == EAGAIN )
-            return 0;
-        LOG_ERROR << "writeByte(): couldn't write to port: " << errno << " " << strerror(errno);
-        //return KINSKI_SERIAL_ERROR; // this looks wrong.
-        return false;
-    }
-    LOG_TRACE << "wrote byte";
-    
-    return (numWritten > 0 ? true : false);
-
-    //---------------------------------------------
-	#endif
-
-}
-
-//----------------------------------------------------------------
-int Serial::readByte(){
-
-	if (!bInited){
-		LOG_ERROR << "readByte(): serial not inited";
-		return KINSKI_SERIAL_ERROR;
-	}
-
-	unsigned char tmpByte[1];
-	memset(tmpByte, 0, 1);
-
-	//---------------------------------------------
-	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
-		int nRead = read(m_handle, tmpByte, 1);
-		if(nRead < 0){
-			if ( errno == EAGAIN )
-				return KINSKI_SERIAL_NO_DATA;
-			LOG_ERROR << "readByte(): couldn't read from port: " << errno << " " << strerror(errno);
-            return KINSKI_SERIAL_ERROR;
-		}
-		if(nRead == 0)
-			return KINSKI_SERIAL_NO_DATA;
-    #endif
-    //---------------------------------------------
-
-    //---------------------------------------------
-	#ifdef KINSKI_MSW
-		DWORD nRead;
-		if (!ReadFile(hComm, tmpByte, 1, &nRead, 0)){
-			LOG_ERROR << "readByte(): couldn't read from port";
-			return KINSKI_SERIAL_ERROR;
-		}
-	#endif
-	//---------------------------------------------
-
-	return (int)(tmpByte[0]);
-}
-
-
-//----------------------------------------------------------------
-void Serial::flush(bool flushIn, bool flushOut){
-
-	if (!bInited){
 		LOG_ERROR << "flush(): serial not inited";
 		return;
 	}
@@ -728,7 +636,7 @@ size_t Serial::available()
 	return numBytes;
 }
 
-bool Serial::isInitialized() const
+bool Serial::is_initialized() const
 {
     return bInited;
 }
@@ -741,7 +649,7 @@ vector<string> Serial::read_lines(const char delim)
     std::fill(m_read_buffer.begin(), m_read_buffer.end(), 0);
     
     // try reading some bytes
-    int num_read = readBytes(&m_read_buffer[0], std::min(available(), m_read_buffer.size()));
+    int num_read = read_bytes(&m_read_buffer[0], std::min(available(), m_read_buffer.size()));
     
     if(num_read > 0)
     {

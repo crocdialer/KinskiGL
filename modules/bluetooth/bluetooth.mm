@@ -176,6 +176,19 @@ namespace kinski{ namespace bluetooth{
         }
     }
     
+    void Central::disconnect_all()
+    {
+        for(auto &it : g_peripheral_map)
+        {
+            CBPeripheral *cb_peripheral = it.second;
+            
+            [m_impl->central_manager cancelPeripheralConnection:cb_peripheral];
+            [cb_peripheral release];
+        }
+        g_peripheral_map.clear();
+        g_peripheral_reverse_map.clear();
+    }
+    
     std::set<PeripheralPtr> Central::peripherals() const
     {
         std::set<PeripheralPtr> ret;

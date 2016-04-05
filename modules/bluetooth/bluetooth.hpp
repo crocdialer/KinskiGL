@@ -39,7 +39,7 @@ namespace kinski{ namespace bluetooth
         void connect_peripheral(const PeripheralPtr &the_peripheral,
                                 PeripheralCallback cb = PeripheralCallback());
         void disconnect_peripheral(const PeripheralPtr &the_peripheral);
-        
+        void disconnect_all();
         void set_peripheral_discovered_cb(PeripheralCallback cb);
         void set_peripheral_connected_cb(PeripheralCallback cb);
         void set_peripheral_disconnected_cb(PeripheralCallback cb);

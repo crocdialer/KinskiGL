@@ -54,7 +54,7 @@ namespace kinski
             bytes.push_back(DMX_END_CODE);
 
             // write our data block
-            int bytes_written = m_serial.writeBytes(&bytes[0], bytes.size());
+            int bytes_written = m_serial.write_bytes(&bytes[0], bytes.size());
             if(bytes_written > 0){ m_last_reading = 0.f; }
         }
     };
@@ -71,7 +71,7 @@ namespace kinski
         m_impl->m_last_reading += time_delta;
         
         // update only when serial connection is initialized
-        if(m_impl->m_serial.isInitialized())
+        if(m_impl->m_serial.is_initialized())
         {
             // send values
             m_impl->transmit(SET_DMX_TX_MODE, &m_impl->m_dmx_values[0], m_impl->m_dmx_values.size());
@@ -107,7 +107,7 @@ namespace kinski
         }
         
         // finally flush the newly initialized device
-        if(m_impl->m_serial.isInitialized())
+        if(m_impl->m_serial.is_initialized())
         {
             m_impl->m_serial.flush();
             m_impl->m_last_reading = 0.f;
@@ -141,7 +141,7 @@ namespace kinski
     
     bool DMXController::is_initialized() const
     {
-        return m_impl->m_serial.isInitialized();
+        return m_impl->m_serial.is_initialized();
     }
 
 }// namespace

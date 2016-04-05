@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/core.hpp"
+#include "UART.hpp"
 
 #if defined(KINSKI_MSW)
 #include <winbase.h>
@@ -25,7 +25,7 @@
 
 namespace kinski
 {
-    class Serial
+    class Serial : public UART
     {
         
     public:
@@ -55,35 +55,28 @@ namespace kinski
         void list_devices();
         std::vector<Serial::DeviceInfo> device_list();
         
-        void 			close();
-        bool			setup();	// use default port, baud (0,9600)
-        bool			setup(string portName, int baudrate);
-        bool			setup(int deviceNumber, int baudrate);
-        
-        
-        int 			readBytes(void *buffer, int length);
-        int 			write_string(const std::string &str);
-        int 			writeBytes(const void *buffer, int length);
-        bool			writeByte(unsigned char singleByte);
-        int             readByte();  // returns -1 on no read or error...
-        void			flush(bool flushIn = true, bool flushOut = true);
-        size_t				available();
-        
-        void            drain();
-        bool            isInitialized() const;
+        bool setup() override;	// use default port, baud (0,9600)
+        bool setup(string portName, int baudrate);
+        bool setup(int deviceNumber, int baudrate);
+        void close() override;
+        bool is_initialized() const override;
+        size_t read_bytes(void *buffer, size_t sz) override;
+        size_t write_bytes(const void *buffer, size_t sz) override;
+        size_t available() override;
+        void drain() override;
+        void flush(bool flushIn = true, bool flushOut = true);
         
         std::vector<std::string> read_lines(const char delim = '\n');
         
-        
     private:
-        void			buildDeviceList();
+        void buildDeviceList();
         
         std::string				deviceType;
         std::vector <DeviceInfo> devices;
         
         bool bHaveEnumeratedDevices;
         
-        bool 	bInited;
+        bool bInited;
         
         // needed for buffered get_line member
         string m_accum_str;
@@ -91,17 +84,17 @@ namespace kinski
         
 #ifdef KINSKI_MSW
         
-        char 		** portNamesShort;//[MAX_SERIAL_PORTS];
-        char 		** portNamesFriendly; ///[MAX_SERIAL_PORTS];
-        HANDLE  	hComm;		// the handle to the serial port pc
-        int	 		nPorts;
-        bool 		bPortsEnumerated;
-        void 		enumerateWin32Ports();
-        COMMTIMEOUTS 	oldTimeout;	// we alter this, so keep a record
+        char** portNamesShort;//[MAX_SERIAL_PORTS];
+        char** portNamesFriendly; ///[MAX_SERIAL_PORTS];
+        HANDLE hComm;		// the handle to the serial port pc
+        int nPorts;
+        bool bPortsEnumerated;
+        void enumerateWin32Ports();
+        COMMTIMEOUTS oldTimeout;	// we alter this, so keep a record
         
 #else
-        int 		m_handle;			// the handle to the serial port mac
-        struct 	termios m_old_options;
+        int m_handle;			// the handle to the serial port mac
+        struct termios m_old_options;
 #endif
         
     };

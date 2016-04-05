@@ -85,13 +85,6 @@ namespace kinski{ namespace bluetooth{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    size_t Bluetooth_UART::write_string(const std::string &the_str)
-    {
-        return write_bytes(&the_str[0], the_str.size());
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-    
     size_t Bluetooth_UART::write_bytes(const void *buffer, size_t sz)
     {
         if(m_peripheral)
@@ -102,13 +95,6 @@ namespace kinski{ namespace bluetooth{
             return sz;
         }
         return 0;
-    }
-    
-///////////////////////////////////////////////////////////////////////////////
-    
-    size_t Bluetooth_UART::write_bytes(const std::vector<uint8_t> &the_data)
-    {
-        return write_bytes(&the_data[0], the_data.size());
     }
     
 ///////////////////////////////////////////////////////////////////////////////

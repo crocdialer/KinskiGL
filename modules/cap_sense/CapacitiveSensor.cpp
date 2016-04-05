@@ -53,7 +53,7 @@ namespace kinski
         size_t bytes_to_read = 0;
         m_impl->m_last_reading += time_delta;
         
-        if(m_impl->m_sensor_device.isInitialized())
+        if(m_impl->m_sensor_device.is_initialized())
         {
             bytes_to_read = std::min(m_impl->m_sensor_device.available(),
                                      m_impl->m_sensor_read_buf.size());
@@ -61,7 +61,7 @@ namespace kinski
             if(bytes_to_read){ m_impl->m_last_reading = 0.f; }
             
             uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
-            m_impl->m_sensor_device.readBytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
+            m_impl->m_sensor_device.read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
             bool reading_complete = false;
             
             for(uint32_t i = 0; i < bytes_to_read; i++)
@@ -139,7 +139,7 @@ namespace kinski
         m_impl->m_device_name = dev_name;
         
         // finally flush the newly initialized device
-        if(m_impl->m_sensor_device.isInitialized())
+        if(m_impl->m_sensor_device.is_initialized())
         {
             m_impl->m_sensor_device.flush();
             m_impl->m_last_reading = 0.f;
@@ -151,13 +151,13 @@ namespace kinski
     
     bool CapacitiveSensor::update_config()
     {
-        if(m_impl->m_sensor_device.isInitialized())
+        if(m_impl->m_sensor_device.is_initialized())
         {
             auto conf_str = as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_charge_current) + "\n";
             
-            int bytes_written = m_impl->m_sensor_device.write_string(conf_str);
+            int bytes_written = m_impl->m_sensor_device.write(conf_str);
             if(bytes_written)
             {
                 return true;
@@ -213,6 +213,6 @@ namespace kinski
     
     bool CapacitiveSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device.isInitialized();
+        return m_impl->m_sensor_device.is_initialized();
     }
 }
