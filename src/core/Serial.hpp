@@ -25,79 +25,80 @@
 
 namespace kinski
 {
-    class Serial : public UART
+    
+class Serial : public UART
+{
+    
+public:
+    
+    struct DeviceInfo
     {
-        
-    public:
-        
-        struct DeviceInfo
+        DeviceInfo(std::string devicePathIn, std::string deviceNameIn, int deviceIDIn)
         {
-            DeviceInfo(std::string devicePathIn, std::string deviceNameIn, int deviceIDIn)
-            {
-                devicePath			= devicePathIn;
-                deviceName			= deviceNameIn;
-                deviceID			= deviceIDIn;
-            }
-            
-            DeviceInfo()
-            {
-                deviceName = "device undefined";
-                deviceID   = -1;
-            }
-            std::string devicePath;			//eg: /dev/tty.cu/usbdevice-a440
-            std::string deviceName;			//eg: usbdevice-a440 / COM4
-            int deviceID;				//eg: 0,1,2,3 etc
-        };
+            devicePath			= devicePathIn;
+            deviceName			= deviceNameIn;
+            deviceID			= deviceIDIn;
+        }
         
-        Serial();
-        virtual ~Serial();
-        
-        void list_devices();
-        std::vector<Serial::DeviceInfo> device_list();
-        
-        bool setup() override;	// use default port, baud (0,9600)
-        bool setup(string portName, int baudrate);
-        bool setup(int deviceNumber, int baudrate);
-        void close() override;
-        bool is_initialized() const override;
-        size_t read_bytes(void *buffer, size_t sz) override;
-        size_t write_bytes(const void *buffer, size_t sz) override;
-        size_t available() override;
-        void drain() override;
-        void flush(bool flushIn = true, bool flushOut = true);
-        
-        std::vector<std::string> read_lines(const char delim = '\n');
-        
-    private:
-        void buildDeviceList();
-        
-        std::string				deviceType;
-        std::vector <DeviceInfo> devices;
-        
-        bool bHaveEnumeratedDevices;
-        
-        bool bInited;
-        
-        // needed for buffered get_line member
-        string m_accum_str;
-        std::vector<char> m_read_buffer;
-        
-#ifdef KINSKI_MSW
-        
-        char** portNamesShort;//[MAX_SERIAL_PORTS];
-        char** portNamesFriendly; ///[MAX_SERIAL_PORTS];
-        HANDLE hComm;		// the handle to the serial port pc
-        int nPorts;
-        bool bPortsEnumerated;
-        void enumerateWin32Ports();
-        COMMTIMEOUTS oldTimeout;	// we alter this, so keep a record
-        
-#else
-        int m_handle;			// the handle to the serial port mac
-        struct termios m_old_options;
-#endif
-        
+        DeviceInfo()
+        {
+            deviceName = "device undefined";
+            deviceID   = -1;
+        }
+        std::string devicePath;			//eg: /dev/tty.cu/usbdevice-a440
+        std::string deviceName;			//eg: usbdevice-a440 / COM4
+        int deviceID;				//eg: 0,1,2,3 etc
     };
+    
+    Serial();
+    virtual ~Serial();
+    
+    void list_devices();
+    std::vector<Serial::DeviceInfo> device_list();
+    
+    bool setup() override;	// use default port, baud (0,9600)
+    bool setup(string portName, int baudrate);
+    bool setup(int deviceNumber, int baudrate);
+    void close() override;
+    bool is_initialized() const override;
+    size_t read_bytes(void *buffer, size_t sz) override;
+    size_t write_bytes(const void *buffer, size_t sz) override;
+    size_t available() override;
+    void drain() override;
+    void flush(bool flushIn = true, bool flushOut = true);
+    
+    std::vector<std::string> read_lines(const char delim = '\n');
+    
+private:
+    void buildDeviceList();
+    
+    std::string				deviceType;
+    std::vector <DeviceInfo> devices;
+    
+    bool bHaveEnumeratedDevices;
+    
+    bool bInited;
+    
+    // needed for buffered get_line member
+    string m_accum_str;
+    std::vector<char> m_read_buffer;
+    
+#ifdef KINSKI_MSW
+    
+    char** portNamesShort;//[MAX_SERIAL_PORTS];
+    char** portNamesFriendly; ///[MAX_SERIAL_PORTS];
+    HANDLE hComm;		// the handle to the serial port pc
+    int nPorts;
+    bool bPortsEnumerated;
+    void enumerateWin32Ports();
+    COMMTIMEOUTS oldTimeout;	// we alter this, so keep a record
+    
+#else
+    int m_handle;			// the handle to the serial port mac
+    struct termios m_old_options;
+#endif
+    
+};
     
     //----------------------------------------------------------------------
 }

@@ -65,7 +65,13 @@ namespace kinski
         connect(the_device_name);
         m_impl->m_dmx_values.resize(512, 0);
     }
-
+    
+    DMXController::~DMXController()
+    {
+        try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
+        catch (std::exception &e) { LOG_WARNING << e.what(); }
+    }
+    
     void DMXController::update(float time_delta)
     {
         m_impl->m_last_reading += time_delta;

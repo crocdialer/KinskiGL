@@ -17,6 +17,7 @@ namespace kinski
     public:
 
         DMXController(const std::string &the_device_name = "");
+        ~DMXController();
         
         bool connect(const std::string &the_device_name);
         
