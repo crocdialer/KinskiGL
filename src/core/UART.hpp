@@ -37,12 +37,8 @@ public:
      */
     template<typename T> size_t write(const T &the_container)
     {
-        if(!the_container.empty())
-        {
-            size_t elem_sz = sizeof(the_container.front());
-            return write_bytes(&the_container[0], elem_sz * the_container.size());
-        }
-        return 0;
+        std::vector<uint8_t> data(std::begin(the_container), std::end(the_container));
+        return data.empty() ? 0 : write_bytes(&data[0], data.size());
     };
     
     //! returns the number of bytes available for reading

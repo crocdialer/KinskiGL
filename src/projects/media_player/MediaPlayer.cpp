@@ -23,6 +23,7 @@ void MediaPlayer::setup()
     fonts()[1].load(fonts()[0].path(), 28);
     register_property(m_movie_path);
     register_property(m_loop);
+    register_property(m_auto_play);
     register_property(m_movie_speed);
     register_property(m_use_warping);
     observe_properties();
@@ -48,7 +49,7 @@ void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_movie)
     {
-        m_movie->load(*m_movie_path, true, *m_loop);
+        m_movie->load(*m_movie_path, *m_auto_play, *m_loop);
         m_movie->set_rate(*m_movie_speed);
         m_reload_movie = false;
     }
