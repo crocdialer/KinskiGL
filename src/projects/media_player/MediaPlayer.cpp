@@ -271,7 +271,12 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("play");
     register_function("play", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_movie_path = rpc_args.front(); }
+        if(!rpc_args.empty())
+        {
+            std::string p; for(const auto &arg : rpc_args){ p += arg + " "; }
+            p = p.substr(0, p.size() - 1);
+            *m_movie_path = p;
+        }
         else{ m_movie->play(); }
     });
     remote_control().add_command("pause");
@@ -282,12 +287,18 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("load");
     register_function("load", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ *m_movie_path = rpc_args.front(); }
+        if(!rpc_args.empty())
+        {
+            std::string p; for(const auto &arg : rpc_args){ p += arg + " "; }
+            p = p.substr(0, p.size() - 1);
+            *m_movie_path = p;
+        }
     });
     remote_control().add_command("unload");
     register_function("unload", [this](const std::vector<std::string> &rpc_args)
     {
         m_movie->unload();
+        textures()[TEXTURE_INPUT].reset();
     });
     remote_control().add_command("set_volume");
     register_function("set_volume", [this](const std::vector<std::string> &rpc_args)
@@ -314,33 +325,32 @@ void MediaPlayer::setup_rpc_interface()
         if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
         con->send(as_string(m_movie->rate()));
     });
-                                                 
+    
     remote_control().add_command("seek_to_time");
     register_function("seek_to_time", [this](const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty())
         {
             float secs = 0.f;
-            
             auto splits = split(rpc_args.front(), ':');
-            
+          
             switch (splits.size())
             {
                 case 3:
                     secs = kinski::string_as<float>(splits[2]) +
-                           60.f * kinski::string_as<float>(splits[1]) +
-                           3600.f * kinski::string_as<float>(splits[0]) ;
+                    60.f * kinski::string_as<float>(splits[1]) +
+                    3600.f * kinski::string_as<float>(splits[0]) ;
                     break;
-                    
+                  
                 case 2:
                     secs = kinski::string_as<float>(splits[1]) +
                     60.f * kinski::string_as<float>(splits[0]);
                     break;
-                    
+                  
                 case 1:
                     secs = kinski::string_as<float>(splits[0]);
                     break;
-                    
+                  
                 default:
                     break;
             }
@@ -374,7 +384,7 @@ void MediaPlayer::setup_rpc_interface()
     });
     
     remote_control().add_command("is_playing", [this](net::tcp_connection_ptr con,
-                                                const std::vector<std::string> &rpc_args)
+                                                      const std::vector<std::string> &rpc_args)
     {
         con->send(as_string(m_movie->is_playing()));
     });
