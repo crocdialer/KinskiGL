@@ -81,11 +81,10 @@ namespace kinski
                                          [](const boost::system::error_code& error,  // Result of operation.
                                             std::size_t bytes_transferred)           // Number of bytes sent.
                                          {
-                                             if (error){LOG_ERROR << error.message();}
-                                             else{ }
+                                             if(error){ LOG_WARNING << error.message(); }
                                          });
             }
-            catch (std::exception &e) { LOG_ERROR << e.what(); }
+            catch (std::exception &e) { LOG_WARNING << ip_string << " :" << e.what(); }
         }
         
         ///////////////////////////////////////////////////////////////////////////////
