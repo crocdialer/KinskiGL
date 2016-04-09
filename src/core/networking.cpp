@@ -95,7 +95,7 @@ namespace kinski
                     else{ LOG_WARNING << ip_string << ": " << ec.message(); }
                 });
             }
-            catch (std::exception &e) { LOG_WARNING << ip_string << " :" << e.what(); }
+            catch (std::exception &e) { LOG_WARNING << ip_string << ": " << e.what(); }
         }
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -154,7 +154,7 @@ namespace kinski
                     else{ LOG_WARNING << ip_string << ": " << ec.message(); }
                 });
             }
-            catch (std::exception &e) { LOG_ERROR << e.what(); }
+            catch (std::exception &e) { LOG_ERROR << ip_string << ": " << e.what(); }
         }
         
         ///////////////////////////////////////////////////////////////////////////////
