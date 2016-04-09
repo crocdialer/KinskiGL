@@ -64,8 +64,9 @@ public:
     size_t read_bytes(void *buffer, size_t sz) override;
     size_t write_bytes(const void *buffer, size_t sz) override;
     size_t available() override;
+    std::string description() override { return "serial"; }
     void drain() override;
-    void flush(bool flushIn = true, bool flushOut = true);
+    void flush(bool flushIn = true, bool flushOut = true) override;
     
     std::vector<std::string> read_lines(const char delim = '\n');
     

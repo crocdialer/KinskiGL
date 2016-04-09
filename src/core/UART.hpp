@@ -46,5 +46,12 @@ public:
     
     //! empty buffers
     virtual void drain() = 0;
+    
+    virtual void flush(bool flush_in = true, bool flush_out = true) = 0;
+    
+    virtual std::string description() = 0;
 };
+    
+typedef std::shared_ptr<UART> UART_Ptr;
+    
 }// namespace

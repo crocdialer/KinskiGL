@@ -29,7 +29,9 @@ public:
     size_t write_bytes(const void *buffer, size_t sz) override;
     size_t available() override;
     void drain() override;
+    void flush(bool flush_in = true, bool flush_out = true) override;
     bool is_initialized() const override;
+    std::string description() override;
     
     /////////////////////////////////////////////////////////////////////////////////
     

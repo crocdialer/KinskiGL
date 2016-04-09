@@ -119,6 +119,7 @@ namespace kinski
             
             KINSKI_API void send(const std::string &str);
             KINSKI_API void send(const std::vector<uint8_t> &bytes);
+            KINSKI_API void send(void* data, size_t num_bytes);
             
             KINSKI_API void set_receive_function(tcp_receive_callback f);
             KINSKI_API void start_receive();

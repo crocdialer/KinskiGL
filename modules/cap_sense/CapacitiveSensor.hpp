@@ -8,6 +8,7 @@
 #pragma once
 
 #include "core/core.hpp"
+#include "core/UART.hpp"
 
 namespace kinski
 {
@@ -17,9 +18,10 @@ namespace kinski
         
         typedef std::function<void(int)> TouchCallback;
         
-        CapacitiveSensor(const std::string &dev_name = "");
+        CapacitiveSensor(UART_Ptr the_uart_device = UART_Ptr());
         
-        bool connect(const std::string &dev_name = "");
+        bool connect(const std::string &the_serial_dev_name);
+        bool connect(UART_Ptr the_uart_device = UART_Ptr());
         
         void update(float time_delta);
         

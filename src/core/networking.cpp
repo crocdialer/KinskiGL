@@ -86,8 +86,8 @@ namespace kinski
                     {
                         boost::asio::connect(*socket_ptr, end_point_it);
                         boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
-                                                 [](const boost::system::error_code& error,
-                                                    std::size_t bytes_transferred)
+                                                 [socket_ptr](const boost::system::error_code& error,
+                                                              std::size_t bytes_transferred)
                         {
                             if(error){ LOG_WARNING << error.message(); }
                         });
@@ -145,8 +145,8 @@ namespace kinski
                     if(!ec)
                     {
                         socket_ptr->async_send_to(boost::asio::buffer(bytes), *end_point_it,
-                                                  [](const boost::system::error_code& error,
-                                                     std::size_t bytes_transferred)
+                                                  [socket_ptr](const boost::system::error_code& error,
+                                                               std::size_t bytes_transferred)
                         {
                             if(error){LOG_ERROR << error.message();}
                         });
@@ -457,15 +457,21 @@ namespace kinski
         
         void tcp_connection::send(const std::vector<uint8_t> &bytes)
         {
-            size_t bytes_total = bytes.size();
+            send((void*)&bytes[0], bytes.size());
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void tcp_connection::send(void* data, size_t num_bytes)
+        {
             auto impl = m_impl;
             boost::asio::async_write(m_impl->socket,
-                                     boost::asio::buffer(bytes),
-                                     [impl, bytes_total](const boost::system::error_code& error,  // Result of operation.
-                                                         std::size_t bytes_transferred)           // Number of bytes sent.
+                                     boost::asio::buffer(data, num_bytes),
+                                     [impl, num_bytes](const boost::system::error_code& error,
+                                                       std::size_t bytes_transferred)
             {
-                if(error){LOG_ERROR << error.message();}
-                else if(bytes_transferred < bytes_total)
+                if(error){ LOG_ERROR << error.message(); }
+                else if(bytes_transferred < num_bytes)
                 {
                     LOG_WARNING << "not all bytes written";
                 }

@@ -20,7 +20,7 @@ namespace kinski
 {
     struct CapacitiveSensor::Impl
     {
-        Serial m_sensor_device;
+        UART_Ptr m_sensor_device;
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_touch_status = 0;
@@ -34,13 +34,13 @@ namespace kinski
         TouchCallback m_touch_callback, m_release_callback;
     };
     
-    CapacitiveSensor::CapacitiveSensor(const std::string &dev_name):
+    CapacitiveSensor::CapacitiveSensor(UART_Ptr the_uart_device):
     m_impl(new Impl)
     {
-        m_impl->m_device_name = dev_name;
+//        m_impl->m_device_name = dev_name;
         m_impl->m_sensor_read_buf.resize(2048);
         
-        if(!dev_name.empty() && !connect(dev_name))
+        if(the_uart_device && connect(the_uart_device))
         {
             LOG_ERROR << "unable to connect capacitve touch sensor";
         }
@@ -53,15 +53,15 @@ namespace kinski
         size_t bytes_to_read = 0;
         m_impl->m_last_reading += time_delta;
         
-        if(m_impl->m_sensor_device.is_initialized())
+        if(m_impl->m_sensor_device->is_initialized())
         {
-            bytes_to_read = std::min(m_impl->m_sensor_device.available(),
+            bytes_to_read = std::min(m_impl->m_sensor_device->available(),
                                      m_impl->m_sensor_read_buf.size());
             
             if(bytes_to_read){ m_impl->m_last_reading = 0.f; }
             
             uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
-            m_impl->m_sensor_device.read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
+            m_impl->m_sensor_device->read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
             bool reading_complete = false;
             
             for(uint32_t i = 0; i < bytes_to_read; i++)
@@ -106,7 +106,7 @@ namespace kinski
             m_impl->m_last_reading = 0.f;
             try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
             catch (std::exception &e) { LOG_WARNING << e.what(); }
-            m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
+            m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_sensor_device); });
             return;
         }
     }
@@ -128,20 +128,31 @@ namespace kinski
         return NUM_SENSOR_PADS;
     }
     
-    bool CapacitiveSensor::connect(const std::string &dev_name)
+    bool CapacitiveSensor::connect(const std::string &the_serial_dev_name)
     {
-        if(dev_name.empty())
+        auto serial = std::make_shared<Serial>();
+        serial->setup(the_serial_dev_name, 57600);
+        return connect(serial);
+    }
+    
+    bool CapacitiveSensor::connect(UART_Ptr the_uart_device)
+    {
+        if(the_uart_device)
         {
-//            m_impl->m_sensor_device.setup(0, 57600);
+            m_impl->m_sensor_device = the_uart_device;
         }
-        else{ m_impl->m_sensor_device.setup(dev_name, 57600); }
+        else
+        {
+            m_impl->m_sensor_device = std::make_shared<Serial>();
+            m_impl->m_sensor_device->setup();
+        }
         
-        m_impl->m_device_name = dev_name;
+//        m_impl->m_device_name = dev_name;
         
         // finally flush the newly initialized device
-        if(m_impl->m_sensor_device.is_initialized())
+        if(m_impl->m_sensor_device->is_initialized())
         {
-            m_impl->m_sensor_device.flush();
+            m_impl->m_sensor_device->flush();
             m_impl->m_last_reading = 0.f;
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
             return true;
@@ -151,13 +162,13 @@ namespace kinski
     
     bool CapacitiveSensor::update_config()
     {
-        if(m_impl->m_sensor_device.is_initialized())
+        if(m_impl->m_sensor_device->is_initialized())
         {
             auto conf_str = as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_charge_current) + "\n";
             
-            int bytes_written = m_impl->m_sensor_device.write(conf_str);
+            int bytes_written = m_impl->m_sensor_device->write(conf_str);
             if(bytes_written)
             {
                 return true;
@@ -213,6 +224,6 @@ namespace kinski
     
     bool CapacitiveSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device.is_initialized();
+        return m_impl->m_sensor_device->is_initialized();
     }
 }
