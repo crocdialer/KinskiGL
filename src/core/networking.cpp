@@ -74,15 +74,26 @@ namespace kinski
         {
             try
             {
-                tcp::socket s(io_service);
-                tcp::resolver resolver(io_service);
-                boost::asio::connect(s, resolver.resolve({ip_string, kinski::as_string(port)}));
-                boost::asio::async_write(s, boost::asio::buffer(bytes),
-                                         [](const boost::system::error_code& error,  // Result of operation.
-                                            std::size_t bytes_transferred)           // Number of bytes sent.
-                                         {
-                                             if(error){ LOG_WARNING << error.message(); }
-                                         });
+                auto socket_ptr = std::make_shared<tcp::socket>(io_service);
+                auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
+                
+                resolver_ptr->async_resolve({ip_string, kinski::as_string(port)},
+                                            [socket_ptr, resolver_ptr, ip_string, bytes]
+                                            (const boost::system::error_code& ec,
+                                             tcp::resolver::iterator end_point_it)
+                {
+                    if(!ec)
+                    {
+                        boost::asio::connect(*socket_ptr, end_point_it);
+                        boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
+                                                 [](const boost::system::error_code& error,
+                                                    std::size_t bytes_transferred)
+                        {
+                            if(error){ LOG_WARNING << error.message(); }
+                        });
+                    }
+                    else{ LOG_WARNING << ip_string << ": " << ec.message(); }
+                });
             }
             catch (std::exception &e) { LOG_WARNING << ip_string << " :" << e.what(); }
         }
@@ -123,19 +134,25 @@ namespace kinski
         {
             try
             {
-                udp::resolver resolver(io_service);
+                auto socket_ptr = std::make_shared<udp::socket>(io_service, udp::v4());
+                auto resolver_ptr = std::make_shared<udp::resolver>(io_service);
                 udp::resolver::query query(udp::v4(), ip_string, kinski::as_string(port));
-                udp::endpoint receiver_endpoint = *resolver.resolve(query);
                 
-                udp::socket socket(io_service, udp::v4());
-                
-                socket.async_send_to(boost::asio::buffer(bytes), receiver_endpoint,
-                                     [](const boost::system::error_code& error,  // Result of operation.
-                                        std::size_t bytes_transferred)           // Number of bytes sent.
-                                     {
-                                         if (error){LOG_ERROR << error.message();}
-                                         else{ }
-                                     });
+                resolver_ptr->async_resolve(query, [socket_ptr, resolver_ptr, ip_string, bytes]
+                                            (const boost::system::error_code& ec,
+                                             udp::resolver::iterator end_point_it)
+                {
+                    if(!ec)
+                    {
+                        socket_ptr->async_send_to(boost::asio::buffer(bytes), *end_point_it,
+                                                  [](const boost::system::error_code& error,
+                                                     std::size_t bytes_transferred)
+                        {
+                            if(error){LOG_ERROR << error.message();}
+                        });
+                    }
+                    else{ LOG_WARNING << ip_string << ": " << ec.message(); }
+                });
             }
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
