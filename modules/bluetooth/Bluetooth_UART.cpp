@@ -6,8 +6,9 @@
 //
 //
 
-#include "Bluetooth_UART.hpp"
 #include <mutex>
+#include <string>
+#include "Bluetooth_UART.hpp"
 
 namespace kinski{ namespace bluetooth{
     
@@ -124,7 +125,7 @@ namespace kinski{ namespace bluetooth{
     
     bool Bluetooth_UART::is_initialized() const
     {
-        return m_peripheral.get();
+        return m_peripheral && m_peripheral->is_connected();
     }
 
 ///////////////////////////////////////////////////////////////////////////////

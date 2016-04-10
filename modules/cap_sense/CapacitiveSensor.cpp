@@ -21,7 +21,6 @@ namespace kinski
     struct CapacitiveSensor::Impl
     {
         UART_Ptr m_sensor_device;
-        std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_touch_status = 0;
         float m_last_reading = 0.f;
@@ -37,7 +36,6 @@ namespace kinski
     CapacitiveSensor::CapacitiveSensor(UART_Ptr the_uart_device):
     m_impl(new Impl)
     {
-//        m_impl->m_device_name = dev_name;
         m_impl->m_sensor_read_buf.resize(2048);
         
         if(the_uart_device && connect(the_uart_device))
@@ -162,19 +160,17 @@ namespace kinski
     
     bool CapacitiveSensor::update_config()
     {
+        int bytes_written = 0;
+        
         if(m_impl->m_sensor_device->is_initialized())
         {
             auto conf_str = as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_charge_current) + "\n";
             
-            int bytes_written = m_impl->m_sensor_device->write(conf_str);
-            if(bytes_written)
-            {
-                return true;
-            }
+            bytes_written = m_impl->m_sensor_device->write(conf_str);
         }
-        return false;
+        return bytes_written;
     }
     
     void CapacitiveSensor::set_thresholds(uint16_t the_touch_thresh, uint16_t the_rel_thresh)
