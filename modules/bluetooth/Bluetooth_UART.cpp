@@ -78,7 +78,7 @@ namespace kinski{ namespace bluetooth{
     {
         std::unique_lock<std::mutex> lock(mutex);
         size_t num_bytes = std::min(m_buffer.size(), sz);
-        memcpy(buffer, &m_buffer[0], num_bytes);
+        std::memcpy(buffer, &m_buffer[0], num_bytes);
         std::vector<uint8_t> tmp(m_buffer.end() - num_bytes, m_buffer.end());
         m_buffer = tmp;
         return num_bytes;
