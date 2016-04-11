@@ -15,6 +15,7 @@
 #define KINSKI_API
 #endif
 
+#include <cstring>
 #include <string>
 #include <vector>
 #include <list>
@@ -34,7 +35,7 @@ namespace kinski
     using std::vector;
     using std::list;
     using std::set;
-    
+
 //    using namespace std::placeholders;
 }
 
