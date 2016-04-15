@@ -1,4 +1,6 @@
 #include <unistd.h>
+#include <errno.h>
+#include <sys/ioctl.h>
 #include <thread>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -7,12 +9,117 @@
 
 namespace kinski{ namespace bluetooth{
 
+#define HCI_STATE_NONE       0
+#define HCI_STATE_OPEN       2
+#define HCI_STATE_SCANNING   3
+#define HCI_STATE_FILTERING  4
+
+struct hci_state
+{
+    int device_id = 0;
+    int device_handle = 0;
+    struct hci_filter original_filter;
+    int state = 0;
+    int has_error = 0;
+    // std::string error_message;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+hci_state hci_open_default_device()
+{
+    hci_state ret;
+    ret.device_id = hci_get_route(nullptr);
+    ret.device_handle = hci_open_dev(ret.device_id);
+
+    if(ret.device_id < 0 || ret.device_handle < 0)
+    {
+        LOG_ERROR << "could not open bluetooth device";
+        ret.has_error = true;
+    }
+    int on = 1;
+
+    if(ioctl(ret.device_handle, FIONBIO, (char *)&on) < 0)
+    {
+        ret.has_error = true;
+        LOG_ERROR << "Could not set device to non-blocking: " << strerror(errno);
+    }
+    if(!ret.has_error){ ret.state = HCI_STATE_OPEN; }
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+void hci_start_scan(hci_state &the_hci_state)
+{
+    if(hci_le_set_scan_parameters(the_hci_state.device_handle, 0x01, htobs(0x0010),
+                                  htobs(0x0010), 0x00, 0x00, 1000) < 0)
+    {
+        the_hci_state.has_error = true;
+        LOG_ERROR << "Failed to set scan parameters: " << strerror(errno);
+        return;
+    }
+
+    if(hci_le_set_scan_enable(the_hci_state.device_handle, 0x01, 1, 1000) < 0)
+    {
+        the_hci_state.has_error = true;
+        LOG_ERROR << "Failed to enable scan: " << strerror(errno);
+        return;
+    }
+
+    the_hci_state.state = HCI_STATE_SCANNING;
+
+    socklen_t olen = sizeof(the_hci_state.original_filter);
+
+    if(getsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER,
+                  &the_hci_state.original_filter, &olen) < 0)
+    {
+        the_hci_state.has_error = true;
+        LOG_ERROR << "Could not get socket options: " << strerror(errno);
+        return;
+    }
+
+    // Create and set the new filter
+    struct hci_filter new_filter;
+
+    hci_filter_clear(&new_filter);
+    hci_filter_set_ptype(HCI_EVENT_PKT, &new_filter);
+    hci_filter_set_event(EVT_LE_META_EVENT, &new_filter);
+
+    if(setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER, &new_filter,
+                  sizeof(new_filter)) < 0)
+    {
+        the_hci_state.has_error = true;
+        LOG_ERROR << "Could not set socket options: " << strerror(errno);
+        return;
+    }
+    the_hci_state.state = HCI_STATE_FILTERING;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+void hci_stop_scan(hci_state &the_hci_state)
+{
+    if(the_hci_state.state == HCI_STATE_FILTERING)
+    {
+        the_hci_state.state = HCI_STATE_SCANNING;
+        setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER, &the_hci_state.original_filter,
+                   sizeof(the_hci_state.original_filter));
+    }
+
+    if(hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 1000) < 0)
+    {
+        the_hci_state.has_error = true;
+        LOG_ERROR << "Disable scan failed: " << strerror(errno);
+    }
+    the_hci_state.state = HCI_STATE_OPEN;
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 struct CentralImpl
 {
-    int dev_id = 0, socket = 0;
-    int len  = 8, flags = IREQ_CACHE_FLUSH;
+    hci_state m_hci_state;
 
     std::thread discover_peripherals_thread;
     PeripheralCallback
@@ -20,11 +127,9 @@ struct CentralImpl
 
     CentralImpl()
     {
-        dev_id = hci_get_route(nullptr);
-        socket = hci_open_dev(dev_id);
-
-        if (dev_id < 0 || socket < 0){ LOG_WARNING << "could not open bluetooth socket"; }
+        m_hci_state = hci_open_default_device();
     }
+
     ~CentralImpl()
     {
         if(discover_peripherals_thread.joinable())
@@ -32,7 +137,14 @@ struct CentralImpl
             try{ discover_peripherals_thread.join(); }
             catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
-        close(socket);
+
+        // stop scanning for peripherals
+        hci_stop_scan(m_hci_state);
+
+        if(m_hci_state.state == HCI_STATE_OPEN)
+        {
+            hci_close_dev(m_hci_state.device_handle);
+        }
     }
 };
 
@@ -44,36 +156,17 @@ m_impl(new CentralImpl){ }
 void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 {
     LOG_DEBUG << "discover_peripherals";
+    hci_start_scan(m_impl->m_hci_state);
 
-    m_impl->discover_peripherals_thread = std::thread([this]()
-    {
-        int max_rsp = 255, num_rsp = 0;
-
-        std::vector<inquiry_info*> inquiries;
-        inquiries.resize(max_rsp);
-
-        num_rsp = hci_inquiry(m_impl->dev_id, m_impl->len, max_rsp, nullptr,
-                                      &inquiries[0], m_impl->flags);
-        if(num_rsp < 0 ){ LOG_ERROR << "hci_inquiry"; return; }
-
-        char addr[19] = { 0 };
-        char name[248] = { 0 };
-
-        for (int i = 0; i < num_rsp; i++)
-        {
-            ba2str(&inquiries[i]->bdaddr, addr);
-            memset(name, 0, sizeof(name));
-
-            if(hci_read_remote_name(m_impl->socket, &inquiries[i]->bdaddr, sizeof(name), name, 0) < 0)
-            { strcpy(name, "[unknown]"); }
-            LOG_DEBUG << addr << " - " << name;
-        }
-    });
+    // m_impl->discover_peripherals_thread = std::thread([this]()
+    // {
+    //
+    // });
 }
 
 void Central::stop_scanning()
 {
-
+    hci_stop_scan(m_impl->m_hci_state);
 }
 
 void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
