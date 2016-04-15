@@ -1,28 +1,15 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
 //
 // It is distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
+//  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
 #include "geometry_types.hpp"
 
 namespace kinski { namespace gl {
-
-//ray_intersection intersect_ray_plane(const glm::vec3 &n, const glm::vec3 &p0, const gl::Ray &ray)
-//{
-//    // assuming vectors are all normalized
-//    float denom = glm::dot(n, ray.direction);
-//    if (denom > 1e-6)
-//    {
-//        glm::vec3 p0l0 = p0 - ray.origin;
-//        float d = glm::dot(p0l0, n) / denom;
-//        if(d >= 0) return ray_intersection(INTERSECT, d);
-//    }
-//    return REJECT;
-//}
     
 ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray)
 {

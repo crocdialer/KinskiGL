@@ -1,16 +1,20 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+
 //  Font.cpp
-//  gl
 //
 //  Created by Fabian on 3/9/13.
-//
-//
 
+#include "core/file_functions.hpp"
 #include "Texture.hpp"
 #include "Mesh.hpp"
 #include "Font.hpp"
-
-#include <unordered_map>
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "stb_rect_pack.inl"

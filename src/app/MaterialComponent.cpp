@@ -6,6 +6,7 @@
 //
 //
 
+#include "core/file_functions.hpp"
 #include "MaterialComponent.h"
 
 namespace kinski

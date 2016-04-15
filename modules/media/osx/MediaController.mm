@@ -1,4 +1,5 @@
 #import <AVFoundation/AVFoundation.h>
+#include "core/file_functions.hpp"
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
 #include "MediaController.hpp"

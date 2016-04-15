@@ -1,10 +1,15 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  OutstreamGL.h
-//  gl
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+
+//  OutstreamGL.hpp
 //
 //  Created by Fabian on 5/13/13.
-//
-//
 
 #pragma once
 

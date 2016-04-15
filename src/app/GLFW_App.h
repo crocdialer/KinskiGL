@@ -1,14 +1,13 @@
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-// Copyright (C) 1993-2013, Fabian Schmidt <crocdialer@googlemail.com>
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
 //
 // It is distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
+//  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#ifndef _KINSKI_GLFW_APP_IS_INCLUDED_
-#define _KINSKI_GLFW_APP_IS_INCLUDED_
+#pragma once
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
@@ -154,4 +153,3 @@ namespace kinski
         gl::OutstreamGL m_outstream_gl;
     };
 }
-#endif // _KINSKI_GLFW_APP_IS_INCLUDED_
