@@ -1,13 +1,18 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+
 //  LightComponent.cpp
-//  gl
 //
-//  Created by Fabian on 6/28/13.
-//
-//
+//  Created by Fabian Schmidton 6/28/13.
 
 #include "core/file_functions.hpp"
-#include "MaterialComponent.h"
+#include "MaterialComponent.hpp"
 
 namespace kinski
 {

@@ -16,19 +16,18 @@
 #include "core/Timer.hpp"
 #include "core/Animation.hpp"
 #include "core/Measurement.hpp"
-#include "app/Arcball.h"
-#include "app/RemoteControl.h"
-#include "app/LightComponent.h"
+#include "app/RemoteControl.hpp"
+#include "app/LightComponent.hpp"
 #include "gl/SerializerGL.hpp"
 #include "gl/Scene.hpp"
 #include "gl/Fbo.hpp"
 #include "gl/Font.hpp"
 
 #if defined(KINSKI_RASPI)
-    #include "app/Raspi_App.h"
+    #include "app/Raspi_App.hpp"
     #define BaseApp Raspi_App
 #else
-    #include "app/GLFW_App.h"
+    #include "app/GLFW_App.hpp"
     #define BaseApp GLFW_App
 #endif
 
@@ -115,7 +114,6 @@ namespace kinski {
         uint32_t m_cam_index;
         
         gl::Scene m_scene;
-        gl::Arcball m_arcball;
         
         gl::OrthographicCamera::Ptr m_gui_camera;
         

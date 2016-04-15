@@ -1,12 +1,17 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  WarpComponent
-//  app
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
 //
-//  Created by Fabian on 12/05/15.
-//
-//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-#include "WarpComponent.h"
+//  WarpComponent
+//
+//  Created by Fabian Schmidt on 12/05/15.
+
+#include "WarpComponent.hpp"
 
 namespace kinski
 {

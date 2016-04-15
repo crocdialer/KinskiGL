@@ -1,14 +1,12 @@
-#include "Raspi_App.h"
 #include <sys/time.h>
 #include <regex.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <linux/input.h>
-
 #include "esUtil.h"
 #undef countof
-
 #include "core/file_functions.hpp"
+#include "Raspi_App.hpp"
 
 using namespace std;
 
@@ -137,7 +135,7 @@ namespace kinski
     void Raspi_App::set_lcd_backlight(bool b) const
     {
         const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power";
-        
+
         if(kinski::file_exists(bl_path))
         {
             std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +

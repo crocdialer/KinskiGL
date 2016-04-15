@@ -12,8 +12,8 @@
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
 
-#include "App.h"
-#include "OutstreamGL.h"
+#include "App.hpp"
+#include "OutstreamGL.hpp"
 
 struct CTwBar;
 

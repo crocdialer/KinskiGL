@@ -9,17 +9,17 @@ if(NOT KINSKI_RASPI)
 find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
-FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp 
+FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp
         AntTweakBarConnector.cpp OutstreamGL.cpp MaterialComponent.cpp WarpComponent.cpp)
-FILE(GLOB FOLDER_HEADERS GLFW_App.h App.h RemoteControl.h ViewerApp.h LightComponent.h Object3DComponent.h 
-        AntTweakBarConnector.h OutstreamGL.h MaterialComponent.h WarpComponent.h)
+FILE(GLOB FOLDER_HEADERS GLFW_App.hpp App.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp Object3DComponent.hpp
+        AntTweakBarConnector.hpp OutstreamGL.hpp MaterialComponent.hpp WarpComponent.hpp)
 
 ##### RASPI
 else()
 FILE(GLOB FOLDER_SOURCES Raspi_App.cpp ViewerApp.cpp esUtil.c App.cpp OutstreamGL.cpp RemoteControl.cpp
     LightComponent.cpp Object3DComponent.cpp MaterialComponent.cpp WarpComponent.cpp)
-FILE(GLOB FOLDER_HEADERS Raspi_App.h esUtil.h App.h OutstreamGL.h RemoteControl.h 
-    LightComponent.h Object3DComponent.h MaterialComponent.h WarpComponent.h)
+FILE(GLOB FOLDER_HEADERS Raspi_App.hpp esUtil.h App.hpp OutstreamGL.hpp RemoteControl.hpp
+    LightComponent.hpp Object3DComponent.hpp MaterialComponent.hpp WarpComponent.hpp)
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
 link_directories("/opt/vc/lib")
@@ -34,5 +34,5 @@ SET(LIBS ${LIBS} ${LIB_NAME})
 SOURCE_GROUP("Headers" FILES ${FOLDER_HEADERS})
 SOURCE_GROUP("Sources" FILES ${FOLDER_SOURCES})
 
-install (TARGETS ${LIB_NAME} DESTINATION lib)    
+install (TARGETS ${LIB_NAME} DESTINATION lib)
 install (FILES ${FOLDER_HEADERS} DESTINATION "include/${LIB_NAME}")

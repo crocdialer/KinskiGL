@@ -1,15 +1,19 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+
 //  ViewerApp.cpp
-//  gl
 //
 //  Created by Fabian on 3/1/13.
-//
-//
 
-#include "ViewerApp.h"
-
-#include "app/LightComponent.h"
-#include "app/MaterialComponent.h"
+#include "ViewerApp.hpp"
+#include "app/LightComponent.hpp"
+#include "app/MaterialComponent.hpp"
 
 namespace kinski {
 
@@ -184,8 +188,6 @@ namespace kinski {
 
     void ViewerApp::mousePress(const MouseEvent &e)
     {
-        m_arcball.mouseDown(e.getPos());
-
         m_clickPos = glm::vec2(e.getX(), e.getY());
         m_lastTransform = *m_rotation;
         m_look_at_tmp = *m_look_at;
@@ -314,14 +316,8 @@ namespace kinski {
     void ViewerApp::resize(int w, int h)
     {
         BaseApp::resize(w, h);
-
         *m_window_size = glm::vec2(w, h);
         App::set_window_size(*m_window_size);
-        
-        m_arcball.setWindowSize(gl::window_dimension());
-        m_arcball.setCenter(gl::window_dimension() / 2.f);
-        m_arcball.setRadius(150);
-
         set_clear_color(clear_color());
     }
 

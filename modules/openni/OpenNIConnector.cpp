@@ -13,6 +13,7 @@
 
 //#include <ni2/OpenNI.h>
 
+#include "core/file_functions.hpp"
 #include "gl/Texture.hpp"
 #include "gl/Buffer.hpp"
 #include <boost/timer/timer.hpp>
