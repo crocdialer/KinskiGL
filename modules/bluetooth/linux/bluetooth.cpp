@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <thread>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
@@ -9,16 +11,28 @@ namespace kinski{ namespace bluetooth{
 
 struct CentralImpl
 {
+    int dev_id = 0, socket = 0;
+    int len  = 8, flags = IREQ_CACHE_FLUSH;
+
+    std::thread discover_peripherals_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
 
     CentralImpl()
     {
+        dev_id = hci_get_route(nullptr);
+        socket = hci_open_dev(dev_id);
 
+        if (dev_id < 0 || socket < 0){ LOG_WARNING << "could not open bluetooth socket"; }
     }
     ~CentralImpl()
     {
-
+        if(discover_peripherals_thread.joinable())
+        {
+            try{ discover_peripherals_thread.join(); }
+            catch(std::exception &e){ LOG_WARNING << e.what(); }
+        }
+        close(socket);
     }
 };
 
@@ -30,6 +44,31 @@ m_impl(new CentralImpl){ }
 void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 {
     LOG_DEBUG << "discover_peripherals";
+
+    m_impl->discover_peripherals_thread = std::thread([this]()
+    {
+        int max_rsp = 255, num_rsp = 0;
+
+        std::vector<inquiry_info*> inquiries;
+        inquiries.resize(max_rsp);
+
+        num_rsp = hci_inquiry(m_impl->dev_id, m_impl->len, max_rsp, nullptr,
+                                      &inquiries[0], m_impl->flags);
+        if(num_rsp < 0 ){ LOG_ERROR << "hci_inquiry"; return; }
+
+        char addr[19] = { 0 };
+        char name[248] = { 0 };
+
+        for (int i = 0; i < num_rsp; i++)
+        {
+            ba2str(&inquiries[i]->bdaddr, addr);
+            memset(name, 0, sizeof(name));
+
+            if(hci_read_remote_name(m_impl->socket, &inquiries[i]->bdaddr, sizeof(name), name, 0) < 0)
+            { strcpy(name, "[unknown]"); }
+            LOG_DEBUG << addr << " - " << name;
+        }
+    });
 }
 
 void Central::stop_scanning()
@@ -136,7 +175,7 @@ void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
 void Peripheral::read_value_for_characteristic(const UUID &the_characteristic,
                                                Peripheral::ValueUpdatedCallback cb)
 {
-    
+
 }
 
 void Peripheral::add_service(const UUID& the_service_uuid)
