@@ -1,14 +1,19 @@
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
-//  TouchSample.h
-//  gl
+// Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
+//
+// It is distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at
+//  http://www.boost.org/LICENSE_1_0.txt
+// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+
+//  TouchSample.hpp
 //
 //  Created by Fabian on 04/03/16.
-//
-//
 
 #pragma once
 
-#include "app/ViewerApp.h"
+#include "app/ViewerApp.hpp"
 #include "gl/Noise.hpp"
 
 namespace kinski
