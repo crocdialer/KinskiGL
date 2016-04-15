@@ -3,13 +3,15 @@
 #include "EGL/eglext.h"
 #undef countof
 
+#include "core/file_functions.hpp"
+#include "gl/Texture.hpp"
+
 #include "OMXClock.h"
 #include "OMXAudio.h"
 #include "OMXReader.h"
 #include "OMXPlayerVideo.h"
 #include "OMXPlayerAudio.h"
 
-#include "gl/Texture.hpp"
 #include "MediaController.hpp"
 
 // when we repeatedly seek, rather than play continuously
