@@ -499,11 +499,10 @@ namespace kinski {
                                        GLfloat anisotropic_filter_lvl)
     {
         inc_task();
-        
         background_queue().submit([this, the_path, the_callback, mip_map, compress,
                                    anisotropic_filter_lvl]()
         {
-            gl::Image img;
+            gl::ImagePtr img;
             try
             {
                 auto dataVec = kinski::read_binary_file(the_path);
@@ -515,7 +514,6 @@ namespace kinski {
             {
                 auto tex = gl::create_texture_from_image(img, mip_map, compress,
                                                          anisotropic_filter_lvl);
-                free(img.data);
                 the_callback(tex);
                 dec_task();
             });

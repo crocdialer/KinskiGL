@@ -28,7 +28,7 @@ namespace kinski { namespace gl {
         return tmp == v;
     }
     
-    Image decode_image(const std::vector<uint8_t> &the_data, int num_channels)
+    ImagePtr decode_image(const std::vector<uint8_t> &the_data, int num_channels)
     {
         int width, height, num_components;
         unsigned char *data = stbi_load_from_memory(&the_data[0], the_data.size(),
@@ -43,17 +43,16 @@ namespace kinski { namespace gl {
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
         
-        Image ret(data, height, width, num_components);
-        return ret;
+        return Image::create(data, height, width, num_components);
     }
     
-    Texture create_texture_from_image(const Image& the_img, bool mipmap,
+    Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
                                       bool compress, GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
         GLenum format = 0, internal_format = 0;
         
-        switch(the_img.bytes_per_pixel)
+        switch(the_img->bytes_per_pixel)
         {
 #ifdef KINSKI_GLES
             case 1:
@@ -100,15 +99,15 @@ namespace kinski { namespace gl {
             fmt.set_mipmapping();
             fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
         }
-        uint8_t *data = the_img.data;
+        uint8_t *data = the_img->data;
         
 #if !defined(KINSKI_GLES)
         gl::Buffer pixel_buf;
-        pixel_buf.set_data(the_img.data, the_img.cols * the_img.rows * the_img.bytes_per_pixel);
+        pixel_buf.set_data(the_img->data, the_img->cols * the_img->rows * the_img->bytes_per_pixel);
         pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
         data = nullptr;
 #endif
-        ret = Texture(data, format, the_img.cols, the_img.rows, fmt);
+        ret = Texture(data, format, the_img->cols, the_img->rows, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         
@@ -119,7 +118,7 @@ namespace kinski { namespace gl {
     Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
                                      bool compress, GLfloat anisotropic_filter_lvl)
     {
-        Image img;
+        ImagePtr img;
         Texture ret;
         try {img = decode_image(the_data);}
         catch (ImageLoadException &e)
@@ -128,7 +127,6 @@ namespace kinski { namespace gl {
             return ret;
         }
         ret = create_texture_from_image(img, mipmap, compress, anisotropic_filter_lvl);
-        stbi_image_free(img.data);
         return ret;
     }
     

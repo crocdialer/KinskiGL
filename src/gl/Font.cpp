@@ -59,25 +59,25 @@ namespace kinski { namespace gl {
         bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
     };
     
-    void copy_image(const Image &src_mat, Image &dst_mat)
+    void copy_image(const ImagePtr &src_mat, ImagePtr &dst_mat)
     {
         uint32_t bytes_per_pixel = 1;
         
-        assert(src_mat.roi.x2 <= src_mat.cols && src_mat.roi.y2 <= src_mat.rows);
-        assert(dst_mat.roi.x2 <= dst_mat.cols && dst_mat.roi.y2 <= dst_mat.rows);
-        assert(src_mat.roi.width() == src_mat.roi.width() && src_mat.roi.height() == src_mat.roi.height());
+        assert(src_mat->roi.x2 <= src_mat->cols && src_mat->roi.y2 <= src_mat->rows);
+        assert(dst_mat->roi.x2 <= dst_mat->cols && dst_mat->roi.y2 <= dst_mat->rows);
+        assert(src_mat->roi.width() == src_mat->roi.width() && src_mat->roi.height() == src_mat->roi.height());
         
-        uint32_t src_row_offset = src_mat.cols - src_mat.roi.width();
-        uint32_t dst_row_offset = dst_mat.cols - dst_mat.roi.width();
+        uint32_t src_row_offset = src_mat->cols - src_mat->roi.width();
+        uint32_t dst_row_offset = dst_mat->cols - dst_mat->roi.width();
         
-        const uint8_t* src_area_start = src_mat.data + (src_mat.roi.y1 * src_mat.cols + src_mat.roi.x1) * bytes_per_pixel;
-        uint8_t* dst_area_start = dst_mat.data + (dst_mat.roi.y1 * dst_mat.cols + dst_mat.roi.x1) * bytes_per_pixel;
+        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y1 * src_mat->cols + src_mat->roi.x1) * bytes_per_pixel;
+        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y1 * dst_mat->cols + dst_mat->roi.x1) * bytes_per_pixel;
         
-        for (uint32_t r = 0; r < src_mat.roi.height(); r++)
+        for (uint32_t r = 0; r < src_mat->roi.height(); r++)
         {
-            const uint8_t* src_row_start = src_area_start + r * (src_mat.roi.width() + src_row_offset) * bytes_per_pixel;
-            uint8_t* dst_row_start = dst_area_start + r * (dst_mat.roi.width() + dst_row_offset) * bytes_per_pixel;
-            for (uint32_t c = 0; c < src_mat.roi.width(); c++)
+            const uint8_t* src_row_start = src_area_start + r * (src_mat->roi.width() + src_row_offset) * bytes_per_pixel;
+            uint8_t* dst_row_start = dst_area_start + r * (dst_mat->roi.width() + dst_row_offset) * bytes_per_pixel;
+            for (uint32_t c = 0; c < src_mat->roi.width(); c++)
             {
                 dst_row_start[c * bytes_per_pixel] = src_row_start[c * bytes_per_pixel];
             }
@@ -245,14 +245,14 @@ namespace kinski { namespace gl {
         uint8_t dst_data[max_x * max_y];
         std::fill(dst_data, dst_data + max_x * max_y, 0);
         
-        Image src_mat(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width);
-        Image dst_mat(dst_data, max_y, max_x);
+        auto src_mat = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width);
+        auto dst_mat = Image::create(dst_data, max_y, max_x);
         
         Area_Pairs::iterator area_it = area_pairs.begin();
         for (; area_it != area_pairs.end(); ++area_it)
         {
-            src_mat.roi = area_it->first;
-            dst_mat.roi = area_it->second;
+            src_mat->roi = area_it->first;
+            dst_mat->roi = area_it->second;
             copy_image(src_mat, dst_mat);
         }
         

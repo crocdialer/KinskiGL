@@ -38,7 +38,7 @@ namespace kinski{ namespace gl{
         inline uint32_t width() const { return x2 - x1; };
         inline uint32_t height() const { return y2 - y1; };
     };
-                
+    
     class Image
     {
     public:
@@ -49,11 +49,16 @@ namespace kinski{ namespace gl{
         Area<uint32_t> roi;
         bool do_not_dispose = false;
         
-        Image():data(nullptr), rows(0), cols(0), bytes_per_pixel(0){};
+        static ImagePtr create()
+        {
+            return ImagePtr(new Image());
+        };
         
-        Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
-                const Area<uint32_t> &theRoi = Area<uint32_t>()):
-        data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
+        static ImagePtr create(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
+                        const Area<uint32_t> &theRoi = Area<uint32_t>())
+        {
+            return ImagePtr(new Image(theData, theRows, theCols, theBytesPerPixel, theRoi));
+        };
         
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
         
@@ -61,8 +66,19 @@ namespace kinski{ namespace gl{
         
         ~Image()
         {
-//            if(data){ free(data); }
+            if(data && !do_not_dispose)
+            {
+                LOG_TRACE_2 << "disposing image";
+                free(data);
+            }
         };
+        
+    private:
+        Image():data(nullptr), rows(0), cols(0), bytes_per_pixel(0){};
+        
+        Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
+              const Area<uint32_t> &theRoi = Area<uint32_t>()):
+        data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
     };
                 
     /** \brief Represents an OpenGL Texture. \ImplShared*/

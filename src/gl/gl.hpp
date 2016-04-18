@@ -103,7 +103,6 @@ namespace kinski { namespace gl {
     class Buffer;
     class Shader;
     class Fbo;
-    class Image;
     class Texture;
     class Font;
     class Visitor;
@@ -114,6 +113,7 @@ namespace kinski { namespace gl {
     struct Frustum;
     
     typedef vec4 Color;
+    typedef std::shared_ptr<class Image> ImagePtr;
     typedef std::shared_ptr<class Material> MaterialPtr;
     typedef std::shared_ptr<class Geometry> GeometryPtr;
     typedef std::shared_ptr<class Object3D> Object3DPtr;
@@ -243,14 +243,14 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API Image decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
+    KINSKI_API ImagePtr decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
     
     KINSKI_API Texture create_texture_from_file(const std::string &theFileName,
                                                 bool mipmap = false,
                                                 bool compress = false,
                                                 GLfloat anisotropic_filter_lvl = 1.f);
     
-    KINSKI_API Texture create_texture_from_image(const Image& the_img, bool mipmap = false,
+    KINSKI_API Texture create_texture_from_image(const ImagePtr &the_img, bool mipmap = false,
                                                  bool compress = false,
                                                  GLfloat anisotropic_filter_lvl = 1.f);
     
