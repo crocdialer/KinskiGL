@@ -2,9 +2,7 @@
 #include "gl/Buffer.hpp"
 #include "CameraController.hpp"
 
-namespace kinski
-{
-    using namespace video;
+namespace kinski{ namespace media{
 
     struct CameraController::Impl
     {
@@ -62,4 +60,4 @@ namespace kinski
     {
         return false;
     }
-}
+}} // namespaces
