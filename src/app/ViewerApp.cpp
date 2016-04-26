@@ -138,7 +138,7 @@ namespace kinski {
         m_light_component->set_lights(lights());
 
         // setup remote control
-        m_remote_control = RemoteControl(io_service(), {shared_from_this(), m_light_component});
+        m_remote_control = RemoteControl(main_queue().io_service(), {shared_from_this(), m_light_component});
         m_remote_control.start_listen();
     }
 

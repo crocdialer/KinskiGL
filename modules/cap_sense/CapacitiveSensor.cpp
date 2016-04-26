@@ -69,12 +69,18 @@ namespace kinski
                 switch(byte)
                 {
                     case SERIAL_END_CODE:
-                        current_touches = string_as<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
-                                                                     m_impl->m_sensor_accumulator.end()));
+                    {
+                        auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
+                                                   m_impl->m_sensor_accumulator.end()));
                         m_impl->m_sensor_accumulator.clear();
-                        reading_complete = true;
-                        break;
                         
+                        if(!tokens.empty())
+                        {
+                            current_touches = string_as<uint16_t>(tokens.front());
+                            reading_complete = true;
+                            break;
+                        }
+                    }
                     default:
                         m_impl->m_sensor_accumulator.push_back(byte);
                         break;

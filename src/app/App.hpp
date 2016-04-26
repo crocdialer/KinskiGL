@@ -118,8 +118,6 @@ namespace kinski
          */
         float fps() const {return m_framesPerSec;};
         
-        boost::asio::io_service& io_service(){return m_main_queue.io_service();};
-        
         /*!
          * the commandline arguments provided at application start
          */
