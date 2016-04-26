@@ -439,7 +439,7 @@ namespace kinski{ namespace media{
     
     double MediaController::current_time() const
     {
-        return is_loaded() && is_playing() ? CMTimeGetSeconds([m_impl->m_player currentTime]) : 0.0;
+        return is_loaded() ? CMTimeGetSeconds([m_impl->m_player currentTime]) : 0.0;
     }
     
     void MediaController::seek_to_time(float value)

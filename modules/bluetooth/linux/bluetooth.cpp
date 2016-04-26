@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <thread>
+#include <chrono>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
@@ -115,13 +116,57 @@ void hci_stop_scan(hci_state &the_hci_state)
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
+void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
+{
+  // printw("Test: %p and %d\n", data, data_len);
+  // if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
+  // {
+  //   size_t name_len = data_len - 1;
+  //   char *name = malloc(name_len + 1);
+  //   memset(name, 0, name_len + 1);
+  //   memcpy(name, &data[2], name_len);
+  //
+  //   char addr[18];
+  //   ba2str(&info->bdaddr, addr);
+  //
+  //   printw("addr=%s name=%s\n", addr, name);
+  //
+  //   free(name);
+  // }
+  // else if(data[0] == EIR_FLAGS)
+  // {
+  //   printw("Flag type: len=%d\n", data_len);
+  //   int i;
+  //   for(i=1; i<data_len; i++)
+  //   {
+  //     printw("\tFlag data: 0x%0X\n", data[i]);
+  //   }
+  // }
+  // else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
+  // {
+  //   printw("Manufacture specific type: len=%d\n", data_len);
+  //
+  //   // TODO int company_id = data[current_index + 2]
+  //
+  //   int i;
+  //   for(i=1; i<data_len; i++)
+  //   {
+  //     printw("\tData: 0x%0X\n", data[i]);
+  //   }
+  // }
+  // else
+  // {
+  //   printw("Unknown type: type=%X\n", data[0]);
+  // }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 struct CentralImpl
 {
     hci_state m_hci_state;
-
-    std::thread discover_peripherals_thread;
+    bool running = false;
+    std::thread worker_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
 
@@ -132,9 +177,11 @@ struct CentralImpl
 
     ~CentralImpl()
     {
-        if(discover_peripherals_thread.joinable())
+        running = false;
+
+        if(worker_thread.joinable())
         {
-            try{ discover_peripherals_thread.join(); }
+            try{ worker_thread.join(); }
             catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
 
@@ -158,10 +205,38 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
     LOG_DEBUG << "discover_peripherals";
     hci_start_scan(m_impl->m_hci_state);
 
-    // m_impl->discover_peripherals_thread = std::thread([this]()
-    // {
-    //
-    // });
+    m_impl->worker_thread = std::thread([this]()
+    {
+        m_impl->running = true;
+        uint8_t buf[HCI_MAX_EVENT_SIZE];
+	    evt_le_meta_event * meta_event;
+	    le_advertising_info * info;
+	    int len;
+
+        while(m_impl->running)
+        {
+            len = read(m_impl->m_hci_state.device_handle, buf, sizeof(buf));
+
+            if(len >= HCI_EVENT_HDR_SIZE)
+            {
+		        meta_event = (evt_le_meta_event*)(buf+HCI_EVENT_HDR_SIZE+1);
+
+		        if(meta_event->subevent == EVT_LE_ADVERTISING_REPORT)
+                {
+			        uint8_t reports_count = *meta_event->data;
+			        void * offset = meta_event->data + 1;
+			        while(reports_count--)
+                    {
+				        info = (le_advertising_info *)offset;
+				        char addr[18];
+				        ba2str(&(info->bdaddr), addr);
+				        LOG_DEBUG << addr << " - RSSI: " << (char)info->data[info->length];
+				        offset = info->data + info->length + 2;
+			        }
+		        }
+            }
+        }//while(m_impl->running && !error)
+    });
 }
 
 void Central::stop_scanning()
