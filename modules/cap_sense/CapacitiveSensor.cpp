@@ -51,7 +51,7 @@ namespace kinski
         size_t bytes_to_read = 0;
         m_impl->m_last_reading += time_delta;
         
-        if(m_impl->m_sensor_device->is_initialized())
+        if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized())
         {
             bytes_to_read = std::min(m_impl->m_sensor_device->available(),
                                      m_impl->m_sensor_read_buf.size());
@@ -220,6 +220,6 @@ namespace kinski
     
     bool CapacitiveSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device->is_initialized();
+        return m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized();
     }
 }
