@@ -130,9 +130,7 @@
 
 @end
 
-namespace kinski
-{
-    using namespace video;
+namespace kinski{ namespace media{
     
     struct CameraController::Impl
     {
@@ -269,4 +267,4 @@ namespace kinski
     {
         return m_impl->m_camera.captureSession.isRunning;
     }
-}
+}}

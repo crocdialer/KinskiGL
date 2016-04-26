@@ -107,8 +107,6 @@ namespace kinski{ namespace media{
             LOG_ERROR << e.what();
             return;
         }
-        m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
-        m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
         
         NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
         
@@ -314,6 +312,12 @@ namespace kinski{ namespace media{
             }
             else
             {
+                if(!m_impl->m_pbo[0])
+                { m_impl->m_pbo[0] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW); }
+                
+                if(!m_impl->m_pbo[1])
+                { m_impl->m_pbo[1] = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW); }
+                
                 // ping pong our pbo index
                 m_impl->m_pbo_index = (m_impl->m_pbo_index + 1) % 2;
                 

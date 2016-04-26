@@ -49,11 +49,6 @@ namespace kinski{ namespace gl{
         Area<uint32_t> roi;
         bool do_not_dispose = false;
         
-        static ImagePtr create()
-        {
-            return ImagePtr(new Image());
-        };
-        
         static ImagePtr create(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
                         const Area<uint32_t> &theRoi = Area<uint32_t>())
         {
@@ -74,7 +69,6 @@ namespace kinski{ namespace gl{
         };
         
     private:
-        Image():data(nullptr), rows(0), cols(0), bytes_per_pixel(0){};
         
         Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
               const Area<uint32_t> &theRoi = Area<uint32_t>()):

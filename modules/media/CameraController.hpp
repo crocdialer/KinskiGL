@@ -6,7 +6,7 @@
 * This class controls a camera capture
 */
 
-namespace kinski{ namespace video{
+namespace kinski{ namespace media{
 
     class CameraController;
     typedef std::shared_ptr<CameraController> CameraControllerPtr;
