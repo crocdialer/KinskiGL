@@ -188,12 +188,11 @@ namespace kinski
                 socket.set_option(boost::asio::socket_base::broadcast(true));
                 
                 socket.async_send_to(boost::asio::buffer(bytes), receiver_endpoint,
-                                     [](const boost::system::error_code& error,  // Result of operation.
-                                        std::size_t bytes_transferred)           // Number of bytes sent.
-                                     {
-                                         if (error){LOG_ERROR << error.message();}
-                                         else{ }
-                                     });
+                                     [](const boost::system::error_code& error,
+                                        std::size_t bytes_transferred)
+                {
+                     if (error){ LOG_ERROR << error.message(); }
+                });
             }
             catch (std::exception &e) { LOG_ERROR << e.what(); }
         }
