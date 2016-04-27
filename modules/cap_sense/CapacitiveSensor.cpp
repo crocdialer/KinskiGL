@@ -168,7 +168,7 @@ namespace kinski
     {
         int bytes_written = 0;
         
-        if(m_impl->m_sensor_device->is_initialized())
+        if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized())
         {
             auto conf_str = as_string(m_impl->m_thresh_touch) + " " +
                             as_string(m_impl->m_thresh_touch) + " " +
