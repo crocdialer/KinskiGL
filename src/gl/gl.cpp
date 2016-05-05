@@ -635,7 +635,7 @@ namespace kinski { namespace gl {
         vec2 sz = theSize;
         // flip to OpenGL coords
         vec2 tl = vec2(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y);
-        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1], filled);
     }
     
 ///////////////////////////////////////////////////////////////////////////////

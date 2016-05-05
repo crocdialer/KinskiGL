@@ -27,6 +27,8 @@ namespace kinski
         
         uint16_t touch_state() const;
         
+        const std::vector<float>& proximity_values() const;
+        
         uint16_t num_touchpads() const;
         
         //! return touch state for provided index,

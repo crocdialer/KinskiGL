@@ -23,6 +23,7 @@ namespace kinski
         UART_Ptr m_sensor_device;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_touch_status = 0;
+        std::vector<float> m_proximity_values;
         float m_last_reading = 0.f;
         float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         uint16_t m_thresh_touch = 12, m_thresh_release = 6;
@@ -37,6 +38,7 @@ namespace kinski
     m_impl(new Impl)
     {
         m_impl->m_sensor_read_buf.resize(2048);
+        m_impl->m_proximity_values.resize(NUM_SENSOR_PADS, 0.f);
         
         if(the_uart_device && connect(the_uart_device))
         {
@@ -78,6 +80,11 @@ namespace kinski
                         {
                             current_touches = string_as<uint16_t>(tokens.front());
                             reading_complete = true;
+                            
+                            for(int i = 1; i < tokens.size(); ++i)
+                            {
+                                m_impl->m_proximity_values[i - 1] = string_as<float>(tokens[i]);
+                            }
                             break;
                         }
                     }
@@ -125,6 +132,11 @@ namespace kinski
     uint16_t CapacitiveSensor::touch_state() const
     {
         return m_impl->m_touch_status;
+    }
+    
+    const std::vector<float>& CapacitiveSensor::proximity_values() const
+    {
+        return m_impl->m_proximity_values;
     }
     
     uint16_t CapacitiveSensor::num_touchpads() const
