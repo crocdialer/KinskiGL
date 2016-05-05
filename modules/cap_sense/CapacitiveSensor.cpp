@@ -62,7 +62,6 @@ namespace kinski
             
             uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
             m_impl->m_sensor_device->read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
-            bool reading_complete = false;
             
             for(uint32_t i = 0; i < bytes_to_read; i++)
             {
@@ -79,9 +78,8 @@ namespace kinski
                         if(!tokens.empty())
                         {
                             current_touches = string_as<uint16_t>(tokens.front());
-                            reading_complete = true;
                             
-                            for(int i = 1; i < tokens.size(); ++i)
+                            for(uint32_t i = 1; i < tokens.size(); ++i)
                             {
                                 m_impl->m_proximity_values[i - 1] = string_as<float>(tokens[i]);
                             }
