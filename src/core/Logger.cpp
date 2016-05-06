@@ -211,7 +211,7 @@ namespace kinski {
         
         if(the_severity > l->severity()){ return; }
         
-        size_t buf_sz = 1024 * 2;
+        const size_t buf_sz = 1024 * 2;
         char buf[buf_sz];
         va_list argptr;
         va_start(argptr, the_format_text);

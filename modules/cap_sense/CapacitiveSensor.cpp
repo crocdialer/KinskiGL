@@ -22,6 +22,7 @@ namespace kinski
     {
         UART_Ptr m_sensor_device;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
+        bool m_dirty_params = true;
         uint16_t m_touch_status = 0;
         std::vector<float> m_proximity_values;
         float m_last_reading = 0.f;
@@ -48,6 +49,12 @@ namespace kinski
     
     void CapacitiveSensor::update(float time_delta)
     {
+        if(m_impl->m_dirty_params)
+        {
+            if(!update_config()){ LOG_WARNING << "could not update config"; }
+            m_impl->m_dirty_params = false;
+        }
+        
         // init with unchanged status
         uint16_t current_touches = m_impl->m_touch_status;
         size_t bytes_to_read = 0;
@@ -194,7 +201,7 @@ namespace kinski
         
         m_impl->m_thresh_touch = the_touch_thresh;
         m_impl->m_thresh_release = the_rel_thresh;
-        if(!update_config()){ LOG_WARNING << "could not update config"; }
+        m_impl->m_dirty_params = true;
     }
     
     void CapacitiveSensor::thresholds(uint16_t& the_touch_thresh, uint16_t& the_rel_thresh) const
@@ -206,7 +213,7 @@ namespace kinski
     void CapacitiveSensor::set_charge_current(uint8_t the_charge_current)
     {
         m_impl->m_charge_current = clamp<uint32_t>(the_charge_current, 0, 63);
-        if(!update_config()){ LOG_WARNING << "could not update config"; }
+        m_impl->m_dirty_params = true;
     }
     
     uint32_t CapacitiveSensor::charge_current() const
