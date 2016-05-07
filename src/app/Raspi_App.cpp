@@ -112,27 +112,7 @@ namespace kinski
             outstream_gl().draw();
         }
 
-        if(m_show_cursor)
-        {
-            static gl::MaterialPtr mat;
-
-            if(!mat)
-            {
-                mat = gl::Material::create();
-                mat->setDiffuse(gl::COLOR_RED);
-                mat->setDepthTest(false);
-                mat->setDepthWrite(false);
-                mat->setBlending(true);
-                mat->setPointSize(5.f);
-            }
-            gl::mat4 projectionMatrix = glm::ortho(0.0f, gl::window_dimension().x,
-                                                   0.0f, gl::window_dimension().y, 0.0f, 1.0f);
-            gl::ScopedMatrixPush m(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
-            gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
-            gl::load_matrix(gl::MODEL_VIEW_MATRIX, gl::mat4());
-            gl::draw_points({gl::vec3(current_mouse_pos.x,
-                                      gl::window_dimension().y - current_mouse_pos.y , 0.f)}, mat);
-        }
+        if(m_show_cursor){ gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED); }
     }
     void Raspi_App::swapBuffers()
     {

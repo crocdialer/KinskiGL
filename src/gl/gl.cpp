@@ -491,85 +491,57 @@ namespace kinski { namespace gl {
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
     }
-    
+
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_points(const gl::Buffer &the_point_buf, const MaterialPtr &theMaterial, GLsizei offset)
+    void draw_points_2D(const std::vector<vec2> &the_points, gl::Color the_color,
+                        float the_point_size)
     {
-        static MaterialPtr staticMat;
-        static GLuint pointVAO = 0;
+        static gl::MaterialPtr material;
         
-        //create shader
-        if(!staticMat)
+        //create material, if not yet here
+        if(!material)
         {
-            staticMat = gl::Material::create(gl::create_shader(gl::ShaderType::POINTS_TEXTURE));
-            staticMat->setPointSize(2.f);
+            try{ material = gl::Material::create(); }
+            catch (Exception &e){LOG_ERROR<<e.what();}
+            material->setDepthTest(false);
+            material->setDepthWrite(false);
+            material->setBlending(true);
         }
+        material->setDiffuse(the_color);
+        ScopedMatrixPush pro(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
         
-        MaterialPtr activeMat = theMaterial ? theMaterial : staticMat;
-        int stride = the_point_buf.stride() ? the_point_buf.stride() : sizeof(glm::vec3);
+        load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewport_dim[0],
+                                                      0.f, g_viewport_dim[1],
+                                                      0.f, 1.f));
+        load_matrix(gl::MODEL_VIEW_MATRIX, mat4());
         
-        activeMat->uniform("u_modelViewMatrix", g_modelViewMatrixStack.top());
+        // invert coords to 2D with TL center
+        std::vector<gl::vec3> inverted_points;
         
-        activeMat->uniform("u_modelViewProjectionMatrix",
-                           g_projectionMatrixStack.top()
-                           * g_modelViewMatrixStack.top());
-        
-        apply_material(activeMat);
-        
-        if(!pointVAO || (activeMat != staticMat) )
-        {   
-#ifndef KINSKI_NO_VAO
-            if(!pointVAO) GL_SUFFIX(glGenVertexArrays)(1, &pointVAO);
-            GL_SUFFIX(glBindVertexArray)(pointVAO);
-#endif            
-            glBindBuffer(the_point_buf.target(), the_point_buf.id());
-            
-            GLint vertexAttribLocation = activeMat->shader().getAttribLocation("a_vertex");
-            glEnableVertexAttribArray(vertexAttribLocation);
-            glVertexAttribPointer(vertexAttribLocation, 3, GL_FLOAT, GL_FALSE,
-                                  stride, BUFFER_OFFSET(offset));
-            
-            GLint point_size_attribLocation = activeMat->shader().getAttribLocation("a_pointSize");
-            if(point_size_attribLocation >= 0) glVertexAttrib1f(point_size_attribLocation, 1.f);
-            
-#ifndef KINSKI_NO_VAO
-            GL_SUFFIX(glBindVertexArray)(0);
-#endif
+        for(auto &p : the_points)
+        {
+            inverted_points.push_back(gl::vec3(p.x, g_viewport_dim[1] - p.y, 0.f));
         }
-        
-        glBindBuffer(the_point_buf.target(), the_point_buf.id());
-        
-#ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(pointVAO);
-#endif
-        glDrawArrays(GL_POINTS, 0, the_point_buf.num_bytes() / sizeof(glm::vec3));
-#ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(0);
-#endif
-        
-        KINSKI_CHECK_GL_ERRORS();
+        draw_points(inverted_points, material, the_point_size);
     }
-
+    
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_points(const std::vector<glm::vec3> &thePoints, const Material::Ptr &theMaterial)
+    void draw_points(const std::vector<glm::vec3> &the_points, const Material::Ptr &the_material,
+                     float the_point_size)
     {
-        static gl::Buffer point_buf;
-        if(!point_buf){point_buf = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);}
-        point_buf.set_data(thePoints);
-        draw_points(point_buf, theMaterial, 0);
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-    
-    void draw_points(const std::vector<vec3> &thePoints, gl::Color the_color)
-    {
-        static gl::MaterialPtr mat;
+        static MeshPtr point_mesh;
         
-        if(!mat){ mat = gl::Material::create(); }
-        mat->setDiffuse(the_color);
-        draw_points(thePoints, mat);
+        if(!the_material){ return; }
+        if(!point_mesh){ point_mesh = gl::Mesh::create(); }
+        
+        *point_mesh->material() = *the_material;
+        point_mesh->material()->setPointSize(the_point_size);
+        point_mesh->geometry()->vertices() = the_points;
+        point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
+        point_mesh->geometry()->texCoords().resize(the_points.size());
+        gl::draw_mesh(point_mesh);
     }
     
 ///////////////////////////////////////////////////////////////////////////////
