@@ -102,7 +102,7 @@ namespace kinski
         gl::clear();
 
         if(m_blank_background){ blank_background(); }
-        
+
         // fire user draw-callback
         draw();
 
@@ -404,9 +404,11 @@ void blank_background()
     element = vc_dispmanx_element_add(update, display, layer, &dst_rect, resource, &src_rect,
                                       DISPMANX_PROTECTION_NONE, nullptr, nullptr,
                                       DISPMANX_STEREOSCOPIC_MONO);
+    (void)element;
     assert(element);
 
     ret = vc_dispmanx_update_submit_sync(update);
+    (void)ret;
     assert( ret == 0 );
 }
 
