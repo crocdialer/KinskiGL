@@ -129,7 +129,9 @@ namespace kinski {
     
         switch (theSeverity)
         {
-            case Severity::TRACE:
+            case Severity::TRACE_1:
+            case Severity::TRACE_2:
+            case Severity::TRACE_3:
                 stream <<" TRACE: " << postfix.str();
                 break;
             case Severity::DEBUG:

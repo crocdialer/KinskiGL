@@ -21,6 +21,7 @@ namespace kinski
     struct CapacitiveSensor::Impl
     {
         UART_Ptr m_sensor_device;
+        std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         bool m_dirty_params = true;
         uint16_t m_touch_status = 0;
@@ -45,6 +46,11 @@ namespace kinski
         {
             LOG_ERROR << "unable to connect capacitve touch sensor";
         }
+    }
+    
+    CapacitiveSensor::~CapacitiveSensor()
+    {
+        if(m_impl->m_reconnect_thread.joinable()){ m_impl->m_reconnect_thread.join(); }
     }
     
     void CapacitiveSensor::update(float time_delta)
@@ -122,7 +128,19 @@ namespace kinski
             m_impl->m_last_reading = 0.f;
             try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
             catch (std::exception &e) { LOG_WARNING << e.what(); }
-            m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_sensor_device); });
+            m_impl->m_reconnect_thread = std::thread([this]()
+            {
+                if(!m_impl->m_device_name.empty())
+                {
+                    auto serial = std::make_shared<Serial>();
+                    serial->setup(m_impl->m_device_name, 57600);
+                    connect(serial);
+                }else if(m_impl->m_sensor_device)
+                {
+                    m_impl->m_sensor_device->close();
+                    connect(m_impl->m_sensor_device);
+                }
+            });
             return;
         }
     }
@@ -152,6 +170,7 @@ namespace kinski
     bool CapacitiveSensor::connect(const std::string &the_serial_dev_name)
     {
         auto serial = std::make_shared<Serial>();
+        m_impl->m_device_name = the_serial_dev_name;
         serial->setup(the_serial_dev_name, 57600);
         return connect(serial);
     }
@@ -168,7 +187,6 @@ namespace kinski
             m_impl->m_sensor_device->setup();
         }
         
-//        m_impl->m_device_name = dev_name;
         
         // finally flush the newly initialized device
         if(m_impl->m_sensor_device->is_initialized())
