@@ -141,7 +141,6 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     src_rect.height = display_height << 16;
 
     dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
-    dispman_update = vc_dispmanx_update_start( 0 );
 
     int bg_layer = -1, egl_layer = 0; //m_config_video.layer - 1;
 
@@ -159,6 +158,10 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
         vc_dispmanx_rect_set(&img_rect, 0, 0, 1, 1);
         resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr);
         vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &img_rect);
+
+        dispman_update = vc_dispmanx_update_start( 0 );
+
+        // blank bg layer
         vc_dispmanx_element_add(dispman_update, dispman_display, bg_layer, &dst_rect, resource, &src_rect,
                                 DISPMANX_PROTECTION_NONE, NULL, NULL,
                                 DISPMANX_STEREOSCOPIC_MONO);
