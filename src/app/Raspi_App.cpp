@@ -113,8 +113,8 @@ namespace kinski
 
         if(m_show_cursor)
         {
-            gl::mat4 projectionMatrix = ortho(0.0f, gl::window_dimension().x,
-                                              0.0f, gl::window_dimension().y, 0.0f, 1.0f);
+            gl::mat4 projectionMatrix = glm::ortho(0.0f, gl::window_dimension().x,
+                                                   0.0f, gl::window_dimension().y, 0.0f, 1.0f);
             gl::ScopedMatrixPush m(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
             gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
             gl::load_matrix(gl::MODEL_VIEW_MATRIX, gl::mat4());
