@@ -131,7 +131,7 @@ namespace kinski
             gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
             gl::load_matrix(gl::MODEL_VIEW_MATRIX, gl::mat4());
             gl::draw_points({gl::vec3(current_mouse_pos.x,
-                                      gl::window_dimension().y - current_mouse_pos.y , -0.1f)}, mat);
+                                      gl::window_dimension().y - current_mouse_pos.y , 0.f)}, mat);
         }
     }
     void Raspi_App::swapBuffers()
