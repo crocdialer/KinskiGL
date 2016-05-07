@@ -169,7 +169,7 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     dispman_element = vc_dispmanx_element_add (dispman_update, dispman_display,
                                                egl_layer, &dst_rect, 0/*src*/,
                                                &src_rect, DISPMANX_PROTECTION_NONE,
-                                               NULL /*alpha*/, NULL/*clamp*/, NULL/*transform*/);
+                                               0/*alpha*/, 0/*clamp*/, 0/*transform*/);
     nativewindow.element = dispman_element;
     nativewindow.width = display_width;
     nativewindow.height = display_height;
