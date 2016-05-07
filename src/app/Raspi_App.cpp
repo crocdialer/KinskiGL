@@ -7,6 +7,7 @@
 #undef countof
 #include "core/file_functions.hpp"
 #include "Raspi_App.hpp"
+#include "gl/Material.hpp"
 
 using namespace std;
 
