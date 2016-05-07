@@ -143,7 +143,7 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
     dispman_update = vc_dispmanx_update_start( 0 );
 
-    int bg_layer = 0, egl_layer = 1; //m_config_video.layer - 1;
+    int bg_layer = -1, egl_layer = 0; //m_config_video.layer - 1;
 
     // if(1)
     {
