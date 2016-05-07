@@ -46,8 +46,6 @@ class Raspi_App : public App
     void pollEvents() override;
 
     timeval m_startTime;
-
-    bool m_blank_background = true;
     std::unique_ptr<ESContext> m_context;
     gl::OutstreamGL m_outstream_gl;
 

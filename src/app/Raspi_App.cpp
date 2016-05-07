@@ -101,8 +101,6 @@ namespace kinski
         // clear framebuffer
         gl::clear();
 
-        if(m_blank_background){ blank_background(); }
-
         // fire user draw-callback
         draw();
 
@@ -368,49 +366,6 @@ namespace kinski
         }
     }
 }// namespace
-
-void blank_background()
-{
-    // we create a 1x1 black pixel image that is added to display just behind video
-    DISPMANX_DISPLAY_HANDLE_T   display;
-    DISPMANX_UPDATE_HANDLE_T    update;
-    DISPMANX_RESOURCE_HANDLE_T  resource;
-    DISPMANX_ELEMENT_HANDLE_T   element;
-    int             ret;
-    uint32_t vc_image_ptr;
-    VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
-    uint16_t image = 0x0000; // black
-    int             layer = 0; //m_config_video.layer - 1;
-
-    VC_RECT_T dst_rect, src_rect;
-
-    // display = vc_dispmanx_display_open(m_config_video.display);
-    display = vc_dispmanx_display_open(0);
-    assert(display);
-
-    resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr);
-    assert(resource);
-
-    vc_dispmanx_rect_set(&dst_rect, 0, 0, 1, 1);
-    ret = vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &dst_rect);
-    assert(ret == 0);
-
-    vc_dispmanx_rect_set( &src_rect, 0, 0, 1<<16, 1<<16);
-    vc_dispmanx_rect_set( &dst_rect, 0, 0, 0, 0);
-
-    update = vc_dispmanx_update_start(0);
-    assert(update);
-
-    element = vc_dispmanx_element_add(update, display, layer, &dst_rect, resource, &src_rect,
-                                      DISPMANX_PROTECTION_NONE, nullptr, nullptr,
-                                      DISPMANX_STEREOSCOPIC_MONO);
-    (void)element;
-    assert(element);
-
-    ret = vc_dispmanx_update_submit_sync(update);
-    (void)ret;
-    assert( ret == 0 );
-}
 
 std::string find_device_handler(const std::string &the_dev_name)
 {

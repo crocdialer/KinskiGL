@@ -142,14 +142,43 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
 
     dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
     dispman_update = vc_dispmanx_update_start( 0 );
+
+    int bg_layer = 0, egl_layer = 1; //m_config_video.layer - 1;
+
+    if(true)
+    {
+        // we create a 1x1 black pixel image that is added to display just behind video
+        DISPMANX_RESOURCE_HANDLE_T  resource;
+        DISPMANX_ELEMENT_HANDLE_T   element;
+        uint32_t vc_image_ptr;
+        int ret = 0; (void) ret;
+        VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
+        uint16_t image = 0x0000; // black
+
+        VC_RECT_T img_rect, poop_rect;
+        vc_dispmanx_rect_set(&img_rect, 0, 0, 1, 1);
+        vc_dispmanx_rect_set(&poop_rect, 0, 0, 0, 0);
+
+        resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr);
+        assert(resource);
+
+        ret = vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &poop_rect);
+        assert(ret == 0);
+
+        vc_dispmanx_element_add(dispman_update, dispman_display, layer, &poop_rect, resource, &src_rect,
+                                DISPMANX_PROTECTION_NONE, nullptr, nullptr,
+                                DISPMANX_STEREOSCOPIC_MONO);
+    }
+
+    // our egl layer
     dispman_element = vc_dispmanx_element_add (dispman_update, dispman_display,
-                                               1/*layer*/, &dst_rect, 0/*src*/,
+                                               egl_layer, &dst_rect, 0/*src*/,
                                                &src_rect, DISPMANX_PROTECTION_NONE,
                                                0 /*alpha*/, 0/*clamp*/, 0/*transform*/);
     nativewindow.element = dispman_element;
     nativewindow.width = display_width;
     nativewindow.height = display_height;
-    vc_dispmanx_update_submit_sync( dispman_update );
+    vc_dispmanx_update_submit_sync(dispman_update);
     esContext->hWnd = &nativewindow;
 	return EGL_TRUE;
 }
