@@ -145,7 +145,7 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
 
     int bg_layer = 0, egl_layer = 1; //m_config_video.layer - 1;
 
-    if(true)
+    // if(1)
     {
         // we create a 1x1 black pixel image that is added to display just behind video
         DISPMANX_RESOURCE_HANDLE_T  resource;
