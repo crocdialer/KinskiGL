@@ -34,7 +34,7 @@ namespace
 void TouchSample::setup()
 {
     ViewerApp::setup();
-    fonts()[FONT_LARGE].load("Courier New Bold.ttf", 63.f);
+    fonts()[FONT_LARGE].load(fonts()[FONT_NORMAL].path(), 63.f);
     
     observe_properties();
     register_property(m_circle_radius);
