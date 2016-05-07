@@ -47,8 +47,8 @@ class Raspi_App : public App
 
     timeval m_startTime;
 
+    bool m_blank_background = true;
     std::unique_ptr<ESContext> m_context;
-
     gl::OutstreamGL m_outstream_gl;
 
     // input file descriptors
