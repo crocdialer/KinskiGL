@@ -558,9 +558,20 @@ namespace kinski { namespace gl {
         static gl::Buffer point_buf;
         if(!point_buf){point_buf = gl::Buffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW);}
         point_buf.set_data(thePoints);
-        draw_points(point_buf, theMaterial);
+        draw_points(point_buf, theMaterial, 0);
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
+    void draw_points(const std::vector<vec3> &thePoints, gl::Color the_color)
+    {
+        static gl::MaterialPtr mat;
+        
+        if(!mat){ mat = gl::Material::create(); }
+        mat->setDiffuse(the_color);
+        draw_points(thePoints, mat);
+    }
+    
 ///////////////////////////////////////////////////////////////////////////////
     
     void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)

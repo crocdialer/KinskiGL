@@ -200,11 +200,11 @@ namespace kinski { namespace gl {
     KINSKI_API void draw_linestrip(const std::vector<vec3> &thePoints,
                                    const vec4 &theColor,
                                    float line_thickness = 1.f);
-    KINSKI_API void draw_points(const gl::Buffer &the_point_buf,
-                                const MaterialPtr &theMaterial = MaterialPtr(),
-                                GLsizei offset = 0);
+    KINSKI_API void draw_points(const gl::Buffer &the_point_buf, const MaterialPtr &theMaterial,
+                                GLsizei offset);
     KINSKI_API void draw_points(const std::vector<vec3> &thePoints,
-                                const MaterialPtr &theMaterial = MaterialPtr());
+                                gl::Color the_color = gl::COLOR_WHITE);
+    KINSKI_API void draw_points(const std::vector<vec3> &thePoints, const MaterialPtr &theMaterial);
     KINSKI_API void draw_texture(const gl::Texture &theTexture, const vec2 &theSize,
                                  const vec2 &theTopLeft = vec2(0));
     KINSKI_API void draw_quad(const MaterialPtr &theMaterial, const vec2 &theSize,
