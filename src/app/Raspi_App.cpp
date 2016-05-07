@@ -130,7 +130,8 @@ namespace kinski
             gl::ScopedMatrixPush m(gl::MODEL_VIEW_MATRIX), p(gl::PROJECTION_MATRIX);
             gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
             gl::load_matrix(gl::MODEL_VIEW_MATRIX, gl::mat4());
-            gl::draw_points({gl::vec3(current_mouse_pos , -0.1f)}, mat);
+            gl::draw_points({gl::vec3(current_mouse_pos.x,
+                                      gl::window_dimension().y - current_mouse_pos.y , -0.1f)}, mat);
         }
     }
     void Raspi_App::swapBuffers()
