@@ -155,12 +155,11 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
         VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
         uint16_t image = 0x0000; // black
 
-        VC_RECT_T img_rect, poop_rect;
+        VC_RECT_T img_rect;
         vc_dispmanx_rect_set(&img_rect, 0, 0, 1, 1);
-        vc_dispmanx_rect_set(&poop_rect, 0, 0, 0, 0);
         resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr);
         vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &img_rect);
-        vc_dispmanx_element_add(dispman_update, dispman_display, bg_layer, &poop_rect, resource, &src_rect,
+        vc_dispmanx_element_add(dispman_update, dispman_display, bg_layer, &dst_rect, resource, &src_rect,
                                 DISPMANX_PROTECTION_NONE, NULL, NULL,
                                 DISPMANX_STEREOSCOPIC_MONO);
     }
