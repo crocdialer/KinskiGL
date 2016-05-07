@@ -123,6 +123,7 @@ namespace kinski
                 mat->setDepthTest(false);
                 mat->setDepthWrite(false);
                 mat->setBlending(true);
+                mat->setPointSize(5.f);
             }
             gl::mat4 projectionMatrix = glm::ortho(0.0f, gl::window_dimension().x,
                                                    0.0f, gl::window_dimension().y, 0.0f, 1.0f);
