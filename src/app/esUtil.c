@@ -140,38 +140,20 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     src_rect.width = display_width << 16;
     src_rect.height = display_height << 16;
 
-    dispman_display = vc_dispmanx_display_open( 0 /* LCD */);
+    dispman_display = vc_dispmanx_display_open(0 /* LCD */);
+    dispman_update = vc_dispmanx_update_start(0);
 
-    int bg_layer = -1, egl_layer = 0; //m_config_video.layer - 1;
-
-    // if(1)
-    {
-        // we create a 1x1 black pixel image that is added to display just behind video
-        DISPMANX_RESOURCE_HANDLE_T  resource;
-        DISPMANX_ELEMENT_HANDLE_T   element;
-        uint32_t vc_image_ptr;
-        int ret = 0; (void) ret;
-        VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
-        uint16_t image = 0x0000; // black
-
-        VC_RECT_T img_rect;
-        vc_dispmanx_rect_set(&img_rect, 0, 0, 1, 1);
-        resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr);
-        vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &img_rect);
-
-        dispman_update = vc_dispmanx_update_start( 0 );
-
-        // blank bg layer
-        vc_dispmanx_element_add(dispman_update, dispman_display, bg_layer, &dst_rect, resource, &src_rect,
-                                DISPMANX_PROTECTION_NONE, NULL, NULL,
-                                DISPMANX_STEREOSCOPIC_MONO);
-    }
+    int egl_layer = 0;
 
     // our egl layer
+    VC_DISPMANX_ALPHA_T alpha_hints;
+    alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FROM_SOURCE;
+    alpha_hints.opacity = 255;
+
     dispman_element = vc_dispmanx_element_add (dispman_update, dispman_display,
                                                egl_layer, &dst_rect, 0/*src*/,
                                                &src_rect, DISPMANX_PROTECTION_NONE,
-                                               0/*alpha*/, 0/*clamp*/, 0/*transform*/);
+                                               alpha_hints, 0/*clamp*/, 0/*transform*/);
     nativewindow.element = dispman_element;
     nativewindow.width = display_width;
     nativewindow.height = display_height;
