@@ -165,8 +165,8 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
         ret = vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &poop_rect);
         assert(ret == 0);
 
-        vc_dispmanx_element_add(dispman_update, dispman_display, layer, &poop_rect, resource, &src_rect,
-                                DISPMANX_PROTECTION_NONE, nullptr, nullptr,
+        vc_dispmanx_element_add(dispman_update, dispman_display, bg_layer, &poop_rect, resource, &src_rect,
+                                DISPMANX_PROTECTION_NONE, NULL, NULL,
                                 DISPMANX_STEREOSCOPIC_MONO);
     }
 
