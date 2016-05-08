@@ -36,8 +36,6 @@ void EmptySample::draw()
 {
     gl::set_matrices(camera());
     if(*m_draw_grid){ gl::draw_grid(50, 50); }
-    
-    gl::draw_points_2D({gl::vec2(100, 200)}, gl::COLOR_ORANGE, 50.f);
 }
 
 /////////////////////////////////////////////////////////////////
