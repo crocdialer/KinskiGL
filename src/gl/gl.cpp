@@ -1615,6 +1615,12 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     frag_src = noise_3D_frag;
                     break;
                     
+                case ShaderType::POINTS_COLOR:
+                case ShaderType::POINTS_TEXTURE:
+                    vert_src = points_vert;
+                    frag_src = points_frag;
+                    break;
+                    
 #if !defined(KINSKI_GLES)
                 
                 case ShaderType::BLUR:
@@ -1650,12 +1656,6 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     vert_src = unlit_vert;
                     frag_src = unlit_frag;
                     geom_src = lines_2D_geom;
-                    break;
-                    
-                case ShaderType::POINTS_COLOR:
-                case ShaderType::POINTS_TEXTURE:
-                    vert_src = points_vert;
-                    frag_src = points_frag;
                     break;
                     
                 case ShaderType::POINTS_SPHERE:
