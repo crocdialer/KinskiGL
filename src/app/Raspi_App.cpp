@@ -7,7 +7,6 @@
 #undef countof
 #include "core/file_functions.hpp"
 #include "Raspi_App.hpp"
-#include "gl/Material.hpp"
 
 using namespace std;
 
@@ -112,7 +111,7 @@ namespace kinski
             outstream_gl().draw();
         }
 
-        if(m_show_cursor){ gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED); }
+        if(m_show_cursor){ gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f); }
     }
     void Raspi_App::swapBuffers()
     {

@@ -503,7 +503,8 @@ namespace kinski { namespace gl {
         if(!material)
         {
             try{ material = gl::Material::create(); }
-            catch (Exception &e){LOG_ERROR<<e.what();}
+            catch (Exception &e){ LOG_ERROR<<e.what(); }
+            material->setShader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
             material->setDepthTest(false);
             material->setDepthWrite(false);
             material->setBlending(true);
@@ -521,7 +522,7 @@ namespace kinski { namespace gl {
         
         for(auto &p : the_points)
         {
-            inverted_points.push_back(gl::vec3(p.x, g_viewport_dim[1] - p.y, 0.f));
+            inverted_points.push_back(gl::vec3(p.x, g_viewport_dim[1] - p.y, 0.0f));
         }
         draw_points(inverted_points, material, the_point_size);
     }
@@ -534,13 +535,18 @@ namespace kinski { namespace gl {
         static MeshPtr point_mesh;
         
         if(!the_material){ return; }
-        if(!point_mesh){ point_mesh = gl::Mesh::create(); }
+        if(!point_mesh)
+        {
+            point_mesh = gl::Mesh::create();
+            point_mesh->geometry()->setPrimitiveType(GL_POINTS);
+        }
         
-        *point_mesh->material() = *the_material;
+        point_mesh->material() = the_material;
         point_mesh->material()->setPointSize(the_point_size);
         point_mesh->geometry()->vertices() = the_points;
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
         point_mesh->geometry()->texCoords().resize(the_points.size());
+        point_mesh->geometry()->createGLBuffers();
         gl::draw_mesh(point_mesh);
     }
     
