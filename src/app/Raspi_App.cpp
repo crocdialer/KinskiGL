@@ -111,7 +111,10 @@ namespace kinski
             outstream_gl().draw();
         }
 
-        if(m_show_cursor){ gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f); }
+        if(cursorVisible() && (m_mouse_fd || m_touch_fd))
+        {
+             gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f);
+        }
     }
     void Raspi_App::swapBuffers()
     {
