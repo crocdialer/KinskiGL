@@ -111,7 +111,7 @@ namespace kinski
             outstream_gl().draw();
         }
 
-        if(cursorVisible() && (m_mouse_fd || m_touch_fd))
+        if(cursor_visible() && (m_mouse_fd || m_touch_fd))
         {
              gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f);
         }
