@@ -545,7 +545,7 @@ namespace kinski { namespace gl {
         point_mesh->material()->setPointSize(the_point_size);
         point_mesh->geometry()->vertices() = the_points;
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
-        point_mesh->geometry()->texCoords().resize(the_points.size());
+        point_mesh->geometry()->point_sizes().resize(the_points.size(), 1.f);
         point_mesh->geometry()->createGLBuffers();
         gl::draw_mesh(point_mesh);
     }
