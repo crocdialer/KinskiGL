@@ -26,7 +26,7 @@ elseif(KINSKI_RASPI)
   find_package(ZLIB REQUIRED)
   find_library(M_LIB NAMES m)
 
-  set(MODULE_LIBRARIES openmaxil pthread ${ZLIB_LIBRARIES} ${M_LIB} ${AVFormat} ${AVCodec} ${AVUtil} ${SWResample} vcos vchiq_arm vcilcs WFC bcm_host PARENT_SCOPE)
+  set(MODULE_LIBRARIES openmaxil pthread ${ZLIB_LIBRARIES} ${M_LIB} ${AVFormat} ${AVCodec} ${AVUtil} ${SWResample} vcos vchiq_arm vcilcs vchostif PARENT_SCOPE)
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)
