@@ -1,6 +1,7 @@
 #include <thread>
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
+#include "interface/vmcs_host/vc_tvservice.h"
 #undef countof
 
 #include "core/file_functions.hpp"
@@ -442,11 +443,10 @@ namespace kinski{ namespace media
 
         if (m_impl->m_config_audio.device == "")
         {
-        //   if(vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2, EDID_AudioSampleRate_e44KHz,
-        //                                 EDID_AudioSampleSize_16bit ) == 0)
-        //   { m_config_audio.device = "omx:hdmi"; }
-        //   else
-            { m_impl->m_config_audio.device = "omx:local"; }
+            if(vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2, EDID_AudioSampleRate_e44KHz,
+                                          EDID_AudioSampleSize_16bit ) == 0)
+            { m_config_audio.device = "omx:hdmi"; }
+            else{ m_impl->m_config_audio.device = "omx:local"; }
         }
 
         if (m_impl->m_fps > 0.0f)
