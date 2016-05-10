@@ -284,6 +284,11 @@ void MediaPlayer::setup_rpc_interface()
     {
         m_movie->pause();
     });
+    remote_control().add_command("restart", [this](net::tcp_connection_ptr con,
+                                                   const std::vector<std::string> &rpc_args)
+    {
+        m_movie->restart();
+    });
     remote_control().add_command("load");
     register_function("load", [this](const std::vector<std::string> &rpc_args)
     {
