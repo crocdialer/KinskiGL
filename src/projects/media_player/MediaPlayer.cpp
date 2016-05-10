@@ -24,7 +24,8 @@ void MediaPlayer::setup()
     register_property(m_movie_path);
     register_property(m_loop);
     register_property(m_auto_play);
-    register_property(m_movie_speed);
+    register_property(m_volume);
+    register_property(m_playback_speed);
     register_property(m_use_warping);
     observe_properties();
     add_tweakbar_for_component(shared_from_this());
@@ -50,7 +51,8 @@ void MediaPlayer::update(float timeDelta)
     if(m_reload_movie)
     {
         m_movie->load(*m_movie_path, *m_auto_play, *m_loop);
-        m_movie->set_rate(*m_movie_speed);
+        m_movie->set_rate(*m_playback_speed);
+        m_movie->set_volume(*m_volume);
         m_reload_movie = false;
     }
     
@@ -214,9 +216,13 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     {
         m_movie->set_loop(*m_loop);
     }
-    else if(theProperty == m_movie_speed)
+    else if(theProperty == m_volume)
     {
-        m_movie->set_rate(*m_movie_speed);
+        m_movie->set_volume(*m_volume);
+    }
+    else if(theProperty == m_playback_speed)
+    {
+        m_movie->set_rate(*m_playback_speed);
     }
     else if(theProperty == m_use_warping)
     {

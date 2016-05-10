@@ -38,7 +38,9 @@ namespace kinski
         Property_<bool>::Ptr
         m_loop = Property_<bool>::create("loop", false),
         m_auto_play = Property_<bool>::create("autoplay", true);
-        Property_<float>::Ptr m_movie_speed = Property_<float>::create("movie speed", 1.f);
+        Property_<float>::Ptr
+        m_playback_speed = Property_<float>::create("playback speed", 1.f),
+        m_volume = RangedProperty<float>::create("volume", 1.f, 0.f , 1.f);
         Property_<bool>::Ptr m_use_warping = Property_<bool>::create("use warping", false);
         
         std::string secs_to_time_str(float the_secs) const;
