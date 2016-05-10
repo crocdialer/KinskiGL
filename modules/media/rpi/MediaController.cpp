@@ -1,7 +1,10 @@
 #include <thread>
 #include "EGL/egl.h"
 #include "EGL/eglext.h"
-#include "interface/vmcs_host/vc_tvservice.h"
+extern "C"
+{
+    #include "interface/vmcs_host/vc_tvservice.h"
+}
 #undef countof
 
 #include "core/file_functions.hpp"
