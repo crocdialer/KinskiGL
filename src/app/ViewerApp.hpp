@@ -56,7 +56,7 @@ namespace kinski {
         void set_wireframe(bool b) { *m_wireframe = b; };
         bool draw_grid() const { return *m_draw_grid; };
         bool normals() const { return *m_drawNormals; };
-        const glm::vec4& clear_color(){ return *m_clear_color; };
+        const gl::Color& clear_color(){ return *m_clear_color; };
         void clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
         void set_clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
         
@@ -148,7 +148,7 @@ namespace kinski {
         Property_<bool>::Ptr m_draw_grid;
         Property_<bool>::Ptr m_wireframe;
         Property_<bool>::Ptr m_drawNormals;
-        Property_<glm::vec4>::Ptr m_clear_color;
+        Property_<gl::Color>::Ptr m_clear_color;
         
         // mouse rotation control
         glm::vec2 m_clickPos, m_dragPos, m_inertia;

@@ -86,6 +86,8 @@ namespace kinski
                     {
                         auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
                                                    m_impl->m_sensor_accumulator.end()));
+                        LOG_TRACE_2 << string(m_impl->m_sensor_accumulator.begin(),
+                                              m_impl->m_sensor_accumulator.end());
                         m_impl->m_sensor_accumulator.clear();
                         
                         if(!tokens.empty())
@@ -96,8 +98,8 @@ namespace kinski
                             {
                                 m_impl->m_proximity_values[i - 1] = string_as<float>(tokens[i]);
                             }
-                            break;
                         }
+                        break;
                     }
                     default:
                         m_impl->m_sensor_accumulator.push_back(byte);
@@ -137,7 +139,7 @@ namespace kinski
                     connect(serial);
                 }else if(m_impl->m_sensor_device)
                 {
-                    m_impl->m_sensor_device->close();
+//                    m_impl->m_sensor_device->close();
                     connect(m_impl->m_sensor_device);
                 }
             });
@@ -192,6 +194,7 @@ namespace kinski
         if(m_impl->m_sensor_device->is_initialized())
         {
             m_impl->m_sensor_device->flush();
+            m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
             return true;
