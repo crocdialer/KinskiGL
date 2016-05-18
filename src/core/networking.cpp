@@ -78,8 +78,6 @@ namespace kinski
                             const std::string &ip_string,
                             int port)
         {
-            try
-            {
                 auto socket_ptr = std::make_shared<tcp::socket>(io_service);
                 auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
                 
@@ -90,18 +88,21 @@ namespace kinski
                 {
                     if(!ec)
                     {
-                        boost::asio::connect(*socket_ptr, end_point_it);
-                        boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
-                                                 [socket_ptr](const boost::system::error_code& error,
-                                                              std::size_t bytes_transferred)
+                        try
                         {
-                            if(error){ LOG_WARNING << error.message(); }
-                        });
+                            boost::asio::connect(*socket_ptr, end_point_it);
+                            boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
+                                                     [socket_ptr, ip_string]
+                                                     (const boost::system::error_code& error,
+                                                      std::size_t bytes_transferred)
+                            {
+                                if(error){ LOG_WARNING << ip_string << ": " << error.message(); }
+                            });
+                        }
+                        catch(std::exception &e){ LOG_WARNING << ip_string << ": " << e.what(); }
                     }
                     else{ LOG_WARNING << ip_string << ": " << ec.message(); }
                 });
-            }
-            catch (std::exception &e) { LOG_WARNING << ip_string << ": " << e.what(); }
         }
         
         ///////////////////////////////////////////////////////////////////////////////
