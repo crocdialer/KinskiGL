@@ -376,10 +376,10 @@ namespace kinski{ namespace media
     }
 
     MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
-                                               bool loop)
+                                               bool loop, RenderTarget the_target)
     {
         auto ptr = MediaControllerPtr(new MediaController());
-        ptr->load(filePath, autoplay, loop);
+        ptr->load(filePath, autoplay, loop, the_target);
         return ptr;
     }
 
@@ -390,7 +390,8 @@ namespace kinski{ namespace media
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void MediaController::load(const std::string &filePath, bool autoplay, bool loop)
+    void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
+                               RenderTarget the_target)
     {
         std::string found_path;
         try{ found_path = kinski::search_file(filePath); }
@@ -401,13 +402,12 @@ namespace kinski{ namespace media
         }
         MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
         MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
-        auto render_target = m_impl ? m_impl->m_render_target : RenderTarget::TEXTURE;
         m_impl.reset(new MediaControllerImpl());
         m_impl->m_src_path = found_path;
         m_impl->m_movie_controller = shared_from_this();
         m_impl->m_on_load_cb = on_load;
         m_impl->m_movie_ended_cb = on_end;
-        m_impl->m_render_target = render_target;
+        m_impl->m_render_target = the_target;
 
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
@@ -654,11 +654,6 @@ namespace kinski{ namespace media
 
     MediaController::RenderTarget MediaController::render_target() const
     {
-        return m_impl->m_render_target;
-    }
-
-    void MediaController::set_render_target(MediaController::RenderTarget the_target)
-    {
-        m_impl->m_render_target = the_target;
+        return m_impl ? m_impl->m_render_target : RenderTarget::TEXTURE;
     }
 }}// namespaces

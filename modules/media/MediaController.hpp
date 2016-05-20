@@ -24,12 +24,14 @@ namespace kinski{ namespace media{
 
         static MediaControllerPtr create();
         static MediaControllerPtr create(const std::string &filePath, bool autoplay = false,
-                                         bool loop = false);
+                                         bool loop = false,
+                                         RenderTarget the_target = RenderTarget::TEXTURE);
 
 
         virtual ~MediaController();
 
-        void load(const std::string &the_path, bool autoplay = false, bool loop = false);
+        void load(const std::string &the_path, bool autoplay = false, bool loop = false,
+                  RenderTarget the_target = RenderTarget::TEXTURE);
         void unload();
         bool is_loaded() const;
         bool has_video() const;
@@ -49,7 +51,6 @@ namespace kinski{ namespace media{
         void set_rate(float r);
         const std::string& path() const;
         RenderTarget render_target() const;
-        void set_render_target(RenderTarget the_target);
 
         void set_on_load_callback(MediaCallback c);
         void set_media_ended_callback(MediaCallback c);

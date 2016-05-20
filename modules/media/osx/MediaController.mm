@@ -75,7 +75,7 @@ namespace kinski{ namespace media{
     }
     
     MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
-                                               bool loop)
+                                               bool loop, RenderTarget the_target)
     {
         auto ptr = MediaControllerPtr(new MediaController());
         ptr->load(filePath, autoplay, loop);
@@ -92,7 +92,8 @@ namespace kinski{ namespace media{
 
     }
 
-    void MediaController::load(const std::string &filePath, bool autoplay, bool loop)
+    void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
+                               RenderTarget the_target)
     {
         MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
         MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
@@ -507,11 +508,6 @@ namespace kinski{ namespace media{
     MediaController::RenderTarget MediaController::render_target() const
     {
         return RenderTarget::TEXTURE;
-    }
-    
-    void MediaController::set_render_target(MediaController::RenderTarget the_target)
-    {
-        LOG_WARNING << "MediaController::set_render_target is not available on this platform";
     }
 }}// namespaces
 
