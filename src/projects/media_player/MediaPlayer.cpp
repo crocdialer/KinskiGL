@@ -242,11 +242,12 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             // setup a periodic udp-broadcast to enable discovery of this node
             m_broadcast_timer = Timer(main_queue().io_service(), [this]()
             {
-                net::async_send_udp_broadcast(background_queue().io_service(), "ping", 55555);
+                net::async_send_udp_broadcast(background_queue().io_service(),
+                                              "ping from " + name(), 55555);
             });
             m_broadcast_timer.set_periodic();
             m_broadcast_timer.expires_from_now(2.f);
-        }
+        }else{ m_broadcast_timer.cancel(); }
     }
 }
 
