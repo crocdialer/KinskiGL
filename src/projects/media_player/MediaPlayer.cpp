@@ -50,7 +50,8 @@ void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_movie)
     {
-        auto render_target = media::MediaController::RenderTarget::SCREEN;
+        auto render_target = *m_use_warping ? media::MediaController::RenderTarget::SCREEN :
+            media::MediaController::RenderTarget::TEXTURE;
         
         if(render_target == media::MediaController::RenderTarget::SCREEN)
         { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
