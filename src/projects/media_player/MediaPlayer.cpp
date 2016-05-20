@@ -50,6 +50,7 @@ void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_movie)
     {
+        m_movie->set_render_target(media::MediaController::RenderTarget::SCREEN);
         m_movie->load(*m_movie_path, *m_auto_play, *m_loop);
         m_movie->set_rate(*m_playback_speed);
         m_movie->set_volume(*m_volume);
