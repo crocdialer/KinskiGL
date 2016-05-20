@@ -147,8 +147,9 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
 
     // our egl layer
     VC_DISPMANX_ALPHA_T alpha_hints;
-    alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
-    alpha_hints.opacity = 255;
+    alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FROM_SOURCE;
+    // alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
+    // alpha_hints.opacity = 255;
 
     dispman_element = vc_dispmanx_element_add (dispman_update, dispman_display,
                                                egl_layer, &dst_rect, 0/*src*/,

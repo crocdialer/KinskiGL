@@ -77,7 +77,7 @@ public:
     alpha = 255;
     aspectMode = 0;
     display = 0;
-    layer = 0;
+    layer = -1;
     queue_size = 10.0f;
     fifo_size = (float)80*1024*60 / (1024*1024);
   }
