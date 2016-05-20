@@ -18,6 +18,8 @@ namespace kinski{ namespace media{
     {
     public:
 
+        enum class RenderTarget{SCREEN, TEXTURE};
+        
         typedef std::function<void(MediaControllerPtr the_movie)> MediaCallback;
 
         static MediaControllerPtr create();
@@ -46,6 +48,8 @@ namespace kinski{ namespace media{
         float rate() const;
         void set_rate(float r);
         const std::string& path() const;
+        RenderTarget render_target() const;
+        void set_render_target(RenderTarget the_target);
 
         void set_on_load_callback(MediaCallback c);
         void set_media_ended_callback(MediaCallback c);

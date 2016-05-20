@@ -25,7 +25,9 @@ namespace kinski
         typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;
         
         // signature for a receive function
-        typedef std::function<void (const std::vector<uint8_t>&)> receive_function;
+        typedef std::function<void (const std::vector<uint8_t>&, const std::string&, uint16_t)>
+            receive_function;
+        
         typedef std::function<void(tcp_connection_ptr,
                                    const std::vector<uint8_t>&)> tcp_receive_callback;
         

@@ -503,6 +503,16 @@ namespace kinski{ namespace media{
         if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
     }
+    
+    MediaController::RenderTarget MediaController::render_target() const
+    {
+        return RenderTarget::TEXTURE;
+    }
+    
+    void MediaController::set_render_target(MediaController::RenderTarget the_target)
+    {
+        LOG_WARNING << "MediaController::set_render_target is not available on this platform";
+    }
 }}// namespaces
 
 @implementation LoopHelper

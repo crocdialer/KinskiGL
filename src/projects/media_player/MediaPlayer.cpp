@@ -42,14 +42,6 @@ void MediaPlayer::setup()
     
     // setup our components to receive rpc calls
     setup_rpc_interface();
-    
-    // setup a periodic udp-broadcast to enable discovery of this node
-    m_broadcast_timer = Timer(main_queue().io_service(), [this]()
-    {
-        net::async_send_udp_broadcast(background_queue().io_service(), "ping", 55555);
-    });
-    m_broadcast_timer.set_periodic();
-    m_broadcast_timer.expires_from_now(1.f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -236,6 +228,19 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     {
         remove_tweakbar_for_component(m_warp);
         if(*m_use_warping){ add_tweakbar_for_component(m_warp); }
+    }
+    else if(theProperty == m_use_discovery_broadcast)
+    {
+        if(*m_use_discovery_broadcast)
+        {
+            // setup a periodic udp-broadcast to enable discovery of this node
+            m_broadcast_timer = Timer(main_queue().io_service(), [this]()
+            {
+                net::async_send_udp_broadcast(background_queue().io_service(), "ping", 55555);
+            });
+            m_broadcast_timer.set_periodic();
+            m_broadcast_timer.expires_from_now(2.f);
+        }
     }
 }
 

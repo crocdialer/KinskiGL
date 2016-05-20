@@ -42,6 +42,8 @@ namespace kinski{ namespace media
         // bridge EGL -> gl::Texture
         void* m_egl_image = nullptr;
 
+        MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
+
         // COMXCore m_OMX;
         OMXReader m_omx_reader;
         std::shared_ptr<OMXPlayerVideo> m_player_video;
@@ -430,7 +432,10 @@ namespace kinski{ namespace media
                                                 (EGLClientBuffer)m_impl->m_texture.getId(),
                                                 0);
         // pass our egl_image for buffer creation
-        m_impl->m_config_video.egl_image = m_impl->m_egl_image;
+        if(m_impl->m_render_target == RenderTarget::TEXTURE)
+        {
+            m_impl->m_config_video.egl_image = m_impl->m_egl_image;
+        }
 
         if(!m_impl->m_av_clock->OMXInitialize())
         {
@@ -643,5 +648,15 @@ namespace kinski{ namespace media
     {
         if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
+    }
+
+    MediaController::RenderTarget MediaController::render_target() const
+    {
+        return m_impl->m_render_target;
+    }
+
+    void MediaController::set_render_target(MediaController::RenderTarget the_target)
+    {
+        m_impl->m_render_target = the_target;
     }
 }}// namespaces

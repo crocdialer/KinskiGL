@@ -39,7 +39,8 @@ namespace kinski
         Property_<bool>::Ptr
         m_loop = Property_<bool>::create("loop", false),
         m_auto_play = Property_<bool>::create("autoplay", true),
-        m_use_warping = Property_<bool>::create("use warping", false);
+        m_use_warping = Property_<bool>::create("use warping", false),
+        m_use_discovery_broadcast = Property_<bool>::create("use discovery broadcast", false);
         
         Property_<float>::Ptr
         m_playback_speed = Property_<float>::create("playback speed", 1.f),
