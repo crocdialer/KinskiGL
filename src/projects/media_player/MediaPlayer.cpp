@@ -50,7 +50,7 @@ void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_movie)
     {
-        auto render_target = *m_use_warping ? media::MediaController::RenderTarget::SCREEN :
+        auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
             media::MediaController::RenderTarget::TEXTURE;
         
         if(render_target == media::MediaController::RenderTarget::SCREEN)
