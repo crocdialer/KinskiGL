@@ -265,6 +265,10 @@ namespace kinski
                 {
                     if(m_impl->receive_function)
                     {
+                        LOG_DEBUG << "received udp-datagramm from: " <<
+                            m_impl->socket.remote_endpoint().address().to_string() << "(" <<
+                            m_impl->socket.remote_endpoint().port() << ")";
+                        
                         std::vector<uint8_t> datavec(m_impl->recv_buffer.begin(),
                                                      m_impl->recv_buffer.begin() + bytes_transferred);
                         m_impl->receive_function(datavec);
@@ -273,7 +277,7 @@ namespace kinski
                 }
                 else
                 {
-                    LOG_WARNING<<error.message();
+                    LOG_WARNING << error.message();
                 }
             });
         }
