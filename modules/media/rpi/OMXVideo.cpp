@@ -140,10 +140,10 @@ void COMXVideo::PortSettingsChangedLogger(OMX_PARAM_PORTDEFINITIONTYPE port_imag
       port_image.format.video.xFramerate / (float)(1<<16), interlaceEMode, m_deinterlace, m_config.anaglyph, m_pixel_aspect, m_config.display,
       m_config.layer, m_config.alpha, m_config.aspectMode);
 
-  printf("V:PortSettingsChanged: %dx%d@%.2f interlace:%d deinterlace:%d anaglyph:%d par:%.2f display:%d layer:%d alpha:%d aspectMode:%d\n",
-      port_image.format.video.nFrameWidth, port_image.format.video.nFrameHeight,
-      port_image.format.video.xFramerate / (float)(1<<16), interlaceEMode, m_deinterlace, m_config.anaglyph, m_pixel_aspect, m_config.display,
-      m_config.layer, m_config.alpha, m_config.aspectMode);
+  // printf("V:PortSettingsChanged: %dx%d@%.2f interlace:%d deinterlace:%d anaglyph:%d par:%.2f display:%d layer:%d alpha:%d aspectMode:%d\n",
+  //     port_image.format.video.nFrameWidth, port_image.format.video.nFrameHeight,
+  //     port_image.format.video.xFramerate / (float)(1<<16), interlaceEMode, m_deinterlace, m_config.anaglyph, m_pixel_aspect, m_config.display,
+  //     m_config.layer, m_config.alpha, m_config.aspectMode);
 }
 
 bool COMXVideo::PortSettingsChanged()
