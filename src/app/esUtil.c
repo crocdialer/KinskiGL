@@ -111,7 +111,7 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
 
     static EGL_DISPMANX_WINDOW_T nativewindow;
 
-    DISPMANX_ELEMENT_HANDLE_T dispman_element;
+    DISPMANX_ELEMENT_HANDLE_T dispman_element, bg_element;
     DISPMANX_DISPLAY_HANDLE_T dispman_display;
     DISPMANX_UPDATE_HANDLE_T dispman_update;
     VC_RECT_T dst_rect;
@@ -143,7 +143,7 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     dispman_display = vc_dispmanx_display_open(0 /* LCD */);
     dispman_update = vc_dispmanx_update_start(0);
 
-    int egl_layer = 0;
+    int egl_layer = 0, bg_layer = -2;
 
     // our egl layer
     VC_DISPMANX_ALPHA_T alpha_hints;
@@ -151,17 +151,40 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     // alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
     // alpha_hints.opacity = 255;
 
-    dispman_element = vc_dispmanx_element_add (dispman_update, dispman_display,
-                                               egl_layer, &dst_rect, 0/*src*/,
-                                               &src_rect, DISPMANX_PROTECTION_NONE,
-                                               &alpha_hints, 0/*clamp*/, 0/*transform*/);
+    dispman_element = vc_dispmanx_element_add(dispman_update, dispman_display,
+                                              egl_layer, &dst_rect, 0/*src*/,
+                                              &src_rect, DISPMANX_PROTECTION_NONE,
+                                              &alpha_hints, 0/*clamp*/, 0/*transform*/);
     nativewindow.element = dispman_element;
     nativewindow.width = display_width;
     nativewindow.height = display_height;
-    vc_dispmanx_update_submit_sync(dispman_update);
     esContext->hWnd = &nativewindow;
+
+    // blank background layer
+    if(true)
+    {
+        uint32_t vc_image_ptr;
+        VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
+        uint16_t image = 0x0000; // black
+        DISPMANX_RESOURCE_HANDLE_T
+        resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr );
+        VC_RECT_T bg_img_rect;
+        vc_dispmanx_rect_set(&bg_img_rect, 0, 0, 1, 1);
+        vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &bg_img_rect);
+
+        // set layer opaque
+        alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
+        alpha_hints.opacity = 255;
+        bg_element = vc_dispmanx_element_add(dispman_update, dispman_display,
+                                             bg_layer, &dst_rect, 0/*src*/,
+                                             &src_rect, DISPMANX_PROTECTION_NONE,
+                                             &alpha_hints, 0/*clamp*/, 0/*transform*/);
+    }
+
+    vc_dispmanx_update_submit_sync(dispman_update);
 	return EGL_TRUE;
 }
+
 //////////////////////////////////////////////////////////////////
 //
 //  Public Functions
