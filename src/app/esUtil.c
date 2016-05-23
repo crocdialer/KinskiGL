@@ -130,20 +130,13 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     // You can hardcode the resolution here:
     //display_width = 640;
     //display_height = 480;
-    dst_rect.x = 0;
-    dst_rect.y = 0;
-    dst_rect.width = display_width;
-    dst_rect.height = display_height;
-
-    src_rect.x = 0;
-    src_rect.y = 0;
-    src_rect.width = display_width << 16;
-    src_rect.height = display_height << 16;
+    vc_dispmanx_rect_set(&dst_rect, 0, 0, display_width, display_height);
+    vc_dispmanx_rect_set(&src_rect, 0, 0, display_width << 16, display_height << 16);
 
     dispman_display = vc_dispmanx_display_open(0 /* LCD */);
     dispman_update = vc_dispmanx_update_start(0);
 
-    int egl_layer = 0, bg_layer = -2;
+    int egl_layer = 0, bg_layer = -3;
 
     // our egl layer
     VC_DISPMANX_ALPHA_T alpha_hints;
@@ -160,27 +153,22 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     nativewindow.height = display_height;
     esContext->hWnd = &nativewindow;
 
-    // blank background layer
-    if(1)
+    // black background layer
+    // if(0)
     {
         uint32_t vc_image_ptr;
         VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
         uint16_t image = 0x0000; // black
         DISPMANX_RESOURCE_HANDLE_T
-        resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr );
+        resource = vc_dispmanx_resource_create(type, 1 /*width*/, 1 /*height*/, &vc_image_ptr);
         VC_RECT_T bg_img_rect;
         vc_dispmanx_rect_set(&bg_img_rect, 0, 0, 1, 1);
         vc_dispmanx_resource_write_data(resource, type, sizeof(image), &image, &bg_img_rect);
-
-        // set layer opaque
-        alpha_hints.flags = DISPMANX_FLAGS_ALPHA_FIXED_ALL_PIXELS;
-        alpha_hints.opacity = 255;
         bg_element = vc_dispmanx_element_add(dispman_update, dispman_display,
-                                             bg_layer, &dst_rect, 0/*src*/,
-                                             &src_rect, DISPMANX_PROTECTION_NONE,
-                                             &alpha_hints, 0/*clamp*/, 0/*transform*/);
+                                             bg_layer, &dst_rect, resource,
+                                             &bg_img_rect, DISPMANX_PROTECTION_NONE,
+                                             NULL, NULL, DISPMANX_STEREOSCOPIC_MONO);
     }
-
     vc_dispmanx_update_submit_sync(dispman_update);
 	return EGL_TRUE;
 }
