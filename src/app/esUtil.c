@@ -161,7 +161,7 @@ EGLBoolean WinCreate(ESContext *esContext, const char *title)
     esContext->hWnd = &nativewindow;
 
     // blank background layer
-    if(true)
+    if(1)
     {
         uint32_t vc_image_ptr;
         VC_IMAGE_TYPE_T type = VC_IMAGE_RGB565;
