@@ -503,7 +503,7 @@ namespace kinski{ namespace media
         if(m_impl->m_playing && m_impl->m_pause){ m_impl->m_pause = false; }
         else
         {
-            //  restart();
+            //  make sure thread is joined
             m_impl->m_playing = false;
             try{ if(m_impl->m_thread.joinable()){ m_impl->m_thread.join(); } }
             catch(std::exception &e){ LOG_ERROR << e.what(); }
@@ -514,6 +514,7 @@ namespace kinski{ namespace media
             m_impl->m_pause = false;
             set_rate(m_impl->m_rate);
 
+            // start thread
             m_impl->m_thread = std::thread(std::bind(&MediaControllerImpl::thread_func, m_impl.get()));
         }
     }
