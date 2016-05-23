@@ -23,7 +23,7 @@ namespace kinski
     {
             
         Property* myPProp = theProperty.get();
-        if (!theProperty->isTweakable())
+        if(!theProperty->isTweakable())
         {
             return;
         }

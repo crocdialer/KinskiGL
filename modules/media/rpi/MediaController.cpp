@@ -501,7 +501,21 @@ namespace kinski{ namespace media
     {
         if(!m_impl || (m_impl->m_playing && !m_impl->m_pause)){ return; }
         if(m_impl->m_playing && m_impl->m_pause){ m_impl->m_pause = false; }
-        else{ restart(); }
+        else
+        {
+            //  restart();
+            m_impl->m_playing = false;
+            try{ if(m_impl->m_thread.joinable()){ m_impl->m_thread.join(); } }
+            catch(std::exception &e){ LOG_ERROR << e.what(); }
+
+            seek_to_time(0);
+            m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
+            m_impl->m_playing = true;
+            m_impl->m_pause = false;
+            set_rate(m_impl->m_rate);
+
+            m_impl->m_thread = std::thread(std::bind(&MediaControllerImpl::thread_func, m_impl.get()));
+        }
     }
 
     bool MediaController::is_loaded() const
@@ -537,17 +551,8 @@ namespace kinski{ namespace media
     void MediaController::restart()
     {
         LOG_DEBUG << "restarting movie playback";
-        m_impl->m_playing = false;
-        try{ if(m_impl->m_thread.joinable()){ m_impl->m_thread.join(); } }
-        catch(std::exception &e){ LOG_ERROR << e.what(); }
-
-        seek_to_time(0);
-        m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
-        m_impl->m_playing = true;
-        m_impl->m_pause = false;
-        set_rate(m_impl->m_rate);
-
-        m_impl->m_thread = std::thread(std::bind(&MediaControllerImpl::thread_func, m_impl.get()));
+        if(!is_playing()){ play(); }
+        else{ seek_to_time(0); }
     }
 
     float MediaController::volume() const

@@ -117,6 +117,8 @@ namespace kinski{ namespace media{
         [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:tracksKey] 
                              completionHandler:
          ^{
+             if(!m_impl){ return; }
+             
              // completion code
              NSError *error = nil;
              
