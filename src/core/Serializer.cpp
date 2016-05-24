@@ -121,6 +121,7 @@ namespace kinski {
             
         }else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN) {
             // do nothing
+            LOG_WARNING << "property type unknown";
         }
         
         return success;
@@ -194,15 +195,15 @@ namespace kinski {
             Json::Value myComponentNode = myRoot[i];
             if(myComponentNode[PropertyIO::PROPERTY_NAME] != theComponent->name()){continue;}
             
-            for (unsigned int i=0; i < myComponentNode[PropertyIO::PROPERTIES].size(); i++)
+            for (unsigned int j=0; j < myComponentNode[PropertyIO::PROPERTIES].size(); j++)
             {
                 try
                 {
                     std::string myName =
-                    myComponentNode[PropertyIO::PROPERTIES][i][PropertyIO::PROPERTY_NAME].asString();
+                    myComponentNode[PropertyIO::PROPERTIES][j][PropertyIO::PROPERTY_NAME].asString();
                     
                     Property::Ptr myProperty = theComponent->get_property_by_name(myName);
-                    theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][i]);
+                    theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][j]);
                     
                 } catch (PropertyNotFoundException &myException)
                 {
