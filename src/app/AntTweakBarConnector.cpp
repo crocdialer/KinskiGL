@@ -97,7 +97,7 @@ namespace kinski
         else if (theProperty->isOfType<string>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_STDSTRING, 
-                       AntTweakBarConnector::setString,
+                       AntTweakBarConnector::setValue<string>,
                        AntTweakBarConnector::getString,
                        (void*)myPProp, defString.c_str());
         }
@@ -190,7 +190,7 @@ namespace kinski
     }
     
     void TW_CALL 
-    AntTweakBarConnector::getString(void *value, void *clientData) 
+    AntTweakBarConnector::getString(void *value, void *clientData)
     {
         Property * theProperty = (Property*) clientData;
         string *destPtr = static_cast<string *>(value);
