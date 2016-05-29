@@ -25,6 +25,7 @@ namespace kinski {
     const std::string PropertyIO::PROPERTY_TYPE_BOOLEAN = "bool";
     const std::string PropertyIO::PROPERTY_TYPE_INT = "int";
     const std::string PropertyIO::PROPERTY_TYPE_UINT = "uint";
+    const std::string PropertyIO::PROPERTY_TYPE_FLOAT_ARRAY = "float_array";
     const std::string PropertyIO::PROPERTY_TYPE_STRING_ARRAY = "string_array";
     const std::string PropertyIO::PROPERTY_TYPE_UNKNOWN = "unknown";
     const std::string PropertyIO::PROPERTY_NAME = "name";
@@ -35,37 +36,60 @@ namespace kinski {
     {
         bool success = false;
         
-        if (theProperty->isOfType<float>()) {
+        if(theProperty->isOfType<float>())
+        {
             theJsonValue[PROPERTY_TYPE]  = PROPERTY_TYPE_FLOAT;
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<float>();
             success = true;
             
-        } else if (theProperty->isOfType<std::string>()) {
+        }
+        else if(theProperty->isOfType<std::string>())
+        {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING;
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<std::string>();
             success = true;
             
-        } else if (theProperty->isOfType<int>()) {
+        }
+        else if(theProperty->isOfType<int>())
+        {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_INT;
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<int>();
             success = true;
             
-        } else if (theProperty->isOfType<uint32_t>()) {
+        }
+        else if(theProperty->isOfType<uint32_t>())
+        {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_UINT;
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<uint32_t>();
             success = true;
             
-        } else if (theProperty->isOfType<double>()) {
+        }
+        else if(theProperty->isOfType<double>())
+        {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_DOUBLE;
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<double>();
             success = true;
             
-        } else if (theProperty->isOfType<bool>()) {
+        }
+        else if(theProperty->isOfType<bool>())
+        {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_BOOLEAN;
             theJsonValue[PROPERTY_VALUE] = theProperty->getValue<bool>();
             success = true;
             
-        } else if (theProperty->isOfType<std::vector<std::string> >()) {
+        }
+        else if(theProperty->isOfType<std::vector<float>>())
+        {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_FLOAT_ARRAY;
+            const auto& vals = theProperty->getValue<std::vector<float>>();
+            for (uint32_t i = 0; i < vals.size(); ++i)
+            {
+                theJsonValue[PROPERTY_VALUE][i] = vals[i];
+            }
+            success = true;
+        }
+        else if(theProperty->isOfType<std::vector<std::string>>())
+        {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING_ARRAY;
             const std::vector<std::string>& vals = theProperty->getValue<std::vector<std::string> >();
             for (uint32_t i = 0; i < vals.size(); ++i)
@@ -87,27 +111,53 @@ namespace kinski {
             theProperty->setValue<float>(theJsonValue[PROPERTY_VALUE].asDouble());
             success = true;
             
-        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_DOUBLE) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_DOUBLE)
+        {
             theProperty->setValue<double>(theJsonValue[PROPERTY_VALUE].asDouble());
             success = true;
             
-        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_INT) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_INT)
+        {
             theProperty->setValue<int>(theJsonValue[PROPERTY_VALUE].asInt());
             success = true;
             
-        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UINT) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UINT)
+        {
             theProperty->setValue<uint32_t>(theJsonValue[PROPERTY_VALUE].asInt());
             success = true;
             
-        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING)
+        {
             theProperty->setValue<std::string>(theJsonValue[PROPERTY_VALUE].asString());
             success = true;
             
-        } else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_BOOLEAN) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_BOOLEAN)
+        {
             theProperty->setValue<bool>(theJsonValue[PROPERTY_VALUE].asBool());
             success = true;
             
-        }else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING_ARRAY) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_FLOAT_ARRAY)
+        {
+            if(theJsonValue[PROPERTY_VALUE].isArray())
+            {
+                std::vector<float> vals;
+                for (uint32_t i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+                {
+                    vals.push_back(theJsonValue[PROPERTY_VALUE][i].asDouble());
+                }
+                theProperty->setValue<std::vector<float>>(vals);
+            }
+            success = true;
+            
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING_ARRAY)
+        {
             if(theJsonValue[PROPERTY_VALUE].isArray())
             {
                 std::vector<std::string> vals;
@@ -119,7 +169,9 @@ namespace kinski {
             }
             success = true;
             
-        }else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN) {
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN)
+        {
             // do nothing
             LOG_WARNING << "property type unknown";
         }

@@ -158,7 +158,15 @@ namespace kinski
             defString = barName +"/"+ myPropName +" group='"+ theGroup +"'";
             
             TwDefine(defString.c_str());
-        }   
+        }
+        else if(theProperty->isOfType<std::vector<float>>())
+        {
+            LOG_WARNING << "float_array not implemented";
+        }
+        else if(theProperty->isOfType<std::vector<std::string>>())
+        {
+            LOG_WARNING << "string_array not implemented";
+        }
         else
         {
             throw PropertyUnsupportedException(theProperty->getName());
