@@ -377,10 +377,11 @@ namespace kinski{ namespace media
     }
 
     MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
-                                               bool loop, RenderTarget the_target)
+                                               bool loop, RenderTarget the_render_target,
+                                               RenderTarget the_audio_target)
     {
         auto ptr = MediaControllerPtr(new MediaController());
-        ptr->load(filePath, autoplay, loop, the_target);
+        ptr->load(filePath, autoplay, loop, the_render_target, the_audio_target);
         return ptr;
     }
 
