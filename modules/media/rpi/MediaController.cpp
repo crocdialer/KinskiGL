@@ -43,7 +43,7 @@ namespace kinski{ namespace media
         void* m_egl_image = nullptr;
 
         MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
-        MediaController::RenderTarget m_audio_target = MediaController::AudioTarget::AUTO;
+        MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
 
         // COMXCore m_OMX;
         OMXReader m_omx_reader;
