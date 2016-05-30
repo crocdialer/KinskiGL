@@ -90,7 +90,7 @@ void Component::register_function(const std::string &the_name, Functor the_funct
     m_function_map[the_name] = the_functor;
 }
 
-void Component::unregister_function(const std::string &the_name, Functor the_functor)
+void Component::unregister_function(const std::string &the_name)
 {
     auto iter = m_function_map.find(the_name);
     if(iter != m_function_map.end()){ m_function_map.erase(iter); }

@@ -48,7 +48,7 @@ namespace kinski
         bool call_function(const std::string &the_function_name,
                            const std::vector<std::string> &the_params = {});
         void register_function(const std::string &the_name, Functor the_functor);
-        void unregister_function(const std::string &the_name, Functor the_functor);
+        void unregister_function(const std::string &the_name);
         void unregister_all_functions();
         
         std::map<std::string, Functor>& function_map(){ return m_function_map; };
@@ -61,20 +61,12 @@ namespace kinski
         
     };
 
-    // Exception definitions. TODO: put those to some neat macros
+    // Exception definition
     class PropertyNotFoundException : public Exception
     {
     public:
         PropertyNotFoundException(std::string thePropertyName): 
-        Exception(std::string("Named Property not found: ")+thePropertyName)
+        Exception(std::string("Property not found: ") + thePropertyName)
         {}
-    }; 
-    
-    class ComponentError: public Exception
-    {
-    public:
-        ComponentError(std::string theErrorString):
-        Exception(std::string("ComponentError: ")+theErrorString)
-        {}
-    }; 
+    };
 }
