@@ -26,7 +26,7 @@ namespace kinski {
         {
             if(path.size() != 1 && path[1] != '/') return path; // or other error handling ?
             char const* home = getenv("HOME");
-            if (home || ((home = getenv("USERPROFILE"))))
+            if(home || ((home = getenv("USERPROFILE"))))
             {
                 path.replace(0, 1, home);
             }

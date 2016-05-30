@@ -43,6 +43,7 @@ namespace kinski{ namespace media
         void* m_egl_image = nullptr;
 
         MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
+        MediaController::RenderTarget m_audio_target = MediaController::AudioTarget::AUTO;
 
         // COMXCore m_OMX;
         OMXReader m_omx_reader;
@@ -391,7 +392,7 @@ namespace kinski{ namespace media
 ///////////////////////////////////////////////////////////////////////////////
 
     void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
-                               RenderTarget the_target)
+                               RenderTarget the_render_target, AudioTarget the_audio_target)
     {
         std::string found_path;
         try{ found_path = kinski::search_file(filePath); }
@@ -407,7 +408,8 @@ namespace kinski{ namespace media
         m_impl->m_movie_controller = shared_from_this();
         m_impl->m_on_load_cb = on_load;
         m_impl->m_movie_ended_cb = on_end;
-        m_impl->m_render_target = the_target;
+        m_impl->m_render_target = the_render_target;
+        m_impl->m_audio_target = the_audio_target;
 
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
@@ -451,10 +453,13 @@ namespace kinski{ namespace media
         m_impl->m_omx_reader.GetHints(OMXSTREAM_AUDIO, m_impl->m_config_audio.hints);
         m_impl->m_omx_reader.GetHints(OMXSTREAM_VIDEO, m_impl->m_config_video.hints);
 
-        if (m_impl->m_config_audio.device == "")
+        if(m_impl->m_config_audio.device.empty())
         {
-            if(vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2, EDID_AudioSampleRate_e44KHz,
-                                          EDID_AudioSampleSize_16bit ) == 0)
+            bool hdmi_supported = vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2,
+                                                             EDID_AudioSampleRate_e44KHz,
+                                                             EDID_AudioSampleSize_16bit) == 0;
+            if(hdmi_supported && (m_impl->m_audio_target == AudioTarget::AUTO ||
+                                  m_impl->m_audio_target == AudioTarget::HDMI))
             { m_impl->m_config_audio.device = "omx:hdmi"; }
             else{ m_impl->m_config_audio.device = "omx:local"; }
         }
@@ -661,5 +666,10 @@ namespace kinski{ namespace media
     MediaController::RenderTarget MediaController::render_target() const
     {
         return m_impl ? m_impl->m_render_target : RenderTarget::TEXTURE;
+    }
+
+    MediaController::AudioTarget MediaController::audio_target() const
+    {
+        return m_impl ? m_impl->m_audio_target : AudioTarget::AUTO;
     }
 }}// namespaces

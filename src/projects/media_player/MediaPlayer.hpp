@@ -40,6 +40,7 @@ namespace kinski
         m_loop = Property_<bool>::create("loop", false),
         m_auto_play = Property_<bool>::create("autoplay", true),
         m_use_warping = Property_<bool>::create("use warping", true),
+        m_force_audio_jack = Property_<bool>::create("force 3.5mm audio-jack", false),
         m_use_discovery_broadcast = Property_<bool>::create("use discovery broadcast", true);
         
         Property_<float>::Ptr

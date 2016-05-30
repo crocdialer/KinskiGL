@@ -3,7 +3,7 @@
 #include "gl/gl.hpp"
 
 /*
-* This class controls playback of Media files or streams and manages their assets.
+* This class controls playback of media-files or streams and manages their assets.
 */
 
 namespace kinski{ namespace media{
@@ -19,19 +19,22 @@ namespace kinski{ namespace media{
     public:
 
         enum class RenderTarget{SCREEN, TEXTURE};
+        enum class AudioTarget{AUTO, HDMI, AUDIO_JACK};
         
         typedef std::function<void(MediaControllerPtr the_movie)> MediaCallback;
 
         static MediaControllerPtr create();
         static MediaControllerPtr create(const std::string &filePath, bool autoplay = false,
                                          bool loop = false,
-                                         RenderTarget the_target = RenderTarget::TEXTURE);
+                                         RenderTarget the_render_target = RenderTarget::TEXTURE,
+                                         AudioTarget the_audio_target = AudioTarget::HDMI);
 
 
         virtual ~MediaController();
 
         void load(const std::string &the_path, bool autoplay = false, bool loop = false,
-                  RenderTarget the_target = RenderTarget::TEXTURE);
+                  RenderTarget the_target = RenderTarget::TEXTURE,
+                  AudioTarget the_audio_target = AudioTarget::HDMI);
         void unload();
         bool is_loaded() const;
         bool has_video() const;
@@ -50,7 +53,9 @@ namespace kinski{ namespace media{
         float rate() const;
         void set_rate(float r);
         const std::string& path() const;
+        
         RenderTarget render_target() const;
+        AudioTarget audio_target() const;
 
         void set_on_load_callback(MediaCallback c);
         void set_media_ended_callback(MediaCallback c);

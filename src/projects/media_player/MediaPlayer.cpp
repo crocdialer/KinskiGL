@@ -27,6 +27,7 @@ void MediaPlayer::setup()
     register_property(m_volume);
     register_property(m_playback_speed);
     register_property(m_use_warping);
+    register_property(m_force_audio_jack);
     register_property(m_use_discovery_broadcast);
     register_property(m_broadcast_port);
     observe_properties();
@@ -55,10 +56,13 @@ void MediaPlayer::update(float timeDelta)
         auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
             media::MediaController::RenderTarget::SCREEN;
         
+        auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::AUDIO_JACK :
+            media::MediaController::AudioTarget::AUTO;
+        
         if(render_target == media::MediaController::RenderTarget::SCREEN)
         { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
         
-        m_movie->load(*m_movie_path, *m_auto_play, *m_loop, render_target);
+        m_movie->load(*m_movie_path, *m_auto_play, *m_loop, render_target, audio_target);
         m_movie->set_rate(*m_playback_speed);
         m_movie->set_volume(*m_volume);
         m_reload_movie = false;

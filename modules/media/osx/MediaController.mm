@@ -75,7 +75,8 @@ namespace kinski{ namespace media{
     }
     
     MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
-                                               bool loop, RenderTarget the_target)
+                                               bool loop, RenderTarget the_render_target,
+                                               AudioTarget the_audio_target)
     {
         auto ptr = MediaControllerPtr(new MediaController());
         ptr->load(filePath, autoplay, loop);
@@ -93,7 +94,7 @@ namespace kinski{ namespace media{
     }
 
     void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
-                               RenderTarget the_target)
+                               RenderTarget the_render_target, AudioTarget the_audio_target)
     {
         MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
         MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
@@ -511,6 +512,12 @@ namespace kinski{ namespace media{
     {
         return RenderTarget::TEXTURE;
     }
+    
+    MediaController::AudioTarget MediaController::audio_target() const
+    {
+        return AudioTarget::AUTO;
+    }
+    
 }}// namespaces
 
 @implementation LoopHelper
