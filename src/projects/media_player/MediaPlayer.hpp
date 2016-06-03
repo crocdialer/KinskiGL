@@ -53,6 +53,8 @@ namespace kinski
         std::string secs_to_time_str(float the_secs) const;
         void setup_rpc_interface();
         
+        void reload_movie();
+        
     public:
 
         MediaPlayer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

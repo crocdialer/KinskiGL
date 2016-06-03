@@ -22,6 +22,8 @@ namespace kinski {
 
     std::string expand_user(std::string path)
     {
+        path = trim(path);
+        
         if (!path.empty() && path[0] == '~')
         {
             if(path.size() != 1 && path[1] != '/') return path; // or other error handling ?
@@ -281,7 +283,9 @@ namespace kinski {
 
     std::string search_file(const std::string &theFileName, bool use_entire_path)
     {
-        std::string expanded_name = use_entire_path ? expand_user(theFileName) : get_filename_part(theFileName);
+        auto trim_file_name = trim(theFileName);
+        
+        std::string expanded_name = use_entire_path ? expand_user(trim_file_name) : get_filename_part(trim_file_name);
         boost::filesystem::path ret_path(expanded_name);
 
         if(ret_path.is_absolute() && is_regular_file(ret_path))
@@ -289,15 +293,17 @@ namespace kinski {
             return ret_path.string();
         }
         std::set<std::string>::const_iterator it = get_search_paths().begin();
-        for (; it != get_search_paths().end(); ++it)
+        
+        for(; it != get_search_paths().end(); ++it)
         {
             ret_path = path(*it) / path(expanded_name);
-            if (boost::filesystem::exists(ret_path) && is_regular_file(ret_path))
+            if(boost::filesystem::exists(ret_path) && is_regular_file(ret_path))
             {
-                LOG_TRACE<<"found '"<<theFileName<<"' as: "<<ret_path.string();
+                LOG_TRACE_2 << "found '" << trim_file_name << "' as: " << ret_path.string();
                 return ret_path.string();
             }
         }
+        
         if(use_entire_path){ return search_file(theFileName, false); }
         throw FileNotFoundException(theFileName);
     }

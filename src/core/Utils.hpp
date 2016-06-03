@@ -96,6 +96,16 @@ namespace kinski
         return ret;
     }
     
+    inline std::string trim(const std::string& str,
+                            const std::string& whitespace = " \t")
+    {
+        const auto str_begin = str.find_first_not_of(whitespace);
+        if(str_begin == std::string::npos){ return ""; }
+        const auto str_end = str.find_last_not_of(whitespace);
+        const auto str_range = str_end - str_begin + 1;
+        return str.substr(str_begin, str_range);
+    }
+    
     inline std::string to_lower(const std::string &str)
     {
         std::string ret = str;

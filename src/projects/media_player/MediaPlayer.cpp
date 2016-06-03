@@ -51,22 +51,7 @@ void MediaPlayer::setup()
 
 void MediaPlayer::update(float timeDelta)
 {
-    if(m_reload_movie)
-    {
-        auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
-            media::MediaController::RenderTarget::SCREEN;
-        
-        auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::AUDIO_JACK :
-            media::MediaController::AudioTarget::AUTO;
-        
-        if(render_target == media::MediaController::RenderTarget::SCREEN)
-        { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
-        
-        m_movie->load(*m_movie_path, *m_auto_play, *m_loop, render_target, audio_target);
-        m_movie->set_rate(*m_playback_speed);
-        m_movie->set_volume(*m_volume);
-        m_reload_movie = false;
-    }
+    if(m_reload_movie){ reload_movie(); }
     
     if(m_camera_control && m_camera_control->is_capturing())
         m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]);
@@ -285,6 +270,30 @@ bool MediaPlayer::load_settings(const std::string &path)
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }
     return ret;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::reload_movie()
+{
+    auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
+    media::MediaController::RenderTarget::SCREEN;
+    
+    auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::AUDIO_JACK :
+    media::MediaController::AudioTarget::AUTO;
+    
+    if(render_target == media::MediaController::RenderTarget::SCREEN)
+    { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
+    
+    m_movie->load(*m_movie_path, *m_auto_play, *m_loop, render_target, audio_target);
+    m_movie->set_rate(*m_playback_speed);
+    m_movie->set_volume(*m_volume);
+    m_movie->set_media_ended_callback([this](media::MediaControllerPtr mc)
+    {
+        LOG_DEBUG << "movie ended";
+    });
+    
+    m_reload_movie = false;
 }
 
 /////////////////////////////////////////////////////////////////

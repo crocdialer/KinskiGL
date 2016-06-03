@@ -17,7 +17,7 @@ namespace kinski
 {
     WarpComponent::WarpComponent()
     {
-        set_name("QuadWarping");
+        set_name("quad_warping");
         
         m_grid_sz_x = RangedProperty<uint32_t>::create("grid size x", 16, 1, 512);
         m_grid_sz_y = RangedProperty<uint32_t>::create("grid size y", 9, 1, 512);
