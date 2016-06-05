@@ -423,7 +423,7 @@ namespace kinski{ namespace media
         if(!m_impl->m_omx_reader.Open(m_impl->m_src_path.c_str(), true/*m_dump_format*/))
         {
             m_impl.reset();
-            LOG_WARNING << "could not open file: " << m_impl->m_src_path;
+            LOG_WARNING << "could not open location: " << m_impl->m_src_path;
             return;
         }
 
