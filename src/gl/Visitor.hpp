@@ -22,20 +22,25 @@ namespace kinski { namespace gl {
     class Visitor
     {
     public:
-        Visitor()
+        Visitor(bool visit_only_enabled = true):
+        m_visit_only_enabled(visit_only_enabled)
         {
             m_transform_stack.push(glm::mat4());
         }
         
         inline const std::stack<glm::mat4>& transform_stack() const {return m_transform_stack;};
         inline std::stack<glm::mat4>& transform_stack() {return m_transform_stack;};
+        inline bool visit_only_enabled() const { return m_visit_only_enabled; }
+        inline void set_visit_only_enabled(bool b){ m_visit_only_enabled = b; }
         
         virtual void visit(Object3D &theNode)
         {
-            if(!theNode.enabled()) return;
-            m_transform_stack.push(m_transform_stack.top() * theNode.transform());
-            for (Object3DPtr &child : theNode.children()){child->accept(*this);}
-            m_transform_stack.pop();
+            if(theNode.enabled() || !visit_only_enabled())
+            {
+                m_transform_stack.push(m_transform_stack.top() * theNode.transform());
+                for (Object3DPtr &child : theNode.children()){child->accept(*this);}
+                m_transform_stack.pop();
+            }
         }
         virtual void visit(gl::Mesh &theNode){ visit(static_cast<Object3D&>(theNode)); };
         virtual void visit(gl::Light &theNode){ visit(static_cast<Object3D&>(theNode)); };
@@ -55,6 +60,7 @@ namespace kinski { namespace gl {
         
     private:
         std::stack<glm::mat4> m_transform_stack;
+        bool m_visit_only_enabled;
     };
     
     template<typename T>
@@ -62,26 +68,29 @@ namespace kinski { namespace gl {
     {
     public:
         SelectVisitor(const std::set<std::string> &the_tags = {}, bool select_only_enabled = true):
-        Visitor(),
-        m_tags(the_tags),
-        m_select_only_enabled(select_only_enabled){};
+        Visitor(select_only_enabled),
+        m_tags(the_tags){}
         
         void visit(T &theNode) override
         {
-            if(theNode.enabled() || !m_select_only_enabled)
+            if(theNode.enabled() || !visit_only_enabled())
             {
                 if(check_tags(m_tags, theNode.tags())){ m_objects.push_back(&theNode); }
                 Visitor::visit(static_cast<gl::Object3D&>(theNode));
             }
         };
         
+        const std::set<std::string>& tags() const { return m_tags; }
+        void set_tags(const std::set<std::string>& the_tags){ m_tags = the_tags; }
+        void add_tag(const std::string& the_tag){ m_tags.insert(the_tag); }
+        void remove_tag(const std::string& the_tag){ m_tags.erase(the_tag); }
+        
         void clear(){ m_objects.clear(); }
-        const std::list<T*>& getObjects() const {return m_objects;};
+        const std::list<T*>& get_objects() const {return m_objects;};
         
     private:
         std::list<T*> m_objects;
         std::set<std::string> m_tags;
-        bool m_select_only_enabled;
     };
     
 }}//namespace

@@ -212,10 +212,7 @@ namespace kinski { namespace gl {
         
         if(recursive)
         {
-            for (auto &c : children())
-            {
-                c->add_tag(the_tag, recursive);
-            }
+            for (auto &c : children()){ c->add_tag(the_tag, recursive); }
         }
 
     }
@@ -226,10 +223,7 @@ namespace kinski { namespace gl {
         
         if(recursive)
         {
-            for (auto &c : children())
-            {
-                c->remove_tag(the_tag, recursive);
-            }
+            for (auto &c : children()){ c->remove_tag(the_tag, recursive); }
         }
     }
     

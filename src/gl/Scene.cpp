@@ -157,7 +157,7 @@ namespace kinski { namespace gl {
         uint32_t i = 0;
         m_renderer.set_shadowmap_size(glm::vec2(1024));
         
-        for(gl::Light *l : lv.getObjects())
+        for(gl::Light *l : lv.get_objects())
         {
             if(l->enabled() && l->cast_shadow())
             {
@@ -191,7 +191,7 @@ namespace kinski { namespace gl {
         m_root->accept(sv);
         
         std::list<range_item_t> clicked_items;
-        for (const auto &the_object : sv.getObjects())
+        for (const auto &the_object : sv.get_objects())
         {
             gl::OBB boundingBox = the_object->obb();
             //(the_object->boundingBox(), the_object->global_transform());
@@ -248,7 +248,7 @@ namespace kinski { namespace gl {
         gl::SelectVisitor<gl::Object3D> sv({the_tag}, false);
         root()->accept(sv);
         
-        for(gl::Object3D *o : sv.getObjects()){ ret.push_back(o->shared_from_this()); }
+        for(gl::Object3D *o : sv.get_objects()){ ret.push_back(o->shared_from_this()); }
         return ret;
     }
     

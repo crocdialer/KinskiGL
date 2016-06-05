@@ -258,17 +258,18 @@ namespace kinski { namespace gl {
         
         // create RGBA data
         uint8_t r = 255 * theColor.r, g = 255 * theColor.g, b = 255 * theColor.b;
-        uint8_t rgba_data[max_x * max_y * 4];
+        uint8_t* rgba_data = new uint8_t[max_x * max_y * 4];
         uint8_t *dst_ptr = dst_data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + max_x * max_y * 4;
-        for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
+        
+        for (; rgba_ptr < rgba_end; rgba_ptr += 4, ++dst_ptr)
         {
             rgba_ptr[0] = r;
             rgba_ptr[1] = g;
             rgba_ptr[2] = b;
             rgba_ptr[3] = *dst_ptr;
         }
-        
         ret.update(rgba_data, GL_UNSIGNED_BYTE, GL_RGBA, max_x, max_y, true);
+        delete [] rgba_data;
         return ret;
     }
     
