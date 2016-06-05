@@ -397,11 +397,15 @@ namespace kinski{ namespace media
                                RenderTarget the_render_target, AudioTarget the_audio_target)
     {
         std::string found_path;
-        try{ found_path = kinski::search_file(filePath); }
-        catch(FileNotFoundException &e)
+        if(is_url(filePath)){ found_path = filePath; }
+        else
         {
-            LOG_ERROR << e.what();
-            return;
+            try{ found_path = kinski::search_file(filePath); }
+            catch(FileNotFoundException &e)
+            {
+                LOG_ERROR << e.what();
+                return;
+            }
         }
         MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
         MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();

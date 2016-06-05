@@ -45,11 +45,15 @@ namespace kinski {
 
     /////////// end implemantation internal /////////////
 
+///////////////////////////////////////////////////////////////////////////////
+    
     const std::set<std::string>& get_search_paths()
     {
         return g_searchPaths;
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     void add_search_path(const std::string &thePath, bool recursive)
     {
         boost::filesystem::path path_expanded (expand_user(thePath));
@@ -95,12 +99,16 @@ namespace kinski {
             g_searchPaths.insert(canonical(path_expanded).string());
         }
     }
-
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     void clear_search_paths()
     {
         g_searchPaths.clear();
     }
-
+    
+///////////////////////////////////////////////////////////////////////////////
+    
     list<string> get_directory_entries(const std::string &thePath, const std::string &theExtension,
                                        bool recursive)
     {
@@ -180,6 +188,8 @@ namespace kinski {
         return ret;
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
                                             bool recursive)
     {
@@ -191,11 +201,15 @@ namespace kinski {
         return ret;
     }
 
-    int get_file_size(const std::string &theFilename)
+///////////////////////////////////////////////////////////////////////////////
+    
+    int get_file_size(const std::string &the_file_name)
     {
-        return boost::filesystem::file_size(theFilename);
+        return boost::filesystem::file_size(the_file_name);
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     /// read a complete file into a string
     const std::string read_file(const std::string & theUTF8Filename)
     {
@@ -207,6 +221,8 @@ namespace kinski {
                        istreambuf_iterator<char>());
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
@@ -222,6 +238,8 @@ namespace kinski {
         return content;
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     bool write_file(const std::string &the_file_name, const std::string &the_data)
     {
         std::ofstream file_out(the_file_name);
@@ -230,6 +248,8 @@ namespace kinski {
         file_out.close();
         return true;
     }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data)
     {
@@ -240,6 +260,8 @@ namespace kinski {
         return true;
     }
     
+///////////////////////////////////////////////////////////////////////////////
+    
     bool append_to_file(const std::string &the_file_name, const std::string &the_data)
     {
         std::ofstream file_out(the_file_name, ios::out | ios::app);
@@ -249,41 +271,68 @@ namespace kinski {
         return true;
     }
     
-    std::string get_filename_part(const std::string &theFileName)
+///////////////////////////////////////////////////////////////////////////////
+    
+    std::string get_filename_part(const std::string &the_file_name)
     {
-        return path(theFileName).filename().string();
+        return path(the_file_name).filename().string();
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    bool is_url(const std::string &the_str)
+    {
+        auto result = the_str.find("://");
+        
+        if(result == std::string::npos || result == 0){ return false; }
+        
+        for(size_t i = 0; i < result; ++i)
+        {
+            if(!isalpha(the_str[i])){ return false; }
+        }
+        return true;
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    bool is_directory(const std::string &the_file_name)
+    {
+        return boost::filesystem::is_directory(expand_user(the_file_name));
     }
 
-    bool is_directory(const std::string &theFilename)
+///////////////////////////////////////////////////////////////////////////////
+    
+    bool file_exists(const std::string& the_file_name)
     {
-        return boost::filesystem::is_directory(expand_user(theFilename));
+        return boost::filesystem::exists(the_file_name);
     }
 
-    bool file_exists(const std::string& theFilename)
+///////////////////////////////////////////////////////////////////////////////
+    
+    bool create_directory(const std::string &the_file_name)
     {
-        return boost::filesystem::exists(theFilename);
-    }
-
-    bool create_directory(const std::string &theFilename)
-    {
-        if(!file_exists(theFilename))
+        if(!file_exists(the_file_name))
         {
             try
             {
-                return boost::filesystem::create_directory(theFilename);
+                return boost::filesystem::create_directory(the_file_name);
             } catch (boost::filesystem::filesystem_error &e){ LOG_ERROR << e.what(); }
         }
         return false;
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     std::string join_paths(const std::string &p1, const std::string &p2)
     {
         return (path(p1) / path(p2)).string();
     }
 
-    std::string search_file(const std::string &theFileName, bool use_entire_path)
+///////////////////////////////////////////////////////////////////////////////
+    
+    std::string search_file(const std::string &the_file_name, bool use_entire_path)
     {
-        auto trim_file_name = trim(theFileName);
+        auto trim_file_name = trim(the_file_name);
         
         std::string expanded_name = use_entire_path ? expand_user(trim_file_name) : get_filename_part(trim_file_name);
         boost::filesystem::path ret_path(expanded_name);
@@ -304,33 +353,43 @@ namespace kinski {
             }
         }
         
-        if(use_entire_path){ return search_file(theFileName, false); }
-        throw FileNotFoundException(theFileName);
+        if(use_entire_path){ return search_file(the_file_name, false); }
+        throw FileNotFoundException(the_file_name);
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     std::string get_working_directory()
     {
         return boost::filesystem::current_path().string();
     }
 
-    std::string get_directory_part(const std::string &theFileName)
+///////////////////////////////////////////////////////////////////////////////
+    
+    std::string get_directory_part(const std::string &the_file_name)
     {
-        if(is_directory(theFileName))
-            return path(theFileName).string();
+        if(is_directory(the_file_name))
+            return path(the_file_name).string();
         else
-            return path(theFileName).parent_path().string();
+            return path(the_file_name).parent_path().string();
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     std::string get_extension(const std::string &thePath)
     {
         return boost::filesystem::extension(thePath);
     }
 
-    std::string remove_extension(const std::string &theFileName)
+///////////////////////////////////////////////////////////////////////////////
+    
+    std::string remove_extension(const std::string &the_file_name)
     {
-        return path(theFileName).replace_extension().string();
+        return path(the_file_name).replace_extension().string();
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
     FileType get_file_type(const std::string &file_name)
     {
         if(!file_exists(file_name)){ return FileType::NOT_A_FILE; }
@@ -353,4 +412,6 @@ namespace kinski {
 
         return FileType::OTHER;
     }
+    
+///////////////////////////////////////////////////////////////////////////////
 }

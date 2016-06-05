@@ -102,71 +102,84 @@ namespace kinski{ namespace media{
         m_impl->m_movie_controller = shared_from_this();
         m_impl->m_on_load_cb = on_load;
         m_impl->m_movie_ended_cb = on_end;
+        NSURL *url = nullptr;
         
-        try{ m_impl->m_src_path = kinski::search_file(filePath); }
-        catch(FileNotFoundException &e)
+        if(!is_url(filePath))
         {
-            LOG_ERROR << e.what();
-            return;
+            try{ m_impl->m_src_path = kinski::search_file(filePath); }
+            catch(FileNotFoundException &e)
+            {
+                LOG_ERROR << e.what();
+                return;
+            }
+            url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
+        }
+        else
+        {
+            url = [NSURL URLWithString:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]
+                         relativeToURL:nil];
+            m_impl->m_src_path = filePath;
         }
         
-        NSURL *url = [NSURL fileURLWithPath:[NSString stringWithUTF8String:m_impl->m_src_path.c_str()]];
         
         AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
         NSString *tracksKey = @"tracks";
         
         [asset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:tracksKey] 
                              completionHandler:
-         ^{
-             if(!m_impl){ return; }
+       ^{
+           if(!m_impl){ return; }
              
-             // completion code
-             NSError *error = nil;
+           dispatch_async(dispatch_get_main_queue(),
+          ^{
+                
+              // completion code
+              NSError *error = nil;
              
-             NSArray *videoTrackArray = [asset tracksWithMediaType:AVMediaTypeVideo];
-             NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
+              NSArray *videoTrackArray = [asset tracksWithMediaType:AVMediaTypeVideo];
+              NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
              
-             m_impl->m_has_video = [videoTrackArray count];
-             m_impl->m_has_audio = [audioTrackArray count];
+              m_impl->m_has_video = [videoTrackArray count];
+              m_impl->m_has_audio = [audioTrackArray count];
              
-             LOG_DEBUG << "video-tracks: " << [videoTrackArray count] << " -- audio-tracks: " << [audioTrackArray count];
+              LOG_DEBUG << "video-tracks: " << [videoTrackArray count] << " -- audio-tracks: " << [audioTrackArray count];
              
-             if(m_impl->m_has_video || m_impl->m_has_audio)
-             {
-                 @try
-                 {
-                     m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
-                     m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
-                     m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
-                     AVPlayerActionAtItemEndPause;
+              if(m_impl->m_has_video || m_impl->m_has_audio)
+              {
+                  @try
+                  {
+                      m_impl->m_player_item = [[AVPlayerItem alloc] initWithAsset:asset];
+                      m_impl->m_player = [[AVPlayer alloc] initWithPlayerItem:m_impl->m_player_item];
+                      m_impl->m_player.actionAtItemEnd = loop ? AVPlayerActionAtItemEndNone :
+                      AVPlayerActionAtItemEndPause;
                      
-                     if(m_impl->m_has_video)
-                     {
-                         NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
-                         m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
-                         [m_impl->m_player_item addOutput:m_impl->m_output];
+                      if(m_impl->m_has_video)
+                      {
+                          NSDictionary* settings = @{(id)kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], (id) kCVPixelBufferOpenGLCompatibilityKey :[NSNumber numberWithBool:YES]};
+                          m_impl->m_output = [[AVPlayerItemVideoOutput alloc] initWithPixelBufferAttributes:settings];
+                          [m_impl->m_player_item addOutput:m_impl->m_output];
                          
-                         m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
-                         AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
-                         m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
-                         [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
-                     }
-                     if(!error)
-                     {
-                         set_loop(loop || m_impl->m_loop);
+                          m_impl->m_assetReader = [[AVAssetReader alloc] initWithAsset:asset error:&error];
+                          AVAssetTrack *videoTrack = [videoTrackArray objectAtIndex:0];
+                          m_impl->m_videoOut = [[AVAssetReaderTrackOutput alloc] initWithTrack:videoTrack outputSettings:settings];
+                          [m_impl->m_assetReader addOutput:m_impl->m_videoOut];
+                      }
+                      if(!error)
+                      {
+                          set_loop(loop || m_impl->m_loop);
                          
+                          if(autoplay){ play(); }
+                          else{ pause(); }
                          
-                         if(autoplay){ play(); }
-                         else{ pause(); }
-                         
-                         if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
-                     }
-                     else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
-                 }
-                 @catch(NSException *e){ LOG_ERROR << [[e reason] UTF8String]; }
-             }
-             else{ LOG_ERROR << "No video tracks found in: " << m_impl->m_src_path; }
-         }];
+                          if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+                      }
+                      else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
+                  }
+                  @catch(NSException *e){ LOG_ERROR << [[e reason] UTF8String]; }
+              }
+              else{ LOG_ERROR << "No video tracks found in: " << m_impl->m_src_path; }
+          });// dispatch async
+       }];
     }
     
     bool MediaController::is_loaded() const

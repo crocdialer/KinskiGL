@@ -15,7 +15,7 @@ namespace kinski {
 
     enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, FONT, OTHER, NOT_A_FILE};
     
-    int get_file_size(const std::string &theFilename);
+    int get_file_size(const std::string &the_file_name);
     
     // manage known file locations
     const std::set<std::string>& get_search_paths();
@@ -28,21 +28,22 @@ namespace kinski {
     std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
                                             bool recursive = false);
     
-    bool file_exists(const std::string &theFilename);
-    bool is_directory(const std::string &theFilename);
-    bool create_directory(const std::string &theFilename);
+    bool file_exists(const std::string &the_file_name);
+    bool is_url(const std::string &the_file_name);
+    bool is_directory(const std::string &the_file_name);
+    bool create_directory(const std::string &the_file_name);
     std::string join_paths(const std::string &p1, const std::string &p2);
     const std::string read_file(const std::string &theUTF8Filename);
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename);
     bool write_file(const std::string &the_file_name, const std::string &the_data);
     bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data);
     bool append_to_file(const std::string &the_file_name, const std::string &the_data);
-    std::string get_filename_part(const std::string &theFileName);
-    std::string get_directory_part(const std::string &theFileName);
-    std::string search_file(const std::string &theFileName, bool use_entire_path = true);
+    std::string get_filename_part(const std::string &the_file_name);
+    std::string get_directory_part(const std::string &the_file_name);
+    std::string search_file(const std::string &the_file_name, bool use_entire_path = true);
     std::string get_working_directory();
     std::string get_extension(const std::string &thePath);
-    std::string remove_extension(const std::string &theFileName);
+    std::string remove_extension(const std::string &the_file_name);
     
     FileType get_file_type(const std::string &file_name);
     
@@ -53,9 +54,9 @@ namespace kinski {
     private:
         std::string m_file_name;
     public:
-        FileNotFoundException(const std::string &theFilename) :
-        Exception(std::string("File not found: ") + theFilename),
-        m_file_name(theFilename){}
+        FileNotFoundException(const std::string &the_file_name) :
+        Exception(std::string("File not found: ") + the_file_name),
+        m_file_name(the_file_name){}
         std::string file_name() const { return m_file_name;}
         virtual ~FileNotFoundException() noexcept {};
     };
@@ -71,8 +72,8 @@ namespace kinski {
     class OpenFileFailed: public Exception
     {
     public:
-        OpenFileFailed(const std::string &theFilename) :
-        Exception(std::string("Could not open file: ") + theFilename) {}
+        OpenFileFailed(const std::string &the_file_name) :
+        Exception(std::string("Could not open file: ") + the_file_name) {}
         virtual ~OpenFileFailed() noexcept {};
     };
 }
