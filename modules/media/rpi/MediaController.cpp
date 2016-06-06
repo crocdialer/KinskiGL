@@ -423,8 +423,8 @@ namespace kinski{ namespace media
         if(!m_impl->m_omx_reader.Open(m_impl->m_src_path.c_str(), true/*m_dump_format*/),
                                       is_url(filePath), 10.f)
         {
-            m_impl.reset();
             LOG_WARNING << "could not open location: " << m_impl->m_src_path;
+            m_impl.reset();
             return;
         }
 
@@ -450,8 +450,8 @@ namespace kinski{ namespace media
 
         if(!m_impl->m_av_clock->OMXInitialize())
         {
-            m_impl.reset();
             LOG_WARNING << "could not init clock";
+            m_impl.reset();
             return;
         }
         m_impl->m_av_clock->OMXStateIdle();
