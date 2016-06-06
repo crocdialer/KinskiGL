@@ -30,6 +30,7 @@ namespace kinski{ namespace media{
         LoopHelper *m_loop_helper = nullptr;
         
         std::string m_src_path;
+        bool m_loaded = false;
         bool m_has_video = false;
         bool m_has_audio = false;
         bool m_playing = false;
@@ -166,6 +167,7 @@ namespace kinski{ namespace media{
                       }
                       if(!error)
                       {
+                          m_impl->m_loaded = true;
                           set_loop(loop || m_impl->m_loop);
                          
                           if(autoplay){ play(); }
@@ -184,7 +186,7 @@ namespace kinski{ namespace media{
     
     bool MediaController::is_loaded() const
     {
-        return m_impl.get();
+        return m_impl && m_impl->m_loaded;
     }
     
     void MediaController::unload()

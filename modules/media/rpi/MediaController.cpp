@@ -420,7 +420,8 @@ namespace kinski{ namespace media
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
 
-        if(!m_impl->m_omx_reader.Open(m_impl->m_src_path.c_str(), true/*m_dump_format*/))
+        if(!m_impl->m_omx_reader.Open(m_impl->m_src_path.c_str(), true/*m_dump_format*/),
+                                      is_url(filePath), 10.f)
         {
             m_impl.reset();
             LOG_WARNING << "could not open location: " << m_impl->m_src_path;
