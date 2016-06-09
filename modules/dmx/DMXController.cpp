@@ -8,6 +8,7 @@
 #include <thread>
 #include "DMXController.hpp"
 #include "core/Serial.hpp"
+#include "core/file_functions.hpp"
 
 // Enttec Pro definitions
 #define GET_WIDGET_PARAMS 3
@@ -104,13 +105,15 @@ namespace kinski
     
     bool DMXController::connect(const std::string &the_device_name)
     {
-        std::list<std::string> device_names = {"/dev/tty.usbserial-EN138300", the_device_name};
+        std::string dev_name_pattern = "tty.usbserial-EN";
         std::string found_name;
         
-        for (const auto &n : device_names)
+        for(const auto &dev : get_directory_entries("/dev"))
         {
-            if(m_impl->m_serial.setup(n, 57600)){ found_name = n; break; }
+            if(dev.find(dev_name_pattern) != string::npos){ found_name = dev; break; }
         }
+        
+        if(m_impl->m_serial.setup(found_name, 57600)){ }
         
         // finally flush the newly initialized device
         if(m_impl->m_serial.is_initialized())

@@ -468,7 +468,8 @@ namespace kinski{ namespace media
             if(hdmi_supported && (m_impl->m_audio_target == AudioTarget::AUTO ||
                                   m_impl->m_audio_target == AudioTarget::HDMI))
             { m_impl->m_config_audio.device = "omx:hdmi"; }
-            else{ m_impl->m_config_audio.device = "omx:local"; }
+            else{ m_impl->m_config_audio.device = "omx:local";
+            LOG_DEBUG << "audio: " << m_impl->m_config_audio.device;
         }
 
         if (m_impl->m_fps > 0.0f)
