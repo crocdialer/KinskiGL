@@ -421,7 +421,7 @@ namespace kinski{ namespace media
         m_impl->m_player_video.reset(new OMXPlayerVideo());
 
         if(!m_impl->m_omx_reader.Open(m_impl->m_src_path.c_str(), true/*m_dump_format*/,
-                                      false, 15.f))
+                                      false, 15.f)
         {
             LOG_WARNING << "could not open location: " << m_impl->m_src_path;
             m_impl.reset();
@@ -468,7 +468,7 @@ namespace kinski{ namespace media
             if(hdmi_supported && (m_impl->m_audio_target == AudioTarget::AUTO ||
                                   m_impl->m_audio_target == AudioTarget::HDMI))
             { m_impl->m_config_audio.device = "omx:hdmi"; }
-            else{ m_impl->m_config_audio.device = "omx:local";
+            else{ m_impl->m_config_audio.device = "omx:local"; }
             LOG_DEBUG << "audio: " << m_impl->m_config_audio.device;
         }
 
