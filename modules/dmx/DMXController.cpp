@@ -108,14 +108,17 @@ namespace kinski
         std::list<std::string> dev_name_patterns = {"tty.usbserial-EN", "ttyUSB"};
         std::string found_name;
         
-        for(const auto &dev : get_directory_entries("/dev"))
+        if(the_device_name.empty())
         {
-            for(const auto &pattern : dev_name_patterns)
+            for(const auto &dev : get_directory_entries("/dev"))
             {
-                if(dev.find(pattern) != string::npos){ found_name = dev; break; }
+                for(const auto &pattern : dev_name_patterns)
+                {
+                    if(dev.find(pattern) != string::npos){ found_name = dev; break; }
+                }
+                if(!found_name.empty()){ break; }
             }
-            if(!found_name.empty()){ break; }
-        }
+        }else{ found_name = the_device_name; }
         
         if(m_impl->m_serial.setup(found_name, 57600)){ }
         
