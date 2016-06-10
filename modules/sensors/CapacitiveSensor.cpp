@@ -94,9 +94,9 @@ namespace kinski
                         {
                             current_touches = string_as<uint16_t>(tokens.front());
                             
-                            for(uint32_t i = 1; i < tokens.size(); ++i)
+                            for(uint32_t j = 1; j < tokens.size(); ++j)
                             {
-                                m_impl->m_proximity_values[i - 1] = string_as<float>(tokens[i]);
+                                m_impl->m_proximity_values[j - 1] = string_as<float>(tokens[j]);
                             }
                         }
                         break;

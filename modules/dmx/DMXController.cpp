@@ -64,7 +64,7 @@ namespace kinski
     m_impl(new DMXControllerImpl)
     {
         connect(the_device_name);
-        m_impl->m_dmx_values.resize(512, 0);
+        m_impl->m_dmx_values.resize(513, 0);
     }
     
     DMXController::~DMXController()
@@ -137,12 +137,12 @@ namespace kinski
 
     uint8_t& DMXController::operator[](int address)
     {
-        return m_impl->m_dmx_values[clamp(address, 0, 511)];
+        return m_impl->m_dmx_values[clamp(address, 0, 512)];
     }
 
     const uint8_t& DMXController::operator[](int address) const
     {
-        return m_impl->m_dmx_values[clamp(address, 0, 511)];
+        return m_impl->m_dmx_values[clamp(address, 0, 512)];
     }
     
     float DMXController::timeout_reconnect() const
