@@ -43,7 +43,6 @@ namespace kinski
         
         Timer();
         Timer(boost::asio::io_service &io, Callback cb = Callback());
-        
         virtual ~Timer();
         
         /*!

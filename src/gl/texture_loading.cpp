@@ -50,6 +50,8 @@ namespace kinski { namespace gl {
                                       bool compress, GLfloat anisotropic_filter_lvl)
     {
         Texture ret;
+        
+        if(!the_img){ return ret; }
         GLenum format = 0, internal_format = 0;
         
         switch(the_img->bytes_per_pixel)

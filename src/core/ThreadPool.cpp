@@ -12,7 +12,6 @@
 //  Created by Fabian on 6/12/13.
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <thread>
 
 #include "ThreadPool.hpp"
@@ -78,8 +77,7 @@ namespace kinski
                 
                 for(int i = 0; i < num; ++i)
                 {
-                    m_impl->threads.push_back(std::thread(boost::bind(&boost::asio::io_service::run,
-                                                                      &m_impl->io_service)));
+                    m_impl->threads.push_back(std::thread([this](){ m_impl->io_service.run(); }));
                 }
             }
             catch(std::exception &e){LOG_ERROR<<e.what();}
