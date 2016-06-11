@@ -461,7 +461,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     // find touch device name
     auto touch_dev_path = find_device_handler("FT5406");
 
-    if(fs::file_exists(touch_dev_path))
+    if(kinski::fs::file_exists(touch_dev_path))
     {
         sprintf(fullPath,touch_dev_path.c_str());
         touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);
