@@ -1628,6 +1628,11 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     frag_src = blur_poisson_frag;
                     break;
                     
+                case ShaderType::DEPTH_OF_FIELD:
+                    vert_src = unlit_vert;
+                    frag_src = depth_of_field_frag;
+                    break;
+                    
                 case ShaderType::PHONG_SHADOWS:
                     vert_src = phong_shadows_vert;
                     frag_src = phong_shadows_frag;
