@@ -70,11 +70,11 @@ namespace kinski
         LOG_INFO<<"Context: " << gl::window_dimension().x << " x " << gl::window_dimension().y;
 
         // file search paths
-        if(!args().empty()){ kinski::add_search_path(get_directory_part(args().front())); }
-        kinski::add_search_path("");
-        kinski::add_search_path("./");
-        kinski::add_search_path("./res/");
-        kinski::add_search_path("/usr/share/fonts/truetype/freefont/");
+        if(!args().empty()){ fs::add_search_path(fs::get_directory_part(args().front())); }
+        fs::add_search_path("");
+        fs::add_search_path("./");
+        fs::add_search_path("./res/");
+        fs::add_search_path("/usr/share/fonts/truetype/freefont/");
 
         get_input_file_descriptors(&m_mouse_fd, &m_keyboard_fd, &m_touch_fd);
 
@@ -143,7 +143,7 @@ namespace kinski
     {
         const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power";
 
-        if(kinski::file_exists(bl_path))
+        if(fs::file_exists(bl_path))
         {
             std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
             " >  " + bl_path + "\"";
@@ -461,7 +461,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     // find touch device name
     auto touch_dev_path = find_device_handler("FT5406");
 
-    if(kinski::file_exists(touch_dev_path))
+    if(fs::file_exists(touch_dev_path))
     {
         sprintf(fullPath,touch_dev_path.c_str());
         touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);

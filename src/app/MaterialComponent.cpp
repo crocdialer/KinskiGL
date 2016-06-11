@@ -97,11 +97,11 @@ namespace kinski
                 {
                     shader = gl::create_shader_from_file(*m_shader_vert, *m_shader_frag, *m_shader_geom);
                 }
-                catch (FileNotFoundException &fe)
+                catch(fs::FileNotFoundException &fe)
                 {
                     if(!fe.file_name().empty()) LOG_DEBUG << fe.what();
                 }
-                catch (Exception &e)
+                catch(Exception &e)
                 {
                     LOG_ERROR << e.what();
                     return;

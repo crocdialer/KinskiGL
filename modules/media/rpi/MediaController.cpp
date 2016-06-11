@@ -397,10 +397,10 @@ namespace kinski{ namespace media
                                RenderTarget the_render_target, AudioTarget the_audio_target)
     {
         std::string found_path;
-        if(is_url(filePath)){ found_path = filePath; }
+        if(fs::is_url(filePath)){ found_path = filePath; }
         else
         {
-            try{ found_path = kinski::search_file(filePath); }
+            try{ found_path = fs::search_file(filePath); }
             catch(FileNotFoundException &e)
             {
                 LOG_ERROR << e.what();
@@ -469,7 +469,6 @@ namespace kinski{ namespace media
                                   m_impl->m_audio_target == AudioTarget::HDMI))
             { m_impl->m_config_audio.device = "omx:hdmi"; }
             else{ m_impl->m_config_audio.device = "omx:local"; }
-            LOG_DEBUG << "audio: " << m_impl->m_config_audio.device;
         }
 
         if (m_impl->m_fps > 0.0f)

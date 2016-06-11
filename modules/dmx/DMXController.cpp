@@ -110,7 +110,7 @@ namespace kinski
         
         if(the_device_name.empty())
         {
-            for(const auto &dev : get_directory_entries("/dev"))
+            for(const auto &dev : fs::get_directory_entries("/dev"))
             {
                 for(const auto &pattern : dev_name_patterns)
                 {

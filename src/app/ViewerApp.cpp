@@ -96,14 +96,14 @@ namespace kinski {
         
         // find font file
         std::string font_path;
-        try { font_path = search_file("Courier New Bold.ttf"); }
-        catch (FileNotFoundException &e){ LOG_WARNING << e.what(); }
+        try { font_path = fs::search_file("Courier New Bold.ttf"); }
+        catch (fs::FileNotFoundException &e){ LOG_WARNING << e.what(); }
         
         if(font_path.empty())
         {
-            for(auto &search_path : kinski::get_search_paths())
+            for(auto &search_path : fs::get_search_paths())
             {
-                auto font_paths = get_directory_entries(search_path, FileType::FONT, true);
+                auto font_paths = get_directory_entries(search_path, fs::FileType::FONT, true);
                 if(!font_paths.empty()){ font_path = font_paths.front(); break; }
             }
         }
@@ -329,7 +329,7 @@ namespace kinski {
         {
             for (const auto &search_path : m_search_paths->value())
             {
-                kinski::add_search_path(search_path);
+                fs::add_search_path(search_path);
             }
         }
         else if(theProperty == m_logger_severity)
@@ -408,13 +408,13 @@ namespace kinski {
         try
         {
             Serializer::saveComponentState(shared_from_this(),
-                                           join_paths(path ,"config.json"),
+                                           fs::join_paths(path ,"config.json"),
                                            PropertyIO_GL());
             Serializer::saveComponentState(light_components,
-                                           join_paths(path ,"light_config.json"),
+                                           fs::join_paths(path ,"light_config.json"),
                                            PropertyIO_GL());
             Serializer::saveComponentState(material_components,
-                                           join_paths(path ,"material_config.json"),
+                                           fs::join_paths(path ,"material_config.json"),
                                            PropertyIO_GL());
 
         }
@@ -452,13 +452,13 @@ namespace kinski {
         try
         {
             Serializer::loadComponentState(shared_from_this(),
-                                           join_paths(path , "config.json"),
+                                           fs::join_paths(path , "config.json"),
                                            PropertyIO_GL());
             Serializer::loadComponentState(light_components,
-                                           join_paths(path , "light_config.json"),
+                                           fs::join_paths(path , "light_config.json"),
                                            PropertyIO_GL());
             Serializer::loadComponentState(material_components,
-                                           join_paths(path , "material_config.json"),
+                                           fs::join_paths(path , "material_config.json"),
                                            PropertyIO_GL());
         }
         catch(Exception &e)
@@ -506,7 +506,7 @@ namespace kinski {
             gl::ImagePtr img;
             try
             {
-                auto dataVec = kinski::read_binary_file(the_path);
+                auto dataVec = fs::read_binary_file(the_path);
                 img = gl::decode_image(dataVec);
             }
             catch (Exception &e) { LOG_WARNING << e.what(); }

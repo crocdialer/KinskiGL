@@ -288,8 +288,8 @@ namespace kinski { namespace gl{
     {
         Assimp::Importer importer;
         std::string found_path;
-        try { found_path = search_file(theModelPath); }
-        catch (FileNotFoundException &e)
+        try { found_path = fs::search_file(theModelPath); }
+        catch(fs::FileNotFoundException &e)
         {
             LOG_ERROR << e.what();
             return gl::MeshPtr();
@@ -554,8 +554,8 @@ namespace kinski { namespace gl{
         std::string found_path;
         const aiScene *theScene = nullptr;
         
-        try { theScene = importer.ReadFile(search_file(thePath), 0); }
-        catch (FileNotFoundException &e)
+        try { theScene = importer.ReadFile(fs::search_file(thePath), 0); }
+        catch (fs::FileNotFoundException &e)
         {
             LOG_WARNING << e.what();
             return 0;

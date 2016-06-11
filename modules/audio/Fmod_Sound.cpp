@@ -276,7 +276,7 @@ namespace kinski{ namespace audio{
     
     void Fmod_Sound::load(const std::string &fileName, bool stream)
     {
-        std::string path = search_file(fileName);
+        std::string path = fs::search_file(fileName);
         m_multiplay = false;
         init_fmod(m_device);
         unload();

@@ -142,8 +142,8 @@ namespace kinski { namespace gl {
         //TODO: check extension
         try
         {
-            auto p = search_file(thePath);
-            std::vector<uint8_t> font_file = kinski::read_binary_file(p);
+            auto p = fs::search_file(thePath);
+            std::vector<uint8_t> font_file = fs::read_binary_file(p);
             m_obj->path = p;
             m_obj->string_mesh_map.clear();
             m_obj->font_height = theSize;

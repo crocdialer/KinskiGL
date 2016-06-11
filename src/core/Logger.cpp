@@ -123,7 +123,7 @@ namespace kinski {
         if (theSeverity > Severity::PRINT)
         {
             if(m_use_timestamp){ stream << currentDateTime(); }
-            postfix <<" [" << get_filename_part(theModule) << " at:" << theId << "]";
+            postfix <<" [" << fs::get_filename_part(theModule) << " at:" << theId << "]";
             if(m_use_thread_id){ postfix << " [thread-id: "<< std::this_thread::get_id() <<"]"; }
         }
     

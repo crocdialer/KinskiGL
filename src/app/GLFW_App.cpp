@@ -199,17 +199,17 @@ namespace kinski
         glClearColor(0, 0, 0, 1);
 
         // file search paths
-        if(!args().empty()){ kinski::add_search_path(get_directory_part(args().front())); }
-        kinski::add_search_path("./", true);
-        kinski::add_search_path("./res", true);
-        kinski::add_search_path("../Resources", true);
+        if(!args().empty()){ fs::add_search_path(fs::get_directory_part(args().front())); }
+        fs::add_search_path("./", true);
+        fs::add_search_path("./res", true);
+        fs::add_search_path("../Resources", true);
 
         //---------------------------------
 #if defined(KINSKI_MAC)
-        kinski::add_search_path("/Library/Fonts");
-        kinski::add_search_path("~/Library/Fonts");
+        fs::add_search_path("/Library/Fonts");
+        fs::add_search_path("~/Library/Fonts");
 #elif defined(KINSKI_LINUX)
-        kinski::add_search_path("~/.local/share/fonts");
+        fs::add_search_path("~/.local/share/fonts");
 #endif
         //---------------------------------
 

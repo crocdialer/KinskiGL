@@ -25,7 +25,7 @@ namespace kinski
     }
     
     App::App(int argc, char *argv[]):
-    Component(argc ? kinski::get_filename_part(argv[0]) : "KinskiApp"),
+    Component(argc ? fs::get_filename_part(argv[0]) : "KinskiApp"),
     m_framesDrawn(0),
     m_lastMeasurementTimeStamp(0.0),
     m_framesPerSec(0.f),

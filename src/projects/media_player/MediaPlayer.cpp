@@ -41,7 +41,7 @@ void MediaPlayer::setup()
     load_settings();
     
     // check for command line input
-    if(args().size() > 1 && file_exists(args()[1])){ *m_movie_path = args()[1]; }
+    if(args().size() > 1 && fs::file_exists(args()[1])){ *m_movie_path = args()[1]; }
     
     // setup our components to receive rpc calls
     setup_rpc_interface();
@@ -70,7 +70,7 @@ void MediaPlayer::draw()
     {
         gl::draw_text_2D(secs_to_time_str(m_movie->current_time()) + " / " +
                          secs_to_time_str(m_movie->duration()) + " - " +
-                         get_filename_part(m_movie->path()),
+                         fs::get_filename_part(m_movie->path()),
                          fonts()[1], gl::COLOR_WHITE, gl::vec2(10));
         draw_textures(textures());
     }
@@ -250,7 +250,7 @@ bool MediaPlayer::save_settings(const std::string &path)
     try
     {
         Serializer::saveComponentState(m_warp,
-                                       join_paths(path ,"warp_config.json"),
+                                       fs::join_paths(path ,"warp_config.json"),
                                        PropertyIO_GL());
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }
@@ -265,7 +265,7 @@ bool MediaPlayer::load_settings(const std::string &path)
     try
     {
         Serializer::loadComponentState(m_warp,
-                                       join_paths(path , "warp_config.json"),
+                                       fs::join_paths(path , "warp_config.json"),
                                        PropertyIO_GL());
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }

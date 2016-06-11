@@ -14,11 +14,14 @@
 using namespace std;
 using namespace boost::filesystem;
 
-namespace kinski {
+namespace kinski { namespace fs{
 
     /////////// implementation internal /////////////
 
-    static std::set<std::string> g_searchPaths;
+    namespace
+    {
+        std::set<std::string> g_searchPaths;
+    }
 
     std::string expand_user(std::string path)
     {
@@ -395,7 +398,7 @@ namespace kinski {
     {
         if(!file_exists(file_name)){ return FileType::NOT_A_FILE; }
         if(is_directory(file_name)){ return FileType::DIRECTORY; }
-        string ext = kinski::get_extension(file_name);
+        string ext = get_extension(file_name);
         ext = ext.empty() ? ext : kinski::to_lower(ext.substr(1));
 
         const std::list<string>
@@ -415,4 +418,5 @@ namespace kinski {
     }
     
 ///////////////////////////////////////////////////////////////////////////////
-}
+    
+}}// namespaces kinski / fs

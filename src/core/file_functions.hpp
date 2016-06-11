@@ -11,7 +11,7 @@
 
 #include "core/core.hpp"
 
-namespace kinski {
+namespace kinski { namespace fs {
 
     enum class FileType{IMAGE, MODEL, AUDIO, MOVIE, DIRECTORY, FONT, OTHER, NOT_A_FILE};
     
@@ -76,4 +76,4 @@ namespace kinski {
         Exception(std::string("Could not open file: ") + the_file_name) {}
         virtual ~OpenFileFailed() noexcept {};
     };
-}
+}}

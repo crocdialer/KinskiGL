@@ -105,10 +105,10 @@ namespace kinski{ namespace media{
         m_impl->m_movie_ended_cb = on_end;
         NSURL *url = nullptr;
         
-        if(!is_url(filePath))
+        if(!fs::is_url(filePath))
         {
-            try{ m_impl->m_src_path = kinski::search_file(filePath); }
-            catch(FileNotFoundException &e)
+            try{ m_impl->m_src_path = fs::search_file(filePath); }
+            catch(fs::FileNotFoundException &e)
             {
                 LOG_ERROR << e.what();
                 return;

@@ -1569,10 +1569,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     {
         Shader ret;
         std::string vertSrc, fragSrc, geomSrc;
-        vertSrc = read_file(vertPath);
-        fragSrc = read_file(fragPath);
+        vertSrc = fs::read_file(vertPath);
+        fragSrc = fs::read_file(fragPath);
     
-        if (!geomPath.empty()) geomSrc = read_file(geomPath);
+        if (!geomPath.empty()) geomSrc = fs::read_file(geomPath);
     
         try { ret.loadFromData(vertSrc, fragSrc, geomSrc); }
         catch (Exception &e){ LOG_ERROR<<e.what(); }
