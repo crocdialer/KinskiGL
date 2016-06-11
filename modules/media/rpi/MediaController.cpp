@@ -401,7 +401,7 @@ namespace kinski{ namespace media
         else
         {
             try{ found_path = fs::search_file(filePath); }
-            catch(FileNotFoundException &e)
+            catch(fs::FileNotFoundException &e)
             {
                 LOG_ERROR << e.what();
                 return;
