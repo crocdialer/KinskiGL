@@ -375,7 +375,7 @@ namespace kinski
 std::string find_device_handler(const std::string &the_dev_name)
 {
     // get list of input-devices
-    string dev_str = kinski::read_file("/proc/bus/input/devices");
+    string dev_str = fs::read_file("/proc/bus/input/devices");
     auto lines = kinski::split(dev_str, '\n');
     const std::string handler_token = "H:";
     bool found_dev_name = false;
@@ -397,7 +397,7 @@ std::string find_device_handler(const std::string &the_dev_name)
             }
         }
     }
-    return kinski::join_paths("/dev/input/", evt_handler_name);
+    return fs::join_paths("/dev/input/", evt_handler_name);
 }
 
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
