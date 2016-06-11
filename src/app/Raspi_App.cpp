@@ -397,7 +397,7 @@ std::string find_device_handler(const std::string &the_dev_name)
             }
         }
     }
-    return fs::join_paths("/dev/input/", evt_handler_name);
+    return kinski::fs::join_paths("/dev/input/", evt_handler_name);
 }
 
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
