@@ -24,7 +24,7 @@ namespace kinski {
     {
         path = trim(path);
         
-        if (!path.empty() && path[0] == '~')
+        if(!path.empty() && path[0] == '~')
         {
             if(path.size() != 1 && path[1] != '/') return path; // or other error handling ?
             char const* home = getenv("HOME");
@@ -57,9 +57,10 @@ namespace kinski {
     void add_search_path(const std::string &thePath, bool recursive)
     {
         boost::filesystem::path path_expanded (expand_user(thePath));
+        
         if (!boost::filesystem::exists(path_expanded))
         {
-            LOG_DEBUG<<"directory "<<path_expanded<<" not existing";
+            LOG_DEBUG << "directory " << path_expanded << " not existing";
             return;
         }
 
@@ -79,7 +80,7 @@ namespace kinski {
                     catch(std::exception& e)
                     {
                         // e.g. no permission
-                        LOG_ERROR<<e.what();
+                        LOG_ERROR << e.what();
                         it.no_push();
                         try { ++it; } catch(...)
                         {
@@ -397,11 +398,11 @@ namespace kinski {
         string ext = kinski::get_extension(file_name);
         ext = ext.empty() ? ext : kinski::to_lower(ext.substr(1));
 
-        std::list<string>
+        const std::list<string>
         image_exts{"png", "jpg", "jpeg", "bmp", "tga"},
         audio_exts{"wav", "m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx"},
-        movie_exts{"mpg", "mov", "avi", "mp4", "m4v"},
+        movie_exts{"mpg", "mov", "avi", "mp4", "m4v", "mkv"},
         font_exts{"ttf", "otf", "ttc"};
 
         if(kinski::is_in(ext, image_exts)){ return FileType::IMAGE; }
