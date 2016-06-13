@@ -14,7 +14,7 @@
 #pragma once
 
 #include "core/Component.hpp"
-#include "gl/QuadWarp.hpp"
+#include "QuadWarp.hpp"
 
 namespace kinski
 {

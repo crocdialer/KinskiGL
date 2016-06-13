@@ -16,9 +16,9 @@ Martins
 changelog:
 
 2.4:
-- physically accurate DoF simulation calculated from "u_focal_depth" ,"u_focal_length", "f-stop" and "CoC" parameters.
+- physically accurate DoF simulation calculated from "u_focal_depth" ,"u_focal_length", "f-stop" and "u_circle_of_confusion_sz" parameters.
 - option for artist controlled DoF simulation calculated only from "u_focal_depth" and individual controls for near and far blur
-- added "circe of confusion" (CoC) parameter in mm to accurately simulate DoF with different camera sensor or film sizes
+- added "circe of confusion" (u_circle_of_confusion_sz) parameter in mm to accurately simulate DoF with different camera sensor or film sizes
 - cleaned up the code
 - some optimization
 
@@ -64,7 +64,7 @@ uniform float u_znear = 0.1; //camera clipping start
 uniform float u_zfar = 100.0; //camera clipping end
 
 
-uniform float u_focal_depth;  //focal distance value in meters, but you may use autofocus option below
+uniform float u_focal_depth;  //focal distance value in meters, but you may use u_auto_focus option below
 uniform float u_focal_length; //focal length in mm
 uniform float u_fstop; //f-stop value
 uniform bool u_debug_focus = false; //show debug focus point and focal range (red = focal point, green = focal range)
@@ -89,22 +89,22 @@ float ndofdist = 2.0; //near dof blur falloff distance
 float fdofstart = 1.0; //far dof blur start
 float fdofdist = 3.0; //far dof blur falloff distance
 
-float CoC = 0.03;//circle of confusion size in mm (35mm film = 0.03mm)
+uniform float u_circle_of_confusion_sz = 0.03;//circle of confusion size in mm (35mm film = 0.03mm)
 
 bool vignetting = true; //use optical lens vignetting?
 float vignout = 1.3; //vignetting outer border
 float vignin = 0.0; //vignetting inner border
 float vignfade = 22.0; //f-stops till vignete fades
 
-bool autofocus = false; //use autofocus in shader? disable if you use external u_focal_depth value
-vec2 focus = vec2(0.5,0.5); // autofocus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
+uniform bool u_auto_focus = false; //use u_auto_focus in shader? disable if you use external u_focal_depth value
+vec2 focus = vec2(0.5,0.5); // u_auto_focus point on screen (0.0,0.0 - left lower corner, 1.0,1.0 - upper right)
 float maxblur = 1.0; //clamp value of max blur (0.0 = no blur,1.0 default)
 
 float threshold = 0.5; //highlight threshold;
-float gain = 2.0; //highlight gain;
+uniform float u_gain = 2.0; //highlight u_gain;
 
 float bias = 0.5; //bokeh edge bias
-float fringe = 0.7; //bokeh chromatic aberration/fringing
+uniform float u_fringe = 0.7; //bokeh chromatic aberration/fringing
 
 bool noise = true; //use noise instead of pattern for sample dithering
 float namount = 0.0001; //dither amount
@@ -198,13 +198,13 @@ vec3 color(vec2 coords,float blur) //processing the sample
 {
 	vec3 col = vec3(0.0);
 
-	col.r = texture(u_sampler_2D[COLOR_MAP],coords + vec2(0.0,1.0)*texel*fringe*blur).r;
-	col.g = texture(u_sampler_2D[COLOR_MAP],coords + vec2(-0.866,-0.5)*texel*fringe*blur).g;
-	col.b = texture(u_sampler_2D[COLOR_MAP],coords + vec2(0.866,-0.5)*texel*fringe*blur).b;
+	col.r = texture(u_sampler_2D[COLOR_MAP],coords + vec2(0.0,1.0)*texel*u_fringe*blur).r;
+	col.g = texture(u_sampler_2D[COLOR_MAP],coords + vec2(-0.866,-0.5)*texel*u_fringe*blur).g;
+	col.b = texture(u_sampler_2D[COLOR_MAP],coords + vec2(0.866,-0.5)*texel*u_fringe*blur).b;
 
 	vec3 lumcoeff = vec3(0.299,0.587,0.114);
 	float lum = dot(col.rgb, lumcoeff);
-	float thresh = max((lum-threshold)*gain, 0.0);
+	float thresh = max((lum-threshold)*u_gain, 0.0);
 	return col+mix(vec3(0.0),col,thresh*blur);
 }
 
@@ -260,7 +260,7 @@ void main()
 
 	float fDepth = u_focal_depth;
 
-	if (autofocus)
+	if (u_auto_focus)
 	{
 		fDepth = linearize(texture(u_sampler_2D[DEPTH_MAP],focus).x);
 	}
@@ -285,7 +285,7 @@ void main()
 
 		float a = (o*f)/(o-f);
 		float b = (d*f)/(d-f);
-		float c = (d-f)/(d*u_fstop*CoC);
+		float c = (d-f)/(d*u_fstop*u_circle_of_confusion_sz);
 
 		blur = abs(a-b)*c;
 	}

@@ -14,7 +14,7 @@
 #pragma once
 
 #include "app/ViewerApp.hpp"
-#include "app/WarpComponent.hpp"
+#include "gl_post_process/WarpComponent.hpp"
 #include "gl/Texture.hpp"
 
 #include "media/media.h"
