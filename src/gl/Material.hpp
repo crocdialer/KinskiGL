@@ -32,9 +32,11 @@ namespace kinski { namespace gl {
         std::vector<mat3>, std::vector<mat4> > UniformValue;
         
         typedef std::unordered_map<std::string, UniformValue> UniformMap;
-
+        
+        enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
+        
         static Ptr create(const Shader &theShader = Shader());
-
+        
         bool dirty() const { return m_dirty_uniform_buffer; };
         
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
@@ -51,8 +53,8 @@ namespace kinski { namespace gl {
         std::vector<Texture>& textures() {return m_textures;};
         const std::vector<Texture>& textures() const {return m_textures;};
         
-        std::vector<std::string>& load_queue_textures(){ return m_load_queue_textures; }
-        const std::vector<std::string>& load_queue_textures() const { return m_load_queue_textures; }
+        std::map<std::string, AssetLoadStatus>& texture_paths(){ return m_texture_paths; }
+        const std::map<std::string, AssetLoadStatus>& texture_paths() const { return m_texture_paths; }
         
         std::vector<gl::ShaderType>& load_queue_shader(){ return m_load_queue_shader; }
         const std::vector<gl::ShaderType>& load_queue_shader() const { return m_load_queue_shader; }
@@ -127,7 +129,7 @@ namespace kinski { namespace gl {
         
         float m_line_width;
         
-        std::vector<std::string> m_load_queue_textures;
+        std::map<std::string, AssetLoadStatus> m_texture_paths;
         std::vector<Texture> m_textures;
         
         std::vector<gl::ShaderType> m_load_queue_shader;

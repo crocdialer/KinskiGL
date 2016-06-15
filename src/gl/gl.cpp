@@ -1258,13 +1258,23 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         
         // process load queues
         // texture queue
-        for(const auto &tex_path : the_mat->load_queue_textures())
+        for(auto &pair : the_mat->texture_paths())
         {
-            try{ the_mat->addTexture(gl::create_texture_from_file(tex_path, true, true)); }
-            catch(Exception &e){ LOG_WARNING << e.what(); }
-            
+            if(pair.second == gl::Material::AssetLoadStatus::NOT_LOADED)
+            {
+                try
+                {
+                    the_mat->addTexture(gl::create_texture_from_file(pair.first, true, true));
+                    pair.second = gl::Material::AssetLoadStatus::LOADED;
+                }
+                catch(Exception &e)
+                {
+                    LOG_WARNING << e.what();
+                    pair.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                }
+            }
         }
-        the_mat->load_queue_textures().clear();
+//        the_mat->texture_paths().clear();
         
         // shader queue
         for(auto &sh_type : the_mat->load_queue_shader())

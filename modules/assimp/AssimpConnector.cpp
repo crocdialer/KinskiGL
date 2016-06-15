@@ -255,14 +255,14 @@ namespace kinski { namespace gl{
         {
             if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
             {
-                theMaterial->load_queue_textures().push_back(string(texPath.data));
+                theMaterial->texture_paths()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
             }
         }
         
         if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
         {
             LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
-            theMaterial->load_queue_textures().push_back(string(texPath.data));
+            theMaterial->texture_paths()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
         }
         return theMaterial;
     }
