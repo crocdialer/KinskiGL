@@ -268,14 +268,17 @@ namespace kinski { namespace gl {
         
         switch(t.getTarget())
         {
-            case GL_TEXTURE_CUBE_MAP:
-                break;
+//            case GL_TEXTURE_CUBE_MAP:
+//                break;
             case GL_TEXTURE_2D:
                 m_skybox = gl::Mesh::create(gl::Geometry::createSphere(1.f, 16),
                                             gl::Material::create());
                 m_skybox->material()->setDepthWrite(false);
                 m_skybox->material()->setTwoSided();
                 m_skybox->material()->textures() = {t};
+                break;
+                
+            default:
                 break;
         }
     }
