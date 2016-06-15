@@ -180,6 +180,16 @@ namespace kinski { namespace gl {
             }
         }
         
+        // skybox drawing
+        if(m_skybox)
+        {
+            gl::set_projection(theCamera);
+            mat4 m = theCamera->getViewMatrix();
+            m[3] = vec4(0, 0, 0, 1);
+            gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
+            gl::draw_mesh(m_skybox);
+        }
+        
         // forward render pass
         m_renderer.render(cull(theCamera, the_tags));
     }
@@ -250,6 +260,24 @@ namespace kinski { namespace gl {
         
         for(gl::Object3D *o : sv.get_objects()){ ret.push_back(o->shared_from_this()); }
         return ret;
+    }
+    
+    void Scene::set_skybox(const gl::Texture& t)
+    {
+        if(!t){ m_skybox.reset(); return; }
+        
+        switch(t.getTarget())
+        {
+            case GL_TEXTURE_CUBE_MAP:
+                break;
+            case GL_TEXTURE_2D:
+                m_skybox = gl::Mesh::create(gl::Geometry::createSphere(1.f, 16),
+                                            gl::Material::create());
+                m_skybox->material()->setDepthWrite(false);
+                m_skybox->material()->setTwoSided();
+                m_skybox->material()->textures() = {t};
+                break;
+        }
     }
     
 }}//namespace

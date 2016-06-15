@@ -36,8 +36,11 @@ namespace kinski { namespace gl {
         inline Object3DPtr& root() {return m_root;};
         uint32_t num_visible_objects() const {return m_num_visible_objects;};
         
+        void set_skybox(const gl::Texture& t);
+        
     private:
         
+        gl::MeshPtr m_skybox;
         mutable uint32_t m_num_visible_objects;
         
         //TODO: find a better place to put this
