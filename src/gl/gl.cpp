@@ -1274,7 +1274,6 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 }
             }
         }
-//        the_mat->texture_paths().clear();
         
         // shader queue
         for(auto &sh_type : the_mat->load_queue_shader())

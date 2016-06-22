@@ -86,8 +86,8 @@ namespace kinski
                     {
                         auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
                                                    m_impl->m_sensor_accumulator.end()));
-                        LOG_TRACE_2 << string(m_impl->m_sensor_accumulator.begin(),
-                                              m_impl->m_sensor_accumulator.end());
+//                        LOG_TRACE_1 << string(m_impl->m_sensor_accumulator.begin(),
+//                                              m_impl->m_sensor_accumulator.end());
                         m_impl->m_sensor_accumulator.clear();
                         
                         if(!tokens.empty())

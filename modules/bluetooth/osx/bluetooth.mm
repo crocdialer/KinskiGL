@@ -437,7 +437,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     {
         auto p = it->second;
         p->set_rssi([[peripheral RSSI] floatValue]);
-        LOG_TRACE_1 << p->name() << ": " << kinski::as_string(p->rssi(), 1);
+        LOG_TRACE_2 << p->name() << ": " << kinski::as_string(p->rssi(), 1);
     }
 }
 
