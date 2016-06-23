@@ -12,11 +12,20 @@
 
 namespace kinski{ namespace bluetooth{
     
-    namespace{ std::mutex mutex; }
+    namespace
+    {
+        std::mutex mutex;
+        
+        const bluetooth::UUID
+        UART_SERVICE_UUID = bluetooth::UUID("6e400001-b5a3-f393-e0a9-e50e24dcca9e"),
+        UART_CHARACTERISTIC_TX = bluetooth::UUID("6e400002-b5a3-f393-e0a9-e50e24dcca9e"),
+        UART_CHARACTERISTIC_RX = bluetooth::UUID("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+    }
     
-#define UART_SERVICE_UUID bluetooth::UUID("6e400001-b5a3-f393-e0a9-e50e24dcca9e")
-#define UART_CHARACTERISTIC_TX bluetooth::UUID("6e400002-b5a3-f393-e0a9-e50e24dcca9e")
-#define UART_CHARACTERISTIC_RX bluetooth::UUID("6e400003-b5a3-f393-e0a9-e50e24dcca9e")
+    Bluetooth_UART_Ptr Bluetooth_UART::create()
+    {
+        return Bluetooth_UART_Ptr(new Bluetooth_UART());
+    }
     
     Bluetooth_UART::Bluetooth_UART(){}
     
@@ -53,11 +62,13 @@ namespace kinski{ namespace bluetooth{
                     // fire receive callback
                     if(m_receive_cb)
                     {
-                        m_receive_cb(*this, m_buffer);
+                        m_receive_cb(shared_from_this(), m_buffer);
                         m_buffer.clear();
                     }
                 }
             });
+            
+            if(m_connect_cb){ m_connect_cb(shared_from_this()); }
         });
         m_central->discover_peripherals({UART_SERVICE_UUID});
         return true;
@@ -140,5 +151,10 @@ namespace kinski{ namespace bluetooth{
     void Bluetooth_UART::set_receive_cb(ReceiveCallback cb)
     {
         m_receive_cb = cb;
+    }
+    
+    void Bluetooth_UART::set_connect_cb(ConnectCallback cb)
+    {
+        m_connect_cb = cb;
     }
 }}
