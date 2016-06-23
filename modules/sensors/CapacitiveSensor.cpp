@@ -197,6 +197,7 @@ namespace kinski
             m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
+            set_charge_current(m_impl->m_charge_current);
             return true;
         }
         return false;
@@ -209,7 +210,7 @@ namespace kinski
         if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized())
         {
             auto conf_str = as_string(m_impl->m_thresh_touch) + " " +
-                            as_string(m_impl->m_thresh_touch) + " " +
+                            as_string(m_impl->m_thresh_release) + " " +
                             as_string(m_impl->m_charge_current) + "\n";
             
             bytes_written = m_impl->m_sensor_device->write(conf_str);
