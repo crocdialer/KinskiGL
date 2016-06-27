@@ -55,7 +55,7 @@ namespace kinski
                 boost::asio::io_service io_service;
                 tcp::socket s(io_service);
                 tcp::resolver resolver(io_service);
-                boost::asio::connect(s, resolver.resolve({ip_string, kinski::as_string(port)}));
+                boost::asio::connect(s, resolver.resolve({ip_string, kinski::to_string(port)}));
                 boost::asio::write(s, boost::asio::buffer(bytes));
             }
             catch (std::exception &e) { LOG_ERROR << e.what(); }
@@ -81,7 +81,7 @@ namespace kinski
                 auto socket_ptr = std::make_shared<tcp::socket>(io_service);
                 auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
                 
-                resolver_ptr->async_resolve({ip_string, kinski::as_string(port)},
+                resolver_ptr->async_resolve({ip_string, kinski::to_string(port)},
                                             [socket_ptr, resolver_ptr, ip_string, bytes]
                                             (const boost::system::error_code& ec,
                                              tcp::resolver::iterator end_point_it)
@@ -115,7 +115,7 @@ namespace kinski
                 boost::asio::io_service io_service;
                 
                 udp::resolver resolver(io_service);
-                udp::resolver::query query(udp::v4(), ip_string, kinski::as_string(port));
+                udp::resolver::query query(udp::v4(), ip_string, kinski::to_string(port));
                 udp::endpoint receiver_endpoint = *resolver.resolve(query);
                 
                 udp::socket socket(io_service, udp::v4());
@@ -143,7 +143,7 @@ namespace kinski
             {
                 auto socket_ptr = std::make_shared<udp::socket>(io_service, udp::v4());
                 auto resolver_ptr = std::make_shared<udp::resolver>(io_service);
-                udp::resolver::query query(udp::v4(), ip_string, kinski::as_string(port));
+                udp::resolver::query query(udp::v4(), ip_string, kinski::to_string(port));
                 
                 resolver_ptr->async_resolve(query, [socket_ptr, resolver_ptr, ip_string, bytes]
                                             (const boost::system::error_code& ec,
@@ -444,7 +444,7 @@ namespace kinski
             {
                 tcp::resolver resolver(io_service);
                 boost::asio::connect(m_impl->socket,
-                                     resolver.resolve({the_ip, kinski::as_string(the_port)}));
+                                     resolver.resolve({the_ip, kinski::to_string(the_port)}));
             } catch (std::exception &e)
             {
                 LOG_WARNING << e.what();

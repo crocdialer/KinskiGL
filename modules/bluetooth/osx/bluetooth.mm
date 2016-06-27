@@ -387,7 +387,7 @@ namespace kinski{ namespace bluetooth{
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        LOG_DEBUG << "connected: " << p->name() << " (" << kinski::as_string(p->rssi(), 1) << ")";
+        LOG_DEBUG << "connected: " << p->name() << " (" << kinski::to_string(p->rssi(), 1) << ")";
         p->set_connected(true);
 
         if(self.central_impl->peripheral_connected_cb)
@@ -437,7 +437,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     {
         auto p = it->second;
         p->set_rssi([[peripheral RSSI] floatValue]);
-        LOG_TRACE_2 << p->name() << ": " << kinski::as_string(p->rssi(), 1);
+        LOG_TRACE_2 << p->name() << ": " << kinski::to_string(p->rssi(), 1);
     }
 }
 

@@ -36,7 +36,7 @@ namespace kinski
 {
     struct DMXController::DMXControllerImpl
     {
-        Serial m_serial;
+        SerialPtr m_serial = Serial::create();
         std::string m_device_name;
         std::vector<uint8_t> m_dmx_values;
         float m_last_reading = 0.f, m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
@@ -55,7 +55,7 @@ namespace kinski
             bytes.push_back(DMX_END_CODE);
 
             // write our data block
-            int bytes_written = m_serial.write_bytes(&bytes[0], bytes.size());
+            int bytes_written = m_serial->write_bytes(&bytes[0], bytes.size());
             if(bytes_written > 0){ m_last_reading = 0.f; }
         }
     };
@@ -78,7 +78,7 @@ namespace kinski
         m_impl->m_last_reading += time_delta;
         
         // update only when serial connection is initialized
-        if(m_impl->m_serial.is_initialized())
+        if(m_impl->m_serial->is_initialized())
         {
             // send values
             m_impl->transmit(SET_DMX_TX_MODE, &m_impl->m_dmx_values[0], m_impl->m_dmx_values.size());
@@ -120,12 +120,12 @@ namespace kinski
             }
         }else{ found_name = the_device_name; }
         
-        if(m_impl->m_serial.setup(found_name, 57600)){ }
+        if(m_impl->m_serial->setup(found_name, 57600)){ }
         
         // finally flush the newly initialized device
-        if(m_impl->m_serial.is_initialized())
+        if(m_impl->m_serial->is_initialized())
         {
-            m_impl->m_serial.flush();
+            m_impl->m_serial->flush();
             m_impl->m_last_reading = 0.f;
             m_impl->m_device_name = found_name;
             LOG_DEBUG << "successfully connected dmx-device: " << found_name;
@@ -157,7 +157,7 @@ namespace kinski
     
     bool DMXController::is_initialized() const
     {
-        return m_impl->m_serial.is_initialized();
+        return m_impl->m_serial->is_initialized();
     }
 
 }// namespace

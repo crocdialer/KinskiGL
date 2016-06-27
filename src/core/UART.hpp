@@ -48,14 +48,15 @@ public:
     };
     
     //! returns the number of bytes available for reading
-    virtual size_t available() = 0;
+    virtual size_t available() const = 0;
     
     //! empty buffers
     virtual void drain() = 0;
     
     virtual void flush(bool flush_in = true, bool flush_out = true) = 0;
     
-    virtual std::string description() = 0;
+    //! returns a textual description for this device
+    virtual std::string description() const = 0;
 };
     
 typedef std::shared_ptr<UART> UART_Ptr;

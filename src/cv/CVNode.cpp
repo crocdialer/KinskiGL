@@ -151,7 +151,7 @@ namespace kinski
     
     std::string CVCombinedProcessNode::getName()
     {
-        return "CVCombinedProcessNode (" + as_string(m_processNodes.size())+")";
+        return "CVCombinedProcessNode (" + to_string(m_processNodes.size())+")";
     }
     
     string CVCombinedProcessNode::getDescription()

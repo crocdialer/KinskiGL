@@ -224,6 +224,6 @@ namespace kinski { namespace gl {
     {
     public:
         WrongVertexArrayDefinedException(uint32_t theID):
-        Exception("wrong vertex array defined for object: " + kinski::as_string(theID)){}
+        Exception("wrong vertex array defined for object: " + kinski::to_string(theID)){}
     };    
 }}

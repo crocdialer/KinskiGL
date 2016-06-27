@@ -18,7 +18,7 @@ namespace kinski{
     
     struct DistanceSensor::Impl
     {
-        Serial m_sensor_device;
+        SerialPtr m_sensor_device;
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_distance = 0;
@@ -44,13 +44,13 @@ namespace kinski{
     bool DistanceSensor::connect(const std::string &dev_name)
     {
         if(dev_name.empty()){}
-        else{ m_impl->m_sensor_device.setup(dev_name, 57600); }
+        else{ m_impl->m_sensor_device->setup(dev_name, 57600); }
         
         // finally flush the newly initialized device
-        if(m_impl->m_sensor_device.is_initialized())
+        if(m_impl->m_sensor_device->is_initialized())
         {
             m_impl->m_device_name = dev_name;
-            m_impl->m_sensor_device.flush();
+            m_impl->m_sensor_device->flush();
             m_impl->m_last_reading = 0.f;
             return true;
         }
@@ -64,15 +64,15 @@ namespace kinski{
         bool reading_complete = false;
         uint16_t distance_val = 0;
         
-        if(m_impl->m_sensor_device.is_initialized())
+        if(m_impl->m_sensor_device->is_initialized())
         {
-            bytes_to_read = std::min(m_impl->m_sensor_device.available(),
+            bytes_to_read = std::min(m_impl->m_sensor_device->available(),
                                      m_impl->m_sensor_read_buf.size());
             
             if(bytes_to_read){ m_impl->m_last_reading = 0.f; }
             
             uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
-            m_impl->m_sensor_device.read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
+            m_impl->m_sensor_device->read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
             
             for(uint32_t i = 0; i < bytes_to_read; i++)
             {
@@ -81,7 +81,7 @@ namespace kinski{
                 switch(byte)
                 {
                     case SERIAL_END_CODE:
-                        distance_val = string_as<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
+                        distance_val = string_to<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
                                                                  m_impl->m_sensor_accumulator.end()));
                         m_impl->m_sensor_accumulator.clear();
                         reading_complete = true;
@@ -128,6 +128,6 @@ namespace kinski{
     
     bool DistanceSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device.is_initialized();
+        return m_impl->m_sensor_device->is_initialized();
     }
 }

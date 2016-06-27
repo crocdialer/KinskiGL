@@ -20,7 +20,7 @@
 namespace kinski
 {
     template <typename T>
-    inline std::string as_string(const T &theObj, int precision = 0)
+    inline std::string to_string(const T &theObj, int precision = 0)
     {
         std::stringstream ss;
         if(precision > 0)
@@ -30,7 +30,7 @@ namespace kinski
     }
     
     template <typename T>
-    inline T string_as(const std::string &str)
+    inline T string_to(const std::string &str)
     {
         T ret;
         std::stringstream ss(str);

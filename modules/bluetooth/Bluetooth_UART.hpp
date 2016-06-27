@@ -13,8 +13,7 @@
 
 namespace kinski{ namespace bluetooth{
 
-class Bluetooth_UART;
-typedef std::shared_ptr<Bluetooth_UART> Bluetooth_UART_Ptr;
+typedef std::shared_ptr<class Bluetooth_UART> Bluetooth_UART_Ptr;
     
 class Bluetooth_UART : public UART, public std::enable_shared_from_this<Bluetooth_UART>
 {
@@ -31,11 +30,11 @@ public:
     void close() override;
     size_t read_bytes(void *buffer, size_t sz) override;
     size_t write_bytes(const void *buffer, size_t sz) override;
-    size_t available() override;
+    size_t available() const override;
     void drain() override;
     void flush(bool flush_in = true, bool flush_out = true) override;
     bool is_initialized() const override;
-    std::string description() override;
+    std::string description() const override;
     
     /////////////////////////////////////////////////////////////////////////////////
     

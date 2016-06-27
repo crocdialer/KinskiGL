@@ -92,11 +92,11 @@ namespace kinski
                         
                         if(!tokens.empty())
                         {
-                            current_touches = string_as<uint16_t>(tokens.front());
+                            current_touches = string_to<uint16_t>(tokens.front());
                             
                             for(uint32_t j = 1; j < tokens.size(); ++j)
                             {
-                                m_impl->m_proximity_values[j - 1] = string_as<float>(tokens[j]);
+                                m_impl->m_proximity_values[j - 1] = string_to<float>(tokens[j]);
                             }
                         }
                         break;
@@ -134,7 +134,7 @@ namespace kinski
             {
                 if(!m_impl->m_device_name.empty())
                 {
-                    auto serial = std::make_shared<Serial>();
+                    auto serial = Serial::create();
                     serial->setup(m_impl->m_device_name, 57600);
                     connect(serial);
                 }else if(m_impl->m_sensor_device)
@@ -171,7 +171,7 @@ namespace kinski
     
     bool CapacitiveSensor::connect(const std::string &the_serial_dev_name)
     {
-        auto serial = std::make_shared<Serial>();
+        auto serial = Serial::create();
         m_impl->m_device_name = the_serial_dev_name;
         serial->setup(the_serial_dev_name, 57600);
         return connect(serial);
@@ -185,7 +185,7 @@ namespace kinski
         }
         else
         {
-            m_impl->m_sensor_device = std::make_shared<Serial>();
+            m_impl->m_sensor_device = Serial::create();
             m_impl->m_sensor_device->setup();
         }
         
@@ -209,9 +209,9 @@ namespace kinski
         
         if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized())
         {
-            auto conf_str = as_string(m_impl->m_thresh_touch) + " " +
-                            as_string(m_impl->m_thresh_release) + " " +
-                            as_string(m_impl->m_charge_current) + "\n";
+            auto conf_str = to_string(m_impl->m_thresh_touch) + " " +
+                            to_string(m_impl->m_thresh_release) + " " +
+                            to_string(m_impl->m_charge_current) + "\n";
             
             bytes_written = m_impl->m_sensor_device->write(conf_str);
         }

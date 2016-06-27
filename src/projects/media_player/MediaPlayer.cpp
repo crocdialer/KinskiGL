@@ -349,27 +349,27 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("set_volume");
     register_function("set_volume", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_to<float>(rpc_args.front())); }
     });
     
     remote_control().add_command("volume", [this](net::tcp_connection_ptr con,
                                                   const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_as<float>(rpc_args.front())); }
-        con->send(as_string(m_movie->volume()));
+        if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_to<float>(rpc_args.front())); }
+        con->send(to_string(m_movie->volume()));
     });
     
     remote_control().add_command("set_rate");
     register_function("set_rate", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_to<float>(rpc_args.front())); }
     });
     
     remote_control().add_command("rate", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_as<float>(rpc_args.front())); }
-        con->send(as_string(m_movie->rate()));
+        if(!rpc_args.empty()){ m_movie->set_rate(kinski::string_to<float>(rpc_args.front())); }
+        con->send(to_string(m_movie->rate()));
     });
     
     remote_control().add_command("seek_to_time");
@@ -383,18 +383,18 @@ void MediaPlayer::setup_rpc_interface()
             switch (splits.size())
             {
                 case 3:
-                    secs = kinski::string_as<float>(splits[2]) +
-                    60.f * kinski::string_as<float>(splits[1]) +
-                    3600.f * kinski::string_as<float>(splits[0]) ;
+                    secs = kinski::string_to<float>(splits[2]) +
+                    60.f * kinski::string_to<float>(splits[1]) +
+                    3600.f * kinski::string_to<float>(splits[0]) ;
                     break;
                   
                 case 2:
-                    secs = kinski::string_as<float>(splits[1]) +
-                    60.f * kinski::string_as<float>(splits[0]);
+                    secs = kinski::string_to<float>(splits[1]) +
+                    60.f * kinski::string_to<float>(splits[0]);
                     break;
                   
                 case 1:
-                    secs = kinski::string_as<float>(splits[0]);
+                    secs = kinski::string_to<float>(splits[0]);
                     break;
                   
                 default:
@@ -407,31 +407,31 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("current_time", [this](net::tcp_connection_ptr con,
                                                         const std::vector<std::string> &rpc_args)
     {
-        con->send(as_string(m_movie->current_time(), 1));
+        con->send(to_string(m_movie->current_time(), 1));
     });
     
     remote_control().add_command("duration", [this](net::tcp_connection_ptr con,
                                                     const std::vector<std::string> &rpc_args)
     {
-        con->send(as_string(m_movie->duration(), 1));
+        con->send(to_string(m_movie->duration(), 1));
     });
     
     remote_control().add_command("set_loop");
     register_function("set_loop", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_as<bool>(rpc_args.front())); }
+        if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_to<bool>(rpc_args.front())); }
     });
     
     remote_control().add_command("loop", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_as<bool>(rpc_args.front())); }
-        con->send(as_string(m_movie->loop()));
+        if(!rpc_args.empty()){ m_movie->set_loop(kinski::string_to<bool>(rpc_args.front())); }
+        con->send(to_string(m_movie->loop()));
     });
     
     remote_control().add_command("is_playing", [this](net::tcp_connection_ptr con,
                                                       const std::vector<std::string> &rpc_args)
     {
-        con->send(as_string(m_movie->is_playing()));
+        con->send(to_string(m_movie->is_playing()));
     });
 }

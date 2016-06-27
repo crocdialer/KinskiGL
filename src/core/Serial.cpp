@@ -104,6 +104,11 @@ void Serial::enumerateWin32Ports()
 //---------------------------------------------
 
 
+SerialPtr Serial::create()
+{
+    return SerialPtr(new Serial());
+}
+    
 
 //----------------------------------------------------------------
 Serial::Serial():
@@ -609,7 +614,7 @@ void Serial::drain(){
 }
 
 //-------------------------------------------------------------
-size_t Serial::available()
+size_t Serial::available() const
 {
 
 	if (!bInited)

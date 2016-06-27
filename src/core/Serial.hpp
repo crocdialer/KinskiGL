@@ -34,11 +34,15 @@
 
 namespace kinski
 {
+
+typedef std::shared_ptr<class Serial> SerialPtr;
     
 class Serial : public UART
 {
     
 public:
+    
+    static SerialPtr create();
     
     struct DeviceInfo
     {
@@ -59,7 +63,6 @@ public:
         int deviceID;				//eg: 0,1,2,3 etc
     };
     
-    Serial();
     virtual ~Serial();
     
     void list_devices();
@@ -72,14 +75,15 @@ public:
     bool is_initialized() const override;
     size_t read_bytes(void *buffer, size_t sz) override;
     size_t write_bytes(const void *buffer, size_t sz) override;
-    size_t available() override;
-    std::string description() override { return "serial"; }
+    size_t available() const override;
+    std::string description() const override { return "serial"; }
     void drain() override;
     void flush(bool flushIn = true, bool flushOut = true) override;
     
     std::vector<std::string> read_lines(const char delim = '\n');
     
 private:
+    Serial();
     void buildDeviceList();
     
     std::string				deviceType;

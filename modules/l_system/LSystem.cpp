@@ -194,7 +194,7 @@ gl::MeshPtr LSystem::create_mesh() const
                 accum.insert(accum.end(), *iter);
                 ++iter;
             }
-            optional_param = kinski::string_as<float>(accum);
+            optional_param = kinski::string_to<float>(accum);
         }
         
         // this branch should not continue growing -> move on with iteration

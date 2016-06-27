@@ -207,7 +207,7 @@ namespace kinski{ namespace gl{
         
         for (const auto &light : light_list)
         {
-            std::string light_str = std::string("u_lights") + "[" + as_string(light_count) + "]";
+            std::string light_str = std::string("u_lights") + "[" + to_string(light_count) + "]";
             
             the_mat->uniform(light_str + ".type", (int)light.light->type());
             the_mat->uniform(light_str + ".position", light.transform[3].xyz());

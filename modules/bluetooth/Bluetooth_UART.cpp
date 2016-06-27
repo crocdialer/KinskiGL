@@ -110,7 +110,7 @@ namespace kinski{ namespace bluetooth{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    size_t Bluetooth_UART::available()
+    size_t Bluetooth_UART::available() const
     {
         std::unique_lock<std::mutex> lock(mutex);
         return m_buffer.size();
@@ -141,7 +141,7 @@ namespace kinski{ namespace bluetooth{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string Bluetooth_UART::description()
+    std::string Bluetooth_UART::description() const
     {
         return m_peripheral->name();
     }
