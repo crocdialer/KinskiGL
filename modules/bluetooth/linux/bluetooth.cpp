@@ -15,6 +15,11 @@ namespace kinski{ namespace bluetooth{
 #define HCI_STATE_SCANNING   3
 #define HCI_STATE_FILTERING  4
 
+#define EIR_FLAGS                   0X01
+#define EIR_NAME_SHORT              0x08
+#define EIR_NAME_COMPLETE           0x09
+#define EIR_MANUFACTURE_SPECIFIC    0xFF
+
 struct hci_state
 {
     int device_id = 0;
@@ -24,6 +29,12 @@ struct hci_state
     int has_error = 0;
     // std::string error_message;
 };
+
+hci_state hci_open_default_device();
+void hci_start_scan(hci_state &the_hci_state);
+void hci_stop_scan(hci_state &the_hci_state);
+void process_data(uint8_t *data, size_t data_len, le_advertising_info *info);
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -103,9 +114,14 @@ void hci_stop_scan(hci_state &the_hci_state)
 {
     if(the_hci_state.state == HCI_STATE_FILTERING)
     {
+        if(setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER, &the_hci_state.original_filter,
+                   sizeof(the_hci_state.original_filter)) < 0)
+        {
+            the_hci_state.has_error = true;
+            LOG_ERROR << "Could not set socket options: " << strerror(errno);
+            return;
+        }
         the_hci_state.state = HCI_STATE_SCANNING;
-        setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER, &the_hci_state.original_filter,
-                   sizeof(the_hci_state.original_filter));
     }
 
     if(hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 1000) < 0)
@@ -116,48 +132,89 @@ void hci_stop_scan(hci_state &the_hci_state)
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
+int8_t get_rssi(bdaddr_t *bdaddr, struct hci_state current_hci_state)
+{
+    struct hci_dev_info di;
+    if(hci_devinfo(current_hci_state.device_id, &di) < 0)
+    {
+        LOG_ERROR << "Can't get device info";
+        return(-1);
+    }
+
+    uint16_t handle;
+    // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
+    // HCI_DM1 | HCI_DM3 | HCI_DM5 | HCI_DH1 | HCI_DH3 | HCI_DH5
+    if(hci_create_connection(current_hci_state.device_handle, bdaddr,
+       htobs(di.pkt_type & ACL_PTYPE_MASK), 0, 0x01, &handle, 25000) < 0)
+    {
+        LOG_ERROR << "Can't create connection";
+        // TODO close(dd);
+        return(-1);
+    }
+    sleep(1);
+
+    struct hci_conn_info_req *cr = (hci_conn_info_req*)malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
+    bacpy(&cr->bdaddr, bdaddr);
+    cr->type = ACL_LINK;
+    if(ioctl(current_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
+    {
+        LOG_ERROR << "Get connection info failed";
+        return(-1);
+    }
+
+    int8_t rssi;
+    if(hci_read_rssi(current_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
+    {
+        LOG_ERROR << "Read RSSI failed";
+        return(-1);
+    }
+    free(cr);
+
+    usleep(10000);
+    hci_disconnect(current_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+    LOG_DEBUG << "RSSI return value: " << rssi;
+    return rssi;
+}
+
 void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
 {
-  // printw("Test: %p and %d\n", data, data_len);
-  // if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
-  // {
-  //   size_t name_len = data_len - 1;
-  //   char *name = malloc(name_len + 1);
-  //   memset(name, 0, name_len + 1);
-  //   memcpy(name, &data[2], name_len);
-  //
-  //   char addr[18];
-  //   ba2str(&info->bdaddr, addr);
-  //
-  //   printw("addr=%s name=%s\n", addr, name);
-  //
-  //   free(name);
-  // }
-  // else if(data[0] == EIR_FLAGS)
-  // {
-  //   printw("Flag type: len=%d\n", data_len);
-  //   int i;
-  //   for(i=1; i<data_len; i++)
-  //   {
-  //     printw("\tFlag data: 0x%0X\n", data[i]);
-  //   }
-  // }
-  // else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
-  // {
-  //   printw("Manufacture specific type: len=%d\n", data_len);
-  //
-  //   // TODO int company_id = data[current_index + 2]
-  //
-  //   int i;
-  //   for(i=1; i<data_len; i++)
-  //   {
-  //     printw("\tData: 0x%0X\n", data[i]);
-  //   }
-  // }
-  // else
-  // {
-  //   printw("Unknown type: type=%X\n", data[0]);
-  // }
+    LOG_DEBUG << "Test: " << data << " and: " << data_len;
+
+    if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
+    {
+        size_t name_len = data_len - 1;
+        char *name = (char*)malloc(name_len + 1);
+        memset(name, 0, name_len + 1);
+        memcpy(name, &data[2], name_len);
+
+        char addr[18];
+        ba2str(&info->bdaddr, addr);
+
+        LOG_DEBUG << "address: " << addr << " name: " << name;
+
+        free(name);
+    }
+    else if(data[0] == EIR_FLAGS)
+    {
+        LOG_DEBUG << "Flag type: len: " << data_len;
+
+        for(size_t i = 1; i < data_len; i++)
+        {
+            LOG_DEBUG << "\tFlag data: " << std::hex << data[i];
+        }
+    }
+    else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
+    {
+        LOG_DEBUG << "Manufacture specific type: len:" << data_len;
+
+        // TODO: int company_id = data[current_index + 2]
+
+        for(size_t i = 1; i < data_len; i++)
+        {
+            LOG_DEBUG << "\tData: " << std::hex << data[i];
+        }
+    }
+    else{ LOG_DEBUG << "Unknown type: " << std::hex << data[0]; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -192,6 +249,7 @@ struct CentralImpl
         {
             hci_close_dev(m_hci_state.device_handle);
         }
+        LOG_DEBUG << "CentralImpl desctructor";
     }
 };
 
@@ -202,6 +260,8 @@ m_impl(new CentralImpl){ }
 
 void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 {
+    hci_stop_scan(m_impl->m_hci_state);
+
     LOG_DEBUG << "discover_peripherals";
     hci_start_scan(m_impl->m_hci_state);
 
@@ -219,23 +279,49 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 
             if(len >= HCI_EVENT_HDR_SIZE)
             {
-		        meta_event = (evt_le_meta_event*)(buf+HCI_EVENT_HDR_SIZE+1);
+		        meta_event = (evt_le_meta_event*)(buf + HCI_EVENT_HDR_SIZE + 1);
 
 		        if(meta_event->subevent == EVT_LE_ADVERTISING_REPORT)
                 {
-			        uint8_t reports_count = *meta_event->data;
+			        // uint8_t reports_count = *meta_event->data;
 			        void * offset = meta_event->data + 1;
-			        while(reports_count--)
+			        // while(reports_count--)
                     {
 				        info = (le_advertising_info *)offset;
 				        char addr[18];
 				        ba2str(&(info->bdaddr), addr);
-				        LOG_DEBUG << addr << " - RSSI: " << (char)info->data[info->length];
+
+                        LOG_DEBUG << "Event: " << (int)info->evt_type;
+                        LOG_DEBUG << "Length: " << (int)info->length;
+
+                        if(info->length == 0){ continue; }
+
+                        int current_index = 0;
+                        int data_error = 0;
+
+                        while(!data_error && current_index < info->length)
+                        {
+                            size_t data_len = info->data[current_index];
+
+                            if(data_len + 1 > info->length)
+                            {
+                                LOG_ERROR << "EIR data length is longer than EIR packet length.";//%d + 1 > %d", data_len, info->length);
+                                data_error = 1;
+                            }
+                            else
+                            {
+                                process_data(info->data + current_index + 1, data_len, info);
+                                get_rssi(&info->bdaddr, m_impl->m_hci_state);
+                                current_index += data_len + 1;
+                            }
+                        }
+				        LOG_DEBUG << addr << " - RSSI: ?";// << (char)info->data[info->length];
 				        offset = info->data + info->length + 2;
 			        }
 		        }
             }
         }//while(m_impl->running && !error)
+        LOG_DEBUG << "thread ended";
     });
 }
 
