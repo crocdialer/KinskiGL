@@ -27,7 +27,6 @@ struct hci_state
     struct hci_filter original_filter;
     int state = 0;
     int has_error = 0;
-    // std::string error_message;
 };
 
 hci_state hci_open_default_device();
@@ -112,6 +111,8 @@ void hci_start_scan(hci_state &the_hci_state)
 
 void hci_stop_scan(hci_state &the_hci_state)
 {
+    // if(the_hci_state.state == HCI_STATE_OPEN){ return; }
+
     if(the_hci_state.state == HCI_STATE_FILTERING)
     {
         if(setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER, &the_hci_state.original_filter,
@@ -178,14 +179,14 @@ int8_t get_rssi(bdaddr_t *bdaddr, struct hci_state current_hci_state)
 
 void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
 {
-    LOG_DEBUG << "Test: " << data << " and: " << data_len;
+    LOG_TRACE << "data[0]: " << (int)data[0] << " data_len: " << data_len;
 
     if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
     {
         size_t name_len = data_len - 1;
         char *name = (char*)malloc(name_len + 1);
         memset(name, 0, name_len + 1);
-        memcpy(name, &data[2], name_len);
+        memcpy(name, &data[1], name_len);
 
         char addr[18];
         ba2str(&info->bdaddr, addr);
@@ -196,25 +197,25 @@ void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
     }
     else if(data[0] == EIR_FLAGS)
     {
-        LOG_DEBUG << "Flag type: len: " << data_len;
+        LOG_TRACE << "Flag type: len: " << data_len;
 
         for(size_t i = 1; i < data_len; i++)
         {
-            LOG_DEBUG << "\tFlag data: " << std::hex << data[i];
+            LOG_TRACE << "\tFlag data: " << std::hex << data[i];
         }
     }
     else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
     {
-        LOG_DEBUG << "Manufacture specific type: len:" << data_len;
+        LOG_TRACE << "Manufacture specific type: len:" << data_len;
 
         // TODO: int company_id = data[current_index + 2]
 
         for(size_t i = 1; i < data_len; i++)
         {
-            LOG_DEBUG << "\tData: " << std::hex << data[i];
+            LOG_TRACE << "\tData: " << std::hex << data[i];
         }
     }
-    else{ LOG_DEBUG << "Unknown type: " << std::hex << data[0]; }
+    else{ LOG_TRACE << "Unknown type: " << std::hex << data[0]; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -291,8 +292,8 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 				        char addr[18];
 				        ba2str(&(info->bdaddr), addr);
 
-                        LOG_DEBUG << "Event: " << (int)info->evt_type;
-                        LOG_DEBUG << "Length: " << (int)info->length;
+                        LOG_TRACE_2 << "Event: " << (int)info->evt_type;
+                        LOG_TRACE_2 << "Length: " << (int)info->length;
 
                         if(info->length == 0){ continue; }
 
@@ -311,11 +312,11 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
                             else
                             {
                                 process_data(info->data + current_index + 1, data_len, info);
-                                get_rssi(&info->bdaddr, m_impl->m_hci_state);
+                                // get_rssi(&info->bdaddr, m_impl->m_hci_state);
                                 current_index += data_len + 1;
                             }
                         }
-				        LOG_DEBUG << addr << " - RSSI: ?";// << (char)info->data[info->length];
+				        // LOG_DEBUG << addr << " - RSSI: ?";// << (char)info->data[info->length];
 				        offset = info->data + info->length + 2;
 			        }
 		        }
