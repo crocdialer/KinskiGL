@@ -32,8 +32,6 @@ struct hci_state
 hci_state hci_open_default_device();
 void hci_start_scan(hci_state &the_hci_state);
 void hci_stop_scan(hci_state &the_hci_state);
-void process_data(uint8_t *data, size_t data_len, le_advertising_info *info);
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -133,10 +131,10 @@ void hci_stop_scan(hci_state &the_hci_state)
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
-int8_t get_rssi(bdaddr_t *bdaddr, struct hci_state current_hci_state)
+int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
 {
     struct hci_dev_info di;
-    if(hci_devinfo(current_hci_state.device_id, &di) < 0)
+    if(hci_devinfo(the_hci_state.device_id, &di) < 0)
     {
         LOG_ERROR << "Can't get device info";
         return(-1);
@@ -145,85 +143,44 @@ int8_t get_rssi(bdaddr_t *bdaddr, struct hci_state current_hci_state)
     uint16_t handle;
     // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
     // HCI_DM1 | HCI_DM3 | HCI_DM5 | HCI_DH1 | HCI_DH3 | HCI_DH5
-    if(hci_create_connection(current_hci_state.device_handle, bdaddr,
+
+    if(hci_create_connection(the_hci_state.device_handle, bdaddr,
        htobs(di.pkt_type & ACL_PTYPE_MASK), 0, 0x01, &handle, 25000) < 0)
     {
         LOG_ERROR << "Can't create connection";
-        // TODO close(dd);
-        return(-1);
     }
     sleep(1);
 
     struct hci_conn_info_req *cr = (hci_conn_info_req*)malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
     bacpy(&cr->bdaddr, bdaddr);
     cr->type = ACL_LINK;
-    if(ioctl(current_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
+
+    if(ioctl(the_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
     {
         LOG_ERROR << "Get connection info failed";
-        return(-1);
     }
 
-    int8_t rssi;
-    if(hci_read_rssi(current_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
+    int8_t rssi = -1;
+
+    if(hci_read_rssi(the_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
     {
         LOG_ERROR << "Read RSSI failed";
-        return(-1);
     }
     free(cr);
 
     usleep(10000);
-    hci_disconnect(current_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+    hci_disconnect(the_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
     LOG_DEBUG << "RSSI return value: " << rssi;
     return rssi;
-}
-
-void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
-{
-    LOG_TRACE << "data[0]: " << (int)data[0] << " data_len: " << data_len;
-
-    if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
-    {
-        size_t name_len = data_len - 1;
-        char *name = (char*)malloc(name_len + 1);
-        memset(name, 0, name_len + 1);
-        memcpy(name, &data[1], name_len);
-
-        char addr[18];
-        ba2str(&info->bdaddr, addr);
-
-        LOG_DEBUG << "address: " << addr << " name: " << name;
-
-        free(name);
-    }
-    else if(data[0] == EIR_FLAGS)
-    {
-        LOG_TRACE << "Flag type: len: " << data_len;
-
-        for(size_t i = 1; i < data_len; i++)
-        {
-            LOG_TRACE << "\tFlag data: " << std::hex << data[i];
-        }
-    }
-    else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
-    {
-        LOG_TRACE << "Manufacture specific type: len:" << data_len;
-
-        // TODO: int company_id = data[current_index + 2]
-
-        for(size_t i = 1; i < data_len; i++)
-        {
-            LOG_TRACE << "\tData: " << std::hex << data[i];
-        }
-    }
-    else{ LOG_TRACE << "Unknown type: " << std::hex << data[0]; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 struct CentralImpl
 {
+    std::weak_ptr<Central> central_ref;
     hci_state m_hci_state;
-    bool running = false;
+    bool m_running = false;
     std::thread worker_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
@@ -235,7 +192,7 @@ struct CentralImpl
 
     ~CentralImpl()
     {
-        running = false;
+        m_running = false;
 
         if(worker_thread.joinable())
         {
@@ -252,31 +209,71 @@ struct CentralImpl
         }
         LOG_DEBUG << "CentralImpl desctructor";
     }
-};
 
-CentralPtr Central::create(){ return CentralPtr(new Central()); }
-
-Central::Central():
-m_impl(new CentralImpl){ }
-
-void Central::discover_peripherals(std::set<UUID> the_service_uuids)
-{
-    hci_stop_scan(m_impl->m_hci_state);
-
-    LOG_DEBUG << "discover_peripherals";
-    hci_start_scan(m_impl->m_hci_state);
-
-    m_impl->worker_thread = std::thread([this]()
+    PeripheralPtr process_data(uint8_t *data, size_t data_len,
+                               le_advertising_info *info)
     {
-        m_impl->running = true;
+        LOG_TRACE << "data[0]: " << (int)data[0] << " data_len: " << data_len;
+        PeripheralPtr ret;
+
+        if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
+        {
+            size_t name_len = data_len - 1;
+            char *name = (char*)malloc(name_len + 1);
+            memset(name, 0, name_len + 1);
+            memcpy(name, &data[1], name_len);
+
+            auto central = central_ref.lock();
+            ret = Peripheral::create(central, UUID());
+            ret->set_name(name);
+            free(name);
+
+            char addr[18];
+            ba2str(&info->bdaddr, addr);
+
+            LOG_DEBUG << "address: " << addr << " name: " << ret->name();
+            // ret->set_rssi(get_rssi(&info->bdaddr, m_hci_state));
+
+            if(central && ret && peripheral_discovered_cb)
+            {
+                peripheral_discovered_cb(central, ret);
+            }
+        }
+        else if(data[0] == EIR_FLAGS)
+        {
+            LOG_TRACE << "Flag type: len: " << data_len;
+
+            for(size_t i = 1; i < data_len; i++)
+            {
+                LOG_TRACE << "\tFlag data: " << std::hex << data[i];
+            }
+        }
+        else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
+        {
+            LOG_TRACE << "Manufacture specific type: len:" << data_len;
+
+            // TODO: int company_id = data[current_index + 2]
+
+            for(size_t i = 1; i < data_len; i++)
+            {
+                LOG_TRACE << "\tData: " << std::hex << data[i];
+            }
+        }
+        else{ LOG_TRACE << "Unknown type: " << std::hex << data[0]; }
+        return ret;
+    }
+
+    void thread_func()
+    {
+        m_running = true;
         uint8_t buf[HCI_MAX_EVENT_SIZE];
 	    evt_le_meta_event * meta_event;
 	    le_advertising_info * info;
 	    int len;
 
-        while(m_impl->running)
+        while(m_running)
         {
-            len = read(m_impl->m_hci_state.device_handle, buf, sizeof(buf));
+            len = read(m_hci_state.device_handle, buf, sizeof(buf));
 
             if(len >= HCI_EVENT_HDR_SIZE)
             {
@@ -312,7 +309,6 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
                             else
                             {
                                 process_data(info->data + current_index + 1, data_len, info);
-                                // get_rssi(&info->bdaddr, m_impl->m_hci_state);
                                 current_index += data_len + 1;
                             }
                         }
@@ -321,9 +317,31 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 			        }
 		        }
             }
-        }//while(m_impl->running && !error)
+        }//while(m_impl->m_running && !error)
         LOG_DEBUG << "thread ended";
-    });
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+CentralPtr Central::create()
+{
+    CentralPtr ret(new Central());
+    ret->m_impl->central_ref = ret;
+    return ret;
+}
+
+Central::Central():
+m_impl(new CentralImpl){ }
+
+void Central::discover_peripherals(std::set<UUID> the_service_uuids)
+{
+    hci_stop_scan(m_impl->m_hci_state);
+
+    LOG_DEBUG << "discover_peripherals";
+    hci_start_scan(m_impl->m_hci_state);
+
+    m_impl->worker_thread = std::thread(std::bind(&CentralImpl::thread_func, m_impl.get()));
 }
 
 void Central::stop_scanning()
