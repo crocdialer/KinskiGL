@@ -10,7 +10,10 @@ namespace
     
 UUID::UUID()
 {
-    for(int i = 0; i < 16; i++){ m_data[i] = kinski::random_int<uint8_t>(0, 255); }
+    // start with generic base UUID bytes
+    memcpy(m_data, BASE_BLE_UUID.bytes(), 16);
+    
+//    for(int i = 0; i < 16; i++){ m_data[i] = kinski::random_int<uint8_t>(0, 255); }
 }
 
 UUID::UUID(const std::string &the_str)

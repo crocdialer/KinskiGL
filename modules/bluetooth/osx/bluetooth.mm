@@ -354,7 +354,7 @@ namespace kinski{ namespace bluetooth{
         RSSI:(NSNumber *)RSSI
 {
     auto p = kinski::bluetooth::Peripheral::create(self.central_impl->central_ref.lock(),
-                                                   kinski::bluetooth::UUID((uint8_t*)peripheral.identifier));
+                                                   kinski::bluetooth::UUID([peripheral.identifier.UUIDString UTF8String]));
 
     p->set_name(peripheral.name ? [peripheral.name UTF8String] : "unknown");
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
