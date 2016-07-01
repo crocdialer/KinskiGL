@@ -42,7 +42,7 @@ namespace kinski
         m_impl->m_sensor_read_buf.resize(2048);
         m_impl->m_proximity_values.resize(NUM_SENSOR_PADS, 0.f);
         
-        if(the_uart_device && connect(the_uart_device))
+        if(!connect(the_uart_device))
         {
             LOG_ERROR << "unable to connect capacitve touch sensor";
         }
@@ -53,9 +53,9 @@ namespace kinski
         if(m_impl->m_reconnect_thread.joinable()){ m_impl->m_reconnect_thread.join(); }
     }
     
-    void CapacitiveSensor::update(float time_delta)
+    void CapacitiveSensor::update(float time_delta )
     {
-        if(m_impl->m_dirty_params)
+        if(m_impl->m_dirty_params && m_impl->m_sensor_device->is_initialized())
         {
             if(!update_config()){ LOG_WARNING << "could not update config"; }
             m_impl->m_dirty_params = false;
@@ -191,7 +191,7 @@ namespace kinski
         
         
         // finally flush the newly initialized device
-        if(m_impl->m_sensor_device->is_initialized())
+//        if(m_impl->m_sensor_device->is_initialized())
         {
             m_impl->m_sensor_device->flush();
             m_impl->m_sensor_accumulator.clear();

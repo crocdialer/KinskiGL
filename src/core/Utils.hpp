@@ -99,9 +99,10 @@ namespace kinski
     inline std::string trim(const std::string& str,
                             const std::string& whitespace = " \t")
     {
-        const auto str_begin = str.find_first_not_of(whitespace);
-        if(str_begin == std::string::npos){ return ""; }
-        const auto str_end = str.find_last_not_of(whitespace);
+        auto str_begin = str.find_first_not_of(whitespace);
+        if(str_begin == std::string::npos){ str_begin = 0; }
+        auto str_end = str.find_last_not_of(whitespace);
+        if(str_end == std::string::npos){ str_end = str.size() - 1; }
         const auto str_range = str_end - str_begin + 1;
         return str.substr(str_begin, str_range);
     }

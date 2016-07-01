@@ -253,7 +253,7 @@ namespace kinski{ namespace physics{
         
         if(m_dynamicsWorld)
         {
-            m_dynamicsWorld->btCollisionWorld::debugDrawWorld();
+            m_dynamicsWorld->debugDrawWorld();
             m_debug_drawer->flush();
         }
     }
@@ -453,7 +453,7 @@ namespace kinski{ namespace physics{
             for (int j = 0; j < numContacts; j++)
             {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
-                if (pt.getDistance()<0.f)
+                if (pt.getDistance() < 0.f)
                 {
                     const btVector3& ptA = pt.getPositionWorldOnA();
                     const btVector3& ptB = pt.getPositionWorldOnB();

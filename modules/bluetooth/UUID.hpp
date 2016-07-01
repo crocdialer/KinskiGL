@@ -6,9 +6,11 @@ namespace kinski{ namespace bluetooth{
 class UUID
 {
 public:
+    enum Type{UUID_16 = 2, UUID_32 = 4, UUID_128 = 16};
+    
     UUID();
     UUID(const std::string &the_str);
-    explicit UUID(uint8_t the_bytes[16]);
+    explicit UUID(uint8_t *the_bytes, Type t = UUID_128);
 
     const uint8_t* bytes() const;
     const std::string string() const;
@@ -20,5 +22,5 @@ public:
 private:
     uint8_t m_data[16];
 };
-
+    
 }}// namespaces
