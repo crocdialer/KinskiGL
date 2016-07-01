@@ -18,12 +18,14 @@ namespace kinski{ namespace bluetooth{
 #define EIR_FLAGS                   0X01
 #define EIR_NAME_SHORT              0x08
 #define EIR_NAME_COMPLETE           0x09
+#define EIR_MYSTERY                 10
 #define EIR_MANUFACTURE_SPECIFIC    0xFF
 
 struct hci_state
 {
     int device_id = 0;
     int device_handle = 0;
+    struct hci_dev_info device_info;
     struct hci_filter original_filter;
     int state = 0;
     int has_error = 0;
@@ -51,9 +53,15 @@ hci_state hci_open_default_device()
     if(ioctl(ret.device_handle, FIONBIO, (char *)&on) < 0)
     {
         ret.has_error = true;
-        LOG_ERROR << "Could not set device to non-blocking: " << strerror(errno);
+        LOG_ERROR << "could not set device to non-blocking: " << strerror(errno);
     }
     if(!ret.has_error){ ret.state = HCI_STATE_OPEN; }
+
+    if(hci_devinfo(ret.device_id, &ret.device_info) < 0)
+    {
+        ret.has_error = true;
+        LOG_ERROR << "could not get device info";
+    }
     return ret;
 }
 
@@ -61,18 +69,30 @@ hci_state hci_open_default_device()
 
 void hci_start_scan(hci_state &the_hci_state)
 {
-    if(hci_le_set_scan_parameters(the_hci_state.device_handle, 0x01, htobs(0x0010),
-                                  htobs(0x0010), 0x00, 0x00, 1000) < 0)
+    int err;
+    uint8_t own_type = LE_PUBLIC_ADDRESS;
+	uint8_t scan_type = 0x01;
+	uint8_t filter_policy = 0x00;
+	uint16_t interval = htobs(0x0010);
+	uint16_t window = htobs(0x0010);
+	// uint8_t filter_dup = 0x01;
+    // uint8_t filter_type = 0;
+
+    err = hci_le_set_scan_parameters(the_hci_state.device_handle, scan_type, interval, window,
+						              own_type, filter_policy, 1000);
+
+    if(err < 0)
     {
         the_hci_state.has_error = true;
-        LOG_ERROR << "Failed to set scan parameters: " << strerror(errno);
+        LOG_ERROR << "failed to set scan parameters: " << strerror(errno);
         return;
     }
+    err = hci_le_set_scan_enable(the_hci_state.device_handle, 0x01, 1, 1000);
 
-    if(hci_le_set_scan_enable(the_hci_state.device_handle, 0x01, 1, 1000) < 0)
+    if(err < 0)
     {
         the_hci_state.has_error = true;
-        LOG_ERROR << "Failed to enable scan: " << strerror(errno);
+        LOG_ERROR << "failed to enable scan: " << strerror(errno);
         return;
     }
 
@@ -80,11 +100,12 @@ void hci_start_scan(hci_state &the_hci_state)
 
     socklen_t olen = sizeof(the_hci_state.original_filter);
 
-    if(getsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER,
-                  &the_hci_state.original_filter, &olen) < 0)
+    err = getsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER,
+                     &the_hci_state.original_filter, &olen);
+    if(err < 0)
     {
         the_hci_state.has_error = true;
-        LOG_ERROR << "Could not get socket options: " << strerror(errno);
+        LOG_ERROR << "could not get socket options: " << strerror(errno);
         return;
     }
 
@@ -99,7 +120,7 @@ void hci_start_scan(hci_state &the_hci_state)
                   sizeof(new_filter)) < 0)
     {
         the_hci_state.has_error = true;
-        LOG_ERROR << "Could not set socket options: " << strerror(errno);
+        LOG_ERROR << "could not set socket options: " << strerror(errno);
         return;
     }
     the_hci_state.state = HCI_STATE_FILTERING;
@@ -133,21 +154,14 @@ void hci_stop_scan(hci_state &the_hci_state)
 
 int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
 {
-    struct hci_dev_info di;
-    if(hci_devinfo(the_hci_state.device_id, &di) < 0)
-    {
-        LOG_ERROR << "Can't get device info";
-        return(-1);
-    }
-
     uint16_t handle;
     // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
     // HCI_DM1 | HCI_DM3 | HCI_DM5 | HCI_DH1 | HCI_DH3 | HCI_DH5
 
     if(hci_create_connection(the_hci_state.device_handle, bdaddr,
-       htobs(di.pkt_type & ACL_PTYPE_MASK), 0, 0x01, &handle, 25000) < 0)
+       htobs(the_hci_state.device_info.pkt_type & ACL_PTYPE_MASK), (1 << 15), 0, &handle, 5000) < 0)
     {
-        LOG_ERROR << "Can't create connection";
+        LOG_ERROR << "could not create connection";
     }
     sleep(1);
 
@@ -157,7 +171,7 @@ int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
 
     if(ioctl(the_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
     {
-        LOG_ERROR << "Get connection info failed";
+        LOG_ERROR << "get connection info failed";
     }
 
     int8_t rssi = -1;
@@ -170,7 +184,7 @@ int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
 
     usleep(10000);
     hci_disconnect(the_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-    LOG_DEBUG << "RSSI return value: " << rssi;
+    LOG_DEBUG << "RSSI return value: " << (int)rssi;
     return rssi;
 }
 
@@ -210,11 +224,28 @@ struct CentralImpl
         LOG_DEBUG << "CentralImpl desctructor";
     }
 
-    PeripheralPtr process_data(uint8_t *data, size_t data_len,
-                               le_advertising_info *info)
+    void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
     {
         LOG_TRACE << "data[0]: " << (int)data[0] << " data_len: " << data_len;
-        PeripheralPtr ret;
+        // LOG_DEBUG << "advertising evt_type: " << (int)info->evt_type;
+        bool emit_event = false;
+        int peripheral_rssi = -1;
+        string peripheral_name;
+        UUID peripheral_uuid;
+
+        switch(info->evt_type)
+        {
+            case HCI_EVENT_PKT:
+            case HCI_COMMAND_PKT:
+            case HCI_SCODATA_PKT:
+            case HCI_ACLDATA_PKT:
+            case HCI_VENDOR_PKT:
+                // rssi = get_rssi(&info->bdaddr, m_hci_state);
+                emit_event = true;
+
+            default:
+                break;
+        }
 
         if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
         {
@@ -222,45 +253,57 @@ struct CentralImpl
             char *name = (char*)malloc(name_len + 1);
             memset(name, 0, name_len + 1);
             memcpy(name, &data[1], name_len);
-
-            auto central = central_ref.lock();
-            ret = Peripheral::create(central, UUID());
-            ret->set_name(name);
+            peripheral_name = name;
             free(name);
 
             char addr[18];
             ba2str(&info->bdaddr, addr);
 
-            LOG_DEBUG << "address: " << addr << " name: " << ret->name();
+            // LOG_DEBUG << "address: " << addr << " name: " << peripheral->name();
+            emit_event = true;
             // ret->set_rssi(get_rssi(&info->bdaddr, m_hci_state));
-
-            if(central && ret && peripheral_discovered_cb)
-            {
-                peripheral_discovered_cb(central, ret);
-            }
         }
+        else if(data[0] == EIR_MYSTERY)
+        {
+            LOG_DEBUG << "mystery: " << (int)data[1];
+        }
+        // else if(data[0] == 6 || data[0] == 7)
+        // {
+        //     peripheral_uuid = UUID(&data[1], UUID::UUID_128);
+        // }
         else if(data[0] == EIR_FLAGS)
         {
-            LOG_TRACE << "Flag type: len: " << data_len;
-
             for(size_t i = 1; i < data_len; i++)
             {
-                LOG_TRACE << "\tFlag data: " << std::hex << data[i];
+                LOG_DEBUG << "\tflag data: " << std::hex << (int)data[i];
             }
         }
         else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
         {
-            LOG_TRACE << "Manufacture specific type: len:" << data_len;
+            LOG_DEBUG << "Manufacture specific type: len:" << data_len;
 
             // TODO: int company_id = data[current_index + 2]
 
             for(size_t i = 1; i < data_len; i++)
             {
-                LOG_TRACE << "\tData: " << std::hex << data[i];
+                LOG_DEBUG << "\tdata: " << std::hex << (int)data[i];
             }
         }
-        else{ LOG_TRACE << "Unknown type: " << std::hex << data[0]; }
-        return ret;
+        else
+        {
+             LOG_DEBUG << "event: " << (int)info->evt_type << " -- type: " << (int)data[0] << " -- length: " << data_len;
+        }
+
+        auto central = central_ref.lock();
+        auto peripheral = Peripheral::create(central, peripheral_uuid);
+        peripheral->set_name(peripheral_name);
+        peripheral->set_rssi(peripheral_rssi);
+
+        // fire discovery callback
+        if(emit_event && central && peripheral && peripheral_discovered_cb)
+        {
+            peripheral_discovered_cb(central, peripheral);
+        }
     }
 
     void thread_func()
@@ -281,42 +324,39 @@ struct CentralImpl
 
 		        if(meta_event->subevent == EVT_LE_ADVERTISING_REPORT)
                 {
-			        // uint8_t reports_count = *meta_event->data;
-			        void * offset = meta_event->data + 1;
-			        // while(reports_count--)
+			        void* offset = meta_event->data + 1;
+			        info = (le_advertising_info *)offset;
+			        char addr[18];
+			        ba2str(&(info->bdaddr), addr);
+
+                    LOG_TRACE_2 << "Event: " << (int)info->evt_type;
+                    LOG_TRACE_2 << "Length: " << (int)info->length;
+
+                    if(info->length == 0){ continue; }
+
+                    int current_index = 0;
+                    int data_error = 0;
+
+                    while(!data_error && current_index < info->length)
                     {
-				        info = (le_advertising_info *)offset;
-				        char addr[18];
-				        ba2str(&(info->bdaddr), addr);
+                        uint8_t* data = info->data;
+                        size_t data_len = data[current_index];
 
-                        LOG_TRACE_2 << "Event: " << (int)info->evt_type;
-                        LOG_TRACE_2 << "Length: " << (int)info->length;
-
-                        if(info->length == 0){ continue; }
-
-                        int current_index = 0;
-                        int data_error = 0;
-
-                        while(!data_error && current_index < info->length)
+                        if(data_len + 1 > info->length)
                         {
-                            size_t data_len = info->data[current_index];
-
-                            if(data_len + 1 > info->length)
-                            {
-                                LOG_ERROR << "EIR data length is longer than EIR packet length.";//%d + 1 > %d", data_len, info->length);
-                                data_error = 1;
-                            }
-                            else
-                            {
-                                process_data(info->data + current_index + 1, data_len, info);
-                                current_index += data_len + 1;
-                            }
+                            LOG_ERROR << "EIR data length is longer than EIR packet length.";//%d + 1 > %d", data_len, info->length);
+                            data_error = 1;
                         }
-				        // LOG_DEBUG << addr << " - RSSI: ?";// << (char)info->data[info->length];
-				        offset = info->data + info->length + 2;
-			        }
+                        else
+                        {
+                            process_data(info->data + current_index + 1, data_len, info);
+                            current_index += data_len + 1;
+                        }
+                    }
+			        // offset = info->data + info->length + 2;
 		        }
             }
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }//while(m_impl->m_running && !error)
         LOG_DEBUG << "thread ended";
     }
