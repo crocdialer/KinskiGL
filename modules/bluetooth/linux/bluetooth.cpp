@@ -152,41 +152,41 @@ void hci_stop_scan(hci_state &the_hci_state)
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
-int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
-{
-    uint16_t handle;
-    // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
-    // HCI_DM1 | HCI_DM3 | HCI_DM5 | HCI_DH1 | HCI_DH3 | HCI_DH5
-
-    if(hci_create_connection(the_hci_state.device_handle, bdaddr,
-       htobs(the_hci_state.device_info.pkt_type & ACL_PTYPE_MASK), (1 << 15), 0, &handle, 5000) < 0)
-    {
-        LOG_ERROR << "could not create connection";
-    }
-    sleep(1);
-
-    struct hci_conn_info_req *cr = (hci_conn_info_req*)malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
-    bacpy(&cr->bdaddr, bdaddr);
-    cr->type = ACL_LINK;
-
-    if(ioctl(the_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
-    {
-        LOG_ERROR << "get connection info failed";
-    }
-
-    int8_t rssi = -1;
-
-    if(hci_read_rssi(the_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
-    {
-        LOG_ERROR << "Read RSSI failed";
-    }
-    free(cr);
-
-    usleep(10000);
-    hci_disconnect(the_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-    LOG_DEBUG << "RSSI return value: " << (int)rssi;
-    return rssi;
-}
+// int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
+// {
+//     uint16_t handle;
+//     // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
+//     // HCI_DM1 | HCI_DM3 | HCI_DM5 | HCI_DH1 | HCI_DH3 | HCI_DH5
+//
+//     if(hci_create_connection(the_hci_state.device_handle, bdaddr,
+//        htobs(the_hci_state.device_info.pkt_type & ACL_PTYPE_MASK), (1 << 15), 0, &handle, 5000) < 0)
+//     {
+//         LOG_ERROR << "could not create connection";
+//     }
+//     sleep(1);
+//
+//     struct hci_conn_info_req *cr = (hci_conn_info_req*)malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
+//     bacpy(&cr->bdaddr, bdaddr);
+//     cr->type = ACL_LINK;
+//
+//     if(ioctl(the_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
+//     {
+//         LOG_ERROR << "get connection info failed";
+//     }
+//
+//     int8_t rssi = -1;
+//
+//     if(hci_read_rssi(the_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
+//     {
+//         LOG_ERROR << "Read RSSI failed";
+//     }
+//     free(cr);
+//
+//     usleep(10000);
+//     hci_disconnect(the_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
+//     LOG_DEBUG << "RSSI return value: " << (int)rssi;
+//     return rssi;
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -226,10 +226,11 @@ struct CentralImpl
 
     void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
     {
-        LOG_TRACE << "data[0]: " << (int)data[0] << " data_len: " << data_len;
-        // LOG_DEBUG << "advertising evt_type: " << (int)info->evt_type;
+        LOG_TRACE << "advertising evt_type: " << (int)info->evt_type;
         bool emit_event = false;
-        int peripheral_rssi = -1;
+
+        // last octect contains RSSI as int8_t
+        int8_t peripheral_rssi = info->data[info->length];
         string peripheral_name;
         UUID peripheral_uuid;
 
@@ -275,23 +276,23 @@ struct CentralImpl
         {
             for(size_t i = 1; i < data_len; i++)
             {
-                LOG_DEBUG << "\tflag data: " << std::hex << (int)data[i];
+                LOG_DEBUG << "\tflag data: " << (int)*((int8_t*)(data + i));
             }
         }
         else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
         {
-            LOG_DEBUG << "Manufacture specific type: len:" << data_len;
+            LOG_TRACE << "Manufacture specific type: len:" << data_len;
 
             // TODO: int company_id = data[current_index + 2]
 
             for(size_t i = 1; i < data_len; i++)
             {
-                LOG_DEBUG << "\tdata: " << std::hex << (int)data[i];
+                LOG_TRACE << "\tdata: " << std::setfill('0') << std::setw(2) << std::hex << (int)data[i];
             }
         }
         else
         {
-             LOG_DEBUG << "event: " << (int)info->evt_type << " -- type: " << (int)data[0] << " -- length: " << data_len;
+             LOG_TRACE << "event: " << (int)info->evt_type << " -- type: " << (int)data[0] << " -- length: " << data_len;
         }
 
         auto central = central_ref.lock();
@@ -344,7 +345,7 @@ struct CentralImpl
 
                         if(data_len + 1 > info->length)
                         {
-                            LOG_ERROR << "EIR data length is longer than EIR packet length.";//%d + 1 > %d", data_len, info->length);
+                            LOG_ERROR << "EIR data length is longer than EIR packet length.";
                             data_error = 1;
                         }
                         else
@@ -353,7 +354,6 @@ struct CentralImpl
                             current_index += data_len + 1;
                         }
                     }
-			        // offset = info->data + info->length + 2;
 		        }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
