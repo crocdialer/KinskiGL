@@ -44,7 +44,7 @@ UUID::UUID(const std::string &the_str)
     }
 }
 
-UUID::UUID(uint8_t *the_bytes, Type t)
+UUID::UUID(const uint8_t *the_bytes, Type t)
 {
     *this = BASE_BLE_UUID;
     

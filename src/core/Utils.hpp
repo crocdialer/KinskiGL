@@ -134,6 +134,19 @@ namespace kinski
         return dest.u;
     }
     
+    inline void swap_endian(void* dest, const void* src, size_t num_bytes)
+    {
+        uint8_t* tmp = new uint8_t[num_bytes];
+        const uint8_t *src_ptr = (const uint8_t*)src;
+        
+        for(size_t i = 0; i < num_bytes; ++i)
+        {
+            tmp[i] = src_ptr[num_bytes - 1 - i];
+        }
+        memcpy(dest, tmp, num_bytes);
+        delete[](tmp);
+    }
+    
     template <typename T, typename C>
     inline bool is_in(const T &elem, const C &container)
     {
