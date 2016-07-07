@@ -15,11 +15,25 @@ namespace kinski{ namespace bluetooth{
 #define HCI_STATE_SCANNING   3
 #define HCI_STATE_FILTERING  4
 
-#define EIR_FLAGS                   0X01
-#define EIR_NAME_SHORT              0x08
-#define EIR_NAME_COMPLETE           0x09
-#define EIR_MYSTERY                 10
-#define EIR_MANUFACTURE_SPECIFIC    0xFF
+// advertising event types
+#define ADV_IND                    0x00 // Connectable undirected advertising
+#define ADV_DIRECT_IND             0x01 // Connectable high duty cycle directed advertising
+#define ADV_SCAN_IND               0x02 // Scannable undirected advertising
+#define ADV_NONCONN_IND            0x03 // Non connectable undirected advertising
+#define ADV_DIRECT_IND_LOW         0x04 // Connectable low duty cycle directed advertising
+
+// advertising data types
+#define AD_FLAGS                   0X01
+#define AD_SERVICES_16             0x02 // Incomplete List of 16-bit Service Class UUID
+#define AD_SERVICES_16_COMPLETE    0x03	// Complete List of 16-bit Service Class UUIDs
+#define AD_SERVICES_32             0x04	// Incomplete List of 32-bit Service Class UUIDs
+#define AD_SERVICES_32_COMPLETE    0x05 // Complete List of 32-bit Service Class UUIDs
+#define AD_SERVICES_128            0x06 // Incomplete List of 128-bit Services
+#define AD_SERVICES_128_COMPLETE   0x07 // Complete List of 128-bit Services
+#define AD_NAME_SHORT              0x08
+#define AD_NAME_COMPLETE           0x09
+#define AD_TX_LEVEL                0x0A	// Tx Power Level
+#define AD_MANUFACTURE_SPECIFIC    0xFF
 
 struct hci_state
 {
@@ -36,6 +50,13 @@ void hci_start_scan(hci_state &the_hci_state);
 void hci_stop_scan(hci_state &the_hci_state);
 
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+inline bool is_connectable(uint8_t the_ad_event_type)
+{
+    return  the_ad_event_type == ADV_IND ||
+            the_ad_event_type == ADV_DIRECT_IND ||
+            the_ad_event_type == ADV_DIRECT_IND_LOW;
+}
 
 hci_state hci_open_default_device()
 {
@@ -199,6 +220,8 @@ struct CentralImpl
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
 
+    std::set<UUID> m_uuid_set;
+
     CentralImpl()
     {
         m_hci_state = hci_open_default_device();
@@ -226,29 +249,40 @@ struct CentralImpl
 
     void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
     {
-        LOG_TRACE << "advertising evt_type: " << (int)info->evt_type;
+        LOG_DEBUG << "connectable: " << is_connectable(info->evt_type);
+
+        uint8_t data_type = data[0];
+
+        char addr[18];
+        ba2str(&info->bdaddr, addr);
         bool emit_event = false;
 
-        // last octect contains RSSI as int8_t
+        // last octet contains RSSI as int8_t
         int8_t peripheral_rssi = info->data[info->length];
-        string peripheral_name;
+
+        string peripheral_name = "(unknown)";
         UUID peripheral_uuid;
+
+        // if(!m_uuid_set.empty())
+        // {
+        //      peripheral_uuid = m_uuid_stack.top();
+        //      m_uuid_stack.pop();
+        // }
 
         switch(info->evt_type)
         {
             case HCI_EVENT_PKT:
-            case HCI_COMMAND_PKT:
-            case HCI_SCODATA_PKT:
-            case HCI_ACLDATA_PKT:
             case HCI_VENDOR_PKT:
-                // rssi = get_rssi(&info->bdaddr, m_hci_state);
+            case HCI_SCODATA_PKT:
                 emit_event = true;
 
+            case HCI_ACLDATA_PKT:
+            case HCI_COMMAND_PKT:
             default:
                 break;
         }
 
-        if(data[0] == EIR_NAME_SHORT || data[0] == EIR_NAME_COMPLETE)
+        if(data_type == AD_NAME_SHORT || data_type == AD_NAME_COMPLETE)
         {
             size_t name_len = data_len - 1;
             char *name = (char*)malloc(name_len + 1);
@@ -256,49 +290,57 @@ struct CentralImpl
             memcpy(name, &data[1], name_len);
             peripheral_name = name;
             free(name);
-
-            char addr[18];
-            ba2str(&info->bdaddr, addr);
-
-            // LOG_DEBUG << "address: " << addr << " name: " << peripheral->name();
             emit_event = true;
-            // ret->set_rssi(get_rssi(&info->bdaddr, m_hci_state));
         }
-        else if(data[0] == EIR_MYSTERY)
+        else if(data_type == AD_SERVICES_128 || data_type == AD_SERVICES_128_COMPLETE)
         {
-            LOG_DEBUG << "mystery: " << (int)data[1];
+            uint8_t bytes[16];
+            swap_endian(bytes, &data[1], 16);
+
+            UUID service_uuid(bytes, UUID::UUID_128);
+            LOG_DEBUG << "service(128-bit): " << service_uuid.string();
         }
-        // else if(data[0] == 6 || data[0] == 7)
-        // {
-        //     peripheral_uuid = UUID(&data[1], UUID::UUID_128);
-        // }
-        else if(data[0] == EIR_FLAGS)
+        else if(data_type == AD_SERVICES_16)
         {
-            for(size_t i = 1; i < data_len; i++)
-            {
-                LOG_DEBUG << "\tflag data: " << (int)*((int8_t*)(data + i));
-            }
+            uint8_t bytes[2];
+            swap_endian(bytes, &data[1], 2);
+            UUID service_uuid(bytes, UUID::UUID_16);
+            LOG_DEBUG << "service(16-bit): " << service_uuid.string();
         }
-        else if(data[0] == EIR_MANUFACTURE_SPECIFIC)
+        else if(data_type == AD_FLAGS)
+        {
+            LOG_DEBUG << "flags found: connectable";
+
+            // for(size_t i = 1; i < data_len; i++)
+            // {
+            //     LOG_DEBUG << "\tflag data: " << (int)*((int8_t*)(data + i));
+            // }
+        }
+        else if(data_type == AD_MANUFACTURE_SPECIFIC)
         {
             LOG_TRACE << "Manufacture specific type: len:" << data_len;
-
-            // TODO: int company_id = data[current_index + 2]
 
             for(size_t i = 1; i < data_len; i++)
             {
                 LOG_TRACE << "\tdata: " << std::setfill('0') << std::setw(2) << std::hex << (int)data[i];
             }
         }
+        else if(data_type == AD_TX_LEVEL)
+        {
+            LOG_DEBUG << "AD_TX_LEVEL: " << (int)data[1];
+        }
         else
         {
-             LOG_TRACE << "event: " << (int)info->evt_type << " -- type: " << (int)data[0] << " -- length: " << data_len;
+             LOG_DEBUG << "event: " << (int)info->evt_type << " -- type: " << (int)data[0] << " -- length: " << data_len;
         }
+        // LOG_DEBUG << "address: " << addr << " name: " << peripheral_name;
 
         auto central = central_ref.lock();
         auto peripheral = Peripheral::create(central, peripheral_uuid);
         peripheral->set_name(peripheral_name);
         peripheral->set_rssi(peripheral_rssi);
+        peripheral->set_connectable(is_connectable(info->evt_type));
+        // peripheral->add_service(m_uuid_stack);
 
         // fire discovery callback
         if(emit_event && central && peripheral && peripheral_discovered_cb)
@@ -325,35 +367,43 @@ struct CentralImpl
 
 		        if(meta_event->subevent == EVT_LE_ADVERTISING_REPORT)
                 {
-			        void* offset = meta_event->data + 1;
-			        info = (le_advertising_info *)offset;
-			        char addr[18];
-			        ba2str(&(info->bdaddr), addr);
+                    uint8_t* meta_data = meta_event->data;
+                    int reports_count = meta_data[0];
+			        void* offset = meta_data + 1;
 
-                    LOG_TRACE_2 << "Event: " << (int)info->evt_type;
-                    LOG_TRACE_2 << "Length: " << (int)info->length;
+                    LOG_TRACE << "received " << reports_count << " ad-reports";
 
-                    if(info->length == 0){ continue; }
-
-                    int current_index = 0;
-                    int data_error = 0;
-
-                    while(!data_error && current_index < info->length)
+                    // iterate advertising reports
+                    while(reports_count--)
                     {
-                        uint8_t* data = info->data;
-                        size_t data_len = data[current_index];
+					    info = (le_advertising_info *)offset;
+					    char addr[18];
+					    ba2str(&(info->bdaddr), addr);
 
-                        if(data_len + 1 > info->length)
+                        if(info->length == 0){ continue; }
+
+                        int current_index = 0;
+                        int data_error = 0;
+
+                        // iterate advertising data packets
+                        while(!data_error && current_index < info->length)
                         {
-                            LOG_ERROR << "EIR data length is longer than EIR packet length.";
-                            data_error = 1;
+                            uint8_t* data = info->data;
+                            size_t data_len = data[current_index];
+
+                            if(data_len + 1 > info->length)
+                            {
+                                LOG_ERROR << "AD data length is longer than AD packet length.";
+                                data_error = 1;
+                            }
+                            else
+                            {
+                                process_data(data + current_index + 1, data_len, info);
+                                current_index += data_len + 1;
+                            }
                         }
-                        else
-                        {
-                            process_data(info->data + current_index + 1, data_len, info);
-                            current_index += data_len + 1;
-                        }
-                    }
+					    offset = info->data + info->length + 2;
+				    }
 		        }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
