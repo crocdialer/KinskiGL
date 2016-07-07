@@ -167,17 +167,14 @@ namespace kinski{ namespace bluetooth{
         Peripheral::ValueUpdatedCallback value_updated_cb;
     };
 
-    PeripheralPtr Peripheral::create(CentralPtr the_central, UUID the_uuid)
+    PeripheralPtr Peripheral::create(CentralPtr the_central)
     {
         auto ret = PeripheralPtr(new Peripheral);
-        ret->m_impl->uuid = the_uuid;
         ret->m_impl->central_ref = the_central;
         return ret;
     }
 
     Peripheral::Peripheral():m_impl(new PeripheralImpl()){}
-
-    const UUID& Peripheral::uuid() const{ return m_impl->uuid; }
 
     const std::string& Peripheral::name() const{ return m_impl->name; }
 
@@ -353,8 +350,7 @@ namespace kinski{ namespace bluetooth{
         advertisementData:(NSDictionary *)advertisementData
         RSSI:(NSNumber *)RSSI
 {
-    auto p = kinski::bluetooth::Peripheral::create(self.central_impl->central_ref.lock(),
-                                                   kinski::bluetooth::UUID([peripheral.identifier.UUIDString UTF8String]));
+    auto p = kinski::bluetooth::Peripheral::create(self.central_impl->central_ref.lock());
 
     p->set_name(peripheral.name ? [peripheral.name UTF8String] : "unknown");
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];

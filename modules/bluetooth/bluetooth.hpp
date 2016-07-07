@@ -40,9 +40,7 @@ namespace kinski{ namespace bluetooth
 
         typedef std::function<void(const UUID&, const std::vector<uint8_t>&)> ValueUpdatedCallback;
 
-        static PeripheralPtr create(CentralPtr the_central, UUID the_uuid);
-
-        const UUID& uuid() const;
+        static PeripheralPtr create(CentralPtr the_central);
 
         const std::string& name() const;
         void set_name(const std::string &the_name);
