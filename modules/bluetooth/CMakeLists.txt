@@ -12,7 +12,7 @@ endif()
 set(MODULE_INCLUDES "" PARENT_SCOPE)
 
 # common header files
-FILE(GLOB MODULE_HEADERS MovieController.h CameraController.h)
+FILE(GLOB MODULE_HEADERS bluetooth.hpp UUID.hpp Bluetooth_UART.hpp)
 
 # forward variables to parent scope
 set(MODULE_INCLUDE_DIRS ${MODULE_INCLUDE_DIRS} PARENT_SCOPE)

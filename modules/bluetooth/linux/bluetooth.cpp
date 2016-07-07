@@ -45,6 +45,8 @@ struct hci_state
     int has_error = 0;
 };
 
+// TODO: maps bdaddr_t <-> PeripheralPtr
+
 hci_state hci_open_default_device();
 void hci_start_scan(hci_state &the_hci_state);
 void hci_stop_scan(hci_state &the_hci_state);
@@ -53,9 +55,14 @@ void hci_stop_scan(hci_state &the_hci_state);
 
 inline bool is_connectable(uint8_t the_ad_event_type)
 {
-    return  the_ad_event_type == ADV_IND ||
-            the_ad_event_type == ADV_DIRECT_IND ||
-            the_ad_event_type == ADV_DIRECT_IND_LOW;
+    switch(the_ad_event_type)
+    {
+        case ADV_IND:
+        case ADV_DIRECT_IND:
+        case ADV_DIRECT_IND_LOW:
+            return true;
+    }
+    return false;
 }
 
 hci_state hci_open_default_device()
@@ -173,7 +180,7 @@ void hci_stop_scan(hci_state &the_hci_state)
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
-// int8_t get_rssi(bdaddr_t *bdaddr, const hci_state& the_hci_state)
+// void connect(bdaddr_t *bdaddr, const hci_state& the_hci_state)
 // {
 //     uint16_t handle;
 //     // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
@@ -197,16 +204,14 @@ void hci_stop_scan(hci_state &the_hci_state)
 //
 //     int8_t rssi = -1;
 //
-//     if(hci_read_rssi(the_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
-//     {
-//         LOG_ERROR << "Read RSSI failed";
-//     }
+//     // if(hci_read_rssi(the_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
+//     // {
+//     //     LOG_ERROR << "Read RSSI failed";
+//     // }
 //     free(cr);
 //
 //     usleep(10000);
 //     hci_disconnect(the_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-//     LOG_DEBUG << "RSSI return value: " << (int)rssi;
-//     return rssi;
 // }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -231,14 +236,14 @@ struct CentralImpl
     {
         m_running = false;
 
+        // stop scanning for peripherals
+        hci_stop_scan(m_hci_state);
+
         if(worker_thread.joinable())
         {
             try{ worker_thread.join(); }
             catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
-
-        // stop scanning for peripherals
-        hci_stop_scan(m_hci_state);
 
         if(m_hci_state.state == HCI_STATE_OPEN)
         {
@@ -249,7 +254,7 @@ struct CentralImpl
 
     void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
     {
-        LOG_DEBUG << "connectable: " << is_connectable(info->evt_type);
+        // LOG_DEBUG << "connectable: " << is_connectable(info->evt_type);
 
         uint8_t data_type = data[0];
 
@@ -261,22 +266,16 @@ struct CentralImpl
         int8_t peripheral_rssi = info->data[info->length];
 
         string peripheral_name = "(unknown)";
-        UUID peripheral_uuid;
-
-        // if(!m_uuid_set.empty())
-        // {
-        //      peripheral_uuid = m_uuid_stack.top();
-        //      m_uuid_stack.pop();
-        // }
+        std::set<UUID> service_uuids;
 
         switch(info->evt_type)
         {
             case HCI_EVENT_PKT:
-            case HCI_VENDOR_PKT:
-            case HCI_SCODATA_PKT:
                 emit_event = true;
 
+            case HCI_SCODATA_PKT:
             case HCI_ACLDATA_PKT:
+            case HCI_VENDOR_PKT:
             case HCI_COMMAND_PKT:
             default:
                 break;
@@ -290,31 +289,28 @@ struct CentralImpl
             memcpy(name, &data[1], name_len);
             peripheral_name = name;
             free(name);
-            emit_event = true;
+            // emit_event = true;
         }
         else if(data_type == AD_SERVICES_128 || data_type == AD_SERVICES_128_COMPLETE)
         {
             uint8_t bytes[16];
             swap_endian(bytes, &data[1], 16);
-
             UUID service_uuid(bytes, UUID::UUID_128);
-            LOG_DEBUG << "service(128-bit): " << service_uuid.string();
+            service_uuids.insert(service_uuid);
         }
-        else if(data_type == AD_SERVICES_16)
+        else if(data_type == AD_SERVICES_16 || data_type == AD_SERVICES_16_COMPLETE)
         {
             uint8_t bytes[2];
             swap_endian(bytes, &data[1], 2);
             UUID service_uuid(bytes, UUID::UUID_16);
-            LOG_DEBUG << "service(16-bit): " << service_uuid.string();
+            service_uuids.insert(service_uuid);
         }
         else if(data_type == AD_FLAGS)
         {
-            LOG_DEBUG << "flags found: connectable";
-
-            // for(size_t i = 1; i < data_len; i++)
-            // {
-            //     LOG_DEBUG << "\tflag data: " << (int)*((int8_t*)(data + i));
-            // }
+            for(size_t i = 1; i < data_len; i++)
+            {
+                LOG_TRACE << "\tflag data: " << (int)*((int8_t*)(data + i));
+            }
         }
         else if(data_type == AD_MANUFACTURE_SPECIFIC)
         {
@@ -327,7 +323,7 @@ struct CentralImpl
         }
         else if(data_type == AD_TX_LEVEL)
         {
-            LOG_DEBUG << "AD_TX_LEVEL: " << (int)data[1];
+            LOG_TRACE << "AD_TX_LEVEL: " << (int)data[1];
         }
         else
         {
@@ -336,14 +332,21 @@ struct CentralImpl
         // LOG_DEBUG << "address: " << addr << " name: " << peripheral_name;
 
         auto central = central_ref.lock();
-        auto peripheral = Peripheral::create(central, peripheral_uuid);
+        auto peripheral = Peripheral::create(central);
         peripheral->set_name(peripheral_name);
         peripheral->set_rssi(peripheral_rssi);
         peripheral->set_connectable(is_connectable(info->evt_type));
-        // peripheral->add_service(m_uuid_stack);
+
+        bool filter_service = !m_uuid_set.empty();
+
+        for(const auto &s : service_uuids)
+        {
+             peripheral->add_service(s);
+             if(is_in(s, m_uuid_set)){ filter_service = false; }
+        }
 
         // fire discovery callback
-        if(emit_event && central && peripheral && peripheral_discovered_cb)
+        if(emit_event && central && peripheral && peripheral_discovered_cb && !filter_service)
         {
             peripheral_discovered_cb(central, peripheral);
         }
@@ -426,6 +429,7 @@ m_impl(new CentralImpl){ }
 
 void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 {
+    m_impl->m_uuid_set = the_service_uuids;
     hci_stop_scan(m_impl->m_hci_state);
 
     LOG_DEBUG << "discover_peripherals";
@@ -493,17 +497,14 @@ struct PeripheralImpl
     Peripheral::ValueUpdatedCallback value_updated_cb;
 };
 
-PeripheralPtr Peripheral::create(CentralPtr the_central, UUID the_uuid)
+PeripheralPtr Peripheral::create(CentralPtr the_central)
 {
     auto ret = PeripheralPtr(new Peripheral);
-    ret->m_impl->uuid = the_uuid;
     ret->m_impl->central_ref = the_central;
     return ret;
 }
 
 Peripheral::Peripheral():m_impl(new PeripheralImpl()){}
-
-const UUID& Peripheral::uuid() const{ return m_impl->uuid; }
 
 const std::string& Peripheral::name() const{ return m_impl->name; }
 
