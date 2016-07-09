@@ -96,15 +96,14 @@ struct server {
 	GDestroyNotify destroy;
 };
 
-static BtIOType bt_io_get_type(GIOChannel *io, GError **gerr)
+static BtIOType bt_io_get_type(int socket, GError **gerr)
 {
-	int sk = g_io_channel_unix_get_fd(io);
 	int domain, proto, err;
 	socklen_t len;
 
 	domain = 0;
 	len = sizeof(domain);
-	err = getsockopt(sk, SOL_SOCKET, SO_DOMAIN, &domain, &len);
+	err = getsockopt(socket, SOL_SOCKET, SO_DOMAIN, &domain, &len);
 	if (err < 0) {
 		ERROR_FAILED(gerr, "getsockopt(SO_DOMAIN)", errno);
 		return BT_IO_INVALID;
@@ -118,7 +117,7 @@ static BtIOType bt_io_get_type(GIOChannel *io, GError **gerr)
 
 	proto = 0;
 	len = sizeof(proto);
-	err = getsockopt(sk, SOL_SOCKET, SO_PROTOCOL, &proto, &len);
+	err = getsockopt(socket, SOL_SOCKET, SO_PROTOCOL, &proto, &len);
 	if (err < 0) {
 		ERROR_FAILED(gerr, "getsockopt(SO_PROTOCOL)", errno);
 		return BT_IO_INVALID;
@@ -159,12 +158,12 @@ static void accept_remove(struct accept *accept)
 	g_free(accept);
 }
 
-static int check_nval(GIOChannel *io)
+static int check_nval(int socket)
 {
 	struct pollfd fds;
 
 	memset(&fds, 0, sizeof(fds));
-	fds.fd = g_io_channel_unix_get_fd(io);
+	fds.fd = socket;
 	fds.events = POLLNVAL;
 
 	if (poll(&fds, 1, 0) > 0 && (fds.revents & POLLNVAL))
@@ -173,8 +172,7 @@ static int check_nval(GIOChannel *io)
 	return FALSE;
 }
 
-static int accept_cb(GIOChannel *io, GIOCondition cond,
-							void* user_data)
+static int accept_cb(int socket, GIOCondition cond, void* user_data)
 {
 	struct accept *accept = user_data;
 	GError *gerr = NULL;
@@ -184,10 +182,10 @@ static int accept_cb(GIOChannel *io, GIOCondition cond,
 		return FALSE;
 
 	if (cond & (G_IO_HUP | G_IO_ERR)) {
-		int err, sk_err, sock = g_io_channel_unix_get_fd(io);
+		int err, sk_err;
 		socklen_t len = sizeof(sk_err);
 
-		if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &sk_err, &len) < 0)
+		if (getsockopt(socket, SOL_SOCKET, SO_ERROR, &sk_err, &len) < 0)
 			err = -errno;
 		else
 			err = -sk_err;
@@ -196,28 +194,25 @@ static int accept_cb(GIOChannel *io, GIOCondition cond,
 			ERROR_FAILED(&gerr, "HUP or ERR on socket", -err);
 	}
 
-	accept->connect(io, gerr, accept->user_data);
+	accept->connect(socket, gerr, accept->user_data);
 
 	g_clear_error(&gerr);
 
 	return FALSE;
 }
 
-static int connect_cb(GIOChannel *io, GIOCondition cond,
-							void* user_data)
+static int connect_cb(int socket, GIOCondition cond, void* user_data)
 {
 	struct connect *conn = user_data;
 	GError *gerr = NULL;
-	int err, sk_err, sock;
+	int err, sk_err;
 	socklen_t len = sizeof(sk_err);
 
 	/* If the user aborted this connect attempt */
 	if ((cond & G_IO_NVAL) || check_nval(io))
 		return FALSE;
 
-	sock = g_io_channel_unix_get_fd(io);
-
-	if (getsockopt(sock, SOL_SOCKET, SO_ERROR, &sk_err, &len) < 0)
+	if (getsockopt(socket, SOL_SOCKET, SO_ERROR, &sk_err, &len) < 0)
 		err = -errno;
 	else
 		err = -sk_err;
@@ -225,46 +220,46 @@ static int connect_cb(GIOChannel *io, GIOCondition cond,
 	if (err < 0)
 		ERROR_FAILED(&gerr, "connect error", -err);
 
-	conn->connect(io, gerr, conn->user_data);
+	conn->connect(socket, gerr, conn->user_data);
 
 	g_clear_error(&gerr);
 
 	return FALSE;
 }
 
-static int server_cb(GIOChannel *io, GIOCondition cond,
+static int server_cb(int socket, GIOCondition cond,
 							void* user_data)
 {
-	struct server *server = user_data;
-	int srv_sock, cli_sock;
-	GIOChannel *cli_io;
-
-	/* If the user closed the server */
-	if ((cond & G_IO_NVAL) || check_nval(io))
-		return FALSE;
-
-	srv_sock = g_io_channel_unix_get_fd(io);
-
-	cli_sock = accept(srv_sock, NULL, NULL);
-	if (cli_sock < 0)
-		return TRUE;
-
-	cli_io = g_io_channel_unix_new(cli_sock);
-
-	g_io_channel_set_close_on_unref(cli_io, TRUE);
-	g_io_channel_set_flags(cli_io, G_IO_FLAG_NONBLOCK, NULL);
-
-	if (server->confirm)
-		server->confirm(cli_io, server->user_data);
-	else
-		server->connect(cli_io, NULL, server->user_data);
-
-	g_io_channel_unref(cli_io);
+	// struct server *server = user_data;
+	// int srv_sock, cli_sock;
+	// int cli_io;
+	//
+	// /* If the user closed the server */
+	// if ((cond & G_IO_NVAL) || check_nval(io))
+	// 	return FALSE;
+	//
+	// srv_sock = g_io_channel_unix_get_fd(io);
+	//
+	// cli_sock = accept(srv_sock, NULL, NULL);
+	// if (cli_sock < 0)
+	// 	return TRUE;
+	//
+	// cli_io = g_io_channel_unix_new(cli_sock);
+	//
+	// g_io_channel_set_close_on_unref(cli_io, TRUE);
+	// g_io_channel_set_flags(cli_io, G_IO_FLAG_NONBLOCK, NULL);
+	//
+	// if (server->confirm)
+	// 	server->confirm(cli_io, server->user_data);
+	// else
+	// 	server->connect(cli_io, NULL, server->user_data);
+	//
+	// g_io_channel_unref(cli_io);
 
 	return TRUE;
 }
 
-static void server_add(GIOChannel *io, BtIOConnect connect,
+static void server_add(int socket, BtIOConnect connect,
 				BtIOConfirm confirm, void* user_data,
 				GDestroyNotify destroy)
 {
@@ -282,7 +277,7 @@ static void server_add(GIOChannel *io, BtIOConnect connect,
 					(GDestroyNotify) server_remove);
 }
 
-static void connect_add(GIOChannel *io, BtIOConnect connect,
+static void connect_add(int socket, BtIOConnect connect,
 				void* user_data, GDestroyNotify destroy)
 {
 	struct connect *conn;
@@ -298,7 +293,7 @@ static void connect_add(GIOChannel *io, BtIOConnect connect,
 					(GDestroyNotify) connect_remove);
 }
 
-static void accept_add(GIOChannel *io, BtIOConnect connect, void* user_data,
+static void accept_add(int socket, BtIOConnect connect, void* user_data,
 							GDestroyNotify destroy)
 {
 	struct accept *accept;
@@ -1409,7 +1404,7 @@ static int sco_get(int sock, GError **err, BtIOOption opt1, va_list args)
 	return TRUE;
 }
 
-static int get_valist(GIOChannel *io, BtIOType type, GError **err,
+static int get_valist(int socket, BtIOType type, GError **err,
 						BtIOOption opt1, va_list args)
 {
 	int sock;
@@ -1431,7 +1426,7 @@ static int get_valist(GIOChannel *io, BtIOType type, GError **err,
 	}
 }
 
-int bt_io_accept(GIOChannel *io, BtIOConnect connect, void* user_data,
+int bt_io_accept(int socket, BtIOConnect connect, void* user_data,
 					GDestroyNotify destroy, GError **err)
 {
 	int sock;
@@ -1461,7 +1456,7 @@ int bt_io_accept(GIOChannel *io, BtIOConnect connect, void* user_data,
 	return TRUE;
 }
 
-int bt_io_set(GIOChannel *io, GError **err, BtIOOption opt1, ...)
+int bt_io_set(int socket, GError **err, BtIOOption opt1, ...)
 {
 	va_list args;
 	int ret;
@@ -1500,7 +1495,7 @@ int bt_io_set(GIOChannel *io, GError **err, BtIOOption opt1, ...)
 
 }
 
-int bt_io_get(GIOChannel *io, GError **err, BtIOOption opt1, ...)
+int bt_io_get(int socket, GError **err, BtIOOption opt1, ...)
 {
 	va_list args;
 	int ret;
@@ -1517,11 +1512,9 @@ int bt_io_get(GIOChannel *io, GError **err, BtIOOption opt1, ...)
 	return ret;
 }
 
-static GIOChannel *create_io(int server, struct set_opts *opts,
-								GError **err)
+static int create_io(int server, struct set_opts *opts, GError **err)
 {
 	int sock;
-	GIOChannel *io;
 
 	switch (opts->type) {
 	case BT_IO_L2CAP:
@@ -1543,10 +1536,9 @@ static GIOChannel *create_io(int server, struct set_opts *opts,
 		sock = socket(PF_BLUETOOTH, SOCK_STREAM, BTPROTO_RFCOMM);
 		if (sock < 0) {
 			ERROR_FAILED(err, "socket(STREAM, RFCOMM)", errno);
-			return NULL;
+			return 0;
 		}
-		if (rfcomm_bind(sock, &opts->src,
-					server ? opts->channel : 0, err) < 0)
+		if (rfcomm_bind(sock, &opts->src, server ? opts->channel : 0, err) < 0)
 			goto failed;
 		if (!rfcomm_set(sock, opts->sec_level, opts->master, err))
 			goto failed;
@@ -1555,7 +1547,7 @@ static GIOChannel *create_io(int server, struct set_opts *opts,
 		sock = socket(PF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_SCO);
 		if (sock < 0) {
 			ERROR_FAILED(err, "socket(SEQPACKET, SCO)", errno);
-			return NULL;
+			return 0;
 		}
 		if (sco_bind(sock, &opts->src, err) < 0)
 			goto failed;
@@ -1566,55 +1558,47 @@ static GIOChannel *create_io(int server, struct set_opts *opts,
 	default:
 		g_set_error(err, BT_IO_ERROR, EINVAL,
 				"Unknown BtIO type %d", opts->type);
-		return NULL;
+		return 0;
 	}
-
-	io = g_io_channel_unix_new(sock);
-
-	g_io_channel_set_close_on_unref(io, TRUE);
-	g_io_channel_set_flags(io, G_IO_FLAG_NONBLOCK, NULL);
-
-	return io;
+	return sock;
 
 failed:
 	close(sock);
 
-	return NULL;
+	return 0;
 }
 
-GIOChannel *bt_io_connect(BtIOConnect connect, void* user_data,
+int bt_io_connect(BtIOConnect connect, void* user_data,
 				GDestroyNotify destroy, GError **gerr,
 				BtIOOption opt1, ...)
 {
-	GIOChannel *io;
 	va_list args;
 	struct set_opts opts;
-	int err, sock;
+	int err;
 	int ret;
 
 	va_start(args, opt1);
 	ret = parse_set_opts(&opts, gerr, opt1, args);
 	va_end(args);
 
-	if (ret == FALSE)
-		return NULL;
+	if (!ret)
+		return false;
 
-	io = create_io(FALSE, &opts, gerr);
-	if (io == NULL)
-		return NULL;
+	int socket = create_io(false, &opts, gerr);
 
-	sock = g_io_channel_unix_get_fd(io);
+	if (!socket)
+		return false;
 
 	switch (opts.type) {
 	case BT_IO_L2CAP:
-		err = l2cap_connect(sock, &opts.dst, opts.dst_type,
+		err = l2cap_connect(socket, &opts.dst, opts.dst_type,
 							opts.psm, opts.cid);
 		break;
 	case BT_IO_RFCOMM:
-		err = rfcomm_connect(sock, &opts.dst, opts.channel);
+		err = rfcomm_connect(socket, &opts.dst, opts.channel);
 		break;
 	case BT_IO_SCO:
-		err = sco_connect(sock, &opts.dst);
+		err = sco_connect(socket, &opts.dst);
 		break;
 	case BT_IO_INVALID:
 	default:
@@ -1634,45 +1618,42 @@ GIOChannel *bt_io_connect(BtIOConnect connect, void* user_data,
 	return io;
 }
 
-GIOChannel *bt_io_listen(BtIOConnect connect, BtIOConfirm confirm,
+int bt_io_listen(BtIOConnect connect, BtIOConfirm confirm,
 				void* user_data, GDestroyNotify destroy,
 				GError **err, BtIOOption opt1, ...)
 {
-	GIOChannel *io;
+	int socket = 0;
 	va_list args;
 	struct set_opts opts;
-	int sock;
 	int ret;
 
 	va_start(args, opt1);
 	ret = parse_set_opts(&opts, err, opt1, args);
 	va_end(args);
 
-	if (ret == FALSE)
-		return NULL;
+	if (!ret)
+		return false;
 
-	io = create_io(TRUE, &opts, err);
-	if (io == NULL)
-		return NULL;
-
-	sock = g_io_channel_unix_get_fd(io);
+	socket = create_io(TRUE, &opts, err);
+	if(!socket)
+		return false;
 
 	if (confirm)
-		setsockopt(sock, SOL_BLUETOOTH, BT_DEFER_SETUP, &opts.defer,
-							sizeof(opts.defer));
+		setsockopt(socket, SOL_BLUETOOTH, BT_DEFER_SETUP, &opts.defer,
+				   sizeof(opts.defer));
 
-	if (listen(sock, 5) < 0) {
+	if (listen(socket, 5) < 0) {
 		ERROR_FAILED(err, "listen", errno);
 		g_io_channel_unref(io);
 		return NULL;
 	}
 
-	server_add(io, connect, confirm, user_data, destroy);
+	server_add(socket, connect, confirm, user_data, destroy);
 
-	return io;
+	return socket;
 }
 
-GQuark bt_io_error_quark(void)
-{
-	return g_quark_from_static_string("bt-io-error-quark");
-}
+// GQuark bt_io_error_quark(void)
+// {
+// 	return g_quark_from_static_string("bt-io-error-quark");
+// }

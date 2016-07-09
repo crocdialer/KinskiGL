@@ -71,23 +71,23 @@ typedef enum {
 	BT_IO_MODE_STREAMING
 } BtIOMode;
 
-// typedef void (*BtIOConfirm)(GIOChannel *io, void* user_data);
-//
-// typedef void (*BtIOConnect)(GIOChannel *io, GError *err, void* user_data);
-//
-// gboolean bt_io_accept(GIOChannel *io, BtIOConnect connect, void* user_data,
-// 					GDestroyNotify destroy, GError **err);
-//
-// gboolean bt_io_set(GIOChannel *io, GError **err, BtIOOption opt1, ...);
-//
-// gboolean bt_io_get(GIOChannel *io, GError **err, BtIOOption opt1, ...);
-//
-// GIOChannel *bt_io_connect(BtIOConnect connect, void* user_data,
-// 				GDestroyNotify destroy, GError **gerr,
-// 				BtIOOption opt1, ...);
-//
-// GIOChannel *bt_io_listen(BtIOConnect connect, BtIOConfirm confirm,
-// 				void* user_data, GDestroyNotify destroy,
-// 				GError **err, BtIOOption opt1, ...);
+typedef void (*BtIOConfirm)(int socket, void* user_data);
+
+typedef void (*BtIOConnect)(int socket, GError *err, void* user_data);
+
+gboolean bt_io_accept(int socket, BtIOConnect connect, void* user_data,
+					GDestroyNotify destroy, GError **err);
+
+gboolean bt_io_set(int socket, GError **err, BtIOOption opt1, ...);
+
+gboolean bt_io_get(int socket, GError **err, BtIOOption opt1, ...);
+
+int bt_io_connect(BtIOConnect connect, void* user_data,
+				GDestroyNotify destroy, GError **gerr,
+				BtIOOption opt1, ...);
+
+int bt_io_listen(BtIOConnect connect, BtIOConfirm confirm,
+				void* user_data, GDestroyNotify destroy,
+				GError **err, BtIOOption opt1, ...);
 
 #endif

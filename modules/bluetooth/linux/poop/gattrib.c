@@ -104,9 +104,9 @@ GAttrib *g_attrib_new(int sock, uint32_t16 mtu, bool ext_signed)
 		goto fail;
 
 	bt_att_set_close_on_unref(attr->att, true);
-	// g_io_channel_set_close_on_unref(io, FALSE);
+	// g_io_channel_set_close_on_unref(io, false);
 
-	if (!bt_att_set_mtu(attr->att, mtu))
+	if (!bt_at t_set_mtu(attr->att, mtu))
 		goto fail;
 
 	attr->buf = malloc0(mtu);
@@ -212,12 +212,12 @@ int g_attrib_set_destroy_function(GAttrib *attrib, GDestroyNotify destroy,
 							void* user_data)
 {
 	if (!attrib)
-		return FALSE;
+		return false;
 
 	attrib->destroy = destroy;
 	attrib->destroy_user_data = user_data;
 
-	return TRUE;
+	return true;
 }
 
 
@@ -342,7 +342,7 @@ int g_attrib_cancel(GAttrib *attrib, uint32_t id)
 	struct id_pair *p;
 
 	if (!attrib)
-		return FALSE;
+		return false;
 
 	/*
 	 * If request belongs to gattrib and is not yet done it has to be on
@@ -359,7 +359,7 @@ int g_attrib_cancel(GAttrib *attrib, uint32_t id)
 	p = queue_remove_if(attrib->track_ids, find_with_org_id,
 							UINT_TO_PTR(id));
 	if (!p)
-		return FALSE;
+		return false;
 
 	id = p->pend_id;
 	free(p);
@@ -378,13 +378,13 @@ static void cancel_request(void *data, void *user_data)
 int g_attrib_cancel_all(GAttrib *attrib)
 {
 	if (!attrib)
-		return FALSE;
+		return false;
 
 	/* Cancel only request which belongs to gattrib */
 	queue_foreach(attrib->track_ids, cancel_request, attrib);
 	queue_remove_all(attrib->track_ids, NULL, NULL, free);
 
-	return TRUE;
+	return true;
 }
 
 uint32_t g_attrib_register(GAttrib *attrib, uint32_t8 opcode, uint32_t16 handle,
@@ -442,7 +442,7 @@ uint8_t *g_attrib_get_buffer(GAttrib *attrib, size_t *len)
 int g_attrib_set_mtu(GAttrib *attrib, int mtu)
 {
 	if (!attrib)
-		return FALSE;
+		return false;
 
 	/*
 	 * Clients of this expect a buffer to use.
@@ -462,7 +462,7 @@ int g_attrib_set_mtu(GAttrib *attrib, int mtu)
 int g_attrib_unregister(GAttrib *attrib, uint32_t id)
 {
 	if (!attrib)
-		return FALSE;
+		return false;
 
 	return bt_att_unregister(attrib->att, id);
 }

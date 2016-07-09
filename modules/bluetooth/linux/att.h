@@ -21,6 +21,8 @@
  *  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  *
  */
+#ifndef __ATT_H__
+#define __ATT_H__
 
 // #include "src/shared/crypto.h"
 
@@ -121,8 +123,12 @@ uint16_t enc_find_by_type_req(uint16_t start, uint16_t end, bt_uuid_t *uuid,
 				size_t len);
 uint16_t dec_find_by_type_req(const uint8_t *pdu, size_t len, uint16_t *start,
 		uint16_t *end, bt_uuid_t *uuid, uint8_t *value, size_t *vlen);
-uint16_t enc_find_by_type_resp(GSList *ranges, uint8_t *pdu, size_t len);
-GSList *dec_find_by_type_resp(const uint8_t *pdu, size_t len);
+
+// TODO: replace glib shit
+
+// uint16_t enc_find_by_type_resp(GSList *ranges, uint8_t *pdu, size_t len);
+// GSList *dec_find_by_type_resp(const uint8_t *pdu, size_t len);
+
 struct att_data_list *dec_read_by_grp_resp(const uint8_t *pdu, size_t len);
 uint16_t enc_read_by_type_req(uint16_t start, uint16_t end, bt_uuid_t *uuid,
 						uint8_t *pdu, size_t len);
@@ -200,3 +206,4 @@ uint16_t enc_exec_write_req(uint8_t flags, uint8_t *pdu, size_t len);
 uint16_t dec_exec_write_req(const uint8_t *pdu, size_t len, uint8_t *flags);
 uint16_t enc_exec_write_resp(uint8_t *pdu);
 uint16_t dec_exec_write_resp(const uint8_t *pdu, size_t len);
+#endif

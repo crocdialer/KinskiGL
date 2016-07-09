@@ -158,12 +158,13 @@ void hci_start_scan(hci_state &the_hci_state)
 
 void hci_stop_scan(hci_state &the_hci_state)
 {
-    // if(the_hci_state.state == HCI_STATE_OPEN){ return; }
+    int result;
 
     if(the_hci_state.state == HCI_STATE_FILTERING)
     {
-        if(setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER, &the_hci_state.original_filter,
-                   sizeof(the_hci_state.original_filter)) < 0)
+        result = setsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER,
+                            &the_hci_state.original_filter, sizeof(the_hci_state.original_filter));
+        if(result < 0)
         {
             the_hci_state.has_error = true;
             LOG_ERROR << "Could not set socket options: " << strerror(errno);
@@ -172,7 +173,9 @@ void hci_stop_scan(hci_state &the_hci_state)
         the_hci_state.state = HCI_STATE_SCANNING;
     }
 
-    if(hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 1000) < 0)
+    result = hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 1000);
+    
+    if(result < 0)
     {
         the_hci_state.has_error = true;
         LOG_ERROR << "Disable scan failed: " << strerror(errno);

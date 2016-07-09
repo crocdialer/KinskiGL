@@ -30,6 +30,14 @@
  * In the core spec, regular properties are included in the characteristic
  * declaration, and the extended properties are defined as descriptor.
  */
+#pragma once
+
+#include <cstdint>
+#include <list>
+#include <memory>
+
+#include <bluetooth/bluetooth.h>
+#include <bluetooth/sdp.h>
 
 #define GATT_CHR_PROP_BROADCAST				0x01
 #define GATT_CHR_PROP_READ				0x02
@@ -44,11 +52,16 @@
 #define GATT_CLIENT_CHARAC_CFG_NOTIF_BIT	0x0001
 #define GATT_CLIENT_CHARAC_CFG_IND_BIT		0x0002
 
-typedef void (*gatt_cb_t) (uint8_t status, GSList *l, void *user_data);
+typedef std::list<std::shared_ptr<struct gatt_primary>> gatt_primary_list;
+typedef std::list<std::shared_ptr<struct gatt_included>> gatt_included_list;
+typedef std::list<std::shared_ptr<struct gatt_char>> gatt_char_list;
+typedef std::list<std::shared_ptr<struct att_range>> att_range_list;
+
+typedef void (*gatt_cb_t) (uint8_t status, const gatt_included_list& l, void *user_data);
 
 struct gatt_primary {
 	char uuid[MAX_LEN_UUID_STR + 1];
-	int changed;
+	bool changed;
 	struct att_range range;
 };
 
@@ -71,11 +84,14 @@ struct gatt_desc {
 	uint16_t uuid16;
 };
 
+uint16_t enc_find_by_type_resp(const att_range_list &ranges, uint8_t *pdu, size_t len);
+att_range_list dec_find_by_type_resp(const uint8_t *pdu, size_t len);
+
 uint32_t gatt_discover_primary(GAttrib *attrib, bt_uuid_t *uuid, gatt_cb_t func,
 							void* user_data);
 
-unsigned int gatt_find_included(GAttrib *attrib, uint16_t start, uint16_t end,
-					gatt_cb_t func, void* user_data);
+uint32_t gatt_find_included(GAttrib *attrib, uint16_t start, uint16_t end,
+							gatt_cb_t func, void* user_data);
 
 uint32_t gatt_discover_char(GAttrib *attrib, uint16_t start, uint16_t end,
 					bt_uuid_t *uuid, gatt_cb_t func,
@@ -117,6 +133,6 @@ uint32_t gatt_read_char_by_uuid(GAttrib *attrib, uint16_t start, uint16_t end,
 uint32_t gatt_exchange_mtu(GAttrib *attrib, uint16_t mtu, GAttribResultFunc func,
 							void* user_data);
 
-int gatt_parse_record(const sdp_record_t *rec,
-					  uuid_t *prim_uuid, uint16_t *psm,
-					  uint16_t *start, uint16_t *end);
+bool gatt_parse_record(const sdp_record_t *rec,
+					uuid_t *prim_uuid, uint16_t *psm,
+					uint16_t *start, uint16_t *end);
