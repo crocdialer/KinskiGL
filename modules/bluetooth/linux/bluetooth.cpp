@@ -3,6 +3,7 @@
 #include <sys/ioctl.h>
 #include <queue>
 #include <thread>
+#include <mutex>
 #include <chrono>
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
@@ -65,12 +66,15 @@ struct gatt_connection
     std::thread thread;
     gatt_connection_t* gatt_connection = nullptr;
 };
+typedef std::shared_ptr<gatt_connection> gatt_connection_ptr;
 
 namespace
 {
     // maps address-string <-> PeripheralPtr
     std::map<PeripheralPtr, std::string> g_peripheral_map;
     std::map<std::string, PeripheralPtr> g_peripheral_reverse_map;
+
+    std::mutex g_connect_mutex;
 }
 
 hci_state hci_open_default_device();
@@ -219,7 +223,7 @@ struct CentralImpl
     std::set<UUID> m_uuid_set;
 
     //! currently open connections
-    std::queue<gatt_connection> g_connections;
+    std::map<PeripheralPtr, gatt_connection_ptr> m_connection_map;
 
     CentralImpl()
     {
@@ -228,10 +232,12 @@ struct CentralImpl
 
     ~CentralImpl()
     {
-        m_running = false;
+        // disconnect all peripherals
+        disconnect_all();
 
         // stop scanning for peripherals
         hci_stop_scan(m_hci_state);
+        m_running = false;
 
         if(scan_thread.joinable())
         {
@@ -474,39 +480,43 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
     {
         LOG_DEBUG << "connecting: " << p->name();
 
-        gatt_connection c;
-        c.address = it->second;
+        gatt_connection_ptr c = std::make_shared<gatt_connection>();
+        c->address = it->second;
+        c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_PUBLIC, BT_IO_SEC_LOW, 0, 0);
+
+        if(!c->gatt_connection)
+        {
+		    c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_RANDOM, BT_IO_SEC_LOW, 0, 0);
+
+		    if(!c->gatt_connection)
+            {
+			    LOG_WARNING << "could not connect bluetooth device: " << c->address;
+                return;
+		    }
+            else { LOG_DEBUG << "connected device with random address"; }
+	    }
+        else { LOG_DEBUG << "connected bluetooth device: " << c->address; }
+        p->set_connected(true);
+        m_impl->m_connection_map[p] = c;
+
+        if(m_impl->peripheral_connected_cb)
+        {
+             m_impl->peripheral_connected_cb(shared_from_this(), p);
+        }
 
         gattlib_primary_service_t* services;
 	    gattlib_characteristic_t* characteristics;
 	    int services_count, characteristics_count;
 	    char uuid_str[MAX_LEN_UUID_STR + 1];
 
-        c.gatt_connection = gattlib_connect(NULL, c.address.c_str(), BDADDR_LE_PUBLIC, BT_IO_SEC_LOW, 0, 0);
+        int ret = gattlib_discover_primary(c->gatt_connection, &services, &services_count);
 
-        if(!c.gatt_connection)
-        {
-		    c.gatt_connection = gattlib_connect(NULL, c.address.c_str(), BDADDR_LE_RANDOM, BT_IO_SEC_LOW, 0, 0);
-
-		    if(!c.gatt_connection)
-            {
-			    LOG_WARNING << "could not connect bluetooth device: " << c.address;
-                return;
-		    }
-            else { LOG_DEBUG << "connected device with random address."; }
-	    }
-        else { LOG_DEBUG << "connected bluetooth device: " << c.address; }
-
-        int ret = gattlib_discover_primary(c.gatt_connection, &services, &services_count);
-
-	    if(ret != 0)
-        {
-		    LOG_WARNING << "could not discover primary services.";
-	    }
+	    if(ret != 0){ LOG_WARNING << "could not discover primary services"; }
 
 	    for (int i = 0; i < services_count; i++)
         {
 		    gattlib_uuid_to_string(&services[i].uuid, uuid_str, sizeof(uuid_str));
+            p->add_service(UUID(uuid_str));
 
             char buf[128];
 		    sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
@@ -515,18 +525,31 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 	    }
         free(services);
 
-        gattlib_disconnect(c.gatt_connection);
+        // gattlib_disconnect(c.gatt_connection);
     }
 }
 
 void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
 {
+    auto it = m_impl->m_connection_map.find(the_peripheral);
+
+    if(it == m_impl->m_connection_map.end())
+    {
+        LOG_DEBUG << "could not disconnect peripheral -> not connected";
+        return;
+    }
     LOG_DEBUG << "disconnecting: " << the_peripheral->name();
+    gattlib_disconnect(it->second->gatt_connection);
+    m_impl->m_connection_map.erase(it);
 }
 
 void Central::disconnect_all()
 {
-
+    for(auto &pair : m_connection_map)
+    {
+        gattlib_disconnect(pair.second->gatt_connection);
+    }
+    m_connection_map.clear();
 }
 
 std::set<PeripheralPtr> Central::peripherals() const
@@ -595,6 +618,11 @@ void Peripheral::discover_services(std::set<UUID> the_uuids)
         LOG_WARNING << "could not discover services, peripheral not connected";
         return;
     }
+
+    // check if we are connected
+    // fetch gatt_connection_ptr
+
+    //g_peripheral_map[shared_from_this()];
 }
 
 void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
