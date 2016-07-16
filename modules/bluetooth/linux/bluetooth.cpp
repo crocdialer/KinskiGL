@@ -233,7 +233,11 @@ struct CentralImpl
     ~CentralImpl()
     {
         // disconnect all peripherals
-        disconnect_all();
+        for(auto &pair : m_connection_map)
+        {
+            gattlib_disconnect(pair.second->gatt_connection);
+        }
+        m_connection_map.clear();
 
         // stop scanning for peripherals
         hci_stop_scan(m_hci_state);
@@ -545,11 +549,11 @@ void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
 
 void Central::disconnect_all()
 {
-    for(auto &pair : m_connection_map)
+    for(auto &pair : m_impl->m_connection_map)
     {
         gattlib_disconnect(pair.second->gatt_connection);
     }
-    m_connection_map.clear();
+    m_impl->m_connection_map.clear();
 }
 
 std::set<PeripheralPtr> Central::peripherals() const
