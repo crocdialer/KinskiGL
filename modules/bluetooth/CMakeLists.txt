@@ -9,7 +9,7 @@ elseif(UNIX)
   find_library(bluetooth NAMES bluetooth)
   set(MODULE_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS})
   set(MODULE_LIBRARIES ${bluetooth} ${GLIB_LIBRARIES} PARENT_SCOPE)
-  FILE(GLOB MODULE_SOURCES *.c* linux/*.c* linux/bluez/*.c)
+  FILE(GLOB MODULE_SOURCES *.c* linux/*.c* linux/gatt/*.c)
 endif()
 
 # common header files

@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#include <queue>
 #include <thread>
 #include <chrono>
 #include <bluetooth/bluetooth.h>
@@ -9,7 +10,7 @@
 
 extern "C"
 {
-    #include "bluez/gattlib.h"
+    #include "gatt/gattlib.h"
 }
 #include "bluetooth.hpp"
 
@@ -58,7 +59,19 @@ struct hci_state
     int has_error = 0;
 };
 
-// TODO: maps bdaddr_t <-> PeripheralPtr
+struct gatt_connection
+{
+    std::string address;
+    std::thread thread;
+    gatt_connection_t* gatt_connection = nullptr;
+};
+
+namespace
+{
+    // maps address-string <-> PeripheralPtr
+    std::map<PeripheralPtr, std::string> g_peripheral_map;
+    std::map<std::string, PeripheralPtr> g_peripheral_reverse_map;
+}
 
 hci_state hci_open_default_device();
 void hci_start_scan(hci_state &the_hci_state);
@@ -120,7 +133,7 @@ void hci_start_scan(hci_state &the_hci_state)
     // uint8_t filter_type = 0;
 
     err = hci_le_set_scan_parameters(the_hci_state.device_handle, scan_type, interval, window,
-						              own_type, filter_policy, 10000);
+						             own_type, filter_policy, 10000);
 
     if(err < 0)
     {
@@ -136,11 +149,8 @@ void hci_start_scan(hci_state &the_hci_state)
         LOG_ERROR << "failed to enable scan: " << strerror(errno);
         return;
     }
-
     the_hci_state.state = HCI_STATE_SCANNING;
-
     socklen_t olen = sizeof(the_hci_state.original_filter);
-
     err = getsockopt(the_hci_state.device_handle, SOL_HCI, HCI_FILTER,
                      &the_hci_state.original_filter, &olen);
     if(err < 0)
@@ -152,7 +162,6 @@ void hci_start_scan(hci_state &the_hci_state)
 
     // Create and set the new filter
     struct hci_filter new_filter;
-
     hci_filter_clear(&new_filter);
     hci_filter_set_ptype(HCI_EVENT_PKT, &new_filter);
     hci_filter_set_event(EVT_LE_META_EVENT, &new_filter);
@@ -185,7 +194,6 @@ void hci_stop_scan(hci_state &the_hci_state)
         }
         the_hci_state.state = HCI_STATE_SCANNING;
     }
-
     result = hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 10000);
 
     if(result < 0)
@@ -207,7 +215,11 @@ struct CentralImpl
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
 
+    //! the UUIDs to filter for while scanning
     std::set<UUID> m_uuid_set;
+
+    //! currently open connections
+    std::queue<gatt_connection> g_connections;
 
     CentralImpl()
     {
@@ -266,12 +278,7 @@ struct CentralImpl
         if(data_type == AD_NAME_SHORT || data_type == AD_NAME_COMPLETE)
         {
             size_t name_len = data_len - 1;
-            char *name = (char*)malloc(name_len + 1);
-            memset(name, 0, name_len + 1);
-            memcpy(name, &data[1], name_len);
-            peripheral_name = name;
-            free(name);
-            // emit_event = true;
+            peripheral_name = std::string(&data[1], &data[1] + name_len);
         }
         else if(data_type == AD_SERVICES_128 || data_type == AD_SERVICES_128_COMPLETE)
         {
@@ -311,14 +318,20 @@ struct CentralImpl
         {
              LOG_DEBUG << "event: " << (int)info->evt_type << " -- type: " << (int)data[0] << " -- length: " << data_len;
         }
-        // LOG_DEBUG << "address: " << addr << " name: " << peripheral_name;
 
+        PeripheralPtr peripheral;
+        auto it = g_peripheral_reverse_map.find(addr);
         auto central = central_ref.lock();
-        auto peripheral = Peripheral::create(central);
-        peripheral->set_name(peripheral_name);
-        peripheral->set_rssi(peripheral_rssi);
-        peripheral->set_connectable(is_connectable(info->evt_type));
 
+        if(it != g_peripheral_reverse_map.end()){ peripheral = it->second; }
+        else
+        {
+            LOG_DEBUG << "discovered new peripheral: " << addr;
+            peripheral = Peripheral::create(central);
+            peripheral->set_name(peripheral_name);
+            peripheral->set_connectable(is_connectable(info->evt_type));
+        }
+        peripheral->set_rssi(peripheral_rssi);
         bool filter_service = !m_uuid_set.empty();
 
         for(const auto &s : service_uuids)
@@ -330,6 +343,8 @@ struct CentralImpl
         // fire discovery callback
         if(emit_event && central && peripheral && peripheral_discovered_cb && !filter_service)
         {
+            g_peripheral_map[peripheral] = addr;
+            g_peripheral_reverse_map[addr] = peripheral;
             peripheral_discovered_cb(central, peripheral);
         }
     }
@@ -338,8 +353,8 @@ struct CentralImpl
     {
         m_running = true;
         uint8_t buf[HCI_MAX_EVENT_SIZE];
-	    evt_le_meta_event * meta_event;
-	    le_advertising_info * info;
+	    evt_le_meta_event *meta_event;
+	    le_advertising_info *info;
         struct timeval wait;
         fd_set read_set;
 	    int len;
@@ -350,8 +365,9 @@ struct CentralImpl
 		    FD_SET(m_hci_state.device_handle, &read_set);
             wait.tv_sec = BLE_SCAN_TIMEOUT;
 
+            // block thread until device has some data
             int err = select(FD_SETSIZE, &read_set, NULL, NULL, &wait);
-		    if(err <= 0){ break; }
+		    if(err <= 0){ continue; }
 
             len = read(m_hci_state.device_handle, buf, sizeof(buf));
 
@@ -419,8 +435,11 @@ m_impl(new CentralImpl){ }
 
 void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 {
+    g_peripheral_map.clear();
+    g_peripheral_reverse_map.clear();
+
     m_impl->m_uuid_set = the_service_uuids;
-    hci_stop_scan(m_impl->m_hci_state);
+    stop_scanning();
 
     LOG_DEBUG << "discover_peripherals";
     hci_start_scan(m_impl->m_hci_state);
@@ -431,14 +450,72 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
 void Central::stop_scanning()
 {
     hci_stop_scan(m_impl->m_hci_state);
+    m_impl->m_running = false;
+
+    if(m_impl->scan_thread.joinable())
+    {
+        try{ m_impl->scan_thread.join(); }
+        catch(std::exception &e){ LOG_WARNING << e.what(); }
+    }
 }
 
 void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 {
+    auto it = g_peripheral_map.find(p);
+
+    if(it == g_peripheral_map.end())
+    {
+        LOG_DEBUG << "could not connect peripheral -> unknown";
+        return;
+    }
+
     // connect peripheral
-    if(p->connectable())
+    if(p->connectable() && !p->is_connected())
     {
         LOG_DEBUG << "connecting: " << p->name();
+
+        gatt_connection c;
+        c.address = it->second;
+
+        gattlib_primary_service_t* services;
+	    gattlib_characteristic_t* characteristics;
+	    int services_count, characteristics_count;
+	    char uuid_str[MAX_LEN_UUID_STR + 1];
+
+        c.gatt_connection = gattlib_connect(NULL, c.address.c_str(), BDADDR_LE_PUBLIC, BT_IO_SEC_LOW, 0, 0);
+
+        if(!c.gatt_connection)
+        {
+		    c.gatt_connection = gattlib_connect(NULL, c.address.c_str(), BDADDR_LE_RANDOM, BT_IO_SEC_LOW, 0, 0);
+
+		    if(!c.gatt_connection)
+            {
+			    LOG_WARNING << "could not connect bluetooth device: " << c.address;
+                return;
+		    }
+            else { LOG_DEBUG << "connected device with random address."; }
+	    }
+        else { LOG_DEBUG << "connected bluetooth device: " << c.address; }
+
+        int ret = gattlib_discover_primary(c.gatt_connection, &services, &services_count);
+
+	    if(ret != 0)
+        {
+		    LOG_WARNING << "could not discover primary services.";
+	    }
+
+	    for (int i = 0; i < services_count; i++)
+        {
+		    gattlib_uuid_to_string(&services[i].uuid, uuid_str, sizeof(uuid_str));
+
+            char buf[128];
+		    sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
+				    services[i].attr_handle_start, services[i].attr_handle_end, uuid_str);
+            LOG_DEBUG << buf;
+	    }
+        free(services);
+
+        gattlib_disconnect(c.gatt_connection);
     }
 }
 
