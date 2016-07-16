@@ -24,15 +24,32 @@
 #ifndef BT_IO_H
 #define BT_IO_H
 
-// #include <glib.h>
-// #define BT_IO_ERROR bt_io_error_quark()
-// GQuark bt_io_error_quark(void);
+#include <glib.h>
+#include "gattlib.h"
+
+typedef enum {
+	BT_IO_ERROR_DISCONNECTED,
+	BT_IO_ERROR_CONNECT_FAILED,
+	BT_IO_ERROR_FAILED,
+	BT_IO_ERROR_INVALID_ARGS,
+} BtIOError;
+
+#define BT_IO_ERROR bt_io_error_quark()
+
+GQuark bt_io_error_quark(void);
+
+typedef enum {
+	BT_IO_L2RAW,
+	BT_IO_L2CAP,
+	BT_IO_L2ERTM,
+	BT_IO_RFCOMM,
+	BT_IO_SCO,
+} BtIOType;
 
 typedef enum {
 	BT_IO_OPT_INVALID = 0,
 	BT_IO_OPT_SOURCE,
 	BT_IO_OPT_SOURCE_BDADDR,
-	BT_IO_OPT_SOURCE_TYPE,
 	BT_IO_OPT_DEST,
 	BT_IO_OPT_DEST_BDADDR,
 	BT_IO_OPT_DEST_TYPE,
@@ -53,15 +70,8 @@ typedef enum {
 	BT_IO_OPT_MODE,
 	BT_IO_OPT_FLUSHABLE,
 	BT_IO_OPT_PRIORITY,
-	BT_IO_OPT_VOICE,
+	BT_IO_OPT_TIMEOUT
 } BtIOOption;
-
-typedef enum {
-	BT_IO_SEC_SDP = 0,
-	BT_IO_SEC_LOW,
-	BT_IO_SEC_MEDIUM,
-	BT_IO_SEC_HIGH,
-} BtIOSecLevel;
 
 typedef enum {
 	BT_IO_MODE_BASIC = 0,
@@ -71,23 +81,18 @@ typedef enum {
 	BT_IO_MODE_STREAMING
 } BtIOMode;
 
-typedef void (*BtIOConfirm)(int socket, void* user_data);
+typedef void (*BtIOConfirm)(GIOChannel *io, gpointer user_data);
 
-typedef void (*BtIOConnect)(int socket, GError *err, void* user_data);
+typedef void (*BtIOConnect)(GIOChannel *io, GError *err, gpointer user_data);
 
-gboolean bt_io_accept(int socket, BtIOConnect connect, void* user_data,
-					GDestroyNotify destroy, GError **err);
+gboolean bt_io_set(GIOChannel *io, BtIOType type, GError **err,
+						BtIOOption opt1, ...);
 
-gboolean bt_io_set(int socket, GError **err, BtIOOption opt1, ...);
+gboolean bt_io_get(GIOChannel *io, BtIOType type, GError **err,
+						BtIOOption opt1, ...);
 
-gboolean bt_io_get(int socket, GError **err, BtIOOption opt1, ...);
-
-int bt_io_connect(BtIOConnect connect, void* user_data,
-				GDestroyNotify destroy, GError **gerr,
-				BtIOOption opt1, ...);
-
-int bt_io_listen(BtIOConnect connect, BtIOConfirm confirm,
-				void* user_data, GDestroyNotify destroy,
+GIOChannel *bt_io_connect(BtIOType type, BtIOConnect connect,
+				gpointer user_data, GDestroyNotify destroy,
 				GError **err, BtIOOption opt1, ...);
 
 #endif
