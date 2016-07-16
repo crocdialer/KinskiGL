@@ -6,6 +6,11 @@
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
+
+extern "C"
+{
+    #include "bluez/gattlib.h"
+}
 #include "bluetooth.hpp"
 
 namespace kinski{ namespace bluetooth{
@@ -34,6 +39,14 @@ namespace kinski{ namespace bluetooth{
 #define AD_NAME_COMPLETE           0x09
 #define AD_TX_LEVEL                0x0A	// Tx Power Level
 #define AD_MANUFACTURE_SPECIFIC    0xFF
+
+#define DISCOV_LE_SCAN_WIN         0x12
+#define DISCOV_LE_SCAN_INT         0x12
+#define BLE_EVENT_TYPE             0x05
+#define BLE_SCAN_RESPONSE          0x04
+#define LE_SCAN_PASSIVE            0x00
+#define LE_SCAN_ACTIVE             0x01
+#define BLE_SCAN_TIMEOUT           4
 
 struct hci_state
 {
@@ -99,15 +112,15 @@ void hci_start_scan(hci_state &the_hci_state)
 {
     int err;
     uint8_t own_type = LE_PUBLIC_ADDRESS;
-	uint8_t scan_type = 0x01;
+	uint8_t scan_type = LE_SCAN_ACTIVE;
 	uint8_t filter_policy = 0x00;
-	uint16_t interval = htobs(0x0010);
-	uint16_t window = htobs(0x0010);
+	uint16_t interval = htobs(DISCOV_LE_SCAN_INT);
+	uint16_t window = htobs(DISCOV_LE_SCAN_WIN);
 	// uint8_t filter_dup = 0x01;
     // uint8_t filter_type = 0;
 
     err = hci_le_set_scan_parameters(the_hci_state.device_handle, scan_type, interval, window,
-						              own_type, filter_policy, 1000);
+						              own_type, filter_policy, 10000);
 
     if(err < 0)
     {
@@ -115,7 +128,7 @@ void hci_start_scan(hci_state &the_hci_state)
         LOG_ERROR << "failed to set scan parameters: " << strerror(errno);
         return;
     }
-    err = hci_le_set_scan_enable(the_hci_state.device_handle, 0x01, 1, 1000);
+    err = hci_le_set_scan_enable(the_hci_state.device_handle, 0x01, 1, 10000);
 
     if(err < 0)
     {
@@ -173,8 +186,8 @@ void hci_stop_scan(hci_state &the_hci_state)
         the_hci_state.state = HCI_STATE_SCANNING;
     }
 
-    result = hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 1000);
-    
+    result = hci_le_set_scan_enable(the_hci_state.device_handle, 0x00, 1, 10000);
+
     if(result < 0)
     {
         the_hci_state.has_error = true;
@@ -183,40 +196,6 @@ void hci_stop_scan(hci_state &the_hci_state)
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
-// void connect(bdaddr_t *bdaddr, const hci_state& the_hci_state)
-// {
-//     uint16_t handle;
-//     // int hci_create_connection(int dd, const bdaddr_t *bdaddr, uint16_t ptype, uint16_t clkoffset, uint8_t rswitch, uint16_t *handle, int to);
-//     // HCI_DM1 | HCI_DM3 | HCI_DM5 | HCI_DH1 | HCI_DH3 | HCI_DH5
-//
-//     if(hci_create_connection(the_hci_state.device_handle, bdaddr,
-//        htobs(the_hci_state.device_info.pkt_type & ACL_PTYPE_MASK), (1 << 15), 0, &handle, 5000) < 0)
-//     {
-//         LOG_ERROR << "could not create connection";
-//     }
-//     sleep(1);
-//
-//     struct hci_conn_info_req *cr = (hci_conn_info_req*)malloc(sizeof(*cr) + sizeof(struct hci_conn_info));
-//     bacpy(&cr->bdaddr, bdaddr);
-//     cr->type = ACL_LINK;
-//
-//     if(ioctl(the_hci_state.device_handle, HCIGETCONNINFO, (unsigned long) cr) < 0)
-//     {
-//         LOG_ERROR << "get connection info failed";
-//     }
-//
-//     int8_t rssi = -1;
-//
-//     // if(hci_read_rssi(the_hci_state.device_handle, htobs(cr->conn_info->handle), &rssi, 1000) < 0)
-//     // {
-//     //     LOG_ERROR << "Read RSSI failed";
-//     // }
-//     free(cr);
-//
-//     usleep(10000);
-//     hci_disconnect(the_hci_state.device_handle, handle, HCI_OE_USER_ENDED_CONNECTION, 10000);
-// }
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 struct CentralImpl
@@ -224,7 +203,7 @@ struct CentralImpl
     std::weak_ptr<Central> central_ref;
     hci_state m_hci_state;
     bool m_running = false;
-    std::thread worker_thread;
+    std::thread scan_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
 
@@ -242,9 +221,9 @@ struct CentralImpl
         // stop scanning for peripherals
         hci_stop_scan(m_hci_state);
 
-        if(worker_thread.joinable())
+        if(scan_thread.joinable())
         {
-            try{ worker_thread.join(); }
+            try{ scan_thread.join(); }
             catch(std::exception &e){ LOG_WARNING << e.what(); }
         }
 
@@ -361,59 +340,67 @@ struct CentralImpl
         uint8_t buf[HCI_MAX_EVENT_SIZE];
 	    evt_le_meta_event * meta_event;
 	    le_advertising_info * info;
+        struct timeval wait;
+        fd_set read_set;
 	    int len;
 
         while(m_running)
         {
+            FD_ZERO(&read_set);
+		    FD_SET(m_hci_state.device_handle, &read_set);
+            wait.tv_sec = BLE_SCAN_TIMEOUT;
+
+            int err = select(FD_SETSIZE, &read_set, NULL, NULL, &wait);
+		    if(err <= 0){ break; }
+
             len = read(m_hci_state.device_handle, buf, sizeof(buf));
 
-            if(len >= HCI_EVENT_HDR_SIZE)
+            if(len < HCI_EVENT_HDR_SIZE){ continue; }
+
+	        meta_event = (evt_le_meta_event*)(buf + HCI_EVENT_HDR_SIZE + 1);
+
+	        if(meta_event->subevent != EVT_LE_ADVERTISING_REPORT || buf[BLE_EVENT_TYPE] != BLE_SCAN_RESPONSE)
+                continue;
+
+            uint8_t* meta_data = meta_event->data;
+            int reports_count = meta_data[0];
+	        void* offset = meta_data + 1;
+
+            LOG_TRACE << "received " << reports_count << " ad-reports";
+
+            // iterate advertising reports
+            while(reports_count--)
             {
-		        meta_event = (evt_le_meta_event*)(buf + HCI_EVENT_HDR_SIZE + 1);
+			    info = (le_advertising_info *)offset;
+			    char addr[18];
+			    ba2str(&(info->bdaddr), addr);
 
-		        if(meta_event->subevent == EVT_LE_ADVERTISING_REPORT)
+                if(info->length == 0){ continue; }
+
+                int current_index = 0;
+                int data_error = 0;
+
+                // iterate advertising data packets
+                while(!data_error && current_index < info->length)
                 {
-                    uint8_t* meta_data = meta_event->data;
-                    int reports_count = meta_data[0];
-			        void* offset = meta_data + 1;
+                    uint8_t* data = info->data;
+                    size_t data_len = data[current_index];
 
-                    LOG_TRACE << "received " << reports_count << " ad-reports";
-
-                    // iterate advertising reports
-                    while(reports_count--)
+                    if(data_len + 1 > info->length)
                     {
-					    info = (le_advertising_info *)offset;
-					    char addr[18];
-					    ba2str(&(info->bdaddr), addr);
-
-                        if(info->length == 0){ continue; }
-
-                        int current_index = 0;
-                        int data_error = 0;
-
-                        // iterate advertising data packets
-                        while(!data_error && current_index < info->length)
-                        {
-                            uint8_t* data = info->data;
-                            size_t data_len = data[current_index];
-
-                            if(data_len + 1 > info->length)
-                            {
-                                LOG_ERROR << "AD data length is longer than AD packet length.";
-                                data_error = 1;
-                            }
-                            else
-                            {
-                                process_data(data + current_index + 1, data_len, info);
-                                current_index += data_len + 1;
-                            }
-                        }
-					    offset = info->data + info->length + 2;
-				    }
-		        }
-            }
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                        LOG_ERROR << "AD data length is longer than AD packet length.";
+                        data_error = 1;
+                    }
+                    else
+                    {
+                        process_data(data + current_index + 1, data_len, info);
+                        current_index += data_len + 1;
+                    }
+                }
+			    offset = info->data + info->length + 2;
+		    }
         }//while(m_impl->m_running && !error)
+        m_running = false;
         LOG_DEBUG << "thread ended";
     }
 };
@@ -438,7 +425,7 @@ void Central::discover_peripherals(std::set<UUID> the_service_uuids)
     LOG_DEBUG << "discover_peripherals";
     hci_start_scan(m_impl->m_hci_state);
 
-    m_impl->worker_thread = std::thread(std::bind(&CentralImpl::thread_func, m_impl.get()));
+    m_impl->scan_thread = std::thread(std::bind(&CentralImpl::thread_func, m_impl.get()));
 }
 
 void Central::stop_scanning()
