@@ -443,7 +443,7 @@ CentralPtr Central::create()
 Central::Central():
 m_impl(new CentralImpl){ }
 
-void Central::discover_peripherals(std::set<UUID> the_service_uuids)
+void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
 {
     g_peripheral_map.clear();
     g_peripheral_reverse_map.clear();

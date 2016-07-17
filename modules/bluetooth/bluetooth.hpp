@@ -16,7 +16,7 @@ namespace kinski{ namespace bluetooth
 
         static CentralPtr create();
 
-        void discover_peripherals(std::set<UUID> the_service_uuids = {});
+        void discover_peripherals(const std::set<UUID>& the_service_uuids = {});
         void stop_scanning();
 
         void connect_peripheral(const PeripheralPtr &the_peripheral,

@@ -68,7 +68,7 @@ namespace kinski{ namespace bluetooth{
     Central::Central():
     m_impl(new CentralImpl){ }
 
-    void Central::discover_peripherals(std::set<UUID> the_service_uuids)
+    void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
     {
         LOG_DEBUG << "discover_peripherals";
         m_impl->central_ref = shared_from_this();
