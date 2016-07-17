@@ -54,7 +54,7 @@ namespace kinski{ namespace bluetooth
         float rssi() const;
         void set_rssi(float the_rssi);
 
-        void discover_services(std::set<UUID> the_uuids = {});
+        void discover_services(const std::set<UUID>& the_uuids = {});
 
         void write_value_for_characteristic(const UUID &the_characteristic,
                                             const std::vector<uint8_t> &the_data);

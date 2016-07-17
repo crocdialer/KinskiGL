@@ -74,6 +74,9 @@ namespace
     std::map<PeripheralPtr, std::string> g_peripheral_map;
     std::map<std::string, PeripheralPtr> g_peripheral_reverse_map;
 
+    //! currently open connections
+    std::map<PeripheralPtr, gatt_connection_ptr> g_connection_map;
+
     std::mutex g_connect_mutex;
 }
 
@@ -222,9 +225,6 @@ struct CentralImpl
     //! the UUIDs to filter for while scanning
     std::set<UUID> m_uuid_set;
 
-    //! currently open connections
-    std::map<PeripheralPtr, gatt_connection_ptr> m_connection_map;
-
     CentralImpl()
     {
         m_hci_state = hci_open_default_device();
@@ -233,11 +233,11 @@ struct CentralImpl
     ~CentralImpl()
     {
         // disconnect all peripherals
-        for(auto &pair : m_connection_map)
+        for(auto &pair : g_connection_map)
         {
             gattlib_disconnect(pair.second->gatt_connection);
         }
-        m_connection_map.clear();
+        g_connection_map.clear();
 
         // stop scanning for peripherals
         hci_stop_scan(m_hci_state);
@@ -501,64 +501,43 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 	    }
         else { LOG_DEBUG << "connected bluetooth device: " << c->address; }
         p->set_connected(true);
-        m_impl->m_connection_map[p] = c;
+        g_connection_map[p] = c;
 
         if(m_impl->peripheral_connected_cb)
         {
              m_impl->peripheral_connected_cb(shared_from_this(), p);
         }
-
-        gattlib_primary_service_t* services;
-	    gattlib_characteristic_t* characteristics;
-	    int services_count, characteristics_count;
-	    char uuid_str[MAX_LEN_UUID_STR + 1];
-
-        int ret = gattlib_discover_primary(c->gatt_connection, &services, &services_count);
-
-	    if(ret != 0){ LOG_WARNING << "could not discover primary services"; }
-
-	    for (int i = 0; i < services_count; i++)
-        {
-		    gattlib_uuid_to_string(&services[i].uuid, uuid_str, sizeof(uuid_str));
-            p->add_service(UUID(uuid_str));
-
-            char buf[128];
-		    sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
-				    services[i].attr_handle_start, services[i].attr_handle_end, uuid_str);
-            LOG_DEBUG << buf;
-	    }
-        free(services);
-
         // gattlib_disconnect(c.gatt_connection);
     }
 }
 
 void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
 {
-    auto it = m_impl->m_connection_map.find(the_peripheral);
+    auto it = g_connection_map.find(the_peripheral);
 
-    if(it == m_impl->m_connection_map.end())
+    if(it == g_connection_map.end())
     {
         LOG_DEBUG << "could not disconnect peripheral -> not connected";
         return;
     }
     LOG_DEBUG << "disconnecting: " << the_peripheral->name();
     gattlib_disconnect(it->second->gatt_connection);
-    m_impl->m_connection_map.erase(it);
+    g_connection_map.erase(it);
 }
 
 void Central::disconnect_all()
 {
-    for(auto &pair : m_impl->m_connection_map)
+    for(auto &pair : g_connection_map)
     {
         gattlib_disconnect(pair.second->gatt_connection);
     }
-    m_impl->m_connection_map.clear();
+    g_connection_map.clear();
 }
 
 std::set<PeripheralPtr> Central::peripherals() const
 {
     std::set<PeripheralPtr> ret;
+    for(const auto &pair : g_peripheral_map){ ret.insert(pair.first); }
     return ret;
 }
 
@@ -589,6 +568,9 @@ struct PeripheralImpl
     float rssi;
     std::map<UUID, std::list<UUID>> known_services;
     Peripheral::ValueUpdatedCallback value_updated_cb;
+
+    std::map<UUID, gattlib_primary_service_t> m_service_map;
+    std::map<UUID, gattlib_characteristic_t> m_characteristics_map;
 };
 
 PeripheralPtr Peripheral::create(CentralPtr the_central)
@@ -615,18 +597,64 @@ float Peripheral::rssi() const { return m_impl->rssi; }
 
 void Peripheral::set_rssi(float the_rssi){ m_impl->rssi = the_rssi; }
 
-void Peripheral::discover_services(std::set<UUID> the_uuids)
+void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 {
-    if(!is_connected())
+    auto self = shared_from_this();
+
+    auto p_it = g_connection_map.find(self);
+
+    // check if we are connected
+    if(!is_connected() || p_it == g_connection_map.end())
     {
         LOG_WARNING << "could not discover services, peripheral not connected";
         return;
     }
-
-    // check if we are connected
     // fetch gatt_connection_ptr
+    gatt_connection_ptr c = p_it->second;
 
-    //g_peripheral_map[shared_from_this()];
+    gattlib_primary_service_t* services;
+    gattlib_characteristic_t* characteristics;
+    int services_count, characteristics_count;
+    char uuid_str[MAX_LEN_UUID_STR + 1];
+
+    int ret = gattlib_discover_primary(c->gatt_connection, &services, &services_count);
+
+    if(ret != 0){ LOG_WARNING << "could not discover primary services"; }
+
+    for (int i = 0; i < services_count; i++)
+    {
+        gattlib_uuid_to_string(&services[i].uuid, uuid_str, sizeof(uuid_str));
+        auto uuid = UUID(uuid_str);
+        m_impl->m_service_map[uuid] = services[i];
+
+        if(the_uuids.empty() || is_in(uuid, the_uuids))
+        {
+            add_service(uuid);
+
+            char buf[128];
+            sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
+                    services[i].attr_handle_start, services[i].attr_handle_end, uuid_str);
+            LOG_DEBUG << buf;
+        }
+    }
+    free(services);
+
+    ret = gattlib_discover_char(c->gatt_connection, &characteristics, &characteristics_count);
+	if(ret != 0){ LOG_WARNING << "could not discover characteristics"; }
+
+	for (int i = 0; i < characteristics_count; i++)
+    {
+		gattlib_uuid_to_string(&characteristics[i].uuid, uuid_str, sizeof(uuid_str));
+        auto uuid = UUID(uuid_str);
+        m_impl->m_characteristics_map[uuid] = characteristics[i];
+
+        char buf[128];
+		sprintf(buf, "characteristic[%d] properties:%02x value_handle:%04x uuid:%s", i,
+				characteristics[i].properties, characteristics[i].value_handle,
+				uuid_str);
+        LOG_DEBUG << buf;
+	}
+	free(characteristics);
 }
 
 void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
