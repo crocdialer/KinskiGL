@@ -12,11 +12,10 @@ public:
     UUID(const std::string &the_str);
     explicit UUID(const uint8_t *the_bytes, Type t = UUID_128);
     
-    UUID& operator=(const UUID &the_other);
-    
     const uint8_t* bytes() const;
     const std::string string() const;
 
+    UUID& operator=(const UUID &the_other);
     bool operator==(const UUID &the_other) const;
     bool operator!=(const UUID &the_other) const;
     bool operator<(const UUID &the_other) const;
