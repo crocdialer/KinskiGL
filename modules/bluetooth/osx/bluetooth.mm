@@ -163,7 +163,7 @@ namespace kinski{ namespace bluetooth{
         bool connectable = false;
         bool connected = false;
         float rssi;
-        std::map<UUID, std::list<UUID>> known_services;
+        std::map<UUID, std::set<UUID>> known_services;
         Peripheral::ValueUpdatedCallback value_updated_cb;
     };
 
@@ -191,7 +191,7 @@ namespace kinski{ namespace bluetooth{
 
     void Peripheral::set_rssi(float the_rssi){ m_impl->rssi = the_rssi; }
 
-    void Peripheral::discover_services(std::set<UUID> the_uuids)
+    void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     {
         if(!is_connected())
         {
@@ -270,10 +270,10 @@ namespace kinski{ namespace bluetooth{
                                         const UUID& the_characteristic_uuid)
     {
         add_service(the_service_uuid);
-        m_impl->known_services[the_service_uuid].push_back(the_characteristic_uuid);
+        m_impl->known_services[the_service_uuid].insert(the_characteristic_uuid);
     }
 
-    const std::map<UUID, std::list<UUID>>& Peripheral::known_services()
+    const std::map<UUID, std::set<UUID>>& Peripheral::known_services()
     {
         return m_impl->known_services;
     }
