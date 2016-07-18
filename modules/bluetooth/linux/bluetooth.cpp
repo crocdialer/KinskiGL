@@ -566,7 +566,7 @@ struct PeripheralImpl
     bool connectable = false;
     bool connected = false;
     float rssi;
-    std::map<UUID, std::list<UUID>> known_services;
+    std::map<UUID, std::set<UUID>> known_services;
     Peripheral::ValueUpdatedCallback value_updated_cb;
 
     std::map<UUID, gattlib_primary_service_t> m_service_map;
@@ -644,9 +644,23 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 
 	for (int i = 0; i < characteristics_count; i++)
     {
-		gattlib_uuid_to_string(&characteristics[i].uuid, uuid_str, sizeof(uuid_str));
-        auto uuid = UUID(uuid_str);
-        m_impl->m_characteristics_map[uuid] = characteristics[i];
+        auto &c = characteristics[i];
+
+		gattlib_uuid_to_string(&c.uuid, uuid_str, sizeof(uuid_str));
+        auto char_uuid = UUID(uuid_str);
+        m_impl->m_characteristics_map[char_uuid] = c;
+
+        // check if the characteristic is contained in one of our desired services
+        for(auto &pair : m_impl->known_services)
+        {
+            const UUID& service_uuid = pair.first;
+            const auto& s = m_impl->m_service_map[service_uuid];
+
+            if(c.value_handle >= s.attr_handle_start && c.value_handle <= s.attr_handle_end)
+            {
+                pair.second.insert(char_uuid);
+            }
+        }
 
         char buf[128];
 		sprintf(buf, "characteristic[%d] properties:%02x value_handle:%04x uuid:%s", i,
@@ -683,10 +697,10 @@ void Peripheral::add_characteristic(const UUID& the_service_uuid,
                                     const UUID& the_characteristic_uuid)
 {
     add_service(the_service_uuid);
-    m_impl->known_services[the_service_uuid].push_back(the_characteristic_uuid);
+    m_impl->known_services[the_service_uuid].insert(the_characteristic_uuid);
 }
 
-const std::map<UUID, std::list<UUID>>& Peripheral::known_services()
+const std::map<UUID, std::set<UUID>>& Peripheral::known_services()
 {
     return m_impl->known_services;
 }

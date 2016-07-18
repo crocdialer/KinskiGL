@@ -68,7 +68,7 @@ namespace kinski{ namespace bluetooth
         void add_service(const UUID& the_service_uuid);
         void add_characteristic(const UUID& the_service_uuid, const UUID& the_characteristic_uuid);
 
-        const std::map<UUID, std::list<UUID>>& known_services();
+        const std::map<UUID, std::set<UUID>>& known_services();
 
     private:
         Peripheral();
