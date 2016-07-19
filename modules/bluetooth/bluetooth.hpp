@@ -30,8 +30,8 @@ namespace kinski{ namespace bluetooth
         std::set<PeripheralPtr> peripherals() const;
 
     private:
+        std::shared_ptr<struct CentralImpl> m_impl;
         Central();
-        std::unique_ptr<struct CentralImpl> m_impl;
     };
 
     class Peripheral : public std::enable_shared_from_this<Peripheral>
@@ -40,13 +40,11 @@ namespace kinski{ namespace bluetooth
 
         typedef std::function<void(const UUID&, const std::vector<uint8_t>&)> ValueUpdatedCallback;
 
-        static PeripheralPtr create(CentralPtr the_central);
-
         const std::string& name() const;
         void set_name(const std::string &the_name);
 
         bool is_connected() const;
-        void set_connected(bool b);
+        // void set_connected(bool b);
 
         bool connectable() const;
         void set_connectable(bool b);
@@ -71,8 +69,9 @@ namespace kinski{ namespace bluetooth
         const std::map<UUID, std::set<UUID>>& known_services();
 
     private:
+        friend CentralImpl;
         Peripheral();
-        std::unique_ptr<struct PeripheralImpl> m_impl;
+        std::shared_ptr<struct PeripheralImpl> m_impl;
     };
 
 }}//namespace

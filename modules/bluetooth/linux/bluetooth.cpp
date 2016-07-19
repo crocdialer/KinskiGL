@@ -70,14 +70,11 @@ typedef std::shared_ptr<gatt_connection> gatt_connection_ptr;
 
 namespace
 {
-    // maps address-string <-> PeripheralPtr
+    // maps MAC-address-string <-> PeripheralPtr
     std::map<PeripheralPtr, std::string> g_peripheral_map;
     std::map<std::string, PeripheralPtr> g_peripheral_reverse_map;
 
-    //! currently open connections
-    std::map<PeripheralPtr, gatt_connection_ptr> g_connection_map;
-
-    std::mutex g_connect_mutex;
+    // std::mutex g_connect_mutex;
 }
 
 hci_state hci_open_default_device();
@@ -206,14 +203,30 @@ void hci_stop_scan(hci_state &the_hci_state)
     if(result < 0)
     {
         the_hci_state.has_error = true;
-        LOG_ERROR << "Disable scan failed: " << strerror(errno);
+        // LOG_ERROR << "Disable scan failed: " << strerror(errno);
     }
     the_hci_state.state = HCI_STATE_OPEN;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-struct CentralImpl
+struct PeripheralImpl
+{
+    std::weak_ptr<CentralImpl> m_central_impl_ref;
+    UUID uuid;
+    std::string name = "unknown";
+    bool connectable = false;
+    float rssi;
+    std::map<UUID, std::set<UUID>> known_services;
+    Peripheral::ValueUpdatedCallback value_updated_cb;
+
+    std::map<UUID, gattlib_primary_service_t> m_service_map;
+    std::map<UUID, gattlib_characteristic_t> m_characteristics_map;
+};
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
 {
     std::weak_ptr<Central> central_ref;
     hci_state m_hci_state;
@@ -221,6 +234,9 @@ struct CentralImpl
     std::thread scan_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
+
+    //! currently open connections
+    std::map<PeripheralPtr, gatt_connection_ptr> m_connection_map;
 
     //! the UUIDs to filter for while scanning
     std::set<UUID> m_uuid_set;
@@ -233,11 +249,11 @@ struct CentralImpl
     ~CentralImpl()
     {
         // disconnect all peripherals
-        for(auto &pair : g_connection_map)
+        for(auto &pair : m_connection_map)
         {
             gattlib_disconnect(pair.second->gatt_connection);
         }
-        g_connection_map.clear();
+        m_connection_map.clear();
 
         // stop scanning for peripherals
         hci_stop_scan(m_hci_state);
@@ -254,6 +270,13 @@ struct CentralImpl
             hci_close_dev(m_hci_state.device_handle);
         }
         LOG_DEBUG << "CentralImpl desctructor";
+    }
+
+    PeripheralPtr create_peripheral()
+    {
+        auto ret = PeripheralPtr(new Peripheral);
+        ret->m_impl->m_central_impl_ref = shared_from_this();
+        return ret;
     }
 
     void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
@@ -337,7 +360,7 @@ struct CentralImpl
         else
         {
             LOG_DEBUG << "discovered new peripheral: " << addr;
-            peripheral = Peripheral::create(central);
+            peripheral = create_peripheral();
             peripheral->set_name(peripheral_name);
             peripheral->set_connectable(is_connectable(info->evt_type));
         }
@@ -427,7 +450,7 @@ struct CentralImpl
 		    }
         }//while(m_impl->m_running && !error)
         m_running = false;
-        LOG_DEBUG << "thread ended";
+        LOG_DEBUG << "scan thread ended";
     }
 };
 
@@ -461,12 +484,6 @@ void Central::stop_scanning()
 {
     hci_stop_scan(m_impl->m_hci_state);
     m_impl->m_running = false;
-
-    if(m_impl->scan_thread.joinable())
-    {
-        try{ m_impl->scan_thread.join(); }
-        catch(std::exception &e){ LOG_WARNING << e.what(); }
-    }
 }
 
 void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
@@ -475,7 +492,7 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 
     if(it == g_peripheral_map.end())
     {
-        LOG_DEBUG << "could not connect peripheral -> unknown";
+        LOG_WARNING << "could not connect peripheral -> address unknown";
         return;
     }
 
@@ -500,38 +517,35 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
             else { LOG_DEBUG << "connected device with random address"; }
 	    }
         else { LOG_DEBUG << "connected bluetooth device: " << c->address; }
-        p->set_connected(true);
-        g_connection_map[p] = c;
+        // p->set_connected(true);
+        m_impl->m_connection_map[p] = c;
 
         if(m_impl->peripheral_connected_cb)
         {
              m_impl->peripheral_connected_cb(shared_from_this(), p);
         }
-        // gattlib_disconnect(c.gatt_connection);
     }
 }
 
 void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
 {
-    auto it = g_connection_map.find(the_peripheral);
-
-    if(it == g_connection_map.end())
+    if(!the_peripheral->is_connected())
     {
         LOG_DEBUG << "could not disconnect peripheral -> not connected";
         return;
     }
     LOG_DEBUG << "disconnecting: " << the_peripheral->name();
-    gattlib_disconnect(it->second->gatt_connection);
-    g_connection_map.erase(it);
+    gattlib_disconnect(m_impl->m_connection_map[the_peripheral]->gatt_connection);
+    m_impl->m_connection_map.erase(the_peripheral);
 }
 
 void Central::disconnect_all()
 {
-    for(auto &pair : g_connection_map)
+    for(auto &pair : m_impl->m_connection_map)
     {
         gattlib_disconnect(pair.second->gatt_connection);
     }
-    g_connection_map.clear();
+    m_impl->m_connection_map.clear();
 }
 
 std::set<PeripheralPtr> Central::peripherals() const
@@ -558,57 +572,70 @@ void Central::set_peripheral_disconnected_cb(PeripheralCallback cb)
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-struct PeripheralImpl
-{
-    std::weak_ptr<Central> central_ref;
-    UUID uuid;
-    std::string name = "unknown";
-    bool connectable = false;
-    bool connected = false;
-    float rssi;
-    std::map<UUID, std::set<UUID>> known_services;
-    Peripheral::ValueUpdatedCallback value_updated_cb;
-
-    std::map<UUID, gattlib_primary_service_t> m_service_map;
-    std::map<UUID, gattlib_characteristic_t> m_characteristics_map;
-};
-
-PeripheralPtr Peripheral::create(CentralPtr the_central)
-{
-    auto ret = PeripheralPtr(new Peripheral);
-    ret->m_impl->central_ref = the_central;
-    return ret;
-}
-
 Peripheral::Peripheral():m_impl(new PeripheralImpl()){}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 const std::string& Peripheral::name() const{ return m_impl->name; }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::set_name(const std::string &the_name){ m_impl->name = the_name; }
 
-bool Peripheral::is_connected() const{ return m_impl->connected; }
-void Peripheral::set_connected(bool b){ m_impl->connected = b; }
+///////////////////////////////////////////////////////////////////////////////////////////
+
+bool Peripheral::is_connected() const
+{
+    auto central_impl = m_impl->m_central_impl_ref.lock();
+    if(!central_impl){ return false; }
+    auto& connections = central_impl->m_connection_map;
+
+    // const cast
+    auto ptr = std::const_pointer_cast<Peripheral>(shared_from_this());
+
+    if(connections.find(ptr) == connections.end()){ return false; }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+// void Peripheral::set_connected(bool b)
+// {
+//      m_impl->connected = b;
+// }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 bool Peripheral::connectable() const { return m_impl->connectable; }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::set_connectable(bool b){ m_impl->connectable = b; }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 float Peripheral::rssi() const { return m_impl->rssi; }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::set_rssi(float the_rssi){ m_impl->rssi = the_rssi; }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 {
-    auto self = shared_from_this();
-
-    auto p_it = g_connection_map.find(self);
-
     // check if we are connected
-    if(!is_connected() || p_it == g_connection_map.end())
+    if(!is_connected())
     {
         LOG_WARNING << "could not discover services, peripheral not connected";
         return;
     }
+    auto central_impl = m_impl->m_central_impl_ref.lock();
+    if(!central_impl){ return; }
+
+    auto self = shared_from_this();
+    auto p_it = central_impl->m_connection_map.find(self);
+
     // fetch gatt_connection_ptr
     gatt_connection_ptr c = p_it->second;
 
@@ -671,17 +698,25 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 	free(characteristics);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
                                                 const std::vector<uint8_t> &the_data)
 {
-
+    if(!is_connected()){ return; }
+    // int ret;
+    // ret = gattlib_write_char_by_handle(connection, handle, buffer, sizeof(buffer));
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Peripheral::read_value_for_characteristic(const UUID &the_characteristic,
                                                Peripheral::ValueUpdatedCallback cb)
 {
-
+    if(!is_connected()){ return; }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Peripheral::add_service(const UUID& the_service_uuid)
 {
@@ -693,6 +728,8 @@ void Peripheral::add_service(const UUID& the_service_uuid)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::add_characteristic(const UUID& the_service_uuid,
                                     const UUID& the_characteristic_uuid)
 {
@@ -700,13 +737,21 @@ void Peripheral::add_characteristic(const UUID& the_service_uuid,
     m_impl->known_services[the_service_uuid].insert(the_characteristic_uuid);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 const std::map<UUID, std::set<UUID>>& Peripheral::known_services()
 {
     return m_impl->known_services;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 Peripheral::ValueUpdatedCallback Peripheral::value_updated_cb(){ return m_impl->value_updated_cb; }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::set_value_updated_cb(ValueUpdatedCallback cb){ m_impl->value_updated_cb = cb; }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 }}// namespaces
