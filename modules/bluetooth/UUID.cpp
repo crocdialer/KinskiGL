@@ -7,7 +7,7 @@ namespace
     const bluetooth::UUID
     BASE_BLE_UUID = bluetooth::UUID("00000000-0000-1000-8000-00805F9B34FB");
 }
-    
+
 UUID::UUID()
 {
     // start with generic base UUID bytes
@@ -19,9 +19,16 @@ UUID& UUID::operator=(const UUID &the_other)
     memcpy(m_data, the_other.bytes(), 16);
     return *this;
 }
-    
+
 UUID::UUID(const std::string &the_str)
 {
+    // does the string contain hex - 0x? -> remove it
+    auto input_str = the_str;
+    if(input_str.size() > 1 && input_str[0] == '0' && input_str[1] == 'x')
+    {
+        input_str = input_str.substr(2);
+    }
+
     if(the_str.size() == 36)
     {
         // remove "-"s
@@ -30,21 +37,21 @@ UUID::UUID(const std::string &the_str)
         str += the_str.substr(14, 4);
         str += the_str.substr(19, 4);
         str += the_str.substr(24, 12);
-        
-        for(int i = 0; i < 16; i++){ m_data[i] = std::stoul(str.substr(i * 2, 2), 0 , 16); }
+
+        for(uint8_t i = 0; i < 16; i++){ m_data[i] = std::stoul(str.substr(i * 2, 2), 0 , 16); }
     }
-    else if(the_str.size() == 4 || the_str.size() == 8)
+    else if(input_str.size() == 4 || input_str.size() == 8)
     {
-        UUID::Type t = the_str.size() == 4 ? UUID::UUID_16 : UUID::UUID_32;
-        const size_t sz = the_str.size() / 2;
+        UUID::Type t = input_str.size() == 4 ? UUID::UUID_16 : UUID::UUID_32;
+        const size_t sz = input_str.size() / 2;
         uint8_t bytes[sz];
-        for(int i = 0; i < sz; i++){ bytes[i] = std::stoul(the_str.substr(i * 2, 2), 0 , 16); }
+        for(uint8_t i = 0; i < sz; i++){ bytes[i] = std::stoul(input_str.substr(i * 2, 2), 0 , 16); }
         *this = UUID(bytes, t);
     }
     else
     {
         LOG_WARNING << "UUID-string has invalid size: " << the_str;
-        
+
         // start with generic base UUID bytes
         *this = BASE_BLE_UUID;
     }
@@ -53,9 +60,9 @@ UUID::UUID(const std::string &the_str)
 UUID::UUID(const uint8_t *the_bytes, Type t)
 {
     *this = BASE_BLE_UUID;
-    
+
     size_t bytes_to_copy = 0, offset = 0;
-    
+
     switch (t)
     {
         case UUID_16:

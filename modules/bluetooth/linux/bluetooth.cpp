@@ -477,6 +477,11 @@ void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
     LOG_DEBUG << "discover_peripherals";
     hci_start_scan(m_impl->m_hci_state);
 
+    if(m_impl->scan_thread.joinable())
+    {
+        try{ m_impl->scan_thread.join(); }
+        catch(std::exception &e){ LOG_WARNING << e.what(); }
+    }
     m_impl->scan_thread = std::thread(std::bind(&CentralImpl::thread_func, m_impl.get()));
 }
 
