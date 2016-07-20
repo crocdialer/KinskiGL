@@ -38,8 +38,20 @@ namespace kinski{ namespace bluetooth{
     {
         return [CBUUID UUIDWithString:[NSString stringWithUTF8String:the_str.c_str()]];
     }
-
-    struct CentralImpl
+    
+    struct PeripheralImpl
+    {
+        std::weak_ptr<CentralImpl> m_central_impl_ref;
+        UUID uuid;
+        std::string name = "unknown";
+        bool connectable = false;
+        bool connected = false;
+        float rssi;
+        std::map<UUID, std::set<UUID>> known_services;
+        Peripheral::ValueUpdatedCallback value_updated_cb;
+    };
+    
+    struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
     {
         CBCentralManager* central_manager;
 
@@ -60,6 +72,13 @@ namespace kinski{ namespace bluetooth{
             [central_manager stopScan];
             [central_manager dealloc];
             [delegate dealloc];
+        }
+        
+        PeripheralPtr create_peripheral()
+        {
+            auto ret = PeripheralPtr(new Peripheral);
+            ret->m_impl->m_central_impl_ref = shared_from_this();
+            return ret;
         }
     };
 
@@ -155,24 +174,6 @@ namespace kinski{ namespace bluetooth{
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-    struct PeripheralImpl
-    {
-        std::weak_ptr<Central> central_ref;
-        UUID uuid;
-        std::string name = "unknown";
-        bool connectable = false;
-        bool connected = false;
-        float rssi;
-        std::map<UUID, std::set<UUID>> known_services;
-        Peripheral::ValueUpdatedCallback value_updated_cb;
-    };
-
-    PeripheralPtr Peripheral::create(CentralPtr the_central)
-    {
-        auto ret = PeripheralPtr(new Peripheral);
-        ret->m_impl->central_ref = the_central;
-        return ret;
-    }
 
     Peripheral::Peripheral():m_impl(new PeripheralImpl()){}
 
@@ -180,8 +181,29 @@ namespace kinski{ namespace bluetooth{
 
     void Peripheral::set_name(const std::string &the_name){ m_impl->name = the_name; }
 
-    bool Peripheral::is_connected() const{ return m_impl->connected; }
-    void Peripheral::set_connected(bool b){ m_impl->connected = b; }
+    bool Peripheral::is_connected() const
+    {
+        // gather our services
+        NSMutableArray<CBUUID *> *services = [NSMutableArray<CBUUID *> array];
+        for(const auto &pair : m_impl->known_services)
+        {
+            [services addObject:kinski::bluetooth::str_to_uuid(pair.first.string())];
+        }
+        
+        CBCentralManager * m = m_impl->m_central_impl_ref.lock()->central_manager;
+        NSArray<CBPeripheral*>*
+        connected_peripherals = [m retrieveConnectedPeripheralsWithServices:services];
+        
+        PeripheralPtr self_ptr = std::const_pointer_cast<Peripheral>(shared_from_this());
+        auto it = g_peripheral_map.find(self_ptr);
+        
+        if(it != g_peripheral_map.end())
+        {
+            CBPeripheral* p = it->second;
+            if([connected_peripherals containsObject:p]){ return true; }
+        }
+        return false;
+    }
 
     bool Peripheral::connectable() const { return m_impl->connectable; }
 
@@ -193,16 +215,7 @@ namespace kinski{ namespace bluetooth{
 
     void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     {
-        if(!is_connected())
-        {
-            LOG_WARNING << "could not discover services, peripheral not connected";
-            return;
-        }
-
         PeripheralPtr self_ptr = shared_from_this();
-        CentralPtr central_ptr = m_impl->central_ref.lock();
-
-        if(!central_ptr){ return; }
 
         auto it = g_peripheral_map.find(self_ptr);
 
@@ -350,7 +363,7 @@ namespace kinski{ namespace bluetooth{
         advertisementData:(NSDictionary *)advertisementData
         RSSI:(NSNumber *)RSSI
 {
-    auto p = kinski::bluetooth::Peripheral::create(self.central_impl->central_ref.lock());
+    auto p = self.central_impl->create_peripheral();
 
     p->set_name(peripheral.name ? [peripheral.name UTF8String] : "unknown");
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
@@ -384,7 +397,7 @@ namespace kinski{ namespace bluetooth{
     {
         auto p = it->second;
         LOG_DEBUG << "connected: " << p->name() << " (" << kinski::to_string(p->rssi(), 1) << ")";
-        p->set_connected(true);
+//        p->set_connected(true);
 
         if(self.central_impl->peripheral_connected_cb)
         {
@@ -416,7 +429,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        p->set_connected(false);
+//TODO: fix        p->set_connected(false);
         LOG_DEBUG << "disconnected: " << p->name();
 
         [peripheral release];

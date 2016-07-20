@@ -12,8 +12,6 @@ UUID::UUID()
 {
     // start with generic base UUID bytes
     memcpy(m_data, BASE_BLE_UUID.bytes(), 16);
-    
-//    for(int i = 0; i < 16; i++){ m_data[i] = kinski::random_int<uint8_t>(0, 255); }
 }
 
 UUID& UUID::operator=(const UUID &the_other)
@@ -35,9 +33,17 @@ UUID::UUID(const std::string &the_str)
         
         for(int i = 0; i < 16; i++){ m_data[i] = std::stoul(str.substr(i * 2, 2), 0 , 16); }
     }
+    else if(the_str.size() == 4 || the_str.size() == 8)
+    {
+        UUID::Type t = the_str.size() == 4 ? UUID::UUID_16 : UUID::UUID_32;
+        const size_t sz = the_str.size() / 2;
+        uint8_t bytes[sz];
+        for(int i = 0; i < sz; i++){ bytes[i] = std::stoul(the_str.substr(i * 2, 2), 0 , 16); }
+        *this = UUID(bytes, t);
+    }
     else
     {
-        LOG_WARNING << "invalid UUID-string: " << the_str;
+        LOG_WARNING << "UUID-string has invalid size: " << the_str;
         
         // start with generic base UUID bytes
         *this = BASE_BLE_UUID;
