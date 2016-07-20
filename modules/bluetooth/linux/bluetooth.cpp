@@ -676,11 +676,11 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 
 	for (int i = 0; i < characteristics_count; i++)
     {
-        auto &c = characteristics[i];
+        auto &characteristic = characteristics[i];
 
-		gattlib_uuid_to_string(&c.uuid, uuid_str, sizeof(uuid_str));
+		gattlib_uuid_to_string(&characteristic.uuid, uuid_str, sizeof(uuid_str));
         auto char_uuid = UUID(uuid_str);
-        m_impl->m_characteristics_map[char_uuid] = c;
+        m_impl->m_characteristics_map[char_uuid] = characteristic;
 
         // check if the characteristic is contained in one of our desired services
         for(auto &pair : m_impl->known_services)
@@ -688,7 +688,8 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
             const UUID& service_uuid = pair.first;
             const auto& s = m_impl->m_service_map[service_uuid];
 
-            if(c.value_handle >= s.attr_handle_start && c.value_handle <= s.attr_handle_end)
+            if(characteristic.value_handle >= s.attr_handle_start &&
+               characteristic.value_handle <= s.attr_handle_end)
             {
                 pair.second.insert(char_uuid);
             }
@@ -708,9 +709,32 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
                                                 const std::vector<uint8_t> &the_data)
 {
+    // check connection
     if(!is_connected()){ return; }
-    // int ret;
-    // ret = gattlib_write_char_by_handle(connection, handle, buffer, sizeof(buffer));
+
+    auto central_impl = m_impl->m_central_impl_ref.lock();
+    if(!central_impl){ return; }
+
+    // look for characteristic
+    auto char_it = m_impl->m_characteristics_map.find(the_characteristic);
+
+    if(char_it != m_impl->m_characteristics_map.end())
+    {
+        const gattlib_characteristic_t &c = char_it->second;
+        gatt_connection_ptr con = central_impl->m_connection_map[shared_from_this()];
+        int ret;
+        const size_t max_packet_size = 20;
+        size_t offset = 0;
+
+        while(offset < the_data.size())
+        {
+            uint32_t num_bytes = std::min(max_packet_size, the_data.size() - offset);
+            ret = gattlib_write_char_by_handle(con->gatt_connection, c.value_handle, (void*)&the_data[offset], num_bytes);
+            offset += num_bytes;
+            if(ret){ LOG_WARNING << "trouble writing characteristic"; return; }
+        }
+    }
+    else{ LOG_WARNING << "could not write characteristic: not found"; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
