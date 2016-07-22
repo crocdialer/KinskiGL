@@ -41,16 +41,9 @@ namespace kinski{ namespace bluetooth
         typedef std::function<void(const UUID&, const std::vector<uint8_t>&)> ValueUpdatedCallback;
 
         const std::string& name() const;
-        void set_name(const std::string &the_name);
-
         bool is_connected() const;
-        // void set_connected(bool b);
-
         bool connectable() const;
-        void set_connectable(bool b);
-
-        float rssi() const;
-        void set_rssi(float the_rssi);
+        int rssi() const;
 
         void discover_services(const std::set<UUID>& the_uuids = {});
 
@@ -72,18 +65,6 @@ namespace kinski{ namespace bluetooth
         friend CentralImpl;
         Peripheral();
         std::shared_ptr<struct PeripheralImpl> m_impl;
-    };
-
-    enum CharacteristicProperty
-    {
-        CharacteristicPropertyBroadcast = 0x01,
-    	CharacteristicPropertyRead = 0x02,
-    	CharacteristicPropertyWriteWithoutResponse = 0x04,
-    	CharacteristicPropertyWrite = 0x08,
-    	CharacteristicPropertyNotify = 0x10,
-    	CharacteristicPropertyIndicate= 0x20,
-    	CharacteristicPropertyAuthenticatedSignedWrites = 0x40,
-    	CharacteristicPropertyExtendedProperties = 0x80
     };
 
 }}//namespace

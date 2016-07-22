@@ -50,6 +50,18 @@ namespace kinski{ namespace bluetooth{
 #define LE_SCAN_ACTIVE             0x01
 #define BLE_SCAN_TIMEOUT           4
 
+enum CharacteristicProperty
+{
+    CharacteristicPropertyBroadcast = 0x01,
+    CharacteristicPropertyRead = 0x02,
+    CharacteristicPropertyWriteWithoutResponse = 0x04,
+    CharacteristicPropertyWrite = 0x08,
+    CharacteristicPropertyNotify = 0x10,
+    CharacteristicPropertyIndicate= 0x20,
+    CharacteristicPropertyAuthenticatedSignedWrites = 0x40,
+    CharacteristicPropertyExtendedProperties = 0x80
+};
+
 struct hci_state
 {
     int device_id = 0;
@@ -216,7 +228,7 @@ struct PeripheralImpl
     UUID uuid;
     std::string name = "unknown";
     bool connectable = false;
-    float rssi;
+    int rssi;
     std::map<UUID, std::set<UUID>> known_services;
     Peripheral::ValueUpdatedCallback value_updated_cb;
 
@@ -361,10 +373,10 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         {
             LOG_DEBUG << "discovered new peripheral: " << addr;
             peripheral = create_peripheral();
-            peripheral->set_name(peripheral_name);
-            peripheral->set_connectable(is_connectable(info->evt_type));
+            peripheral->m_impl->name = peripheral_name;
+            peripheral->m_impl->connectable = is_connectable(info->evt_type);
         }
-        peripheral->set_rssi(peripheral_rssi);
+        peripheral->m_impl->rssi = peripheral_rssi;
         bool filter_service = !m_uuid_set.empty();
 
         for(const auto &s : service_uuids)
@@ -585,10 +597,6 @@ const std::string& Peripheral::name() const{ return m_impl->name; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void Peripheral::set_name(const std::string &the_name){ m_impl->name = the_name; }
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
 bool Peripheral::is_connected() const
 {
     auto central_impl = m_impl->m_central_impl_ref.lock();
@@ -604,26 +612,11 @@ bool Peripheral::is_connected() const
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-// void Peripheral::set_connected(bool b)
-// {
-//      m_impl->connected = b;
-// }
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
 bool Peripheral::connectable() const { return m_impl->connectable; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void Peripheral::set_connectable(bool b){ m_impl->connectable = b; }
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
-float Peripheral::rssi() const { return m_impl->rssi; }
-
-///////////////////////////////////////////////////////////////////////////////////////////
-
-void Peripheral::set_rssi(float the_rssi){ m_impl->rssi = the_rssi; }
+int Peripheral::rssi() const { return m_impl->rssi; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
