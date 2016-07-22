@@ -595,7 +595,7 @@ int Peripheral::rssi() const { return m_impl->rssi; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-const std::string& Peripheral::identifier() const { return m_impl->address; }
+const std::string Peripheral::identifier() const { return m_impl->address; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -613,7 +613,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     auto self = shared_from_this();
     auto p_it = central_impl->m_connection_map.find(self);
 
-    // fetch gatt_connection_ptr
+    // fetch connection_ptr
     connection_ptr c = p_it->second;
 
     gattlib_primary_service_t* services;

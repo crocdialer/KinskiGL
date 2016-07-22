@@ -44,7 +44,7 @@ namespace kinski{ namespace bluetooth
         bool is_connected() const;
         bool connectable() const;
         int rssi() const;
-        const std::string& identifier() const;
+        const std::string identifier() const;
 
         void discover_services(const std::set<UUID>& the_uuids = {});
 
