@@ -22,9 +22,7 @@
  */
 
 #include <stdlib.h>
-
-#include "gattlib_internal.h"
-
+#include "internal.h"
 #include "att.h"
 
 struct gattlib_result_read_uuid_t {

@@ -43,9 +43,13 @@ UUID::UUID(const std::string &the_str)
     else if(input_str.size() == 4 || input_str.size() == 8)
     {
         UUID::Type t = input_str.size() == 4 ? UUID::UUID_16 : UUID::UUID_32;
-        const size_t sz = input_str.size() / 2;
-        uint8_t bytes[sz];
-        for(uint8_t i = 0; i < sz; i++){ bytes[i] = std::stoul(input_str.substr(i * 2, 2), 0 , 16); }
+        const size_t num_bytes = input_str.size() / 2;
+        uint8_t bytes[num_bytes];
+
+        for(uint8_t i = 0; i < num_bytes; i++)
+        {
+            bytes[i] = std::stoul(input_str.substr(i * 2, 2), 0 , 16);
+        }
         *this = UUID(bytes, t);
     }
     else

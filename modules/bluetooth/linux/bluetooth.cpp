@@ -669,9 +669,9 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
             LOG_DEBUG << buf;
         }
     }
-    free(services);
 
-    ret = gattlib_discover_char(c->gatt_connection, &characteristics, &characteristics_count);
+    ret = gattlib_discover_char_for_service(c->gatt_connection, nullptr, &characteristics,
+                                            &characteristics_count);
 	if(ret != 0){ LOG_WARNING << "could not discover characteristics"; }
 
 	for (int i = 0; i < characteristics_count; i++)
@@ -692,6 +692,12 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
                characteristic.value_handle <= s.attr_handle_end)
             {
                 pair.second.insert(char_uuid);
+
+                // notifications
+                if(characteristic.properties & CharacteristicPropertyNotify)
+                {
+                    LOG_DEBUG << "subscribed to characteristic: " << char_uuid.string();
+                }
             }
         }
 
@@ -701,6 +707,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 				uuid_str);
         LOG_DEBUG << buf;
 	}
+    free(services);
 	free(characteristics);
 }
 

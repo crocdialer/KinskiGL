@@ -35,7 +35,7 @@
 #include "att.h"
 #include "btio.h"
 #include "gattrib.h"
-#include "gattlib_internal.h"
+#include "internal.h"
 
 #define GATT_TIMEOUT 30
 

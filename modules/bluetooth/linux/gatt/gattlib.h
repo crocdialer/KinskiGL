@@ -95,7 +95,11 @@ typedef struct {
 } gattlib_characteristic_t;
 
 int gattlib_discover_primary(gatt_connection_t* connection, gattlib_primary_service_t** services, int* services_count);
-int gattlib_discover_char(gatt_connection_t* connection, gattlib_characteristic_t** characteristics, int* characteristic_count);
+
+int gattlib_discover_char_for_service(gatt_connection_t* connection,
+                                      gattlib_primary_service_t* service,
+                                      gattlib_characteristic_t** characteristics,
+                                      int* characteristics_count);
 
 int gattlib_read_char_by_uuid(gatt_connection_t* connection, bt_uuid_t* uuid, void* buffer, size_t buffer_len);
 int gattlib_read_char_by_uuid_async(gatt_connection_t* connection, bt_uuid_t* uuid, gatt_read_cb_t gatt_read_cb);

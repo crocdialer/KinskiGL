@@ -26,8 +26,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <bluetooth/bluetooth.h>
+#include "internal.h"
 #include "uuid.h"
-#include "gattlib_internal.h"
 #include "att.h"
 #include "btio.h"
 #include "gattrib.h"

@@ -23,9 +23,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
-
-#include "gattlib_internal.h"
-
+#include "internal.h"
 #include "att.h"
 #include "gattrib.h"
 #include "gatt.h"
@@ -122,16 +120,19 @@ done:
 	data->discovered = TRUE;
 }
 
-int gattlib_discover_char(gatt_connection_t* connection, gattlib_characteristic_t** characteristics, int* characteristics_count) {
+int gattlib_discover_char_for_service(gatt_connection_t* connection,
+                                      gattlib_primary_service_t* service,
+                                      gattlib_characteristic_t** characteristics,
+                                      int* characteristics_count)
+{
 	struct characteristic_cb_t user_data;
-	const int start = 0x0001;
-	const int end   = 0xffff;
+	const int start = service ? service->attr_handle_start : 0x0001;
+	const int end = service ? service->attr_handle_end : 0xffff;;
 	guint ret;
-
 	bzero(&user_data, sizeof(user_data));
 	user_data.discovered     = FALSE;
-
 	ret = gatt_discover_char(connection->attrib, start, end, NULL, characteristic_cb, &user_data);
+
 	if (ret == 0) {
 		fprintf(stderr, "Fail to discover characteristics.\n");
 		return 1;
@@ -141,9 +142,7 @@ int gattlib_discover_char(gatt_connection_t* connection, gattlib_characteristic_
 	while(user_data.discovered == FALSE) {
 		g_main_context_iteration(g_gattlib_thread.loop_context, FALSE);
 	}
-
 	*characteristics       = user_data.characteristics;
 	*characteristics_count = user_data.characteristics_count;
-
 	return 0;
 }
