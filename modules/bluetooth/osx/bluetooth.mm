@@ -508,8 +508,11 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
             auto characteristic_uuid = kinski::bluetooth::UUID([c.UUID.UUIDString UTF8String]);
             p->add_characteristic(service_uuid, characteristic_uuid);
 
-            LOG_TRACE_1 << "subscribed to characteristic: " << characteristic_uuid.string();
-            [peripheral setNotifyValue:YES forCharacteristic: c];
+            if([c properties] & CBCharacteristicPropertyNotify)
+            {            
+                LOG_TRACE_1 << "subscribed to characteristic: " << characteristic_uuid.string();
+                [peripheral setNotifyValue:YES forCharacteristic: c];
+            }
         }
     }
 }
