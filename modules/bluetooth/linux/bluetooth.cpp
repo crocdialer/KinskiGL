@@ -72,22 +72,12 @@ struct hci_state
     int has_error = 0;
 };
 
-struct gatt_connection
+struct _connection
 {
     std::string address;
-    std::thread thread;
     gatt_connection_t* gatt_connection = nullptr;
 };
-typedef std::shared_ptr<gatt_connection> gatt_connection_ptr;
-
-namespace
-{
-    // maps MAC-address-string <-> PeripheralPtr
-    std::map<PeripheralPtr, std::string> g_peripheral_map;
-    std::map<std::string, PeripheralPtr> g_peripheral_reverse_map;
-
-    // std::mutex g_connect_mutex;
-}
+typedef std::shared_ptr<_connection> connection_ptr;
 
 hci_state hci_open_default_device();
 void hci_start_scan(hci_state &the_hci_state);
@@ -225,6 +215,7 @@ void hci_stop_scan(hci_state &the_hci_state)
 struct PeripheralImpl
 {
     std::weak_ptr<CentralImpl> m_central_impl_ref;
+    std::string address;
     UUID uuid;
     std::string name = "unknown";
     bool connectable = false;
@@ -248,7 +239,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
 
     //! currently open connections
-    std::map<PeripheralPtr, gatt_connection_ptr> m_connection_map;
+    std::map<PeripheralPtr, connection_ptr> m_connection_map;
 
     //! the UUIDs to filter for while scanning
     std::set<UUID> m_uuid_set;
@@ -293,8 +284,6 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
 
     void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
     {
-        // LOG_DEBUG << "connectable: " << is_connectable(info->evt_type);
-
         uint8_t data_type = data[0];
 
         char addr[18];
@@ -365,17 +354,15 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         }
 
         PeripheralPtr peripheral;
-        auto it = g_peripheral_reverse_map.find(addr);
+        // auto it = g_peripheral_reverse_map.find(addr);
         auto central = central_ref.lock();
 
-        if(it != g_peripheral_reverse_map.end()){ peripheral = it->second; }
-        else
-        {
-            LOG_DEBUG << "discovered new peripheral: " << addr;
-            peripheral = create_peripheral();
-            peripheral->m_impl->name = peripheral_name;
-            peripheral->m_impl->connectable = is_connectable(info->evt_type);
-        }
+        LOG_DEBUG << "discovered peripheral: " << addr;
+        peripheral = create_peripheral();
+        peripheral->m_impl->address = addr;
+        peripheral->m_impl->name = peripheral_name;
+        peripheral->m_impl->connectable = is_connectable(info->evt_type);
+
         peripheral->m_impl->rssi = peripheral_rssi;
         bool filter_service = !m_uuid_set.empty();
 
@@ -388,8 +375,8 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         // fire discovery callback
         if(emit_event && central && peripheral && peripheral_discovered_cb && !filter_service)
         {
-            g_peripheral_map[peripheral] = addr;
-            g_peripheral_reverse_map[addr] = peripheral;
+            // g_peripheral_map[peripheral] = addr;
+            // g_peripheral_reverse_map[addr] = peripheral;
             peripheral_discovered_cb(central, peripheral);
         }
     }
@@ -480,9 +467,6 @@ m_impl(new CentralImpl){ }
 
 void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
 {
-    g_peripheral_map.clear();
-    g_peripheral_reverse_map.clear();
-
     m_impl->m_uuid_set = the_service_uuids;
     stop_scanning();
 
@@ -505,21 +489,13 @@ void Central::stop_scanning()
 
 void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 {
-    auto it = g_peripheral_map.find(p);
-
-    if(it == g_peripheral_map.end())
-    {
-        LOG_WARNING << "could not connect peripheral -> address unknown";
-        return;
-    }
-
     // connect peripheral
     if(p->connectable() && !p->is_connected())
     {
         LOG_DEBUG << "connecting: " << p->name();
 
-        gatt_connection_ptr c = std::make_shared<gatt_connection>();
-        c->address = it->second;
+        connection_ptr c = std::make_shared<_connection>();
+        c->address = p->identifier();
         c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_PUBLIC, BT_IO_SEC_LOW, 0, 0);
 
         if(!c->gatt_connection)
@@ -534,7 +510,6 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
             else { LOG_DEBUG << "connected device with random address"; }
 	    }
         else { LOG_DEBUG << "connected bluetooth device: " << c->address; }
-        // p->set_connected(true);
         m_impl->m_connection_map[p] = c;
 
         if(m_impl->peripheral_connected_cb)
@@ -568,7 +543,7 @@ void Central::disconnect_all()
 std::set<PeripheralPtr> Central::peripherals() const
 {
     std::set<PeripheralPtr> ret;
-    for(const auto &pair : g_peripheral_map){ ret.insert(pair.first); }
+    for(const auto &pair : m_impl->m_connection_map){ ret.insert(pair.first); }
     return ret;
 }
 
@@ -620,6 +595,10 @@ int Peripheral::rssi() const { return m_impl->rssi; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+const std::string& Peripheral::identifier() const { return m_impl->address; }
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 {
     // check if we are connected
@@ -635,7 +614,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     auto p_it = central_impl->m_connection_map.find(self);
 
     // fetch gatt_connection_ptr
-    gatt_connection_ptr c = p_it->second;
+    connection_ptr c = p_it->second;
 
     gattlib_primary_service_t* services;
     gattlib_characteristic_t* characteristics;
@@ -721,7 +700,7 @@ void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
     if(char_it != m_impl->m_characteristics_map.end())
     {
         const gattlib_characteristic_t &c = char_it->second;
-        gatt_connection_ptr con = central_impl->m_connection_map[shared_from_this()];
+        connection_ptr con = central_impl->m_connection_map[shared_from_this()];
         int ret;
         const size_t max_packet_size = 20;
         size_t offset = 0;
