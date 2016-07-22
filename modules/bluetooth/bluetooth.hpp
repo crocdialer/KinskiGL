@@ -74,4 +74,16 @@ namespace kinski{ namespace bluetooth
         std::shared_ptr<struct PeripheralImpl> m_impl;
     };
 
+    enum CharacteristicProperty
+    {
+        CharacteristicPropertyBroadcast = 0x01,
+    	CharacteristicPropertyRead = 0x02,
+    	CharacteristicPropertyWriteWithoutResponse = 0x04,
+    	CharacteristicPropertyWrite = 0x08,
+    	CharacteristicPropertyNotify = 0x10,
+    	CharacteristicPropertyIndicate= 0x20,
+    	CharacteristicPropertyAuthenticatedSignedWrites = 0x40,
+    	CharacteristicPropertyExtendedProperties = 0x80
+    };
+
 }}//namespace
