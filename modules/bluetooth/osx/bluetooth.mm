@@ -221,7 +221,20 @@ namespace kinski{ namespace bluetooth{
     bool Peripheral::connectable() const { return m_impl->connectable; }
 
     int Peripheral::rssi() const { return m_impl->rssi; }
-
+    
+    const std::string Peripheral::identifier() const
+    {
+        PeripheralPtr self_ptr = std::const_pointer_cast<Peripheral>(shared_from_this());
+        auto it = g_peripheral_map.find(self_ptr);
+        
+        if(it != g_peripheral_map.end())
+        {
+            CBPeripheral* p = it->second;
+            return [[[p identifier] UUIDString] UTF8String];
+        }
+        return "";
+    }
+    
     void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     {
         PeripheralPtr self_ptr = shared_from_this();
