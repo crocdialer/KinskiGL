@@ -46,7 +46,7 @@ namespace kinski{ namespace bluetooth{
         std::string name = "unknown";
         bool connectable = false;
         bool connected = false;
-        float rssi;
+        int rssi;
         std::map<UUID, std::set<UUID>> known_services;
         Peripheral::ValueUpdatedCallback value_updated_cb;
     };
@@ -79,6 +79,21 @@ namespace kinski{ namespace bluetooth{
             auto ret = PeripheralPtr(new Peripheral);
             ret->m_impl->m_central_impl_ref = shared_from_this();
             return ret;
+        }
+        
+        void set_peripheral_name(PeripheralPtr the_peripheral, const std::string &the_name)
+        {
+            the_peripheral->m_impl->name = the_name;
+        }
+        
+        void set_peripheral_connectable(PeripheralPtr the_peripheral, bool b)
+        {
+            the_peripheral->m_impl->connectable = b;
+        }
+        
+        void set_peripheral_rssi(PeripheralPtr the_peripheral, int the_rssi)
+        {
+            the_peripheral->m_impl->rssi = the_rssi;
         }
     };
 
@@ -179,8 +194,6 @@ namespace kinski{ namespace bluetooth{
 
     const std::string& Peripheral::name() const{ return m_impl->name; }
 
-    void Peripheral::set_name(const std::string &the_name){ m_impl->name = the_name; }
-
     bool Peripheral::is_connected() const
     {
         // gather our services
@@ -207,11 +220,7 @@ namespace kinski{ namespace bluetooth{
 
     bool Peripheral::connectable() const { return m_impl->connectable; }
 
-    void Peripheral::set_connectable(bool b){ m_impl->connectable = b; }
-
-    float Peripheral::rssi() const { return m_impl->rssi; }
-
-    void Peripheral::set_rssi(float the_rssi){ m_impl->rssi = the_rssi; }
+    int Peripheral::rssi() const { return m_impl->rssi; }
 
     void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     {
@@ -365,12 +374,15 @@ namespace kinski{ namespace bluetooth{
 {
     auto p = self.central_impl->create_peripheral();
 
-    p->set_name(peripheral.name ? [peripheral.name UTF8String] : "unknown");
+    self.central_impl->set_peripheral_name(p, peripheral.name ? [peripheral.name UTF8String] : "unknown");
     NSString *local_name = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
-    if(local_name){ p->set_name([local_name UTF8String]); }
-    p->set_rssi(RSSI.floatValue);
-    p->set_connectable([[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue]);
-
+    
+    if(local_name)
+    {
+        self.central_impl->set_peripheral_name(p, [local_name UTF8String]);
+    }
+    self.central_impl->set_peripheral_rssi(p, RSSI.floatValue);
+    self.central_impl->set_peripheral_connectable(p, [[advertisementData objectForKey:CBAdvertisementDataIsConnectable] boolValue]);
 
     peripheral.delegate = self;
     kinski::bluetooth::g_peripheral_map[p] = [peripheral retain];
@@ -445,7 +457,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        p->set_rssi([[peripheral RSSI] floatValue]);
+        self.central_impl->set_peripheral_rssi(p, [[peripheral RSSI] floatValue]);
         LOG_TRACE_2 << p->name() << ": " << kinski::to_string(p->rssi(), 1);
     }
 }
@@ -483,7 +495,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        p->set_name([[peripheral name] UTF8String]);
+        self.central_impl->set_peripheral_name(p, [[peripheral name] UTF8String]);
     }
 }
 
