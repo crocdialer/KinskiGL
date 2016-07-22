@@ -225,6 +225,27 @@ struct PeripheralImpl
 
     std::map<UUID, gattlib_primary_service_t> m_service_map;
     std::map<UUID, gattlib_characteristic_t> m_characteristics_map;
+
+    //! peripheral event callback (called for notifications)
+    static void gatt_event_handler(uint16_t handle, const uint8_t* data, size_t data_length,
+                                   void* user_data)
+    {
+        LOG_DEBUG << std::string(data, data + data_length);
+        PeripheralImpl* impl = static_cast<PeripheralImpl*>(user_data);
+
+        for(auto &pair : impl->m_characteristics_map)
+        {
+            if(pair.second.value_handle == handle && impl->value_updated_cb)
+            {
+                impl->value_updated_cb(pair.first, std::vector<uint8_t>(data, data + data_length));
+            }
+        }
+    }
+
+    // static void* gatt_read_cb(void* buffer, size_t buffer_len)
+    // {
+    //
+    // }
 };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -280,6 +301,18 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         auto ret = PeripheralPtr(new Peripheral);
         ret->m_impl->m_central_impl_ref = shared_from_this();
         return ret;
+    }
+
+    void register_peripheral_notification(PeripheralPtr p)
+    {
+        // find connection
+        auto conn_it = m_connection_map.find(p);
+
+        if(conn_it != m_connection_map.end())
+        {
+            gattlib_register_notification(conn_it->second->gatt_connection,
+                                          PeripheralImpl::gatt_event_handler, p->m_impl.get());
+        }
     }
 
     void process_data(uint8_t *data, size_t data_len, le_advertising_info *info)
@@ -462,8 +495,12 @@ CentralPtr Central::create()
     return ret;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 Central::Central():
 m_impl(new CentralImpl){ }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
 {
@@ -481,11 +518,15 @@ void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
     m_impl->scan_thread = std::thread(std::bind(&CentralImpl::thread_func, m_impl.get()));
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Central::stop_scanning()
 {
     hci_stop_scan(m_impl->m_hci_state);
     m_impl->m_running = false;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 {
@@ -516,8 +557,13 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
         {
              m_impl->peripheral_connected_cb(shared_from_this(), p);
         }
+
+        // register notification callback with connection
+        m_impl->register_peripheral_notification(p);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
 {
@@ -531,6 +577,8 @@ void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
     m_impl->m_connection_map.erase(the_peripheral);
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Central::disconnect_all()
 {
     for(auto &pair : m_impl->m_connection_map)
@@ -540,6 +588,8 @@ void Central::disconnect_all()
     m_impl->m_connection_map.clear();
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 std::set<PeripheralPtr> Central::peripherals() const
 {
     std::set<PeripheralPtr> ret;
@@ -547,15 +597,21 @@ std::set<PeripheralPtr> Central::peripherals() const
     return ret;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Central::set_peripheral_discovered_cb(PeripheralCallback cb)
 {
     m_impl->peripheral_discovered_cb = cb;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Central::set_peripheral_connected_cb(PeripheralCallback cb)
 {
     m_impl->peripheral_connected_cb = cb;
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 void Central::set_peripheral_disconnected_cb(PeripheralCallback cb)
 {
@@ -669,6 +725,13 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
                 if(characteristic.properties & CharacteristicPropertyNotify)
                 {
                     LOG_DEBUG << "subscribed to characteristic: " << char_uuid.string();
+
+                    // enable notification
+                    uint16_t enable_notification = 1;
+                    gattlib_write_char_by_handle(c->gatt_connection,
+                                                 characteristic.value_handle + 1,
+                                                 &enable_notification,
+                                                 sizeof(enable_notification));
                 }
             }
         }
