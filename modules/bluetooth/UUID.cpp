@@ -10,8 +10,8 @@ namespace
 
 UUID::UUID()
 {
-    // start with generic base UUID bytes
-    memcpy(m_data, BASE_BLE_UUID.bytes(), 16);
+    // start with generic base UUID
+    *this = BASE_BLE_UUID;
 }
 
 UUID& UUID::operator=(const UUID &the_other)

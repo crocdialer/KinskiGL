@@ -17,8 +17,12 @@
 @property(assign) kinski::bluetooth::CentralImpl *central_impl;
 @end
 
-namespace kinski{ namespace bluetooth{
+///////////////////////////////////////////////////////////////////////////////////////////
 
+namespace kinski{ namespace bluetooth{
+    
+    ///////////////////////////////// Helpers ////////////////////////////////////////////////
+    
     typedef std::map<PeripheralPtr, CBPeripheral*> PeripheralMap;
     typedef std::map<CBPeripheral*, PeripheralPtr> PeripheralReverseMap;
 
@@ -39,17 +43,20 @@ namespace kinski{ namespace bluetooth{
         return [CBUUID UUIDWithString:[NSString stringWithUTF8String:the_str.c_str()]];
     }
     
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     struct PeripheralImpl
     {
         std::weak_ptr<CentralImpl> m_central_impl_ref;
         UUID uuid;
         std::string name = "unknown";
         bool connectable = false;
-        bool connected = false;
         int rssi;
         std::map<UUID, std::set<UUID>> known_services;
         Peripheral::ValueUpdatedCallback value_updated_cb;
     };
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
     
     struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
     {
@@ -96,12 +103,18 @@ namespace kinski{ namespace bluetooth{
             the_peripheral->m_impl->rssi = the_rssi;
         }
     };
-
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     CentralPtr Central::create(){ return CentralPtr(new Central()); }
-
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     Central::Central():
     m_impl(new CentralImpl){ }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
     {
         LOG_DEBUG << "discover_peripherals";
@@ -116,11 +129,15 @@ namespace kinski{ namespace bluetooth{
         [m_impl->central_manager scanForPeripheralsWithServices:services options:nil];
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::stop_scanning()
     {
         [m_impl->central_manager stopScan];
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
     {
         // connect peripheral
@@ -136,6 +153,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
     {
         LOG_DEBUG << "disconnecting: " << the_peripheral->name();
@@ -152,6 +171,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::disconnect_all()
     {
         for(auto &it : g_peripheral_map)
@@ -165,6 +186,8 @@ namespace kinski{ namespace bluetooth{
         g_peripheral_reverse_map.clear();
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     std::set<PeripheralPtr> Central::peripherals() const
     {
         std::set<PeripheralPtr> ret;
@@ -172,28 +195,37 @@ namespace kinski{ namespace bluetooth{
         return ret;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::set_peripheral_discovered_cb(PeripheralCallback cb)
     {
         m_impl->peripheral_discovered_cb = cb;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::set_peripheral_connected_cb(PeripheralCallback cb)
     {
         m_impl->peripheral_connected_cb = cb;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Central::set_peripheral_disconnected_cb(PeripheralCallback cb)
     {
         m_impl->peripheral_disconnected_cb = cb;
     }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-
+    ///////////////////////////////////////////////////////////////////////////////////////////
 
     Peripheral::Peripheral():m_impl(new PeripheralImpl()){}
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     const std::string& Peripheral::name() const{ return m_impl->name; }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     bool Peripheral::is_connected() const
     {
         // gather our services
@@ -218,9 +250,15 @@ namespace kinski{ namespace bluetooth{
         return false;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     bool Peripheral::connectable() const { return m_impl->connectable; }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     int Peripheral::rssi() const { return m_impl->rssi; }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
     
     const std::string Peripheral::identifier() const
     {
@@ -234,6 +272,18 @@ namespace kinski{ namespace bluetooth{
         }
         return "";
     }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
+    CentralPtr Peripheral::central() const
+    {
+        CentralPtr ret;
+        auto central_impl = m_impl->m_central_impl_ref.lock();
+        if(central_impl){ ret = central_impl->central_ref.lock(); }
+        return ret;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
     
     void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     {
@@ -256,6 +306,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
                                                     const std::vector<uint8_t> &the_data)
     {
@@ -278,6 +330,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Peripheral::read_value_for_characteristic(const UUID &the_characteristic,
                                                    Peripheral::ValueUpdatedCallback cb)
     {
@@ -291,6 +345,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Peripheral::add_service(const UUID& the_service_uuid)
     {
         auto it = m_impl->known_services.find(the_service_uuid);
@@ -301,6 +357,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Peripheral::add_characteristic(const UUID& the_service_uuid,
                                         const UUID& the_characteristic_uuid)
     {
@@ -308,15 +366,23 @@ namespace kinski{ namespace bluetooth{
         m_impl->known_services[the_service_uuid].insert(the_characteristic_uuid);
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     const std::map<UUID, std::set<UUID>>& Peripheral::known_services()
     {
         return m_impl->known_services;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     Peripheral::ValueUpdatedCallback Peripheral::value_updated_cb(){ return m_impl->value_updated_cb; }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     void Peripheral::set_value_updated_cb(ValueUpdatedCallback cb){ m_impl->value_updated_cb = cb; }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     CBPeripheral* find_peripheral(PeripheralPtr the_peripheral)
     {
         auto it = g_peripheral_map.find(the_peripheral);
@@ -328,10 +394,11 @@ namespace kinski{ namespace bluetooth{
         return nullptr;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
     CBCharacteristic* find_characteristic(PeripheralPtr the_peripheral,
                                           const UUID& the_characteristic_uuid)
     {
-        CBCharacteristic* ret = nullptr;
         CBPeripheral* p = find_peripheral(the_peripheral);
 
         if(p)
@@ -344,30 +411,40 @@ namespace kinski{ namespace bluetooth{
                     auto characteristic_uuid =
                     kinski::bluetooth::UUID([c.UUID.UUIDString UTF8String]);
 
-                    if(characteristic_uuid == the_characteristic_uuid){ ret = c;}
+                    if(characteristic_uuid == the_characteristic_uuid){ return c;}
                 }
             }
         }
-        return ret;
+        return nullptr;
     }
-
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////
+    
 }}//namespace
 
 @implementation CoreBluetoothDelegate
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (instancetype) initWithImpl: (kinski::bluetooth::CentralImpl*) the_impl
 {
     self.central_impl = the_impl;
-    return [self init];;
+    return [self init];
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central
 {
 
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (void)centralManager:(CBCentralManager *)central willRestoreState:(NSDictionary *)dict
 {}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)centralManager:(CBCentralManager *)central didRetrievePeripherals:(NSArray *)peripherals
 {
@@ -377,8 +454,12 @@ namespace kinski{ namespace bluetooth{
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (void)centralManager:(CBCentralManager *)central didRetrieveConnectedPeripherals:(NSArray *)peripherals
 {}
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)centralManager:(CBCentralManager *)central
         didDiscoverPeripheral:(CBPeripheral *)peripheral
@@ -414,6 +495,8 @@ namespace kinski{ namespace bluetooth{
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (void)centralManager:(CBCentralManager *)central didConnectPeripheral:(CBPeripheral *)peripheral
 {
     auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
@@ -421,8 +504,7 @@ namespace kinski{ namespace bluetooth{
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-        LOG_DEBUG << "connected: " << p->name() << " (" << kinski::to_string(p->rssi(), 1) << ")";
-//        p->set_connected(true);
+        LOG_DEBUG << "connected: " << p->name() << " (" << p->rssi() << ")";
 
         if(self.central_impl->peripheral_connected_cb)
         {
@@ -430,6 +512,8 @@ namespace kinski{ namespace bluetooth{
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)centralManager:(CBCentralManager *)central
 didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
@@ -446,6 +530,8 @@ didFailToConnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (void)centralManager:(CBCentralManager *)central
 didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 {
@@ -454,14 +540,15 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-//TODO: fix        p->set_connected(false);
-        LOG_DEBUG << "disconnected: " << p->name();
 
         [peripheral release];
         kinski::bluetooth::g_peripheral_map.erase(p);
         kinski::bluetooth::g_peripheral_reverse_map.erase(peripheral);
+        LOG_DEBUG << "disconnected: " << p->name();
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)peripheralDidUpdateRSSI:(CBPeripheral *)peripheral error:(nullable NSError *)error
 {
@@ -474,6 +561,8 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         LOG_TRACE_2 << p->name() << ": " << kinski::to_string(p->rssi(), 1);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverServices:(nullable NSError *)error
 {
@@ -501,6 +590,8 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (void)peripheralDidUpdateName:(CBPeripheral *)peripheral
 {
     auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
@@ -511,6 +602,8 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         self.central_impl->set_peripheral_name(p, [[peripheral name] UTF8String]);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)peripheral:(CBPeripheral *)peripheral
         didDiscoverCharacteristicsForService:(CBService *)service
@@ -542,6 +635,8 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////
+
 - (void)peripheral:(CBPeripheral *)peripheral
         didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic
         error:(nullable NSError *)error
@@ -560,6 +655,8 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         if(p->value_updated_cb()){ p->value_updated_cb()(characteristic_uuid, value_vec); }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)peripheral:(CBPeripheral *)peripheral
         didWriteValueForCharacteristic:(CBCharacteristic *)characteristic
