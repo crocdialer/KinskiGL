@@ -148,6 +148,7 @@ static gatt_connection_t *initialize_gattlib_connection(const gchar *src, const 
 	/* Check if the GattLib thread has been started */
 	if (g_gattlib_thread.ref == 0) {
 		/* Start it */
+		g_gattlib_thread.ref = 1;
 
 		/* Create a thread that will handle Bluetooth events */
 		int error = pthread_create(&g_gattlib_thread.thread, NULL, &connection_thread, &g_gattlib_thread);
@@ -310,7 +311,7 @@ int gattlib_disconnect(gatt_connection_t* connection) {
 	/* Decrease the reference counter of the loop */
 	g_gattlib_thread.ref--;
 	/* Check if we are the last one */
-	if (g_gattlib_thread.ref == 0) {
+	if (g_gattlib_thread.ref <= 0) {
 		g_main_loop_quit(g_gattlib_thread.loop);
 		g_main_loop_unref(g_gattlib_thread.loop);
 		g_main_context_unref(g_gattlib_thread.loop_context);

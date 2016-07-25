@@ -230,7 +230,7 @@ struct PeripheralImpl
     static void gatt_event_handler(uint16_t handle, const uint8_t* data, size_t data_length,
                                    void* user_data)
     {
-        LOG_DEBUG << std::string(data, data + data_length);
+        LOG_TRACE << "handle (" << handle << "): " << std::string(data, data + data_length);
         PeripheralImpl* impl = static_cast<PeripheralImpl*>(user_data);
 
         for(auto &pair : impl->m_characteristics_map)
@@ -258,6 +258,9 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
     std::thread scan_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
+
+    //! maps discovered MAC-adresses to their corresponding peripherals
+    std::map<std::string, PeripheralPtr> m_addr_map;
 
     //! currently open connections
     std::map<PeripheralPtr, connection_ptr> m_connection_map;
@@ -293,7 +296,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         {
             hci_close_dev(m_hci_state.device_handle);
         }
-        LOG_DEBUG << "CentralImpl desctructor";
+        LOG_DEBUG << "CentralImpl destructor";
     }
 
     PeripheralPtr create_peripheral()
@@ -387,17 +390,21 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         }
 
         PeripheralPtr peripheral;
-        // auto it = g_peripheral_reverse_map.find(addr);
+        auto it = m_addr_map.find(addr);
         auto central = central_ref.lock();
 
-        LOG_DEBUG << "discovered peripheral: " << addr;
-        peripheral = create_peripheral();
-        peripheral->m_impl->address = addr;
+        if(it == m_addr_map.end())
+        {
+            LOG_DEBUG << "discovered new peripheral: " << addr;
+            peripheral = create_peripheral();
+            peripheral->m_impl->address = addr;
+        }
+        else{ peripheral = it->second; }
+        
         peripheral->m_impl->name = peripheral_name;
-        peripheral->m_impl->connectable = is_connectable(info->evt_type);
-
+        peripheral->m_impl->connectable = peripheral->m_impl->connectable || is_connectable(info->evt_type);
         peripheral->m_impl->rssi = peripheral_rssi;
-        bool filter_service = !m_uuid_set.empty();
+        bool filter_service = false;//!m_uuid_set.empty();
 
         for(const auto &s : service_uuids)
         {
@@ -408,8 +415,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         // fire discovery callback
         if(emit_event && central && peripheral && peripheral_discovered_cb && !filter_service)
         {
-            // g_peripheral_map[peripheral] = addr;
-            // g_peripheral_reverse_map[addr] = peripheral;
+            m_addr_map[addr] = peripheral;
             peripheral_discovered_cb(central, peripheral);
         }
     }
@@ -515,6 +521,7 @@ void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
         try{ m_impl->scan_thread.join(); }
         catch(std::exception &e){ LOG_WARNING << e.what(); }
     }
+    m_impl->m_addr_map.clear();
     m_impl->scan_thread = std::thread(std::bind(&CentralImpl::thread_func, m_impl.get()));
 }
 
@@ -655,6 +662,16 @@ const std::string Peripheral::identifier() const { return m_impl->address; }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+CentralPtr Peripheral::central() const
+{
+    CentralPtr ret;
+    auto central_impl = m_impl->m_central_impl_ref.lock();
+    if(central_impl){ ret = central_impl->central_ref.lock(); }
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
 void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 {
     // check if we are connected
@@ -729,18 +746,17 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
                     // enable notification
                     uint16_t enable_notification = 1;
                     gattlib_write_char_by_handle(c->gatt_connection,
-                                                 characteristic.value_handle + 1,
+                                                 characteristic.value_handle + 2,
                                                  &enable_notification,
                                                  sizeof(enable_notification));
                 }
             }
+            char buf[128];
+    		sprintf(buf, "characteristic[%d] properties:%02x value_handle:%04x uuid:%s", i,
+    				characteristics[i].properties, characteristics[i].value_handle,
+    				uuid_str);
+            LOG_DEBUG << buf;
         }
-
-        char buf[128];
-		sprintf(buf, "characteristic[%d] properties:%02x value_handle:%04x uuid:%s", i,
-				characteristics[i].properties, characteristics[i].value_handle,
-				uuid_str);
-        LOG_DEBUG << buf;
 	}
     free(services);
 	free(characteristics);
