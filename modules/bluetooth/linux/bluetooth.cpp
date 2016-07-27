@@ -695,6 +695,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     char buf[128];
 
     int ret = gattlib_discover_primary(c->gatt_connection, &services, &services_count);
+    std::shared_ptr<gattlib_primary_service_t> remove_services(services, free);
 
     if(ret != 0){ LOG_WARNING << "could not discover primary services"; }
 
@@ -714,7 +715,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
             gattlib_characteristic_t* characteristics = nullptr;
             ret = gattlib_discover_char_for_service(c->gatt_connection, &services[i], &characteristics,
                                                     &characteristics_count);
-            std::unique_ptr<gattlib_characteristic_t> remove_helper(characteristics, free);
+            std::shared_ptr<gattlib_characteristic_t> remove_characteristics(characteristics, free);
 
             if(ret){ LOG_WARNING << "could not discover characteristics"; }
 
@@ -746,10 +747,8 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
                 characteristics[i].properties, characteristics[i].value_handle, uuid_str);
                 LOG_DEBUG << buf;
             }
-            // free(characteristics);
         }
     }
-    free(services);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
