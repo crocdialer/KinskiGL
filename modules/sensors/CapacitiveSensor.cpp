@@ -55,7 +55,7 @@ namespace kinski
     
     void CapacitiveSensor::update(float time_delta )
     {
-        if(m_impl->m_dirty_params && m_impl->m_sensor_device->is_initialized())
+        if(m_impl->m_dirty_params && is_initialized())
         {
             if(!update_config()){ LOG_WARNING << "could not update config"; }
             m_impl->m_dirty_params = false;
@@ -182,17 +182,7 @@ namespace kinski
         if(the_uart_device)
         {
             m_impl->m_sensor_device = the_uart_device;
-        }
-        else
-        {
-            m_impl->m_sensor_device = Serial::create();
-            m_impl->m_sensor_device->setup();
-        }
-        
-        
-        // finally flush the newly initialized device
-//        if(m_impl->m_sensor_device->is_initialized())
-        {
+            
             m_impl->m_sensor_device->flush();
             m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
@@ -200,6 +190,15 @@ namespace kinski
             set_charge_current(m_impl->m_charge_current);
             return true;
         }
+//        else
+//        {
+//            m_impl->m_sensor_device = Serial::create();
+//            m_impl->m_sensor_device->setup();
+//        }
+        
+        // finally flush the newly initialized device
+//        if(m_impl->m_sensor_device->is_initialized())
+
         return false;
     }
     
