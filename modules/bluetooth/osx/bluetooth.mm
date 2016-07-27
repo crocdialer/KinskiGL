@@ -76,6 +76,7 @@ namespace kinski{ namespace bluetooth{
         }
         ~CentralImpl()
         {
+            central_ref.lock()->disconnect_all();
             [central_manager stopScan];
             [central_manager dealloc];
             [delegate dealloc];
@@ -123,7 +124,7 @@ namespace kinski{ namespace bluetooth{
 
         for(const auto &uuid : the_service_uuids)
         {
-            [services addObject:kinski::bluetooth::str_to_uuid(uuid.string())];
+            [services addObject:kinski::bluetooth::str_to_uuid(uuid.to_string())];
         }
 
         [m_impl->central_manager scanForPeripheralsWithServices:services options:nil];
@@ -232,7 +233,7 @@ namespace kinski{ namespace bluetooth{
         NSMutableArray<CBUUID *> *services = [NSMutableArray<CBUUID *> array];
         for(const auto &pair : m_impl->known_services)
         {
-            [services addObject:kinski::bluetooth::str_to_uuid(pair.first.string())];
+            [services addObject:kinski::bluetooth::str_to_uuid(pair.first.to_string())];
         }
         
         CBCentralManager * m = m_impl->m_central_impl_ref.lock()->central_manager;
@@ -299,7 +300,7 @@ namespace kinski{ namespace bluetooth{
             NSMutableArray<CBUUID *> *services = [NSMutableArray<CBUUID *> array];
             for(const auto &uuid : the_uuids)
             {
-                [services addObject:kinski::bluetooth::str_to_uuid(uuid.string())];
+                [services addObject:kinski::bluetooth::str_to_uuid(uuid.to_string())];
             }
 
             [p discoverServices:services];
@@ -575,7 +576,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
         for (CBService *service in peripheral.services)
         {
             auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
-            LOG_TRACE_1 << "discovered service: " << service_uuid.string();
+            LOG_TRACE_1 << "discovered service: " << service_uuid.to_string();
 
             auto service_it = p->known_services().find(service_uuid);
 
@@ -612,7 +613,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     auto service_uuid = kinski::bluetooth::UUID([service.UUID.UUIDString UTF8String]);
 
     LOG_TRACE_1 << "discovered " << service.characteristics.count << " characteristics for service: "
-        << service_uuid.string();
+        << service_uuid.to_string();
 
 
     auto it = kinski::bluetooth::g_peripheral_reverse_map.find(peripheral);
@@ -628,7 +629,7 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
 
             if([c properties] & CBCharacteristicPropertyNotify)
             {            
-                LOG_TRACE_1 << "subscribed to characteristic: " << characteristic_uuid.string();
+                LOG_TRACE_1 << "subscribed to characteristic: " << characteristic_uuid.to_string();
                 [peripheral setNotifyValue:YES forCharacteristic: c];
             }
         }

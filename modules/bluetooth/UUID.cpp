@@ -85,7 +85,7 @@ UUID::UUID(const uint8_t *the_bytes, Type t)
 
 const uint8_t* UUID::bytes() const { return m_data; }
 
-const std::string UUID::string() const
+const std::string UUID::to_string() const
 {
     std::stringstream ss;
 

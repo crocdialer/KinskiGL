@@ -13,7 +13,7 @@ public:
     explicit UUID(const uint8_t *the_bytes, Type t = UUID_128);
     
     const uint8_t* bytes() const;
-    const std::string string() const;
+    const std::string to_string() const;
 
     UUID& operator=(const UUID &the_other);
     bool operator==(const UUID &the_other) const;
