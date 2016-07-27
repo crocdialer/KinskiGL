@@ -690,8 +690,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     connection_ptr c = p_it->second;
 
     gattlib_primary_service_t* services;
-    gattlib_characteristic_t* characteristics;
-    int services_count, characteristics_count;
+    int services_count;
     char uuid_str[MAX_LEN_UUID_STR + 1];
     char buf[128];
 
@@ -711,10 +710,12 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
             sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
                     services[i].attr_handle_start, services[i].attr_handle_end, uuid_str);
             LOG_DEBUG << buf;
-            characteristics_count = 0;
-            characteristics = nullptr;
+            int characteristics_count = 0;
+            gattlib_characteristic_t* characteristics = nullptr;
             ret = gattlib_discover_char_for_service(c->gatt_connection, &services[i], &characteristics,
                                                     &characteristics_count);
+            std::unique_ptr<gattlib_characteristic_t> remove_helper(characteristics, free);
+
             if(ret){ LOG_WARNING << "could not discover characteristics"; }
 
             for (int i = 0; i < characteristics_count; i++)
@@ -745,7 +746,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
                 characteristics[i].properties, characteristics[i].value_handle, uuid_str);
                 LOG_DEBUG << buf;
             }
-            free(characteristics);
+            // free(characteristics);
         }
     }
     free(services);
