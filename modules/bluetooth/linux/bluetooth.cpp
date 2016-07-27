@@ -400,7 +400,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
             peripheral->m_impl->address = addr;
         }
         else{ peripheral = it->second; }
-        
+
         peripheral->m_impl->name = peripheral_name;
         peripheral->m_impl->connectable = peripheral->m_impl->connectable || is_connectable(info->evt_type);
         peripheral->m_impl->rssi = peripheral_rssi;
@@ -544,18 +544,18 @@ void Central::connect_peripheral(const PeripheralPtr &p, PeripheralCallback cb)
 
         connection_ptr c = std::make_shared<_connection>();
         c->address = p->identifier();
-        c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_PUBLIC, BT_IO_SEC_LOW, 0, 0);
+        c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_RANDOM, BT_IO_SEC_LOW, 0, 0);
 
         if(!c->gatt_connection)
         {
-		    c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_RANDOM, BT_IO_SEC_LOW, 0, 0);
+            c->gatt_connection = gattlib_connect(NULL, c->address.c_str(), BDADDR_LE_PUBLIC, BT_IO_SEC_LOW, 0, 0);
 
 		    if(!c->gatt_connection)
             {
 			    LOG_WARNING << "could not connect bluetooth device: " << c->address;
                 return;
 		    }
-            else { LOG_DEBUG << "connected device with random address"; }
+            else { LOG_DEBUG << "connected device with public address"; }
 	    }
         else { LOG_DEBUG << "connected bluetooth device: " << c->address; }
         m_impl->m_connection_map[p] = c;
@@ -693,6 +693,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     gattlib_characteristic_t* characteristics;
     int services_count, characteristics_count;
     char uuid_str[MAX_LEN_UUID_STR + 1];
+    char buf[128];
 
     int ret = gattlib_discover_primary(c->gatt_connection, &services, &services_count);
 
@@ -701,65 +702,53 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
     for (int i = 0; i < services_count; i++)
     {
         gattlib_uuid_to_string(&services[i].uuid, uuid_str, sizeof(uuid_str));
-        auto uuid = UUID(uuid_str);
-        m_impl->m_service_map[uuid] = services[i];
+        auto service_uuid = UUID(uuid_str);
+        m_impl->m_service_map[service_uuid] = services[i];
 
-        if(the_uuids.empty() || is_in(uuid, the_uuids))
+        if(the_uuids.empty() || is_in(service_uuid, the_uuids))
         {
-            add_service(uuid);
-
-            char buf[128];
+            add_service(service_uuid);
             sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
                     services[i].attr_handle_start, services[i].attr_handle_end, uuid_str);
             LOG_DEBUG << buf;
-        }
-    }
+            characteristics_count = 0;
+            characteristics = nullptr;
+            ret = gattlib_discover_char_for_service(c->gatt_connection, &services[i], &characteristics,
+                                                    &characteristics_count);
+            if(ret){ LOG_WARNING << "could not discover characteristics"; }
 
-    ret = gattlib_discover_char_for_service(c->gatt_connection, nullptr, &characteristics,
-                                            &characteristics_count);
-	if(ret != 0){ LOG_WARNING << "could not discover characteristics"; }
-
-	for (int i = 0; i < characteristics_count; i++)
-    {
-        auto &characteristic = characteristics[i];
-
-		gattlib_uuid_to_string(&characteristic.uuid, uuid_str, sizeof(uuid_str));
-        auto char_uuid = UUID(uuid_str);
-        m_impl->m_characteristics_map[char_uuid] = characteristic;
-
-        // check if the characteristic is contained in one of our desired services
-        for(auto &pair : m_impl->known_services)
-        {
-            const UUID& service_uuid = pair.first;
-            const auto& s = m_impl->m_service_map[service_uuid];
-
-            if(characteristic.value_handle >= s.attr_handle_start &&
-               characteristic.value_handle <= s.attr_handle_end)
+            for (int i = 0; i < characteristics_count; i++)
             {
-                pair.second.insert(char_uuid);
+                auto &characteristic = characteristics[i];
+
+                gattlib_uuid_to_string(&characteristic.uuid, uuid_str, sizeof(uuid_str));
+                auto char_uuid = UUID(uuid_str);
+                m_impl->m_characteristics_map[char_uuid] = characteristic;
+
+                add_characteristic(service_uuid, char_uuid);
 
                 // notifications
                 if(characteristic.properties & CharacteristicPropertyNotify)
                 {
-                    LOG_DEBUG << "subscribed to characteristic: " << char_uuid.string();
+                    LOG_DEBUG << "subscribed to characteristic: " << char_uuid.to_string();
 
                     // enable notification
-                    uint16_t enable_notification = 1;
+                    uint16_t enable_notification = 0x0001;
+
+                    //TODO: find a proper way to determine CCCD-handle
                     gattlib_write_char_by_handle(c->gatt_connection,
                                                  characteristic.value_handle + 2,
                                                  &enable_notification,
                                                  sizeof(enable_notification));
                 }
+                sprintf(buf, "characteristic[%d] properties:%02x value_handle:%04x uuid:%s", i,
+                characteristics[i].properties, characteristics[i].value_handle, uuid_str);
+                LOG_DEBUG << buf;
             }
-            char buf[128];
-    		sprintf(buf, "characteristic[%d] properties:%02x value_handle:%04x uuid:%s", i,
-    				characteristics[i].properties, characteristics[i].value_handle,
-    				uuid_str);
-            LOG_DEBUG << buf;
+            free(characteristics);
         }
-	}
+    }
     free(services);
-	free(characteristics);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
