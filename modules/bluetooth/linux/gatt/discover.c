@@ -32,6 +32,7 @@ struct primary_all_cb_t {
 	gattlib_primary_service_t* services;
 	int services_count;
 	volatile int discovered;
+	int timeout;
 };
 
 static void primary_all_cb(GSList *services, guint8 status, gpointer user_data) {
@@ -62,6 +63,14 @@ done:
 	data->discovered = TRUE;
 }
 
+static gboolean discover_primary_timeout(gpointer user_data)
+{
+	// printf("discover_primary timed out!\n");
+	volatile struct primary_all_cb_t* data = user_data;
+	data->timeout = TRUE;
+	return FALSE;
+}
+
 int gattlib_discover_primary(gatt_connection_t* connection, gattlib_primary_service_t** services,
 							 int* services_count)
 {
@@ -69,24 +78,33 @@ int gattlib_discover_primary(gatt_connection_t* connection, gattlib_primary_serv
 
 	struct primary_all_cb_t user_data;
 	guint ret;
-
 	memset(&user_data, 0, sizeof(user_data));
-	user_data.discovered     = FALSE;
-
+	user_data.discovered = FALSE;
+	user_data.timeout = FALSE;
 	ret = gatt_discover_primary(connection->attrib, NULL, primary_all_cb, &user_data);
-	if (ret == 0) {
+
+	if (ret == 0)
+	{
 		fprintf(stderr, "Fail to discover primary services.\n");
 		return 1;
 	}
-
+	int timeout_secs = 3;
+	GSource* timeout = gattlib_timeout_add_seconds(timeout_secs, discover_primary_timeout,
+		 										   &user_data);
 	// Wait for completion
-	while(user_data.discovered == FALSE) {
+	while((user_data.discovered == FALSE) && (user_data.timeout == FALSE))
+	{
 		g_main_context_iteration(g_gattlib_thread.loop_context, FALSE);
 	}
+	g_source_destroy(timeout);
 
+	if(user_data.timeout)
+	{
+		printf("discover_primary timed out!\n");
+		return 1;
+	}
 	*services       = user_data.services;
 	*services_count = user_data.services_count;
-
 	return 0;
 }
 

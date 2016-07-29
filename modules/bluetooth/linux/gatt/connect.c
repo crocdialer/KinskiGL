@@ -168,15 +168,9 @@ static gatt_connection_t *initialize_gattlib_connection(const gchar *src, const 
 	bdaddr_t sba, dba;
 	GError *err = NULL;
 
-	int zero = 0, one = 1;
-
 	/* Check if the GattLib thread has been started */
-	// if (g_atomic_int_get(&g_gattlib_thread.ref) == 0)
 	if(g_atomic_int_compare_and_exchange(&g_gattlib_thread.ref, 0, 1))
 	{
-		/* Start it */
-		// g_atomic_int_set(&g_gattlib_thread.ref, 1);
-
 		/* Create a thread that will handle Bluetooth events */
 		int error = pthread_create(&g_gattlib_thread.thread, NULL, &connection_thread, &g_gattlib_thread);
 		if (error != 0) {

@@ -488,7 +488,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
 		    }
         }//while(m_impl->m_running && !error)
         m_running = false;
-        LOG_TRACE << "LE scan thread ended";
+        LOG_DEBUG << "LE scan thread ended";
     }
 };
 
