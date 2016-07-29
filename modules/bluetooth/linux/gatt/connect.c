@@ -77,6 +77,27 @@ static void events_handler(const uint8_t *pdu, uint16_t len, gpointer user_data)
 		g_attrib_send(conn->attrib, 0, opdu[0], opdu, olen, NULL, NULL, NULL);
 }
 
+static void task_dec()
+{
+	//TODO: Add a mutex around this code to avoid a race condition
+	/* Decrease the reference counter of the loop */
+	// g_gattlib_thread.ref--;
+
+	/* Check if we are the last one */
+	if (g_atomic_int_dec_and_test(&g_gattlib_thread.ref))
+	{
+		g_main_loop_quit(g_gattlib_thread.loop);
+		// g_main_loop_unref(g_gattlib_thread.loop);
+		// g_main_context_unref(g_gattlib_thread.loop_context);
+
+		// Detach the thread
+		if(pthread_detach(g_gattlib_thread.thread))
+		{
+			printf("pthread_detach failed\n");
+		}
+	}
+}
+
 static gboolean io_listen_cb(gpointer user_data) {
 	gatt_connection_t *conn = user_data;
 
@@ -127,13 +148,15 @@ static void io_connect_cb(GIOChannel *io, GError *err, gpointer user_data) {
 }
 
 static void *connection_thread(void* arg) {
+	printf("connection thread started\n");
 	struct gattlib_thread_t* loop_thread = arg;
 
 	loop_thread->loop_context = g_main_context_new();
-	loop_thread->loop = g_main_loop_new(loop_thread->loop_context, TRUE);
-
+	loop_thread->loop = g_main_loop_new(loop_thread->loop_context, FALSE);
 	g_main_loop_run(loop_thread->loop);
 	g_main_loop_unref(loop_thread->loop);
+	g_main_context_unref(loop_thread->loop_context);
+	printf("connection thread ended\n");
 	assert(0);
 }
 
@@ -145,10 +168,14 @@ static gatt_connection_t *initialize_gattlib_connection(const gchar *src, const 
 	bdaddr_t sba, dba;
 	GError *err = NULL;
 
+	int zero = 0, one = 1;
+
 	/* Check if the GattLib thread has been started */
-	if (g_gattlib_thread.ref == 0) {
+	// if (g_atomic_int_get(&g_gattlib_thread.ref) == 0)
+	if(g_atomic_int_compare_and_exchange(&g_gattlib_thread.ref, 0, 1))
+	{
 		/* Start it */
-		g_gattlib_thread.ref = 1;
+		// g_atomic_int_set(&g_gattlib_thread.ref, 1);
 
 		/* Create a thread that will handle Bluetooth events */
 		int error = pthread_create(&g_gattlib_thread.thread, NULL, &connection_thread, &g_gattlib_thread);
@@ -163,7 +190,7 @@ static gatt_connection_t *initialize_gattlib_connection(const gchar *src, const 
 		}
 	} else {
 		/* Increase the reference to know how many GATT connection use the loop */
-		g_gattlib_thread.ref++;
+		g_atomic_int_inc(&g_gattlib_thread.ref);
 	}
 
 	/* Remote device */
@@ -260,6 +287,7 @@ static gboolean connection_timeout(gpointer user_data) {
 gatt_connection_t *gattlib_connect(const gchar *src, const gchar *dst,
 				uint8_t dest_type, BtIOSecLevel sec_level, int psm, int mtu)
 {
+	printf("gattlib_connect\n");
 	io_connect_arg_t io_connect_arg;
 	GSource* timeout;
 
@@ -278,23 +306,29 @@ gatt_connection_t *gattlib_connect(const gchar *src, const gchar *dst,
 	timeout = gattlib_timeout_add_seconds(CONNECTION_TIMEOUT + 4, connection_timeout, &io_connect_arg);
 
 	// Wait for the connection to be done
-	while ((io_connect_arg.connected == FALSE) && (io_connect_arg.timeout == FALSE)) {
+	while ((io_connect_arg.connected == FALSE) && (io_connect_arg.timeout == FALSE))
+	{
 		g_main_context_iteration(g_gattlib_thread.loop_context, FALSE);
 	}
+	printf("gattlib_connect passed wait loop\n");
 
 	// Disconnect the timeout source
 	g_source_destroy(timeout);
 
-	if (io_connect_arg.timeout) {
+	if (io_connect_arg.timeout)
+	{
+		printf("connection timeout\n");
+		task_dec();
 		return NULL;
 	}
 
-	if (io_connect_arg.error) {
+	if (io_connect_arg.error)
+	{
 		fprintf(stderr, "gattlib_connect - connection error:%s\n", io_connect_arg.error->message);
+		task_dec();
 		return NULL;
-	} else {
-		return conn;
 	}
+	else{ return conn; }
 }
 
 int gattlib_disconnect(gatt_connection_t* connection) {
@@ -302,24 +336,9 @@ int gattlib_disconnect(gatt_connection_t* connection) {
 	GIOStatus status = g_io_channel_shutdown(connection->io, FALSE, NULL);
 	assert(status == G_IO_STATUS_NORMAL);
 	g_io_channel_unref(connection->io);
-
 	g_attrib_unref(connection->attrib);
-
 	free(connection);
-
-	//TODO: Add a mutex around this code to avoid a race condition
-	/* Decrease the reference counter of the loop */
-	g_gattlib_thread.ref--;
-	/* Check if we are the last one */
-	if (g_gattlib_thread.ref <= 0) {
-		g_main_loop_quit(g_gattlib_thread.loop);
-		g_main_loop_unref(g_gattlib_thread.loop);
-		g_main_context_unref(g_gattlib_thread.loop_context);
-
-		// Detach the thread
-		pthread_detach(g_gattlib_thread.thread);
-	}
-
+	task_dec();
 	return 0;
 }
 

@@ -254,7 +254,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
 {
     std::weak_ptr<Central> central_ref;
     hci_state m_hci_state;
-    bool m_running = false;
+    volatile bool m_running = false;
     std::thread scan_thread;
     PeripheralCallback
     peripheral_discovered_cb, peripheral_connected_cb, peripheral_disconnected_cb;
@@ -488,7 +488,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
 		    }
         }//while(m_impl->m_running && !error)
         m_running = false;
-        LOG_DEBUG << "scan thread ended";
+        LOG_TRACE << "LE scan thread ended";
     }
 };
 
@@ -588,6 +588,8 @@ void Central::disconnect_peripheral(const PeripheralPtr &the_peripheral)
 
 void Central::disconnect_all()
 {
+    LOG_DEBUG << "disconnecting all peripherals";
+
     for(auto &pair : m_impl->m_connection_map)
     {
         gattlib_disconnect(pair.second->gatt_connection);
@@ -790,6 +792,24 @@ void Peripheral::read_value_for_characteristic(const UUID &the_characteristic,
                                                Peripheral::ValueUpdatedCallback cb)
 {
     if(!is_connected()){ return; }
+
+    auto central_impl = m_impl->m_central_impl_ref.lock();
+    if(!central_impl){ return; }
+
+    // look for characteristic
+    auto char_it = m_impl->m_characteristics_map.find(the_characteristic);
+
+    if(char_it != m_impl->m_characteristics_map.end())
+    {
+        bt_uuid_t bt_uuid;
+        bt_string_to_uuid(&bt_uuid, the_characteristic.to_string().c_str());
+        connection_ptr con = central_impl->m_connection_map[shared_from_this()];
+        int len = 0;
+        uint8_t buf[100];
+        len = gattlib_read_char_by_uuid(con->gatt_connection, &bt_uuid, buf, sizeof(buf));
+        if(cb && len){ cb(the_characteristic, std::vector<uint8_t>(buf, buf + len)); }
+    }
+    else{ LOG_WARNING << "could not read characteristic: not found"; }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////

@@ -31,11 +31,11 @@
 struct primary_all_cb_t {
 	gattlib_primary_service_t* services;
 	int services_count;
-	int discovered;
+	volatile int discovered;
 };
 
 static void primary_all_cb(GSList *services, guint8 status, gpointer user_data) {
-	struct primary_all_cb_t* data = user_data;
+	volatile struct primary_all_cb_t* data = user_data;
 	GSList *l;
 	int i;
 
@@ -62,11 +62,15 @@ done:
 	data->discovered = TRUE;
 }
 
-int gattlib_discover_primary(gatt_connection_t* connection, gattlib_primary_service_t** services, int* services_count) {
+int gattlib_discover_primary(gatt_connection_t* connection, gattlib_primary_service_t** services,
+							 int* services_count)
+{
+	printf("discover_primary\n");
+
 	struct primary_all_cb_t user_data;
 	guint ret;
 
-	bzero(&user_data, sizeof(user_data));
+	memset(&user_data, 0, sizeof(user_data));
 	user_data.discovered     = FALSE;
 
 	ret = gatt_discover_primary(connection->attrib, NULL, primary_all_cb, &user_data);
@@ -89,11 +93,11 @@ int gattlib_discover_primary(gatt_connection_t* connection, gattlib_primary_serv
 struct characteristic_cb_t {
 	gattlib_characteristic_t* characteristics;
 	int characteristics_count;
-	int discovered;
+	volatile int discovered;
 };
 
 static void characteristic_cb(GSList *characteristics, guint8 status, gpointer user_data) {
-	struct characteristic_cb_t* data = user_data;
+	volatile struct characteristic_cb_t* data = user_data;
 	GSList *l;
 	int i;
 
@@ -125,11 +129,12 @@ int gattlib_discover_char_for_service(gatt_connection_t* connection,
                                       gattlib_characteristic_t** characteristics,
                                       int* characteristics_count)
 {
+	printf("discover_char_for_service\n");
 	struct characteristic_cb_t user_data;
 	const int start = service ? service->attr_handle_start : 0x0001;
 	const int end = service ? service->attr_handle_end : 0xffff;;
 	guint ret;
-	bzero(&user_data, sizeof(user_data));
+	memset(&user_data, 0, sizeof(user_data));
 	user_data.discovered     = FALSE;
 	ret = gatt_discover_char(connection->attrib, start, end, NULL, characteristic_cb, &user_data);
 

@@ -31,7 +31,7 @@
 #include "gattlib.h"
 
 struct gattlib_thread_t {
-	int           ref;
+	volatile int  ref;
 	pthread_t     thread;
 	GMainContext* loop_context;
 	GMainLoop*    loop;
