@@ -518,6 +518,7 @@ void Central::discover_peripherals(const std::set<UUID>& the_service_uuids)
 
     if(m_impl->scan_thread.joinable())
     {
+        m_impl->m_running = false;
         try{ m_impl->scan_thread.join(); }
         catch(std::exception &e){ LOG_WARNING << e.what(); }
     }
