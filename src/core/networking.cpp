@@ -406,11 +406,6 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-//        tcp_connection_ptr tcp_connection::create(std::shared_ptr<tcp_connection_impl> the_impl)
-//        { return tcp_connection_ptr(new tcp_connection(the_impl)); }
-        
-        ///////////////////////////////////////////////////////////////////////////////
-        
         struct tcp_connection_impl
         {
             tcp_connection_impl(tcp::socket s,
@@ -501,14 +496,14 @@ namespace kinski
         
         void tcp_connection::start_receive()
         {
-            _start_receive(m_impl);
+            _start_receive();
         }
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_connection::_start_receive(std::shared_ptr<tcp_connection_impl> impl_ptr)
+        void tcp_connection::_start_receive()
         {
-            auto impl_cp = impl_ptr ? impl_ptr : m_impl;
+            auto impl_cp = m_impl;
             impl_cp->socket.async_receive(boost::asio::buffer(impl_cp->recv_buffer),
             [this, impl_cp](const boost::system::error_code& error,
                             std::size_t bytes_transferred)
@@ -525,7 +520,7 @@ namespace kinski
                     
                     // only keep receiving if there are any refs on this instance left
                     if(impl_cp.use_count() > 1)
-                        _start_receive(impl_cp);
+                        _start_receive();
                 }
                 else
                 {
@@ -576,7 +571,7 @@ namespace kinski
         {
             try{ return m_impl->socket.local_endpoint().port(); }
             catch (std::exception &e) {}
-            return -1;
+            return 0;
         }
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -594,7 +589,7 @@ namespace kinski
         {
             try{ return m_impl->socket.remote_endpoint().port(); }
             catch (std::exception &e) {}
-            return -1;
+            return 0;
         }
     }
 }

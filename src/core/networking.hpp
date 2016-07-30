@@ -144,7 +144,7 @@ namespace kinski
             
             tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl);
             
-            void _start_receive(impl_ptr the_impl_ptr = impl_ptr());
+            void _start_receive();
             
             impl_ptr m_impl;
         };
