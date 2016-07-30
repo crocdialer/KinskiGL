@@ -19,18 +19,6 @@ namespace kinski
 {
     namespace net
     {
-        class tcp_server;
-        class udp_server;
-        
-        typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;
-        
-        // signature for a receive function
-        typedef std::function<void (const std::vector<uint8_t>&, const std::string&, uint16_t)>
-            receive_function;
-        
-        typedef std::function<void(tcp_connection_ptr,
-                                   const std::vector<uint8_t>&)> tcp_receive_callback;
-        
         std::string local_ip(bool ipV6 = false);
         
         KINSKI_API void send_tcp(const std::string &str, const std::string &ip_string, int port);
@@ -74,18 +62,24 @@ namespace kinski
         {
         public:
             
+            typedef std::function<void (const std::vector<uint8_t>&, const std::string&, uint16_t)>
+                receive_cb_t;
+            
             udp_server();
-            udp_server(boost::asio::io_service& io_service, receive_function f = receive_function());
+            udp_server(boost::asio::io_service& io_service, receive_cb_t f = receive_cb_t());
             
             KINSKI_API void start_listen(uint16_t port);
             KINSKI_API void stop_listen();
-            KINSKI_API void set_receive_function(receive_function f);
+            KINSKI_API void set_receive_function(receive_cb_t f);
             KINSKI_API void set_receive_buffer_size(size_t sz);
             KINSKI_API uint16_t listening_port() const;
             
         private:
-            std::unique_ptr<struct udp_server_impl> m_impl;
+            struct udp_server_impl;
+            std::unique_ptr<udp_server_impl> m_impl;
         };
+        
+        typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;
         
         KINSKI_API class tcp_server
         {
@@ -111,19 +105,22 @@ namespace kinski
         {
         public:
             
+            // tcp receive function
+            typedef std::function<void(tcp_connection_ptr,
+                                       const std::vector<uint8_t>&)> tcp_receive_cb_t;
+            
             KINSKI_API static tcp_connection_ptr create(boost::asio::io_service& io_service,
                                                         std::string the_ip,
                                                         uint16_t the_port,
-                                                        tcp_receive_callback f);
+                                                        tcp_receive_cb_t f);
             
-            ~tcp_connection();
+            virtual ~tcp_connection();
             
             KINSKI_API void send(const std::string &str);
             KINSKI_API void send(const std::vector<uint8_t> &bytes);
             KINSKI_API void send(void* data, size_t num_bytes);
             
-            KINSKI_API void set_receive_function(tcp_receive_callback f);
-            KINSKI_API void start_receive();
+            KINSKI_API void tcp_receive_cb(tcp_receive_cb_t f);
             
             KINSKI_API bool close();
             KINSKI_API bool is_open() const;
@@ -135,18 +132,17 @@ namespace kinski
         private:
             
             friend tcp_server_impl;
-            typedef std::shared_ptr<struct tcp_connection_impl> impl_ptr;
+            struct tcp_connection_impl;
+            std::shared_ptr<tcp_connection_impl> m_impl;
             
             tcp_connection(boost::asio::io_service& io_service,
                            std::string the_ip,
                            uint16_t the_port,
-                           tcp_receive_callback f);
+                           tcp_receive_cb_t f);
             
-            tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl);
+            tcp_connection();
             
-            void _start_receive();
-            
-            impl_ptr m_impl;
+            void start_receive();
         };
     }// namespace net
 }// namespace kinski

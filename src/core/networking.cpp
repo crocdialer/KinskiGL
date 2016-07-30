@@ -92,7 +92,7 @@ namespace kinski
                         {
                             boost::asio::connect(*socket_ptr, end_point_it);
                             boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
-                                                     [socket_ptr, ip_string]
+                                                     [socket_ptr, ip_string, bytes]
                                                      (const boost::system::error_code& error,
                                                       std::size_t bytes_transferred)
                             {
@@ -200,10 +200,10 @@ namespace kinski
         
         /////////////////////////////////////////////////////////////////
         
-        struct udp_server_impl
+        struct udp_server::udp_server_impl
         {
         public:
-            udp_server_impl(boost::asio::io_service& io_service, net::receive_function f):
+            udp_server_impl(boost::asio::io_service& io_service, receive_cb_t f):
             socket(io_service),
             resolver(io_service),
             recv_buffer(1 << 20),
@@ -213,7 +213,7 @@ namespace kinski
             udp::resolver resolver;
             udp::endpoint remote_endpoint;
             std::vector<uint8_t> recv_buffer;
-            net::receive_function receive_function;
+            receive_cb_t receive_function;
         };
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        udp_server::udp_server(boost::asio::io_service& io_service, receive_function f):
+        udp_server::udp_server(boost::asio::io_service& io_service, receive_cb_t f):
         m_impl(new udp_server_impl(io_service, f))
         {
         
@@ -230,7 +230,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void udp_server::set_receive_function(receive_function f)
+        void udp_server::set_receive_function(receive_cb_t f)
         {
             m_impl->receive_function = f;
         }
@@ -315,14 +315,13 @@ namespace kinski
             
             void accept()
             {
-                acceptor.async_accept(socket,
-                [this](boost::system::error_code ec)
+                acceptor.async_accept(socket, [this](boost::system::error_code ec)
                 {
                     if (!ec)
                     {
-                        auto impl = std::make_shared<tcp_connection_impl>(std::move(socket));
-                        tcp_connection_ptr con(new tcp_connection(impl));
-                        con->set_receive_function([](tcp_connection_ptr, const std::vector<uint8_t> &data)
+                        tcp_connection_ptr con(new tcp_connection());
+                        con->m_impl = std::make_shared<tcp_connection::tcp_connection_impl>(std::move(socket));
+                        con->tcp_receive_cb([](tcp_connection_ptr, const std::vector<uint8_t> &data)
                         {
                             LOG_DEBUG << std::string(data.begin(), data.end());
                         });
@@ -375,7 +374,6 @@ namespace kinski
                 {
                     LOG_ERROR << "could not start listening on port: " << port << " (" << e.what()
                     << ")";
-                    
                     return;
                 }
             }
@@ -401,15 +399,19 @@ namespace kinski
         tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
                                                   std::string the_ip,
                                                   uint16_t the_port,
-                                                  tcp_receive_callback f)
-        { return tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f)); }
+                                                  tcp_receive_cb_t f)
+        {
+            auto ret = tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f));
+            ret->start_receive();
+            return ret;
+        }
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        struct tcp_connection_impl
+        struct tcp_connection::tcp_connection_impl
         {
             tcp_connection_impl(tcp::socket s,
-                                net::tcp_receive_callback f = net::tcp_receive_callback()):
+                                tcp_receive_cb_t f = tcp_receive_cb_t()):
             socket(std::move(s)),
             recv_buffer(8192),
             tcp_receive_cb(f)
@@ -418,21 +420,19 @@ namespace kinski
             tcp::socket socket;
             std::vector<uint8_t> recv_buffer;
             
-            net::tcp_receive_callback tcp_receive_cb;
+            tcp_receive_cb_t tcp_receive_cb;
         };
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        tcp_connection::tcp_connection(std::shared_ptr<tcp_connection_impl> the_impl):
-        m_impl(the_impl)
-        {}
+        tcp_connection::tcp_connection(){}
         
         ///////////////////////////////////////////////////////////////////////////////
         
         tcp_connection::tcp_connection(boost::asio::io_service& io_service,
                                        std::string the_ip,
                                        uint16_t the_port,
-                                       tcp_receive_callback f):
+                                       tcp_receive_cb_t f):
         m_impl(new tcp_connection_impl(tcp::socket(io_service), f))
         {
             try
@@ -464,21 +464,14 @@ namespace kinski
         
         void tcp_connection::send(const std::vector<uint8_t> &bytes)
         {
-            send((void*)&bytes[0], bytes.size());
-        }
-        
-        ///////////////////////////////////////////////////////////////////////////////
-        
-        void tcp_connection::send(void* data, size_t num_bytes)
-        {
             auto impl = m_impl;
             boost::asio::async_write(m_impl->socket,
-                                     boost::asio::buffer(data, num_bytes),
-                                     [impl, num_bytes](const boost::system::error_code& error,
-                                                       std::size_t bytes_transferred)
+                                     boost::asio::buffer(bytes),
+                                     [impl, bytes](const boost::system::error_code& error,
+                                                   std::size_t bytes_transferred)
             {
                 if(error){ LOG_ERROR << error.message(); }
-                else if(bytes_transferred < num_bytes)
+                else if(bytes_transferred < bytes.size())
                 {
                     LOG_WARNING << "not all bytes written";
                 }
@@ -487,7 +480,14 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_connection::set_receive_function(tcp_receive_callback tcp_cb)
+        void tcp_connection::send(void* data, size_t num_bytes)
+        {
+            send(std::vector<uint8_t>((uint8_t*)data, (uint8_t*)data + num_bytes));
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void tcp_connection::tcp_receive_cb(tcp_receive_cb_t tcp_cb)
         {
             m_impl->tcp_receive_cb = tcp_cb;
         }
@@ -495,13 +495,6 @@ namespace kinski
         ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_connection::start_receive()
-        {
-            _start_receive();
-        }
-        
-        ///////////////////////////////////////////////////////////////////////////////
-        
-        void tcp_connection::_start_receive()
         {
             auto impl_cp = m_impl;
             impl_cp->socket.async_receive(boost::asio::buffer(impl_cp->recv_buffer),
@@ -519,8 +512,7 @@ namespace kinski
                     }
                     
                     // only keep receiving if there are any refs on this instance left
-                    if(impl_cp.use_count() > 1)
-                        _start_receive();
+                    if(impl_cp.use_count() > 1){ start_receive(); }
                 }
                 else
                 {

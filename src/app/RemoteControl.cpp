@@ -56,7 +56,7 @@ void RemoteControl::start_listen(uint16_t port)
         con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
-    add_command("generate_snapshot", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
+    add_command("snapshot", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         std::vector<uint8_t> bytes;
         
@@ -110,9 +110,8 @@ void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)
     m_tcp_connections = tmp;
     m_tcp_connections.push_back(con);
     
-    con->set_receive_function(std::bind(&RemoteControl::receive_cb, this,
-                                        std::placeholders::_1,
-                                        std::placeholders::_2));
+    con->tcp_receive_cb(std::bind(&RemoteControl::receive_cb, this, std::placeholders::_1,
+                                  std::placeholders::_2));
 }
 
 void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,

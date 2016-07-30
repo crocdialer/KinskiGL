@@ -97,7 +97,7 @@ namespace kinski {
         // find font file
         std::string font_path;
         try { font_path = fs::search_file("Courier New Bold.ttf"); }
-        catch (fs::FileNotFoundException &e){ LOG_WARNING << e.what(); }
+        catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.what(); }
         
         if(font_path.empty())
         {
