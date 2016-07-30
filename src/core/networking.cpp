@@ -244,7 +244,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void udp_server::start_listen(int port)
+        void udp_server::start_listen(uint16_t port)
         {
             if(!m_impl->socket.is_open())
             {
@@ -293,14 +293,14 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        unsigned short udp_server::listening_port() const
+        uint16_t udp_server::listening_port() const
         {
             return m_impl->socket.local_endpoint().port();
         }
             
         /////////////////////////////////////////////////////////////////
         
-        struct tcp_server::tcp_server_impl
+        struct tcp_server_impl
         {
             tcp::acceptor acceptor;
             tcp::socket socket;
@@ -320,8 +320,8 @@ namespace kinski
                 {
                     if (!ec)
                     {
-                        auto impl = std::make_shared<tcp_connection::tcp_connection_impl>(std::move(socket));
-                        tcp_connection_ptr con = tcp_connection::create(impl);
+                        auto impl = std::make_shared<tcp_connection_impl>(std::move(socket));
+                        tcp_connection_ptr con(new tcp_connection(impl));
                         con->set_receive_function([](tcp_connection_ptr, const std::vector<uint8_t> &data)
                         {
                             LOG_DEBUG << std::string(data.begin(), data.end());
@@ -353,7 +353,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_server::start_listen(int port)
+        void tcp_server::start_listen(uint16_t port)
         {
             if(!m_impl)
             {
@@ -384,7 +384,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        unsigned short tcp_server::listening_port() const
+        uint16_t tcp_server::listening_port() const
         {
             return m_impl->acceptor.local_endpoint().port();
         }
@@ -400,18 +400,18 @@ namespace kinski
         
         tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
                                                   std::string the_ip,
-                                                  short the_port,
+                                                  uint16_t the_port,
                                                   tcp_receive_callback f)
         { return tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f)); }
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        tcp_connection_ptr tcp_connection::create(std::shared_ptr<tcp_connection_impl> the_impl)
-        { return tcp_connection_ptr(new tcp_connection(the_impl)); }
+//        tcp_connection_ptr tcp_connection::create(std::shared_ptr<tcp_connection_impl> the_impl)
+//        { return tcp_connection_ptr(new tcp_connection(the_impl)); }
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        struct tcp_connection::tcp_connection_impl
+        struct tcp_connection_impl
         {
             tcp_connection_impl(tcp::socket s,
                                 net::tcp_receive_callback f = net::tcp_receive_callback()):
@@ -436,7 +436,7 @@ namespace kinski
         
         tcp_connection::tcp_connection(boost::asio::io_service& io_service,
                                        std::string the_ip,
-                                       short the_port,
+                                       uint16_t the_port,
                                        tcp_receive_callback f):
         m_impl(new tcp_connection_impl(tcp::socket(io_service), f))
         {
@@ -572,7 +572,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        int tcp_connection::port() const
+        uint16_t tcp_connection::port() const
         {
             try{ return m_impl->socket.local_endpoint().port(); }
             catch (std::exception &e) {}
@@ -590,7 +590,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        int tcp_connection::remote_port() const
+        uint16_t tcp_connection::remote_port() const
         {
             try{ return m_impl->socket.remote_endpoint().port(); }
             catch (std::exception &e) {}
