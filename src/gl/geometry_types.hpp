@@ -67,6 +67,7 @@ struct KINSKI_API Ray
     inline friend vec3 operator*(float t, const Ray &theRay)
     { return theRay.origin + t * theRay.direction; }
 };
+    
 /*!
  * Encapsulates type of intersection and distance along the ray.
  */
@@ -79,6 +80,7 @@ struct KINSKI_API ray_intersection
     type(theType), distance(theDistance){}
     operator intersection_type() const { return type; }
 };
+    
 /*!
  * Encapsulates type of intersection and distance along the ray.
  * Additionally adds the coordinates within the triangle.
@@ -332,7 +334,7 @@ struct KINSKI_API OBB
     {
         // point in axis space
         const mat3& mat = *reinterpret_cast<const mat3*>(&axis[0][0]);
-        vec3 p_in_axis_space = mat * p;
+        vec3 p_in_axis_space = mat * (p - center);
         return  std::abs(p_in_axis_space.x) < half_lengths.x &&
                 std::abs(p_in_axis_space.y) < half_lengths.y &&
                 std::abs(p_in_axis_space.z) < half_lengths.z;
@@ -403,8 +405,5 @@ struct KINSKI_API Frustum
 		return ret;
 	};
 };
-
-/* fast AABB <-> Triangle test from Tomas Akenine-Möller */
-KINSKI_API int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);
 
 }}//namespace

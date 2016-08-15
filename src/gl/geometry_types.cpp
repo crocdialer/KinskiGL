@@ -10,6 +10,9 @@
 #include "geometry_types.hpp"
 
 namespace kinski { namespace gl {
+
+/* fast AABB <-> Triangle test from Tomas Akenine-Möller */
+int triBoxOverlap(float boxcenter[3],float boxhalfsize[3],float triverts[3][3]);
     
 ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray)
 {

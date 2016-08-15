@@ -22,8 +22,8 @@ namespace kinski
     class RemoteControl;
     typedef std::unique_ptr<RemoteControl> RemoteControlPtr;
     
-    typedef std::function<void(net::tcp_connection_ptr, const std::vector<std::string>&)> RCAction;
-    typedef std::map<std::string, RCAction> CommandMap;
+    typedef std::function<void(net::tcp_connection_ptr, const std::vector<std::string>&)> remote_cb_t;
+    typedef std::map<std::string, remote_cb_t> CommandMap;
     
     class RemoteControl
     {
@@ -36,9 +36,7 @@ namespace kinski
         void stop_listen();
         uint16_t listening_port() const;
         
-        void add_command(const std::string &the_cmd);
-        
-        void add_command(const std::string &the_cmd, RCAction the_action);
+        void add_command(const std::string &the_cmd, remote_cb_t the_cb = remote_cb_t());
         void remove_command(const std::string &the_cmd);
         
         const CommandMap& command_map() const { return m_command_map; }

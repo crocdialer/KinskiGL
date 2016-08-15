@@ -103,7 +103,7 @@ namespace kinski { namespace gl {
         
     private:
         
-        static uint32_t s_idPool;
+        static uint32_t s_id_pool;
         
         //! unique id
         uint32_t m_id;

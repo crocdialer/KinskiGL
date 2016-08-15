@@ -170,21 +170,20 @@ RemoteControl::components()
     return ret;
 }
 
-void RemoteControl::add_command(const std::string &the_cmd)
+void RemoteControl::add_command(const std::string &the_cmd, remote_cb_t the_cb)
 {
-    m_command_map[the_cmd] = [this, the_cmd](net::tcp_connection_ptr con,
-                                             const std::vector<std::string> &args)
+    if(!the_cb)
     {
-        for(auto &comp : components())
+        the_cb = [this, the_cmd](net::tcp_connection_ptr con,
+                                 const std::vector<std::string> &args)
         {
-            comp->call_function(the_cmd, args);
-        }
-    };
-}
-
-void RemoteControl::add_command(const std::string &the_cmd, RCAction the_action)
-{
-    m_command_map[the_cmd] = the_action;
+            for(auto &comp : components())
+            {
+                comp->call_function(the_cmd, args);
+            }
+        };
+    }
+    m_command_map[the_cmd] = the_cb;
 }
 
 void RemoteControl::remove_command(const std::string &the_cmd)

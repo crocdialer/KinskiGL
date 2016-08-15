@@ -56,7 +56,7 @@ namespace kinski { namespace gl {
         
         RenderBinPtr get_render_bin() const {return m_render_bin;}
         
-        void visit(Mesh &theNode)
+        void visit(Mesh &theNode) override
         {
             if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
             
@@ -75,7 +75,7 @@ namespace kinski { namespace gl {
             Visitor::visit(static_cast<gl::Object3D&>(theNode));
         }
         
-        void visit(Light &theNode)
+        void visit(Light &theNode) override
         {
             //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
             if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
