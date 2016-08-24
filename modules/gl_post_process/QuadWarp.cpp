@@ -87,7 +87,7 @@ namespace kinski{ namespace gl{
 
     }
     
-    void QuadWarp::render_output(const gl::Texture &the_texture)
+    void QuadWarp::render_output(const gl::Texture &the_texture, const float the_brightness)
     {
         if(!the_texture){ return; }
         if(!m_impl){ m_impl.reset(new Impl); }
@@ -111,6 +111,7 @@ namespace kinski{ namespace gl{
         for(auto &p : cp){ p = (flipY * gl::vec4(p, 0, 1.f)).xy(); }
         
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
+        m_impl->m_mesh->material()->uniform("u_brightness", the_brightness);
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);

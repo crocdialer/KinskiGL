@@ -15,22 +15,20 @@ namespace kinski{ namespace gl{
     
 //////////////////////////////////////////////////////////////////////////
 // Shader::Obj
-struct Shader::Obj
+struct ShaderImpl
 {
-    Obj() : m_Handle(glCreateProgram()) {}
-    ~Obj();
+    ShaderImpl() : m_Handle(glCreateProgram()) {}
+    
+    ~ShaderImpl()
+    {
+        if(m_Handle){ glDeleteProgram(m_Handle);}
+    }
     
     GLuint						m_Handle;
     std::map<std::string,int>	m_UniformLocs;
     std::map<std::string, GLuint>	m_UniformBlockIndices;
 
 };
-    
-Shader::Obj::~Obj()
-{
-	if(m_Handle)
-		glDeleteProgram(m_Handle);
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Shader
@@ -38,7 +36,7 @@ Shader::Obj::~Obj()
 Shader::Shader(){}
     
 Shader::Shader(const char *vertexShader, const char *fragmentShader, const char *geometryShader):
-m_Obj(new Obj)
+m_impl(new ShaderImpl)
 {
     if(vertexShader){ loadShader(vertexShader, GL_VERTEX_SHADER); }
     
@@ -54,7 +52,7 @@ m_Obj(new Obj)
     void Shader::loadFromData(const std::string &vertSrc, const std::string &fragSrc,
                               const std::string &geomSrc)
 {
-    m_Obj = ObjPtr(new Obj);
+    m_impl.reset(new ShaderImpl);
     
     loadShader(vertSrc.c_str(), GL_VERTEX_SHADER);
 	loadShader(fragSrc.c_str(), GL_FRAGMENT_SHADER);
@@ -79,16 +77,16 @@ void Shader::loadShader(const char *shaderSource, GLint shaderType)
 		std::string log = getShaderLog(handle);
 		throw ShaderCompileExc(log, shaderType);
 	}
-	glAttachShader(m_Obj->m_Handle, handle);
+	glAttachShader(m_impl->m_Handle, handle);
     glDeleteShader(handle);
 }
 
 void Shader::link()
 {
-    glLinkProgram(m_Obj->m_Handle);
+    glLinkProgram(m_impl->m_Handle);
     
     GLint status;
-	glGetProgramiv(m_Obj->m_Handle, GL_LINK_STATUS, &status);
+	glGetProgramiv(m_impl->m_Handle, GL_LINK_STATUS, &status);
 	if(status != GL_TRUE)
     {
 		std::string log = getProgramLog();
@@ -99,9 +97,9 @@ void Shader::link()
 
 void Shader::bind() const
 {
-    if(!m_Obj) throw ShaderNullProgramExc();
+    if(!m_impl) throw ShaderNullProgramExc();
     
-	glUseProgram( m_Obj->m_Handle );
+	glUseProgram( m_impl->m_Handle );
 }
 
 void Shader::unbind()
@@ -111,7 +109,7 @@ void Shader::unbind()
 
 GLuint Shader::getHandle() const
 {
-    return m_Obj->m_Handle;
+    return m_impl->m_Handle;
 }
     
 std::string Shader::getShaderLog(GLuint handle) const
@@ -137,12 +135,12 @@ std::string Shader::getProgramLog() const
     std::string log;
     GLchar *debugLog;
     GLint debugLength = 0, charsWritten = 0;
-    glGetProgramiv(m_Obj->m_Handle, GL_INFO_LOG_LENGTH, &debugLength);
+    glGetProgramiv(m_impl->m_Handle, GL_INFO_LOG_LENGTH, &debugLength);
     
     if(debugLength > 0)
     {
         debugLog = new GLchar[debugLength];
-        glGetProgramInfoLog(m_Obj->m_Handle, debugLength, &charsWritten, debugLog);
+        glGetProgramInfoLog(m_impl->m_Handle, debugLength, &charsWritten, debugLog);
         log.append(debugLog, 0, debugLength);
         delete [] debugLog;
     }
@@ -290,17 +288,17 @@ void Shader::uniform(const std::string &name, const std::vector<glm::mat4> &theA
 void Shader::bindFragDataLocation(const std::string &fragLoc)
 {
 #ifndef KINSKI_GLES
-    glBindFragDataLocation(m_Obj->m_Handle, 0, fragLoc.c_str());
+    glBindFragDataLocation(m_impl->m_Handle, 0, fragLoc.c_str());
 #endif
 }
     
 GLint Shader::getUniformLocation(const std::string &name)
 {
-	map<string,int>::const_iterator uniformIt = m_Obj->m_UniformLocs.find( name );
-	if( uniformIt == m_Obj->m_UniformLocs.end() )
+	map<string,int>::const_iterator uniformIt = m_impl->m_UniformLocs.find( name );
+	if( uniformIt == m_impl->m_UniformLocs.end() )
     {
-		GLint loc = glGetUniformLocation( m_Obj->m_Handle, name.c_str() );
-        m_Obj->m_UniformLocs[name] = loc;
+		GLint loc = glGetUniformLocation( m_impl->m_Handle, name.c_str() );
+        m_impl->m_UniformLocs[name] = loc;
 		return loc;
 	}
 	else
@@ -311,11 +309,11 @@ GLint Shader::getUniformBlockIndex(const std::string &name)
 {
 #ifndef KINSKI_GLES
     
-    auto it = m_Obj->m_UniformBlockIndices.find(name);
-    if(it == m_Obj->m_UniformBlockIndices.end())
+    auto it = m_impl->m_UniformBlockIndices.find(name);
+    if(it == m_impl->m_UniformBlockIndices.end())
     {
-        GLuint loc = glGetUniformBlockIndex(m_Obj->m_Handle, name.c_str());
-        m_Obj->m_UniformBlockIndices[name] = (loc == GL_INVALID_INDEX) ? -1 : loc;
+        GLuint loc = glGetUniformBlockIndex(m_impl->m_Handle, name.c_str());
+        m_impl->m_UniformBlockIndices[name] = (loc == GL_INVALID_INDEX) ? -1 : loc;
         return loc;
     }
     else
@@ -326,7 +324,7 @@ GLint Shader::getUniformBlockIndex(const std::string &name)
     
 GLint Shader::getAttribLocation(const std::string &name) const
 {
-	return glGetAttribLocation( m_Obj->m_Handle, name.c_str() );
+	return glGetAttribLocation( m_impl->m_Handle, name.c_str() );
 }
 
 //////////////////////////////////////////////////////////////////////////

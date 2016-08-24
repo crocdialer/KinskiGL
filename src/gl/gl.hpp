@@ -205,7 +205,7 @@ namespace kinski { namespace gl {
     KINSKI_API void draw_points(const std::vector<vec3> &the_points, const MaterialPtr &theMaterial,
                                 float the_point_size = 1.f);
     KINSKI_API void draw_texture(const gl::Texture &theTexture, const vec2 &theSize,
-                                 const vec2 &theTopLeft = vec2(0));
+                                 const vec2 &theTopLeft = vec2(0), const float the_brightness = 1.f);
     KINSKI_API void draw_quad(const MaterialPtr &theMaterial, const vec2 &theSize,
                               const vec2 &theTopLeft = vec2(0), bool filled = true);
     KINSKI_API void draw_quad(const Color &theColor, const vec2 &theSize,

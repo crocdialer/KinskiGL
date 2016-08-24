@@ -60,10 +60,10 @@ namespace kinski { namespace gl {
         {
             if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
             
-            gl::AABB boundingBox = theNode.geometry()->boundingBox();
             glm::mat4 model_view = transform_stack().top() * theNode.transform();
-            boundingBox.transform(theNode.global_transform());
-                    
+            gl::AABB boundingBox = theNode.boundingBox();
+//            boundingBox.transform(theNode.global_transform());
+            
             if(m_frustum.intersect(boundingBox))
             {
                 RenderBin::item item;

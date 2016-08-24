@@ -552,7 +552,8 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft)
+    void draw_texture(const gl::Texture &theTexture, const vec2 &theSize, const vec2 &theTopLeft,
+                      const float the_brightness)
     {
         static gl::MaterialPtr material;
         
@@ -594,6 +595,7 @@ namespace kinski { namespace gl {
         // add the texture to the material
         material->textures().clear();
         material->addTexture(theTexture);
+        material->uniform("u_brightness", the_brightness);
         
         vec2 sz = theSize;
         // flip to OpenGL coords

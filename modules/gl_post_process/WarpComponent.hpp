@@ -32,7 +32,7 @@ namespace kinski
         
         gl::QuadWarp& quad_warp(){ return m_quad_warp; }
         
-        void render_output(const gl::Texture &the_tex);
+        void render_output(const gl::Texture &the_tex, const float the_brightness = 1.f);
         
     private:
         gl::QuadWarp m_quad_warp;

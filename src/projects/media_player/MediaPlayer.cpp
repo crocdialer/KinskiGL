@@ -25,6 +25,7 @@ void MediaPlayer::setup()
     register_property(m_loop);
     register_property(m_auto_play);
     register_property(m_volume);
+    register_property(m_brightness);
     register_property(m_playback_speed);
     register_property(m_use_warping);
     register_property(m_force_audio_jack);
@@ -63,8 +64,9 @@ void MediaPlayer::update(float timeDelta)
 
 void MediaPlayer::draw()
 {
-    if(*m_use_warping){ m_warp->render_output(textures()[TEXTURE_INPUT]); }
-    else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension()); }
+    if(*m_use_warping){ m_warp->render_output(textures()[TEXTURE_INPUT], *m_brightness); }
+    else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
+                           *m_brightness); }
 
     if(displayTweakBar())
     {
