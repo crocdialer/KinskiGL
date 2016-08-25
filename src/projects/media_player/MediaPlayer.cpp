@@ -358,7 +358,20 @@ void MediaPlayer::setup_rpc_interface()
                                                   const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_movie->set_volume(kinski::string_to<float>(rpc_args.front())); }
-        con->send(to_string(m_movie->volume()));
+        else{ con->send(to_string(m_movie->volume())); }
+    });
+    
+    remote_control().add_command("brightness", [this](net::tcp_connection_ptr con,
+                                                      const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ *m_brightness = kinski::string_to<float>(rpc_args.front()); }
+        else{ con->send(to_string(m_brightness->value())); }
+    });
+    
+    remote_control().add_command("set_brightness", [this](net::tcp_connection_ptr con,
+                                                          const std::vector<std::string> &rpc_args)
+    {
+        if(!rpc_args.empty()){ *m_brightness = kinski::string_to<float>(rpc_args.front()); }
     });
     
     remote_control().add_command("set_rate");
