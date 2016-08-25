@@ -32,5 +32,5 @@ void main()
   vec4 texColors = vertex_in.color;
   if(u_numTextures > 0)
     texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
-  fragData = u_material.diffuse * texColors * u_brightness; 
+  fragData = u_material.diffuse * texColors * u_brightness;
 }

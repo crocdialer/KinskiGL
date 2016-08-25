@@ -90,7 +90,7 @@ namespace kinski
     
     void WarpComponent::render_output(const gl::Texture &the_tex, const float the_brightness)
     {
-        m_quad_warp.render_output(the_tex);
+        m_quad_warp.render_output(the_tex, the_brightness);
         if(*m_draw_grid){ m_quad_warp.render_grid(); }
         if(*m_draw_control_points){ m_quad_warp.render_control_points(); }
     }
