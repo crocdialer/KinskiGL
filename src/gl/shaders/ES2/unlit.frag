@@ -2,7 +2,7 @@ precision mediump float;
 precision lowp int;
 uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[1];
-uniform float u_brightness = 1.0;
+uniform float u_brightness;
 
 struct Material
 {
