@@ -75,8 +75,7 @@ namespace kinski
             KINSKI_API uint16_t listening_port() const;
             
         private:
-            struct udp_server_impl;
-            std::unique_ptr<udp_server_impl> m_impl;
+            std::shared_ptr<struct udp_server_impl> m_impl;
         };
         
         typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;

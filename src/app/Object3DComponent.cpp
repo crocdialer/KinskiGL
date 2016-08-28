@@ -70,7 +70,7 @@ namespace kinski
     void Object3DComponent::set_objects(const std::vector<gl::Object3DPtr> &the_objects, bool copy_settings)
     {
         m_objects.assign(the_objects.begin(), the_objects.end());
-        m_object_index->setRange(0, the_objects.size() - 1);
+        m_object_index->set_range(0, the_objects.size() - 1);
         
         if(copy_settings)
         {
@@ -88,7 +88,7 @@ namespace kinski
             m_objects.push_back(std::dynamic_pointer_cast<gl::Object3D>(m));
         }
         
-        m_object_index->setRange(0, m_objects.size() - 1);
+        m_object_index->set_range(0, m_objects.size() - 1);
         
         if(copy_settings)
         {

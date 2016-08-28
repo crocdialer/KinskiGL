@@ -27,7 +27,7 @@ Property::Ptr Component::get_property_by_name(const std::string & thePropertyNam
     for (; it != m_propertyList.end(); ++it)
     {
         Property::Ptr &property = *it;
-        if (property->getName() == thePropertyName) 
+        if (property->name() == thePropertyName)
             return property;
     }
     throw PropertyNotFoundException(thePropertyName);
@@ -56,9 +56,9 @@ void Component::observe_properties(const std::list<Property::Ptr>& theProps,  bo
     {
         const Property::Ptr &property = *it;
         if (b)
-            property->addObserver(shared_from_this());
+            property->add_observer(shared_from_this());
         else
-            property->removeObserver(shared_from_this());
+            property->remove_observer(shared_from_this());
     }
 }
     

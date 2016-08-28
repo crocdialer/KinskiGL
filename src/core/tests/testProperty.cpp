@@ -32,8 +32,8 @@ BOOST_AUTO_TEST_CASE( testObserver )
     obs2(new TestObserver);
 
     // add 2 observers
-    intProp->addObserver(obs1);
-    intProp->addObserver(obs2);
+    intProp->add_observer(obs1);
+    intProp->add_observer(obs2);
 
     // assign a value
     *intProp = 69;
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE( testObserver )
     obs1->m_triggered = false;
     obs2->m_triggered = false;
 
-    intProp->removeObserver(obs1);
+    intProp->remove_observer(obs1);
 
     intProp->value(23);
     BOOST_CHECK(intProp->value() == 23);
@@ -81,7 +81,7 @@ BOOST_AUTO_TEST_CASE( testObserver )
     BOOST_CHECK(intProp->value() == 69);
     BOOST_CHECK(!obs2->m_triggered);
 
-    uint32_t *int_ptr = intProp->getValuePtr<uint32_t>();
+    uint32_t *int_ptr = intProp->get_value_ptr<uint32_t>();
     *int_ptr = 54321;
     BOOST_CHECK(*intProp == 54321);
     BOOST_CHECK(!obs2->m_triggered);
@@ -105,9 +105,10 @@ BOOST_AUTO_TEST_CASE( testRangedProp )
     *rangeProp = 1001;
     BOOST_CHECK_EQUAL( rangeProp->value(), 10 );
 
-    rangeProp->setRange(-40, 5000);
-    int min, max;
-    rangeProp->getRange(min, max);
+    rangeProp->set_range(-40, 5000);
+    auto rng = rangeProp->range();
+    int min = rng.first, max = rng.second;
+    
     BOOST_CHECK_EQUAL(min, -40);
     BOOST_CHECK_EQUAL(max, 5000);
 

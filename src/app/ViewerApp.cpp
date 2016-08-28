@@ -27,7 +27,7 @@ namespace kinski {
         /*********** init our application properties ******************/
         m_search_paths = Property_<std::vector<std::string> >::create("File search paths",
                                                                       std::vector<std::string>());
-        m_search_paths->setTweakable(false);
+        m_search_paths->set_tweakable(false);
         register_property(m_search_paths);
 
         m_logger_severity = RangedProperty<int>::create("logger severity",
@@ -35,14 +35,14 @@ namespace kinski {
         register_property(m_logger_severity);
 
         m_show_tweakbar = Property_<bool>::create("show Tweakbar", false);
-        m_show_tweakbar->setTweakable(false);
+        m_show_tweakbar->set_tweakable(false);
         register_property(m_show_tweakbar);
 
         m_hide_cursor = Property_<bool>::create("hide cursor", false);
         register_property(m_hide_cursor);
         
         m_window_size = Property_<glm::vec2>::create("window Size", gl::window_dimension());
-        m_window_size->setTweakable(false);
+        m_window_size->set_tweakable(false);
         register_property(m_window_size);
         
         m_fullscreen = Property_<bool>::create("fullscreen", false);
@@ -52,14 +52,14 @@ namespace kinski {
         register_property(m_look_at);
 
         m_distance = RangedProperty<float>::create("view distance", 25, 0, 7500);
-        m_distance->setTweakable(false);
+        m_distance->set_tweakable(false);
         register_property(m_distance);
 
         m_camera_fov = Property_<float>::create("camera fov", 45.f);
         register_property(m_camera_fov);
 
         m_rotation = Property_<glm::mat3>::create("geometry rotation", glm::mat3());
-        m_rotation->setTweakable(false);
+        m_rotation->set_tweakable(false);
         register_property(m_rotation);
 
         m_rotation_speed = RangedProperty<float>::create("rotation speed", 0, -100, 100);
@@ -464,7 +464,7 @@ namespace kinski {
         catch(Exception &e)
         {
             LOG_ERROR<<e.what();
-            for(auto p : get_property_list()){ p->notifyObservers(); }
+            for(auto p : get_property_list()){ p->notify_observers(); }
             return false;
         }
 

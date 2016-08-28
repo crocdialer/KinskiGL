@@ -36,62 +36,62 @@ namespace kinski {
     {
         bool success = false;
         
-        if(theProperty->isOfType<float>())
+        if(theProperty->is_of_type<float>())
         {
             theJsonValue[PROPERTY_TYPE]  = PROPERTY_TYPE_FLOAT;
-            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<float>();
+            theJsonValue[PROPERTY_VALUE] = theProperty->get_value<float>();
             success = true;
             
         }
-        else if(theProperty->isOfType<std::string>())
+        else if(theProperty->is_of_type<std::string>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING;
-            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<std::string>();
+            theJsonValue[PROPERTY_VALUE] = theProperty->get_value<std::string>();
             success = true;
             
         }
-        else if(theProperty->isOfType<int>())
+        else if(theProperty->is_of_type<int>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_INT;
-            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<int>();
+            theJsonValue[PROPERTY_VALUE] = theProperty->get_value<int>();
             success = true;
             
         }
-        else if(theProperty->isOfType<uint32_t>())
+        else if(theProperty->is_of_type<uint32_t>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_UINT;
-            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<uint32_t>();
+            theJsonValue[PROPERTY_VALUE] = theProperty->get_value<uint32_t>();
             success = true;
             
         }
-        else if(theProperty->isOfType<double>())
+        else if(theProperty->is_of_type<double>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_DOUBLE;
-            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<double>();
+            theJsonValue[PROPERTY_VALUE] = theProperty->get_value<double>();
             success = true;
             
         }
-        else if(theProperty->isOfType<bool>())
+        else if(theProperty->is_of_type<bool>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_BOOLEAN;
-            theJsonValue[PROPERTY_VALUE] = theProperty->getValue<bool>();
+            theJsonValue[PROPERTY_VALUE] = theProperty->get_value<bool>();
             success = true;
             
         }
-        else if(theProperty->isOfType<std::vector<float>>())
+        else if(theProperty->is_of_type<std::vector<float>>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_FLOAT_ARRAY;
-            const auto& vals = theProperty->getValue<std::vector<float>>();
+            const auto& vals = theProperty->get_value<std::vector<float>>();
             for (uint32_t i = 0; i < vals.size(); ++i)
             {
                 theJsonValue[PROPERTY_VALUE][i] = vals[i];
             }
             success = true;
         }
-        else if(theProperty->isOfType<std::vector<std::string>>())
+        else if(theProperty->is_of_type<std::vector<std::string>>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_STRING_ARRAY;
-            const std::vector<std::string>& vals = theProperty->getValue<std::vector<std::string> >();
+            const std::vector<std::string>& vals = theProperty->get_value<std::vector<std::string> >();
             for (uint32_t i = 0; i < vals.size(); ++i)
             {
                 theJsonValue[PROPERTY_VALUE][i] = vals[i];
@@ -108,37 +108,37 @@ namespace kinski {
         
         if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_FLOAT)
         {
-            theProperty->setValue<float>(theJsonValue[PROPERTY_VALUE].asDouble());
+            theProperty->set_value<float>(theJsonValue[PROPERTY_VALUE].asDouble());
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_DOUBLE)
         {
-            theProperty->setValue<double>(theJsonValue[PROPERTY_VALUE].asDouble());
+            theProperty->set_value<double>(theJsonValue[PROPERTY_VALUE].asDouble());
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_INT)
         {
-            theProperty->setValue<int>(theJsonValue[PROPERTY_VALUE].asInt());
+            theProperty->set_value<int>(theJsonValue[PROPERTY_VALUE].asInt());
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UINT)
         {
-            theProperty->setValue<uint32_t>(theJsonValue[PROPERTY_VALUE].asInt());
+            theProperty->set_value<uint32_t>(theJsonValue[PROPERTY_VALUE].asInt());
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_STRING)
         {
-            theProperty->setValue<std::string>(theJsonValue[PROPERTY_VALUE].asString());
+            theProperty->set_value<std::string>(theJsonValue[PROPERTY_VALUE].asString());
             success = true;
             
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_BOOLEAN)
         {
-            theProperty->setValue<bool>(theJsonValue[PROPERTY_VALUE].asBool());
+            theProperty->set_value<bool>(theJsonValue[PROPERTY_VALUE].asBool());
             success = true;
             
         }
@@ -151,7 +151,7 @@ namespace kinski {
                 {
                     vals.push_back(theJsonValue[PROPERTY_VALUE][i].asDouble());
                 }
-                theProperty->setValue<std::vector<float>>(vals);
+                theProperty->set_value<std::vector<float>>(vals);
             }
             success = true;
             
@@ -165,7 +165,7 @@ namespace kinski {
                 {
                     vals.push_back(theJsonValue[PROPERTY_VALUE][i].asString());
                 }
-                theProperty->setValue<std::vector<std::string> >(vals);
+                theProperty->set_value<std::vector<std::string> >(vals);
             }
             success = true;
             
@@ -199,7 +199,7 @@ namespace kinski {
             
             for ( const auto &property : theComponent->get_property_list() )
             {
-                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->getName();
+                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->name();
                 
                 // delegate reading to PropertyIO object
                 if(! theIO.readPropertyValue(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))

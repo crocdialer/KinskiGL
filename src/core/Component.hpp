@@ -33,10 +33,10 @@ namespace kinski
         Property::Ptr get_property_by_name(const std::string & thePropertyName);
 
         /*!
-         * called whenever a registered propterty changes
+         * inherited from Property::Observer and called whenever a registered property changes.
          * override this in a subclass
          */
-        virtual void update_property(const Property::ConstPtr &theProperty){};
+        virtual void update_property(const Property::ConstPtr &theProperty) override {};
         
         void observe_properties(bool b = true);
         void observe_properties(const std::list<Property::Ptr>& theProps,  bool b = true);
