@@ -594,8 +594,8 @@ namespace kinski { namespace gl {
 #endif
         // add the texture to the material
         material->textures().clear();
+        material->setDiffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
         material->addTexture(theTexture);
-        material->uniform("u_brightness", the_brightness);
         
         vec2 sz = theSize;
         // flip to OpenGL coords

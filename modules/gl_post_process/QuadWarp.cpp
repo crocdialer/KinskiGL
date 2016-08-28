@@ -111,7 +111,8 @@ namespace kinski{ namespace gl{
         for(auto &p : cp){ p = (flipY * gl::vec4(p, 0, 1.f)).xy(); }
         
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
-        m_impl->m_mesh->material()->uniform("u_brightness", the_brightness);
+        m_impl->m_mesh->material()->setDiffuse(gl::Color(the_brightness, the_brightness,
+                                                         the_brightness, 1.f));
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);
