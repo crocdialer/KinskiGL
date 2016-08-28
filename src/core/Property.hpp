@@ -30,66 +30,66 @@ public:
         virtual void update_property(const Property::ConstPtr &theProperty) = 0;
     };
 
-    inline boost::any getValue() const {return m_value;};
-    inline const std::string& getName() const {return m_name;};
-    inline void setName(const std::string& theName) {m_name = theName;};
-	inline void setTweakable(bool isTweakable) {m_tweakable = isTweakable;};
-	inline bool isTweakable() const {return m_tweakable;};
+    inline boost::any get_value() const {return m_value;};
+    inline const std::string& name() const {return m_name;};
+    inline void set_name(const std::string& theName) {m_name = theName;};
+	inline void set_tweakable(bool isTweakable) {m_tweakable = isTweakable;};
+	inline bool tweakable() const {return m_tweakable;};
     inline bool empty() const {return m_value.empty();};
 
     template <typename T> 
-    inline void setValue(const T& theValue)
+    inline void set_value(const T& theValue)
     {
-        if (!isOfType<T>()) {throw WrongTypeSetException(m_name);}
-        if(checkValue(theValue))
+        if (!is_of_type<T>()) {throw WrongTypeSetException(m_name);}
+        if(check_value(theValue))
         {
             m_value = theValue;
-            notifyObservers();
+            notify_observers();
         }
     }
    
     template <typename T>
-    inline const T& getValue() const
+    inline const T& get_value() const
     {
         try{return *boost::any_cast<T>(&m_value);}
         catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
     }
     
     template <typename T>
-    inline T& getValue()
+    inline T& get_value()
     {
         try{return *boost::any_cast<T>(&m_value);}
         catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
     }
     
     template <typename T>
-    inline T* getValuePtr()
+    inline T* get_value_ptr()
     {
         try{return boost::any_cast<T>(&m_value);}
         catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
     }
     
     template <typename C>
-    inline bool isOfType() const
+    inline bool is_of_type() const
     {
         return m_value.type() == typeid(C);
     }
     
-    virtual bool checkValue(const boost::any &theVal)
+    virtual bool check_value(const boost::any &theVal)
     {return theVal.type() == m_value.type();};
     
-    inline void addObserver(const Observer::Ptr &theObs)
+    inline void add_observer(const Observer::Ptr &theObs)
     {
-        m_signal.connect(signal_type::slot_type(&Observer::update_property, theObs, _1).track_foreign(theObs));
+        m_signal.connect(signal_t::slot_type(&Observer::update_property, theObs, _1).track_foreign(theObs));
     }
     
-    inline void removeObserver(const Observer::Ptr &theObs)
+    inline void remove_observer(const Observer::Ptr &theObs)
     {
         m_signal.disconnect(boost::bind(&Observer::update_property, theObs, _1));
     }
     
-    inline void clearObservers(){m_signal.disconnect_all_slots();}
-    inline void notifyObservers(){m_signal(shared_from_this());}
+    inline void clear_observers(){m_signal.disconnect_all_slots();}
+    inline void notify_observers(){m_signal(shared_from_this());}
 
 protected:
     Property(): m_tweakable(true){}; // default constructor
@@ -101,8 +101,8 @@ private:
     boost::any m_value;
 	bool m_tweakable;
     
-    typedef boost::signals2::signal<void(const Property::ConstPtr&)> signal_type;
-    signal_type m_signal;
+    typedef boost::signals2::signal<void(const Property::ConstPtr&)> signal_t;
+    signal_t m_signal;
 
 public:
     // define exceptions
@@ -138,9 +138,9 @@ public:
         return outPtr;
     };
     
-    inline const T& value() const {return getValue<T>();};
-    inline T& value() {return getValue<T>();};
-    inline void set(const T &theVal){setValue<T>(theVal);};
+    inline const T& value() const {return get_value<T>();};
+    inline T& value() {return get_value<T>();};
+    inline void set(const T &theVal){set_value<T>(theVal);};
     inline void value(const T &theVal){set(theVal);};
     inline operator const T&() const { return value(); }
     
@@ -183,7 +183,7 @@ public:
     
     friend std::ostream& operator<<(std::ostream &os,const Property_<T>& theProp)
     {
-        os<< theProp.getName()<<": "<<theProp.getValue<T>();
+        os<< theProp.name()<<": "<<theProp.get_value<T>();
         return os;
     }
         
@@ -194,7 +194,7 @@ protected:
     Property(theName, theValue){};
     
     explicit Property_(const Property_<T> &other):
-    Property(other.getName(), other.getValue<T>()){};
+    Property(other.name(), other.get_value<T>()){};
 
 };
 
@@ -230,29 +230,28 @@ public:
         return outPtr;
     };
     
-    void setRange(const T &min, const T &max)
+    void set_range(const T &min, const T &max)
     {
         if( min > max )
-            throw BadBoundsException(this->getName());
+            throw BadBoundsException(this->name());
         m_min = min;
         m_max = max;
-        checkValue(this->getValue());
+        check_value(this->get_value());
     };
     
-    void getRange(T &min, T &max) const
+    std::pair<T, T> range() const
     {
-        min = m_min;
-        max = m_max;
+        return std::make_pair(m_min, m_max);
     };
 
-    bool checkValue(const boost::any &theVal)
+    bool check_value(const boost::any &theVal)
     {
         T v;
         
         try
         {
             v = boost::any_cast<T>(theVal);
-            rangeCheck(v);
+            range_check(v);
         }
         catch (const boost::bad_any_cast &e)
         {
@@ -269,9 +268,8 @@ public:
     
     friend std::ostream& operator<<(std::ostream &os,const RangedProperty<T>& theProp)
     {
-        T min, max;
-        theProp.getRange(min, max);
-        os<< theProp.getName()<<": "<<theProp.value()<<" ("<<min<<" - "<<max<<")";
+        T min = theProp.range().first, max = theProp.range().second;
+        os<< theProp.name() << ": " << theProp.value() << " (" << min << " - " << max << ")";
         return os;
     }
 
@@ -281,14 +279,14 @@ private:
     RangedProperty(const std::string &theName, const T &theValue, const T &min, const T &max):
     Property_<T>(theName, theValue)
     {
-        setRange(min, max);
-        checkValue(theValue);
+        set_range(min, max);
+        check_value(theValue);
     };
     
-    inline void rangeCheck(const T &theValue)
+    inline void range_check(const T &theValue)
     {
         if( m_min > theValue || m_max < theValue )
-            throw BadBoundsException(this->getName());
+            throw BadBoundsException(this->name());
     }
     
     T m_min, m_max;

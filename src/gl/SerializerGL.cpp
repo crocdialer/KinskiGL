@@ -27,11 +27,11 @@ namespace kinski {
         
         if(success) return true;
         
-        if (theProperty->isOfType<vec2>())
+        if (theProperty->is_of_type<vec2>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC2;
             
-            vec2 vec = theProperty->getValue<vec2>();
+            vec2 vec = theProperty->get_value<vec2>();
             float *ptr = &vec[0];
 
             for (int i = 0; i < 2; i++)
@@ -40,11 +40,11 @@ namespace kinski {
             success = true;
             
         }
-        else if (theProperty->isOfType<vec3>())
+        else if (theProperty->is_of_type<vec3>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC3;
             
-            vec3 vec = theProperty->getValue<vec3>();
+            vec3 vec = theProperty->get_value<vec3>();
             float *ptr = &vec[0];
             
             for (int i = 0; i < 3; i++)
@@ -52,11 +52,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<vec4>())
+        else if (theProperty->is_of_type<vec4>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC4;
             
-            vec4 vec = theProperty->getValue<vec4>();
+            vec4 vec = theProperty->get_value<vec4>();
             float *ptr = &vec[0];
             
             for (int i = 0; i < 4; i++)
@@ -65,11 +65,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<quat>())
+        else if (theProperty->is_of_type<quat>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_QUAT;
             
-            quat vec = theProperty->getValue<quat>();
+            quat vec = theProperty->get_value<quat>();
             float *ptr = &vec[0];
             
             for (int i = 0; i < 4; i++)
@@ -77,11 +77,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<mat3>())
+        else if (theProperty->is_of_type<mat3>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_MAT3;
             
-            mat3 mat = theProperty->getValue<mat3>();
+            mat3 mat = theProperty->get_value<mat3>();
             float *ptr = &mat[0][0];
             
             for (int i = 0; i < 9; i++)
@@ -89,11 +89,11 @@ namespace kinski {
             
             success = true;
         }
-        else if (theProperty->isOfType<mat4>())
+        else if (theProperty->is_of_type<mat4>())
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_MAT4;
             
-            mat4 mat = theProperty->getValue<mat4>();
+            mat4 mat = theProperty->get_value<mat4>();
             float *ptr = &mat[0][0];
             
             for (int i = 0; i < 16; i++)
@@ -120,7 +120,7 @@ namespace kinski {
             for (int i = 0; i < 2; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
    
-            theProperty->setValue<vec2>(vec);
+            theProperty->set_value<vec2>(vec);
             success = true;
             
         }
@@ -132,7 +132,7 @@ namespace kinski {
             for (int i = 0; i < 3; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<vec3>(vec);
+            theProperty->set_value<vec3>(vec);
             success = true;
             
         }
@@ -144,7 +144,7 @@ namespace kinski {
             for (int i = 0; i < 4; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<vec4>(vec);
+            theProperty->set_value<vec4>(vec);
             success = true;
             
         }
@@ -156,7 +156,7 @@ namespace kinski {
             for (int i = 0; i < 4; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<quat>(vec);
+            theProperty->set_value<quat>(vec);
             success = true;
             
         }
@@ -168,7 +168,7 @@ namespace kinski {
             for (int i = 0; i < 9; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<mat3>(mat);
+            theProperty->set_value<mat3>(mat);
             success = true;
             
         }
@@ -180,7 +180,7 @@ namespace kinski {
             for (int i = 0; i < 16; i++)
                 ptr[i] = theJsonValue[PROPERTY_VALUE][i].asDouble();
             
-            theProperty->setValue<mat4>(mat);
+            theProperty->set_value<mat4>(mat);
             success = true;
             
         }

@@ -200,10 +200,10 @@ namespace kinski
         
         /////////////////////////////////////////////////////////////////
         
-        struct udp_server::udp_server_impl
+        struct udp_server_impl
         {
         public:
-            udp_server_impl(boost::asio::io_service& io_service, receive_cb_t f):
+            udp_server_impl(boost::asio::io_service& io_service, udp_server::receive_cb_t f):
             socket(io_service),
             resolver(io_service),
             recv_buffer(1 << 20),
@@ -213,7 +213,7 @@ namespace kinski
             udp::resolver resolver;
             udp::endpoint remote_endpoint;
             std::vector<uint8_t> recv_buffer;
-            receive_cb_t receive_function;
+            udp_server::receive_cb_t receive_function;
         };
         
         ///////////////////////////////////////////////////////////////////////////////

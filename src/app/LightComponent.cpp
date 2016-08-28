@@ -148,7 +148,7 @@ namespace kinski
     void LightComponent::set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings)
     {
         m_lights.assign(l.begin(), l.end());
-        m_light_index->setRange(0, l.size() - 1);
+        m_light_index->set_range(0, l.size() - 1);
         
         if(copy_settings)
         {

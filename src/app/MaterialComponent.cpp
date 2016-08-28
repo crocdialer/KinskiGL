@@ -149,7 +149,7 @@ namespace kinski
     void MaterialComponent::set_materials(const std::vector<gl::MaterialPtr> &m, bool copy_settings)
     {
         m_materials.assign(m.begin(), m.end());
-        m_index->setRange(0, m.size() - 1);
+        m_index->set_range(0, m.size() - 1);
         
         if(copy_settings)
         {
