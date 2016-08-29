@@ -71,10 +71,9 @@ namespace kinski
 
         // file search paths
         if(!args().empty()){ fs::add_search_path(fs::get_directory_part(args().front())); }
-        fs::add_search_path("");
-        fs::add_search_path("./");
-        fs::add_search_path("./res/");
-        fs::add_search_path("/usr/share/fonts/truetype/freefont/");
+        // fs::add_search_path("./");
+        fs::add_search_path("./res");
+        fs::add_search_path("/usr/share/fonts");
 
         get_input_file_descriptors(&m_mouse_fd, &m_keyboard_fd, &m_touch_fd);
 
