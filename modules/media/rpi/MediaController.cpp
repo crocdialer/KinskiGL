@@ -174,7 +174,11 @@ namespace kinski{ namespace media
                     sentStarted = false;
 
                     //TODO: rather pause here!?
-                    if(m_omx_reader.IsEof()){ break; }
+                    if(m_omx_reader.IsEof())
+                    {
+                      m_playing = false;
+                      //break;
+                    }
 
                     // Quick reset to reduce delay during loop & seek.
                     if(m_has_video && !m_player_video->Reset())
