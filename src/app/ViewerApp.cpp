@@ -107,7 +107,14 @@ namespace kinski {
                 if(!font_paths.empty()){ font_path = font_paths.front(); break; }
             }
         }
-        fonts()[0].load(font_path, 18);
+        
+        // still no font!?
+        if(font_path.empty())
+        {
+            LOG_WARNING << "no font-file found!\n"
+            "fonts (*.ttf, *.otf, ...) can be placed next to the executable or in </usr/local/share/fonts>";
+        }
+        else{ fonts()[0].load(font_path, 18); }
         
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
