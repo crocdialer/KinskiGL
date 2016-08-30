@@ -35,10 +35,10 @@ void TouchSample::setup()
 {
     ViewerApp::setup();
     fonts()[FONT_LARGE].load(fonts()[FONT_NORMAL].path(), 63.f);
-    
     observe_properties();
     register_property(m_circle_radius);
     add_tweakbar_for_component(shared_from_this());
+    m_noise.set_scale(vec2(0.0175f));
     load_settings();
 }
 
@@ -47,7 +47,7 @@ void TouchSample::setup()
 void TouchSample::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
-    textures()[0] = m_noise.simplex(getApplicationTime());
+    textures()[0] = m_noise.simplex(getApplicationTime() * .3f);
 }
 
 /////////////////////////////////////////////////////////////////
