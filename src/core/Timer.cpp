@@ -118,7 +118,11 @@ struct timer_impl
     running(false)
     {}
     
-    ~timer_impl(){ m_timer.cancel(); }
+    ~timer_impl()
+    {
+        try{ m_timer.cancel(); }
+        catch(boost::system::system_error& e){ LOG_WARNING << e.what(); }
+    }
 };
 
 Timer::Timer(){}
