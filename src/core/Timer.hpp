@@ -25,35 +25,33 @@ namespace kinski
         void start();
         void stop();
         bool running();
-        float time_elapsed();
-        float time_elapsed_for_lap();
+        double time_elapsed();
+        double time_elapsed_for_lap();
         void reset();
         void new_lap();
-        const std::vector<float>& laps();
+        const std::vector<double>& laps();
 
     private:
-        struct stopwatch_impl;
-        std::shared_ptr<stopwatch_impl> m_impl;
+        std::shared_ptr<struct stopwatch_impl> m_impl;
     };
     
     class Timer
     {
     public:
-        typedef std::function<void(void)> Callback;
+        typedef std::function<void(void)> timer_cb_t;
         
         Timer();
-        Timer(boost::asio::io_service &io, Callback cb = Callback());
-        virtual ~Timer();
+        Timer(boost::asio::io_service &io, timer_cb_t cb = timer_cb_t());
         
         /*!
          * set expiration date from now in seconds
          */
-        void expires_from_now(float secs);
+        void expires_from_now(double secs);
         
         /*!
          * get expiration date from now in seconds
          */
-        float expires_from_now() const;
+        double expires_from_now() const;
         
         /*!
          * returns true if the timer has expired
@@ -78,10 +76,9 @@ namespace kinski
         /*!
          * set the function object to call when the timer expires
          */
-        void set_callback(Callback cb);
+        void set_callback(timer_cb_t cb);
         
     private:
-        struct timer_impl;
-        std::shared_ptr<timer_impl> m_impl;
+        std::shared_ptr<struct timer_impl> m_impl;
     };
 }

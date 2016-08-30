@@ -235,6 +235,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             // setup a periodic udp-broadcast to enable discovery of this node
             m_broadcast_timer = Timer(main_queue().io_service(), [this]()
             {
+                LOG_TRACE_2 << "sending discovery_broadcast on udp-port: " << m_broadcast_port->value();
                 net::async_send_udp_broadcast(background_queue().io_service(), name(),
                                               *m_broadcast_port);
             });

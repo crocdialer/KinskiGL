@@ -18,21 +18,22 @@
 using std::chrono::duration_cast;
 using std::chrono::steady_clock;
 
-// ratio is 1 second per second, wow :D
-typedef std::chrono::duration<float> float_second;
+// 1 double per second
+typedef std::chrono::duration<double> duration_t;
 
-using namespace kinski;
+namespace kinski
+{
 
-struct Stopwatch::stopwatch_impl
+struct stopwatch_impl
 {
     bool running;
     std::chrono::steady_clock::time_point start_time;
-    std::vector<float> laps;
+    std::vector<double> laps;
     
     stopwatch_impl():
     running(false),
     start_time(steady_clock::now()),
-    laps({0.f}){}
+    laps({0.0}){}
 };
 
 Stopwatch::Stopwatch():m_impl(new stopwatch_impl)
@@ -52,7 +53,7 @@ void Stopwatch::stop()
 {
     if(!m_impl->running) return;
     m_impl->running = false;
-    m_impl->laps.back() += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+    m_impl->laps.back() += duration_cast<duration_t>(steady_clock::now() - m_impl->start_time).count();
 }
 
 bool Stopwatch::running()
@@ -69,65 +70,67 @@ void Stopwatch::new_lap()
 {
     if(!m_impl->running) return;
     
-    m_impl->laps.back() += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+    m_impl->laps.back() += duration_cast<duration_t>(steady_clock::now() - m_impl->start_time).count();
     m_impl->start_time = steady_clock::now();
-    m_impl->laps.push_back(0.f);
+    m_impl->laps.push_back(0.0);
 }
 
-float Stopwatch::time_elapsed()
+double Stopwatch::time_elapsed()
 {
-    float ret = 0.f;
+    double ret = 0.0;
     
     for(auto lap_time : m_impl->laps){ ret += lap_time; }
     
     if(!m_impl->running) return ret;
     
-    ret += duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+    ret += duration_cast<duration_t>(steady_clock::now() - m_impl->start_time).count();
     return ret;
 }
 
-float Stopwatch::time_elapsed_for_lap()
+double Stopwatch::time_elapsed_for_lap()
 {
     if(m_impl->running)
     {
-        return duration_cast<float_second>(steady_clock::now() - m_impl->start_time).count();
+        return m_impl->laps.back() + duration_cast<duration_t>(steady_clock::now() -
+                                                               m_impl->start_time).count();
     }
     else{ return m_impl->laps.back(); }
 }
 
-const std::vector<float>& Stopwatch::laps()
+const std::vector<double>& Stopwatch::laps()
 {
     return m_impl->laps;
 }
 
 /////////////////////////////////////////////////////////////////////////
 
-struct Timer::timer_impl
+struct timer_impl
 {
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> m_timer;
-    Timer::Callback m_callback;
+    Timer::timer_cb_t m_callback;
     bool periodic;
     bool running;
     
-    timer_impl(boost::asio::io_service &io, Callback cb):
+    timer_impl(boost::asio::io_service &io, Timer::timer_cb_t cb):
     m_timer(io),
     m_callback(cb),
     periodic(false),
     running(false)
     {}
+    
+    ~timer_impl(){ m_timer.cancel(); }
 };
 
 Timer::Timer(){}
-Timer::~Timer(){}
 
-Timer::Timer(boost::asio::io_service &io, Callback cb):
+Timer::Timer(boost::asio::io_service &io, Timer::timer_cb_t cb):
 m_impl(new timer_impl(io, cb)){}
 
-void Timer::expires_from_now(float secs)
+void Timer::expires_from_now(double secs)
 {
     if(!m_impl) return;
     
-    m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(float_second(secs)));
+    m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(duration_t(secs)));
     m_impl->running = true;
     
     m_impl->m_timer.async_wait([this, secs](const boost::system::error_code &error)
@@ -146,11 +149,11 @@ void Timer::expires_from_now(float secs)
     });
 }
 
-float Timer::expires_from_now() const
+double Timer::expires_from_now() const
 {
-    if(!m_impl) return 0.f;
+    if(!m_impl) return 0.0;
     auto duration = m_impl->m_timer.expires_from_now();
-    return duration_cast<float_second>(duration).count();
+    return duration_cast<duration_t>(duration).count();
 }
 
 bool Timer::has_expired() const
@@ -173,7 +176,8 @@ void Timer::set_periodic(bool b)
     if(m_impl){ m_impl->periodic = b; }
 }
 
-void Timer::set_callback(Callback cb)
+void Timer::set_callback(Timer::timer_cb_t cb)
 {
     if(m_impl){ m_impl->m_callback = cb; }
 }
+}//namespace
