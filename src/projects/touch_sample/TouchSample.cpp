@@ -38,7 +38,7 @@ void TouchSample::setup()
     observe_properties();
     register_property(m_circle_radius);
     add_tweakbar_for_component(shared_from_this());
-    m_noise.set_scale(vec2(0.0175f));
+    m_noise.set_scale(vec2(0.02f));
     load_settings();
 }
 
@@ -47,7 +47,7 @@ void TouchSample::setup()
 void TouchSample::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
-    textures()[0] = m_noise.simplex(getApplicationTime() * .3f);
+    textures()[TEXTURE_SIMPLEX] = m_noise.simplex(getApplicationTime() * .3f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -79,9 +79,7 @@ void TouchSample::draw()
 void TouchSample::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
-    gl::Fbo::Format fmt;
-    fmt.setSamples(8);
-    m_offscreen_fbo = gl::Fbo(w, h, fmt);
+    m_offscreen_fbo = gl::Fbo(w, h);
 }
 
 /////////////////////////////////////////////////////////////////
