@@ -23,10 +23,13 @@ namespace kinski
     private:
         
         enum FontEnum{FONT_NORMAL = 0, FONT_LARGE = 1};
+        enum TextureEnum{TEXTURE_SIMPLEX = 0};
         
         std::set<const Touch*> m_current_touches;
         
         gl::Noise m_noise;
+        
+        gl::Fbo m_offscreen_fbo;
         
         // properties
         Property_<float>::Ptr m_circle_radius = Property_<float>::create("circle radius", 65.f);

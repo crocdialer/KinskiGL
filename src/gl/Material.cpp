@@ -37,6 +37,11 @@ namespace kinski { namespace gl {
         m_shader = theShader? theShader : gl::create_shader(gl::ShaderType::UNLIT);
     }
     
+    MaterialPtr Material::create(const gl::ShaderType &the_type)
+    {
+        return MaterialPtr(new Material(gl::create_shader(the_type)));
+    }
+    
     MaterialPtr Material::create(const Shader &theShader)
     {
         return MaterialPtr(new Material(theShader));

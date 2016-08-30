@@ -35,7 +35,8 @@ namespace kinski { namespace gl {
         
         enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
         
-        static Ptr create(const Shader &theShader = Shader());
+        static Ptr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
+        static Ptr create(const Shader &theShader);        
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         

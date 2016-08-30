@@ -605,6 +605,39 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
     
+    void draw_texture_with_mask(const gl::Texture &the_texture,
+                                const gl::Texture &the_mask,
+                                const vec2 &theSize,
+                                const vec2 &theTopLeft,
+                                const float the_brightness)
+    {
+        static gl::MaterialPtr material;
+        
+        // empty texture
+        if(!the_texture || !the_mask){ return; }
+        
+        //create material, if not yet here
+        if(!material)
+        {
+            try{ material = gl::Material::create(gl::ShaderType::UNLIT_MASK); }
+            catch (Exception &e){LOG_ERROR<<e.what();}
+            material->setDepthTest(false);
+            material->setDepthWrite(false);
+            material->setBlending(true);
+        }
+        
+        // add the texture to the material
+        material->textures() = {the_texture, the_mask};
+        material->setDiffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
+        
+        vec2 sz = theSize;
+        // flip to OpenGL coords
+        vec2 tl = vec2(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y);
+        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1]);
+    }
+
+///////////////////////////////////////////////////////////////////////////////
+    
     void draw_quad(const gl::Color &theColor,
                   const vec2 &theSize,
                   const vec2 &theTopLeft,
@@ -1604,6 +1637,11 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 case ShaderType::UNLIT:
                     vert_src = unlit_vert;
                     frag_src = unlit_frag;
+                    break;
+                    
+                case ShaderType::UNLIT_MASK:
+                    vert_src = unlit_vert;
+                    frag_src = unlit_mask_frag;
                     break;
                     
                 case ShaderType::UNLIT_SKIN:

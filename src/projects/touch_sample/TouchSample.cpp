@@ -54,12 +54,23 @@ void TouchSample::update(float timeDelta)
 
 void TouchSample::draw()
 {
+    // offscreen render pass
+    auto touches_tex = gl::render_to_texture(m_offscreen_fbo, [this]()
+    {
+        gl::clear();
+        
+        for(const auto &t : m_current_touches)
+        {
+            gl::draw_circle(t->m_position, *m_circle_radius, color_palette[t->m_slot_index]);
+        }
+    });
+    
+    // draw with simplex texture as mask
+    gl::draw_texture_with_mask(touches_tex, textures()[TEXTURE_SIMPLEX], gl::window_dimension());
+    
+    // draw info text
     gl::draw_text_2D(name(), fonts()[FONT_LARGE], gl::COLOR_WHITE, gl::vec2(20));
     
-    for(const auto &t : m_current_touches)
-    {
-        gl::draw_circle(t->m_position, *m_circle_radius, color_palette[t->m_slot_index]);
-    }
     if(displayTweakBar()){ draw_textures(textures()); }
 }
 
@@ -68,6 +79,9 @@ void TouchSample::draw()
 void TouchSample::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
+    gl::Fbo::Format fmt;
+    fmt.setSamples(8);
+    m_offscreen_fbo = gl::Fbo(w, h, fmt);
 }
 
 /////////////////////////////////////////////////////////////////

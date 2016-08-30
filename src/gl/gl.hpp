@@ -206,6 +206,11 @@ namespace kinski { namespace gl {
                                 float the_point_size = 1.f);
     KINSKI_API void draw_texture(const gl::Texture &theTexture, const vec2 &theSize,
                                  const vec2 &theTopLeft = vec2(0), const float the_brightness = 1.f);
+    KINSKI_API void draw_texture_with_mask(const gl::Texture &the_texture,
+                                           const gl::Texture &the_mask,
+                                           const vec2 &theSize,
+                                           const vec2 &theTopLeft = vec2(0),
+                                           const float the_brightness = 1.f);
     KINSKI_API void draw_quad(const MaterialPtr &theMaterial, const vec2 &theSize,
                               const vec2 &theTopLeft = vec2(0), bool filled = true);
     KINSKI_API void draw_quad(const Color &theColor, const vec2 &theSize,
@@ -273,9 +278,9 @@ namespace kinski { namespace gl {
     
     /*********************************** Shader loading *******************************************/
     
-    enum class ShaderType {UNLIT, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS, PHONG_SKIN_SHADOWS,
-        PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR, POINTS_SPHERE, RECT_2D,
-        NOISE_3D, DEPTH_OF_FIELD};
+    enum class ShaderType {UNLIT, UNLIT_MASK, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS,
+        PHONG_SKIN_SHADOWS, PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR,
+        POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD};
     
     KINSKI_API Shader create_shader(ShaderType type, bool use_cached_shader = true);
     KINSKI_API Shader create_shader_from_file(const std::string &vertPath, const std::string &fragPath,
