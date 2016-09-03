@@ -11,27 +11,161 @@
 //
 //  Created by Fabian on 4/21/13.
 
-#include "Renderer.hpp"
+#include "Visitor.hpp"
 #include "Mesh.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
 #include "Fbo.hpp"
+#include "Scene.hpp"
+#include "SceneRenderer.hpp"
 
 namespace kinski{ namespace gl{
 
     using std::pair;
     using std::map;
     using std::list;
-    
     using namespace glm;
     
-    Renderer::Renderer()
+    class CullVisitor : public Visitor
+    {
+    public:
+        CullVisitor(const CameraPtr &theCamera, const std::set<std::string> &the_tags):
+        Visitor(),
+        m_frustum(theCamera->frustum()),
+        m_tags(the_tags),
+        m_render_bin(new gl::RenderBin(theCamera))
+        {
+            transform_stack().push(theCamera->getViewMatrix());
+        }
+        
+        RenderBinPtr get_render_bin() const {return m_render_bin;}
+        
+        void visit(Mesh &theNode) override
+        {
+            if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
+            
+            glm::mat4 model_view = transform_stack().top() * theNode.transform();
+            gl::AABB boundingBox = theNode.boundingBox();
+            //            boundingBox.transform(theNode.global_transform());
+            
+            if(m_frustum.intersect(boundingBox))
+            {
+                RenderBin::item item;
+                item.mesh = &theNode;
+                item.transform = model_view;
+                m_render_bin->items.push_back(item);
+            }
+            // super class provides node traversing and transform accumulation
+            Visitor::visit(static_cast<gl::Object3D&>(theNode));
+        }
+        
+        void visit(Light &theNode) override
+        {
+            //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
+            if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
+            {
+                RenderBin::light light_item;
+                light_item.light = &theNode;
+                switch (theNode.type())
+                {
+                    case Light::DIRECTIONAL:
+                        light_item.transform =
+                        glm::mat4(glm::inverseTranspose(glm::mat3(transform_stack().top()))) *
+                        theNode.transform();
+                        break;
+                        
+                    case Light::POINT:
+                    case Light::SPOT:
+                        light_item.transform = transform_stack().top() * theNode.transform();
+                        break;
+                }
+                
+                m_render_bin->lights.push_back(light_item);
+            }
+            // super class provides node traversing and transform accumulation
+            Visitor::visit(static_cast<gl::Object3D&>(theNode));
+        }
+        
+        void clear(){m_render_bin->items.clear();}
+        
+    private:
+        gl::Frustum m_frustum;
+        std::set<std::string> m_tags;
+        RenderBinPtr m_render_bin;
+    };
+    
+    SceneRenderer::SceneRenderer()
     {
         m_shadow_fbos.resize(4);
         m_shadow_cams.resize(4);
     }
     
-    void Renderer::render(const RenderBinPtr &theBin)
+    uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
+                                         const CameraPtr &the_cam,
+                                         const std::set<std::string> &the_tags)
+    {
+        // shadow passes
+        SelectVisitor<Light> lv;
+        the_scene->root()->accept(lv);
+
+        float extents = 2.f * glm::length(the_scene->root()->boundingBox().halfExtents());
+
+        uint32_t i = 0;
+        set_shadowmap_size(glm::vec2(1024));
+
+        for(gl::Light *l : lv.get_objects())
+        {
+            if(l->enabled() && l->cast_shadow())
+            {
+                if(i >= shadow_fbos().size())
+                {
+                    LOG_WARNING << "too many lights with active shadows";
+                    break;
+                }
+                set_shadow_pass(true);
+                shadow_cams()[i] = gl::create_shadow_camera(l, extents);
+
+                // offscreen render shadow map here
+                gl::render_to_texture(shadow_fbos()[i], [&]()
+                {
+                    glClear(GL_DEPTH_BUFFER_BIT);
+                    render(cull(the_scene, shadow_cams()[i]));
+                });
+                i++;
+                set_shadow_pass(false);
+            }
+        }
+
+        // skybox drawing
+        if(the_scene->skybox())
+        {
+            gl::set_projection(the_cam);
+            mat4 m = the_cam->getViewMatrix();
+            m[3] = vec4(0, 0, 0, 1);
+            gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
+            gl::draw_mesh(the_scene->skybox());
+        }
+
+        // forward render pass
+        auto render_bin = cull(the_scene, the_cam, the_tags);
+        render(render_bin);
+        
+        // return number of rendered objects
+        return render_bin->items.size();
+    }
+    
+    RenderBinPtr SceneRenderer::cull(const gl::SceneConstPtr &the_scene,
+                                     const CameraPtr &theCamera,
+                                     const std::set<std::string> &the_tags) const
+    {
+        CullVisitor cull_visitor(theCamera, the_tags);
+        the_scene->root()->accept(cull_visitor);
+        RenderBinPtr ret = cull_visitor.get_render_bin();
+//        m_num_visible_objects = ret->items.size();
+        return ret;
+    }
+    
+    void SceneRenderer::render(const RenderBinPtr &theBin)
     {        
         std::list<RenderBin::item> opaque_items, blended_items;
         for (auto &item :theBin->items)
@@ -68,7 +202,7 @@ namespace kinski{ namespace gl{
         draw_sorted_by_material(theBin->camera, blended_items, theBin->lights);
     }
     
-    void Renderer::draw_sorted_by_material(const CameraPtr &cam, const list<RenderBin::item> &item_list,
+    void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<RenderBin::item> &item_list,
                                            const list<RenderBin::light> &light_list)
     {
         KINSKI_CHECK_GL_ERRORS();
@@ -201,7 +335,8 @@ namespace kinski{ namespace gl{
 #endif
     }
     
-    void Renderer::set_light_uniforms(MaterialPtr &the_mat, const list<RenderBin::light> &light_list)
+    void SceneRenderer::set_light_uniforms(MaterialPtr &the_mat,
+                                           const list<RenderBin::light> &light_list)
     {
         int light_count = 0;
         
@@ -235,7 +370,7 @@ namespace kinski{ namespace gl{
         the_mat->uniform("u_numLights", light_count);
     }
     
-    void Renderer::update_uniform_buffers(const std::list<RenderBin::light> &light_list)
+    void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &light_list)
     {
 #ifndef KINSKI_GLES
         struct lightstruct_std140
@@ -288,8 +423,8 @@ namespace kinski{ namespace gl{
 #endif
     }
     
-    void Renderer::update_uniform_buffer_matrices(const glm::mat4 &model_view,
-                                                  const glm::mat4 &projection)
+    void SceneRenderer::update_uniform_buffer_matrices(const glm::mat4 &model_view,
+                                                       const glm::mat4 &projection)
     {
 //#ifndef KINSKI_GLES
 //        
@@ -315,7 +450,7 @@ namespace kinski{ namespace gl{
 //#endif
     }
     
-    void Renderer::set_shadowmap_size(const glm::vec2 &the_size)
+    void SceneRenderer::set_shadowmap_size(const glm::vec2 &the_size)
     {
 #ifndef KINSKI_GLES
         gl::Fbo::Format fmt;
@@ -331,7 +466,7 @@ namespace kinski{ namespace gl{
 #endif
     }
     
-    void Renderer::update_uniform_buffer_shadows(const glm::mat4 &the_transform)
+    void SceneRenderer::update_uniform_buffer_shadows(const glm::mat4 &the_transform)
     {
 #ifndef KINSKI_GLES
 

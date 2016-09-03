@@ -1182,7 +1182,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
+    KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene,
+                                             gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam)
     {
         if(!theFbo)
@@ -1196,7 +1197,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         gl::set_window_dimension(theFbo.getSize());
         theFbo.bindFramebuffer();
         gl::clear();
-        theScene.render(theCam);
+        theScene->render(theCam);
         return theFbo.getTexture();
     }
     
@@ -1444,21 +1445,13 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     break;
             }
             the_mat->uniform(buf, tex_unit);
-//            the_mat->shader().uniform(buf, tex_unit);
             tex_unit++;
         }
         
         KINSKI_CHECK_GL_ERRORS();
         
-        the_mat->update_uniform_buffer();
-        
-        // set all other uniform values
-        Material::UniformMap::const_iterator it = the_mat->uniforms().begin();
-        for (; it != the_mat->uniforms().end(); it++)
-        {
-            boost::apply_visitor(InsertUniformVisitor(the_mat->shader(), it->first), it->second);
-            KINSKI_CHECK_GL_ERRORS();
-        }
+        // update uniform buffers and uniform values for current shader
+        the_mat->update_uniforms();
     }
 
 ///////////////////////////////////////////////////////////////////////////////

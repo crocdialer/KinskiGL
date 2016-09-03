@@ -19,6 +19,7 @@ namespace kinski {
 
     ViewerApp::ViewerApp(int argc, char *argv[]):BaseApp(argc, argv),
     m_camera(new gl::PerspectiveCamera),
+    m_scene(gl::Scene::create()),
     m_gui_camera(gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1)),
     m_precise_selection(true),
     m_center_selected(false),
@@ -136,7 +137,7 @@ namespace kinski {
         lights().front()->position() = glm::vec3(1);
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         
-        for(auto l : lights()){ scene().addObject(l); }
+        for(auto l : lights()){ scene()->addObject(l); }
         
         // enable observer mechanism
         observe_properties();
@@ -191,7 +192,7 @@ namespace kinski {
             if(anim){ anim->update(timeDelta); }
         }
 
-        m_scene.update(timeDelta);
+        m_scene->update(timeDelta);
     }
 
     void ViewerApp::mousePress(const MouseEvent &e)
@@ -203,7 +204,7 @@ namespace kinski {
 
         if(e.isLeft() || e.is_touch())
         {
-            gl::Object3DPtr picked_obj = m_scene.pick(gl::calculate_ray(m_camera, glm::vec2(e.getX(),
+            gl::Object3DPtr picked_obj = m_scene->pick(gl::calculate_ray(m_camera, glm::vec2(e.getX(),
                                                                                            e.getY())),
                                                       m_precise_selection);
             if(picked_obj)

@@ -12,19 +12,23 @@
 #include "Mesh.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
-#include "Renderer.hpp"
+#include "SceneRenderer.hpp"
 
 namespace kinski { namespace gl {
     
-    class KINSKI_API Scene
+    class Scene;
+    typedef std::shared_ptr<Scene> ScenePtr;
+    typedef std::shared_ptr<const Scene> SceneConstPtr;
+    
+    class KINSKI_API Scene : public std::enable_shared_from_this<Scene>
     {
     public:
         
-        Scene();
+        static ScenePtr create();
+        
         virtual void update(float time_delta);
         void render(const CameraPtr &theCamera, const std::set<std::string> &the_tags = {}) const;
         Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
-        RenderBinPtr cull(const CameraPtr &theCamera, const std::set<std::string> &the_tags = {}) const;
     
         void addObject(const Object3DPtr &theObject);
         void removeObject(const Object3DPtr &theObject);
@@ -36,16 +40,15 @@ namespace kinski { namespace gl {
         inline Object3DPtr& root() {return m_root;};
         uint32_t num_visible_objects() const {return m_num_visible_objects;};
         
+        const gl::MeshPtr& skybox() const { return m_skybox; }
         void set_skybox(const gl::Texture& t);
         
     private:
         
+        Scene();
         gl::MeshPtr m_skybox;
         mutable uint32_t m_num_visible_objects;
-        
-        //TODO: find a better place to put this
-        mutable gl::Renderer m_renderer;
-        
+        mutable gl::SceneRenderer m_renderer;
         Object3DPtr m_root;
     };
     

@@ -14,6 +14,24 @@ using namespace glm;
 
 namespace kinski { namespace gl {
     
+    class InsertUniformVisitor : public boost::static_visitor<>
+    {
+    private:
+        gl::Shader &m_shader;
+        const std::string &m_uniform;
+        
+    public:
+        
+        InsertUniformVisitor(gl::Shader &theShader, const std::string &theUniform)
+        :m_shader(theShader), m_uniform(theUniform){};
+        
+        template <typename T>
+        void operator()( T &value ) const
+        {
+            m_shader.uniform(m_uniform, value);
+        }
+    };
+    
     Material::Material(const Shader &theShader):
     m_shader(theShader),
     m_dirty_uniform_buffer(true),
@@ -95,7 +113,7 @@ namespace kinski { namespace gl {
         m_load_queue_shader.clear();
     };
     
-    void Material::update_uniform_buffer()
+    void Material::update_uniforms()
     {
         
 #if !defined(KINSKI_GLES)
@@ -145,6 +163,13 @@ namespace kinski { namespace gl {
             m_dirty_uniform_buffer = false;
         }
 #endif
+        
+        // set all other uniform values
+        for (auto it = uniforms().begin(); it != uniforms().end(); ++it)
+        {
+            boost::apply_visitor(InsertUniformVisitor(shader(), it->first), it->second);
+            KINSKI_CHECK_GL_ERRORS();
+        }
     }
     
 }}// namespace

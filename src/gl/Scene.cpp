@@ -11,7 +11,7 @@
 #include "Visitor.hpp"
 #include "Mesh.hpp"
 #include "Camera.hpp"
-#include "Renderer.hpp"
+#include "SceneRenderer.hpp"
 #include "Fbo.hpp"
 #include "geometry_types.hpp"
 
@@ -42,73 +42,10 @@ namespace kinski { namespace gl {
         float m_time_step;
     };
     
-    class CullVisitor : public Visitor
+    ScenePtr Scene::create()
     {
-    public:
-        CullVisitor(const CameraPtr &theCamera, const std::set<std::string> &the_tags):
-        Visitor(),
-        m_frustum(theCamera->frustum()),
-        m_tags(the_tags),
-        m_render_bin(new gl::RenderBin(theCamera))
-        {
-            transform_stack().push(theCamera->getViewMatrix());
-        }
-        
-        RenderBinPtr get_render_bin() const {return m_render_bin;}
-        
-        void visit(Mesh &theNode) override
-        {
-            if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
-            
-            glm::mat4 model_view = transform_stack().top() * theNode.transform();
-            gl::AABB boundingBox = theNode.boundingBox();
-//            boundingBox.transform(theNode.global_transform());
-            
-            if(m_frustum.intersect(boundingBox))
-            {
-                RenderBin::item item;
-                item.mesh = &theNode;
-                item.transform = model_view;
-                m_render_bin->items.push_back(item);
-            }
-            // super class provides node traversing and transform accumulation
-            Visitor::visit(static_cast<gl::Object3D&>(theNode));
-        }
-        
-        void visit(Light &theNode) override
-        {
-            //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
-            if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
-            {
-                RenderBin::light light_item;
-                light_item.light = &theNode;
-                switch (theNode.type())
-                {
-                    case Light::DIRECTIONAL:
-                        light_item.transform =
-                            glm::mat4(glm::inverseTranspose(glm::mat3(transform_stack().top()))) *
-                            theNode.transform();
-                        break;
-                        
-                    case Light::POINT:
-                    case Light::SPOT:
-                        light_item.transform = transform_stack().top() * theNode.transform();
-                        break;
-                }
-                
-                m_render_bin->lights.push_back(light_item);
-            }
-            // super class provides node traversing and transform accumulation
-            Visitor::visit(static_cast<gl::Object3D&>(theNode));
-        }
-        
-        void clear(){m_render_bin->items.clear();}
-        
-    private:
-        gl::Frustum m_frustum;
-        std::set<std::string> m_tags;
-        RenderBinPtr m_render_bin;
-    };
+        return ScenePtr(new Scene());
+    }
     
     Scene::Scene():
     m_root(new Object3D())
@@ -137,61 +74,9 @@ namespace kinski { namespace gl {
         m_root->accept(uv);
     }
     
-    RenderBinPtr Scene::cull(const CameraPtr &theCamera, const std::set<std::string> &the_tags) const
-    {
-        CullVisitor cull_visitor(theCamera, the_tags);
-        m_root->accept(cull_visitor);
-        RenderBinPtr ret = cull_visitor.get_render_bin();
-        m_num_visible_objects = ret->items.size();
-        return ret;
-    }
-    
     void Scene::render(const CameraPtr &theCamera, const std::set<std::string> &the_tags) const
     {
-        // shadow passes
-        SelectVisitor<Light> lv;
-        m_root->accept(lv);
-        
-        float extents = 2.f * glm::length(m_root->boundingBox().halfExtents());
-        
-        uint32_t i = 0;
-        m_renderer.set_shadowmap_size(glm::vec2(1024));
-        
-        for(gl::Light *l : lv.get_objects())
-        {
-            if(l->enabled() && l->cast_shadow())
-            {
-                if(i >= m_renderer.shadow_fbos().size())
-                {
-                    LOG_WARNING << "too many lights with active shadows";
-                    break;
-                }
-                m_renderer.set_shadow_pass(true);
-                m_renderer.shadow_cams()[i] = gl::create_shadow_camera(l, extents);
-                
-                // offscreen render shadow map here
-                gl::render_to_texture(m_renderer.shadow_fbos()[i], [&]()
-                {
-                    glClear(GL_DEPTH_BUFFER_BIT);
-                    m_renderer.render(cull(m_renderer.shadow_cams()[i]));
-                });
-                i++;
-                m_renderer.set_shadow_pass(false);
-            }
-        }
-        
-        // skybox drawing
-        if(m_skybox)
-        {
-            gl::set_projection(theCamera);
-            mat4 m = theCamera->getViewMatrix();
-            m[3] = vec4(0, 0, 0, 1);
-            gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
-            gl::draw_mesh(m_skybox);
-        }
-        
-        // forward render pass
-        m_renderer.render(cull(theCamera, the_tags));
+        m_num_visible_objects = m_renderer.render_scene(shared_from_this(), theCamera, the_tags);
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const

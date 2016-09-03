@@ -122,6 +122,7 @@ namespace kinski { namespace gl {
     typedef std::shared_ptr<struct MeshAnimation> MeshAnimationPtr;
     typedef std::shared_ptr<class Light> LightPtr;
     typedef std::shared_ptr<class Scene> ScenePtr;
+    typedef std::shared_ptr<const class Scene> SceneConstPtr;
     typedef std::shared_ptr<class Camera> CameraPtr;
     typedef std::shared_ptr<struct Bone> BonePtr;
     typedef std::shared_ptr<struct RenderBin> RenderBinPtr;
@@ -139,9 +140,9 @@ namespace kinski { namespace gl {
     KINSKI_API void set_projection( const CameraPtr &cam );
     KINSKI_API void set_matrices_for_window();
     
-    const vec3 X_AXIS = vec3(1, 0, 0);
-    const vec3 Y_AXIS = vec3(0, 1, 0);
-    const vec3 Z_AXIS = vec3(0, 0, 1);
+    static const vec3 X_AXIS = vec3(1, 0, 0);
+    static const vec3 Y_AXIS = vec3(0, 1, 0);
+    static const vec3 Z_AXIS = vec3(0, 0, 1);
     
     static const Color COLOR_WHITE(1), COLOR_BLACK(0, 0, 0, 1), COLOR_GRAY(.6, .6, .6, 1.),
     COLOR_RED(1, 0,  0, 1), COLOR_GREEN(0, 1, 0, 1), COLOR_BLUE(0, 0, 1, 1),
@@ -231,7 +232,7 @@ namespace kinski { namespace gl {
     KINSKI_API void draw_circle(const vec2 &center, float radius, bool solid = true,
                                 const MaterialPtr &theMaterial = MaterialPtr(), int numSegments = 32);
     
-    KINSKI_API gl::Texture render_to_texture(const gl::Scene &theScene, gl::Fbo &theFbo,
+    KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene, gl::Fbo &theFbo,
                                              const gl::CameraPtr &theCam);
     
     KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor);

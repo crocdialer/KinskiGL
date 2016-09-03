@@ -45,7 +45,7 @@ namespace kinski { namespace gl {
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; };
         
-        void update_uniform_buffer();
+        void update_uniforms();
         
         Shader& shader() {return m_shader;};
         const Shader& shader() const {return m_shader;};
@@ -145,23 +145,4 @@ namespace kinski { namespace gl {
             {};
         } m_point_attenuation;
     };
-    
-    class InsertUniformVisitor : public boost::static_visitor<>
-    {
-    private:
-        gl::Shader &m_shader;
-        const std::string &m_uniform;
-        
-    public:
-        
-        InsertUniformVisitor(gl::Shader &theShader, const std::string &theUniform)
-        :m_shader(theShader), m_uniform(theUniform){};
-        
-        template <typename T>
-        void operator()( T &value ) const
-        {
-            m_shader.uniform(m_uniform, value);
-        }
-    };
-   
 }} // namespace

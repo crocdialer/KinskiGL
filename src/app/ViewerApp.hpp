@@ -80,8 +80,8 @@ namespace kinski {
         std::vector<animation::AnimationPtr>& animations() { return m_animations; };
         const std::vector<animation::AnimationPtr>& animations() const { return m_animations; };
         
-        const gl::Scene& scene() const { return m_scene; };
-        gl::Scene& scene() { return m_scene; };
+        const gl::ScenePtr& scene() const { return m_scene; };
+        gl::ScenePtr& scene() { return m_scene; };
         bool precise_selection() const { return m_precise_selection; };
         void set_precise_selection(bool b){ m_precise_selection = b; };
         void set_camera(const gl::PerspectiveCamera::Ptr &theCam){m_camera = theCam;};
@@ -113,7 +113,7 @@ namespace kinski {
         gl::PerspectiveCamera::Ptr m_camera;
         uint32_t m_cam_index;
         
-        gl::Scene m_scene;
+        gl::ScenePtr m_scene;
         
         gl::OrthographicCamera::Ptr m_gui_camera;
         

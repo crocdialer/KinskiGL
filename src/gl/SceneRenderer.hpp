@@ -22,9 +22,10 @@ namespace kinski{ namespace gl{
     {
         struct item
         {
-            //! the items mesh
+            //! the item's mesh
             gl::Mesh *mesh;
-            //! the items transform in eye-coords
+            
+            //! the item's transform in eye-coords
             mat4 transform;
         };
         
@@ -32,7 +33,8 @@ namespace kinski{ namespace gl{
         {
             //! a lightsource
             gl::Light *light;
-            //! the light´s transform in eye-coords
+            
+            //! the light's transform in eye-coords
             mat4 transform;
         };
         
@@ -54,22 +56,23 @@ namespace kinski{ namespace gl{
         std::list<light> lights;
     };
     
-    class KINSKI_API Renderer
+    class KINSKI_API SceneRenderer
     {
     public:
         
-        typedef std::shared_ptr<Renderer> Ptr;
-        typedef std::shared_ptr<const Renderer> ConstPtr;
+        typedef std::shared_ptr<SceneRenderer> Ptr;
+        typedef std::shared_ptr<const SceneRenderer> ConstPtr;
         
         enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1,
             SHADOW_UNIFORM_BUFFER = 2};
         enum UniformBlockBinding {MATERIAL_BLOCK = 0, LIGHT_BLOCK = 1, MATRIX_BLOCK = 2,
             SHADOW_BLOCK = 3};
         
-        Renderer();
-        virtual ~Renderer(){};
+        SceneRenderer();
+        virtual ~SceneRenderer(){};
         
-        void render(const RenderBinPtr &theBin);
+        uint32_t render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
+                              const std::set<std::string> &the_tags = {});
         
         void set_light_uniforms(MaterialPtr &the_mat, const std::list<RenderBin::light> &light_list);
         void update_uniform_buffers(const std::list<RenderBin::light> &light_list);
@@ -82,6 +85,12 @@ namespace kinski{ namespace gl{
         void set_shadow_pass(bool b){ m_shadow_pass = b; }
         
     private:
+        
+        RenderBinPtr cull(const gl::SceneConstPtr &the_scene, const CameraPtr &theCamera,
+                          const std::set<std::string> &the_tags = {}) const;
+        
+        void render(const RenderBinPtr &theBin);
+        
         void draw_sorted_by_material(const CameraPtr &cam, const std::list<RenderBin::item> &item_list,
                                      const std::list<RenderBin::light> &light_list);
         
