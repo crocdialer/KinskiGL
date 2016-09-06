@@ -90,6 +90,9 @@ namespace kinski {
         virtual bool save_settings(const std::string &path = "");
         virtual bool load_settings(const std::string &path = "");
         
+        const std::string& default_config_path() const { return m_default_config_path; }
+        void set_default_config_path(const std::string& the_path) { m_default_config_path = the_path; }
+        
         void draw_textures(const std::vector<gl::Texture> &the_textures);
         
         void async_load_texture(const std::string &the_path,
@@ -130,6 +133,8 @@ namespace kinski {
         glm::vec3 m_look_at_tmp;
         
         gl::Fbo m_fbo_snapshot;
+        
+        std::string m_default_config_path = "./";
         
         Property_<std::vector<std::string> >::Ptr m_search_paths;
         RangedProperty<int>::Ptr m_logger_severity;

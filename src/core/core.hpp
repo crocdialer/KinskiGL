@@ -56,6 +56,13 @@ namespace kinski
 #include <functional>
 #include <algorithm>
 
+//! forward declare a class and define shared-, const- and weak smart-pointers for it.
+#define DEFINE_CLASS_PTR(CLASS_NAME)\
+class CLASS_NAME;\
+typedef std::shared_ptr<CLASS_NAME> CLASS_NAME##Ptr;\
+typedef std::shared_ptr<const CLASS_NAME> CLASS_NAME##ConstPtr;\
+typedef std::weak_ptr<CLASS_NAME> CLASS_NAME##WeakPtr;
+
 // forward declare boost io_service
 namespace boost{ namespace asio{ class io_service; } }
 

@@ -39,10 +39,11 @@ void MediaPlayer::setup()
     m_warp->observe_properties();
 
     remote_control().set_components({ shared_from_this(), m_warp });
+    set_default_config_path("~/");
     load_settings();
     
     // check for command line input
-    if(args().size() > 1 && fs::file_exists(args()[1])){ *m_movie_path = args()[1]; }
+    if(args().size() > 1 && fs::exists(args()[1])){ *m_movie_path = args()[1]; }
     
     // setup our components to receive rpc calls
     setup_rpc_interface();
@@ -247,13 +248,15 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
 
 /////////////////////////////////////////////////////////////////
 
-bool MediaPlayer::save_settings(const std::string &path)
+bool MediaPlayer::save_settings(const std::string &the_path)
 {
-    bool ret = ViewerApp::save_settings(path);
+    bool ret = ViewerApp::save_settings(the_path);
+    std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
+    path_prefix = fs::get_directory_part(path_prefix);
     try
     {
         Serializer::saveComponentState(m_warp,
-                                       fs::join_paths(path ,"warp_config.json"),
+                                       fs::join_paths(path_prefix ,"warp_config.json"),
                                        PropertyIO_GL());
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }
@@ -262,13 +265,15 @@ bool MediaPlayer::save_settings(const std::string &path)
 
 /////////////////////////////////////////////////////////////////
 
-bool MediaPlayer::load_settings(const std::string &path)
+bool MediaPlayer::load_settings(const std::string &the_path)
 {
-    bool ret = ViewerApp::load_settings(path);
+    bool ret = ViewerApp::load_settings(the_path);
+    std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
+    path_prefix = fs::get_directory_part(path_prefix);
     try
     {
         Serializer::loadComponentState(m_warp,
-                                       fs::join_paths(path , "warp_config.json"),
+                                       fs::join_paths(path_prefix, "warp_config.json"),
                                        PropertyIO_GL());
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }

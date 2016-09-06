@@ -15,8 +15,9 @@
 
 namespace kinski { namespace gl {
     
-    struct Bone
+    class Bone
     {
+    public:
         std::string name;
         mat4 transform;
         mat4 worldtransform;
@@ -44,8 +45,9 @@ namespace kinski { namespace gl {
         std::vector< Key<vec3> > scalekeys;
     };
     
-    struct MeshAnimation
+    class MeshAnimation
     {
+    public:
         float current_time;
         float duration;
         float ticksPerSec;

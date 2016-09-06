@@ -113,19 +113,17 @@ namespace kinski { namespace gl {
     struct Frustum;
     
     typedef vec4 Color;
-    typedef std::shared_ptr<class Image> ImagePtr;
-    typedef std::shared_ptr<class Material> MaterialPtr;
-    typedef std::shared_ptr<class Geometry> GeometryPtr;
-    typedef std::shared_ptr<class Object3D> Object3DPtr;
-    typedef std::shared_ptr<class Mesh> MeshPtr;
-    typedef std::weak_ptr<Mesh> MeshWeakPtr;
-    typedef std::shared_ptr<struct MeshAnimation> MeshAnimationPtr;
-    typedef std::shared_ptr<class Light> LightPtr;
-    typedef std::shared_ptr<class Scene> ScenePtr;
-    typedef std::shared_ptr<const class Scene> SceneConstPtr;
-    typedef std::shared_ptr<class Camera> CameraPtr;
-    typedef std::shared_ptr<struct Bone> BonePtr;
-    typedef std::shared_ptr<struct RenderBin> RenderBinPtr;
+    DEFINE_CLASS_PTR(Image);
+    DEFINE_CLASS_PTR(Material);
+    DEFINE_CLASS_PTR(Geometry);
+    DEFINE_CLASS_PTR(Object3D);
+    DEFINE_CLASS_PTR(Mesh);
+    DEFINE_CLASS_PTR(MeshAnimation);
+    DEFINE_CLASS_PTR(Light);
+    DEFINE_CLASS_PTR(Camera);
+    DEFINE_CLASS_PTR(Bone);
+    DEFINE_CLASS_PTR(Scene);
+
     
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     KINSKI_API void push_matrix(const Matrixtype type);

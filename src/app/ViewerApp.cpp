@@ -392,9 +392,14 @@ namespace kinski {
         }
     }
 
-    bool ViewerApp::save_settings(const std::string &path)
+    bool ViewerApp::save_settings(const std::string &the_path)
     {
         App::Task t(this);
+        
+        std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
+        path_prefix = fs::get_directory_part(path_prefix);
+        
+        LOG_DEBUG << "save settings to: " << path_prefix;
         
         std::list<Component::Ptr> light_components, material_components;
         for (uint32_t i = 0; i < lights().size(); i++)
@@ -416,13 +421,13 @@ namespace kinski {
         try
         {
             Serializer::saveComponentState(shared_from_this(),
-                                           fs::join_paths(path ,"config.json"),
+                                           fs::join_paths(path_prefix ,"config.json"),
                                            PropertyIO_GL());
             Serializer::saveComponentState(light_components,
-                                           fs::join_paths(path ,"light_config.json"),
+                                           fs::join_paths(path_prefix ,"light_config.json"),
                                            PropertyIO_GL());
             Serializer::saveComponentState(material_components,
-                                           fs::join_paths(path ,"material_config.json"),
+                                           fs::join_paths(path_prefix ,"material_config.json"),
                                            PropertyIO_GL());
 
         }
@@ -434,9 +439,13 @@ namespace kinski {
         return true;
     }
 
-    bool ViewerApp::load_settings(const std::string &path)
+    bool ViewerApp::load_settings(const std::string &the_path)
     {
         App::Task t(this);
+        
+        std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
+        path_prefix = fs::get_directory_part(path_prefix);
+        LOG_DEBUG << "load settings from: " << path_prefix;
         
         std::list<Component::Ptr> light_components, material_components;
         for (uint32_t i = 0; i < lights().size(); i++)
@@ -460,13 +469,13 @@ namespace kinski {
         try
         {
             Serializer::loadComponentState(shared_from_this(),
-                                           fs::join_paths(path , "config.json"),
+                                           fs::join_paths(path_prefix , "config.json"),
                                            PropertyIO_GL());
             Serializer::loadComponentState(light_components,
-                                           fs::join_paths(path , "light_config.json"),
+                                           fs::join_paths(path_prefix , "light_config.json"),
                                            PropertyIO_GL());
             Serializer::loadComponentState(material_components,
-                                           fs::join_paths(path , "material_config.json"),
+                                           fs::join_paths(path_prefix , "material_config.json"),
                                            PropertyIO_GL());
         }
         catch(Exception &e)

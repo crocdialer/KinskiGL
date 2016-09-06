@@ -209,7 +209,7 @@ namespace kinski { namespace fs{
     
     int get_file_size(const std::string &the_file_name)
     {
-        return boost::filesystem::file_size(the_file_name);
+        return boost::filesystem::file_size(expand_user(the_file_name));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -246,7 +246,7 @@ namespace kinski { namespace fs{
     
     bool write_file(const std::string &the_file_name, const std::string &the_data)
     {
-        std::ofstream file_out(the_file_name);
+        std::ofstream file_out(expand_user(the_file_name));
         if(!file_out){ return false; }
         file_out << the_data;
         file_out.close();
@@ -257,7 +257,7 @@ namespace kinski { namespace fs{
     
     bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data)
     {
-        std::ofstream file_out(the_file_name, ios::out | ios::binary);
+        std::ofstream file_out(expand_user(the_file_name), ios::out | ios::binary);
         if(!file_out){ return false; }
         file_out.write(reinterpret_cast<const char*>(&the_data[0]), the_data.size());
         file_out.close();
@@ -268,7 +268,7 @@ namespace kinski { namespace fs{
     
     bool append_to_file(const std::string &the_file_name, const std::string &the_data)
     {
-        std::ofstream file_out(the_file_name, ios::out | ios::app);
+        std::ofstream file_out(expand_user(the_file_name), ios::out | ios::app);
         if(!file_out){ return false; }
         file_out << the_data;
         file_out.close();
@@ -279,7 +279,7 @@ namespace kinski { namespace fs{
     
     std::string get_filename_part(const std::string &the_file_name)
     {
-        return path(the_file_name).filename().string();
+        return path(expand_user(the_file_name)).filename().string();
     }
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -306,16 +306,16 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool file_exists(const std::string& the_file_name)
+    bool exists(const std::string& the_file_name)
     {
-        return boost::filesystem::exists(the_file_name);
+        return boost::filesystem::exists(expand_user(the_file_name));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
     bool create_directory(const std::string &the_file_name)
     {
-        if(!file_exists(the_file_name))
+        if(!exists(the_file_name))
         {
             try
             {
@@ -372,10 +372,12 @@ namespace kinski { namespace fs{
     
     std::string get_directory_part(const std::string &the_file_name)
     {
-        if(is_directory(the_file_name))
-            return path(the_file_name).string();
+        auto expanded_path = expand_user(the_file_name);
+        
+        if(is_directory(expanded_path))
+            return path(expanded_path).string();
         else
-            return path(the_file_name).parent_path().string();
+            return path(expanded_path).parent_path().string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -396,7 +398,7 @@ namespace kinski { namespace fs{
     
     FileType get_file_type(const std::string &file_name)
     {
-        if(!file_exists(file_name)){ return FileType::NOT_A_FILE; }
+        if(!exists(file_name)){ return FileType::NOT_A_FILE; }
         if(is_directory(file_name)){ return FileType::DIRECTORY; }
         string ext = get_extension(file_name);
         ext = ext.empty() ? ext : kinski::to_lower(ext.substr(1));

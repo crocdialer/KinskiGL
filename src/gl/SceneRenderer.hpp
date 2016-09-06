@@ -18,8 +18,12 @@
 
 namespace kinski{ namespace gl{
     
-    struct KINSKI_API RenderBin
+    DEFINE_CLASS_PTR(RenderBin);
+    
+    class KINSKI_API RenderBin
     {
+    public:
+        
         struct item
         {
             //! the item's mesh

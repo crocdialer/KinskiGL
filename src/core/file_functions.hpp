@@ -28,7 +28,7 @@ namespace kinski { namespace fs {
     std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
                                             bool recursive = false);
     
-    bool file_exists(const std::string &the_file_name);
+    bool exists(const std::string &the_file_name);
     bool is_url(const std::string &the_file_name);
     bool is_directory(const std::string &the_file_name);
     bool create_directory(const std::string &the_file_name);
