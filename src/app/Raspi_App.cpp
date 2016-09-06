@@ -142,7 +142,7 @@ namespace kinski
     {
         const auto bl_path = "/sys/class/backlight/rpi_backlight/bl_power";
 
-        if(fs::file_exists(bl_path))
+        if(fs::exists(bl_path))
         {
             std::string cmd = string("sudo bash -c \"echo ") + (b ? "0" : "1") +
             " >  " + bl_path + "\"";
@@ -460,7 +460,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     // find touch device name
     auto touch_dev_path = find_device_handler("FT5406");
 
-    if(kinski::fs::file_exists(touch_dev_path))
+    if(kinski::fs::exists(touch_dev_path))
     {
         sprintf(fullPath,touch_dev_path.c_str());
         touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);
