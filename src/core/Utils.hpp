@@ -180,6 +180,15 @@ namespace kinski
         return ret;
     }
     
+    template <typename T, typename C>
+    inline const T median(const C &the_container)
+    {
+        std::vector<T> tmp_array(std::begin(the_container), std::end(the_container));
+        size_t n = tmp_array.size() / 2;
+        std::nth_element(tmp_array.begin(), tmp_array.begin() + n, tmp_array.end());
+        return tmp_array[n];
+    }
+    
     template <typename T>
     inline int sgn(T val)
     {
@@ -192,16 +201,16 @@ namespace kinski
         return val < min ? min : (val > max ? max : val);
     }
     
-    template <typename T>
-    inline T mix(const T &lhs, const T &rhs, float ratio)
+    template <typename T, typename Real = float>
+    inline T mix(const T &lhs, const T &rhs, Real ratio)
     {
         return lhs + ratio * (rhs - lhs);
     }
     
-    template <typename T>
-    inline T mix_slow(const T &lhs, const T &rhs, float ratio)
+    template <typename T, typename Real = float>
+    inline T mix_slow(const T &lhs, const T &rhs, Real ratio)
     {
-        return lhs * (1.f - ratio) + rhs * ratio;
+        return lhs * (Real(1) - ratio) + rhs * ratio;
     }
     
     template <typename T>
@@ -221,7 +230,7 @@ namespace kinski
         // random mean
         std::default_random_engine e1(r());
         std::uniform_int_distribution<uint64_t> uniform_dist(0, std::numeric_limits<uint64_t>::max());
-        return mix_slow<T>(min, max, uniform_dist(e1) / (float) std::numeric_limits<uint64_t>::max());
+        return mix_slow<T>(min, max, uniform_dist(e1) / (double) std::numeric_limits<uint64_t>::max());
     }
     
     template <typename T = int32_t>
@@ -289,7 +298,7 @@ namespace kinski
         }
         
         inline uint32_t capacity() const { return m_array_size - 1; };
-        void set_capacity(uint32_t the_cap)
+        inline void set_capacity(uint32_t the_cap)
         {
             if(m_data){ delete[](m_data); }
             m_data = new T[the_cap + 1];

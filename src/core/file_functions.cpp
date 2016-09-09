@@ -382,16 +382,16 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string get_extension(const std::string &thePath)
+    std::string get_extension(const std::string &the_file_name)
     {
-        return boost::filesystem::extension(thePath);
+        return boost::filesystem::extension(expand_user(the_file_name));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
     std::string remove_extension(const std::string &the_file_name)
     {
-        return path(the_file_name).replace_extension().string();
+        return path(expand_user(the_file_name)).replace_extension().string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////

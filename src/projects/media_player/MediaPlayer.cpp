@@ -39,7 +39,7 @@ void MediaPlayer::setup()
     m_warp->observe_properties();
 
     remote_control().set_components({ shared_from_this(), m_warp });
-    set_default_config_path("~/");
+//    set_default_config_path("~/");
     load_settings();
     
     // check for command line input
