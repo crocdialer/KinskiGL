@@ -29,13 +29,13 @@ namespace kinski
 
         WarpComponent::Ptr m_warp;
 
-        media::MediaControllerPtr m_movie = media::MovieController::create();
+        media::MediaControllerPtr m_media = media::MediaController::create();
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
-        bool m_reload_movie = false;
+        bool m_reload_media = false;
         Timer m_broadcast_timer;
         
         // properties
-        Property_<string>::Ptr m_movie_path = Property_<string>::create("movie path", "");
+        Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");
         Property_<bool>::Ptr
         m_loop = Property_<bool>::create("loop", false),
         m_auto_play = Property_<bool>::create("autoplay", true),
@@ -54,7 +54,7 @@ namespace kinski
         std::string secs_to_time_str(float the_secs) const;
         void setup_rpc_interface();
         
-        void reload_movie();
+        void reload_media();
         
     public:
 
