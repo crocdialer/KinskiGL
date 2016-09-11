@@ -148,7 +148,7 @@ namespace kinski
     }
     
     template <typename T, typename C>
-    inline bool is_in(const T &elem, const C &container)
+    inline bool contains(const C &container, const T &elem)
     {
         return std::find(std::begin(container), std::end(container), elem) != std::end(container);
     }
@@ -254,6 +254,26 @@ namespace kinski
         return ret;
     }
     
+    template<typename T> class Area
+    {
+    public:
+        T x1, y1, x2, y2;
+        
+        Area():x1(0), y1(0), x2(0), y2(0){};
+        Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
+        x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
+        
+        inline const T width() const { return std::fabs<T>(x1 - x2); };
+        inline const T height() const { return std::fabs<T>(y1 - y2); };
+        
+        inline T size() const { return width() * height(); }
+        
+        bool operator<(const Area<T> &other) const
+        {
+            return size() < other.size();
+        }
+    };
+    
     template<typename T>
     class CircularBuffer
     {
@@ -320,6 +340,13 @@ namespace kinski
             if(the_index < size()){ return m_data[(m_first + the_index) % m_array_size]; }
             else{ return T(0); }
         };
+        
+        inline const T median() const
+        {
+            auto start = m_first, end = m_last;
+            if(start > end){ std::swap(start, end); }
+            return kinski::median(std::vector<T>(m_data + start, m_data + end));
+        }
         
     private:
         

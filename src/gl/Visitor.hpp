@@ -53,7 +53,7 @@ namespace kinski { namespace gl {
         {
             for(const auto &t : obj_tags)
             {
-                if(is_in(t, filter_tags)){ return true; }
+                if(kinski::contains(filter_tags, t)){ return true; }
             }
             return filter_tags.empty();
         }

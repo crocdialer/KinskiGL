@@ -23,14 +23,6 @@
 #include <map>
 #include <unordered_map>
 
-namespace kinski
-{
-    using std::string;
-    using std::vector;
-    using std::list;
-    using std::set;
-}
-
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
     #define KINSKI_MSW
 #else
@@ -63,9 +55,21 @@ typedef std::shared_ptr<CLASS_NAME> CLASS_NAME##Ptr;\
 typedef std::shared_ptr<const CLASS_NAME> CLASS_NAME##ConstPtr;\
 typedef std::weak_ptr<CLASS_NAME> CLASS_NAME##WeakPtr;
 
+
 // forward declare boost io_service
 namespace boost{ namespace asio{ class io_service; } }
 
 #include "Logger.hpp"
 #include "Exception.hpp"
 #include "Utils.hpp"
+
+namespace kinski
+{
+    using std::string;
+    using std::vector;
+    using std::list;
+    using std::set;
+    
+    // forward declase some classes
+    DEFINE_CLASS_PTR(Image);
+}

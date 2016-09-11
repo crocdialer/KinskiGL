@@ -152,7 +152,7 @@ void Fbo::init()
 #if !defined(KINSKI_GLES)
     GLint float_types[] = {GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
     GLint one_comp_types[] = {GL_RED, GL_GREEN, GL_BLUE, GL_R32F};
-    if(is_in(col_fmt, float_types)){ textureFormat.set_data_type(GL_FLOAT); }
+    if(contains(float_types, col_fmt)){ textureFormat.set_data_type(GL_FLOAT); }
 #endif
 	textureFormat.setWrap( m_obj->mFormat.mWrapS, m_obj->mFormat.mWrapT);
 	textureFormat.setMinFilter( m_obj->mFormat.mMinFilter);
@@ -165,7 +165,7 @@ void Fbo::init()
         auto tex = Texture(m_obj->mWidth, m_obj->mHeight, textureFormat);
         
 #if !defined(KINSKI_GLES)
-        if(is_in(col_fmt, one_comp_types)){ tex.set_swizzle(GL_RED, GL_RED, GL_RED, GL_ONE); }
+        if(contains(one_comp_types, col_fmt)){ tex.set_swizzle(GL_RED, GL_RED, GL_RED, GL_ONE); }
 #endif
 		m_obj->mColorTextures.push_back(tex);
 	}

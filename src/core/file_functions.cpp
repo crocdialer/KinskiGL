@@ -410,11 +410,11 @@ namespace kinski { namespace fs{
         movie_exts{"mpg", "mov", "avi", "mp4", "m4v", "mkv"},
         font_exts{"ttf", "otf", "ttc"};
 
-        if(kinski::is_in(ext, image_exts)){ return FileType::IMAGE; }
-        else if(kinski::is_in(ext, model_exts)){ return FileType::MODEL; }
-        else if(kinski::is_in(ext, audio_exts)){ return FileType::AUDIO; }
-        else if(kinski::is_in(ext, movie_exts)){ return FileType::MOVIE; }
-        else if(kinski::is_in(ext, font_exts)){ return FileType::FONT; }
+        if(kinski::contains(image_exts, ext)){ return FileType::IMAGE; }
+        else if(kinski::contains(model_exts, ext)){ return FileType::MODEL; }
+        else if(kinski::contains(audio_exts, ext)){ return FileType::AUDIO; }
+        else if(kinski::contains(movie_exts, ext)){ return FileType::MOVIE; }
+        else if(kinski::contains(font_exts, ext)){ return FileType::FONT; }
 
         return FileType::OTHER;
     }

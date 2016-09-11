@@ -12,12 +12,10 @@
 //  Created by Fabian on 14.02.13.
 
 #include "core/file_functions.hpp"
+#include "core/Image.hpp"
 #include "gl/gl.hpp"
 #include "Texture.hpp"
 #include "Buffer.hpp"
-
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.inl"
 
 namespace kinski { namespace gl {
     
@@ -26,24 +24,6 @@ namespace kinski { namespace gl {
         int tmp = 1;
         while (tmp < v) {tmp <<= 1;}
         return tmp == v;
-    }
-    
-    ImagePtr decode_image(const std::vector<uint8_t> &the_data, int num_channels)
-    {
-        int width, height, num_components;
-        unsigned char *data = stbi_load_from_memory(&the_data[0], the_data.size(),
-                                                    &width, &height, &num_components, num_channels);
-        
-        if(!data) throw ImageLoadException();
-        
-        LOG_TRACE << "decoded image: " << width << " x " << height << " (" <<num_components<<" ch)";
-        
-        // ... process data if not NULL ...
-        // ... x = width, y = height, n = # 8-bit components per pixel ...
-        // ... replace '0' with '1'..'4' to force that many components per pixel
-        // ... but 'n' will always be the number that it would have been if you said 0
-        
-        return Image::create(data, height, width, num_components);
     }
     
     Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,

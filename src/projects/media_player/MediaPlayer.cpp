@@ -314,6 +314,13 @@ void MediaPlayer::reload_media()
         m_media->unload();
         textures()[TEXTURE_INPUT] = gl::create_texture_from_file(*m_media_path);
     }
+    else if(media_type == fs::FileType::FONT)
+    {
+        m_media->unload();
+        gl::Font font;
+        font.load(*m_media_path, 87);
+        textures()[TEXTURE_INPUT] = font.glyph_texture();
+    }
     m_reload_media = false;
 }
 

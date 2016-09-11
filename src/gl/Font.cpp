@@ -11,6 +11,7 @@
 //
 //  Created by Fabian on 3/9/13.
 
+#include "core/Image.hpp"
 #include "core/file_functions.hpp"
 #include "Texture.hpp"
 #include "Mesh.hpp"
@@ -58,31 +59,6 @@ namespace kinski { namespace gl {
         string_mesh_container(const std::string &t, const MeshPtr &m):text(t), mesh(m), counter(0){}
         bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
     };
-    
-    void copy_image(const ImagePtr &src_mat, ImagePtr &dst_mat)
-    {
-        uint32_t bytes_per_pixel = 1;
-        
-        assert(src_mat->roi.x2 <= src_mat->cols && src_mat->roi.y2 <= src_mat->rows);
-        assert(dst_mat->roi.x2 <= dst_mat->cols && dst_mat->roi.y2 <= dst_mat->rows);
-        assert(src_mat->roi.width() == src_mat->roi.width() && src_mat->roi.height() == src_mat->roi.height());
-        
-        uint32_t src_row_offset = src_mat->cols - src_mat->roi.width();
-        uint32_t dst_row_offset = dst_mat->cols - dst_mat->roi.width();
-        
-        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y1 * src_mat->cols + src_mat->roi.x1) * bytes_per_pixel;
-        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y1 * dst_mat->cols + dst_mat->roi.x1) * bytes_per_pixel;
-        
-        for (uint32_t r = 0; r < src_mat->roi.height(); r++)
-        {
-            const uint8_t* src_row_start = src_area_start + r * (src_mat->roi.width() + src_row_offset) * bytes_per_pixel;
-            uint8_t* dst_row_start = dst_area_start + r * (dst_mat->roi.width() + dst_row_offset) * bytes_per_pixel;
-            for (uint32_t c = 0; c < src_mat->roi.width(); c++)
-            {
-                dst_row_start[c * bytes_per_pixel] = src_row_start[c * bytes_per_pixel];
-            }
-        }
-    }
     
     struct Font::Obj
     {

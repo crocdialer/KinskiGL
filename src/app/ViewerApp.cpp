@@ -11,6 +11,7 @@
 //
 //  Created by Fabian on 3/1/13.
 
+#include "core/Image.hpp"
 #include "ViewerApp.hpp"
 #include "app/LightComponent.hpp"
 #include "app/MaterialComponent.hpp"
@@ -520,11 +521,11 @@ namespace kinski {
         background_queue().submit([this, the_path, the_callback, mip_map, compress,
                                    anisotropic_filter_lvl]()
         {
-            gl::ImagePtr img;
+            ImagePtr img;
             try
             {
                 auto dataVec = fs::read_binary_file(the_path);
-                img = gl::decode_image(dataVec);
+                img = decode_image(dataVec);
             }
             catch (Exception &e) { LOG_WARNING << e.what(); }
           

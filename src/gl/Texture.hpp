@@ -15,66 +15,6 @@ namespace kinski{ namespace gl{
     
     typedef unsigned int GLenum;
     
-    template<typename T>
-    class Area
-    {
-    public:
-        T x1, y1, x2, y2;
-        
-        Area():x1(0), y1(0), x2(0), y2(0){};
-        Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
-        x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
-        
-        // does not seem to work in std::map !?
-        bool operator<(const Area<T> &other) const
-        {
-            if ( x1 != other.x1 ) return x1 < other.x1;
-            if ( y1 != other.y1 ) return y1 < other.y1;
-            if ( x2 != other.x2 ) return x2 < other.x2;
-            if ( y2 != other.y2 ) return y2 < other.y2;
-            return false;
-        }
-                
-        inline uint32_t width() const { return x2 - x1; };
-        inline uint32_t height() const { return y2 - y1; };
-    };
-    
-    class Image
-    {
-    public:
-        
-        uint8_t* data = nullptr;
-        uint32_t rows = 0, cols = 0;
-        uint32_t bytes_per_pixel = 1;
-        Area<uint32_t> roi;
-        bool do_not_dispose = false;
-        
-        static ImagePtr create(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
-                        const Area<uint32_t> &theRoi = Area<uint32_t>())
-        {
-            return ImagePtr(new Image(theData, theRows, theCols, theBytesPerPixel, theRoi));
-        };
-        
-        inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
-        
-        inline size_t num_bytes() const { return rows * cols * bytes_per_pixel; }
-        
-        ~Image()
-        {
-            if(data && !do_not_dispose)
-            {
-                LOG_TRACE_2 << "disposing image";
-                free(data);
-            }
-        };
-        
-    private:
-        
-        Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
-              const Area<uint32_t> &theRoi = Area<uint32_t>()):
-        data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
-    };
-                
     /** \brief Represents an OpenGL Texture. \ImplShared*/
     class KINSKI_API Texture
     {

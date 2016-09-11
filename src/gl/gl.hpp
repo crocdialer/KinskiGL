@@ -113,7 +113,6 @@ namespace kinski { namespace gl {
     struct Frustum;
     
     typedef vec4 Color;
-    DEFINE_CLASS_PTR(Image);
     DEFINE_CLASS_PTR(Material);
     DEFINE_CLASS_PTR(Geometry);
     DEFINE_CLASS_PTR(Object3D);
@@ -246,8 +245,6 @@ namespace kinski { namespace gl {
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API ImagePtr decode_image(const std::vector<uint8_t> &the_data, int num_channels = 0);
-    
     KINSKI_API Texture create_texture_from_file(const std::string &theFileName,
                                                 bool mipmap = false,
                                                 bool compress = false,
@@ -267,13 +264,6 @@ namespace kinski { namespace gl {
      * from 6 individual gl::Texture objects of type GL_TEXTURE_2D of same size
      */
     KINSKI_API Texture create_cube_texture(const std::vector<gl::Texture> &the_planes);
-    
-    class ImageLoadException : public Exception
-    {
-    public:
-        ImageLoadException()
-        :Exception("Got trouble decoding image file"){};
-    };
     
     /*********************************** Shader loading *******************************************/
     
