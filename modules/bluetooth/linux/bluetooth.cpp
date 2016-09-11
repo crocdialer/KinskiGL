@@ -409,7 +409,7 @@ struct CentralImpl : public std::enable_shared_from_this<CentralImpl>
         for(const auto &s : service_uuids)
         {
              peripheral->add_service(s);
-             if(is_in(s, m_uuid_set)){ filter_service = false; }
+             if(kinski::contains(m_uuid_set, s)){ filter_service = false; }
         }
 
         // fire discovery callback
@@ -708,7 +708,7 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
         auto service_uuid = UUID(uuid_str);
         m_impl->m_service_map[service_uuid] = services[i];
 
-        if(the_uuids.empty() || is_in(service_uuid, the_uuids))
+        if(the_uuids.empty() || kinski::contains(the_uuids, service_uuid))
         {
             add_service(service_uuid);
             sprintf(buf, "service[%d] start_handle:%02x end_handle:%02x uuid:%s", i,
