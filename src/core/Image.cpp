@@ -14,11 +14,26 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.inl"
 
+#include "core/file_functions.hpp"
 #include "Image.hpp"
 
 namespace kinski
 {
-    ImagePtr decode_image(const std::vector<uint8_t> &the_data, int num_channels)
+    KINSKI_API ImagePtr create_image_from_file(const std::string &the_path, int num_channels)
+    {
+        std::vector<uint8_t> dataVec;
+        ImagePtr ret;
+        
+        try
+        {
+            dataVec = fs::read_binary_file(the_path);
+            ret = create_image_from_data(dataVec, num_channels);
+        }
+        catch (Exception &e){ LOG_WARNING << e.what(); }
+        return ret;
+    }
+    
+    ImagePtr create_image_from_data(const std::vector<uint8_t> &the_data, int num_channels)
     {
         int width, height, num_components;
         unsigned char *data = stbi_load_from_memory(&the_data[0], the_data.size(),

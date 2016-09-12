@@ -521,13 +521,7 @@ namespace kinski {
         background_queue().submit([this, the_path, the_callback, mip_map, compress,
                                    anisotropic_filter_lvl]()
         {
-            ImagePtr img;
-            try
-            {
-                auto dataVec = fs::read_binary_file(the_path);
-                img = decode_image(dataVec);
-            }
-            catch (Exception &e) { LOG_WARNING << e.what(); }
+            auto img = create_image_from_file(the_path);
           
             main_queue().submit([this, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
             {

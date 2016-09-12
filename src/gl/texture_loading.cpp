@@ -102,7 +102,7 @@ namespace kinski { namespace gl {
     {
         ImagePtr img;
         Texture ret;
-        try {img = decode_image(the_data);}
+        try {img = create_image_from_data(the_data);}
         catch (ImageLoadException &e)
         {
             LOG_ERROR << e.what();
@@ -115,16 +115,8 @@ namespace kinski { namespace gl {
     Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bool compress,
                                      GLfloat anisotropic_filter_lvl)
     {
-        std::vector<uint8_t> dataVec;
-        Texture ret;
-        
-        try{ dataVec = fs::read_binary_file(theFileName); }
-        catch (fs::FileNotFoundException &e)
-        {
-            LOG_WARNING << e.what();
-            return ret;
-        }
-        ret = create_texture_from_data(dataVec, mipmap, compress, anisotropic_filter_lvl);
+        ImagePtr img = create_image_from_file(theFileName);
+        Texture ret = create_texture_from_image(img);
         return ret;
     }
 }}
