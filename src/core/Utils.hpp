@@ -263,8 +263,8 @@ namespace kinski
         Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
         x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
         
-        inline const T width() const { return std::fabs<T>(x1 - x2); };
-        inline const T height() const { return std::fabs<T>(y1 - y2); };
+        inline const T width() const { return fabs(((double)x1 - (double)x2)); };
+        inline const T height() const { return fabs(((double)y1 - (double)y2)); };
         
         inline T size() const { return width() * height(); }
         

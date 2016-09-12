@@ -48,7 +48,9 @@ namespace kinski
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
         
-        return Image::create(data, height, width, num_components);
+        auto ret = Image::create(data, height, width, num_components);
+        free(data);
+        return ret;
     }
     
     void copy_image(const ImagePtr &src_mat, ImagePtr &dst_mat)

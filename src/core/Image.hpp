@@ -32,9 +32,9 @@ namespace kinski
         bool do_not_dispose = false;
         
         static ImagePtr create(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
-                               const Area<uint32_t> &theRoi = Area<uint32_t>())
+                               bool not_dispose = false)
         {
-            return ImagePtr(new Image(theData, theRows, theCols, theBytesPerPixel, theRoi));
+            return ImagePtr(new Image(theData, theRows, theCols, theBytesPerPixel, not_dispose));
         };
         
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
@@ -46,15 +46,23 @@ namespace kinski
             if(data && !do_not_dispose)
             {
                 LOG_TRACE_2 << "disposing image";
-                free(data);
+                delete[](data);
             }
         };
         
     private:
         
         Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
-              const Area<uint32_t> &theRoi = Area<uint32_t>()):
-        data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), roi(theRoi){};
+              bool not_dispose = false):
+        data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
+        {
+            if(!do_not_dispose)
+            {
+                size_t num_bytes = rows * cols * bytes_per_pixel;
+                data = new uint8_t[num_bytes];
+                memcpy(data, theData, num_bytes);
+            }
+        };
     };
     
     class ImageLoadException : public Exception

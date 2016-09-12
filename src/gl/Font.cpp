@@ -221,8 +221,8 @@ namespace kinski { namespace gl {
         uint8_t dst_data[max_x * max_y];
         std::fill(dst_data, dst_data + max_x * max_y, 0);
         
-        auto src_mat = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width);
-        auto dst_mat = Image::create(dst_data, max_y, max_x);
+        auto src_mat = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width, 1, true);
+        auto dst_mat = Image::create(dst_data, max_y, max_x, 1, true);
         
         Area_Pairs::iterator area_it = area_pairs.begin();
         for (; area_it != area_pairs.end(); ++area_it)
