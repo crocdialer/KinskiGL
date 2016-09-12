@@ -318,8 +318,7 @@ void MediaPlayer::reload_media()
     {
         m_media->unload();
         gl::Font font;
-        font.load(*m_media_path, 87);
-//        textures()[TEXTURE_INPUT] = font.glyph_texture();
+        font.load(*m_media_path, 44);
         textures()[TEXTURE_INPUT] = font.create_texture("The quick brown fox \njumps over the lazy dog ... \n0123456789");
     }
     m_reload_media = false;
