@@ -352,7 +352,7 @@ void Texture::set_mipmapping(bool b)
     {
         if(b && !m_Obj->m_mip_map)
         {
-            setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
+            setMinFilter(GL_LINEAR_MIPMAP_LINEAR);
             glGenerateMipmap(m_Obj->m_target);
         }
         else{ setMinFilter(GL_LINEAR); }
