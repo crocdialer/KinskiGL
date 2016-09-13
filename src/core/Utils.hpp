@@ -180,11 +180,11 @@ namespace kinski
         return ret;
     }
     
-    template <typename T, typename C>
-    inline double mean(const C &the_container)
+    template <typename T = double, typename C>
+    inline const T mean(const C &the_container)
     {
         T sum = std::accumulate(std::begin(the_container), std::end(the_container), 0.0);
-        return sum / (double)the_container.size();
+        return sum / the_container.size();
     }
     
     template <typename T = double, typename C>
