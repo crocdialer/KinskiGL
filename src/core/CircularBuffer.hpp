@@ -1,0 +1,130 @@
+//
+//  CircularBuffer.hpp
+//  kinskiGL
+//
+//  Created by Fabian on 13/09/16.
+//
+//
+
+#pragma once
+
+#include "core/core.hpp"
+
+namespace kinski
+{
+
+template<typename T>
+class CircularBuffer
+{
+public:
+    
+    CircularBuffer(uint32_t the_cap = 10):
+    m_array_size(0),
+    m_first(0),
+    m_last(0),
+    m_data(nullptr)
+    {
+        set_capacity(the_cap);
+    }
+    
+    virtual ~CircularBuffer()
+    {
+        if(m_data){ delete[](m_data); }
+    }
+    
+    inline void clear()
+    {
+        m_first = m_last = 0;
+    }
+    
+    inline void push(const T &the_val)
+    {
+        m_data[m_last] = the_val;
+        m_last = (m_last + 1) % m_array_size;
+        
+        // buffer is full, drop oldest value
+        if(m_first == m_last){ m_first = (m_first + 1) % m_array_size; }
+    }
+    
+    inline void pop()
+    {
+        if(!empty()){ m_first = (m_first + 1) % m_array_size; }
+    }
+    
+    inline T& front()
+    {
+        return m_data[m_first];
+    }
+    
+    inline T& back()
+    {
+        return m_data[m_last];
+    }
+    
+    inline uint32_t capacity() const { return m_array_size - 1; };
+    inline void set_capacity(uint32_t the_cap)
+    {
+        if(m_data){ delete[](m_data); }
+        m_data = new T[the_cap + 1];
+        m_array_size = the_cap + 1;
+        clear();
+    }
+    
+    inline uint32_t size() const
+    {
+        int ret = m_last - m_first;
+        if(ret < 0){ ret += m_array_size; }
+        return ret;
+    };
+    
+    inline bool empty() const { return m_first == m_last; }
+    
+    inline const T operator[](uint32_t the_index) const
+    {
+        if(the_index < size()){ return m_data[(m_first + the_index) % m_array_size]; }
+        else{ return T(0); }
+    };
+    
+    class iterator: public std::iterator<std::input_iterator_tag, T>
+    {
+        friend CircularBuffer<T>;
+        
+        T *m_array, *m_ptr;
+        uint32_t m_size;
+        
+        iterator(const CircularBuffer<T>* the_buf, uint32_t the_pos):
+        m_array(the_buf->m_data),
+        m_ptr(the_buf->m_data + the_pos),
+        m_size(the_buf->m_array_size)
+        {}
+        
+    public:
+        inline iterator& operator++()
+        {
+            m_ptr++;
+            if(m_ptr >= (m_array + m_size)){ m_ptr -= m_size;}
+            return *this;
+        }
+        inline bool operator==(const iterator &the_other) const
+        {
+            return m_array == the_other.m_array && m_ptr == the_other.m_ptr;
+        }
+        inline bool operator!=(const iterator &the_other) const { return !(*this == the_other); }
+        inline T& operator *() { return *m_ptr; }
+        inline const T& operator *() const { return *m_ptr; }
+        inline T* operator->(){ return m_ptr; }
+        inline const T* operator->() const { return m_ptr; }
+    };
+    typedef const iterator const_iterator;
+    
+    iterator begin(){ return iterator(this, m_first); }
+    const_iterator begin() const { return iterator(this, m_first); }
+    iterator end(){ return iterator(this, m_last); }
+    const_iterator end() const { return iterator(this, m_last); }
+private:
+    
+    int32_t m_array_size, m_first, m_last;
+    T* m_data;
+};
+
+}// namespace

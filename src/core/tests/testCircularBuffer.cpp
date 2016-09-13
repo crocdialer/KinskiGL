@@ -6,7 +6,8 @@
 // alternatively you could define init function yourself
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
-#include "core/Utils.hpp"
+#include "core/core.hpp"
+#include "core/CircularBuffer.hpp"
 
 using namespace kinski;
 //____________________________________________________________________________//
@@ -59,17 +60,16 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     circ_buf.set_capacity(7);
     BOOST_CHECK(circ_buf.empty());
     
-    // push 8 element into the 7-sized buffer
+    // push 8 elements into the 7-sized buffer
     circ_buf.push(89);// will fall out
-    circ_buf.push(88);
-    circ_buf.push(87);
+    circ_buf.push(2);
     circ_buf.push(46);
     circ_buf.push(4);// will be the median
+    circ_buf.push(88);
     circ_buf.push(3);
-    circ_buf.push(2);
+    circ_buf.push(87);
     circ_buf.push(1);
     BOOST_CHECK(kinski::median(circ_buf) == 4);
-    
     
     int i = 0;
     for(const auto &v : circ_buf){ printf("val[%d]: %.2f\n", i, v); i++; }
