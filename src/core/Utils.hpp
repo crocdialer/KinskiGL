@@ -181,12 +181,38 @@ namespace kinski
     }
     
     template <typename T, typename C>
+    inline double mean(const C &the_container)
+    {
+        T sum = std::accumulate(std::begin(the_container), std::end(the_container), 0.0);
+        return sum / (double)the_container.size();
+    }
+    
+    template <typename T = double, typename C>
+    inline double standard_deviation(const C &the_container)
+    {
+        auto mean = kinski::mean<T>(the_container);
+        std::vector<double> diff(the_container.size());
+        std::transform(the_container.begin(), the_container.end(), diff.begin(),
+                       [mean](double x) { return x - mean; });
+        double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
+        double stdev = std::sqrt(sq_sum / the_container.size());
+        return stdev;
+    }
+    
+    template <typename T = double, typename C>
     inline const T median(const C &the_container)
     {
         std::vector<T> tmp_array(std::begin(the_container), std::end(the_container));
         size_t n = tmp_array.size() / 2;
         std::nth_element(tmp_array.begin(), tmp_array.begin() + n, tmp_array.end());
-        return tmp_array[n];
+        
+        // odd vector size -> average the two middle values
+        if(!(tmp_array.size() % 2))
+        {
+            auto max_it = std::max_element(tmp_array.begin(), tmp_array.begin() + n);
+            return (*max_it + tmp_array[n]) / 2.0;
+        }
+        else{ return tmp_array[n]; }
     }
     
     template <typename T>
@@ -303,18 +329,23 @@ namespace kinski
             m_data[m_last] = the_val;
             m_last = (m_last + 1) % m_array_size;
             
+            // buffer is full, drop oldest value
             if(m_first == m_last){ m_first = (m_first + 1) % m_array_size; }
         }
         
-        inline const T pop()
+        inline void pop()
         {
-            if(!empty())
-            {
-                const T ret = m_data[m_first];
-                m_first = (m_first + 1) % m_array_size;
-                return ret;
-            }
-            else{ return T(0); }
+            if(!empty()){ m_first = (m_first + 1) % m_array_size; }
+        }
+        
+        inline T& front()
+        {
+            return m_data[m_first];
+        }
+        
+        inline T& back()
+        {
+            return m_data[m_last];
         }
         
         inline uint32_t capacity() const { return m_array_size - 1; };
@@ -341,13 +372,43 @@ namespace kinski
             else{ return T(0); }
         };
         
-        inline const T median() const
+        class iterator: public std::iterator<std::input_iterator_tag, T>
         {
-            auto start = m_first, end = m_last;
-            if(start > end){ std::swap(start, end); }
-            return kinski::median(std::vector<T>(m_data + start, m_data + end));
-        }
+            friend CircularBuffer<T>;
+            
+            T *m_array, *m_ptr;
+            uint32_t m_size;
+            
+//            iterator():m_array(nullptr), m_ptr(nullptr), m_size(0){}
+            
+            iterator(const CircularBuffer<T>* the_buf, uint32_t the_pos):
+            m_array(the_buf->m_data),
+            m_ptr(the_buf->m_data + the_pos),
+            m_size(the_buf->m_array_size)
+            {}
+            
+        public:
+            inline iterator& operator++()
+            {
+                m_ptr++;
+                if(m_ptr >= (m_array + m_size)){ m_ptr -= m_size;}
+                return *this;
+            }
+            inline bool operator==(const iterator &the_other) const
+            {
+                return m_array == the_other.m_array && m_ptr == the_other.m_ptr;
+            }
+            inline bool operator!=(const iterator &the_other) const { return !(*this == the_other); }
+            inline T& operator *() { return *m_ptr; }
+            inline const T& operator *() const { return *m_ptr; }
+            inline T* operator->(){ return m_ptr; }
+            inline const T* operator->() const { return m_ptr; }
+        };
         
+        iterator begin(){ return iterator(this, m_first); }
+        const iterator begin() const { return iterator(this, m_first); }
+        iterator end(){ return iterator(this, m_last); }
+        const iterator end() const { return iterator(this, m_last); }
     private:
         
         int32_t m_array_size, m_first, m_last;
