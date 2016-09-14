@@ -15,7 +15,7 @@
 
 #include "core/Timer.hpp"
 #include "core/Animation.hpp"
-#include "core/Measurement.hpp"
+#include "core/CircularBuffer.hpp"
 #include "app/RemoteControl.hpp"
 #include "app/LightComponent.hpp"
 #include "gl/SerializerGL.hpp"
@@ -160,7 +160,7 @@ namespace kinski {
         float m_rotation_damping;
         bool  m_mouse_down;
         glm::mat3 m_lastTransform;
-        MovingAverage<glm::vec2> m_avg_filter;
+        CircularBuffer<gl::vec2> m_drag_buffer;
         
         // control module for light objects
         LightComponent::Ptr m_light_component;

@@ -11,6 +11,7 @@
 //
 //  Created by Fabian on 8/17/13.
 
+#include <chrono>
 #include "Animation.hpp"
 
 using std::chrono::duration_cast;
@@ -22,7 +23,7 @@ typedef std::chrono::duration<float> float_second;
 
 namespace kinski{ namespace animation{
 
-    struct Animation::AnimationImpl
+    struct AnimationImpl
     {
         int id;
         PlaybackType playback_type;

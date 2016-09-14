@@ -96,6 +96,8 @@ namespace kinski {
     {
         set_window_title(name());
         
+//        m_drag_buffer.set_capacity(5);
+        
         // find font file
         std::string font_path;
         try { font_path = fs::search_file("Courier New Bold.ttf"); }
@@ -155,7 +157,7 @@ namespace kinski {
     void ViewerApp::update(float timeDelta)
     {
         m_camera->setAspectRatio(gl::aspect_ratio());
-        m_avg_filter.push(glm::vec2(0));
+        m_drag_buffer.push(glm::vec2(0));
         m_inertia *= m_rotation_damping;
 
         // rotation from inertia
@@ -240,7 +242,7 @@ namespace kinski {
                 //            m_arcball.mouseDrag(e.getPos());
                 //            *m_rotation = glm::mat3_cast(m_arcball.getQuat());
             }
-            m_avg_filter.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
+            m_drag_buffer.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
             m_dragPos = glm::vec2(e.getX(), e.getY());
         }
         else if(e.isRight())
@@ -255,7 +257,7 @@ namespace kinski {
     {
         m_mouse_down = false;
         if(!displayTweakBar())
-            m_inertia = m_avg_filter.filter();
+            m_inertia = kinski::mean<glm::vec2>(m_drag_buffer);
     }
 
     void ViewerApp::mouseWheel(const MouseEvent &e)

@@ -183,19 +183,19 @@ namespace kinski
     template <typename T = double, typename C>
     inline const T mean(const C &the_container)
     {
-        T sum = std::accumulate(std::begin(the_container), std::end(the_container), 0.0);
-        return sum / the_container.size();
+        T sum = std::accumulate(std::begin(the_container), std::end(the_container), T(0));
+        return sum / (float)the_container.size();
     }
     
     template <typename T = double, typename C>
-    inline double standard_deviation(const C &the_container)
+    inline const T standard_deviation(const C &the_container)
     {
         auto mean = kinski::mean<T>(the_container);
-        std::vector<double> diff(the_container.size());
+        std::vector<T> diff(the_container.size());
         std::transform(the_container.begin(), the_container.end(), diff.begin(),
-                       [mean](double x) { return x - mean; });
-        double sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), 0.0);
-        double stdev = std::sqrt(sq_sum / the_container.size());
+                       [mean](T x) { return x - mean; });
+        T sq_sum = std::inner_product(diff.begin(), diff.end(), diff.begin(), T(0));
+        T stdev = std::sqrt(sq_sum / the_container.size());
         return stdev;
     }
     

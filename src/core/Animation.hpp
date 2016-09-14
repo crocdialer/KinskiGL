@@ -17,14 +17,13 @@
 
 #pragma once
 
-#include <chrono>
 #include "Property.hpp"
 #include "Easing.hpp"
 
 namespace kinski{ namespace animation{
     
-    class Animation;
-    typedef std::shared_ptr<Animation> AnimationPtr;
+    DEFINE_CLASS_PTR(Animation);
+    
     typedef std::function<float (float)> EaseFunction;
     typedef std::function<void (float)> InterpolationFunction;
     typedef std::function<void (void)> Callback;
@@ -52,10 +51,6 @@ namespace kinski{ namespace animation{
         
         LoopType loop() const;
         void set_loop(LoopType loop_type = LOOP);
-        
-//        std::chrono::steady_clock::time_point start_time() const;
-//        std::chrono::steady_clock::time_point end_time() const;
-        
         void set_interpolation_function(InterpolationFunction fn);
         void set_ease_function(EaseFunction fn);
         void set_start_callback(Callback cb);
@@ -78,9 +73,7 @@ namespace kinski{ namespace animation{
         virtual void stop();
         
     private:
-        
-        struct AnimationImpl;
-        std::shared_ptr<AnimationImpl> m_impl;
+        std::shared_ptr<struct AnimationImpl> m_impl;
     };
     
     class CompoundAnimation : public Animation

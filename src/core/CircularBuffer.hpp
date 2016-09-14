@@ -92,11 +92,15 @@ public:
         T *m_array, *m_ptr;
         uint32_t m_size;
         
+        iterator():
+        m_array(nullptr),
+        m_ptr(nullptr),
+        m_size(0){}
+        
         iterator(const CircularBuffer<T>* the_buf, uint32_t the_pos):
         m_array(the_buf->m_data),
         m_ptr(the_buf->m_data + the_pos),
-        m_size(the_buf->m_array_size)
-        {}
+        m_size(the_buf->m_array_size){}
         
     public:
         inline iterator& operator++()
