@@ -157,7 +157,7 @@ namespace kinski {
     void ViewerApp::update(float timeDelta)
     {
         m_camera->setAspectRatio(gl::aspect_ratio());
-        m_drag_buffer.push(glm::vec2(0));
+//        m_drag_buffer.push(glm::vec2(0));
         m_inertia *= m_rotation_damping;
 
         // rotation from inertia
@@ -204,9 +204,11 @@ namespace kinski {
         m_lastTransform = *m_rotation;
         m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
-
+        
         if(e.isLeft() || e.is_touch())
         {
+            m_drag_buffer.clear();
+            
             gl::Object3DPtr picked_obj = m_scene->pick(gl::calculate_ray(m_camera, glm::vec2(e.getX(),
                                                                                            e.getY())),
                                                       m_precise_selection);
@@ -239,8 +241,6 @@ namespace kinski {
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
                                                                  glm::radians(-mouseDiff.x), 0)));
 
-                //            m_arcball.mouseDrag(e.getPos());
-                //            *m_rotation = glm::mat3_cast(m_arcball.getQuat());
             }
             m_drag_buffer.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
             m_dragPos = glm::vec2(e.getX(), e.getY());
