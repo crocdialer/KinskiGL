@@ -51,15 +51,10 @@ public:
         if(!empty()){ m_first = (m_first + 1) % m_array_size; }
     }
     
-    inline T& front()
-    {
-        return m_data[m_first];
-    }
-    
-    inline T& back()
-    {
-        return m_data[m_last];
-    }
+    inline T& front(){ return m_data[m_first]; }
+    inline T& back(){ return m_data[(m_last - 1) % m_array_size]; }
+    inline const T& front() const { return m_data[m_first]; }
+    inline const T& back() const { return m_data[(m_last - 1) % m_array_size]; }
     
     inline uint32_t capacity() const { return m_array_size - 1; };
     inline void set_capacity(uint32_t the_cap)
@@ -67,6 +62,7 @@ public:
         if(m_data){ delete[](m_data); }
         m_data = new T[the_cap + 1];
         m_array_size = the_cap + 1;
+        memset(m_data, 0, m_array_size * sizeof(T));
         clear();
     }
     
@@ -79,10 +75,10 @@ public:
     
     inline bool empty() const { return m_first == m_last; }
     
-    inline const T operator[](uint32_t the_index) const
+    inline T& operator[](uint32_t the_index) const
     {
-        if(the_index < size()){ return m_data[(m_first + the_index) % m_array_size]; }
-        else{ return T(0); }
+        if(the_index >= size()){ throw Exception("Out of bounds"); }
+        return m_data[(m_first + the_index) % m_array_size];
     };
     
     class iterator: public std::iterator<std::input_iterator_tag, T>

@@ -14,7 +14,7 @@ using namespace kinski;
 
 BOOST_AUTO_TEST_CASE( testCircularBuffer )
 {
-    CircularBuffer<double> circ_buf(8);
+    CircularBuffer<float> circ_buf(8);
     BOOST_CHECK(circ_buf.capacity() == 8);
     BOOST_CHECK(circ_buf.empty());
     circ_buf.set_capacity(6);
@@ -62,23 +62,36 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     
     // push 8 elements into the 7-sized buffer
     circ_buf.push(89);// will fall out
+    BOOST_CHECK(circ_buf.size() == 1);
     circ_buf.push(2);
+    BOOST_CHECK(circ_buf.size() == 2);
     circ_buf.push(46);
+    BOOST_CHECK(circ_buf.size() == 3);
     circ_buf.push(4);// will be the median
+    BOOST_CHECK(circ_buf.size() == 4);
     circ_buf.push(88);
+    BOOST_CHECK(circ_buf.size() == 5);
     circ_buf.push(3);
+    BOOST_CHECK(circ_buf.size() == 6);
     circ_buf.push(87);
+    BOOST_CHECK(circ_buf.size() == 7);
     circ_buf.push(1);
+    BOOST_CHECK(circ_buf.size() == 7);
     BOOST_CHECK(kinski::median(circ_buf) == 4);
     
     int i = 0;
     for(const auto &v : circ_buf){ printf("val[%d]: %.2f\n", i, v); i++; }
     
-    printf("median: %.2f\n", kinski::median<double>(circ_buf));
+    printf("median: %.2f\n", kinski::median<float>(circ_buf));
     printf("standard deviation: %.2f\n", kinski::standard_deviation(circ_buf));
     
     circ_buf.clear();
     BOOST_CHECK(circ_buf.empty());
+    
+    circ_buf.set_capacity(250);
+    for(int i = 0; i < 100000; i++){ circ_buf.push(random_int(0, 100));}
+    printf("mean: %.2f\n", kinski::mean<float>(circ_buf));
+    BOOST_CHECK(circ_buf.size() == 250);
 }
 
 //____________________________________________________________________________//

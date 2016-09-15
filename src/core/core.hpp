@@ -70,6 +70,6 @@ namespace kinski
     using std::list;
     using std::set;
     
-    // forward declase some classes
+    // forward declare some classes here
     DEFINE_CLASS_PTR(Image);
 }

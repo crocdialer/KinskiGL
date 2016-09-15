@@ -1,4 +1,4 @@
-// __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+ // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
 // Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
 //
@@ -210,6 +210,7 @@ namespace kinski
         fs::add_search_path("~/Library/Fonts");
 #elif defined(KINSKI_LINUX)
         fs::add_search_path("~/.local/share/fonts");
+        fs::add_search_path("/usr/local/share/fonts");
 #endif
         //---------------------------------
 
