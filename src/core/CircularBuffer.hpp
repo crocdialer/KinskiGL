@@ -27,7 +27,7 @@ public:
         set_capacity(the_cap);
     }
     
-    virtual ~CircularBuffer()
+    ~CircularBuffer()
     {
         if(m_data){ delete[](m_data); }
     }
@@ -75,7 +75,13 @@ public:
     
     inline bool empty() const { return m_first == m_last; }
     
-    inline T& operator[](uint32_t the_index) const
+    inline T& operator[](uint32_t the_index)
+    {
+        if(the_index >= size()){ throw Exception("Out of bounds"); }
+        return m_data[(m_first + the_index) % m_array_size];
+    };
+    
+    inline const T& operator[](uint32_t the_index) const
     {
         if(the_index >= size()){ throw Exception("Out of bounds"); }
         return m_data[(m_first + the_index) % m_array_size];
