@@ -83,19 +83,25 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     for(const auto &v : circ_buf){ printf("val[%d]: %.2f\n", i, v); i++; }
     
     printf("median: %.2f\n", kinski::median<float>(circ_buf));
-    printf("standard deviation: %.2f\n", kinski::standard_deviation(circ_buf));
     
     circ_buf.clear();
     BOOST_CHECK(circ_buf.empty());
     
+    uint32_t num_elems = 100000;
+    printf("\npushing %d elements in range (0 - 100):\n", num_elems);
     circ_buf.set_capacity(1250);
-    for(uint32_t i = 0; i < 100000; i++)
+    for(uint32_t i = 0; i < num_elems; i++)
     {
         BOOST_CHECK(circ_buf.size() == std::min<uint32_t>(i, 1250));
         circ_buf.push(random_int(0, 100));
     }
     printf("mean: %.2f\n", kinski::mean<float>(circ_buf));
+    printf("standard deviation: %.2f\n", kinski::standard_deviation(circ_buf));
     BOOST_CHECK(circ_buf.size() == 1250);
+    
+    for(uint32_t i = 0; i < num_elems; i++){ circ_buf.pop(); }
+    BOOST_CHECK(circ_buf.size() == 0);
+    BOOST_CHECK(circ_buf.empty());
 }
 
 //____________________________________________________________________________//
