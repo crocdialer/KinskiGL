@@ -88,14 +88,14 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     circ_buf.clear();
     BOOST_CHECK(circ_buf.empty());
     
-    circ_buf.set_capacity(250);
-    for(int i = 0; i < 100000; i++)
+    circ_buf.set_capacity(1250);
+    for(uint32_t i = 0; i < 100000; i++)
     {
-        BOOST_CHECK(circ_buf.size() == std::min(i, 250));
+        BOOST_CHECK(circ_buf.size() == std::min(i, 1250));
         circ_buf.push(random_int(0, 100));
     }
     printf("mean: %.2f\n", kinski::mean<float>(circ_buf));
-    BOOST_CHECK(circ_buf.size() == 250);
+    BOOST_CHECK(circ_buf.size() == 1250);
 }
 
 //____________________________________________________________________________//
