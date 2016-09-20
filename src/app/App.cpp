@@ -134,11 +134,8 @@ namespace kinski
     
     void App::dec_task()
     {
-        if(num_tasks)
-        {        
-            std::unique_lock<std::mutex> lock(mutex);
-            num_tasks--;
-        }
+        std::unique_lock<std::mutex> lock(mutex);
+        if(num_tasks){ num_tasks--; }
     }
     
     bool App::is_loading() const

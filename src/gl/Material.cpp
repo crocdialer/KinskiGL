@@ -113,6 +113,11 @@ namespace kinski { namespace gl {
         m_load_queue_shader.clear();
     };
     
+    void Material::queue_texture_load(const std::string &the_texture_path)
+    {
+        m_texture_paths[the_texture_path] = AssetLoadStatus::NOT_LOADED;
+    }
+    
     void Material::update_uniforms()
     {
         

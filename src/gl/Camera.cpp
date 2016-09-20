@@ -91,7 +91,7 @@ namespace kinski { namespace gl{
     
     void PerspectiveCamera::setAspectRatio(float theAspect)
     {
-        if(isnan(theAspect)){ return; }
+        if(std::isnan(theAspect)){ return; }
         m_aspect = theAspect;
         updateProjectionMatrix();
     }

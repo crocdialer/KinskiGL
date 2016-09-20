@@ -57,6 +57,8 @@ namespace kinski { namespace gl {
         std::map<std::string, AssetLoadStatus>& texture_paths(){ return m_texture_paths; }
         const std::map<std::string, AssetLoadStatus>& texture_paths() const { return m_texture_paths; }
         
+        void queue_texture_load(const std::string &the_texture_path);
+        
         std::vector<gl::ShaderType>& load_queue_shader(){ return m_load_queue_shader; }
         const std::vector<gl::ShaderType>& load_queue_shader() const { return m_load_queue_shader; }
         
