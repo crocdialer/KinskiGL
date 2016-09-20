@@ -9,6 +9,7 @@
 
 #include "gl/Buffer.hpp"
 #include "core/file_functions.hpp"
+#include "core/Image.hpp"
 #include "TextureIO.h"
 
 using namespace std;
