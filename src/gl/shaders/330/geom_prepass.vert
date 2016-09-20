@@ -1,4 +1,5 @@
-#version 410
+#version 330
+
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat3 u_normalMatrix;
 uniform mat4 u_textureMatrix;
@@ -9,7 +10,7 @@ in vec4 a_color;
 in vec2 a_texCoord;
 in float a_pointSize;
 
-out VertexData 
+out VertexData
 {
     vec3 position;
     vec3 normal;
