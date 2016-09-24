@@ -290,7 +290,9 @@ void MediaPlayer::reload_media()
     
     LOG_DEBUG << "loading: " << m_media_path->value();
     
-    if(media_type == fs::FileType::AUDIO || media_type == fs::FileType::MOVIE)
+    if(fs::is_url(*m_media_path) ||
+       media_type == fs::FileType::AUDIO ||
+       media_type == fs::FileType::MOVIE)
     {
         auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
         media::MediaController::RenderTarget::SCREEN;
