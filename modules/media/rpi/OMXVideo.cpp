@@ -74,14 +74,17 @@ namespace
 {
     OMX_BUFFERHEADERTYPE* egl_buffer = nullptr;
     COMXCoreComponent* egl_render = nullptr;
+    bool* has_new_frame_ptr = nullptr;
 }
 
 // DecoderFillBufferDone -- OMXCore output buffer has been filled
 OMX_ERRORTYPE COMXVideo::DecoderFillBufferDoneCallback(OMX_HANDLETYPE hComponent, OMX_PTR pAppData,
                                                        OMX_BUFFERHEADERTYPE* pBuffer)
 {
-  if(!egl_buffer | !egl_render){ return OMX_ErrorNone; }
-  return egl_render->FillThisBuffer(egl_buffer);
+  if(!egl_buffer || !egl_render){ return OMX_ErrorNone; }
+  auto ret = egl_render->FillThisBuffer(egl_buffer);
+  if(has_new_frame_ptr){ *has_new_frame_ptr = true; }
+  return ret;
 }
 
 bool COMXVideo::SendDecoderConfig()
@@ -384,6 +387,7 @@ bool COMXVideo::PortSettingsChanged()
       }
       else
       {
+          has_new_frame_ptr = m_config.has_new_frame_ptr;
           egl_render = &m_omx_render;
           omx_err = m_omx_render.SetStateForComponent(OMX_StateExecuting);
           m_omx_render.FillThisBuffer(egl_buffer);

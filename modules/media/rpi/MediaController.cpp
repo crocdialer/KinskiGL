@@ -339,7 +339,7 @@ namespace kinski{ namespace media
                     {
                          m_omx_pkt = nullptr;
                          num_frames++;
-                         m_has_new_frame = true;
+                        //  m_has_new_frame = true;
                     }
                     else{ OMXClock::OMXSleep(10); }
                 }
@@ -450,6 +450,7 @@ namespace kinski{ namespace media
         if(m_impl->m_render_target == RenderTarget::TEXTURE)
         {
             m_impl->m_config_video.egl_image = m_impl->m_egl_image;
+            m_impl->m_config_video.has_new_frame_ptr = &m_impl->m_has_new_frame;
         }
 
         if(!m_impl->m_av_clock->OMXInitialize())

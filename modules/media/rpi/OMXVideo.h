@@ -62,6 +62,7 @@ public:
   float queue_size;
   float fifo_size;
   void* egl_image = nullptr;
+  bool* has_new_frame_ptr = nullptr;
 
   OMXVideoConfig()
   {
