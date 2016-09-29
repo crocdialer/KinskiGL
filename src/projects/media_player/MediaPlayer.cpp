@@ -296,7 +296,11 @@ void MediaPlayer::reload_media()
 {
     App::Task t(this);
     
-    auto media_type = fs::get_file_type(*m_media_path);
+    std::string abs_path;
+    try{ abs_path = fs::search_file(*m_media_path); }
+    catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.std::exception::what(); return; }
+    
+    auto media_type = fs::get_file_type(abs_path);
     
     LOG_DEBUG << "loading: " << m_media_path->value();
     
@@ -313,7 +317,7 @@ void MediaPlayer::reload_media()
         if(render_target == media::MediaController::RenderTarget::SCREEN)
         { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
         
-        m_media->load(*m_media_path, *m_auto_play, *m_loop, render_target, audio_target);
+        m_media->load(abs_path, *m_auto_play, *m_loop, render_target, audio_target);
         m_media->set_rate(*m_playback_speed);
         m_media->set_volume(*m_volume);
         m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
@@ -324,7 +328,7 @@ void MediaPlayer::reload_media()
     else if(media_type == fs::FileType::IMAGE)
     {
         m_media->unload();
-        textures()[TEXTURE_INPUT] = gl::create_texture_from_file(*m_media_path);
+        textures()[TEXTURE_INPUT] = gl::create_texture_from_file(abs_path);
     }
     else if(media_type == fs::FileType::FONT)
     {
