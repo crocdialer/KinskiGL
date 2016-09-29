@@ -80,7 +80,7 @@ namespace kinski
         bool save_settings(const std::string &path = "") override;
         bool load_settings(const std::string &path = "") override;
         
-        bool needs_redraw() const override { return m_needs_redraw; };
+        bool needs_redraw() const override;
 
     };
 }// namespace kinski

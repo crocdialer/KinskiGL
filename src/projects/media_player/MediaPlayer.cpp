@@ -123,6 +123,13 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
+bool MediaPlayer::needs_redraw() const
+{
+    return !*m_use_warping || m_needs_redraw;
+};
+
+/////////////////////////////////////////////////////////////////
+
 void MediaPlayer::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
