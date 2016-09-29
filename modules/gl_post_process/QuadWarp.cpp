@@ -58,14 +58,10 @@ namespace kinski{ namespace gl{
             }
             catch(Exception &e){ LOG_ERROR << e.what(); }
             
-//            gl::Shader shader_warp_frag;
-//            shader_warp_frag.loadFromData(unlit_vert, quad_warp_frag);
-            
             auto mat = gl::Material::create(m_shader_warp_vert);
             mat->setDepthTest(false);
             mat->setDepthWrite(false);
             mat->setBlending(true);
-//            mat->setTwoSided();
             m_mesh = gl::Mesh::create(geom, mat);
             
             auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);

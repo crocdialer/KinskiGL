@@ -56,9 +56,11 @@ void MediaPlayer::update(float timeDelta)
     if(m_reload_media){ reload_media(); }
     
     if(m_camera_control && m_camera_control->is_capturing())
-        m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]);
+        m_needs_redraw |= m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]);
+    else if(m_media)
+        m_needs_redraw |= m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT]);
     else
-        m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT]);
+        m_needs_redraw = true;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -77,6 +79,7 @@ void MediaPlayer::draw()
                          fonts()[1], gl::COLOR_WHITE, gl::vec2(10));
         draw_textures(textures());
     }
+    m_needs_redraw = false;
 }
 
 /////////////////////////////////////////////////////////////////

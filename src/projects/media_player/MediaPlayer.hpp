@@ -31,7 +31,7 @@ namespace kinski
 
         media::MediaControllerPtr m_media = media::MediaController::create();
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
-        bool m_reload_media = false;
+        bool m_reload_media = false, m_needs_redraw = true;
         Timer m_broadcast_timer;
         
         // properties
@@ -79,6 +79,8 @@ namespace kinski
         
         bool save_settings(const std::string &path = "") override;
         bool load_settings(const std::string &path = "") override;
+        
+        bool needs_redraw() const override { return m_needs_redraw; };
 
     };
 }// namespace kinski

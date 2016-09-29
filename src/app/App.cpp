@@ -73,11 +73,14 @@ namespace kinski
             
             m_lastTimeStamp = timeStamp;
             
-            // call draw callback
-            draw_internal();
-            
-            // Swap front and back rendering buffers
-            swapBuffers();
+            if(needs_redraw())
+            {
+                // call draw callback
+                draw_internal();
+                
+                // Swap front and back rendering buffers
+                swapBuffers();
+            }
             
             // perform fps-timing
             timing(timeStamp);

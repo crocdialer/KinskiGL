@@ -53,8 +53,6 @@ namespace kinski
     class KINSKI_API App : public Component
     {
     public:
-        typedef std::shared_ptr<App> Ptr;
-        typedef std::weak_ptr<App> WeakPtr;
         
         App(int argc = 0, char *argv[] = nullptr);
         virtual ~App();
@@ -95,8 +93,8 @@ namespace kinski
         
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
         
-        inline bool running() const {return m_running;};
-        inline void set_running(bool b){m_running = b;}
+        inline bool running() const { return m_running; };
+        inline void set_running(bool b){ m_running = b; }
         
         inline void displayTweakBar(bool b) {m_displayTweakBar = b;};
         inline bool displayTweakBar() const {return m_displayTweakBar;};
@@ -112,6 +110,8 @@ namespace kinski
         virtual gl::vec2 cursor_position() const = 0;
         virtual bool cursor_visible() const { return m_cursorVisible;};
         virtual void set_cursor_visible(bool b = true){ m_cursorVisible = b;};
+        
+        virtual bool needs_redraw() const { return true; };
         
         /*!
          * return current frames per second
