@@ -7,6 +7,7 @@
 //
 
 #include "MediaPlayer.hpp"
+#include <mutex>
 
 using namespace std;
 using namespace kinski;
