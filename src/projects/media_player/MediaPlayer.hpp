@@ -32,7 +32,10 @@ namespace kinski
         media::MediaControllerPtr m_media = media::MediaController::create();
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
         bool m_reload_media = false, m_needs_redraw = true;
-        Timer m_broadcast_timer, m_sync_timer;
+        Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer;
+        
+        net::udp_server m_udp_server;
+        std::unordered_map<std::string, float> m_ip_adresses_dynamic;
         
         // properties
         Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");
@@ -41,12 +44,14 @@ namespace kinski
         m_auto_play = Property_<bool>::create("autoplay", true),
         m_use_warping = Property_<bool>::create("use warping", true),
         m_force_audio_jack = Property_<bool>::create("force 3.5mm audio-jack", false),
-        m_use_discovery_broadcast = Property_<bool>::create("use discovery broadcast", true);
+        m_use_discovery_broadcast = Property_<bool>::create("use discovery broadcast", true),
+        m_is_master = Property_<bool>::create("is master", false);
         
         Property_<float>::Ptr
         m_playback_speed = Property_<float>::create("playback speed", 1.f),
         m_volume = RangedProperty<float>::create("volume", 1.f, 0.f , 1.f),
-        m_brightness = RangedProperty<float>::create("brightness", 1.f, 0.f , 2.f);
+        m_brightness = RangedProperty<float>::create("brightness", 1.f, 0.f , 2.f),
+        m_sync_duration = RangedProperty<float>::create("sync duration", 10.f, 0.f , 999999.f);
         
         Property_<uint32_t>::Ptr
         m_broadcast_port = Property_<uint32_t>::create("discovery broadcast port", 55555);
@@ -55,6 +60,9 @@ namespace kinski
         void setup_rpc_interface();
         
         void reload_media();
+        
+        std::vector<std::string> get_remote_adresses() const;
+        void send_network_sync();
         
     public:
 

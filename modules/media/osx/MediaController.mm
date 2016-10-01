@@ -461,7 +461,7 @@ namespace kinski{ namespace media{
         return is_loaded() ? CMTimeGetSeconds([m_impl->m_player currentTime]) : 0.0;
     }
     
-    void MediaController::seek_to_time(float value)
+    void MediaController::seek_to_time(double value)
     {
         if(!m_impl){ return; }
         CMTime t = CMTimeMakeWithSeconds(value, NSEC_PER_SEC);

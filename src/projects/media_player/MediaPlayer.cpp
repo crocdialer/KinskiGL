@@ -13,6 +13,13 @@ using namespace kinski;
 using namespace glm;
 
 
+namespace
+{
+//    uint16_t g_remote_port = 33333;
+    uint16_t g_discovery_listen_port = 55555;
+    std::mutex g_ip_table_mutex;
+}
+
 /////////////////////////////////////////////////////////////////
 
 void MediaPlayer::setup()
@@ -29,6 +36,8 @@ void MediaPlayer::setup()
     register_property(m_playback_speed);
     register_property(m_use_warping);
     register_property(m_force_audio_jack);
+    register_property(m_is_master);
+    register_property(m_sync_duration);
     register_property(m_use_discovery_broadcast);
     register_property(m_broadcast_port);
     observe_properties();
@@ -47,17 +56,6 @@ void MediaPlayer::setup()
     
     // setup our components to receive rpc calls
     setup_rpc_interface();
-    
-    m_sync_timer = Timer(background_queue().io_service(), [this]()
-    {
-        if(*m_use_discovery_broadcast && m_media && m_media->is_playing())
-        {
-            string cmd = "seek_to_time " + to_string(m_media->current_time(), 3);
-            net::async_send_tcp(background_queue().io_service(), cmd, "192.168.0.17", 33333);
-        }
-    });
-    m_sync_timer.set_periodic();
-    m_sync_timer.expires_from_now(5.f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -136,7 +134,7 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
 bool MediaPlayer::needs_redraw() const
 {
-    return !*m_use_warping || m_needs_redraw;
+    return (m_media && !m_media->is_playing()) || !*m_use_warping || m_needs_redraw;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -165,6 +163,11 @@ void MediaPlayer::mousePress(const MouseEvent &e)
 void MediaPlayer::mouseRelease(const MouseEvent &e)
 {
     ViewerApp::mouseRelease(e);
+//    if(m_media && m_media->is_loaded())
+//    {
+//        if(m_media->is_playing()){ m_media->pause(); }
+//        else{ m_media->play(); }
+//    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -265,6 +268,36 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             m_broadcast_timer.expires_from_now(2.f);
         }else{ m_broadcast_timer.cancel(); }
     }
+    else if(theProperty == m_is_master)
+    {
+        if(*m_is_master)
+        {
+            m_broadcast_timer.cancel();
+            m_ip_adresses_dynamic.clear();
+            
+            // discovery udp-server to receive pings from existing nodes in the network
+            m_udp_server = net::udp_server(background_queue().io_service());
+            m_udp_server.start_listen(*m_broadcast_port);
+            m_udp_server.set_receive_function([this](const std::vector<uint8_t> &data,
+                                                     const std::string &remote_ip, uint16_t remote_port)
+            {
+                string str(data.begin(), data.end());
+                LOG_TRACE_1 << str << " " << remote_ip << " (" << remote_port << ")";
+                  
+                if((str == name()) /*== !kinski::is_in(remote_ip, m_ip_adresses_dynamic)*/)
+                {
+                    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+                    m_ip_adresses_dynamic[remote_ip] = getApplicationTime();
+                }
+            });
+            send_network_sync();
+        }
+        else
+        {
+            m_sync_timer.cancel();
+            m_use_discovery_broadcast->notify_observers();
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -358,6 +391,38 @@ std::string MediaPlayer::secs_to_time_str(float the_secs) const
     char buf[32];
     sprintf(buf, "%d:%02d:%.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
     return buf;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::send_network_sync()
+{
+    m_sync_timer = Timer(background_queue().io_service(), [this]()
+    {
+        if(m_media && m_media->is_playing())
+        {
+            string cmd = "seek_to_time " + to_string(m_media->current_time(), 3);
+            
+            std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+            
+            for(auto &pair : m_ip_adresses_dynamic)
+            {
+                net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
+                                    remote_control().listening_port());
+            }
+        }
+    });
+    m_sync_timer.set_periodic();
+    m_sync_timer.expires_from_now(0.05);
+    
+    if(*m_sync_duration > 0)
+    {
+        m_sync_off_timer = Timer(background_queue().io_service(), [this]()
+        {
+            m_sync_timer.cancel();
+        });
+        m_sync_off_timer.expires_from_now(*m_sync_duration);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
