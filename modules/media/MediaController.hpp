@@ -10,7 +10,7 @@ namespace kinski{ namespace media{
 
     class MediaController;
     typedef std::shared_ptr<MediaController> MediaControllerPtr;
-    
+
     typedef MediaController MovieController;
     typedef MediaControllerPtr MovieControllerPtr;
 
@@ -20,7 +20,7 @@ namespace kinski{ namespace media{
 
         enum class RenderTarget{SCREEN, TEXTURE};
         enum class AudioTarget{AUTO, HDMI, AUDIO_JACK};
-        
+
         typedef std::function<void(MediaControllerPtr the_movie)> MediaCallback;
 
         static MediaControllerPtr create();
@@ -43,7 +43,7 @@ namespace kinski{ namespace media{
         void restart();
         void pause();
         bool is_playing() const;
-        void seek_to_time(float value);
+        void seek_to_time(double value);
         double duration() const;
         double current_time() const;
         float volume() const;
@@ -53,7 +53,7 @@ namespace kinski{ namespace media{
         float rate() const;
         void set_rate(float r);
         const std::string& path() const;
-        
+
         RenderTarget render_target() const;
         AudioTarget audio_target() const;
 

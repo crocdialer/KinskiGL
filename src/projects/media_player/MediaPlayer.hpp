@@ -32,7 +32,7 @@ namespace kinski
         media::MediaControllerPtr m_media = media::MediaController::create();
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
         bool m_reload_media = false, m_needs_redraw = true;
-        Timer m_broadcast_timer;
+        Timer m_broadcast_timer, m_sync_timer;
         
         // properties
         Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");

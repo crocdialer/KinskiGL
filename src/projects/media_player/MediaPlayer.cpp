@@ -47,6 +47,17 @@ void MediaPlayer::setup()
     
     // setup our components to receive rpc calls
     setup_rpc_interface();
+    
+    m_sync_timer = Timer(background_queue().io_service(), [this]()
+    {
+        if(*m_use_discovery_broadcast && m_media && m_media->is_playing())
+        {
+            string cmd = "seek_to_time " + to_string(m_media->current_time(), 3);
+            net::async_send_tcp(background_queue().io_service(), cmd, "192.168.0.17", 33333);
+        }
+    });
+    m_sync_timer.set_periodic();
+    m_sync_timer.expires_from_now(5.f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -334,7 +345,7 @@ void MediaPlayer::reload_media()
     {
         m_media->unload();
         gl::Font font;
-        font.load(*m_media_path, 44);
+        font.load(abs_path, 44);
         textures()[TEXTURE_INPUT] = font.create_texture("The quick brown fox \njumps over the lazy dog ... \n0123456789");
     }
     m_reload_media = false;
@@ -457,7 +468,7 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            m_media->seek_to_time(secs);
+            if(fabs(m_media->current_time() - secs) > 0.02f){ m_media->seek_to_time(secs); }
         }
     });
     

@@ -298,7 +298,7 @@ namespace kinski { namespace gl {
                 continue;
             }
             stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
-                                codepoint - 32, &x, &y, &q, 0);
+                                codepoint - 32, &x, &y, &q, 1);
             
             if(max_y < q.y1 + m_obj->font_height){ max_y = q.y1 + m_obj->font_height;}
             quads.push_back(q);

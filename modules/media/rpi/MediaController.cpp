@@ -615,14 +615,16 @@ namespace kinski{ namespace media
         return m_impl ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
     }
 
-    void MediaController::seek_to_time(float value)
+    void MediaController::seek_to_time(double value)
     {
         if(!m_impl){ return; }
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
-            m_impl->m_seek_flush = true;
+            // m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
+            // m_impl->m_seek_flush = true;
+            value = clamp<double>(value, 0.0, duration());
+            flush_stream(value * (double)DVD_TIME_BASE);
         }
     }
 
