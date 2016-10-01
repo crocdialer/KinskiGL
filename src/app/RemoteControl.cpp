@@ -132,10 +132,10 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
             {
                 std::vector<std::string> args(tokens.begin() + 1, tokens.end());
                 
-                LOG_DEBUG << "Executing command: " << iter->first;
+                LOG_TRACE_1 << "Executing command: " << iter->first;
                 cmd_found = true;
                 
-                for(const auto &a : args){ LOG_DEBUG << "arg: " << a; }
+                for(const auto &a : args){ LOG_TRACE_1 << "arg: " << a; }
                 
                 // call the function object
                 iter->second(rec_con, args);
