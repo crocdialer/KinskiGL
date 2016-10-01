@@ -199,7 +199,7 @@ namespace kinski{ namespace media
                     m_seek_flush = false;
                     m_incr = 0;
                 }
-                else if(m_packet_after_seek && TRICKPLAY(m_av_clock->OMXPlaySpeed()))
+                else if(m_packet_after_seek /*&& TRICKPLAY(m_av_clock->OMXPlaySpeed())*/)
                 {
                     double seek_pos = 0;
                     double pts = 0;
@@ -231,19 +231,19 @@ namespace kinski{ namespace media
                     double audio_pts = m_player_audio ? m_player_audio->GetCurrentPTS() : DVD_NOPTS_VALUE;
                     double video_pts = m_player_video->GetCurrentPTS();
 
-                    if (0 && m_av_clock->OMXIsPaused())
-                    {
-                        double old_stamp = stamp;
-                        if (audio_pts != DVD_NOPTS_VALUE && (stamp == 0 || audio_pts < stamp))
-                          stamp = audio_pts;
-                        if (video_pts != DVD_NOPTS_VALUE && (stamp == 0 || video_pts < stamp))
-                          stamp = video_pts;
-                        if (old_stamp != stamp)
-                        {
-                          m_av_clock->OMXMediaTime(stamp);
-                          stamp = m_av_clock->OMXMediaTime();
-                        }
-                    }
+                    // if (0 && m_av_clock->OMXIsPaused())
+                    // {
+                    //     double old_stamp = stamp;
+                    //     if (audio_pts != DVD_NOPTS_VALUE && (stamp == 0 || audio_pts < stamp))
+                    //       stamp = audio_pts;
+                    //     if (video_pts != DVD_NOPTS_VALUE && (stamp == 0 || video_pts < stamp))
+                    //       stamp = video_pts;
+                    //     if (old_stamp != stamp)
+                    //     {
+                    //       m_av_clock->OMXMediaTime(stamp);
+                    //       stamp = m_av_clock->OMXMediaTime();
+                    //     }
+                    // }
 
                     float audio_fifo = audio_pts == DVD_NOPTS_VALUE ? 0.0f : audio_pts / DVD_TIME_BASE - stamp * 1e-6;
                     float video_fifo = video_pts == DVD_NOPTS_VALUE ? 0.0f : video_pts / DVD_TIME_BASE - stamp * 1e-6;
@@ -622,9 +622,10 @@ namespace kinski{ namespace media
         if(m_impl->m_omx_reader.CanSeek())
         {
             // m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
-            // m_impl->m_seek_flush = true;
+
             value = clamp<double>(value, 0.0, duration());
-            flush_stream(value * (double)DVD_TIME_BASE);
+            m_impl->m_av_clock->OMXMediaTime(value * (double)DVD_TIME_BASE);
+            m_impl->m_seek_flush = true;
         }
     }
 

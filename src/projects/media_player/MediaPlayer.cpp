@@ -15,8 +15,6 @@ using namespace glm;
 
 namespace
 {
-//    uint16_t g_remote_port = 33333;
-    uint16_t g_discovery_listen_port = 55555;
     std::mutex g_ip_table_mutex;
 }
 
@@ -26,7 +24,7 @@ void MediaPlayer::setup()
 {
     ViewerApp::setup();
     Logger::get()->set_use_log_file(true);
-    
+
     fonts()[1].load(fonts()[0].path(), 28);
     register_property(m_media_path);
     register_property(m_loop);
@@ -50,10 +48,10 @@ void MediaPlayer::setup()
     remote_control().set_components({ shared_from_this(), m_warp });
 //    set_default_config_path("~/");
     load_settings();
-    
+
     // check for command line input
     if(args().size() > 1 && fs::exists(args()[1])){ *m_media_path = args()[1]; }
-    
+
     // setup our components to receive rpc calls
     setup_rpc_interface();
 }
@@ -63,7 +61,7 @@ void MediaPlayer::setup()
 void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_media){ reload_media(); }
-    
+
     if(m_camera_control && m_camera_control->is_capturing())
         m_needs_redraw = m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
     else if(m_media)
@@ -339,28 +337,28 @@ bool MediaPlayer::load_settings(const std::string &the_path)
 void MediaPlayer::reload_media()
 {
     App::Task t(this);
-    
+
     std::string abs_path;
     try{ abs_path = fs::search_file(*m_media_path); }
     catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.std::exception::what(); return; }
-    
+
     auto media_type = fs::get_file_type(abs_path);
-    
+
     LOG_DEBUG << "loading: " << m_media_path->value();
-    
+
     if(fs::is_url(*m_media_path) ||
        media_type == fs::FileType::AUDIO ||
        media_type == fs::FileType::MOVIE)
     {
         auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
         media::MediaController::RenderTarget::SCREEN;
-        
+
         auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::AUDIO_JACK :
         media::MediaController::AudioTarget::AUTO;
-        
+
         if(render_target == media::MediaController::RenderTarget::SCREEN)
         { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
-        
+
         m_media->load(abs_path, *m_auto_play, *m_loop, render_target, audio_target);
         m_media->set_rate(*m_playback_speed);
         m_media->set_volume(*m_volume);
@@ -471,40 +469,40 @@ void MediaPlayer::setup_rpc_interface()
     {
         if(!rpc_args.empty()){ m_media->set_volume(kinski::string_to<float>(rpc_args.front())); }
     });
-    
+
     remote_control().add_command("volume", [this](net::tcp_connection_ptr con,
                                                   const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_media->set_volume(kinski::string_to<float>(rpc_args.front())); }
         else{ con->send(to_string(m_media->volume())); }
     });
-    
+
     remote_control().add_command("brightness", [this](net::tcp_connection_ptr con,
                                                       const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ *m_brightness = kinski::string_to<float>(rpc_args.front()); }
         else{ con->send(to_string(m_brightness->value())); }
     });
-    
+
     remote_control().add_command("set_brightness", [this](net::tcp_connection_ptr con,
                                                           const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ *m_brightness = kinski::string_to<float>(rpc_args.front()); }
     });
-    
+
     remote_control().add_command("set_rate");
     register_function("set_rate", [this](const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_media->set_rate(kinski::string_to<float>(rpc_args.front())); }
     });
-    
+
     remote_control().add_command("rate", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_media->set_rate(kinski::string_to<float>(rpc_args.front())); }
         con->send(to_string(m_media->rate()));
     });
-    
+
     remote_control().add_command("seek_to_time");
     register_function("seek_to_time", [this](const std::vector<std::string> &rpc_args)
     {
@@ -512,7 +510,7 @@ void MediaPlayer::setup_rpc_interface()
         {
             float secs = 0.f;
             auto splits = split(rpc_args.front(), ':');
-          
+
             switch (splits.size())
             {
                 case 3:
@@ -520,48 +518,48 @@ void MediaPlayer::setup_rpc_interface()
                     60.f * kinski::string_to<float>(splits[1]) +
                     3600.f * kinski::string_to<float>(splits[0]) ;
                     break;
-                  
+
                 case 2:
                     secs = kinski::string_to<float>(splits[1]) +
                     60.f * kinski::string_to<float>(splits[0]);
                     break;
-                  
+
                 case 1:
                     secs = kinski::string_to<float>(splits[0]);
                     break;
-                  
+
                 default:
                     break;
             }
-            if(fabs(m_media->current_time() - secs) > 0.02f){ m_media->seek_to_time(secs); }
+            if(fabs(m_media->current_time() - secs) > 0.04f){ m_media->seek_to_time(secs); }
         }
     });
-    
+
     remote_control().add_command("current_time", [this](net::tcp_connection_ptr con,
                                                         const std::vector<std::string> &rpc_args)
     {
         con->send(to_string(m_media->current_time(), 1));
     });
-    
+
     remote_control().add_command("duration", [this](net::tcp_connection_ptr con,
                                                     const std::vector<std::string> &rpc_args)
     {
         con->send(to_string(m_media->duration(), 1));
     });
-    
+
     remote_control().add_command("set_loop");
     register_function("set_loop", [this](const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_media->set_loop(kinski::string_to<bool>(rpc_args.front())); }
     });
-    
+
     remote_control().add_command("loop", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
         if(!rpc_args.empty()){ m_media->set_loop(kinski::string_to<bool>(rpc_args.front())); }
         con->send(to_string(m_media->loop()));
     });
-    
+
     remote_control().add_command("is_playing", [this](net::tcp_connection_ptr con,
                                                       const std::vector<std::string> &rpc_args)
     {
