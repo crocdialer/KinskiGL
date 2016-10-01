@@ -403,17 +403,23 @@ void MediaPlayer::send_network_sync()
             
             std::unique_lock<std::mutex> lock(g_ip_table_mutex);
             
+            const double dead_thresh = 30.0;
+            auto now = getApplicationTime();
+            
             for(auto &pair : m_ip_adresses_dynamic)
             {
-                net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
-                                    remote_control().listening_port());
+                if(now - pair.second < dead_thresh)
+                {
+                    net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
+                                        remote_control().listening_port());
+                }
             }
         }
     });
     m_sync_timer.set_periodic();
     m_sync_timer.expires_from_now(0.05);
     
-    if(*m_sync_duration > 0)
+    if(m_sync_duration->value() > 0)
     {
         m_sync_off_timer = Timer(background_queue().io_service(), [this]()
         {
