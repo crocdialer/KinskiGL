@@ -16,7 +16,20 @@ using namespace glm;
 
 namespace
 {
+    //! enforce mutual exlusion on state
     std::mutex g_ip_table_mutex;
+    
+    //! interval to send sync cmd (secs)
+    const double g_sync_interval = 0.05;
+    
+    //! keep_alive timeout after which a remote node is considered dead (secs)
+    const double g_dead_thresh = 10.0;
+    
+    //! interval for keep_alive broadcasts (secs)
+    const double g_broadcast_interval = 2.0;
+    
+    //! maximum difference to remote media-clock to tolerate (secs)
+    const double g_sync_thresh = 0.04;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -107,6 +120,7 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
         case Key::_P:
             m_media->is_playing() ? m_media->pause() : m_media->play();
+            if(*m_is_master){ send_network_cmd(m_media->is_playing() ? "play" : "pause"); }
             break;
 
         case Key::_LEFT:
@@ -264,7 +278,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
                                               *m_broadcast_port);
             });
             m_broadcast_timer.set_periodic();
-            m_broadcast_timer.expires_from_now(2.f);
+            m_broadcast_timer.expires_from_now(g_broadcast_interval);
         }else{ m_broadcast_timer.cancel(); }
     }
     else if(theProperty == m_is_master)
@@ -283,13 +297,13 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
                 string str(data.begin(), data.end());
                 LOG_TRACE_1 << str << " " << remote_ip << " (" << remote_port << ")";
                   
-                if((str == name()) /*== !kinski::is_in(remote_ip, m_ip_adresses_dynamic)*/)
+                if(str == name())
                 {
                     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
                     m_ip_adresses_dynamic[remote_ip] = getApplicationTime();
                 }
             });
-            send_network_sync();
+            begin_network_sync();
         }
         else
         {
@@ -338,10 +352,12 @@ bool MediaPlayer::load_settings(const std::string &the_path)
 void MediaPlayer::reload_media()
 {
     App::Task t(this);
-
+    
+    textures()[TEXTURE_INPUT].reset();
+    
     std::string abs_path;
     try{ abs_path = fs::search_file(*m_media_path); }
-    catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.std::exception::what(); return; }
+    catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.what(); m_reload_media = false; return; }
 
     auto media_type = fs::get_file_type(abs_path);
 
@@ -381,6 +397,9 @@ void MediaPlayer::reload_media()
         textures()[TEXTURE_INPUT] = font.create_texture("The quick brown fox \njumps over the lazy dog ... \n0123456789");
     }
     m_reload_media = false;
+    
+    // network sync
+    if(*m_is_master){ send_network_cmd("load " + fs::get_filename_part(*m_media_path)); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -394,31 +413,18 @@ std::string MediaPlayer::secs_to_time_str(float the_secs) const
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::send_network_sync()
+void MediaPlayer::begin_network_sync()
 {
     m_sync_timer = Timer(background_queue().io_service(), [this]()
     {
         if(m_media && m_media->is_playing())
         {
             string cmd = "seek_to_time " + to_string(m_media->current_time(), 3);
-            
-            std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-            
-            const double dead_thresh = 30.0;
-            auto now = getApplicationTime();
-            
-            for(auto &pair : m_ip_adresses_dynamic)
-            {
-                if(now - pair.second < dead_thresh)
-                {
-                    net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
-                                        remote_control().listening_port());
-                }
-            }
+            send_network_cmd(cmd);
         }
     });
     m_sync_timer.set_periodic();
-    m_sync_timer.expires_from_now(0.05);
+    m_sync_timer.expires_from_now(g_sync_interval);
     
     if(m_sync_duration->value() > 0)
     {
@@ -428,6 +434,31 @@ void MediaPlayer::send_network_sync()
         });
         m_sync_off_timer.expires_from_now(*m_sync_duration);
     }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::send_network_cmd(const std::string &the_cmd)
+{
+    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+    
+    auto now = getApplicationTime();
+    std::list<std::unordered_map<std::string, float>::iterator> dead_iterators;
+    
+    auto it = m_ip_adresses_dynamic.begin();
+    
+    for(; it != m_ip_adresses_dynamic.end(); ++it)
+    {
+        if(now - it->second < g_dead_thresh)
+        {
+            net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
+                                remote_control().listening_port());
+        }
+        else{ dead_iterators.push_back(it); }
+    }
+    
+    // remove dead iterators
+    for(auto &dead_it : dead_iterators){ m_ip_adresses_dynamic.erase(dead_it); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -538,7 +569,7 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            if(fabs(m_media->current_time() - secs) > 0.04f){ m_media->seek_to_time(secs); }
+            if(fabs(m_media->current_time() - secs) > g_sync_thresh){ m_media->seek_to_time(secs); }
         }
     });
 

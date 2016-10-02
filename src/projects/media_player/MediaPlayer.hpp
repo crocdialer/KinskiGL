@@ -62,7 +62,9 @@ namespace kinski
         void reload_media();
         
         std::vector<std::string> get_remote_adresses() const;
-        void send_network_sync();
+        
+        void begin_network_sync();
+        void send_network_cmd(const std::string &the_cmd);
         
     public:
 
