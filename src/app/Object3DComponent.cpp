@@ -55,7 +55,9 @@ namespace kinski
         }
         else if(theProperty == m_position_x || theProperty == m_position_y || theProperty == m_position_z)
         {
-            active_object->setPosition(glm::vec3(*m_position_x, *m_position_y, *m_position_z));
+            active_object->setPosition(glm::vec3(m_position_x->value(),
+                                                 m_position_y->value(),
+                                                 m_position_z->value()));
         }
         else if(theProperty == m_scale)
         {

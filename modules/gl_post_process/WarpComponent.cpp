@@ -68,19 +68,23 @@ namespace kinski
     {
         if(the_property == m_top_left_x || the_property == m_top_left_y)
         {
-            m_quad_warp.control_point(0, 0) = gl::vec2(*m_top_left_x, *m_top_left_y);
+            m_quad_warp.control_point(0, 0) = gl::vec2(m_top_left_x->value(),
+                                                       m_top_left_y->value());
         }
         else if(the_property == m_top_right_x || the_property == m_top_right_y)
         {
-            m_quad_warp.control_point(1, 0) = gl::vec2(*m_top_right_x, *m_top_right_y);
+            m_quad_warp.control_point(1, 0) = gl::vec2(m_top_right_x->value(),
+                                                       m_top_right_y->value());
         }
         else if(the_property == m_bottom_left_x || the_property == m_bottom_left_y)
         {
-            m_quad_warp.control_point(0, 1) = gl::vec2(*m_bottom_left_x, *m_bottom_left_y);
+            m_quad_warp.control_point(0, 1) = gl::vec2(m_bottom_left_x->value(),
+                                                       m_bottom_left_y->value());
         }
         else if(the_property == m_bottom_right_x || the_property == m_bottom_right_y)
         {
-            m_quad_warp.control_point(1, 1) = gl::vec2(*m_bottom_right_x, *m_bottom_right_y);
+            m_quad_warp.control_point(1, 1) = gl::vec2(m_bottom_right_x->value(),
+                                                       m_bottom_right_y->value());
         }
         if(the_property == m_grid_sz_x || the_property == m_grid_sz_y)
         {
