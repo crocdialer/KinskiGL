@@ -579,8 +579,9 @@ void MediaPlayer::setup_rpc_interface()
             if(m_media->is_playing() && diff > g_sync_thresh)
             {
                 m_media->seek_to_time(secs);
-                auto new_diff = m_media->current_time() - secs;
+                auto new_diff = secs - m_media->current_time();
                 
+                // we are lagging behind -> pause and wait to resume
                 if(new_diff > g_sync_thresh)
                 {
                     m_media->pause();
