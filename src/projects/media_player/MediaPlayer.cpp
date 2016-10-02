@@ -18,21 +18,21 @@ namespace
 {
     //! enforce mutual exlusion on state
     std::mutex g_ip_table_mutex;
-    
+
     //! interval to send sync cmd (secs)
     const double g_sync_interval = 0.05;
-    
+
     //! keep_alive timeout after which a remote node is considered dead (secs)
     const double g_dead_thresh = 10.0;
-    
+
     //! interval for keep_alive broadcasts (secs)
     const double g_broadcast_interval = 2.0;
-    
+
     //! maximum difference to remote media-clock to tolerate (secs)
-    const double g_sync_thresh = 0.04;
-    
+    const double g_sync_thresh = 0.05;
+
     //! delay to add to requested seek times (secs)
-    const double g_sync_delay = 0.0;
+    const double g_sync_delay = 0.004;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -67,9 +67,9 @@ void MediaPlayer::setup()
 
     // setup our components to receive rpc calls
     setup_rpc_interface();
-    
+
     load_settings();
-    
+
     // check for command line input
     if(args().size() > 1 && fs::exists(args()[1])){ *m_media_path = args()[1]; }
 }
@@ -291,7 +291,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
         {
             m_broadcast_timer.cancel();
             m_ip_adresses_dynamic.clear();
-            
+
             // discovery udp-server to receive pings from existing nodes in the network
             m_udp_server = net::udp_server(background_queue().io_service());
             m_udp_server.start_listen(*m_broadcast_port);
@@ -300,7 +300,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             {
                 string str(data.begin(), data.end());
                 LOG_TRACE_1 << str << " " << remote_ip << " (" << remote_port << ")";
-                  
+
                 if(str == name())
                 {
                     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
@@ -356,9 +356,9 @@ bool MediaPlayer::load_settings(const std::string &the_path)
 void MediaPlayer::reload_media()
 {
     App::Task t(this);
-    
+
     textures()[TEXTURE_INPUT].reset();
-    
+
     std::string abs_path;
     try{ abs_path = fs::search_file(*m_media_path); }
     catch (fs::FileNotFoundException &e){ LOG_DEBUG << e.what(); m_reload_media = false; return; }
@@ -401,7 +401,7 @@ void MediaPlayer::reload_media()
         textures()[TEXTURE_INPUT] = font.create_texture("The quick brown fox \njumps over the lazy dog ... \n0123456789");
     }
     m_reload_media = false;
-    
+
     // network sync
     if(*m_is_master)
     {
@@ -433,7 +433,7 @@ void MediaPlayer::begin_network_sync()
     });
     m_sync_timer.set_periodic();
     m_sync_timer.expires_from_now(g_sync_interval);
-    
+
     if(m_sync_duration->value() > 0)
     {
         m_sync_off_timer = Timer(background_queue().io_service(), [this]()
@@ -449,12 +449,12 @@ void MediaPlayer::begin_network_sync()
 void MediaPlayer::send_network_cmd(const std::string &the_cmd)
 {
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-    
+
     auto now = getApplicationTime();
     std::list<std::unordered_map<std::string, float>::iterator> dead_iterators;
-    
+
     auto it = m_ip_adresses_dynamic.begin();
-    
+
     for(; it != m_ip_adresses_dynamic.end(); ++it)
     {
         if(now - it->second < g_dead_thresh)
@@ -464,7 +464,7 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
         }
         else{ dead_iterators.push_back(it); }
     }
-    
+
     // remove dead iterators
     for(auto &dead_it : dead_iterators){ m_ip_adresses_dynamic.erase(dead_it); }
 }
@@ -578,23 +578,25 @@ void MediaPlayer::setup_rpc_interface()
                     break;
             }
             auto abs_diff = abs(m_media->current_time() - secs);
-            
+
             if(m_media->is_playing() && (abs_diff > g_sync_thresh))
             {
                 m_media->seek_to_time(secs + g_sync_delay);
-                
-//                auto new_diff = m_media->current_time() - secs;
-//                
-//                // we are rushing -> pause and wait to resume
-//                if(new_diff > g_sync_thresh)
-//                {
-//                    m_media->pause();
-//                    m_sync_pause_timer = Timer(background_queue().io_service(), [this]()
-//                    {
-//                        m_media->play();
-//                    });
-//                    m_sync_pause_timer.expires_from_now(new_diff);
-//                }
+
+                // auto new_diff = m_media->current_time() - secs;
+                // LOG_DEBUG << "diff: " << (int)(new_diff * 1000) << " ms";
+
+                //
+                // // we are rushing -> pause and wait to resume
+                // if(new_diff > g_sync_thresh && new_diff < 5.0)
+                // {
+                //     m_media->pause();
+                //     m_sync_pause_timer = Timer(background_queue().io_service(), [this]()
+                //     {
+                //         m_media->play();
+                //     });
+                //     m_sync_pause_timer.expires_from_now(new_diff);
+                // }
             }
         }
     });
