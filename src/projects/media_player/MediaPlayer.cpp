@@ -30,6 +30,9 @@ namespace
     
     //! maximum difference to remote media-clock to tolerate (secs)
     const double g_sync_thresh = 0.04;
+    
+    //! delay to add to requested seek times (secs)
+    const double g_sync_delay = 1.0;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -578,7 +581,8 @@ void MediaPlayer::setup_rpc_interface()
             
             if(m_media->is_playing() && abs_diff > g_sync_thresh)
             {
-                m_media->seek_to_time(secs);
+                m_media->seek_to_time(secs + g_sync_delay);
+                
                 auto new_diff = m_media->current_time() - secs;
                 
                 // we are rushing -> pause and wait to resume
