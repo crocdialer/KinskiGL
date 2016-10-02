@@ -579,23 +579,22 @@ void MediaPlayer::setup_rpc_interface()
             }
             auto abs_diff = abs(m_media->current_time() - secs);
             
-            if(m_media->is_playing() && abs_diff > g_sync_thresh)
+            if(m_media->is_playing() && (abs_diff > g_sync_thresh))
             {
                 m_media->seek_to_time(secs + g_sync_delay);
                 
-                auto new_diff = m_media->current_time() - secs;
-                
-                // we are rushing -> pause and wait to resume
-                if(new_diff > g_sync_thresh)
-                {
-                    m_media->pause();
-                    m_sync_pause_timer = Timer(background_queue().io_service(), [this]()
-                    {
-                        m_media->play();
-                    });
-                    m_sync_pause_timer.expires_from_now(new_diff);
-                }
-                
+//                auto new_diff = m_media->current_time() - secs;
+//                
+//                // we are rushing -> pause and wait to resume
+//                if(new_diff > g_sync_thresh)
+//                {
+//                    m_media->pause();
+//                    m_sync_pause_timer = Timer(background_queue().io_service(), [this]()
+//                    {
+//                        m_media->play();
+//                    });
+//                    m_sync_pause_timer.expires_from_now(new_diff);
+//                }                
             }
         }
     });
