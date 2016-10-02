@@ -594,7 +594,7 @@ void MediaPlayer::setup_rpc_interface()
 //                        m_media->play();
 //                    });
 //                    m_sync_pause_timer.expires_from_now(new_diff);
-//                }                
+//                }
             }
         }
     });
