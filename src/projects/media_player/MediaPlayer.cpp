@@ -61,13 +61,14 @@ void MediaPlayer::setup()
 
     remote_control().set_components({ shared_from_this(), m_warp });
 //    set_default_config_path("~/");
-    load_settings();
-
-    // check for command line input
-    if(args().size() > 1 && fs::exists(args()[1])){ *m_media_path = args()[1]; }
 
     // setup our components to receive rpc calls
     setup_rpc_interface();
+    
+    load_settings();
+    
+    // check for command line input
+    if(args().size() > 1 && fs::exists(args()[1])){ *m_media_path = args()[1]; }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -399,7 +400,11 @@ void MediaPlayer::reload_media()
     m_reload_media = false;
     
     // network sync
-    if(*m_is_master){ send_network_cmd("load " + fs::get_filename_part(*m_media_path)); }
+    if(*m_is_master)
+    {
+        send_network_cmd("load " + fs::get_filename_part(*m_media_path));
+        begin_network_sync();
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -569,7 +574,24 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            if(fabs(m_media->current_time() - secs) > g_sync_thresh){ m_media->seek_to_time(secs); }
+            auto diff = m_media->current_time() - secs;
+            
+            if(m_media->is_playing() && diff > g_sync_thresh)
+            {
+                m_media->seek_to_time(secs);
+                auto new_diff = m_media->current_time() - secs;
+                
+                if(new_diff > g_sync_thresh)
+                {
+                    m_media->pause();
+                    m_sync_pause_timer = Timer(background_queue().io_service(), [this]()
+                    {
+                        m_media->play();
+                    });
+                    m_sync_pause_timer.expires_from_now(new_diff);
+                }
+                
+            }
         }
     });
 
