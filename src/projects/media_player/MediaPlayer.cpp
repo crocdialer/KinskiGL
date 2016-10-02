@@ -20,7 +20,7 @@ namespace
     std::mutex g_ip_table_mutex;
 
     //! interval to send sync cmd (secs)
-    const double g_sync_interval = 0.05;
+    const double g_sync_interval = 0.1;
 
     //! keep_alive timeout after which a remote node is considered dead (secs)
     const double g_dead_thresh = 10.0;
@@ -29,10 +29,10 @@ namespace
     const double g_broadcast_interval = 2.0;
 
     //! maximum difference to remote media-clock to tolerate (secs)
-    const double g_sync_thresh = 0.05;
+    const double g_sync_thresh = 0.04;
 
     //! delay to add to requested seek times (secs)
-    const double g_sync_delay = 0.004;
+    const double g_sync_delay = 0.002;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -577,11 +577,21 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            auto abs_diff = abs(m_media->current_time() - secs);
+            auto diff = abs(g_sync_delay + secs - m_media->current_time());
 
-            if(m_media->is_playing() && (abs_diff > g_sync_thresh))
+            if(m_media->is_playing())
             {
-                m_media->seek_to_time(secs + g_sync_delay);
+                auto scrub_thresh = g_sync_thresh * 10;
+
+                if((abs(diff) > scrub_thresh))
+                {
+                    m_media->seek_to_time(secs + g_sync_delay);
+                }
+                else if(abs(diff) > g_sync_thresh)
+                {
+                    m_media->set_rate(1.0 + 0.5 * diff / scrub_thresh);
+                }
+                else{ m_media->set_rate(*m_playback_speed); }
 
                 // auto new_diff = m_media->current_time() - secs;
                 // LOG_DEBUG << "diff: " << (int)(new_diff * 1000) << " ms";

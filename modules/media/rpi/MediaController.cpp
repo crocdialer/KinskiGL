@@ -621,11 +621,7 @@ namespace kinski{ namespace media
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            // m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
-
-            value = clamp<double>(value, 0.0, duration());
-            m_impl->m_av_clock->OMXMediaTime(value * (double)DVD_TIME_BASE);
-            m_impl->m_seek_flush = true;
+            m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
         }
     }
 
