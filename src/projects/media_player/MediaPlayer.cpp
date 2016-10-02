@@ -32,7 +32,7 @@ namespace
     const double g_sync_thresh = 0.04;
     
     //! delay to add to requested seek times (secs)
-    const double g_sync_delay = 1.0;
+    const double g_sync_delay = 0.0;
 }
 
 /////////////////////////////////////////////////////////////////
