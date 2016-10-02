@@ -20,7 +20,7 @@ namespace
     std::mutex g_ip_table_mutex;
 
     //! interval to send sync cmd (secs)
-    const double g_sync_interval = 0.1;
+    const double g_sync_interval = 0.05;
 
     //! keep_alive timeout after which a remote node is considered dead (secs)
     const double g_dead_thresh = 10.0;
@@ -29,7 +29,7 @@ namespace
     const double g_broadcast_interval = 2.0;
 
     //! maximum difference to remote media-clock to tolerate (secs)
-    const double g_sync_thresh = 0.04;
+    const double g_sync_thresh = 0.02;
 
     //! delay to add to requested seek times (secs)
     const double g_sync_delay = 0.002;
@@ -581,7 +581,7 @@ void MediaPlayer::setup_rpc_interface()
 
             if(m_media->is_playing())
             {
-                auto scrub_thresh = g_sync_thresh * 10;
+                auto scrub_thresh = g_sync_thresh * 20;
 
                 if((abs(diff) > scrub_thresh))
                 {
