@@ -591,7 +591,8 @@ void MediaPlayer::setup_rpc_interface()
                 }
                 else if(abs(diff) > g_sync_thresh)
                 {
-                    m_media->set_rate(1.0 + 0.25 * diff / scrub_thresh);
+                    auto rate = *m_playback_speed * (1.0 + diff / scrub_thresh);
+                    m_media->set_rate(rate);
                     m_is_syncing = true;
                 }
                 else
