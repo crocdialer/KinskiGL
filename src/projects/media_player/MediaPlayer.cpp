@@ -29,10 +29,10 @@ namespace
     const double g_broadcast_interval = 2.0;
 
     //! maximum difference to remote media-clock to tolerate (secs)
-    const double g_sync_thresh = 0.02;
+    const double g_sync_thresh = 0.01;
 
     //! delay to add to requested seek times (secs)
-    const double g_sync_delay = 0.002;
+    const double g_sync_delay = 0.001;//0.002;
 }
 
 /////////////////////////////////////////////////////////////////
