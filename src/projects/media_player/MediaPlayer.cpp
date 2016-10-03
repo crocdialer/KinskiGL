@@ -29,7 +29,7 @@ namespace
     const double g_broadcast_interval = 2.0;
 
     //! maximum difference to remote media-clock to tolerate (secs)
-    const double g_sync_thresh = 0.01;
+    const double g_sync_thresh = 0.02;
     
     //! maximum difference to remote media-clock to tolerate (secs)
     const double g_scrub_thresh = 1.0;
