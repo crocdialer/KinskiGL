@@ -30,6 +30,9 @@ namespace
 
     //! maximum difference to remote media-clock to tolerate (secs)
     const double g_sync_thresh = 0.01;
+    
+    //! maximum difference to remote media-clock to tolerate (secs)
+    const double g_scrub_thresh = 1.0;
 
     //! delay to add to requested seek times (secs)
     const double g_sync_delay = 0.001;//0.002;
@@ -582,16 +585,14 @@ void MediaPlayer::setup_rpc_interface()
 
             if(m_media->is_playing())
             {
-                auto scrub_thresh = g_sync_thresh * 50;
-                
-                if((abs(diff) > scrub_thresh))
+                if((abs(diff) > g_scrub_thresh))
                 {
                     m_media->seek_to_time(secs + g_sync_delay);
                     m_is_syncing = true;
                 }
                 else if(abs(diff) > g_sync_thresh)
                 {
-                    auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.4 * diff / scrub_thresh);
+                    auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / g_scrub_thresh);
                     m_media->set_rate(rate);
                     m_is_syncing = true;
                 }
