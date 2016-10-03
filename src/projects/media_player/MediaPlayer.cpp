@@ -577,7 +577,7 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            auto diff = abs(g_sync_delay + secs - m_media->current_time());
+            auto diff = g_sync_delay + secs - m_media->current_time();
 
             if(m_media->is_playing())
             {
