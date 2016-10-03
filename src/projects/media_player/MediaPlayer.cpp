@@ -99,7 +99,10 @@ void MediaPlayer::draw()
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
     
-    if(!*m_is_master && m_is_syncing){ gl::draw_circle(vec2(50), 30, gl::COLOR_WHITE, true, 12); }
+    if(!*m_is_master && m_is_syncing)
+    {
+        gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
+    }
     if(displayTweakBar())
     {
         gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
@@ -585,21 +588,21 @@ void MediaPlayer::setup_rpc_interface()
 
             if(m_media->is_playing())
             {
+                m_is_syncing = diff / 1000.0;
+                
                 if((abs(diff) > g_scrub_thresh))
                 {
                     m_media->seek_to_time(secs + g_sync_delay);
-                    m_is_syncing = true;
                 }
                 else if(abs(diff) > g_sync_thresh)
                 {
                     auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / g_scrub_thresh);
                     m_media->set_rate(rate);
-                    m_is_syncing = true;
                 }
                 else
                 {
                     m_media->set_rate(*m_playback_speed);
-                    m_is_syncing = false;
+                    m_is_syncing = 0;
                 }
             }
         }

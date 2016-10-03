@@ -31,7 +31,8 @@ namespace kinski
 
         media::MediaControllerPtr m_media = media::MediaController::create();
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
-        bool m_reload_media = false, m_needs_redraw = true, m_is_syncing = false;
+        bool m_reload_media = false, m_needs_redraw = true;
+        int m_is_syncing = 0;
         Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer;
         
         net::udp_server m_udp_server;
