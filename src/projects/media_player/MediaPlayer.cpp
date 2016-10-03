@@ -95,7 +95,8 @@ void MediaPlayer::draw()
     if(*m_use_warping){ m_warp->render_output(textures()[TEXTURE_INPUT], *m_brightness); }
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
-
+    
+    if(m_is_syncing){ gl::draw_circle(vec2(50), 30, gl::COLOR_WHITE); }
     if(displayTweakBar())
     {
         gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
@@ -151,7 +152,7 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
 bool MediaPlayer::needs_redraw() const
 {
-    return (m_media && !m_media->is_playing()) || !*m_use_warping || m_needs_redraw;
+    return (m_media && !m_media->is_playing()) || !*m_use_warping || m_needs_redraw || m_is_syncing;
 };
 
 /////////////////////////////////////////////////////////////////
@@ -582,31 +583,22 @@ void MediaPlayer::setup_rpc_interface()
             if(m_media->is_playing())
             {
                 auto scrub_thresh = g_sync_thresh * 50;
-
+                
                 if((abs(diff) > scrub_thresh))
                 {
                     m_media->seek_to_time(secs + g_sync_delay);
+                    m_is_syncing = true;
                 }
                 else if(abs(diff) > g_sync_thresh)
                 {
                     m_media->set_rate(1.0 + 0.25 * diff / scrub_thresh);
+                    m_is_syncing = true;
                 }
-                else{ m_media->set_rate(*m_playback_speed); }
-
-                // auto new_diff = m_media->current_time() - secs;
-                // LOG_DEBUG << "diff: " << (int)(new_diff * 1000) << " ms";
-
-                //
-                // // we are rushing -> pause and wait to resume
-                // if(new_diff > g_sync_thresh && new_diff < 5.0)
-                // {
-                //     m_media->pause();
-                //     m_sync_pause_timer = Timer(background_queue().io_service(), [this]()
-                //     {
-                //         m_media->play();
-                //     });
-                //     m_sync_pause_timer.expires_from_now(new_diff);
-                // }
+                else
+                {
+                    m_media->set_rate(*m_playback_speed);
+                    m_is_syncing = false;
+                }
             }
         }
     });
