@@ -28,14 +28,17 @@ namespace
     //! interval for keep_alive broadcasts (secs)
     const double g_broadcast_interval = 2.0;
 
-    //! maximum difference to remote media-clock to tolerate (secs)
+    //! minimum difference to remote media-clock for fine-tuning (secs)
     const double g_sync_thresh = 0.02;
     
-    //! maximum difference to remote media-clock to tolerate (secs)
+    //! minimum difference to remote media-clock for scrubbing (secs)
     const double g_scrub_thresh = 1.0;
 
     //! delay to add to requested seek times (secs)
-    const double g_sync_delay = 0.001;//0.002;
+    const double g_sync_delay = 0.001;
+    
+    //! force reset of playback speed (secs)
+    const double g_sync_duration = 1.0;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -55,7 +58,6 @@ void MediaPlayer::setup()
     register_property(m_use_warping);
     register_property(m_force_audio_jack);
     register_property(m_is_master);
-    register_property(m_sync_duration);
     register_property(m_use_discovery_broadcast);
     register_property(m_broadcast_port);
     observe_properties();
@@ -271,6 +273,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     else if(theProperty == m_playback_speed)
     {
         m_media->set_rate(*m_playback_speed);
+        if(*m_is_master){ send_network_cmd("set_rate " + to_string(m_playback_speed->value(), 2)); }
     }
     else if(theProperty == m_use_warping)
     {
@@ -320,6 +323,12 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
         {
             m_sync_timer.cancel();
             m_use_discovery_broadcast->notify_observers();
+            
+            m_sync_off_timer = Timer(background_queue().io_service(), [this]()
+            {
+                m_media->set_rate(*m_playback_speed);
+                m_is_syncing = 0;
+            });
         }
     }
 }
@@ -393,6 +402,11 @@ void MediaPlayer::reload_media()
         m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
         {
             LOG_DEBUG << "media ended";
+            if(*m_is_master && *m_loop)
+            {
+                send_network_cmd("restart");
+                begin_network_sync();
+            }
         });
     }
     else if(media_type == fs::FileType::IMAGE)
@@ -440,15 +454,6 @@ void MediaPlayer::begin_network_sync()
     });
     m_sync_timer.set_periodic();
     m_sync_timer.expires_from_now(g_sync_interval);
-
-    if(m_sync_duration->value() > 0)
-    {
-        m_sync_off_timer = Timer(background_queue().io_service(), [this]()
-        {
-            m_sync_timer.cancel();
-        });
-        m_sync_off_timer.expires_from_now(*m_sync_duration);
-    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -489,12 +494,17 @@ void MediaPlayer::setup_rpc_interface()
             p = p.substr(0, p.size() - 1);
             *m_media_path = p;
         }
-        else{ m_media->play(); }
+        else
+        {
+            m_media->play();
+            if(*m_is_master){ send_network_cmd("play"); }
+        }
     });
     remote_control().add_command("pause");
     register_function("pause", [this](const std::vector<std::string> &rpc_args)
     {
         m_media->pause();
+        if(*m_is_master){ send_network_cmd("pause"); }
     });
     remote_control().add_command("restart", [this](net::tcp_connection_ptr con,
                                                    const std::vector<std::string> &rpc_args)
@@ -520,13 +530,13 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("set_volume");
     register_function("set_volume", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_media->set_volume(kinski::string_to<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ *m_volume = kinski::string_to<float>(rpc_args.front()); }
     });
 
     remote_control().add_command("volume", [this](net::tcp_connection_ptr con,
                                                   const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_media->set_volume(kinski::string_to<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ *m_volume = kinski::string_to<float>(rpc_args.front()); }
         else{ con->send(to_string(m_media->volume())); }
     });
 
@@ -546,13 +556,13 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("set_rate");
     register_function("set_rate", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_media->set_rate(kinski::string_to<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ *m_playback_speed = kinski::string_to<float>(rpc_args.front()); }
     });
 
     remote_control().add_command("rate", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_media->set_rate(kinski::string_to<float>(rpc_args.front())); }
+        if(!rpc_args.empty()){ *m_playback_speed = kinski::string_to<float>(rpc_args.front()); }
         con->send(to_string(m_media->rate()));
     });
 
@@ -590,14 +600,19 @@ void MediaPlayer::setup_rpc_interface()
             {
                 m_is_syncing = diff * 1000.0;
                 
-                if((abs(diff) > g_scrub_thresh))
+                // adapt to playback rate
+                auto scrub_thresh = g_scrub_thresh / *m_playback_speed;
+                auto sync_thresh = g_sync_thresh / *m_playback_speed;
+                
+                if((abs(diff) > scrub_thresh))
                 {
                     m_media->seek_to_time(secs + g_sync_delay);
                 }
-                else if(abs(diff) > g_sync_thresh)
+                else if(abs(diff) > sync_thresh)
                 {
-                    auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / g_scrub_thresh);
+                    auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / scrub_thresh);
                     m_media->set_rate(rate);
+                    m_sync_off_timer.expires_from_now(g_sync_duration);
                 }
                 else
                 {
@@ -623,13 +638,13 @@ void MediaPlayer::setup_rpc_interface()
     remote_control().add_command("set_loop");
     register_function("set_loop", [this](const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_media->set_loop(kinski::string_to<bool>(rpc_args.front())); }
+        if(!rpc_args.empty()){ *m_loop = kinski::string_to<bool>(rpc_args.front()); }
     });
 
     remote_control().add_command("loop", [this](net::tcp_connection_ptr con,
                                                 const std::vector<std::string> &rpc_args)
     {
-        if(!rpc_args.empty()){ m_media->set_loop(kinski::string_to<bool>(rpc_args.front())); }
+        if(!rpc_args.empty()){ *m_loop = kinski::string_to<bool>(rpc_args.front()); }
         con->send(to_string(m_media->loop()));
     });
 
