@@ -96,7 +96,7 @@ void MediaPlayer::draw()
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
     
-    if(m_is_syncing){ gl::draw_circle(vec2(50), 30, gl::COLOR_WHITE); }
+    if(!*m_is_master && m_is_syncing){ gl::draw_circle(vec2(50), 30, gl::COLOR_WHITE, true, 12); }
     if(displayTweakBar())
     {
         gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +

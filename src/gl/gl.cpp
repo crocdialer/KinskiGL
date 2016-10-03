@@ -1154,10 +1154,12 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     {
         static gl::MeshPtr solid_mesh, line_mesh;
         static gl::MaterialPtr default_mat;
+        static int last_num_sequments = 0;
         gl::MeshPtr our_mesh = solid ? solid_mesh : line_mesh;
         
-        if(!our_mesh)
+        if(!our_mesh || last_num_sequments != numSegments)
         {
+            last_num_sequments = numSegments;
             GeometryPtr geom = solid ? Geometry::createSolidCircle(numSegments) :
                 Geometry::createCircle(numSegments);
             default_mat = gl::Material::create();
