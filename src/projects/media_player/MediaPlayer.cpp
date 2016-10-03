@@ -588,7 +588,7 @@ void MediaPlayer::setup_rpc_interface()
 
             if(m_media->is_playing())
             {
-                m_is_syncing = diff / 1000.0;
+                m_is_syncing = diff * 1000.0;
                 
                 if((abs(diff) > g_scrub_thresh))
                 {
