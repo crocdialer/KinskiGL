@@ -300,7 +300,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
         if(*m_is_master)
         {
             m_broadcast_timer.cancel();
-            m_ip_adresses_dynamic.clear();
+            m_ip_timestamps.clear();
 
             // discovery udp-server to receive pings from existing nodes in the network
             m_udp_server = net::udp_server(background_queue().io_service());
@@ -314,7 +314,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
                 if(str == name())
                 {
                     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-                    m_ip_adresses_dynamic[remote_ip] = getApplicationTime();
+                    m_ip_timestamps[remote_ip] = getApplicationTime();
                     
                     ping_delay(remote_ip);
                 }
@@ -468,9 +468,9 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
     auto now = getApplicationTime();
     std::list<std::unordered_map<std::string, float>::iterator> dead_iterators;
 
-    auto it = m_ip_adresses_dynamic.begin();
+    auto it = m_ip_timestamps.begin();
 
-    for(; it != m_ip_adresses_dynamic.end(); ++it)
+    for(; it != m_ip_timestamps.end(); ++it)
     {
         if(now - it->second < g_dead_thresh)
         {
@@ -481,7 +481,7 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
     }
 
     // remove dead iterators
-    for(auto &dead_it : dead_iterators){ m_ip_adresses_dynamic.erase(dead_it); }
+    for(auto &dead_it : dead_iterators){ m_ip_timestamps.erase(dead_it); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -491,16 +491,27 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     Stopwatch timer;
     timer.start();
     
-    m_ping_connection = net::tcp_connection::create(background_queue().io_service(), the_ip,
-                                                    remote_control().listening_port());
-    auto receive_func = [this, timer](net::tcp_connection_ptr ptr,
-                                      const std::vector<uint8_t> &data)
+    auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
+                                           remote_control().listening_port());
+    auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
+                                     const std::vector<uint8_t> &data)
     {
-        LOG_DEBUG << ptr->remote_ip() << ": " << (int)(1000.0 * timer.time_elapsed()) << " ms";
+        std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+        
+        auto it = m_ip_delays.find(con->remote_ip());
+        if(it == m_ip_delays.end())
+        {
+            m_ip_delays[con->remote_ip()] = CircularBuffer<double>(5);
+            m_ip_delays[con->remote_ip()].push(timer.time_elapsed());
+        }
+        else{ it->second.push(timer.time_elapsed()); }
+        
+        LOG_TRACE << ptr->remote_ip() << " (latency, last 10s): "
+            << (int)(1000.0 * mean(m_ip_delays[con->remote_ip()])) << " ms";
+        ptr->close();
     };
-    m_ping_connection->set_tcp_receive_cb(receive_func);
-    m_ping_connection->send("echo ping");
-//    LOG_DEBUG << "connection: " << m_ping_connection->is_open();
+    con->set_tcp_receive_cb(receive_func);
+    con->send("echo ping");
 }
 
 void MediaPlayer::setup_rpc_interface()

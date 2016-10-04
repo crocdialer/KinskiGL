@@ -520,15 +520,16 @@ namespace kinski
                     {
                         case boost::asio::error::eof:
                         case boost::asio::error::connection_reset:
-                            LOG_TRACE << error.message() << " ("<<error.value() << ")";
+                            LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
                             impl_cp->socket.close();
                             break;
                             
                         case boost::asio::error::operation_aborted:
+                            LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
                             break;
                             
                         default:
-                            LOG_WARNING << error.message() << " ("<<error.value() << ")";
+                            LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
                             break;
                     }
                 }

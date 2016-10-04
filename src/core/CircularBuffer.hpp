@@ -32,6 +32,27 @@ public:
         if(m_data){ delete[](m_data); }
     }
     
+    CircularBuffer(const CircularBuffer& other):// copy constructor
+    m_array_size(other.m_array_size),
+    m_first(other.m_first),
+    m_last(other.m_last),
+    m_data(new T[other.m_array_size])
+    {
+        memcpy(m_data, other.m_data, m_array_size * sizeof(T));
+    }
+    
+    CircularBuffer& operator=(const CircularBuffer& other)
+    {
+        T* tmp_array = new T[other.m_array_size];
+        memcpy(tmp_array, other.m_data, other.m_array_size * sizeof(T));
+        delete[] m_data;
+        m_array_size = other.m_array_size;
+        m_first = other.m_first;
+        m_last = other.m_last;
+        m_data = tmp_array;
+        return *this;
+    }
+    
     inline void clear()
     {
         m_first = m_last = 0;

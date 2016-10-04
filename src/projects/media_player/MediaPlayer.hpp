@@ -36,7 +36,8 @@ namespace kinski
         Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer;
         
         net::udp_server m_udp_server;
-        std::unordered_map<std::string, float> m_ip_adresses_dynamic;
+        std::unordered_map<std::string, float> m_ip_timestamps;
+        std::map<std::string, CircularBuffer<double>> m_ip_delays;
         
         // properties
         Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");
