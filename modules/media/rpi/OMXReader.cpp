@@ -484,7 +484,7 @@ OMXPacket *OMXReader::Read()
   {
     m_eof = true;
     //FlushRead();
-    //av_free_packet(&pkt);
+    //av_packet_unref(&pkt);
     UnLock();
     return NULL;
   }
@@ -498,7 +498,7 @@ OMXPacket *OMXReader::Read()
       //FlushRead();
     }
 
-    av_free_packet(&pkt);
+    av_packet_unref(&pkt);
 
     m_eof = true;
     UnLock();
@@ -511,7 +511,7 @@ OMXPacket *OMXReader::Read()
   /*
   if(!IsActive(pkt.stream_index))
   {
-    av_free_packet(&pkt);
+    av_packet_unref(&pkt);
     UnLock();
     return NULL;
   }
@@ -554,7 +554,7 @@ OMXPacket *OMXReader::Read()
   if(!m_omx_pkt)
   {
     m_eof = true;
-    av_free_packet(&pkt);
+    av_packet_unref(&pkt);
     UnLock();
     return NULL;
   }
@@ -597,7 +597,7 @@ OMXPacket *OMXReader::Read()
     }
   }
 
-  av_free_packet(&pkt);
+  av_packet_unref(&pkt);
 
   UnLock();
   return m_omx_pkt;
