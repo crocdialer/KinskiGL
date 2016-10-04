@@ -508,7 +508,7 @@ namespace kinski
                         std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
                                                      impl_cp->recv_buffer.begin() + bytes_transferred);
                         impl_cp->tcp_receive_cb(shared_from_this(), datavec);
-                        LOG_TRACE << "received " << bytes_transferred << "bytes";
+                        LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
                     }
                     
                     // only keep receiving if there are any refs on this instance left
