@@ -206,7 +206,7 @@ bool OMXPlayerVideo::Decode(OMXPacket *pkt)
 
   sprintf(g_log_buf, "CDVDPlayerVideo::Decode dts:%.0f pts:%.0f cur:%.0f, size:%d",
           pkt->dts, pkt->pts, m_iCurrentPts, pkt->size);
-  LOG_TRACE << g_log_buf;
+  LOG_TRACE_2 << g_log_buf;
   m_decoder->Decode(pkt->data, pkt->size, dts, pts);
   return true;
 }

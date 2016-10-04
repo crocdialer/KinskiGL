@@ -184,7 +184,7 @@ namespace kinski
     inline const T mean(const C &the_container)
     {
         T sum = std::accumulate(std::begin(the_container), std::end(the_container), T(0));
-        return sum / (float)the_container.size();
+        return sum / (T)the_container.size();
     }
     
     template <typename T = double, typename C>

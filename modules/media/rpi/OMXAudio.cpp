@@ -812,7 +812,7 @@ bool COMXAudio::ApplyVolume(void)
               CLASSNAME, __func__, omx_err);
     return false;
   }
-  kinski::log(kinski::Severity::TRACE, "%s::%s - Volume=%.2f (* %.2f * %.2f)", CLASSNAME, __func__, fVolume, m_amplification, m_attenuation);
+  kinski::log(kinski::Severity::TRACE_2, "%s::%s - Volume=%.2f (* %.2f * %.2f)", CLASSNAME, __func__, fVolume, m_amplification, m_attenuation);
   return true;
 }
 
@@ -946,7 +946,7 @@ unsigned int COMXAudio::AddPackets(const void* data, unsigned int len, double dt
       m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
       return 0;
     }
-    //kinski::log(kinski::Severity::TRACE, "AudiD: dts:%.0f pts:%.0f size:%d", dts, pts, len);
+    //kinski::log(kinski::Severity::TRACE_2, "AudiD: dts:%.0f pts:%.0f size:%d", dts, pts, len);
 
     omx_err = m_omx_decoder.WaitForEvent(OMX_EventPortSettingsChanged, 0);
     if (omx_err == OMX_ErrorNone)
@@ -1050,13 +1050,13 @@ float COMXAudio::GetDelay()
   if (stamp != DVD_NOPTS_VALUE)
   {
     ret = (m_last_pts - stamp) * (1.0 / DVD_TIME_BASE);
-    //kinski::log(kinski::Severity::TRACE, "%s::%s - %.2f %.0f %.0f", CLASSNAME, __func__, ret, stamp, m_last_pts);
+    //kinski::log(kinski::Severity::TRACE_2, "%s::%s - %.2f %.0f %.0f", CLASSNAME, __func__, ret, stamp, m_last_pts);
   }
   else // just measure the input fifo
   {
     unsigned int used = m_omx_decoder.GetInputBufferSize() - m_omx_decoder.GetInputBufferSpace();
     ret = m_InputBytesPerSec ? (float)used / (float)m_InputBytesPerSec : 0.0f;
-    //kinski::log(kinski::Severity::TRACE, "%s::%s - %.2f %d, %d, %d", CLASSNAME, __func__, ret, used, m_omx_decoder.GetInputBufferSize(), m_omx_decoder.GetInputBufferSpace());
+    //kinski::log(kinski::Severity::TRACE_2, "%s::%s - %.2f %d, %d, %d", CLASSNAME, __func__, ret, used, m_omx_decoder.GetInputBufferSize(), m_omx_decoder.GetInputBufferSpace());
   }
   return ret;
 }
@@ -1178,7 +1178,7 @@ void COMXAudio::SubmitEOS()
     m_omx_decoder.DecoderEmptyBufferDone(m_omx_decoder.GetComponent(), omx_buffer);
     return;
   }
-  kinski::log(kinski::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
+  kinski::log(kinski::Severity::TRACE_2, "%s::%s", CLASSNAME, __func__);
 }
 
 bool COMXAudio::IsEOS()
@@ -1193,7 +1193,7 @@ bool COMXAudio::IsEOS()
 
   if (m_submitted_eos)
   {
-    kinski::log(kinski::Severity::TRACE, "%s::%s", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::TRACE_2, "%s::%s", CLASSNAME, __func__);
     m_submitted_eos = false;
   }
   return true;
@@ -1307,31 +1307,31 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
     switch(eChannelMapping[i])
     {
       case OMX_AUDIO_ChannelLF:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLF");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLF");
         break;
       case OMX_AUDIO_ChannelRF:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelRF");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelRF");
         break;
       case OMX_AUDIO_ChannelCF:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelCF");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelCF");
         break;
       case OMX_AUDIO_ChannelLS:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLS");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLS");
         break;
       case OMX_AUDIO_ChannelRS:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelRS");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelRS");
         break;
       case OMX_AUDIO_ChannelLFE:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLFE");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLFE");
         break;
       case OMX_AUDIO_ChannelCS:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelCS");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelCS");
         break;
       case OMX_AUDIO_ChannelLR:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelLR");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelLR");
         break;
       case OMX_AUDIO_ChannelRR:
-        kinski::log(kinski::Severity::TRACE, "OMX_AUDIO_ChannelRR");
+        kinski::log(kinski::Severity::TRACE_2, "OMX_AUDIO_ChannelRR");
         break;
       case OMX_AUDIO_ChannelNone:
       case OMX_AUDIO_ChannelKhronosExtensions:
@@ -1345,15 +1345,15 @@ void COMXAudio::PrintChannels(OMX_AUDIO_CHANNELTYPE eChannelMapping[])
 
 void COMXAudio::PrintPCM(OMX_AUDIO_PARAM_PCMMODETYPE *pcm, std::string direction)
 {
-  kinski::log(kinski::Severity::TRACE, "pcm->direction      : %s", direction.c_str());
-  kinski::log(kinski::Severity::TRACE, "pcm->nPortIndex     : %d", (int)pcm->nPortIndex);
-  kinski::log(kinski::Severity::TRACE, "pcm->eNumData       : %d", pcm->eNumData);
-  kinski::log(kinski::Severity::TRACE, "pcm->eEndian        : %d", pcm->eEndian);
-  kinski::log(kinski::Severity::TRACE, "pcm->bInterleaved   : %d", (int)pcm->bInterleaved);
-  kinski::log(kinski::Severity::TRACE, "pcm->nBitPerSample  : %d", (int)pcm->nBitPerSample);
-  kinski::log(kinski::Severity::TRACE, "pcm->ePCMMode       : %d", pcm->ePCMMode);
-  kinski::log(kinski::Severity::TRACE, "pcm->nChannels      : %d", (int)pcm->nChannels);
-  kinski::log(kinski::Severity::TRACE, "pcm->nSamplingRate  : %d", (int)pcm->nSamplingRate);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->direction      : %s", direction.c_str());
+  kinski::log(kinski::Severity::TRACE_2, "pcm->nPortIndex     : %d", (int)pcm->nPortIndex);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->eNumData       : %d", pcm->eNumData);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->eEndian        : %d", pcm->eEndian);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->bInterleaved   : %d", (int)pcm->bInterleaved);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->nBitPerSample  : %d", (int)pcm->nBitPerSample);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->ePCMMode       : %d", pcm->ePCMMode);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->nChannels      : %d", (int)pcm->nChannels);
+  kinski::log(kinski::Severity::TRACE_2, "pcm->nSamplingRate  : %d", (int)pcm->nSamplingRate);
 
   PrintChannels(pcm->eChannelMapping);
 }

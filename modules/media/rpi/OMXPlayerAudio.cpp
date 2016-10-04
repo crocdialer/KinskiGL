@@ -201,7 +201,7 @@ bool OMXPlayerAudio::Decode(OMXPacket *pkt)
       return false;
   }
 
-  // LOG_TRACE << "CDVDPlayerAudio::Decode dts:%.0f pts:%.0f size:%d", pkt->dts, pkt->pts, pkt->size);
+  // LOG_TRACE_2 << "CDVDPlayerAudio::Decode dts:%.0f pts:%.0f size:%d", pkt->dts, pkt->pts, pkt->size);
 
   if(pkt->pts != DVD_NOPTS_VALUE)
     m_iCurrentPts = pkt->pts;

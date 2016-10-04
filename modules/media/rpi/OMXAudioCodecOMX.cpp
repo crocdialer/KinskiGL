@@ -102,7 +102,7 @@ bool COMXAudioCodecOMX::Open(COMXStreamInfo &hints, enum PCMLayout layout)
     }
   }
   if (m_pCodecContext->request_channel_layout)
-    LOG_TRACE << "COMXAudioCodecOMX::Open() Requesting channel layout of "
+    LOG_TRACE_2 << "COMXAudioCodecOMX::Open() Requesting channel layout of "
         << (unsigned)m_pCodecContext->request_channel_layout;
 
   if(m_pCodecContext->bits_per_coded_sample == 0)
