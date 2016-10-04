@@ -56,7 +56,7 @@ void Stopwatch::stop()
     m_impl->laps.back() += duration_cast<duration_t>(steady_clock::now() - m_impl->start_time).count();
 }
 
-bool Stopwatch::running()
+bool Stopwatch::running() const
 {
     return m_impl->running;
 }
@@ -75,7 +75,7 @@ void Stopwatch::new_lap()
     m_impl->laps.push_back(0.0);
 }
 
-double Stopwatch::time_elapsed()
+double Stopwatch::time_elapsed() const
 {
     double ret = 0.0;
     
@@ -87,7 +87,7 @@ double Stopwatch::time_elapsed()
     return ret;
 }
 
-double Stopwatch::time_elapsed_for_lap()
+double Stopwatch::time_elapsed_for_lap() const
 {
     if(m_impl->running)
     {
@@ -97,7 +97,7 @@ double Stopwatch::time_elapsed_for_lap()
     else{ return m_impl->laps.back(); }
 }
 
-const std::vector<double>& Stopwatch::laps()
+const std::vector<double>& Stopwatch::laps() const
 {
     return m_impl->laps;
 }

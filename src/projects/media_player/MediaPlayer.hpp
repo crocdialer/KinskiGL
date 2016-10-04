@@ -66,6 +66,9 @@ namespace kinski
         void begin_network_sync();
         void send_network_cmd(const std::string &the_cmd);
         
+        net::tcp_connection_ptr m_ping_connection;
+        void ping_delay(const std::string &the_ip);
+        
     public:
 
         MediaPlayer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

@@ -111,7 +111,7 @@ namespace kinski
             KINSKI_API static tcp_connection_ptr create(boost::asio::io_service& io_service,
                                                         std::string the_ip,
                                                         uint16_t the_port,
-                                                        tcp_receive_cb_t f);
+                                                        tcp_receive_cb_t f = tcp_receive_cb_t());
             
             virtual ~tcp_connection();
             
@@ -119,7 +119,7 @@ namespace kinski
             KINSKI_API void send(const std::vector<uint8_t> &bytes);
             KINSKI_API void send(void* data, size_t num_bytes);
             
-            KINSKI_API void tcp_receive_cb(tcp_receive_cb_t f);
+            KINSKI_API void set_tcp_receive_cb(tcp_receive_cb_t f);
             
             KINSKI_API bool close();
             KINSKI_API bool is_open() const;

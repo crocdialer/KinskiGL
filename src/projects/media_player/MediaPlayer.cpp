@@ -315,6 +315,8 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
                 {
                     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
                     m_ip_adresses_dynamic[remote_ip] = getApplicationTime();
+                    
+                    ping_delay(remote_ip);
                 }
             });
             begin_network_sync();
@@ -326,7 +328,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             
             m_sync_off_timer = Timer(background_queue().io_service(), [this]()
             {
-                m_media->set_rate(*m_playback_speed);
+//                m_media->set_rate(*m_playback_speed);
                 m_is_syncing = 0;
             });
         }
@@ -402,6 +404,7 @@ void MediaPlayer::reload_media()
         m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
         {
             LOG_DEBUG << "media ended";
+            
             if(*m_is_master && *m_loop)
             {
                 send_network_cmd("restart");
@@ -482,6 +485,23 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
 }
 
 /////////////////////////////////////////////////////////////////
+
+void MediaPlayer::ping_delay(const std::string &the_ip)
+{
+    Stopwatch timer;
+    timer.start();
+    
+    m_ping_connection = net::tcp_connection::create(background_queue().io_service(), the_ip,
+                                                    remote_control().listening_port());
+    auto receive_func = [this, timer](net::tcp_connection_ptr ptr,
+                                      const std::vector<uint8_t> &data)
+    {
+        LOG_DEBUG << ptr->remote_ip() << ": " << (int)(1000.0 * timer.time_elapsed()) << " ms";
+    };
+    m_ping_connection->set_tcp_receive_cb(receive_func);
+    m_ping_connection->send("echo ping");
+//    LOG_DEBUG << "connection: " << m_ping_connection->is_open();
+}
 
 void MediaPlayer::setup_rpc_interface()
 {

@@ -321,7 +321,7 @@ namespace kinski
                     {
                         tcp_connection_ptr con(new tcp_connection());
                         con->m_impl = std::make_shared<tcp_connection::tcp_connection_impl>(std::move(socket));
-                        con->tcp_receive_cb([](tcp_connection_ptr, const std::vector<uint8_t> &data)
+                        con->set_tcp_receive_cb([](tcp_connection_ptr, const std::vector<uint8_t> &data)
                         {
                             LOG_DEBUG << std::string(data.begin(), data.end());
                         });
@@ -487,7 +487,7 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_connection::tcp_receive_cb(tcp_receive_cb_t tcp_cb)
+        void tcp_connection::set_tcp_receive_cb(tcp_receive_cb_t tcp_cb)
         {
             m_impl->tcp_receive_cb = tcp_cb;
         }

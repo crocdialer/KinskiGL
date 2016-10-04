@@ -24,12 +24,12 @@ namespace kinski
         
         void start();
         void stop();
-        bool running();
-        double time_elapsed();
-        double time_elapsed_for_lap();
+        bool running() const;
+        double time_elapsed() const;
+        double time_elapsed_for_lap() const;
         void reset();
         void new_lap();
-        const std::vector<double>& laps();
+        const std::vector<double>& laps() const;
 
     private:
         std::shared_ptr<struct stopwatch_impl> m_impl;
