@@ -484,7 +484,11 @@ void MediaPlayer::remove_dead_ip_adresses()
     }
     
     // remove dead iterators
-    for(auto &dead_it : dead_iterators){ m_ip_timestamps.erase(dead_it); }
+    for(auto &dead_it : dead_iterators)
+    {
+        m_ip_delays.erase(dead_it->first);
+        m_ip_timestamps.erase(dead_it);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
