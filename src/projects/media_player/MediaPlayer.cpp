@@ -328,7 +328,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             
             m_sync_off_timer = Timer(background_queue().io_service(), [this]()
             {
-//                m_media->set_rate(*m_playback_speed);
+                m_media->set_rate(*m_playback_speed);
                 m_is_syncing = 0;
             });
         }
@@ -376,6 +376,7 @@ void MediaPlayer::reload_media()
     App::Task t(this);
 
     textures()[TEXTURE_INPUT].reset();
+    m_sync_off_timer.cancel();
 
     std::string abs_path;
     try{ abs_path = fs::search_file(*m_media_path); }
@@ -494,7 +495,7 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
                                            remote_control().listening_port());
     auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
-                                     const std::vector<uint8_t> &data)
+                                           const std::vector<uint8_t> &data)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
         
@@ -528,6 +529,7 @@ void MediaPlayer::setup_rpc_interface()
         else
         {
             m_media->play();
+            m_sync_off_timer.cancel();
             if(*m_is_master){ send_network_cmd("play"); }
         }
     });
@@ -535,12 +537,14 @@ void MediaPlayer::setup_rpc_interface()
     register_function("pause", [this](const std::vector<std::string> &rpc_args)
     {
         m_media->pause();
+        m_sync_off_timer.cancel();
         if(*m_is_master){ send_network_cmd("pause"); }
     });
     remote_control().add_command("restart", [this](net::tcp_connection_ptr con,
                                                    const std::vector<std::string> &rpc_args)
     {
         m_media->restart();
+        m_sync_off_timer.cancel();
     });
     remote_control().add_command("load");
     register_function("load", [this](const std::vector<std::string> &rpc_args)
