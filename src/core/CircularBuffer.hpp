@@ -27,11 +27,6 @@ public:
         set_capacity(the_cap);
     }
     
-    ~CircularBuffer()
-    {
-        if(m_data){ delete[](m_data); }
-    }
-    
     CircularBuffer(const CircularBuffer& other):// copy constructor
     m_array_size(other.m_array_size),
     m_first(other.m_first),
@@ -41,15 +36,26 @@ public:
         memcpy(m_data, other.m_data, m_array_size * sizeof(T));
     }
     
-    CircularBuffer& operator=(const CircularBuffer& other)
+    CircularBuffer(CircularBuffer&& other)
     {
-        T* tmp_array = new T[other.m_array_size];
-        memcpy(tmp_array, other.m_data, other.m_array_size * sizeof(T));
-        delete[] m_data;
+        m_data = other.m_data;
         m_array_size = other.m_array_size;
         m_first = other.m_first;
         m_last = other.m_last;
-        m_data = tmp_array;
+        other.m_data = nullptr;
+    }
+    
+    ~CircularBuffer()
+    {
+        if(m_data){ delete[](m_data); }
+    }
+    
+    CircularBuffer& operator=(CircularBuffer other)
+    {
+        std::swap(m_array_size, other.m_array_size);
+        std::swap(m_first, other.m_first);
+        std::swap(m_last, other.m_last);
+        std::swap(m_data, other.m_data);
         return *this;
     }
     
