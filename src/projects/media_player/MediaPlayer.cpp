@@ -33,9 +33,6 @@ namespace
     
     //! minimum difference to remote media-clock for scrubbing (secs)
     const double g_scrub_thresh = 1.0;
-
-    //! delay to add to requested seek times (secs)
-    const double g_sync_delay = 0.001;
     
     //! force reset of playback speed (secs)
     const double g_sync_duration = 1.0;
@@ -450,11 +447,7 @@ void MediaPlayer::begin_network_sync()
 {
     m_sync_timer = Timer(background_queue().io_service(), [this]()
     {
-        if(m_media && m_media->is_playing())
-        {
-            string cmd = "seek_to_time " + to_string(m_media->current_time(), 3);
-            send_network_cmd(cmd);
-        }
+        if(m_media && m_media->is_playing()){ send_sync_cmd(); }
     });
     m_sync_timer.set_periodic();
     m_sync_timer.expires_from_now(g_sync_interval);
@@ -462,27 +455,53 @@ void MediaPlayer::begin_network_sync()
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::send_network_cmd(const std::string &the_cmd)
+void MediaPlayer::send_sync_cmd()
+{
+    remove_dead_ip_adresses();
+    
+    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+    
+    for(auto &pair : m_ip_delays)
+    {
+        string cmd = "seek_to_time " + to_string(m_media->current_time() + mean(pair.second), 3);
+        net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
+                            remote_control().listening_port());
+    }
+}
+
+void MediaPlayer::remove_dead_ip_adresses()
 {
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-
+    
     auto now = getApplicationTime();
     std::list<std::unordered_map<std::string, float>::iterator> dead_iterators;
+    
+    auto it = m_ip_timestamps.begin();
+    
+    for(; it != m_ip_timestamps.end(); ++it)
+    {
+        if(now - it->second >= g_dead_thresh){ dead_iterators.push_back(it); }
+    }
+    
+    // remove dead iterators
+    for(auto &dead_it : dead_iterators){ m_ip_timestamps.erase(dead_it); }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::send_network_cmd(const std::string &the_cmd)
+{
+    remove_dead_ip_adresses();
+    
+    std::unique_lock<std::mutex> lock(g_ip_table_mutex);
 
     auto it = m_ip_timestamps.begin();
 
     for(; it != m_ip_timestamps.end(); ++it)
     {
-        if(now - it->second < g_dead_thresh)
-        {
-            net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
-                                remote_control().listening_port());
-        }
-        else{ dead_iterators.push_back(it); }
+        net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
+                            remote_control().listening_port());
     }
-
-    // remove dead iterators
-    for(auto &dead_it : dead_iterators){ m_ip_timestamps.erase(dead_it); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -503,9 +522,9 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
         if(it == m_ip_delays.end())
         {
             m_ip_delays[con->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_delays[con->remote_ip()].push(timer.time_elapsed());
+            m_ip_delays[con->remote_ip()].push(timer.time_elapsed() / 2.0);
         }
-        else{ it->second.push(timer.time_elapsed()); }
+        else{ it->second.push(timer.time_elapsed() / 2.0); }
         
         LOG_TRACE << ptr->remote_ip() << " (latency, last 10s): "
             << (int)(1000.0 * mean(m_ip_delays[con->remote_ip()])) << " ms";
@@ -629,7 +648,7 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            auto diff = g_sync_delay + secs - m_media->current_time();
+            auto diff = secs - m_media->current_time();
 
             if(m_media->is_playing())
             {
@@ -641,7 +660,7 @@ void MediaPlayer::setup_rpc_interface()
                 
                 if((abs(diff) > scrub_thresh))
                 {
-                    m_media->seek_to_time(secs + g_sync_delay);
+                    m_media->seek_to_time(secs);
                 }
                 else if(abs(diff) > sync_thresh)
                 {

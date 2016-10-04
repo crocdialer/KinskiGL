@@ -64,7 +64,9 @@ namespace kinski
         
         std::vector<std::string> get_remote_adresses() const;
         
+        void remove_dead_ip_adresses();
         void begin_network_sync();
+        void send_sync_cmd();
         void send_network_cmd(const std::string &the_cmd);
         
         net::tcp_connection_ptr m_ping_connection;
