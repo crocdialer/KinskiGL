@@ -19,12 +19,12 @@ class CircularBuffer
 public:
     
     CircularBuffer(uint32_t the_cap = 10):
-    m_array_size(0),
+    m_array_size(the_cap + 1),
     m_first(0),
     m_last(0),
-    m_data(nullptr)
+    m_data(new T[m_array_size])
     {
-        set_capacity(the_cap);
+        memset(m_data, 0, m_array_size * sizeof(T));
     }
     
     // copy constructor
@@ -49,7 +49,7 @@ public:
     
     ~CircularBuffer()
     {
-        if(m_data){ delete[](m_data); }
+        delete[](m_data);
     }
     
     CircularBuffer& operator=(CircularBuffer other)
@@ -86,14 +86,7 @@ public:
     inline const T& back() const { return m_data[(m_last - 1) % m_array_size]; }
     
     inline uint32_t capacity() const { return m_array_size - 1; };
-    inline void set_capacity(uint32_t the_cap)
-    {
-        if(m_data){ delete[](m_data); }
-        m_data = new T[the_cap + 1];
-        m_array_size = the_cap + 1;
-        memset(m_data, 0, m_array_size * sizeof(T));
-        clear();
-    }
+    inline void set_capacity(uint32_t the_cap){ *this = CircularBuffer(the_cap); }
     
     inline uint32_t size() const
     {

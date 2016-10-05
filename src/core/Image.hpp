@@ -52,17 +52,11 @@ namespace kinski
         
     private:
         
-        Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
-              bool not_dispose = false):
-        data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
-        {
-            if(!do_not_dispose)
-            {
-                size_t num_bytes = rows * cols * bytes_per_pixel;
-                data = new uint8_t[num_bytes];
-                memcpy(data, theData, num_bytes);
-            }
-        };
+        Image(uint8_t* theData,
+              uint32_t theRows,
+              uint32_t theCols,
+              uint32_t theBytesPerPixel = 1,
+              bool not_dispose = false);
     };
     
     class ImageLoadException : public Exception
