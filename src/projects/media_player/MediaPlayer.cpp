@@ -29,7 +29,7 @@ namespace
     const double g_broadcast_interval = 2.0;
 
     //! minimum difference to remote media-clock for fine-tuning (secs)
-    const double g_sync_thresh = 0.02;
+    double g_sync_thresh = 0.02;
     
     //! minimum difference to remote media-clock for scrubbing (secs)
     const double g_scrub_thresh = 1.0;
@@ -100,7 +100,6 @@ void MediaPlayer::draw()
     
     if(!*m_is_master && m_is_syncing)
     {
-        gl::draw_text_2D(to_string(m_media->fps(), 2), fonts()[1], gl::COLOR_WHITE, vec2(50, 65));
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
     }
     if(displayTweakBar())
@@ -410,6 +409,15 @@ void MediaPlayer::reload_media()
                 begin_network_sync();
             }
         });
+        
+        m_media->set_on_load_callback([this](media::MediaControllerPtr mc)
+        {
+            if(m_media->has_video() && m_media->fps() > 0)
+            {
+                g_sync_thresh = 1.0 / m_media->fps() / 2.0;
+                LOG_DEBUG << "media fps: " << to_string(m_media->fps(), 2);
+            }
+        });
     }
     else if(media_type == fs::FileType::IMAGE)
     {
@@ -440,6 +448,38 @@ std::string MediaPlayer::secs_to_time_str(float the_secs) const
     char buf[32];
     sprintf(buf, "%d:%02d:%.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
     return buf;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::sync_media_to_timestamp(double the_timestamp)
+{
+    auto diff = the_timestamp - m_media->current_time();
+    
+    if(m_media->is_playing())
+    {
+        m_is_syncing = diff * 1000.0;
+        
+        // adapt to playback rate
+        auto scrub_thresh = g_scrub_thresh / *m_playback_speed;
+        auto sync_thresh = g_sync_thresh / *m_playback_speed;
+        
+        if((abs(diff) > scrub_thresh))
+        {
+            m_media->seek_to_time(the_timestamp);
+        }
+        else if(abs(diff) > sync_thresh)
+        {
+            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / scrub_thresh);
+            m_media->set_rate(rate);
+            m_sync_off_timer.expires_from_now(g_sync_duration);
+        }
+        else
+        {
+            m_media->set_rate(*m_playback_speed);
+            m_is_syncing = 0;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -654,32 +694,7 @@ void MediaPlayer::setup_rpc_interface()
                 default:
                     break;
             }
-            auto diff = secs - m_media->current_time();
-
-            if(m_media->is_playing())
-            {
-                m_is_syncing = diff * 1000.0;
-                
-                // adapt to playback rate
-                auto scrub_thresh = g_scrub_thresh / *m_playback_speed;
-                auto sync_thresh = g_sync_thresh / *m_playback_speed;
-                
-                if((abs(diff) > scrub_thresh))
-                {
-                    m_media->seek_to_time(secs);
-                }
-                else if(abs(diff) > sync_thresh)
-                {
-                    auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / scrub_thresh);
-                    m_media->set_rate(rate);
-                    m_sync_off_timer.expires_from_now(g_sync_duration);
-                }
-                else
-                {
-                    m_media->set_rate(*m_playback_speed);
-                    m_is_syncing = 0;
-                }
-            }
+            sync_media_to_timestamp(secs);
         }
     });
 

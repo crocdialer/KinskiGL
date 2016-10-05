@@ -61,9 +61,9 @@ namespace kinski
         void setup_rpc_interface();
         
         void reload_media();
+        void sync_media_to_timestamp(double the_timestamp);
         
         std::vector<std::string> get_remote_adresses() const;
-        
         void remove_dead_ip_adresses();
         void begin_network_sync();
         void send_sync_cmd();
