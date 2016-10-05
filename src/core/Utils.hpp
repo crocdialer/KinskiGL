@@ -165,11 +165,11 @@ namespace kinski
         {
             l.insert(std::end(l), std::begin(r), std::end(r));
         }
-//        template<typename C1, typename C2> void concat_helper(C1& l, C2&& r)
-//        {
-//            l.insert(std::end(l), std::make_move_iterator(std::begin(r)),
-//                     std::make_move_iterator(std::end(r)));
-//        }
+        template<typename C1, typename C2> void concat_helper(C1& l, C2&& r)
+        {
+            l.insert(std::end(l), std::make_move_iterator(std::begin(r)),
+                     std::make_move_iterator(std::end(r)));
+        }
     } // namespace details
     
     template<typename T, typename... C>
@@ -247,7 +247,7 @@ namespace kinski
         return mix<T>(dst_min, dst_max, mix_val);
     }
     
-    template <typename T>
+    template <typename T = double>
     inline T random(const T &min, const T &max)
     {
         // Seed with a real random value, if available
@@ -256,7 +256,7 @@ namespace kinski
         // random mean
         std::default_random_engine e1(r());
         std::uniform_int_distribution<uint64_t> uniform_dist(0, std::numeric_limits<uint64_t>::max());
-        return mix_slow<T>(min, max, uniform_dist(e1) / (double) std::numeric_limits<uint64_t>::max());
+        return mix_slow<T>(min, max, uniform_dist(e1) / (T)std::numeric_limits<uint64_t>::max());
     }
     
     template <typename T = int32_t>

@@ -71,7 +71,7 @@ void MediaPlayer::setup()
     setup_rpc_interface();
 
     load_settings();
-
+    
     // check for command line input
     if(args().size() > 1 && fs::exists(args()[1])){ *m_media_path = args()[1]; }
 }

@@ -27,7 +27,8 @@ public:
         set_capacity(the_cap);
     }
     
-    CircularBuffer(const CircularBuffer& other):// copy constructor
+    // copy constructor
+    CircularBuffer(const CircularBuffer& other):
     m_array_size(other.m_array_size),
     m_first(other.m_first),
     m_last(other.m_last),
@@ -36,6 +37,7 @@ public:
         memcpy(m_data, other.m_data, m_array_size * sizeof(T));
     }
     
+    // move constructor
     CircularBuffer(CircularBuffer&& other)
     {
         m_data = other.m_data;
