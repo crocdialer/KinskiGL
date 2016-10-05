@@ -18,7 +18,7 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     BOOST_CHECK(circ_buf.capacity() == 8);
     BOOST_CHECK(circ_buf.empty());
     
-    for(int i = 0; i < 1000; i++)
+    for(uint32_t i = 0; i < 1000; i++)
     {
         circ_buf.set_capacity(i);
         BOOST_CHECK(circ_buf.capacity() == i);
