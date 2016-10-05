@@ -618,7 +618,7 @@ namespace kinski{ namespace media
     double MediaController::fps() const
     {
         double fps = 0.0;
-        if(m_impl){ fps = m_impl->m_omx_reader->GetFrameRate(); }
+        if(m_impl){ fps = m_impl->m_omx_reader.GetFrameRate(); }
         return fps;
     }
 
