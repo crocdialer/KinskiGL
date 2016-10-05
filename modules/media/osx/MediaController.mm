@@ -13,6 +13,8 @@
 @property(assign) kinski::media::MediaControllerImpl *movie_control_impl;
 @end
 
+/////////////////////////////////////////////////////////////////
+
 namespace kinski{ namespace media{
     
     struct MediaControllerImpl
@@ -70,10 +72,14 @@ namespace kinski{ namespace media{
         };
     };
     
+/////////////////////////////////////////////////////////////////
+    
     MediaControllerPtr MediaController::create()
     {
         return MediaControllerPtr(new MediaController());
     }
+
+/////////////////////////////////////////////////////////////////
     
     MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
                                                bool loop, RenderTarget the_render_target,
@@ -83,17 +89,23 @@ namespace kinski{ namespace media{
         ptr->load(filePath, autoplay, loop);
         return ptr;
     }
+
+/////////////////////////////////////////////////////////////////
     
     MediaController::MediaController()
     {
         
     }
+
+/////////////////////////////////////////////////////////////////
     
     MediaController::~MediaController()
     {
 
     }
 
+/////////////////////////////////////////////////////////////////
+    
     void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
                                RenderTarget the_render_target, AudioTarget the_audio_target)
     {
@@ -183,26 +195,36 @@ namespace kinski{ namespace media{
           });// dispatch async
        }];
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::is_loaded() const
     {
         return m_impl && m_impl->m_loaded;
     }
+
+/////////////////////////////////////////////////////////////////
     
     void MediaController::unload()
     {
         m_impl.reset();
     }
     
+/////////////////////////////////////////////////////////////////
+    
     bool MediaController::has_video() const
     {
         return m_impl && m_impl->m_has_video;
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::has_audio() const
     {
         return m_impl && m_impl->m_has_audio;
     }
+    
+/////////////////////////////////////////////////////////////////
     
     void MediaController::play()
     {
@@ -214,6 +236,7 @@ namespace kinski{ namespace media{
         m_impl->m_playing = true;
     }
     
+/////////////////////////////////////////////////////////////////
     
     void MediaController::pause()
     {
@@ -223,11 +246,15 @@ namespace kinski{ namespace media{
         [m_impl->m_player setRate: 0.f];
         m_impl->m_playing = false;
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::is_playing() const
     {
         return m_impl && [m_impl->m_player rate] != 0.0f;
     }
+
+/////////////////////////////////////////////////////////////////
     
     void MediaController::restart()
     {
@@ -236,17 +263,23 @@ namespace kinski{ namespace media{
         [m_impl->m_player seekToTime:kCMTimeZero];
         play();
     }
+
+/////////////////////////////////////////////////////////////////
     
     float MediaController::volume() const
     {
         return m_impl ? m_impl->m_player.volume : 0.f;
     }
+
+/////////////////////////////////////////////////////////////////
     
     void MediaController::set_volume(float the_volume)
     {
         if(!is_loaded()){ return; }
         m_impl->m_player.volume = clamp(the_volume, 0.f, 1.f);
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
@@ -281,6 +314,8 @@ namespace kinski{ namespace media{
         }
         return false;
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
@@ -367,6 +402,8 @@ namespace kinski{ namespace media{
         }
         return false;
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
     {
@@ -444,6 +481,8 @@ namespace kinski{ namespace media{
         
         return true;
     }
+
+/////////////////////////////////////////////////////////////////
     
     double MediaController::duration() const
     {
@@ -455,11 +494,31 @@ namespace kinski{ namespace media{
 
         return 0.f;
     }
+
+/////////////////////////////////////////////////////////////////
     
     double MediaController::current_time() const
     {
         return is_loaded() ? CMTimeGetSeconds([m_impl->m_player currentTime]) : 0.0;
     }
+
+/////////////////////////////////////////////////////////////////
+    
+    double MediaController::fps() const
+    {
+        double fps = 0.0;
+        
+        if(m_impl && m_impl->m_player.currentItem.asset)
+        {
+            AVAssetTrack *video_track =
+            [[m_impl->m_player.currentItem.asset tracksWithMediaType:AVMediaTypeVideo] lastObject];
+            
+            if(video_track){ fps = video_track.nominalFrameRate; }
+        }
+        return fps;
+    }
+
+/////////////////////////////////////////////////////////////////
     
     void MediaController::seek_to_time(double value)
     {
@@ -468,6 +527,8 @@ namespace kinski{ namespace media{
         [m_impl->m_player seekToTime:t];
         [m_impl->m_player setRate: m_impl->m_rate];
     }
+
+/////////////////////////////////////////////////////////////////
     
     void MediaController::set_loop(bool b)
     {
@@ -486,16 +547,22 @@ namespace kinski{ namespace media{
                                                      name:AVPlayerItemDidPlayToEndTimeNotification
                                                    object:[m_impl->m_player currentItem]];
     }
+
+/////////////////////////////////////////////////////////////////
     
     bool MediaController::loop() const
     {
         return m_impl && m_impl->m_loop;
     }
+
+/////////////////////////////////////////////////////////////////
     
     float MediaController::rate() const
     {
         return m_impl ? [m_impl->m_player rate] : 1.f;
     }
+    
+/////////////////////////////////////////////////////////////////
     
     void MediaController::set_rate(float r)
     {
@@ -504,6 +571,8 @@ namespace kinski{ namespace media{
         m_impl->m_rate = r;
         [m_impl->m_player setRate: r];
     }
+
+/////////////////////////////////////////////////////////////////
     
     const std::string& MediaController::path() const
     {
@@ -511,11 +580,15 @@ namespace kinski{ namespace media{
         return m_impl ? m_impl->m_src_path : ret;
     }
     
+/////////////////////////////////////////////////////////////////
+    
     void MediaController::set_on_load_callback(MediaCallback c)
     {
         if(!m_impl){ return; }
         m_impl->m_on_load_cb = c;
     }
+    
+/////////////////////////////////////////////////////////////////
     
     void MediaController::set_media_ended_callback(MediaCallback c)
     {
@@ -523,10 +596,14 @@ namespace kinski{ namespace media{
         m_impl->m_movie_ended_cb = c;
     }
     
+/////////////////////////////////////////////////////////////////
+    
     MediaController::RenderTarget MediaController::render_target() const
     {
         return RenderTarget::TEXTURE;
     }
+    
+/////////////////////////////////////////////////////////////////
     
     MediaController::AudioTarget MediaController::audio_target() const
     {

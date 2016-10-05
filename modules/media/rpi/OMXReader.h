@@ -116,6 +116,7 @@ protected:
   OMXStream                 m_streams[MAX_STREAMS];
   int                       m_chapter_count;
   double                    m_iCurrentPts;
+  double                    m_frame_rate;
   int                       m_speed;
   unsigned int              m_program;
   pthread_mutex_t           m_lock;

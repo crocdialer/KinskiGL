@@ -100,6 +100,7 @@ void MediaPlayer::draw()
     
     if(!*m_is_master && m_is_syncing)
     {
+        gl::draw_text_2D(to_string(m_media->fps(), 2), fonts()[1], gl::COLOR_WHITE, vec2(50, 65));
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
     }
     if(displayTweakBar())

@@ -154,6 +154,7 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
   unsigned int  flags     = READ_TRUNCATED | READ_BITRATE | READ_CHUNKED;
 
   m_pFormatContext     = avformat_alloc_context();
+  m_frame_rate = 0;
 
   result = av_set_options_string(m_pFormatContext, lavfdopts.c_str(), ":", ",");
 
@@ -304,6 +305,15 @@ bool OMXReader::Open(std::string filename, bool dump_format, bool live /* =false
   if(dump_format)
     av_dump_format(m_pFormatContext, 0, m_filename.c_str(), 0);
 
+  for(int i = 0; i < m_video_count; i++)
+  {
+      if(m_streams[i].type == OMXSTREAM_VIDEO)
+      {
+          AVStream *st = m_streams[i].stream;
+          m_frame_rate = st->r_frame_rate.num / (double)st->r_frame_rate.den;
+          break;
+      }
+  }
   UpdateCurrentPTS();
 
   m_open        = true;
@@ -623,13 +633,14 @@ bool OMXReader::GetStreams()
       if(i != m_program)
         m_pFormatContext->programs[i]->discard = AVDISCARD_ALL;
     }
-      if(m_program != UINT_MAX)
-      {
-        // add streams from selected program
-        for (unsigned int i = 0; i < m_pFormatContext->programs[m_program]->nb_stream_indexes; i++)
-          AddStream(m_pFormatContext->programs[m_program]->stream_index[i]);
-      }
+
+    if(m_program != UINT_MAX)
+    {
+      // add streams from selected program
+      for (unsigned int i = 0; i < m_pFormatContext->programs[m_program]->nb_stream_indexes; i++)
+        AddStream(m_pFormatContext->programs[m_program]->stream_index[i]);
     }
+  }
 
   // if there were no programs or they were all empty, add all streams
   if (m_program == UINT_MAX)

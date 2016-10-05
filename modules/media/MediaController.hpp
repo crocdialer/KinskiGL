@@ -46,6 +46,7 @@ namespace kinski{ namespace media{
         void seek_to_time(double value);
         double duration() const;
         double current_time() const;
+        double fps() const;
         float volume() const;
         void set_volume(float volume);
         bool loop() const;

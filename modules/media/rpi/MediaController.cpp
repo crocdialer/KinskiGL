@@ -615,6 +615,17 @@ namespace kinski{ namespace media
         return m_impl ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
     }
 
+    double MediaController::fps() const
+    {
+        double fps = 0.0;
+
+        if(m_impl)
+        {
+        
+        }
+        return fps;
+    }
+
     void MediaController::seek_to_time(double value)
     {
         if(!m_impl){ return; }
