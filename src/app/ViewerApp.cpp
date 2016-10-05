@@ -404,10 +404,10 @@ namespace kinski {
         
         LOG_DEBUG << "save settings to: " << path_prefix;
         
-        std::list<Component::Ptr> light_components, material_components;
+        std::list<ComponentPtr> light_components, material_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
-            LightComponent::Ptr tmp(new LightComponent());
+            LightComponentPtr tmp(new LightComponent());
             tmp->set_name("light_" + to_string(i));
             tmp->set_lights(lights());
             tmp->set_index(i);
@@ -415,7 +415,7 @@ namespace kinski {
         }
         for (uint32_t i = 0; i < materials().size(); i++)
         {
-            MaterialComponent::Ptr tmp(new MaterialComponent());
+            MaterialComponentPtr tmp(new MaterialComponent());
             tmp->set_name("material_" + to_string(i));
             tmp->set_materials(materials());
             tmp->set_index(i);
@@ -450,10 +450,10 @@ namespace kinski {
         path_prefix = fs::get_directory_part(path_prefix);
         LOG_DEBUG << "load settings from: " << path_prefix;
         
-        std::list<Component::Ptr> light_components, material_components;
+        std::list<ComponentPtr> light_components, material_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
-            LightComponent::Ptr tmp(new LightComponent());
+            LightComponentPtr tmp(new LightComponent());
             tmp->set_name("light_" + to_string(i));
             tmp->set_lights(lights(), false);
             tmp->set_index(i);
@@ -462,7 +462,7 @@ namespace kinski {
         }
         for (uint32_t i = 0; i < materials().size(); i++)
         {
-            MaterialComponent::Ptr tmp(new MaterialComponent());
+            MaterialComponentPtr tmp(new MaterialComponent());
             tmp->set_name("material_" + to_string(i));
             tmp->set_materials(materials(), false);
             tmp->set_index(i);

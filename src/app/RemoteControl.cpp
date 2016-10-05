@@ -16,7 +16,7 @@
 
 using namespace kinski;
 
-RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list)
+RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<ComponentPtr> &the_list)
 {
     set_components(the_list);
     m_tcp_server = net::tcp_server(io, net::tcp_server::tcp_connection_callback());
@@ -90,7 +90,7 @@ uint16_t RemoteControl::listening_port() const
     return m_tcp_server.listening_port();
 }
 
-void RemoteControl::set_components(const std::list<Component::Ptr>& the_components)
+void RemoteControl::set_components(const std::list<ComponentPtr>& the_components)
 {
     m_components.assign(the_components.begin(), the_components.end());
 }
@@ -162,14 +162,14 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
     }
 }
 
-std::list<Component::Ptr>
+std::list<ComponentPtr>
 RemoteControl::components()
 {
-    std::list<Component::Ptr> ret;
+    std::list<ComponentPtr> ret;
 
     for(auto &weak_comp : m_components)
     {
-        Component::Ptr ptr = weak_comp.lock();
+        ComponentPtr ptr = weak_comp.lock();
         if(ptr){ ret.push_back(ptr); }
 //        else{ m_components.remove(weak_comp); }
     }

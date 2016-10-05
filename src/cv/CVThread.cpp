@@ -5,6 +5,7 @@
 //  Created by Fabian Schmidt on 6/12/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
+#include "opencv2/core/ocl.hpp"
 #include "CVThread.h"
 #include "core/Logger.hpp"
 #include <chrono>
@@ -33,6 +34,7 @@ namespace kinski
         register_property(m_processing);
         register_property(m_captureFPS);
         LOG_INFO<<"OpenCV-Version: " << CV_VERSION;
+        cv::ocl::setUseOpenCL(true);
     }
     
     CVThread::~CVThread()

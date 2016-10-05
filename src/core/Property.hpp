@@ -23,10 +23,11 @@ public:
     typedef std::shared_ptr<const Property> ConstPtr;
     virtual ~Property(){};
     
+    DEFINE_CLASS_PTR(Observer);
+    
     class Observer
     {
     public:
-        typedef std::shared_ptr<Observer> Ptr;
         virtual void update_property(const Property::ConstPtr &theProperty) = 0;
     };
 
@@ -78,12 +79,12 @@ public:
     virtual bool check_value(const boost::any &theVal)
     {return theVal.type() == m_value.type();};
     
-    inline void add_observer(const Observer::Ptr &theObs)
+    inline void add_observer(const ObserverPtr &theObs)
     {
         m_signal.connect(signal_t::slot_type(&Observer::update_property, theObs, _1).track_foreign(theObs));
     }
     
-    inline void remove_observer(const Observer::Ptr &theObs)
+    inline void remove_observer(const ObserverPtr &theObs)
     {
         m_signal.disconnect(boost::bind(&Observer::update_property, theObs, _1));
     }

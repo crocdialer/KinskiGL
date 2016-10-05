@@ -14,13 +14,12 @@
 namespace kinski 
 {
     
+    DEFINE_CLASS_PTR(Component);
+    
     class KINSKI_API Component : public std::enable_shared_from_this<Component>,
     public Property::Observer
     {
     public:
-        typedef std::shared_ptr<Component> Ptr;
-        typedef std::shared_ptr<const Component> ConstPtr;
-        typedef std::weak_ptr<Component> WeakPtr;
         
         typedef std::function<void(const std::vector<std::string>&)> Functor;
         

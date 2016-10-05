@@ -186,7 +186,7 @@ namespace kinski {
         return json_reader.parse(the_string, root);
     }
     
-    void Serializer::add_to_json_object(const std::list<Component::Ptr> &theComponentList,
+    void Serializer::add_to_json_object(const std::list<ComponentPtr> &theComponentList,
                                         Json::Value &json_val,
                                         const PropertyIO &theIO)
     {
@@ -214,13 +214,13 @@ namespace kinski {
         }
     }
     
-    std::string Serializer::serializeComponent(const Component::Ptr &theComponent,
+    std::string Serializer::serializeComponent(const ComponentPtr &theComponent,
                                                const PropertyIO &theIO)
     {
         return serializeComponents({theComponent}, theIO);
     }
     
-    std::string Serializer::serializeComponents(const std::list<Component::Ptr> &theComponentList,
+    std::string Serializer::serializeComponents(const std::list<ComponentPtr> &theComponentList,
                                                 const PropertyIO &theIO)
     {
         Json::Value myRoot;
@@ -229,7 +229,7 @@ namespace kinski {
         return myWriter.write(myRoot);
     }
     
-    void Serializer::applyStateToComponent(const Component::Ptr &theComponent,
+    void Serializer::applyStateToComponent(const ComponentPtr &theComponent,
                                            const std::string &theState,
                                            const PropertyIO &theIO)
     {
@@ -265,14 +265,14 @@ namespace kinski {
         }
     }
     
-    void Serializer::applyStateToComponents(const std::list<Component::Ptr> &theComponentList,
+    void Serializer::applyStateToComponents(const std::list<ComponentPtr> &theComponentList,
                                             const std::string &theState,
                                             const PropertyIO &theIO)
     {
         for(auto c : theComponentList){ applyStateToComponent(c, theState, theIO);}
     }
     
-    void Serializer::saveComponentState(const Component::Ptr &theComponent,
+    void Serializer::saveComponentState(const ComponentPtr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
@@ -280,7 +280,7 @@ namespace kinski {
         fs::write_file(theFileName, state);
     }
     
-    void Serializer::saveComponentState(const std::list<Component::Ptr> &theComponentList,
+    void Serializer::saveComponentState(const std::list<ComponentPtr> &theComponentList,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
@@ -291,7 +291,7 @@ namespace kinski {
         fs::write_file(theFileName, state);
     }
     
-    void Serializer::loadComponentState(const Component::Ptr &theComponent,
+    void Serializer::loadComponentState(const ComponentPtr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
@@ -300,7 +300,7 @@ namespace kinski {
         applyStateToComponent(theComponent, myState, theIO);
     }
     
-    void Serializer::loadComponentState(const std::list<Component::Ptr> &theComponentList,
+    void Serializer::loadComponentState(const std::list<ComponentPtr> &theComponentList,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {

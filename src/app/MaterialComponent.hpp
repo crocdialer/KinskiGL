@@ -18,10 +18,11 @@
 
 namespace kinski
 {
+    DEFINE_CLASS_PTR(MaterialComponent);
+    
     class KINSKI_API MaterialComponent : public kinski::Component
     {
     public:
-        typedef std::shared_ptr<MaterialComponent> Ptr;
         
         MaterialComponent();
         ~MaterialComponent();

@@ -104,8 +104,8 @@ namespace kinski
         void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
         void setBarTitle(const std::string &theTitle, CTwBar *theBar = nullptr);
         
-        void add_tweakbar_for_component(const Component::Ptr &the_component) override;
-        void remove_tweakbar_for_component(const Component::Ptr &the_component) override;
+        void add_tweakbar_for_component(const ComponentPtr &the_component) override;
+        void remove_tweakbar_for_component(const ComponentPtr &the_component) override;
         
         int get_num_monitors() const;
         const gl::OutstreamGL& outstream_gl() const {return m_outstream_gl;};
@@ -146,7 +146,7 @@ namespace kinski
         static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
                                    uint32_t &keyModifiers);
         
-        std::map<Component::Ptr, CTwBar*> m_tweakBars;
+        std::map<ComponentPtr, CTwBar*> m_tweakBars;
         
 //        std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
         

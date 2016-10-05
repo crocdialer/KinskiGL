@@ -30,7 +30,7 @@ namespace kinski
     public:
         
         RemoteControl(){};
-        RemoteControl(boost::asio::io_service &io, const std::list<Component::Ptr> &the_list);
+        RemoteControl(boost::asio::io_service &io, const std::list<ComponentPtr> &the_list);
         
         void start_listen(uint16_t port = 33333);
         void stop_listen();
@@ -42,8 +42,8 @@ namespace kinski
         const CommandMap& command_map() const { return m_command_map; }
         CommandMap& command_map() { return m_command_map; }
         
-        std::list<Component::Ptr> components();
-        void set_components(const std::list<Component::Ptr>& the_components);
+        std::list<ComponentPtr> components();
+        void set_components(const std::list<ComponentPtr>& the_components);
         
     private:
         
@@ -59,7 +59,7 @@ namespace kinski
         net::tcp_server m_tcp_server;
         
         //!
-        std::list<Component::WeakPtr> m_components;
+        std::list<ComponentWeakPtr> m_components;
         
         //!
         std::vector<net::tcp_connection_ptr> m_tcp_connections;

@@ -18,10 +18,11 @@
 
 namespace kinski
 {
+    DEFINE_CLASS_PTR(Object3DComponent);
+    
     class KINSKI_API Object3DComponent : public kinski::Component
     {
     public:
-        typedef std::shared_ptr<Object3DComponent> Ptr;
         
         Object3DComponent();
         ~Object3DComponent();

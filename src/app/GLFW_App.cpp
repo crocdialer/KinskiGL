@@ -601,7 +601,7 @@ namespace kinski
     
 /****************************  TweakBar + Properties **************************/
 
-    void GLFW_App::add_tweakbar_for_component(const Component::Ptr &the_component)
+    void GLFW_App::add_tweakbar_for_component(const ComponentPtr &the_component)
     {
         if(!the_component) return;
         auto tw_bar = TwNewBar(the_component->name().c_str());
@@ -614,7 +614,7 @@ namespace kinski
         addPropertyListToTweakBar(the_component->get_property_list(), "", tw_bar);
     }
 
-    void GLFW_App::remove_tweakbar_for_component(const Component::Ptr &the_component)
+    void GLFW_App::remove_tweakbar_for_component(const ComponentPtr &the_component)
     {
         auto it = m_tweakBars.find(the_component);
 

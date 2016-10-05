@@ -16,8 +16,10 @@
 
 namespace kinski
 {
-    class Window;
-    typedef std::shared_ptr<Window> WindowPtr;
+    
+    DEFINE_CLASS_PTR(App);
+    DEFINE_CLASS_PTR(Window);
+    
     class MouseEvent;
     class KeyEvent;
     class JoystickState;
@@ -88,8 +90,8 @@ namespace kinski
         
         virtual void add_window(WindowPtr the_window){};
         
-        virtual void add_tweakbar_for_component(const Component::Ptr &the_component){};
-        virtual void remove_tweakbar_for_component(const Component::Ptr &the_component){};
+        virtual void add_tweakbar_for_component(const ComponentPtr &the_component){};
+        virtual void remove_tweakbar_for_component(const ComponentPtr &the_component){};
         
         virtual std::vector<JoystickState> get_joystick_states() const {return {};};
         

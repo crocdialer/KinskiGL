@@ -163,7 +163,7 @@ namespace kinski {
         CircularBuffer<gl::vec2> m_drag_buffer;
         
         // control module for light objects
-        LightComponent::Ptr m_light_component;
+        LightComponentPtr m_light_component;
         
         // tcp remote control
         RemoteControl m_remote_control;

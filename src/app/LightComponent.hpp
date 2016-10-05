@@ -18,10 +18,11 @@
 
 namespace kinski
 {
+    DEFINE_CLASS_PTR(LightComponent);
+    
     class KINSKI_API LightComponent : public kinski::Component
     {
     public:
-        typedef std::shared_ptr<LightComponent> Ptr;
         
         LightComponent();
         ~LightComponent();
