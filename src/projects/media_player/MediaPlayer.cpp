@@ -463,7 +463,8 @@ void MediaPlayer::send_sync_cmd()
     
     for(auto &pair : m_ip_delays)
     {
-        string cmd = "seek_to_time " + to_string(m_media->current_time() + mean(pair.second), 3);
+        double sync_delay = mean(pair.second);
+        string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
         net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
                             remote_control().listening_port());
     }

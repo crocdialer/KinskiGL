@@ -17,6 +17,16 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     CircularBuffer<float> circ_buf(8);
     BOOST_CHECK(circ_buf.capacity() == 8);
     BOOST_CHECK(circ_buf.empty());
+    
+    for(int i = 0; i < 1000; i++)
+    {
+        circ_buf.set_capacity(i);
+        BOOST_CHECK(circ_buf.capacity() == i);
+        
+        circ_buf = CircularBuffer<float>(i);
+        BOOST_CHECK(circ_buf.capacity() == i);
+    }
+    
     circ_buf.set_capacity(6);
     BOOST_CHECK(circ_buf.capacity() == 6);
 
