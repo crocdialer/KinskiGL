@@ -470,8 +470,7 @@ void MediaPlayer::sync_media_to_timestamp(double the_timestamp)
         }
         else if(abs(diff) > sync_thresh)
         {
-//            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / scrub_thresh);
-            auto rate = *m_playback_speed * (1.0 + diff / scrub_thresh);
+            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.25 + 0.7 * diff / scrub_thresh);
             m_media->set_rate(rate);
             m_sync_off_timer.expires_from_now(g_sync_duration);
         }
