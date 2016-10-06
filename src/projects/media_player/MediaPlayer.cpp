@@ -135,12 +135,12 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
         case Key::_LEFT:
             m_media->seek_to_time(m_media->current_time() - (e.isShiftDown() ? 30 : 5));
-            m_needs_redraw = true
+            m_needs_redraw = true;
             break;
 
         case Key::_RIGHT:
             m_media->seek_to_time(m_media->current_time() + (e.isShiftDown() ? 30 : 5));
-            m_needs_redraw = true
+            m_needs_redraw = true;
             break;
         case Key::_UP:
             m_media->set_volume(m_media->volume() + .1f);
