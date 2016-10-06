@@ -470,7 +470,8 @@ void MediaPlayer::sync_media_to_timestamp(double the_timestamp)
         }
         else if(abs(diff) > sync_thresh)
         {
-            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / scrub_thresh);
+//            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.1 + 0.8 * diff / scrub_thresh);
+            auto rate = *m_playback_speed * (1.0 + sgn(diff) * 0.5);
             m_media->set_rate(rate);
             m_sync_off_timer.expires_from_now(g_sync_duration);
         }
@@ -504,7 +505,7 @@ void MediaPlayer::send_sync_cmd()
     
     for(auto &pair : m_ip_delays)
     {
-        double sync_delay = mean(pair.second);
+        double sync_delay = median(pair.second);
         string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
         net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
                             remote_control().listening_port());
