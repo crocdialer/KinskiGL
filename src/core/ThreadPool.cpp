@@ -14,6 +14,7 @@
 #include <boost/asio.hpp>
 #include <thread>
 
+#include "Timer.hpp"
 #include "ThreadPool.hpp"
 
 namespace kinski
@@ -39,9 +40,22 @@ namespace kinski
         join_all();
     }
     
-    void ThreadPool::submit(std::function<void()> t)
+    void ThreadPool::submit(std::function<void()> the_task)
     {
-        m_impl->io_service.post(t);
+        if(!the_task){ return; }
+        m_impl->io_service.post(the_task);
+    }
+    
+    void ThreadPool::submit_with_delay(std::function<void()> the_task, double the_delay)
+    {
+        if(!the_task){ return; }
+        
+        Timer t(m_impl->io_service);
+        t.set_callback([t, the_task]()
+        {
+            the_task();
+        });
+        t.expires_from_now(the_delay);
     }
     
     boost::asio::io_service& ThreadPool::io_service()

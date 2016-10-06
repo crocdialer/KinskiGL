@@ -33,7 +33,13 @@ namespace kinski
         /*!
          * submit a task to be processed by the threadpool
          */
-        void submit(std::function<void()> t);
+        KINSKI_API void submit(std::function<void()> the_task);
+        
+        /*!
+         * submit a task to be processed by the threadpool
+         * with an delay in seconds
+         */
+        KINSKI_API void submit_with_delay(std::function<void()> the_task, double the_delay);
         
     private:
         void join_all();

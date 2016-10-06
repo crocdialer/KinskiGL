@@ -118,7 +118,7 @@ void MediaPlayer::draw()
 void MediaPlayer::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
-
+    
     switch (e.getCode())
     {
         case Key::_C:
@@ -135,10 +135,12 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
         case Key::_LEFT:
             m_media->seek_to_time(m_media->current_time() - (e.isShiftDown() ? 30 : 5));
+            m_needs_redraw = true
             break;
 
         case Key::_RIGHT:
             m_media->seek_to_time(m_media->current_time() + (e.isShiftDown() ? 30 : 5));
+            m_needs_redraw = true
             break;
         case Key::_UP:
             m_media->set_volume(m_media->volume() + .1f);
@@ -563,7 +565,7 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
                                            const std::vector<uint8_t> &data)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-        auto delay = timer.time_elapsed() * 0.8;
+        auto delay = timer.time_elapsed() * 0.75;
         
         auto it = m_ip_delays.find(con->remote_ip());
         if(it == m_ip_delays.end())
