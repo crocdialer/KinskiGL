@@ -134,11 +134,11 @@ void MediaPlayer::keyPress(const KeyEvent &e)
             break;
 
         case Key::_LEFT:
-            m_media->seek_to_time(m_media->current_time() - 5);
+            m_media->seek_to_time(m_media->current_time() - (e.isShiftDown() ? 30 : 5));
             break;
 
         case Key::_RIGHT:
-            m_media->seek_to_time(m_media->current_time() + 5);
+            m_media->seek_to_time(m_media->current_time() + (e.isShiftDown() ? 30 : 5));
             break;
         case Key::_UP:
             m_media->set_volume(m_media->volume() + .1f);
@@ -504,7 +504,7 @@ void MediaPlayer::send_sync_cmd()
     
     for(auto &pair : m_ip_delays)
     {
-        double sync_delay = mean(pair.second);
+        double sync_delay = median(pair.second);
         string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
         net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
                             remote_control().listening_port());
@@ -563,14 +563,15 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
                                            const std::vector<uint8_t> &data)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+        auto delay = timer.time_elapsed() * 0.8;
         
         auto it = m_ip_delays.find(con->remote_ip());
         if(it == m_ip_delays.end())
         {
             m_ip_delays[con->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_delays[con->remote_ip()].push(timer.time_elapsed() / 2.0);
+            m_ip_delays[con->remote_ip()].push(delay);
         }
-        else{ it->second.push(timer.time_elapsed() / 2.0); }
+        else{ it->second.push(delay); }
         
         LOG_TRACE << ptr->remote_ip() << " (latency, last 10s): "
             << (int)(1000.0 * mean(m_ip_delays[con->remote_ip()])) << " ms";
