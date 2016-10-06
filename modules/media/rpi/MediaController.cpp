@@ -569,8 +569,8 @@ namespace kinski{ namespace media
     void MediaController::restart()
     {
         LOG_DEBUG << "restarting movie playback";
-        if(!is_playing()){ play(); }
-        else{ seek_to_time(0); }
+        play();
+        seek_to_time(0);
     }
 
     float MediaController::volume() const
