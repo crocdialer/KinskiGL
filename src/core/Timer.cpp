@@ -140,16 +140,12 @@ void Timer::expires_from_now(double secs)
     
     m_impl->m_timer.async_wait([this, impl_cp, secs](const boost::system::error_code &error)
     {
-        if(impl_cp)
+        // Timer expired regularly
+        if(!error && impl_cp.use_count() > 1)
         {
             impl_cp->running = false;
-        
-            // Timer expired regularly
-            if(!error)
-            {
-                if(impl_cp->m_callback) { impl_cp->m_callback(); }
-                if(periodic()){ expires_from_now(secs); }
-            }
+            if(impl_cp->m_callback) { impl_cp->m_callback(); }
+            if(periodic()){ expires_from_now(secs); }
         }
     });
 }
