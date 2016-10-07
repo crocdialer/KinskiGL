@@ -48,6 +48,8 @@ namespace kinski
         
         inline size_t num_bytes() const { return rows * cols * bytes_per_pixel; }
         
+        void flip();
+        
         ~Image();
         
     private:

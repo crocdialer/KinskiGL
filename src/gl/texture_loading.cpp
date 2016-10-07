@@ -126,6 +126,7 @@ namespace kinski { namespace gl {
         ImagePtr ret = Image::create(the_texture.getHeight(), the_texture.getWidth(), 4);
         the_texture.bind();
         glGetTexImage(the_texture.getTarget(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
+        ret->flip();
         return ret;
     }
 }}

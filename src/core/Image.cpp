@@ -129,4 +129,17 @@ namespace kinski
             delete[](data);
         }
     };
+    
+    void Image::flip()
+    {
+        size_t line_offset = cols * bytes_per_pixel;
+        size_t total_bytes = cols * rows * bytes_per_pixel;
+        
+        // swap lines
+        for(uint32_t i = 0; i < rows / 2; i++)
+        {
+            std::swap_ranges(data + line_offset * i, data +  line_offset * (i + 1),
+                             data + total_bytes - line_offset * (i + 1));
+        }
+    }
 }
