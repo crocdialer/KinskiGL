@@ -20,6 +20,8 @@ namespace kinski
     KINSKI_API ImagePtr create_image_from_file(const std::string &the_path, int num_channels = 0);
     KINSKI_API ImagePtr create_image_from_data(const std::vector<uint8_t> &the_data, int num_channels = 0);
     KINSKI_API void copy_image(const ImagePtr &src_img, ImagePtr &dst_img);
+    KINSKI_API bool save_image_to_file(const ImagePtr &the_img, const std::string &the_path);
+    KINSKI_API std::vector<uint8_t> encode_png(const ImagePtr &the_img);
     
     class Image
     {
@@ -37,18 +39,16 @@ namespace kinski
             return ImagePtr(new Image(theData, theRows, theCols, theBytesPerPixel, not_dispose));
         };
         
+        static ImagePtr create(uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1)
+        {
+            return ImagePtr(new Image(theRows, theCols, theBytesPerPixel));
+        };
+        
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
         
         inline size_t num_bytes() const { return rows * cols * bytes_per_pixel; }
         
-        ~Image()
-        {
-            if(data && !do_not_dispose)
-            {
-                LOG_TRACE_2 << "disposing image";
-                delete[](data);
-            }
-        };
+        ~Image();
         
     private:
         
@@ -57,6 +57,10 @@ namespace kinski
               uint32_t theCols,
               uint32_t theBytesPerPixel = 1,
               bool not_dispose = false);
+        
+        Image(uint32_t theRows,
+              uint32_t theCols,
+              uint32_t theBytesPerPixel = 1);
     };
     
     class ImageLoadException : public Exception

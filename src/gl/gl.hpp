@@ -259,6 +259,8 @@ namespace kinski { namespace gl {
                                                 bool compress = false,
                                                 GLfloat anisotropic_filter_lvl = 1.f);
     
+    KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
+    
     /*!
      * create a gl::Texture object of type GL_TEXTURE_CUBE 
      * from 6 individual gl::Texture objects of type GL_TEXTURE_2D of same size

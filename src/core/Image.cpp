@@ -14,12 +14,15 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.inl"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.inl"
+
 #include "core/file_functions.hpp"
 #include "Image.hpp"
 
 namespace kinski
 {
-    KINSKI_API ImagePtr create_image_from_file(const std::string &the_path, int num_channels)
+    ImagePtr create_image_from_file(const std::string &the_path, int num_channels)
     {
         std::vector<uint8_t> dataVec;
         ImagePtr ret;
@@ -49,7 +52,7 @@ namespace kinski
         // ... but 'n' will always be the number that it would have been if you said 0
         
         auto ret = Image::create(data, height, width, num_components);
-        free(data);
+        STBI_FREE(data);
         return ret;
     }
     
@@ -78,15 +81,52 @@ namespace kinski
         }
     }
     
+    bool save_image_to_file(const ImagePtr &the_img, const std::string &the_path)
+    {
+        int ret = stbi_write_png(the_path.c_str(), the_img->cols, the_img->rows,
+                                 the_img->bytes_per_pixel, the_img->data, 0);
+        return ret;
+    }
+    
+    std::vector<uint8_t> encode_png(const ImagePtr &the_img)
+    {
+        
+        int num_bytes = 0;
+        uint8_t* encoded_data = stbi_write_png_to_mem(the_img->data, 0, the_img->cols, the_img->rows,
+                                                      the_img->bytes_per_pixel, &num_bytes);
+        auto ret = std::vector<uint8_t>(encoded_data, encoded_data + num_bytes);
+        STBI_FREE(encoded_data);
+        return ret;
+    }
+    
     Image::Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel,
                  bool not_dispose):
-    data(theData), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
+    data(nullptr), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
             size_t num_bytes = rows * cols * bytes_per_pixel;
             data = new uint8_t[num_bytes];
             memcpy(data, theData, num_bytes);
+        }
+    };
+    
+    Image::Image(uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel):
+    data(new uint8_t[theCols * theRows * theBytesPerPixel]()),
+    rows(theRows),
+    cols(theCols),
+    bytes_per_pixel(theBytesPerPixel),
+    do_not_dispose(false)
+    {
+    
+    }
+    
+    Image::~Image()
+    {
+        if(data && !do_not_dispose)
+        {
+            LOG_TRACE_2 << "disposing image";
+            delete[](data);
         }
     };
 }

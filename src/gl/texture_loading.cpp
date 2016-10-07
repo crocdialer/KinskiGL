@@ -119,4 +119,13 @@ namespace kinski { namespace gl {
         Texture ret = create_texture_from_image(img);
         return ret;
     }
+    
+    ImagePtr create_image_from_texture(const gl::Texture &the_texture)
+    {
+        if(!the_texture){ return ImagePtr(); }
+        ImagePtr ret = Image::create(the_texture.getHeight(), the_texture.getWidth(), 4);
+        the_texture.bind();
+        glGetTexImage(the_texture.getTarget(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
+        return ret;
+    }
 }}
