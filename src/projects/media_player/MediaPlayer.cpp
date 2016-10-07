@@ -281,7 +281,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_use_discovery_broadcast || theProperty == m_broadcast_port)
     {
-        if(*m_use_discovery_broadcast)
+        if(*m_use_discovery_broadcast && !*m_is_master)
         {
             // setup a periodic udp-broadcast to enable discovery of this node
             m_broadcast_timer = Timer(main_queue().io_service(), [this]()
@@ -298,7 +298,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     {
         if(*m_is_master)
         {
-            m_broadcast_timer.cancel();
+            *m_use_discovery_broadcast = false;
             m_ip_timestamps.clear();
 
             // discovery udp-server to receive pings from existing nodes in the network
