@@ -11,8 +11,11 @@
 //
 //  Created by Croc Dialer on 06/10/14.
 
-#include "RemoteControl.hpp"
+#include "core/Image.hpp"
+#include "app/ViewerApp.hpp"
+
 #include "gl/SerializerGL.hpp"
+#include "RemoteControl.hpp"
 
 using namespace kinski;
 
@@ -62,22 +65,17 @@ void RemoteControl::start_listen(uint16_t port)
         if(!the_args.empty()){ con->send(the_args.front()); }
     });
     
-    add_command("snapshot", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
+    add_command("generate_snapshot", [this](net::tcp_connection_ptr con,
+                                            const std::vector<std::string>& the_args)
     {
-        std::vector<uint8_t> bytes;
-        
-        LOG_WARNING << "command 'generate_snapshot': not implemented";
-        
         for(auto &comp : components())
         {
-            comp->call_function("generate_snapshot");
-//            if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
-//            {
-//                std::vector<uint8_t> jpg_bytes;
-//                gl::TextureIO::encode_jpg(ptr->snapshot_texture(), jpg_bytes);
-//                con->send(jpg_bytes);
-//                return;
-//            }
+            if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
+            {
+                auto img = gl::create_image_from_texture(ptr->generate_snapshot());
+                con->send(encode_png(img));
+                return;
+            }
         }
         
         // send the state string via tcp

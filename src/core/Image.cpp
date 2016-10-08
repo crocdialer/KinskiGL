@@ -83,9 +83,7 @@ namespace kinski
     
     bool save_image_to_file(const ImagePtr &the_img, const std::string &the_path)
     {
-        int ret = stbi_write_png(the_path.c_str(), the_img->cols, the_img->rows,
-                                 the_img->bytes_per_pixel, the_img->data, 0);
-        return ret;
+        return fs::write_file(the_path, encode_png(the_img));
     }
     
     std::vector<uint8_t> encode_png(const ImagePtr &the_img)

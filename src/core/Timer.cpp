@@ -108,14 +108,14 @@ struct timer_impl
 {
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> m_timer;
     Timer::timer_cb_t m_callback;
-    bool periodic;
-    bool running;
+    bool m_periodic;
+    bool m_running;
     
     timer_impl(boost::asio::io_service &io, Timer::timer_cb_t cb):
     m_timer(io),
     m_callback(cb),
-    periodic(false),
-    running(false)
+    m_periodic(false),
+    m_running(false)
     {}
     
     ~timer_impl()
@@ -136,16 +136,16 @@ void Timer::expires_from_now(double secs)
     auto impl_cp = m_impl;
     
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(duration_t(secs)));
-    m_impl->running = true;
+    m_impl->m_running = true;
     
     m_impl->m_timer.async_wait([this, impl_cp, secs](const boost::system::error_code &error)
     {
         // Timer expired regularly
         if(!error && impl_cp.use_count() > 1)
         {
-            impl_cp->running = false;
+            impl_cp->m_running = false;
             if(impl_cp->m_callback) { impl_cp->m_callback(); }
-            if(periodic()){ expires_from_now(secs); }
+            if(impl_cp->m_periodic){ expires_from_now(secs); }
         }
     });
 }
@@ -159,7 +159,7 @@ double Timer::expires_from_now() const
 
 bool Timer::has_expired() const
 {
-    return !(m_impl && m_impl->running);
+    return !(m_impl && m_impl->m_running);
 }
 
 void Timer::cancel()
@@ -169,12 +169,12 @@ void Timer::cancel()
 
 bool Timer::periodic() const
 {
-    return m_impl && m_impl->periodic;
+    return m_impl && m_impl->m_periodic;
 }
 
 void Timer::set_periodic(bool b)
 {
-    if(m_impl){ m_impl->periodic = b; }
+    if(m_impl){ m_impl->m_periodic = b; }
 }
 
 void Timer::set_callback(Timer::timer_cb_t cb)
