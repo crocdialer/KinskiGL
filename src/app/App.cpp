@@ -15,6 +15,9 @@
 
 using namespace std;
 
+// 1 double per second
+typedef std::chrono::duration<double> duration_t;
+
 namespace kinski
 {
     // threadsafe task-counting internals
@@ -66,7 +69,7 @@ namespace kinski
             pollEvents();
             
             // time elapsed since last frame
-            float time_delta = timeStamp - m_lastTimeStamp;
+            double time_delta = timeStamp - m_lastTimeStamp;
             
             // call update callback
             update(time_delta);
@@ -94,7 +97,7 @@ namespace kinski
             if(current_fps > m_max_fps)
             {
                 double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
-                this_thread::sleep_for(std::chrono::nanoseconds((long)(sleep_secs * 1000000000L)));
+                this_thread::sleep_for(duration_t(sleep_secs));
             }
         }
         

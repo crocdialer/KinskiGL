@@ -128,7 +128,7 @@ namespace kinski { namespace gl {
             //TODO: rect pack here
             stbtt_pack_context spc;
             stbtt_PackBegin(&spc, m_obj->data, m_obj->bitmap_width,
-                            m_obj->bitmap_height, 0, 1 /*padding*/, nullptr);
+                            m_obj->bitmap_height, 0, 10 /*padding*/, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
             int num_chars = 768;

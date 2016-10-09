@@ -85,11 +85,11 @@ namespace kinski { namespace gl {
         
 #if !defined(KINSKI_GLES)
         gl::Buffer pixel_buf;
-        pixel_buf.set_data(the_img->data, the_img->cols * the_img->rows * the_img->bytes_per_pixel);
+        pixel_buf.set_data(the_img->data, the_img->width * the_img->height * the_img->bytes_per_pixel);
         pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
         data = nullptr;
 #endif
-        ret = Texture(data, format, the_img->cols, the_img->rows, fmt);
+        ret = Texture(data, format, the_img->width, the_img->height, fmt);
         ret.setFlipped();
         KINSKI_CHECK_GL_ERRORS();
         

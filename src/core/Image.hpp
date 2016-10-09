@@ -28,25 +28,25 @@ namespace kinski
     public:
         
         uint8_t* data = nullptr;
-        uint32_t rows = 0, cols = 0;
+        uint32_t height = 0, width = 0;
         uint32_t bytes_per_pixel = 1;
         Area<uint32_t> roi;
         bool do_not_dispose = false;
         
-        static ImagePtr create(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1,
+        static ImagePtr create(uint8_t* theData, uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel = 1,
                                bool not_dispose = false)
         {
-            return ImagePtr(new Image(theData, theRows, theCols, theBytesPerPixel, not_dispose));
+            return ImagePtr(new Image(theData, theheight, thewidth, theBytesPerPixel, not_dispose));
         };
         
-        static ImagePtr create(uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel = 1)
+        static ImagePtr create(uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel = 1)
         {
-            return ImagePtr(new Image(theRows, theCols, theBytesPerPixel));
+            return ImagePtr(new Image(theheight, thewidth, theBytesPerPixel));
         };
         
-        inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * cols + roi.x1) * bytes_per_pixel;}
+        inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * width + roi.x1) * bytes_per_pixel;}
         
-        inline size_t num_bytes() const { return rows * cols * bytes_per_pixel; }
+        inline size_t num_bytes() const { return height * width * bytes_per_pixel; }
         
         void flip();
         
@@ -55,13 +55,13 @@ namespace kinski
     private:
         
         Image(uint8_t* theData,
-              uint32_t theRows,
-              uint32_t theCols,
+              uint32_t theheight,
+              uint32_t thewidth,
               uint32_t theBytesPerPixel = 1,
               bool not_dispose = false);
         
-        Image(uint32_t theRows,
-              uint32_t theCols,
+        Image(uint32_t theheight,
+              uint32_t thewidth,
               uint32_t theBytesPerPixel = 1);
     };
     

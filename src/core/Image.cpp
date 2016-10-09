@@ -60,15 +60,15 @@ namespace kinski
     {
         uint32_t bytes_per_pixel = 1;
         
-        assert(src_mat->roi.x2 <= src_mat->cols && src_mat->roi.y2 <= src_mat->rows);
-        assert(dst_mat->roi.x2 <= dst_mat->cols && dst_mat->roi.y2 <= dst_mat->rows);
+        assert(src_mat->roi.x2 <= src_mat->width && src_mat->roi.y2 <= src_mat->height);
+        assert(dst_mat->roi.x2 <= dst_mat->width && dst_mat->roi.y2 <= dst_mat->height);
         assert(src_mat->roi.width() == src_mat->roi.width() && src_mat->roi.height() == src_mat->roi.height());
         
-        uint32_t src_row_offset = src_mat->cols - src_mat->roi.width();
-        uint32_t dst_row_offset = dst_mat->cols - dst_mat->roi.width();
+        uint32_t src_row_offset = src_mat->width - src_mat->roi.width();
+        uint32_t dst_row_offset = dst_mat->width - dst_mat->roi.width();
         
-        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y1 * src_mat->cols + src_mat->roi.x1) * bytes_per_pixel;
-        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y1 * dst_mat->cols + dst_mat->roi.x1) * bytes_per_pixel;
+        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y1 * src_mat->width + src_mat->roi.x1) * bytes_per_pixel;
+        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y1 * dst_mat->width + dst_mat->roi.x1) * bytes_per_pixel;
         
         for (uint32_t r = 0; r < src_mat->roi.height(); r++)
         {
@@ -90,29 +90,29 @@ namespace kinski
     {
         
         int num_bytes = 0;
-        uint8_t* encoded_data = stbi_write_png_to_mem(the_img->data, 0, the_img->cols, the_img->rows,
+        uint8_t* encoded_data = stbi_write_png_to_mem(the_img->data, 0, the_img->width, the_img->height,
                                                       the_img->bytes_per_pixel, &num_bytes);
         auto ret = std::vector<uint8_t>(encoded_data, encoded_data + num_bytes);
         STBI_FREE(encoded_data);
         return ret;
     }
     
-    Image::Image(uint8_t* theData, uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel,
+    Image::Image(uint8_t* theData, uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel,
                  bool not_dispose):
-    data(nullptr), rows(theRows), cols(theCols), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
+    data(nullptr), height(theheight), width(thewidth), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
-            size_t num_bytes = rows * cols * bytes_per_pixel;
+            size_t num_bytes = height * width * bytes_per_pixel;
             data = new uint8_t[num_bytes];
             memcpy(data, theData, num_bytes);
         }
     };
     
-    Image::Image(uint32_t theRows, uint32_t theCols, uint32_t theBytesPerPixel):
-    data(new uint8_t[theCols * theRows * theBytesPerPixel]()),
-    rows(theRows),
-    cols(theCols),
+    Image::Image(uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel):
+    data(new uint8_t[thewidth * theheight * theBytesPerPixel]()),
+    height(theheight),
+    width(thewidth),
     bytes_per_pixel(theBytesPerPixel),
     do_not_dispose(false)
     {
@@ -130,11 +130,11 @@ namespace kinski
     
     void Image::flip()
     {
-        size_t line_offset = cols * bytes_per_pixel;
-        size_t total_bytes = cols * rows * bytes_per_pixel;
+        size_t line_offset = width * bytes_per_pixel;
+        size_t total_bytes = width * height * bytes_per_pixel;
         
         // swap lines
-        for(uint32_t i = 0; i < rows / 2; i++)
+        for(uint32_t i = 0; i < height / 2; i++)
         {
             std::swap_ranges(data + line_offset * i, data +  line_offset * (i + 1),
                              data + total_bytes - line_offset * (i + 1));
