@@ -42,13 +42,178 @@ std::wstring utf8_to_wstring(const std::string& str)
 //    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
 //}
 
-#if defined(KINSKI_RASPI)
+//#if defined(KINSKI_RASPI)
     #define BITMAP_WIDTH 1024
-#else 
-    #define BITMAP_WIDTH 2048
-#endif
+//#else 
+//    #define BITMAP_WIDTH 2048
+//#endif
 
 namespace kinski { namespace gl {
+    
+    template <typename T>
+    class Grid_
+    {
+    public:
+        
+        static inline constexpr T zero(){ return T(0); }
+        static inline constexpr T inf(){ return T(1 << 16); }
+        
+        Grid_(uint32_t the_width, uint32_t the_height):
+        m_width(the_width),
+        m_height(the_height),
+        m_data(new T[the_width * the_height]()){}
+        
+        Grid_(const Grid_ &the_other):
+        m_width(the_other.m_width),
+        m_height(the_other.m_height),
+        m_data(new T[m_width * m_height])
+        {
+            memcpy(m_data, the_other.m_data, m_width * m_height * sizeof(T));
+        }
+        
+        Grid_(Grid_&& the_other):
+        m_width(the_other.m_width),
+        m_height(the_other.m_height),
+        m_data(the_other.m_data)
+        {
+            the_other.m_data = nullptr;
+        }
+        
+        Grid_& operator=(Grid_ the_other)
+        {
+            std::swap(m_width, the_other.m_width);
+            std::swap(m_height, the_other.m_height);
+            std::swap(m_data, the_other.m_data);
+            return *this;
+        }
+        ~Grid_(){ delete[] m_data; }
+        
+        inline const T at(uint32_t x, uint32_t y) const
+        {
+            if(x >= 0 && y >= 0 && x < m_width && y < m_height)
+                return *(m_data + x + m_width * y);
+            else
+                return inf();
+        }
+        
+        inline void set(uint32_t x, uint32_t y, const T& the_value)
+        {
+            *(m_data + x + m_width * y) = the_value;
+        }
+        
+        void compare(T& the_point, uint32_t x, uint32_t y, int32_t offset_x, int32_t offset_y)
+        {
+            T other = at(x + offset_x, y + offset_y);
+            other.x += offset_x;
+            other.y += offset_y;
+            
+            if(glm::length2(other) < glm::length2(the_point)){ the_point = other; }
+        }
+       
+        void compute_distances()
+        {
+            // Pass 1
+            for (uint32_t y = 0; y < m_height ; ++y)
+            {
+                for (uint32_t x = 0; x < m_width; ++x)
+                {
+                    T p = at(x, y);
+                    compare(p, x, y, -1,  0);
+                    compare(p, x, y,  0, -1);
+                    compare(p, x, y, -1, -1);
+                    compare(p, x, y,  1, -1);
+                    set(x, y, p);
+                }
+                
+                for (int x = m_width - 1; x >= 0; --x)
+                {
+                    T p = at(x, y);
+                    compare(p, x, y, 1, 0);
+                    set(x, y, p);
+                }
+            }
+            
+            // Pass 2
+            for (int y = m_height - 1; y >=0 ; --y)
+            {
+                for (int x = m_width - 1; x >= 0; --x)
+                {
+                    T p = at(x, y);
+                    compare(p, x, y,  1,  0);
+                    compare(p, x, y,  0,  1);
+                    compare(p, x, y, -1,  1);
+                    compare(p, x, y,  1,  1);
+                    set(x, y, p);
+                }
+                
+                for (int x = 0; x < m_width; ++x)
+                {
+                    T p = at(x, y);
+                    compare(p, x, y, -1, 0);
+                    set(x, y, p);
+                }
+            }
+        }
+        
+        T* data(){ return m_data; }
+        size_t size(){ return m_width * m_height; }
+        
+    private:
+        uint32_t m_width, m_height;
+        T* m_data;
+    };
+    typedef Grid_<gl::vec2> Grid;
+    
+    ImagePtr compute_distance_field(ImagePtr the_img)
+    {
+        if(!the_img || the_img->bytes_per_pixel > 1){ return nullptr; }
+        
+        // create two grids
+        Grid grid1(the_img->width, the_img->height), grid2(the_img->width, the_img->height);
+        
+        // init grids
+        for (uint32_t x = 0; x < the_img->width; ++x)
+            for (uint32_t y = 0; y < the_img->height; ++y)
+            {
+                bool is_inside = *(the_img->data + x + y * the_img->width) > 192;
+                grid1.set(x, y, is_inside ? Grid::inf() : Grid::zero());
+                grid2.set(x, y, is_inside ? Grid::zero() : Grid::inf());
+            }
+        
+        // run propagation algorithm
+        grid1.compute_distances();
+        grid2.compute_distances();
+        
+        // TODO: gather result
+        ImagePtr ret = Image::create(the_img->height, the_img->width);
+        
+        std::vector<float> distances;
+        
+        for(uint32_t y = 0; y < ret->height; ++y)
+            for(uint32_t x = 0; x < ret->width; ++x)
+            {
+                // Calculate the actual distance from the dx/dy
+                float dist1 = glm::length(grid1.at(x, y));
+                float dist2 = glm::length(grid2.at(x, y));
+                float dist = dist2 - dist1;
+                distances.push_back(dist);
+                uint8_t val = 0;
+                float limit = 6.f;
+                
+                // inside?
+                if(dist < 0){ val = map_value<float>(fabsf(dist), 0.f, limit, 192, 255); }
+                else{ val = map_value<float>(fabsf(dist), 3 * limit, 0.f, 0, 192); }
+                
+                //
+                *(ret->data + x + y * ret->width) = val;
+            }
+        
+//        float min = *std::min_element(distances.begin(), distances.end());
+//        float max = *std::max_element(distances.begin(), distances.end());
+//        
+//        LOG_INFO << min << " - " << max;
+        return ret;
+    }
     
     struct string_mesh_container
     {
@@ -128,7 +293,7 @@ namespace kinski { namespace gl {
             //TODO: rect pack here
             stbtt_pack_context spc;
             stbtt_PackBegin(&spc, m_obj->data, m_obj->bitmap_width,
-                            m_obj->bitmap_height, 0, 10 /*padding*/, nullptr);
+                            m_obj->bitmap_height, 0, 2 /*padding*/, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
             int num_chars = 768;
@@ -140,7 +305,14 @@ namespace kinski { namespace gl {
 //            stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
 //                                 m_obj->font_height, m_obj->data, m_obj->bitmap_width,
 //                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
-
+            
+            // signed distance field
+//            auto img = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width, true);
+//            auto dist_img = compute_distance_field(img);
+//            
+//            save_image_to_file(img, "/Users/Fabian/glyph.png");
+//            save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
+            
             // create RGBA data
             size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
             uint8_t *rgba_data = new uint8_t[num_bytes];
@@ -268,7 +440,7 @@ namespace kinski { namespace gl {
         mat->setDiffuse(theColor);
         mat->addTexture(glyph_texture());
         mat->setBlending(true);
-        mat->setTwoSided(true);
+//        mat->setTwoSided(true);
         MeshPtr ret = gl::Mesh::create(geom, mat);
         ret->entries().clear();
         

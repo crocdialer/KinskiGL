@@ -99,7 +99,7 @@ namespace kinski
     
     Image::Image(uint8_t* theData, uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel,
                  bool not_dispose):
-    data(nullptr), height(theheight), width(thewidth), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
+    data(theData), height(theheight), width(thewidth), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
