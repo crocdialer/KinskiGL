@@ -340,22 +340,27 @@ namespace kinski { namespace fs{
         
         std::string expanded_name = use_entire_path ? expand_user(trim_file_name) : get_filename_part(trim_file_name);
         boost::filesystem::path ret_path(expanded_name);
-
-        if(ret_path.is_absolute() && is_regular_file(ret_path))
-        {
-            return ret_path.string();
-        }
-        std::set<std::string>::const_iterator it = get_search_paths().begin();
         
-        for(; it != get_search_paths().end(); ++it)
+        try
         {
-            ret_path = path(*it) / path(expanded_name);
-            if(boost::filesystem::exists(ret_path) && is_regular_file(ret_path))
+            if(ret_path.is_absolute() && is_regular_file(ret_path))
             {
-                LOG_TRACE_2 << "found '" << trim_file_name << "' as: " << ret_path.string();
                 return ret_path.string();
             }
+            std::set<std::string>::const_iterator it = get_search_paths().begin();
+            
+            for(; it != get_search_paths().end(); ++it)
+            {
+                ret_path = path(*it) / path(expanded_name);
+                if(boost::filesystem::exists(ret_path) && is_regular_file(ret_path))
+                {
+                    LOG_TRACE_2 << "found '" << trim_file_name << "' as: " << ret_path.string();
+                    return ret_path.string();
+                }
+            }
         }
+        catch(boost::filesystem::filesystem_error& e){ LOG_DEBUG << e.what(); }
+        
         
         if(use_entire_path){ return search_file(the_file_name, false); }
         throw FileNotFoundException(the_file_name);

@@ -13,10 +13,33 @@ using namespace std;
 
 namespace kinski { namespace gl {
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
+{
+    gl::SaveFramebufferBinding sfb;
+    ImagePtr ret;
+    int w = gl::window_dimension().x, h = gl::window_dimension().y, num_comp = 3;
+    GLenum format = GL_RGB;
+    
+    if(the_fbo)
+    {
+        the_fbo.bindFramebuffer();
+        w = the_fbo.getWidth();
+        h = the_fbo.getHeight();
+        num_comp = 4;
+        format = GL_RGBA;
+    }
+    ret = Image::create(w, h, num_comp);
+    glReadPixels(0, 0, w, h, format, GL_UNSIGNED_BYTE, ret->data);
+    ret->flip();
+    return ret;
+}
+    
 GLint Fbo::sMaxSamples = -1;
 GLint Fbo::sMaxAttachments = -1;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
 // RenderBuffer::Obj
 Renderbuffer::Obj::Obj()
 {
@@ -170,7 +193,7 @@ void Fbo::init()
 		m_obj->mColorTextures.push_back(tex);
 	}
 	
-#if ! defined( KINSKI_GLES )	
+#if !defined(KINSKI_GLES)
 	if(m_obj->mFormat.mNumColorBuffers == 0)
     {
         // no color
@@ -273,14 +296,13 @@ bool Fbo::initMultisample()
 		drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 	}
 
-	if( ! drawBuffers.empty() )
-		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
+    if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), &drawBuffers[0]); }
 
 	// see if the resolve buffer is ok
 	FboExceptionInvalidSpecification ignoredException;
-    if(!checkStatus( &ignoredException)){ return false; }
+    if(!checkStatus(&ignoredException)){ return false; }
 
-	glBindFramebuffer( GL_FRAMEBUFFER, m_obj->mId );
+	glBindFramebuffer(GL_FRAMEBUFFER, m_obj->mId);
 
 	m_obj->mFormat.mSamples = std::min(m_obj->mFormat.mSamples, getMaxSamples());
     
@@ -325,15 +347,15 @@ bool Fbo::initMultisample()
 
 Fbo::Fbo(const glm::vec2 &the_size, Format format): Fbo(the_size.x, the_size.y, format){}
     
-Fbo::Fbo(int width, int height, Format format)
-	: m_obj(new Obj( width, height ))
+Fbo::Fbo(int width, int height, Format format):
+m_obj(new Obj(width, height))
 {
 	m_obj->mFormat = format;
 	init();
 }
 
-Fbo::Fbo(int width, int height, bool alpha, bool color, bool depth)
-	: m_obj(new Obj( width, height ))
+Fbo::Fbo(int width, int height, bool alpha, bool color, bool depth):
+m_obj(new Obj( width, height ))
 {
 	Format format;
 	m_obj->mFormat.mColorInternalFormat = ( alpha ) ? GL_ENUM(GL_RGBA8) : GL_ENUM(GL_RGB8);
@@ -342,10 +364,10 @@ Fbo::Fbo(int width, int height, bool alpha, bool color, bool depth)
 	init();
 }
 
-Texture Fbo::getTexture( int attachment )
+Texture Fbo::getTexture(int attachment)
 {
 	resolveTextures();
-	updateMipmaps( true, attachment );
+	updateMipmaps(true, attachment);
 	return m_obj->mColorTextures.empty() ? gl::Texture() : m_obj->mColorTextures[attachment];
 }
 
@@ -354,7 +376,7 @@ Texture& Fbo::getDepthTexture()
 	return m_obj->m_depthTexture;
 }
 
-void Fbo::bindTexture( int textureUnit, int attachment )
+void Fbo::bindTexture(int textureUnit, int attachment)
 {
 	resolveTextures();
 	m_obj->mColorTextures[attachment].bind( textureUnit );
@@ -363,7 +385,7 @@ void Fbo::bindTexture( int textureUnit, int attachment )
 
 void Fbo::unbindTexture()
 {
-	glBindTexture( getTarget(), 0 );
+	glBindTexture(getTarget(), 0);
 }
 
 void Fbo::bindDepthTexture(int textureUnit)
@@ -373,12 +395,11 @@ void Fbo::bindDepthTexture(int textureUnit)
 
 void Fbo::resolveTextures() const
 {
-	if( ! m_obj->mNeedsResolve )
-		return;
+    if(!m_obj->mNeedsResolve){ return; }
 
-#if ! defined( KINSKI_GLES )		
+#if ! defined(KINSKI_GLES)
 	// if this FBO is multisampled, resolve it, so it can be displayed
-	if ( m_obj->mResolveFramebufferId )
+	if(m_obj->mResolveFramebufferId)
     {
 		//SaveFramebufferBinding saveFboBinding;
 
@@ -390,8 +411,10 @@ void Fbo::resolveTextures() const
 			glDrawBuffer(GL_COLOR_ATTACHMENT0 + c);
 			glReadBuffer(GL_COLOR_ATTACHMENT0 + c);
 			GLbitfield bitfield = GL_COLOR_BUFFER_BIT;
+            
 			if(m_obj->m_depthTexture && m_obj->m_depthTexture.getId())
                 bitfield |= GL_DEPTH_BUFFER_BIT;
+            
 			glBlitFramebuffer(0, 0, m_obj->mWidth, m_obj->mHeight, 0, 0, m_obj->mWidth,
                               m_obj->mHeight, bitfield, GL_NEAREST);
             KINSKI_CHECK_GL_ERRORS();
@@ -399,14 +422,15 @@ void Fbo::resolveTextures() const
 
 		// restore the draw buffers to the default for the antialiased (non-resolve) framebuffer
 		vector<GLenum> drawBuffers;
+        
 		for(size_t c = 0; c < m_obj->mColorTextures.size(); ++c)
 			drawBuffers.push_back( GL_COLOR_ATTACHMENT0 + c );
+        
 		glBindFramebuffer( GL_FRAMEBUFFER, m_obj->mId );
 		glDrawBuffers( drawBuffers.size(), &drawBuffers[0] );
         KINSKI_CHECK_GL_ERRORS();
 	}
 #endif
-
 	m_obj->mNeedsResolve = false;
 }
 
@@ -490,36 +514,42 @@ GLint Fbo::getMaxAttachments()
 #endif
 }
 
-//#if ! defined( KINSKI_GLES )
-//void Fbo::blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
-//{
-//	SaveFramebufferBinding saveFboBinding;
-//
-//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, m_obj->mId );
-//	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, dst.getId() );		
-//	glBlitFramebufferEXT( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
-//}
-//
-//void Fbo::blitToScreen( const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask ) const
-//{
-//	SaveFramebufferBinding saveFboBinding;
-//
-//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, m_obj->mId );
-//	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, 0 );		
-//	glBlitFramebufferEXT( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
-//}
-//
-//void Fbo::blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filter, GLbitfield mask )
-//{
-//	SaveFramebufferBinding saveFboBinding;
-//
-//	glBindFramebufferEXT( GL_READ_FRAMEBUFFER_EXT, GL_NONE );
-//	glBindFramebufferEXT( GL_DRAW_FRAMEBUFFER_EXT, m_obj->mId );		
-//	glBlitFramebufferEXT( srcArea.getX1(), srcArea.getY1(), srcArea.getX2(), srcArea.getY2(), dstArea.getX1(), dstArea.getY1(), dstArea.getX2(), dstArea.getY2(), mask, filter );
-//}
-//#endif
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+    
+void Fbo::blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &the_dst,
+             GLenum filter, GLbitfield mask) const
+{
+	SaveFramebufferBinding sb;
 
-FboExceptionInvalidSpecification::FboExceptionInvalidSpecification( const string &message ) throw()
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_obj->mId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, the_dst_fbo.getId());
+	glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1, the_dst.x0, the_dst.y0,
+                      the_dst.x1, the_dst.y1, mask, filter);
+}
+
+void Fbo::blit_to_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
+                         GLenum filter, GLbitfield mask) const
+{
+	SaveFramebufferBinding sb;
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_obj->mId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1,
+                      the_dst.x0, the_dst.y0, the_dst.x1, the_dst.y1, mask, filter);
+}
+
+void Fbo::blit_from_screen(const Area_<int> &the_src, const Area_<int> &the_dst, GLenum filter,
+                           GLbitfield mask)
+{
+	SaveFramebufferBinding sb;
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, GL_NONE);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_obj->mId);
+	glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1,
+                      the_dst.x0, the_dst.y0, the_dst.x1, the_dst.y1, mask, filter);
+}
+#endif
+
+FboExceptionInvalidSpecification::FboExceptionInvalidSpecification(const string &message) throw()
 	: FboException()
 {
 	strncpy( mMessage, message.c_str(), 255 );

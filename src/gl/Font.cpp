@@ -11,7 +11,6 @@
 //
 //  Created by Fabian on 3/9/13.
 
-#include "core/Image.hpp"
 #include "core/file_functions.hpp"
 #include "Texture.hpp"
 #include "Mesh.hpp"
@@ -187,7 +186,7 @@ namespace kinski { namespace gl {
         grid2.compute_distances();
         
         // TODO: gather result
-        ImagePtr ret = Image::create(the_img->height, the_img->width);
+        ImagePtr ret = Image::create(the_img->width, the_img->height);
         
 //        std::vector<float> distances;
         
@@ -306,7 +305,7 @@ namespace kinski { namespace gl {
 //                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
             
             // signed distance field
-            auto img = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width, true);
+            auto img = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, true);
             auto dist_img = compute_distance_field(img, 5);
             
 //            save_image_to_file(img->resize(1024, 1024), "/Users/Fabian/glyph.png");
@@ -355,7 +354,7 @@ namespace kinski { namespace gl {
         float x = start_x, y = 0.f;
         uint32_t max_x = 0, max_y = 0;
         stbtt_aligned_quad q;
-        typedef std::list< std::pair<Area<uint32_t>, Area<uint32_t> > > Area_Pairs;
+        typedef std::list< std::pair<Area_<uint32_t>, Area_<uint32_t> > > Area_Pairs;
         Area_Pairs area_pairs;
         
         auto wstr = utf8_to_wstring(theText);
@@ -384,11 +383,11 @@ namespace kinski { namespace gl {
             if(max_x < q.x1) max_x = q.x1;
             if(max_y < q.y1 + m_obj->font_height) max_y = q.y1 + m_obj->font_height;
             
-            Area<uint32_t> src (static_cast<uint32_t>(q.s0 * m_obj->bitmap_width),
+            Area_<uint32_t> src (static_cast<uint32_t>(q.s0 * m_obj->bitmap_width),
                                 static_cast<uint32_t>(q.t0 * m_obj->bitmap_height),
                                 static_cast<uint32_t>(q.s0 * m_obj->bitmap_width + w),
                                 static_cast<uint32_t>(q.t0 * m_obj->bitmap_height + h));
-            Area<uint32_t> dst (static_cast<uint32_t>(q.x0 - start_x),
+            Area_<uint32_t> dst (static_cast<uint32_t>(q.x0 - start_x),
                                 static_cast<uint32_t>(m_obj->font_height + q.y0),
                                 static_cast<uint32_t>(q.x0 + w - start_x),
                                 static_cast<uint32_t>(m_obj->font_height + q.y0 + h));
@@ -398,8 +397,8 @@ namespace kinski { namespace gl {
         uint8_t dst_data[max_x * max_y];
         std::fill(dst_data, dst_data + max_x * max_y, 0);
         
-        auto src_mat = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width, 1, true);
-        auto dst_mat = Image::create(dst_data, max_y, max_x, 1, true);
+        auto src_mat = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, 1, true);
+        auto dst_mat = Image::create(dst_data, max_x, max_y, 1, true);
         
         Area_Pairs::iterator area_it = area_pairs.begin();
         for (; area_it != area_pairs.end(); ++area_it)
@@ -499,24 +498,24 @@ namespace kinski { namespace gl {
             int w = quad.x1 - quad.x0;
             int h = quad.y1 - quad.y0;
 
-            Area<float> tex_Area (quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
-            Area<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0 - start_x),
+            Area_<float> tex_Area (quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
+            Area_<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0 - start_x),
                                       static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0)),
                                       static_cast<uint32_t>(quad.x0 + w - start_x),
                                       static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0 + h)));
             
             // CREATE QUAD
             // create vertices
-            vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y2, 0));
-            vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y2, 0));
-            vertices.push_back(glm::vec3(vert_Area.x2, vert_Area.y1, 0));
+            vertices.push_back(glm::vec3(vert_Area.x0, vert_Area.y1, 0));
             vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y1, 0));
+            vertices.push_back(glm::vec3(vert_Area.x1, vert_Area.y0, 0));
+            vertices.push_back(glm::vec3(vert_Area.x0, vert_Area.y0, 0));
             
             // create texcoords
-            tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y2));
-            tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y2));
-            tex_coords.push_back(glm::vec2(tex_Area.x2, tex_Area.y1));
+            tex_coords.push_back(glm::vec2(tex_Area.x0, tex_Area.y1));
             tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y1));
+            tex_coords.push_back(glm::vec2(tex_Area.x1, tex_Area.y0));
+            tex_coords.push_back(glm::vec2(tex_Area.x0, tex_Area.y0));
             
             // create colors
             for (int i = 0; i < 4; i++){ colors.push_back(glm::vec4(1)); }

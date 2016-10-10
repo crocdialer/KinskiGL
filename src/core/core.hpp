@@ -69,7 +69,4 @@ namespace kinski
     using std::vector;
     using std::list;
     using std::set;
-    
-    // forward declare some classes here
-    DEFINE_CLASS_PTR(Image);
 }

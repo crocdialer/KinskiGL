@@ -7,12 +7,119 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
+#include "Buffer.hpp"
 #include "Texture.hpp"
 
 using namespace std;
 
-namespace kinski{
-namespace gl {
+namespace kinski{ namespace gl{
+    
+Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
+                                  bool compress, GLfloat anisotropic_filter_lvl)
+{
+    Texture ret;
+    
+    if(!the_img){ return ret; }
+    GLenum format = 0, internal_format = 0;
+    
+    switch(the_img->bytes_per_pixel)
+    {
+#ifdef KINSKI_GLES
+        case 1:
+            internal_format = format = GL_LUMINANCE;
+            break;
+        case 2:
+            internal_format = format = GL_LUMINANCE_ALPHA;
+            break;
+        case 3:
+            format = GL_RGB;
+            internal_format = GL_RGB;
+            // needs precompressed image and call to glCompressedTexImage2D
+            //                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
+            break;
+        case 4:
+            internal_format = format = GL_RGBA;
+        default:
+            break;
+#else
+        case 1:
+            format = GL_RED;
+            internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
+            break;
+        case 2:
+            format = GL_RG;
+            internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
+            break;
+        case 3:
+            format = GL_RGB;
+            internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
+            break;
+        case 4:
+            format = GL_RGBA;
+            internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
+        default:
+            break;
+#endif
+    }
+    Texture::Format fmt;
+    fmt.setInternalFormat(internal_format);
+    
+    if(mipmap)
+    {
+        fmt.set_mipmapping();
+        fmt.setMinFilter(GL_LINEAR_MIPMAP_NEAREST);
+    }
+    uint8_t *data = the_img->data;
+    
+#if !defined(KINSKI_GLES)
+    gl::Buffer pixel_buf;
+    pixel_buf.set_data(the_img->data, the_img->width * the_img->height * the_img->bytes_per_pixel);
+    pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
+    data = nullptr;
+#endif
+    ret = Texture(data, format, the_img->width, the_img->height, fmt);
+    ret.setFlipped();
+    KINSKI_CHECK_GL_ERRORS();
+    
+    ret.set_anisotropic_filter(anisotropic_filter_lvl);
+    return ret;
+}
+
+Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
+                                 bool compress, GLfloat anisotropic_filter_lvl)
+{
+    ImagePtr img;
+    Texture ret;
+    try {img = create_image_from_data(the_data);}
+    catch (ImageLoadException &e)
+    {
+        LOG_ERROR << e.what();
+        return ret;
+    }
+    ret = create_texture_from_image(img, mipmap, compress, anisotropic_filter_lvl);
+    return ret;
+}
+
+Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bool compress,
+                                 GLfloat anisotropic_filter_lvl)
+{
+    ImagePtr img = create_image_from_file(theFileName);
+    Texture ret = create_texture_from_image(img);
+    return ret;
+}
+
+ImagePtr create_image_from_texture(const gl::Texture &the_texture)
+{
+    ImagePtr ret;
+    if(!the_texture){ return ret; }
+#if !defined(KINSKI_GLES)
+    ret = Image::create(the_texture.getWidth(), the_texture.getHeight(), 4);
+    the_texture.bind();
+    glGetTexImage(the_texture.getTarget(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
+    ret->flip();
+#endif
+    return ret;
+}
     
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Format
@@ -275,9 +382,9 @@ void Texture::set_roi(int x, int y, uint32_t width, uint32_t height)
     m_textureMatrix = translate(mat4(), offset) * scale(mat4(), sc);
 }
     
-void Texture::set_roi(const Area<uint32_t> &the_roi)
+void Texture::set_roi(const Area_<uint32_t> &the_roi)
 {
-    set_roi(the_roi.x1, the_roi.y1, the_roi.width(), the_roi.height());
+    set_roi(the_roi.x0, the_roi.y0, the_roi.width(), the_roi.height());
 }
     
 mat4 Texture::getTextureMatrix() const 

@@ -11,7 +11,7 @@
 //
 //  Created by Croc Dialer on 06/10/14.
 
-#include "core/Image.hpp"
+#include "gl/Fbo.hpp"
 #include "app/ViewerApp.hpp"
 
 #include "gl/SerializerGL.hpp"
@@ -72,8 +72,8 @@ void RemoteControl::start_listen(uint16_t port)
         {
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
-                ptr->generate_snapshot();
-                auto img = gl::create_image_from_fbo(ptr->snapshot_fbo());
+//                ptr->generate_snapshot();
+                auto img = gl::create_image_from_framebuffer();//(ptr->snapshot_fbo());
                 
                 ptr->background_queue().submit([con, img]()
                 {

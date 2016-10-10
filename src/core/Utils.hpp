@@ -280,21 +280,21 @@ namespace kinski
         return ret;
     }
     
-    template<typename T> class Area
+    template<typename T> class Area_
     {
     public:
-        T x1, y1, x2, y2;
+        T x0, y0, x1, y1;
         
-        Area():x1(0), y1(0), x2(0), y2(0){};
-        Area(const T &theX1, const T &theY1, const T &theX2, const T &theY2):
-        x1(theX1), y1(theY1), x2(theX2), y2(theY2){};
+        Area_():x0(0), y0(0), x1(0), y1(0){};
+        Area_(const T &the_x0, const T &the_y0, const T &the_x1, const T &the_y1):
+        x0(the_x0), y0(the_y0), x1(the_x1), y1(the_y1){};
         
-        inline const T width() const { return fabs(((double)x1 - (double)x2)); };
-        inline const T height() const { return fabs(((double)y1 - (double)y2)); };
+        inline const T width() const { return std::fabs(((double)x0 - (double)x1)); };
+        inline const T height() const { return std::fabs(((double)y0 - (double)y1)); };
         
         inline T size() const { return width() * height(); }
         
-        bool operator<(const Area<T> &other) const
+        bool operator<(const Area_<T> &other) const
         {
             return size() < other.size();
         }

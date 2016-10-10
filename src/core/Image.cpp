@@ -51,7 +51,7 @@ namespace kinski
         // ... replace '0' with '1'..'4' to force that many components per pixel
         // ... but 'n' will always be the number that it would have been if you said 0
         
-        auto ret = Image::create(data, height, width, num_components);
+        auto ret = Image::create(data, width, height, num_components);
         STBI_FREE(data);
         return ret;
     }
@@ -60,15 +60,15 @@ namespace kinski
     {
         uint32_t bytes_per_pixel = 1;
         
-        assert(src_mat->roi.x2 <= src_mat->width && src_mat->roi.y2 <= src_mat->height);
-        assert(dst_mat->roi.x2 <= dst_mat->width && dst_mat->roi.y2 <= dst_mat->height);
+        assert(src_mat->roi.x1 <= src_mat->width && src_mat->roi.y1 <= src_mat->height);
+        assert(dst_mat->roi.x1 <= dst_mat->width && dst_mat->roi.y1 <= dst_mat->height);
         assert(src_mat->roi.width() == src_mat->roi.width() && src_mat->roi.height() == src_mat->roi.height());
         
         uint32_t src_row_offset = src_mat->width - src_mat->roi.width();
         uint32_t dst_row_offset = dst_mat->width - dst_mat->roi.width();
         
-        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y1 * src_mat->width + src_mat->roi.x1) * bytes_per_pixel;
-        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y1 * dst_mat->width + dst_mat->roi.x1) * bytes_per_pixel;
+        const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y0 * src_mat->width + src_mat->roi.x0) * bytes_per_pixel;
+        uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y0 * dst_mat->width + dst_mat->roi.x0) * bytes_per_pixel;
         
         for (uint32_t r = 0; r < src_mat->roi.height(); r++)
         {
@@ -97,26 +97,60 @@ namespace kinski
         return ret;
     }
     
-    Image::Image(uint8_t* theData, uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel,
-                 bool not_dispose):
-    data(theData), height(theheight), width(thewidth), bytes_per_pixel(theBytesPerPixel), do_not_dispose(not_dispose)
+    Image::Image(uint8_t* the_data, uint32_t the_width, uint32_t the_height,
+                 uint32_t the_bytes_per_pixel, bool not_dispose):
+    data(the_data),
+    width(the_width),
+    height(the_height),
+    bytes_per_pixel(the_bytes_per_pixel),
+    do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
             size_t num_bytes = height * width * bytes_per_pixel;
             data = new uint8_t[num_bytes];
-            memcpy(data, theData, num_bytes);
+            memcpy(data, the_data, num_bytes);
         }
     };
     
-    Image::Image(uint32_t theheight, uint32_t thewidth, uint32_t theBytesPerPixel):
-    data(new uint8_t[thewidth * theheight * theBytesPerPixel]()),
-    height(theheight),
-    width(thewidth),
-    bytes_per_pixel(theBytesPerPixel),
+    Image::Image(uint32_t the_width, uint32_t the_height, uint32_t the_bytes_per_pixel):
+    data(new uint8_t[the_width * the_height * the_bytes_per_pixel]()),
+    width(the_width),
+    height(the_height),
+    bytes_per_pixel(the_bytes_per_pixel),
     do_not_dispose(false)
     {
     
+    }
+    
+    Image::Image(const Image &the_other):
+    data(new uint8_t[the_other.width * the_other.height * the_other.bytes_per_pixel]),
+    width(the_other.width),
+    height(the_other.height),
+    bytes_per_pixel(the_other.bytes_per_pixel),
+    do_not_dispose(the_other.do_not_dispose)
+    {
+        memcpy(data, the_other.data, width * height * bytes_per_pixel);
+    }
+    
+    Image::Image(Image &&the_other):
+    data(the_other.data),
+    width(the_other.width),
+    height(the_other.height),
+    bytes_per_pixel(the_other.bytes_per_pixel),
+    do_not_dispose(the_other.do_not_dispose)
+    {
+        the_other.data = nullptr;
+    }
+    
+    Image& Image::operator=(Image the_other)
+    {
+        std::swap(data, the_other.data);
+        std::swap(height, the_other.height);
+        std::swap(width, the_other.width);
+        std::swap(bytes_per_pixel, the_other.bytes_per_pixel);
+        std::swap(do_not_dispose, the_other.do_not_dispose);
+        return *this;
     }
     
     Image::~Image()
@@ -143,7 +177,7 @@ namespace kinski
     
     ImagePtr Image::resize(uint32_t the_width, uint32_t the_height)
     {
-        float scale_x = width / the_width, scale_y = height / the_height;
+        float scale_x = the_width / width, scale_y = the_height / height;
         ImagePtr ret = Image::create(the_width, the_height);
         
         // for all components in all pixels, calcalute new value
@@ -151,11 +185,20 @@ namespace kinski
         {
             for(uint32_t x = 0; x < the_width; ++x)
             {
-                float src_x = x * scale_x, src_y = y * scale_y;
-                uint8_t* src_ptr = at(src_x, src_y);
+                float src_x = x / scale_x, src_y = y / scale_y;
                 uint8_t* dst_ptr = ret->at(x, y);
                 
+                // nearest neighbour
+                uint8_t* src_ptr = at(roundf(src_x), roundf(src_y));
                 for(uint32_t c = 0; c < bytes_per_pixel; ++c){ dst_ptr[c] = src_ptr[c]; }
+                
+//                if(scale_x < 1.f || scale_y < 1.f)
+//                {
+//                    for(uint32_t c = 0; c < bytes_per_pixel; ++c)
+//                    {
+////                        dst_ptr[c] = src_ptr[c];
+//                    }
+//                }
             }
         }
         return ret;

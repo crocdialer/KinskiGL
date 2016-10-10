@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "core/Image.hpp"
 #include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
@@ -126,7 +127,7 @@ namespace kinski{ namespace gl{
         void set_roi(int x, int y, uint32_t width, uint32_t height);
         
         //!	set a region of interest (subimage), this function will alter the texture matrix appropriately
-        void set_roi(const Area<uint32_t> &the_roi);
+        void set_roi(const Area_<uint32_t> &the_roi);
         
         /**	\brief Enables the Texture's target and binds its associated texture.
          Equivalent to calling \code glEnable( target ); glBindTexture( target, textureID ); \endcode **/
@@ -247,4 +248,24 @@ namespace kinski{ namespace gl{
     public:	
         TextureDataExc(const std::string &log):Exception("TextureData Error: " + log){};
     };
+    
+    /*********************************** inbuilt Texture loading **********************************/
+    
+    KINSKI_API Texture create_texture_from_file(const std::string &theFileName,
+                                                bool mipmap = false,
+                                                bool compress = false,
+                                                GLfloat anisotropic_filter_lvl = 1.f);
+    
+    KINSKI_API Texture create_texture_from_image(const ImagePtr &the_img, bool mipmap = false,
+                                                 bool compress = false,
+                                                 GLfloat anisotropic_filter_lvl = 1.f);
+    
+    KINSKI_API Texture create_texture_from_data(const std::vector<uint8_t> &the_data,
+                                                bool mipmap = false,
+                                                bool compress = false,
+                                                GLfloat anisotropic_filter_lvl = 1.f);
+    
+    KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
+
+    
 }}// namespace

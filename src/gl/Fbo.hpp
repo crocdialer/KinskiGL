@@ -131,12 +131,16 @@ class KINSKI_API Fbo
 //	GLuint		getResolveId() const { if( m_obj->mResolveFramebufferId ) return m_obj->mResolveFramebufferId; else return m_obj->mId; }
 //
 //	//! Copies to FBO \a dst from \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-//	void		blitTo( Fbo dst, const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT ) const;
+	void blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &the_dst,
+                 GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT) const;
+    
 //	//! Copies to the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-//	void		blitToScreen( const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT ) const;
+	void blit_to_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
+                        GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT) const;
 
     //! Copies from the screen from Area \a srcArea to \a dstArea using filter \a filter. \a mask allows specification of color (\c GL_COLOR_BUFFER_BIT) and/or depth(\c GL_DEPTH_BUFFER_BIT). Calls glBlitFramebufferEXT() and is subject to its constraints and coordinate system.
-    //    void blitFromScreen( const Area &srcArea, const Area &dstArea, GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT );
+        void blit_from_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
+                              GLenum filter = GL_NEAREST, GLbitfield mask = GL_COLOR_BUFFER_BIT);
 #endif
 
 	//! Returns the maximum number of samples the graphics card is capable of using per pixel in MSAA for an Fbo
@@ -294,4 +298,6 @@ class FboExceptionInvalidSpecification : public FboException {
 	char	mMessage[256];
 };
 
+KINSKI_API ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo = gl::Fbo());
+    
 }}// namespace gl
