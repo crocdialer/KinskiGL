@@ -43,7 +43,7 @@ namespace kinski { namespace gl {
         void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
-        { m_uniforms[theName] = theVal; };
+        { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
         
         void update_uniforms();
         

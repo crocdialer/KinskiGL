@@ -169,11 +169,14 @@ namespace kinski { namespace gl {
         }
 #endif
         
-        // set all other uniform values
-        for (auto it = uniforms().begin(); it != uniforms().end(); ++it)
+//        if(m_dirty_uniform_buffer)
         {
-            boost::apply_visitor(InsertUniformVisitor(shader(), it->first), it->second);
-            KINSKI_CHECK_GL_ERRORS();
+            // set all other uniform values
+            for (auto it = uniforms().begin(); it != uniforms().end(); ++it)
+            {
+                boost::apply_visitor(InsertUniformVisitor(shader(), it->first), it->second);
+                KINSKI_CHECK_GL_ERRORS();
+            }
         }
     }
     

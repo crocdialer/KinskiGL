@@ -19,6 +19,8 @@
 
 #define STB_RECT_PACK_IMPLEMENTATION
 #include "stb_rect_pack.inl"
+
+//#define STBTT_RASTERIZER_VERSION 1
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.inl"
 
@@ -42,11 +44,11 @@ std::wstring utf8_to_wstring(const std::string& str)
 //    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
 //}
 
-//#if defined(KINSKI_RASPI)
+#if defined(KINSKI_RASPI)
     #define BITMAP_WIDTH 1024
-//#else 
-//    #define BITMAP_WIDTH 2048
-//#endif
+#else 
+    #define BITMAP_WIDTH 2048
+#endif
 
 namespace kinski { namespace gl {
     
@@ -164,7 +166,7 @@ namespace kinski { namespace gl {
     };
     typedef Grid_<gl::vec2> Grid;
     
-    ImagePtr compute_distance_field(ImagePtr the_img)
+    ImagePtr compute_distance_field(ImagePtr the_img, float limit)
     {
         if(!the_img || the_img->bytes_per_pixel > 1){ return nullptr; }
         
@@ -175,7 +177,7 @@ namespace kinski { namespace gl {
         for (uint32_t x = 0; x < the_img->width; ++x)
             for (uint32_t y = 0; y < the_img->height; ++y)
             {
-                bool is_inside = *(the_img->data + x + y * the_img->width) > 192;
+                bool is_inside = *the_img->at(x, y) > 127;
                 grid1.set(x, y, is_inside ? Grid::inf() : Grid::zero());
                 grid2.set(x, y, is_inside ? Grid::zero() : Grid::inf());
             }
@@ -187,7 +189,7 @@ namespace kinski { namespace gl {
         // TODO: gather result
         ImagePtr ret = Image::create(the_img->height, the_img->width);
         
-        std::vector<float> distances;
+//        std::vector<float> distances;
         
         for(uint32_t y = 0; y < ret->height; ++y)
             for(uint32_t x = 0; x < ret->width; ++x)
@@ -196,13 +198,10 @@ namespace kinski { namespace gl {
                 float dist1 = glm::length(grid1.at(x, y));
                 float dist2 = glm::length(grid2.at(x, y));
                 float dist = dist2 - dist1;
-                distances.push_back(dist);
-                uint8_t val = 0;
-                float limit = 6.f;
+//                distances.push_back(dist);
                 
-                // inside?
-                if(dist < 0){ val = map_value<float>(fabsf(dist), 0.f, limit, 192, 255); }
-                else{ val = map_value<float>(fabsf(dist), 3 * limit, 0.f, 0, 192); }
+                // quantize distance
+                uint8_t val = roundf(map_value<float>(dist, 3 * limit, -limit, 0, 255));
                 
                 //
                 *(ret->data + x + y * ret->width) = val;
@@ -234,7 +233,7 @@ namespace kinski { namespace gl {
         uint32_t line_height;
         uint32_t bitmap_width, bitmap_height;
         uint8_t* data;
-        Texture texture;
+        Texture texture, sdf_texture;
         
         // how many string meshes are buffered at max
         size_t max_mesh_buffer_size;
@@ -293,7 +292,7 @@ namespace kinski { namespace gl {
             //TODO: rect pack here
             stbtt_pack_context spc;
             stbtt_PackBegin(&spc, m_obj->data, m_obj->bitmap_width,
-                            m_obj->bitmap_height, 0, 2 /*padding*/, nullptr);
+                            m_obj->bitmap_height, 0, 4 /*padding*/, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
             int num_chars = 768;
@@ -307,11 +306,17 @@ namespace kinski { namespace gl {
 //                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
             
             // signed distance field
-//            auto img = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width, true);
-//            auto dist_img = compute_distance_field(img);
-//            
-//            save_image_to_file(img, "/Users/Fabian/glyph.png");
-//            save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
+            auto img = Image::create(m_obj->data, m_obj->bitmap_height, m_obj->bitmap_width, true);
+            auto dist_img = compute_distance_field(img, 5);
+            
+//            save_image_to_file(img->resize(1024, 1024), "/Users/Fabian/glyph.png");
+//            save_image_to_file(dist_img->resize(1024, 1024), "/Users/Fabian/glyph_dist_sz.png");
+            
+//            m_obj->texture = create_texture_from_image(img, true);
+//            m_obj->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
+            
+//            m_obj->sdf_texture = create_texture_from_image(dist_img, true);
+//            m_obj->sdf_texture = create_texture_from_file("/Users/Fabian/glyph_dist.png");
             
             // create RGBA data
             size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
@@ -438,9 +443,14 @@ namespace kinski { namespace gl {
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat = gl::Material::create();
         mat->setDiffuse(theColor);
-        mat->addTexture(glyph_texture());
+        mat->addTexture(m_obj->texture);
+        
+//        mat->setShader(gl::create_shader(ShaderType::SDF_FONT));
+//        mat->addTexture(m_obj->sdf_texture);
+//        mat->uniform("u_buffer", 0.74f);
+//        mat->uniform("u_gamma", 0.071f);
+        
         mat->setBlending(true);
-//        mat->setTwoSided(true);
         MeshPtr ret = gl::Mesh::create(geom, mat);
         ret->entries().clear();
         

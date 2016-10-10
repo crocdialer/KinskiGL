@@ -140,4 +140,29 @@ namespace kinski
                              data + total_bytes - line_offset * (i + 1));
         }
     }
+    
+    ImagePtr Image::resize(uint32_t the_width, uint32_t the_height)
+    {
+        float scale_x = width / the_width, scale_y = height / the_height;
+        ImagePtr ret = Image::create(the_width, the_height);
+        
+        // for all components in all pixels, calcalute new value
+        for(uint32_t y = 0; y < the_height; ++y)
+        {
+            for(uint32_t x = 0; x < the_width; ++x)
+            {
+                float src_x = x * scale_x, src_y = y * scale_y;
+                uint8_t* src_ptr = at(src_x, src_y);
+                uint8_t* dst_ptr = ret->at(x, y);
+                
+                for(uint32_t c = 0; c < bytes_per_pixel; ++c){ dst_ptr[c] = src_ptr[c]; }
+            }
+        }
+        return ret;
+    }
+    
+    void Image::convolve(const std::vector<float> &the_kernel)
+    {
+//        for(uint32_t i = 0; i < height / 2; i++)
+    }
 }

@@ -258,6 +258,7 @@ void Texture::setTextureMatrix( const mat4 &theMatrix )
 void Texture::set_swizzle(GLint red, GLint green, GLint blue, GLint alpha)
 {
 #if !defined(KINSKI_GLES)
+    bind();
     GLint swizzleMask[] = {red, green, blue, alpha};
     glTexParameteriv(getTarget(), GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
 #endif

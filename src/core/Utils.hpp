@@ -244,7 +244,7 @@ namespace kinski
                        const T &dst_min, const T &dst_max)
     {
         float mix_val = clamp<float>((val - src_min) / (float)(src_max - src_min), 0.f, 1.f);
-        return mix<T>(dst_min, dst_max, mix_val);
+        return mix_slow<T>(dst_min, dst_max, mix_val);
     }
     
     template <typename T = double>

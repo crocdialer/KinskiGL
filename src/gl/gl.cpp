@@ -1638,6 +1638,11 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     vert_src = unlit_vert;
                     frag_src = unlit_mask_frag;
                     break;
+                
+                case ShaderType::SDF_FONT:
+                    vert_src = unlit_vert;
+                    frag_src = distance_field_frag;
+                    break;
                     
                 case ShaderType::UNLIT_SKIN:
                     vert_src = unlit_skin_vert;

@@ -44,9 +44,15 @@ namespace kinski
             return ImagePtr(new Image(theheight, thewidth, theBytesPerPixel));
         };
         
+        inline uint8_t* at(uint32_t x, uint32_t y) const
+        { return data + (x + y * width) * bytes_per_pixel; };
+        
         inline uint8_t* data_start_for_roi() const {return data + (roi.y1 * width + roi.x1) * bytes_per_pixel;}
         
         inline size_t num_bytes() const { return height * width * bytes_per_pixel; }
+        
+        ImagePtr resize(uint32_t the_width, uint32_t the_height);
+        void convolve(const std::vector<float> &the_kernel);
         
         void flip();
         
