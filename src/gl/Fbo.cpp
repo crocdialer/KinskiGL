@@ -410,44 +410,38 @@ void Fbo::resolveTextures() const
 	m_obj->mNeedsResolve = false;
 }
 
-void Fbo::updateMipmaps( bool bindFirst, int attachment ) const
+void Fbo::updateMipmaps(bool bindFirst, int attachment) const
 {
-	if( ! m_obj->mNeedsMipmapUpdate )
-		return;
+    if(!m_obj->mNeedsMipmapUpdate){ return; }
 	
-	if( bindFirst ) 
+	if(bindFirst)
     {
 		m_obj->mColorTextures[attachment].bind();
-		glGenerateMipmap( getTarget() );
+		glGenerateMipmap(getTarget());
 	}
-	else {
-		glGenerateMipmap( getTarget() );
-	}
+    else{ glGenerateMipmap(getTarget()); }
 
 	m_obj->mNeedsMipmapUpdate = false;
 }
 
 void Fbo::bindFramebuffer()
 {
-	glBindFramebuffer( GL_FRAMEBUFFER, m_obj->mId );
-	if( m_obj->mResolveFramebufferId ) {
-		m_obj->mNeedsResolve = true;
-	}
-	if( m_obj->mFormat.hasMipMapping() ) {
-		m_obj->mNeedsMipmapUpdate = true;
-	}
+	glBindFramebuffer(GL_FRAMEBUFFER, m_obj->mId);
+	if(m_obj->mResolveFramebufferId){ m_obj->mNeedsResolve = true; }
+	if(m_obj->mFormat.hasMipMapping()){ m_obj->mNeedsMipmapUpdate = true; }
 }
 
 void Fbo::unbindFramebuffer()
 {
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-bool Fbo::checkStatus( FboExceptionInvalidSpecification *resultExc )
+bool Fbo::checkStatus(FboExceptionInvalidSpecification *resultExc)
 {
 	GLenum status;
 	status = (GLenum) glCheckFramebufferStatus( GL_FRAMEBUFFER );
-	switch( status ) {
+	switch(status)
+    {
 		case GL_FRAMEBUFFER_COMPLETE:
 		break;
 		case GL_FRAMEBUFFER_UNSUPPORTED:
@@ -480,7 +474,6 @@ GLint Fbo::getMaxSamples()
 {
 #if ! defined( KINSKI_GLES )
     if( sMaxSamples < 0 ){ glGetIntegerv( GL_MAX_SAMPLES, &sMaxSamples); }
-	
 	return sMaxSamples;
 #else
 	return 0;
@@ -491,7 +484,6 @@ GLint Fbo::getMaxAttachments()
 {
 #if ! defined( KINSKI_GLES )
 	if(sMaxAttachments < 0) { glGetIntegerv( GL_MAX_COLOR_ATTACHMENTS, &sMaxAttachments ); }
-	
 	return sMaxAttachments;
 #else
 	return 1;

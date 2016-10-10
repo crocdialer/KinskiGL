@@ -261,6 +261,8 @@ namespace kinski { namespace gl {
     
     KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
     
+    KINSKI_API ImagePtr create_image_from_fbo(gl::Fbo &the_fbo);
+    
     /*!
      * create a gl::Texture object of type GL_TEXTURE_CUBE 
      * from 6 individual gl::Texture objects of type GL_TEXTURE_2D of same size

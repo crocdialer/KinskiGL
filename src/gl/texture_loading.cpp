@@ -13,8 +13,8 @@
 
 #include "core/file_functions.hpp"
 #include "core/Image.hpp"
-#include "gl/gl.hpp"
-#include "Texture.hpp"
+
+#include "Fbo.hpp"
 #include "Buffer.hpp"
 
 namespace kinski { namespace gl {
@@ -122,11 +122,29 @@ namespace kinski { namespace gl {
     
     ImagePtr create_image_from_texture(const gl::Texture &the_texture)
     {
-        if(!the_texture){ return ImagePtr(); }
-        ImagePtr ret = Image::create(the_texture.getHeight(), the_texture.getWidth(), 4);
+        ImagePtr ret;
+        if(!the_texture){ return ret; }
+#if !defined(KINSKI_GLES)
+        ret = Image::create(the_texture.getHeight(), the_texture.getWidth(), 4);
         the_texture.bind();
         glGetTexImage(the_texture.getTarget(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
         ret->flip();
+#endif
+        return ret;
+    }
+    
+    ImagePtr create_image_from_fbo(gl::Fbo &the_fbo)
+    {
+        ImagePtr ret;
+        if(the_fbo)
+        {
+            ret = Image::create(the_fbo.getHeight(), the_fbo.getWidth(), 4);
+            gl::SaveFramebufferBinding sfb;
+            the_fbo.bindFramebuffer();
+            glReadPixels(0, 0, the_fbo.getWidth(), the_fbo.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE,
+                         ret->data);
+            ret->flip();
+        }
         return ret;
     }
 }}

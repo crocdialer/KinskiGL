@@ -148,7 +148,7 @@ namespace kinski { namespace gl {
                     set(x, y, p);
                 }
                 
-                for (int x = 0; x < m_width; ++x)
+                for (uint32_t x = 0; x < m_width; ++x)
                 {
                     T p = at(x, y);
                     compare(p, x, y, -1, 0);

@@ -119,6 +119,7 @@ class KINSKI_API Fbo
 	void 			bindDepthTexture( int textureUnit = 0 );
 	//! Binds the Fbo as the currently active framebuffer, meaning it will receive the results of all subsequent rendering until it is unbound
 	void 			bindFramebuffer();
+    
 	//! Unbinds the Fbo as the currently active framebuffer, restoring the primary context as the target for all subsequent rendering
 	static void 	unbindFramebuffer();
 

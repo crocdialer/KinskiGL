@@ -72,7 +72,8 @@ void RemoteControl::start_listen(uint16_t port)
         {
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
-                auto img = gl::create_image_from_texture(ptr->generate_snapshot());
+                ptr->generate_snapshot();
+                auto img = gl::create_image_from_fbo(ptr->snapshot_fbo());
                 
                 ptr->background_queue().submit([con, img]()
                 {

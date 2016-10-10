@@ -539,14 +539,14 @@ namespace kinski {
     {
         gl::Texture ret;
 
-        if(!m_fbo_snapshot || m_fbo_snapshot.getSize() != gl::window_dimension())
+        if(!m_snapshot_fbo || m_snapshot_fbo.getSize() != gl::window_dimension())
         {
             gl::Fbo::Format fmt;
-            fmt.setSamples(8);
-            m_fbo_snapshot = gl::Fbo(gl::window_dimension(), fmt);
+//            fmt.setSamples(8);
+            m_snapshot_fbo = gl::Fbo(gl::window_dimension(), fmt);
         }
 
-        ret = gl::render_to_texture(m_fbo_snapshot, [this]()
+        ret = gl::render_to_texture(m_snapshot_fbo, [this]()
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             draw();
