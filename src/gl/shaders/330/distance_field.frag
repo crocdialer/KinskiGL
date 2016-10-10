@@ -33,6 +33,6 @@ void main()
 {
     vec4 color = vertex_in.color * u_material.diffuse;
     float dist = texture(u_sampler_2D[0], vertex_in.texCoord.st).r;
-    float alpha = smoothstep(u_buffer - u_gamma, u_buffer + u_gamma, dist);
+    float alpha = smoothstep(u_buffer - u_gamma, u_buffer, dist);
     fragData = vec4(color.rgb, color.a * alpha);
 }

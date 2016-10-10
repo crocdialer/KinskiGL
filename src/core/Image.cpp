@@ -177,8 +177,12 @@ namespace kinski
     
     ImagePtr Image::resize(uint32_t the_width, uint32_t the_height)
     {
-        float scale_x = the_width / width, scale_y = the_height / height;
-        ImagePtr ret = Image::create(the_width, the_height);
+        ImagePtr ret = Image::create(the_width, the_height, bytes_per_pixel);
+        float scale_x = the_width / (float)width, scale_y = the_height / (float)height;
+        
+        // blur
+        std::vector<float> kernel(25, 1/25.f);
+        ImagePtr blur_img = convolve(kernel);
         
         // for all components in all pixels, calcalute new value
         for(uint32_t y = 0; y < the_height; ++y)
@@ -191,21 +195,46 @@ namespace kinski
                 // nearest neighbour
                 uint8_t* src_ptr = at(roundf(src_x), roundf(src_y));
                 for(uint32_t c = 0; c < bytes_per_pixel; ++c){ dst_ptr[c] = src_ptr[c]; }
-                
-//                if(scale_x < 1.f || scale_y < 1.f)
-//                {
-//                    for(uint32_t c = 0; c < bytes_per_pixel; ++c)
-//                    {
-////                        dst_ptr[c] = src_ptr[c];
-//                    }
-//                }
             }
         }
         return ret;
     }
     
-    void Image::convolve(const std::vector<float> &the_kernel)
+    ImagePtr Image::convolve(const std::vector<float> &the_kernel)
     {
-//        for(uint32_t i = 0; i < height / 2; i++)
+        ImagePtr ret;
+        int kernel_dim = sqrt(the_kernel.size());
+        int kernel_dim_2 = kernel_dim / 2;
+        
+        if(kernel_dim * kernel_dim != the_kernel.size())
+        {
+            LOG_WARNING << "only quadratic kernels accepted";
+            return ret;
+        }
+        ret = Image::create(width, height, bytes_per_pixel);
+        
+        for(uint32_t y = 0; y < height; ++y)
+        {
+            for(uint32_t x = 0; x < width; ++x)
+            {
+                uint8_t* dst_ptr = ret->at(x, y);
+                
+                for(uint32_t c = 0; c < bytes_per_pixel; ++c)
+                {
+                    float sum = 0;
+                    int k_idx = 0;
+                    for(int k = -kernel_dim_2; k < kernel_dim_2; ++k)
+                        for(int l = -kernel_dim_2; l < kernel_dim_2; ++l, ++k_idx)
+                        {
+                            int pos_x = x + k, pos_y = y + l;
+                            if(pos_x < 0 || pos_x >= width || pos_y < 0 || pos_x >= height)
+                            { sum += at(x, y)[c] / (float)the_kernel.size(); }
+                            else{ sum += at(pos_x, pos_y)[c] * the_kernel[k_idx]; }
+                        }
+                    dst_ptr[c] = clamp<float>(roundf(sum), 0, 255);
+                }
+            }
+        }
+        return ret;
     }
 }

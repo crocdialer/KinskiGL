@@ -55,17 +55,17 @@ namespace kinski
         }
         else if(theProperty == m_position_x || theProperty == m_position_y || theProperty == m_position_z)
         {
-            active_object->setPosition(glm::vec3(m_position_x->value(),
+            active_object->set_position(glm::vec3(m_position_x->value(),
                                                  m_position_y->value(),
                                                  m_position_z->value()));
         }
         else if(theProperty == m_scale)
         {
-            active_object->setScale(*m_scale);
+            active_object->set_scale(*m_scale);
         }
         else if(theProperty == m_rotation)
         {
-            active_object->setRotation(*m_rotation);
+            active_object->set_rotation(*m_rotation);
         }
     }
     

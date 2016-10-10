@@ -113,7 +113,7 @@ namespace kinski { namespace gl {
        
         void compute_distances()
         {
-            // Pass 1
+            // 1st pass
             for (uint32_t y = 0; y < m_height ; ++y)
             {
                 for (uint32_t x = 0; x < m_width; ++x)
@@ -134,7 +134,7 @@ namespace kinski { namespace gl {
                 }
             }
             
-            // Pass 2
+            // 2nd pass
             for (int y = m_height - 1; y >=0 ; --y)
             {
                 for (int x = m_width - 1; x >= 0; --x)
@@ -165,7 +165,7 @@ namespace kinski { namespace gl {
     };
     typedef Grid_<gl::vec2> Grid;
     
-    ImagePtr compute_distance_field(ImagePtr the_img, float limit)
+    ImagePtr compute_distance_field(ImagePtr the_img, float spread)
     {
         if(!the_img || the_img->bytes_per_pixel > 1){ return nullptr; }
         
@@ -185,10 +185,8 @@ namespace kinski { namespace gl {
         grid1.compute_distances();
         grid2.compute_distances();
         
-        // TODO: gather result
+        // gather result
         ImagePtr ret = Image::create(the_img->width, the_img->height);
-        
-//        std::vector<float> distances;
         
         for(uint32_t y = 0; y < ret->height; ++y)
             for(uint32_t x = 0; x < ret->width; ++x)
@@ -197,19 +195,10 @@ namespace kinski { namespace gl {
                 float dist1 = glm::length(grid1.at(x, y));
                 float dist2 = glm::length(grid2.at(x, y));
                 float dist = dist2 - dist1;
-//                distances.push_back(dist);
                 
                 // quantize distance
-                uint8_t val = roundf(map_value<float>(dist, 3 * limit, -limit, 0, 255));
-                
-                //
-                *(ret->data + x + y * ret->width) = val;
+                *ret->at(x, y) = roundf(map_value<float>(dist, 3 * spread, -spread, 0, 255));
             }
-        
-//        float min = *std::min_element(distances.begin(), distances.end());
-//        float max = *std::max_element(distances.begin(), distances.end());
-//        
-//        LOG_INFO << min << " - " << max;
         return ret;
     }
     
@@ -226,13 +215,13 @@ namespace kinski { namespace gl {
     struct Font::Obj
     {
         std::string path;
-//        stbtt_bakedchar char_data[1024];
         stbtt_packedchar char_data[1024];
         uint32_t font_height;
         uint32_t line_height;
         uint32_t bitmap_width, bitmap_height;
         uint8_t* data;
         Texture texture, sdf_texture;
+        bool use_sdf;
         
         // how many string meshes are buffered at max
         size_t max_mesh_buffer_size;
@@ -243,6 +232,7 @@ namespace kinski { namespace gl {
             data = new uint8_t[bitmap_width * bitmap_height];
             font_height = 64;
             line_height = 70;
+            use_sdf = false;
         }
         ~Obj()
         {
@@ -276,7 +266,12 @@ namespace kinski { namespace gl {
         return m_obj->line_height;
     }
     
-    void Font::load(const std::string &thePath, size_t theSize, size_t line_height)
+    void Font::set_line_height(uint32_t the_line_height)
+    {
+        m_obj->line_height = the_line_height;
+    }
+    
+    void Font::load(const std::string &thePath, size_t theSize, bool use_sdf)
     {
         //TODO: check extension
         try
@@ -286,7 +281,8 @@ namespace kinski { namespace gl {
             m_obj->path = p;
             m_obj->string_mesh_map.clear();
             m_obj->font_height = theSize;
-            m_obj->line_height = line_height > 0 ? line_height : theSize;
+            m_obj->line_height = theSize;
+            m_obj->use_sdf = use_sdf;
             
             //TODO: rect pack here
             stbtt_pack_context spc;
@@ -300,21 +296,18 @@ namespace kinski { namespace gl {
             
             stbtt_PackEnd(&spc);
             
-//            stbtt_BakeFontBitmap(&font_file[0], stbtt_GetFontOffsetForIndex(&font_file[0], 0),
-//                                 m_obj->font_height, m_obj->data, m_obj->bitmap_width,
-//                                 m_obj->bitmap_height, 32, 768, m_obj->char_data);
-            
             // signed distance field
-            auto img = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, true);
-            auto dist_img = compute_distance_field(img, 5);
-            
-//            save_image_to_file(img->resize(1024, 1024), "/Users/Fabian/glyph.png");
-//            save_image_to_file(dist_img->resize(1024, 1024), "/Users/Fabian/glyph_dist_sz.png");
-            
+            if(use_sdf)
+            {
+                auto img = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, true);
+                auto dist_img = compute_distance_field(img, 8);
+                dist_img = dist_img->resize(1024, 1024);
+                m_obj->sdf_texture = create_texture_from_image(dist_img, true);
+//                save_image_to_file(img->resize(1024, 1024), "/Users/Fabian/glyph.png");
+//                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
+            }
 //            m_obj->texture = create_texture_from_image(img, true);
 //            m_obj->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
-            
-//            m_obj->sdf_texture = create_texture_from_image(dist_img, true);
 //            m_obj->sdf_texture = create_texture_from_file("/Users/Fabian/glyph_dist.png");
             
             // create RGBA data
@@ -433,7 +426,7 @@ namespace kinski { namespace gl {
         if(m_obj->string_mesh_map.find(theText) != m_obj->string_mesh_map.end())
         {
             mesh_iter->second.counter++;
-            mesh_iter->second.mesh->setTransform(mat4());
+            mesh_iter->second.mesh->set_transform(mat4());
             return mesh_iter->second.mesh;
         }
         
@@ -442,14 +435,17 @@ namespace kinski { namespace gl {
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat = gl::Material::create();
         mat->setDiffuse(theColor);
-        mat->addTexture(m_obj->texture);
-        
-//        mat->setShader(gl::create_shader(ShaderType::SDF_FONT));
-//        mat->addTexture(m_obj->sdf_texture);
-//        mat->uniform("u_buffer", 0.74f);
-//        mat->uniform("u_gamma", 0.071f);
-        
         mat->setBlending(true);
+        
+        if(m_obj->use_sdf)
+        {
+            mat->setShader(gl::create_shader(ShaderType::SDF_FONT));
+            mat->addTexture(m_obj->sdf_texture);
+            mat->uniform("u_buffer", 0.74f);
+            mat->uniform("u_gamma", 0.071f);
+        }
+        else{ mat->addTexture(m_obj->texture); }
+        
         MeshPtr ret = gl::Mesh::create(geom, mat);
         ret->entries().clear();
         
@@ -622,7 +618,7 @@ namespace kinski { namespace gl {
                     break;
             }
             
-            line_mesh->setPosition(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
+            line_mesh->set_position(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
             
 //            line_mesh->material() = mat;
             

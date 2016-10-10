@@ -33,30 +33,30 @@ namespace kinski { namespace gl {
         return m_tags.find(the_tag) != m_tags.end();
     }
     
-    void Object3D::setRotation(const glm::quat &theRot)
+    void Object3D::set_rotation(const glm::quat &theRot)
     {
         glm::vec3 pos_tmp(position()), scale_tmp(scale());
         m_transform = glm::mat4_cast(theRot);
-        setPosition(pos_tmp);
-        setScale(scale_tmp);
+        set_position(pos_tmp);
+        set_scale(scale_tmp);
     }
     
-    void Object3D::setRotation(const glm::mat3 &theRot)
+    void Object3D::set_rotation(const glm::mat3 &theRot)
     {
         glm::vec3 pos_tmp(position()), scale_tmp(scale());
         m_transform = glm::mat4(theRot);
-        setPosition(pos_tmp);
-        setScale(scale_tmp);
+        set_position(pos_tmp);
+        set_scale(scale_tmp);
     }
     
-    void Object3D::setRotation(float pitch, float yaw, float roll)
+    void Object3D::set_rotation(float pitch, float yaw, float roll)
     {
         glm::vec3 pos_tmp(position()), scale_tmp(scale());
         m_transform = glm::mat4_cast(glm::quat(glm::vec3(glm::radians(pitch),
                                                          glm::radians(yaw),
                                                          glm::radians(roll))));
-        setPosition(pos_tmp);
-        setScale(scale_tmp);
+        set_position(pos_tmp);
+        set_scale(scale_tmp);
     }
     
     glm::quat Object3D::rotation() const
@@ -64,17 +64,17 @@ namespace kinski { namespace gl {
         return glm::normalize(glm::quat_cast(m_transform));
     }
     
-    void Object3D::setLookAt(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
+    void Object3D::set_look_at(const glm::vec3 &theLookAt, const glm::vec3 &theUp)
     {
-        setTransform( glm::inverse(glm::lookAt(position(), theLookAt, theUp)) * glm::scale(mat4(), scale()));
+        set_transform(glm::inverse(glm::lookAt(position(), theLookAt, theUp)) * glm::scale(mat4(), scale()));
     }
     
-    void Object3D::setLookAt(const Object3DPtr &theLookAt)
+    void Object3D::set_look_at(const Object3DPtr &theLookAt)
     {
-        setLookAt(-theLookAt->position() + position(), theLookAt->up());
+        set_look_at(-theLookAt->position() + position(), theLookAt->up());
     }
     
-    void Object3D::setScale(const glm::vec3 &s)
+    void Object3D::set_scale(const glm::vec3 &s)
     {
         glm::vec3 scale_vec = s / scale();
         m_transform = glm::scale(m_transform, scale_vec);

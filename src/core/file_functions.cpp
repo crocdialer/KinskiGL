@@ -57,7 +57,7 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void add_search_path(const std::string &thePath, bool recursive)
+    void add_search_path(const std::string &thePath, int the_recursion_depth)
     {
         boost::filesystem::path path_expanded (expand_user(thePath));
         
@@ -67,7 +67,7 @@ namespace kinski { namespace fs{
             return;
         }
 
-        if(recursive)
+        if(the_recursion_depth)
         {
             g_searchPaths.insert(get_directory_part(path_expanded.string()));
             recursive_directory_iterator it;
@@ -114,7 +114,7 @@ namespace kinski { namespace fs{
 ///////////////////////////////////////////////////////////////////////////////
     
     list<string> get_directory_entries(const std::string &thePath, const std::string &theExtension,
-                                       bool recursive)
+                                       int the_recursion_depth)
     {
         list<string> ret;
         path p (expand_user(thePath));
@@ -123,7 +123,7 @@ namespace kinski { namespace fs{
         {
             if (exists(p))    // does p actually exist?
             {
-                if(recursive)
+                if(the_recursion_depth)
                 {
                     recursive_directory_iterator it(p), end;
                     while(it != end)
@@ -195,9 +195,9 @@ namespace kinski { namespace fs{
 ///////////////////////////////////////////////////////////////////////////////
     
     std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
-                                            bool recursive)
+                                            int the_recursion_depth)
     {
-        auto ret = get_directory_entries(thePath, "", recursive);
+        auto ret = get_directory_entries(thePath, "", the_recursion_depth);
         ret.erase(std::remove_if(ret.begin(), ret.end(), [the_type](const std::string &f)
         {
             return get_file_type(f) != the_type;

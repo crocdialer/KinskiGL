@@ -316,7 +316,7 @@ namespace kinski { namespace gl {
         geom->computeBoundingBox();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
-        m->setTransform(cam->transform());
+        m->set_transform(cam->transform());
         return m;
     }
 
@@ -341,7 +341,7 @@ namespace kinski { namespace gl {
             cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
                                                 1.f, far_clip);
         }
-        cam->setTransform(the_light->global_transform());
+        cam->set_transform(the_light->global_transform());
         return cam;
     }
 
@@ -699,7 +699,7 @@ namespace kinski { namespace gl {
             geom->computeBoundingBox();
             geom->computeTangents();
             quad_mesh = gl::Mesh::create(geom, Material::create());
-            quad_mesh->setPosition(glm::vec3(0.5f, 0.5f , 0.f));
+            quad_mesh->set_position(glm::vec3(0.5f, 0.5f , 0.f));
         }
         quad_mesh->geometry()->setPrimitiveType(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
         quad_mesh->material() = theMaterial;
@@ -729,7 +729,7 @@ namespace kinski { namespace gl {
         
         m->material()->setDiffuse(the_color);
         m->material()->setDepthTest(false);
-        m->setPosition(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
+        m->set_position(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
                                  m->geometry()->boundingBox().height(), 0.f));
         gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());

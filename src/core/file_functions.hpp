@@ -19,14 +19,14 @@ namespace kinski { namespace fs {
     
     // manage known file locations
     const std::set<std::string>& get_search_paths();
-    void add_search_path(const std::string &thePath, bool recursive = false);
+    void add_search_path(const std::string &thePath, int the_recursion_depth = 0);
     void clear_search_paths();
     
     std::list<std::string> get_directory_entries(const std::string &thePath,
                                                  const std::string &theExtension = "",
-                                                 bool recursive = false);
+                                                 int the_recursion_depth = 0);
     std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
-                                            bool recursive = false);
+                                            int the_recursion_depth = 0);
     
     bool exists(const std::string &the_file_name);
     bool is_url(const std::string &the_file_name);

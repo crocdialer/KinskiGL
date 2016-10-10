@@ -25,7 +25,7 @@ namespace kinski { namespace gl {
         
         Font();
         
-        void load(const std::string &the_path, size_t the_size, size_t line_height = 0);
+        void load(const std::string &the_path, size_t the_size, bool use_sdf = false);
         const std::string path() const;
         Texture glyph_texture() const;
         
@@ -35,6 +35,7 @@ namespace kinski { namespace gl {
                                         Align the_align = Align::LEFT) const;
         uint32_t font_size() const;
         uint32_t line_height() const;
+        void set_line_height(uint32_t the_line_height);
         
     private:
         // forward declared Implementation object

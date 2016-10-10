@@ -39,28 +39,28 @@ namespace kinski { namespace gl {
         void set_enabled(bool b = true){m_enabled = b;}
         bool billboard() const {return m_billboard;};
         void set_billboard(bool b) {m_billboard = b;}
-        inline void setPosition(const vec3 &thePos) { position() = thePos; };
+        inline void set_position(const vec3 &thePos) { position() = thePos; };
         inline vec3 position() const {return m_transform[3].xyz(); }
         inline vec3& position() {return *reinterpret_cast<vec3*>(&m_transform[3].x);}
         inline vec3 lookAt() const {return normalize(-m_transform[2].xyz());}
         inline vec3 side() const {return normalize(m_transform[0].xyz());}
         inline vec3 up() const {return normalize(m_transform[1].xyz());}
-        void setRotation(const quat &theRot);
-        void setRotation(const mat3 &theRot);
-        void setRotation(float pitch, float yaw, float roll);
+        void set_rotation(const quat &theRot);
+        void set_rotation(const mat3 &theRot);
+        void set_rotation(float pitch, float yaw, float roll);
         quat rotation() const;
         
         inline vec3 scale(){return vec3(length(m_transform[0]),
                                         length(m_transform[1]),
                                         length(m_transform[2]));};
 
-        void setScale(const vec3 &s);
-        inline void setScale(float s){setScale(vec3(s));}
+        void set_scale(const vec3 &s);
+        inline void set_scale(float s){set_scale(vec3(s));}
         
-        void setLookAt(const vec3 &theLookAt, const vec3 &theUp = vec3(0, 1, 0));
-        void setLookAt(const Object3DPtr &theLookAt);
+        void set_look_at(const vec3 &theLookAt, const vec3 &theUp = vec3(0, 1, 0));
+        void set_look_at(const Object3DPtr &theLookAt);
         
-        inline void setTransform(const mat4 &theTrans) {m_transform = theTrans;}
+        inline void set_transform(const mat4 &theTrans) {m_transform = theTrans;}
         inline mat4& transform() {return m_transform;}
         inline const mat4& transform() const {return m_transform;};
         
