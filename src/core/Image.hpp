@@ -58,6 +58,7 @@ namespace kinski
         //! kernel is interpreted col-major
         ImagePtr convolve(const std::vector<float> &the_kernel);
         
+        ImagePtr blur();
         void flip();
         
         Image(const Image &the_other);

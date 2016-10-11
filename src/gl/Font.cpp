@@ -287,20 +287,19 @@ namespace kinski { namespace gl {
             //TODO: rect pack here
             stbtt_pack_context spc;
             stbtt_PackBegin(&spc, m_obj->data, m_obj->bitmap_width,
-                            m_obj->bitmap_height, 0, 4 /*padding*/, nullptr);
+                            m_obj->bitmap_height, 0, 6 /*padding*/, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
             int num_chars = 768;
             stbtt_PackFontRange(&spc, &font_file[0], 0,
                                 m_obj->font_height, 32, num_chars, m_obj->char_data);
-            
             stbtt_PackEnd(&spc);
             
             // signed distance field
             if(use_sdf)
             {
                 auto img = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, true);
-                auto dist_img = compute_distance_field(img, 8);
+                auto dist_img = compute_distance_field(img, 4);
                 dist_img = dist_img->resize(1024, 1024);
                 m_obj->sdf_texture = create_texture_from_image(dist_img, true);
 //                save_image_to_file(img->resize(1024, 1024), "/Users/Fabian/glyph.png");
