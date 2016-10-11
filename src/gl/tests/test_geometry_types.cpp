@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE( test_scale )
     BOOST_CHECK_CLOSE(scale.y, 3.f, 0.0001f);
     BOOST_CHECK_CLOSE(scale.z, 4.f, 0.0001f);
 
-    test_object->setScale(glm::vec3(5));
+    test_object->set_scale(glm::vec3(5));
     scale = test_object->scale();
     BOOST_CHECK_CLOSE(scale.x, 5.f, 0.0001f);
     BOOST_CHECK_CLOSE(scale.y, 5.f, 0.0001f);

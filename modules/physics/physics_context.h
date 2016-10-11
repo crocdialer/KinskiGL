@@ -141,7 +141,7 @@ namespace kinski{ namespace physics{
             glm::mat4 transform;
             m_graphicsWorldTrans.getOpenGLMatrix(&transform[0][0]);
             transform = glm::scale(transform, m_object->scale());
-            m_object->setTransform(transform);
+            m_object->set_transform(transform);
         }
     };
     

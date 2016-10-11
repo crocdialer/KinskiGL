@@ -291,7 +291,7 @@ namespace kinski{namespace physics{
             auto m = gl::Mesh::create(outer_geom, gl::Material::create());
             m->entries() = {e0, e1};
             m->materials().push_back(inner_mat);
-            m->setPosition(curVoronoiPoint + type_cast(com));
+            m->set_position(curVoronoiPoint + type_cast(com));
 //            m->transform() *= glm::scale(mat4(), vec3(scale_val));
             
             // compute projected texcoords (outside)

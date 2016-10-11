@@ -246,7 +246,7 @@ namespace kinski
                         for(int l = -kernel_dim_2; l < kernel_dim_2; ++l, ++k_idx)
                         {
                             int pos_x = x + k, pos_y = y + l;
-                            if(pos_x < 0 || pos_x >= width || pos_y < 0 || pos_x >= height)
+                            if(pos_x < 0 || pos_x >= (int)width || pos_y < 0 || pos_x >= (int)height)
                             { sum += at(x, y)[c] / (float)norm_kernel.size(); }
                             else{ sum += at(pos_x, pos_y)[c] * norm_kernel[k_idx]; }
                         }
