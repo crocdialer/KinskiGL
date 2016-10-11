@@ -65,14 +65,14 @@ namespace kinski { namespace gl{
         
         if(aMesh->HasTextureCoords(0))
         {
-            geom->texCoords().reserve(aMesh->mNumVertices);
+            geom->tex_coords().reserve(aMesh->mNumVertices);
             for (uint32_t i = 0; i < aMesh->mNumVertices; i++)
             {
-                geom->appendTextCoord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
+                geom->append_tex_coord(aMesh->mTextureCoords[0][i].x, aMesh->mTextureCoords[0][i].y);
             }
         }else
         {
-            geom->texCoords().resize(aMesh->mNumVertices, vec2(0));
+            geom->tex_coords().resize(aMesh->mNumVertices, vec2(0));
         }
         
         std::vector<uint32_t> &indices = geom->indices(); indices.reserve(aMesh->mNumFaces * 3);
@@ -93,7 +93,7 @@ namespace kinski { namespace gl{
         }
         else
         {
-            geom->computeVertexNormals();
+            geom->compute_vertex_normals();
         }
         
         if(aMesh->HasVertexColors(0))//TODO: test
@@ -112,9 +112,9 @@ namespace kinski { namespace gl{
         else
         {
             // compute tangents
-            geom->computeTangents();
+            geom->compute_tangents();
         }
-        geom->computeBoundingBox();
+        geom->compute_bounding_box();
         return geom;
     }
 
@@ -157,11 +157,11 @@ namespace kinski { namespace gl{
         if(weightmap.empty()) return;
         
         // allocate storage for indices and weights
-        geom->boneVertexData().resize(geom->vertices().size());
+        geom->bone_vertex_data().resize(geom->vertices().size());
         
         for (WeightMap::const_iterator it = weightmap.begin(); it != weightmap.end(); ++it)
         {
-            gl::BoneVertexData &boneData = geom->boneVertexData()[it->first + start_index];
+            gl::BoneVertexData &boneData = geom->bone_vertex_data()[it->first + start_index];
             uint32_t i = 0, max_num_weights = boneData.indices.length();
             
             list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
@@ -271,14 +271,14 @@ namespace kinski { namespace gl{
     
     void mergeGeometries(GeometryPtr src, GeometryPtr dst)
     {
-        dst->appendVertices(src->vertices());
-        dst->appendNormals(src->normals());
-        dst->appendColors(src->colors());
+        dst->append_vertices(src->vertices());
+        dst->append_normals(src->normals());
+        dst->append_colors(src->colors());
         dst->tangents().insert(dst->tangents().end(), src->tangents().begin(), src->tangents().end());
-        dst->appendTextCoords(src->texCoords());
-        dst->appendIndices(src->indices());
-        dst->boneVertexData().insert(dst->boneVertexData().end(), src->boneVertexData().begin(),
-                                     src->boneVertexData().end());
+        dst->append_tex_coords(src->tex_coords());
+        dst->append_indices(src->indices());
+        dst->bone_vertex_data().insert(dst->bone_vertex_data().end(), src->bone_vertex_data().begin(),
+                                     src->bone_vertex_data().end());
         dst->faces().insert(dst->faces().end(), src->faces().begin(), src->faces().end());
     }
 
@@ -334,7 +334,7 @@ namespace kinski { namespace gl{
                 mergeGeometries(g, combined_geom);
                 materials[aMesh->mMaterialIndex] = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             }
-            combined_geom->computeBoundingBox();
+            combined_geom->compute_bounding_box();
             
             // insert colors, if not present
             combined_geom->colors().resize(combined_geom->vertices().size(), gl::COLOR_WHITE);
@@ -364,7 +364,7 @@ namespace kinski { namespace gl{
             
             try
             {
-                if(geom->hasBones())
+                if(geom->has_bones())
                 {
 //                    shader = gl::create_shader(gl::ShaderType::PHONG_SKIN);
                     sh_type = gl::ShaderType::PHONG_SKIN;

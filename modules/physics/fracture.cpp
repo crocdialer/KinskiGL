@@ -270,21 +270,21 @@ namespace kinski{namespace physics{
             auto inner_geom = gl::Geometry::create(), outer_geom = gl::Geometry::create();
             
             // append verts and indices
-            outer_geom->appendFaces(outer_faces);
+            outer_geom->append_faces(outer_faces);
             outer_geom->vertices() = outer_vertices;
-            outer_geom->computeFaceNormals();
+            outer_geom->compute_face_normals();
             
-            inner_geom->appendFaces(inner_faces);
-            inner_geom->appendVertices(inner_vertices);
-            inner_geom->computeFaceNormals();
+            inner_geom->append_faces(inner_faces);
+            inner_geom->append_vertices(inner_vertices);
+            inner_geom->compute_face_normals();
             
             // merge geometries
-            outer_geom->appendVertices(inner_geom->vertices());
-            outer_geom->appendNormals(inner_geom->normals());
-            outer_geom->appendIndices(inner_geom->indices());
+            outer_geom->append_vertices(inner_geom->vertices());
+            outer_geom->append_normals(inner_geom->normals());
+            outer_geom->append_indices(inner_geom->indices());
             outer_geom->faces().insert(outer_geom->faces().end(),
                                        inner_geom->faces().begin(), inner_geom->faces().end());
-            outer_geom->computeBoundingBox();
+            outer_geom->compute_bounding_box();
             
             auto inner_mat = gl::Material::create();
             

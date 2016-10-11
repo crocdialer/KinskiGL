@@ -44,10 +44,10 @@ namespace kinski{ namespace gl{
         if(m_mesh)
         {
             auto &geom = m_mesh->geometry();
-            geom->createGLBuffers();
+            geom->create_gl_buffers();
             the_mesh->create_vertex_attribs();
             
-            m_contraints_aabb = geom->boundingBox();
+            m_contraints_aabb = geom->bounding_box();
             
             try
             {
@@ -55,43 +55,43 @@ namespace kinski{ namespace gl{
                 if(!geom->vertices().empty())
                 {                
                     m_vertices = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
-                                              geom->vertexBuffer().id());
+                                              geom->vertex_buffer().id());
                 }
                 
-                if(geom->hasColors())
+                if(geom->has_colors())
                 {
                     m_colors = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
-                                            geom->colorBuffer().id());
+                                            geom->color_buffer().id());
                 }
-                if(geom->hasNormals())
+                if(geom->has_normals())
                 {
                     m_normals = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
-                                             geom->normalBuffer().id());
+                                             geom->normal_buffer().id());
                 }
-                if(geom->hasTexCoords())
+                if(geom->has_tex_coords())
                 {
                     m_texCoords = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
-                                               geom->texCoordBuffer().id());
+                                               geom->tex_coord_buffer().id());
                 }
-                if(geom->hasPointSizes())
+                if(geom->has_point_sizes())
                 {
                     m_pointSizes = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
-                                                geom->pointSizeBuffer().id());
+                                                geom->point_size_buffer().id());
                 }
                 
                 //////////////// create the OpenCL only arrays //////////////////
                 
                 // combined velocity / life array
                 m_velocities = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                          geom->vertexBuffer().num_bytes());
+                                          geom->vertex_buffer().num_bytes());
                 
                 // spawn positions
                 m_positionGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                           geom->vertexBuffer().num_bytes() );
+                                           geom->vertex_buffer().num_bytes() );
                 
                 
                 m_velocityGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                           geom->vertexBuffer().num_bytes());
+                                           geom->vertex_buffer().num_bytes());
                 
                 
                 // reserve memory for 200 forces, seems enough
@@ -111,17 +111,17 @@ namespace kinski{ namespace gl{
                 }
                 
                 // all buffer are holding vec4s and have same size in bytes
-                int num_bytes = geom->vertexBuffer().num_bytes();
+                int num_bytes = geom->vertex_buffer().num_bytes();
                 
                 m_opencl.queue().enqueueWriteBuffer(m_velocities, CL_TRUE, 0, num_bytes, &velGen[0]);
                 m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_bytes, &velGen[0]);
                 
                 // generate spawn positions from original positions
-                uint8_t *vert_buf = geom->vertexBuffer().map();
+                uint8_t *vert_buf = geom->vertex_buffer().map();
                 m_opencl.queue().enqueueWriteBuffer(m_positionGen, CL_TRUE, 0,
-                                                    geom->vertexBuffer().num_bytes(),
+                                                    geom->vertex_buffer().num_bytes(),
                                                     vert_buf);
-                geom->vertexBuffer().unmap();
+                geom->vertex_buffer().unmap();
             }
             catch(cl::Error &error)
             {

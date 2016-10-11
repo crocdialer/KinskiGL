@@ -44,30 +44,30 @@ namespace kinski{ namespace physics{
         BulletDebugDrawer()
         {
             m_mesh_lines = gl::Mesh::create();
-            m_mesh_lines->geometry()->setPrimitiveType(GL_LINES);
+            m_mesh_lines->geometry()->set_primitive_type(GL_LINES);
             
             m_mesh_points = gl::Mesh::create();
             m_mesh_points->material()->set_shader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
             m_mesh_points->material()->set_point_size(5.f);
             m_mesh_points->material()->set_point_attenuation(1.f, 0.f, 0.05f);
-            m_mesh_points->geometry()->setPrimitiveType(GL_POINTS);
+            m_mesh_points->geometry()->set_primitive_type(GL_POINTS);
             
             setDebugMode(DBG_DrawWireframe /*| DBG_DrawContactPoints*/);
         };
         
         inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
         {
-            m_mesh_lines->geometry()->appendVertex(glm::vec3(from.x(), from.y(), from.z()));
-            m_mesh_lines->geometry()->appendVertex(glm::vec3(to.x(), to.y(), to.z()));
-            m_mesh_lines->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
-            m_mesh_lines->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh_lines->geometry()->append_vertex(glm::vec3(from.x(), from.y(), from.z()));
+            m_mesh_lines->geometry()->append_vertex(glm::vec3(to.x(), to.y(), to.z()));
+            m_mesh_lines->geometry()->append_color(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh_lines->geometry()->append_color(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
         }
         
         void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB,
                               btScalar distance, int lifeTime, const btVector3& color)
         {
-            m_mesh_points->geometry()->appendVertex(glm::vec3(PointOnB.x(), PointOnB.y(), PointOnB.z()));
-            m_mesh_points->geometry()->appendColor(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
+            m_mesh_points->geometry()->append_vertex(glm::vec3(PointOnB.x(), PointOnB.y(), PointOnB.z()));
+            m_mesh_points->geometry()->append_color(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
         }
         
         void reportErrorWarning(const char* warningString) { LOG_WARNING << warningString; }

@@ -28,6 +28,7 @@ namespace kinski { namespace gl {
         void load(const std::string &the_path, size_t the_size, bool use_sdf = false);
         const std::string path() const;
         Texture glyph_texture() const;
+        Texture sdf_texture() const;
         
         Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;
         gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;

@@ -20,15 +20,15 @@ using namespace std;
 namespace kinski{ namespace gl{
     
     Geometry::Geometry():
-    m_primitiveType(GL_TRIANGLES),
-    m_dirty_vertexBuffer(true),
-    m_dirty_normalBuffer(true),
-    m_dirty_texCoordBuffer(true),
-    m_dirty_colorBuffer(true),
-    m_dirty_tangentBuffer(true),
-    m_dirty_pointSizeBuffer(true),
-    m_dirty_indexBuffer(true),
-    m_dirty_boneBuffer(true)
+    m_primitive_type(GL_TRIANGLES),
+    m_dirty_vertex_buffer(true),
+    m_dirty_normal_buffer(true),
+    m_dirty_tex_coord_buffer(true),
+    m_dirty_color_buffer(true),
+    m_dirty_tangent_buffer(true),
+    m_dirty_point_size_buffer(true),
+    m_dirty_index_buffer(true),
+    m_dirty_bone_buffer(true)
     {
 
     }
@@ -38,12 +38,12 @@ namespace kinski{ namespace gl{
   
     }
 
-    void Geometry::computeBoundingBox()
+    void Geometry::compute_bounding_box()
     {
-        m_boundingBox = gl::calculate_AABB(m_vertices);
+        m_bounding_box = gl::calculate_AABB(m_vertices);
     }
     
-    void Geometry::computeFaceNormals()
+    void Geometry::compute_face_normals()
     {
         m_normals.resize(m_vertices.size());
         std::vector<Face3>::iterator it = m_faces.begin();
@@ -58,10 +58,10 @@ namespace kinski{ namespace gl{
         }
     }
     
-    void Geometry::computeVertexNormals()
+    void Geometry::compute_vertex_normals()
     {
         //mark gpu buffer as dirty
-        m_dirty_normalBuffer = true;
+        m_dirty_normal_buffer = true;
         
         if(m_faces.empty()) return;
 
@@ -99,12 +99,12 @@ namespace kinski{ namespace gl{
         }
     }
     
-    void Geometry::computeTangents()
+    void Geometry::compute_tangents()
     {
         if(m_faces.empty()) return;
-        if(m_texCoords.size() != m_vertices.size()) return;
+        if(m_tex_coords.size() != m_vertices.size()) return;
         
-        m_dirty_tangentBuffer = true;
+        m_dirty_tangent_buffer = true;
         vector<glm::vec3> tangents;
         if(m_tangents.size() != m_vertices.size())
         {
@@ -118,7 +118,7 @@ namespace kinski{ namespace gl{
         {
             Face3 &face = *faceIt;
             const glm::vec3 &v1 = m_vertices[face.a], &v2 = m_vertices[face.b], &v3 = m_vertices[face.c];
-            const glm::vec2 &w1 = m_texCoords[face.a], &w2 = m_texCoords[face.b], &w3 = m_texCoords[face.c];
+            const glm::vec2 &w1 = m_tex_coords[face.a], &w2 = m_tex_coords[face.b], &w3 = m_tex_coords[face.c];
 
             float x1 = v2.x - v1.x;
             float x2 = v3.x - v1.x;
@@ -157,116 +157,116 @@ namespace kinski{ namespace gl{
     
     bool Geometry::has_dirty_buffers() const
     {
-        return m_dirty_vertexBuffer ||
-            (hasIndices() && m_dirty_indexBuffer) ||
-            (hasNormals() && m_dirty_normalBuffer) ||
-            (hasColors() && m_dirty_colorBuffer) ||
-            (hasTexCoords() && m_dirty_texCoordBuffer) ||
-            (hasTangents() && m_dirty_tangentBuffer) ||
-            (hasTexCoords() && m_dirty_texCoordBuffer) ||
-            (hasPointSizes() && m_dirty_pointSizeBuffer);
+        return m_dirty_vertex_buffer ||
+            (has_indices() && m_dirty_index_buffer) ||
+            (has_normals() && m_dirty_normal_buffer) ||
+            (has_colors() && m_dirty_color_buffer) ||
+            (has_tex_coords() && m_dirty_tex_coord_buffer) ||
+            (has_tangents() && m_dirty_tangent_buffer) ||
+            (has_tex_coords() && m_dirty_tex_coord_buffer) ||
+            (has_point_sizes() && m_dirty_point_size_buffer);
         
     }
     
-    void Geometry::createGLBuffers()
+    void Geometry::create_gl_buffers()
     {
-        if(m_dirty_vertexBuffer && !m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
+        if(m_dirty_vertex_buffer && !m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
         {
-            //m_vertexBuffer.set_data(m_vertices);
-            m_vertexBuffer.set_data(NULL, m_vertices.size() * sizeof(glm::vec4));
-            m_vertexBuffer.set_stride(sizeof(glm::vec4));
+            //m_vertex_buffer.set_data(m_vertices);
+            m_vertex_buffer.set_data(NULL, m_vertices.size() * sizeof(glm::vec4));
+            m_vertex_buffer.set_stride(sizeof(glm::vec4));
             
-            glm::vec4 *buf_ptr = (glm::vec4*) m_vertexBuffer.map();
+            glm::vec4 *buf_ptr = (glm::vec4*) m_vertex_buffer.map();
             vector<glm::vec3>::const_iterator it = m_vertices.begin();
             for (; it != m_vertices.end(); ++buf_ptr, ++it)
             {
                 *buf_ptr = glm::vec4(*it, 1.f);
             }
-            m_vertexBuffer.unmap();
+            m_vertex_buffer.unmap();
             KINSKI_CHECK_GL_ERRORS();
             
-            m_dirty_vertexBuffer = false;
+            m_dirty_vertex_buffer = false;
         }
         
         // insert normals
-        if(m_dirty_normalBuffer && hasNormals())
+        if(m_dirty_normal_buffer && has_normals())
         {
-            m_normalBuffer.set_data(m_normals);
+            m_normal_buffer.set_data(m_normals);
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_normalBuffer = false;
+            m_dirty_normal_buffer = false;
         }
         
         // insert normals
-        if(m_dirty_texCoordBuffer && hasTexCoords())
+        if(m_dirty_tex_coord_buffer && has_tex_coords())
         {
-            m_texCoordBuffer.set_data(m_texCoords);
+            m_tex_coord_buffer.set_data(m_tex_coords);
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_texCoordBuffer = false;
+            m_dirty_tex_coord_buffer = false;
         }
         
         // insert tangents
-        if(m_dirty_tangentBuffer && hasTangents())
+        if(m_dirty_tangent_buffer && has_tangents())
         {
-            m_tangentBuffer.set_data(m_tangents);
+            m_tangent_buffer.set_data(m_tangents);
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_tangentBuffer = false;
+            m_dirty_tangent_buffer = false;
         }
         
         // insert point sizes
-        if(m_dirty_pointSizeBuffer && hasPointSizes())
+        if(m_dirty_point_size_buffer && has_point_sizes())
         {
-            m_pointSizeBuffer.set_data(m_point_sizes);
+            m_point_size_buffer.set_data(m_point_sizes);
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_pointSizeBuffer = false;
+            m_dirty_point_size_buffer = false;
         }
         
         // insert colors
-        if(m_dirty_colorBuffer && hasColors())
+        if(m_dirty_color_buffer && has_colors())
         {
-            m_colorBuffer.set_data(m_colors);
+            m_color_buffer.set_data(m_colors);
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_colorBuffer = false;
+            m_dirty_color_buffer = false;
         }
         
         // insert bone indices and weights
-        if(m_dirty_boneBuffer && hasBones())
+        if(m_dirty_bone_buffer &&has_bones())
         {
 #if !defined(KINSKI_GLES)
-            m_boneBuffer.set_data(m_boneVertexData);
-            m_boneBuffer.set_stride(sizeof(gl::BoneVertexData));
+            m_bone_buffer.set_data(m_bone_vertex_data);
+            m_bone_buffer.set_stride(sizeof(gl::BoneVertexData));
 #else
             // crunch bone-indices to floats
             size_t bone_stride = 2 * sizeof(glm::vec4);
-            m_boneBuffer.set_data(nullptr, m_boneVertexData.size() * bone_stride);
-            m_boneBuffer.set_stride(bone_stride);
-            glm::vec4 *buf_ptr = (glm::vec4*) m_boneBuffer.map();
+            m_bone_buffer.set_data(nullptr, m_bone_vertex_data.size() * bone_stride);
+            m_bone_buffer.set_stride(bone_stride);
+            glm::vec4 *buf_ptr = (glm::vec4*) m_bone_buffer.map();
             
-            for (const auto &b : m_boneVertexData)
+            for (const auto &b : m_bone_vertex_data)
             {
                 *buf_ptr++ = gl::vec4(b.indices);
                 *buf_ptr++ = b.weights;
             }
-            m_boneBuffer.unmap();
+            m_bone_buffer.unmap();
 #endif
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_boneBuffer = false;
+            m_dirty_bone_buffer = false;
         }
         
-        if(m_dirty_indexBuffer && hasIndices())
+        if(m_dirty_index_buffer && has_indices())
         {
             // index buffer
-            m_indexBuffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-            m_indexBuffer.set_data(NULL, m_indices.size() * sizeof(index_type));
+            m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+            m_index_buffer.set_data(NULL, m_indices.size() * sizeof(index_type));
             KINSKI_CHECK_GL_ERRORS();
-            index_type *indexPtr = (index_type*) m_indexBuffer.map();
+            index_type *indexPtr = (index_type*) m_index_buffer.map();
             KINSKI_CHECK_GL_ERRORS();
             
             // insert indices
             for (const auto &index : m_indices){ *indexPtr++ = index; }
             
-            m_indexBuffer.unmap();
+            m_index_buffer.unmap();
             KINSKI_CHECK_GL_ERRORS();
-            m_dirty_indexBuffer = false;
+            m_dirty_index_buffer = false;
         }
     }
     
@@ -282,7 +282,7 @@ namespace kinski{ namespace gl{
     
     /********************************* PRIMITIVES ****************************************/
     
-    Geometry::Ptr Geometry::createPlane(float width, float height,
+    Geometry::Ptr Geometry::create_plane(float width, float height,
                                         uint32_t numSegments_W , uint32_t numSegments_H)
     {
         GeometryPtr geom = Geometry::create();
@@ -302,9 +302,9 @@ namespace kinski{ namespace gl{
             {
                 float x = ix * segment_width - width_half;
                 float y = iz * segment_height - height_half;
-                geom->appendVertex( glm::vec3( x, - y, 0) );
-                geom->appendNormal(normal);
-                geom->appendTextCoord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
+                geom->append_vertex( glm::vec3( x, - y, 0) );
+                geom->append_normal(normal);
+                geom->append_tex_coord( ix / (float)gridX, (gridZ - iz) / (float)gridZ);
             }
         }
         
@@ -322,21 +322,21 @@ namespace kinski{ namespace gl{
                 uint32_t d = ( ix + 1 ) + gridX1 * iz;
                 
                 Face3 f1(a, b, c), f2(c, d, a);                
-                geom->appendFace(f1);
-                geom->appendFace(f2);
+                geom->append_face(f1);
+                geom->append_face(f2);
             }
         }
-        geom->computeTangents();
-        geom->computeBoundingBox();
+        geom->compute_tangents();
+        geom->compute_bounding_box();
         return geom;
     }
     
-    GeometryPtr Geometry::createSolidCircle(int numSegments, float the_radius)
+    GeometryPtr Geometry::create_solid_circle(int numSegments, float the_radius)
     {
         GeometryPtr ret = Geometry::create();
-        ret->setPrimitiveType(GL_TRIANGLE_FAN);
+        ret->set_primitive_type(GL_TRIANGLE_FAN);
         std::vector<glm::vec3> &verts = ret->vertices();
-        std::vector<glm::vec2> &texCoords = ret->texCoords();
+        std::vector<glm::vec2> &texCoords = ret->tex_coords();
         std::vector<glm::vec4> &colors = ret->colors();
         
         // automatically determine the number of segments from the circumference
@@ -355,18 +355,18 @@ namespace kinski{ namespace gl{
             verts[s + 1] = the_radius * unit_val;
             texCoords[s + 1] = (unit_val.xy() + glm::vec2(1)) / 2.f;
         }
-        ret->computeVertexNormals();
-        ret->computeTangents();
-        ret->computeBoundingBox();
+        ret->compute_vertex_normals();
+        ret->compute_tangents();
+        ret->compute_bounding_box();
         return ret;
     }
     
-    GeometryPtr Geometry::createCircle(int numSegments, float the_radius)
+    GeometryPtr Geometry::create_circle(int numSegments, float the_radius)
     {
         GeometryPtr ret = Geometry::create();
-        ret->setPrimitiveType(GL_LINE_STRIP);
+        ret->set_primitive_type(GL_LINE_STRIP);
         auto &verts = ret->vertices();
-        auto &texCoords = ret->texCoords();
+        auto &texCoords = ret->tex_coords();
         
         // automatically determine the number of segments from the circumference
         //        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
@@ -382,11 +382,11 @@ namespace kinski{ namespace gl{
             verts[s] = the_radius * unit_val;
             texCoords[s] = (unit_val.xy() + glm::vec2(1)) / 2.f;
         }
-        ret->computeBoundingBox();
+        ret->compute_bounding_box();
         return ret;
     }
     
-    Geometry::Ptr Geometry::createBox(const glm::vec3 &theHalfExtents)
+    Geometry::Ptr Geometry::create_box(const glm::vec3 &theHalfExtents)
     {
         GeometryPtr geom = Geometry::create();
         
@@ -487,23 +487,23 @@ namespace kinski{ namespace gl{
         vertexVec.push_back(vertices[7]); normalsVec.push_back(normals[5]);
         texCoordVec.push_back(texCoords[3]); colorVec.push_back(colors[5]);
         
-        geom->appendVertices(vertexVec);
-        geom->appendNormals(normalsVec);
-        geom->appendTextCoords(texCoordVec);
-        geom->appendColors(colorVec);
+        geom->append_vertices(vertexVec);
+        geom->append_normals(normalsVec);
+        geom->append_tex_coords(texCoordVec);
+        geom->append_colors(colorVec);
         
         for (int i = 0; i < 6; i++)
         {
-            geom->appendFace(i * 4 + 0, i * 4 + 1, i * 4 + 2);
-            geom->appendFace(i * 4 + 2, i * 4 + 3, i * 4 + 0);
+            geom->append_face(i * 4 + 0, i * 4 + 1, i * 4 + 2);
+            geom->append_face(i * 4 + 2, i * 4 + 3, i * 4 + 0);
         }
-        geom->computeTangents();
-        geom->createGLBuffers();
-        geom->computeBoundingBox();
+        geom->compute_tangents();
+        geom->create_gl_buffers();
+        geom->compute_bounding_box();
         return geom;
     }
     
-    Geometry::Ptr Geometry::createSphere(float radius, int numSlices)
+    Geometry::Ptr Geometry::create_sphere(float radius, int numSlices)
     {
         uint32_t rings = numSlices, sectors = numSlices;
         GeometryPtr geom = Geometry::create();
@@ -513,11 +513,11 @@ namespace kinski{ namespace gl{
         
         geom->vertices().resize(rings * sectors);
         geom->normals().resize(rings * sectors);
-        geom->texCoords().resize(rings * sectors);
+        geom->tex_coords().resize(rings * sectors);
         geom->colors().resize(rings * sectors, gl::COLOR_WHITE);
         std::vector<glm::vec3>::iterator v = geom->vertices().begin();
         std::vector<glm::vec3>::iterator n = geom->normals().begin();
-        std::vector<glm::vec2>::iterator t = geom->texCoords().begin();
+        std::vector<glm::vec2>::iterator t = geom->tex_coords().begin();
         for(r = 0; r < rings; r++)
             for(s = 0; s < sectors; s++, ++v, ++n, ++t)
             {
@@ -533,20 +533,20 @@ namespace kinski{ namespace gl{
         for(r = 0; r < rings-1; r++)
             for(s = 0; s < sectors-1; s++)
             {
-                geom->appendFace(r * sectors + s, (r+1) * sectors + (s+1), r * sectors + (s+1));
-                geom->appendFace(r * sectors + s, (r+1) * sectors + s, (r+1) * sectors + (s+1));
+                geom->append_face(r * sectors + s, (r+1) * sectors + (s+1), r * sectors + (s+1));
+                geom->append_face(r * sectors + s, (r+1) * sectors + s, (r+1) * sectors + (s+1));
             }
         
-        geom->computeTangents();
-        geom->createGLBuffers();
-        geom->computeBoundingBox();
+        geom->compute_tangents();
+        geom->create_gl_buffers();
+        geom->compute_bounding_box();
         return geom;
     }
     
-    GeometryPtr Geometry::createCone(float radius, float height, int numSegments)
+    GeometryPtr Geometry::create_cone(float radius, float height, int numSegments)
     {
         GeometryPtr ret = Geometry::create();
-        ret->setPrimitiveType(GL_TRIANGLES);
+        ret->set_primitive_type(GL_TRIANGLES);
         std::vector<glm::vec3> &verts = ret->vertices();
         
         verts.resize(numSegments + 2);
@@ -560,13 +560,13 @@ namespace kinski{ namespace gl{
             int next_index = (s + 1) > (numSegments + 1) ? (s + 1) % (numSegments + 1) + 1 : s + 1;
             
             //mantle
-            ret->appendFace(next_index, s, 1);
+            ret->append_face(next_index, s, 1);
             
             //bottom
-            ret->appendFace(s, next_index, 0);
+            ret->append_face(s, next_index, 0);
         }
-        ret->computeVertexNormals();
-        ret->computeBoundingBox();
+        ret->compute_vertex_normals();
+        ret->compute_bounding_box();
         return ret;
     }
     
@@ -574,11 +574,11 @@ namespace kinski{ namespace gl{
                                       uint32_t numSegments_H)
     {
         GeometryPtr ret = Geometry::create();
-        ret->setPrimitiveType(GL_LINES);
+        ret->set_primitive_type(GL_LINES);
         
         vector<vec3> &points = ret->vertices();
         vector<vec4> &colors = ret->colors();
-        vector<vec2> &tex_coords = ret->texCoords();
+        vector<vec2> &tex_coords = ret->tex_coords();
         
         float stepX = width / numSegments_W, stepZ = height / numSegments_H;
         float w2 = width / 2.f, h2 = height / 2.f;

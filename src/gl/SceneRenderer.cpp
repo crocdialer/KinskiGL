@@ -245,7 +245,7 @@ namespace kinski{ namespace gl{
                 // update uniform buffers for matrices and shadows
                 update_uniform_buffer_shadows(m->global_transform());
                 
-                if(m->geometry()->hasBones())
+                if(m->geometry()->has_bones())
                 {
                     mat->uniform("u_bones", m->boneMatrices());
                 }
@@ -287,7 +287,7 @@ namespace kinski{ namespace gl{
             
             KINSKI_CHECK_GL_ERRORS();
             
-            if(m->geometry()->hasIndices())
+            if(m->geometry()->has_indices())
             {
 #ifndef KINSKI_GLES
                 if(!m->entries().empty())
@@ -298,7 +298,7 @@ namespace kinski{ namespace gl{
                         if(!m->entries()[i].enabled) continue;
                         
                         uint32_t primitive_type = m->entries()[i].primitive_type;
-                        primitive_type = primitive_type ? : m->geometry()->primitiveType();
+                        primitive_type = primitive_type ? : m->geometry()->primitive_type();
                         
                         int mat_index = clamp<int>(m->entries()[i].material_index,
                                                    0,
@@ -318,14 +318,14 @@ namespace kinski{ namespace gl{
                 else
 #endif
                 {
-                    glDrawElements(m->geometry()->primitiveType(),
+                    glDrawElements(m->geometry()->primitive_type(),
                                    m->geometry()->indices().size(), m->geometry()->indexType(),
                                    BUFFER_OFFSET(0));
                 }
             }
             else
             {
-                glDrawArrays(m->geometry()->primitiveType(), 0,
+                glDrawArrays(m->geometry()->primitive_type(), 0,
                              m->geometry()->vertices().size());
             }
             KINSKI_CHECK_GL_ERRORS();

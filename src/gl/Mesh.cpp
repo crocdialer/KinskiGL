@@ -72,50 +72,50 @@ namespace kinski { namespace gl {
     void Mesh::create_vertex_attribs()
     {
         m_vertex_attribs.clear();
-        m_geometry->createGLBuffers();
+        m_geometry->create_gl_buffers();
 
-        VertexAttrib vertices(m_vertexLocationName, m_geometry->vertexBuffer());
+        VertexAttrib vertices(m_vertexLocationName, m_geometry->vertex_buffer());
         m_vertex_attribs.push_back(vertices);
 
-        if(m_geometry->hasTexCoords())
+        if(m_geometry->has_tex_coords())
         {
-            VertexAttrib tex_coords(m_texCoordLocationName, m_geometry->texCoordBuffer());
+            VertexAttrib tex_coords(m_texCoordLocationName, m_geometry->tex_coord_buffer());
             tex_coords.size = 2;
             m_vertex_attribs.push_back(tex_coords);
         }
 
-        if(m_geometry->hasColors())
+        if(m_geometry->has_colors())
         {
-            VertexAttrib colors(m_colorLocationName, m_geometry->colorBuffer());
+            VertexAttrib colors(m_colorLocationName, m_geometry->color_buffer());
             colors.size = 4;
             m_vertex_attribs.push_back(colors);
         }
 
-        if(m_geometry->hasNormals())
+        if(m_geometry->has_normals())
         {
-            VertexAttrib normals(m_normalLocationName, m_geometry->normalBuffer());
+            VertexAttrib normals(m_normalLocationName, m_geometry->normal_buffer());
             normals.size = 3;
             m_vertex_attribs.push_back(normals);
         }
 
-        if(m_geometry->hasTangents())
+        if(m_geometry->has_tangents())
         {
-            VertexAttrib tangents(m_tangentLocationName, m_geometry->tangentBuffer());
+            VertexAttrib tangents(m_tangentLocationName, m_geometry->tangent_buffer());
             tangents.size = 3;
             m_vertex_attribs.push_back(tangents);
         }
 
-        if(m_geometry->hasPointSizes())
+        if(m_geometry->has_point_sizes())
         {
-            VertexAttrib point_sizes(m_pointSizeLocationName, m_geometry->pointSizeBuffer());
+            VertexAttrib point_sizes(m_pointSizeLocationName, m_geometry->point_size_buffer());
             point_sizes.size = 1;
             m_vertex_attribs.push_back(point_sizes);
         }
 
-        if(m_geometry->hasBones())
+        if(m_geometry->has_bones())
         {
             // bone IDs
-            VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->boneBuffer());
+            VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->bone_buffer());
             bone_IDs.size = 4;
 #if !defined(KINSKI_GLES)
             bone_IDs.type = GL_INT;
@@ -125,7 +125,7 @@ namespace kinski { namespace gl {
             m_vertex_attribs.push_back(bone_IDs);
 
             // bone weights
-            VertexAttrib bone_weights(m_boneWeightsLocationName, m_geometry->boneBuffer());
+            VertexAttrib bone_weights(m_boneWeightsLocationName, m_geometry->bone_buffer());
             bone_weights.size = 4;
             bone_weights.type = GL_FLOAT;
             bone_weights.offset = sizeof(glm::ivec4);
@@ -175,7 +175,7 @@ namespace kinski { namespace gl {
         }
 
         // set standard values for some attribs, in case they're not defined
-        if(!m_geometry->hasColors())
+        if(!m_geometry->has_colors())
         {
             GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
             if(colorAttribLocation >= 0)
@@ -191,7 +191,7 @@ namespace kinski { namespace gl {
         //         glVertexAttrib2f(texCoordLocation, 0.f, 0.f);
         //     }
         // }
-        if(!m_geometry->hasPointSizes())
+        if(!m_geometry->has_point_sizes())
         {
             GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
             if(pointSizeAttribLocation >= 0)
@@ -201,8 +201,8 @@ namespace kinski { namespace gl {
         }
 
         // index buffer
-        if(m_geometry->hasIndices())
-            m_geometry->indexBuffer().bind();
+        if(m_geometry->has_indices())
+            m_geometry->index_buffer().bind();
     }
 
     void Mesh::update(float time_delta)
@@ -343,7 +343,7 @@ namespace kinski { namespace gl {
 
     AABB Mesh::boundingBox() const
     {
-        AABB ret = m_geometry->boundingBox();
+        AABB ret = m_geometry->bounding_box();
         mat4 global_trans = global_transform();
         ret.transform(global_trans);
 
@@ -356,7 +356,7 @@ namespace kinski { namespace gl {
 
     gl::OBB Mesh::obb() const
     {
-        gl::OBB ret(m_geometry->boundingBox(), global_transform());
+        gl::OBB ret(m_geometry->bounding_box(), global_transform());
         return ret;
     }
 

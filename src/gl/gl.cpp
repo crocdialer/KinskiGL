@@ -300,7 +300,7 @@ namespace kinski { namespace gl {
     {
         glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
         gl::GeometryPtr geom = Geometry::create();
-        geom->setPrimitiveType(GL_LINE_STRIP);
+        geom->set_primitive_type(GL_LINE_STRIP);
         const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
             vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
         const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
@@ -312,8 +312,8 @@ namespace kinski { namespace gl {
             geom->vertices().push_back(vec3(proj_v) / proj_v.w);
         }
         
-        geom->appendIndices(indices, num_indices);
-        geom->computeBoundingBox();
+        geom->append_indices(indices, num_indices);
+        geom->compute_bounding_box();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
         m->set_transform(cam->transform());
@@ -448,7 +448,7 @@ namespace kinski { namespace gl {
             mesh = gl::Mesh::create(geom, material);
             
             //mesh->geometry()->setPrimitiveType(GL_LINES_ADJACENCY);
-            mesh->geometry()->setPrimitiveType(GL_LINES);
+            mesh->geometry()->set_primitive_type(GL_LINES);
         }
         
         mesh->material() = (the_material ? the_material : material);
@@ -456,10 +456,10 @@ namespace kinski { namespace gl {
         mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->material()->set_line_width(line_thickness);
         
-        mesh->geometry()->appendVertices(thePoints);
+        mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
-        mesh->geometry()->texCoords().resize(thePoints.size(), gl::vec2(0));
-        mesh->geometry()->createGLBuffers();
+        mesh->geometry()->tex_coords().resize(thePoints.size(), gl::vec2(0));
+        mesh->geometry()->create_gl_buffers();
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
@@ -480,13 +480,13 @@ namespace kinski { namespace gl {
             mat->set_two_sided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
-            mesh->geometry()->setPrimitiveType(GL_LINE_STRIP);
+            mesh->geometry()->set_primitive_type(GL_LINE_STRIP);
         }
         mesh->material()->uniform("u_window_size", window_dimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
-        mesh->geometry()->appendVertices(thePoints);
+        mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);
-        mesh->geometry()->createGLBuffers();
+        mesh->geometry()->create_gl_buffers();
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
@@ -538,7 +538,7 @@ namespace kinski { namespace gl {
         if(!point_mesh)
         {
             point_mesh = gl::Mesh::create();
-            point_mesh->geometry()->setPrimitiveType(GL_POINTS);
+            point_mesh->geometry()->set_primitive_type(GL_POINTS);
         }
         
         point_mesh->material() = the_material;
@@ -546,7 +546,7 @@ namespace kinski { namespace gl {
         point_mesh->geometry()->vertices() = the_points;
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
         point_mesh->geometry()->point_sizes().resize(the_points.size(), 1.f);
-        point_mesh->geometry()->createGLBuffers();
+        point_mesh->geometry()->create_gl_buffers();
         gl::draw_mesh(point_mesh);
     }
     
@@ -690,18 +690,18 @@ namespace kinski { namespace gl {
             geom->vertices().push_back(glm::vec3(-0.5f, -0.5f, 0.f));
             geom->vertices().push_back(glm::vec3(0.5f, -0.5f, 0.f));
             geom->vertices().push_back(glm::vec3(0.5f, 0.5f, 0.f));
-            geom->texCoords().push_back(glm::vec2(0.f, 1.f));
-            geom->texCoords().push_back(glm::vec2(0.f, 0.f));
-            geom->texCoords().push_back(glm::vec2(1.f, 0.f));
-            geom->texCoords().push_back(glm::vec2(1.f, 1.f));
+            geom->tex_coords().push_back(glm::vec2(0.f, 1.f));
+            geom->tex_coords().push_back(glm::vec2(0.f, 0.f));
+            geom->tex_coords().push_back(glm::vec2(1.f, 0.f));
+            geom->tex_coords().push_back(glm::vec2(1.f, 1.f));
             geom->colors().assign(4, glm::vec4(1.f));
             geom->normals().assign(4, glm::vec3(0, 0, 1));
-            geom->computeBoundingBox();
-            geom->computeTangents();
+            geom->compute_bounding_box();
+            geom->compute_tangents();
             quad_mesh = gl::Mesh::create(geom, Material::create());
             quad_mesh->set_position(glm::vec3(0.5f, 0.5f , 0.f));
         }
-        quad_mesh->geometry()->setPrimitiveType(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
+        quad_mesh->geometry()->set_primitive_type(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
         quad_mesh->material() = theMaterial;
         float scaleX = (x1 - x0) / g_viewport_dim[0];
         float scaleY = (y0 - y1) / g_viewport_dim[1];
@@ -730,7 +730,7 @@ namespace kinski { namespace gl {
         m->material()->set_diffuse(the_color);
         m->material()->set_depth_test(false);
         m->set_position(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
-                                 m->geometry()->boundingBox().height(), 0.f));
+                                 m->geometry()->bounding_box().height(), 0.f));
         gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
         draw_mesh(m);
@@ -770,7 +770,7 @@ namespace kinski { namespace gl {
             if(!m) return;
             
             GeometryPtr geom = Geometry::create();
-            geom->setPrimitiveType(GL_LINES);
+            geom->set_primitive_type(GL_LINES);
             gl::MaterialPtr mat = gl::Material::create();
             MeshPtr line_mesh (gl::Mesh::create(geom, mat));
             AABB bb = m->boundingBox();
@@ -794,7 +794,7 @@ namespace kinski { namespace gl {
             theColors.push_back(colorBlue);
             theColors.push_back(colorBlue);
             
-            geom->createGLBuffers();
+            geom->create_gl_buffers();
             line_mesh->createVertexArray();
             theMap[weakMesh] = line_mesh;
         }
@@ -820,7 +820,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         transform_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
         auto &verts = transform_mesh->geometry()->vertices();
         auto &colors = transform_mesh->geometry()->colors();
-        transform_mesh->geometry()->setPrimitiveType(GL_LINES);
+        transform_mesh->geometry()->set_primitive_type(GL_LINES);
         verts =
         {
             glm::vec3(0), gl::X_AXIS,
@@ -847,7 +847,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
         
         // create or update Gl buffers, if necessary
-        the_mesh->geometry()->createGLBuffers();
+        the_mesh->geometry()->create_gl_buffers();
         
         const glm::mat4 &modelView = g_modelViewMatrixStack.top();
         mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
@@ -857,13 +857,13 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         {
             mat->uniform("u_modelViewMatrix", modelView);
             
-            if(the_mesh->geometry()->hasNormals())
+            if(the_mesh->geometry()->has_normals())
             {
                 mat->uniform("u_normalMatrix", normal_matrix);
             }
             mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
             
-            if(the_mesh->geometry()->hasBones())
+            if(the_mesh->geometry()->has_bones())
             {
                 mat->uniform("u_bones", the_mesh->boneMatrices());
             }
@@ -885,7 +885,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         the_mesh->bindVertexPointers();
 #endif
         
-        if(the_mesh->geometry()->hasIndices())
+        if(the_mesh->geometry()->has_indices())
         {
 #ifndef KINSKI_GLES
             if(!the_mesh->entries().empty())
@@ -896,7 +896,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     if(!the_mesh->entries()[i].enabled) continue;
                     
                     uint32_t primitive_type = the_mesh->entries()[i].primitive_type;
-                    primitive_type = primitive_type ? : the_mesh->geometry()->primitiveType();
+                    primitive_type = primitive_type ? : the_mesh->geometry()->primitive_type();
                     
                     int mat_index = clamp<int>(the_mesh->entries()[i].material_index,
                                                0,
@@ -915,14 +915,14 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             else
 #endif
             {
-                glDrawElements(the_mesh->geometry()->primitiveType(),
+                glDrawElements(the_mesh->geometry()->primitive_type(),
                                the_mesh->geometry()->indices().size(), the_mesh->geometry()->indexType(),
                                BUFFER_OFFSET(0));
             }
         }
         else
         {
-            glDrawArrays(the_mesh->geometry()->primitiveType(), 0,
+            glDrawArrays(the_mesh->geometry()->primitive_type(), 0,
                          the_mesh->geometry()->vertices().size());
         }
         KINSKI_CHECK_GL_ERRORS();
@@ -947,9 +947,9 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         if(!directional_mesh)
         {
             directional_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
-            point_mesh = gl::Mesh::create(gl::Geometry::createSphere(5.f, 8),
+            point_mesh = gl::Mesh::create(gl::Geometry::create_sphere(5.f, 8),
                                           gl::Material::create());
-            spot_mesh = gl::Mesh::create(gl::Geometry::createCone(5.f, 10.f, 8),
+            spot_mesh = gl::Mesh::create(gl::Geometry::create_cone(5.f, 10.f, 8),
                                          gl::Material::create());
             
             glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
@@ -958,7 +958,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             {
                 vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
             }
-            spot_mesh->geometry()->createGLBuffers();
+            spot_mesh->geometry()->create_gl_buffers();
             spot_mesh->createVertexArray();
             
             std::list<gl::MaterialPtr> mats =
@@ -1018,7 +1018,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         {
             
             GeometryPtr geom = Geometry::create();
-            geom->setPrimitiveType(GL_LINES);
+            geom->set_primitive_type(GL_LINES);
             gl::MaterialPtr mat = gl::Material::create();
             line_mesh = gl::Mesh::create(geom, mat);
 
@@ -1069,7 +1069,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             for (int i = 0; i < 24; i++)
                 theColors.push_back(colorWhite);
                 
-            geom->createGLBuffers();
+            geom->create_gl_buffers();
             line_mesh->createVertexArray();
         }
         AABB mesh_bb = the_obj->boundingBox();
@@ -1097,7 +1097,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             Mesh::ConstPtr m = the_mesh.lock();
             if(m->geometry()->normals().empty()) return;
             GeometryPtr geom = Geometry::create();
-            geom->setPrimitiveType(GL_LINES);
+            geom->set_primitive_type(GL_LINES);
             gl::MaterialPtr mat = gl::Material::create();
             MeshPtr line_mesh = gl::Mesh::create(geom, mat);
             vector<vec3> &thePoints = geom->vertices();
@@ -1105,8 +1105,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             const vector<vec3> &vertices = m->geometry()->vertices();
             const vector<vec3> &normals = m->geometry()->normals();
             
-            float length = (m->geometry()->boundingBox().max -
-                            m->geometry()->boundingBox().min).length() * 5;
+            float length = (m->geometry()->bounding_box().max -
+                            m->geometry()->bounding_box().min).length() * 5;
             
             for (uint32_t i = 0; i < vertices.size(); i++)
             {
@@ -1115,7 +1115,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 theColors.push_back(colorGrey);
                 theColors.push_back(colorRed);
             }
-            geom->createGLBuffers();
+            geom->create_gl_buffers();
             line_mesh->createVertexArray();
             theMap[the_mesh] = line_mesh;
         }
@@ -1160,8 +1160,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         if(!our_mesh || last_num_sequments != numSegments)
         {
             last_num_sequments = numSegments;
-            GeometryPtr geom = solid ? Geometry::createSolidCircle(numSegments) :
-                Geometry::createCircle(numSegments);
+            GeometryPtr geom = solid ? Geometry::create_solid_circle(numSegments) :
+                Geometry::create_circle(numSegments);
             default_mat = gl::Material::create();
             default_mat->set_depth_test(false);
             default_mat->set_depth_write(false);
@@ -1509,7 +1509,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     {
         // checks only make sense with triangle geometry
         if(!m ||
-           m->geometry()->primitiveType() != GL_TRIANGLES ||
+           m->geometry()->primitive_type() != GL_TRIANGLES ||
            m->geometry()->faces().empty())
         {
             return false;
@@ -1538,10 +1538,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     void project_texcoords(gl::MeshPtr src, gl::MeshPtr dest)
     {
         const auto &src_verts = src->geometry()->vertices();
-        const auto &src_texcoords = src->geometry()->texCoords();
+        const auto &src_texcoords = src->geometry()->tex_coords();
         const auto &dest_verts = dest->geometry()->vertices();
         const auto &dest_normals = dest->geometry()->normals();
-        auto &dest_texcoords = dest->geometry()->texCoords();
+        auto &dest_texcoords = dest->geometry()->tex_coords();
         
         // aquire enough space for texcoords
         dest_texcoords.resize(dest_verts.size());

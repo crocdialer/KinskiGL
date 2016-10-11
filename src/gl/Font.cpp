@@ -253,6 +253,11 @@ namespace kinski { namespace gl {
         return m_obj->texture;
     }
     
+    Texture Font::sdf_texture() const
+    {
+        return m_obj->sdf_texture;
+    }
+    
     uint32_t Font::font_size() const
     {
         return m_obj->font_height;
@@ -427,7 +432,7 @@ namespace kinski { namespace gl {
         
         // create a new mesh object
         GeometryPtr geom = Geometry::create();
-        geom->setPrimitiveType(GL_TRIANGLES);
+        geom->set_primitive_type(GL_TRIANGLES);
         gl::MaterialPtr mat = gl::Material::create();
         mat->set_diffuse(theColor);
         mat->set_blending(true);
@@ -445,7 +450,7 @@ namespace kinski { namespace gl {
         ret->entries().clear();
         
         std::vector<glm::vec3>& vertices = geom->vertices();
-        std::vector<glm::vec2>& tex_coords = geom->texCoords();
+        std::vector<glm::vec2>& tex_coords = geom->tex_coords();
         std::vector<glm::vec4>& colors = geom->colors();
         
         // workaround for weirdness in stb_truetype (blank 1st characters on line)
@@ -513,11 +518,11 @@ namespace kinski { namespace gl {
         }
         for (uint32_t i = 0; i < vertices.size(); i += 4)
         {
-            geom->appendFace(i, i + 1, i + 2);
-            geom->appendFace(i, i + 2, i + 3);
+            geom->append_face(i, i + 1, i + 2);
+            geom->append_face(i, i + 2, i + 3);
         }
-        geom->computeVertexNormals();
-        geom->computeBoundingBox();
+        geom->compute_vertex_normals();
+        geom->compute_bounding_box();
         
         // free the less frequent used half of our buffered string-meshes
         if(m_obj->string_mesh_map.size() >= m_obj->max_mesh_buffer_size)

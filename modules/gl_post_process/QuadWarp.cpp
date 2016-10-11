@@ -43,9 +43,9 @@ namespace kinski{ namespace gl{
             m_control_points = default_points;
             
             // adjust grid density here
-            auto geom = gl::Geometry::createPlane(1, 1, m_grid_num_w, m_grid_num_h);
+            auto geom = gl::Geometry::create_plane(1, 1, m_grid_num_w, m_grid_num_h);
             for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
-            geom->computeBoundingBox();
+            geom->compute_bounding_box();
             
             try
             {

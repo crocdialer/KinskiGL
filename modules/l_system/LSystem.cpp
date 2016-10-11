@@ -447,10 +447,8 @@ gl::MeshPtr LSystem::create_mesh() const
         ret->entries().front().num_vertices = ret->geometry()->vertices().size();
         ret->entries().front().num_indices = ret->geometry()->indices().size();
     }
-    ret->geometry()->setPrimitiveType(GL_LINES);
-    ret->geometry()->computeBoundingBox();
-//    ret->geometry()->createGLBuffers();
-    
+    ret->geometry()->set_primitive_type(GL_LINES);
+    ret->geometry()->compute_bounding_box();
     return ret;
 }
 
