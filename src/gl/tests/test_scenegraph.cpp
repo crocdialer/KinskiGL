@@ -40,19 +40,19 @@ BOOST_AUTO_TEST_CASE( test_Object3D )
     BOOST_CHECK(b->parent() == a);
 
     //test scaling
-    b->setScale(0.5);
-    c->setScale(0.2);
+    b->set_scale(0.5);
+    c->set_scale(0.2);
     BOOST_CHECK(a->global_scale() == glm::vec3(1));
     BOOST_CHECK(b->global_scale() == glm::vec3(0.5));
     BOOST_CHECK(c->global_scale() == glm::vec3(0.1));
 
-    a->setPosition(glm::vec3(0, 100, 0));
-    b->setPosition(glm::vec3(0, 50, 0));
+    a->set_position(glm::vec3(0, 100, 0));
+    b->set_position(glm::vec3(0, 50, 0));
     BOOST_CHECK(b->position() == glm::vec3(0, 50, 0));
     BOOST_CHECK(b->global_position() == glm::vec3(0, 150, 0));
 
     // rotations
-    b->setRotation(48.f, 10.f, 5.f);
+    b->set_rotation(48.f, 10.f, 5.f);
     BOOST_CHECK(b->global_scale() == glm::vec3(0.5));
     BOOST_CHECK(b->global_position() == glm::vec3(0, 150, 0));
 }
