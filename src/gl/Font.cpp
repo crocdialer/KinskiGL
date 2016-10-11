@@ -218,8 +218,8 @@ namespace kinski { namespace gl {
         stbtt_packedchar char_data[1024];
         uint32_t font_height;
         uint32_t line_height;
-        uint32_t bitmap_width, bitmap_height;
-        uint8_t* data;
+        
+        ImagePtr bitmap;
         Texture texture, sdf_texture;
         bool use_sdf;
         
@@ -227,16 +227,13 @@ namespace kinski { namespace gl {
         size_t max_mesh_buffer_size;
         std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
-        Obj():bitmap_width(BITMAP_WIDTH), bitmap_height(BITMAP_WIDTH), max_mesh_buffer_size(500)
+        Obj():
+        bitmap(Image::create(BITMAP_WIDTH, BITMAP_WIDTH, 1)),
+        max_mesh_buffer_size(500)
         {
-            data = new uint8_t[bitmap_width * bitmap_height];
             font_height = 64;
             line_height = 70;
             use_sdf = false;
-        }
-        ~Obj()
-        {
-            delete[] data;
         }
     };
     
@@ -284,10 +281,10 @@ namespace kinski { namespace gl {
             m_obj->line_height = theSize;
             m_obj->use_sdf = use_sdf;
             
-            //TODO: rect pack here
+            // rect packing
             stbtt_pack_context spc;
-            stbtt_PackBegin(&spc, m_obj->data, m_obj->bitmap_width,
-                            m_obj->bitmap_height, 0, 6 /*padding*/, nullptr);
+            stbtt_PackBegin(&spc, m_obj->bitmap->data, m_obj->bitmap->width,
+                            m_obj->bitmap->height, 0, 6 /*padding*/, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
             int num_chars = 768;
@@ -298,21 +295,21 @@ namespace kinski { namespace gl {
             // signed distance field
             if(use_sdf)
             {
-                auto img = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, true);
-                auto dist_img = compute_distance_field(img, 4);
-                dist_img = dist_img->resize(1024, 1024);
+                auto dist_img = compute_distance_field(m_obj->bitmap, 4)->resize(1024, 1024);
                 m_obj->sdf_texture = create_texture_from_image(dist_img, true);
-//                save_image_to_file(img->resize(1024, 1024), "/Users/Fabian/glyph.png");
+//                save_image_to_file(m_obj->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
 //                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
             }
+//            m_obj->bitmap = m_obj->bitmap->resize(1024, 1024);
+            
 //            m_obj->texture = create_texture_from_image(img, true);
 //            m_obj->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
 //            m_obj->sdf_texture = create_texture_from_file("/Users/Fabian/glyph_dist.png");
             
             // create RGBA data
-            size_t num_bytes = m_obj->bitmap_width * m_obj->bitmap_height * 4;
+            size_t num_bytes = m_obj->bitmap->width * m_obj->bitmap->height * 4;
             uint8_t *rgba_data = new uint8_t[num_bytes];
-            uint8_t *dst_ptr = m_obj->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
+            uint8_t *dst_ptr = m_obj->bitmap->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
             for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
             {
                 rgba_ptr[0] = 255;
@@ -322,8 +319,8 @@ namespace kinski { namespace gl {
             }
             
             // create a new texture object for our glyphs
-            m_obj->texture = gl::Texture(rgba_data, GL_RGBA, m_obj->bitmap_width,
-                                         m_obj->bitmap_height);
+            m_obj->texture = gl::Texture(rgba_data, GL_RGBA, m_obj->bitmap->width,
+                                         m_obj->bitmap->height);
             m_obj->texture.setFlipped();
             m_obj->texture.set_mipmapping(true);
             delete [](rgba_data);
@@ -366,7 +363,7 @@ namespace kinski { namespace gl {
 //            stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
 //                               codepoint - 32, &x, &y, &q, 1);
             
-            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
+            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap->width, m_obj->bitmap->height,
                                 codepoint - 32, &x, &y, &q, 1);
             
             int w = q.x1 - q.x0;
@@ -375,11 +372,11 @@ namespace kinski { namespace gl {
             if(max_x < q.x1) max_x = q.x1;
             if(max_y < q.y1 + m_obj->font_height) max_y = q.y1 + m_obj->font_height;
             
-            Area_<uint32_t> src (static_cast<uint32_t>(q.s0 * m_obj->bitmap_width),
-                                static_cast<uint32_t>(q.t0 * m_obj->bitmap_height),
-                                static_cast<uint32_t>(q.s0 * m_obj->bitmap_width + w),
-                                static_cast<uint32_t>(q.t0 * m_obj->bitmap_height + h));
-            Area_<uint32_t> dst (static_cast<uint32_t>(q.x0 - start_x),
+            Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_obj->bitmap->width),
+                                static_cast<uint32_t>(q.t0 * m_obj->bitmap->height),
+                                static_cast<uint32_t>(q.s0 * m_obj->bitmap->width + w),
+                                static_cast<uint32_t>(q.t0 * m_obj->bitmap->height + h));
+            Area_<uint32_t> dst(static_cast<uint32_t>(q.x0 - start_x),
                                 static_cast<uint32_t>(m_obj->font_height + q.y0),
                                 static_cast<uint32_t>(q.x0 + w - start_x),
                                 static_cast<uint32_t>(m_obj->font_height + q.y0 + h));
@@ -389,15 +386,14 @@ namespace kinski { namespace gl {
         uint8_t dst_data[max_x * max_y];
         std::fill(dst_data, dst_data + max_x * max_y, 0);
         
-        auto src_mat = Image::create(m_obj->data, m_obj->bitmap_width, m_obj->bitmap_height, 1, true);
-        auto dst_mat = Image::create(dst_data, max_x, max_y, 1, true);
+        auto dst_img = Image::create(dst_data, max_x, max_y, 1, true);
         
         Area_Pairs::iterator area_it = area_pairs.begin();
         for (; area_it != area_pairs.end(); ++area_it)
         {
-            src_mat->roi = area_it->first;
-            dst_mat->roi = area_it->second;
-            copy_image(src_mat, dst_mat);
+            m_obj->bitmap->roi = area_it->first;
+            dst_img->roi = area_it->second;
+            copy_image(m_obj->bitmap, dst_img);
         }
         
         // create RGBA data
@@ -433,17 +429,17 @@ namespace kinski { namespace gl {
         GeometryPtr geom = Geometry::create();
         geom->setPrimitiveType(GL_TRIANGLES);
         gl::MaterialPtr mat = gl::Material::create();
-        mat->setDiffuse(theColor);
-        mat->setBlending(true);
+        mat->set_diffuse(theColor);
+        mat->set_blending(true);
         
         if(m_obj->use_sdf)
         {
-            mat->setShader(gl::create_shader(ShaderType::SDF_FONT));
-            mat->addTexture(m_obj->sdf_texture);
-            mat->uniform("u_buffer", 0.74f);
-            mat->uniform("u_gamma", 0.071f);
+            mat->set_shader(gl::create_shader(ShaderType::SDF_FONT));
+            mat->add_texture(m_obj->sdf_texture);
+            mat->uniform("u_buffer", 0.725f);
+            mat->uniform("u_gamma", 0.05f);
         }
-        else{ mat->addTexture(m_obj->texture); }
+        else{ mat->add_texture(m_obj->texture); }
         
         MeshPtr ret = gl::Mesh::create(geom, mat);
         ret->entries().clear();
@@ -473,7 +469,7 @@ namespace kinski { namespace gl {
                 y += m_obj->line_height;
                 continue;
             }
-            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
+            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap->width, m_obj->bitmap->height,
                                 codepoint - 32, &x, &y, &q, 1);
             
             if(max_y < q.y1 + m_obj->font_height){ max_y = q.y1 + m_obj->font_height;}

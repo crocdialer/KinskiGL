@@ -47,9 +47,9 @@ namespace kinski{ namespace physics{
             m_mesh_lines->geometry()->setPrimitiveType(GL_LINES);
             
             m_mesh_points = gl::Mesh::create();
-            m_mesh_points->material()->setShader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
-            m_mesh_points->material()->setPointSize(5.f);
-            m_mesh_points->material()->setPointAttenuation(1.f, 0.f, 0.05f);
+            m_mesh_points->material()->set_shader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
+            m_mesh_points->material()->set_point_size(5.f);
+            m_mesh_points->material()->set_point_attenuation(1.f, 0.f, 0.05f);
             m_mesh_points->geometry()->setPrimitiveType(GL_POINTS);
             
             setDebugMode(DBG_DrawWireframe /*| DBG_DrawContactPoints*/);

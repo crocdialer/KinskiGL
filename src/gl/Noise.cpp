@@ -47,8 +47,8 @@ namespace kinski{ namespace gl{
         if(!m_impl->m_material)
         {
             m_impl->m_material = gl::Material::create(gl::create_shader(gl::ShaderType::NOISE_3D));
-            m_impl->m_material->setDepthTest(false);
-            m_impl->m_material->setDepthWrite(false);
+            m_impl->m_material->set_depth_test(false);
+            m_impl->m_material->set_depth_write(false);
         }
         m_impl->m_material->uniform("u_scale", m_impl->m_scale);
         m_impl->m_material->uniform("u_seed", the_seed);

@@ -40,7 +40,7 @@ namespace kinski { namespace gl {
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         
-        void addTexture(const Texture &theTexture) {m_textures.push_back(theTexture);};
+        void add_texture(const Texture &theTexture) {m_textures.push_back(theTexture);};
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
@@ -49,7 +49,7 @@ namespace kinski { namespace gl {
         
         Shader& shader() {return m_shader;};
         const Shader& shader() const {return m_shader;};
-        void setShader(const Shader &theShader);
+        void set_shader(const Shader &theShader);
         
         std::vector<Texture>& textures() {return m_textures;};
         const std::vector<Texture>& textures() const {return m_textures;};
@@ -65,26 +65,26 @@ namespace kinski { namespace gl {
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
         
-        bool twoSided() const { return m_twoSided; };
-        bool wireframe() const { return m_wireFrame; };
+        bool two_sided() const { return m_two_sided; };
+        bool wireframe() const { return m_wireframe; };
         bool blending() const { return m_blending; };
         GLenum blend_src() const { return m_blend_src; };
         GLenum blend_dst() const { return m_blend_dst; };
         GLenum blend_equation() const { return m_blend_equation; };
         
-        void setTwoSided(bool b = true) { m_twoSided = b;};
-        void setWireframe(bool b = true) { m_wireFrame = b;};
-        void setBlending(bool b = true) { m_blending = b;};
+        void set_two_sided(bool b = true) { m_two_sided = b;};
+        void set_wireframe(bool b = true) { m_wireframe = b;};
+        void set_blending(bool b = true) { m_blending = b;};
         void set_blend_factors(GLenum src, GLenum dst){ m_blend_src = src; m_blend_dst = dst; };
         void set_blend_equation(GLenum equation){ m_blend_equation = equation;};
         
-        void setDepthTest(bool b = true) { m_depthTest = b;};
-        void setDepthWrite(bool b = true) { m_depthWrite = b;};
+        void set_depth_test(bool b = true) { m_depth_test = b;};
+        void set_depth_write(bool b = true) { m_depth_write = b;};
         
         bool opaque() const { return !m_blending && m_diffuse.a == 1.f ;};
-        bool depthTest() const { return m_depthTest; };
-        bool depthWrite() const { return m_depthWrite; };
-        float pointSize() const { return m_pointSize; };
+        bool depth_test() const { return m_depth_test; };
+        bool depth_write() const { return m_depth_write; };
+        float point_size() const { return m_point_size; };
         
         void set_line_width(float the_line_width) { m_line_width = the_line_width; };
         float line_width() const { return m_line_width; };
@@ -95,14 +95,14 @@ namespace kinski { namespace gl {
         const Color& emission() const { return m_emission; };
         const float shinyness() const { return m_shinyness; };
         
-        void setDiffuse(const Color &theColor);
-        void setAmbient(const Color &theColor);
-        void setSpecular(const Color &theColor);
-        void setEmission(const Color &theColor);
-        void setShinyness(float s);
-        void setPointSize(float sz);
-        void setPointAttenuation(float constant, float linear, float quadratic);
-        void setLineThickness(float t);
+        void set_diffuse(const Color &theColor);
+        void set_ambient(const Color &theColor);
+        void set_specular(const Color &theColor);
+        void set_emission(const Color &theColor);
+        void set_shinyness(float s);
+        void set_point_size(float sz);
+        void set_point_attenuation(float constant, float linear, float quadratic);
+        void set_line_thickness(float t);
         
     private:
         
@@ -115,11 +115,11 @@ namespace kinski { namespace gl {
         
         bool m_dirty_uniform_buffer;
         
-        GLenum m_polygonMode;
-        bool m_twoSided;
-        bool m_wireFrame;
-        bool m_depthTest;
-        bool m_depthWrite;
+        GLenum m_polygon_mode;
+        bool m_two_sided;
+        bool m_wireframe;
+        bool m_depth_test;
+        bool m_depth_write;
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
         
@@ -138,7 +138,7 @@ namespace kinski { namespace gl {
         std::vector<gl::ShaderType> m_load_queue_shader;
         
         // point attributes
-        float m_pointSize;
+        float m_point_size;
         struct PointAttenuation
         {
             float constant, linear, quadratic;

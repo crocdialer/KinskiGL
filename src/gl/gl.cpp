@@ -421,10 +421,10 @@ namespace kinski { namespace gl {
         if(!material)
         {
             material = gl::Material::create(gl::create_shader(gl::ShaderType::LINES_2D));
-            material->setDepthTest(false);
+            material->set_depth_test(false);
         }
-        material->setDiffuse(the_color);
-        material->setBlending(the_color.a < 1.f);
+        material->set_diffuse(the_color);
+        material->set_blending(the_color.a < 1.f);
         
         draw_lines(thePoints, material, line_thickness);
     }
@@ -442,8 +442,8 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             material = gl::Material::create(gl::create_shader(gl::ShaderType::LINES_2D));
-            material->setBlending();
-            material->setTwoSided();
+            material->set_blending();
+            material->set_two_sided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, material);
             
@@ -477,7 +477,7 @@ namespace kinski { namespace gl {
         if(!mesh)
         {
             gl::MaterialPtr mat = gl::Material::create();
-            mat->setTwoSided();
+            mat->set_two_sided();
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->setPrimitiveType(GL_LINE_STRIP);
@@ -504,12 +504,12 @@ namespace kinski { namespace gl {
         {
             try{ material = gl::Material::create(); }
             catch (Exception &e){ LOG_ERROR<<e.what(); }
-            material->setShader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
-            material->setDepthTest(false);
-            material->setDepthWrite(false);
-            material->setBlending(true);
+            material->set_shader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
+            material->set_depth_test(false);
+            material->set_depth_write(false);
+            material->set_blending(true);
         }
-        material->setDiffuse(the_color);
+        material->set_diffuse(the_color);
         ScopedMatrixPush pro(gl::PROJECTION_MATRIX), mod(gl::MODEL_VIEW_MATRIX);
         
         load_matrix(gl::PROJECTION_MATRIX, glm::ortho(0.f, g_viewport_dim[0],
@@ -542,7 +542,7 @@ namespace kinski { namespace gl {
         }
         
         point_mesh->material() = the_material;
-        point_mesh->material()->setPointSize(the_point_size);
+        point_mesh->material()->set_point_size(the_point_size);
         point_mesh->geometry()->vertices() = the_points;
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
         point_mesh->geometry()->point_sizes().resize(the_points.size(), 1.f);
@@ -565,9 +565,9 @@ namespace kinski { namespace gl {
         {
             try{ material = gl::Material::create(); }
             catch (Exception &e){LOG_ERROR<<e.what();}
-            material->setDepthTest(false);
-            material->setDepthWrite(false);
-            material->setBlending(true);
+            material->set_depth_test(false);
+            material->set_depth_write(false);
+            material->set_blending(true);
         }
         
 #if !defined(KINSKI_GLES)
@@ -580,10 +580,10 @@ namespace kinski { namespace gl {
             rect_2D = gl::create_shader(gl::ShaderType::RECT_2D);
         }
 
-        if(theTexture.getTarget() == GL_TEXTURE_2D){ material->setShader(tex_2D); }
+        if(theTexture.getTarget() == GL_TEXTURE_2D){ material->set_shader(tex_2D); }
         else if(theTexture.getTarget() == GL_TEXTURE_RECTANGLE)
         {
-            material->setShader(rect_2D);
+            material->set_shader(rect_2D);
             material->uniform("u_texture_size", theTexture.getSize());
         }
         else
@@ -594,8 +594,8 @@ namespace kinski { namespace gl {
 #endif
         // add the texture to the material
         material->textures().clear();
-        material->setDiffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
-        material->addTexture(theTexture);
+        material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
+        material->add_texture(theTexture);
         
         vec2 sz = theSize;
         // flip to OpenGL coords
@@ -621,14 +621,14 @@ namespace kinski { namespace gl {
         {
             try{ material = gl::Material::create(gl::ShaderType::UNLIT_MASK); }
             catch (Exception &e){LOG_ERROR<<e.what();}
-            material->setDepthTest(false);
-            material->setDepthWrite(false);
-            material->setBlending(true);
+            material->set_depth_test(false);
+            material->set_depth_write(false);
+            material->set_blending(true);
         }
         
         // add the texture to the material
         material->textures() = {the_texture, the_mask};
-        material->setDiffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
+        material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
         
         vec2 sz = theSize;
         // flip to OpenGL coords
@@ -650,11 +650,11 @@ namespace kinski { namespace gl {
         {
             try{material = gl::Material::create();}
             catch (Exception &e){LOG_ERROR<<e.what();}
-            material->setDepthTest(false);
-            material->setDepthWrite(false);
-            material->setBlending(true);
+            material->set_depth_test(false);
+            material->set_depth_write(false);
+            material->set_blending(true);
         }
-        material->setDiffuse(theColor);
+        material->set_diffuse(theColor);
         
         vec2 sz = theSize;
         // flip to OpenGL coords
@@ -727,8 +727,8 @@ namespace kinski { namespace gl {
         // create the font mesh
         gl::MeshPtr m = theFont.create_mesh(theText, the_color);
         
-        m->material()->setDiffuse(the_color);
-        m->material()->setDepthTest(false);
+        m->material()->set_diffuse(the_color);
+        m->material()->set_depth_test(false);
         m->set_position(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
                                  m->geometry()->boundingBox().height(), 0.f));
         gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
@@ -970,7 +970,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             };
             for (auto mat : mats)
             {
-                mat->setWireframe();
+                mat->set_wireframe();
             }
             
         }
@@ -994,11 +994,11 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         
         if(theLight->enabled())
         {
-            light_mesh->material()->setDiffuse(theLight->diffuse());
+            light_mesh->material()->set_diffuse(theLight->diffuse());
         }
         else
         {
-//            light_mesh->material()->setDiffuse(gl::COLOR_RED);
+//            light_mesh->material()->set_diffuse(gl::COLOR_RED);
             return;
         }
         
@@ -1140,10 +1140,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         if(!color_mat)
         {
             color_mat = gl::Material::create();
-            color_mat->setDepthTest(false);
-            color_mat->setDepthWrite(false);
+            color_mat->set_depth_test(false);
+            color_mat->set_depth_write(false);
         }
-        color_mat->setDiffuse(the_color);
+        color_mat->set_diffuse(the_color);
         draw_circle(center, radius, solid, color_mat, numSegments);
     }
     
@@ -1163,8 +1163,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             GeometryPtr geom = solid ? Geometry::createSolidCircle(numSegments) :
                 Geometry::createCircle(numSegments);
             default_mat = gl::Material::create();
-            default_mat->setDepthTest(false);
-            default_mat->setDepthWrite(false);
+            default_mat->set_depth_test(false);
+            default_mat->set_depth_write(false);
             our_mesh = gl::Mesh::create(geom, default_mat);
             if(solid)
                 solid_mesh = our_mesh;
@@ -1302,7 +1302,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             {
                 try
                 {
-                    the_mat->addTexture(gl::create_texture_from_file(pair.first, true, true));
+                    the_mat->add_texture(gl::create_texture_from_file(pair.first, true, true));
                     pair.second = gl::Material::AssetLoadStatus::LOADED;
                 }
                 catch(Exception &e)
@@ -1316,12 +1316,12 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // shader queue
         for(auto &sh_type : the_mat->load_queue_shader())
         {
-            try{ the_mat->setShader(gl::create_shader(sh_type)); }
+            try{ the_mat->set_shader(gl::create_shader(sh_type)); }
             catch(Exception &e){ LOG_WARNING << e.what(); }
             
         }
         the_mat->load_queue_shader().clear();
-        if(!the_mat->shader()){ the_mat->setShader(gl::create_shader(gl::ShaderType::UNLIT)); }
+        if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
         
         // bind the shader
         the_mat->shader().bind();
@@ -1329,10 +1329,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         char buf[512];
         
         // twoSided
-        if(!last_mat || (last_mat->twoSided() != the_mat->twoSided() ||
+        if(!last_mat || (last_mat->two_sided() != the_mat->two_sided() ||
                          last_mat->wireframe() != the_mat->wireframe()))
         {
-            if(the_mat->twoSided() || the_mat->wireframe()) { glDisable(GL_CULL_FACE); }
+            if(the_mat->two_sided() || the_mat->wireframe()) { glDisable(GL_CULL_FACE); }
             else
             {
                 glEnable(GL_CULL_FACE);
@@ -1350,16 +1350,16 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         KINSKI_CHECK_GL_ERRORS();
         
         // read write depth buffer ?
-        if(!last_mat || last_mat->depthTest() != the_mat->depthTest())
+        if(!last_mat || last_mat->depth_test() != the_mat->depth_test())
         {
-            if(the_mat->depthTest()) { glEnable(GL_DEPTH_TEST); }
+            if(the_mat->depth_test()) { glEnable(GL_DEPTH_TEST); }
             else { glDisable(GL_DEPTH_TEST); }
         }
         KINSKI_CHECK_GL_ERRORS();
         
-        if(!last_mat || last_mat->depthWrite() != the_mat->depthWrite())
+        if(!last_mat || last_mat->depth_write() != the_mat->depth_write())
         {
-            if(the_mat->depthWrite()) glDepthMask(GL_TRUE);
+            if(the_mat->depth_write()) glDepthMask(GL_TRUE);
             else glDepthMask(GL_FALSE);
         }
         KINSKI_CHECK_GL_ERRORS();
@@ -1381,13 +1381,13 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         }
         KINSKI_CHECK_GL_ERRORS();
         
-        if(!last_mat || last_mat->pointSize() != the_mat->pointSize())
+        if(!last_mat || last_mat->point_size() != the_mat->point_size())
         {
-            if(the_mat->pointSize() > 0.f)
+            if(the_mat->point_size() > 0.f)
             {
 #ifndef KINSKI_GLES
                 glEnable(GL_PROGRAM_POINT_SIZE);
-                glPointSize(the_mat->pointSize());
+                glPointSize(the_mat->point_size());
 #endif
                 KINSKI_CHECK_GL_ERRORS();
             }

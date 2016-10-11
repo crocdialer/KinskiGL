@@ -158,8 +158,8 @@ namespace kinski { namespace gl {
             case GL_TEXTURE_2D:
                 m_skybox = gl::Mesh::create(gl::Geometry::createSphere(1.f, 16),
                                             gl::Material::create());
-                m_skybox->material()->setDepthWrite(false);
-                m_skybox->material()->setTwoSided();
+                m_skybox->material()->set_depth_write(false);
+                m_skybox->material()->set_two_sided();
                 m_skybox->material()->textures() = {t};
                 break;
                 

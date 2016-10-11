@@ -195,25 +195,25 @@ namespace kinski { namespace gl{
         if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
         {
             color.r = diffuse.r; color.g = diffuse.g; color.b = diffuse.b; color.a = diffuse.a;
-            theMaterial->setDiffuse(color);
+            theMaterial->set_diffuse(color);
         }
         
         if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular))
         {
             color.r = specular.r; color.g = specular.g; color.b = specular.b; color.a = specular.a;
-            theMaterial->setSpecular(color);
+            theMaterial->set_specular(color);
         }
         
         if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient))
         {
             color.r = ambient.r; color.g = ambient.g; color.b = ambient.b; color.a = ambient.a;
-            theMaterial->setAmbient(color);
+            theMaterial->set_ambient(color);
         }
         
         if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &emission))
         {
             color.r = emission.r; color.g = emission.g; color.b = emission.b; color.a = emission.a;
-            theMaterial->setEmission(color);
+            theMaterial->set_emission(color);
         }
         
         // transparent material
@@ -236,18 +236,18 @@ namespace kinski { namespace gl{
         ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
         
         if((ret1 == AI_SUCCESS) && (ret2 == AI_SUCCESS))
-            theMaterial->setShinyness(shininess * strength);
+            theMaterial->set_shinyness(shininess * strength);
         else
         {
-            theMaterial->setShinyness(0.f);
-            theMaterial->setSpecular(vec4(0));
+            theMaterial->set_shinyness(0.f);
+            theMaterial->set_specular(vec4(0));
         }
         
         if(AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_ENABLE_WIREFRAME, &wireframe))
-            theMaterial->setWireframe(wireframe);
+            theMaterial->set_wireframe(wireframe);
         
         if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
-            theMaterial->setTwoSided(two_sided);
+            theMaterial->set_two_sided(two_sided);
         
         //int num_diffuse = aiGetMaterialTextureCount(mtl, aiTextureType_DIFFUSE);
         

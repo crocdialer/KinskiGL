@@ -103,6 +103,7 @@ namespace kinski
     width(the_width),
     height(the_height),
     bytes_per_pixel(the_bytes_per_pixel),
+    roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
@@ -118,6 +119,7 @@ namespace kinski
     width(the_width),
     height(the_height),
     bytes_per_pixel(the_bytes_per_pixel),
+    roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(false)
     {
     
@@ -128,6 +130,7 @@ namespace kinski
     width(the_other.width),
     height(the_other.height),
     bytes_per_pixel(the_other.bytes_per_pixel),
+    roi(the_other.roi),
     do_not_dispose(the_other.do_not_dispose)
     {
         memcpy(data, the_other.data, width * height * bytes_per_pixel);
@@ -138,6 +141,7 @@ namespace kinski
     width(the_other.width),
     height(the_other.height),
     bytes_per_pixel(the_other.bytes_per_pixel),
+    roi(the_other.roi),
     do_not_dispose(the_other.do_not_dispose)
     {
         the_other.data = nullptr;
@@ -149,18 +153,15 @@ namespace kinski
         std::swap(height, the_other.height);
         std::swap(width, the_other.width);
         std::swap(bytes_per_pixel, the_other.bytes_per_pixel);
+        std::swap(roi, the_other.roi);
         std::swap(do_not_dispose, the_other.do_not_dispose);
         return *this;
     }
     
     Image::~Image()
     {
-        if(data && !do_not_dispose)
-        {
-            LOG_TRACE_2 << "disposing image";
-            delete[](data);
-        }
-    };
+        if(!do_not_dispose){ delete[](data); }
+    }
     
     void Image::flip()
     {

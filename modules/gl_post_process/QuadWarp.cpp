@@ -59,9 +59,9 @@ namespace kinski{ namespace gl{
             catch(Exception &e){ LOG_ERROR << e.what(); }
             
             auto mat = gl::Material::create(m_shader_warp_vert);
-            mat->setDepthTest(false);
-            mat->setDepthWrite(false);
-            mat->setBlending(true);
+            mat->set_depth_test(false);
+            mat->set_depth_write(false);
+            mat->set_blending(true);
             m_mesh = gl::Mesh::create(geom, mat);
             
             auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
@@ -72,8 +72,8 @@ namespace kinski{ namespace gl{
             for(auto &c : grid_geom->colors()){ c = gl::COLOR_WHITE; }
             
             auto grid_mat = gl::Material::create(m_shader_warp_vert);
-            grid_mat->setDepthTest(false);
-            grid_mat->setDepthWrite(false);
+            grid_mat->set_depth_test(false);
+            grid_mat->set_depth_write(false);
             m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
         }
     };
@@ -91,10 +91,10 @@ namespace kinski{ namespace gl{
 #if !defined(KINSKI_GLES)
         if(the_texture.getTarget() == GL_TEXTURE_RECTANGLE)
         {
-            m_impl->m_mesh->material()->setShader(m_impl->m_shader_warp_vert_rect);
+            m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert_rect);
             m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.getSize());
         }
-        else{ m_impl->m_mesh->material()->setShader(m_impl->m_shader_warp_vert); }
+        else{ m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert); }
 #endif
         m_impl->m_mesh->material()->textures() = {the_texture};
         
@@ -107,7 +107,7 @@ namespace kinski{ namespace gl{
         for(auto &p : cp){ p = (flipY * gl::vec4(p, 0, 1.f)).xy(); }
         
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
-        m_impl->m_mesh->material()->setDiffuse(gl::Color(the_brightness, the_brightness,
+        m_impl->m_mesh->material()->set_diffuse(gl::Color(the_brightness, the_brightness,
                                                          the_brightness, 1.f));
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);

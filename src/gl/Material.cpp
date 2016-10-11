@@ -35,11 +35,11 @@ namespace kinski { namespace gl {
     Material::Material(const Shader &theShader):
     m_shader(theShader),
     m_dirty_uniform_buffer(true),
-    m_polygonMode(GL_FRONT),
-    m_twoSided(false),
-    m_wireFrame(false),
-    m_depthTest(true),
-    m_depthWrite(true),
+    m_polygon_mode(GL_FRONT),
+    m_two_sided(false),
+    m_wireframe(false),
+    m_depth_test(true),
+    m_depth_write(true),
     m_blending(false),
     m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
     m_blend_equation(GL_FUNC_ADD),
@@ -49,9 +49,9 @@ namespace kinski { namespace gl {
     m_emission(Color(0)),
     m_shinyness(10.0f),
     m_line_width(1.f),
-    m_pointSize(1.f)
+    m_point_size(1.f)
     {
-        setPointAttenuation(1.f, 0.f, 0.f);
+        set_point_attenuation(1.f, 0.f, 0.f);
         m_shader = theShader? theShader : gl::create_shader(gl::ShaderType::UNLIT);
     }
     
@@ -65,49 +65,49 @@ namespace kinski { namespace gl {
         return MaterialPtr(new Material(theShader));
     }
     
-    void Material::setDiffuse(const Color &theColor)
+    void Material::set_diffuse(const Color &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::setAmbient(const Color &theColor)
+    void Material::set_ambient(const Color &theColor)
     {
         m_ambient = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::setSpecular(const Color &theColor)
+    void Material::set_specular(const Color &theColor)
     {
         m_specular = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::setEmission(const Color &theColor)
+    void Material::set_emission(const Color &theColor)
     {
         m_emission = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::setShinyness(float s)
+    void Material::set_shinyness(float s)
     {
         m_shinyness = s;
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::setPointSize(float sz)
+    void Material::set_point_size(float sz)
     {
-        m_pointSize = sz;
+        m_point_size = sz;
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::setPointAttenuation(float constant, float linear, float quadratic)
+    void Material::set_point_attenuation(float constant, float linear, float quadratic)
     {
         m_point_attenuation = PointAttenuation(constant, linear, quadratic);
         m_dirty_uniform_buffer = true;
     };
     
-    void Material::setShader(const Shader &theShader)
+    void Material::set_shader(const Shader &theShader)
     {
         m_shader = theShader;
         m_load_queue_shader.clear();
@@ -143,7 +143,7 @@ namespace kinski { namespace gl {
             m.ambient = m_ambient;
             m.specular = m_specular;
             m.emission = m_emission;
-            m.point_vals[0] = m_pointSize;
+            m.point_vals[0] = m_point_size;
             m.point_vals[1] = m_point_attenuation.constant;
             m.point_vals[2] = m_point_attenuation.linear;
             m.point_vals[3] = m_point_attenuation.quadratic;

@@ -63,27 +63,27 @@ namespace kinski
         }
         else if(theProperty == m_diffuse)
         {
-            active_mat->setDiffuse(*m_diffuse);
+            active_mat->set_diffuse(*m_diffuse);
         }
         else if(theProperty == m_ambient)
         {
-            active_mat->setAmbient(*m_ambient);
+            active_mat->set_ambient(*m_ambient);
         }
         else if(theProperty == m_specular)
         {
-            active_mat->setSpecular(*m_specular);
+            active_mat->set_specular(*m_specular);
         }
         else if(theProperty == m_blending)
         {
-            active_mat->setBlending(*m_blending);
+            active_mat->set_blending(*m_blending);
         }
         else if(theProperty == m_write_depth)
         {
-            active_mat->setDepthWrite(*m_write_depth);
+            active_mat->set_depth_write(*m_write_depth);
         }
         else if(theProperty == m_read_depth)
         {
-            active_mat->setDepthTest(*m_read_depth);
+            active_mat->set_depth_test(*m_read_depth);
         }
         else if(theProperty == m_shader_vert ||
                 theProperty == m_shader_frag ||
@@ -108,7 +108,7 @@ namespace kinski
                 }
                 
                 if(shader)
-                    active_mat->setShader(shader);
+                    active_mat->set_shader(shader);
             }
         }
         else if(theProperty == m_texture_path_1 ||
@@ -130,7 +130,7 @@ namespace kinski
                     auto tex = gl::create_texture_from_file(n);
                     if(tex)
                     {
-                        active_mat->addTexture(tex);
+                        active_mat->add_texture(tex);
                     }
                 }
                 catch (Exception &e)
@@ -169,8 +169,8 @@ namespace kinski
         *m_ambient = mat->ambient();
         *m_specular = mat->specular();
         *m_blending = mat->blending();
-        *m_write_depth = mat->depthWrite();
-        *m_read_depth = mat->depthTest();
+        *m_write_depth = mat->depth_write();
+        *m_read_depth = mat->depth_test();
         observe_properties(true);
     }
 }

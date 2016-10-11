@@ -72,17 +72,21 @@ void RemoteControl::start_listen(uint16_t port)
         {
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
+                Stopwatch timer;
+                timer.start();
+                LOG_DEBUG << "generate_snapshot ...";
                 ptr->generate_snapshot();
                 auto img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
                 
                 ptr->background_queue().submit([con, img]()
                 {
+                    LOG_DEBUG << "compressing snapshot data ...";
                     auto compressed_data = encode_png(img);
                     auto message = std::vector<uint8_t>(4);
                     *(uint32_t*)(&message[0]) = compressed_data.size();
                     message.insert(message.end(), compressed_data.begin(), compressed_data.end());
                     con->send(message);
-//                    LOG_DEBUG << "message: " << compressed_data.size();
+                    LOG_DEBUG << "sending snapshot: " << compressed_data.size() << " bytes";
                 });
                 return;
             }

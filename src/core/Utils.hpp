@@ -294,8 +294,8 @@ namespace kinski
         Area_(const T &the_x0, const T &the_y0, const T &the_x1, const T &the_y1):
         x0(the_x0), y0(the_y0), x1(the_x1), y1(the_y1){};
         
-        inline const T width() const { return std::fabs(((double)x0 - (double)x1)); };
-        inline const T height() const { return std::fabs(((double)y0 - (double)y1)); };
+        inline const T width() const { return std::fabs(((double)x1 - (double)x0)); };
+        inline const T height() const { return std::fabs(((double)y1 - (double)y0)); };
         
         inline T size() const { return width() * height(); }
         
