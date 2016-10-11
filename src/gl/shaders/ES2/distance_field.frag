@@ -24,6 +24,6 @@ void main(void)
 {
     vec4 color = v_color * u_material.diffuse;
     float dist = texture2D(u_sampler_2D[0], v_texCoord.st).r;
-    float alpha = smoothstep(u_buffer - u_gamma, u_buffer + u_gamma, dist);
+    float alpha = smoothstep(u_buffer - u_gamma, u_gamma, dist);
     gl_FragColor = vec4(color.rgb, color.a * alpha);
 }
