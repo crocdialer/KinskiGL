@@ -32,8 +32,7 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
             internal_format = format = GL_LUMINANCE_ALPHA;
             break;
         case 3:
-            format = GL_RGB;
-            internal_format = GL_RGB;
+            internal_format = format = GL_RGB;
             // needs precompressed image and call to glCompressedTexImage2D
             //                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
             break;
@@ -73,7 +72,7 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     
 #if !defined(KINSKI_GLES)
     gl::Buffer pixel_buf;
-    pixel_buf.set_data(the_img->data, the_img->width * the_img->height * the_img->bytes_per_pixel);
+    pixel_buf.set_data(the_img->data, the_img->num_bytes());
     pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
     data = nullptr;
 #endif

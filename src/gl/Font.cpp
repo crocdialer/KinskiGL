@@ -302,8 +302,8 @@ namespace kinski { namespace gl {
             {
                 auto dist_img = compute_distance_field(m_obj->bitmap, 4)->resize(1024, 1024);
                 m_obj->sdf_texture = create_texture_from_image(dist_img, true);
-//                save_image_to_file(m_obj->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
-//                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
+                save_image_to_file(m_obj->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
+                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
             }
 //            m_obj->bitmap = m_obj->bitmap->resize(1024, 1024);
             
@@ -312,23 +312,34 @@ namespace kinski { namespace gl {
 //            m_obj->sdf_texture = create_texture_from_file("/Users/Fabian/glyph_dist.png");
             
             // create RGBA data
-            size_t num_bytes = m_obj->bitmap->width * m_obj->bitmap->height * 4;
-            uint8_t *rgba_data = new uint8_t[num_bytes];
-            uint8_t *dst_ptr = m_obj->bitmap->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
-            for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
-            {
-                rgba_ptr[0] = 255;
-                rgba_ptr[1] = 255;
-                rgba_ptr[2] = 255;
-                rgba_ptr[3] = *dst_ptr;
-            }
+//            size_t num_bytes = m_obj->bitmap->width * m_obj->bitmap->height * 4;
+//            uint8_t *rgba_data = new uint8_t[num_bytes];
+//            uint8_t *dst_ptr = m_obj->bitmap->data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + num_bytes;
+//            for (; rgba_ptr < rgba_end; rgba_ptr += 4, dst_ptr++)
+//            {
+//                rgba_ptr[0] = 255;
+//                rgba_ptr[1] = 255;
+//                rgba_ptr[2] = 255;
+//                rgba_ptr[3] = *dst_ptr;
+//            }
+            
+            GLint tex_format;
+#if defined(KINSKI_RASPI)
+            tex_format = GL_ALPHA;
+#else
+            tex_format = GL_RED;
+#endif
             
             // create a new texture object for our glyphs
-            m_obj->texture = gl::Texture(rgba_data, GL_RGBA, m_obj->bitmap->width,
+            m_obj->texture = gl::Texture(m_obj->bitmap->data, tex_format, m_obj->bitmap->width,
                                          m_obj->bitmap->height);
             m_obj->texture.setFlipped();
             m_obj->texture.set_mipmapping(true);
-            delete [](rgba_data);
+            
+#if !defined(KINSKI_RASPI)
+            m_obj->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
+#endif
+//            delete [](rgba_data);
         } catch (const Exception &e)
         {
             LOG_ERROR<<e.what();
