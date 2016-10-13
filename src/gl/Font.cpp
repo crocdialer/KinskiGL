@@ -328,7 +328,7 @@ namespace kinski { namespace gl {
             gl::Texture::Format fmt;
             fmt.setInternalFormat(tex_format);
             m_obj->texture = gl::Texture(m_obj->bitmap->data, tex_format, m_obj->bitmap->width,
-                                         m_obj->bitmap->height);
+                                         m_obj->bitmap->height, fmt);
             m_obj->texture.setFlipped();
             m_obj->texture.set_mipmapping(true);
 //            delete [](luminance_alpha_data);
