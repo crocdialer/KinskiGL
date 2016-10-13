@@ -205,8 +205,8 @@ namespace kinski{ namespace gl{
             
             try
             {
-                cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.getTarget(), 0,
-                                the_texture.getId());
+                cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.target(), 0,
+                                the_texture.id());
                 
                 kernel.setArg(0, img);
                 kernel.setArg(1, m_positionGen);
@@ -240,11 +240,11 @@ namespace kinski{ namespace gl{
             
             try
             {
-                cl::ImageGL img1(opencl().context(), CL_MEM_READ_ONLY, the_tex1.getTarget(), 0,
-                                the_tex1.getId());
+                cl::ImageGL img1(opencl().context(), CL_MEM_READ_ONLY, the_tex1.target(), 0,
+                                the_tex1.id());
                 
-                cl::ImageGL img2(opencl().context(), CL_MEM_READ_ONLY, the_tex2.getTarget(), 0,
-                                 the_tex2.getId());
+                cl::ImageGL img2(opencl().context(), CL_MEM_READ_ONLY, the_tex2.target(), 0,
+                                 the_tex2.id());
                 
                 kernel.setArg(0, img1);
                 kernel.setArg(1, img2);

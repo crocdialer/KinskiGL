@@ -89,10 +89,10 @@ namespace kinski{ namespace gl{
         if(!m_impl){ m_impl.reset(new Impl); }
         
 #if !defined(KINSKI_GLES)
-        if(the_texture.getTarget() == GL_TEXTURE_RECTANGLE)
+        if(the_texture.target() == GL_TEXTURE_RECTANGLE)
         {
             m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert_rect);
-            m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.getSize());
+            m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.size());
         }
         else{ m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert); }
 #endif

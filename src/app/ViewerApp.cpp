@@ -387,7 +387,7 @@ namespace kinski {
         {
             glm::vec3 look_at = *m_look_at;
             if(m_selected_mesh && m_center_selected)
-                look_at = gl::OBB(m_selected_mesh->boundingBox(), m_selected_mesh->transform()).center;
+                look_at = gl::OBB(m_selected_mesh->bounding_box(), m_selected_mesh->transform()).center;
 
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
@@ -502,12 +502,12 @@ namespace kinski {
         {
             if(!t) continue;
 
-            float h = t.getHeight() * w / t.getWidth();
+            float h = t.height() * w / t.width();
             glm::vec2 step(0, h + 10);
 
             gl::draw_texture(t, glm::vec2(w, h), offset);
-            gl::draw_text_2D(to_string(t.getWidth()) + std::string(" x ") +
-                           to_string(t.getHeight()), m_fonts[0], glm::vec4(1),
+            gl::draw_text_2D(to_string(t.width()) + std::string(" x ") +
+                           to_string(t.height()), m_fonts[0], glm::vec4(1),
                            offset);
             offset += step;
         }
@@ -539,10 +539,10 @@ namespace kinski {
     {
         gl::Texture ret;
 
-        if(!m_snapshot_fbo || m_snapshot_fbo.getSize() != gl::window_dimension())
+        if(!m_snapshot_fbo || m_snapshot_fbo.size() != gl::window_dimension())
         {
             gl::Fbo::Format fmt;
-//            fmt.setSamples(8);
+//            fmt.set_num_samples(8);
             m_snapshot_fbo = gl::Fbo(gl::window_dimension(), fmt);
         }
 

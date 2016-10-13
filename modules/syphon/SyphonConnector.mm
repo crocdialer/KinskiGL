@@ -34,16 +34,16 @@ namespace kinski{ namespace syphon{
     {
         if(!theTexture){ return; }
         if(!m_obj) throw SyphonNotRunningException();
-        NSRect rect = NSMakeRect(0, 0, theTexture.getWidth(), theTexture.getHeight());
-        NSSize size = NSMakeSize(theTexture.getWidth(), theTexture.getHeight());
+        NSRect rect = NSMakeRect(0, 0, theTexture.width(), theTexture.height());
+        NSSize size = NSMakeSize(theTexture.width(), theTexture.height());
         
         // syphon won't be nice and change the viewport settings, so save them
         gl::SaveViewPort sv;
 
-        [m_obj->m_syphon_server publishFrameTexture:theTexture.getId()
-                                textureTarget:theTexture.getTarget()
+        [m_obj->m_syphon_server publishFrameTexture:theTexture.id()
+                                textureTarget:theTexture.target()
                                 imageRegion:rect
-                                textureDimensions:size flipped:theTexture.isFlipped()];
+                                textureDimensions:size flipped:theTexture.flipped()];
     }
     
     void Output::setName(const std::string &theName)

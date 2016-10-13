@@ -45,7 +45,7 @@ namespace kinski{ namespace gl{
             if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
             
             glm::mat4 model_view = transform_stack().top() * theNode.transform();
-            gl::AABB boundingBox = theNode.boundingBox();
+            gl::AABB boundingBox = theNode.bounding_box();
             //            boundingBox.transform(theNode.global_transform());
             
             if(m_frustum.intersect(boundingBox))
@@ -108,7 +108,7 @@ namespace kinski{ namespace gl{
         SelectVisitor<Light> lv;
         the_scene->root()->accept(lv);
 
-        float extents = 2.f * glm::length(the_scene->root()->boundingBox().halfExtents());
+        float extents = 2.f * glm::length(the_scene->root()->bounding_box().halfExtents());
 
         uint32_t i = 0;
         set_shadowmap_size(glm::vec2(1024));
@@ -233,12 +233,12 @@ namespace kinski{ namespace gl{
                         int tex_unit = mat->textures().size() + i;
                         shadow_matrices.push_back(m_shadow_cams[i]->getProjectionMatrix() *
                                                   m_shadow_cams[i]->getViewMatrix() * m->global_transform());
-                        m_shadow_fbos[i].getDepthTexture().bind(tex_unit);
+                        m_shadow_fbos[i].depth_texture().bind(tex_unit);
                         sprintf(buf, "u_shadow_map[%d]", i);
                         mat->uniform(buf, tex_unit);
                     }
                     mat->uniform("u_shadow_matrices", shadow_matrices);
-                    mat->uniform("u_shadow_map_size", m_shadow_fbos[0].getSize());
+                    mat->uniform("u_shadow_map_size", m_shadow_fbos[0].size());
 //                    mat->uniform("u_poisson_radius", 3.f);
                 }
                 
@@ -454,11 +454,11 @@ namespace kinski{ namespace gl{
     {
 #ifndef KINSKI_GLES
         gl::Fbo::Format fmt;
-        fmt.setNumColorBuffers(0);
+        fmt.set_num_color_buffers(0);
         
         for(size_t i = 0; i < m_shadow_fbos.size(); i++)
         {
-            if(!m_shadow_fbos[i] || m_shadow_fbos[i].getSize() != the_size)
+            if(!m_shadow_fbos[i] || m_shadow_fbos[i].size() != the_size)
             {
                 m_shadow_fbos[i] = gl::Fbo(the_size.x, the_size.y, fmt);
             }

@@ -151,7 +151,7 @@ namespace kinski { namespace gl {
     {
         if(!t){ m_skybox.reset(); return; }
         
-        switch(t.getTarget())
+        switch(t.target())
         {
 //            case GL_TEXTURE_CUBE_MAP:
 //                break;

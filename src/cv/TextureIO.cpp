@@ -46,9 +46,9 @@ const Texture TextureIO::loadTexture(const string &imgName)
 
 bool TextureIO::saveTexture(const string &imgPath, const Texture &texture, bool flip)
 {
-    Mat outMat(texture.getHeight(), texture.getWidth(), CV_8UC4);
+    Mat outMat(texture.height(), texture.width(), CV_8UC4);
     texture.bind(); 
-    glGetTexImage( texture.getTarget(), 0, GL_BGRA, GL_UNSIGNED_BYTE, outMat.data );
+    glGetTexImage( texture.target(), 0, GL_BGRA, GL_UNSIGNED_BYTE, outMat.data );
     
     if(flip){cv::flip(outMat, outMat, 0);}
     return imwrite(imgPath, outMat);
@@ -59,20 +59,20 @@ bool TextureIO::encode_jpg(const gl::Texture &texture, std::vector<uint8_t> &out
     static gl::Buffer pixel_buf(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
     try
     {
-        Mat mat_uncompressed(texture.getHeight(), texture.getWidth(), CV_8UC4), mat_jpg;
+        Mat mat_uncompressed(texture.height(), texture.width(), CV_8UC4), mat_jpg;
         
-        size_t num_bytes = texture.getWidth() * texture.getHeight() * 4;
+        size_t num_bytes = texture.width() * texture.height() * 4;
         if(pixel_buf.num_bytes() != num_bytes)
         {
             pixel_buf.set_data(nullptr, num_bytes);
         }
         pixel_buf.bind();
-        glGetTexImage(texture.getTarget(), 0, texture.getInternalFormat(), GL_UNSIGNED_BYTE, nullptr);
+        glGetTexImage(texture.target(), 0, texture.internal_format(), GL_UNSIGNED_BYTE, nullptr);
         pixel_buf.unbind();
         auto pix_ptr = pixel_buf.map();
         memcpy(mat_uncompressed.data, pix_ptr, num_bytes);
         pixel_buf.unmap();
-        if(texture.isFlipped()){ cv::flip(mat_uncompressed, mat_uncompressed, 0); }
+        if(texture.flipped()){ cv::flip(mat_uncompressed, mat_uncompressed, 0); }
         cv::imencode(".jpg", mat_uncompressed, out_bytes);
     } catch (std::exception &e)
     {

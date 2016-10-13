@@ -580,11 +580,11 @@ namespace kinski { namespace gl {
             rect_2D = gl::create_shader(gl::ShaderType::RECT_2D);
         }
 
-        if(theTexture.getTarget() == GL_TEXTURE_2D){ material->set_shader(tex_2D); }
-        else if(theTexture.getTarget() == GL_TEXTURE_RECTANGLE)
+        if(theTexture.target() == GL_TEXTURE_2D){ material->set_shader(tex_2D); }
+        else if(theTexture.target() == GL_TEXTURE_RECTANGLE)
         {
             material->set_shader(rect_2D);
-            material->uniform("u_texture_size", theTexture.getSize());
+            material->uniform("u_texture_size", theTexture.size());
         }
         else
         {
@@ -773,7 +773,7 @@ namespace kinski { namespace gl {
             geom->set_primitive_type(GL_LINES);
             gl::MaterialPtr mat = gl::Material::create();
             MeshPtr line_mesh (gl::Mesh::create(geom, mat));
-            AABB bb = m->boundingBox();
+            AABB bb = m->bounding_box();
             vector<vec3> &thePoints = geom->vertices();
             vector<vec4> &theColors = geom->colors();
             float axis_length = std::max(bb.width(), bb.height());
@@ -1072,7 +1072,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             geom->create_gl_buffers();
             line_mesh->createVertexArray();
         }
-        AABB mesh_bb = the_obj->boundingBox();
+        AABB mesh_bb = the_obj->bounding_box();
         glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
         
         glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(mesh_bb.width(),
@@ -1196,11 +1196,11 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::set_window_dimension(theFbo.getSize());
-        theFbo.bindFramebuffer();
+        gl::set_window_dimension(theFbo.size());
+        theFbo.bind();
         gl::clear();
         theScene->render(theCam);
-        return theFbo.getTexture();
+        return theFbo.texture();
     }
     
 //#ifdef KINSKI_CPP11
@@ -1214,10 +1214,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         }
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-        gl::set_window_dimension(theFbo.getSize());
-        theFbo.bindFramebuffer();
+        gl::set_window_dimension(theFbo.size());
+        theFbo.bind();
         functor();
-        return theFbo.getTexture();
+        return theFbo.texture();
     }
     
 //#endif
@@ -1237,12 +1237,12 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             return ret;
         }
         
-        auto tex_sz = the_planes.front().getSize();
-        auto tex_target = the_planes.front().getTarget();
+        auto tex_sz = the_planes.front().size();
+        auto tex_target = the_planes.front().target();
         
         for (auto &t : the_planes)
         {
-            if(!t || tex_sz != t.getSize() || tex_target != t.getTarget())
+            if(!t || tex_sz != t.size() || tex_target != t.target())
             {
                 LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
                 return ret;
@@ -1264,14 +1264,14 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             t.bind();
             
             // copy data to PBO
-            glGetTexImage(t.getTarget(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
+            glGetTexImage(t.target(), 0, t.internal_format(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
             
             // bind cube map
             glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
             
             // copy data from PBO to appropriate image plane
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t.getInternalFormat(), t.getWidth(),
-                         t.getHeight(), 0, t.getInternalFormat(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t.internal_format(), t.width(),
+                         t.height(), 0, t.internal_format(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
         }
         pixel_buf.unbind(GL_PIXEL_UNPACK_BUFFER);
         pixel_buf.unbind(GL_PIXEL_PACK_BUFFER);
@@ -1405,7 +1405,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // texture matrix from first texture, if any
         the_mat->shader().uniform("u_textureMatrix",
                          (the_mat->textures().empty() || !the_mat->textures().front()) ?
-                                  glm::mat4() : the_mat->textures().front().getTextureMatrix());
+                                  glm::mat4() : the_mat->textures().front().texture_matrix());
         
         the_mat->shader().uniform("u_numTextures", (GLint) the_mat->textures().size());
         
@@ -1423,7 +1423,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             
             t.bind(tex_unit);
             
-            switch (t.getTarget())
+            switch (t.target())
             {
                 case GL_TEXTURE_2D:
                     sprintf(buf, "u_sampler_2D[%d]", tex_2d++);
@@ -1515,7 +1515,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             return false;
         }
         
-        auto aabb = m->boundingBox().transform(m->global_transform());
+        auto aabb = m->bounding_box().transform(m->global_transform());
         
         // checks if p is inside the (transformed aabb of Mesh m)
         if(!aabb.contains(p)) return false;
@@ -1557,7 +1557,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             return h1.distance < h2.distance;
         };
         
-        float ray_offset = 2 * glm::length(src->boundingBox().transform(src->global_transform()).halfExtents());
+        float ray_offset = 2 * glm::length(src->bounding_box().transform(src->global_transform()).halfExtents());
         float scale_val = 1.01f;
         mat4 world_to_src = glm::inverse(glm::scale(src->global_transform(), vec3(scale_val)));
         

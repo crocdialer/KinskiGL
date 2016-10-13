@@ -82,7 +82,7 @@ namespace kinski { namespace gl {
         void set_global_rotation(const quat &rotation);
         void set_global_scale(const vec3 &scale);
         
-        virtual gl::AABB boundingBox() const;
+        virtual gl::AABB bounding_box() const;
         virtual gl::OBB obb() const;
         
         /*!

@@ -387,8 +387,8 @@ namespace kinski { namespace gl{
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
             geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->rootBone()) << " bones";
             
-            LOG_DEBUG<<"bounds: " <<to_string(mesh->boundingBox().min)<<" - "<<
-                to_string(mesh->boundingBox().max);
+            LOG_DEBUG<<"bounds: " <<to_string(mesh->bounding_box().min)<<" - "<<
+                to_string(mesh->bounding_box().max);
             
             importer.FreeScene();
             return mesh;

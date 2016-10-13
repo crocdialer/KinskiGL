@@ -302,7 +302,7 @@ namespace kinski{namespace physics{
             auto &vertices = m->geometry()->vertices();
             
             // aabb
-            auto out_aabb = the_mesh->boundingBox();
+            auto out_aabb = the_mesh->bounding_box();
             vec3 aabb_extents = out_aabb.halfExtents() * 2.f;
             
             uint32_t base_vertex = m->entries()[1].base_vertex;

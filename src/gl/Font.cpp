@@ -302,11 +302,9 @@ namespace kinski { namespace gl {
             {
                 auto dist_img = compute_distance_field(m_obj->bitmap, 4)->resize(1024, 1024);
                 m_obj->sdf_texture = create_texture_from_image(dist_img, true);
-                save_image_to_file(m_obj->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
-                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
+//                save_image_to_file(m_obj->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
+//                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
             }
-//            m_obj->bitmap = m_obj->bitmap->resize(1024, 1024);
-//            m_obj->sdf_texture = create_texture_from_file("/Users/Fabian/glyph_dist.png");
             
 #if defined(KINSKI_RASPI)
             GLint tex_format = GL_LUMINANCE_ALPHA;
@@ -577,7 +575,7 @@ namespace kinski { namespace gl {
             auto line_mesh = create_mesh(l)->copy();
             
             // center line_mesh
-            auto line_aabb = line_mesh->boundingBox();
+            auto line_aabb = line_mesh->bounding_box();
             
             //split line, if necessary
             while(line_aabb.width() > the_linewidth)
@@ -609,7 +607,7 @@ namespace kinski { namespace gl {
                 line_mesh = create_mesh(l)->copy();
                 
                 // new aabb
-                line_aabb = line_mesh->boundingBox();
+                line_aabb = line_mesh->bounding_box();
             }
 
             switch (the_align)

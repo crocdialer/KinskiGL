@@ -341,7 +341,7 @@ namespace kinski { namespace gl {
         }
     }
 
-    AABB Mesh::boundingBox() const
+    AABB Mesh::bounding_box() const
     {
         AABB ret = m_geometry->bounding_box();
         mat4 global_trans = global_transform();
@@ -349,7 +349,7 @@ namespace kinski { namespace gl {
 
         for (auto &c :children())
         {
-            ret += c->boundingBox();
+            ret += c->bounding_box();
         }
         return ret;
     }

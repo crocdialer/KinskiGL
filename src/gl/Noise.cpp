@@ -36,11 +36,11 @@ namespace kinski{ namespace gl{
     {
         gl::Texture noise_tex;
         
-        if(!m_impl->m_fbo || m_impl->m_fbo.getSize() != m_impl->m_tex_size)
+        if(!m_impl->m_fbo || m_impl->m_fbo.size() != m_impl->m_tex_size)
         {
             gl::Fbo::Format fmt;
 #if !defined(KINSKI_GLES)
-            fmt.setColorInternalFormat(GL_R32F);
+            fmt.set_color_internal_format(GL_R32F);
 #endif
             m_impl->m_fbo = gl::Fbo(m_impl->m_tex_size, fmt);
         }

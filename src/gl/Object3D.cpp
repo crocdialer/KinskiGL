@@ -187,7 +187,7 @@ namespace kinski { namespace gl {
         }
     }
     
-    AABB Object3D::boundingBox() const
+    AABB Object3D::bounding_box() const
     {
         AABB ret;
         mat4 global_trans = global_transform();
@@ -195,14 +195,14 @@ namespace kinski { namespace gl {
         
         for (auto &c :children())
         {
-            ret += c->boundingBox();
+            ret += c->bounding_box();
         }
         return ret;
     }
     
     gl::OBB Object3D::obb() const
     {
-        gl::OBB ret(boundingBox(), mat4());
+        gl::OBB ret(bounding_box(), mat4());
         return ret;
     }
     

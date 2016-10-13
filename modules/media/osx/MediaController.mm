@@ -361,7 +361,7 @@ namespace kinski{ namespace media{
                                            GL_UNSIGNED_INT_8_8_8_8_REV,
                                            m_impl->m_io_surface,
                                            0);
-                    tex.setFlipped();
+                    tex.set_flipped();
                 }
             }
             else
@@ -433,10 +433,10 @@ namespace kinski{ namespace media{
             
             // aquire gpu-memory for our frames
             gl::Texture::Format fmt;
-            fmt.setTarget(GL_TEXTURE_2D_ARRAY);
-            fmt.setInternalFormat(compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA);
+            fmt.set_target(GL_TEXTURE_2D_ARRAY);
+            fmt.set_internal_format(compress ? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA);
             tex = gl::Texture(width, height, num_frames, fmt);
-            tex.setFlipped();
+            tex.set_flipped();
             
             // swizzle color components
             tex.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA);
