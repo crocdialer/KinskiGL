@@ -324,10 +324,10 @@ namespace kinski { namespace gl {
             
             // create a new texture object for our glyphs
             gl::Texture::Format fmt;
-            fmt.setInternalFormat(tex_format);
+            fmt.set_internal_format(tex_format);
             m_obj->texture = gl::Texture(luminance_alpha_data, tex_format, m_obj->bitmap->width,
                                          m_obj->bitmap->height, fmt);
-            m_obj->texture.setFlipped();
+            m_obj->texture.set_flipped();
             m_obj->texture.set_mipmapping(true);
             delete [](luminance_alpha_data);
 #else
