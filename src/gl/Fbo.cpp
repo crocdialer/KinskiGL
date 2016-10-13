@@ -158,7 +158,7 @@ Fbo::Format::Format()
 	m_color_internal_format = GL_RGBA;
 	m_depth_internal_format = GL_ENUM(GL_DEPTH_COMPONENT24);
     m_stencil_internal_format = GL_STENCIL_INDEX8;
-	m_depth_bufferAsTexture = false;
+	m_depth_buffer_texture = false;
 #else
 	m_color_internal_format = GL_RGBA8;
     m_depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
