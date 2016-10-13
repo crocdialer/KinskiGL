@@ -594,7 +594,7 @@ namespace kinski{ namespace media
     {
         if(!m_impl || !m_impl->m_has_new_frame){ return false; }
         tex = m_impl->m_texture;
-        tex.setFlipped();
+        tex.set_flipped();
         m_impl->m_has_new_frame = false;
         return true;
     }
