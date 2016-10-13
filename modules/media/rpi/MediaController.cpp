@@ -444,7 +444,7 @@ namespace kinski{ namespace media
         m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                 eglGetCurrentContext(),
                                                 EGL_GL_TEXTURE_2D_KHR,
-                                                (EGLClientBuffer)m_impl->m_texture.getId(),
+                                                (EGLClientBuffer)m_impl->m_texture.id(),
                                                 0);
         // pass our egl_image for buffer creation
         if(m_impl->m_render_target == RenderTarget::TEXTURE)
