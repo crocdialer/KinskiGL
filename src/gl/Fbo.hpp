@@ -27,51 +27,35 @@ class KINSKI_API Renderbuffer
 	Renderbuffer(int width, int height, GLenum internalFormat, int msaaSamples);
 
 	//! Returns the width of the Renderbuffer in pixels
-	int width() const { return m_obj->m_width; }
+    int width() const;
     
 	//! Returns the height of the Renderbuffer in pixels
-	int height() const { return m_obj->m_height; }
+    int height() const;
     
 	//! Returns the size of the Renderbuffer in pixels
-    ivec2 size() const { return ivec2(m_obj->m_width, m_obj->m_height); }
+    ivec2 size() const;
     
 	//! Returns the bounding area of the Renderbuffer in pixels
 	//Area	getBounds() const { return Area( 0, 0, m_obj->m_width, m_obj->m_height ); }
     
 	//! Returns the aspect ratio of the Renderbuffer
-	float aspect_ratio() const { return m_obj->m_width / (float)m_obj->m_height; }
+    float aspect_ratio() const;
 
 	//! Returns the ID of the Renderbuffer
-	GLuint	id() const { return m_obj->m_id; }
+    GLuint	id() const;
 	//! Returns the internal format of the Renderbuffer
-	GLenum	internal_format() const { return m_obj->m_internal_format; }
+    GLenum	internal_format() const;
 	//! Returns the number of samples used in MSAA-style antialiasing. Defaults to none, disabling multisampling
-	int num_samples() const { return m_obj->m_num_samples; }
+    int num_samples() const;
 	//! Returns the number of coverage samples used in CSAA-style antialiasing. Defaults to none.
 	//int		getCoverageSamples() const { return m_obj->m_num_coverage_samples; }
 
   private:
-	struct Obj {
-		Obj();
-		Obj( int aWidth, int aHeight, GLenum internalFormat, int msaaSamples);
-		~Obj();
-
-		int					m_width, m_height;
-		GLuint				m_id;
-		GLenum				m_internal_format;
-		int					m_num_samples;
-	};
-    
-    typedef std::shared_ptr<Obj> ObjPtr;
-	ObjPtr m_obj;
+    std::shared_ptr<struct RenderbufferImpl> m_impl;
 
   public:
-  	//@{
-	//! Emulates shared_ptr-like behavior
-	typedef ObjPtr Renderbuffer::*unspecified_bool_type;
-	operator unspecified_bool_type() const { return ( m_obj.get() == 0 ) ? 0 : &Renderbuffer::m_obj; }
-	void reset() { m_obj.reset(); }
-	//@}  	
+    operator bool() const { return m_impl.get(); }
+	void reset() { m_impl.reset(); }
 };
 
 //! Represents an OpenGL Framebuffer Object. \ImplShared
@@ -90,21 +74,21 @@ class KINSKI_API Fbo
 	Fbo( int width, int height, bool alpha, bool color = true, bool depth = true );
 
 	//! Returns the width of the FBO in pixels
-	int width() const { return m_obj->m_width; }
+    int width() const;
 	//! Returns the height of the FBO in pixels
-	int height() const { return m_obj->m_height; }
+    int height() const;
 	//! Returns the size of the FBO in pixels
-    vec2 size() const { return vec2( m_obj->m_width, m_obj->m_height ); }
+    vec2 size() const;
     
 	//! Returns the bounding area of the FBO in pixels
 	//Area			getBounds() const { return Area( 0, 0, m_obj->m_width, m_obj->m_height ); }
     
 	//! Returns the aspect ratio of the FBO
-	float aspect_ratio() const { return m_obj->m_width / (float)m_obj->m_height; }
+    float aspect_ratio() const;
 	//! Returns the Fbo::Format of this FBO
-	const Format& format() const { return m_obj->m_format; }
+    const Format& format() const;
 	//! Returns the texture target for this FBO. Typically \c GL_TEXTURE_2D or \c GL_TEXTURE_RECTANGLE_ARB
-	GLenum target() const { return m_obj->m_format.m_target; }
+    GLenum target() const;
 
 	//! Returns a reference to the color texture of the FBO. \a attachment specifies which attachment in the case of multiple color buffers
 	Texture texture(int the_attachment = 0);
@@ -125,7 +109,7 @@ class KINSKI_API Fbo
 	static void unbind();
 
 	//! Returns the ID of the framebuffer itself. For antialiased FBOs this is the ID of the output multisampled FBO
-	GLuint id() const { return m_obj->m_id; }
+    GLuint id() const;
 
 #if ! defined( KINSKI_GLES )
 //	//! For antialiased FBOs this returns the ID of the mirror FBO designed for reading, where the multisampled render buffers are resolved to. For non-antialised, this is the equivalent to getId()
@@ -145,9 +129,9 @@ class KINSKI_API Fbo
 #endif
 
 	//! Returns the maximum number of samples the graphics card is capable of using per pixel in MSAA for an Fbo
-	static GLint	getMaxSamples();
+	static GLint	max_num_samples();
 	//! Returns the maximum number of color attachments the graphics card is capable of using for an Fbo
-	static GLint	getMaxAttachments();
+	static GLint	max_num_attachments();
 	
 	struct KINSKI_API Format
     {
@@ -266,39 +250,21 @@ class KINSKI_API Fbo
 		friend class Fbo;
 	};
 
- protected:
+ private:
 	void		init();
 	bool		init_multisample();
 	void		resolve_textures() const;
 	void		update_mipmaps(bool the_bind_first, int the_attachment) const;
 	bool		check_status( class FboExceptionInvalidSpecification *resultExc );
-
-	struct Obj {
-		Obj();
-		Obj(int aWidth, int aHeight);
-		~Obj();
-
-		int m_width, m_height;
-		Format m_format;
-		GLuint m_id;
-		GLuint m_resolve_fbo_id;
-		std::vector<Renderbuffer> mMultisampleColorRenderbuffers;
-		Renderbuffer m_multisample_depth_renderbuffer;
-		std::vector<Texture> m_color_textures;
-		Texture m_depth_texture;
-		Renderbuffer m_depthRenderbuffer;
-		mutable bool m_needs_resolve, m_needs_mipmap_update;
-	};
  
-    typedef std::shared_ptr<Obj> ObjPtr;
-	ObjPtr	m_obj;
-	
+    
+	std::shared_ptr<struct FboImpl>	m_impl;
 	static GLint sMaxSamples, sMaxAttachments;
 	
   public:
 	//! Emulates shared_ptr-like behavior
-	operator bool() const { return m_obj.get() != nullptr; }
-	void reset() { m_obj.reset(); }
+	operator bool() const { return m_impl.get(); }
+	void reset() { m_impl.reset(); }
 };
 
 class FboException : public Exception {
