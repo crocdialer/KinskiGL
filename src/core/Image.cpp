@@ -179,7 +179,7 @@ namespace kinski
     ImagePtr Image::blur()
     {
         // gaussian blur
-        const std::vector<float> kernel =
+        const std::vector<float> gaussian =
         {
             1, 4, 7, 4, 1,
             4, 16, 26, 16, 4,
@@ -187,8 +187,13 @@ namespace kinski
             4, 16, 26, 16, 4,
             1, 4, 7, 4, 1,
         };
-//        const std::vector<float> simple(9, 1);
-        return convolve(kernel);
+//        const std::vector<float> identity =
+//        {
+//            0, 0, 0,
+//            0, 1, 0,
+//            0, 0, 0
+//        };
+        return convolve(gaussian);
     }
     
     ImagePtr Image::resize(uint32_t the_width, uint32_t the_height)
@@ -242,14 +247,15 @@ namespace kinski
                 {
                     float sum = 0;
                     int k_idx = 0;
-                    for(int k = -kernel_dim_2; k < kernel_dim_2; ++k)
+                    for(int k = -kernel_dim_2; k <= kernel_dim_2; ++k)
                     {
-                        for(int l = -kernel_dim_2; l < kernel_dim_2; ++l, ++k_idx)
+                        for(int l = -kernel_dim_2; l <= kernel_dim_2; ++l)
                         {
                             int pos_x = x + k, pos_y = y + l;
-                            if(pos_x < 0 || pos_x >= (int)width || pos_y < 0 || pos_x >= (int)height)
+                            if(pos_x < 0 || pos_x >= (int)width || pos_y < 0 || pos_y >= (int)height)
                             { sum += at(x, y)[c] / (float)norm_kernel.size(); }
                             else{ sum += at(pos_x, pos_y)[c] * norm_kernel[k_idx]; }
+                            k_idx++;
                         }
                     }
                     dst_ptr[c] = clamp<float>(roundf(sum), 0, 255);
