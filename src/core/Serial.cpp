@@ -616,14 +616,13 @@ void Serial::drain(){
 //-------------------------------------------------------------
 size_t Serial::available() const
 {
-
-	if (!bInited)
+    size_t numBytes = 0;
+    
+	if(!bInited)
     {
-		LOG_ERROR << "available(): serial not inited";
-		return KINSKI_SERIAL_ERROR;
+//		LOG_ERROR << "available(): serial not inited";
+		return numBytes;
 	}
-
-	size_t numBytes = 0;
 
 	//---------------------------------------------
 	#if defined( KINSKI_MAC ) || defined( KINSKI_LINUX )
