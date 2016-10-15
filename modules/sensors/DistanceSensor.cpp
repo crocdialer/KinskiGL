@@ -26,7 +26,7 @@ namespace kinski{
         float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         std::thread m_reconnect_thread;
         
-        MotionCallback m_motion_callback;
+        callback_t m_motion_callback;
     };
     
     DistanceSensor::DistanceSensor(const std::string &dev_name):
@@ -64,7 +64,7 @@ namespace kinski{
         bool reading_complete = false;
         uint16_t distance_val = 0;
         
-        if(m_impl->m_sensor_device->is_initialized())
+        if(is_initialized())
         {
             bytes_to_read = std::min(m_impl->m_sensor_device->available(),
                                      m_impl->m_sensor_read_buf.size());
@@ -82,7 +82,7 @@ namespace kinski{
                 {
                     case SERIAL_END_CODE:
                         distance_val = string_to<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
-                                                                 m_impl->m_sensor_accumulator.end()));
+                                                                  m_impl->m_sensor_accumulator.end()));
                         m_impl->m_sensor_accumulator.clear();
                         reading_complete = true;
                         break;
@@ -94,7 +94,12 @@ namespace kinski{
             }
         }
         
-        if(reading_complete){ m_impl->m_distance = distance_val; }
+        if(reading_complete)
+        {
+            m_impl->m_distance = distance_val;
+            
+            if(m_impl->m_motion_callback){ m_impl->m_motion_callback(m_impl->m_distance); }
+        }
         
         if((m_impl->m_timeout_reconnect > 0.f) && m_impl->m_last_reading > m_impl->m_timeout_reconnect)
         {
@@ -111,7 +116,7 @@ namespace kinski{
         return m_impl->m_distance;
     }
     
-    void DistanceSensor::set_motion_callback(MotionCallback cb)
+    void DistanceSensor::set_motion_callback(callback_t cb)
     {
         m_impl->m_motion_callback = cb;
     }
@@ -128,6 +133,6 @@ namespace kinski{
     
     bool DistanceSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device->is_initialized();
+        return m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized();
     }
 }

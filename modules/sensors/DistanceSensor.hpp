@@ -16,7 +16,7 @@ namespace kinski
     {
     public:
         
-        typedef std::function<void()> MotionCallback;
+        typedef std::function<void(int)> callback_t;
         
         DistanceSensor(const std::string &dev_name = "");
         
@@ -27,7 +27,7 @@ namespace kinski
         float timeout_reconnect() const;
         void set_timeout_reconnect(float val);
         
-        void set_motion_callback(MotionCallback cb);
+        void set_motion_callback(callback_t cb);
         bool is_initialized() const;
         
     private:
