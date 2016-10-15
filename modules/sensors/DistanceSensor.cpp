@@ -18,7 +18,7 @@ namespace kinski{
     
     struct DistanceSensor::Impl
     {
-        SerialPtr m_sensor_device;
+        SerialPtr m_sensor_device = Serial::create();
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_distance = 0;
@@ -64,7 +64,7 @@ namespace kinski{
         bool reading_complete = false;
         uint16_t distance_val = 0;
         
-        if(is_initialized())
+        while(m_impl->m_sensor_device && m_impl->m_sensor_device->available())
         {
             bytes_to_read = std::min(m_impl->m_sensor_device->available(),
                                      m_impl->m_sensor_read_buf.size());

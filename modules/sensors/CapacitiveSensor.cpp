@@ -66,7 +66,7 @@ namespace kinski
         size_t bytes_to_read = 0;
         m_impl->m_last_reading += time_delta;
         
-        if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized())
+        while(m_impl->m_sensor_device && m_impl->m_sensor_device->available())
         {
             bytes_to_read = std::min(m_impl->m_sensor_device->available(),
                                      m_impl->m_sensor_read_buf.size());
