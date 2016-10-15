@@ -137,23 +137,23 @@ namespace kinski{ namespace gl{
         inline std::vector<vec3>& vertices(){ m_dirty_vertex_buffer = true; return m_vertices;};
         inline const std::vector<vec3>& vertices() const { return m_vertices; };
         
-        bool has_normals() const { return m_vertices.size() == m_normals.size(); };
+        bool has_normals() const { return !m_vertices.empty() && m_vertices.size() == m_normals.size(); };
         inline std::vector<vec3>& normals(){ m_dirty_normal_buffer = true; return m_normals; };
         inline const std::vector<vec3>& normals() const { return m_normals; };
         
-        bool has_tangents() const { return m_vertices.size() == m_tangents.size(); };
+        bool has_tangents() const { return !m_vertices.empty() && m_vertices.size() == m_tangents.size(); };
         inline std::vector<vec3>& tangents(){ m_dirty_tangent_buffer = true; return m_tangents; };
         inline const std::vector<vec3>& tangents() const { return m_tangents; };
         
-        bool has_point_sizes() const { return m_vertices.size() == m_point_sizes.size(); };
+        bool has_point_sizes() const { return !m_vertices.empty() && m_vertices.size() == m_point_sizes.size(); };
         inline std::vector<float>& point_sizes(){ m_dirty_point_size_buffer = true; return m_point_sizes; };
         inline const std::vector<float>& point_sizes() const { return m_point_sizes; };
         
-        bool has_tex_coords() const { return m_vertices.size() == m_tex_coords.size(); };
+        bool has_tex_coords() const { return !m_vertices.empty() && m_vertices.size() == m_tex_coords.size(); };
         inline std::vector<vec2>& tex_coords(){ m_dirty_tex_coord_buffer = true; return m_tex_coords; };
         inline const std::vector<vec2>& tex_coords() const { return m_tex_coords; };
         
-        bool has_colors() const { return m_vertices.size() == m_colors.size(); };
+        bool has_colors() const { return !m_vertices.empty() && m_vertices.size() == m_colors.size(); };
         std::vector<vec4>& colors(){ m_dirty_color_buffer = true; return m_colors; };
         const std::vector<vec4>& colors() const { return m_colors; };
         
@@ -164,7 +164,7 @@ namespace kinski{ namespace gl{
         inline std::vector<Face3>& faces(){ return m_faces; };
         inline const std::vector<Face3>& faces() const { return m_faces; };
         
-        bool has_bones() const { return m_vertices.size() == m_bone_vertex_data.size(); };
+        bool has_bones() const { return !m_vertices.empty() && m_vertices.size() == m_bone_vertex_data.size(); };
         std::vector<BoneVertexData>& bone_vertex_data(){ return m_bone_vertex_data; };
         const std::vector<BoneVertexData>& bone_vertex_data() const { return m_bone_vertex_data; };
         

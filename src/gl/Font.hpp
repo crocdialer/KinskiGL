@@ -39,15 +39,11 @@ namespace kinski { namespace gl {
         void set_line_height(uint32_t the_line_height);
         
     private:
-        // forward declared Implementation object
-        struct Obj;
-        typedef std::shared_ptr<Obj> ObjPtr;
-        ObjPtr m_obj;
+        std::shared_ptr<struct FontImpl> m_impl;
         
     public:
-        //! Emulates shared_ptr-like behavior
-        operator bool() const { return m_obj.get() != nullptr; }
-        void reset() { m_obj.reset(); }
+        operator bool() const { return m_impl.get(); }
+        void reset() { m_impl.reset(); }
     };
     
 }}// namespace

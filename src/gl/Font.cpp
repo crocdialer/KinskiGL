@@ -212,7 +212,7 @@ namespace kinski { namespace gl {
         bool operator<(const string_mesh_container &other) const {return counter < other.counter;}
     };
     
-    struct Font::Obj
+    struct FontImpl
     {
         std::string path;
         stbtt_packedchar char_data[1024];
@@ -227,7 +227,7 @@ namespace kinski { namespace gl {
         size_t max_mesh_buffer_size;
         std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
-        Obj():
+        FontImpl():
         bitmap(Image::create(BITMAP_WIDTH, BITMAP_WIDTH, 1)),
         max_mesh_buffer_size(500)
         {
@@ -238,39 +238,39 @@ namespace kinski { namespace gl {
     };
     
     
-    Font::Font():m_obj(new Obj())
+    Font::Font():m_impl(new FontImpl())
     {
         
     }
     
     const std::string Font::path() const
     {
-        return m_obj->path;
+        return m_impl->path;
     }
     
     Texture Font::glyph_texture() const
     {
-        return m_obj->texture;
+        return m_impl->texture;
     }
     
     Texture Font::sdf_texture() const
     {
-        return m_obj->sdf_texture;
+        return m_impl->sdf_texture;
     }
     
     uint32_t Font::font_size() const
     {
-        return m_obj->font_height;
+        return m_impl->font_height;
     }
     
     uint32_t Font::line_height() const
     {
-        return m_obj->line_height;
+        return m_impl->line_height;
     }
     
     void Font::set_line_height(uint32_t the_line_height)
     {
-        m_obj->line_height = the_line_height;
+        m_impl->line_height = the_line_height;
     }
     
     void Font::load(const std::string &thePath, size_t theSize, bool use_sdf)
@@ -280,29 +280,29 @@ namespace kinski { namespace gl {
         {
             auto p = fs::search_file(thePath);
             std::vector<uint8_t> font_file = fs::read_binary_file(p);
-            m_obj->path = p;
-            m_obj->string_mesh_map.clear();
-            m_obj->font_height = theSize;
-            m_obj->line_height = theSize;
-            m_obj->use_sdf = use_sdf;
+            m_impl->path = p;
+            m_impl->string_mesh_map.clear();
+            m_impl->font_height = theSize;
+            m_impl->line_height = theSize;
+            m_impl->use_sdf = use_sdf;
             
             // rect packing
             stbtt_pack_context spc;
-            stbtt_PackBegin(&spc, m_obj->bitmap->data, m_obj->bitmap->width,
-                            m_obj->bitmap->height, 0, 6 /*padding*/, nullptr);
+            stbtt_PackBegin(&spc, m_impl->bitmap->data, m_impl->bitmap->width,
+                            m_impl->bitmap->height, 0, 6 /*padding*/, nullptr);
             
 //            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
             int num_chars = 768;
             stbtt_PackFontRange(&spc, &font_file[0], 0,
-                                m_obj->font_height, 32, num_chars, m_obj->char_data);
+                                m_impl->font_height, 32, num_chars, m_impl->char_data);
             stbtt_PackEnd(&spc);
             
             // signed distance field
             if(use_sdf)
             {
-                auto dist_img = compute_distance_field(m_obj->bitmap, 4)->resize(1024, 1024);
-                m_obj->sdf_texture = create_texture_from_image(dist_img, true);
-//                save_image_to_file(m_obj->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
+                auto dist_img = compute_distance_field(m_impl->bitmap, 4)->resize(1024, 1024);
+                m_impl->sdf_texture = create_texture_from_image(dist_img, true);
+//                save_image_to_file(m_impl->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
 //                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
             }
             
@@ -310,10 +310,10 @@ namespace kinski { namespace gl {
             GLint tex_format = GL_LUMINANCE_ALPHA;
             
             // create data
-            size_t num_bytes = m_obj->bitmap->width * m_obj->bitmap->height * 2;
+            size_t num_bytes = m_impl->bitmap->width * m_impl->bitmap->height * 2;
             uint8_t *luminance_alpha_data = new uint8_t[num_bytes];
             uint8_t
-            *src_ptr = m_obj->bitmap->data,
+            *src_ptr = m_impl->bitmap->data,
             *out_ptr = luminance_alpha_data, *data_end = luminance_alpha_data + num_bytes;
             
             for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
@@ -325,14 +325,14 @@ namespace kinski { namespace gl {
             // create a new texture object for our glyphs
             gl::Texture::Format fmt;
             fmt.set_internal_format(tex_format);
-            m_obj->texture = gl::Texture(luminance_alpha_data, tex_format, m_obj->bitmap->width,
-                                         m_obj->bitmap->height, fmt);
-            m_obj->texture.set_flipped();
-            m_obj->texture.set_mipmapping(true);
+            m_impl->texture = gl::Texture(luminance_alpha_data, tex_format, m_impl->bitmap->width,
+                                         m_impl->bitmap->height, fmt);
+            m_impl->texture.set_flipped();
+            m_impl->texture.set_mipmapping(true);
             delete [](luminance_alpha_data);
 #else
-            m_obj->texture = create_texture_from_image(m_obj->bitmap, true);
-            m_obj->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
+            m_impl->texture = create_texture_from_image(m_impl->bitmap, true);
+            m_impl->texture.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
 #endif
         } catch (const Exception &e)
         {
@@ -366,30 +366,30 @@ namespace kinski { namespace gl {
             if(codepoint == '\n')
             {
                 x = start_x;
-                y += m_obj->line_height;
+                y += m_impl->line_height;
                 continue;
             }
             
-//            stbtt_GetBakedQuad(m_obj->char_data, m_obj->bitmap_width, m_obj->bitmap_height,
+//            stbtt_GetBakedQuad(m_impl->char_data, m_impl->bitmap_width, m_impl->bitmap_height,
 //                               codepoint - 32, &x, &y, &q, 1);
             
-            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap->width, m_obj->bitmap->height,
+            stbtt_GetPackedQuad(m_impl->char_data, m_impl->bitmap->width, m_impl->bitmap->height,
                                 codepoint - 32, &x, &y, &q, 1);
             
             int w = q.x1 - q.x0;
             int h = q.y1 - q.y0;
             
             if(max_x < q.x1) max_x = q.x1;
-            if(max_y < q.y1 + m_obj->font_height) max_y = q.y1 + m_obj->font_height;
+            if(max_y < q.y1 + m_impl->font_height) max_y = q.y1 + m_impl->font_height;
             
-            Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_obj->bitmap->width),
-                                static_cast<uint32_t>(q.t0 * m_obj->bitmap->height),
-                                static_cast<uint32_t>(q.s0 * m_obj->bitmap->width + w),
-                                static_cast<uint32_t>(q.t0 * m_obj->bitmap->height + h));
+            Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_impl->bitmap->width),
+                                static_cast<uint32_t>(q.t0 * m_impl->bitmap->height),
+                                static_cast<uint32_t>(q.s0 * m_impl->bitmap->width + w),
+                                static_cast<uint32_t>(q.t0 * m_impl->bitmap->height + h));
             Area_<uint32_t> dst(static_cast<uint32_t>(q.x0 - start_x),
-                                static_cast<uint32_t>(m_obj->font_height + q.y0),
+                                static_cast<uint32_t>(m_impl->font_height + q.y0),
                                 static_cast<uint32_t>(q.x0 + w - start_x),
-                                static_cast<uint32_t>(m_obj->font_height + q.y0 + h));
+                                static_cast<uint32_t>(m_impl->font_height + q.y0 + h));
 
             area_pairs.push_back(std::make_pair(src, dst));
         }
@@ -401,9 +401,9 @@ namespace kinski { namespace gl {
         Area_Pairs::iterator area_it = area_pairs.begin();
         for (; area_it != area_pairs.end(); ++area_it)
         {
-            m_obj->bitmap->roi = area_it->first;
+            m_impl->bitmap->roi = area_it->first;
             dst_img->roi = area_it->second;
-            copy_image(m_obj->bitmap, dst_img);
+            copy_image(m_impl->bitmap, dst_img);
         }
         
         // create RGBA data
@@ -426,9 +426,9 @@ namespace kinski { namespace gl {
     gl::MeshPtr Font::create_mesh(const std::string &theText, const glm::vec4 &theColor) const
     {
         // look for an existing mesh
-        auto mesh_iter = m_obj->string_mesh_map.find(theText);
+        auto mesh_iter = m_impl->string_mesh_map.find(theText);
         
-        if(m_obj->string_mesh_map.find(theText) != m_obj->string_mesh_map.end())
+        if(m_impl->string_mesh_map.find(theText) != m_impl->string_mesh_map.end())
         {
             mesh_iter->second.counter++;
             mesh_iter->second.mesh->set_transform(mat4());
@@ -442,14 +442,14 @@ namespace kinski { namespace gl {
         mat->set_diffuse(theColor);
         mat->set_blending(true);
         
-        if(m_obj->use_sdf)
+        if(m_impl->use_sdf)
         {
             mat->set_shader(gl::create_shader(ShaderType::SDF_FONT));
-            mat->add_texture(m_obj->sdf_texture);
+            mat->add_texture(m_impl->sdf_texture);
             mat->uniform("u_buffer", 0.725f);
             mat->uniform("u_gamma", 0.05f);
         }
-        else{ mat->add_texture(m_obj->texture); }
+        else{ mat->add_texture(m_impl->texture); }
         
         MeshPtr ret = gl::Mesh::create(geom, mat);
         ret->entries().clear();
@@ -476,13 +476,13 @@ namespace kinski { namespace gl {
             if(codepoint == '\n')
             {
                 x = start_x;
-                y += m_obj->line_height;
+                y += m_impl->line_height;
                 continue;
             }
-            stbtt_GetPackedQuad(m_obj->char_data, m_obj->bitmap->width, m_obj->bitmap->height,
+            stbtt_GetPackedQuad(m_impl->char_data, m_impl->bitmap->width, m_impl->bitmap->height,
                                 codepoint - 32, &x, &y, &q, 1);
             
-            if(max_y < q.y1 + m_obj->font_height){ max_y = q.y1 + m_obj->font_height;}
+            if(max_y < q.y1 + m_impl->font_height){ max_y = q.y1 + m_impl->font_height;}
             quads.push_back(q);
         }
         
@@ -501,9 +501,9 @@ namespace kinski { namespace gl {
 
             Area_<float> tex_Area (quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
             Area_<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0 - start_x),
-                                      static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0)),
+                                      static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0)),
                                       static_cast<uint32_t>(quad.x0 + w - start_x),
-                                      static_cast<uint32_t>(max_y - (m_obj->font_height + quad.y0 + h)));
+                                      static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0 + h)));
             
             // CREATE QUAD
             // create vertices
@@ -530,25 +530,25 @@ namespace kinski { namespace gl {
         geom->compute_bounding_box();
         
         // free the less frequent used half of our buffered string-meshes
-        if(m_obj->string_mesh_map.size() >= m_obj->max_mesh_buffer_size)
+        if(m_impl->string_mesh_map.size() >= m_impl->max_mesh_buffer_size)
         {
-            LOG_TRACE<<"font-mesh buffersize: " << m_obj->max_mesh_buffer_size << " -> clearing ...";
+            LOG_TRACE<<"font-mesh buffersize: " << m_impl->max_mesh_buffer_size << " -> clearing ...";
             std::list<string_mesh_container> tmp_list;
 
-            for (auto &item : m_obj->string_mesh_map){tmp_list.push_back(item.second);}
+            for (auto &item : m_impl->string_mesh_map){tmp_list.push_back(item.second);}
             tmp_list.sort();
             
             std::list<string_mesh_container>::reverse_iterator list_it = tmp_list.rbegin();
-            m_obj->string_mesh_map.clear();
+            m_impl->string_mesh_map.clear();
             
             for (uint32_t i = 0; i < tmp_list.size() / 2; i++, ++list_it)
             {
                 list_it->counter--;
-                m_obj->string_mesh_map[list_it->text] = *list_it;
+                m_impl->string_mesh_map[list_it->text] = *list_it;
             }
         }
         // insert the newly created mesh
-        m_obj->string_mesh_map[theText] = string_mesh_container(theText, ret);
+        m_impl->string_mesh_map[theText] = string_mesh_container(theText, ret);
         
         return ret;
     }

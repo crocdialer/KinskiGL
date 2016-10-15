@@ -1515,9 +1515,9 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             return false;
         }
         
-        auto aabb = m->bounding_box().transform(m->global_transform());
+        auto aabb = m->bounding_box();
         
-        // checks if p is inside the (transformed aabb of Mesh m)
+        // checks if p is inside the aabb of our mesh)
         if(!aabb.contains(p)) return false;
         
         const auto &vertices = m->geometry()->vertices();
