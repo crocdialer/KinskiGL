@@ -280,9 +280,9 @@ void Serial::close()
 	//---------------------------------------------
     #else
     //---------------------------------------------
-    	if (bInited && m_handle)
+    	if(bInited && m_handle)
         {
-    		tcsetattr(m_handle,TCSANOW,&m_old_options);
+    		tcsetattr(m_handle, TCSANOW, &m_old_options);
     		::close(m_handle);
     		bInited = false;
             m_handle = 0;

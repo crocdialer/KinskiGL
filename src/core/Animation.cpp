@@ -101,7 +101,7 @@ namespace kinski{ namespace animation{
     
     void Animation::set_playback_type(PlaybackType playback_type){m_impl->playback_type = playback_type;}
     
-    LoopType Animation::loop() const {return m_impl->loop_type;}
+    LoopType Animation::loop() const {return m_impl ? m_impl->loop_type : LOOP_NONE;}
     
     void Animation::set_loop(LoopType loop_type)
     {m_impl->loop_type = loop_type;}
