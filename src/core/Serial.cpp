@@ -265,7 +265,9 @@ std::vector<Serial::DeviceInfo> Serial::device_list()
 //----------------------------------------------------------------
 void Serial::close()
 {
-    if(bInited){ LOG_DEBUG<<"closing serial port"; }
+    if(bInited){ LOG_DEBUG << "closing serial port"; }
+    
+    flush(true, true);
     
 	//---------------------------------------------
 	#ifdef KINSKI_MSW

@@ -72,11 +72,18 @@ void RemoteControl::start_listen(uint16_t port)
         {
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
+                LOG_DEBUG << "generate_snapshot ...";
                 Stopwatch timer;
                 timer.start();
-                LOG_DEBUG << "generate_snapshot ...";
-                ptr->generate_snapshot();
-                auto img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
+                
+                ImagePtr img;
+                
+                if(false)
+                {
+                    ptr->generate_snapshot();
+                    img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
+                }
+                else{ img = gl::create_image_from_framebuffer(); }
                 
                 ptr->background_queue().submit([con, img]()
                 {

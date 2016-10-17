@@ -229,7 +229,7 @@ void Fbo::init()
         auto tex = Texture(m_impl->m_width, m_impl->m_height, textureFormat);
         
 #if !defined(KINSKI_GLES)
-        if(contains(one_comp_types, col_fmt)){ tex.set_swizzle(GL_RED, GL_RED, GL_RED, GL_ONE); }
+        if(contains(one_comp_types, col_fmt)){ tex.set_swizzle(col_fmt, col_fmt, col_fmt, GL_ONE); }
 #endif
 		m_impl->m_color_textures.push_back(tex);
 	}
