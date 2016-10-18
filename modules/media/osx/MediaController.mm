@@ -527,6 +527,36 @@ namespace kinski{ namespace media{
         [m_impl->m_player seekToTime:t];
         [m_impl->m_player setRate: m_impl->m_rate];
     }
+    
+/////////////////////////////////////////////////////////////////
+    
+    void MediaController::seek_to_time(const std::string &the_time_str)
+    {
+        double secs = 0.0;
+        auto splits = split(the_time_str, ':');
+        
+        switch(splits.size())
+        {
+            case 3:
+                secs = kinski::string_to<float>(splits[2]) +
+                60.f * kinski::string_to<float>(splits[1]) +
+                3600.f * kinski::string_to<float>(splits[0]) ;
+                break;
+                
+            case 2:
+                secs = kinski::string_to<float>(splits[1]) +
+                60.f * kinski::string_to<float>(splits[0]);
+                break;
+                
+            case 1:
+                secs = kinski::string_to<float>(splits[0]);
+                break;
+                
+            default:
+                break;
+        }
+        seek_to_time(secs);
+    }
 
 /////////////////////////////////////////////////////////////////
     

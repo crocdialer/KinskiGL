@@ -12,7 +12,7 @@
 #include "DistanceSensor.hpp"
 
 #define SERIAL_END_CODE '\n'
-#define STD_TIMEOUT_RECONNECT 0.f
+#define STD_TIMEOUT_RECONNECT 5.f
 
 namespace kinski{
     

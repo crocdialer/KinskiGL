@@ -514,6 +514,8 @@ namespace kinski{ namespace media
         if(autoplay){ play(); }
     }
 
+/////////////////////////////////////////////////////////////////
+
     void MediaController::play()
     {
         if(!m_impl || (m_impl->m_playing && !m_impl->m_pause)){ return; }
@@ -536,35 +538,49 @@ namespace kinski{ namespace media
         }
     }
 
+/////////////////////////////////////////////////////////////////
+
     bool MediaController::is_loaded() const
     {
         return m_impl.get();
     }
+
+/////////////////////////////////////////////////////////////////
 
     void MediaController::unload()
     {
         m_impl.reset();
     }
 
+/////////////////////////////////////////////////////////////////
+
     bool MediaController::has_video() const
     {
         return m_impl && m_impl->m_has_video;
     }
+
+/////////////////////////////////////////////////////////////////
 
     bool MediaController::has_audio() const
     {
         return m_impl && m_impl->m_has_audio;
     }
 
+/////////////////////////////////////////////////////////////////
+
     void MediaController::pause()
     {
         if(m_impl && m_impl->m_playing){ m_impl->m_pause = true; }
     }
 
+/////////////////////////////////////////////////////////////////
+
     bool MediaController::is_playing() const
     {
         return m_impl && m_impl->m_playing && !m_impl->m_pause;
     }
+
+/////////////////////////////////////////////////////////////////
 
     void MediaController::restart()
     {
@@ -573,10 +589,14 @@ namespace kinski{ namespace media
         seek_to_time(0);
     }
 
+/////////////////////////////////////////////////////////////////
+
     float MediaController::volume() const
     {
         return m_impl ? m_impl->m_volume : 0.f;
     }
+
+/////////////////////////////////////////////////////////////////
 
     void MediaController::set_volume(float newVolume)
     {
@@ -585,10 +605,14 @@ namespace kinski{ namespace media
         m_impl->m_player_audio->SetVolume(m_impl->m_volume);
     }
 
+/////////////////////////////////////////////////////////////////
+
     bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
         return false;
     }
+
+/////////////////////////////////////////////////////////////////
 
     bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
@@ -599,21 +623,29 @@ namespace kinski{ namespace media
         return true;
     }
 
+/////////////////////////////////////////////////////////////////
+
     bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
     {
         LOG_WARNING << "copy_frames_offline not available on RPI";
         return false;
     }
 
+/////////////////////////////////////////////////////////////////
+
     double MediaController::duration() const
     {
         return m_impl ? (m_impl->m_omx_reader.GetStreamLength() / 1000.0) : 0.0;
     }
 
+/////////////////////////////////////////////////////////////////
+
     double MediaController::current_time() const
     {
         return m_impl ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
     }
+
+/////////////////////////////////////////////////////////////////
 
     double MediaController::fps() const
     {
@@ -621,6 +653,8 @@ namespace kinski{ namespace media
         if(m_impl){ fps = m_impl->m_omx_reader.GetFrameRate(); }
         return fps;
     }
+
+/////////////////////////////////////////////////////////////////
 
     void MediaController::seek_to_time(double value)
     {
@@ -632,20 +666,58 @@ namespace kinski{ namespace media
         }
     }
 
+/////////////////////////////////////////////////////////////////
+
+    void MediaController::seek_to_time(const std::string &the_time_str)
+    {
+        double secs = 0.0;
+        auto splits = split(the_time_str, ':');
+
+        switch(splits.size())
+        {
+            case 3:
+                secs = kinski::string_to<float>(splits[2]) +
+                60.f * kinski::string_to<float>(splits[1]) +
+                3600.f * kinski::string_to<float>(splits[0]) ;
+                break;
+
+            case 2:
+                secs = kinski::string_to<float>(splits[1]) +
+                60.f * kinski::string_to<float>(splits[0]);
+                break;
+
+            case 1:
+                secs = kinski::string_to<float>(splits[0]);
+                break;
+
+            default:
+                break;
+        }
+        seek_to_time(secs);
+    }
+
+/////////////////////////////////////////////////////////////////
+
     void MediaController::set_loop(bool b)
     {
         if(m_impl){ m_impl->m_loop = b; }
     }
+
+/////////////////////////////////////////////////////////////////
 
     bool MediaController::loop() const
     {
         return m_impl && m_impl->m_loop;
     }
 
+/////////////////////////////////////////////////////////////////
+
     float MediaController::rate() const
     {
         return m_impl ? m_impl->m_rate : 1.f;
     }
+
+/////////////////////////////////////////////////////////////////
 
     void MediaController::set_rate(float r)
     {
@@ -663,11 +735,15 @@ namespace kinski{ namespace media
         m_impl->m_rate = r;
     }
 
+/////////////////////////////////////////////////////////////////
+
     const std::string& MediaController::path() const
     {
         static std::string ret;
         return m_impl ? m_impl->m_src_path : ret;
     }
+
+/////////////////////////////////////////////////////////////////
 
     void MediaController::set_on_load_callback(MediaCallback c)
     {
@@ -675,19 +751,27 @@ namespace kinski{ namespace media
         m_impl->m_on_load_cb = c;
     }
 
+/////////////////////////////////////////////////////////////////
+
     void MediaController::set_media_ended_callback(MediaCallback c)
     {
         if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
     }
 
+/////////////////////////////////////////////////////////////////
+
     MediaController::RenderTarget MediaController::render_target() const
     {
         return m_impl ? m_impl->m_render_target : RenderTarget::TEXTURE;
     }
 
+/////////////////////////////////////////////////////////////////
+
     MediaController::AudioTarget MediaController::audio_target() const
     {
         return m_impl ? m_impl->m_audio_target : AudioTarget::AUTO;
     }
+
+/////////////////////////////////////////////////////////////////
 }}// namespaces

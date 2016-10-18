@@ -44,6 +44,7 @@ namespace kinski{ namespace media{
         void pause();
         bool is_playing() const;
         void seek_to_time(double value);
+        void seek_to_time(const std::string &the_time_str);
         double duration() const;
         double current_time() const;
         double fps() const;
