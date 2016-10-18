@@ -534,6 +534,7 @@ namespace kinski{ namespace media
             set_rate(m_impl->m_rate);
 
             // start thread
+            m_impl->m_playing = true;
             m_impl->m_thread = std::thread(std::bind(&MediaControllerImpl::thread_func, m_impl.get()));
         }
     }
