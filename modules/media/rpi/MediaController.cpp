@@ -187,7 +187,7 @@ namespace kinski{ namespace media
                         break;
                     }
 
-                    kinski::log(Severity::DEBUG, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
+                    kinski::log(Severity::TRACE_1, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
                                 startpts, m_av_clock->OMXMediaTime());
 
                     m_av_clock->OMXPause();
@@ -212,7 +212,7 @@ namespace kinski{ namespace media
                     if(m_omx_reader.SeekTime((int)seek_pos, m_av_clock->OMXPlaySpeed() < 0, &startpts))
                     ; //FlushStreams(DVD_NOPTS_VALUE);
 
-                    kinski::log(Severity::DEBUG, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
+                    kinski::log(Severity::TRACE_1, "Seeked %.0f %.0f %.0f", DVD_MSEC_TO_TIME(seek_pos),
                                 startpts, m_av_clock->OMXMediaTime());
                     m_packet_after_seek = false;
                 }
@@ -268,7 +268,7 @@ namespace kinski{ namespace media
                     {
                         if(m_av_clock->OMXIsPaused())
                         {
-                            kinski::log(Severity::DEBUG, "Resume %.2f,%.2f (%d,%d,%d,%d) EOF:%d PKT:%p",
+                            kinski::log(Severity::TRACE_1, "Resume %.2f,%.2f (%d,%d,%d,%d) EOF:%d PKT:%p",
                                         audio_fifo, video_fifo, audio_fifo_low, video_fifo_low,
                                         audio_fifo_high, video_fifo_high, m_omx_reader.IsEof(),
                                         m_omx_pkt);
@@ -280,7 +280,7 @@ namespace kinski{ namespace media
                         if(!m_av_clock->OMXIsPaused())
                         {
                             if(!m_pause){ m_threshold = std::min(2.0f * m_threshold, 16.0f); }
-                            kinski::log(Severity::DEBUG, "Pause %.2f,%.2f (%d,%d,%d,%d) %.2f",
+                            kinski::log(Severity::TRACE_1, "Pause %.2f,%.2f (%d,%d,%d,%d) %.2f",
                                         audio_fifo, video_fifo, audio_fifo_low, video_fifo_low,
                                         audio_fifo_high, video_fifo_high, m_threshold);
                             m_av_clock->OMXPause();
@@ -289,7 +289,7 @@ namespace kinski{ namespace media
                 }
                 if(!sentStarted)
                 {
-                    kinski::log(Severity::DEBUG, "COMXPlayer::HandleMessages - player started RESET");
+                    kinski::log(Severity::TRACE_1, "COMXPlayer::HandleMessages - player started RESET");
                     m_av_clock->OMXReset(m_has_video, m_has_audio);
                     sentStarted = true;
                 }
