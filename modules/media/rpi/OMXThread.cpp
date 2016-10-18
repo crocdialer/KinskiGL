@@ -51,7 +51,7 @@ bool OMXThread::StopThread()
 {
   if(!m_running)
   {
-    kinski::log(kinski::Severity::DEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::TRACE_1, "%s::%s - No thread running\n", CLASSNAME, __func__);
     return false;
   }
 
@@ -61,7 +61,7 @@ bool OMXThread::StopThread()
 
   m_thread = 0;
 
-  kinski::log(kinski::Severity::DEBUG, "%s::%s - Thread stopped\n", CLASSNAME, __func__);
+  kinski::log(kinski::Severity::TRACE_1, "%s::%s - Thread stopped\n", CLASSNAME, __func__);
   return true;
 }
 
@@ -78,7 +78,7 @@ bool OMXThread::Create()
 
   pthread_create(&m_thread, &m_tattr, &OMXThread::Run, this);
 
-  kinski::log(kinski::Severity::DEBUG, "%s::%s - Thread with id %d started\n", CLASSNAME, __func__, (int)m_thread);
+  kinski::log(kinski::Severity::TRACE_1, "%s::%s - Thread with id %d started\n", CLASSNAME, __func__, (int)m_thread);
   return true;
 }
 
@@ -97,7 +97,7 @@ void *OMXThread::Run(void *arg)
   OMXThread *thread = static_cast<OMXThread *>(arg);
   thread->Process();
 
-  kinski::log(kinski::Severity::DEBUG, "%s::%s - Exited thread with  id %d\n", CLASSNAME, __func__, (int)thread->ThreadHandle());
+  kinski::log(kinski::Severity::TRACE_1, "%s::%s - Exited thread with  id %d\n", CLASSNAME, __func__, (int)thread->ThreadHandle());
   pthread_exit(NULL);
 }
 
@@ -105,7 +105,7 @@ void OMXThread::Lock()
 {
   if(!m_running)
   {
-    kinski::log(kinski::Severity::DEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::TRACE_1, "%s::%s - No thread running\n", CLASSNAME, __func__);
     return;
   }
 
@@ -116,7 +116,7 @@ void OMXThread::UnLock()
 {
   if(!m_running)
   {
-    kinski::log(kinski::Severity::DEBUG, "%s::%s - No thread running\n", CLASSNAME, __func__);
+    kinski::log(kinski::Severity::TRACE_1, "%s::%s - No thread running\n", CLASSNAME, __func__);
     return;
   }
 

@@ -138,7 +138,7 @@ bool COMXVideo::NaluFormatStartCodes(enum AVCodecID codec, uint8_t *in_extradata
 
 void COMXVideo::PortSettingsChangedLogger(OMX_PARAM_PORTDEFINITIONTYPE port_image, int interlaceEMode)
 {
-  kinski::log(kinski::Severity::DEBUG, "%s::%s - %dx%d@%.2f interlace:%d deinterlace:%d anaglyph:%d par:%.2f display:%d layer:%d alpha:%d aspectMode:%d", CLASSNAME, __func__,
+  kinski::log(kinski::Severity::TRACE_1, "%s::%s - %dx%d@%.2f interlace:%d deinterlace:%d anaglyph:%d par:%.2f display:%d layer:%d alpha:%d aspectMode:%d", CLASSNAME, __func__,
       port_image.format.video.nFrameWidth, port_image.format.video.nFrameHeight,
       port_image.format.video.xFramerate / (float)(1<<16), interlaceEMode, m_deinterlace, m_config.anaglyph, m_pixel_aspect, m_config.display,
       m_config.layer, m_config.alpha, m_config.aspectMode);
@@ -710,7 +710,7 @@ bool COMXVideo::Open(OMXClock *clock, const OMXVideoConfig &config)
   if(m_omx_decoder.BadState())
     return false;
 
-  kinski::log(kinski::Severity::DEBUG,
+  kinski::log(kinski::Severity::TRACE_1,
     "%s::%s - decoder_component(0x%p), input_port(0x%x), output_port(0x%x) deinterlace %d hdmiclocksync %d\n",
     CLASSNAME, __func__, m_omx_decoder.GetComponent(), m_omx_decoder.GetInputPort(), m_omx_decoder.GetOutputPort(),
     m_config.deinterlace, m_config.hdmi_clock_sync);
@@ -781,7 +781,7 @@ int COMXVideo::Decode(uint8_t *pData, int iSize, double dts, double pts)
     if(m_setStartTime)
     {
       nFlags |= OMX_BUFFERFLAG_STARTTIME;
-      kinski::log(kinski::Severity::DEBUG, "OMXVideo::Decode VDec : setStartTime %f\n", (pts == DVD_NOPTS_VALUE ? 0.0 : pts) / DVD_TIME_BASE);
+      kinski::log(kinski::Severity::TRACE_1, "OMXVideo::Decode VDec : setStartTime %f\n", (pts == DVD_NOPTS_VALUE ? 0.0 : pts) / DVD_TIME_BASE);
       m_setStartTime = false;
     }
     if (pts == DVD_NOPTS_VALUE && dts == DVD_NOPTS_VALUE)
