@@ -436,21 +436,24 @@ namespace kinski{ namespace media
         m_impl->m_has_audio = m_impl->m_omx_reader.AudioStreamCount();
         m_impl->m_loop = loop && m_impl->m_omx_reader.CanSeek();
 
-        // create texture
-        m_impl->m_texture = gl::Texture(m_impl->m_omx_reader.GetWidth(),
-                                        m_impl->m_omx_reader.GetHeight());
-
-        // create EGL image
-        m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
-                                                eglGetCurrentContext(),
-                                                EGL_GL_TEXTURE_2D_KHR,
-                                                (EGLClientBuffer)m_impl->m_texture.id(),
-                                                0);
-        // pass our egl_image for buffer creation
-        if(m_impl->m_render_target == RenderTarget::TEXTURE)
+        if(m_impl->m_has_video)
         {
-            m_impl->m_config_video.egl_image = m_impl->m_egl_image;
-            m_impl->m_config_video.has_new_frame_ptr = &m_impl->m_has_new_frame;
+            // create texture
+            m_impl->m_texture = gl::Texture(m_impl->m_omx_reader.GetWidth(),
+            m_impl->m_omx_reader.GetHeight());
+
+            // create EGL image
+            m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                                    eglGetCurrentContext(),
+                                                    EGL_GL_TEXTURE_2D_KHR,
+                                                    (EGLClientBuffer)m_impl->m_texture.id(), 0);
+
+            // pass our egl_image for buffer creation
+            if(m_impl->m_render_target == RenderTarget::TEXTURE)
+            {
+                m_impl->m_config_video.egl_image = m_impl->m_egl_image;
+                m_impl->m_config_video.has_new_frame_ptr = &m_impl->m_has_new_frame;
+            }
         }
 
         if(!m_impl->m_av_clock->OMXInitialize())
