@@ -104,10 +104,11 @@ void MediaPlayer::draw()
     }
     if(displayTweakBar())
     {
-        gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
-                         secs_to_time_str(m_media->duration()) + " - " +
-                         fs::get_filename_part(m_media->path()),
+        gl::draw_text_2D(fs::get_filename_part(m_media->path()),
                          fonts()[1], gl::COLOR_WHITE, gl::vec2(10));
+        gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
+                         secs_to_time_str(m_media->duration()),
+                         fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
         draw_textures(textures());
     }
     m_needs_redraw = false;
@@ -159,7 +160,8 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 
 bool MediaPlayer::needs_redraw() const
 {
-    return (m_media && !m_media->is_playing()) || !*m_use_warping || m_needs_redraw || m_is_syncing;
+    return (m_media && (!m_media->is_playing() || !m_media->has_video())) || !*m_use_warping
+        || m_needs_redraw || m_is_syncing;
 };
 
 /////////////////////////////////////////////////////////////////
