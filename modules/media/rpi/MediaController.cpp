@@ -440,7 +440,7 @@ namespace kinski{ namespace media
         {
             // create texture
             m_impl->m_texture = gl::Texture(m_impl->m_omx_reader.GetWidth(),
-            m_impl->m_omx_reader.GetHeight());
+                                            m_impl->m_omx_reader.GetHeight());
 
             // create EGL image
             m_impl->m_egl_image = eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY),
@@ -665,7 +665,7 @@ namespace kinski{ namespace media
 
         if(m_impl->m_omx_reader.CanSeek())
         {
-            m_impl->m_incr = -current_time() + clamp<double>(value, 0.0, duration());
+            m_impl->m_incr = -current_time() + clamp<double>(value, -10.0, duration());
         }
     }
 
