@@ -588,7 +588,8 @@ namespace kinski{ namespace media
     void MediaController::restart()
     {
         LOG_DEBUG << "restarting movie playback";
-        m_impl->m_playing = false;
+        // m_impl->m_playing = false;
+        seek_to_time(0.0);
         play();
     }
 
