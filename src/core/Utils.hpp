@@ -208,6 +208,7 @@ namespace kinski
     inline const T median(const C &the_container)
     {
         std::vector<T> tmp_array(std::begin(the_container), std::end(the_container));
+        if(tmp_array.empty()){ return T(0); }
         size_t n = tmp_array.size() / 2;
         std::nth_element(tmp_array.begin(), tmp_array.begin() + n, tmp_array.end());
         
@@ -302,6 +303,10 @@ namespace kinski
         bool operator<(const Area_<T> &other) const
         {
             return size() < other.size();
+        }
+        bool operator==(const Area_<T> &other) const
+        {
+            return x0 == other.x0 && y0 == other.y0 && x1 == other.x1 && y1 == other.y1;
         }
     };
 }

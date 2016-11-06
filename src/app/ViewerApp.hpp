@@ -127,7 +127,7 @@ namespace kinski {
         std::vector<gl::Texture> m_textures {16};
         gl::Texture m_snapshot_texture;
         
-        std::vector<animation::AnimationPtr> m_animations{8};
+        std::vector<animation::AnimationPtr> m_animations{10};
         
         bool m_precise_selection;
         bool m_center_selected;

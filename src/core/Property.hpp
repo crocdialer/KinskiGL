@@ -147,7 +147,7 @@ public:
     
     inline Property_<T>& operator=(const Property_<T> &theProp)
     {
-        setName(theProp.getName());
+        set_name(theProp.name());
         set(theProp.value());
         return *this;
     };
