@@ -424,8 +424,6 @@ bool MediaPlayer::load_settings(const std::string &the_path)
         {
             if(auto cast_ptr = std::dynamic_pointer_cast<WarpComponent>(c))
             {
-                LOG_DEBUG << cast_ptr->index();
-//                cast_ptr->refresh();
                 m_warp->set_from(cast_ptr->quad_warp(cast_ptr->index()), cast_ptr->index());
                 m_warp->refresh();
             }
