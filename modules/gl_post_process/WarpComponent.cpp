@@ -65,10 +65,13 @@ namespace kinski
         *m_top_right = the_quadwarp.control_point(1, 0);
         *m_bottom_left = the_quadwarp.control_point(0, 1);
         *m_bottom_right = the_quadwarp.control_point(1, 1);
-        m_quad_warp[*m_index].control_point(0, 0) = *m_top_left;
-        m_quad_warp[*m_index].control_point(1, 0) = *m_top_right;
-        m_quad_warp[*m_index].control_point(0, 1) = *m_bottom_left;
-        m_quad_warp[*m_index].control_point(1, 1) = *m_bottom_right;
+        *m_grid_sz_x = the_quadwarp.grid_resolution().x;
+        *m_grid_sz_y = the_quadwarp.grid_resolution().y;
+        m_quad_warp[the_index].control_point(0, 0) = *m_top_left;
+        m_quad_warp[the_index].control_point(1, 0) = *m_top_right;
+        m_quad_warp[the_index].control_point(0, 1) = *m_bottom_left;
+        m_quad_warp[the_index].control_point(1, 1) = *m_bottom_right;
+        m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
         observe_properties(true);
     }
     

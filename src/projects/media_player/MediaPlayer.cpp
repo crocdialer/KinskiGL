@@ -464,9 +464,6 @@ void MediaPlayer::reload_media()
         if(render_target == media::MediaController::RenderTarget::SCREEN)
         { set_clear_color(gl::Color(clear_color().rgb(), 0.f)); }
 
-        m_media->load(abs_path, *m_auto_play, *m_loop, render_target, audio_target);
-        m_media->set_rate(*m_playback_speed);
-        m_media->set_volume(*m_volume);
         m_media->set_media_ended_callback([this](media::MediaControllerPtr mc)
         {
             LOG_DEBUG << "media ended";
@@ -485,7 +482,10 @@ void MediaPlayer::reload_media()
                 g_sync_thresh = 1.0 / m_media->fps() / 2.0;
                 LOG_DEBUG << "media fps: " << to_string(m_media->fps(), 2);
             }
+            m_media->set_rate(*m_playback_speed);
+            m_media->set_volume(*m_volume);
         });
+        m_media->load(abs_path, *m_auto_play, *m_loop, render_target, audio_target);
     }
     else if(media_type == fs::FileType::IMAGE)
     {
