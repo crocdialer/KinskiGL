@@ -120,39 +120,72 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
     
-    switch (e.getCode())
+    if(e.isAltDown())
     {
-        case Key::_C:
-            if(m_camera_control->is_capturing())
-                m_camera_control->stop_capture();
-            else
-                m_camera_control->start_capture();
-            break;
-
-        case Key::_P:
-            m_media->is_playing() ? m_media->pause() : m_media->play();
-            if(*m_is_master){ send_network_cmd(m_media->is_playing() ? "play" : "pause"); }
-            break;
-
-        case Key::_LEFT:
-            m_media->seek_to_time(m_media->current_time() - (e.isShiftDown() ? 30 : 5));
-            m_needs_redraw = true;
-            break;
-
-        case Key::_RIGHT:
-            m_media->seek_to_time(m_media->current_time() + (e.isShiftDown() ? 30 : 5));
-            m_needs_redraw = true;
-            break;
-        case Key::_UP:
-            m_media->set_volume(m_media->volume() + .1f);
-            break;
-
-        case Key::_DOWN:
-            m_media->set_volume(m_media->volume() - .1f);
-            break;
-
-        default:
-            break;
+        auto c = m_warp->quad_warp().center();
+        gl::vec2 inc = 1.f / gl::window_dimension();
+        
+        switch (e.getCode())
+        {
+            case Key::_LEFT:
+                m_warp->quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y));
+                break;
+                
+            case Key::_RIGHT:
+                m_warp->quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y));
+                break;
+                
+            case Key::_UP:
+                m_warp->quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y));
+                break;
+                
+            case Key::_DOWN:
+                m_warp->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y));
+                break;
+        }
+        m_warp->refresh();
+        m_needs_redraw = true;
+    }
+    else
+    {
+        switch (e.getCode())
+        {
+            case Key::_C:
+                if(m_camera_control->is_capturing())
+                    m_camera_control->stop_capture();
+                else
+                    m_camera_control->start_capture();
+                break;
+                
+            case Key::_P:
+                m_media->is_playing() ? m_media->pause() : m_media->play();
+                if(*m_is_master){ send_network_cmd(m_media->is_playing() ? "play" : "pause"); }
+                break;
+                
+            case Key::_LEFT:
+                m_media->seek_to_time(m_media->current_time() - (e.isShiftDown() ? 30 : 5));
+                m_needs_redraw = true;
+                break;
+                
+            case Key::_RIGHT:
+                m_media->seek_to_time(m_media->current_time() + (e.isShiftDown() ? 30 : 5));
+                m_needs_redraw = true;
+                break;
+            case Key::_UP:
+                m_media->set_volume(m_media->volume() + .1f);
+                break;
+                
+            case Key::_DOWN:
+                m_media->set_volume(m_media->volume() - .1f);
+                break;
+                
+            case Key::_1:
+                
+                break;
+                
+            default:
+                break;
+        }
     }
 }
 

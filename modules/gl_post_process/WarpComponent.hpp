@@ -28,19 +28,20 @@ namespace kinski
         
         void update_property(const Property::ConstPtr &the_property);
         
+        void refresh();
         void reset();
         
-        gl::QuadWarp& quad_warp(){ return m_quad_warp; }
+        gl::QuadWarp& quad_warp(){ return m_quad_warp[*m_index]; }
         
         void render_output(const gl::Texture &the_tex, const float the_brightness = 1.f);
         
     private:
-        gl::QuadWarp m_quad_warp;
+        std::vector<gl::QuadWarp> m_quad_warp{10};
         
+        Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_grid_sz_x, m_grid_sz_y;
         Property_<bool>::Ptr m_draw_grid, m_draw_control_points;
         
-        Property_<float>::Ptr m_top_left_x, m_top_right_x, m_bottom_left_x, m_bottom_right_x,
-        m_top_left_y, m_top_right_y, m_bottom_left_y, m_bottom_right_y;
+        Property_<gl::vec2>::Ptr m_top_left, m_top_right, m_bottom_left, m_bottom_right;
     };
 }

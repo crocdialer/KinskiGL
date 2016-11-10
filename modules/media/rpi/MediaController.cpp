@@ -507,12 +507,12 @@ namespace kinski{ namespace media
         //     m_player_audio->SetDynamicRangeCompression(m_Amplification);
         }
 
-        // fire on load callback, if any
-        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
-
         m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
         m_impl->m_av_clock->OMXStateExecute();
 
+        // fire on load callback, if any
+        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+        
         // autoplay
         if(autoplay){ play(); }
     }
@@ -588,7 +588,6 @@ namespace kinski{ namespace media
     void MediaController::restart()
     {
         LOG_DEBUG << "restarting movie playback";
-        // m_impl->m_playing = false;
         seek_to_time(0.0);
         play();
     }

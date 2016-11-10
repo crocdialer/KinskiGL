@@ -126,6 +126,25 @@ namespace kinski{ namespace gl{
         }
     }
     
+    void QuadWarp::move_center_to(const gl::vec2 &the_pos)
+    {
+        auto diff = the_pos - center();
+        
+        for(auto &cp : m_impl->m_control_points){ cp += diff; }
+    }
+    
+    gl::vec2 QuadWarp::center() const
+    {
+        gl::vec2 ret(0);
+        
+        if(m_impl->m_control_points.empty())
+        {
+            for(auto &cp : m_impl->m_control_points){ ret += cp; }
+            ret /= (float)m_impl->m_control_points.size();
+        }
+        return ret;
+    }
+    
     void QuadWarp::render_grid()
     {
         if(!m_impl){ m_impl.reset(new Impl); }

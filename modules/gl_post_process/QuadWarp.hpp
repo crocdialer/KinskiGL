@@ -33,6 +33,9 @@ namespace kinski{ namespace gl{
         void set_grid_resolution(const gl::ivec2 &the_res);
         void set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h);
         
+        void move_center_to(const gl::vec2 &the_pos);
+        gl::vec2 center() const;
+        
 //        const gl::vec2& control_point(int the_x, int the_y) const;
         gl::vec2& control_point(int the_x, int the_y);
         
