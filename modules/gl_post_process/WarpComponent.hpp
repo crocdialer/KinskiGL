@@ -32,11 +32,7 @@ namespace kinski
         void refresh();
         void reset();
         
-        gl::QuadWarp& quad_warp(int i = -1)
-        {
-            i = i < 0 || i >= m_quad_warp.size() ? *m_index : i;
-            return m_quad_warp[i];
-        }
+        gl::QuadWarp& quad_warp(int i = -1);
         
         void render_output(const gl::Texture &the_tex, const float the_brightness = 1.f);
         void set_from(gl::QuadWarp &the_quadwarp, uint32_t the_index = 0);

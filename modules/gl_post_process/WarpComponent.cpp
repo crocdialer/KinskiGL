@@ -75,6 +75,12 @@ namespace kinski
         observe_properties(true);
     }
     
+    gl::QuadWarp& WarpComponent::quad_warp(int i)
+    {
+        i = i < 0 || i >= (int)m_quad_warp.size() ? *m_index : i;
+        return m_quad_warp[i];
+    }
+    
     void WarpComponent::update_property(const Property::ConstPtr &the_property)
     {
         if(the_property == m_index)
