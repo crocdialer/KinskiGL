@@ -376,10 +376,20 @@ bool MediaPlayer::save_settings(const std::string &the_path)
     bool ret = ViewerApp::save_settings(the_path);
     std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
     path_prefix = fs::get_directory_part(path_prefix);
+    
+    std::list<ComponentPtr> components;
+    for (uint32_t i = 0; i < 10; i++)
+    {
+        auto wc = std::make_shared<WarpComponent>();
+        wc->set_name("warp_" + to_string(i));
+        wc->set_from(m_warp->quad_warp(i), i);
+        components.push_back(wc);
+    }
+    
     try
     {
-        Serializer::saveComponentState(m_warp,
-                                       fs::join_paths(path_prefix ,"warp_config.json"),
+        Serializer::saveComponentState(components,
+                                       fs::join_paths(path_prefix , "warp_config.json"),
                                        PropertyIO_GL());
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }
@@ -393,11 +403,34 @@ bool MediaPlayer::load_settings(const std::string &the_path)
     bool ret = ViewerApp::load_settings(the_path);
     std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
     path_prefix = fs::get_directory_part(path_prefix);
+    
+    std::list<ComponentPtr> components;
+    for (uint32_t i = 0; i < 10; i++)
+    {
+        auto wc = std::make_shared<WarpComponent>();
+        wc->set_name("warp_" + to_string(i));
+        wc->set_index(i);
+        wc->observe_properties();
+        components.push_back(wc);
+    }
+    
     try
     {
-        Serializer::loadComponentState(m_warp,
+        Serializer::loadComponentState(components,
                                        fs::join_paths(path_prefix, "warp_config.json"),
                                        PropertyIO_GL());
+        
+        for(auto c : components)
+        {
+            if(auto cast_ptr = std::dynamic_pointer_cast<WarpComponent>(c))
+            {
+                LOG_DEBUG << cast_ptr->index();
+//                cast_ptr->refresh();
+                m_warp->set_from(cast_ptr->quad_warp(cast_ptr->index()), cast_ptr->index());
+                m_warp->refresh();
+            }
+        }
+        m_warp->set_index(0);
     }
     catch(Exception &e){ LOG_ERROR << e.what(); return false; }
     return ret;

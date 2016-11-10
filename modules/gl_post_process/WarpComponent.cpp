@@ -54,11 +54,21 @@ namespace kinski
     
     void WarpComponent::refresh()
     {
+        set_from(m_quad_warp[*m_index], *m_index);
+    }
+    
+    void WarpComponent::set_from(gl::QuadWarp &the_quadwarp, uint32_t the_index)
+    {
         observe_properties(false);
-        *m_top_left = m_quad_warp[*m_index].control_point(0, 0);
-        *m_top_right = m_quad_warp[*m_index].control_point(1, 0);
-        *m_bottom_left = m_quad_warp[*m_index].control_point(0, 1);
-        *m_bottom_right = m_quad_warp[*m_index].control_point(1, 1);
+        *m_index = the_index;
+        *m_top_left = the_quadwarp.control_point(0, 0);
+        *m_top_right = the_quadwarp.control_point(1, 0);
+        *m_bottom_left = the_quadwarp.control_point(0, 1);
+        *m_bottom_right = the_quadwarp.control_point(1, 1);
+        m_quad_warp[*m_index].control_point(0, 0) = *m_top_left;
+        m_quad_warp[*m_index].control_point(1, 0) = *m_top_right;
+        m_quad_warp[*m_index].control_point(0, 1) = *m_bottom_left;
+        m_quad_warp[*m_index].control_point(1, 1) = *m_bottom_right;
         observe_properties(true);
     }
     
