@@ -76,8 +76,8 @@ namespace kinski {
         m_wireframe = Property_<bool>::create("wireframe", false);
         register_property(m_wireframe);
 
-        m_drawNormals = Property_<bool>::create("normals", false);
-        register_property(m_drawNormals);
+        m_use_warping = Property_<bool>::create("use warping", false);
+        register_property(m_use_warping);
 
         m_clear_color = Property_<glm::vec4>::create("clear color", gl::COLOR_BLACK);
         register_property(m_clear_color);
@@ -148,6 +148,10 @@ namespace kinski {
         // setup our light component
         m_light_component = std::make_shared<LightComponent>();
         m_light_component->set_lights(lights());
+        
+        // warp component
+        m_warp_component = std::make_shared<WarpComponent>();
+        m_warp_component->observe_properties();
 
         // setup remote control
         m_remote_control = RemoteControl(main_queue().io_service(), {shared_from_this(), m_light_component});
@@ -393,6 +397,11 @@ namespace kinski {
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);
             m_camera->transform() = tmp;
         }
+        else if(theProperty == m_use_warping)
+        {
+            remove_tweakbar_for_component(m_warp_component);
+            if(*m_use_warping){ add_tweakbar_for_component(m_warp_component); }
+        }
     }
 
     bool ViewerApp::save_settings(const std::string &the_path)
@@ -404,7 +413,7 @@ namespace kinski {
         
         LOG_DEBUG << "save settings to: " << path_prefix;
         
-        std::list<ComponentPtr> light_components, material_components;
+        std::list<ComponentPtr> light_components, material_components, warp_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
             LightComponentPtr tmp(new LightComponent());
@@ -421,6 +430,13 @@ namespace kinski {
             tmp->set_index(i);
             material_components.push_back(tmp);
         }
+        for (uint32_t i = 0; i < 10; i++)
+        {
+            auto wc = std::make_shared<WarpComponent>();
+            wc->set_name("warp_" + to_string(i));
+            wc->set_from(m_warp_component->quad_warp(i), i);
+            warp_components.push_back(wc);
+        }
         try
         {
             Serializer::saveComponentState(shared_from_this(),
@@ -431,6 +447,9 @@ namespace kinski {
                                            PropertyIO_GL());
             Serializer::saveComponentState(material_components,
                                            fs::join_paths(path_prefix ,"material_config.json"),
+                                           PropertyIO_GL());
+            Serializer::saveComponentState(warp_components,
+                                           fs::join_paths(path_prefix , "warp_config.json"),
                                            PropertyIO_GL());
 
         }
@@ -450,7 +469,7 @@ namespace kinski {
         path_prefix = fs::get_directory_part(path_prefix);
         LOG_DEBUG << "load settings from: " << path_prefix;
         
-        std::list<ComponentPtr> light_components, material_components;
+        std::list<ComponentPtr> light_components, material_components, warp_components;
         for (uint32_t i = 0; i < lights().size(); i++)
         {
             LightComponentPtr tmp(new LightComponent());
@@ -469,6 +488,15 @@ namespace kinski {
             tmp->observe_properties();
             material_components.push_back(tmp);
         }
+        for (uint32_t i = 0; i < 10; i++)
+        {
+            auto wc = std::make_shared<WarpComponent>();
+            wc->set_name("warp_" + to_string(i));
+            wc->set_index(i);
+            wc->observe_properties();
+            warp_components.push_back(wc);
+        }
+        
         try
         {
             Serializer::loadComponentState(shared_from_this(),
@@ -480,6 +508,19 @@ namespace kinski {
             Serializer::loadComponentState(material_components,
                                            fs::join_paths(path_prefix , "material_config.json"),
                                            PropertyIO_GL());
+            Serializer::loadComponentState(warp_components,
+                                           fs::join_paths(path_prefix, "warp_config.json"),
+                                           PropertyIO_GL());
+            
+            for(auto c : warp_components)
+            {
+                if(auto cast_ptr = std::dynamic_pointer_cast<WarpComponent>(c))
+                {
+                    m_warp_component->set_from(cast_ptr->quad_warp(cast_ptr->index()), cast_ptr->index());
+                    m_warp_component->refresh();
+                }
+            }
+            m_warp_component->set_index(0);
         }
         catch(Exception &e)
         {

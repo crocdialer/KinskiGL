@@ -18,6 +18,7 @@
 #include "core/CircularBuffer.hpp"
 #include "app/RemoteControl.hpp"
 #include "app/LightComponent.hpp"
+#include "app/WarpComponent.hpp"
 #include "gl/SerializerGL.hpp"
 #include "gl/Scene.hpp"
 #include "gl/Fbo.hpp"
@@ -55,7 +56,6 @@ namespace kinski {
         bool wireframe() const { return *m_wireframe; };
         void set_wireframe(bool b) { *m_wireframe = b; };
         bool draw_grid() const { return *m_draw_grid; };
-        bool normals() const { return *m_drawNormals; };
         const gl::Color& clear_color(){ return *m_clear_color; };
         void clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
         void set_clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
@@ -153,7 +153,7 @@ namespace kinski {
         Property_<glm::vec3>::Ptr m_rotation_axis;
         Property_<bool>::Ptr m_draw_grid;
         Property_<bool>::Ptr m_wireframe;
-        Property_<bool>::Ptr m_drawNormals;
+        Property_<bool>::Ptr m_use_warping;
         Property_<gl::Color>::Ptr m_clear_color;
         
         // mouse rotation control
@@ -165,6 +165,9 @@ namespace kinski {
         
         // control module for light objects
         LightComponentPtr m_light_component;
+        
+        // control module for quad warping
+        WarpComponentPtr m_warp_component;
         
         // tcp remote control
         RemoteControl m_remote_control;

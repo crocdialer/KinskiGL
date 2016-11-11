@@ -60,11 +60,7 @@ void MediaPlayer::setup()
     observe_properties();
     add_tweakbar_for_component(shared_from_this());
 
-    // warp component
-    m_warp = std::make_shared<WarpComponent>();
-    m_warp->observe_properties();
-
-    remote_control().set_components({ shared_from_this(), m_warp });
+    remote_control().set_components({ shared_from_this(), m_warp_component });
 //    set_default_config_path("~/");
 
     // setup our components to receive rpc calls
@@ -94,7 +90,7 @@ void MediaPlayer::update(float timeDelta)
 
 void MediaPlayer::draw()
 {
-    if(*m_use_warping){ m_warp->render_output(textures()[TEXTURE_INPUT], *m_brightness); }
+    if(*m_use_warping){ m_warp_component->render_output(textures()[TEXTURE_INPUT], *m_brightness); }
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
     
@@ -122,28 +118,28 @@ void MediaPlayer::keyPress(const KeyEvent &e)
     
     if(e.isAltDown())
     {
-        auto c = m_warp->quad_warp().center();
+        auto c = m_warp_component->quad_warp().center();
         gl::vec2 inc = 1.f / gl::window_dimension();
         
         switch (e.getCode())
         {
             case Key::_LEFT:
-                m_warp->quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y));
+                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y));
                 break;
                 
             case Key::_RIGHT:
-                m_warp->quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y));
+                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y));
                 break;
                 
             case Key::_UP:
-                m_warp->quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y));
+                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y));
                 break;
                 
             case Key::_DOWN:
-                m_warp->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y));
+                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y));
                 break;
         }
-        m_warp->refresh();
+        m_warp_component->refresh();
         m_needs_redraw = true;
     }
     else
@@ -309,11 +305,6 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
         m_media->set_rate(*m_playback_speed);
         if(*m_is_master){ send_network_cmd("set_rate " + to_string(m_playback_speed->value(), 2)); }
     }
-    else if(theProperty == m_use_warping)
-    {
-        remove_tweakbar_for_component(m_warp);
-        if(*m_use_warping){ add_tweakbar_for_component(m_warp); }
-    }
     else if(theProperty == m_use_discovery_broadcast || theProperty == m_broadcast_port)
     {
         if(*m_use_discovery_broadcast && !*m_is_master)
@@ -374,25 +365,6 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
 bool MediaPlayer::save_settings(const std::string &the_path)
 {
     bool ret = ViewerApp::save_settings(the_path);
-    std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
-    path_prefix = fs::get_directory_part(path_prefix);
-    
-    std::list<ComponentPtr> components;
-    for (uint32_t i = 0; i < 10; i++)
-    {
-        auto wc = std::make_shared<WarpComponent>();
-        wc->set_name("warp_" + to_string(i));
-        wc->set_from(m_warp->quad_warp(i), i);
-        components.push_back(wc);
-    }
-    
-    try
-    {
-        Serializer::saveComponentState(components,
-                                       fs::join_paths(path_prefix , "warp_config.json"),
-                                       PropertyIO_GL());
-    }
-    catch(Exception &e){ LOG_ERROR << e.what(); return false; }
     return ret;
 }
 
@@ -401,36 +373,8 @@ bool MediaPlayer::save_settings(const std::string &the_path)
 bool MediaPlayer::load_settings(const std::string &the_path)
 {
     bool ret = ViewerApp::load_settings(the_path);
-    std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
-    path_prefix = fs::get_directory_part(path_prefix);
-    
-    std::list<ComponentPtr> components;
-    for (uint32_t i = 0; i < 10; i++)
-    {
-        auto wc = std::make_shared<WarpComponent>();
-        wc->set_name("warp_" + to_string(i));
-        wc->set_index(i);
-        wc->observe_properties();
-        components.push_back(wc);
-    }
-    
-    try
-    {
-        Serializer::loadComponentState(components,
-                                       fs::join_paths(path_prefix, "warp_config.json"),
-                                       PropertyIO_GL());
-        
-        for(auto c : components)
-        {
-            if(auto cast_ptr = std::dynamic_pointer_cast<WarpComponent>(c))
-            {
-                m_warp->set_from(cast_ptr->quad_warp(cast_ptr->index()), cast_ptr->index());
-                m_warp->refresh();
-            }
-        }
-        m_warp->set_index(0);
-    }
-    catch(Exception &e){ LOG_ERROR << e.what(); return false; }
+//    std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
+//    path_prefix = fs::get_directory_part(path_prefix);
     return ret;
 }
 

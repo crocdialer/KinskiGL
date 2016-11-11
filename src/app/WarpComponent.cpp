@@ -55,6 +55,8 @@ namespace kinski
         *m_top_right = gl::vec2(1.f, 0.f);
         *m_bottom_left = gl::vec2(0.f, 1.f);
         *m_bottom_right = gl::vec2(1.f, 1.f);
+        *m_src_top_left = gl::vec2(0);
+        *m_src_bottom_right = gl::vec2(0);
     }
     
     void WarpComponent::refresh()
