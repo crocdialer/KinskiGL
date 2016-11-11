@@ -12,6 +12,7 @@
 //  Created by Fabian Schmidt on 12/05/15.
 
 #include "WarpComponent.hpp"
+#include "gl/Texture.hpp"
 
 namespace kinski
 {
@@ -28,6 +29,8 @@ namespace kinski
         m_top_right = Property_<gl::vec2>::create("top right", gl::vec2(1.f, 0.f));
         m_bottom_left = Property_<gl::vec2>::create("bottom left", gl::vec2(0.f, 1.f));
         m_bottom_right = Property_<gl::vec2>::create("bottom right", gl::vec2(1.f, 1.f));
+        m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
+        m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
         
         register_property(m_index);
         register_property(m_grid_sz_x);
@@ -38,6 +41,8 @@ namespace kinski
         register_property(m_top_right);
         register_property(m_bottom_left);
         register_property(m_bottom_right);
+        register_property(m_src_top_left);
+        register_property(m_src_bottom_right);
         
         register_function("reset", std::bind(&WarpComponent::reset, this));
     }
@@ -67,11 +72,17 @@ namespace kinski
         *m_bottom_right = the_quadwarp.control_point(1, 1);
         *m_grid_sz_x = the_quadwarp.grid_resolution().x;
         *m_grid_sz_y = the_quadwarp.grid_resolution().y;
+        *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
+        *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
         m_quad_warp[the_index].control_point(0, 0) = *m_top_left;
         m_quad_warp[the_index].control_point(1, 0) = *m_top_right;
         m_quad_warp[the_index].control_point(0, 1) = *m_bottom_left;
         m_quad_warp[the_index].control_point(1, 1) = *m_bottom_right;
         m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
+        m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
+                                                           m_src_top_left->value().y,
+                                                           m_src_bottom_right->value().x,
+                                                           m_src_bottom_right->value().y));
         observe_properties(true);
     }
     
@@ -103,9 +114,16 @@ namespace kinski
         {
             m_quad_warp[*m_index].control_point(1, 1) = *m_bottom_right;
         }
-        if(the_property == m_grid_sz_x || the_property == m_grid_sz_y)
+        else if(the_property == m_grid_sz_x || the_property == m_grid_sz_y)
         {
             m_quad_warp[*m_index].set_grid_resolution(*m_grid_sz_x, *m_grid_sz_y);
+        }
+        else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
+        {
+            m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
+                                                               m_src_top_left->value().y,
+                                                               m_src_bottom_right->value().x,
+                                                               m_src_bottom_right->value().y));
         }
     }
     

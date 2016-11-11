@@ -300,13 +300,17 @@ namespace kinski
         
         inline T size() const { return width() * height(); }
         
-        bool operator<(const Area_<T> &other) const
+        inline bool operator<(const Area_<T> &other) const
         {
             return size() < other.size();
         }
-        bool operator==(const Area_<T> &other) const
+        inline bool operator==(const Area_<T> &other) const
         {
-            return x0 == other.x0 && y0 == other.y0 && x1 == other.x1 && y1 == other.y1;
+            return !(*this != other);
+        }
+        inline bool operator!=(const Area_<T> &other) const
+        {
+            return x0 != other.x0 || y0 != other.y0 || x1 != other.x1 || y1 != other.y1;
         }
     };
 }

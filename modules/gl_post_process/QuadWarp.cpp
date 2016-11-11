@@ -37,6 +37,8 @@ namespace kinski{ namespace gl{
         gl::MeshPtr m_mesh, m_grid_mesh;
         gl::Shader m_shader_warp_vert, m_shader_warp_vert_rect;
         
+        Area_<uint32_t> m_src_area;
+        
         Impl(uint32_t the_res_w = 16, uint32_t the_res_h = 9):
         m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
         {
@@ -96,7 +98,13 @@ namespace kinski{ namespace gl{
         }
         else{ m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert); }
 #endif
-        m_impl->m_mesh->material()->textures() = {the_texture};
+        gl::Texture roi_tex = the_texture;
+        if(m_impl->m_src_area != Area_<uint32_t>())
+        {
+            roi_tex.set_roi(m_impl->m_src_area);
+        }
+        
+        m_impl->m_mesh->material()->textures() = {roi_tex};
         
         auto cp = m_impl->m_control_points;
         const mat4 flipY = mat4(vec4(1, 0, 0, 1),
@@ -124,6 +132,16 @@ namespace kinski{ namespace gl{
             gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f,
                             gl::COLOR_WHITE, false);
         }
+    }
+    
+    const Area_<uint32_t>& QuadWarp::src_area() const
+    {
+        return m_impl->m_src_area;
+    }
+    
+    void QuadWarp::set_src_area(const Area_<uint32_t> &the_src_area)
+    {
+        m_impl->m_src_area = the_src_area;
     }
     
     void QuadWarp::move_center_to(const gl::vec2 &the_pos)
