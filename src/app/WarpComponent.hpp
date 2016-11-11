@@ -34,17 +34,20 @@ namespace kinski
         
         gl::QuadWarp& quad_warp(int i = -1);
         
-        void render_output(const gl::Texture &the_tex, const float the_brightness = 1.f);
+        void render_output(int the_index, const gl::Texture &the_tex, const float the_brightness = 1.f);
         void set_from(gl::QuadWarp &the_quadwarp, uint32_t the_index = 0);
         uint32_t index() const{ return *m_index; }
         void set_index(int the_index) { *m_index = the_index; }
+        void set_enabled(int the_index, bool b);
+        bool enabled(int the_index);
         
     private:
         std::vector<gl::QuadWarp> m_quad_warp{10};
+        std::vector<bool> m_enabled_vec;
         
         Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_grid_sz_x, m_grid_sz_y;
-        Property_<bool>::Ptr m_draw_grid, m_draw_control_points;
+        Property_<bool>::Ptr m_enabled, m_draw_grid, m_draw_control_points;
         
         Property_<gl::vec2>::Ptr m_src_top_left, m_src_bottom_right;
         Property_<gl::vec2>::Ptr m_top_left, m_top_right, m_bottom_left, m_bottom_right;

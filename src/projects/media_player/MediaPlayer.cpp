@@ -90,7 +90,16 @@ void MediaPlayer::update(float timeDelta)
 
 void MediaPlayer::draw()
 {
-    if(*m_use_warping){ m_warp_component->render_output(textures()[TEXTURE_INPUT], *m_brightness); }
+    if(*m_use_warping)
+    {
+        for(uint32_t i = 0; i < 10; i++)
+        {
+            if(m_warp_component->enabled(i))
+            {
+                m_warp_component->render_output(i, textures()[TEXTURE_INPUT], *m_brightness);
+            }
+        }
+    }
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
     

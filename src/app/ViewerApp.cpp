@@ -435,6 +435,7 @@ namespace kinski {
             auto wc = std::make_shared<WarpComponent>();
             wc->set_name("warp_" + to_string(i));
             wc->set_from(m_warp_component->quad_warp(i), i);
+            wc->set_enabled(i, m_warp_component->enabled(i));
             warp_components.push_back(wc);
         }
         try
@@ -517,6 +518,7 @@ namespace kinski {
                 if(auto cast_ptr = std::dynamic_pointer_cast<WarpComponent>(c))
                 {
                     m_warp_component->set_from(cast_ptr->quad_warp(cast_ptr->index()), cast_ptr->index());
+                    m_warp_component->set_enabled(cast_ptr->index(), cast_ptr->enabled(cast_ptr->index()));
                     m_warp_component->refresh();
                 }
             }
