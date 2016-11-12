@@ -192,6 +192,11 @@ namespace kinski{ namespace gl{
         m_impl = new_impl;
     }
     
+    std::vector<gl::vec2>& QuadWarp::control_points()
+    {
+        return m_impl->m_control_points;
+    }
+    
     gl::vec2& QuadWarp::control_point(int the_x, int the_y)
     {
         if(!m_impl){ m_impl.reset(new Impl); }

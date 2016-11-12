@@ -44,6 +44,8 @@ namespace kinski{ namespace gl{
         
         void set_control_point(int the_x, int the_y, const gl::vec2 &the_point);
         
+        std::vector<gl::vec2>& control_points();
+        
     private:
         
         struct Impl;

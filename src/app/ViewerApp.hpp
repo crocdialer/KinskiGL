@@ -169,6 +169,8 @@ namespace kinski {
         // control module for quad warping
         WarpComponentPtr m_warp_component;
         
+        std::set<int> m_warp_control_points;
+        
         // tcp remote control
         RemoteControl m_remote_control;
     };

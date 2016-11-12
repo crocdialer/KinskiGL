@@ -213,9 +213,9 @@ namespace kinski {
         {
             m_drag_buffer.clear();
             
-            gl::Object3DPtr picked_obj = m_scene->pick(gl::calculate_ray(m_camera, glm::vec2(e.getX(),
-                                                                                           e.getY())),
-                                                      m_precise_selection);
+            gl::Object3DPtr picked_obj = m_scene->pick(gl::calculate_ray(m_camera,
+                                                                         glm::vec2(e.getX(), e.getY())),
+                                                       m_precise_selection);
             if(picked_obj)
             {
                 LOG_TRACE << "picked id: " << picked_obj->get_id();
@@ -224,11 +224,29 @@ namespace kinski {
                     m_selected_mesh = m;
                 }
             }
+            
+            if(*m_use_warping)
+            {
+                auto coord = m_clickPos / gl::window_dimension();
+                auto px_length = 1.f / gl::window_dimension();
+                
+                auto &control_points = m_warp_component->quad_warp().control_points();
+                
+                for(uint32_t i = 0; i < control_points.size(); i ++)
+                {
+                    if(glm::length(control_points[i] - coord) < 10 * glm::length(px_length))
+                    {
+                        m_warp_control_points.insert(i);
+                        LOG_DEBUG << "selected control point: " << glm::to_string(coord);
+                    }
+                }
+            }
         }
 
         if(e.isRight())
         {
             m_selected_mesh.reset();
+            m_warp_control_points.clear();
         }
     }
 
@@ -277,7 +295,63 @@ namespace kinski {
         {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
-
+        
+        if(e.isAltDown())
+        {
+            auto c = m_warp_component->quad_warp().center();
+            gl::vec2 inc = 1.f / gl::window_dimension();
+            auto &control_points = m_warp_component->quad_warp().control_points();
+            
+            switch(e.getCode())
+            {
+                case Key::_LEFT:
+                    for(auto cp : m_warp_control_points){ control_points[cp] -= gl::vec2(inc.x, 0.f); }
+                    if(m_warp_control_points.empty())
+                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
+                    break;
+                    
+                case Key::_RIGHT:
+                    for(auto cp : m_warp_control_points){ control_points[cp] += gl::vec2(inc.x, 0.f); }
+                    if(m_warp_control_points.empty())
+                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
+                    break;
+                    
+                case Key::_UP:
+                    for(auto cp : m_warp_control_points){ control_points[cp] -= gl::vec2(0.f, inc.y); }
+                    if(m_warp_control_points.empty())
+                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
+                    break;
+                    
+                case Key::_DOWN:
+                    for(auto cp : m_warp_control_points){ control_points[cp] += gl::vec2(0.f, inc.y); }
+                    if(m_warp_control_points.empty())
+                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
+                    break;
+                    
+                case Key::_1:
+                case Key::_2:
+                case Key::_3:
+                case Key::_4:
+                case Key::_5:
+                case Key::_6:
+                case Key::_7:
+                case Key::_8:
+                case Key::_9:
+                    if(e.isShiftDown())
+                    {
+                        
+                    }
+                    m_warp_component->set_index(e.getCode() - Key::_1);
+                    break;
+                    
+                case Key::_E:
+                    m_warp_component->set_enabled(m_warp_component->index(),
+                                                  !m_warp_component->enabled(m_warp_component->index()));
+                    break;
+            }
+            m_warp_component->refresh();
+        }
+        
         if(!displayTweakBar())
         {
             switch (e.getCode())
@@ -308,19 +382,6 @@ namespace kinski {
                     {
                         LOG_WARNING << e.what();
                     }
-                    break;
-
-                case Key::_1:
-                case Key::_2:
-                case Key::_3:
-                case Key::_4:
-                case Key::_5:
-                case Key::_6:
-                case Key::_7:
-                case Key::_8:
-                case Key::_9:
-//                    m_cam_index = e.getCode() - GLFW__1;
-//                    LOG_DEBUG << "cam index: " << m_cam_index;
                     break;
 
                 default:

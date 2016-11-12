@@ -89,9 +89,6 @@ namespace kinski
         void tearDown() override;
         void update_property(const Property::ConstPtr &theProperty) override;
         
-        bool save_settings(const std::string &path = "") override;
-        bool load_settings(const std::string &path = "") override;
-        
         bool needs_redraw() const override;
 
     };

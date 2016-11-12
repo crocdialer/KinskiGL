@@ -109,7 +109,7 @@ void MediaPlayer::draw()
     }
     if(displayTweakBar())
     {
-        gl::draw_text_2D(fs::get_filename_part(m_media->path()),
+        gl::draw_text_2D(m_media->is_loaded() ? fs::get_filename_part(m_media->path()) : *m_media_path,
                          fonts()[1], gl::COLOR_WHITE, gl::vec2(10));
         gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
                          secs_to_time_str(m_media->duration()),
@@ -125,33 +125,7 @@ void MediaPlayer::keyPress(const KeyEvent &e)
 {
     ViewerApp::keyPress(e);
     
-    if(e.isAltDown())
-    {
-        auto c = m_warp_component->quad_warp().center();
-        gl::vec2 inc = 1.f / gl::window_dimension();
-        
-        switch (e.getCode())
-        {
-            case Key::_LEFT:
-                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y));
-                break;
-                
-            case Key::_RIGHT:
-                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y));
-                break;
-                
-            case Key::_UP:
-                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y));
-                break;
-                
-            case Key::_DOWN:
-                m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y));
-                break;
-        }
-        m_warp_component->refresh();
-        m_needs_redraw = true;
-    }
-    else
+    if(!e.isAltDown())
     {
         switch (e.getCode())
         {
@@ -183,11 +157,7 @@ void MediaPlayer::keyPress(const KeyEvent &e)
             case Key::_DOWN:
                 m_media->set_volume(m_media->volume() - .1f);
                 break;
-                
-            case Key::_1:
-                
-                break;
-                
+ 
             default:
                 break;
         }
@@ -367,24 +337,6 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
             });
         }
     }
-}
-
-/////////////////////////////////////////////////////////////////
-
-bool MediaPlayer::save_settings(const std::string &the_path)
-{
-    bool ret = ViewerApp::save_settings(the_path);
-    return ret;
-}
-
-/////////////////////////////////////////////////////////////////
-
-bool MediaPlayer::load_settings(const std::string &the_path)
-{
-    bool ret = ViewerApp::load_settings(the_path);
-//    std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
-//    path_prefix = fs::get_directory_part(path_prefix);
-    return ret;
 }
 
 /////////////////////////////////////////////////////////////////
