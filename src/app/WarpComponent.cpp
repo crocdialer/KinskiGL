@@ -48,7 +48,7 @@ namespace kinski
         
         register_function("reset", std::bind(&WarpComponent::reset, this));
         
-        m_enabled_vec.resize(m_quad_warp.size(), false);
+        m_params.resize(m_quad_warp.size());
     }
     
     WarpComponent::~WarpComponent(){}
@@ -71,7 +71,29 @@ namespace kinski
     bool WarpComponent::enabled(int the_index)
     {
         the_index = clamp<int>(the_index, 0, m_quad_warp.size() - 1);
-        return m_enabled_vec[the_index];
+        return m_params[the_index].enabled;
+    }
+    
+    void WarpComponent::set_display_grid(int the_index, bool b)
+    {
+        *m_draw_grid = b;
+    }
+    
+    void WarpComponent::set_display_points(int the_index, bool b)
+    {
+        *m_draw_control_points = b;
+    }
+    
+    bool WarpComponent::display_grid(int the_index) const
+    {
+        the_index = clamp<int>(the_index, 0, m_quad_warp.size() - 1);
+        return m_params[the_index].display_grid;
+    }
+    
+    bool WarpComponent::display_points(int the_index) const
+    {
+        the_index = clamp<int>(the_index, 0, m_quad_warp.size() - 1);
+        return m_params[the_index].display_points;
     }
     
     void WarpComponent::refresh()
@@ -84,7 +106,9 @@ namespace kinski
         observe_properties(false);
         the_index = clamp<int>(the_index, 0, m_quad_warp.size() - 1);
         *m_index = the_index;
-        *m_enabled = m_enabled_vec[the_index];
+        *m_enabled = m_params[the_index].enabled;
+        *m_draw_grid = m_params[the_index].display_grid;
+        *m_draw_control_points = m_params[the_index].display_points;
         *m_top_left = the_quadwarp.control_point(0, 0);
         *m_top_right = the_quadwarp.control_point(1, 0);
         *m_bottom_left = the_quadwarp.control_point(0, 1);
@@ -93,7 +117,9 @@ namespace kinski
         *m_grid_sz_y = the_quadwarp.grid_resolution().y;
         *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
         *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
-        m_enabled_vec[the_index] = *m_enabled;
+        m_params[the_index].enabled = *m_enabled;
+        m_params[the_index].display_grid = *m_draw_grid;
+        m_params[the_index].display_points = *m_draw_control_points;
         m_quad_warp[the_index].control_point(0, 0) = *m_top_left;
         m_quad_warp[the_index].control_point(1, 0) = *m_top_right;
         m_quad_warp[the_index].control_point(0, 1) = *m_bottom_left;
@@ -120,7 +146,15 @@ namespace kinski
         }
         else if(the_property == m_enabled)
         {
-            m_enabled_vec[*m_index] = *m_enabled;
+            m_params[*m_index].enabled = *m_enabled;
+        }
+        else if(the_property == m_draw_grid)
+        {
+            m_params[*m_index].display_grid = *m_draw_grid;
+        }
+        else if(the_property == m_draw_control_points)
+        {
+            m_params[*m_index].display_points = *m_draw_control_points;
         }
         else if(the_property == m_top_left)
         {

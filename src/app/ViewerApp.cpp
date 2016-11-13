@@ -348,6 +348,14 @@ namespace kinski {
                     m_warp_component->set_enabled(m_warp_component->index(),
                                                   !m_warp_component->enabled(m_warp_component->index()));
                     break;
+                case Key::_G:
+                    m_warp_component->set_display_grid(m_warp_component->index(),
+                                                       !m_warp_component->display_grid(m_warp_component->index()));
+                    break;
+                case Key::_P:
+                    m_warp_component->set_display_points(m_warp_component->index(),
+                                                         !m_warp_component->display_points(m_warp_component->index()));
+                    break;
             }
             m_warp_component->refresh();
         }

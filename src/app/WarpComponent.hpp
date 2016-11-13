@@ -40,10 +40,22 @@ namespace kinski
         void set_index(int the_index) { *m_index = the_index; }
         void set_enabled(int the_index, bool b);
         bool enabled(int the_index);
+        void set_display_grid(int the_index, bool b);
+        bool display_grid(int the_index) const;
+        void set_display_points(int the_index, bool b);
+        bool display_points(int the_index) const;
         
     private:
         std::vector<gl::QuadWarp> m_quad_warp{10};
-        std::vector<bool> m_enabled_vec;
+        
+        typedef struct
+        {
+            bool enabled = false;
+            bool display_grid = false;
+            bool display_points = false;
+        } param_t;
+        
+        std::vector<param_t> m_params;
         
         Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_grid_sz_x, m_grid_sz_y;
