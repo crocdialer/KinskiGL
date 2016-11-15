@@ -138,7 +138,7 @@ namespace kinski
         return m_quad_warp[i];
     }
     
-    int WarpComponent::num_warps() const
+    uint32_t WarpComponent::num_warps() const
     {
         return m_quad_warp.size();
     }

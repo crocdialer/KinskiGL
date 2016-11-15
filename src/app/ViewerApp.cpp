@@ -234,7 +234,7 @@ namespace kinski {
                 
                 for(uint32_t i = 0; i < control_points.size(); i ++)
                 {
-                    if(glm::length(control_points[i] - coord) < 10 * glm::length(px_length))
+                    if(glm::length(control_points[i] - coord) < 15 * glm::length(px_length))
                     {
                         control_point_t cp(i, control_points[i]);
                         m_warp_control_points.erase(cp);
