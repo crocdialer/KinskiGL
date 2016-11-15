@@ -92,7 +92,7 @@ void MediaPlayer::draw()
 {
     if(*m_use_warping)
     {
-        for(uint32_t i = 0; i < 10; i++)
+        for(uint32_t i = 0; i < m_warp_component->num_warps(); i++)
         {
             if(m_warp_component->enabled(i))
             {

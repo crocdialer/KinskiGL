@@ -138,6 +138,11 @@ namespace kinski
         return m_quad_warp[i];
     }
     
+    int WarpComponent::num_warps() const
+    {
+        return m_quad_warp.size();
+    }
+    
     void WarpComponent::update_property(const Property::ConstPtr &the_property)
     {
         if(the_property == m_index)

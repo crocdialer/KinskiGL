@@ -60,6 +60,22 @@ namespace kinski{ namespace gl{
         return noise_tex;
     }
     
+    ImagePtr Noise::create_simplex_image(const float the_seed)
+    {
+        int w = m_impl->m_tex_size.x, h = m_impl->m_tex_size.y;
+        ImagePtr ret = Image::create(w, h, 1);
+    
+        for (int i = 0; i < h; i++)
+        {
+            for (int j = 0; j < w; j++)
+            {
+                ret->data[i * h + j] =
+                255 * (glm::simplex(vec3(vec2(i, j) * m_impl->m_scale, the_seed)) + 1.f) / 2.f;
+            }
+        }
+        return ret;
+    }
+    
     const vec2& Noise::tex_size() const
     {
         return m_impl->m_tex_size;

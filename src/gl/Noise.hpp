@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "core/Image.hpp"
 #include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
@@ -24,6 +25,8 @@ class KINSKI_API Noise
     Noise(const vec2 &the_scale = vec2(0.05f), const vec2 &the_tex_size = vec2(128));
     
     gl::Texture simplex(const float the_seed);
+    
+    ImagePtr create_simplex_image(const float the_seed);
     
     const vec2& tex_size() const;
     const vec2& scale() const;

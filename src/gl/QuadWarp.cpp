@@ -81,6 +81,7 @@ namespace kinski{ namespace gl{
     };
     
     QuadWarp::QuadWarp()
+    :m_impl(new Impl)
     {
 
     }

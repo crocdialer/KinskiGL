@@ -45,6 +45,8 @@ namespace kinski
         void set_display_points(int the_index, bool b);
         bool display_points(int the_index) const;
         
+        int num_warps() const;
+        
     private:
         std::vector<gl::QuadWarp> m_quad_warp{10};
         
