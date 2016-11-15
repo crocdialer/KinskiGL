@@ -169,7 +169,16 @@ namespace kinski {
         // control module for quad warping
         WarpComponentPtr m_warp_component;
         
-        std::set<int> m_warp_control_points;
+        struct control_point_t
+        {
+            int index = -1;
+            gl::vec2 value;
+            
+            control_point_t(int the_index, gl::vec2 the_value):index(the_index), value(the_value){}
+            bool operator<(const control_point_t &the_other) const { return index < the_other.index; }
+        };
+        
+        std::set<control_point_t> m_warp_control_points;
         
         // tcp remote control
         RemoteControl m_remote_control;
