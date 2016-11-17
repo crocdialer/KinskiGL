@@ -17,7 +17,7 @@
 
 namespace kinski{ namespace gl{
 
-    struct Noise::Impl
+    struct NoiseImpl
     {
         gl::Fbo m_fbo;
         gl::MaterialPtr m_material;
@@ -26,7 +26,7 @@ namespace kinski{ namespace gl{
     };
 
     Noise::Noise(const vec2 &the_scale, const vec2 &the_tex_size):
-    m_impl(new Impl)
+    m_impl(new NoiseImpl)
     {
         m_impl->m_scale = the_scale;
         m_impl->m_tex_size = the_tex_size;

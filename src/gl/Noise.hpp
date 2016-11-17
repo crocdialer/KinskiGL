@@ -36,9 +36,7 @@ class KINSKI_API Noise
 
  private:
     
-    struct Impl;
-    typedef std::shared_ptr<Impl> ImplPtr;
-    ImplPtr m_impl;
+    std::shared_ptr<struct NoiseImpl> m_impl;
 };
 
 }}// namespaces
