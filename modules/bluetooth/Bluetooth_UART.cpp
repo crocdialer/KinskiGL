@@ -149,12 +149,12 @@ namespace kinski{ namespace bluetooth{
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void Bluetooth_UART::set_receive_cb(ReceiveCallback cb)
+    void Bluetooth_UART::set_receive_cb(receive_cb_t cb)
     {
         m_receive_cb = cb;
     }
 
-    void Bluetooth_UART::set_connect_cb(ConnectCallback cb)
+    void Bluetooth_UART::set_connect_cb(connect_cb_t cb)
     {
         m_connect_cb = cb;
     }

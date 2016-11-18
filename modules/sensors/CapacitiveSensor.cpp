@@ -20,7 +20,7 @@ namespace kinski
 {
     struct CapacitiveSensor::Impl
     {
-        UART_Ptr m_sensor_device;
+        UARTPtr m_sensor_device;
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         bool m_dirty_params = true;
@@ -36,7 +36,7 @@ namespace kinski
         TouchCallback m_touch_callback, m_release_callback;
     };
     
-    CapacitiveSensor::CapacitiveSensor(UART_Ptr the_uart_device):
+    CapacitiveSensor::CapacitiveSensor(UARTPtr the_uart_device):
     m_impl(new Impl)
     {
         m_impl->m_sensor_read_buf.resize(2048);
@@ -177,7 +177,7 @@ namespace kinski
         return connect(serial);
     }
     
-    bool CapacitiveSensor::connect(UART_Ptr the_uart_device)
+    bool CapacitiveSensor::connect(UARTPtr the_uart_device)
     {
         if(the_uart_device)
         {

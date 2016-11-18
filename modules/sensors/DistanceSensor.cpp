@@ -18,7 +18,7 @@ namespace kinski{
     
     struct DistanceSensor::Impl
     {
-        SerialPtr m_sensor_device = Serial::create();
+        UARTPtr m_sensor_device;
         std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_distance = 0;
@@ -44,7 +44,7 @@ namespace kinski{
     bool DistanceSensor::connect(const std::string &dev_name)
     {
         if(dev_name.empty()){}
-        else{ m_impl->m_sensor_device->setup(dev_name, 57600); }
+//        else{ m_impl->m_sensor_device->setup(dev_name, 57600); }
         
         // finally flush the newly initialized device
         if(m_impl->m_sensor_device->is_initialized())

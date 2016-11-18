@@ -18,11 +18,11 @@ namespace kinski
         
         typedef std::function<void(int)> TouchCallback;
         
-        CapacitiveSensor(UART_Ptr the_uart_device = UART_Ptr());
+        CapacitiveSensor(UARTPtr the_uart_device = UARTPtr());
         virtual ~CapacitiveSensor();
         
         bool connect(const std::string &the_serial_dev_name);
-        bool connect(UART_Ptr the_uart_device = UART_Ptr());
+        bool connect(UARTPtr the_uart_device = UARTPtr());
         
         void update(float time_delta);
         

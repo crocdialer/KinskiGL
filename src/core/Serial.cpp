@@ -10,13 +10,16 @@ namespace kinski
     {
         std::string m_device_name;
         boost::asio::serial_port m_serial_port;
+        Serial::connect_cb_t m_connect_cb;
         Serial::receive_cb_t m_receive_cb;
-        CircularBuffer<uint8_t> m_buffer = CircularBuffer<uint8_t>(2048);
+        std::vector<uint8_t> m_buffer, m_rec_buffer;
         std::mutex m_mutex;
         
         SerialImpl(boost::asio::io_service &io, Serial::receive_cb_t rec_cb):
         m_serial_port(io),
         m_receive_cb(rec_cb){}
+        
+        
     };
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -35,6 +38,57 @@ namespace kinski
     }
     
     ///////////////////////////////////////////////////////////////////////////////
+    
+    void Serial::start_receive()
+    {
+        m_impl->m_rec_buffer.resize(512);
+        auto impl_cp = m_impl;
+        
+        m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
+                                              [this, impl_cp](const boost::system::error_code& error,
+                                                              std::size_t bytes_transferred)
+        {
+            if(!error)
+            {
+                if(bytes_transferred)
+                {
+                    LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
+                    
+                    if(impl_cp->m_receive_cb)
+                    {
+                        std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
+                                                     impl_cp->m_rec_buffer.begin() + bytes_transferred);
+                        impl_cp->m_receive_cb(shared_from_this(), std::move(datavec));
+                    }
+                    else
+                    {
+                        std::unique_lock<std::mutex> lock(impl_cp->m_mutex);
+                        impl_cp->m_buffer.insert(impl_cp->m_buffer.end(), impl_cp->m_rec_buffer.begin(),
+                                                 impl_cp->m_rec_buffer.begin() + bytes_transferred);
+                    }
+                }
+                if(impl_cp.use_count() > 1){ start_receive(); }
+            }
+            else
+            {
+                switch (error.value())
+                {
+                    case boost::asio::error::eof:
+                    case boost::asio::error::connection_reset:
+                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
+                        break;
+                      
+                    case boost::asio::error::operation_aborted:
+                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
+                        break;
+                      
+                    default:
+                        LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
+                        break;
+                }
+            }
+        });
+    };
     
     std::vector<std::string> device_list()
     {
@@ -105,9 +159,12 @@ namespace kinski
     
     size_t Serial::read_bytes(void *buffer, size_t sz)
     {
-        size_t num_bytes = std::min(available(), sz);
-//        std::copy(m_impl->m_buffer.begin(),  m_impl->m_buffer.end(), buffer);
-        return 0;
+        std::unique_lock<std::mutex> lock(m_impl->m_mutex);
+        size_t num_bytes = std::min(m_impl->m_buffer.size(), sz);
+        ::memcpy(buffer, &m_impl->m_buffer[0], num_bytes);
+        std::vector<uint8_t> tmp(m_impl->m_buffer.begin() + num_bytes, m_impl->m_buffer.end());
+        m_impl->m_buffer = tmp;
+        return num_bytes;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -179,6 +236,13 @@ namespace kinski
     void Serial::set_receive_cb(receive_cb_t the_cb)
     {
         m_impl->m_receive_cb = the_cb;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    void Serial::set_connect_cb(connect_cb_t the_cb)
+    {
+        m_impl->m_connect_cb = the_cb;
     }
     
     ///////////////////////////////////////////////////////////////////////////////

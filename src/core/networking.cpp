@@ -507,7 +507,7 @@ namespace kinski
                     {
                         std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
                                                      impl_cp->recv_buffer.begin() + bytes_transferred);
-                        impl_cp->tcp_receive_cb(shared_from_this(), datavec);
+                        impl_cp->tcp_receive_cb(shared_from_this(), std::move(datavec));
                         LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
                     }
                     

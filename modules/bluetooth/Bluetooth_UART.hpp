@@ -19,9 +19,6 @@ class Bluetooth_UART : public UART, public std::enable_shared_from_this<Bluetoot
 {
 public:
     
-    typedef std::function<void(Bluetooth_UART_Ptr)> ConnectCallback;
-    typedef std::function<void(Bluetooth_UART_Ptr, const std::vector<uint8_t>&)> ReceiveCallback;
-    
     static Bluetooth_UART_Ptr create();
     virtual ~Bluetooth_UART();
     
@@ -38,16 +35,16 @@ public:
     
     /////////////////////////////////////////////////////////////////////////////////
     
-    void set_connect_cb(ConnectCallback cb);
-    void set_receive_cb(ReceiveCallback cb);
+    void set_connect_cb(connect_cb_t cb) override;
+    void set_receive_cb(receive_cb_t cb) override;
     
 private:
     Bluetooth_UART();
     CentralPtr m_central;
     PeripheralPtr m_peripheral;
     std::vector<uint8_t> m_buffer;
-    ConnectCallback m_connect_cb;
-    ReceiveCallback m_receive_cb;
+    connect_cb_t m_connect_cb;
+    receive_cb_t m_receive_cb;
 };
     
 }}// namespaces

@@ -18,10 +18,16 @@
 
 namespace kinski
 {
+
+DEFINE_CLASS_PTR(UART);
+    
 //! UART interface
 class UART
 {
 public:
+    
+    typedef std::function<void(UARTPtr)> connect_cb_t;
+    typedef std::function<void(UARTPtr, const std::vector<uint8_t>&)> receive_cb_t;
     
     //! setup and initialize the device
     virtual bool setup() = 0;
@@ -57,8 +63,9 @@ public:
     
     //! returns a textual description for this device
     virtual std::string description() const = 0;
-};
     
-typedef std::shared_ptr<UART> UART_Ptr;
+    virtual void set_receive_cb(receive_cb_t the_cb) = 0;
+    virtual void set_connect_cb(connect_cb_t cb) = 0;
+};
     
 }// namespace

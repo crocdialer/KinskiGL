@@ -16,12 +16,10 @@ namespace kinski
 
 typedef std::shared_ptr<class Serial> SerialPtr;
 
-class Serial : public UART
+    class Serial : public UART, public std::enable_shared_from_this<Serial>
 {
     
 public:
-    
-    typedef std::function<void(SerialPtr, const std::vector<uint8_t>&)> receive_cb_t;
     
     static SerialPtr create(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
     virtual ~Serial();
@@ -42,9 +40,12 @@ public:
     void async_read_bytes();
     void async_write_bytes(const void *buffer, size_t sz);
     
-    void set_receive_cb(receive_cb_t the_cb);
+    void set_receive_cb(receive_cb_t the_cb) override;
+    void set_connect_cb(connect_cb_t cb) override;
     
 private:
+    void start_receive();
+    
     Serial(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
     std::shared_ptr<struct SerialImpl> m_impl;
 };
