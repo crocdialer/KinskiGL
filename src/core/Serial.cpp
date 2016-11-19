@@ -63,9 +63,9 @@ namespace kinski
     
     bool Serial::setup()
     {
-        auto devices = device_list();
-        if(!devices.empty()){ return setup(devices.front(), 57600); }
-        return false;
+        bool ret = false;
+        for(const auto &d : device_list()){ if(setup(d, 57600)){ ret = true; break; } }
+        return ret;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
