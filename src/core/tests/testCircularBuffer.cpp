@@ -30,32 +30,32 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     circ_buf.set_capacity(6);
     BOOST_CHECK(circ_buf.capacity() == 6);
 
-    circ_buf.push(1);
+    circ_buf.push_back(1);
     BOOST_CHECK(circ_buf.size() == 1);
     BOOST_CHECK(circ_buf[0] == 1);
 
-    circ_buf.push(2);
-    circ_buf.push(3);
+    circ_buf.push_back(2);
+    circ_buf.push_back(3);
     BOOST_CHECK(circ_buf.size() == 3);
 
     // fill buffer completely
-    circ_buf.push(4);
-    circ_buf.push(5);
-    circ_buf.push(6);
+    circ_buf.push_back(4);
+    circ_buf.push_back(5);
+    circ_buf.push_back(6);
     BOOST_CHECK(circ_buf.size() == 6);
 
 //    // pop first element, decreasing size
     auto val = circ_buf.front();
-    circ_buf.pop();
+    circ_buf.pop_front();
     BOOST_CHECK(val == 1);
     BOOST_CHECK(circ_buf.size() == 5);
     BOOST_CHECK(circ_buf[0] == 2);
     
     // overfill buffer
-    circ_buf.push(101);
-    circ_buf.push(102);
-    circ_buf.push(666);
-    circ_buf.push(103);
+    circ_buf.push_back(101);
+    circ_buf.push_back(102);
+    circ_buf.push_back(666);
+    circ_buf.push_back(103);
     BOOST_CHECK(circ_buf.size() == 6);
 
     BOOST_CHECK(circ_buf[0] == 5);
@@ -71,21 +71,21 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     BOOST_CHECK(circ_buf.empty());
     
     // push 8 elements into the 7-sized buffer
-    circ_buf.push(89);// will fall out
+    circ_buf.push_back(89);// will fall out
     BOOST_CHECK(circ_buf.size() == 1);
-    circ_buf.push(2);
+    circ_buf.push_back(2);
     BOOST_CHECK(circ_buf.size() == 2);
-    circ_buf.push(46);
+    circ_buf.push_back(46);
     BOOST_CHECK(circ_buf.size() == 3);
-    circ_buf.push(4);// will be the median
+    circ_buf.push_back(4);// will be the median
     BOOST_CHECK(circ_buf.size() == 4);
-    circ_buf.push(88);
+    circ_buf.push_back(88);
     BOOST_CHECK(circ_buf.size() == 5);
-    circ_buf.push(3);
+    circ_buf.push_back(3);
     BOOST_CHECK(circ_buf.size() == 6);
-    circ_buf.push(87);
+    circ_buf.push_back(87);
     BOOST_CHECK(circ_buf.size() == 7);
-    circ_buf.push(1);
+    circ_buf.push_back(1);
     BOOST_CHECK(circ_buf.size() == 7);
     BOOST_CHECK(kinski::median(circ_buf) == 4);
     
@@ -103,13 +103,13 @@ BOOST_AUTO_TEST_CASE( testCircularBuffer )
     for(uint32_t i = 0; i < num_elems; i++)
     {
         BOOST_CHECK(circ_buf.size() == std::min<uint32_t>(i, 1250));
-        circ_buf.push(random_int(0, 100));
+        circ_buf.push_back(random_int(0, 100));
     }
     printf("mean: %.2f\n", kinski::mean<float>(circ_buf));
     printf("standard deviation: %.2f\n", kinski::standard_deviation(circ_buf));
     BOOST_CHECK(circ_buf.size() == 1250);
     
-    for(uint32_t i = 0; i < num_elems; i++){ circ_buf.pop(); }
+    for(uint32_t i = 0; i < num_elems; i++){ circ_buf.pop_front(); }
     BOOST_CHECK(circ_buf.size() == 0);
     BOOST_CHECK(circ_buf.empty());
 }
