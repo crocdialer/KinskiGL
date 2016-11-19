@@ -86,8 +86,6 @@ namespace kinski
                     {
                         auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
                                                    m_impl->m_sensor_accumulator.end()));
-//                        LOG_TRACE_1 << string(m_impl->m_sensor_accumulator.begin(),
-//                                              m_impl->m_sensor_accumulator.end());
                         m_impl->m_sensor_accumulator.clear();
                         
                         if(!tokens.empty())
@@ -126,23 +124,23 @@ namespace kinski
         
         if((m_impl->m_timeout_reconnect > 0.f) && m_impl->m_last_reading > m_impl->m_timeout_reconnect)
         {
-            LOG_WARNING << "no response from sensor: trying reconnect ...";
-            m_impl->m_last_reading = 0.f;
-            try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
-            catch (std::exception &e) { LOG_WARNING << e.what(); }
-            m_impl->m_reconnect_thread = std::thread([this]()
-            {
-                if(!m_impl->m_device_name.empty())
-                {
-                    auto serial = Serial::create();
-                    serial->setup(m_impl->m_device_name, 57600);
-                    connect(serial);
-                }else if(m_impl->m_sensor_device)
-                {
-//                    m_impl->m_sensor_device->close();
-                    connect(m_impl->m_sensor_device);
-                }
-            });
+//            LOG_WARNING << "no response from sensor: trying reconnect ...";
+//            m_impl->m_last_reading = 0.f;
+//            try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
+//            catch (std::exception &e) { LOG_WARNING << e.what(); }
+//            m_impl->m_reconnect_thread = std::thread([this]()
+//            {
+//                if(!m_impl->m_device_name.empty())
+//                {
+//                    auto serial = Serial::create();
+//                    serial->setup(m_impl->m_device_name, 57600);
+//                    connect(serial);
+//                }else if(m_impl->m_sensor_device)
+//                {
+////                    m_impl->m_sensor_device->close();
+//                    connect(m_impl->m_sensor_device);
+//                }
+//            });
             return;
         }
     }
@@ -169,13 +167,13 @@ namespace kinski
         return NUM_SENSOR_PADS;
     }
     
-    bool CapacitiveSensor::connect(const std::string &the_serial_dev_name)
-    {
-        auto serial = Serial::create();
-        m_impl->m_device_name = the_serial_dev_name;
-        serial->setup(the_serial_dev_name, 57600);
-        return connect(serial);
-    }
+//    bool CapacitiveSensor::connect(const std::string &the_serial_dev_name)
+//    {
+//        auto serial = Serial::create();
+//        m_impl->m_device_name = the_serial_dev_name;
+//        serial->setup(the_serial_dev_name, 57600);
+//        return connect(serial);
+//    }
     
     bool CapacitiveSensor::connect(UARTPtr the_uart_device)
     {

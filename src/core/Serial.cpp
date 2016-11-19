@@ -18,8 +18,6 @@ namespace kinski
         SerialImpl(boost::asio::io_service &io, Serial::receive_cb_t rec_cb):
         m_serial_port(io),
         m_receive_cb(rec_cb){}
-        
-        
     };
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -39,58 +37,14 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    void Serial::start_receive()
+    Serial::~Serial()
     {
-        m_impl->m_rec_buffer.resize(512);
-        auto impl_cp = m_impl;
-        
-        m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
-                                              [this, impl_cp](const boost::system::error_code& error,
-                                                              std::size_t bytes_transferred)
-        {
-            if(!error)
-            {
-                if(bytes_transferred)
-                {
-                    LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
-                    
-                    if(impl_cp->m_receive_cb)
-                    {
-                        std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
-                                                     impl_cp->m_rec_buffer.begin() + bytes_transferred);
-                        impl_cp->m_receive_cb(shared_from_this(), std::move(datavec));
-                    }
-                    else
-                    {
-                        std::unique_lock<std::mutex> lock(impl_cp->m_mutex);
-                        impl_cp->m_buffer.insert(impl_cp->m_buffer.end(), impl_cp->m_rec_buffer.begin(),
-                                                 impl_cp->m_rec_buffer.begin() + bytes_transferred);
-                    }
-                }
-                if(impl_cp.use_count() > 1){ start_receive(); }
-            }
-            else
-            {
-                switch (error.value())
-                {
-                    case boost::asio::error::eof:
-                    case boost::asio::error::connection_reset:
-                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
-                        break;
-                      
-                    case boost::asio::error::operation_aborted:
-                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
-                        break;
-                      
-                    default:
-                        LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
-                        break;
-                }
-            }
-        });
-    };
     
-    std::vector<std::string> device_list()
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    std::vector<std::string> Serial::device_list()
     {
         std::vector<std::string> ret;
         std::vector<std::string> search_patterns = {"cu.", "tty.", "ttyACM", "ttyUSB"};
@@ -127,13 +81,14 @@ namespace kinski
         
         try
         {
+            m_impl->m_serial_port.open(the_name);
             m_impl->m_serial_port.set_option(br);
             m_impl->m_serial_port.set_option(flow_control);
             m_impl->m_serial_port.set_option(parity);
             m_impl->m_serial_port.set_option(stop_bits);
             m_impl->m_serial_port.set_option(char_size);
-            m_impl->m_serial_port.open(the_name);
             m_impl->m_device_name = the_name;
+            async_read_bytes();
             return true;
         }
         catch(boost::system::system_error &e){ LOG_WARNING << e.what(); }
@@ -175,6 +130,59 @@ namespace kinski
         catch(boost::system::system_error &e){ LOG_WARNING << e.what(); }
         return 0;
     }
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    void Serial::async_read_bytes()
+    {
+        m_impl->m_rec_buffer.resize(512);
+        auto impl_cp = m_impl;
+        
+        m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
+                                              [this, impl_cp](const boost::system::error_code& error,
+                                                              std::size_t bytes_transferred)
+        {
+            if(!error)
+            {
+                if(bytes_transferred)
+                {
+                    LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
+              
+                    if(impl_cp->m_receive_cb)
+                    {
+                        std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
+                                                     impl_cp->m_rec_buffer.begin() + bytes_transferred);
+                        impl_cp->m_receive_cb(shared_from_this(), std::move(datavec));
+                    }
+                    else
+                    {
+                        std::unique_lock<std::mutex> lock(impl_cp->m_mutex);
+                        impl_cp->m_buffer.insert(impl_cp->m_buffer.end(), impl_cp->m_rec_buffer.begin(),
+                                                 impl_cp->m_rec_buffer.begin() + bytes_transferred);
+                    }
+                }
+                if(impl_cp.use_count() > 1){ async_read_bytes(); }
+            }
+            else
+            {
+                switch (error.value())
+                {
+                    case boost::asio::error::eof:
+                    case boost::asio::error::connection_reset:
+                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
+                        break;
+                  
+                    case boost::asio::error::operation_aborted:
+                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
+                        break;
+                  
+                    default:
+                        LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
+                        break;
+                }
+            }
+        });
+    };
     
     ///////////////////////////////////////////////////////////////////////////////
     
@@ -222,13 +230,6 @@ namespace kinski
     void Serial::flush(bool flushIn , bool flushOut)
     {
         m_impl->m_buffer.clear();
-    }
-    
-    ///////////////////////////////////////////////////////////////////////////////
-    
-    void Serial::async_read_bytes()
-    {
-        
     }
     
     ///////////////////////////////////////////////////////////////////////////////

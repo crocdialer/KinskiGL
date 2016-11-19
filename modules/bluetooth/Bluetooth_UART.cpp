@@ -22,9 +22,9 @@ namespace kinski{ namespace bluetooth{
         UART_CHARACTERISTIC_RX = bluetooth::UUID("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
     }
 
-    Bluetooth_UART_Ptr Bluetooth_UART::create()
+    Bluetooth_UARTPtr Bluetooth_UART::create()
     {
-        return Bluetooth_UART_Ptr(new Bluetooth_UART());
+        return Bluetooth_UARTPtr(new Bluetooth_UART());
     }
 
     Bluetooth_UART::Bluetooth_UART(){}
@@ -56,14 +56,13 @@ namespace kinski{ namespace bluetooth{
                 if(the_uuid == UART_CHARACTERISTIC_RX)
                 {
                     LOG_TRACE_3 << string(the_data.begin(), the_data.end());
-                    std::unique_lock<std::mutex> lock(mutex);
-                    m_buffer.insert(m_buffer.end(), the_data.begin(), the_data.end());
 
                     // fire receive callback
-                    if(m_receive_cb)
+                    if(m_receive_cb){ m_receive_cb(shared_from_this(), m_buffer); }
+                    else
                     {
-                        m_receive_cb(shared_from_this(), m_buffer);
-                        m_buffer.clear();
+                        std::unique_lock<std::mutex> lock(mutex);
+                        m_buffer.insert(m_buffer.end(), the_data.begin(), the_data.end());
                     }
                 }
             });

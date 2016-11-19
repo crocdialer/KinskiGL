@@ -13,13 +13,13 @@
 
 namespace kinski{ namespace bluetooth{
 
-typedef std::shared_ptr<class Bluetooth_UART> Bluetooth_UART_Ptr;
+typedef std::shared_ptr<class Bluetooth_UART> Bluetooth_UARTPtr;
     
 class Bluetooth_UART : public UART, public std::enable_shared_from_this<Bluetooth_UART>
 {
 public:
     
-    static Bluetooth_UART_Ptr create();
+    static Bluetooth_UARTPtr create();
     virtual ~Bluetooth_UART();
     
     // UART interface

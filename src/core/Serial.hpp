@@ -24,7 +24,7 @@ public:
     static SerialPtr create(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
     virtual ~Serial();
     
-    std::vector<std::string> device_list();
+    static std::vector<std::string> device_list();
     
     bool setup() override;	// use default port, baud (0,9600)
     bool setup(const std::string &the_name, int the_baudrate);

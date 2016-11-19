@@ -21,7 +21,7 @@ namespace kinski
         CapacitiveSensor(UARTPtr the_uart_device = UARTPtr());
         virtual ~CapacitiveSensor();
         
-        bool connect(const std::string &the_serial_dev_name);
+//        bool connect(const std::string &the_serial_dev_name);
         bool connect(UARTPtr the_uart_device = UARTPtr());
         
         void update(float time_delta);
