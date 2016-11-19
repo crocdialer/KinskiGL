@@ -1,8 +1,9 @@
-#include "Serial.hpp"
-#include "core/file_functions.hpp"
-#include "core/CircularBuffer.hpp"
+#include <mutex>
 #include "boost/asio.hpp"
 #include <boost/asio/serial_port.hpp>
+#include "core/file_functions.hpp"
+#include "core/CircularBuffer.hpp"
+#include "Serial.hpp"
 
 namespace kinski
 {
