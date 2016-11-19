@@ -253,7 +253,7 @@ namespace kinski { namespace gl {
     
     enum class ShaderType {UNLIT, UNLIT_MASK, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS,
         PHONG_SKIN_SHADOWS, PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR,
-        POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD, SDF_FONT};
+        POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD, SDF_FONT, QUAD_WARP, QUAD_WARP_RECT};
     
     KINSKI_API Shader create_shader(ShaderType type, bool use_cached_shader = true);
     KINSKI_API Shader create_shader_from_file(const std::string &vertPath, const std::string &fragPath,
