@@ -44,10 +44,9 @@ public:
     void set_connect_cb(connect_cb_t cb) override;
     
 private:
-    void start_receive();
     
     Serial(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
-    std::shared_ptr<struct SerialImpl> m_impl;
+    std::unique_ptr<struct SerialImpl> m_impl;
 };
     
     //----------------------------------------------------------------------

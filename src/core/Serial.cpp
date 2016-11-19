@@ -128,8 +128,9 @@ namespace kinski
     
     size_t Serial::write_bytes(const void *buffer, size_t sz)
     {
-        try{ return boost::asio::write(m_impl->m_serial_port, boost::asio::buffer(buffer, sz)); }
-        catch(boost::system::system_error &e){ LOG_WARNING << e.what(); }
+//        try{ return boost::asio::write(m_impl->m_serial_port, boost::asio::buffer(buffer, sz)); }
+//        catch(boost::system::system_error &e){ LOG_WARNING << e.what(); }
+        async_write_bytes(buffer, sz);
         return 0;
     }
     
@@ -138,10 +139,9 @@ namespace kinski
     void Serial::async_read_bytes()
     {
         m_impl->m_rec_buffer.resize(512);
-        auto impl_cp = m_impl;
         
         m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
-                                              [this, impl_cp](const boost::system::error_code& error,
+                                              [this](const boost::system::error_code& error,
                                                               std::size_t bytes_transferred)
         {
             if(!error)
@@ -150,20 +150,20 @@ namespace kinski
                 {
                     LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
               
-                    if(impl_cp->m_receive_cb)
+                    if(m_impl->m_receive_cb)
                     {
-                        std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
-                                                     impl_cp->m_rec_buffer.begin() + bytes_transferred);
-                        impl_cp->m_receive_cb(shared_from_this(), std::move(datavec));
+                        std::vector<uint8_t> datavec(m_impl->m_rec_buffer.begin(),
+                                                     m_impl->m_rec_buffer.begin() + bytes_transferred);
+                        m_impl->m_receive_cb(shared_from_this(), std::move(datavec));
                     }
                     else
                     {
-                        std::unique_lock<std::mutex> lock(impl_cp->m_mutex);
-                        impl_cp->m_buffer.insert(impl_cp->m_buffer.end(), impl_cp->m_rec_buffer.begin(),
-                                                 impl_cp->m_rec_buffer.begin() + bytes_transferred);
+                        std::unique_lock<std::mutex> lock(m_impl->m_mutex);
+                        m_impl->m_buffer.insert(m_impl->m_buffer.end(), m_impl->m_rec_buffer.begin(),
+                                                m_impl->m_rec_buffer.begin() + bytes_transferred);
                     }
                 }
-                if(impl_cp.use_count() > 1){ async_read_bytes(); }
+                async_read_bytes();
             }
             else
             {
@@ -190,13 +190,11 @@ namespace kinski
     
     void Serial::async_write_bytes(const void *buffer, size_t sz)
     {
-        auto impl = m_impl;
         std::vector<uint8_t> bytes((uint8_t*)buffer, (uint8_t*)buffer + sz);
         
-        boost::asio::async_write(m_impl->m_serial_port,
-                                 boost::asio::buffer(bytes),
-         [impl, bytes](const boost::system::error_code& error,
-                       std::size_t bytes_transferred)
+        boost::asio::async_write(m_impl->m_serial_port, boost::asio::buffer(bytes),
+                                 [bytes](const boost::system::error_code& error,
+                                         std::size_t bytes_transferred)
          {
              if(error){ LOG_ERROR << error.message(); }
              else if(bytes_transferred < bytes.size())
