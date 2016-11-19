@@ -542,9 +542,9 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
         if(it == m_ip_delays.end())
         {
             m_ip_delays[con->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_delays[con->remote_ip()].push(delay);
+            m_ip_delays[con->remote_ip()].push_back(delay);
         }
-        else{ it->second.push(delay); }
+        else{ it->second.push_back(delay); }
         
         LOG_TRACE << ptr->remote_ip() << " (latency, last 10s): "
             << (int)(1000.0 * mean(m_ip_delays[con->remote_ip()])) << " ms";

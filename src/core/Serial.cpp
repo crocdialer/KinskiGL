@@ -89,6 +89,7 @@ namespace kinski
             m_impl->m_serial_port.set_option(stop_bits);
             m_impl->m_serial_port.set_option(char_size);
             m_impl->m_device_name = the_name;
+            if(m_impl->m_connect_cb){ m_impl->m_connect_cb(shared_from_this()); }
             async_read_bytes();
             return true;
         }
