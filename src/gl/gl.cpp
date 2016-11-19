@@ -1670,8 +1670,18 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     frag_src = points_frag;
                     break;
                     
+                case ShaderType::QUAD_WARP:
+                    vert_src = quad_warp_vert;
+                    frag_src = unlit_frag;
+                    break;
+                    
 #if !defined(KINSKI_GLES)
                 
+                case ShaderType::QUAD_WARP_RECT:
+                    vert_src = quad_warp_rect_vert;
+                    frag_src = unlit_rect_frag;
+                    break;
+                    
                 case ShaderType::BLUR:
                     vert_src = unlit_vert;
                     frag_src = blur_poisson_frag;

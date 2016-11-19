@@ -14,7 +14,6 @@
 #include "QuadWarp.hpp"
 #include "gl/Mesh.hpp"
 #include "gl/Camera.hpp"
-#include "gl/ShaderLibrary.h"
 
 namespace kinski{ namespace gl{
 
@@ -51,9 +50,9 @@ namespace kinski{ namespace gl{
             
             try
             {
-                m_shader_warp_vert.loadFromData(quad_warp_vert, unlit_frag);
+                m_shader_warp_vert = gl::create_shader(gl::ShaderType::QUAD_WARP);
 #if !defined(KINSKI_GLES)
-                m_shader_warp_vert_rect.loadFromData(quad_warp_rect_vert, unlit_rect_frag);
+                m_shader_warp_vert_rect = gl::create_shader(gl::ShaderType::QUAD_WARP_RECT);
 #else
                 m_shader_warp_vert_rect = m_shader_warp_vert;
 #endif

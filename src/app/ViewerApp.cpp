@@ -487,8 +487,7 @@ namespace kinski {
 
     bool ViewerApp::save_settings(const std::string &the_path)
     {
-        App::Task t(this);
-        
+        inc_task();
         std::string path_prefix = the_path.empty() ? m_default_config_path : the_path;
         path_prefix = fs::get_directory_part(path_prefix);
         
@@ -519,27 +518,30 @@ namespace kinski {
             wc->set_enabled(i, m_warp_component->enabled(i));
             warp_components.push_back(wc);
         }
-        try
+        
+        background_queue().submit([this, path_prefix, light_components, material_components,
+                                   warp_components]()
         {
-            Serializer::saveComponentState(shared_from_this(),
-                                           fs::join_paths(path_prefix ,"config.json"),
-                                           PropertyIO_GL());
-            Serializer::saveComponentState(light_components,
-                                           fs::join_paths(path_prefix ,"light_config.json"),
-                                           PropertyIO_GL());
-            Serializer::saveComponentState(material_components,
-                                           fs::join_paths(path_prefix ,"material_config.json"),
-                                           PropertyIO_GL());
-            Serializer::saveComponentState(warp_components,
-                                           fs::join_paths(path_prefix , "warp_config.json"),
-                                           PropertyIO_GL());
-
-        }
-        catch(Exception &e)
-        {
-            LOG_ERROR << e.what();
-            return false;
-        }
+            
+            try
+            {
+                Serializer::saveComponentState(shared_from_this(),
+                                               fs::join_paths(path_prefix ,"config.json"),
+                                               PropertyIO_GL());
+                Serializer::saveComponentState(light_components,
+                                               fs::join_paths(path_prefix ,"light_config.json"),
+                                               PropertyIO_GL());
+                Serializer::saveComponentState(material_components,
+                                               fs::join_paths(path_prefix ,"material_config.json"),
+                                               PropertyIO_GL());
+                Serializer::saveComponentState(warp_components,
+                                               fs::join_paths(path_prefix , "warp_config.json"),
+                                               PropertyIO_GL());
+                
+            }
+            catch(Exception &e){ LOG_ERROR << e.what(); }
+            dec_task();
+        });
         return true;
     }
 
