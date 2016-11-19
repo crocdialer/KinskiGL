@@ -117,8 +117,8 @@ namespace kinski
         std::unique_lock<std::mutex> lock(m_impl->m_mutex);
         size_t num_bytes = std::min(m_impl->m_buffer.size(), sz);
         ::memcpy(buffer, &m_impl->m_buffer[0], num_bytes);
-        std::vector<uint8_t> tmp(m_impl->m_buffer.begin() + num_bytes, m_impl->m_buffer.end());
-        m_impl->m_buffer = tmp;
+        m_impl->m_buffer = std::vector<uint8_t>(m_impl->m_buffer.begin() + num_bytes,
+                                                m_impl->m_buffer.end());
         return num_bytes;
     }
     

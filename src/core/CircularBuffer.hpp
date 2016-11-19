@@ -66,7 +66,7 @@ public:
         m_first = m_last = 0;
     }
     
-    inline void push(const T &the_val)
+    inline void push_back(const T &the_val)
     {
         m_data[m_last] = the_val;
         m_last = (m_last + 1) % m_array_size;
@@ -75,7 +75,7 @@ public:
         if(m_first == m_last){ m_first = (m_first + 1) % m_array_size; }
     }
     
-    inline void pop()
+    inline void pop_front()
     {
         if(!empty()){ m_first = (m_first + 1) % m_array_size; }
     }
@@ -88,7 +88,7 @@ public:
     inline uint32_t capacity() const { return m_array_size - 1; };
     inline void set_capacity(uint32_t the_cap){ *this = CircularBuffer(the_cap); }
     
-    inline uint32_t size() const
+    inline size_t size() const
     {
         int ret = m_last - m_first;
         if(ret < 0){ ret += m_array_size; }

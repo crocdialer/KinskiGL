@@ -161,7 +161,7 @@ namespace kinski {
     void ViewerApp::update(float timeDelta)
     {
         m_camera->setAspectRatio(gl::aspect_ratio());
-        m_drag_buffer.push(glm::vec2(0));
+        m_drag_buffer.push_back(glm::vec2(0));
         m_inertia *= m_rotation_damping;
 
         // rotation from inertia
@@ -266,7 +266,7 @@ namespace kinski {
                                                                  glm::radians(-mouseDiff.x), 0)));
 
             }
-            m_drag_buffer.push(glm::vec2(e.getX(), e.getY()) - m_dragPos);
+            m_drag_buffer.push_back(glm::vec2(e.getX(), e.getY()) - m_dragPos);
             m_dragPos = glm::vec2(e.getX(), e.getY());
             
             if(e.isAltDown())
