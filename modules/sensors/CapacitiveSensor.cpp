@@ -18,7 +18,7 @@
 
 namespace kinski
 {
-    struct CapacitiveSensor::Impl
+    struct CapacitiveSensorImpl
     {
         UARTPtr m_sensor_device;
         std::string m_device_name;
@@ -31,29 +31,29 @@ namespace kinski
         uint16_t m_thresh_touch = 12, m_thresh_release = 6;
         uint32_t m_charge_current = 16;
         
-        std::thread m_reconnect_thread;
-        
-        TouchCallback m_touch_callback, m_release_callback;
+        CapacitiveSensor::TouchCallback m_touch_callback, m_release_callback;
     };
     
-    CapacitiveSensor::CapacitiveSensor(UARTPtr the_uart_device):
-    m_impl(new Impl)
+    CapacitiveSensorPtr CapacitiveSensor::create(UARTPtr the_uart_device)
+    {
+        CapacitiveSensorPtr ret(new CapacitiveSensor());
+        if(the_uart_device){ ret->connect(the_uart_device); }
+        return ret;
+    }
+    
+    CapacitiveSensor::CapacitiveSensor():
+    m_impl(new CapacitiveSensorImpl)
     {
         m_impl->m_sensor_read_buf.resize(2048);
         m_impl->m_proximity_values.resize(NUM_SENSOR_PADS, 0.f);
-        
-        if(!connect(the_uart_device))
-        {
-            LOG_ERROR << "unable to connect capacitve touch sensor";
-        }
     }
     
     CapacitiveSensor::~CapacitiveSensor()
     {
-        if(m_impl->m_reconnect_thread.joinable()){ m_impl->m_reconnect_thread.join(); }
+        
     }
     
-    void CapacitiveSensor::update(float time_delta )
+    void CapacitiveSensor::receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data)
     {
         if(m_impl->m_dirty_params && is_initialized())
         {
@@ -63,46 +63,31 @@ namespace kinski
         
         // init with unchanged status
         uint16_t current_touches = m_impl->m_touch_status;
-        size_t bytes_to_read = 0;
-        m_impl->m_last_reading += time_delta;
         
-        while(m_impl->m_sensor_device && m_impl->m_sensor_device->available())
+        for(uint8_t byte : the_data)
         {
-            bytes_to_read = std::min(m_impl->m_sensor_device->available(),
-                                     m_impl->m_sensor_read_buf.size());
-            
-            if(bytes_to_read){ m_impl->m_last_reading = 0.f; }
-            
-            uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
-            m_impl->m_sensor_device->read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
-            
-            for(uint32_t i = 0; i < bytes_to_read; i++)
+            switch(byte)
             {
-                uint8_t byte = *buf_ptr++;
-                
-                switch(byte)
+                case SERIAL_END_CODE:
                 {
-                    case SERIAL_END_CODE:
+                    auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
+                                               m_impl->m_sensor_accumulator.end()));
+                    m_impl->m_sensor_accumulator.clear();
+                    
+                    if(!tokens.empty())
                     {
-                        auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
-                                                   m_impl->m_sensor_accumulator.end()));
-                        m_impl->m_sensor_accumulator.clear();
+                        current_touches = string_to<uint16_t>(tokens.front());
                         
-                        if(!tokens.empty())
+                        for(uint32_t j = 1; j < tokens.size(); ++j)
                         {
-                            current_touches = string_to<uint16_t>(tokens.front());
-                            
-                            for(uint32_t j = 1; j < tokens.size(); ++j)
-                            {
-                                m_impl->m_proximity_values[j - 1] = string_to<float>(tokens[j]);
-                            }
+                            m_impl->m_proximity_values[j - 1] = string_to<float>(tokens[j]);
                         }
-                        break;
                     }
-                    default:
-                        m_impl->m_sensor_accumulator.push_back(byte);
-                        break;
+                    break;
                 }
+                default:
+                    m_impl->m_sensor_accumulator.push_back(byte);
+                    break;
             }
         }
         
@@ -121,28 +106,6 @@ namespace kinski
             }
         }
         m_impl->m_touch_status = current_touches;
-        
-        if((m_impl->m_timeout_reconnect > 0.f) && m_impl->m_last_reading > m_impl->m_timeout_reconnect)
-        {
-//            LOG_WARNING << "no response from sensor: trying reconnect ...";
-//            m_impl->m_last_reading = 0.f;
-//            try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
-//            catch (std::exception &e) { LOG_WARNING << e.what(); }
-//            m_impl->m_reconnect_thread = std::thread([this]()
-//            {
-//                if(!m_impl->m_device_name.empty())
-//                {
-//                    auto serial = Serial::create();
-//                    serial->setup(m_impl->m_device_name, 57600);
-//                    connect(serial);
-//                }else if(m_impl->m_sensor_device)
-//                {
-////                    m_impl->m_sensor_device->close();
-//                    connect(m_impl->m_sensor_device);
-//                }
-//            });
-            return;
-        }
     }
     
     bool CapacitiveSensor::is_touched(int the_index) const
@@ -167,34 +130,21 @@ namespace kinski
         return NUM_SENSOR_PADS;
     }
     
-//    bool CapacitiveSensor::connect(const std::string &the_serial_dev_name)
-//    {
-//        auto serial = Serial::create();
-//        m_impl->m_device_name = the_serial_dev_name;
-//        serial->setup(the_serial_dev_name, 57600);
-//        return connect(serial);
-//    }
-    
     bool CapacitiveSensor::connect(UARTPtr the_uart_device)
     {
-        if(the_uart_device)
+        if(the_uart_device && the_uart_device->is_open())
         {
             m_impl->m_sensor_device = the_uart_device;
             m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
             set_charge_current(m_impl->m_charge_current);
+            m_impl->m_sensor_device->set_receive_cb(std::bind(&CapacitiveSensor::receive_data,
+                                                              this,
+                                                              std::placeholders::_1,
+                                                              std::placeholders::_2));
             return true;
         }
-//        else
-//        {
-//            m_impl->m_sensor_device = Serial::create();
-//            m_impl->m_sensor_device->setup();
-//        }
-        
-        // finally flush the newly initialized device
-//        if(m_impl->m_sensor_device->is_initialized())
-
         return false;
     }
     
@@ -215,7 +165,6 @@ namespace kinski
     
     void CapacitiveSensor::set_thresholds(uint16_t the_touch_thresh, uint16_t the_rel_thresh)
     {
-        
         m_impl->m_thresh_touch = the_touch_thresh;
         m_impl->m_thresh_release = the_rel_thresh;
         m_impl->m_dirty_params = true;

@@ -12,19 +12,19 @@
 
 namespace kinski
 {
+    class CapacitiveSensor;
+    typedef std::shared_ptr<class CapacitiveSensor> CapacitiveSensorPtr;
+    
     class CapacitiveSensor
     {
     public:
         
         typedef std::function<void(int)> TouchCallback;
         
-        CapacitiveSensor(UARTPtr the_uart_device = UARTPtr());
+        static CapacitiveSensorPtr create(UARTPtr the_uart_device = UARTPtr());
         virtual ~CapacitiveSensor();
         
-//        bool connect(const std::string &the_serial_dev_name);
         bool connect(UARTPtr the_uart_device = UARTPtr());
-        
-        void update(float time_delta);
         
         uint16_t touch_state() const;
         
@@ -52,9 +52,10 @@ namespace kinski
         
     private:
         
+        CapacitiveSensor();
+        void receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data);
         bool update_config();
         
-        struct Impl;
-        std::shared_ptr<Impl> m_impl;
+        std::unique_ptr<struct CapacitiveSensorImpl> m_impl;
     };
 }

@@ -26,7 +26,12 @@ namespace kinski
     
     SerialPtr Serial::create(boost::asio::io_service &io, receive_cb_t cb)
     {
-        return SerialPtr(new Serial(io, cb));
+        auto ret = SerialPtr(new Serial(io, cb));
+        ret->set_connect_cb([](UARTPtr the_uart)
+        {
+            LOG_DEBUG << "connected: " << the_uart->description();
+        });
+        return ret;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
