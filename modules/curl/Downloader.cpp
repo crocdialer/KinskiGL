@@ -44,7 +44,7 @@ struct Downloader::Impl
 class Action
 {
 protected:
-    CURL *m_curl_handle;
+    std::shared_ptr<CURL> m_curl_handle;
     Downloader::ConnectionInfo m_connection_info;
     Downloader::CompletionHandler m_completion_handler;
     Downloader::ProgressHandler m_progress_handler;
@@ -102,19 +102,17 @@ protected:
     
 public:
     Action():
-    m_curl_handle(curl_easy_init()),
     m_connection_info({"", 0, 0, 0, 0})
     {
-        curl_easy_setopt(m_curl_handle, CURLOPT_WRITEDATA, this);
-		curl_easy_setopt(m_curl_handle, CURLOPT_WRITEFUNCTION, write_static);
-        curl_easy_setopt(m_curl_handle, CURLOPT_NOPROGRESS, 0L);
-        curl_easy_setopt(m_curl_handle, CURLOPT_PROGRESSDATA, this);
-        curl_easy_setopt(m_curl_handle, CURLOPT_PROGRESSFUNCTION, progress_static);
+        set_handle(curl_easy_init());
+        curl_easy_setopt(m_curl_handle.get(), CURLOPT_WRITEDATA, this);
+		curl_easy_setopt(m_curl_handle.get(), CURLOPT_WRITEFUNCTION, write_static);
+        curl_easy_setopt(m_curl_handle.get(), CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(m_curl_handle.get(), CURLOPT_PROGRESSDATA, this);
+        curl_easy_setopt(m_curl_handle.get(), CURLOPT_PROGRESSFUNCTION, progress_static);
     };
-    virtual ~Action()
-    {curl_easy_cleanup(m_curl_handle);};
     
-    const std::vector<uint8_t>& getResponse(){return m_response;};
+    const std::vector<uint8_t>& response(){return m_response;};
     
     bool perform()
     {
@@ -123,13 +121,12 @@ public:
 		return !curlResult;
     }
     
-    CURL* handle() const {return m_curl_handle;}
+    CURL* handle() const {return m_curl_handle.get();}
     Downloader::ConnectionInfo connection_info() const {return m_connection_info;}
     
     void set_handle(CURL *handle)
     {
-        if(m_curl_handle){ curl_easy_cleanup(m_curl_handle); }
-        m_curl_handle = handle;
+        m_curl_handle = std::shared_ptr<CURL>(handle, curl_easy_cleanup);
     }
     
     Downloader::CompletionHandler completion_handler() const {return m_completion_handler;}
@@ -177,7 +174,7 @@ std::vector<uint8_t> Downloader::get_url(const std::string &the_url)
     curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_impl->m_timeout);
     LOG_DEBUG << "trying to fetch url: '" << the_url << "'";
 	url_action->perform();
-	return url_action->getResponse();
+	return url_action->response();
 }
 
 void Downloader::poll()
@@ -212,7 +209,7 @@ void Downloader::poll()
                         if(itr->second->completion_handler())
                         {
                             itr->second->completion_handler()(itr->second->connection_info(),
-                                                              itr->second->getResponse());
+                                                              itr->second->response());
                         }
                     }
                     else

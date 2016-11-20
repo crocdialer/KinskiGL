@@ -16,97 +16,79 @@
 
 namespace kinski{
     
-    struct DistanceSensor::Impl
+    struct DistanceSensorImpl
     {
         UARTPtr m_sensor_device;
-        std::string m_device_name;
         std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
         uint16_t m_distance = 0;
         float m_last_reading = 0.f;
         float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         std::thread m_reconnect_thread;
         
-        callback_t m_motion_callback;
+        DistanceSensor::distance_cb_t m_distance_callback;
     };
     
-    DistanceSensor::DistanceSensor(const std::string &dev_name):
-    m_impl(new Impl)
+    DistanceSensorPtr DistanceSensor::create(UARTPtr the_uart_device)
     {
-        m_impl->m_device_name = dev_name;
-        m_impl->m_sensor_read_buf.resize(2048);
-        
-        if(!dev_name.empty() && !connect(dev_name))
-        {
-            LOG_ERROR << "unable to connect distance sensor";
-        }
+        DistanceSensorPtr ret(new DistanceSensor());
+        if(the_uart_device){ ret->connect(the_uart_device); }
+        return ret;
     }
     
-    bool DistanceSensor::connect(const std::string &dev_name)
+    DistanceSensor::DistanceSensor():
+    m_impl(new DistanceSensorImpl)
     {
-        if(dev_name.empty()){}
-//        else{ m_impl->m_sensor_device->setup(dev_name, 57600); }
-        
-        // finally flush the newly initialized device
-        if(m_impl->m_sensor_device->is_open())
+        m_impl->m_sensor_read_buf.resize(2048);
+    }
+    
+    DistanceSensor::~DistanceSensor()
+    {
+    
+    }
+    
+    bool DistanceSensor::connect(UARTPtr the_uart_device)
+    {
+        if(the_uart_device && the_uart_device->is_open())
         {
-            m_impl->m_device_name = dev_name;
+            m_impl->m_sensor_device = the_uart_device;
+            m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
+            
+            m_impl->m_sensor_device->set_receive_cb(std::bind(&DistanceSensor::receive_data,
+                                                              this,
+                                                              std::placeholders::_1,
+                                                              std::placeholders::_2));
             return true;
         }
         return false;
     }
     
-    void DistanceSensor::update(float time_delta)
+    void DistanceSensor::receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data)
     {
-        size_t bytes_to_read = 0;
-        m_impl->m_last_reading += time_delta;
         bool reading_complete = false;
         uint16_t distance_val = 0;
-        
-        while(m_impl->m_sensor_device && m_impl->m_sensor_device->available())
+            
+        for(uint8_t byte : the_data)
         {
-            bytes_to_read = std::min(m_impl->m_sensor_device->available(),
-                                     m_impl->m_sensor_read_buf.size());
-            
-            if(bytes_to_read){ m_impl->m_last_reading = 0.f; }
-            
-            uint8_t *buf_ptr = &m_impl->m_sensor_read_buf[0];
-            m_impl->m_sensor_device->read_bytes(&m_impl->m_sensor_read_buf[0], bytes_to_read);
-            
-            for(uint32_t i = 0; i < bytes_to_read; i++)
+            switch(byte)
             {
-                uint8_t byte = *buf_ptr++;
-                
-                switch(byte)
-                {
-                    case SERIAL_END_CODE:
-                        distance_val = string_to<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
-                                                                  m_impl->m_sensor_accumulator.end()));
-                        m_impl->m_sensor_accumulator.clear();
-                        reading_complete = true;
-                        break;
-                        
-                    default:
-                        m_impl->m_sensor_accumulator.push_back(byte);
-                        break;
-                }
+                case SERIAL_END_CODE:
+                    distance_val = string_to<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
+                                                              m_impl->m_sensor_accumulator.end()));
+                    m_impl->m_sensor_accumulator.clear();
+                    reading_complete = true;
+                    break;
+                    
+                default:
+                    m_impl->m_sensor_accumulator.push_back(byte);
+                    break;
             }
         }
         
         if(reading_complete)
         {
             m_impl->m_distance = distance_val;
-            
-            if(m_impl->m_motion_callback){ m_impl->m_motion_callback(m_impl->m_distance); }
-        }
-        
-        if((m_impl->m_timeout_reconnect > 0.f) && m_impl->m_last_reading > m_impl->m_timeout_reconnect)
-        {
-            LOG_WARNING << "no response from sensor: trying reconnect ...";
-            m_impl->m_last_reading = 0.f;
-            try { if(m_impl->m_reconnect_thread.joinable()) m_impl->m_reconnect_thread.join(); }
-            catch (std::exception &e) { LOG_WARNING << e.what(); }
-            m_impl->m_reconnect_thread = std::thread([this](){ connect(m_impl->m_device_name); });
+            if(m_impl->m_distance_callback){ m_impl->m_distance_callback(m_impl->m_distance); }
         }
     }
     
@@ -115,19 +97,9 @@ namespace kinski{
         return m_impl->m_distance;
     }
     
-    void DistanceSensor::set_motion_callback(callback_t cb)
+    void DistanceSensor::set_distance_callback(distance_cb_t cb)
     {
-        m_impl->m_motion_callback = cb;
-    }
-    
-    float DistanceSensor::timeout_reconnect() const
-    {
-        return m_impl->m_timeout_reconnect;
-    }
-    
-    void DistanceSensor::set_timeout_reconnect(float val)
-    {
-        m_impl->m_timeout_reconnect = std::max(val, 0.f);
+        m_impl->m_distance_callback = cb;
     }
     
     bool DistanceSensor::is_initialized() const

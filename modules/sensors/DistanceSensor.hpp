@@ -12,26 +12,25 @@
 
 namespace kinski
 {
+    DEFINE_CLASS_PTR(DistanceSensor)
+    
     class DistanceSensor
     {
     public:
         
-        typedef std::function<void(int)> callback_t;
+        typedef std::function<void(int)> distance_cb_t;
         
-        DistanceSensor(const std::string &dev_name = "");
+        static DistanceSensorPtr create(UARTPtr the_uart_device = UARTPtr());
+        virtual ~DistanceSensor();
         
-        bool connect(const std::string &dev_name = "");
-        void update(float time_delta);
+        bool connect(UARTPtr the_uart_device);
         uint16_t distance() const;
-        
-        float timeout_reconnect() const;
-        void set_timeout_reconnect(float val);
-        
-        void set_motion_callback(callback_t cb);
+        void set_distance_callback(distance_cb_t cb);
         bool is_initialized() const;
         
     private:
-        struct Impl;
-        std::shared_ptr<Impl> m_impl;
+        DistanceSensor();
+        void receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data);
+        std::shared_ptr<struct DistanceSensorImpl> m_impl;
     };
 }// namespace

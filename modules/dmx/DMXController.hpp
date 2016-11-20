@@ -16,7 +16,7 @@ namespace kinski
     {
     public:
 
-        DMXController(const std::string &the_device_name = "");
+        DMXController(boost::asio::io_service &io);
         ~DMXController();
         
         bool connect(const std::string &the_device_name);
@@ -34,7 +34,6 @@ namespace kinski
         bool is_initialized() const;
 
     private:
-        struct DMXControllerImpl;
-        std::shared_ptr<DMXControllerImpl> m_impl;
+        std::unique_ptr<struct DMXControllerImpl> m_impl;
     };
 }// namespace

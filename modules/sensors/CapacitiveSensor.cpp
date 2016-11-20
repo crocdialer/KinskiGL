@@ -31,7 +31,7 @@ namespace kinski
         uint16_t m_thresh_touch = 12, m_thresh_release = 6;
         uint32_t m_charge_current = 16;
         
-        CapacitiveSensor::TouchCallback m_touch_callback, m_release_callback;
+        CapacitiveSensor::touch_cb_t m_touch_callback, m_release_callback;
     };
     
     CapacitiveSensorPtr CapacitiveSensor::create(UARTPtr the_uart_device)
@@ -187,12 +187,12 @@ namespace kinski
         return m_impl->m_charge_current;
     }
     
-    void CapacitiveSensor::set_touch_callback(TouchCallback cb)
+    void CapacitiveSensor::set_touch_callback(touch_cb_t cb)
     {
         m_impl->m_touch_callback = cb;
     }
     
-    void CapacitiveSensor::set_release_callback(TouchCallback cb)
+    void CapacitiveSensor::set_release_callback(touch_cb_t cb)
     {
         m_impl->m_release_callback = cb;
     }

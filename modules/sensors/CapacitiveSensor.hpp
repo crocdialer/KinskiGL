@@ -12,14 +12,13 @@
 
 namespace kinski
 {
-    class CapacitiveSensor;
-    typedef std::shared_ptr<class CapacitiveSensor> CapacitiveSensorPtr;
+    DEFINE_CLASS_PTR(CapacitiveSensor)
     
     class CapacitiveSensor
     {
     public:
         
-        typedef std::function<void(int)> TouchCallback;
+        typedef std::function<void(int)> touch_cb_t;
         
         static CapacitiveSensorPtr create(UARTPtr the_uart_device = UARTPtr());
         virtual ~CapacitiveSensor();
@@ -36,8 +35,8 @@ namespace kinski
         //  or "any" touch, if index is out of bounds or not provided
         bool is_touched(int the_index = -1) const;
         
-        void set_touch_callback(TouchCallback cb);
-        void set_release_callback(TouchCallback cb);
+        void set_touch_callback(touch_cb_t cb);
+        void set_release_callback(touch_cb_t cb);
         
         float timeout_reconnect() const;
         void set_timeout_reconnect(float val);

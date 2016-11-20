@@ -34,14 +34,17 @@
 
 namespace kinski
 {
-    struct DMXController::DMXControllerImpl
+    struct DMXControllerImpl
     {
-        SerialPtr m_serial = Serial::create();
+        SerialPtr m_serial;
         std::string m_device_name;
         std::vector<uint8_t> m_dmx_values;
         float m_last_reading = 0.f, m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         std::thread m_reconnect_thread;
-
+        
+        DMXControllerImpl(boost::asio::io_service &io):
+        m_serial(Serial::create(io)){}
+        
         void transmit(uint8_t label, const uint8_t* data, size_t data_length)
         {
             vector<uint8_t> bytes =
@@ -60,10 +63,10 @@ namespace kinski
         }
     };
 
-    DMXController::DMXController(const std::string &the_device_name):
-    m_impl(new DMXControllerImpl)
+    DMXController::DMXController(boost::asio::io_service &io):
+    m_impl(new DMXControllerImpl(io))
     {
-        connect(the_device_name);
+        connect("");
         m_impl->m_dmx_values.resize(513, 0);
     }
     
@@ -78,7 +81,7 @@ namespace kinski
         m_impl->m_last_reading += time_delta;
         
         // update only when serial connection is initialized
-        if(m_impl->m_serial->is_initialized())
+        if(m_impl->m_serial->is_open())
         {
             // send values
             m_impl->transmit(SET_DMX_TX_MODE, &m_impl->m_dmx_values[0], m_impl->m_dmx_values.size());
@@ -120,12 +123,9 @@ namespace kinski
             }
         }else{ found_name = the_device_name; }
         
-        if(m_impl->m_serial->setup(found_name, 57600)){ }
-        
         // finally flush the newly initialized device
-        if(m_impl->m_serial->is_initialized())
+        if(m_impl->m_serial->open(found_name, 57600))
         {
-            m_impl->m_serial->flush();
             m_impl->m_last_reading = 0.f;
             m_impl->m_device_name = found_name;
             LOG_DEBUG << "successfully connected dmx-device: " << found_name;
@@ -157,7 +157,7 @@ namespace kinski
     
     bool DMXController::is_initialized() const
     {
-        return m_impl->m_serial->is_initialized();
+        return m_impl->m_serial->is_open();
     }
 
 }// namespace
