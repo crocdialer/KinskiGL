@@ -24,7 +24,8 @@ namespace kinski{ namespace bluetooth{
 
     Bluetooth_UARTPtr Bluetooth_UART::create()
     {
-        return Bluetooth_UARTPtr(new Bluetooth_UART());
+        auto ret = Bluetooth_UARTPtr(new Bluetooth_UART());
+        return ret;
     }
 
     Bluetooth_UART::Bluetooth_UART(){}
@@ -34,7 +35,7 @@ namespace kinski{ namespace bluetooth{
         close();
     }
 
-    bool Bluetooth_UART::setup()
+    bool Bluetooth_UART::open()
     {
         m_central = bluetooth::Central::create();
         m_central->set_peripheral_discovered_cb([this](bluetooth::CentralPtr c,

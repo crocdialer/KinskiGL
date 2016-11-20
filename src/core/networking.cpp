@@ -455,15 +455,10 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_connection::send(const std::string &str)
+        size_t tcp_connection::write_bytes(const void *buffer, size_t num_bytes)
         {
-            send(std::vector<uint8_t>(str.begin(), str.end()));
-        }
-        
-        ///////////////////////////////////////////////////////////////////////////////
-        
-        void tcp_connection::send(const std::vector<uint8_t> &bytes)
-        {
+            auto bytes = std::vector<uint8_t>((uint8_t*)buffer, (uint8_t*)buffer + num_bytes);
+            
             auto impl = m_impl;
             boost::asio::async_write(m_impl->socket,
                                      boost::asio::buffer(bytes),
@@ -476,13 +471,14 @@ namespace kinski
                     LOG_WARNING << "not all bytes written";
                 }
             });
+            return num_bytes;
         }
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_connection::send(void* data, size_t num_bytes)
+        size_t tcp_connection::read_bytes(void *buffer, size_t sz)
         {
-            send(std::vector<uint8_t>((uint8_t*)data, (uint8_t*)data + num_bytes));
+            return 0;
         }
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -538,17 +534,10 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        bool tcp_connection::close()
+        void tcp_connection::close()
         {
-            try
-            {
-                // compatibility, maybe unnecessary
-//                m_impl->socket.shutdown(m_impl->socket.shutdown_both);
-                
-                m_impl->socket.close();
-                return true;
-            } catch (std::exception &e) { LOG_WARNING << e.what(); }
-            return false;
+            try{ m_impl->socket.close(); }
+            catch (std::exception &e) { LOG_WARNING << e.what(); }
         }
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -583,6 +572,48 @@ namespace kinski
             try{ return m_impl->socket.remote_endpoint().port(); }
             catch (std::exception &e) {}
             return 0;
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        size_t tcp_connection::available() const
+        {
+            return 0;
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void tcp_connection::drain()
+        {
+        
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        std::string tcp_connection::description() const
+        {
+            return "tcp_connection: " + remote_ip() + " (" + to_string(remote_port()) + ")";
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void tcp_connection::set_receive_cb(receive_cb_t the_cb)
+        {
+        
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void tcp_connection::set_connect_cb(connection_cb_t cb)
+        {
+        
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
+        void tcp_connection::set_disconnect_cb(connection_cb_t cb)
+        {
+        
         }
     }
 }

@@ -30,7 +30,7 @@ public:
     typedef std::function<void(UARTPtr, const std::vector<uint8_t>&)> receive_cb_t;
     
     //! setup and initialize the device
-    virtual bool setup() = 0;
+//    virtual bool setup() = 0;
     
     //! close the device, cancel current transfers
     virtual void close() = 0;

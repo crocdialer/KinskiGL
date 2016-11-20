@@ -14,6 +14,7 @@
 #pragma once
 
 #include "core/core.hpp"
+#include "core/UART.hpp"
 
 namespace kinski
 {
@@ -100,7 +101,7 @@ namespace kinski
             std::shared_ptr<struct tcp_server_impl> m_impl;
         };
         
-        KINSKI_API class tcp_connection : public std::enable_shared_from_this<tcp_connection>
+        KINSKI_API class tcp_connection : public UART, public std::enable_shared_from_this<tcp_connection>
         {
         public:
             
@@ -115,18 +116,31 @@ namespace kinski
             
             virtual ~tcp_connection();
             
-            KINSKI_API void send(const std::string &str);
-            KINSKI_API void send(const std::vector<uint8_t> &bytes);
-            KINSKI_API void send(void* data, size_t num_bytes);
+            KINSKI_API size_t read_bytes(void *buffer, size_t sz) override;
             
-            KINSKI_API void set_tcp_receive_cb(tcp_receive_cb_t f);
+            KINSKI_API size_t write_bytes(const void *buffer, size_t num_bytes) override;
             
-            KINSKI_API bool close();
-            KINSKI_API bool is_open() const;
+            KINSKI_API void close() override;
+            KINSKI_API bool is_open() const override;
             
             KINSKI_API uint16_t port() const;
             KINSKI_API std::string remote_ip() const;
             KINSKI_API uint16_t remote_port() const;
+            
+            //! returns the number of bytes available for reading
+            KINSKI_API size_t available() const override;
+            
+            //! empty buffers, cancel current transfers
+            KINSKI_API void drain() override;
+            
+            //! returns a textual description for this device
+            KINSKI_API std::string description() const override;
+            
+            KINSKI_API void set_tcp_receive_cb(tcp_receive_cb_t f);
+            
+            KINSKI_API void set_receive_cb(receive_cb_t the_cb) override;
+            KINSKI_API void set_connect_cb(connection_cb_t cb) override;
+            KINSKI_API void set_disconnect_cb(connection_cb_t cb) override;
 
         private:
             

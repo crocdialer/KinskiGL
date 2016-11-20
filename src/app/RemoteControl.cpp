@@ -34,7 +34,7 @@ void RemoteControl::start_listen(uint16_t port)
     add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
+        con->write(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
     add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -45,7 +45,7 @@ void RemoteControl::start_listen(uint16_t port)
         }
         
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
+        con->write(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
     add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -56,13 +56,13 @@ void RemoteControl::start_listen(uint16_t port)
         }
         
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
+        con->write(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
     
     add_command("echo", [this](net::tcp_connection_ptr con, const std::vector<std::string>& the_args)
     {
         // send an echo
-        if(!the_args.empty()){ con->send(the_args.front()); }
+        if(!the_args.empty()){ con->write(the_args.front()); }
     });
     
     add_command("generate_snapshot", [this](net::tcp_connection_ptr con,
@@ -92,7 +92,7 @@ void RemoteControl::start_listen(uint16_t port)
                     auto message = std::vector<uint8_t>(4);
                     *(uint32_t*)(&message[0]) = compressed_data.size();
                     message.insert(message.end(), compressed_data.begin(), compressed_data.end());
-                    con->send(message);
+                    con->write(message);
                     LOG_DEBUG << "sending snapshot: " << compressed_data.size() << " bytes";
                 });
                 return;
@@ -100,7 +100,7 @@ void RemoteControl::start_listen(uint16_t port)
         }
         
         // send the state string via tcp
-        con->send(Serializer::serializeComponents(components(), PropertyIO_GL()));
+        con->write(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
 }
 

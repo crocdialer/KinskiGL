@@ -68,16 +68,7 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    bool Serial::setup()
-    {
-        bool ret = false;
-        for(const auto &d : device_list()){ if(setup(d, 57600)){ ret = true; break; } }
-        return ret;
-    }
-    
-    ///////////////////////////////////////////////////////////////////////////////
-    
-    bool Serial::setup(const std::string &the_name, int the_baudrate)
+    bool Serial::open(const std::string &the_name, int the_baudrate)
     {
         close();
         boost::asio::serial_port_base::baud_rate br(the_baudrate);
