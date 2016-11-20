@@ -119,13 +119,11 @@ namespace kinski
     {
         std::unique_lock<std::mutex> lock(m_impl->m_mutex);
         size_t num_bytes = std::min(m_impl->m_buffer.size(), sz);
-
         std::copy(m_impl->m_buffer.begin(), m_impl->m_buffer.begin() + num_bytes,
                   (uint8_t*)buffer);
         auto tmp = std::vector<uint8_t>(m_impl->m_buffer.begin() + num_bytes,
                                         m_impl->m_buffer.end());
         m_impl->m_buffer.assign(tmp.begin(), tmp.end());
-        
         return num_bytes;
     }
     
@@ -173,15 +171,15 @@ namespace kinski
             }
             else
             {
-                switch (error.value())
+                switch(error.value())
                 {
+                    case boost::asio::error::eof:
+                    case boost::asio::error::connection_reset:
                     case boost::system::errc::no_such_device_or_address:
                         LOG_DEBUG << "serial disconnected: " << m_impl->m_device_name;
                         if(m_impl->m_disconnect_cb){ m_impl->m_disconnect_cb(shared_from_this()); }
                         break;
                         
-                    case boost::asio::error::eof:
-                    case boost::asio::error::connection_reset:
                     case boost::asio::error::operation_aborted:
                     default:
                         LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
