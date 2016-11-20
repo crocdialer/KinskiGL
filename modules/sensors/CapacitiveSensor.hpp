@@ -24,7 +24,7 @@ namespace kinski
         static CapacitiveSensorPtr create(UARTPtr the_uart_device = UARTPtr());
         virtual ~CapacitiveSensor();
         
-        bool connect(UARTPtr the_uart_device = UARTPtr());
+        bool connect(UARTPtr the_uart_device);
         
         uint16_t touch_state() const;
         

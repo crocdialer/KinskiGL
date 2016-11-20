@@ -116,6 +116,7 @@ namespace kinski
             
             virtual ~tcp_connection();
             
+            KINSKI_API bool open() override { return is_open(); };
             KINSKI_API void close() override;
             KINSKI_API bool is_open() const override;
             KINSKI_API size_t read_bytes(void *buffer, size_t sz) override;

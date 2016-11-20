@@ -68,6 +68,15 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
+    bool Serial::open()
+    {
+        bool ret = false;
+        for(const auto &d : device_list()){ if(open(d)){ ret = true; break; } }
+        return ret;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
     bool Serial::open(const std::string &the_name, int the_baudrate)
     {
         close();
@@ -141,7 +150,7 @@ namespace kinski
         
         m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
                                               [this](const boost::system::error_code& error,
-                                                              std::size_t bytes_transferred)
+                                                     std::size_t bytes_transferred)
         {
             if(!error)
             {
@@ -172,7 +181,7 @@ namespace kinski
                     case boost::asio::error::eof:
                     case boost::asio::error::connection_reset:
                     case boost::system::errc::no_such_device_or_address:
-                        LOG_DEBUG << "serial disconnected: " << m_impl->m_device_name;
+                        LOG_DEBUG << "disconnected: " << m_impl->m_device_name;
                         if(m_impl->m_disconnect_cb){ m_impl->m_disconnect_cb(shared_from_this()); }
                         break;
                         
@@ -194,13 +203,13 @@ namespace kinski
         boost::asio::async_write(m_impl->m_serial_port, boost::asio::buffer(bytes),
                                  [bytes](const boost::system::error_code& error,
                                          std::size_t bytes_transferred)
-         {
-             if(error){ LOG_ERROR << error.message(); }
-             else if(bytes_transferred < bytes.size())
-             {
-                 LOG_WARNING << "not all bytes written";
-             }
-         });
+        {
+            if(error){ LOG_ERROR << error.message(); }
+            else if(bytes_transferred < bytes.size())
+            {
+                LOG_WARNING << "not all bytes written";
+            }
+        });
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -231,6 +240,15 @@ namespace kinski
     void Serial::set_receive_cb(receive_cb_t the_cb)
     {
         m_impl->m_receive_cb = the_cb;
+        
+        // we have some buffered data -> deliver it to the newly attached callback
+        if(m_impl->m_receive_cb && !m_impl->m_buffer.empty())
+        {
+            std::unique_lock<std::mutex> lock(m_impl->m_mutex);
+            m_impl->m_receive_cb(shared_from_this(), std::vector<uint8_t>(m_impl->m_buffer.begin(),
+                                                                          m_impl->m_buffer.end()));
+            m_impl->m_buffer.clear();
+        }
     }
     
     ///////////////////////////////////////////////////////////////////////////////

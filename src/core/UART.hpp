@@ -29,8 +29,8 @@ public:
     typedef std::function<void(UARTPtr)> connection_cb_t;
     typedef std::function<void(UARTPtr, const std::vector<uint8_t>&)> receive_cb_t;
     
-    //! setup and initialize the device
-//    virtual bool setup() = 0;
+    //! open the device
+    virtual bool open() = 0;
     
     //! close the device, cancel current transfers
     virtual void close() = 0;
@@ -46,9 +46,7 @@ public:
     //! transfer sz bytes from buffer, returns the number of bytes actually written
     virtual size_t write_bytes(const void *buffer, size_t sz) = 0;
     
-    /*!
-     * convenience template to transfer the content of containers, like std::string or std::vector
-     */
+    //! convenience template to transfer the content of stl-containers, like std::string or std::vector
     template<typename T> size_t write(const T &the_container)
     {
         std::vector<uint8_t> data(std::begin(the_container), std::end(the_container));

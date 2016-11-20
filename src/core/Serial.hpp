@@ -25,8 +25,9 @@ public:
     virtual ~Serial();
     
     static std::vector<std::string> device_list();
-    
     bool open(const std::string &the_name, int the_baudrate = 57600);
+    
+    bool open() override;
     void close() override;
     bool is_open() const override;
     size_t read_bytes(void *buffer, size_t sz) override;
@@ -34,7 +35,6 @@ public:
     size_t available() const override;
     std::string description() const override;
     void drain() override;
-    
     void set_receive_cb(receive_cb_t the_cb) override;
     void set_connect_cb(connection_cb_t cb) override;
     void set_disconnect_cb(connection_cb_t cb) override;
