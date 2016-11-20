@@ -11,9 +11,10 @@ namespace kinski
     {
         std::string m_device_name;
         boost::asio::serial_port m_serial_port;
-        Serial::connect_cb_t m_connect_cb;
+        Serial::connection_cb_t m_connect_cb, m_disconnect_cb;
         Serial::receive_cb_t m_receive_cb;
-        std::vector<uint8_t> m_buffer, m_rec_buffer;
+        std::vector<uint8_t> m_rec_buffer;
+        CircularBuffer<uint8_t> m_buffer{512 * (1 << 10)};
         std::mutex m_mutex;
         
         SerialImpl(boost::asio::io_service &io, Serial::receive_cb_t rec_cb):
@@ -107,7 +108,7 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    bool Serial::is_initialized() const
+    bool Serial::is_open() const
     {
         return m_impl->m_serial_port.is_open();
     }
@@ -118,9 +119,13 @@ namespace kinski
     {
         std::unique_lock<std::mutex> lock(m_impl->m_mutex);
         size_t num_bytes = std::min(m_impl->m_buffer.size(), sz);
-        ::memcpy(buffer, &m_impl->m_buffer[0], num_bytes);
-        m_impl->m_buffer = std::vector<uint8_t>(m_impl->m_buffer.begin() + num_bytes,
-                                                m_impl->m_buffer.end());
+
+        std::copy(m_impl->m_buffer.begin(), m_impl->m_buffer.begin() + num_bytes,
+                  (uint8_t*)buffer);
+        auto tmp = std::vector<uint8_t>(m_impl->m_buffer.begin() + num_bytes,
+                                        m_impl->m_buffer.end());
+        m_impl->m_buffer.assign(tmp.begin(), tmp.end());
+        
         return num_bytes;
     }
     
@@ -131,7 +136,7 @@ namespace kinski
 //        try{ return boost::asio::write(m_impl->m_serial_port, boost::asio::buffer(buffer, sz)); }
 //        catch(boost::system::system_error &e){ LOG_WARNING << e.what(); }
         async_write_bytes(buffer, sz);
-        return 0;
+        return sz;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -148,7 +153,7 @@ namespace kinski
             {
                 if(bytes_transferred)
                 {
-                    LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
+                    LOG_TRACE_3 << "received " << bytes_transferred << " bytes";
               
                     if(m_impl->m_receive_cb)
                     {
@@ -159,8 +164,9 @@ namespace kinski
                     else
                     {
                         std::unique_lock<std::mutex> lock(m_impl->m_mutex);
-                        m_impl->m_buffer.insert(m_impl->m_buffer.end(), m_impl->m_rec_buffer.begin(),
-                                                m_impl->m_rec_buffer.begin() + bytes_transferred);
+                        std::copy(m_impl->m_rec_buffer.begin(),
+                                  m_impl->m_rec_buffer.begin() + bytes_transferred,
+                                  std::back_inserter(m_impl->m_buffer));
                     }
                 }
                 async_read_bytes();
@@ -169,15 +175,14 @@ namespace kinski
             {
                 switch (error.value())
                 {
+                    case boost::system::errc::no_such_device_or_address:
+                        LOG_DEBUG << "serial disconnected: " << m_impl->m_device_name;
+                        if(m_impl->m_disconnect_cb){ m_impl->m_disconnect_cb(shared_from_this()); }
+                        break;
+                        
                     case boost::asio::error::eof:
                     case boost::asio::error::connection_reset:
-                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
-                        break;
-                  
                     case boost::asio::error::operation_aborted:
-                        LOG_TRACE_1 << error.message() << " ("<<error.value() << ")";
-                        break;
-                  
                     default:
                         LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
                         break;
@@ -222,14 +227,9 @@ namespace kinski
     
     void Serial::drain()
     {
-        
-    }
-    
-    ///////////////////////////////////////////////////////////////////////////////
-    
-    void Serial::flush(bool flushIn , bool flushOut)
-    {
+        m_impl->m_serial_port.cancel();
         m_impl->m_buffer.clear();
+        async_read_bytes();
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -241,9 +241,16 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    void Serial::set_connect_cb(connect_cb_t the_cb)
+    void Serial::set_connect_cb(connection_cb_t the_cb)
     {
         m_impl->m_connect_cb = the_cb;
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    void Serial::set_disconnect_cb(connection_cb_t the_cb)
+    {
+        m_impl->m_disconnect_cb = the_cb;
     }
     
     ///////////////////////////////////////////////////////////////////////////////

@@ -26,7 +26,7 @@ class UART
 {
 public:
     
-    typedef std::function<void(UARTPtr)> connect_cb_t;
+    typedef std::function<void(UARTPtr)> connection_cb_t;
     typedef std::function<void(UARTPtr, const std::vector<uint8_t>&)> receive_cb_t;
     
     //! setup and initialize the device
@@ -36,9 +36,11 @@ public:
     virtual void close() = 0;
     
     //! returns true if the device is initialized and ready to transfer
-    virtual bool is_initialized() const = 0;
+    virtual bool is_open() const = 0;
     
-    //! reads up to sz bytes into buffer, returns the number of bytes actually read
+    //! reads up to sz bytes into buffer, returns the number of bytes actually read.
+    // most important: this call makes only sense when no receive_cb is provided.
+    // otherwise you won't see any bytes here.
     virtual size_t read_bytes(void *buffer, size_t sz) = 0;
     
     //! transfer sz bytes from buffer, returns the number of bytes actually written
@@ -56,16 +58,15 @@ public:
     //! returns the number of bytes available for reading
     virtual size_t available() const = 0;
     
-    //! empty buffers
+    //! empty buffers, cancel current transfers
     virtual void drain() = 0;
-    
-    virtual void flush(bool flush_in = true, bool flush_out = true) = 0;
     
     //! returns a textual description for this device
     virtual std::string description() const = 0;
     
     virtual void set_receive_cb(receive_cb_t the_cb) = 0;
-    virtual void set_connect_cb(connect_cb_t cb) = 0;
+    virtual void set_connect_cb(connection_cb_t cb) = 0;
+    virtual void set_disconnect_cb(connection_cb_t cb) = 0;
 };
     
 }// namespace

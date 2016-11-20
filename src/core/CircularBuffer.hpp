@@ -18,6 +18,8 @@ class CircularBuffer
 {
 public:
     
+    typedef T value_type;
+    
     CircularBuffer(uint32_t the_cap = 10):
     m_array_size(the_cap + 1),
     m_first(0),
@@ -66,6 +68,13 @@ public:
         m_first = m_last = 0;
     }
     
+    template<class InputIt>
+    void assign(InputIt first, InputIt last)
+    {
+        clear();
+        std::copy(first, last, std::back_inserter(*this));
+    }
+    
     inline void push_back(const T &the_val)
     {
         m_data[m_last] = the_val;
@@ -109,28 +118,48 @@ public:
         return m_data[(m_first + the_index) % m_array_size];
     };
     
-    class iterator: public std::iterator<std::input_iterator_tag, T>
+    class iterator: public std::iterator<std::random_access_iterator_tag, T>
     {
         friend CircularBuffer<T>;
         
         T *m_array, *m_ptr;
         uint32_t m_size;
         
+    public:
+        
         iterator():
         m_array(nullptr),
         m_ptr(nullptr),
         m_size(0){}
+        
+        iterator(const iterator &the_other):
+        m_array(the_other.m_array),
+        m_ptr(the_other.m_ptr),
+        m_size(the_other.m_size){}
         
         iterator(const CircularBuffer<T>* the_buf, uint32_t the_pos):
         m_array(the_buf->m_data),
         m_ptr(the_buf->m_data + the_pos),
         m_size(the_buf->m_array_size){}
         
-    public:
+        inline iterator& operator=(iterator the_other)
+        {
+            std::swap(m_array, the_other.m_array);
+            std::swap(m_ptr, the_other.m_ptr);
+            std::swap(m_size, the_other.m_size);
+            return *this;
+        }
+        
         inline iterator& operator++()
         {
             m_ptr++;
             if(m_ptr >= (m_array + m_size)){ m_ptr -= m_size;}
+            return *this;
+        }
+        inline iterator& operator--()
+        {
+            m_ptr--;
+            if(m_ptr < m_array){ m_ptr += m_size;}
             return *this;
         }
         inline bool operator==(const iterator &the_other) const
@@ -142,6 +171,27 @@ public:
         inline const T& operator *() const { return *m_ptr; }
         inline T* operator->(){ return m_ptr; }
         inline const T* operator->() const { return m_ptr; }
+        
+        inline iterator& operator+(int i)
+        {
+            m_ptr += i;
+            if(m_ptr >= (m_array + m_size)){ m_ptr -= m_size;}
+            if(m_ptr < m_array){ m_ptr += m_size;}
+            return *this;
+        }
+        
+        inline iterator& operator-(int i)
+        {
+            m_ptr += i;
+            if(m_ptr >= (m_array + m_size)){ m_ptr -= m_size;}
+            if(m_ptr < m_array){ m_ptr += m_size;}
+            return *this;
+        }
+        
+        inline int operator-(const iterator &the_other)
+        {
+            return m_ptr - the_other.m_ptr;
+        }
     };
     typedef const iterator const_iterator;
     

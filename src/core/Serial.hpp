@@ -29,21 +29,21 @@ public:
     bool setup() override;	// use default port, baud (0,9600)
     bool setup(const std::string &the_name, int the_baudrate);
     void close() override;
-    bool is_initialized() const override;
+    bool is_open() const override;
     size_t read_bytes(void *buffer, size_t sz) override;
     size_t write_bytes(const void *buffer, size_t sz) override;
     size_t available() const override;
     std::string description() const override;
     void drain() override;
-    void flush(bool flushIn = true, bool flushOut = true) override;
+    
+    void set_receive_cb(receive_cb_t the_cb) override;
+    void set_connect_cb(connection_cb_t cb) override;
+    void set_disconnect_cb(connection_cb_t cb) override;
+    
+private:
     
     void async_read_bytes();
     void async_write_bytes(const void *buffer, size_t sz);
-    
-    void set_receive_cb(receive_cb_t the_cb) override;
-    void set_connect_cb(connect_cb_t cb) override;
-    
-private:
     
     Serial(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
     std::unique_ptr<struct SerialImpl> m_impl;

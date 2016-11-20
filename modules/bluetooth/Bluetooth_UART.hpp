@@ -9,6 +9,7 @@
 #pragma once
 
 #include "core/UART.hpp"
+#include "core/CircularBuffer.hpp"
 #include "bluetooth.hpp"
 
 namespace kinski{ namespace bluetooth{
@@ -29,21 +30,19 @@ public:
     size_t write_bytes(const void *buffer, size_t sz) override;
     size_t available() const override;
     void drain() override;
-    void flush(bool flush_in = true, bool flush_out = true) override;
-    bool is_initialized() const override;
+    bool is_open() const override;
     std::string description() const override;
     
-    /////////////////////////////////////////////////////////////////////////////////
-    
-    void set_connect_cb(connect_cb_t cb) override;
     void set_receive_cb(receive_cb_t cb) override;
+    void set_connect_cb(connection_cb_t cb) override;
+    void set_disconnect_cb(connection_cb_t cb) override;
     
 private:
     Bluetooth_UART();
     CentralPtr m_central;
     PeripheralPtr m_peripheral;
-    std::vector<uint8_t> m_buffer;
-    connect_cb_t m_connect_cb;
+    CircularBuffer<uint8_t> m_buffer{512 * (1 << 10)};
+    connection_cb_t m_connect_cb, m_disconnect_cb;
     receive_cb_t m_receive_cb;
 };
     

@@ -180,8 +180,6 @@ namespace kinski
         if(the_uart_device)
         {
             m_impl->m_sensor_device = the_uart_device;
-            
-            m_impl->m_sensor_device->flush();
             m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
@@ -204,7 +202,7 @@ namespace kinski
     {
         int bytes_written = 0;
         
-        if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized())
+        if(m_impl->m_sensor_device && m_impl->m_sensor_device->is_open())
         {
             auto conf_str = to_string(m_impl->m_thresh_touch) + " " +
                             to_string(m_impl->m_thresh_release) + " " +
@@ -262,6 +260,6 @@ namespace kinski
     
     bool CapacitiveSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized();
+        return m_impl->m_sensor_device && m_impl->m_sensor_device->is_open();
     }
 }

@@ -58,13 +58,18 @@ namespace kinski{ namespace bluetooth{
                     LOG_TRACE_3 << string(the_data.begin(), the_data.end());
 
                     // fire receive callback
-                    if(m_receive_cb){ m_receive_cb(shared_from_this(), m_buffer); }
+                    if(m_receive_cb){ m_receive_cb(shared_from_this(), the_data); }
                     else
                     {
                         std::unique_lock<std::mutex> lock(mutex);
-                        m_buffer.insert(m_buffer.end(), the_data.begin(), the_data.end());
+                        std::copy(the_data.begin(), the_data.end(), std::back_inserter(m_buffer));
                     }
                 }
+            });
+            
+            m_central->set_peripheral_disconnected_cb([this](CentralPtr c, PeripheralPtr per)
+            {
+                if(per == m_peripheral && m_disconnect_cb){ m_disconnect_cb(shared_from_this()); }
             });
 
             if(m_connect_cb){ m_connect_cb(shared_from_this()); }
@@ -88,9 +93,9 @@ namespace kinski{ namespace bluetooth{
     {
         std::unique_lock<std::mutex> lock(mutex);
         size_t num_bytes = std::min(m_buffer.size(), sz);
-        ::memcpy(buffer, &m_buffer[0], num_bytes);
-        std::vector<uint8_t> tmp(m_buffer.begin() + num_bytes, m_buffer.end());
-        m_buffer = tmp;
+        std::copy(m_buffer.begin(), m_buffer.begin() + num_bytes, (uint8_t*)buffer);
+        auto tmp = std::vector<uint8_t>(m_buffer.begin() + num_bytes, m_buffer.end());
+        m_buffer.assign(tmp.begin(), tmp.end());
         return num_bytes;
     }
 
@@ -126,15 +131,7 @@ namespace kinski{ namespace bluetooth{
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void Bluetooth_UART::flush(bool flush_in, bool flush_out)
-    {
-        std::unique_lock<std::mutex> lock(mutex);
-        m_buffer.clear();
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    bool Bluetooth_UART::is_initialized() const
+    bool Bluetooth_UART::is_open() const
     {
         return m_peripheral && m_peripheral->is_connected();
     }
@@ -153,8 +150,17 @@ namespace kinski{ namespace bluetooth{
         m_receive_cb = cb;
     }
 
-    void Bluetooth_UART::set_connect_cb(connect_cb_t cb)
+///////////////////////////////////////////////////////////////////////////////
+    
+    void Bluetooth_UART::set_connect_cb(connection_cb_t cb)
     {
         m_connect_cb = cb;
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+    void Bluetooth_UART::set_disconnect_cb(connection_cb_t cb)
+    {
+        m_disconnect_cb = cb;
     }
 }}

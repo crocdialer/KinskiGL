@@ -47,10 +47,9 @@ namespace kinski{
 //        else{ m_impl->m_sensor_device->setup(dev_name, 57600); }
         
         // finally flush the newly initialized device
-        if(m_impl->m_sensor_device->is_initialized())
+        if(m_impl->m_sensor_device->is_open())
         {
             m_impl->m_device_name = dev_name;
-            m_impl->m_sensor_device->flush();
             m_impl->m_last_reading = 0.f;
             return true;
         }
@@ -133,6 +132,6 @@ namespace kinski{
     
     bool DistanceSensor::is_initialized() const
     {
-        return m_impl->m_sensor_device && m_impl->m_sensor_device->is_initialized();
+        return m_impl->m_sensor_device && m_impl->m_sensor_device->is_open();
     }
 }
