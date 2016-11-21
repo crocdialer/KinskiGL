@@ -1,20 +1,25 @@
-//#include "boost/asio.hpp"
 #include "core/Serial.hpp"
+#include "core/Timer.hpp"
 #include "sensors.h"
 
 namespace kinski{ namespace sensors{
 
 #define QUERY_ID_CMD "ID"
+#define QUERY_TIME_OUT 2.0
     
 void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
 {
     for(const auto &dev : Serial::device_list())
     {
-        auto s = Serial::create(io);
+        auto serial = Serial::create(io);
         
-        if(s->open(dev))
+        if(serial->open(dev))
         {
-            s->set_receive_cb([the_device_cb, s](UARTPtr the_uart, const std::vector<uint8_t> &the_data)
+            Timer timer(io, [serial](){ serial->set_receive_cb(); });
+            timer.expires_from_now(QUERY_TIME_OUT);
+            
+            serial->set_receive_cb([the_device_cb, serial, timer]
+                                   (UARTPtr the_uart, const std::vector<uint8_t> &the_data)
             {
                 // parse response, find returned ID
                 std::string id_str;
@@ -37,12 +42,12 @@ void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
                 if(the_device_cb && !id_str.empty())
                 {
                     // we got the id now -> stop listening
-                    the_uart->set_receive_cb(UART::receive_cb_t());
+                    the_uart->set_receive_cb();
                     
                     the_device_cb(id_str, the_uart);
                 }
             });
-            s->write(QUERY_ID_CMD + string("\n"));
+            serial->write(QUERY_ID_CMD + string("\n"));
         }
     }
 }

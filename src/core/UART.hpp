@@ -62,9 +62,9 @@ public:
     //! returns a textual description for this device
     virtual std::string description() const = 0;
     
-    virtual void set_receive_cb(receive_cb_t the_cb) = 0;
-    virtual void set_connect_cb(connection_cb_t cb) = 0;
-    virtual void set_disconnect_cb(connection_cb_t cb) = 0;
+    virtual void set_receive_cb(receive_cb_t the_cb = receive_cb_t()) = 0;
+    virtual void set_connect_cb(connection_cb_t cb = connection_cb_t()) = 0;
+    virtual void set_disconnect_cb(connection_cb_t cb = connection_cb_t()) = 0;
 };
     
 }// namespace

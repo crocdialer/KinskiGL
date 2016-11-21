@@ -35,9 +35,9 @@ public:
     size_t available() const override;
     std::string description() const override;
     void drain() override;
-    void set_receive_cb(receive_cb_t the_cb) override;
-    void set_connect_cb(connection_cb_t cb) override;
-    void set_disconnect_cb(connection_cb_t cb) override;
+    void set_receive_cb(receive_cb_t the_cb = receive_cb_t()) override;
+    void set_connect_cb(connection_cb_t cb = connection_cb_t()) override;
+    void set_disconnect_cb(connection_cb_t cb = connection_cb_t()) override;
     
 private:
     
