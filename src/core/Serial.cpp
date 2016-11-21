@@ -29,7 +29,7 @@ namespace kinski
         auto ret = SerialPtr(new Serial(io, cb));
         ret->set_connect_cb([](UARTPtr the_uart)
         {
-            LOG_DEBUG << "connected: " << the_uart->description();
+            LOG_TRACE_1 << "connected: " << the_uart->description();
         });
         return ret;
     }
@@ -182,7 +182,7 @@ namespace kinski
                     case boost::asio::error::eof:
                     case boost::asio::error::connection_reset:
                     case boost::system::errc::no_such_device_or_address:
-                        LOG_DEBUG << "disconnected: " << impl_cp->m_device_name;
+                        LOG_TRACE_1 << "disconnected: " << impl_cp->m_device_name;
                         if(impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(shared_from_this()); }
                         break;
                         
