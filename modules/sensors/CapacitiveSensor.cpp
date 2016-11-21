@@ -136,6 +136,7 @@ namespace kinski
     {
         if(the_uart_device && the_uart_device->is_open())
         {
+            the_uart_device->drain();
             m_impl->m_sensor_device = the_uart_device;
             m_impl->m_sensor_accumulator.clear();
             m_impl->m_last_reading = 0.f;
