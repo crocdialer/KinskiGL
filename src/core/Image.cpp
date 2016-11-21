@@ -230,7 +230,7 @@ namespace kinski
         int kernel_dim = sqrt(the_kernel.size());
         int kernel_dim_2 = kernel_dim / 2;
         
-        if(kernel_dim * kernel_dim != the_kernel.size())
+        if(kernel_dim * kernel_dim != (int)the_kernel.size())
         {
             LOG_WARNING << "only quadratic kernels accepted";
             return ret;
