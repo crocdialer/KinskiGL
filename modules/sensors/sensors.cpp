@@ -6,11 +6,11 @@
 namespace kinski{ namespace sensors{
 
 #define QUERY_ID_CMD "ID"
-#define QUERY_TIME_OUT 3.0
+#define QUERY_TIME_OUT 2.0
     
 void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
 {
-    io.post([&io, the_device_cb]
+    io.post([=, &io]
     {
         for(const auto &dev : Serial::device_list())
         {
@@ -21,7 +21,7 @@ void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
                 Timer timer(io, [serial](){ serial->set_receive_cb(); });
                 timer.expires_from_now(QUERY_TIME_OUT);
                 
-                serial->set_receive_cb([the_device_cb, serial, timer]
+                serial->set_receive_cb([=]
                                        (UARTPtr the_uart, const std::vector<uint8_t> &the_data)
                 {
                     // parse response, find returned ID
