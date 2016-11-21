@@ -182,8 +182,8 @@ namespace kinski
                     case boost::asio::error::eof:
                     case boost::asio::error::connection_reset:
                     case boost::system::errc::no_such_device_or_address:
-                        LOG_DEBUG << "disconnected: " << m_impl->m_device_name;
-                        if(m_impl->m_disconnect_cb){ m_impl->m_disconnect_cb(shared_from_this()); }
+                        LOG_DEBUG << "disconnected: " << impl_cp->m_device_name;
+                        if(impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(shared_from_this()); }
                         break;
                         
                     case boost::asio::error::operation_aborted:
