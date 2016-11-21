@@ -10,8 +10,8 @@ namespace kinski{ namespace sensors{
     
 void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
 {
-    io.post([&io, the_device_cb]
-    {
+//    io.post([&io, the_device_cb]
+//    {
         for(const auto &dev : Serial::device_list())
         {
             auto serial = Serial::create(io);
@@ -53,7 +53,7 @@ void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
                 serial->write(QUERY_ID_CMD + string("\n"));
             }
         }
-    });
+//    });
 }
     
     
