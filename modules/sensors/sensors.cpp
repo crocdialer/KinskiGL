@@ -10,7 +10,7 @@ namespace kinski{ namespace sensors{
     
 void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
 {
-    io.post([=, &io]
+    io.post([&io, the_device_cb]
     {
         for(const auto &dev : Serial::device_list())
         {
@@ -21,7 +21,7 @@ void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
                 Timer timer(io, [serial](){ serial->set_receive_cb(); });
                 timer.expires_from_now(QUERY_TIME_OUT);
                 
-                serial->set_receive_cb([=]
+                serial->set_receive_cb([the_device_cb, serial, timer]
                                        (UARTPtr the_uart, const std::vector<uint8_t> &the_data)
                 {
                     // parse response, find returned ID
