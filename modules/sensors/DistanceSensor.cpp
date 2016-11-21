@@ -11,6 +11,7 @@
 #include "core/Serial.hpp"
 #include "DistanceSensor.hpp"
 
+#define DEVICE_ID "DISTANCE_SENSOR"
 #define SERIAL_END_CODE '\n'
 #define STD_TIMEOUT_RECONNECT 5.f
 
@@ -105,5 +106,10 @@ namespace kinski{
     bool DistanceSensor::is_initialized() const
     {
         return m_impl->m_sensor_device && m_impl->m_sensor_device->is_open();
+    }
+    
+    std::string DistanceSensor::id()
+    {
+        return DEVICE_ID;
     }
 }
