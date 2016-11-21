@@ -10,6 +10,8 @@
 #include "CapacitiveSensor.hpp"
 #include "core/Serial.hpp"
 
+#define DEVICE_ID "CAPACITIVE_SENSOR"
+
 #define NUM_SENSOR_PADS 13
 #define SERIAL_END_CODE '\n'
 
@@ -210,5 +212,10 @@ namespace kinski
     bool CapacitiveSensor::is_initialized() const
     {
         return m_impl->m_sensor_device && m_impl->m_sensor_device->is_open();
+    }
+    
+    std::string CapacitiveSensor::id()
+    {
+        return DEVICE_ID;
     }
 }

@@ -45,7 +45,7 @@ private:
     void async_write_bytes(const void *buffer, size_t sz);
     
     Serial(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
-    std::unique_ptr<struct SerialImpl> m_impl;
+    std::shared_ptr<struct SerialImpl> m_impl;
 };
     
     //----------------------------------------------------------------------

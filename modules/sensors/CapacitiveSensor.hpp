@@ -20,6 +20,7 @@ namespace kinski
         
         typedef std::function<void(int)> touch_cb_t;
         
+        static std::string id();
         static CapacitiveSensorPtr create(UARTPtr the_uart_device = UARTPtr());
         virtual ~CapacitiveSensor();
         

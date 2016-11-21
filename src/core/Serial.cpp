@@ -54,7 +54,7 @@ namespace kinski
     std::vector<std::string> Serial::device_list()
     {
         std::vector<std::string> ret;
-        std::vector<std::string> search_patterns = {"cu.", "tty.", "ttyACM", "ttyUSB"};
+        std::vector<std::string> search_patterns = {"tty.usb", "ttyACM", "ttyUSB"};
         
         for(const auto &path : fs::get_directory_entries("/dev"))
         {
@@ -146,10 +146,11 @@ namespace kinski
     
     void Serial::async_read_bytes()
     {
-        m_impl->m_rec_buffer.resize(512);
+        auto impl_cp = m_impl;
         
+        m_impl->m_rec_buffer.resize(512);
         m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
-                                              [this](const boost::system::error_code& error,
+                                              [this, impl_cp](const boost::system::error_code& error,
                                                      std::size_t bytes_transferred)
         {
             if(!error)
@@ -158,21 +159,21 @@ namespace kinski
                 {
                     LOG_TRACE_3 << "received " << bytes_transferred << " bytes";
               
-                    if(m_impl->m_receive_cb)
+                    if(impl_cp->m_receive_cb)
                     {
-                        std::vector<uint8_t> datavec(m_impl->m_rec_buffer.begin(),
-                                                     m_impl->m_rec_buffer.begin() + bytes_transferred);
-                        m_impl->m_receive_cb(shared_from_this(), std::move(datavec));
+                        std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
+                                                     impl_cp->m_rec_buffer.begin() + bytes_transferred);
+                        impl_cp->m_receive_cb(shared_from_this(), std::move(datavec));
                     }
                     else
                     {
-                        std::unique_lock<std::mutex> lock(m_impl->m_mutex);
-                        std::copy(m_impl->m_rec_buffer.begin(),
-                                  m_impl->m_rec_buffer.begin() + bytes_transferred,
-                                  std::back_inserter(m_impl->m_buffer));
+                        std::unique_lock<std::mutex> lock(impl_cp->m_mutex);
+                        std::copy(impl_cp->m_rec_buffer.begin(),
+                                  impl_cp->m_rec_buffer.begin() + bytes_transferred,
+                                  std::back_inserter(impl_cp->m_buffer));
                     }
                 }
-                async_read_bytes();
+                if(impl_cp.use_count() > 1){ async_read_bytes(); }
             }
             else
             {
