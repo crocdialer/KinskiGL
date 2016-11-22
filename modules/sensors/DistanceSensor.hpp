@@ -32,6 +32,6 @@ namespace kinski
     private:
         DistanceSensor();
         void receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data);
-        std::shared_ptr<struct DistanceSensorImpl> m_impl;
+        std::unique_ptr<struct DistanceSensorImpl> m_impl;
     };
 }// namespace

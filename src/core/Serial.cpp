@@ -191,7 +191,7 @@ namespace kinski
                         
                     case boost::asio::error::operation_aborted:
                     default:
-                        LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
+                        LOG_TRACE_2 << error.message() << " (" << error.value() << ")";
                         break;
                 }
             }

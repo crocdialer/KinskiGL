@@ -38,8 +38,8 @@ namespace kinski
         
         KINSKI_API void async_send_tcp(boost::asio::io_service& io_service,
                                        const std::vector<uint8_t> &bytes,
-                                       const std::string &ip,
-                                       int port);
+                                       const std::string &the_ip,
+                                       uint16_t the_port);
         
         KINSKI_API void async_send_udp(boost::asio::io_service& io_service,
                                        const std::string &str,
@@ -110,13 +110,13 @@ namespace kinski
                                        const std::vector<uint8_t>&)> tcp_receive_cb_t;
             
             KINSKI_API static tcp_connection_ptr create(boost::asio::io_service& io_service,
-                                                        std::string the_ip,
+                                                        const std::string &the_ip,
                                                         uint16_t the_port,
                                                         tcp_receive_cb_t f = tcp_receive_cb_t());
             
             virtual ~tcp_connection();
             
-            KINSKI_API bool open() override { return is_open(); };
+            KINSKI_API bool open() override;
             KINSKI_API void close() override;
             KINSKI_API bool is_open() const override;
             KINSKI_API size_t read_bytes(void *buffer, size_t sz) override;
@@ -124,9 +124,9 @@ namespace kinski
             KINSKI_API size_t available() const override;
             KINSKI_API void drain() override;
             KINSKI_API std::string description() const override;
-            KINSKI_API void set_receive_cb(receive_cb_t the_cb) override;
-            KINSKI_API void set_connect_cb(connection_cb_t cb) override;
-            KINSKI_API void set_disconnect_cb(connection_cb_t cb) override;
+            KINSKI_API void set_receive_cb(receive_cb_t the_cb = receive_cb_t()) override;
+            KINSKI_API void set_connect_cb(connection_cb_t cb = connection_cb_t()) override;
+            KINSKI_API void set_disconnect_cb(connection_cb_t cb = connection_cb_t()) override;
             
             KINSKI_API void set_tcp_receive_cb(tcp_receive_cb_t f);
             KINSKI_API uint16_t port() const;
@@ -136,11 +136,10 @@ namespace kinski
         private:
             
             friend tcp_server_impl;
-            struct tcp_connection_impl;
-            std::shared_ptr<tcp_connection_impl> m_impl;
+            std::shared_ptr<struct tcp_connection_impl> m_impl;
             
             tcp_connection(boost::asio::io_service& io_service,
-                           std::string the_ip,
+                           const std::string &the_ip,
                            uint16_t the_port,
                            tcp_receive_cb_t f);
             
