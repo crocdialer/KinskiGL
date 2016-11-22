@@ -8,6 +8,7 @@
 
 #include <cstring>
 #include "CapacitiveSensor.hpp"
+#include "core/CircularBuffer.hpp"
 #include "core/Serial.hpp"
 
 #define DEVICE_ID "CAPACITIVE_SENSOR"
@@ -24,7 +25,7 @@ namespace kinski
     {
         UARTPtr m_sensor_device;
         std::string m_device_name;
-        std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
+        CircularBuffer<uint8_t> m_sensor_accumulator{512};
         bool m_dirty_params = true;
         uint16_t m_touch_status = 0;
         std::vector<float> m_proximity_values;
@@ -46,7 +47,6 @@ namespace kinski
     CapacitiveSensor::CapacitiveSensor():
     m_impl(new CapacitiveSensorImpl)
     {
-        m_impl->m_sensor_read_buf.resize(2048);
         m_impl->m_proximity_values.resize(NUM_SENSOR_PADS, 0.f);
     }
     

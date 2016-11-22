@@ -420,7 +420,12 @@ namespace kinski
             tcp::socket socket;
             std::vector<uint8_t> recv_buffer;
             
+            // additional receiv callback with connection context
             tcp_receive_cb_t tcp_receive_cb;
+            
+            // used by UART interface
+            connection_cb_t m_connect_cb, m_disconnect_cb;
+            receive_cb_t m_receive_cb;
         };
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -499,11 +504,18 @@ namespace kinski
             {
                 if(!error)
                 {
-                    if(impl_cp->tcp_receive_cb && bytes_transferred)
+                    if(bytes_transferred)
                     {
                         std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
                                                      impl_cp->recv_buffer.begin() + bytes_transferred);
-                        impl_cp->tcp_receive_cb(shared_from_this(), std::move(datavec));
+                        if(impl_cp->tcp_receive_cb)
+                        {
+                            impl_cp->tcp_receive_cb(shared_from_this(), datavec);
+                        }
+                        if(impl_cp->m_receive_cb)
+                        {
+                            impl_cp->m_receive_cb(shared_from_this(), datavec);
+                        }
                         LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
                     }
                     
@@ -520,6 +532,11 @@ namespace kinski
                             
                         case boost::asio::error::operation_aborted:
                             LOG_TRACE_1 << "disconnected: " << description();
+                            
+                            if(impl_cp->m_disconnect_cb)
+                            {
+                                impl_cp->m_disconnect_cb(shared_from_this());
+                            }
                             break;
                             
                         default:
@@ -595,23 +612,23 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void tcp_connection::set_receive_cb(receive_cb_t the_cb)
+        void tcp_connection::set_receive_cb(receive_cb_t cb)
         {
-        
+            m_impl->m_receive_cb = cb;
         }
         
         ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_connection::set_connect_cb(connection_cb_t cb)
         {
-        
+            m_impl->m_connect_cb = cb;
         }
         
         ///////////////////////////////////////////////////////////////////////////////
         
         void tcp_connection::set_disconnect_cb(connection_cb_t cb)
         {
-        
+            m_impl->m_disconnect_cb = cb;
         }
     }
 }

@@ -6,8 +6,8 @@
 //
 //
 
-#include <cstring>
-#include <thread>
+//#include <cstring>
+#include "core/CircularBuffer.hpp"
 #include "core/Serial.hpp"
 #include "DistanceSensor.hpp"
 
@@ -20,11 +20,8 @@ namespace kinski{
     struct DistanceSensorImpl
     {
         UARTPtr m_sensor_device;
-        std::vector<uint8_t> m_sensor_read_buf, m_sensor_accumulator;
+        CircularBuffer<uint8_t> m_sensor_accumulator{512};
         uint16_t m_distance = 0;
-        float m_last_reading = 0.f;
-        float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
-        std::thread m_reconnect_thread;
         
         DistanceSensor::distance_cb_t m_distance_callback;
     };
@@ -39,7 +36,7 @@ namespace kinski{
     DistanceSensor::DistanceSensor():
     m_impl(new DistanceSensorImpl)
     {
-        m_impl->m_sensor_read_buf.resize(2048);
+        
     }
     
     DistanceSensor::~DistanceSensor()
@@ -53,7 +50,6 @@ namespace kinski{
         {
             m_impl->m_sensor_device = the_uart_device;
             m_impl->m_sensor_accumulator.clear();
-            m_impl->m_last_reading = 0.f;
             
             m_impl->m_sensor_device->set_receive_cb(std::bind(&DistanceSensor::receive_data,
                                                               this,

@@ -99,7 +99,10 @@ namespace kinski
             async_read_bytes();
             return true;
         }
-        catch(boost::system::system_error &e){ LOG_WARNING << e.what(); }
+        catch(boost::system::system_error &e)
+        {
+            LOG_WARNING << e.what() << " (" << description() << ")";
+        }
         return false;
     }
     
