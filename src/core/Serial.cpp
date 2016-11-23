@@ -46,7 +46,7 @@ namespace kinski
     
     Serial::~Serial()
     {
-    
+        close();
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -149,11 +149,11 @@ namespace kinski
     
     void Serial::async_read_bytes()
     {
-        auto impl_cp = m_impl;
+        auto self = shared_from_this();
         
         m_impl->m_rec_buffer.resize(512);
         m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
-                                              [this, impl_cp](const boost::system::error_code& error,
+                                              [this, self](const boost::system::error_code& error,
                                                      std::size_t bytes_transferred)
         {
             if(!error)
@@ -162,23 +162,21 @@ namespace kinski
                 {
                     LOG_TRACE_3 << "received " << bytes_transferred << " bytes";
               
-                    if(impl_cp->m_receive_cb)
+                    if(m_impl->m_receive_cb)
                     {
-                        std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
-                                                     impl_cp->m_rec_buffer.begin() + bytes_transferred);
-                        
-                        auto self = shared_from_this();
-                        if(self){ impl_cp->m_receive_cb(self, datavec); }
+                        std::vector<uint8_t> datavec(m_impl->m_rec_buffer.begin(),
+                                                     m_impl->m_rec_buffer.begin() + bytes_transferred);
+                        m_impl->m_receive_cb(self, datavec);
                     }
                     else
                     {
-                        std::unique_lock<std::mutex> lock(impl_cp->m_mutex);
-                        std::copy(impl_cp->m_rec_buffer.begin(),
-                                  impl_cp->m_rec_buffer.begin() + bytes_transferred,
-                                  std::back_inserter(impl_cp->m_buffer));
+                        std::unique_lock<std::mutex> lock(m_impl->m_mutex);
+                        std::copy(m_impl->m_rec_buffer.begin(),
+                                  m_impl->m_rec_buffer.begin() + bytes_transferred,
+                                  std::back_inserter(m_impl->m_buffer));
                     }
                 }
-                if(impl_cp.use_count() > 1){ async_read_bytes(); }
+                if(self.use_count() > 1){ async_read_bytes(); }
             }
             else
             {
@@ -187,8 +185,8 @@ namespace kinski
                     case boost::asio::error::eof:
                     case boost::asio::error::connection_reset:
                     case boost::system::errc::no_such_device_or_address:
-                        LOG_TRACE_1 << "disconnected: " << impl_cp->m_device_name;
-                        if(impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(shared_from_this()); }
+                        LOG_TRACE_1 << "disconnected: " << m_impl->m_device_name;
+                        if(m_impl->m_disconnect_cb){ m_impl->m_disconnect_cb(self); }
                         break;
                         
                     case boost::asio::error::operation_aborted:
