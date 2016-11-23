@@ -13,7 +13,6 @@
 
 #define DEVICE_ID "DISTANCE_SENSOR"
 #define SERIAL_END_CODE '\n'
-#define STD_TIMEOUT_RECONNECT 5.f
 
 namespace kinski{
     
@@ -21,7 +20,7 @@ namespace kinski{
     {
         UARTPtr m_sensor_device;
         CircularBuffer<uint8_t> m_sensor_accumulator{512};
-        uint16_t m_distance = 0;
+        uint32_t m_distance = 0;
         
         DistanceSensor::distance_cb_t m_distance_callback;
     };
@@ -63,19 +62,20 @@ namespace kinski{
     void DistanceSensor::receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data)
     {
         bool reading_complete = false;
-        uint16_t distance_val = 0;
+        uint32_t distance_val = 0;
             
         for(uint8_t byte : the_data)
         {
             switch(byte)
             {
                 case SERIAL_END_CODE:
-                    distance_val = string_to<uint16_t>(string(m_impl->m_sensor_accumulator.begin(),
-                                                              m_impl->m_sensor_accumulator.end()));
+                {
+                    auto str = string(m_impl->m_sensor_accumulator.begin(), m_impl->m_sensor_accumulator.end());
+                    distance_val = string_to<uint32_t>(str);
                     m_impl->m_sensor_accumulator.clear();
                     reading_complete = true;
                     break;
-                    
+                }
                 default:
                     m_impl->m_sensor_accumulator.push_back(byte);
                     break;
@@ -89,7 +89,7 @@ namespace kinski{
         }
     }
     
-    uint16_t DistanceSensor::distance() const
+    uint32_t DistanceSensor::distance() const
     {
         return m_impl->m_distance;
     }

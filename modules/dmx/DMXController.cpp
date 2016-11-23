@@ -124,7 +124,7 @@ namespace kinski
         }else{ found_name = the_device_name; }
         
         // finally flush the newly initialized device
-        if(m_impl->m_serial->open(found_name, 57600))
+        if(!found_name.empty() && m_impl->m_serial->open(found_name, 57600))
         {
             m_impl->m_last_reading = 0.f;
             m_impl->m_device_name = found_name;

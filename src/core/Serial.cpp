@@ -166,7 +166,9 @@ namespace kinski
                     {
                         std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
                                                      impl_cp->m_rec_buffer.begin() + bytes_transferred);
-                        impl_cp->m_receive_cb(shared_from_this(), std::move(datavec));
+                        
+                        auto self = shared_from_this();
+                        if(self){ impl_cp->m_receive_cb(self, datavec); }
                     }
                     else
                     {

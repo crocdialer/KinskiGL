@@ -25,7 +25,7 @@ namespace kinski
         virtual ~DistanceSensor();
         
         bool connect(UARTPtr the_uart_device);
-        uint16_t distance() const;
+        uint32_t distance() const;
         void set_distance_callback(distance_cb_t cb);
         bool is_initialized() const;
         
