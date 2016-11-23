@@ -93,21 +93,23 @@ namespace kinski
             }
         }
         
+        auto old_state = m_impl->m_touch_status;
+        m_impl->m_touch_status = current_touches;
+        
         for (int i = 0; i < NUM_SENSOR_PADS; i++)
         {
             uint16_t mask = 1 << i;
             
             // pad is currently being touched
-            if(mask & current_touches && !(mask & m_impl->m_touch_status))
+            if(mask & current_touches && !(mask & old_state))
             {
                 if(m_impl->m_touch_callback){ m_impl->m_touch_callback(i); }
             }
-            else if(mask & m_impl->m_touch_status && !(mask & current_touches))
+            else if(mask & old_state && !(mask & current_touches))
             {
                 if(m_impl->m_release_callback){ m_impl->m_release_callback(i); }
             }
         }
-        m_impl->m_touch_status = current_touches;
     }
     
     bool CapacitiveSensor::is_touched(int the_index) const
