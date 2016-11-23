@@ -214,12 +214,10 @@ namespace kinski
         public:
             udp_server_impl(boost::asio::io_service& io_service, udp_server::receive_cb_t f):
             socket(io_service),
-            resolver(io_service),
             recv_buffer(1 << 20),
             receive_function(f){}
             
             udp::socket socket;
-            udp::resolver resolver;
             udp::endpoint remote_endpoint;
             std::vector<uint8_t> recv_buffer;
             udp_server::receive_cb_t receive_function;
@@ -411,7 +409,6 @@ namespace kinski
                                                   tcp_receive_cb_t f)
         {
             auto ret = tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f));
-//            ret->start_receive();
             return ret;
         }
         
@@ -429,7 +426,7 @@ namespace kinski
             tcp::socket socket;
             std::vector<uint8_t> recv_buffer;
             
-            // additional receiv callback with connection context
+            // additional receive callback with connection context
             tcp_connection::tcp_receive_cb_t tcp_receive_cb;
             
             // used by UART interface
@@ -540,8 +537,8 @@ namespace kinski
         {
             auto impl_cp = m_impl;
             impl_cp->socket.async_receive(boost::asio::buffer(impl_cp->recv_buffer),
-            [this, impl_cp](const boost::system::error_code& error,
-                            std::size_t bytes_transferred)
+                                          [this, impl_cp](const boost::system::error_code& error,
+                                                          std::size_t bytes_transferred)
             {
                 if(!error)
                 {
