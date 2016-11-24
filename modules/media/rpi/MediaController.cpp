@@ -321,6 +321,7 @@ namespace kinski{ namespace media
                         m_incr = m_loop_from - (m_av_clock->OMXMediaTime() ? m_av_clock->OMXMediaTime() / DVD_TIME_BASE : last_seek_pos);
                         continue;
                     }
+                    else{ m_playing = false; }
                     m_av_clock->OMXPause();
                     break;
                 }
