@@ -82,12 +82,15 @@ namespace kinski{ namespace media
             try{ if(m_thread.joinable()){ m_thread.join(); } }
             catch(std::exception &e){ LOG_ERROR << e.what(); }
 
-            m_av_clock->OMXStop();
-            m_av_clock->OMXStateIdle();
+            if(m_av_clock)
+            {
+                m_av_clock->OMXStop();
+                m_av_clock->OMXStateIdle();
+            }
 
             // m_player_subtitles.Close();
-            m_player_video->Close();
-            m_player_audio->Close();
+            if(m_player_video){ m_player_video->Close(); }
+            if(m_player_audio){ m_player_audio->Close(); }
 
             if(m_omx_pkt)
             {
@@ -95,7 +98,7 @@ namespace kinski{ namespace media
               m_omx_pkt = nullptr;
             }
             m_omx_reader.Close();
-            m_av_clock->OMXDeinitialize();
+            if(m_av_clock){ m_av_clock->OMXDeinitialize(); }
 
             if(m_egl_image)
             {
@@ -105,7 +108,6 @@ namespace kinski{ namespace media
                     LOG_ERROR << "eglDestroyImageKHR failed.";
                 }
             }
-            // m_OMX.Deinitialize();
         };
 
         void flush_stream(double pts)
