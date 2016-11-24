@@ -73,10 +73,8 @@ namespace kinski{ namespace media
         // int playspeed_current = 14;
         double m_last_check_time = 0.0;
 
-        MediaControllerImpl()
-        {
-            m_av_clock.reset(new OMXClock());
-        }
+        MediaControllerImpl(){}
+
         ~MediaControllerImpl()
         {
             m_playing = false;
@@ -427,7 +425,8 @@ namespace kinski{ namespace media
             m_OMX.reset(new COMXCore(), [](COMXCore *c){c->Deinitialize();});
             m_OMX->Initialize();
         }
-        
+
+        m_impl->m_av_clock.reset(new OMXClock());
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
 
