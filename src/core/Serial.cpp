@@ -13,7 +13,7 @@ namespace kinski
         boost::asio::serial_port m_serial_port;
         Serial::connection_cb_t m_connect_cb, m_disconnect_cb;
         Serial::receive_cb_t m_receive_cb;
-        std::vector<uint8_t> m_rec_buffer;
+        std::vector<uint8_t> m_rec_buffer = std::vector<uint8_t>(512);
         CircularBuffer<uint8_t> m_buffer{512 * (1 << 10)};
         std::mutex m_mutex;
         
@@ -51,10 +51,11 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    std::vector<std::string> Serial::device_list()
+    std::vector<std::string> Serial::device_list(const std::set<std::string>& the_patterns)
     {
         std::vector<std::string> ret;
-        std::vector<std::string> search_patterns = {"tty.usb", "ttyACM", "ttyUSB"};
+        std::set<std::string> search_patterns = {"tty.usb", "ttyACM"};
+        if(!the_patterns.empty()){ search_patterns = the_patterns; }
         
         for(const auto &path : fs::get_directory_entries("/dev"))
         {
@@ -155,7 +156,6 @@ namespace kinski
         auto weak_self = std::weak_ptr<Serial>(shared_from_this());
         auto impl_cp = m_impl;
         
-        m_impl->m_rec_buffer.resize(512);
         m_impl->m_serial_port.async_read_some(boost::asio::buffer(m_impl->m_rec_buffer),
                                               [weak_self, impl_cp](const boost::system::error_code& error,
                                                                    std::size_t bytes_transferred)
@@ -168,7 +168,7 @@ namespace kinski
                 {
                     LOG_TRACE_3 << "received " << bytes_transferred << " bytes";
               
-                    if(impl_cp->m_receive_cb)
+                    if(self && impl_cp->m_receive_cb)
                     {
                         std::vector<uint8_t> datavec(impl_cp->m_rec_buffer.begin(),
                                                      impl_cp->m_rec_buffer.begin() + bytes_transferred);
@@ -193,7 +193,7 @@ namespace kinski
                     case boost::system::errc::no_such_device_or_address:
                     case boost::asio::error::operation_aborted:
                         LOG_TRACE_1 << "disconnected: " << impl_cp->m_device_name;
-                        if(impl_cp->m_disconnect_cb && self){ impl_cp->m_disconnect_cb(self); }
+                        if(self && impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(self); }
                         break;
                         
                     default:
@@ -240,9 +240,9 @@ namespace kinski
     
     void Serial::drain()
     {
-        m_impl->m_serial_port.cancel();
+//        m_impl->m_serial_port.cancel();
         m_impl->m_buffer.clear();
-        async_read_bytes();
+//        async_read_bytes();
     }
     
     ///////////////////////////////////////////////////////////////////////////////

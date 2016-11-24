@@ -45,15 +45,15 @@ namespace kinski{
     
     bool DistanceSensor::connect(UARTPtr the_uart_device)
     {
+        m_impl->m_sensor_device = the_uart_device;
+        m_impl->m_sensor_accumulator.clear();
+        
         if(the_uart_device && the_uart_device->is_open())
         {
-            m_impl->m_sensor_device = the_uart_device;
-            m_impl->m_sensor_accumulator.clear();
-            
-            m_impl->m_sensor_device->set_receive_cb(std::bind(&DistanceSensor::receive_data,
-                                                              this,
-                                                              std::placeholders::_1,
-                                                              std::placeholders::_2));
+            the_uart_device->set_receive_cb(std::bind(&DistanceSensor::receive_data,
+                                                      this,
+                                                      std::placeholders::_1,
+                                                      std::placeholders::_2));
             return true;
         }
         return false;

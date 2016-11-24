@@ -16,9 +16,6 @@
 #define NUM_SENSOR_PADS 13
 #define SERIAL_END_CODE '\n'
 
-#define STD_TIMEOUT_RECONNECT 5.f
-#include <thread>
-
 namespace kinski
 {
     struct CapacitiveSensorImpl
@@ -29,8 +26,6 @@ namespace kinski
         bool m_dirty_params = true;
         uint16_t m_touch_status = 0;
         std::vector<float> m_proximity_values;
-        float m_last_reading = 0.f;
-        float m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         uint16_t m_thresh_touch = 12, m_thresh_release = 6;
         uint32_t m_charge_current = 16;
         
@@ -136,12 +131,12 @@ namespace kinski
     
     bool CapacitiveSensor::connect(UARTPtr the_uart_device)
     {
+        m_impl->m_sensor_device = the_uart_device;
+        m_impl->m_sensor_accumulator.clear();
+        
         if(the_uart_device && the_uart_device->is_open())
         {
             the_uart_device->drain();
-            m_impl->m_sensor_device = the_uart_device;
-            m_impl->m_sensor_accumulator.clear();
-            m_impl->m_last_reading = 0.f;
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
             set_charge_current(m_impl->m_charge_current);
             m_impl->m_sensor_device->set_receive_cb(std::bind(&CapacitiveSensor::receive_data,
@@ -200,16 +195,6 @@ namespace kinski
     void CapacitiveSensor::set_release_callback(touch_cb_t cb)
     {
         m_impl->m_release_callback = cb;
-    }
-    
-    float CapacitiveSensor::timeout_reconnect() const
-    {
-        return m_impl->m_timeout_reconnect;
-    }
-    
-    void CapacitiveSensor::set_timeout_reconnect(float val)
-    {
-        m_impl->m_timeout_reconnect = std::max(val, 0.f);
     }
     
     bool CapacitiveSensor::is_initialized() const

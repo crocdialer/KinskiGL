@@ -536,23 +536,27 @@ namespace kinski
         void tcp_connection::start_receive()
         {
             auto impl_cp = m_impl;
+            auto weak_self = std::weak_ptr<tcp_connection>(shared_from_this());
+            
             impl_cp->socket.async_receive(boost::asio::buffer(impl_cp->recv_buffer),
-                                          [this, impl_cp](const boost::system::error_code& error,
-                                                          std::size_t bytes_transferred)
+                                          [this, impl_cp, weak_self](const boost::system::error_code& error,
+                                                                     std::size_t bytes_transferred)
             {
+                auto self = weak_self.lock();
+                
                 if(!error)
                 {
                     if(bytes_transferred)
                     {
                         std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
                                                      impl_cp->recv_buffer.begin() + bytes_transferred);
-                        if(impl_cp->tcp_receive_cb)
+                        if(self && impl_cp->tcp_receive_cb)
                         {
-                            impl_cp->tcp_receive_cb(shared_from_this(), datavec);
+                            impl_cp->tcp_receive_cb(self, datavec);
                         }
-                        if(impl_cp->m_receive_cb)
+                        if(self && impl_cp->m_receive_cb)
                         {
-                            impl_cp->m_receive_cb(shared_from_this(), datavec);
+                            impl_cp->m_receive_cb(self, datavec);
                         }
                         LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
                     }
@@ -570,9 +574,9 @@ namespace kinski
                             impl_cp->socket.close();
                             LOG_TRACE_1 << "disconnected: " << description();
                             
-                            if(impl_cp->m_disconnect_cb)
+                            if(self && impl_cp->m_disconnect_cb)
                             {
-                                impl_cp->m_disconnect_cb(shared_from_this());
+                                impl_cp->m_disconnect_cb(self);
                             }
                             break;
                             

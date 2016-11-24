@@ -6,7 +6,7 @@
 namespace kinski{ namespace sensors{
 
 #define QUERY_ID_CMD "ID"
-#define QUERY_TIME_OUT 2.0
+#define QUERY_TIME_OUT 3.0
 
 void scan_for_serials(boost::asio::io_service &io, device_cb_t the_device_cb)
 {

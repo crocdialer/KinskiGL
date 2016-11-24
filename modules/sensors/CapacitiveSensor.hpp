@@ -39,9 +39,6 @@ namespace kinski
         void set_touch_callback(touch_cb_t cb);
         void set_release_callback(touch_cb_t cb);
         
-        float timeout_reconnect() const;
-        void set_timeout_reconnect(float val);
-        
         void set_thresholds(uint16_t the_touch_thresh, uint16_t the_rel_thresh);
         void thresholds(uint16_t& the_touch_thresh, uint16_t& the_rel_thresh) const;
         
