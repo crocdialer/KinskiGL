@@ -508,10 +508,22 @@ namespace kinski
                                      [impl, bytes](const boost::system::error_code& error,
                                                    std::size_t bytes_transferred)
             {
-                if(error){ LOG_ERROR << error.message(); }
-                else if(bytes_transferred < bytes.size())
+                if(!error)
                 {
-                    LOG_WARNING << "not all bytes written";
+                    if(bytes_transferred < bytes.size())
+                    {
+                        LOG_WARNING << "not all bytes written";
+                    }
+                }
+                else
+                {
+                    switch(error.value())
+                    {
+                        case boost::asio::error::bad_descriptor:
+                        default:
+                            LOG_TRACE_1 << error.message() << " (" << error.value() << ")";
+                            break;
+                    }
                 }
             });
             return num_bytes;

@@ -92,7 +92,8 @@ namespace kinski{ namespace media{
 
 /////////////////////////////////////////////////////////////////
     
-    MediaController::MediaController()
+    MediaController::MediaController():
+    m_impl(new MediaControllerImpl)
     {
         
     }
@@ -251,7 +252,7 @@ namespace kinski{ namespace media{
     
     bool MediaController::is_playing() const
     {
-        return m_impl && [m_impl->m_player rate] != 0.0f;
+        return is_loaded() && [m_impl->m_player rate] != 0.0f;
     }
 
 /////////////////////////////////////////////////////////////////
@@ -268,7 +269,7 @@ namespace kinski{ namespace media{
     
     float MediaController::volume() const
     {
-        return m_impl ? m_impl->m_player.volume : 0.f;
+        return is_loaded() ? m_impl->m_player.volume : 0.f;
     }
 
 /////////////////////////////////////////////////////////////////
@@ -486,7 +487,7 @@ namespace kinski{ namespace media{
     
     double MediaController::duration() const
     {
-        if(!m_impl){ return 0.0; }
+        if(!is_loaded()){ return 0.0; }
         AVPlayerItem *playerItem = [m_impl->m_player currentItem];
         
         if ([playerItem status] == AVPlayerItemStatusReadyToPlay)
@@ -508,7 +509,7 @@ namespace kinski{ namespace media{
     {
         double fps = 0.0;
         
-        if(m_impl && m_impl->m_player.currentItem.asset)
+        if(is_loaded() && m_impl->m_player.currentItem.asset)
         {
             AVAssetTrack *video_track =
             [[m_impl->m_player.currentItem.asset tracksWithMediaType:AVMediaTypeVideo] lastObject];
@@ -522,7 +523,7 @@ namespace kinski{ namespace media{
     
     void MediaController::seek_to_time(double value)
     {
-        if(!m_impl){ return; }
+        if(!is_loaded()){ return; }
         CMTime t = CMTimeMakeWithSeconds(value, NSEC_PER_SEC);
         [m_impl->m_player seekToTime:t];
         [m_impl->m_player setRate: m_impl->m_rate];
@@ -589,14 +590,14 @@ namespace kinski{ namespace media{
     
     float MediaController::rate() const
     {
-        return m_impl ? [m_impl->m_player rate] : 1.f;
+        return is_loaded() ? [m_impl->m_player rate] : 1.f;
     }
     
 /////////////////////////////////////////////////////////////////
     
     void MediaController::set_rate(float r)
     {
-        if(!m_impl){ return; }
+        if(!is_loaded()){ return; }
         
         m_impl->m_rate = r;
         [m_impl->m_player setRate: r];

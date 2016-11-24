@@ -53,6 +53,7 @@ namespace kinski{ namespace media
         OMXPacket* m_omx_pkt = nullptr;
         OMXAudioConfig m_config_audio;
         OMXVideoConfig m_config_video;
+        bool m_loaded = false;
         bool m_has_video = false;
         bool m_has_audio = false;
         bool m_has_subtitle = false;
@@ -176,8 +177,8 @@ namespace kinski{ namespace media
                     //TODO: rather pause here!?
                     if(m_omx_reader.IsEof())
                     {
-                        m_playing = false;
-                        //break;
+                      m_playing = false;
+                      //break;
                     }
 
                     // Quick reset to reduce delay during loop & seek.
@@ -366,9 +367,11 @@ namespace kinski{ namespace media
                     }
                     else{ OMXClock::OMXSleep(10); }
                 }
+
+                // std::this_thread::sleep_for(std::chrono::milliseconds(35));
             }
             m_playing = false;
-            LOG_TRACE << "movie decode thread ended";
+            LOG_DEBUG << "movie decode thread ended";
         }
     };
 
@@ -390,7 +393,12 @@ namespace kinski{ namespace media
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    MediaController::MediaController(){}
+    MediaController::MediaController():
+    m_impl(new MediaControllerImpl)
+    {
+
+    }
+
     MediaController::~MediaController(){}
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -505,11 +513,14 @@ namespace kinski{ namespace media
         //     m_player_audio->SetDynamicRangeCompression(m_Amplification);
         }
 
+
         m_impl->m_av_clock->OMXReset(m_impl->m_has_video, m_impl->m_has_audio);
         m_impl->m_av_clock->OMXStateExecute();
 
-        // fire on load callback, if any
-        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
+        m_impl->m_loaded = true;
+
+        // fire onload callback
+        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); };
 
         // autoplay
         if(autoplay){ play(); }
@@ -543,7 +554,7 @@ namespace kinski{ namespace media
 
     bool MediaController::is_loaded() const
     {
-        return m_impl.get();
+        return m_impl && m_impl->m_loaded;
     }
 
 /////////////////////////////////////////////////////////////////
@@ -578,13 +589,14 @@ namespace kinski{ namespace media
 
     bool MediaController::is_playing() const
     {
-        return m_impl && m_impl->m_playing && !m_impl->m_pause;
+        return is_loaded() && m_impl->m_playing && !m_impl->m_pause;
     }
 
 /////////////////////////////////////////////////////////////////
 
     void MediaController::restart()
     {
+        if(!is_loaded()){ return; }
         LOG_DEBUG << "restarting movie playback";
         seek_to_time(0.0);
         play();
@@ -601,7 +613,7 @@ namespace kinski{ namespace media
 
     void MediaController::set_volume(float newVolume)
     {
-        if(!m_impl || !m_impl->m_has_audio){ return; }
+        if(!is_loaded() || !m_impl->m_has_audio){ return; }
         m_impl->m_volume = clamp(newVolume, 0.f, 1.f);
         m_impl->m_player_audio->SetVolume(m_impl->m_volume);
     }
@@ -617,7 +629,7 @@ namespace kinski{ namespace media
 
     bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
-        if(!m_impl || !m_impl->m_has_new_frame){ return false; }
+        if(!is_loaded() || !m_impl->m_has_new_frame){ return false; }
         tex = m_impl->m_texture;
         tex.set_flipped();
         m_impl->m_has_new_frame = false;
@@ -636,14 +648,14 @@ namespace kinski{ namespace media
 
     double MediaController::duration() const
     {
-        return m_impl ? (m_impl->m_omx_reader.GetStreamLength() / 1000.0) : 0.0;
+        return is_loaded() ? (m_impl->m_omx_reader.GetStreamLength() / 1000.0) : 0.0;
     }
 
 /////////////////////////////////////////////////////////////////
 
     double MediaController::current_time() const
     {
-        return m_impl ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
+        return is_loaded() ? m_impl->m_av_clock->OMXMediaTime() / (double)DVD_TIME_BASE : 0.0;
     }
 
 /////////////////////////////////////////////////////////////////
@@ -651,7 +663,7 @@ namespace kinski{ namespace media
     double MediaController::fps() const
     {
         double fps = 0.0;
-        if(m_impl){ fps = m_impl->m_omx_reader.GetFrameRate(); }
+        if(is_loaded()){ fps = m_impl->m_omx_reader.GetFrameRate(); }
         return fps;
     }
 
@@ -659,7 +671,7 @@ namespace kinski{ namespace media
 
     void MediaController::seek_to_time(double value)
     {
-        if(!m_impl){ return; }
+        if(!is_loaded()){ return; }
 
         if(m_impl->m_omx_reader.CanSeek())
         {
@@ -715,14 +727,14 @@ namespace kinski{ namespace media
 
     float MediaController::rate() const
     {
-        return m_impl ? m_impl->m_rate : 1.f;
+        return is_loaded() ? m_impl->m_rate : 1.f;
     }
 
 /////////////////////////////////////////////////////////////////
 
     void MediaController::set_rate(float r)
     {
-        if(!m_impl || !m_impl->m_av_clock){ return; }
+        if(!is_loaded() || !m_impl->m_av_clock){ return; }
 
         int iSpeed = DVD_PLAYSPEED_NORMAL * r;
         m_impl->m_omx_reader.SetSpeed(iSpeed);
@@ -741,7 +753,7 @@ namespace kinski{ namespace media
     const std::string& MediaController::path() const
     {
         static std::string ret;
-        return m_impl ? m_impl->m_src_path : ret;
+        return is_loaded() ? m_impl->m_src_path : ret;
     }
 
 /////////////////////////////////////////////////////////////////
