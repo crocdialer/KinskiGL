@@ -75,11 +75,6 @@ namespace kinski{ namespace media
 
         MediaControllerImpl()
         {
-            if(!m_OMX)
-            {
-                m_OMX.reset(new COMXCore(), [](COMXCore *c){c->Deinitialize();});
-                m_OMX->Initialize();
-            }
             m_av_clock.reset(new OMXClock());
         }
         ~MediaControllerImpl()
@@ -427,6 +422,12 @@ namespace kinski{ namespace media
         m_impl->m_render_target = the_render_target;
         m_impl->m_audio_target = the_audio_target;
 
+        if(!m_OMX)
+        {
+            m_OMX.reset(new COMXCore(), [](COMXCore *c){c->Deinitialize();});
+            m_OMX->Initialize();
+        }
+        
         m_impl->m_player_audio.reset(new OMXPlayerAudio());
         m_impl->m_player_video.reset(new OMXPlayerVideo());
 
