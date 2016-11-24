@@ -317,9 +317,6 @@ namespace kinski{ namespace media
                         continue;
                     }
 
-                    // fire movie ended callback
-                    if(m_movie_ended_cb){ m_movie_ended_cb(m_movie_controller.lock()); }
-
                     if(m_loop)
                     {
                         m_incr = m_loop_from - (m_av_clock->OMXMediaTime() ? m_av_clock->OMXMediaTime() / DVD_TIME_BASE : last_seek_pos);
@@ -366,11 +363,12 @@ namespace kinski{ namespace media
                     }
                     else{ OMXClock::OMXSleep(10); }
                 }
-
-                // std::this_thread::sleep_for(std::chrono::milliseconds(35));
             }
             m_playing = false;
-            LOG_DEBUG << "movie decode thread ended: " << m_playing;
+            LOG_TRACE << "movie decode thread ended";
+
+            // fire movie ended callback
+            if(m_movie_ended_cb){ m_movie_ended_cb(m_movie_controller.lock()); }
         }
     };
 
@@ -512,7 +510,7 @@ namespace kinski{ namespace media
 
         // fire on load callback, if any
         if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
-        
+
         // autoplay
         if(autoplay){ play(); }
     }
