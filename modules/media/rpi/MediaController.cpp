@@ -176,8 +176,8 @@ namespace kinski{ namespace media
                     //TODO: rather pause here!?
                     if(m_omx_reader.IsEof())
                     {
-                      m_playing = false;
-                      //break;
+                        m_playing = false;
+                        //break;
                     }
 
                     // Quick reset to reduce delay during loop & seek.
@@ -317,6 +317,9 @@ namespace kinski{ namespace media
                         continue;
                     }
 
+                    // fire movie ended callback
+                    if(m_movie_ended_cb){ m_movie_ended_cb(m_movie_controller.lock()); }
+
                     if(m_loop)
                     {
                         m_incr = m_loop_from - (m_av_clock->OMXMediaTime() ? m_av_clock->OMXMediaTime() / DVD_TIME_BASE : last_seek_pos);
@@ -366,9 +369,6 @@ namespace kinski{ namespace media
             }
             m_playing = false;
             LOG_TRACE << "movie decode thread ended";
-
-            // fire movie ended callback
-            if(m_movie_ended_cb){ m_movie_ended_cb(m_movie_controller.lock()); }
         }
     };
 
