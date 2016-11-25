@@ -446,12 +446,12 @@ namespace kinski
                                        tcp_receive_cb_t f):
         m_impl(new tcp_connection_impl(tcp::socket(io_service), f))
         {
-            auto impl_cp = m_impl;
-            auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
-            impl_cp->m_connect_cb = [](UARTPtr the_uart)
+            m_impl->m_connect_cb = [](UARTPtr the_uart)
             {
                 LOG_TRACE_1 << "connected: " << the_uart->description();
             };
+            auto impl_cp = m_impl;
+            auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
             
             resolver_ptr->async_resolve({the_ip, kinski::to_string(the_port)},
                                         [this, impl_cp, resolver_ptr, the_ip]
@@ -470,9 +470,9 @@ namespace kinski
                             {
                                 if(impl_cp->m_connect_cb)
                                 {
-                                    start_receive();
                                     impl_cp->m_connect_cb(shared_from_this());
                                 }
+                                start_receive();
                             }
                         });
                     }
@@ -574,7 +574,7 @@ namespace kinski
                     }
                     
                     // only keep receiving if there are any refs on this instance left
-                    if(impl_cp.use_count() > 1){ start_receive(); }
+                    if(self){ start_receive(); }
                 }
                 else
                 {
