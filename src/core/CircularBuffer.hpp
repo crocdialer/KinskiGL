@@ -122,28 +122,33 @@ public:
     {
         friend CircularBuffer<T>;
         
+        const CircularBuffer<T>* m_buf;
         T *m_array, *m_ptr;
         uint32_t m_size;
         
     public:
         
         iterator():
+        m_buf(nullptr),
         m_array(nullptr),
         m_ptr(nullptr),
         m_size(0){}
         
         iterator(const iterator &the_other):
+        m_buf(the_other.m_buf),
         m_array(the_other.m_array),
         m_ptr(the_other.m_ptr),
         m_size(the_other.m_size){}
         
         iterator(const CircularBuffer<T>* the_buf, uint32_t the_pos):
+        m_buf(the_buf),
         m_array(the_buf->m_data),
         m_ptr(the_buf->m_data + the_pos),
         m_size(the_buf->m_array_size){}
         
         inline iterator& operator=(iterator the_other)
         {
+            std::swap(m_buf, the_other.m_buf);
             std::swap(m_array, the_other.m_array);
             std::swap(m_ptr, the_other.m_ptr);
             std::swap(m_size, the_other.m_size);
@@ -182,15 +187,16 @@ public:
         
         inline iterator& operator-(int i)
         {
-            m_ptr += i;
-            if(m_ptr >= (m_array + m_size)){ m_ptr -= m_size;}
-            if(m_ptr < m_array){ m_ptr += m_size;}
-            return *this;
+            return *this + (-i);
         }
         
         inline int operator-(const iterator &the_other)
         {
-            return m_ptr - the_other.m_ptr;
+            int index = m_ptr - m_array - m_buf->m_first;
+            index += index < 0 ? m_size : 0;
+            int other_index = the_other.m_ptr - m_array - m_buf->m_first;
+            other_index += index < 0 ? m_size : 0;
+            return index - other_index;
         }
     };
     typedef const iterator const_iterator;

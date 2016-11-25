@@ -590,6 +590,10 @@ namespace kinski
                             {
                                 impl_cp->m_disconnect_cb(self);
                             }
+                            
+                            // reset function objects (they might hold a ref on this connection)
+                            impl_cp->m_connect_cb = connection_cb_t();
+                            impl_cp->m_receive_cb = receive_cb_t();
                             break;
                             
                         default:

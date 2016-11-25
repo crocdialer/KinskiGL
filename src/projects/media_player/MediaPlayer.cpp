@@ -550,8 +550,8 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
             << (int)(1000.0 * mean(m_ip_delays[con->remote_ip()])) << " ms";
         ptr->close();
     };
+    con->set_connect_cb([this](UARTPtr the_con){ the_con->write("echo ping"); });
     con->set_tcp_receive_cb(receive_func);
-    con->write("echo ping");
 }
 
 void MediaPlayer::setup_rpc_interface()
