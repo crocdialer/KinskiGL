@@ -77,7 +77,33 @@ namespace kinski
                             const std::vector<uint8_t> &bytes,
                             const std::string &the_ip,
                             uint16_t the_port)
-        {            
+        {
+//                auto socket_ptr = std::make_shared<tcp::socket>(io_service);
+//                auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
+//                
+//                resolver_ptr->async_resolve({the_ip, kinski::to_string(the_port)},
+//                                            [socket_ptr, resolver_ptr, the_ip, bytes]
+//                                            (const boost::system::error_code& ec,
+//                                             tcp::resolver::iterator end_point_it)
+//                {
+//                    if(!ec)
+//                    {
+//                        try
+//                        {
+//                            boost::asio::connect(*socket_ptr, end_point_it);
+//                            boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
+//                                                     [socket_ptr, the_ip, bytes]
+//                                                     (const boost::system::error_code& error,
+//                                                      std::size_t bytes_transferred)
+//                            {
+//                                if(error){ LOG_WARNING << the_ip << ": " << error.message(); }
+//                            });
+//                        }
+//                        catch(std::exception &e){ LOG_WARNING << the_ip << ": " << e.what(); }
+//                    }
+//                    else{ LOG_WARNING << the_ip << ": " << ec.message(); }
+//                });
+            
             auto con = tcp_connection::create(io_service, the_ip, the_port);
             con->set_connect_cb([bytes](UARTPtr the_uart)
             {
@@ -383,6 +409,12 @@ namespace kinski
             tcp_receive_cb(f)
             {}
             
+            ~tcp_connection_impl()
+            {
+                try{ socket.close(); }
+                catch (std::exception &e) { LOG_WARNING << e.what(); }
+            }
+            
             tcp::socket socket;
             std::vector<uint8_t> recv_buffer;
             
@@ -555,6 +587,7 @@ namespace kinski
                     {
                         case boost::asio::error::eof:
                         case boost::asio::error::connection_reset:
+                            impl_cp->socket.close();
                         case boost::asio::error::operation_aborted:
                         case boost::asio::error::bad_descriptor:
                             {
