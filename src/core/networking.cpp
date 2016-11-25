@@ -77,41 +77,12 @@ namespace kinski
                             const std::vector<uint8_t> &bytes,
                             const std::string &the_ip,
                             uint16_t the_port)
-        {
-                auto socket_ptr = std::make_shared<tcp::socket>(io_service);
-                auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
-                
-                resolver_ptr->async_resolve({the_ip, kinski::to_string(the_port)},
-                                            [socket_ptr, resolver_ptr, the_ip, bytes]
-                                            (const boost::system::error_code& ec,
-                                             tcp::resolver::iterator end_point_it)
-                {
-                    if(!ec)
-                    {
-                        try
-                        {
-                            boost::asio::connect(*socket_ptr, end_point_it);
-                            boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
-                                                     [socket_ptr, the_ip, bytes]
-                                                     (const boost::system::error_code& error,
-                                                      std::size_t bytes_transferred)
-                            {
-                                if(error){ LOG_WARNING << the_ip << ": " << error.message(); }
-                            });
-                        }
-                        catch(std::exception &e){ LOG_WARNING << the_ip << ": " << e.what(); }
-                    }
-                    else{ LOG_WARNING << the_ip << ": " << ec.message(); }
-                });
-            
-//            auto con = tcp_connection::create(io_service, the_ip, the_port);
-//            con->set_connect_cb([con, bytes](UARTPtr the_uart)
-//            {
-//                con->write_bytes(&bytes[0], bytes.size());
-//                
-//                // important: remove function object so the connection can be freed
-//                con->set_connect_cb();
-//            });
+        {            
+            auto con = tcp_connection::create(io_service, the_ip, the_port);
+            con->set_connect_cb([bytes](UARTPtr the_uart)
+            {
+                the_uart->write_bytes(&bytes[0], bytes.size());
+            });
         }
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -403,17 +374,6 @@ namespace kinski
         
         /////////////////////////////////////////////////////////////////////////////////////
         
-        tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
-                                                  const std::string &the_ip,
-                                                  uint16_t the_port,
-                                                  tcp_receive_cb_t f)
-        {
-            auto ret = tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f));
-            return ret;
-        }
-        
-        ///////////////////////////////////////////////////////////////////////////////
-        
         struct tcp_connection_impl
         {
             tcp_connection_impl(tcp::socket s,
@@ -436,6 +396,52 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
+        tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
+                                                  const std::string &the_ip,
+                                                  uint16_t the_port,
+                                                  tcp_receive_cb_t f)
+        {
+            auto ret = tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f));
+            auto connect_cb = [](UARTPtr the_uart)
+            {
+                LOG_TRACE_1 << "connected: " << the_uart->description();
+            };
+            ret->set_connect_cb(connect_cb);
+            
+            auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
+            
+            resolver_ptr->async_resolve({the_ip, kinski::to_string(the_port)},
+                                        [ret, resolver_ptr, the_ip]
+                                        (const boost::system::error_code& ec,
+                                         tcp::resolver::iterator end_point_it)
+            {
+                if(!ec)
+                {
+                    try
+                    {
+                        boost::asio::async_connect(ret->m_impl->socket, end_point_it,
+                                                   [ret](const boost::system::error_code& ec,
+                                                         tcp::resolver::iterator end_point_it)
+                        {
+                            if(!ec)
+                            {
+                                if(ret->m_impl->m_connect_cb)
+                                {
+                                    ret->m_impl->m_connect_cb(ret);
+                                }
+                                ret->start_receive();
+                            }
+                        });
+                    }
+                    catch(std::exception &e){ LOG_WARNING << the_ip << ": " << e.what(); }
+                }
+                else{ LOG_WARNING << the_ip << ": " << ec.message(); }
+            });
+            return ret;
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
         tcp_connection::tcp_connection(){}
         
         ///////////////////////////////////////////////////////////////////////////////
@@ -446,40 +452,7 @@ namespace kinski
                                        tcp_receive_cb_t f):
         m_impl(new tcp_connection_impl(tcp::socket(io_service), f))
         {
-            m_impl->m_connect_cb = [](UARTPtr the_uart)
-            {
-                LOG_TRACE_1 << "connected: " << the_uart->description();
-            };
-            auto impl_cp = m_impl;
-            auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
             
-            resolver_ptr->async_resolve({the_ip, kinski::to_string(the_port)},
-                                        [this, impl_cp, resolver_ptr, the_ip]
-                                        (const boost::system::error_code& ec,
-                                         tcp::resolver::iterator end_point_it)
-            {
-                if(!ec)
-                {
-                    try
-                    {
-                        boost::asio::async_connect(impl_cp->socket, end_point_it,
-                                                   [this, impl_cp](const boost::system::error_code& ec,
-                                                                   tcp::resolver::iterator end_point_it)
-                        {
-                            if(!ec)
-                            {
-                                if(impl_cp->m_connect_cb)
-                                {
-                                    impl_cp->m_connect_cb(shared_from_this());
-                                }
-                                start_receive();
-                            }
-                        });
-                    }
-                    catch(std::exception &e){ LOG_WARNING << the_ip << ": " << e.what(); }
-                }
-                else{ LOG_WARNING << the_ip << ": " << ec.message(); }
-            });
         }
         
         ///////////////////////////////////////////////////////////////////////////////

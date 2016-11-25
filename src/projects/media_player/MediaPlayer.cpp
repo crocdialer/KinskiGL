@@ -533,22 +533,23 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
                                            remote_control().listening_port());
     auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
-                                           const std::vector<uint8_t> &data)
+                                      const std::vector<uint8_t> &data)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
         auto delay = timer.time_elapsed() * 0.75;
         
-        auto it = m_ip_delays.find(con->remote_ip());
+        auto it = m_ip_delays.find(ptr->remote_ip());
         if(it == m_ip_delays.end())
         {
-            m_ip_delays[con->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_delays[con->remote_ip()].push_back(delay);
+            m_ip_delays[ptr->remote_ip()] = CircularBuffer<double>(5);
+            m_ip_delays[ptr->remote_ip()].push_back(delay);
         }
         else{ it->second.push_back(delay); }
         
         LOG_TRACE << ptr->remote_ip() << " (latency, last 10s): "
-            << (int)(1000.0 * mean(m_ip_delays[con->remote_ip()])) << " ms";
-        ptr->close();
+            << (int)(1000.0 * mean(m_ip_delays[ptr->remote_ip()])) << " ms";
+        
+//        ptr->close();
         con->set_tcp_receive_cb();
     };
     con->set_connect_cb([this](UARTPtr the_con){ the_con->write("echo ping"); });
