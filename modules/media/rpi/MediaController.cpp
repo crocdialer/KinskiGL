@@ -130,6 +130,7 @@ namespace kinski{ namespace media
             LOG_DEBUG << "starting movie decode thread";
             m_playing = true;
             sentStarted = true;
+            m_seek_flush = true;
             size_t num_frames = 0;
 
             while(m_playing)
