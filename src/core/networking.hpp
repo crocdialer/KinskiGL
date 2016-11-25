@@ -128,7 +128,7 @@ namespace kinski
             KINSKI_API void set_connect_cb(connection_cb_t cb = connection_cb_t()) override;
             KINSKI_API void set_disconnect_cb(connection_cb_t cb = connection_cb_t()) override;
             
-            KINSKI_API void set_tcp_receive_cb(tcp_receive_cb_t f);
+            KINSKI_API void set_tcp_receive_cb(tcp_receive_cb_t f = tcp_receive_cb_t());
             KINSKI_API uint16_t port() const;
             KINSKI_API std::string remote_ip() const;
             KINSKI_API uint16_t remote_port() const;

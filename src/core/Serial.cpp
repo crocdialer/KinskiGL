@@ -194,6 +194,7 @@ namespace kinski
                     case boost::asio::error::operation_aborted:
                         LOG_TRACE_1 << "disconnected: " << impl_cp->m_device_name;
                         if(self && impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(self); }
+                        
                         break;
                         
                     default:

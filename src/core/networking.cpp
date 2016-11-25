@@ -551,8 +551,8 @@ namespace kinski
             auto weak_self = std::weak_ptr<tcp_connection>(shared_from_this());
             
             impl_cp->socket.async_receive(boost::asio::buffer(impl_cp->recv_buffer),
-                                          [this, impl_cp, weak_self](const boost::system::error_code& error,
-                                                                     std::size_t bytes_transferred)
+                                          [impl_cp, weak_self](const boost::system::error_code& error,
+                                                               std::size_t bytes_transferred)
             {
                 auto self = weak_self.lock();
                 
@@ -574,7 +574,7 @@ namespace kinski
                     }
                     
                     // only keep receiving if there are any refs on this instance left
-                    if(self){ start_receive(); }
+                    if(self){ self->start_receive(); }
                 }
                 else
                 {
@@ -583,21 +583,20 @@ namespace kinski
                         case boost::asio::error::eof:
                         case boost::asio::error::connection_reset:
                         case boost::asio::error::operation_aborted:
-                            impl_cp->socket.close();
-                            LOG_TRACE_1 << "disconnected: " << description();
+                        case boost::asio::error::bad_descriptor:
+                            {
+                                std::string str = "tcp_connection";
+                                if(self){ str = self->description(); }
+                                LOG_TRACE_2 << "disconnected: " << str;
+                            }
                             
                             if(self && impl_cp->m_disconnect_cb)
                             {
                                 impl_cp->m_disconnect_cb(self);
                             }
                             
-                            // reset function objects (they might hold a ref on this connection)
-                            impl_cp->m_connect_cb = connection_cb_t();
-                            impl_cp->m_receive_cb = receive_cb_t();
-                            break;
-                            
                         default:
-                            LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
+                            LOG_TRACE_3 << error.message() << " ("<<error.value() << ")";
                             break;
                     }
                 }
