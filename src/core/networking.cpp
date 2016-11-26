@@ -63,52 +63,27 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void async_send_tcp(boost::asio::io_service& io_service,
-                            const std::string &str,
-                            const std::string &ip,
-                            int port)
+        tcp_connection_ptr async_send_tcp(boost::asio::io_service& io_service,
+                                          const std::string &str,
+                                          const std::string &ip,
+                                          int port)
         {
-            async_send_tcp(io_service, std::vector<uint8_t>(str.begin(), str.end()), ip, port);
+            return async_send_tcp(io_service, std::vector<uint8_t>(str.begin(), str.end()), ip, port);
         }
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void async_send_tcp(boost::asio::io_service& io_service,
-                            const std::vector<uint8_t> &bytes,
-                            const std::string &the_ip,
-                            uint16_t the_port)
+        tcp_connection_ptr async_send_tcp(boost::asio::io_service& io_service,
+                                          const std::vector<uint8_t> &bytes,
+                                          const std::string &the_ip,
+                                          uint16_t the_port)
         {
-//                auto socket_ptr = std::make_shared<tcp::socket>(io_service);
-//                auto resolver_ptr = std::make_shared<tcp::resolver>(io_service);
-//                
-//                resolver_ptr->async_resolve({the_ip, kinski::to_string(the_port)},
-//                                            [socket_ptr, resolver_ptr, the_ip, bytes]
-//                                            (const boost::system::error_code& ec,
-//                                             tcp::resolver::iterator end_point_it)
-//                {
-//                    if(!ec)
-//                    {
-//                        try
-//                        {
-//                            boost::asio::connect(*socket_ptr, end_point_it);
-//                            boost::asio::async_write(*socket_ptr, boost::asio::buffer(bytes),
-//                                                     [socket_ptr, the_ip, bytes]
-//                                                     (const boost::system::error_code& error,
-//                                                      std::size_t bytes_transferred)
-//                            {
-//                                if(error){ LOG_WARNING << the_ip << ": " << error.message(); }
-//                            });
-//                        }
-//                        catch(std::exception &e){ LOG_WARNING << the_ip << ": " << e.what(); }
-//                    }
-//                    else{ LOG_WARNING << the_ip << ": " << ec.message(); }
-//                });
-            
             auto con = tcp_connection::create(io_service, the_ip, the_port);
             con->set_connect_cb([bytes](UARTPtr the_uart)
             {
                 the_uart->write_bytes(&bytes[0], bytes.size());
             });
+            return con;
         }
         
         ///////////////////////////////////////////////////////////////////////////////
