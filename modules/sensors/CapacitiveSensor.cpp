@@ -134,7 +134,7 @@ namespace kinski
         m_impl->m_sensor_device = the_uart_device;
         m_impl->m_sensor_accumulator.clear();
         
-        if(the_uart_device && the_uart_device->is_open())
+        if(the_uart_device /*&& the_uart_device->is_open()*/)
         {
             the_uart_device->drain();
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);

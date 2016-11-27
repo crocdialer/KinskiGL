@@ -80,7 +80,11 @@ namespace kinski
     
     bool Serial::open(const std::string &the_name, int the_baudrate)
     {
-        close();
+        if(is_open())
+        {
+            if(m_impl->m_device_name == the_name){ return false; }
+            close();
+        }
         boost::asio::serial_port_base::baud_rate br(the_baudrate);
         boost::asio::serial_port_base::flow_control flow_control;
         boost::asio::serial_port_base::parity parity;
