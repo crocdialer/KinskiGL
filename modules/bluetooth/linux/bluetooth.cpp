@@ -780,7 +780,7 @@ void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
         while(offset < the_num_bytes)
         {
             uint32_t num_bytes = std::min(max_packet_size, the_num_bytes - offset);
-            const uint8_t* data_start = (const uint8_t*)the_data + offset;
+            void* data_start = (const uint8_t*)the_data + offset;
             ret = gattlib_write_char_by_handle(con->gatt_connection, c.value_handle, data_start, num_bytes);
             offset += num_bytes;
             if(ret){ LOG_WARNING << "trouble writing characteristic"; return; }
