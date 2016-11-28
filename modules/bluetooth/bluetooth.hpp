@@ -80,7 +80,8 @@ namespace kinski{ namespace bluetooth
 
         //! write a GATT-characteristic, specified by its UUID
         void write_value_for_characteristic(const UUID &the_characteristic,
-                                            const std::vector<uint8_t> &the_data);
+                                            const void* the_data,
+                                            size_t the_num_bytes);
 
         //! read a GATT-characteristic, specified by its UUID.
         //  the value will be returned through the provided callback after retrieval

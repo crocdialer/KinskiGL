@@ -311,7 +311,8 @@ namespace kinski{ namespace bluetooth{
     ///////////////////////////////////////////////////////////////////////////////////////////
     
     void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
-                                                    const std::vector<uint8_t> &the_data)
+                                                    const void* the_data,
+                                                    size_t the_num_bytes)
     {
         CBCharacteristic *cb_characteristic = find_characteristic(shared_from_this(),
                                                                   the_characteristic);
@@ -322,10 +323,11 @@ namespace kinski{ namespace bluetooth{
             const size_t max_packet_size = 20;
             size_t offset = 0;
 
-            while(offset < the_data.size())
+            while(offset < the_num_bytes)
             {
-                uint32_t num_bytes = std::min(max_packet_size, the_data.size() - offset);
-                NSData *ns_data = [NSData dataWithBytes:(void*)&the_data[offset] length: num_bytes];
+                uint32_t num_bytes = std::min(max_packet_size, the_num_bytes - offset);
+                const uint8_t* data_start = (const uint8_t*)the_data + offset;
+                NSData *ns_data = [NSData dataWithBytes:data_start length: num_bytes];
                 [p writeValue: ns_data forCharacteristic: cb_characteristic type: CBCharacteristicWriteWithResponse];
                 offset += num_bytes;
             }

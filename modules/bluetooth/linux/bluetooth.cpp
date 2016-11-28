@@ -757,7 +757,8 @@ void Peripheral::discover_services(const std::set<UUID>& the_uuids)
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
-                                                const std::vector<uint8_t> &the_data)
+                                                const void* the_data,
+                                                size_t the_num_bytes)
 {
     // check connection
     if(!is_connected()){ return; }
@@ -776,10 +777,11 @@ void Peripheral::write_value_for_characteristic(const UUID &the_characteristic,
         const size_t max_packet_size = 20;
         size_t offset = 0;
 
-        while(offset < the_data.size())
+        while(offset < the_num_bytes)
         {
-            uint32_t num_bytes = std::min(max_packet_size, the_data.size() - offset);
-            ret = gattlib_write_char_by_handle(con->gatt_connection, c.value_handle, (void*)&the_data[offset], num_bytes);
+            uint32_t num_bytes = std::min(max_packet_size, the_num_bytes - offset);
+            const uint8_t* data_start = (const uint8_t*)the_data + offset;
+            ret = gattlib_write_char_by_handle(con->gatt_connection, c.value_handle, data_start, num_bytes);
             offset += num_bytes;
             if(ret){ LOG_WARNING << "trouble writing characteristic"; return; }
         }

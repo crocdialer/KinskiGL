@@ -120,9 +120,7 @@ namespace kinski{ namespace bluetooth{
     {
         if(m_impl->m_peripheral)
         {
-            m_impl->m_peripheral->write_value_for_characteristic(UART_CHARACTERISTIC_TX,
-                                                                 std::vector<uint8_t>((uint8_t*)buffer,
-                                                                                      (uint8_t*)buffer + sz));
+            m_impl->m_peripheral->write_value_for_characteristic(UART_CHARACTERISTIC_TX, buffer, sz);
             return sz;
         }
         return 0;
