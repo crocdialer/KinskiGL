@@ -83,7 +83,7 @@ namespace kinski
         if(is_open())
         {
             if(m_impl->m_device_name == the_name){ return false; }
-//            close();
+            close();
         }
         boost::asio::serial_port_base::baud_rate br(the_baudrate);
         boost::asio::serial_port_base::flow_control flow_control;

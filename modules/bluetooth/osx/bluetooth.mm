@@ -76,7 +76,8 @@ namespace kinski{ namespace bluetooth{
         }
         ~CentralImpl()
         {
-            central_ref.lock()->disconnect_all();
+            auto central = central_ref.lock();
+            if(central){ central->disconnect_all(); };
             [central_manager stopScan];
             [central_manager dealloc];
             [delegate dealloc];
@@ -541,7 +542,11 @@ didDisconnectPeripheral:(CBPeripheral *)peripheral error:(NSError *)error
     if(it != kinski::bluetooth::g_peripheral_reverse_map.end())
     {
         auto p = it->second;
-
+        
+        auto &disconnect_cb = self.central_impl->peripheral_disconnected_cb;
+        
+        if(p && disconnect_cb){ disconnect_cb(p->central(), p); }
+        
         [peripheral release];
         kinski::bluetooth::g_peripheral_map.erase(p);
         kinski::bluetooth::g_peripheral_reverse_map.erase(peripheral);
