@@ -19,17 +19,17 @@
 
 namespace kinski
 {
-    struct ThreadPool::Impl
+    typedef std::unique_ptr<boost::asio::io_service::work> io_work_ptr;
+    
+    struct ThreadPoolImpl
     {
         boost::asio::io_service io_service;
-        boost::asio::io_service::work io_work;
+        io_work_ptr io_work;
         std::vector<std::thread> threads;
-        
-        Impl():io_work(io_service){}
     };
     
     ThreadPool::ThreadPool(size_t num):
-    m_impl(new Impl)
+    m_impl(new ThreadPoolImpl)
     {
         set_num_threads(num);
     }
@@ -70,6 +70,8 @@ namespace kinski
     
     void ThreadPool::join_all()
     {
+        m_impl->io_work.reset();
+        
         for (auto &thread : m_impl->threads)
         {
             try
@@ -88,6 +90,7 @@ namespace kinski
             try
             {
                 join_all();
+                m_impl->io_work = io_work_ptr(new boost::asio::io_service::work(m_impl->io_service));
                 
                 for(int i = 0; i < num; ++i)
                 {

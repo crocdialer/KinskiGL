@@ -138,17 +138,17 @@ Texture::Format::Format()
 /////////////////////////////////////////////////////////////////////////////////
 // Texture::Obj
     
-struct Texture::Obj
+struct TextureImpl
 {
-    Obj() : m_width(-1), m_height(-1), m_depth(-1), m_internal_format(-1), m_datatype(-1),
+    TextureImpl() : m_width(-1), m_height(-1), m_depth(-1), m_internal_format(-1), m_datatype(-1),
     m_target(GL_TEXTURE_2D), m_texture_id(0), m_flipped(false), m_mip_map(false),
     m_deallocator_func(0) {};
     
-    Obj(int aWidth, int aHeight, int depth = 1) : m_width(aWidth), m_height(aHeight),
+    TextureImpl(int aWidth, int aHeight, int depth = 1) : m_width(aWidth), m_height(aHeight),
     m_depth(depth), m_internal_format(-1), m_datatype(-1), m_target(GL_TEXTURE_2D), m_texture_id(0),
     m_flipped(false), m_mip_map(false), m_bound_texture_unit(-1), m_deallocator_func(0){};
     
-    ~Obj()
+    ~TextureImpl()
     {
         if(m_deallocator_func){ (*m_deallocator_func)(m_deallocator_ref); }
         
@@ -177,12 +177,12 @@ Texture::Texture(int aWidth, int aHeight, Format format):
 Texture(aWidth, aHeight, 1, format){}
     
 Texture::Texture(int aWidth, int aHeight, int aDepth, Format format):
-m_Obj(new Obj(aWidth, aHeight, aDepth))
+m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
     if(format.m_internal_format == -1){ format.m_internal_format = GL_RGBA; }
-    m_Obj->m_internal_format = format.m_internal_format;
-    m_Obj->m_target = format.m_target;
-    m_Obj->m_datatype = format.m_datatype;
+    m_impl->m_internal_format = format.m_internal_format;
+    m_impl->m_target = format.m_target;
+    m_impl->m_datatype = format.m_datatype;
     init(nullptr, GL_RGBA, format);
 }
 
@@ -191,12 +191,12 @@ Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHei
     
 Texture::Texture(const unsigned char *data, int dataFormat, int aWidth, int aHeight, int aDepth,
                  Format format)
-: m_Obj(new Obj(aWidth, aHeight, aDepth))
+: m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
     if(format.m_internal_format == -1){ format.m_internal_format = GL_RGBA; }
-    m_Obj->m_internal_format = format.m_internal_format;
-    m_Obj->m_target = format.m_target;
-    m_Obj->m_datatype = format.m_datatype;
+    m_impl->m_internal_format = format.m_internal_format;
+    m_impl->m_target = format.m_target;
+    m_impl->m_datatype = format.m_datatype;
     init(data, dataFormat, format);
 }
 
@@ -205,30 +205,30 @@ Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, boo
     
 Texture::Texture(GLenum aTarget, GLuint aTextureID, int aWidth, int aHeight, int aDepth,
                  bool aDoNotDispose):
-m_Obj(new Obj(aWidth, aHeight, aDepth))
+m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
-    m_Obj->m_target = aTarget;
-    m_Obj->m_texture_id = aTextureID;
-    m_Obj->m_internal_format = GL_RGBA;
-    m_Obj->m_datatype = GL_UNSIGNED_BYTE;
-    m_Obj->m_do_not_dispose = aDoNotDispose;
+    m_impl->m_target = aTarget;
+    m_impl->m_texture_id = aTextureID;
+    m_impl->m_internal_format = GL_RGBA;
+    m_impl->m_datatype = GL_UNSIGNED_BYTE;
+    m_impl->m_do_not_dispose = aDoNotDispose;
 }
     
 void Texture::init(const void *data, GLint dataFormat, const Format &format)
 {
-    m_Obj->m_do_not_dispose = false;
-    m_Obj->m_datatype = format.m_datatype;
+    m_impl->m_do_not_dispose = false;
+    m_impl->m_datatype = format.m_datatype;
     
-    if(!m_Obj->m_texture_id)
+    if(!m_impl->m_texture_id)
     {
-        glGenTextures(1, &m_Obj->m_texture_id);
-        glBindTexture(m_Obj->m_target, m_Obj->m_texture_id);
-        glTexParameteri(m_Obj->m_target, GL_TEXTURE_WRAP_S, format.m_wrap_s);
-        glTexParameteri(m_Obj->m_target, GL_TEXTURE_WRAP_T, format.m_wrap_t);
-        glTexParameteri(m_Obj->m_target, GL_TEXTURE_MIN_FILTER, format.m_min_filter);
-        glTexParameteri(m_Obj->m_target, GL_TEXTURE_MAG_FILTER, format.m_mag_filter);
+        glGenTextures(1, &m_impl->m_texture_id);
+        glBindTexture(m_impl->m_target, m_impl->m_texture_id);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_S, format.m_wrap_s);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_T, format.m_wrap_t);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_MIN_FILTER, format.m_min_filter);
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_MAG_FILTER, format.m_mag_filter);
     }
-    else{ glBindTexture(m_Obj->m_target, m_Obj->m_texture_id); }
+    else{ glBindTexture(m_impl->m_target, m_impl->m_texture_id); }
     
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
@@ -236,18 +236,18 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
 //    glPixelStorei(GL_UNPACK_ROW_LENGTH, unpackRowLength);
 //#endif
     
-    if(m_Obj->m_target == GL_TEXTURE_2D)
+    if(m_impl->m_target == GL_TEXTURE_2D)
     {
-        glTexImage2D(m_Obj->m_target, 0, m_Obj->m_internal_format,
-                     m_Obj->m_width, m_Obj->m_height, 0, dataFormat,
-                     m_Obj->m_datatype, data);
+        glTexImage2D(m_impl->m_target, 0, m_impl->m_internal_format,
+                     m_impl->m_width, m_impl->m_height, 0, dataFormat,
+                     m_impl->m_datatype, data);
     }
 #if !defined(KINSKI_GLES)
-    else if (m_Obj->m_target == GL_TEXTURE_3D ||
-             m_Obj->m_target == GL_TEXTURE_2D_ARRAY)
+    else if (m_impl->m_target == GL_TEXTURE_3D ||
+             m_impl->m_target == GL_TEXTURE_2D_ARRAY)
     {
-        glTexImage3D(m_Obj->m_target, 0, m_Obj->m_internal_format, m_Obj->m_width, m_Obj->m_height,
-                     m_Obj->m_depth, 0, dataFormat, m_Obj->m_datatype, data);
+        glTexImage3D(m_impl->m_target, 0, m_impl->m_internal_format, m_impl->m_width, m_impl->m_height,
+                     m_impl->m_depth, 0, dataFormat, m_impl->m_datatype, data);
     }
 #endif
     
@@ -255,14 +255,14 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 #endif
     
-    if(format.m_mipmapping){ glGenerateMipmap(m_Obj->m_target); }
+    if(format.m_mipmapping){ glGenerateMipmap(m_impl->m_target); }
     
 #ifndef KINSKI_GLES
     if(dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
     {
         GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
             GL_ONE};
-        glTexParameteriv(m_Obj->m_target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
+        glTexParameteriv(m_impl->m_target, GL_TEXTURE_SWIZZLE_RGBA, swizzleMask);
     }
 #endif
     
@@ -282,22 +282,22 @@ void Texture::update(const float *data,GLenum format, int theWidth, int theHeigh
 void Texture::update(const void *data, GLenum data_type, GLenum data_format, int theWidth, int theHeight,
                      bool flipped)
 {
-    if(!m_Obj){ m_Obj = ObjPtr(new Obj()); }
+    if(!m_impl){ m_impl = std::make_shared<TextureImpl>(); }
     set_flipped(flipped);
     
-    if(m_Obj->m_width == theWidth && 
-       m_Obj->m_height == theHeight &&
-       m_Obj->m_datatype == data_type)
+    if(m_impl->m_width == theWidth && 
+       m_impl->m_height == theHeight &&
+       m_impl->m_datatype == data_type)
     {
-        glBindTexture(m_Obj->m_target, m_Obj->m_texture_id);
-        glTexSubImage2D(m_Obj->m_target, 0, 0, 0, m_Obj->m_width, m_Obj->m_height, data_format, data_type, data);
+        glBindTexture(m_impl->m_target, m_impl->m_texture_id);
+        glTexSubImage2D(m_impl->m_target, 0, 0, 0, m_impl->m_width, m_impl->m_height, data_format, data_type, data);
     }
     else 
     {
-        m_Obj->m_datatype = data_type;
-        m_Obj->m_internal_format = GL_RGBA;
-        m_Obj->m_width = theWidth;
-        m_Obj->m_height = theHeight;
+        m_impl->m_datatype = data_type;
+        m_impl->m_internal_format = GL_RGBA;
+        m_impl->m_width = theWidth;
+        m_impl->m_height = theHeight;
         Format f;
         f.m_datatype = data_type;
         init(data, data_format, f);
@@ -335,21 +335,21 @@ bool Texture::data_format_has_color(GLint the_data_format)
 
 Texture	Texture::weak_clone() const
 {
-	gl::Texture result = Texture(m_Obj->m_target, m_Obj->m_texture_id, m_Obj->m_width, m_Obj->m_height, true);
-	result.m_Obj->m_internal_format = m_Obj->m_internal_format;
-	result.m_Obj->m_flipped = m_Obj->m_flipped;	
+	gl::Texture result = Texture(m_impl->m_target, m_impl->m_texture_id, m_impl->m_width, m_impl->m_height, true);
+	result.m_impl->m_internal_format = m_impl->m_internal_format;
+	result.m_impl->m_flipped = m_impl->m_flipped;	
 	return result;
 }
 
 void Texture::set_deallocator(void(*aDeallocatorFunc)(void *), void *aDeallocatorRefcon)
 {
-	m_Obj->m_deallocator_func = aDeallocatorFunc;
-	m_Obj->m_deallocator_ref = aDeallocatorRefcon;
+	m_impl->m_deallocator_func = aDeallocatorFunc;
+	m_impl->m_deallocator_ref = aDeallocatorRefcon;
 }
 
 void Texture::set_do_not_dispose(bool the_do_not_dispose)
 { 
-    m_Obj->m_do_not_dispose = the_do_not_dispose; 
+    m_impl->m_do_not_dispose = the_do_not_dispose; 
 }
 
 void Texture::set_texture_matrix(const mat4 &theMatrix)
@@ -383,7 +383,7 @@ mat4 Texture::texture_matrix() const
 {
     mat4 ret = m_textureMatrix;
     
-    if(m_Obj && m_Obj->m_flipped)
+    if(m_impl && m_impl->m_flipped)
     {
         static const mat4 flipY = mat4(vec4(1, 0, 0, 1),
                                        vec4(0, -1, 0, 1),// invert y-coords
@@ -396,67 +396,67 @@ mat4 Texture::texture_matrix() const
 
 const bool Texture::is_bound() const
 {
-    return m_Obj->m_bound_texture_unit >= 0;
+    return m_impl->m_bound_texture_unit >= 0;
 }
 
 const GLint Texture::bound_texture_unit() const
 {
-    return m_Obj ? m_Obj->m_bound_texture_unit : -1;
+    return m_impl ? m_impl->m_bound_texture_unit : -1;
 }
     
 GLuint Texture::id() const
 { 
-    return m_Obj ? m_Obj->m_texture_id : 0;
+    return m_impl ? m_impl->m_texture_id : 0;
 }
 
 GLenum Texture::target() const
 { 
-    return m_Obj ? m_Obj->m_target : 0;
+    return m_impl ? m_impl->m_target : 0;
 }
 
 //!	whether the texture is flipped vertically
 bool Texture::flipped() const
 {
-    return m_Obj && m_Obj->m_flipped;
+    return m_impl && m_impl->m_flipped;
 }
 
 //!	Marks the texture as being flipped vertically or not
 void Texture::set_flipped(bool the_flipped)
 {
-    if(m_Obj){ m_Obj->m_flipped = the_flipped; }
+    if(m_impl){ m_impl->m_flipped = the_flipped; }
 }
     
 void Texture::set_wrap_s(GLenum the_warp_s)
 {
-    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_WRAP_S, the_warp_s); }
+    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_S, the_warp_s); }
 }
 
 void Texture::set_wrap_t(GLenum the_warp_t)
 {
-    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_WRAP_T, the_warp_t); }
+    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_T, the_warp_t); }
 }
 
 void Texture::set_min_filter(GLenum minFilter)
 {
-    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_MIN_FILTER, minFilter); }
+    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_MIN_FILTER, minFilter); }
 }
 
 void Texture::set_mag_filter(GLenum magFilter)
 {
-    if(m_Obj){ glTexParameteri(m_Obj->m_target, GL_TEXTURE_MAG_FILTER, magFilter); };
+    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_MAG_FILTER, magFilter); };
 }
 
 void Texture::set_mipmapping(bool b)
 {
-    if(m_Obj)
+    if(m_impl)
     {
-        if(b && !m_Obj->m_mip_map)
+        if(b && !m_impl->m_mip_map)
         {
             set_min_filter(GL_LINEAR_MIPMAP_LINEAR);
-            glGenerateMipmap(m_Obj->m_target);
+            glGenerateMipmap(m_impl->m_target);
         }
         else{ set_min_filter(GL_LINEAR); }
-        m_Obj->m_mip_map = b;
+        m_impl->m_mip_map = b;
     }
 }
 
@@ -474,9 +474,9 @@ void Texture::set_anisotropic_filter(float f)
     
 bool Texture::has_alpha() const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+    if(!m_impl) throw TextureDataExc("Texture not initialized ...");
     
-	switch(m_Obj->m_internal_format)
+	switch(m_impl->m_internal_format)
     {
 #if ! defined(KINSKI_GLES)
 		case GL_RGBA8:
@@ -494,87 +494,87 @@ bool Texture::has_alpha() const
 
 GLint Texture::internal_format() const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
+    if(!m_impl) throw TextureDataExc("Texture not initialized ...");
 #if ! defined(KINSKI_GLES)
-	if(m_Obj->m_internal_format == -1)
+	if(m_impl->m_internal_format == -1)
     {
 		bind();
-		glGetTexLevelParameteriv(m_Obj->m_target, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_Obj->m_internal_format);
+		glGetTexLevelParameteriv(m_impl->m_target, 0, GL_TEXTURE_INTERNAL_FORMAT, &m_impl->m_internal_format);
 	}
 #endif // ! defined(KINSKI_GLES)
 	
-	return m_Obj->m_internal_format;
+	return m_impl->m_internal_format;
 }
 
 GLint Texture::width() const
 {
-    if(!m_Obj){ return 0; };
+    if(!m_impl){ return 0; };
     
 #if ! defined(KINSKI_GLES)
-	if(m_Obj->m_width == -1)
+	if(m_impl->m_width == -1)
     {
 		bind();
-		glGetTexLevelParameteriv(m_Obj->m_target, 0, GL_TEXTURE_WIDTH, &m_Obj->m_width);
+		glGetTexLevelParameteriv(m_impl->m_target, 0, GL_TEXTURE_WIDTH, &m_impl->m_width);
 	}
 #endif
-	return m_Obj->m_width;
+	return m_impl->m_width;
 }
 
 GLint Texture::height() const
 {
-    if(!m_Obj){ return 0; };
+    if(!m_impl){ return 0; };
     
 #if ! defined(KINSKI_GLES)
-	if(m_Obj->m_height == -1)
+	if(m_impl->m_height == -1)
     {
 		bind();
-		glGetTexLevelParameteriv(m_Obj->m_target, 0, GL_TEXTURE_HEIGHT, &m_Obj->m_height);	
+		glGetTexLevelParameteriv(m_impl->m_target, 0, GL_TEXTURE_HEIGHT, &m_impl->m_height);	
 	}
 #endif
-	return m_Obj->m_height;
+	return m_impl->m_height;
 }
     
 GLint Texture::depth() const
 {
-    if(!m_Obj){ return 0; };
+    if(!m_impl){ return 0; };
     
 #if ! defined(KINSKI_GLES)
-    if(m_Obj->m_depth == -1)
+    if(m_impl->m_depth == -1)
     {
         bind();
-        glGetTexLevelParameteriv(m_Obj->m_target, 0, GL_TEXTURE_DEPTH, &m_Obj->m_depth);
+        glGetTexLevelParameteriv(m_impl->m_target, 0, GL_TEXTURE_DEPTH, &m_impl->m_depth);
     }
 #endif
-    return m_Obj->m_depth;
+    return m_impl->m_depth;
 }
 
 void Texture::bind(GLuint textureUnit) const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
-    m_Obj->m_bound_texture_unit = textureUnit;
+    if(!m_impl) throw TextureDataExc("Texture not initialized ...");
+    m_impl->m_bound_texture_unit = textureUnit;
 	glActiveTexture(GL_TEXTURE0 + textureUnit);
-	glBindTexture(m_Obj->m_target, m_Obj->m_texture_id);
+	glBindTexture(m_impl->m_target, m_impl->m_texture_id);
 	glActiveTexture(GL_TEXTURE0);
 }
 
 void Texture::unbind(GLuint textureUnit) const
 {
-    if(!m_Obj) throw TextureDataExc("Texture not initialized ...");
-    m_Obj->m_bound_texture_unit = -1;
+    if(!m_impl) throw TextureDataExc("Texture not initialized ...");
+    m_impl->m_bound_texture_unit = -1;
 	glActiveTexture(GL_TEXTURE0 + textureUnit);
-	glBindTexture(m_Obj->m_target, 0);
+	glBindTexture(m_impl->m_target, 0);
 	glActiveTexture(GL_TEXTURE0);
 }
 
 void Texture::enable_and_bind() const
 {
-	glEnable(m_Obj->m_target);
-	glBindTexture(m_Obj->m_target, m_Obj->m_texture_id);
+	glEnable(m_impl->m_target);
+	glBindTexture(m_impl->m_target, m_impl->m_texture_id);
 }
 
 void Texture::disable() const
 {
-	glDisable(m_Obj->m_target);
+	glDisable(m_impl->m_target);
 }
 
 /////////////////////////////////////////////////////////////////////////////////

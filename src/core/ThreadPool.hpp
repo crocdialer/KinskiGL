@@ -44,8 +44,7 @@ namespace kinski
     private:
         void join_all();
         
-        struct Impl;
-        std::unique_ptr<Impl> m_impl;
+        std::unique_ptr<struct ThreadPoolImpl> m_impl;
     };
     
 }//namespace

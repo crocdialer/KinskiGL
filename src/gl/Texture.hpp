@@ -104,12 +104,6 @@ namespace kinski{ namespace gl{
         //! whether the texture has an alpha channel
         bool has_alpha() const;
         
-        //!	These return the right thing even when the texture coordinate space is flipped
-//        float getLeft() const;
-//        float getRight() const;	
-//        float getTop() const;		
-//        float getBottom() const;
-        
         //! the Texture's internal format, which is the format that OpenGL stores the texture data in memory. Common values include \c GL_RGB, \c GL_RGBA and \c GL_LUMINANCE
         GLint internal_format() const;
         
@@ -231,16 +225,12 @@ namespace kinski{ namespace gl{
         void init(const void *data, GLint dataFormat, const Format &format);
         
         mat4           m_textureMatrix;
-        
-        // forward declared Implementation object
-        struct Obj;
-        typedef std::shared_ptr<Obj> ObjPtr;
-        ObjPtr m_Obj;
+        std::shared_ptr<struct TextureImpl> m_impl;
         
     public:
         //! Emulates shared_ptr-like behavior
-        operator bool() const { return m_Obj.get() != nullptr; }
-        void reset() { m_Obj.reset(); }
+        operator bool() const { return m_impl.get(); }
+        void reset() { m_impl.reset(); }
     };
     
     class TextureDataExc : public Exception
