@@ -25,6 +25,11 @@ namespace kinski
     class JoystickState;
     struct Touch;
     
+    // explicit template instantiation for some vec types
+    extern template class Property_<gl::vec2>;
+    extern template class Property_<gl::vec3>;
+    extern template class Property_<gl::vec4>;
+    
     class KINSKI_API Window
     {
     public:
