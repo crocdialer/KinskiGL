@@ -23,7 +23,7 @@ extern "C"
 
 namespace kinski{ namespace media
 {
-    std::shared_ptr<COMXCore> m_OMX;
+    std::shared_ptr<COMXCore> g_OMX;
 
     struct MediaControllerImpl
     {
@@ -45,7 +45,7 @@ namespace kinski{ namespace media
         MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
         MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
 
-        // COMXCore m_OMX;
+        // COMXCore g_OMX;
         OMXReader m_omx_reader;
         std::shared_ptr<OMXPlayerVideo> m_player_video;
         std::shared_ptr<OMXPlayerAudio> m_player_audio;
@@ -422,10 +422,10 @@ namespace kinski{ namespace media
         m_impl->m_render_target = the_render_target;
         m_impl->m_audio_target = the_audio_target;
 
-        if(!m_OMX)
+        if(!g_OMX)
         {
-            m_OMX.reset(new COMXCore(), [](COMXCore *c){c->Deinitialize();});
-            m_OMX->Initialize();
+            g_OMX.reset(new COMXCore(), [](COMXCore *c){ c->Deinitialize(); delete c; });
+            g_OMX->Initialize();
         }
 
         m_impl->m_av_clock.reset(new OMXClock());
