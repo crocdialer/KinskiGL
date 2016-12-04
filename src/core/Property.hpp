@@ -206,8 +206,6 @@ extern template class Property_<uint64_t>;
 extern template class Property_<float>;
 extern template class Property_<double>;
 extern template class Property_<bool>;
-//extern template class Property_<std::string>;
-//extern template class Property_<std::vector<std::string>>;
     
 template<typename T>
 class KINSKI_API RangedProperty : public Property_<T>
