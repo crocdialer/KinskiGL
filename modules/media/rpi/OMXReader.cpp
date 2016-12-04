@@ -465,7 +465,7 @@ AVMediaType OMXReader::PacketType(OMXPacket *pkt)
   if(!m_pFormatContext || !pkt)
     return AVMEDIA_TYPE_UNKNOWN;
 
-  return m_pFormatContext->streams[pkt->stream_index]->codec->codec_type;
+  return m_pFormatContext->streams[pkt->stream_index]->codecpar->codec_type;
 }
 
 OMXPacket *OMXReader::Read()
@@ -536,23 +536,23 @@ OMXPacket *OMXReader::Read()
   if(pkt.pts == 0)
     pkt.pts = AV_NOPTS_VALUE;
 #endif
-  if(m_bMatroska && pStream->codec && pStream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+  if(m_bMatroska && pStream->codecpar && pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
   { // matroska can store different timestamps
     // for different formats, for native stored
     // stuff it is pts, but for ms compatibility
     // tracks, it is really dts. sadly ffmpeg
     // sets these two timestamps equal all the
     // time, so we select it here instead
-    if(pStream->codec->codec_tag == 0)
+    if(pStream->codecpar->codec_tag == 0)
       pkt.dts = AV_NOPTS_VALUE;
     else
       pkt.pts = AV_NOPTS_VALUE;
   }
   // we need to get duration slightly different for matroska embedded text subtitels
-  if(m_bMatroska && pStream->codec->codec_id == AV_CODEC_ID_SUBRIP && pkt.duration != 0)
+  if(m_bMatroska && pStream->codecpar->codec_id == AV_CODEC_ID_SUBRIP && pkt.duration != 0)
     pkt.duration = pkt.duration;
 
-  if(m_bAVI && pStream->codec && pStream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+  if(m_bAVI && pStream->codecpar && pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
   {
     // AVI's always have borked pts, specially if m_pFormatContext->flags includes
     // AVFMT_FLAG_GENPTS so always use dts
@@ -569,7 +569,7 @@ OMXPacket *OMXReader::Read()
     return NULL;
   }
 
-  m_omx_pkt->codec_type = pStream->codec->codec_type;
+  m_omx_pkt->codec_type = pStream->codecpar->codec_type;
 
   /* copy content into our own packet */
   m_omx_pkt->size = pkt.size;
@@ -709,11 +709,11 @@ void OMXReader::AddStream(int id)
   AVStream *pStream = m_pFormatContext->streams[id];
 
   // discard if it's a picture attachment (e.g. album art embedded in MP3 or AAC)
-  if(pStream->codec->codec_type == AVMEDIA_TYPE_VIDEO &&
+  if(pStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
     (pStream->disposition & AV_DISPOSITION_ATTACHED_PIC))
     return;
 
-  switch (pStream->codec->codec_type)
+  switch (pStream->codecpar->codec_type)
   {
     case AVMEDIA_TYPE_AUDIO:
       m_streams[id].stream      = pStream;
@@ -762,11 +762,11 @@ void OMXReader::AddStream(int id)
   m_streams[id].name = pStream->title;
 #endif
 
-  if( pStream->codec->extradata && pStream->codec->extradata_size > 0 )
+  if( pStream->codecpar->extradata && pStream->codecpar->extradata_size > 0 )
   {
-    m_streams[id].extrasize = pStream->codec->extradata_size;
-    m_streams[id].extradata = malloc(pStream->codec->extradata_size);
-    memcpy(m_streams[id].extradata, pStream->codec->extradata, pStream->codec->extradata_size);
+    m_streams[id].extrasize = pStream->codecpar->extradata_size;
+    m_streams[id].extradata = malloc(pStream->codecpar->extradata_size);
+    memcpy(m_streams[id].extradata, pStream->codecpar->extradata, pStream->codecpar->extradata_size);
   }
 }
 
@@ -874,9 +874,9 @@ double OMXReader::SelectAspect(AVStream* st, bool& forced)
   /* if stream aspect is 1:1 or 0:0 use codec aspect */
   if((st->sample_aspect_ratio.den == 1 || st->sample_aspect_ratio.den == 0) &&
      (st->sample_aspect_ratio.num == 1 || st->sample_aspect_ratio.num == 0) &&
-      st->codec->sample_aspect_ratio.num != 0)
+      st->codecpar->sample_aspect_ratio.num != 0)
   {
-    return av_q2d(st->codec->sample_aspect_ratio);
+    return av_q2d(st->codecpar->sample_aspect_ratio);
   }
 
   forced = true;
@@ -891,23 +891,23 @@ bool OMXReader::GetHints(AVStream *stream, COMXStreamInfo *hints)
   if(!hints || !stream)
     return false;
 
-  hints->codec         = stream->codec->codec_id;
-  hints->extradata     = stream->codec->extradata;
-  hints->extrasize     = stream->codec->extradata_size;
-  hints->channels      = stream->codec->channels;
-  hints->samplerate    = stream->codec->sample_rate;
-  hints->blockalign    = stream->codec->block_align;
-  hints->bitrate       = stream->codec->bit_rate;
-  hints->bitspersample = stream->codec->bits_per_coded_sample;
+  hints->codec         = stream->codecpar->codec_id;
+  hints->extradata     = stream->codecpar->extradata;
+  hints->extrasize     = stream->codecpar->extradata_size;
+  hints->channels      = stream->codecpar->channels;
+  hints->samplerate    = stream->codecpar->sample_rate;
+  hints->blockalign    = stream->codecpar->block_align;
+  hints->bitrate       = stream->codecpar->bit_rate;
+  hints->bitspersample = stream->codecpar->bits_per_coded_sample;
   if(hints->bitspersample == 0)
     hints->bitspersample = 16;
 
-  hints->width         = stream->codec->width;
-  hints->height        = stream->codec->height;
-  hints->profile       = stream->codec->profile;
+  hints->width         = stream->codecpar->width;
+  hints->height        = stream->codecpar->height;
+  hints->profile       = stream->codecpar->profile;
   hints->orientation   = 0;
 
-  if(stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
+  if(stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
   {
     hints->fpsrate       = stream->r_frame_rate.num;
     hints->fpsscale      = stream->r_frame_rate.den;
@@ -928,9 +928,9 @@ bool OMXReader::GetHints(AVStream *stream, COMXStreamInfo *hints)
       hints->fpsrate      = 0;
     }
 
-    hints->aspect = SelectAspect(stream, hints->forced_aspect) * stream->codec->width / stream->codec->height;
+    hints->aspect = SelectAspect(stream, hints->forced_aspect) * stream->codecpar->width / stream->codecpar->height;
 
-    if (m_bAVI && stream->codec->codec_id == AV_CODEC_ID_H264)
+    if (m_bAVI && stream->codecpar->codec_id == AV_CODEC_ID_H264)
       hints->ptsinvalid = true;
     AVDictionaryEntry *rtag = av_dict_get(stream->metadata, "rotate", NULL, 0);
     if (rtag)
@@ -1213,11 +1213,11 @@ std::string OMXReader::GetStreamCodecName(AVStream *stream)
   if(!stream)
     return strStreamName;
 
-  unsigned int in = stream->codec->codec_tag;
+  unsigned int in = stream->codecpar->codec_tag;
   // FourCC codes are only valid on video streams, audio codecs in AVI/WAV
   // are 2 bytes and audio codecs in transport streams have subtle variation
   // e.g AC-3 instead of ac3
-  if (stream->codec->codec_type == AVMEDIA_TYPE_VIDEO && in != 0)
+  if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && in != 0)
   {
     char fourcc[5];
     memcpy(fourcc, &in, 4);
@@ -1232,11 +1232,11 @@ std::string OMXReader::GetStreamCodecName(AVStream *stream)
 
 #ifdef FF_PROFILE_DTS_HD_MA
   /* use profile to determine the DTS type */
-  if (stream->codec->codec_id == AV_CODEC_ID_DTS)
+  if (stream->codecpar->codec_id == AV_CODEC_ID_DTS)
   {
-    if (stream->codec->profile == FF_PROFILE_DTS_HD_MA)
+    if (stream->codecpar->profile == FF_PROFILE_DTS_HD_MA)
       strStreamName = "dtshd_ma";
-    else if (stream->codec->profile == FF_PROFILE_DTS_HD_HRA)
+    else if (stream->codecpar->profile == FF_PROFILE_DTS_HD_HRA)
       strStreamName = "dtshd_hra";
     else
       strStreamName = "dca";
@@ -1244,7 +1244,7 @@ std::string OMXReader::GetStreamCodecName(AVStream *stream)
   }
 #endif
 
-  AVCodec *codec = avcodec_find_decoder(stream->codec->codec_id);
+  AVCodec *codec = avcodec_find_decoder(stream->codecpar->codec_id);
 
   if (codec)
     strStreamName = codec->name;
