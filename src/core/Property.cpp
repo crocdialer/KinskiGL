@@ -48,4 +48,11 @@ namespace kinski
     { return *this; };
     
     template class Property_<std::vector<std::string>>;
+    
+    template class RangedProperty<int32_t>;
+    template class RangedProperty<uint32_t>;
+    template class RangedProperty<int64_t>;
+    template class RangedProperty<uint64_t>;
+    template class RangedProperty<float>;
+    template class RangedProperty<double>;
 }

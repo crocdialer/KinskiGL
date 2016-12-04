@@ -300,4 +300,10 @@ private:
     T m_min, m_max;
 };
 
+extern template class RangedProperty<int32_t>;
+extern template class RangedProperty<uint32_t>;
+extern template class RangedProperty<int64_t>;
+extern template class RangedProperty<uint64_t>;
+extern template class RangedProperty<float>;
+extern template class RangedProperty<double>;
 }
