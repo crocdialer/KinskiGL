@@ -20,6 +20,11 @@ typedef std::chrono::duration<double> duration_t;
 
 namespace kinski
 {
+    // explicit template instantiation for some vec types
+    template class Property_<gl::vec2>;
+    template class Property_<gl::vec3>;
+    template class Property_<gl::vec4>;
+    
     // threadsafe task-counting internals
     namespace
     {
