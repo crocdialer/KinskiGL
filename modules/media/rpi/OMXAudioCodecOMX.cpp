@@ -161,10 +161,14 @@ int COMXAudioCodecOMX::Decode(BYTE* pData, int iSize, double dts, double pts)
   av_init_packet(&avpkt);
   avpkt.data = pData;
   avpkt.size = iSize;
-  iBytesUsed = avcodec_decode_audio4( m_pCodecContext
-                                                 , m_pFrame1
-                                                 , &got_frame
-                                                 , &avpkt);
+  // iBytesUsed = avcodec_decode_audio4( m_pCodecContext
+  //                                                , m_pFrame1
+  //                                                , &got_frame
+  //                                                , &avpkt);
+
+  avcodec_send_packet(m_pCodecContext, &avpkt);
+  got_frame = !avcodec_receive_frame(m_pCodecContext, m_pFrame1);
+
   if (iBytesUsed < 0 || !got_frame)
   {
     return iBytesUsed;
