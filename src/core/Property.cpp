@@ -14,7 +14,6 @@ namespace kinski
     template class Property_<uint32_t>;
     template class Property_<int64_t>;
     template class Property_<uint64_t>;
-    template class Property_<size_t>;
     template class Property_<float>;
     template class Property_<double>;
     template class Property_<bool>;
