@@ -25,7 +25,16 @@ using namespace std;
 // maximum matrix-stack size
 #define MAX_MATRIX_STACK_SIZE 100
 
-namespace kinski { namespace gl {
+namespace kinski
+{
+
+// explicit template instantiation for some vec types
+template class Property_<gl::vec2>;
+template class Property_<gl::vec3>;
+template class Property_<gl::vec4>;
+    
+namespace gl
+{
     
 ///////////////////////////////////////////////////////////////////////////////
     

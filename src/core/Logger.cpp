@@ -118,8 +118,6 @@ namespace kinski {
         std::ostringstream postfix;
         postfix << theText;
         
-        std::lock_guard<std::mutex> lock(mutex);
-        
         if (theSeverity > Severity::PRINT)
         {
             if(m_use_timestamp){ stream << currentDateTime(); }
@@ -159,6 +157,7 @@ namespace kinski {
         // pass log string to outstreams
         thread_pool.submit([this, log_str]()
         {
+            std::lock_guard<std::mutex> lock(mutex);
             for (auto &os : m_out_streams){ *os << log_str << std::endl; }
         });
     }

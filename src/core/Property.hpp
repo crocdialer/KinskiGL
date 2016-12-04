@@ -160,25 +160,25 @@ public:
     
     inline Property_<T>& operator+=(const T &theVal)
     {
-        set(*this + theVal);
+        set(value() + theVal);
         return *this;
     };
     
     inline Property_<T>& operator-=(const T &theVal)
     {
-        set(*this - theVal);
+        set(value() - theVal);
         return *this;
     };
     
     inline Property_<T>& operator*=(const T &theVal)
     {
-        set(*this * theVal);
+        set(value() * theVal);
         return *this;
     };
     
     inline Property_<T>& operator/=(const T &theVal)
     {
-        set(*this / theVal);
+        set(value() / theVal);
         return *this;
     };
     
