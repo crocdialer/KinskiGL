@@ -529,7 +529,7 @@ namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    void draw_points(const std::vector<glm::vec3> &the_points, const Material::Ptr &the_material,
+    void draw_points(const std::vector<glm::vec3> &the_points, const MaterialPtr &the_material,
                      float the_point_size)
     {
         static MeshPtr point_mesh;
@@ -643,7 +643,7 @@ namespace kinski { namespace gl {
                   const vec2 &theTopLeft,
                   bool filled)
     {
-        static gl::Material::Ptr material;
+        static gl::MaterialPtr material;
         
         //create material, if not yet here
         if(!material)
@@ -1285,7 +1285,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     
     void apply_material(const MaterialPtr &the_mat, bool force_apply)
     {
-        static Material::WeakPtr weak_last;
+        static MaterialWeakPtr weak_last;
         
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
 

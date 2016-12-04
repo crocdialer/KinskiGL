@@ -30,8 +30,8 @@ class KINSKI_API Buffer
     ~Buffer();
     
     //! Emulates shared_ptr-like behavior
-    operator bool() const { return m_Obj.get() != nullptr; }
-    void reset() { m_Obj.reset(); }
+    operator bool() const { return m_impl.get(); }
+    void reset() { m_impl.reset(); }
     
     // map and unmap the buffer to local memory
     uint8_t* map(GLenum access = 0);
@@ -60,9 +60,7 @@ class KINSKI_API Buffer
     };
     
 private:
-    struct Obj;
-    typedef std::shared_ptr<Obj> ObjPtr;
-    ObjPtr m_Obj;
+    std::shared_ptr<struct BufferImpl> m_impl;
     
     void init(GLenum target = GL_ARRAY_BUFFER, GLenum usage = GL_STATIC_DRAW);
 };

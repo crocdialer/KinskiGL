@@ -39,7 +39,7 @@ namespace kinski { namespace gl {
         return BonePtr();
     }
 
-    Mesh::Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial):
+    Mesh::Mesh(const Geometry::Ptr &theGeom, const MaterialPtr &theMaterial):
     Object3D(),
     m_geometry(theGeom),
     m_animation_index(0),

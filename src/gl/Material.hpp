@@ -17,13 +17,11 @@
 
 namespace kinski { namespace gl {
     
+    DEFINE_CLASS_PTR(Material);
+    
     class KINSKI_API Material
     {
     public:
-        
-        typedef std::shared_ptr<Material> Ptr;
-        typedef std::shared_ptr<const Material> ConstPtr;
-        typedef std::weak_ptr<Material> WeakPtr;
         
         typedef boost::variant<GLint, GLfloat, double, vec2, vec3, vec4,
         mat3, mat4,
@@ -35,8 +33,8 @@ namespace kinski { namespace gl {
         
         enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
         
-        static Ptr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
-        static Ptr create(const Shader &theShader);        
+        static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
+        static MaterialPtr create(const Shader &theShader);        
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         

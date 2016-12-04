@@ -140,7 +140,7 @@ namespace kinski {
         lights().front()->position() = glm::vec3(1);
         lights().front()->set_type(gl::Light::DIRECTIONAL);
         
-        for(auto l : lights()){ scene()->addObject(l); }
+        for(auto l : lights()){ scene()->add_object(l); }
         
         // enable observer mechanism
         observe_properties();

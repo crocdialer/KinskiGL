@@ -197,19 +197,19 @@ namespace kinski{ namespace gl{
             bool has_mipmapping() const { return m_mipmapping; }
             
             //! Returns the Texture's internal format. A value of -1 implies automatic selection of the internal format based on the context.
-            GLint	internal_format() const { return m_internal_format; }
+            GLint internal_format() const { return m_internal_format; }
             
             //! Returns the horizontal wrapping behavior for the texture coordinates.
             GLenum wrap_s() const { return m_wrap_s; }
             
             //! Returns the vertical wrapping behavior for the texture coordinates.
-            GLenum	wrap_t() const { return m_wrap_t; }
+            GLenum wrap_t() const { return m_wrap_t; }
             
             //! Returns the texture minifying function, which is used whenever the pixel being textured maps to an area greater than one texture element.
-            GLenum	min_filter() const { return m_min_filter; }
+            GLenum min_filter() const { return m_min_filter; }
             
             //! Returns the texture magnifying function, which is used whenever the pixel being textured maps to an area less than or equal to one texture element.
-            GLenum	mag_filter() const { return m_mag_filter; }
+            GLenum mag_filter() const { return m_mag_filter; }
             
             GLenum m_target;
             GLenum m_wrap_s, m_wrap_t;
@@ -224,7 +224,7 @@ namespace kinski{ namespace gl{
 
         void init(const void *data, GLint dataFormat, const Format &format);
         
-        mat4           m_textureMatrix;
+        mat4 m_textureMatrix;
         std::shared_ptr<struct TextureImpl> m_impl;
         
     public:

@@ -189,7 +189,7 @@ namespace kinski { namespace gl {
         
     private:
         
-        Mesh(const Geometry::Ptr &theGeom, const Material::Ptr &theMaterial);
+        Mesh(const Geometry::Ptr &theGeom, const MaterialPtr &theMaterial);
         
         void buildBoneMatrices(float time, BonePtr bone,
                                mat4 parentTransform,

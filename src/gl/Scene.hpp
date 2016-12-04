@@ -16,9 +16,7 @@
 
 namespace kinski { namespace gl {
     
-    class Scene;
-    typedef std::shared_ptr<Scene> ScenePtr;
-    typedef std::shared_ptr<const Scene> SceneConstPtr;
+    DEFINE_CLASS_PTR(Scene);
     
     class KINSKI_API Scene : public std::enable_shared_from_this<Scene>
     {
@@ -30,8 +28,8 @@ namespace kinski { namespace gl {
         void render(const CameraPtr &theCamera, const std::set<std::string> &the_tags = {}) const;
         Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
     
-        void addObject(const Object3DPtr &theObject);
-        void removeObject(const Object3DPtr &theObject);
+        void add_object(const Object3DPtr &the_object);
+        void remove_object(const Object3DPtr &the_object);
         void clear();
         
         std::vector<gl::Object3DPtr> get_objects_by_tag(const std::string &the_tag) const;

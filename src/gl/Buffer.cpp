@@ -11,14 +11,14 @@
 
 namespace kinski{ namespace gl{
 
-struct Buffer::Obj
+struct BufferImpl
 {
-    Obj():buffer_id(0), target(0), usage(0), num_bytes(0), stride(0), do_not_dispose(false)
+    BufferImpl():buffer_id(0), target(0), usage(0), num_bytes(0), stride(0), do_not_dispose(false)
     {
         glGenBuffers(1, &buffer_id);
     };
     
-    ~Obj()
+    ~BufferImpl()
     {
         if(buffer_id && (!do_not_dispose))
         {
@@ -43,122 +43,122 @@ Buffer::~Buffer(){}
 
 void Buffer::init(GLenum target, GLenum usage)
 {
-    m_Obj = ObjPtr(new Obj);
-    m_Obj->target = target;
-    m_Obj->usage = usage;
+    m_impl = std::make_shared<BufferImpl>();
+    m_impl->target = target;
+    m_impl->usage = usage;
 }
 
 GLint Buffer::id() const
 {
-    return m_Obj->buffer_id;
+    return m_impl->buffer_id;
 }
 
 uint8_t* Buffer::map(GLenum mode)
 {
-    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
+    glBindBuffer(m_impl->target, m_impl->buffer_id);
 
 #if defined(KINSKI_GLES_3)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
-    uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->num_bytes, mode);
+    uint8_t *ptr = (uint8_t*) glMapBufferRange(m_impl->target, 0, m_impl->num_bytes, mode);
 #else
     mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
-    uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
+    uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_impl->target, mode);
 #endif
     
     if(!ptr) throw Exception("Could not map gl::Buffer");
     
-    glBindBuffer(m_Obj->target, 0);
+    glBindBuffer(m_impl->target, 0);
     return ptr;
 }
     
 const uint8_t* Buffer::map(GLenum mode) const
 {
-    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
+    glBindBuffer(m_impl->target, m_impl->buffer_id);
 
 #if defined(KINSKI_GLES_3)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
-    const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_Obj->target, 0, m_Obj->num_bytes, mode);
+    const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_impl->target, 0, m_impl->num_bytes, mode);
 #else
     mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
-    const uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_Obj->target, mode);
+    const uint8_t *ptr = (uint8_t*) GL_SUFFIX(glMapBuffer)(m_impl->target, mode);
 #endif
     
     if(!ptr) throw Exception("Could not map gl::Buffer");
     
-    glBindBuffer(m_Obj->target, 0);
+    glBindBuffer(m_impl->target, 0);
     return ptr;
 }
 
 void Buffer::unmap() const
 {
-    glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-    GL_SUFFIX(glUnmapBuffer)(m_Obj->target);
-    glBindBuffer(m_Obj->target, 0);
+    glBindBuffer(m_impl->target, m_impl->buffer_id);
+    GL_SUFFIX(glUnmapBuffer)(m_impl->target);
+    glBindBuffer(m_impl->target, 0);
 }
 
 GLenum Buffer::target() const
 {
-    return m_Obj->target;
+    return m_impl->target;
 }
 
 GLenum Buffer::usage() const
 {
-    return m_Obj->usage;
+    return m_impl->usage;
 }
 
 GLsizei Buffer::num_bytes() const
 {
-    return m_Obj->num_bytes;
+    return m_impl->num_bytes;
 }
 
 GLsizei Buffer::stride() const
 {
-    return m_Obj->stride;
+    return m_impl->stride;
 }
 
 void Buffer::bind(GLenum the_target) const
 {
-    glBindBuffer(the_target ? the_target : m_Obj->target, m_Obj->buffer_id);
+    glBindBuffer(the_target ? the_target : m_impl->target, m_impl->buffer_id);
 }
 
 void Buffer::unbind(GLenum the_target) const
 {
-    glBindBuffer(the_target ? the_target : m_Obj->target, 0);
+    glBindBuffer(the_target ? the_target : m_impl->target, 0);
 }
     
     
 void Buffer::set_target(GLenum theTarget)
 {
-    if(m_Obj) m_Obj->target = theTarget;
+    if(m_impl) m_impl->target = theTarget;
 }
     
 void Buffer::set_usage(GLenum theUsage)
 {
-    if(m_Obj) m_Obj->usage = theUsage;
+    if(m_impl) m_impl->usage = theUsage;
 }
     
 void Buffer::set_stride(GLsizei theStride)
 {
-    m_Obj->stride = theStride;
+    m_impl->stride = theStride;
 }
     
 void Buffer::set_data(const void *the_data, GLsizei num_bytes)
 {
-    if(!m_Obj)
+    if(!m_impl)
     {
         init();
-        glBindBuffer(m_Obj->target, m_Obj->buffer_id);
+        glBindBuffer(m_impl->target, m_impl->buffer_id);
     }
     else
     {
         //orphan buffer
-        glBindBuffer(m_Obj->target, m_Obj->buffer_id);
-        glBufferData(m_Obj->target, num_bytes, nullptr, m_Obj->usage);
+        glBindBuffer(m_impl->target, m_impl->buffer_id);
+        glBufferData(m_impl->target, num_bytes, nullptr, m_impl->usage);
     }
     
-    m_Obj->num_bytes = num_bytes;
-    glBufferData(m_Obj->target, num_bytes, the_data, m_Obj->usage);
-    glBindBuffer(m_Obj->target, 0);
+    m_impl->num_bytes = num_bytes;
+    glBufferData(m_impl->target, num_bytes, the_data, m_impl->usage);
+    glBindBuffer(m_impl->target, 0);
 }
     
 }}//namespace
