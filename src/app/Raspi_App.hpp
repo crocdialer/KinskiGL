@@ -13,8 +13,6 @@
 #include "App.hpp"
 #include "OutstreamGL.hpp"
 
-struct ESContext;
-
 namespace kinski
 {
 
@@ -47,7 +45,7 @@ class Raspi_App : public App
     void pollEvents() override;
 
     timeval m_startTime;
-    std::unique_ptr<ESContext> m_context;
+    std::unique_ptr<struct ESContext> m_context;
     gl::OutstreamGL m_outstream_gl;
 
     // input file descriptors
