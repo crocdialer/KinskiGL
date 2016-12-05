@@ -45,6 +45,8 @@ namespace kinski
         eglDestroyContext(m_context->eglDisplay, m_context->eglContext );
         eglTerminate(m_context->eglDisplay);
 
+        m_timer_device_scan.cancel();
+
         if(m_mouse_fd){ close(m_mouse_fd); }
         if(m_keyboard_fd){ close(m_keyboard_fd); }
         if(m_touch_fd){ close(m_touch_fd); }
