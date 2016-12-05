@@ -10,7 +10,6 @@
 #pragma once
 
 #include <boost/any.hpp>
-#include <boost/signals2.hpp>
 #include "core/core.hpp"
 
 namespace kinski
@@ -23,25 +22,17 @@ public:
     typedef std::shared_ptr<const Property> ConstPtr;
     virtual ~Property(){};
     
-    DEFINE_CLASS_PTR(Observer);
-    
-    class Observer
-    {
-    public:
-        virtual void update_property(const Property::ConstPtr &theProperty) = 0;
-    };
-
     inline boost::any get_value() const {return m_value;};
-    inline const std::string& name() const {return m_name;};
-    inline void set_name(const std::string& theName) {m_name = theName;};
-	inline void set_tweakable(bool isTweakable) {m_tweakable = isTweakable;};
-	inline bool tweakable() const {return m_tweakable;};
-    inline bool empty() const {return m_value.empty();};
+    const std::string& name() const;
+    void set_name(const std::string& theName);
+	void set_tweakable(bool isTweakable);
+	bool tweakable() const;
+    bool empty() const {return m_value.empty();};
 
     template <typename T> 
     inline void set_value(const T& theValue)
     {
-        if (!is_of_type<T>()) {throw WrongTypeSetException(m_name);}
+        if (!is_of_type<T>()) {throw WrongTypeSetException(name());}
         if(check_value(theValue))
         {
             m_value = theValue;
@@ -53,21 +44,21 @@ public:
     inline const T& get_value() const
     {
         try{return *boost::any_cast<T>(&m_value);}
-        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
+        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(name());}
     }
     
     template <typename T>
     inline T& get_value()
     {
         try{return *boost::any_cast<T>(&m_value);}
-        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
+        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(name());}
     }
     
     template <typename T>
     inline T* get_value_ptr()
     {
         try{return boost::any_cast<T>(&m_value);}
-        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(m_name);}
+        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(name());}
     }
     
     template <typename C>
@@ -79,31 +70,26 @@ public:
     virtual bool check_value(const boost::any &theVal)
     {return theVal.type() == m_value.type();};
     
-    inline void add_observer(const ObserverPtr &theObs)
-    {
-        m_signal.connect(signal_t::slot_type(&Observer::update_property, theObs, _1).track_foreign(theObs));
-    }
+    DEFINE_CLASS_PTR(Observer);
     
-    inline void remove_observer(const ObserverPtr &theObs)
+    class Observer
     {
-        m_signal.disconnect(boost::bind(&Observer::update_property, theObs, _1));
-    }
+    public:
+        virtual void update_property(const Property::ConstPtr &theProperty) = 0;
+    };
     
-    inline void clear_observers(){m_signal.disconnect_all_slots();}
-    inline void notify_observers(){m_signal(shared_from_this());}
+    void add_observer(const ObserverPtr &theObs);
+    void remove_observer(const ObserverPtr &theObs);
+    void clear_observers();
+    void notify_observers();
 
 protected:
-    Property(): m_tweakable(true){}; // default constructor
-    Property(const std::string &theName, const boost::any &theValue):
-    m_name(theName), m_value(theValue), m_tweakable(true){};
+    Property();
+    Property(const std::string &theName, const boost::any &theValue);
     
 private:
-    std::string m_name;
+    std::shared_ptr<struct PropertyImpl> m_impl;
     boost::any m_value;
-	bool m_tweakable;
-    
-    typedef boost::signals2::signal<void(const Property::ConstPtr&)> signal_t;
-    signal_t m_signal;
 
 public:
     // define exceptions

@@ -165,9 +165,14 @@ namespace kinski { namespace gl{
             uint32_t i = 0, max_num_weights = boneData.indices.length();
             
             list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
-            tmp_list.sort(boost::bind(&pair<uint32_t, float>::second, _1) >
-                          boost::bind(&pair<uint32_t, float>::second, _2));
-                
+//            tmp_list.sort(boost::bind(&pair<uint32_t, float>::second, _1) >
+//                          boost::bind(&pair<uint32_t, float>::second, _2));
+            tmp_list.sort([](const pair<uint32_t, float> &lhs,
+                             const pair<uint32_t, float> &rhs)
+            {
+                return lhs.second > rhs.second;
+            });
+            
             list< pair<uint32_t, float> >::const_iterator listIt = tmp_list.begin();
             for (; listIt != tmp_list.end(); ++listIt)
             {

@@ -76,7 +76,7 @@ namespace kinski
         /*!
          * set the function object to call when the timer expires
          */
-        void set_callback(timer_cb_t cb);
+        void set_callback(timer_cb_t cb = timer_cb_t());
         
     private:
         std::shared_ptr<struct timer_impl> m_impl;
