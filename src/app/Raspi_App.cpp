@@ -82,7 +82,7 @@ namespace kinski
             int mouse_fd, keyboard_fd, touch_fd;
             get_input_file_descriptors(&mouse_fd, &keyboard_fd, &touch_fd);
 
-            mainqueue().submit([this, mouse_fd, keyboard_fd, touch_fd]
+            main_queue().submit([this, mouse_fd, keyboard_fd, touch_fd]
             {
                 if(mouse_fd && !m_mouse_fd){ LOG_TRACE << "mouse connected"; }
                 else if(!mouse_fd && m_mouse_fd){ LOG_TRACE << "mouse disconnected"; }
