@@ -355,6 +355,10 @@ namespace kinski {
                     }
                     m_warp_component->set_index(e.getCode() - Key::_1);
                     break;
+                
+                case Key::_W:
+                    *m_use_warping = !*m_use_warping;
+                    break;
                     
                 case Key::_E:
                     m_warp_component->set_enabled(m_warp_component->index(),
