@@ -53,7 +53,8 @@ namespace kinski
     
     void Property::add_observer(const ObserverPtr &theObs)
     {
-        m_impl->m_signal.connect(signal_t::slot_type(&Observer::update_property, theObs, _1).track_foreign(theObs));
+        m_impl->m_signal.connect(signal_t::slot_type(&Observer::update_property,
+                                                     theObs, _1).track_foreign(theObs));
     }
     
     void Property::remove_observer(const ObserverPtr &theObs)
@@ -78,37 +79,6 @@ namespace kinski
     template class Property_<float>;
     template class Property_<double>;
     template class Property_<bool>;
-    
-    template<> Property_<std::string>& Property_<std::string>::operator-=(const std::string &theVal)
-    { return *this; };
-    
-    template<> Property_<std::string>& Property_<std::string>::operator*=(const std::string &theVal)
-    { return *this; };
-    
-    template<> Property_<std::string>& Property_<std::string>::operator/=(const std::string &theVal)
-    { return *this; };
-    
-    template class Property_<std::string>;
-    
-    template<>
-    Property_<std::vector<std::string>>&
-    Property_<std::vector<std::string>>::operator+=(const std::vector<std::string> &theVal)
-    { return *this; };
-    
-    template<>
-    Property_<std::vector<std::string>>&
-    Property_<std::vector<std::string>>::operator-=(const std::vector<std::string> &theVal)
-    { return *this; };
-    
-    template<> Property_<std::vector<std::string>>&
-    Property_<std::vector<std::string>>::operator*=(const std::vector<std::string> &theVal)
-    { return *this; };
-    
-    template<> Property_<std::vector<std::string>>&
-    Property_<std::vector<std::string>>::operator/=(const std::vector<std::string> &theVal)
-    { return *this; };
-    
-    template class Property_<std::vector<std::string>>;
     
     template class RangedProperty<int32_t>;
     template class RangedProperty<uint32_t>;

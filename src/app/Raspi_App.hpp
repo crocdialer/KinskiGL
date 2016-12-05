@@ -51,6 +51,8 @@ class Raspi_App : public App
 
     // input file descriptors
     int m_mouse_fd, m_keyboard_fd, m_touch_fd;
+
+    Timer m_timer_device_scan;
 };
 
 }

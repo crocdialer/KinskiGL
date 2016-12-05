@@ -77,9 +77,30 @@ namespace kinski
 
         get_input_file_descriptors(&m_mouse_fd, &m_keyboard_fd, &m_touch_fd);
 
+        m_timer_device_scan = Timer(background_queue().io_service(), [this]()
+        {
+            int mouse_fd, keyboard_fd, touch_fd;
+            get_input_file_descriptors(&mouse_fd, &keyboard_fd, &touch_fd);
+
+            mainqueue().submit([this, mouse_fd, keyboard_fd, touch_fd]
+            {
+                if(mouse_fd && !m_mouse_fd){ LOG_TRACE << "mouse connected"; }
+                else if(!mouse_fd && m_mouse_fd){ LOG_TRACE << "mouse disconnected"; }
+                if(keyboard_fd && !m_keyboard_fd){ LOG_TRACE << "keyboard connected"; }
+                else if(!keyboard_fd && m_keyboard_fd){ LOG_TRACE << "keyboard disconnected"; }
+                if(touch_fd && !m_touch_fd){ LOG_TRACE << "touchscreen connected"; }
+                else if(!touch_fd && m_touch_fd){ LOG_TRACE << "touchscreen disconnected"; }
+                m_mouse_fd = mouse_fd;
+                m_keyboard_fd = keyboard_fd;
+                m_touch_fd = touch_fd;
+            });
+        });
+        m_timer_device_scan.set_periodic();
+        m_timer_device_scan.expires_from_now(5.0);
+
         // make sure touchscreen backlight stays on
         // TODO: use timer here
-        set_lcd_backlight(true);
+        // set_lcd_backlight(true);
 
         // center cursor
         current_mouse_pos = gl::window_dimension() / 2.f;
@@ -479,19 +500,19 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     {
         *kb_fd = keyboardFd;
         LOG_INFO << "keyboard detected";
-    }
+    }else{ *kb_fd = 0; }
 
     if(mouseFd != -1)
     {
        *mouse_fd = mouseFd;
        LOG_INFO << "mouse detected";
-    }
+    }else{ *mouse_fd = 0; }
 
     if(touchFd != -1)
     {
        *touch_fd = touchFd;
        LOG_INFO << "touch-input detected";
-    }
+    }else{ *touch_fd = 0; }
 }
 
 int32_t code_lookup(int32_t the_keycode)
