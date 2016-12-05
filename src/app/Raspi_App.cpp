@@ -86,9 +86,9 @@ namespace kinski
 
             main_queue().submit([this, mouse_fd, keyboard_fd]
             {
-                if(mouse_fd && !m_mouse_fd){ LOG_TRACE << "mouse connected"; m_mouse_fd = mouse_fd}
+                if(mouse_fd && !m_mouse_fd){ LOG_TRACE << "mouse connected"; m_mouse_fd = mouse_fd; }
                 else if(!mouse_fd && m_mouse_fd){ LOG_TRACE << "mouse disconnected"; }
-                if(keyboard_fd && !m_keyboard_fd){ LOG_TRACE << "keyboard connected"; m_keyboard_fd = keyboard_fd}
+                if(keyboard_fd && !m_keyboard_fd){ LOG_TRACE << "keyboard connected"; m_keyboard_fd = keyboard_fd; }
                 else if(!keyboard_fd && m_keyboard_fd){ LOG_TRACE << "keyboard disconnected"; }
 
                 // if(m_mouse_fd){ close(m_mouse_fd); m_mouse_fd = mouse_fd; }
