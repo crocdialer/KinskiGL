@@ -496,23 +496,14 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
         LOG_TRACE << "found input: " << name;
     }
 
-    if(keyboardFd != -1)
-    {
-        *kb_fd = keyboardFd;
-        LOG_INFO << "keyboard detected";
-    }else{ *kb_fd = 0; }
+    if(keyboardFd != -1){ *kb_fd = keyboardFd; }
+    else{ *kb_fd = 0; }
 
-    if(mouseFd != -1)
-    {
-       *mouse_fd = mouseFd;
-       LOG_INFO << "mouse detected";
-    }else{ *mouse_fd = 0; }
+    if(mouseFd != -1){ *mouse_fd = mouseFd; }
+    else{ *mouse_fd = 0; }
 
-    if(touchFd != -1)
-    {
-       *touch_fd = touchFd;
-       LOG_INFO << "touch-input detected";
-    }else{ *touch_fd = 0; }
+    if(touchFd != -1){ *touch_fd = touchFd; }
+    else{ *touch_fd = 0; }
 }
 
 int32_t code_lookup(int32_t the_keycode)
