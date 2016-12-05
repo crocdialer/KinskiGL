@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include "core/Timer.hpp"
 #include "App.hpp"
 #include "OutstreamGL.hpp"
 
