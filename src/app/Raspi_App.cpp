@@ -79,20 +79,19 @@ namespace kinski
 
         m_timer_device_scan = Timer(background_queue().io_service(), [this]()
         {
-            int mouse_fd, keyboard_fd, touch_fd;
-            get_input_file_descriptors(&mouse_fd, &keyboard_fd, &touch_fd);
+            int mouse_fd, keyboard_fd;
 
-            main_queue().submit([this, mouse_fd, keyboard_fd, touch_fd]
+            // check for keyboard and mouse being added/removed
+            get_input_file_descriptors(&mouse_fd, &keyboard_fd, nullptr);
+
+            main_queue().submit([this, mouse_fd, keyboard_fd]
             {
                 if(mouse_fd && !m_mouse_fd){ LOG_TRACE << "mouse connected"; }
                 else if(!mouse_fd && m_mouse_fd){ LOG_TRACE << "mouse disconnected"; }
                 if(keyboard_fd && !m_keyboard_fd){ LOG_TRACE << "keyboard connected"; }
                 else if(!keyboard_fd && m_keyboard_fd){ LOG_TRACE << "keyboard disconnected"; }
-                if(touch_fd && !m_touch_fd){ LOG_TRACE << "touchscreen connected"; }
-                else if(!touch_fd && m_touch_fd){ LOG_TRACE << "touchscreen disconnected"; }
                 m_mouse_fd = mouse_fd;
                 m_keyboard_fd = keyboard_fd;
-                m_touch_fd = touch_fd;
             });
         });
         m_timer_device_scan.set_periodic();
@@ -478,32 +477,31 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
     regfree(&kbd);
     regfree(&mouse);
 
-    // find touch device name
-    auto touch_dev_path = find_device_handler("FT5406");
-
-    if(kinski::fs::exists(touch_dev_path))
+    // check for valid pointer
+    if(touch_fd)
     {
-        sprintf(fullPath,touch_dev_path.c_str());
-        touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);
+        // find touch device name
+        auto touch_dev_path = find_device_handler("FT5406");
 
-        // printf("%s Fd = %d\n", fullPath, mouseFd);
-        // printf("Getting exclusive access: ");
-        result = ioctl(touchFd, EVIOCGRAB, 1);
-        // printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
+        if(kinski::fs::exists(touch_dev_path))
+        {
+            sprintf(fullPath,touch_dev_path.c_str());
+            touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);
 
-        char name[256] = "Unknown";
-        result = ioctl(touchFd, EVIOCGNAME(sizeof(name)), name);
-        LOG_TRACE << "found input: " << name;
+            // printf("%s Fd = %d\n", fullPath, mouseFd);
+            // printf("Getting exclusive access: ");
+            result = ioctl(touchFd, EVIOCGRAB, 1);
+            // printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
+
+            char name[256] = "Unknown";
+            result = ioctl(touchFd, EVIOCGNAME(sizeof(name)), name);
+            LOG_TRACE << "found input: " << name;
+        }
     }
 
-    if(keyboardFd != -1){ *kb_fd = keyboardFd; }
-    else{ *kb_fd = 0; }
-
-    if(mouseFd != -1){ *mouse_fd = mouseFd; }
-    else{ *mouse_fd = 0; }
-
-    if(touchFd != -1){ *touch_fd = touchFd; }
-    else{ *touch_fd = 0; }
+    if(kb_fd){ *kb_fd = keyboardFd != -1 ? keyboardFd : 0; }
+    if(mouse_fd){ *mouse_fd = mouseFd != -1 ? mouseFd : 0; }
+    if(touch_fd){ *touch_fd = touchFd != -1 ? touchFd : 0; }
 }
 
 int32_t code_lookup(int32_t the_keycode)
