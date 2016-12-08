@@ -23,11 +23,12 @@ RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<Compon
 {
     set_components(the_list);
     m_tcp_server = net::tcp_server(io, net::tcp_server::tcp_connection_callback());
+    m_udp_server = net::udp_server(io);
 }
 
-void RemoteControl::start_listen(uint16_t port)
+void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
 {
-    m_tcp_server.start_listen(port);
+    m_tcp_server.start_listen(tcp_port);
     m_tcp_server.set_connection_callback(std::bind(&RemoteControl::new_connection_cb,
                                                    this, std::placeholders::_1));
     
@@ -102,11 +103,25 @@ void RemoteControl::start_listen(uint16_t port)
         // send the state string via tcp
         con->write(Serializer::serializeComponents(components(), PropertyIO_GL()));
     });
+    
+    m_udp_server.start_listen(udp_port);
+    m_udp_server.set_receive_function([this](const std::vector<uint8_t>& the_data,
+                                             const std::string& the_ip,
+                                             uint16_t the_port)
+    {
+        LOG_DEBUG << "incoming udp(" << m_udp_server.listening_port() << "): " << the_ip << ": " << the_port;
+        receive_cb(nullptr, the_data);
+    });
 }
 
-uint16_t RemoteControl::listening_port() const
+uint16_t RemoteControl::tcp_port() const
 {
     return m_tcp_server.listening_port();
+}
+
+uint16_t RemoteControl::udp_port() const
+{
+    return m_udp_server.listening_port();
 }
 
 void RemoteControl::set_components(const std::list<ComponentPtr>& the_components)

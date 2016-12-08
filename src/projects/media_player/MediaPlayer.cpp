@@ -479,8 +479,10 @@ void MediaPlayer::send_sync_cmd()
     {
         double sync_delay = median(pair.second);
         string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
-        net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
-                            remote_control().listening_port());
+//        net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
+//                            remote_control().tcp_port());
+        net::async_send_udp(background_queue().io_service(), cmd, pair.first,
+                            remote_control().tcp_port());
     }
 }
 
@@ -519,7 +521,7 @@ void MediaPlayer::send_network_cmd(const std::string &the_cmd)
     for(; it != m_ip_timestamps.end(); ++it)
     {
         net::async_send_tcp(background_queue().io_service(), the_cmd, it->first,
-                            remote_control().listening_port());
+                            remote_control().tcp_port());
     }
 }
 
@@ -531,12 +533,14 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     timer.start();
     
     auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
-                                           remote_control().listening_port());
+                                           remote_control().tcp_port());
     auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
                                       const std::vector<uint8_t> &data)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-        auto delay = timer.time_elapsed() * 0.75;
+        
+        // we measured 2 roundtrips -> 0.75 for tcp - 0.25 for udp
+        auto delay = timer.time_elapsed() * 0.25;
         
         auto it = m_ip_delays.find(ptr->remote_ip());
         if(it == m_ip_delays.end())

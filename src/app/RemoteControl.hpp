@@ -32,9 +32,10 @@ namespace kinski
         RemoteControl(){};
         RemoteControl(boost::asio::io_service &io, const std::list<ComponentPtr> &the_list);
         
-        void start_listen(uint16_t port = 33333);
+        void start_listen(uint16_t tcp_port = 33333, uint16_t udp_port = 33334);
         void stop_listen();
-        uint16_t listening_port() const;
+        uint16_t tcp_port() const;
+        uint16_t udp_port() const;
         
         void add_command(const std::string &the_cmd, remote_cb_t the_cb = remote_cb_t());
         void remove_command(const std::string &the_cmd);
@@ -57,6 +58,9 @@ namespace kinski
         
         //!
         net::tcp_server m_tcp_server;
+        
+        //!
+        net::udp_server m_udp_server;
         
         //!
         std::list<ComponentWeakPtr> m_components;

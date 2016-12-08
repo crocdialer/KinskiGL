@@ -133,8 +133,8 @@ namespace kinski
                     if(!ec)
                     {
                         socket_ptr->async_send_to(boost::asio::buffer(bytes), *end_point_it,
-                                                  [socket_ptr](const boost::system::error_code& error,
-                                                               std::size_t bytes_transferred)
+                                                  [socket_ptr, bytes](const boost::system::error_code& error,
+                                                                      std::size_t bytes_transferred)
                         {
                             if(error){LOG_ERROR << error.message();}
                         });
@@ -189,6 +189,12 @@ namespace kinski
             recv_buffer(1 << 20),
             receive_function(f){}
             
+            ~udp_server_impl()
+            {
+                try{ socket.close(); }
+                catch(std::exception &e){ LOG_WARNING << e.what(); }
+            }
+            
             udp::socket socket;
             udp::endpoint remote_endpoint;
             std::vector<uint8_t> recv_buffer;
@@ -225,11 +231,17 @@ namespace kinski
         
         void udp_server::start_listen(uint16_t port)
         {
-            if(!m_impl->socket.is_open())
+            try
             {
-                m_impl->socket.open(udp::v4());
-                m_impl->socket.bind(udp::endpoint(udp::v4(), port));
+                if(!m_impl->socket.is_open())
+                {
+                    m_impl->socket.open(udp::v4());
+                    m_impl->socket.bind(udp::endpoint(udp::v4(), port));
+                }
+                
             }
+            catch(std::exception &e){ LOG_WARNING << e.what(); }
+            
             if(port != m_impl->socket.local_endpoint().port())
             {
                 m_impl->socket.connect(udp::endpoint(udp::v4(), port));
