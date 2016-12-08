@@ -235,26 +235,28 @@ namespace kinski
                 m_impl->socket.connect(udp::endpoint(udp::v4(), port));
             }
             
+            auto impl_cp = m_impl;
+            
             m_impl->socket.async_receive_from(boost::asio::buffer(m_impl->recv_buffer),
                                               m_impl->remote_endpoint,
-                                              [&](const boost::system::error_code& error,
-                                                  std::size_t bytes_transferred)
+                                              [this, impl_cp](const boost::system::error_code& error,
+                                                              std::size_t bytes_transferred)
             {
-                if (!error)
+                if(!error)
                 {
-                    if(m_impl->receive_function)
+                    if(impl_cp->receive_function)
                     {
                         try
                         {
-                            std::vector<uint8_t> datavec(m_impl->recv_buffer.begin(),
-                                                         m_impl->recv_buffer.begin() + bytes_transferred);
-                            m_impl->receive_function(datavec,
-                                                     m_impl->remote_endpoint.address().to_string(),
-                                                     m_impl->remote_endpoint.port());
+                            std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
+                                                         impl_cp->recv_buffer.begin() + bytes_transferred);
+                            impl_cp->receive_function(datavec,
+                                                      impl_cp->remote_endpoint.address().to_string(),
+                                                      impl_cp->remote_endpoint.port());
                         }
                         catch (std::exception &e){ LOG_WARNING << e.what(); }
                     }
-                    start_listen(m_impl->socket.local_endpoint().port());
+                    if(impl_cp.use_count() > 1){ start_listen(impl_cp->socket.local_endpoint().port()); }
                 }
                 else
                 {
@@ -306,8 +308,8 @@ namespace kinski
                         });
                         con->start_receive();
                         if(connection_callback){ connection_callback(con); }
+                        accept();
                     }
-                    accept();
               });
             }
         };
