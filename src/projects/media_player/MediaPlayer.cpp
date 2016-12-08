@@ -482,7 +482,7 @@ void MediaPlayer::send_sync_cmd()
 //        net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
 //                            remote_control().tcp_port());
         net::async_send_udp(background_queue().io_service(), cmd, pair.first,
-                            remote_control().tcp_port());
+                            remote_control().udp_port());
     }
 }
 
