@@ -34,7 +34,7 @@ namespace kinski
         
         net::udp_server m_udp_server;
         std::unordered_map<std::string, float> m_ip_timestamps;
-        std::unordered_map<std::string, CircularBuffer<double>> m_ip_delays;
+        std::unordered_map<std::string, CircularBuffer<double>> m_ip_roundtrip;
         
         // properties
         Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");

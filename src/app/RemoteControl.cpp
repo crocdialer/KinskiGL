@@ -109,7 +109,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                                              const std::string& the_ip,
                                              uint16_t the_port)
     {
-        LOG_DEBUG << "incoming udp(" << m_udp_server.listening_port() << "): " << the_ip << ": " << the_port;
+        LOG_TRACE_2 << "incoming udp(" << m_udp_server.listening_port() << "): " << the_ip << ": " << the_port;
         receive_cb(nullptr, the_data);
     });
 }
@@ -129,10 +129,10 @@ void RemoteControl::set_components(const std::list<ComponentPtr>& the_components
     m_components.assign(the_components.begin(), the_components.end());
 }
 
-
 void RemoteControl::stop_listen()
 {
     m_tcp_server.stop_listen();
+    m_udp_server.stop_listen();
 }
 
 void RemoteControl::new_connection_cb(net::tcp_connection_ptr con)

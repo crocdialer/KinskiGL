@@ -474,15 +474,23 @@ void MediaPlayer::send_sync_cmd()
     remove_dead_ip_adresses();
     
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
+    bool use_udp = true;
     
-    for(auto &pair : m_ip_delays)
+    for(auto &pair : m_ip_roundtrip)
     {
-        double sync_delay = median(pair.second);
+        double sync_delay = median(pair.second) * (use_udp ? 0.5 : 1.5);
         string cmd = "seek_to_time " + to_string(m_media->current_time() + sync_delay, 3);
-//        net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
-//                            remote_control().tcp_port());
-        net::async_send_udp(background_queue().io_service(), cmd, pair.first,
-                            remote_control().udp_port());
+        
+        if(use_udp)
+        {
+            net::async_send_udp(background_queue().io_service(), cmd, pair.first,
+                                remote_control().udp_port());
+        }
+        else
+        {
+            net::async_send_tcp(background_queue().io_service(), cmd, pair.first,
+                                remote_control().tcp_port());
+        }
     }
 }
 
@@ -503,7 +511,7 @@ void MediaPlayer::remove_dead_ip_adresses()
     // remove dead iterators
     for(auto &dead_it : dead_iterators)
     {
-        m_ip_delays.erase(dead_it->first);
+        m_ip_roundtrip.erase(dead_it->first);
         m_ip_timestamps.erase(dead_it);
     }
 }
@@ -539,19 +547,19 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
         
-        // we measured 2 roundtrips -> 0.75 for tcp - 0.25 for udp
-        auto delay = timer.time_elapsed() * 0.25;
+        // we measured 2 roundtrips
+        auto delay = timer.time_elapsed() * 0.5;
         
-        auto it = m_ip_delays.find(ptr->remote_ip());
-        if(it == m_ip_delays.end())
+        auto it = m_ip_roundtrip.find(ptr->remote_ip());
+        if(it == m_ip_roundtrip.end())
         {
-            m_ip_delays[ptr->remote_ip()] = CircularBuffer<double>(5);
-            m_ip_delays[ptr->remote_ip()].push_back(delay);
+            m_ip_roundtrip[ptr->remote_ip()] = CircularBuffer<double>(5);
+            m_ip_roundtrip[ptr->remote_ip()].push_back(delay);
         }
         else{ it->second.push_back(delay); }
         
-        LOG_TRACE << ptr->remote_ip() << " (latency, last 10s): "
-            << (int)(1000.0 * mean(m_ip_delays[ptr->remote_ip()])) << " ms";
+        LOG_TRACE << ptr->remote_ip() << " (roundtrip, last 10s): "
+            << (int)(1000.0 * mean(m_ip_roundtrip[ptr->remote_ip()])) << " ms";
         
 //        ptr->close();
         con->set_tcp_receive_cb();
