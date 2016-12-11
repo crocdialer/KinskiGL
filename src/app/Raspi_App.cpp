@@ -482,7 +482,7 @@ std::string find_keyboard_handler()
 
     for(const auto &p : input_handles)
     {
-        if(p.find("event-mouse") != string::npos){ return p; }
+        if(p.find("event-kbd") != string::npos){ return p; }
     }
     return "";
 }
