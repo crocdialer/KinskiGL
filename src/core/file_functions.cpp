@@ -220,9 +220,8 @@ namespace kinski { namespace fs{
         string path = search_file(theUTF8Filename);
         std::ifstream inStream(path);
 
-        if(!inStream.good()){ throw OpenFileFailed(path); }
-        return string ((istreambuf_iterator<char>(inStream)),
-                       istreambuf_iterator<char>());
+        if(!inStream.is_open()){ throw OpenFileFailed(path); }
+        return string((istreambuf_iterator<char>(inStream)), istreambuf_iterator<char>());
     }
 
 ///////////////////////////////////////////////////////////////////////////////

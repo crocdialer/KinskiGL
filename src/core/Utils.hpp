@@ -302,7 +302,7 @@ namespace kinski
         
         inline bool operator<(const Area_<T> &other) const
         {
-            return size() < other.size();
+            return std::tie(x0, y0, x1, y1) < std::tie(other.x0, other.y0, other.x1, other.y1);
         }
         inline bool operator==(const Area_<T> &other) const
         {
