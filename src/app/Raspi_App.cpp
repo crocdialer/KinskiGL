@@ -91,20 +91,20 @@ namespace kinski
             auto mouse_handler = find_mouse_handler();
             auto kb_handler = find_keyboard_handler();
 
-            if(!m_keyboard_fd && !kb_handler.empty() ||
-               m_keyboard_fd && kb_handler.empty())
+            if((!m_keyboard_fd && !kb_handler.empty()) ||
+               (m_keyboard_fd && kb_handler.empty()))
             {
                 kp = &keyboard_fd;
                 has_changed = true;
             }
-            if(!m_mouse_fd && !mouse_handler.empty() ||
-               m_mouse_fd && mouse_handler.empty())
+            if((!m_mouse_fd && !mouse_handler.empty()) ||
+               (m_mouse_fd && mouse_handler.empty()))
             {
                  mp = &mouse_fd;
                  has_changed = true;
             }
             if(!has_changed){ return; }
-            
+
             get_input_file_descriptors(mp, kp, nullptr);
             main_queue().submit([this, mouse_fd, keyboard_fd]
             {
@@ -568,8 +568,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 
         if(kinski::fs::exists(touch_dev_path))
         {
-            sprintf(fullPath,touch_dev_path.c_str());
-            touchFd = open(fullPath, O_RDONLY | O_NONBLOCK);
+            touchFd = open(touch_dev_path.c_str(), O_RDONLY | O_NONBLOCK);
 
             // printf("%s Fd = %d\n", fullPath, mouseFd);
             // printf("Getting exclusive access: ");
