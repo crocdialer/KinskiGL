@@ -568,11 +568,13 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 
         if(kinski::fs::exists(touch_dev_path))
         {
+            int result = -1;
+            (void) result;
             touchFd = open(touch_dev_path.c_str(), O_RDONLY | O_NONBLOCK);
 
             // printf("%s Fd = %d\n", fullPath, mouseFd);
             // printf("Getting exclusive access: ");
-            ioctl(touchFd, EVIOCGRAB, 1);
+            result = ioctl(touchFd, EVIOCGRAB, 1);
             // printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
 
             char name[256] = "Unknown";
