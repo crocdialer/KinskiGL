@@ -572,7 +572,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 
             // printf("%s Fd = %d\n", fullPath, mouseFd);
             // printf("Getting exclusive access: ");
-            int result = ioctl(touchFd, EVIOCGRAB, 1);
+            ioctl(touchFd, EVIOCGRAB, 1);
             // printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
 
             char name[256] = "Unknown";
