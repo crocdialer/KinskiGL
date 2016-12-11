@@ -11,6 +11,8 @@
 using namespace std;
 
 void blank_background();
+std::string find_mouse_handler();
+std::string find_keyboard_handler();
 std::string find_device_handler(const std::string &the_dev_name);
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd);
 int32_t code_lookup(int32_t the_keycode);
@@ -81,11 +83,29 @@ namespace kinski
 
         m_timer_device_scan = Timer(background_queue().io_service(), [this]()
         {
-            int mouse_fd, keyboard_fd;
+            int mouse_fd = 0, keyboard_fd = 0;
+            int *mp = nullptr, *kp = nullptr;
+            bool has_changed = false;
 
             // check for keyboard and mouse being added/removed
-            get_input_file_descriptors(&mouse_fd, &keyboard_fd, nullptr);
+            auto mouse_handler = find_mouse_handler();
+            auto kb_handler = find_keyboard_handler();
 
+            if(!m_keyboard_fd && !kb_handler.empty() ||
+               m_keyboard_fd && kb_handler.empty())
+            {
+                kp = &keyboard_fd;
+                has_changed = true;
+            }
+            if(!m_mouse_fd && !mouse_handler.empty() ||
+               m_mouse_fd && mouse_handler.empty())
+            {
+                 mp = &mouse_fd;
+                 has_changed = true;
+            }
+            if(!has_changed){ return; }
+            
+            get_input_file_descriptors(mp, kp, nullptr);
             main_queue().submit([this, mouse_fd, keyboard_fd]
             {
                 if(mouse_fd)
@@ -113,7 +133,7 @@ namespace kinski
                     close(m_keyboard_fd);
                     m_keyboard_fd = 0;
                 }
-                if(m_keyboard_fd && m_mouse_fd){ m_timer_device_scan.cancel(); }
+                // if(m_keyboard_fd && m_mouse_fd){ m_timer_device_scan.cancel(); }
             });
         });
         m_timer_device_scan.set_periodic();
@@ -445,63 +465,100 @@ std::string find_device_handler(const std::string &the_dev_name)
     return kinski::fs::join_paths("/dev/input/", evt_handler_name);
 }
 
+std::string find_mouse_handler()
+{
+    auto input_handles = kinski::fs::get_directory_entries("/dev/input/by-id");
+
+    for(const auto &p : input_handles)
+    {
+        if(p.find("event-mouse") != string::npos){ return p; }
+    }
+    return "";
+}
+
+std::string find_keyboard_handler()
+{
+    auto input_handles = kinski::fs::get_directory_entries("/dev/input/by-id");
+
+    for(const auto &p : input_handles)
+    {
+        if(p.find("event-mouse") != string::npos){ return p; }
+    }
+    return "";
+}
+
 void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
 {
     int keyboardFd = -1, mouseFd = -1, touchFd = -1;
 
-    // init inputs
-    DIR *dirp;
-    struct dirent *dp = nullptr;
-    regex_t kbd, mouse;
+    // // init inputs
+    // DIR *dirp;
+    // struct dirent *dp = nullptr;
+    // regex_t kbd, mouse;
+    //
+    // char fullPath[1024];
+    // const char *dirName = "/dev/input/by-id";
+    //
+    // if(regcomp(&kbd, "event-kbd", 0) != 0)
+    // {
+    //     LOG_ERROR << "regcomp for kbd failed";
+    // }
+    // if(regcomp(&mouse, "event-mouse", 0) != 0)
+    // {
+    //     LOG_ERROR << "regcomp for mouse failed";
+    // }
+    // if(!(dirp = opendir(dirName)))
+    // {
+    //     // LOG_ERROR << "couldn't open '/dev/input/by-id'";
+    // }
+    //
+    // int result = -1;
+    // (void)result;
+    //
+    // // Find any files that match the regex for keyboard or mouse
+    // do
+    // {
+    //     errno = 0;
+    //     if (dirp && (dp = readdir(dirp)))
+    //     {
+    //         // printf("readdir (%s)\n", dp->d_name);
+    //         if(regexec (&kbd, dp->d_name, 0, NULL, 0) == 0)
+    //         {
+    //             sprintf(fullPath,"%s/%s", dirName, dp->d_name);
+    //             keyboardFd = open(fullPath, O_RDONLY | O_NONBLOCK);
+    //             result = ioctl(keyboardFd, EVIOCGRAB, 1);
+    //         }
+    //         if(regexec (&mouse, dp->d_name, 0, NULL, 0) == 0)
+    //         {
+    //             sprintf(fullPath,"%s/%s", dirName, dp->d_name);
+    //             mouseFd = open(fullPath, O_RDONLY | O_NONBLOCK);
+    //             result = ioctl(mouseFd, EVIOCGRAB, 1);
+    //
+    //             char name[256] = "Unknown";
+    //             result = ioctl(mouseFd, EVIOCGNAME(sizeof(name)), name);
+    //             LOG_INFO_IF(!result) << "found input: " << name;
+    //         }
+    //     }
+    // } while (dp);
+    //
+    // if(dirp){ closedir(dirp); }
+    // regfree(&kbd);
+    // regfree(&mouse);
 
-    char fullPath[1024];
-    const char *dirName = "/dev/input/by-id";
+    auto mouse_handler = find_mouse_handler();
+    auto kb_handler = find_keyboard_handler();
 
-    if(regcomp(&kbd, "event-kbd", 0) != 0)
+    if(!mouse_handler.empty())
     {
-        LOG_ERROR << "regcomp for kbd failed";
+        mouseFd = open(mouse_handler.c_str(), O_RDONLY | O_NONBLOCK);
+        ioctl(mouseFd, EVIOCGRAB, 1);
     }
-    if(regcomp(&mouse, "event-mouse", 0) != 0)
+
+    if(!kb_handler.empty())
     {
-        LOG_ERROR << "regcomp for mouse failed";
+        keyboardFd = open(kb_handler.c_str(), O_RDONLY | O_NONBLOCK);
+        ioctl(keyboardFd, EVIOCGRAB, 1);
     }
-    if(!(dirp = opendir(dirName)))
-    {
-        // LOG_ERROR << "couldn't open '/dev/input/by-id'";
-    }
-
-    int result = -1;
-    (void)result;
-
-    // Find any files that match the regex for keyboard or mouse
-    do
-    {
-        errno = 0;
-        if (dirp && (dp = readdir(dirp)))
-        {
-            // printf("readdir (%s)\n", dp->d_name);
-            if(regexec (&kbd, dp->d_name, 0, NULL, 0) == 0)
-            {
-                sprintf(fullPath,"%s/%s", dirName, dp->d_name);
-                keyboardFd = open(fullPath, O_RDONLY | O_NONBLOCK);
-                result = ioctl(keyboardFd, EVIOCGRAB, 1);
-            }
-            if(regexec (&mouse, dp->d_name, 0, NULL, 0) == 0)
-            {
-                sprintf(fullPath,"%s/%s", dirName, dp->d_name);
-                mouseFd = open(fullPath, O_RDONLY | O_NONBLOCK);
-                result = ioctl(mouseFd, EVIOCGRAB, 1);
-
-                char name[256] = "Unknown";
-                result = ioctl(mouseFd, EVIOCGNAME(sizeof(name)), name);
-                LOG_INFO_IF(!result) << "found input: " << name;
-            }
-        }
-    } while (dp);
-
-    if(dirp){ closedir(dirp); }
-    regfree(&kbd);
-    regfree(&mouse);
 
     // check for valid pointer
     if(touch_fd)

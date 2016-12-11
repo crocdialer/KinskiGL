@@ -118,7 +118,15 @@ namespace kinski { namespace fs{
     {
         list<string> ret;
         path p (expand_user(thePath));
-
+        
+        auto check_file_status = [](const boost::filesystem::file_status &s) -> bool
+        {
+            return  s.type() == boost::filesystem::regular_file ||
+                    s.type() == boost::filesystem::symlink_file ||
+                    s.type() == boost::filesystem::character_file ||
+                    s.type() == boost::filesystem::block_file;
+        };
+        
         try
         {
             if (exists(p))    // does p actually exist?
@@ -128,7 +136,7 @@ namespace kinski { namespace fs{
                     recursive_directory_iterator it(p), end;
                     while(it != end)
                     {
-                        if(boost::filesystem::is_regular_file(*it))
+                        if(check_file_status(it->status()))
                         {
                             if(theExtension.empty())
                             {
@@ -146,7 +154,7 @@ namespace kinski { namespace fs{
                         catch(std::exception& e)
                         {
                             // e.g. no permission
-                            LOG_ERROR<<e.what();
+                            LOG_ERROR << e.what();
                             it.no_push();
                             ++it;
                         }
@@ -157,11 +165,7 @@ namespace kinski { namespace fs{
                     directory_iterator it(p), end;
                     while(it != end)
                     {
-                        auto f_stat(it->status());
-                        if(f_stat.type() == boost::filesystem::regular_file ||
-                           f_stat.type() == boost::filesystem::symlink_file ||
-                           f_stat.type() == boost::filesystem::character_file ||
-                           f_stat.type() == boost::filesystem::block_file)
+                        if(check_file_status(it->status()))
                         {
                             if(theExtension.empty())
                             {
