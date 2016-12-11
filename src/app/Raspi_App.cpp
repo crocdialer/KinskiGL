@@ -137,7 +137,8 @@ namespace kinski
             });
         });
         m_timer_device_scan.set_periodic();
-
+        m_timer_device_scan.expires_from_now(5.0);
+        
         // make sure touchscreen backlight stays on
         // TODO: use timer here
         // set_lcd_backlight(true);
@@ -217,11 +218,6 @@ namespace kinski
         read_mouse_and_touch(this, m_mouse_fd);
         read_mouse_and_touch(this, m_touch_fd);
         read_keyboard(this, m_keyboard_fd);
-
-        if(!(m_mouse_fd && m_keyboard_fd) && m_timer_device_scan.has_expired())
-        {
-            m_timer_device_scan.expires_from_now(5.0);
-        }
     }
 
     void read_keyboard(kinski::App* the_app, int the_file_descriptor)
