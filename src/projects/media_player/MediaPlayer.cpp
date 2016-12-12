@@ -103,7 +103,7 @@ void MediaPlayer::draw()
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
     
-    if(!*m_is_master && m_is_syncing)
+    if(!*m_is_master && m_is_syncing && Logger::get()->severity() >= Severity::DEBUG)
     {
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
     }
