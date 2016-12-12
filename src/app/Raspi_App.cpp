@@ -91,17 +91,19 @@ namespace kinski
             auto mouse_handler = find_mouse_handler();
             auto kb_handler = find_keyboard_handler();
 
-            if((!keyboard_fd && !kb_handler.empty()) ||
-               (keyboard_fd && kb_handler.empty()))
+            if((!m_keyboard_fd && !kb_handler.empty()) ||
+               (m_keyboard_fd && kb_handler.empty()))
             {
+                LOG_TRACE << "keyboard changed";
                 kp = &keyboard_fd;
                 has_changed = true;
             }
-            if((!mouse_fd && !mouse_handler.empty()) ||
-               (mouse_fd && mouse_handler.empty()))
+            if((!m_mouse_fd && !mouse_handler.empty()) ||
+               (m_mouse_fd && mouse_handler.empty()))
             {
-                 mp = &mouse_fd;
-                 has_changed = true;
+                LOG_TRACE << "mouse changed";
+                mp = &mouse_fd;
+                has_changed = true;
             }
             if(!has_changed){ return; }
 
@@ -457,7 +459,9 @@ std::string find_device_handler(const std::string &the_dev_name)
 
 std::string find_mouse_handler()
 {
-    auto input_handles = kinski::fs::get_directory_entries("/dev/input/by-id");
+    std::string dir = "/dev/input/by-id";
+    if(!kinski::fs::exists(dir)){ return ""; }
+    auto input_handles = kinski::fs::get_directory_entries(dir);
 
     for(const auto &p : input_handles)
     {
@@ -468,7 +472,9 @@ std::string find_mouse_handler()
 
 std::string find_keyboard_handler()
 {
-    auto input_handles = kinski::fs::get_directory_entries("/dev/input/by-id");
+    std::string dir = "/dev/input/by-id";
+    if(!kinski::fs::exists(dir)){ return ""; }
+    auto input_handles = kinski::fs::get_directory_entries(dir);
 
     for(const auto &p : input_handles)
     {
