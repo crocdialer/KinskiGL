@@ -83,7 +83,7 @@ namespace kinski
 
         m_timer_device_scan = Timer(background_queue().io_service(), [this]()
         {
-            int mouse_fd = 0, keyboard_fd = 0;
+            int mouse_fd = m_mouse_fd, keyboard_fd = m_keyboard_fd;
             int *mp = nullptr, *kp = nullptr;
             bool has_changed = false;
 
@@ -91,14 +91,14 @@ namespace kinski
             auto mouse_handler = find_mouse_handler();
             auto kb_handler = find_keyboard_handler();
 
-            if((!m_keyboard_fd && !kb_handler.empty()) ||
-               (m_keyboard_fd && kb_handler.empty()))
+            if((!keyboard_fd && !kb_handler.empty()) ||
+               (keyboard_fd && kb_handler.empty()))
             {
                 kp = &keyboard_fd;
                 has_changed = true;
             }
-            if((!m_mouse_fd && !mouse_handler.empty()) ||
-               (m_mouse_fd && mouse_handler.empty()))
+            if((!mouse_fd && !mouse_handler.empty()) ||
+               (mouse_fd && mouse_handler.empty()))
             {
                  mp = &mouse_fd;
                  has_changed = true;
