@@ -509,7 +509,7 @@ void get_input_file_descriptors(int *mouse_fd, int *kb_fd, int *touch_fd)
             // printf("%s\n", (result == 0) ? "SUCCESS" : "FAILURE");
 
             char name[256] = "Unknown";
-            result = ioctl(touchFd, EVIOCGNAME(sizeof(name)), name);
+            result = ioctl(*touch_fd, EVIOCGNAME(sizeof(name)), name);
             LOG_TRACE << "found input: " << name;
         }
     }

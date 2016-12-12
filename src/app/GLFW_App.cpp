@@ -330,6 +330,7 @@ namespace kinski
                                                         m_windows.front()->handle());
             
             if(!b){ window->set_position(m_win_params.zw()); }
+            else{ window->set_position(gl::vec2(0)); }
             
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
