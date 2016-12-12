@@ -94,7 +94,6 @@ namespace kinski
             if((!m_keyboard_fd && !kb_handler.empty()) ||
                (m_keyboard_fd && kb_handler.empty()))
             {
-                LOG_TRACE << "keyboard changed";
                 keyboard_fd = 0;
                 kp = &keyboard_fd;
                 has_changed = true;
@@ -102,7 +101,6 @@ namespace kinski
             if((!m_mouse_fd && !mouse_handler.empty()) ||
                (m_mouse_fd && mouse_handler.empty()))
             {
-                LOG_TRACE << "mouse changed";
                 mouse_fd = 0;
                 mp = &mouse_fd;
                 has_changed = true;
