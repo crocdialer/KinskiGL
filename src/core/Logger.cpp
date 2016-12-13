@@ -167,7 +167,7 @@ namespace kinski {
         std::lock_guard<std::mutex> lock(mutex);
         
         // change state
-        m_out_streams.push_back(the_stream);
+        m_out_streams.insert(the_stream);
     }
     
     void Logger::remove_outstream(std::ostream *the_stream)
@@ -175,7 +175,7 @@ namespace kinski {
         std::lock_guard<std::mutex> lock(mutex);
         
         // change state
-        m_out_streams.remove(the_stream);
+        m_out_streams.erase(the_stream);
     }
     
     void Logger::clear_streams()

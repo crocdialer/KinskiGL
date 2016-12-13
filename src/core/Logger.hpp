@@ -78,7 +78,7 @@ class KINSKI_API Logger
         Logger();
         static Logger *s_instance;
         Severity m_global_severity;
-        std::list<std::ostream*> m_out_streams;
+        std::set<std::ostream*> m_out_streams;
     
         bool m_use_timestamp, m_use_thread_id;
 };
