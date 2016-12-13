@@ -190,7 +190,7 @@ public:
             return *this + (-i);
         }
         
-        inline int operator-(const iterator &the_other)
+        inline int operator-(const iterator &the_other) const
         {
             int index = m_ptr - m_array - m_buf->m_first;
             index += index < 0 ? m_size : 0;
