@@ -24,7 +24,8 @@ public:
     static SerialPtr create(boost::asio::io_service &io, receive_cb_t cb = receive_cb_t());
     virtual ~Serial();
     
-    static std::vector<std::string> device_list(const std::set<std::string>& the_patterns = std::set<std::string>());
+    static std::vector<std::string>
+    device_list(const std::set<std::string>& the_patterns = std::set<std::string>());
     bool open(const std::string &the_name, int the_baudrate = 57600);
     
     bool open() override;

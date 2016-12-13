@@ -22,13 +22,45 @@ namespace kinski
     public:
         Stopwatch();
         
+        /*!
+         * start the timer. has no effect, if the timer is already running.
+         */
         void start();
+        
+        /*!
+         * stop the timer. all measured laps are kept.
+         */
         void stop();
+        
+        /*!
+         * return true if the timer is currently running.
+         */
         bool running() const;
+        
+        /*!
+         * return the total time (in seconds) measured, including all previous laps.
+         */
         double time_elapsed() const;
+        
+        /*!
+         * return the time (in seconds) measured for the current lap.
+         */
         double time_elapsed_for_lap() const;
+        
+        /*!
+         * reset the timer. this stops time measurement, if it was running before, and clears all 
+         * measured laps.
+         */
         void reset();
+        
+        /*!
+         * begin measurement of a new lap. if the timer is not running, this call has no effect.
+         */
         void new_lap();
+        
+        /*!
+         * return the values for all previously measured laps.
+         */
         const std::vector<double>& laps() const;
 
     private:
