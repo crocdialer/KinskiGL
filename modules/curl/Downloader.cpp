@@ -20,25 +20,23 @@ typedef std::map<CURL*, ActionPtr> HandleMap;
 // Timeout interval for http requests
 static const long DEFAULT_TIMEOUT = 0;
 
-struct Downloader::Impl
+struct DownloaderImpl
 {
     boost::asio::io_service *m_io_service;
-    CURLM *m_curl_multi_handle;
+    std::shared_ptr<CURLM> m_curl_multi_handle;
     HandleMap m_handle_map;
     
     // connection timeout in ms
     long m_timeout;
     
     // number of running transfers
-    int m_running;
+    int m_num_connections;
     
-    Impl(boost::asio::io_service *io):
+    DownloaderImpl(boost::asio::io_service *io):
     m_io_service(io),
-    m_curl_multi_handle(curl_multi_init()),
+    m_curl_multi_handle(curl_multi_init(), curl_multi_cleanup),
     m_timeout(DEFAULT_TIMEOUT),
-    m_running(0){};
-    
-    virtual ~Impl(){curl_multi_cleanup(m_curl_multi_handle);}
+    m_num_connections(0){};
 };
     
 class Action
@@ -46,8 +44,8 @@ class Action
 protected:
     std::shared_ptr<CURL> m_curl_handle;
     Downloader::ConnectionInfo m_connection_info;
-    Downloader::CompletionHandler m_completion_handler;
-    Downloader::ProgressHandler m_progress_handler;
+    Downloader::completion_cb_t m_completion_handler;
+    Downloader::progress_cb_t m_progress_handler;
     
     long m_timeout;
     std::vector<uint8_t> m_response;
@@ -58,15 +56,16 @@ protected:
     static size_t write_static(void *buffer, size_t size, size_t nmemb,
                                void *userp)
     {
-        size_t realsize = size * nmemb;
-        if (userp)
+        size_t num_bytes = size * nmemb;
+        
+        if(userp)
         {
             Action *ourAction = static_cast<Action*>(userp);
             uint8_t* buf_start = (uint8_t*)(buffer);
-            uint8_t* buf_end = buf_start + realsize;
+            uint8_t* buf_end = buf_start + num_bytes;
             ourAction->m_response.insert(ourAction->m_response.end(), buf_start, buf_end);
         }
-        return realsize;
+        return num_bytes;
     }
     
     /*!
@@ -75,9 +74,9 @@ protected:
     static size_t read_static(void *ptr, size_t size, size_t nmemb,
                               void *inStream)
     {
-        size_t length = strlen((char*) inStream);
-        memcpy(ptr, inStream, length);
-        return length;
+        size_t num_bytes = size * nmemb;
+        memcpy(ptr, inStream, num_bytes);
+        return num_bytes;
     }
     
     /*!
@@ -129,9 +128,9 @@ public:
         m_curl_handle = std::shared_ptr<CURL>(handle, curl_easy_cleanup);
     }
     
-    Downloader::CompletionHandler completion_handler() const {return m_completion_handler;}
-    void set_completion_handler(Downloader::CompletionHandler ch){m_completion_handler = ch;}
-    void set_progress_handler(Downloader::ProgressHandler ph){m_progress_handler = ph;}
+    Downloader::completion_cb_t completion_handler() const {return m_completion_handler;}
+    void set_completion_handler(Downloader::completion_cb_t ch){m_completion_handler = ch;}
+    void set_progress_handler(Downloader::progress_cb_t ph){m_progress_handler = ph;}
 };
 
 class GetURLAction: public Action
@@ -152,13 +151,13 @@ public:
 };
 
 Downloader::Downloader() :
-m_impl(new Downloader::Impl(nullptr))
+m_impl(new DownloaderImpl(nullptr))
 {
     
 }
     
 Downloader::Downloader(boost::asio::io_service &io) :
-    m_impl(new Downloader::Impl(&io))
+    m_impl(new DownloaderImpl(&io))
 {
 
 }
@@ -179,23 +178,23 @@ std::vector<uint8_t> Downloader::get_url(const std::string &the_url)
 
 void Downloader::poll()
 {
-    if(m_impl->m_running)
+    if(m_impl->m_num_connections)
     {
-        curl_multi_perform(m_impl->m_curl_multi_handle, &m_impl->m_running);
+        curl_multi_perform(m_impl->m_curl_multi_handle.get(), &m_impl->m_num_connections);
         
         CURLMsg *msg;
         int msgs_left;
         CURL *easy;
         CURLcode res;
         
-        while ((msg = curl_multi_info_read(m_impl->m_curl_multi_handle, &msgs_left)))
+        while ((msg = curl_multi_info_read(m_impl->m_curl_multi_handle.get(), &msgs_left)))
         {
             if (msg->msg == CURLMSG_DONE)
             {
                 easy = msg->easy_handle;
                 res = msg->data.result;
                 
-                curl_multi_remove_handle(m_impl->m_curl_multi_handle, easy);
+                curl_multi_remove_handle(m_impl->m_curl_multi_handle.get(), easy);
                 
                 auto itr = m_impl->m_handle_map.find(easy);
                 if(itr != m_impl->m_handle_map.end())
@@ -205,7 +204,7 @@ void Downloader::poll()
                         auto ci = itr->second->connection_info();
                         int num_kb = ci.dl_total / 1024;
                         
-                        LOG_DEBUG <<"'"<<ci.url<<"' completed successfully ("<<num_kb<<"kB)";
+                        LOG_DEBUG << "'" << ci.url << "' completed successfully (" << num_kb << " kB)";
                         if(itr->second->completion_handler())
                         {
                             itr->second->completion_handler()(itr->second->connection_info(),
@@ -220,14 +219,14 @@ void Downloader::poll()
                 }
             }
         }
-        if(m_impl->m_running && m_impl->m_io_service)
+        if(m_impl->m_num_connections && m_impl->m_io_service)
             m_impl->m_io_service->post(std::bind(&Downloader::poll, this));
     }
 }
     
 void Downloader::async_get_url(const std::string &the_url,
-                               CompletionHandler ch,
-                               ProgressHandler ph)
+                               completion_cb_t ch,
+                               progress_cb_t ph)
 {
     LOG_DEBUG << "trying to fetch url: '" << the_url << "' async";
     
@@ -242,9 +241,9 @@ void Downloader::async_get_url(const std::string &the_url,
     m_impl->m_handle_map[url_action->handle()] = url_action;
     
     // add handle to multi
-    curl_multi_add_handle(m_impl->m_curl_multi_handle, url_action->handle());
+    curl_multi_add_handle(m_impl->m_curl_multi_handle.get(), url_action->handle());
     
-    curl_multi_perform(m_impl->m_curl_multi_handle, &m_impl->m_running);
+    curl_multi_perform(m_impl->m_curl_multi_handle.get(), &m_impl->m_num_connections);
     
     if(m_impl->m_io_service)
     {

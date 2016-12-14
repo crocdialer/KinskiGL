@@ -47,6 +47,13 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
+        void send_tcp(const std::string &str, const std::string &ip_string, int port)
+        {
+            send_tcp(std::vector<uint8_t>(str.begin(), str.end()), ip_string, port);
+        }
+        
+        ///////////////////////////////////////////////////////////////////////////////
+        
         void send_tcp(const std::vector<uint8_t> &bytes,
                       const std::string &ip_string, int port)
         {
