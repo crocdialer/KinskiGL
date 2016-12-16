@@ -48,7 +48,7 @@ public:
                    progress_cb_t ph = progress_cb_t());
     
     /*!
-     * get the resource at the given url (nonblocking) with HTTP GET
+     * get the resource at the given url (nonblocking) with HTTP POST
      */
     void async_post(const std::string &the_url,
                     const std::vector<uint8_t> &the_data,
