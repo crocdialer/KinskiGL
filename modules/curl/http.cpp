@@ -323,11 +323,6 @@ void Client::async_get(const std::string &the_url,
     {
         m_impl->m_io_service->post(std::bind(&ClientImpl::poll, m_impl));
     }
-    else
-    {
-        LOG_WARNING << "async_get called without specifying an io_service object.\n"
-        "you have to call poll() manually or provide an io_service!";
-    }
 }
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -355,11 +350,6 @@ void Client::async_post(const std::string &the_url,
     if(m_impl->m_io_service && !m_impl->m_num_connections)
     {
         m_impl->m_io_service->post(std::bind(&ClientImpl::poll, m_impl));
-    }
-    else
-    {
-        LOG_WARNING << "async_post called without specifying an io_service object.\n"
-        "you have to call poll() manually or provide an io_service!";
     }
 }
 
