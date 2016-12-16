@@ -16,6 +16,7 @@ struct ConnectionInfo
 {
     std::string url;
     double dl_total, dl_now, ul_total, ul_now;
+    uint64_t timeout;
 };
 typedef std::function<void(ConnectionInfo)> progress_cb_t;
 typedef std::function<void(ConnectionInfo, const std::vector<uint8_t>&)> completion_cb_t;

@@ -29,7 +29,7 @@ struct ClientImpl
     HandleMap m_handle_map;
     
     // connection timeout in ms
-    long m_timeout;
+    uint64_t m_timeout;
     
     // number of running transfers
     int m_num_connections;
@@ -47,13 +47,11 @@ struct ClientImpl
     
 class Action
 {
-protected:
+private:
     std::shared_ptr<CURL> m_curl_handle;
     ConnectionInfo m_connection_info;
     completion_cb_t m_completion_handler;
     progress_cb_t m_progress_handler;
-    
-    long m_timeout;
     std::vector<uint8_t> m_response;
  
     ///////////////////////////////////////////////////////////////////////////////
@@ -114,17 +112,17 @@ protected:
     }
     
 public:
-    Action():
-    m_connection_info({"", 0, 0, 0, 0})
+    Action(const std::string &the_url):
+    m_connection_info({the_url, 0, 0, 0, 0, 0})
     {
         set_handle(curl_easy_init());
         curl_easy_setopt(handle(), CURLOPT_WRITEDATA, this);
 		curl_easy_setopt(handle(), CURLOPT_WRITEFUNCTION, write_static);
         curl_easy_setopt(handle(), CURLOPT_READDATA, this);
         curl_easy_setopt(handle(), CURLOPT_READFUNCTION, read_static);
-//        curl_easy_setopt(m_curl_handle.get(), CURLOPT_NOPROGRESS, 0L);
         curl_easy_setopt(handle(), CURLOPT_PROGRESSDATA, this);
         curl_easy_setopt(handle(), CURLOPT_PROGRESSFUNCTION, progress_static);
+        curl_easy_setopt(handle(), CURLOPT_URL, the_url.c_str());
     };
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -164,19 +162,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
     
-class Action_GET: public Action
-{
-private:
-	string m_url;
-public:
-	Action_GET(const string &the_url) :
-    Action(),
-    m_url(the_url)
-	{
-        m_connection_info.url = the_url;
-		curl_easy_setopt(handle(), CURLOPT_URL, m_url.c_str());
-	}
-};
+typedef Action Action_GET;
  
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -191,11 +177,10 @@ public:
     Action_POST(const string &the_url,
                 const std::vector<uint8_t> &the_data,
                 const std::string &the_mime_type = "text/json"):
-    Action(),
+    Action(the_url),
     m_url(the_url),
     m_data(the_data)
     {
-        m_connection_info.url = the_url;
         auto header_content = "Content-Type: " + the_mime_type;
         m_headers = std::shared_ptr<struct curl_slist>(curl_slist_append(nullptr,
                                                                          header_content.c_str()),
@@ -302,8 +287,8 @@ void ClientImpl::poll()
 ///////////////////////////////////////////////////////////////////////////////
     
 void Client::async_get(const std::string &the_url,
-                               completion_cb_t ch,
-                               progress_cb_t ph)
+                       completion_cb_t ch,
+                       progress_cb_t ph)
 {
     LOG_DEBUG << "async_get: '" << the_url << "'";
     
@@ -328,10 +313,10 @@ void Client::async_get(const std::string &the_url,
 ///////////////////////////////////////////////////////////////////////////////
     
 void Client::async_post(const std::string &the_url,
-                            const std::vector<uint8_t> &the_data,
-                            completion_cb_t ch,
-                            const std::string &the_mime_type,
-                            progress_cb_t ph)
+                        const std::vector<uint8_t> &the_data,
+                        completion_cb_t ch,
+                        const std::string &the_mime_type,
+                        progress_cb_t ph)
 {
     LOG_DEBUG << "async_post: '" << the_url << "'";
     
