@@ -6,8 +6,9 @@
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
 //
 
-#include "curl/curl.h"
+#include <curl/curl.h>
 #include <boost/asio.hpp>
+#include <mutex>
 #include "http.h"
 
 using namespace std;
@@ -26,7 +27,12 @@ struct ClientImpl
 {
     boost::asio::io_service *m_io_service;
     std::shared_ptr<CURLM> m_curl_multi_handle;
+    
+    // map containing current handles
     HandleMap m_handle_map;
+    
+    // mutex to protect the handle-map
+    std::mutex m_mutex;
     
     // connection timeout in ms
     uint64_t m_timeout;
@@ -135,7 +141,7 @@ public:
     bool perform()
     {
         CURLcode curlResult = curl_easy_perform(handle());
-        curl_easy_getinfo(handle(), CURLINFO_RESPONSE_CODE, &m_response.code);
+        curl_easy_getinfo(handle(), CURLINFO_RESPONSE_CODE, &m_response.status_code);
         if(!curlResult && m_completion_handler) m_completion_handler(m_connection_info, m_response);
 		return !curlResult;
     }
@@ -187,7 +193,7 @@ private:
 public:
     Action_POST(const string &the_url,
                 const std::vector<uint8_t> &the_data,
-                const std::string &the_mime_type = "text/json"):
+                const std::string &the_mime_type):
     Action(the_url),
     m_data(the_data)
     {
@@ -254,6 +260,8 @@ void ClientImpl::poll()
     {
         if(msg->msg == CURLMSG_DONE)
         {
+            std::unique_lock<std::mutex> lock(m_mutex);
+            
             easy = msg->easy_handle;
             res = msg->data.result;
             curl_multi_remove_handle(m_curl_multi_handle.get(), easy);
@@ -264,12 +272,13 @@ void ClientImpl::poll()
                 if(!res)
                 {
                     // http response code
-                    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &itr->second->response().code);
+                    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE,
+                                      &itr->second->response().status_code);
                     
                     auto ci = itr->second->connection_info();
                     int num_kb = ci.dl_total / 1024;
                     
-                    LOG_TRACE_1 << itr->second->response().code << ": '" << ci.url
+                    LOG_TRACE_1 << itr->second->response().status_code << ": '" << ci.url
                         << "' completed successfully (" << num_kb << " kB)";
                     
                     if(itr->second->completion_handler())
@@ -309,6 +318,8 @@ void Client::async_get(const std::string &the_url,
     url_action->set_timeout(m_impl->m_timeout);
     url_action->set_completion_handler(ch);
     url_action->set_progress_handler(ph);
+    
+    std::unique_lock<std::mutex> lock(m_impl->m_mutex);
     m_impl->m_handle_map[url_action->handle()] = url_action;
     
     // add handle to multi
@@ -337,6 +348,8 @@ void Client::async_post(const std::string &the_url,
     url_action->set_timeout(m_impl->m_timeout);
     url_action->set_completion_handler(ch);
     url_action->set_progress_handler(ph);
+    
+    std::unique_lock<std::mutex> lock(m_impl->m_mutex);
     m_impl->m_handle_map[url_action->handle()] = url_action;
     
     // add handle to multi

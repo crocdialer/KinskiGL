@@ -21,7 +21,7 @@ typedef struct
     
 typedef struct
 {
-    uint64_t code;
+    uint64_t status_code;
     std::vector<uint8_t> data;
 } response_t;
     
