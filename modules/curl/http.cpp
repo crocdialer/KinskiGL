@@ -102,7 +102,7 @@ private:
         self->m_connection_info.dl_now = dlnow;
         self->m_connection_info.ul_total = ult;
         self->m_connection_info.ul_now = uln;
-        LOG_TRACE << self->connection_info().url << " : " << self->connection_info().dl_now << " / "
+        LOG_TRACE_2 << self->connection_info().url << " : " << self->connection_info().dl_now << " / "
         << self->connection_info().dl_total;
         
         if(self->m_progress_handler)
@@ -120,6 +120,7 @@ public:
 		curl_easy_setopt(handle(), CURLOPT_WRITEFUNCTION, write_static);
         curl_easy_setopt(handle(), CURLOPT_READDATA, this);
         curl_easy_setopt(handle(), CURLOPT_READFUNCTION, read_static);
+        curl_easy_setopt(handle(), CURLOPT_NOPROGRESS, 0L);
         curl_easy_setopt(handle(), CURLOPT_PROGRESSDATA, this);
         curl_easy_setopt(handle(), CURLOPT_PROGRESSFUNCTION, progress_static);
         curl_easy_setopt(handle(), CURLOPT_URL, the_url.c_str());
@@ -158,6 +159,16 @@ public:
     completion_cb_t completion_handler() const {return m_completion_handler;}
     void set_completion_handler(completion_cb_t ch){m_completion_handler = ch;}
     void set_progress_handler(progress_cb_t ph){m_progress_handler = ph;}
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    void set_timeout(uint64_t the_timeout)
+    {
+        m_connection_info.timeout = the_timeout;
+        curl_easy_setopt(handle(), CURLOPT_TIMEOUT, the_timeout);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,7 +180,6 @@ typedef Action Action_GET;
 class Action_POST: public Action
 {
 private:
-    std::string m_url;
     std::vector<uint8_t> m_data;
     std::shared_ptr<struct curl_slist> m_headers;
     
@@ -178,7 +188,6 @@ public:
                 const std::vector<uint8_t> &the_data,
                 const std::string &the_mime_type = "text/json"):
     Action(the_url),
-    m_url(the_url),
     m_data(the_data)
     {
         auto header_content = "Content-Type: " + the_mime_type;
@@ -186,7 +195,7 @@ public:
                                                                          header_content.c_str()),
                                                        curl_slist_free_all);
         
-        curl_easy_setopt(handle(), CURLOPT_URL, m_url.c_str());
+        curl_easy_setopt(handle(), CURLOPT_URL, the_url.c_str());
         curl_easy_setopt(handle(), CURLOPT_POSTFIELDS, &m_data[0]);
         curl_easy_setopt(handle(), CURLOPT_POSTFIELDSIZE, m_data.size());
         curl_easy_setopt(handle(), CURLOPT_HTTPHEADER, m_headers.get());
@@ -197,9 +206,8 @@ public:
     
 std::vector<uint8_t> get(const std::string &the_url)
 {
-    ActionPtr url_action = make_shared<Action_GET>(the_url);
-    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, DEFAULT_TIMEOUT);
     LOG_DEBUG << "get: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_GET>(the_url);
     url_action->perform();
     return url_action->response();
 }
@@ -210,9 +218,8 @@ std::vector<uint8_t> post(const std::string &the_url,
                           const std::vector<uint8_t> &the_data,
                           const std::string &the_mime_type)
 {
-    ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
-    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, DEFAULT_TIMEOUT);
     LOG_DEBUG << "post: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
     url_action->perform();
     return url_action->response();
 }
@@ -237,50 +244,49 @@ Client::~Client()
 void ClientImpl::poll()
 {
     curl_multi_perform(m_curl_multi_handle.get(), &m_num_connections);
+    CURLMsg *msg;
+    int msgs_left;
+    CURL *easy;
+    CURLcode res;
     
-    if(m_num_connections)
+    while((msg = curl_multi_info_read(m_curl_multi_handle.get(), &msgs_left)))
     {
-        CURLMsg *msg;
-        int msgs_left;
-        CURL *easy;
-        CURLcode res;
-        
-        while((msg = curl_multi_info_read(m_curl_multi_handle.get(), &msgs_left)))
+        if(msg->msg == CURLMSG_DONE)
         {
-            if(msg->msg == CURLMSG_DONE)
+            easy = msg->easy_handle;
+            res = msg->data.result;
+            
+            curl_multi_remove_handle(m_curl_multi_handle.get(), easy);
+            
+            auto itr = m_handle_map.find(easy);
+            if(itr != m_handle_map.end())
             {
-                easy = msg->easy_handle;
-                res = msg->data.result;
-                
-                curl_multi_remove_handle(m_curl_multi_handle.get(), easy);
-                
-                auto itr = m_handle_map.find(easy);
-                if(itr != m_handle_map.end())
+                if(!res)
                 {
-                    if(!res)
+                    auto ci = itr->second->connection_info();
+                    int num_kb = ci.dl_total / 1024;
+                    
+                    LOG_DEBUG << "'" << ci.url << "' completed successfully (" << num_kb << " kB)";
+                    
+                    if(itr->second->completion_handler())
                     {
-                        auto ci = itr->second->connection_info();
-                        int num_kb = ci.dl_total / 1024;
-                        
-                        LOG_DEBUG << "'" << ci.url << "' completed successfully (" << num_kb << " kB)";
-                        if(itr->second->completion_handler())
-                        {
-                            itr->second->completion_handler()(itr->second->connection_info(),
-                                                              itr->second->response());
-                        }
+                        itr->second->completion_handler()(itr->second->connection_info(),
+                                                          itr->second->response());
                     }
-                    else
-                    {
-                        LOG_DEBUG << "could not retrieve '" << itr->second->connection_info().url << "'";
-                    }
-                    m_handle_map.erase(itr);
                 }
+                else
+                {
+                    LOG_DEBUG << "could not retrieve '" << itr->second->connection_info().url << "'";
+                }
+                m_handle_map.erase(itr);
             }
         }
-        if(m_num_connections && m_io_service)
-        {
-            m_io_service->post(std::bind(&ClientImpl::poll, this));
-        }
+        else{ LOG_DEBUG << msg->msg; }
+    }
+    
+    if(m_num_connections && m_io_service)
+    {
+        m_io_service->post(std::bind(&ClientImpl::poll, this));
     }
 }
     
@@ -296,7 +302,7 @@ void Client::async_get(const std::string &the_url,
     ActionPtr url_action = make_shared<Action_GET>(the_url);
     
     // set options for this handle
-    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_impl->m_timeout);
+    url_action->set_timeout(m_impl->m_timeout);
     url_action->set_completion_handler(ch);
     url_action->set_progress_handler(ph);
     m_impl->m_handle_map[url_action->handle()] = url_action;
@@ -324,7 +330,7 @@ void Client::async_post(const std::string &the_url,
     ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
     
     // set options for this handle
-    curl_easy_setopt(url_action->handle(), CURLOPT_TIMEOUT, m_impl->m_timeout);
+    url_action->set_timeout(m_impl->m_timeout);
     url_action->set_completion_handler(ch);
     url_action->set_progress_handler(ph);
     m_impl->m_handle_map[url_action->handle()] = url_action;

@@ -32,7 +32,7 @@ std::vector<uint8_t> get(const std::string &the_url);
  */
 std::vector<uint8_t> post(const std::string &the_url,
                           const std::vector<uint8_t> &the_data,
-                          const std::string &the_mime_type = "text/json");
+                          const std::string &the_mime_type = "application/json");
 
 class Client
 {
@@ -54,7 +54,7 @@ public:
     void async_post(const std::string &the_url,
                     const std::vector<uint8_t> &the_data,
                     completion_cb_t ch = completion_cb_t(),
-                    const std::string &the_mime_type = "text/json",
+                    const std::string &the_mime_type = "application/json",
                     progress_cb_t ph = progress_cb_t());
     
     long timeout() const;
