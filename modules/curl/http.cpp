@@ -47,6 +47,8 @@ struct ClientImpl
     m_num_connections(0){};
     
     void poll();
+    
+    void add_action(ActionPtr the_action, completion_cb_t ch, progress_cb_t ph = progress_cb_t());
 };
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,10 +206,65 @@ public:
         
         curl_easy_setopt(handle(), CURLOPT_URL, the_url.c_str());
         curl_easy_setopt(handle(), CURLOPT_POSTFIELDS, &m_data[0]);
-        curl_easy_setopt(handle(), CURLOPT_POSTFIELDSIZE, m_data.size());
+        curl_easy_setopt(handle(), CURLOPT_POSTFIELDSIZE, static_cast<curl_off_t>(m_data.size()));
         curl_easy_setopt(handle(), CURLOPT_HTTPHEADER, m_headers.get());
     }
 };
+    
+///////////////////////////////////////////////////////////////////////////////
+
+class Action_PUT: public Action
+{
+private:
+    std::vector<uint8_t> m_data;
+    std::shared_ptr<struct curl_slist> m_headers;
+    
+public:
+    Action_PUT(const string &the_url,
+               const std::vector<uint8_t> &the_data,
+               const std::string &the_mime_type):
+    Action(the_url),
+    m_data(the_data)
+    {
+        auto header_content = "Content-Type: " + the_mime_type;
+        m_headers = std::shared_ptr<struct curl_slist>(curl_slist_append(nullptr,
+                                                                         header_content.c_str()),
+                                                       curl_slist_free_all);
+        
+        curl_easy_setopt(handle(), CURLOPT_URL, the_url.c_str());
+        
+        /* enable uploading */
+        curl_easy_setopt(handle(), CURLOPT_UPLOAD, 1L);
+        
+        /* HTTP PUT please */
+        curl_easy_setopt(handle(), CURLOPT_PUT, 1L);
+        curl_easy_setopt(handle(), CURLOPT_INFILESIZE_LARGE, static_cast<curl_off_t>(m_data.size()));
+        curl_easy_setopt(handle(), CURLOPT_HTTPHEADER, m_headers.get());
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+    
+class Action_DELETE: public Action
+{
+public:
+    Action_DELETE(const string &the_url):
+    Action(the_url)
+    {
+        curl_easy_setopt(handle(), CURLOPT_CUSTOMREQUEST, "DELETE");
+    }
+};
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+response_t head(const std::string &the_url)
+{
+    LOG_DEBUG << "head: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_GET>(the_url);
+    curl_easy_setopt(url_action->handle(), CURLOPT_NOBODY, 1L);
+    url_action->perform();
+    return url_action->response();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -218,7 +275,7 @@ response_t get(const std::string &the_url)
     url_action->perform();
     return url_action->response();
 }
-
+    
 ///////////////////////////////////////////////////////////////////////////////
     
 response_t post(const std::string &the_url,
@@ -227,6 +284,28 @@ response_t post(const std::string &the_url,
 {
     LOG_DEBUG << "post: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
+    url_action->perform();
+    return url_action->response();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+    
+response_t put(const std::string &the_url,
+               const std::vector<uint8_t> &the_data,
+               const std::string &the_mime_type)
+{
+    LOG_DEBUG << "put: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_PUT>(the_url, the_data, the_mime_type);
+    url_action->perform();
+    return url_action->response();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+    
+response_t del(const std::string &the_url)
+{
+    LOG_DEBUG << "delete: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_DELETE>(the_url);
     url_action->perform();
     return url_action->response();
 }
@@ -302,6 +381,39 @@ void ClientImpl::poll()
         m_io_service->post(std::bind(&ClientImpl::poll, this));
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+    
+void ClientImpl::add_action(ActionPtr the_action, completion_cb_t ch, progress_cb_t ph)
+{
+    // set options for this handle
+    the_action->set_timeout(m_timeout);
+    the_action->set_completion_handler(ch);
+    the_action->set_progress_handler(ph);
+    
+    std::unique_lock<std::mutex> lock(m_mutex);
+    m_handle_map[the_action->handle()] = the_action;
+    
+    // add handle to multi
+    curl_multi_add_handle(m_curl_multi_handle.get(), the_action->handle());
+    
+    if(m_io_service && !m_num_connections)
+    {
+        m_io_service->post(std::bind(&ClientImpl::poll, this));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+    
+void Client::async_head(const std::string &the_url,
+                        completion_cb_t ch,
+                        progress_cb_t ph)
+{
+    LOG_DEBUG << "async_head: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_GET>(the_url);
+    curl_easy_setopt(url_action->handle(), CURLOPT_NOBODY, 1L);
+    m_impl->add_action(url_action, ch, ph);
+}
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -313,22 +425,7 @@ void Client::async_get(const std::string &the_url,
     
     // create an action which holds an easy handle
     ActionPtr url_action = make_shared<Action_GET>(the_url);
-    
-    // set options for this handle
-    url_action->set_timeout(m_impl->m_timeout);
-    url_action->set_completion_handler(ch);
-    url_action->set_progress_handler(ph);
-    
-    std::unique_lock<std::mutex> lock(m_impl->m_mutex);
-    m_impl->m_handle_map[url_action->handle()] = url_action;
-    
-    // add handle to multi
-    curl_multi_add_handle(m_impl->m_curl_multi_handle.get(), url_action->handle());
-    
-    if(m_impl->m_io_service && !m_impl->m_num_connections)
-    {
-        m_impl->m_io_service->post(std::bind(&ClientImpl::poll, m_impl));
-    }
+    m_impl->add_action(url_action, ch, ph);
 }
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -340,27 +437,32 @@ void Client::async_post(const std::string &the_url,
                         progress_cb_t ph)
 {
     LOG_DEBUG << "async_post: '" << the_url << "'";
-    
-    // create an action which holds an easy handle
     ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
-    
-    // set options for this handle
-    url_action->set_timeout(m_impl->m_timeout);
-    url_action->set_completion_handler(ch);
-    url_action->set_progress_handler(ph);
-    
-    std::unique_lock<std::mutex> lock(m_impl->m_mutex);
-    m_impl->m_handle_map[url_action->handle()] = url_action;
-    
-    // add handle to multi
-    curl_multi_add_handle(m_impl->m_curl_multi_handle.get(), url_action->handle());
-    
-    if(m_impl->m_io_service && !m_impl->m_num_connections)
-    {
-        m_impl->m_io_service->post(std::bind(&ClientImpl::poll, m_impl));
-    }
+    m_impl->add_action(url_action, ch, ph);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+    
+void Client::async_put(const std::string &the_url,
+                       const std::vector<uint8_t> &the_data,
+                       completion_cb_t ch,
+                       const std::string &the_mime_type,
+                       progress_cb_t ph)
+{
+    LOG_DEBUG << "async_put: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_PUT>(the_url, the_data, the_mime_type);
+    m_impl->add_action(url_action, ch, ph);
+}
+    
+///////////////////////////////////////////////////////////////////////////////
+    
+void Client::async_del(const std::string &the_url, completion_cb_t ch)
+{
+    LOG_DEBUG << "async_del: '" << the_url << "'";
+    ActionPtr url_action = make_shared<Action_DELETE>(the_url);
+    m_impl->add_action(url_action, ch);
+}
+    
 ///////////////////////////////////////////////////////////////////////////////
     
 uint64_t Client::timeout() const
