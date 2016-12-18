@@ -49,15 +49,15 @@ class Action
 {
 private:
     std::shared_ptr<CURL> m_curl_handle;
-    ConnectionInfo m_connection_info;
+    connection_info_t m_connection_info;
     completion_cb_t m_completion_handler;
     progress_cb_t m_progress_handler;
-    std::vector<uint8_t> m_response;
+    response_t m_response;
  
     ///////////////////////////////////////////////////////////////////////////////
     
     /*!
-     * Callback to process incoming data
+     * callback to process incoming data
      */
     static size_t write_static(void *buffer, size_t size, size_t nmemb,
                                void *userp)
@@ -69,7 +69,7 @@ private:
             Action *ourAction = static_cast<Action*>(userp);
             uint8_t* buf_start = (uint8_t*)(buffer);
             uint8_t* buf_end = buf_start + num_bytes;
-            ourAction->m_response.insert(ourAction->m_response.end(), buf_start, buf_end);
+            ourAction->m_response.data.insert(ourAction->m_response.data.end(), buf_start, buf_end);
         }
         return num_bytes;
     }
@@ -77,7 +77,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////////
     
     /*!
-     * Callback for data provided to Curl for sending
+     * callback for data provided to Curl for sending
      */
     static size_t read_static(void *ptr, size_t size, size_t nmemb,
                               void *inStream)
@@ -92,7 +92,7 @@ private:
     ///////////////////////////////////////////////////////////////////////////////
     
     /*!
-     * Callback for transfer progress
+     * callback to monitor transfer progress
      */
     static int progress_static(void *userp, double dltotal, double dlnow, double ult,
                                double uln)
@@ -128,24 +128,25 @@ public:
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    const std::vector<uint8_t>& response(){return m_response;};
+    response_t& response(){ return m_response; };
     
     ///////////////////////////////////////////////////////////////////////////////
     
     bool perform()
     {
         CURLcode curlResult = curl_easy_perform(handle());
+        curl_easy_getinfo(handle(), CURLINFO_RESPONSE_CODE, &m_response.code);
         if(!curlResult && m_completion_handler) m_completion_handler(m_connection_info, m_response);
 		return !curlResult;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    CURL* handle() const {return m_curl_handle.get();}
+    CURL* handle() const { return m_curl_handle.get(); }
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    ConnectionInfo connection_info() const {return m_connection_info;}
+    connection_info_t connection_info() const { return m_connection_info; }
     
     ///////////////////////////////////////////////////////////////////////////////
     
@@ -156,9 +157,9 @@ public:
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    completion_cb_t completion_handler() const {return m_completion_handler;}
-    void set_completion_handler(completion_cb_t ch){m_completion_handler = ch;}
-    void set_progress_handler(progress_cb_t ph){m_progress_handler = ph;}
+    completion_cb_t completion_handler() const { return m_completion_handler; }
+    void set_completion_handler(completion_cb_t ch){ m_completion_handler = ch; }
+    void set_progress_handler(progress_cb_t ph){ m_progress_handler = ph; }
     
     ///////////////////////////////////////////////////////////////////////////////
     
@@ -204,7 +205,7 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
     
-std::vector<uint8_t> get(const std::string &the_url)
+response_t get(const std::string &the_url)
 {
     LOG_DEBUG << "get: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_GET>(the_url);
@@ -214,9 +215,9 @@ std::vector<uint8_t> get(const std::string &the_url)
 
 ///////////////////////////////////////////////////////////////////////////////
     
-std::vector<uint8_t> post(const std::string &the_url,
-                          const std::vector<uint8_t> &the_data,
-                          const std::string &the_mime_type)
+response_t post(const std::string &the_url,
+                const std::vector<uint8_t> &the_data,
+                const std::string &the_mime_type)
 {
     LOG_DEBUG << "post: '" << the_url << "'";
     ActionPtr url_action = make_shared<Action_POST>(the_url, the_data, the_mime_type);
@@ -255,18 +256,21 @@ void ClientImpl::poll()
         {
             easy = msg->easy_handle;
             res = msg->data.result;
-            
             curl_multi_remove_handle(m_curl_multi_handle.get(), easy);
-            
             auto itr = m_handle_map.find(easy);
+            
             if(itr != m_handle_map.end())
             {
                 if(!res)
                 {
+                    // http response code
+                    curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &itr->second->response().code);
+                    
                     auto ci = itr->second->connection_info();
                     int num_kb = ci.dl_total / 1024;
                     
-                    LOG_DEBUG << "'" << ci.url << "' completed successfully (" << num_kb << " kB)";
+                    LOG_TRACE_1 << itr->second->response().code << ": '" << ci.url
+                        << "' completed successfully (" << num_kb << " kB)";
                     
                     if(itr->second->completion_handler())
                     {
@@ -346,14 +350,14 @@ void Client::async_post(const std::string &the_url,
 
 ///////////////////////////////////////////////////////////////////////////////
     
-long Client::timeout() const
+uint64_t Client::timeout() const
 {
     return m_impl->m_timeout;
 }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-void Client::set_timeout(long t)
+void Client::set_timeout(uint64_t t)
 {
     m_impl->m_timeout = t;
 }

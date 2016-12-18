@@ -12,27 +12,34 @@
 
 namespace kinski{ namespace net{ namespace http{
     
-struct ConnectionInfo
+typedef struct
 {
     std::string url;
     double dl_total, dl_now, ul_total, ul_now;
     uint64_t timeout;
-};
-typedef std::function<void(ConnectionInfo)> progress_cb_t;
-typedef std::function<void(ConnectionInfo, const std::vector<uint8_t>&)> completion_cb_t;
+} connection_info_t;
+    
+typedef struct
+{
+    uint64_t code;
+    std::vector<uint8_t> data;
+} response_t;
+    
+typedef std::function<void(connection_info_t)> progress_cb_t;
+typedef std::function<void(const connection_info_t&, const response_t&)> completion_cb_t;
 
 /*!
  * get the resource at the given url (blocking) with HTTP GET
  */
-std::vector<uint8_t> get(const std::string &the_url);
+response_t get(const std::string &the_url);
 
 /*!
  * get the resource at the given url (blocking) with HTTP POST.
  * transmits <the_data> with the provided MIME-type.
  */
-std::vector<uint8_t> post(const std::string &the_url,
-                          const std::vector<uint8_t> &the_data,
-                          const std::string &the_mime_type = "application/json");
+response_t post(const std::string &the_url,
+                const std::vector<uint8_t> &the_data,
+                const std::string &the_mime_type = "application/json");
 
 class Client
 {
@@ -57,8 +64,8 @@ public:
                     const std::string &the_mime_type = "application/json",
                     progress_cb_t ph = progress_cb_t());
     
-    long timeout() const;
-    void set_timeout(long t);
+    uint64_t timeout() const;
+    void set_timeout(uint64_t t);
     
 private:
     std::shared_ptr<struct ClientImpl> m_impl;
