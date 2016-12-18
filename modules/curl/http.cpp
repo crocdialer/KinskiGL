@@ -317,13 +317,6 @@ m_impl(new ClientImpl(&io))
 {
 
 }
-
-///////////////////////////////////////////////////////////////////////////////
-    
-Client::~Client()
-{
-
-}
     
 ///////////////////////////////////////////////////////////////////////////////
     
@@ -332,17 +325,14 @@ void ClientImpl::poll()
     curl_multi_perform(m_curl_multi_handle.get(), &m_num_connections);
     CURLMsg *msg;
     int msgs_left;
-    CURL *easy;
-    CURLcode res;
     
     while((msg = curl_multi_info_read(m_curl_multi_handle.get(), &msgs_left)))
     {
         if(msg->msg == CURLMSG_DONE)
         {
             std::unique_lock<std::mutex> lock(m_mutex);
-            
-            easy = msg->easy_handle;
-            res = msg->data.result;
+            CURL *easy = msg->easy_handle;
+            CURLcode res = msg->data.result;
             curl_multi_remove_handle(m_curl_multi_handle.get(), easy);
             auto itr = m_handle_map.find(easy);
             

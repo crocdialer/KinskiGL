@@ -1,6 +1,6 @@
 //
-//  GOMTalking.h
-//  MrProximity
+//  http.h
+//  Kinski Framework
 //
 //  Created by Fabian Schmidt on 11/20/11.
 //  Copyright (c) 2011 __MyCompanyName__. All rights reserved.
@@ -55,7 +55,7 @@ response_t put(const std::string &the_url,
                const std::string &the_mime_type = "application/json");
 
 /*!
- * http delete
+ * http DELETE
  */
 response_t del(const std::string &the_url);
 
@@ -64,7 +64,6 @@ class Client
 public:
     
     Client(boost::asio::io_service &io);
-    ~Client();
     
     /*!
      * get the resource at the given url (non-blocking) with HTTP HEAD
