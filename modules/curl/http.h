@@ -48,7 +48,7 @@ response_t post(const std::string &the_url,
     
 /*!
  * upload <the_data> at the given url (blocking) with HTTP PUT.
- * transmits <the_data> and sets the Conten-Type attribute to <the_mime_type>.
+ * transmits <the_data> and sets the Content-Type attribute to <the_mime_type>.
  */
 response_t put(const std::string &the_url,
                const std::vector<uint8_t> &the_data,
@@ -90,7 +90,7 @@ public:
     
     /*!
      * upload <the_data> at the given url (non-blocking) with HTTP PUT.
-     * transmits <the_data> and sets the Conten-Type attribute to <the_mime_type>.
+     * transmits <the_data> and sets the Content-Type attribute to <the_mime_type>.
      */
     void async_put(const std::string &the_url,
                    const std::vector<uint8_t> &the_data,
