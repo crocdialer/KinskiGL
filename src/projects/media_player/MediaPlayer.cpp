@@ -52,7 +52,6 @@ void MediaPlayer::setup()
     register_property(m_volume);
     register_property(m_brightness);
     register_property(m_playback_speed);
-    register_property(m_use_warping);
     register_property(m_force_audio_jack);
     register_property(m_is_master);
     register_property(m_use_discovery_broadcast);
