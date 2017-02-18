@@ -19,7 +19,7 @@ namespace kinski{ namespace media{
     public:
 
         enum class RenderTarget{SCREEN, TEXTURE};
-        enum class AudioTarget{AUTO, HDMI, AUDIO_JACK};
+        enum class AudioTarget{AUTO, HDMI, AUDIO_JACK, BOTH};
 
         typedef std::function<void(MediaControllerPtr the_movie)> MediaCallback;
 

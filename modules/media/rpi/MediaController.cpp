@@ -481,9 +481,20 @@ namespace kinski{ namespace media
             bool hdmi_supported = vc_tv_hdmi_audio_supported(EDID_AudioFormat_ePCM, 2,
                                                              EDID_AudioSampleRate_e44KHz,
                                                              EDID_AudioSampleSize_16bit) == 0;
-            if(hdmi_supported && (m_impl->m_audio_target == AudioTarget::AUTO ||
-                                  m_impl->m_audio_target == AudioTarget::HDMI))
-            { m_impl->m_config_audio.device = "omx:hdmi"; }
+            if(hdmi_supported)
+            {
+                switch (m_impl->m_audio_target)
+                {
+                    case AudioTarget::AUTO:
+                    case AudioTarget::HDMI:
+                        m_impl->m_config_audio.device = "omx:hdmi";
+                        break;
+
+                    case AudioTarget::BOTH:
+                        m_impl->m_config_audio.device = "omx:both";
+                        break;
+                }
+            }
             else{ m_impl->m_config_audio.device = "omx:local"; }
         }
 
