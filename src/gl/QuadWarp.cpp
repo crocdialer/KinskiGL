@@ -23,7 +23,7 @@ namespace kinski{ namespace gl{
             gl::vec2(1, 1)};
     };
     
-    struct QuadWarp::Impl
+    struct Impl
     {
         uint32_t m_grid_num_w, m_grid_num_h;
         
@@ -130,7 +130,8 @@ namespace kinski{ namespace gl{
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
             gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f,
-                            gl::COLOR_WHITE, false);
+                            contains(m_impl->m_selected_indices, i) ? gl::COLOR_RED : gl::COLOR_WHITE,
+                            false);
         }
     }
     
@@ -203,6 +204,11 @@ namespace kinski{ namespace gl{
         the_x = clamp(the_x, 0, 1);
         the_y = clamp(the_y, 0, 1);
         return m_impl->m_control_points[the_x + 2 * the_y];
+    }
+    
+    std::set<uint32_t>& QuadWarp::selected_indices()
+    {
+        return m_impl->m_selected_indices;
     }
     
     void QuadWarp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)

@@ -239,6 +239,7 @@ namespace kinski {
                         control_point_t cp(i, control_points[i]);
                         m_warp_control_points.erase(cp);
                         m_warp_control_points.insert(cp);
+                        m_warp_component->quad_warp().selected_indices().insert(i);
                         LOG_DEBUG << "selected control point: " << glm::to_string(coord);
                     }
                 }
@@ -249,6 +250,7 @@ namespace kinski {
         {
             m_selected_mesh.reset();
             m_warp_control_points.clear();
+            m_warp_component->quad_warp().selected_indices().clear();
         }
     }
 

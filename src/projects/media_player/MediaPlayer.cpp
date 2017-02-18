@@ -542,7 +542,7 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     auto con = net::tcp_connection::create(background_queue().io_service(), the_ip,
                                            remote_control().tcp_port());
     auto receive_func = [this, timer, con](net::tcp_connection_ptr ptr,
-                                      const std::vector<uint8_t> &data)
+                                           const std::vector<uint8_t> &data)
     {
         std::unique_lock<std::mutex> lock(g_ip_table_mutex);
         

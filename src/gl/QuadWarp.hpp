@@ -46,10 +46,11 @@ namespace kinski{ namespace gl{
         
         std::vector<gl::vec2>& control_points();
         
+        std::set<uint32_t>& selected_indices();
+        
     private:
         
-        struct Impl;
-        std::shared_ptr<Impl> m_impl;
+        std::shared_ptr<struct Impl> m_impl;
     };
     
 
