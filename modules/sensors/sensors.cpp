@@ -26,7 +26,7 @@ void query_device(UARTPtr the_uart, boost::asio::io_service &io, device_cb_t the
             
             for(uint32_t i = 0; i < tokens.size(); ++i)
             {
-                if(tokens[i] == QUERY_ID_CMD && i < tokens.size() - 1)
+                if(tokens[i] == QUERY_ID_CMD && i < (tokens.size() - 1))
                 {
                     id_str = tokens[i + 1];
                     break;
@@ -52,14 +52,19 @@ void scan_for_serials(boost::asio::io_service &io, device_cb_t the_device_cb)
 {
     io.post([&io, the_device_cb]
     {
+        auto connected_devices = Serial::connected_devices();
+        
         for(const auto &dev : Serial::device_list())
         {
-            io.post([&io, the_device_cb, dev]
+            if(connected_devices.find(dev) == connected_devices.end())
             {
-                auto serial = Serial::create(io);
-                
-                if(serial->open(dev)){ query_device(serial, io, the_device_cb); }
-            });
+                io.post([&io, the_device_cb, dev]
+                {
+                    auto serial = Serial::create(io);
+                    
+                    if(serial->open(dev)){ query_device(serial, io, the_device_cb); }
+                });
+            }
         }
     });
 }

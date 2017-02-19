@@ -7,6 +7,12 @@
 
 namespace kinski
 {
+    namespace
+    {
+        std::mutex g_mutex;
+        std::map<std::string, SerialWeakPtr> g_connected_devices;
+    };
+    
     struct SerialImpl
     {
         std::string m_device_name;
@@ -47,6 +53,22 @@ namespace kinski
     Serial::~Serial()
     {
         close();
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////////
+    
+    std::map<std::string, SerialPtr> Serial::connected_devices()
+    {
+        std::lock_guard<std::mutex> lock(g_mutex);
+        std::map<std::string, SerialPtr> ret;
+        
+        for(auto &p : g_connected_devices)
+        {
+            auto ptr = p.second.lock();
+            
+            if(ptr){ ret[p.first] = ptr; }
+        }
+        return ret;
     }
     
     ///////////////////////////////////////////////////////////////////////////////
@@ -100,8 +122,11 @@ namespace kinski
             m_impl->m_serial_port.set_option(stop_bits);
             m_impl->m_serial_port.set_option(char_size);
             m_impl->m_device_name = the_name;
-            if(m_impl->m_connect_cb){ m_impl->m_connect_cb(shared_from_this()); }
+            
+            std::lock_guard<std::mutex> lock(g_mutex);
+            g_connected_devices[the_name] = shared_from_this();
             async_read_bytes();
+            if(m_impl->m_connect_cb){ m_impl->m_connect_cb(shared_from_this()); }
             return true;
         }
         catch(boost::system::system_error &e)
@@ -197,7 +222,13 @@ namespace kinski
                     case boost::system::errc::no_such_device_or_address:
                     case boost::asio::error::operation_aborted:
                         LOG_TRACE_1 << "disconnected: " << impl_cp->m_device_name;
-                        if(self && impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(self); }
+                        
+                        if(self)
+                        {
+                            std::lock_guard<std::mutex> lock(g_mutex);
+                            g_connected_devices.erase(impl_cp->m_device_name);
+                            if(impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(self); }
+                        }
                         
                         break;
                         

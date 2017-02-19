@@ -26,6 +26,9 @@ public:
     
     static std::vector<std::string>
     device_list(const std::set<std::string>& the_patterns = std::set<std::string>());
+    
+    static std::map<std::string, SerialPtr> connected_devices();
+    
     bool open(const std::string &the_name, int the_baudrate = 57600);
     
     bool open() override;
