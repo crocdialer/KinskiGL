@@ -56,29 +56,29 @@ namespace kinski
         glfwGetWindowSize(m_handle, &w, &h);
         return gl::vec2(w, h);
     }
-    
+
     void GLFW_Window::set_size(const gl::vec2 &the_sz)
     {
         glfwSetWindowSize(m_handle, the_sz.x, the_sz.y);
     }
-    
+
     gl::vec2 GLFW_Window::position() const
     {
         int x, y;
         glfwGetWindowPos(m_handle, &x, &y);
         return gl::vec2(x, y);
     }
-    
+
     void GLFW_Window::set_position(const gl::vec2 &the_pos)
     {
         glfwSetWindowPos(m_handle, the_pos.x, the_pos.y);
     }
-    
+
     std::string GLFW_Window::title(const std::string &the_name) const
     {
         return m_title;
     }
-    
+
     void GLFW_Window::set_title(const std::string &the_title)
     {
         m_title = the_title;
@@ -107,7 +107,7 @@ namespace kinski
 
         if(m_draw_function){ m_draw_function(); }
     }
-    
+
     uint32_t GLFW_Window::monitor_index() const
     {
         uint32_t ret = 0;
@@ -118,22 +118,22 @@ namespace kinski
         GLFWmonitor **monitors;
         const GLFWvidmode *mode;
         bestoverlap = 0;
-        
+
         glfwGetWindowPos(m_handle, &wx, &wy);
         glfwGetWindowSize(m_handle, &ww, &wh);
         monitors = glfwGetMonitors(&nmonitors);
-        
+
         for (i = 0; i < nmonitors; i++)
         {
             mode = glfwGetVideoMode(monitors[i]);
             glfwGetMonitorPos(monitors[i], &mx, &my);
             mw = mode->width;
             mh = mode->height;
-            
+
             overlap =
             max(0, min(wx + ww, mx + mw) - max(wx, mx)) *
             max(0, min(wy + wh, my + mh) - max(wy, my));
-            
+
             if (bestoverlap < overlap)
             {
                 bestoverlap = overlap;
@@ -177,8 +177,13 @@ namespace kinski
 
         // request an OpenGl 4.1 Context
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+        #if defined(KINSKI_MAC)
+          glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+        #else
+          glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+        #endif
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+        // glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
         glfwWindowHint(GLFW_SAMPLES, 4);
 
@@ -193,7 +198,7 @@ namespace kinski
         // version
         LOG_INFO<<"OpenGL: " << glGetString(GL_VERSION);
         LOG_INFO<<"GLSL: " << glGetString(GL_SHADING_LANGUAGE_VERSION);
-        
+
         glfwSetMonitorCallback(&GLFW_App::s_monitor_func);
         glfwSwapInterval(1);
         glClearColor(0, 0, 0, 1);
@@ -235,7 +240,7 @@ namespace kinski
         App::set_window_size(size);
         TwWindowSize(size.x, size.y);
         resize(size.x, size.y);
-        
+
         if(!m_windows.empty()){ m_windows.front()->set_size(size); }
     }
 
@@ -250,7 +255,7 @@ namespace kinski
         glfwSetInputMode(m_windows.front()->handle(), GLFW_CURSOR,
                          b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
     }
-    
+
     gl::vec2 GLFW_App::cursor_position() const
     {
         gl::vec2 ret;
@@ -262,7 +267,7 @@ namespace kinski
         }
         return ret;
     }
-    
+
     void GLFW_App::set_cursor_position(float x, float y)
     {
         if(!windows().empty())
@@ -306,37 +311,37 @@ namespace kinski
         GLFWmonitor** monitors = glfwGetMonitors(&num);
         if(m_windows.empty() || monitor_index > num - 1 || monitor_index < 0) return;
         auto m = monitors[monitor_index];
-        
+
         main_queue().submit([this, b, monitor_index, m]
         {
             //        const GLFWvidmode* video_modes = glfwGetVideoModes(m, &num);
-            
+
             // currently not in fullscreen mode
             if(!fullscreen())
             {
                 m_win_params = gl::ivec4(m_windows.front()->framebuffer_size(),
                                          m_windows.front()->position());
             }
-            
+
             const GLFWvidmode* mode = glfwGetVideoMode(m);
             glfwWindowHint(GLFW_RED_BITS, mode->redBits);
             glfwWindowHint(GLFW_GREEN_BITS, mode->greenBits);
             glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
             glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
-            
+
             gl::ivec2 new_res = b ? gl::ivec2(mode->width, mode->height) : m_win_params.xy();
-            
+
             GLFW_WindowPtr window = GLFW_Window::create(new_res.x, new_res.y, name(), b, monitor_index,
                                                         m_windows.front()->handle());
-            
+
             if(!b){ window->set_position(m_win_params.zw()); }
             else{ window->set_position(gl::vec2(0)); }
-            
+
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
             add_window(window);
             set_window_size(new_res);
-            
+
             gl::reset_state();
             App::set_fullscreen(b, monitor_index);
         });
@@ -396,7 +401,7 @@ namespace kinski
         glfwSetDropCallback(w, &GLFW_App::s_file_drop_func);
 #endif
         m_windows.push_back(glfw_win);
-        
+
 //        glfwMakeContextCurrent(w);
     }
 
@@ -592,15 +597,15 @@ namespace kinski
 
         app->fileDrop(e, files);
     }
-    
+
     void GLFW_App::s_monitor_func(GLFWmonitor* the_monitor, int status)
     {
         string name = glfwGetMonitorName(the_monitor);
-        
+
         if(status == GLFW_CONNECTED){ LOG_DEBUG << "monitor connected: " << name; }
         else if(status == GLFW_DISCONNECTED){ LOG_DEBUG << "monitor disconnected: " << name; }
     }
-    
+
 /****************************  TweakBar + Properties **************************/
 
     void GLFW_App::add_tweakbar_for_component(const ComponentPtr &the_component)

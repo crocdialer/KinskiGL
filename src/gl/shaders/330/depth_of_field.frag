@@ -1,3 +1,5 @@
+#version 410
+
 /*
 DoF with bokeh GLSL shader v2.4
 by Martins Upitis (martinsh) (devlog-martinsh.blogspot.com)
@@ -40,8 +42,6 @@ changelog:
 - image thresholding to bring out highlights when image is out of focus
 
 */
-
-#version 330
 
 #define COLOR_MAP 0
 #define DEPTH_MAP 1

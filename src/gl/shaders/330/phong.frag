@@ -1,28 +1,28 @@
-#version 330
+#version 410
 
 struct Material
 {
-  vec4 diffuse; 
-  vec4 ambient; 
-  vec4 specular; 
-  vec4 emission; 
-  vec4 point_vals;// (size, constant_att, linear_att, quad_att) 
+  vec4 diffuse;
+  vec4 ambient;
+  vec4 specular;
+  vec4 emission;
+  vec4 point_vals;// (size, constant_att, linear_att, quad_att)
   float shinyness;
 };
 
 struct Lightsource
 {
-  vec3 position; 
-  int type; 
-  vec4 diffuse; 
-  vec4 ambient; 
-  vec4 specular; 
-  vec3 spotDirection; 
-  float spotCosCutoff; 
-  float spotExponent; 
-  float constantAttenuation; 
-  float linearAttenuation; 
-  float quadraticAttenuation; 
+  vec3 position;
+  int type;
+  vec4 diffuse;
+  vec4 ambient;
+  vec4 specular;
+  vec3 spotDirection;
+  float spotCosCutoff;
+  float spotExponent;
+  float constantAttenuation;
+  float linearAttenuation;
+  float quadraticAttenuation;
 };
 
 vec3 projected_coords(in vec4 the_lightspace_pos)
@@ -35,38 +35,38 @@ vec3 projected_coords(in vec4 the_lightspace_pos)
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
            float shade_factor)
 {
-  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position; 
-  vec3 L = normalize(lightDir); 
-  vec3 E = normalize(-eyeVec); 
-  vec3 R = reflect(-L, normal); 
-  vec4 ambient = mat.ambient * light.ambient; 
-  float att = 1.0; 
-  float nDotL = dot(normal, L); 
-  
+  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position;
+  vec3 L = normalize(lightDir);
+  vec3 E = normalize(-eyeVec);
+  vec3 R = reflect(-L, normal);
+  vec4 ambient = mat.ambient * light.ambient;
+  float att = 1.0;
+  float nDotL = dot(normal, L);
+
   if (light.type > 0)
   {
-    float dist = length(lightDir); 
-    att = 1.0 / (light.constantAttenuation + light.linearAttenuation * dist + light.quadraticAttenuation * dist * dist); 
-    
+    float dist = length(lightDir);
+    att = 1.0 / (light.constantAttenuation + light.linearAttenuation * dist + light.quadraticAttenuation * dist * dist);
+
     if(light.type > 1)
     {
-      float spotEffect = dot(normalize(light.spotDirection), -L); 
-      
+      float spotEffect = dot(normalize(light.spotDirection), -L);
+
       if (spotEffect < light.spotCosCutoff)
       {
         att = 0.0;
-        base_color * ambient; 
+        base_color * ambient;
       }
-      spotEffect = pow(spotEffect, light.spotExponent); 
-      att *= spotEffect; 
+      spotEffect = pow(spotEffect, light.spotExponent);
+      att *= spotEffect;
     }
   }
-  nDotL = max(0.0, nDotL); 
-  float specIntesity = clamp(pow( max(dot(R, E), 0.0), mat.shinyness), 0.0, 1.0); 
-  vec4 diffuse = mat.diffuse * light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0); 
-  vec4 spec = shade_factor * att * mat.specular * light.specular * specIntesity; 
-  spec.a = 0.0; 
-  return base_color * (ambient + diffuse) + spec; 
+  nDotL = max(0.0, nDotL);
+  float specIntesity = clamp(pow( max(dot(R, E), 0.0), mat.shinyness), 0.0, 1.0);
+  vec4 diffuse = mat.diffuse * light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0);
+  vec4 spec = shade_factor * att * mat.specular * light.specular * specIntesity;
+  spec.a = 0.0;
+  return base_color * (ambient + diffuse) + spec;
 }
 
 layout(std140) uniform MaterialBlock
@@ -88,29 +88,29 @@ in VertexData
 {
   vec4 color;
   vec4 texCoord;
-  vec3 normal; 
-  vec3 eyeVec; 
+  vec3 normal;
+  vec3 eyeVec;
 } vertex_in;
 
-out vec4 fragData; 
+out vec4 fragData;
 
-void main() 
+void main()
 {
-  vec4 texColors = vertex_in.color; 
-  
-  //for(int i = 0; i < u_numTextures; i++) 
+  vec4 texColors = vertex_in.color;
+
+  //for(int i = 0; i < u_numTextures; i++)
   if(u_numTextures > 0)
-    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); 
-  
-  vec3 normal = normalize(vertex_in.normal); 
-  vec4 shade_color = vec4(0); 
-  
+    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
+
+  vec3 normal = normalize(vertex_in.normal);
+  vec4 shade_color = vec4(0);
+
   //for(int i = 0; i < u_numLights; i++)
   if(u_numLights > 0)
     shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
-  
+
   if(u_numLights > 1)
     shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
 
-  fragData = shade_color; 
+  fragData = shade_color;
 }
