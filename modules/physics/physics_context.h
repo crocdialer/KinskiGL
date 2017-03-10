@@ -32,10 +32,11 @@ namespace kinski{ namespace physics{
     KINSKI_API btTransform type_cast(const glm::mat4 &the_transform);
     KINSKI_API glm::vec3 type_cast(const btVector3 &the_vec);
     KINSKI_API glm::mat4 type_cast(const btTransform &the_transform);
-    KINSKI_API btCollisionShapePtr createCollisionShape(const gl::MeshPtr &the_mesh,
-                                                        const glm::vec3 &the_scale = glm::vec3(1));
-    KINSKI_API btCollisionShapePtr createConvexCollisionShape(const gl::MeshPtr &the_mesh,
-                                                              const glm::vec3 &the_scale = glm::vec3(1));
+    KINSKI_API btCollisionShapePtr create_collision_shape(const gl::MeshPtr &the_mesh,
+                                                          const glm::vec3 &the_scale = glm::vec3(1));
+    KINSKI_API btCollisionShapePtr
+    create_convex_collision_shape(const gl::MeshPtr &the_mesh,
+                                  const glm::vec3 &the_scale = glm::vec3(1));
     
     KINSKI_API class BulletDebugDrawer : public btIDebugDraw
     {
@@ -78,7 +79,7 @@ namespace kinski{ namespace physics{
         }
         
         void setDebugMode(int debugMode){ m_draw_mode = debugMode; }
-        int	getDebugMode() const {return m_draw_mode;}
+        int	getDebugMode() const { return m_draw_mode; }
         
         //!
         // issue the actual draw command
@@ -102,123 +103,6 @@ namespace kinski{ namespace physics{
     private:
         gl::MeshPtr m_mesh_lines, m_mesh_points;
         int m_draw_mode;
-    };
-    
-    
-    KINSKI_API ATTRIBUTE_ALIGNED16(struct)	MotionState : public btMotionState
-    {
-        gl::Object3DPtr m_object;
-        btTransform m_graphicsWorldTrans;
-        btTransform	m_centerOfMassOffset;
-        BT_DECLARE_ALIGNED_ALLOCATOR();
-        
-        MotionState(const gl::Object3DPtr& theObject3D,
-                    const btTransform& centerOfMassOffset = btTransform::getIdentity()):
-		m_object(theObject3D),
-        m_centerOfMassOffset(centerOfMassOffset)
-        {
-            // remove scale from transformation matrix, bullet expects unscaled transforms
-            glm::vec3 scale = theObject3D->scale();
-            glm::mat4 transform = glm::scale(theObject3D->transform(), 1.f / scale);
-            m_graphicsWorldTrans.setFromOpenGLMatrix(&transform[0][0]);
-        }
-        
-        ///synchronizes world transform from user to physics
-        virtual void getWorldTransform(btTransform& centerOfMassWorldTrans ) const
-        {
-            // remove scale from transformation matrix, bullet expects unscaled transforms
-            glm::mat4 transform = glm::scale(m_object->transform(), 1.f / m_object->scale());
-            btTransform t;
-            t.setFromOpenGLMatrix(&transform[0][0]);
-			centerOfMassWorldTrans = m_centerOfMassOffset.inverse() * t ;
-        }
-        
-        ///synchronizes world transform from physics to user
-        ///Bullet only calls the update of worldtransform for active objects
-        virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans)
-        {
-			m_graphicsWorldTrans = centerOfMassWorldTrans * m_centerOfMassOffset ;
-            glm::mat4 transform;
-            m_graphicsWorldTrans.getOpenGLMatrix(&transform[0][0]);
-            transform = glm::scale(transform, m_object->scale());
-            m_object->set_transform(transform);
-        }
-    };
-    
-    typedef std::shared_ptr<class Mesh> MeshPtr;
-    
-    KINSKI_API class Mesh : public btStridingMeshInterface
-    {
-    public:
-        Mesh(const gl::MeshPtr &the_mesh);
-        
-        /// get read and write access to a subpart of a triangle mesh
-		/// this subpart has a continuous array of vertices and indices
-		/// in this way the mesh can be handled as chunks of memory with striding
-		/// very similar to OpenGL vertexarray support
-		/// make a call to unLockVertexBase when the read and write access is finished
-		void getLockedVertexIndexBase(unsigned char **vertexbase,
-                                      int& numverts,PHY_ScalarType& type,
-                                      int& stride,unsigned char **indexbase,
-                                      int & indexstride,int& numfaces,
-                                      PHY_ScalarType& indicestype,
-                                      int subpart=0);
-		
-		void getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
-                                              int& numverts,PHY_ScalarType& type,
-                                              int& stride,
-                                              const unsigned char **indexbase,
-                                              int & indexstride,
-                                              int& numfaces,
-                                              PHY_ScalarType& indicestype,
-                                              int subpart=0) const;
-        
-		/// unLockVertexBase finishes the access to a subpart of the triangle mesh
-		/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
-		void unLockVertexBase(int subpart);
-        
-		void unLockReadOnlyVertexBase(int subpart) const;
-        
-        
-		/// getNumSubParts returns the number of seperate subparts
-		/// each subpart has a continuous array of vertices and indices
-		int getNumSubParts() const;
-        
-		void preallocateVertices(int numverts);
-		void preallocateIndices(int numindices);
-        
-    private:
-        
-        gl::MeshPtr m_mesh;
-    };
-    
-    /*
-     * subclass of btBvhTriangleMeshShape,
-     * which encapsulates a physics::MeshPtr (btStridingMeshInterface)
-     */
-    class TriangleMeshShape : public btBvhTriangleMeshShape
-    {
-    public:
-        
-        TriangleMeshShape(physics::MeshPtr meshInterface,
-                          bool useQuantizedAabbCompression,
-                          bool buildBvh = true):
-        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, buildBvh),
-        m_striding_mesh(meshInterface)
-        {}
-        
-        ///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
-        TriangleMeshShape(physics::MeshPtr meshInterface,
-                          bool useQuantizedAabbCompression,
-                          const btVector3& bvhAabbMin,
-                          const btVector3& bvhAabbMax,
-                          bool buildBvh = true):
-        btBvhTriangleMeshShape(meshInterface.get(), useQuantizedAabbCompression, bvhAabbMin, bvhAabbMax, buildBvh),
-        m_striding_mesh(meshInterface)
-        {}
-        
-    private:
-        physics::MeshPtr m_striding_mesh;
     };
     
     KINSKI_API class physics_context

@@ -33,8 +33,8 @@ namespace kinski{ namespace media{
         
         std::string m_src_path;
         bool m_loaded = false;
-        bool m_has_video = false;
-        bool m_has_audio = false;
+        uint32_t m_has_video = 0;
+        uint32_t m_has_audio = 0;
         bool m_playing = false;
         bool m_loop = false;
         float m_rate = 1.f;
@@ -152,10 +152,10 @@ namespace kinski{ namespace media{
               NSArray *videoTrackArray = [asset tracksWithMediaType:AVMediaTypeVideo];
               NSArray *audioTrackArray = [asset tracksWithMediaType:AVMediaTypeAudio];
              
-              m_impl->m_has_video = [videoTrackArray count];
-              m_impl->m_has_audio = [audioTrackArray count];
+              m_impl->m_has_video = videoTrackArray ? [videoTrackArray count] : 0;
+              m_impl->m_has_audio = audioTrackArray ? [audioTrackArray count] : 0;
              
-              LOG_DEBUG << "video-tracks: " << [videoTrackArray count] << " -- audio-tracks: " << [audioTrackArray count];
+              LOG_DEBUG << "video-tracks: " << m_impl->m_has_video << " -- audio-tracks: " << m_impl->m_has_audio;
              
               if(m_impl->m_has_video || m_impl->m_has_audio)
               {
