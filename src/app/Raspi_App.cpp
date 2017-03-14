@@ -173,12 +173,12 @@ namespace kinski
              gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f);
         }
     }
-    void Raspi_App::swapBuffers()
+    void Raspi_App::swap_buffers()
     {
         eglSwapBuffers(m_context->eglDisplay, m_context->eglSurface);
     }
 
-    double Raspi_App::getApplicationTime()
+    double Raspi_App::get_application_time()
     {
         timeval now;
         gettimeofday(&now, NULL);
@@ -209,7 +209,7 @@ namespace kinski
         kinski::syscall("setterm --blank 0");//--powersave off --powerdown 0
     }
 
-    void Raspi_App::pollEvents()
+    void Raspi_App::poll_events()
     {
         read_mouse_and_touch(this, m_mouse_fd);
         read_mouse_and_touch(this, m_touch_fd);

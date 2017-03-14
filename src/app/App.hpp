@@ -70,28 +70,28 @@ namespace kinski
         virtual void setup() = 0;
         virtual void update(float timeDelta) = 0;
         virtual void draw() = 0;
-        virtual void tearDown() = 0;
-        virtual double getApplicationTime() = 0;
+        virtual void teardown() = 0;
+        virtual double get_application_time() = 0;
         
         // these are optional overrides
         virtual void set_window_size(const glm::vec2 &size);
         virtual void set_window_title(const std::string &the_name){};
         virtual void resize(int w, int h){};
         
-        virtual void mousePress(const MouseEvent &e){};
-        virtual void mouseRelease(const MouseEvent &e){};
-        virtual void mouseMove(const MouseEvent &e){};
-        virtual void mouseDrag(const MouseEvent &e){};
-        virtual void mouseWheel(const MouseEvent &e){};
+        virtual void mouse_press(const MouseEvent &e){};
+        virtual void mouse_release(const MouseEvent &e){};
+        virtual void mouse_move(const MouseEvent &e){};
+        virtual void mouse_drag(const MouseEvent &e){};
+        virtual void mouse_wheel(const MouseEvent &e){};
         
         virtual void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         virtual void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         virtual void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches){};
         
-        virtual void keyPress(const KeyEvent &e){};
-        virtual void keyRelease(const KeyEvent &e){};
+        virtual void key_press(const KeyEvent &e){};
+        virtual void key_release(const KeyEvent &e){};
         
-        virtual void fileDrop(const MouseEvent &e, const std::vector<std::string> &files){};
+        virtual void file_drop(const MouseEvent &e, const std::vector<std::string> &files){};
         
         virtual void add_window(WindowPtr the_window){};
         
@@ -172,12 +172,12 @@ namespace kinski
     private:
         
         virtual void init() = 0;
-        virtual void pollEvents() = 0;
-        virtual void swapBuffers() = 0;
+        virtual void poll_events() = 0;
+        virtual void swap_buffers() = 0;
         
         void timing(double timeStamp);
         virtual void draw_internal();
-        virtual bool checkRunning(){return m_running;};
+        virtual bool is_running(){return m_running;};
         
         uint32_t m_framesDrawn;
         double m_lastTimeStamp;

@@ -79,8 +79,8 @@ namespace kinski
         
         void set_window_size(const glm::vec2 &size) override;
         void set_window_title(const std::string &the_title) override;
-        void swapBuffers() override;
-        double getApplicationTime() override;
+        void swap_buffers() override;
+        double get_application_time() override;
         
         void set_fullscreen(bool b, int monitor_index) override;
         void set_cursor_visible(bool b = true) override;
@@ -126,9 +126,9 @@ namespace kinski
         
         // internal initialization. performed when run is invoked
         void init() override;
-        void pollEvents() override;
+        void poll_events() override;
         void draw_internal() override;
-        bool checkRunning() override;
+        bool is_running() override;
         
         // GLFW static callbacks
         static void s_error_cb(int error_code, const char* error_msg);

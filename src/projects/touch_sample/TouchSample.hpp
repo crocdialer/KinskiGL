@@ -40,13 +40,13 @@ namespace kinski
         void update(float timeDelta) override;
         void draw() override;
         void resize(int w ,int h) override;
-        void keyPress(const KeyEvent &e) override;
+        void key_press(const KeyEvent &e) override;
         void keyRelease(const KeyEvent &e) override;
-        void mousePress(const MouseEvent &e) override;
-        void mouseRelease(const MouseEvent &e) override;
+        void mouse_press(const MouseEvent &e) override;
+        void mouse_release(const MouseEvent &e) override;
         void mouseMove(const MouseEvent &e) override;
-        void mouseDrag(const MouseEvent &e) override;
-        void mouseWheel(const MouseEvent &e) override;
+        void mouse_drag(const MouseEvent &e) override;
+        void mouse_wheel(const MouseEvent &e) override;
         void touch_begin(const MouseEvent &e, const std::set<const Touch*> &the_touches) override;
         void touch_end(const MouseEvent &e, const std::set<const Touch*> &the_touches) override;
         void touch_move(const MouseEvent &e, const std::set<const Touch*> &the_touches) override;

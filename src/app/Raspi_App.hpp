@@ -24,7 +24,7 @@ class Raspi_App : public App
     virtual ~Raspi_App();
 
     void set_window_size(const glm::vec2 &size) override;
-    double getApplicationTime() override;
+    double get_application_time() override;
 
     void set_cursor_position(float x, float y) override;
     gl::vec2 cursor_position() const override;
@@ -41,8 +41,8 @@ class Raspi_App : public App
     // internal initialization. performed when run is invoked
     void init() override;
     void draw_internal() override;
-    void swapBuffers() override;
-    void pollEvents() override;
+    void swap_buffers() override;
+    void poll_events() override;
 
     timeval m_startTime;
     std::unique_ptr<struct ESContext> m_context;

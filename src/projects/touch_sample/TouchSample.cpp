@@ -47,7 +47,7 @@ void TouchSample::setup()
 void TouchSample::update(float timeDelta)
 {
     ViewerApp::update(timeDelta);
-    textures()[TEXTURE_SIMPLEX] = m_noise.simplex(getApplicationTime() * .3f);
+    textures()[TEXTURE_SIMPLEX] = m_noise.simplex(get_application_time() * .3f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -84,37 +84,37 @@ void TouchSample::resize(int w ,int h)
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::keyPress(const KeyEvent &e)
+void TouchSample::key_press(const KeyEvent &e)
 {
-    ViewerApp::keyPress(e);
+    ViewerApp::key_press(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
 void TouchSample::keyRelease(const KeyEvent &e)
 {
-    ViewerApp::keyRelease(e);
+    ViewerApp::key_release(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::mousePress(const MouseEvent &e)
+void TouchSample::mouse_press(const MouseEvent &e)
 {
-    ViewerApp::mousePress(e);
+    ViewerApp::mouse_press(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::mouseRelease(const MouseEvent &e)
+void TouchSample::mouse_release(const MouseEvent &e)
 {
-    ViewerApp::mouseRelease(e);
+    ViewerApp::mouse_release(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
 void TouchSample::mouseMove(const MouseEvent &e)
 {
-    ViewerApp::mouseMove(e);
+    ViewerApp::mouse_move(e);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -140,16 +140,16 @@ void TouchSample::touch_move(const MouseEvent &e, const std::set<const Touch*> &
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::mouseDrag(const MouseEvent &e)
+void TouchSample::mouse_drag(const MouseEvent &e)
 {
-    ViewerApp::mouseDrag(e);
+    ViewerApp::mouse_drag(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::mouseWheel(const MouseEvent &e)
+void TouchSample::mouse_wheel(const MouseEvent &e)
 {
-    ViewerApp::mouseWheel(e);
+    ViewerApp::mouse_wheel(e);
 }
 
 /////////////////////////////////////////////////////////////////

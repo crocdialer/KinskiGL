@@ -65,13 +65,13 @@ namespace kinski
         while( m_running )
         {            
             // update application time
-            timeStamp = getApplicationTime();
+            timeStamp = get_application_time();
             
             // poll io_service if no seperate worker-threads exist
             if(!m_main_queue.get_num_threads()) m_main_queue.io_service().poll();
             
             // poll input events
-            pollEvents();
+            poll_events();
             
             // time elapsed since last frame
             double time_delta = timeStamp - m_lastTimeStamp;
@@ -87,14 +87,14 @@ namespace kinski
                 draw_internal();
                 
                 // Swap front and back rendering buffers
-                swapBuffers();
+                swap_buffers();
             }
             
             // perform fps-timing
             timing(timeStamp);
             
             // Check if ESC key was pressed or window was closed or whatever
-            m_running = checkRunning();
+            m_running = is_running();
             
             // fps managment
             float current_fps = 1.f / time_delta;
@@ -106,8 +106,8 @@ namespace kinski
             }
         }
         
-        // manage tearDown, save stuff etc.
-        tearDown();
+        // manage teardown, save stuff etc.
+        teardown();
         
         return EXIT_SUCCESS;
     }

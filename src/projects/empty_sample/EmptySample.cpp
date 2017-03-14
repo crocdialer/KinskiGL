@@ -47,37 +47,37 @@ void EmptySample::resize(int w ,int h)
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::keyPress(const KeyEvent &e)
+void EmptySample::key_press(const KeyEvent &e)
 {
-    ViewerApp::keyPress(e);
+    ViewerApp::key_press(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::keyRelease(const KeyEvent &e)
+void EmptySample::key_release(const KeyEvent &e)
 {
-    ViewerApp::keyRelease(e);
+    ViewerApp::key_release(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::mousePress(const MouseEvent &e)
+void EmptySample::mouse_press(const MouseEvent &e)
 {
-    ViewerApp::mousePress(e);
+    ViewerApp::mouse_press(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::mouseRelease(const MouseEvent &e)
+void EmptySample::mouse_release(const MouseEvent &e)
 {
-    ViewerApp::mouseRelease(e);
+    ViewerApp::mouse_release(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::mouseMove(const MouseEvent &e)
+void EmptySample::mouse_move(const MouseEvent &e)
 {
-    ViewerApp::mouseMove(e);
+    ViewerApp::mouse_move(e);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -103,28 +103,28 @@ void EmptySample::touch_move(const MouseEvent &e, const std::set<const Touch*> &
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::mouseDrag(const MouseEvent &e)
+void EmptySample::mouse_drag(const MouseEvent &e)
 {
-    ViewerApp::mouseDrag(e);
+    ViewerApp::mouse_drag(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::mouseWheel(const MouseEvent &e)
+void EmptySample::mouse_wheel(const MouseEvent &e)
 {
-    ViewerApp::mouseWheel(e);
+    ViewerApp::mouse_wheel(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
+void EmptySample::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
     for(const string &f : files){ LOG_INFO << f; }
 }
 
 /////////////////////////////////////////////////////////////////
 
-void EmptySample::tearDown()
+void EmptySample::teardown()
 {
     LOG_PRINT << "ciao " << name();
 }

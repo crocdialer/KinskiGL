@@ -304,7 +304,7 @@ namespace kinski { namespace gl {
         const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
             vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
         const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
-        int num_indices = sizeof(indices) / sizeof(GLuint);
+        size_t num_indices = sizeof(indices) / sizeof(GLuint);
         
         for (int i = 0; i < 8; i++)
         {

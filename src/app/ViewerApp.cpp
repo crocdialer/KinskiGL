@@ -202,7 +202,7 @@ namespace kinski {
         m_scene->update(timeDelta);
     }
 
-    void ViewerApp::mousePress(const MouseEvent &e)
+    void ViewerApp::mouse_press(const MouseEvent &e)
     {
         m_clickPos = glm::vec2(e.getX(), e.getY());
         m_lastTransform = *m_rotation;
@@ -254,7 +254,7 @@ namespace kinski {
         }
     }
 
-    void ViewerApp::mouseDrag(const MouseEvent &e)
+    void ViewerApp::mouse_drag(const MouseEvent &e)
     {
         glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
 
@@ -290,20 +290,20 @@ namespace kinski {
         }
     }
 
-    void ViewerApp::mouseRelease(const MouseEvent &e)
+    void ViewerApp::mouse_release(const MouseEvent &e)
     {
         m_mouse_down = false;
         if(!displayTweakBar()){ m_inertia = kinski::mean<glm::vec2>(m_drag_buffer); }
     }
 
-    void ViewerApp::mouseWheel(const MouseEvent &e)
+    void ViewerApp::mouse_wheel(const MouseEvent &e)
     {
         *m_distance -= e.getWheelIncrement().y;
     }
 
-    void ViewerApp::keyPress(const KeyEvent &e)
+    void ViewerApp::key_press(const KeyEvent &e)
     {
-        BaseApp::keyPress(e);
+        BaseApp::key_press(e);
 
         if(e.getCode() == Key::_SPACE)
         {

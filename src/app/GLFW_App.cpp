@@ -227,7 +227,7 @@ namespace kinski
         setup();
     }
 
-    void GLFW_App::swapBuffers()
+    void GLFW_App::swap_buffers()
     {
         for(const auto &window : m_windows)
         {
@@ -276,7 +276,7 @@ namespace kinski
         }
     }
 
-    void GLFW_App::pollEvents()
+    void GLFW_App::poll_events()
     {
         glfwPollEvents();
     }
@@ -286,7 +286,7 @@ namespace kinski
         for(auto &w : m_windows){ w->draw(); }
     }
 
-    bool GLFW_App::checkRunning()
+    bool GLFW_App::is_running()
     {
         for(uint32_t i = 0; i < m_windows.size(); i++)
         {
@@ -300,7 +300,7 @@ namespace kinski
             !glfwGetKey(m_windows.front()->handle(), GLFW_KEY_ESCAPE );
     }
 
-    double GLFW_App::getApplicationTime()
+    double GLFW_App::get_application_time()
     {
         return glfwGetTime();
     }
@@ -442,7 +442,7 @@ namespace kinski
         {
             if(w->handle() == window){ w->draw(); }
         }
-        app->swapBuffers();
+        app->swap_buffers();
     }
 
     void GLFW_App::s_resize(GLFWwindow* window, int w, int h)
@@ -465,9 +465,9 @@ namespace kinski
         MouseEvent e(buttonModifiers, (int)x, (int)y, bothMods, glm::ivec2(0));
 
         if(buttonModifiers)
-            app->mouseDrag(e);
+            app->mouse_drag(e);
         else
-            app->mouseMove(e);
+            app->mouse_move(e);
     }
 
     void GLFW_App::s_mouseButton(GLFWwindow* window, int button, int action, int modifier_mask)
@@ -488,11 +488,11 @@ namespace kinski
         switch(action)
         {
             case GLFW_PRESS:
-                app->mousePress(e);
+                app->mouse_press(e);
                 break;
 
             case GLFW_RELEASE:
-                app->mouseRelease(e);
+                app->mouse_release(e);
                 break;
         }
     }
@@ -510,7 +510,7 @@ namespace kinski
         uint32_t buttonMod, keyModifiers = 0;
         s_getModifiers(window, buttonMod, keyModifiers);
         MouseEvent e(0, (int)posX, (int)posY, keyModifiers, offset);
-        if(app->running()) app->mouseWheel(e);
+        if(app->running()) app->mouse_wheel(e);
     }
 
     void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
@@ -528,11 +528,11 @@ namespace kinski
         {
             case GLFW_PRESS:
             case GLFW_REPEAT:
-                app->keyPress(e);
+                app->key_press(e);
                 break;
 
             case GLFW_RELEASE:
-                app->keyRelease(e);
+                app->key_release(e);
                 break;
 
 
@@ -553,7 +553,7 @@ namespace kinski
         s_getModifiers(window, buttonMod, keyMod);
 
 //        KeyEvent e(0, key, keyMod);
-//        app->keyPress(e);
+//        app->key_press(e);
     }
 
     void GLFW_App::s_getModifiers(GLFWwindow* window,
@@ -595,7 +595,7 @@ namespace kinski
         glfwGetCursorPos(window, &posX, &posY);
         MouseEvent e(initiator, (int)posX, (int)posY, bothMods, glm::ivec2(0));
 
-        app->fileDrop(e, files);
+        app->file_drop(e, files);
     }
 
     void GLFW_App::s_monitor_func(GLFWmonitor* the_monitor, int status)

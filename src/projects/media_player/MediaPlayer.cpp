@@ -120,9 +120,9 @@ void MediaPlayer::draw()
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::keyPress(const KeyEvent &e)
+void MediaPlayer::key_press(const KeyEvent &e)
 {
-    ViewerApp::keyPress(e);
+    ViewerApp::key_press(e);
     
     if(!e.isAltDown())
     {
@@ -182,21 +182,21 @@ void MediaPlayer::resize(int w ,int h)
 
 void MediaPlayer::keyRelease(const KeyEvent &e)
 {
-    ViewerApp::keyRelease(e);
+    ViewerApp::key_release(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::mousePress(const MouseEvent &e)
+void MediaPlayer::mouse_press(const MouseEvent &e)
 {
-    ViewerApp::mousePress(e);
+    ViewerApp::mouse_press(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::mouseRelease(const MouseEvent &e)
+void MediaPlayer::mouse_release(const MouseEvent &e)
 {
-    ViewerApp::mouseRelease(e);
+    ViewerApp::mouse_release(e);
 //    if(m_media && m_media->is_loaded())
 //    {
 //        if(m_media->is_playing()){ m_media->pause(); }
@@ -208,21 +208,21 @@ void MediaPlayer::mouseRelease(const MouseEvent &e)
 
 void MediaPlayer::mouseMove(const MouseEvent &e)
 {
-    ViewerApp::mouseMove(e);
+    ViewerApp::mouse_move(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::mouseDrag(const MouseEvent &e)
+void MediaPlayer::mouse_drag(const MouseEvent &e)
 {
-    ViewerApp::mouseDrag(e);
+    ViewerApp::mouse_drag(e);
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::mouseWheel(const MouseEvent &e)
+void MediaPlayer::mouse_wheel(const MouseEvent &e)
 {
-    ViewerApp::mouseWheel(e);
+    ViewerApp::mouse_wheel(e);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -317,7 +317,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
                 if(str == name())
                 {
                     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
-                    m_ip_timestamps[remote_ip] = getApplicationTime();
+                    m_ip_timestamps[remote_ip] = get_application_time();
                     
                     ping_delay(remote_ip);
                 }
@@ -497,7 +497,7 @@ void MediaPlayer::remove_dead_ip_adresses()
 {
     std::unique_lock<std::mutex> lock(g_ip_table_mutex);
     
-    auto now = getApplicationTime();
+    auto now = get_application_time();
     std::list<std::unordered_map<std::string, float>::iterator> dead_iterators;
     
     auto it = m_ip_timestamps.begin();
