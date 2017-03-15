@@ -180,7 +180,7 @@ void MediaPlayer::resize(int w ,int h)
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::keyRelease(const KeyEvent &e)
+void MediaPlayer::key_release(const KeyEvent &e)
 {
     ViewerApp::key_release(e);
 }
@@ -206,7 +206,7 @@ void MediaPlayer::mouse_release(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::mouseMove(const MouseEvent &e)
+void MediaPlayer::mouse_move(const MouseEvent &e)
 {
     ViewerApp::mouse_move(e);
 }
@@ -248,14 +248,14 @@ void MediaPlayer::touch_move(const MouseEvent &e, const std::set<const Touch*> &
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
+void MediaPlayer::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
     *m_media_path = files.back();
 }
 
 /////////////////////////////////////////////////////////////////
 
-void MediaPlayer::tearDown()
+void MediaPlayer::teardown()
 {
     LOG_PRINT << "ciao " << name();
 }
