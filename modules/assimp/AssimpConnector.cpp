@@ -350,9 +350,9 @@ namespace kinski { namespace gl{
             gl::MeshPtr mesh = gl::Mesh::create(combined_geom, materials[0]);
             mesh->entries() = entries;
             mesh->materials() = materials;
-            mesh->rootBone() = create_bone_hierarchy(theScene->mRootNode, mat4(), bonemap);
+            mesh->root_bone() = create_bone_hierarchy(theScene->mRootNode, mat4(), bonemap);
             
-            if(mesh->rootBone()) mesh->initBoneMatrices();
+            if(mesh->root_bone()) mesh->init_bone_matrices();
             
             for (uint32_t i = 0; i < theScene->mNumAnimations; i++)
             {
@@ -360,8 +360,8 @@ namespace kinski { namespace gl{
                 MeshAnimation anim;
                 anim.duration = assimpAnimation->mDuration;
                 anim.ticksPerSec = assimpAnimation->mTicksPerSecond;
-                create_bone_animation(theScene->mRootNode, assimpAnimation, mesh->rootBone(), anim);
-                mesh->addAnimation(anim);
+                create_bone_animation(theScene->mRootNode, assimpAnimation, mesh->root_bone(), anim);
+                mesh->add_animation(anim);
             }
             
 //            gl::Shader shader;
@@ -387,10 +387,10 @@ namespace kinski { namespace gl{
 //                materials[i]->setShader(shader);
                 materials[i]->load_queue_shader().push_back(sh_type);
             }
-//            mesh->createVertexArray();
+//            mesh->create_vertex_array();
             
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
-            geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->rootBone()) << " bones";
+            geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";
             
             LOG_DEBUG<<"bounds: " <<to_string(mesh->bounding_box().min)<<" - "<<
                 to_string(mesh->bounding_box().max);
@@ -574,8 +574,8 @@ namespace kinski { namespace gl{
                 MeshAnimation anim;
                 anim.duration = assimpAnimation->mDuration;
                 anim.ticksPerSec = assimpAnimation->mTicksPerSecond;
-                create_bone_animation(theScene->mRootNode, assimpAnimation, m->rootBone(), anim);
-                m->addAnimation(anim);
+                create_bone_animation(theScene->mRootNode, assimpAnimation, m->root_bone(), anim);
+                m->add_animation(anim);
             }
         }
         return theScene ? theScene->mNumAnimations : 0;

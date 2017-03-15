@@ -160,7 +160,7 @@ namespace kinski {
 
     void ViewerApp::update(float timeDelta)
     {
-        m_camera->setAspectRatio(gl::aspect_ratio());
+        m_camera->set_aspect(gl::aspect_ratio());
         m_drag_buffer.push_back(glm::vec2(0));
         m_inertia *= m_rotation_damping;
 
@@ -471,7 +471,7 @@ namespace kinski {
         }
         else if(theProperty == m_camera_fov)
         {
-            m_camera->setFov(*m_camera_fov);
+            m_camera->set_fov(*m_camera_fov);
         }
         else if(theProperty == m_distance || theProperty == m_rotation ||
                 theProperty == m_look_at)

@@ -23,9 +23,9 @@ public:
     Camera():Object3D(){};
     virtual ~Camera(){};
     
-    mat4 getProjectionMatrix() const {return m_projectionMatrix;};
-    mat4 getViewMatrix() const;
-    AABB boundingBox() const;
+    mat4 projection_matrix() const {return m_projectionMatrix;};
+    mat4 view_matrix() const;
+    AABB boundingbox() const;
     
     virtual gl::Frustum frustum() const = 0;
     virtual float near() const = 0;
@@ -33,8 +33,8 @@ public:
     
 protected:
 
-    virtual void updateProjectionMatrix() = 0;
-    void setProjectionMatrix(const mat4 &theMatrix) { m_projectionMatrix = theMatrix; };
+    virtual void update_projection_matrix() = 0;
+    void set_projection_matrix(const mat4 &theMatrix) { m_projectionMatrix = theMatrix; };
     
 private:
     
@@ -59,43 +59,44 @@ public:
     void near(float val)
     {
         m_near = val;
-        updateProjectionMatrix();
+        update_projection_matrix();
     };
     float far() const {return m_far;};
     void far(float val)
     {
         m_far = val;
-        updateProjectionMatrix();
+        update_projection_matrix();
     };
     inline float left() const {return m_left;};
     void left(float val)
     {
         m_left = val;
-        updateProjectionMatrix();
+        update_projection_matrix();
     };
     inline float right() const {return m_right;};
     void right(float val)
     {
         m_right = val;
-        updateProjectionMatrix();
+        update_projection_matrix();
     };
     inline float bottom() const {return m_bottom;};
     void bottom(float val)
     {
         m_bottom = val;
-        updateProjectionMatrix();
+        update_projection_matrix();
     };
     inline float top() const {return m_top;};
     void top(float val)
     {
-        m_top = val; updateProjectionMatrix();
+        m_top = val;
+        update_projection_matrix();
     };
     
     void set_size(const gl::vec2 &the_sz);
 
 protected:
     
-    void updateProjectionMatrix();
+    void update_projection_matrix();
     
 private:
     
@@ -120,20 +121,20 @@ public:
 
     virtual gl::Frustum frustum() const;
     
-    void setFov(float theFov);
+    void set_fov(float theFov);
     float fov() const {return m_fov;};
     
-    void setAspectRatio(float theAspect);
-    float aspectRatio() const {return m_aspect;};
+    void set_aspect(float theAspect);
+    float aspect() const {return m_aspect;};
     
-    void setClippingPlanes(float near, float far);
+    void set_clipping(float near, float far);
     
     float near() const {return m_near;};
     float far() const {return m_far;};
 
 protected:
     
-    void updateProjectionMatrix();
+    void update_projection_matrix();
     
 private:
     

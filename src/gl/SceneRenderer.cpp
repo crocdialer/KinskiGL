@@ -35,7 +35,7 @@ namespace kinski{ namespace gl{
         m_tags(the_tags),
         m_render_bin(new gl::RenderBin(theCamera))
         {
-            transform_stack().push(theCamera->getViewMatrix());
+            transform_stack().push(theCamera->view_matrix());
         }
         
         RenderBinPtr get_render_bin() const {return m_render_bin;}
@@ -46,7 +46,7 @@ namespace kinski{ namespace gl{
             
             glm::mat4 model_view = transform_stack().top() * theNode.transform();
             gl::AABB boundingBox = theNode.bounding_box();
-            //            boundingBox.transform(theNode.global_transform());
+            //            boundingbox.transform(theNode.global_transform());
             
             if(m_frustum.intersect(boundingBox))
             {
@@ -140,7 +140,7 @@ namespace kinski{ namespace gl{
         if(the_scene->skybox())
         {
             gl::set_projection(the_cam);
-            mat4 m = the_cam->getViewMatrix();
+            mat4 m = the_cam->view_matrix();
             m[3] = vec4(0, 0, 0, 1);
             gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
             gl::draw_mesh(the_scene->skybox());
@@ -214,7 +214,7 @@ namespace kinski{ namespace gl{
             Mesh *m = item.mesh;
             
             const glm::mat4 &modelView = item.transform;
-            mat4 mvp_matrix = cam->getProjectionMatrix() * modelView;
+            mat4 mvp_matrix = cam->projection_matrix() * modelView;
             mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
             
             for(auto &mat : m->materials())
@@ -231,8 +231,8 @@ namespace kinski{ namespace gl{
                     {
                         if(!m_shadow_cams[i]) break;
                         int tex_unit = mat->textures().size() + i;
-                        shadow_matrices.push_back(m_shadow_cams[i]->getProjectionMatrix() *
-                                                  m_shadow_cams[i]->getViewMatrix() * m->global_transform());
+                        shadow_matrices.push_back(m_shadow_cams[i]->projection_matrix() *
+                                                          m_shadow_cams[i]->view_matrix() * m->global_transform());
                         m_shadow_fbos[i].depth_texture().bind(tex_unit);
                         sprintf(buf, "u_shadow_map[%d]", i);
                         mat->uniform(buf, tex_unit);
@@ -247,12 +247,12 @@ namespace kinski{ namespace gl{
                 
                 if(m->geometry()->has_bones())
                 {
-                    mat->uniform("u_bones", m->boneMatrices());
+                    mat->uniform("u_bones", m->bone_matrices());
                 }
                 
                 // lighting parameters
 #if !defined(KINSKI_GLES)
-                GLint block_index = mat->shader().getUniformBlockIndex("LightBlock");
+                GLint block_index = mat->shader().uniform_block_index("LightBlock");
                 
                 if(block_index >= 0)
                 {
@@ -260,7 +260,7 @@ namespace kinski{ namespace gl{
                     KINSKI_CHECK_GL_ERRORS();
                 }
                 
-                block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
+                block_index = mat->shader().uniform_block_index("MaterialBlock");
                 
                 if(block_index >= 0)
                 {
@@ -268,10 +268,10 @@ namespace kinski{ namespace gl{
                     KINSKI_CHECK_GL_ERRORS();
                 }
                 
-//                block_index = mat->shader().getUniformBlockIndex("MatrixBlock");
+//                block_index = mat->shader().uniform_block_index("MatrixBlock");
 //                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATRIX_BLOCK);
                 
-//                block_index = mat->shader().getUniformBlockIndex("ShadowBlock");
+//                block_index = mat->shader().uniform_block_index("ShadowBlock");
 //                glUniformBlockBinding(mat->shader().getHandle(), block_index, SHADOW_BLOCK);
 #else
                 set_light_uniforms(mat, light_list);

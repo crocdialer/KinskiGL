@@ -133,19 +133,19 @@ namespace kinski { namespace gl {
         }
     }
 
-    void Mesh::bindVertexPointers(int material_index)
+    void Mesh::bind_vertex_pointers(int material_index)
     {
         if(m_vertex_attribs.empty()){ create_vertex_attribs(); }
 
         Shader& shader = m_materials[material_index]->shader();
         if(!shader)
-            throw Exception("No Shader defined in Mesh::createVertexArray()");
+            throw Exception("No Shader defined in Mesh::create_vertex_array()");
 
         // shader.bind();
 
         for(auto &vertex_attrib : m_vertex_attribs)
         {
-            GLint location = shader.getAttribLocation(vertex_attrib.name);
+            GLint location = shader.attrib_location(vertex_attrib.name);
 
             if(location >= 0)
             {
@@ -177,7 +177,7 @@ namespace kinski { namespace gl {
         // set standard values for some attribs, in case they're not defined
         if(!m_geometry->has_colors())
         {
-            GLint colorAttribLocation = shader.getAttribLocation(m_colorLocationName);
+            GLint colorAttribLocation = shader.attrib_location(m_colorLocationName);
             if(colorAttribLocation >= 0)
             {
                 glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -185,7 +185,7 @@ namespace kinski { namespace gl {
         }
         // if(!m_geometry->hasTexCoords())
         // {
-        //     GLint texCoordLocation = shader.getAttribLocation(m_texCoordLocationName);
+        //     GLint texCoordLocation = shader.attrib_location(m_texCoordLocationName);
         //     if(texCoordLocation >= 0)
         //     {
         //         glVertexAttrib2f(texCoordLocation, 0.f, 0.f);
@@ -193,7 +193,7 @@ namespace kinski { namespace gl {
         // }
         if(!m_geometry->has_point_sizes())
         {
-            GLint pointSizeAttribLocation = shader.getAttribLocation(m_pointSizeLocationName);
+            GLint pointSizeAttribLocation = shader.attrib_location(m_pointSizeLocationName);
             if(pointSizeAttribLocation >= 0)
             {
                 glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
@@ -217,7 +217,7 @@ namespace kinski { namespace gl {
             anim.current_time += anim.current_time < 0.f ? anim.duration : 0.f;
 
             m_boneMatrices.resize(get_num_bones(m_rootBone));
-            buildBoneMatrices(anim.current_time, m_rootBone, glm::mat4(), m_boneMatrices);
+            build_bone_matrices(anim.current_time, m_rootBone, glm::mat4(), m_boneMatrices);
         }
     }
 
@@ -231,14 +231,14 @@ namespace kinski { namespace gl {
         return ret;
     }
 
-    void Mesh::initBoneMatrices()
+    void Mesh::init_bone_matrices()
     {
         m_boneMatrices.resize(get_num_bones(m_rootBone));
-        buildBoneMatrices(0, m_rootBone, glm::mat4(), m_boneMatrices);
+        build_bone_matrices(0, m_rootBone, glm::mat4(), m_boneMatrices);
     }
 
-    void Mesh::buildBoneMatrices(float time, BonePtr bone, glm::mat4 parentTransform,
-                                 std::vector<glm::mat4> &matrices)
+    void Mesh::build_bone_matrices(float time, BonePtr bone, glm::mat4 parentTransform,
+                                   std::vector<glm::mat4> &matrices)
     {
         if(m_animations.empty()) return;
 
@@ -337,7 +337,7 @@ namespace kinski { namespace gl {
         std::list<BonePtr>::iterator it = bone->children.begin();
         for (; it != bone->children.end(); ++it)
         {
-            buildBoneMatrices(time, *it, bone->worldtransform, matrices);
+            build_bone_matrices(time, *it, bone->worldtransform, matrices);
         }
     }
 
@@ -360,7 +360,7 @@ namespace kinski { namespace gl {
         return ret;
     }
 
-    void Mesh::createVertexArray()
+    void Mesh::create_vertex_array()
     {
         if(m_geometry->vertices().empty()) return;
 
@@ -380,14 +380,14 @@ namespace kinski { namespace gl {
         for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
         {
             GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
-            bindVertexPointers(i);
+            bind_vertex_pointers(i);
             m_shaders[i] = m_materials[i]->shader();
         }
         GL_SUFFIX(glBindVertexArray)(0);
 #endif
     }
 
-    GLuint Mesh::vertexArray(uint32_t i) const
+    GLuint Mesh::vertex_array(uint32_t i) const
     {
         if(m_shaders[i] != m_materials[i]->shader())
         {
@@ -400,12 +400,12 @@ namespace kinski { namespace gl {
     {
 #if !defined(KINSKI_NO_VAO)
 
-        if(i >= m_vertexArrays.size()){createVertexArray();}
+        if(i >= m_vertexArrays.size()){ create_vertex_array();}
 
-        try{GL_SUFFIX(glBindVertexArray)(vertexArray(i));}
+        try{GL_SUFFIX(glBindVertexArray)(vertex_array(i));}
         catch(const WrongVertexArrayDefinedException &e)
         {
-            createVertexArray();
+            create_vertex_array();
             try{GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);}
             catch(std::exception &e)
             {
@@ -423,7 +423,7 @@ namespace kinski { namespace gl {
         *ret = *this;
 
         // deep copy bones
-//        ret->rootBone() = deep_copy_bones(rootBone());
+//        ret->root_bone() = deep_copy_bones(root_bone());
 //
 //        // remap animations
 //        std::vector<MeshAnimation> anim_cp;
@@ -435,7 +435,7 @@ namespace kinski { namespace gl {
 //
 //            for(const auto &bone_key : anim.boneKeys)
 //            {
-//                cp.boneKeys[get_bone_by_name(ret->rootBone(), bone_key.first->name)] = bone_key.second;
+//                cp.boneKeys[get_bone_by_name(ret->root_bone(), bone_key.first->name)] = bone_key.second;
 //            }
 //            anim_cp.push_back(anim);
 //        }
@@ -443,7 +443,7 @@ namespace kinski { namespace gl {
 
         ret->m_vertexArrays.clear();
         ret->m_shaders.clear();
-        ret->createVertexArray();
+        ret->create_vertex_array();
         return ret;
     }
 
@@ -456,35 +456,35 @@ namespace kinski { namespace gl {
         }
     }
 
-    void Mesh::setVertexLocationName(const std::string &theName)
-    {
-        m_vertexLocationName = theName;
-        createVertexArray();
-    }
-
-    void Mesh::setNormalLocationName(const std::string &theName)
-    {
-        m_normalLocationName = theName;
-        createVertexArray();
-    }
-
-    void Mesh::setTangentLocationName(const std::string &theName)
-    {
-        m_tangentLocationName = theName;
-        createVertexArray();
-    }
-
-    void Mesh::setPointSizeLocationName(const std::string &theName)
-    {
-        m_pointSizeLocationName = theName;
-        createVertexArray();
-    }
-
-    void Mesh::setTexCoordLocationName(const std::string &theName)
-    {
-        m_texCoordLocationName = theName;
-        createVertexArray();
-    }
+//    void Mesh::setVertexLocationName(const std::string &theName)
+//    {
+//        m_vertexLocationName = theName;
+//        create_vertex_array();
+//    }
+//
+//    void Mesh::setNormalLocationName(const std::string &theName)
+//    {
+//        m_normalLocationName = theName;
+//        create_vertex_array();
+//    }
+//
+//    void Mesh::setTangentLocationName(const std::string &theName)
+//    {
+//        m_tangentLocationName = theName;
+//        create_vertex_array();
+//    }
+//
+//    void Mesh::setPointSizeLocationName(const std::string &theName)
+//    {
+//        m_pointSizeLocationName = theName;
+//        create_vertex_array();
+//    }
+//
+//    void Mesh::setTexCoordLocationName(const std::string &theName)
+//    {
+//        m_texCoordLocationName = theName;
+//        create_vertex_array();
+//    }
 
     void Mesh::accept(Visitor &theVisitor)
     {

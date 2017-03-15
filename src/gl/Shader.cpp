@@ -38,33 +38,33 @@ Shader::Shader(){}
 Shader::Shader(const char *vertexShader, const char *fragmentShader, const char *geometryShader):
 m_impl(new ShaderImpl)
 {
-    if(vertexShader){ loadShader(vertexShader, GL_VERTEX_SHADER); }
+    if(vertexShader){ load_shader(vertexShader, GL_VERTEX_SHADER); }
     
-    if(fragmentShader){ loadShader(fragmentShader, GL_FRAGMENT_SHADER); }
+    if(fragmentShader){ load_shader(fragmentShader, GL_FRAGMENT_SHADER); }
     
 #ifndef KINSKI_GLES
-    if(geometryShader){ loadShader(geometryShader, GL_GEOMETRY_SHADER); }
+    if(geometryShader){ load_shader(geometryShader, GL_GEOMETRY_SHADER); }
 #endif
     
 	link();
 }
 
-    void Shader::loadFromData(const std::string &vertSrc, const std::string &fragSrc,
-                              const std::string &geomSrc)
+    void Shader::load_from_data(const std::string &vertSrc, const std::string &fragSrc,
+								const std::string &geomSrc)
 {
     m_impl.reset(new ShaderImpl);
-    
-    loadShader(vertSrc.c_str(), GL_VERTEX_SHADER);
-	loadShader(fragSrc.c_str(), GL_FRAGMENT_SHADER);
+
+	load_shader(vertSrc.c_str(), GL_VERTEX_SHADER);
+	load_shader(fragSrc.c_str(), GL_FRAGMENT_SHADER);
 
 #ifndef KINSKI_GLES
-    if(!geomSrc.empty()){ loadShader(geomSrc.c_str(), GL_GEOMETRY_SHADER); }
+    if(!geomSrc.empty()){ load_shader(geomSrc.c_str(), GL_GEOMETRY_SHADER); }
 #endif
     
     link();
 }
         
-void Shader::loadShader(const char *shaderSource, GLint shaderType)
+void Shader::load_shader(const char *shaderSource, GLint shaderType)
 {
 	GLuint handle = glCreateShader(shaderType);
 	glShaderSource(handle, 1, reinterpret_cast<const GLchar**>(&shaderSource), nullptr);
@@ -74,7 +74,7 @@ void Shader::loadShader(const char *shaderSource, GLint shaderType)
 	glGetShaderiv(handle, GL_COMPILE_STATUS, &status);
 	if(status != GL_TRUE)
     {
-		std::string log = getShaderLog(handle);
+		std::string log = get_shader_log(handle);
 		throw ShaderCompileExc(log, shaderType);
 	}
 	glAttachShader(m_impl->m_Handle, handle);
@@ -89,10 +89,10 @@ void Shader::link()
 	glGetProgramiv(m_impl->m_Handle, GL_LINK_STATUS, &status);
 	if(status != GL_TRUE)
     {
-		std::string log = getProgramLog();
+		std::string log = get_program_log();
 		throw ShaderLinkException(log);
 	}
-    std::string log = getProgramLog();
+    std::string log = get_program_log();
 }
 
 void Shader::bind() const
@@ -112,7 +112,7 @@ GLuint Shader::getHandle() const
     return m_impl->m_Handle;
 }
     
-std::string Shader::getShaderLog(GLuint handle) const
+std::string Shader::get_shader_log(GLuint handle) const
 {
 	std::string log;
 	
@@ -130,7 +130,7 @@ std::string Shader::getShaderLog(GLuint handle) const
 	return log;
 }
     
-std::string Shader::getProgramLog() const
+std::string Shader::get_program_log() const
 {
     std::string log;
     GLchar *debugLog;
@@ -149,138 +149,138 @@ std::string Shader::getProgramLog() const
 
 void Shader::uniform(const std::string &name, GLint data)
 {
-	GLint loc = getUniformLocation( name );
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform1i(loc, data);
 }
 
 void Shader::uniform(const std::string &name, const glm::vec2 &data)
 {
-	GLint loc = getUniformLocation( name );
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform2f( loc, data.x, data.y );
 }
 
 void Shader::uniform(const std::string &name, const GLint *data, int count)
 {
-	GLint loc = getUniformLocation( name );
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform1iv( loc, count, data );
 }
 
 void Shader::uniform(const std::string &name, const glm::ivec2 *data, int count)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform2iv(loc, count, &data[0].x);
 }
 
 void Shader::uniform(const std::string &name, GLfloat data)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform1f(loc, data);
 }
 
 void Shader::uniform(const std::string &name, const glm::vec3 &data)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform3f( loc, data.x, data.y, data.z );
 }
 
 void Shader::uniform(const std::string &name, const glm::vec4 &data)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform4f( loc, data.x, data.y, data.z, data.w );
 }
 
 void Shader::uniform(const std::string &name, const GLfloat *data, int count)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform1fv(loc, count, data);
 }
 
     void Shader::uniform(const std::string &name, const glm::vec2 *theArray, int count)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform2fv(loc, count, &theArray[0].x);
 }
 
 void Shader::uniform(const std::string &name, const glm::vec3 *theArray, int count)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform3fv(loc, count, &theArray[0].x);
 }
 
 void Shader::uniform(const std::string &name, const glm::vec4 *theArray, int count)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniform4fv(loc, count, &theArray[0].x);
 }
 
 void Shader::uniform(const std::string &name, const glm::mat3 &theMat, bool transpose)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniformMatrix3fv(loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE,
                                      glm::value_ptr(theMat));
 }
 
 void Shader::uniform(const std::string &name, const glm::mat4 &theMat, bool transpose)
 {
-	GLint loc = getUniformLocation(name);
+	GLint loc = uniform_location(name);
 	if(loc != -1) glUniformMatrix4fv(loc, 1, ( transpose ) ? GL_TRUE : GL_FALSE,
                                      glm::value_ptr(theMat));
 }
 
 void Shader::uniform(const std::string &name, const glm::mat3 *theArray, int count, bool transpose)
 {
-    GLint loc = getUniformLocation(name);
+    GLint loc = uniform_location(name);
     if(loc != -1) glUniformMatrix3fv(loc, count, ( transpose ) ? GL_TRUE : GL_FALSE,
                                      glm::value_ptr(theArray[0]));
 }
 
 void Shader::uniform(const std::string &name, const glm::mat4 *theArray, int count, bool transpose)
 {
-    GLint loc = getUniformLocation(name);
+    GLint loc = uniform_location(name);
     if(loc != -1) glUniformMatrix4fv(loc, count, ( transpose ) ? GL_TRUE : GL_FALSE,
                                      glm::value_ptr(theArray[0]));
 }
     
 void Shader::uniform(const std::string &name, const std::vector<GLint> &theArray)
 {
-    GLint loc = getUniformLocation(name);
+    GLint loc = uniform_location(name);
     if(loc != -1) glUniform1iv(loc, theArray.size(), &theArray[0]);
 }
     
 void Shader::uniform(const std::string &name, const std::vector<GLfloat> &theArray)
 {
-    GLint loc = getUniformLocation(name);
+    GLint loc = uniform_location(name);
 	if(loc != -1) glUniform1fv(loc, theArray.size(), &theArray[0]);
 }
 
 void Shader::uniform(const std::string &name, const std::vector<glm::vec2> &theArray)
 {
-    GLint loc = getUniformLocation( name );
+    GLint loc = uniform_location(name);
 	if(loc != -1) glUniform2fv( loc, theArray.size(), &theArray[0].x );
 }
 
 void Shader::uniform(const std::string &name, const std::vector<glm::vec3> &theArray)
 {
-    GLint loc = getUniformLocation( name );
+    GLint loc = uniform_location(name);
 	if(loc != -1) glUniform3fv( loc, theArray.size(), &theArray[0].x );
 }
 
 void Shader::uniform(const std::string &name, const std::vector<glm::vec4> &theArray)
 {
-    GLint loc = getUniformLocation( name );
+    GLint loc = uniform_location(name);
 	if(loc != -1) glUniform4fv( loc, theArray.size(), &theArray[0].x );
 }
 
 void Shader::uniform(const std::string &name, const std::vector<glm::mat3> &theArray, bool transpose)
 {
-    GLint loc = getUniformLocation( name );
+    GLint loc = uniform_location(name);
     if(loc != -1) glUniformMatrix3fv( loc, theArray.size(), ( transpose ) ? GL_TRUE : GL_FALSE,
                                      glm::value_ptr(theArray[0]) );
 }
 
 void Shader::uniform(const std::string &name, const std::vector<glm::mat4> &theArray, bool transpose)
 {
-    GLint loc = getUniformLocation( name );
+    GLint loc = uniform_location(name);
     if(loc != -1) glUniformMatrix4fv(loc, theArray.size(), ( transpose ) ? GL_TRUE : GL_FALSE,
                                      glm::value_ptr(theArray[0]));
 }
@@ -292,7 +292,7 @@ void Shader::bindFragDataLocation(const std::string &fragLoc)
 #endif
 }
     
-GLint Shader::getUniformLocation(const std::string &name)
+GLint Shader::uniform_location(const std::string &name)
 {
 	map<string,int>::const_iterator uniformIt = m_impl->m_UniformLocs.find( name );
 	if( uniformIt == m_impl->m_UniformLocs.end() )
@@ -305,7 +305,7 @@ GLint Shader::getUniformLocation(const std::string &name)
 		return uniformIt->second;
 }
     
-GLint Shader::getUniformBlockIndex(const std::string &name)
+GLint Shader::uniform_block_index(const std::string &name)
 {
 #ifndef KINSKI_GLES
     
@@ -322,7 +322,7 @@ GLint Shader::getUniformBlockIndex(const std::string &name)
     return -1;
 }
     
-GLint Shader::getAttribLocation(const std::string &name) const
+GLint Shader::attrib_location(const std::string &name) const
 {
 	return glGetAttribLocation( m_impl->m_Handle, name.c_str() );
 }

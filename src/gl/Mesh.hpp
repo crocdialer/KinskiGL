@@ -104,10 +104,10 @@ namespace kinski { namespace gl {
         // and store them in <m_vertex_attribs>
         void create_vertex_attribs();
         
-        void bindVertexPointers(int material_index = 0);
+        void bind_vertex_pointers(int material_index = 0);
         void bind_vertex_array(uint32_t i = 0);
-        void createVertexArray();
-        GLuint vertexArray(uint32_t i = 0) const;
+        void create_vertex_array();
+        GLuint vertex_array(uint32_t i = 0) const;
         
         void update(float time_delta) override;
         
@@ -126,7 +126,7 @@ namespace kinski { namespace gl {
         
         const std::vector<MeshAnimation>& animations() const { return m_animations; };
         std::vector<MeshAnimation>& animations() { return m_animations; };
-        void addAnimation(const MeshAnimation &theAnim) { m_animations.push_back(theAnim); };
+        void add_animation(const MeshAnimation &theAnim) { m_animations.push_back(theAnim); };
         
         uint32_t animation_index() const { return m_animation_index; }
         void set_animation_index(uint32_t the_index);
@@ -134,51 +134,51 @@ namespace kinski { namespace gl {
         float animation_speed() const { return m_animation_speed; }
         void set_animation_speed(const float the_speed) { m_animation_speed = the_speed; }
         
-        std::vector<mat4>& boneMatrices(){ return m_boneMatrices; };
-        const std::vector<mat4>& boneMatrices() const { return m_boneMatrices; };
+        std::vector<mat4>& bone_matrices(){ return m_boneMatrices; };
+        const std::vector<mat4>& bone_matrices() const { return m_boneMatrices; };
         
-        void initBoneMatrices();
+        void init_bone_matrices();
         
-        BonePtr& rootBone(){ return m_rootBone; };
-        const BonePtr& rootBone() const { return m_rootBone; };
+        BonePtr& root_bone(){ return m_rootBone; };
+        const BonePtr& root_bone() const { return m_rootBone; };
         
         uint32_t get_num_bones(const BonePtr &theRoot);
         
-        /*!
-         * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_vertex"
-         */
-        void setVertexLocationName(const std::string &theName);
-        
-        /*!
-         * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_normal"
-         */
-        void setNormalLocationName(const std::string &theName);
-        
-        /*!
-         * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_tangent"
-         */
-        void setTangentLocationName(const std::string &theName);
-        
-        /*!
-         * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_pointSize"
-         */
-        void setPointSizeLocationName(const std::string &theName);
-        
-        /*!
-         * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_texCoord"
-         */
-        void setTexCoordLocationName(const std::string &theName);
-        
-        /*!
-         * Set the name under which the attribute will be accessible in the shader.
-         * Defaults to "a_color"
-         */
-        void setColorLocationName(const std::string &theName);
+//        /*!
+//         * Set the name under which the attribute will be accessible in the shader.
+//         * Defaults to "a_vertex"
+//         */
+//        void setVertexLocationName(const std::string &theName);
+//
+//        /*!
+//         * Set the name under which the attribute will be accessible in the shader.
+//         * Defaults to "a_normal"
+//         */
+//        void setNormalLocationName(const std::string &theName);
+//
+//        /*!
+//         * Set the name under which the attribute will be accessible in the shader.
+//         * Defaults to "a_tangent"
+//         */
+//        void setTangentLocationName(const std::string &theName);
+//
+//        /*!
+//         * Set the name under which the attribute will be accessible in the shader.
+//         * Defaults to "a_pointSize"
+//         */
+//        void setPointSizeLocationName(const std::string &theName);
+//
+//        /*!
+//         * Set the name under which the attribute will be accessible in the shader.
+//         * Defaults to "a_texCoord"
+//         */
+//        void setTexCoordLocationName(const std::string &theName);
+//
+//        /*!
+//         * Set the name under which the attribute will be accessible in the shader.
+//         * Defaults to "a_color"
+//         */
+//        void setColorLocationName(const std::string &theName);
         
         /*!
          *  return a copy of this mesh, sharing its geometry, materials, animations, etc.
@@ -191,9 +191,9 @@ namespace kinski { namespace gl {
         
         Mesh(const Geometry::Ptr &theGeom, const MaterialPtr &theMaterial);
         
-        void buildBoneMatrices(float time, BonePtr bone,
-                               mat4 parentTransform,
-                               std::vector<mat4> &matrices);
+        void build_bone_matrices(float time, BonePtr bone,
+                                 mat4 parentTransform,
+                                 std::vector<mat4> &matrices);
         
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;

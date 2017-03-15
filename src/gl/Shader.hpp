@@ -66,19 +66,18 @@ class KINSKI_API Shader
     
     void bindFragDataLocation(const std::string &fragLoc);
     
-	GLint getUniformLocation(const std::string &name);
-    GLint getUniformBlockIndex(const std::string &name);
-	GLint getAttribLocation(const std::string &name) const;
+	GLint uniform_location(const std::string &name);
+    GLint uniform_block_index(const std::string &name);
+	GLint attrib_location(const std::string &name) const;
 
-	std::string getShaderLog(GLuint handle) const;
-    std::string getProgramLog() const;
+	std::string get_shader_log(GLuint handle) const;
+    std::string get_program_log() const;
     
-    void loadFromData(const std::string &vertSrc, const std::string &fragSrc,
-                      const std::string &geomSrc = "");
+    void load_from_data(const std::string &vertSrc, const std::string &fragSrc,
+						const std::string &geomSrc = "");
     
   private:
-	void loadShader(const char *shaderSource, GLint shaderType);
-	void attachShaders();
+	void load_shader(const char *shaderSource, GLint shaderType);
 	void link();
 
     std::shared_ptr<struct ShaderImpl> m_impl;

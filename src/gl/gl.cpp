@@ -163,14 +163,14 @@ namespace kinski { namespace gl {
     
     void set_modelview( const CameraPtr &cam )
     {
-        load_matrix(MODEL_VIEW_MATRIX, cam->getViewMatrix());
+        load_matrix(MODEL_VIEW_MATRIX, cam->view_matrix());
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
     void set_projection( const CameraPtr &cam )
     {
-        load_matrix(PROJECTION_MATRIX, cam->getProjectionMatrix());
+        load_matrix(PROJECTION_MATRIX, cam->projection_matrix());
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -230,7 +230,7 @@ namespace kinski { namespace gl {
             // convert fovy to radians
             float rad = glm::radians(cam->fov());
             float vLength = tan( rad / 2) * near;
-            float hLength = vLength * cam->aspectRatio();
+            float hLength = vLength * cam->aspect();
             
             click_world_pos = cam_pos + lookAt * near
             + side * hLength * click_2D.x
@@ -298,7 +298,7 @@ namespace kinski { namespace gl {
     
     gl::MeshPtr create_frustum_mesh(const CameraPtr &cam)
     {
-        glm::mat4 inverse_projection = glm::inverse(cam->getProjectionMatrix());
+        glm::mat4 inverse_projection = glm::inverse(cam->projection_matrix());
         gl::GeometryPtr geom = Geometry::create();
         geom->set_primitive_type(GL_LINE_STRIP);
         const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
@@ -357,7 +357,7 @@ namespace kinski { namespace gl {
         {
             // obtain normalized device coords (-1, 1)
             glm::vec4 p = vec4(the_point, 1.f);
-            p = theCamera->getProjectionMatrix() * theCamera->getViewMatrix() * p;
+            p = theCamera->projection_matrix() * theCamera->view_matrix() * p;
             
             // divide by w
             p /= p.w;
@@ -795,7 +795,7 @@ namespace kinski { namespace gl {
             theColors.push_back(colorBlue);
             
             geom->create_gl_buffers();
-            line_mesh->createVertexArray();
+            line_mesh->create_vertex_array();
             theMap[weakMesh] = line_mesh;
         }
         gl::draw_mesh(theMap[weakMesh]);
@@ -833,7 +833,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             gl::COLOR_GREEN, gl::COLOR_GREEN,
             gl::COLOR_BLUE, gl::COLOR_BLUE
         };
-        transform_mesh->createVertexArray();
+        transform_mesh->create_vertex_array();
     }
     gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
     gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(the_transform, glm::vec3(the_scale)));
@@ -865,13 +865,13 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             
             if(the_mesh->geometry()->has_bones())
             {
-                mat->uniform("u_bones", the_mesh->boneMatrices());
+                mat->uniform("u_bones", the_mesh->bone_matrices());
             }
             
 #if !defined(KINSKI_GLES)
             if(mat->shader())
             {
-                GLuint block_index = mat->shader().getUniformBlockIndex("MaterialBlock");
+                GLuint block_index = mat->shader().uniform_block_index("MaterialBlock");
                 glUniformBlockBinding(mat->shader().getHandle(), block_index, 0);
             }
 #endif
@@ -959,7 +959,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
             }
             spot_mesh->geometry()->create_gl_buffers();
-            spot_mesh->createVertexArray();
+            spot_mesh->create_vertex_array();
             
             std::list<gl::MaterialPtr> mats =
             {
@@ -1070,7 +1070,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 theColors.push_back(colorWhite);
                 
             geom->create_gl_buffers();
-            line_mesh->createVertexArray();
+            line_mesh->create_vertex_array();
         }
         AABB mesh_bb = the_obj->bounding_box();
         glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
@@ -1116,7 +1116,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 theColors.push_back(colorRed);
             }
             geom->create_gl_buffers();
-            line_mesh->createVertexArray();
+            line_mesh->create_vertex_array();
             theMap[the_mesh] = line_mesh;
         }
         gl::draw_mesh(theMap[the_mesh]);
@@ -1613,7 +1613,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     
         if (!geomPath.empty()) geomSrc = fs::read_file(geomPath);
     
-        try { ret.loadFromData(vertSrc, fragSrc, geomSrc); }
+        try { ret.load_from_data(vertSrc, fragSrc, geomSrc); }
         catch (Exception &e){ LOG_ERROR<<e.what(); }
         return ret;
     }
@@ -1736,7 +1736,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 LOG_WARNING << "requested shader not available, falling back to UNLIT";
                 return create_shader(gl::ShaderType::UNLIT, false);
             }
-            ret.loadFromData(vert_src, frag_src, geom_src);
+            ret.load_from_data(vert_src, frag_src, geom_src);
             if(use_cached_shader){ g_shaders[type] = ret; }
             KINSKI_CHECK_GL_ERRORS();
         }

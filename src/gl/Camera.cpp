@@ -14,12 +14,12 @@ namespace kinski { namespace gl{
     
     /************************* Camera ************************/
     
-    glm::mat4 Camera::getViewMatrix() const
+    glm::mat4 Camera::view_matrix() const
     {
         return glm::inverse(global_transform());
     }
     
-    AABB Camera::boundingBox() const
+    AABB Camera::boundingbox() const
     {
         return AABB(glm::vec3(-0.5f), glm::vec3(0.5f));
     }
@@ -36,18 +36,18 @@ namespace kinski { namespace gl{
     m_near(near),
     m_far(far)
     {
-        updateProjectionMatrix();
+        update_projection_matrix();
     }
     
-    void OrthographicCamera::updateProjectionMatrix()
+    void OrthographicCamera::update_projection_matrix()
     {
-        setProjectionMatrix(glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far));
+        set_projection_matrix(glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far));
     }
     
     gl::Frustum OrthographicCamera::frustum() const
     {
         return gl::Frustum(left(), right(), bottom(), top(), near(), far()).transform(transform());
-        //return gl::Frustum(getProjectionMatrix()).transform(transform());
+        //return gl::Frustum(projection_matrix()).transform(transform());
     }
     
     void OrthographicCamera::set_size(const gl::vec2 &the_sz)
@@ -58,7 +58,7 @@ namespace kinski { namespace gl{
         m_top = the_sz.y;
         m_near = 0.f;
         m_far = 1.f;
-        updateProjectionMatrix();
+        update_projection_matrix();
     }
     
     /****************** PerspectiveCamera *******************/
@@ -70,37 +70,37 @@ namespace kinski { namespace gl{
     m_fov(fov),
     m_aspect(ascpect)
     {
-        updateProjectionMatrix();
+        update_projection_matrix();
     }
     
-    void PerspectiveCamera::updateProjectionMatrix()
+    void PerspectiveCamera::update_projection_matrix()
     {
-        setProjectionMatrix(glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far));
+        set_projection_matrix(glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far));
     }
     
     gl::Frustum PerspectiveCamera::frustum() const
     {
-        return gl::Frustum(aspectRatio(), fov(), near(), far()).transform(transform());
+        return gl::Frustum(aspect(), fov(), near(), far()).transform(transform());
     }
     
-    void PerspectiveCamera::setFov(float theFov)
+    void PerspectiveCamera::set_fov(float theFov)
     {
         m_fov = theFov;
-        updateProjectionMatrix();
+        update_projection_matrix();
     }
     
-    void PerspectiveCamera::setAspectRatio(float theAspect)
+    void PerspectiveCamera::set_aspect(float theAspect)
     {
         if(std::isnan(theAspect)){ return; }
         m_aspect = theAspect;
-        updateProjectionMatrix();
+        update_projection_matrix();
     }
     
-    void PerspectiveCamera::setClippingPlanes(float near, float far)
+    void PerspectiveCamera::set_clipping(float near, float far)
     {
         m_near = near;
         m_far = far;
-        updateProjectionMatrix();
+        update_projection_matrix();
     }
     
 }}//namespace

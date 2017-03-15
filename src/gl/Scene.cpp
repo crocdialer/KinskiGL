@@ -89,7 +89,7 @@ namespace kinski { namespace gl {
         for (const auto &the_object : sv.get_objects())
         {
             gl::OBB boundingBox = the_object->obb();
-            //(the_object->boundingBox(), the_object->global_transform());
+            //(the_object->boundingbox(), the_object->global_transform());
 
             if (ray_intersection ray_hit = boundingBox.intersect(ray))
             {
