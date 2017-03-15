@@ -91,7 +91,7 @@ void TouchSample::key_press(const KeyEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::keyRelease(const KeyEvent &e)
+void TouchSample::key_release(const KeyEvent &e)
 {
     ViewerApp::key_release(e);
 }
@@ -112,7 +112,7 @@ void TouchSample::mouse_release(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::mouseMove(const MouseEvent &e)
+void TouchSample::mouse_move(const MouseEvent &e)
 {
     ViewerApp::mouse_move(e);
 }
@@ -154,14 +154,14 @@ void TouchSample::mouse_wheel(const MouseEvent &e)
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::fileDrop(const MouseEvent &e, const std::vector<std::string> &files)
+void TouchSample::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
     for(const string &f : files){ LOG_INFO << f; }
 }
 
 /////////////////////////////////////////////////////////////////
 
-void TouchSample::tearDown()
+void TouchSample::teardown()
 {
     LOG_PRINT << "ciao " << name();
 }
