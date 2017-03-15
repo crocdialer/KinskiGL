@@ -12,7 +12,7 @@ struct Lightsource
   vec4 diffuse;
   vec4 ambient;
   vec4 specular;
-  vec3 spotDirection;
+  vec3 direction;
   float spotCosCutoff;
   float spotExponent;
   float constantAttenuation;
@@ -38,7 +38,7 @@ out VertexData
   vec4 texCoord;
   vec3 eyeVec;
   vec3 light_position[8];
-  vec3 light_spot_direction[8];
+  vec3 light_direction[8];
 } vertex_out;
 
 void main()
@@ -55,7 +55,7 @@ void main()
   for(int i = 0; i < u_numLights; i++)
   {
     vertex_out.light_position[i] = tbnMatrix * u_lights[i].position;
-    vertex_out.light_spot_direction[i] = tbnMatrix * u_lights[i].spotDirection;
+    vertex_out.light_direction[i] = tbnMatrix * u_lights[i].direction;
   }
 
   gl_Position = u_modelViewProjectionMatrix * a_vertex;

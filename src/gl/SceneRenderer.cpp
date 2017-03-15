@@ -380,7 +380,7 @@ namespace kinski{ namespace gl{
             vec4 diffuse;
             vec4 ambient;
             vec4 specular;
-            vec3 spotDirection;
+            vec3 direction;
             float spotCosCutoff;
             float spotExponent;
             float constantAttenuation;
@@ -401,13 +401,13 @@ namespace kinski{ namespace gl{
             lightstruct_std140 buf;
             buf.type = (int)l.light->type();
             buf.position = l.transform[3].xyz();
+            buf.direction = glm::normalize(-vec3(l.transform[2].xyz()));
             buf.diffuse = l.light->diffuse();
             buf.ambient = l.light->ambient();
             buf.specular = l.light->specular();
             buf.constantAttenuation = l.light->attenuation().constant;
             buf.linearAttenuation = l.light->attenuation().linear;
             buf.quadraticAttenuation = l.light->attenuation().quadratic;
-            buf.spotDirection = glm::normalize(-vec3(l.transform[2].xyz()));
             buf.spotCosCutoff = cosf(glm::radians(l.light->spot_cutoff()));
             buf.spotExponent = l.light->spot_exponent();
             light_structs.push_back(buf);

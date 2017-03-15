@@ -333,7 +333,7 @@ namespace kinski { namespace gl {
         
         if(the_light->type() == gl::Light::DIRECTIONAL)
         {
-            float v = 100.f;
+            float v = 50.f;
             cam = gl::OrthographicCamera::create(-v, v, -v, v, 1.f, far_clip);
         }
         else

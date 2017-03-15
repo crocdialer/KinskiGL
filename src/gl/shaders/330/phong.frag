@@ -17,7 +17,7 @@ struct Lightsource
   vec4 diffuse;
   vec4 ambient;
   vec4 specular;
-  vec3 spotDirection;
+  vec3 direction;
   float spotCosCutoff;
   float spotExponent;
   float constantAttenuation;
@@ -35,7 +35,7 @@ vec3 projected_coords(in vec4 the_lightspace_pos)
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
            float shade_factor)
 {
-  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.position;
+  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : light.direction;
   vec3 L = normalize(lightDir);
   vec3 E = normalize(-eyeVec);
   vec3 R = reflect(-L, normal);
@@ -50,7 +50,7 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
 
     if(light.type > 1)
     {
-      float spotEffect = dot(normalize(light.spotDirection), -L);
+      float spotEffect = dot(normalize(light.direction), -L);
 
       if (spotEffect < light.spotCosCutoff)
       {

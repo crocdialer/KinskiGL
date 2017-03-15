@@ -80,33 +80,13 @@ namespace kinski
         else if(theProperty == m_position_x || theProperty == m_position_y ||
                 theProperty == m_position_z)
         {
-            if(active_light->type() == gl::Light::DIRECTIONAL)
-            {
-                glm::vec3 dir = -glm::vec3(m_position_x->value(),
-                                           m_position_y->value(),
-                                           m_position_z->value());
-                
-                if(glm::length2(dir) != 0)
-                {
-                    *m_direction = glm::normalize(-glm::vec3(m_position_x->value(),
-                                                             m_position_y->value(),
-                                                             m_position_z->value()));
-                }
-                else{ *m_direction = glm::normalize(glm::vec3(1));}
-            }
-            else
-            {
-                active_light->set_position(glm::vec3(m_position_x->value(),
-                                                    m_position_y->value(),
-                                                    m_position_z->value()));
-            }
+            active_light->set_position(glm::vec3(m_position_x->value(),
+                                                 m_position_y->value(),
+                                                 m_position_z->value()));
+
         }
         else if(theProperty == m_direction)
         {
-            if(active_light->type() == gl::Light::DIRECTIONAL)
-            {
-                active_light->set_position(m_direction->value());
-            }
             active_light->set_look_at(active_light->position() + m_direction->value());
         }
         else if(theProperty == m_diffuse)
