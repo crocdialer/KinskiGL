@@ -25,17 +25,17 @@ namespace kinski{ namespace media
 struct MediaControllerImpl
 {
     std::string m_src_path;
-    float m_rate = 1.f;
-    float m_volume = 1.f;
-    float m_fps = 0.f;
-    bool m_loaded = false;
-    bool m_has_video = false;
-    bool m_has_audio = false;
-    bool m_has_subtitle = false;
-    bool m_pause = false;
-    bool m_loop = false;
-    bool m_playing = false;
-    bool m_has_new_frame = false;
+    std::atomic<float> m_rate;
+    std::atomic<float> m_volume;
+    std::atomic<float> m_fps;
+    std::atomic<bool> m_loaded;
+    std::atomic<bool> m_has_video;
+    std::atomic<bool> m_has_audio;
+    std::atomic<bool> m_has_subtitle;
+    std::atomic<bool> m_pause;
+    std::atomic<bool> m_loop;
+    std::atomic<bool> m_playing;
+    std::atomic<bool> m_has_new_frame;
 
     // Memory map that holds the incoming frame.
     GstMapInfo memoryMapInfo;
@@ -47,42 +47,72 @@ struct MediaControllerImpl
 //    GstPlayer* player = nullptr;
 //    GstGLContext* context = nullptr;
 
-    GstElement* glupload = nullptr;
-    GstElement* glcolorconvert = nullptr;
-    GstElement* rawCapsFilter = nullptr;
+    GstElement* m_gl_upload = nullptr;
+    GstElement* m_gl_color_convert = nullptr;
+    GstElement* m_raw_caps_filter = nullptr;
 
-    // Needed for message activation since we are not using signals.
-    GMainLoop* mGMainLoop;
+    // needed for message activation since we are not using signals.
+    GMainLoop* m_gmainloop = nullptr;
 
-    // Delivers the messages.
-    GstBus* mGstBus;
+    // delivers the messages
+    GstBus* m_gst_bus = nullptr;
 
     // Save the id of the bus for releasing when not needed.
-    int mBusId;
+    int m_bus_id;
 
     // runs GMainLoop.
-    std::thread mGMainLoopThread;
+    std::thread m_thread;
 
     // protect appsink callbacks
-    std::mutex mMutex;
-
-    // Data that describe the current state of the pipeline.
-//    GstData mGstData;
-
-    bool mUsingCustomPipeline;
+    std::mutex m_mutex;
 
     MediaController::MediaCallback m_on_load_cb, m_movie_ended_cb;
 
     MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
     MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
 
-    MediaControllerImpl(){}
+    MediaControllerImpl():
+    m_rate(1.f),
+    m_volume(1.f),
+    m_fps(0.f),
+    m_loaded(false),
+    m_has_video(false),
+    m_has_audio(false),
+    m_has_subtitle(false),
+    m_pause(false),
+    m_loop(false),
+    m_playing(false),
+    m_has_new_frame(false)
+    {
+
+    }
 
     ~MediaControllerImpl()
     {
         m_playing = false;
     };
+
+    static void on_gst_eos(GstAppSink* sink, gpointer userData);
+    static GstFlowReturn on_gst_sample(GstAppSink* sink, gpointer userData);
+    static GstFlowReturn on_gst_preroll(GstAppSink* sink, gpointer userData);
 };
+
+///////////////////////////////////////////////////////////////////////////////
+
+void MediaControllerImpl::on_gst_eos(GstAppSink *sink, gpointer userData)
+{
+
+}
+
+GstFlowReturn MediaControllerImpl::on_gst_sample(GstAppSink *sink, gpointer userData)
+{
+    return GST_FLOW_CUSTOM_ERROR;
+}
+
+GstFlowReturn MediaControllerImpl::on_gst_preroll(GstAppSink *sink, gpointer userData)
+{
+    return GST_FLOW_CUSTOM_ERROR;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -312,7 +342,8 @@ bool MediaController::loop() const
 
 float MediaController::rate() const
 {
-    return is_loaded() ? m_impl->m_rate : 1.f;
+    if(is_loaded()){ return m_impl->m_rate; }
+    else{ return 1.f; }
 }
 
 /////////////////////////////////////////////////////////////////
