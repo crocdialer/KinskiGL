@@ -12,7 +12,7 @@ namespace kinski{ namespace media{
 
         ~Impl()
         {
-            
+
         };
     };
 

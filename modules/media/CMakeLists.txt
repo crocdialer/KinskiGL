@@ -12,11 +12,6 @@ elseif(KINSKI_RASPI)
   # Raspian specific implementation
   FILE(GLOB MODULE_SOURCES rpi/*.c* rpi/utils/*.c* rpi/linux/*.c*)
 
-  #find_library(AVFormat NAMES avformat)
-  #find_library(AVCodec NAMES avcodec)
-  #find_library(AVUtil NAMES avutil)
-  #find_library(SWResample NAMES swresample)
-
   set(MODULE_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/include")
   set(AVFormat "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavformat.a")
   set(AVCodec "${CMAKE_SOURCE_DIR}/blocks/ffmpeg/lib_rpi/libavcodec.a")
@@ -29,11 +24,13 @@ elseif(KINSKI_RASPI)
   set(MODULE_LIBRARIES openmaxil pthread ${ZLIB_LIBRARIES} ${M_LIB} ${AVFormat} ${AVCodec} ${AVUtil} ${SWResample} vcos vchiq_arm vcilcs PARENT_SCOPE)
 elseif(KINSKI_LINUX)
   find_package(GStreamer REQUIRED)
+  pkg_search_module(GLIB REQUIRED glib-2.0)
   FILE(GLOB MODULE_SOURCES gst/*.c*)
   set(MODULE_LIBRARIES ${GSTREAMER_LIBRARIES})
+  set(MODULE_INCLUDE_DIRS ${GSTREAMER_INCLUDE_DIRS} ${GLIB_INCLUDE_DIRS} "/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include")
 endif()
 
-set(MODULE_INCLUDES "" PARENT_SCOPE)
+#set(MODULE_INCLUDES "" PARENT_SCOPE)
 
 # common header files
 FILE(GLOB MODULE_HEADERS MovieController.hpp CameraController.hpp)

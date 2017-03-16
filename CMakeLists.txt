@@ -13,11 +13,11 @@ OPTION (BUILD_TESTS "Build Tests" ON)
 if(USE_CXX11)
     add_definitions(-DKINSKI_CPP11)
     if(APPLE)
-    SET (CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
+    SET (CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libc++")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     ELSE( APPLE )
-    SET (CMAKE_CXX_FLAGS "-std=c++11 -pthread -Wall")
+    SET (CMAKE_CXX_FLAGS "-std=c++14 -pthread -Wall")
     endif(APPLE)
 endif(USE_CXX11)
 
@@ -40,15 +40,16 @@ set(LIBS ${LIBS} ${Boost_LIBRARIES})
 
 if(UNIX AND NOT APPLE)
     set(KINSKI_LINUX TRUE)
+
+    # check if we are on raspberry pi
+    find_file(BCMHOST bcm_host.h PATHS "/opt/vc/include/")
+    if(NOT BCMHOST)
+    else()
+      set(KINSKI_RASPI TRUE)
+      add_definitions(-DKINSKI_RASPI)
+    endif()
 endif()
 
-# check if we are on raspberry pi
-find_file(BCMHOST bcm_host.h PATHS "/opt/vc/include/")
-if(NOT BCMHOST)
-else()
-  set(KINSKI_RASPI TRUE)
-  add_definitions(-DKINSKI_RASPI)
-endif()
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING

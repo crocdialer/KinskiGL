@@ -1,316 +1,364 @@
+
+#define GST_USE_UNSTABLE_API
+
+#include <gst/gst.h>
+#include <gst/app/gstappsink.h>
+#include <gst/video/video.h>
+
+#include <atomic>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+
+
+//#if GST_CHECK_VERSION(1, 4, 5)
+#include <gst/gl/gstglconfig.h>
+//#endif
+
 #include "core/file_functions.hpp"
 #include "gl/Texture.hpp"
-
 #include "MediaController.hpp"
 
-// when we repeatedly seek, rather than play continuously
-#define TRICKPLAY(speed) (speed < 0 || speed > 4 * DVD_PLAYSPEED_NORMAL)
 
 namespace kinski{ namespace media
 {
-    struct MediaControllerImpl
+struct MediaControllerImpl
+{
+    std::string m_src_path;
+    float m_rate = 1.f;
+    float m_volume = 1.f;
+    float m_fps = 0.f;
+    bool m_loaded = false;
+    bool m_has_video = false;
+    bool m_has_audio = false;
+    bool m_has_subtitle = false;
+    bool m_pause = false;
+    bool m_loop = false;
+    bool m_playing = false;
+    bool m_has_new_frame = false;
+
+    // Memory map that holds the incoming frame.
+    GstMapInfo memoryMapInfo;
+    GstVideoInfo videoInfo;
+    GstElement* pipeline = nullptr;
+    GstElement* appSink = nullptr;
+    GstElement* videoBin = nullptr;
+
+//    GstPlayer* player = nullptr;
+//    GstGLContext* context = nullptr;
+
+    GstElement* glupload = nullptr;
+    GstElement* glcolorconvert = nullptr;
+    GstElement* rawCapsFilter = nullptr;
+
+    // Needed for message activation since we are not using signals.
+    GMainLoop* mGMainLoop;
+
+    // Delivers the messages.
+    GstBus* mGstBus;
+
+    // Save the id of the bus for releasing when not needed.
+    int mBusId;
+
+    // runs GMainLoop.
+    std::thread mGMainLoopThread;
+
+    // protect appsink callbacks
+    std::mutex mMutex;
+
+    // Data that describe the current state of the pipeline.
+//    GstData mGstData;
+
+    bool mUsingCustomPipeline;
+
+    MediaController::MediaCallback m_on_load_cb, m_movie_ended_cb;
+
+    MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
+    MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
+
+    MediaControllerImpl(){}
+
+    ~MediaControllerImpl()
     {
-        std::string m_src_path;
-        float m_rate = 1.f;
-        float m_volume = 1.f;
-        float m_fps = 0.f;
-        bool m_loaded = false;
-        bool m_has_video = false;
-        bool m_has_audio = false;
-        bool m_has_subtitle = false;
-        bool m_pause = false;
-        bool m_loop = false;
-        bool m_playing = false;
-        bool m_has_new_frame = false;
-        MediaController::MediaCallback m_on_load_cb, m_movie_ended_cb;
-
-        MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
-        MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
-
-        MediaControllerImpl(){}
-
-        ~MediaControllerImpl()
-        {
-            m_playing = false;
-        };
+        m_playing = false;
     };
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    MediaControllerPtr MediaController::create()
-    {
-        return MediaControllerPtr(new MediaController());
-    }
+MediaControllerPtr MediaController::create()
+{
+    return MediaControllerPtr(new MediaController());
+}
 
-    MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
-                                               bool loop, RenderTarget the_render_target,
-                                               AudioTarget the_audio_target)
-    {
-        auto ptr = MediaControllerPtr(new MediaController());
-        ptr->load(filePath, autoplay, loop, the_render_target, the_audio_target);
-        return ptr;
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    MediaController::MediaController():
-            m_impl(new MediaControllerImpl)
-    {
-
-    }
-
-    MediaController::~MediaController(){}
+MediaControllerPtr MediaController::create(const std::string &filePath, bool autoplay,
+                                           bool loop, RenderTarget the_render_target,
+                                           AudioTarget the_audio_target)
+{
+    auto ptr = MediaControllerPtr(new MediaController());
+    ptr->load(filePath, autoplay, loop, the_render_target, the_audio_target);
+    return ptr;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
-                               RenderTarget the_render_target, AudioTarget the_audio_target)
+MediaController::MediaController():
+        m_impl(new MediaControllerImpl)
+{
+
+}
+
+MediaController::~MediaController(){}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
+                           RenderTarget the_render_target, AudioTarget the_audio_target)
+{
+    std::string found_path;
+    if(fs::is_url(filePath)){ found_path = filePath; }
+    else
     {
-        std::string found_path;
-        if(fs::is_url(filePath)){ found_path = filePath; }
-        else
+        try{ found_path = fs::search_file(filePath); }
+        catch(fs::FileNotFoundException &e)
         {
-            try{ found_path = fs::search_file(filePath); }
-            catch(fs::FileNotFoundException &e)
-            {
-                LOG_ERROR << e.what();
-                return;
-            }
+            LOG_ERROR << e.what();
+            return;
         }
-        MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
-        MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
-        m_impl.reset(new MediaControllerImpl());
-        m_impl->m_src_path = found_path;
-//            m_impl->m_movie_controller = shared_from_this();
-        m_impl->m_on_load_cb = on_load;
-        m_impl->m_movie_ended_cb = on_end;
-        m_impl->m_render_target = the_render_target;
-        m_impl->m_audio_target = the_audio_target;
-
-//            m_impl->m_loaded = true;
-
-        // fire onload callback
-        if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); };
-
-        // autoplay
-        if(autoplay){ play(); }
     }
+    MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
+    MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
+    m_impl.reset(new MediaControllerImpl());
+    m_impl->m_src_path = found_path;
+    m_impl->m_on_load_cb = on_load;
+    m_impl->m_movie_ended_cb = on_end;
+    m_impl->m_render_target = the_render_target;
+    m_impl->m_audio_target = the_audio_target;
+
+    m_impl->m_loaded = true;
+
+    // fire onload callback
+    if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); };
+
+    // autoplay
+    if(autoplay){ play(); }
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::play()
-    {
+void MediaController::play()
+{
 
-    }
-
-/////////////////////////////////////////////////////////////////
-
-    bool MediaController::is_loaded() const
-    {
-        return m_impl && m_impl->m_loaded;
-    }
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::unload()
-    {
-        m_impl.reset();
-    }
+bool MediaController::is_loaded() const
+{
+    return m_impl && m_impl->m_loaded;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    bool MediaController::has_video() const
-    {
-        return m_impl && m_impl->m_has_video;
-    }
+void MediaController::unload()
+{
+    m_impl.reset();
+}
 
 /////////////////////////////////////////////////////////////////
 
-    bool MediaController::has_audio() const
-    {
-        return m_impl && m_impl->m_has_audio;
-    }
+bool MediaController::has_video() const
+{
+    return m_impl && m_impl->m_has_video;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::pause()
-    {
-        if(m_impl && m_impl->m_playing){ m_impl->m_pause = true; }
-    }
+bool MediaController::has_audio() const
+{
+    return m_impl && m_impl->m_has_audio;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    bool MediaController::is_playing() const
-    {
-        return false;
-    }
+void MediaController::pause()
+{
+    if(m_impl && m_impl->m_playing){ m_impl->m_pause = true; }
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::restart()
-    {
-
-    }
-
-/////////////////////////////////////////////////////////////////
-
-    float MediaController::volume() const
-    {
-        return 0.f;
-    }
+bool MediaController::is_playing() const
+{
+    return false;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_volume(float newVolume)
-    {
+void MediaController::restart()
+{
 
-    }
-
-/////////////////////////////////////////////////////////////////
-
-    bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
-    {
-        return false;
-    }
+}
 
 /////////////////////////////////////////////////////////////////
 
-    bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
-    {
-        return false;
-    }
+float MediaController::volume() const
+{
+    return 0.f;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
-    {
-        return false;
-    }
+void MediaController::set_volume(float newVolume)
+{
+
+}
 
 /////////////////////////////////////////////////////////////////
 
-    double MediaController::duration() const
-    {
-        return 0.0;
-    }
+bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
+{
+    return false;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    double MediaController::current_time() const
-    {
-        return 0.0;
-    }
+bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
+{
+    return false;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    double MediaController::fps() const
-    {
-        double fps = 0.0;
-        return fps;
-    }
+bool MediaController::copy_frames_offline(gl::Texture &tex, bool compress)
+{
+    return false;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::seek_to_time(double value)
-    {
-
-    }
-
-/////////////////////////////////////////////////////////////////
-
-    void MediaController::seek_to_time(const std::string &the_time_str)
-    {
-        double secs = 0.0;
-        auto splits = split(the_time_str, ':');
-
-        switch(splits.size())
-        {
-            case 3:
-                secs = kinski::string_to<float>(splits[2]) +
-                       60.f * kinski::string_to<float>(splits[1]) +
-                       3600.f * kinski::string_to<float>(splits[0]) ;
-                break;
-
-            case 2:
-                secs = kinski::string_to<float>(splits[1]) +
-                       60.f * kinski::string_to<float>(splits[0]);
-                break;
-
-            case 1:
-                secs = kinski::string_to<float>(splits[0]);
-                break;
-
-            default:
-                break;
-        }
-        seek_to_time(secs);
-    }
+double MediaController::duration() const
+{
+    return 0.0;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_loop(bool b)
-    {
-
-    }
-
-/////////////////////////////////////////////////////////////////
-
-    bool MediaController::loop() const
-    {
-        return false;
-    }
+double MediaController::current_time() const
+{
+    return 0.0;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    float MediaController::rate() const
-    {
-        return is_loaded() ? m_impl->m_rate : 1.f;
-    }
+double MediaController::fps() const
+{
+    double fps = 0.0;
+    return fps;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_rate(float r)
-    {
+void MediaController::seek_to_time(double value)
+{
 
-    }
-
-/////////////////////////////////////////////////////////////////
-
-    const std::string& MediaController::path() const
-    {
-        static std::string ret;
-        return is_loaded() ? m_impl->m_src_path : ret;
-    }
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_on_load_callback(MediaCallback c)
+void MediaController::seek_to_time(const std::string &the_time_str)
+{
+    double secs = 0.0;
+    auto splits = split(the_time_str, ':');
+
+    switch(splits.size())
     {
-        if(!m_impl){ return; }
-        m_impl->m_on_load_cb = c;
+        case 3:
+            secs = kinski::string_to<float>(splits[2]) +
+                   60.f * kinski::string_to<float>(splits[1]) +
+                   3600.f * kinski::string_to<float>(splits[0]) ;
+            break;
+
+        case 2:
+            secs = kinski::string_to<float>(splits[1]) +
+                   60.f * kinski::string_to<float>(splits[0]);
+            break;
+
+        case 1:
+            secs = kinski::string_to<float>(splits[0]);
+            break;
+
+        default:
+            break;
     }
+    seek_to_time(secs);
+}
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_media_ended_callback(MediaCallback c)
-    {
-        if(!m_impl){ return; }
-        m_impl->m_movie_ended_cb = c;
-    }
+void MediaController::set_loop(bool b)
+{
+
+}
 
 /////////////////////////////////////////////////////////////////
 
-    MediaController::RenderTarget MediaController::render_target() const
-    {
-        return RenderTarget::TEXTURE;
-    }
+bool MediaController::loop() const
+{
+    return false;
+}
 
 /////////////////////////////////////////////////////////////////
 
-    MediaController::AudioTarget MediaController::audio_target() const
-    {
-        return AudioTarget::AUTO;
-    }
+float MediaController::rate() const
+{
+    return is_loaded() ? m_impl->m_rate : 1.f;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaController::set_rate(float r)
+{
+
+}
+
+/////////////////////////////////////////////////////////////////
+
+const std::string& MediaController::path() const
+{
+    static std::string ret;
+    return is_loaded() ? m_impl->m_src_path : ret;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaController::set_on_load_callback(MediaCallback c)
+{
+    if(!m_impl){ return; }
+    m_impl->m_on_load_cb = c;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void MediaController::set_media_ended_callback(MediaCallback c)
+{
+    if(!m_impl){ return; }
+    m_impl->m_movie_ended_cb = c;
+}
+
+/////////////////////////////////////////////////////////////////
+
+MediaController::RenderTarget MediaController::render_target() const
+{
+    return RenderTarget::TEXTURE;
+}
+
+/////////////////////////////////////////////////////////////////
+
+MediaController::AudioTarget MediaController::audio_target() const
+{
+    return AudioTarget::AUTO;
+}
 
 /////////////////////////////////////////////////////////////////
 }}// namespaces
