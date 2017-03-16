@@ -27,12 +27,16 @@ elseif(KINSKI_RASPI)
   find_library(M_LIB NAMES m)
 
   set(MODULE_LIBRARIES openmaxil pthread ${ZLIB_LIBRARIES} ${M_LIB} ${AVFormat} ${AVCodec} ${AVUtil} ${SWResample} vcos vchiq_arm vcilcs PARENT_SCOPE)
+elseif(KINSKI_LINUX)
+  find_package(GStreamer REQUIRED)
+  FILE(GLOB MODULE_SOURCES gst/*.c*)
+  set(MODULE_LIBRARIES ${GSTREAMER_LIBRARIES})
 endif()
 
 set(MODULE_INCLUDES "" PARENT_SCOPE)
 
 # common header files
-FILE(GLOB MODULE_HEADERS MovieController.h CameraController.h)
+FILE(GLOB MODULE_HEADERS MovieController.hpp CameraController.hpp)
 
 # forward variables to parent scope
 set(MODULE_INCLUDE_DIRS ${MODULE_INCLUDE_DIRS} PARENT_SCOPE)

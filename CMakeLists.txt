@@ -38,11 +38,15 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 set(LIBS ${LIBS} ${Boost_LIBRARIES})
 #####
 
+if(UNIX AND NOT APPLE)
+    set(KINSKI_LINUX TRUE)
+endif()
+
 # check if we are on raspberry pi
 find_file(BCMHOST bcm_host.h PATHS "/opt/vc/include/")
 if(NOT BCMHOST)
 else()
-  set(KINSKI_RASPI 1)
+  set(KINSKI_RASPI TRUE)
   add_definitions(-DKINSKI_RASPI)
 endif()
 
