@@ -1,6 +1,3 @@
-
-#define GST_USE_UNSTABLE_API
-
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
 #include <gst/video/video.h>
@@ -13,7 +10,27 @@
 
 //#if GST_CHECK_VERSION(1, 4, 5)
 #include <gst/gl/gstglconfig.h>
-//#endif
+
+#if defined(KINSKI_GLES)
+#undef GST_GL_HAVE_OPENGL
+//#undef GST_GL_HAVE_GLES2
+#undef GST_GL_HAVE_PLATFORM_GLX
+#else // Desktop
+#undef GST_GL_HAVE_GLES2
+#undef GST_GL_HAVE_PLATFORM_EGL
+#undef GST_GL_HAVE_GLEGLIMAGEOES
+#endif
+
+#define GST_USE_UNSTABLE_API
+#include <gst/gl/gstglcontext.h>
+#include <gst/gl/gstgldisplay.h>
+#include <gst/gl/x11/gstgldisplay_x11.h>
+//#include <gst/gl/egl/gstgldisplay_egl.h>
+
+#include "GLFW/glfw3.h"
+#define GLFW_EXPOSE_NATIVE_X11
+#define GLFW_EXPOSE_NATIVE_GLX
+#include "GLFW/glfw3native.h"
 
 #include "core/file_functions.hpp"
 #include "gl/Texture.hpp"
@@ -22,6 +39,12 @@
 
 namespace kinski{ namespace media
 {
+
+namespace
+{
+    std::weak_ptr<GstGLDisplay> g_gst_gl_display;
+};
+
 struct MediaControllerImpl
 {
     std::string m_src_path;
@@ -38,27 +61,27 @@ struct MediaControllerImpl
     std::atomic<bool> m_has_new_frame;
 
     // Memory map that holds the incoming frame.
-    GstMapInfo memoryMapInfo;
-    GstVideoInfo videoInfo;
-    GstElement* pipeline = nullptr;
-    GstElement* appSink = nullptr;
-    GstElement* videoBin = nullptr;
-
-//    GstPlayer* player = nullptr;
-//    GstGLContext* context = nullptr;
+    GstMapInfo m_memory_map_info;
+    GstVideoInfo m_video_info;
+    GstElement* m_pipeline = nullptr;
+    GstElement* m_app_sink = nullptr;
+    GstElement* m_video_bin = nullptr;
+    GstGLContext* m_gl_context = nullptr;
 
     GstElement* m_gl_upload = nullptr;
     GstElement* m_gl_color_convert = nullptr;
     GstElement* m_raw_caps_filter = nullptr;
 
     // needed for message activation since we are not using signals.
-    GMainLoop* m_gmainloop = nullptr;
+    GMainLoop* m_g_main_loop = nullptr;
 
     // delivers the messages
     GstBus* m_gst_bus = nullptr;
 
     // Save the id of the bus for releasing when not needed.
     int m_bus_id;
+
+    std::shared_ptr<GstGLDisplay> m_gst_gl_display;
 
     // runs GMainLoop.
     std::thread m_thread;
@@ -84,13 +107,99 @@ struct MediaControllerImpl
     m_playing(false),
     m_has_new_frame(false)
     {
+        auto success = init_gstreamer();
 
+        if(success)
+        {
+            m_g_main_loop = g_main_loop_new(nullptr, false);
+            m_thread = std::thread([this](){ g_main_loop_run(m_g_main_loop); });
+
+            auto display = g_gst_gl_display.lock();
+
+            if(display){ m_gst_gl_display = display; }
+            else
+            {
+                m_gst_gl_display =
+                std::shared_ptr<GstGLDisplay>((GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display()),
+                                              &gst_object_unref);
+                g_gst_gl_display = m_gst_gl_display;
+            }
+        }
     }
 
     ~MediaControllerImpl()
     {
         m_playing = false;
+
+//        if(mGstData.pipeline != nullptr)
+//        {
+//
+//            resetPipeline();
+//            // Reset the bus since the associated pipeline got resetted.
+//            resetBus();
+//        }
+
+//        resetVideoBuffers();
+
+        if(g_main_loop_is_running(m_g_main_loop))
+        {
+            g_main_loop_quit(m_g_main_loop);
+        }
+        g_main_loop_unref(m_g_main_loop);
+
+        if(m_thread.joinable())
+        {
+            try{ m_thread.join(); }
+            catch(std::exception &e){ LOG_ERROR << e.what(); }
+        }
     };
+
+    bool init_gstreamer()
+    {
+        if(!gst_is_initialized())
+        {
+            guint major;
+            guint minor;
+            guint micro;
+            guint nano;
+            gst_version(&major, &minor, &micro, &nano);
+            GError* err;
+
+            if(!gst_init_check(nullptr, nullptr, &err))
+            {
+                if(err->message){ LOG_ERROR << "FAILED to initialize GStreamer: " << err->message; }
+                else{ LOG_ERROR << "FAILED to initialize GStreamer due to unknown error ..."; }
+                return false;
+            }
+            else
+            {
+                char buf[128];
+                sprintf(buf, "initialized GStreamer version %i.%i.%i.%i", major, minor, micro, nano);
+                LOG_INFO << buf;
+                return true;
+            }
+        }
+        return true;
+    }
+
+    void reset_pipeline()
+    {
+        if(!m_pipeline ){ return; }
+
+        gst_element_set_state(m_pipeline, GST_STATE_NULL);
+        gst_element_get_state(m_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
+        gst_object_unref(GST_OBJECT(m_pipeline));
+        m_pipeline = nullptr;
+        m_video_bin = nullptr;
+        gst_object_unref(m_gl_context);
+        m_gl_context = nullptr;
+
+//        gst_object_unref(sGstGLDisplay);
+
+        // Pipeline will unref and destroy its children..
+        m_gl_upload = nullptr;
+        m_gl_color_convert = nullptr;
+    }
 
     static void on_gst_eos(GstAppSink* sink, gpointer userData);
     static GstFlowReturn on_gst_sample(GstAppSink* sink, gpointer userData);
