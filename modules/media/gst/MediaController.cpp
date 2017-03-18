@@ -52,15 +52,15 @@ struct MediaControllerImpl
     std::atomic<float> m_rate;
     std::atomic<float> m_volume;
     std::atomic<float> m_fps;
-    std::atomic<bool> m_loaded;
-    std::atomic<bool> m_has_video;
-    std::atomic<bool> m_has_audio;
+    std::atomic<uint32_t> m_num_video_channels;
+    std::atomic<uint32_t> m_num_audio_channels;
     std::atomic<bool> m_has_subtitle;
     std::atomic<bool> m_prerolled;
     std::atomic<bool> m_live;
     std::atomic<bool> m_buffering;
     std::atomic<bool> m_seeking;
     std::atomic<bool> m_seek_requested;
+    std::atomic<int64_t> m_seek_requested_nanos;
     std::atomic<bool> m_stream;
     std::atomic<bool> m_done;
     std::atomic<bool> m_pause;
@@ -102,6 +102,7 @@ struct MediaControllerImpl
     // protect appsink callbacks
     std::mutex m_mutex;
 
+    std::weak_ptr<MediaController> m_media_controller;
     MediaController::callback_t m_on_load_cb, m_movie_ended_cb;
 
     MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
@@ -111,15 +112,15 @@ struct MediaControllerImpl
     m_rate(1.f),
     m_volume(1.f),
     m_fps(0.f),
-    m_loaded(false),
-    m_has_video(false),
-    m_has_audio(false),
+    m_num_video_channels(0),
+    m_num_audio_channels(0),
     m_has_subtitle(false),
     m_prerolled(false),
     m_live(false),
     m_buffering(false),
     m_seeking(false),
     m_seek_requested(false),
+    m_seek_requested_nanos(0),
     m_stream(false),
     m_pause(false),
     m_loop(false),
@@ -321,20 +322,26 @@ struct MediaControllerImpl
                 break;
 
             case GST_STATE_READY:
-//                prepareForNewVideo();
                 break;
 
             case GST_STATE_PAUSED:
+            {
+                gint num_audio_channels = 0, num_video_channels = 0;
+                g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
+                m_num_audio_channels = num_audio_channels;
+                g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
+                m_num_video_channels = num_video_channels;
+
+                // fire onload callback
+                if (!m_prerolled && m_on_load_cb) { m_on_load_cb(m_media_controller.lock()); };
+
                 m_prerolled = true;
                 m_pause = true;
-                m_loaded = true;
-//                isPlayable = true;
                 break;
-
+            }
             case GST_STATE_PLAYING:
                 m_done = false;
                 m_pause = false;
-//                isPlayable      = true;
                 break;
 
             default: break;
@@ -407,6 +414,45 @@ struct MediaControllerImpl
         gst_object_unref(m_gst_bus);
     }
 
+    void send_seek_event(gint64 the_position_nanos, bool force_seek = false)
+    {
+        GstState current, pending;
+        GstStateChangeReturn state_change = gst_element_get_state(m_pipeline, &current, &pending, 0);
+
+        if(!force_seek && (state_change == GST_STATE_CHANGE_ASYNC || m_buffering))
+        {
+            m_seek_requested = true;
+            m_seek_requested_nanos = the_position_nanos;
+            return;
+        }
+
+        m_seeking = true;
+        m_done = false;
+
+        GstEvent* seek_event;
+        GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
+
+        if(m_rate > 0.0)
+        {
+            seek_event = gst_event_new_seek(m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, the_position_nanos,
+                                            GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
+        }
+        else
+        {
+            seek_event = gst_event_new_seek(m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, 0,
+                                            GST_SEEK_TYPE_SET, the_position_nanos);
+        }
+        if(!gst_element_send_event(m_pipeline, seek_event)){ LOG_WARNING << "seek failed"; }
+    }
+
+    gint64 current_time_nanos()
+    {
+        gint64 position = 0;
+
+        if(m_prerolled){ gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position); }
+        return position;
+    }
+
     void process_sample(GstSample* sample)
     {
         m_prerolled = true;
@@ -424,14 +470,6 @@ struct MediaControllerImpl
             if(gst_video_info_from_caps(&m_video_info, currentCaps))
             {
                 m_fps = (float)m_video_info.fps_n / (float)m_video_info.fps_d;
-
-//                mGstData.width              = videoInfo.width;
-//                mGstData.height             = videoInfo.height;
-//                mGstData.videoFormat        = videoInfo.finfo->format;
-//                mGstData.frameRate          = (float)videoInfo.fps_n / (float)videoInfo.fps_d;
-//                mGstData.pixelAspectRatio   = (float)videoInfo.par_n / (float)videoInfo.par_d ;
-//                mGstData.fpsNom             = videoInfo.fps_n;
-//                mGstData.fpsDenom           = videoInfo.fps_d;
             }
             /// reset the new video flag
             m_video_has_changed = false;
@@ -439,8 +477,6 @@ struct MediaControllerImpl
 
         gst_sample_unref(sample);
         m_has_new_frame = true;
-
-
 //        {
 //            std::lock_guard<std::mutex> guard(m_mutex);
 //            GstBuffer* new_buffer = gst_sample_get_buffer(sample);
@@ -629,12 +665,10 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                             gst_element_state_get_name(pending));
                     LOG_DEBUG << buf;
                 }
-
                 self->update_state(current);
 
                 if(self->m_target_state != self->m_current_state && pending == GST_STATE_VOID_PENDING)
                 {
-                    //TODO: missing behaviour
                     if(self->m_target_state == GST_STATE_PAUSED){ self->set_pipeline_state(GST_STATE_PAUSED); }
                     else if(self->m_target_state == GST_STATE_PLAYING){ self->set_pipeline_state(GST_STATE_PLAYING); }
                 }
@@ -651,21 +685,24 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                     {
                         if(self->m_seek_requested)
                         {
-                            //TODO: missing behaviour
-//                                data.position = data.requestedSeekTime * GST_SECOND;
-//                                if( data.player ) data.player->seekToTime( data.requestedSeekTime, true );
+                            self->send_seek_event(self->m_seek_requested_nanos, true);
                             self->m_seek_requested = false;
                         }
                         else{ self->m_seeking = false; }
                     }
+                    break;
                 }
-                default: break;
+
+                default:
+                    break;
             }
             break;
         }
 
         case GST_MESSAGE_EOS:
         {
+            auto mc = self->m_media_controller.lock();
+
             if(self->m_loop)
             {
                 if( /*data.palindrome &&*/false && !self->m_stream && !self->m_live)
@@ -676,23 +713,22 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                 }
                 else
                 {
-                    // If playing back on reverse start the loop from the
+                    // if playing back on reverse start the loop from the
                     // end of the file
                     if(self->m_rate < 0)
                     {
-                        //TODO: missing behaviour
-//                            if( data.player ) data.player->seekToTime( data.player->getDurationSeconds() );
+                        if(mc) mc->seek_to_time(mc->duration());
                     }
                     else
                     {
-                        //TODO: missing behaviour
-                        // otherwise restart from beginning.
-//                            if( data.player ) data.player->seekToTime( 0 );
+                        self->send_seek_event(0);
                     }
                 }
             }
-//                data.videoHasChanged = false;
             self->m_done = true;
+
+            // fire media ended callback, if any
+            if(mc && self->m_movie_ended_cb){ self->m_movie_ended_cb(mc); }
             break;
         }
 
@@ -766,6 +802,8 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     callback_t on_end = m_impl ? m_impl->m_movie_ended_cb : callback_t();
     m_impl.reset(new MediaControllerImpl());
     m_impl->m_src_path = found_path;
+    m_impl->m_loop = loop;
+    m_impl->m_media_controller = shared_from_this();
     m_impl->m_on_load_cb = on_load;
     m_impl->m_movie_ended_cb = on_end;
     m_impl->m_render_target = the_render_target;
@@ -786,11 +824,6 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     // preroll
     m_impl->set_pipeline_state(GST_STATE_PAUSED);
 
-    m_impl->m_loaded = true;
-
-    // fire onload callback
-    if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); };
-
     // autoplay
     if(autoplay){ play(); }
 }
@@ -806,7 +839,7 @@ void MediaController::play()
 
 bool MediaController::is_loaded() const
 {
-    return m_impl && m_impl->m_loaded;
+    return m_impl && m_impl->m_prerolled;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -820,14 +853,14 @@ void MediaController::unload()
 
 bool MediaController::has_video() const
 {
-    return m_impl && m_impl->m_has_video;
+    return m_impl && m_impl->m_num_video_channels;
 }
 
 /////////////////////////////////////////////////////////////////
 
 bool MediaController::has_audio() const
 {
-    return m_impl && m_impl->m_has_audio;
+    return m_impl && m_impl->m_num_audio_channels;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -841,6 +874,12 @@ void MediaController::pause()
 
 bool MediaController::is_playing() const
 {
+    if(m_impl && m_impl->m_pipeline)
+    {
+        GstState current, pending;
+        gst_element_get_state(m_impl->m_pipeline, &current, &pending, 0);
+        return current == GST_STATE_PLAYING;
+    }
     return false;
 }
 
@@ -856,12 +895,7 @@ void MediaController::restart()
 
 float MediaController::volume() const
 {
-    if(m_impl && m_impl->m_pipeline)
-    {
-        float ret = 0.f;
-        g_object_get(G_OBJECT(m_impl->m_pipeline), "volume", &ret, nullptr);
-        return ret;
-    }
+    if(m_impl){ return m_impl->m_volume; }
     return 0.f;
 }
 
@@ -871,6 +905,8 @@ void MediaController::set_volume(float newVolume)
 {
     if(m_impl && m_impl->m_pipeline)
     {
+        newVolume = clamp(newVolume, 0.f, 1.f);
+        m_impl->m_volume = newVolume;
         g_object_set(G_OBJECT(m_impl->m_pipeline), "volume", (gdouble)newVolume, nullptr);
     }
 }
@@ -892,7 +928,6 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 
         if(gst_is_gl_memory(mem))
         {
-            std::lock_guard<std::mutex> guard(m_impl->m_mutex);
             GstGLMemory *gl_mem = (GstGLMemory*)(mem);
 
             GLint id = gl_mem->tex_id;
@@ -902,6 +937,7 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 #endif
             tex = gl::Texture(target, id, m_impl->m_video_info.width, m_impl->m_video_info.height, true);
             tex.set_flipped(true);
+            std::lock_guard<std::mutex> guard(m_impl->m_mutex);
             std::swap(m_impl->m_new_buffer, m_impl->m_current_buffer);
         }
         m_impl->m_has_new_frame = false;
@@ -934,11 +970,9 @@ double MediaController::duration() const
 
 double MediaController::current_time() const
 {
-    if(m_impl && m_impl->m_prerolled)
+    if(m_impl)
     {
-        gint64 position = 0;
-        gst_element_query_position(m_impl->m_pipeline, GST_FORMAT_TIME, &position);
-        return position / 1000000000.0;
+        return m_impl->current_time_nanos() / 1000000000.0;
     }
     return 0.0;
 }
@@ -955,23 +989,7 @@ double MediaController::fps() const
 
 void MediaController::seek_to_time(double value)
 {
-    GstEvent* seek_event;
-    GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
-    m_impl->m_seeking = true;
-    m_impl->m_done = false;
-    gint64 seek_time = value * GST_SECOND;
-
-    if(m_impl->m_rate > 0.0)
-    {
-        seek_event = gst_event_new_seek(m_impl->m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, seek_time,
-                                        GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
-    }
-    else
-    {
-        seek_event = gst_event_new_seek(m_impl->m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, 0,
-                                        GST_SEEK_TYPE_SET, seek_time);
-    }
-    if(!gst_element_send_event(m_impl->m_pipeline, seek_event)){ LOG_WARNING << "seek failed"; }
+    if(m_impl){ m_impl->send_seek_event(value * GST_SECOND); }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1008,7 +1026,7 @@ void MediaController::seek_to_time(const std::string &the_time_str)
 
 void MediaController::set_loop(bool b)
 {
-
+    if(m_impl){ m_impl->m_loop = b; }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1030,7 +1048,25 @@ float MediaController::rate() const
 
 void MediaController::set_rate(float r)
 {
+//    if(r == m_impl->m_rate)
+//        return; // Avoid unnecessary rate change;
+    if(!m_impl) return;
 
+    // A rate equal to 0 is not valid and has to be handled by pausing the pipeline.
+    if(r == 0.0f)
+    {
+        m_impl->set_pipeline_state(GST_STATE_PAUSED);
+        return;
+    }
+
+    if(r < 0.0f && m_impl->m_stream)
+    {
+        return;
+    }
+
+    m_impl->m_rate = r;
+    gint64 current_time = m_impl->current_time_nanos();
+    return m_impl->send_seek_event(current_time);
 }
 
 /////////////////////////////////////////////////////////////////
