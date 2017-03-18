@@ -29,10 +29,11 @@ namespace kinski { namespace fs {
                                             int the_recursion_depth = 0);
     
     bool exists(const std::string &the_file_name);
-    bool is_url(const std::string &the_file_name);
+    bool is_uri(const std::string &the_file_name);
     bool is_directory(const std::string &the_file_name);
     bool create_directory(const std::string &the_file_name);
     std::string join_paths(const std::string &p1, const std::string &p2);
+    std::string path_as_uri(const std::string &p);
     const std::string read_file(const std::string &theUTF8Filename);
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename);
     bool write_file(const std::string &the_file_name, const std::string &the_data);

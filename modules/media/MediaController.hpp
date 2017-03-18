@@ -21,7 +21,7 @@ namespace kinski{ namespace media{
         enum class RenderTarget{SCREEN, TEXTURE};
         enum class AudioTarget{AUTO, HDMI, AUDIO_JACK, BOTH};
 
-        typedef std::function<void(MediaControllerPtr the_movie)> MediaCallback;
+        typedef std::function<void(MediaControllerPtr the_movie)> callback_t;
 
         static MediaControllerPtr create();
         static MediaControllerPtr create(const std::string &filePath, bool autoplay = false,
@@ -59,8 +59,8 @@ namespace kinski{ namespace media{
         RenderTarget render_target() const;
         AudioTarget audio_target() const;
 
-        void set_on_load_callback(MediaCallback c);
-        void set_media_ended_callback(MediaCallback c);
+        void set_on_load_callback(callback_t c);
+        void set_media_ended_callback(callback_t c);
 
         /*!
          * upload the current frame to the_texture with target GL_RECTANGLE as default

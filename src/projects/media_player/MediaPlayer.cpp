@@ -355,7 +355,7 @@ void MediaPlayer::reload_media()
 
     LOG_DEBUG << "loading: " << m_media_path->value();
 
-    if(fs::is_url(*m_media_path) ||
+    if(fs::is_uri(*m_media_path) ||
        media_type == fs::FileType::AUDIO ||
        media_type == fs::FileType::MOVIE)
     {

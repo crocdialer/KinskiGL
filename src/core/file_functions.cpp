@@ -287,7 +287,7 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool is_url(const std::string &the_str)
+    bool is_uri(const std::string &the_str)
     {
         auto result = the_str.find("://");
         
@@ -336,7 +336,15 @@ namespace kinski { namespace fs{
     }
 
 ///////////////////////////////////////////////////////////////////////////////
-    
+
+    std::string path_as_uri(const std::string &p)
+    {
+        if(is_uri(p)) return p;
+        return "file://" + canonical(expand_user(p)).string();
+    }
+
+///////////////////////////////////////////////////////////////////////////////
+
     std::string search_file(const std::string &the_file_name, bool use_entire_path)
     {
         auto trim_file_name = trim(the_file_name);
