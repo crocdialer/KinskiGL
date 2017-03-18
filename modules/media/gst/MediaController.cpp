@@ -143,6 +143,9 @@ struct MediaControllerImpl
                                               &gst_object_unref);
                 g_gst_gl_display = m_gst_gl_display;
             }
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
+                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
+                                                      GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
         }
     }
 
@@ -247,7 +250,7 @@ struct MediaControllerImpl
             //!sUseGstGl
             if(false){ caps_descr = "video/x-raw, format=RGBA"; }
 
-            gst_app_sink_set_callbacks(GST_APP_SINK(m_app_sink), &app_sink_callbacks, this, 0);
+            gst_app_sink_set_callbacks(GST_APP_SINK(m_app_sink), &app_sink_callbacks, this, nullptr);
             GstCaps* caps = gst_caps_from_string(caps_descr.c_str());
             gst_app_sink_set_caps(GST_APP_SINK(m_app_sink), caps);
             gst_caps_unref(caps);
@@ -352,12 +355,12 @@ struct MediaControllerImpl
             return true;
 
         GstStateChangeReturn state_change_result = gst_element_set_state( m_pipeline, m_target_state);
-        LOG_DEBUG <<"pipeline state about to change from : " << gst_element_state_get_name(current) <<
-                    "to " << gst_element_state_get_name(the_target_state);
+        LOG_DEBUG <<"pipeline state about to change from: " << gst_element_state_get_name(current) <<
+                    " to " << gst_element_state_get_name(the_target_state);
 
         if(!g_enable_async_state_change && state_change_result == GST_STATE_CHANGE_ASYNC)
         {
-            sprintf(buf, "blocking until pipeline state changes from : %s to %s",
+            sprintf(buf, "blocking until pipeline state changes from: %s to %s",
                     gst_element_state_get_name(current),
                     gst_element_state_get_name(the_target_state));
             LOG_DEBUG << buf;
@@ -371,7 +374,7 @@ struct MediaControllerImpl
                 return false;
 
             case GST_STATE_CHANGE_SUCCESS:
-                sprintf(buf, "pipeline state changed SUCCESSFULLY from : %s to %s",
+                sprintf(buf, "pipeline state changed SUCCESSFULLY from: %s to %s",
                         gst_element_state_get_name(m_current_state),
                         gst_element_state_get_name(m_target_state));
 
@@ -381,7 +384,7 @@ struct MediaControllerImpl
                 return true;
 
             case GST_STATE_CHANGE_ASYNC:
-                sprintf(buf, "pipeline state change will happen ASYNC from : %s to %s",
+                sprintf(buf, "pipeline state change will happen ASYNC from: %s to %s",
                         gst_element_state_get_name(m_current_state),
                         gst_element_state_get_name(m_target_state));
                 LOG_DEBUG << buf;
@@ -544,7 +547,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             g_error_free(err);
             g_free(dbg);
 
-            GstStateChangeReturn state = gst_element_set_state( self->m_pipeline, GST_STATE_NULL);
+            GstStateChangeReturn state = gst_element_set_state(self->m_pipeline, GST_STATE_NULL);
 
             if(state == GST_STATE_CHANGE_FAILURE)
             {
@@ -621,7 +624,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                 if(old != current)
                 {
                     char buf[256];
-                    sprintf(buf, "pipeline state changed from : %s to %s with pending %s",
+                    sprintf(buf, "pipeline state changed from: %s to %s with pending %s",
                             gst_element_state_get_name(old), gst_element_state_get_name(current),
                             gst_element_state_get_name(pending));
                     LOG_DEBUG << buf;
@@ -632,8 +635,8 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                 if(self->m_target_state != self->m_current_state && pending == GST_STATE_VOID_PENDING)
                 {
                     //TODO: missing behaviour
-//                        if(self->m_target_state == GST_STATE_PAUSED){ data.player->stop(); }
-//                        else if(self->m_target_state == GST_STATE_PLAYING){ data.player->play(); }
+                    if(self->m_target_state == GST_STATE_PAUSED){ self->set_pipeline_state(GST_STATE_PAUSED); }
+                    else if(self->m_target_state == GST_STATE_PLAYING){ self->set_pipeline_state(GST_STATE_PLAYING); }
                 }
             }
             break;
@@ -885,7 +888,7 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 {
     if(m_impl && m_impl->m_has_new_frame)
     {
-        GstMemory *mem = gst_buffer_peek_memory(m_impl->m_current_buffer.get(), 0);
+        GstMemory *mem = gst_buffer_peek_memory(m_impl->m_new_buffer.get(), 0);
 
         if(gst_is_gl_memory(mem))
         {
@@ -952,7 +955,23 @@ double MediaController::fps() const
 
 void MediaController::seek_to_time(double value)
 {
+    GstEvent* seek_event;
+    GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
+    m_impl->m_seeking = true;
+    m_impl->m_done = false;
+    gint64 seek_time = value * GST_SECOND;
 
+    if(m_impl->m_rate > 0.0)
+    {
+        seek_event = gst_event_new_seek(m_impl->m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, seek_time,
+                                        GST_SEEK_TYPE_SET, GST_CLOCK_TIME_NONE);
+    }
+    else
+    {
+        seek_event = gst_event_new_seek(m_impl->m_rate, GST_FORMAT_TIME, seek_flags, GST_SEEK_TYPE_SET, 0,
+                                        GST_SEEK_TYPE_SET, seek_time);
+    }
+    if(!gst_element_send_event(m_impl->m_pipeline, seek_event)){ LOG_WARNING << "seek failed"; }
 }
 
 /////////////////////////////////////////////////////////////////
