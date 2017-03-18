@@ -3,7 +3,7 @@ if(APPLE)
   find_library(CoreMedia NAMES CoreMedia)
   find_library(CoreFoundation NAMES CoreFoundation)
   find_library(IOSurface NAMES IOSurface)
-  set(MODULE_LIBRARIES ${AVFoundation} ${CoreFoundation} ${CoreMedia} ${IOSurface} PARENT_SCOPE)
+  set(MODULE_LIBRARIES ${AVFoundation} ${CoreFoundation} ${CoreMedia} ${IOSurface})
 
   # OSX specific implementation
   FILE(GLOB MODULE_SOURCES osx/*.mm)
@@ -21,7 +21,7 @@ elseif(KINSKI_RASPI)
   find_package(ZLIB REQUIRED)
   find_library(M_LIB NAMES m)
 
-  set(MODULE_LIBRARIES openmaxil pthread ${ZLIB_LIBRARIES} ${M_LIB} ${AVFormat} ${AVCodec} ${AVUtil} ${SWResample} vcos vchiq_arm vcilcs PARENT_SCOPE)
+  set(MODULE_LIBRARIES openmaxil pthread ${ZLIB_LIBRARIES} ${M_LIB} ${AVFormat} ${AVCodec} ${AVUtil} ${SWResample} vcos vchiq_arm vcilcs)
 elseif(KINSKI_LINUX)
   find_package(GStreamer REQUIRED COMPONENTS GL)
 #  pkg_search_module(GLIB REQUIRED glib-2.0)

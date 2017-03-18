@@ -39,7 +39,7 @@ namespace kinski{ namespace media{
         bool m_loop = false;
         float m_rate = 1.f;
         
-        MediaController::MediaCallback m_on_load_cb, m_movie_ended_cb;
+        MediaController::callback_t m_on_load_cb, m_movie_ended_cb;
         std::weak_ptr<MediaController> m_movie_controller;
 
         gl::Buffer m_pbo[2];
@@ -110,15 +110,15 @@ namespace kinski{ namespace media{
     void MediaController::load(const std::string &filePath, bool autoplay, bool loop,
                                RenderTarget the_render_target, AudioTarget the_audio_target)
     {
-        MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
-        MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
+        callback_t on_load = m_impl ? m_impl->m_on_load_cb : callback_t();
+        callback_t on_end = m_impl ? m_impl->m_movie_ended_cb : callback_t();
         m_impl.reset(new MediaControllerImpl());
         m_impl->m_movie_controller = shared_from_this();
         m_impl->m_on_load_cb = on_load;
         m_impl->m_movie_ended_cb = on_end;
         NSURL *url = nullptr;
 
-        if(!fs::is_url(filePath))
+        if(!fs::is_uri(filePath))
         {
             try{ m_impl->m_src_path = fs::search_file(filePath); }
             catch(fs::FileNotFoundException &e)
@@ -612,7 +612,7 @@ namespace kinski{ namespace media{
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_on_load_callback(MediaCallback c)
+    void MediaController::set_on_load_callback(callback_t c)
     {
         if(!m_impl){ return; }
         m_impl->m_on_load_cb = c;
@@ -620,7 +620,7 @@ namespace kinski{ namespace media{
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_media_ended_callback(MediaCallback c)
+    void MediaController::set_media_ended_callback(callback_t c)
     {
         if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
