@@ -43,7 +43,7 @@ namespace kinski{ namespace media
 namespace
 {
     std::weak_ptr<GstGLDisplay> g_gst_gl_display;
-    const int g_enable_async_state_change = false;
+    const int g_enable_async_state_change = true;
 };
 
 struct MediaControllerImpl
@@ -60,6 +60,7 @@ struct MediaControllerImpl
     std::atomic<bool> m_buffering;
     std::atomic<bool> m_seeking;
     std::atomic<bool> m_seek_requested;
+    std::atomic<int64_t> m_current_time_nanos;
     std::atomic<int64_t> m_seek_requested_nanos;
     std::atomic<bool> m_stream;
     std::atomic<bool> m_done;
@@ -120,6 +121,7 @@ struct MediaControllerImpl
     m_buffering(false),
     m_seeking(false),
     m_seek_requested(false),
+    m_current_time_nanos(0),
     m_seek_requested_nanos(0),
     m_stream(false),
     m_pause(false),
@@ -362,7 +364,7 @@ struct MediaControllerImpl
             return true;
 
         GstStateChangeReturn state_change_result = gst_element_set_state( m_pipeline, m_target_state);
-        LOG_DEBUG <<"pipeline state about to change from: " << gst_element_state_get_name(current) <<
+        LOG_TRACE_2 << "pipeline state about to change from: " << gst_element_state_get_name(current) <<
                     " to " << gst_element_state_get_name(the_target_state);
 
         if(!g_enable_async_state_change && state_change_result == GST_STATE_CHANGE_ASYNC)
@@ -370,7 +372,7 @@ struct MediaControllerImpl
             sprintf(buf, "blocking until pipeline state changes from: %s to %s",
                     gst_element_state_get_name(current),
                     gst_element_state_get_name(the_target_state));
-            LOG_DEBUG << buf;
+            LOG_TRACE_2 << buf;
             state_change_result = gst_element_get_state(m_pipeline, &current, &pending, GST_CLOCK_TIME_NONE);
         }
 
@@ -385,7 +387,7 @@ struct MediaControllerImpl
                         gst_element_state_get_name(m_current_state),
                         gst_element_state_get_name(m_target_state));
 
-                LOG_DEBUG << buf;
+                LOG_TRACE_2 << buf;
                 // target state reached
                 update_state(m_target_state);
                 return true;
@@ -394,7 +396,7 @@ struct MediaControllerImpl
                 sprintf(buf, "pipeline state change will happen ASYNC from: %s to %s",
                         gst_element_state_get_name(m_current_state),
                         gst_element_state_get_name(m_target_state));
-                LOG_DEBUG << buf;
+                LOG_TRACE_2 << buf;
                 return true;
 
             case GST_STATE_CHANGE_NO_PREROLL:
@@ -443,14 +445,25 @@ struct MediaControllerImpl
                                             GST_SEEK_TYPE_SET, the_position_nanos);
         }
         if(!gst_element_send_event(m_pipeline, seek_event)){ LOG_WARNING << "seek failed"; }
+        m_seek_requested = false;
     }
 
     gint64 current_time_nanos()
     {
-        gint64 position = 0;
+        gint64 position = m_current_time_nanos;
 
-        if(m_prerolled){ gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position); }
-        return position;
+        if(m_prerolled)
+        {
+            if(!gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position))
+            {
+                if(m_seek_requested)
+                {
+                    position = m_seek_requested_nanos;
+                }
+            }
+            m_current_time_nanos = position;
+        }
+        return m_current_time_nanos;
     }
 
     void process_sample(GstSample* sample)
@@ -542,7 +555,7 @@ GstBusSyncReply MediaControllerImpl::check_bus_messages_sync(GstBus* bus, GstMes
             GstContext* context = nullptr;
             gst_message_parse_context_type(message, &context_type);
 
-            LOG_DEBUG << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            LOG_TRACE_2 << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
 
             if(g_strcmp0(context_type, GST_GL_DISPLAY_CONTEXT_TYPE) == 0)
             {
@@ -601,7 +614,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             gst_message_parse_have_context(message, &context);
             context_type = gst_context_get_context_type(context);
             context_str = gst_structure_to_string(gst_context_get_structure(context));
-            LOG_DEBUG << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            LOG_TRACE_2 << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
             g_free(context_str);
 
             if(context){ gst_context_unref(context); }
@@ -614,12 +627,12 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             if(self->m_live) break;
             gint percent = 0;
             gst_message_parse_buffering(message, &percent);
-//                LOG_DEBUG << "buffering " << std::setfill('0') << std::setw(3) << percent << " %";
+            LOG_DEBUG << "buffering " << std::setfill('0') << std::setw(3) << percent << " %";
 
             if(percent == 100)
             {
                 self->m_buffering = false;
-                LOG_DEBUG << "buffering complete!";
+                LOG_TRACE_2 << "buffering complete!";
 
                 if(self->m_target_state == GST_STATE_PLAYING)
                 {
@@ -631,7 +644,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                 if(!self->m_buffering && self->m_target_state == GST_STATE_PLAYING)
                 {
                     gst_element_set_state(self->m_pipeline, GST_STATE_PAUSED);
-                    LOG_DEBUG << "buffering in process ...";
+                    LOG_TRACE_2 << "buffering in process ...";
                 }
                 self->m_buffering = true;
             }
@@ -663,7 +676,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                     sprintf(buf, "pipeline state changed from: %s to %s with pending %s",
                             gst_element_state_get_name(old), gst_element_state_get_name(current),
                             gst_element_state_get_name(pending));
-                    LOG_DEBUG << buf;
+                    LOG_TRACE_2 << buf;
                 }
                 self->update_state(current);
 
@@ -685,8 +698,8 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                     {
                         if(self->m_seek_requested)
                         {
-                            self->send_seek_event(self->m_seek_requested_nanos, true);
-                            self->m_seek_requested = false;
+                            self->send_seek_event(self->m_seek_requested_nanos);
+//                            self->m_seek_requested = false;
                         }
                         else{ self->m_seeking = false; }
                     }
