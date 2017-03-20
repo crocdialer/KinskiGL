@@ -469,7 +469,7 @@ struct MediaControllerImpl
             }
             m_current_time_nanos = position;
         }
-        return m_current_time_nanos;
+        return position;
     }
 
     void process_sample(GstSample* sample)
