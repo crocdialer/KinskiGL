@@ -100,11 +100,14 @@ struct MediaControllerImpl
     // runs GMainLoop.
     std::thread m_thread;
 
+    // network syncing
+    std::shared_ptr<GstClock> m_gst_clock;
+
     // protect appsink callbacks
     std::mutex m_mutex;
 
     std::weak_ptr<MediaController> m_media_controller;
-    MediaController::callback_t m_on_load_cb, m_movie_ended_cb;
+    MediaController::callback_t m_on_load_cb, m_media_ended_cb;
 
     MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
     MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
@@ -139,16 +142,6 @@ struct MediaControllerImpl
             m_g_main_loop = g_main_loop_new(nullptr, false);
             m_thread = std::thread(&g_main_loop_run, m_g_main_loop);
             m_gst_gl_display = g_gst_gl_display.lock();
-            if(!m_gst_gl_display)
-            {
-                m_gst_gl_display =
-                std::shared_ptr<GstGLDisplay>((GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display()),
-                                              &gst_object_unref);
-                g_gst_gl_display = m_gst_gl_display;
-            }
-            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
-                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
-                                                      GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
         }
     }
 
@@ -194,7 +187,7 @@ struct MediaControllerImpl
             else
             {
                 char buf[128];
-                sprintf(buf, "initialized GStreamer version %i.%i.%i.%i", major, minor, micro, nano);
+                sprintf(buf, "GStreamer %i.%i.%i.%i", major, minor, micro, nano);
                 LOG_INFO << buf;
                 return true;
             }
@@ -214,7 +207,7 @@ struct MediaControllerImpl
         gst_object_unref(m_gl_context);
         m_gl_context = nullptr;
 
-        // Pipeline will unref and destroy its children..
+        // pipeline will unref and destroy its children..
         m_gl_upload = nullptr;
         m_gl_color_convert = nullptr;
     }
@@ -224,6 +217,8 @@ struct MediaControllerImpl
         if(m_pipeline) return;
 
         m_pipeline = gst_element_factory_make("playbin", "playbinsink");
+        m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
+                                                gst_object_unref);
 
         if(!m_pipeline)
         {
@@ -264,6 +259,17 @@ struct MediaControllerImpl
         //sUseGstGl
         if(true)
         {
+            if(!m_gst_gl_display)
+            {
+                m_gst_gl_display =
+                        std::shared_ptr<GstGLDisplay>((GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display()),
+                                                      &gst_object_unref);
+                g_gst_gl_display = m_gst_gl_display;
+            }
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
+                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
+                                                      GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
+
             m_gl_upload = gst_element_factory_make("glupload", "upload");
             if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
 
@@ -273,7 +279,7 @@ struct MediaControllerImpl
             m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
 
 #if defined( CINDER_LINUX_EGL_ONLY ) && defined( CINDER_GST_HAS_GL )
-        if( mGstData.rawCapsFilter ) g_object_set( G_OBJECT( mGstData.rawCapsFilter ), "caps", gst_caps_from_string( "video/x-raw(memory:GLMemory)" ), nullptr );
+        if(m_raw_caps_filter) g_object_set( G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw(memory:GLMemory)" ), nullptr );
 #else
             if(m_raw_caps_filter)
             {
@@ -328,14 +334,16 @@ struct MediaControllerImpl
 
             case GST_STATE_PAUSED:
             {
-                gint num_audio_channels = 0, num_video_channels = 0;
-                g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
-                m_num_audio_channels = num_audio_channels;
-                g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
-                m_num_video_channels = num_video_channels;
-
                 // fire onload callback
-                if (!m_prerolled && m_on_load_cb) { m_on_load_cb(m_media_controller.lock()); };
+                if(!m_prerolled)
+                {
+                    gint num_audio_channels = 0, num_video_channels = 0;
+                    g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
+                    m_num_audio_channels = num_audio_channels;
+                    g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
+                    m_num_video_channels = num_video_channels;
+                    if(m_on_load_cb){ m_on_load_cb(m_media_controller.lock()); }
+                };
 
                 m_prerolled = true;
                 m_pause = true;
@@ -383,20 +391,18 @@ struct MediaControllerImpl
                 return false;
 
             case GST_STATE_CHANGE_SUCCESS:
-                sprintf(buf, "pipeline state changed SUCCESSFULLY from: %s to %s",
-                        gst_element_state_get_name(m_current_state),
-                        gst_element_state_get_name(m_target_state));
+                LOG_TRACE_2 << "pipeline state changed SUCCESSFULLY from: "
+                            << gst_element_state_get_name(m_current_state) << " to: "
+                            << gst_element_state_get_name(m_target_state);
 
-                LOG_TRACE_2 << buf;
                 // target state reached
                 update_state(m_target_state);
                 return true;
 
             case GST_STATE_CHANGE_ASYNC:
-                sprintf(buf, "pipeline state change will happen ASYNC from: %s to %s",
-                        gst_element_state_get_name(m_current_state),
-                        gst_element_state_get_name(m_target_state));
-                LOG_TRACE_2 << buf;
+                LOG_TRACE_2 << "pipeline state change will happen ASYNC from: "
+                            << gst_element_state_get_name(m_current_state) << " to: "
+                            << gst_element_state_get_name(m_target_state);
                 return true;
 
             case GST_STATE_CHANGE_NO_PREROLL:
@@ -468,7 +474,7 @@ struct MediaControllerImpl
 
     void process_sample(GstSample* sample)
     {
-        m_prerolled = true;
+//        m_prerolled = true;
 
         // pull the memory buffer from sample.
         {
@@ -672,11 +678,10 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
 
                 if(old != current)
                 {
-                    char buf[256];
-                    sprintf(buf, "pipeline state changed from: %s to %s with pending %s",
-                            gst_element_state_get_name(old), gst_element_state_get_name(current),
-                            gst_element_state_get_name(pending));
-                    LOG_TRACE_2 << buf;
+                    LOG_TRACE_2 << "pipeline state changed from: "
+                                << gst_element_state_get_name(old) << " to: "
+                                << gst_element_state_get_name(current) << " with pending: "
+                                << gst_element_state_get_name(pending);
                 }
                 self->update_state(current);
 
@@ -741,7 +746,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             self->m_done = true;
 
             // fire media ended callback, if any
-            if(mc && self->m_movie_ended_cb){ self->m_movie_ended_cb(mc); }
+            if(mc && self->m_media_ended_cb){ self->m_media_ended_cb(mc); }
             break;
         }
 
@@ -788,7 +793,8 @@ MediaControllerPtr MediaController::create(const std::string &filePath, bool aut
 
 ///////////////////////////////////////////////////////////////////////////////
 
-MediaController::MediaController()
+MediaController::MediaController():
+m_impl(new MediaControllerImpl)
 {
 
 }
@@ -812,13 +818,13 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
         }
     }
     callback_t on_load = m_impl ? m_impl->m_on_load_cb : callback_t();
-    callback_t on_end = m_impl ? m_impl->m_movie_ended_cb : callback_t();
+    callback_t on_end = m_impl ? m_impl->m_media_ended_cb : callback_t();
     m_impl.reset(new MediaControllerImpl());
     m_impl->m_src_path = found_path;
     m_impl->m_loop = loop;
     m_impl->m_media_controller = shared_from_this();
     m_impl->m_on_load_cb = on_load;
-    m_impl->m_movie_ended_cb = on_end;
+    m_impl->m_media_ended_cb = on_end;
     m_impl->m_render_target = the_render_target;
     m_impl->m_audio_target = the_audio_target;
 
@@ -937,6 +943,8 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 {
     if(m_impl && m_impl->m_has_new_frame)
     {
+        std::lock_guard<std::mutex> guard(m_impl->m_mutex);
+
         GstMemory *mem = gst_buffer_peek_memory(m_impl->m_new_buffer.get(), 0);
 
         if(gst_is_gl_memory(mem))
@@ -950,9 +958,8 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 #endif
             tex = gl::Texture(target, id, m_impl->m_video_info.width, m_impl->m_video_info.height, true);
             tex.set_flipped(true);
-            std::lock_guard<std::mutex> guard(m_impl->m_mutex);
-            std::swap(m_impl->m_new_buffer, m_impl->m_current_buffer);
         }
+        std::swap(m_impl->m_new_buffer, m_impl->m_current_buffer);
         m_impl->m_has_new_frame = false;
         return true;
     }
@@ -974,7 +981,7 @@ double MediaController::duration() const
     {
         gint64 duration = 0;
         gst_element_query_duration(m_impl->m_pipeline, GST_FORMAT_TIME, &duration);
-        return duration / 1000000000.0;
+        return duration / (double)GST_SECOND;
     }
     return 0.0;
 }
@@ -985,7 +992,7 @@ double MediaController::current_time() const
 {
     if(m_impl)
     {
-        return m_impl->current_time_nanos() / 1000000000.0;
+        return m_impl->current_time_nanos() / (double)GST_SECOND;
     }
     return 0.0;
 }
@@ -994,7 +1001,7 @@ double MediaController::current_time() const
 
 double MediaController::fps() const
 {
-    if(m_impl && m_impl->m_prerolled){ return m_impl->m_fps; }
+    if(m_impl){ return m_impl->m_fps; }
     return 0.0;
 }
 
@@ -1103,7 +1110,7 @@ void MediaController::set_on_load_callback(callback_t c)
 void MediaController::set_media_ended_callback(callback_t c)
 {
     if(!m_impl){ return; }
-    m_impl->m_movie_ended_cb = c;
+    m_impl->m_media_ended_cb = c;
 }
 
 /////////////////////////////////////////////////////////////////
