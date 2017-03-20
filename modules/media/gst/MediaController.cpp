@@ -201,15 +201,16 @@ struct MediaControllerImpl
 
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
         gst_element_get_state(m_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
+
+        // pipeline will unref and destroy its children..
         gst_object_unref(GST_OBJECT(m_pipeline));
         m_pipeline = nullptr;
         m_video_bin = nullptr;
-        gst_object_unref(m_gl_context);
-        m_gl_context = nullptr;
-
-        // pipeline will unref and destroy its children..
         m_gl_upload = nullptr;
         m_gl_color_convert = nullptr;
+
+        gst_object_unref(m_gl_context);
+        m_gl_context = nullptr;
     }
 
     void construct_pipeline()
@@ -218,7 +219,7 @@ struct MediaControllerImpl
 
         m_pipeline = gst_element_factory_make("playbin", "playbinsink");
         m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
-                                                gst_object_unref);
+                                                &gst_object_unref);
 
         if(!m_pipeline)
         {
@@ -342,10 +343,9 @@ struct MediaControllerImpl
                     m_num_audio_channels = num_audio_channels;
                     g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
                     m_num_video_channels = num_video_channels;
+                    m_prerolled = true;
                     if(m_on_load_cb){ m_on_load_cb(m_media_controller.lock()); }
                 };
-
-                m_prerolled = true;
                 m_pause = true;
                 break;
             }
@@ -362,7 +362,6 @@ struct MediaControllerImpl
     {
         if(!m_pipeline){ return false; }
 
-        char buf[128];
         GstState current, pending;
         gst_element_get_state(m_pipeline, &current, &pending, 0);
         m_target_state = the_target_state;
@@ -371,16 +370,15 @@ struct MediaControllerImpl
         if(current == the_target_state || pending == the_target_state)
             return true;
 
-        GstStateChangeReturn state_change_result = gst_element_set_state( m_pipeline, m_target_state);
+        GstStateChangeReturn state_change_result = gst_element_set_state(m_pipeline, m_target_state);
         LOG_TRACE_2 << "pipeline state about to change from: " << gst_element_state_get_name(current) <<
                     " to " << gst_element_state_get_name(the_target_state);
 
         if(!g_enable_async_state_change && state_change_result == GST_STATE_CHANGE_ASYNC)
         {
-            sprintf(buf, "blocking until pipeline state changes from: %s to %s",
-                    gst_element_state_get_name(current),
-                    gst_element_state_get_name(the_target_state));
-            LOG_TRACE_2 << buf;
+            LOG_TRACE_2 << "blocking until pipeline state changes from: "
+                        << gst_element_state_get_name(current) << " to: "
+                        << gst_element_state_get_name(the_target_state);
             state_change_result = gst_element_get_state(m_pipeline, &current, &pending, GST_CLOCK_TIME_NONE);
         }
 
@@ -424,6 +422,11 @@ struct MediaControllerImpl
 
     void send_seek_event(gint64 the_position_nanos, bool force_seek = false)
     {
+        if(!m_prerolled){ return; }
+
+        m_seeking = true;
+        m_done = false;
+
         GstState current, pending;
         GstStateChangeReturn state_change = gst_element_get_state(m_pipeline, &current, &pending, 0);
 
@@ -433,9 +436,6 @@ struct MediaControllerImpl
             m_seek_requested_nanos = the_position_nanos;
             return;
         }
-
-        m_seeking = true;
-        m_done = false;
 
         GstEvent* seek_event;
         GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
@@ -1086,7 +1086,7 @@ void MediaController::set_rate(float r)
 
     m_impl->m_rate = r;
     gint64 current_time = m_impl->current_time_nanos();
-    return m_impl->send_seek_event(current_time);
+    m_impl->send_seek_event(current_time);
 }
 
 /////////////////////////////////////////////////////////////////
