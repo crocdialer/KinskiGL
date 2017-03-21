@@ -326,6 +326,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
         }
         else
         {
+            m_udp_server.stop_listen();
             m_sync_timer.cancel();
             m_use_discovery_broadcast->notify_observers();
             

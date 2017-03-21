@@ -286,7 +286,7 @@ void udp_server::start_listen(uint16_t port)
 
 void udp_server::stop_listen()
 {
-    m_impl->socket.close();
+    if(m_impl){ m_impl->socket.close(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -315,7 +315,7 @@ struct tcp_server_impl
     {
         acceptor.async_accept(socket, [this](boost::system::error_code ec)
         {
-            if (!ec)
+            if(!ec)
             {
                 tcp_connection_ptr con(new tcp_connection());
                 con->m_impl = std::make_shared<tcp_connection_impl>(std::move(socket));
@@ -327,7 +327,7 @@ struct tcp_server_impl
                 if(connection_callback){ connection_callback(con); }
                 accept();
             }
-      });
+        });
     }
 };
 
