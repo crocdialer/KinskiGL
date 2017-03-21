@@ -265,9 +265,9 @@ namespace kinski
                     uint32_t key_code = code_lookup(evp->code);
                     KeyEvent e(key_code, key_code, key_modifiers);
 
-                    if(evp->value == 0){ the_app->keyRelease(e); }
-                    else if(evp->value == 1){ the_app->keyPress(e); }
-                    else if(evp->value == 2){ the_app->keyPress(e); }
+                    if(evp->value == 0){ the_app->key_release(e); }
+                    else if(evp->value == 1){ the_app->key_press(e); }
+                    else if(evp->value == 2){ the_app->key_press(e); }
 
                     // right place here !?
                     if(key_code == Key::_ESCAPE){ the_app->set_running(false); }
@@ -396,14 +396,14 @@ namespace kinski
                 // press /release
                 if(evp->type == 1)
                 {
-                    if(evp->value){ the_app->mousePress(e); }
-                    else{ the_app->mouseRelease(e); }
+                    if(evp->value){ the_app->mouse_press(e); }
+                    else{ the_app->mouse_release(e); }
                 }
                 else if(evp->type == 2 || evp->type == 3)
                 {
-                    if(evp->code == REL_WHEEL){ the_app->mouseWheel(e); }
-                    else if(button_modifiers){ the_app->mouseDrag(e); }
-                    else{ the_app->mouseMove(e);}
+                    if(evp->code == REL_WHEEL){ the_app->mouse_wheel(e); }
+                    else if(button_modifiers){ the_app->mouse_drag(e); }
+                    else{ the_app->mouse_move(e);}
                 }
 
                 if(e.is_touch() || touch_id_changed)
