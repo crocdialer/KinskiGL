@@ -495,6 +495,9 @@ namespace kinski{ namespace media
                     case AudioTarget::BOTH:
                         m_impl->m_config_audio.device = "omx:both";
                         break;
+
+                    default:
+                        break;
                 }
             }
         }
