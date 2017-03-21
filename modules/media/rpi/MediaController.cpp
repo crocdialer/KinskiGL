@@ -35,7 +35,7 @@ namespace kinski{ namespace media
         bool m_loop = false;
         bool m_playing = false;
         bool m_has_new_frame = false;
-        MediaController::MediaCallback m_on_load_cb, m_movie_ended_cb;
+        MediaController::callback_t m_on_load_cb, m_movie_ended_cb;
         std::weak_ptr<MediaController> m_movie_controller;
         std::thread m_thread;
 
@@ -412,8 +412,8 @@ namespace kinski{ namespace media
                 return;
             }
         }
-        MediaCallback on_load = m_impl ? m_impl->m_on_load_cb : MediaCallback();
-        MediaCallback on_end = m_impl ? m_impl->m_movie_ended_cb : MediaCallback();
+        callback_t on_load = m_impl ? m_impl->m_on_load_cb : callback_t();
+        callback_t on_end = m_impl ? m_impl->m_movie_ended_cb : callback_t();
         m_impl.reset(new MediaControllerImpl());
         m_impl->m_src_path = found_path;
         m_impl->m_movie_controller = shared_from_this();
@@ -482,7 +482,7 @@ namespace kinski{ namespace media
                                                              EDID_AudioSampleRate_e44KHz,
                                                              EDID_AudioSampleSize_16bit) == 0;
             m_impl->m_config_audio.device = "omx:local";
-            
+
             if(hdmi_supported)
             {
                 switch (m_impl->m_audio_target)
@@ -772,7 +772,7 @@ namespace kinski{ namespace media
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_on_load_callback(MediaCallback c)
+    void MediaController::set_on_load_callback(callback_t c)
     {
         if(!m_impl){ return; }
         m_impl->m_on_load_cb = c;
@@ -780,7 +780,7 @@ namespace kinski{ namespace media
 
 /////////////////////////////////////////////////////////////////
 
-    void MediaController::set_media_ended_callback(MediaCallback c)
+    void MediaController::set_media_ended_callback(callback_t c)
     {
         if(!m_impl){ return; }
         m_impl->m_movie_ended_cb = c;
