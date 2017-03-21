@@ -282,7 +282,7 @@ namespace kinski{ namespace gl{
 #ifndef KINSKI_NO_VAO
             m->bind_vertex_array();
 #else
-            m->bindVertexPointers();
+            m->bind_vertex_pointers();
 #endif
             
             KINSKI_CHECK_GL_ERRORS();

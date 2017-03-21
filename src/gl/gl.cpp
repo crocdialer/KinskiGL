@@ -882,7 +882,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 #ifndef KINSKI_NO_VAO
         the_mesh->bind_vertex_array();
 #else
-        the_mesh->bindVertexPointers();
+        the_mesh->bind_vertex_pointers();
 #endif
         
         if(the_mesh->geometry()->has_indices())

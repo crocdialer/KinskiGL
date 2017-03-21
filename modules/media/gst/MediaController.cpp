@@ -43,7 +43,7 @@ namespace kinski{ namespace media
 namespace
 {
     std::weak_ptr<GstGLDisplay> g_gst_gl_display;
-    const int g_enable_async_state_change = false;
+    const int g_enable_async_state_change = true;
 };
 
 struct MediaControllerImpl
@@ -60,6 +60,7 @@ struct MediaControllerImpl
     std::atomic<bool> m_buffering;
     std::atomic<bool> m_seeking;
     std::atomic<bool> m_seek_requested;
+    std::atomic<int64_t> m_current_time_nanos;
     std::atomic<int64_t> m_seek_requested_nanos;
     std::atomic<bool> m_stream;
     std::atomic<bool> m_done;
@@ -99,11 +100,14 @@ struct MediaControllerImpl
     // runs GMainLoop.
     std::thread m_thread;
 
+    // network syncing
+    std::shared_ptr<GstClock> m_gst_clock;
+
     // protect appsink callbacks
     std::mutex m_mutex;
 
     std::weak_ptr<MediaController> m_media_controller;
-    MediaController::callback_t m_on_load_cb, m_movie_ended_cb;
+    MediaController::callback_t m_on_load_cb, m_media_ended_cb;
 
     MediaController::RenderTarget m_render_target = MediaController::RenderTarget::TEXTURE;
     MediaController::AudioTarget m_audio_target = MediaController::AudioTarget::AUTO;
@@ -120,6 +124,7 @@ struct MediaControllerImpl
     m_buffering(false),
     m_seeking(false),
     m_seek_requested(false),
+    m_current_time_nanos(0),
     m_seek_requested_nanos(0),
     m_stream(false),
     m_pause(false),
@@ -137,16 +142,6 @@ struct MediaControllerImpl
             m_g_main_loop = g_main_loop_new(nullptr, false);
             m_thread = std::thread(&g_main_loop_run, m_g_main_loop);
             m_gst_gl_display = g_gst_gl_display.lock();
-            if(!m_gst_gl_display)
-            {
-                m_gst_gl_display =
-                std::shared_ptr<GstGLDisplay>((GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display()),
-                                              &gst_object_unref);
-                g_gst_gl_display = m_gst_gl_display;
-            }
-            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
-                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
-                                                      GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
         }
     }
 
@@ -192,7 +187,7 @@ struct MediaControllerImpl
             else
             {
                 char buf[128];
-                sprintf(buf, "initialized GStreamer version %i.%i.%i.%i", major, minor, micro, nano);
+                sprintf(buf, "GStreamer %i.%i.%i.%i", major, minor, micro, nano);
                 LOG_INFO << buf;
                 return true;
             }
@@ -206,15 +201,16 @@ struct MediaControllerImpl
 
         gst_element_set_state(m_pipeline, GST_STATE_NULL);
         gst_element_get_state(m_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
+
+        // pipeline will unref and destroy its children..
         gst_object_unref(GST_OBJECT(m_pipeline));
         m_pipeline = nullptr;
         m_video_bin = nullptr;
-        gst_object_unref(m_gl_context);
-        m_gl_context = nullptr;
-
-        // Pipeline will unref and destroy its children..
         m_gl_upload = nullptr;
         m_gl_color_convert = nullptr;
+
+        gst_object_unref(m_gl_context);
+        m_gl_context = nullptr;
     }
 
     void construct_pipeline()
@@ -222,6 +218,8 @@ struct MediaControllerImpl
         if(m_pipeline) return;
 
         m_pipeline = gst_element_factory_make("playbin", "playbinsink");
+        m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
+                                                &gst_object_unref);
 
         if(!m_pipeline)
         {
@@ -262,6 +260,17 @@ struct MediaControllerImpl
         //sUseGstGl
         if(true)
         {
+            if(!m_gst_gl_display)
+            {
+                m_gst_gl_display =
+                        std::shared_ptr<GstGLDisplay>((GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display()),
+                                                      &gst_object_unref);
+                g_gst_gl_display = m_gst_gl_display;
+            }
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
+                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
+                                                      GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
+
             m_gl_upload = gst_element_factory_make("glupload", "upload");
             if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
 
@@ -271,7 +280,7 @@ struct MediaControllerImpl
             m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
 
 #if defined( CINDER_LINUX_EGL_ONLY ) && defined( CINDER_GST_HAS_GL )
-        if( mGstData.rawCapsFilter ) g_object_set( G_OBJECT( mGstData.rawCapsFilter ), "caps", gst_caps_from_string( "video/x-raw(memory:GLMemory)" ), nullptr );
+        if(m_raw_caps_filter) g_object_set( G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw(memory:GLMemory)" ), nullptr );
 #else
             if(m_raw_caps_filter)
             {
@@ -326,16 +335,17 @@ struct MediaControllerImpl
 
             case GST_STATE_PAUSED:
             {
-                gint num_audio_channels = 0, num_video_channels = 0;
-                g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
-                m_num_audio_channels = num_audio_channels;
-                g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
-                m_num_video_channels = num_video_channels;
-
                 // fire onload callback
-                if (!m_prerolled && m_on_load_cb) { m_on_load_cb(m_media_controller.lock()); };
-
-                m_prerolled = true;
+                if(!m_prerolled)
+                {
+                    gint num_audio_channels = 0, num_video_channels = 0;
+                    g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
+                    m_num_audio_channels = num_audio_channels;
+                    g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
+                    m_num_video_channels = num_video_channels;
+                    m_prerolled = true;
+                    if(m_on_load_cb){ m_on_load_cb(m_media_controller.lock()); }
+                };
                 m_pause = true;
                 break;
             }
@@ -352,7 +362,6 @@ struct MediaControllerImpl
     {
         if(!m_pipeline){ return false; }
 
-        char buf[128];
         GstState current, pending;
         gst_element_get_state(m_pipeline, &current, &pending, 0);
         m_target_state = the_target_state;
@@ -361,16 +370,15 @@ struct MediaControllerImpl
         if(current == the_target_state || pending == the_target_state)
             return true;
 
-        GstStateChangeReturn state_change_result = gst_element_set_state( m_pipeline, m_target_state);
-        LOG_DEBUG <<"pipeline state about to change from: " << gst_element_state_get_name(current) <<
+        GstStateChangeReturn state_change_result = gst_element_set_state(m_pipeline, m_target_state);
+        LOG_TRACE_2 << "pipeline state about to change from: " << gst_element_state_get_name(current) <<
                     " to " << gst_element_state_get_name(the_target_state);
 
         if(!g_enable_async_state_change && state_change_result == GST_STATE_CHANGE_ASYNC)
         {
-            sprintf(buf, "blocking until pipeline state changes from: %s to %s",
-                    gst_element_state_get_name(current),
-                    gst_element_state_get_name(the_target_state));
-            LOG_DEBUG << buf;
+            LOG_TRACE_2 << "blocking until pipeline state changes from: "
+                        << gst_element_state_get_name(current) << " to: "
+                        << gst_element_state_get_name(the_target_state);
             state_change_result = gst_element_get_state(m_pipeline, &current, &pending, GST_CLOCK_TIME_NONE);
         }
 
@@ -381,20 +389,18 @@ struct MediaControllerImpl
                 return false;
 
             case GST_STATE_CHANGE_SUCCESS:
-                sprintf(buf, "pipeline state changed SUCCESSFULLY from: %s to %s",
-                        gst_element_state_get_name(m_current_state),
-                        gst_element_state_get_name(m_target_state));
+                LOG_TRACE_2 << "pipeline state changed SUCCESSFULLY from: "
+                            << gst_element_state_get_name(m_current_state) << " to: "
+                            << gst_element_state_get_name(m_target_state);
 
-                LOG_DEBUG << buf;
                 // target state reached
                 update_state(m_target_state);
                 return true;
 
             case GST_STATE_CHANGE_ASYNC:
-                sprintf(buf, "pipeline state change will happen ASYNC from: %s to %s",
-                        gst_element_state_get_name(m_current_state),
-                        gst_element_state_get_name(m_target_state));
-                LOG_DEBUG << buf;
+                LOG_TRACE_2 << "pipeline state change will happen ASYNC from: "
+                            << gst_element_state_get_name(m_current_state) << " to: "
+                            << gst_element_state_get_name(m_target_state);
                 return true;
 
             case GST_STATE_CHANGE_NO_PREROLL:
@@ -416,6 +422,11 @@ struct MediaControllerImpl
 
     void send_seek_event(gint64 the_position_nanos, bool force_seek = false)
     {
+        if(!m_prerolled){ return; }
+
+        m_seeking = true;
+        m_done = false;
+
         GstState current, pending;
         GstStateChangeReturn state_change = gst_element_get_state(m_pipeline, &current, &pending, 0);
 
@@ -425,9 +436,6 @@ struct MediaControllerImpl
             m_seek_requested_nanos = the_position_nanos;
             return;
         }
-
-        m_seeking = true;
-        m_done = false;
 
         GstEvent* seek_event;
         GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
@@ -443,19 +451,30 @@ struct MediaControllerImpl
                                             GST_SEEK_TYPE_SET, the_position_nanos);
         }
         if(!gst_element_send_event(m_pipeline, seek_event)){ LOG_WARNING << "seek failed"; }
+        m_seek_requested = false;
     }
 
     gint64 current_time_nanos()
     {
-        gint64 position = 0;
+        gint64 position = m_current_time_nanos;
 
-        if(m_prerolled){ gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position); }
+        if(m_prerolled)
+        {
+            if(!gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position))
+            {
+                if(m_seek_requested)
+                {
+                    position = m_seek_requested_nanos;
+                }
+            }
+            m_current_time_nanos = position;
+        }
         return position;
     }
 
     void process_sample(GstSample* sample)
     {
-        m_prerolled = true;
+//        m_prerolled = true;
 
         // pull the memory buffer from sample.
         {
@@ -542,7 +561,7 @@ GstBusSyncReply MediaControllerImpl::check_bus_messages_sync(GstBus* bus, GstMes
             GstContext* context = nullptr;
             gst_message_parse_context_type(message, &context_type);
 
-            LOG_DEBUG << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            LOG_TRACE_2 << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
 
             if(g_strcmp0(context_type, GST_GL_DISPLAY_CONTEXT_TYPE) == 0)
             {
@@ -601,7 +620,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             gst_message_parse_have_context(message, &context);
             context_type = gst_context_get_context_type(context);
             context_str = gst_structure_to_string(gst_context_get_structure(context));
-            LOG_DEBUG << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            LOG_TRACE_2 << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
             g_free(context_str);
 
             if(context){ gst_context_unref(context); }
@@ -614,12 +633,12 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             if(self->m_live) break;
             gint percent = 0;
             gst_message_parse_buffering(message, &percent);
-//                LOG_DEBUG << "buffering " << std::setfill('0') << std::setw(3) << percent << " %";
+            LOG_DEBUG << "buffering " << std::setfill('0') << std::setw(3) << percent << " %";
 
             if(percent == 100)
             {
                 self->m_buffering = false;
-                LOG_DEBUG << "buffering complete!";
+                LOG_TRACE_2 << "buffering complete!";
 
                 if(self->m_target_state == GST_STATE_PLAYING)
                 {
@@ -631,7 +650,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                 if(!self->m_buffering && self->m_target_state == GST_STATE_PLAYING)
                 {
                     gst_element_set_state(self->m_pipeline, GST_STATE_PAUSED);
-                    LOG_DEBUG << "buffering in process ...";
+                    LOG_TRACE_2 << "buffering in process ...";
                 }
                 self->m_buffering = true;
             }
@@ -659,11 +678,10 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
 
                 if(old != current)
                 {
-                    char buf[256];
-                    sprintf(buf, "pipeline state changed from: %s to %s with pending %s",
-                            gst_element_state_get_name(old), gst_element_state_get_name(current),
-                            gst_element_state_get_name(pending));
-                    LOG_DEBUG << buf;
+                    LOG_TRACE_2 << "pipeline state changed from: "
+                                << gst_element_state_get_name(old) << " to: "
+                                << gst_element_state_get_name(current) << " with pending: "
+                                << gst_element_state_get_name(pending);
                 }
                 self->update_state(current);
 
@@ -685,8 +703,8 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                     {
                         if(self->m_seek_requested)
                         {
-                            self->send_seek_event(self->m_seek_requested_nanos, true);
-                            self->m_seek_requested = false;
+                            self->send_seek_event(self->m_seek_requested_nanos);
+//                            self->m_seek_requested = false;
                         }
                         else{ self->m_seeking = false; }
                     }
@@ -728,7 +746,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
             self->m_done = true;
 
             // fire media ended callback, if any
-            if(mc && self->m_movie_ended_cb){ self->m_movie_ended_cb(mc); }
+            if(mc && self->m_media_ended_cb){ self->m_media_ended_cb(mc); }
             break;
         }
 
@@ -775,7 +793,8 @@ MediaControllerPtr MediaController::create(const std::string &filePath, bool aut
 
 ///////////////////////////////////////////////////////////////////////////////
 
-MediaController::MediaController()
+MediaController::MediaController():
+m_impl(new MediaControllerImpl)
 {
 
 }
@@ -799,13 +818,13 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
         }
     }
     callback_t on_load = m_impl ? m_impl->m_on_load_cb : callback_t();
-    callback_t on_end = m_impl ? m_impl->m_movie_ended_cb : callback_t();
+    callback_t on_end = m_impl ? m_impl->m_media_ended_cb : callback_t();
     m_impl.reset(new MediaControllerImpl());
     m_impl->m_src_path = found_path;
     m_impl->m_loop = loop;
     m_impl->m_media_controller = shared_from_this();
     m_impl->m_on_load_cb = on_load;
-    m_impl->m_movie_ended_cb = on_end;
+    m_impl->m_media_ended_cb = on_end;
     m_impl->m_render_target = the_render_target;
     m_impl->m_audio_target = the_audio_target;
 
@@ -924,6 +943,8 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 {
     if(m_impl && m_impl->m_has_new_frame)
     {
+        std::lock_guard<std::mutex> guard(m_impl->m_mutex);
+
         GstMemory *mem = gst_buffer_peek_memory(m_impl->m_new_buffer.get(), 0);
 
         if(gst_is_gl_memory(mem))
@@ -937,9 +958,8 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 #endif
             tex = gl::Texture(target, id, m_impl->m_video_info.width, m_impl->m_video_info.height, true);
             tex.set_flipped(true);
-            std::lock_guard<std::mutex> guard(m_impl->m_mutex);
-            std::swap(m_impl->m_new_buffer, m_impl->m_current_buffer);
         }
+        std::swap(m_impl->m_new_buffer, m_impl->m_current_buffer);
         m_impl->m_has_new_frame = false;
         return true;
     }
@@ -961,7 +981,7 @@ double MediaController::duration() const
     {
         gint64 duration = 0;
         gst_element_query_duration(m_impl->m_pipeline, GST_FORMAT_TIME, &duration);
-        return duration / 1000000000.0;
+        return duration / (double)GST_SECOND;
     }
     return 0.0;
 }
@@ -972,7 +992,7 @@ double MediaController::current_time() const
 {
     if(m_impl)
     {
-        return m_impl->current_time_nanos() / 1000000000.0;
+        return m_impl->current_time_nanos() / (double)GST_SECOND;
     }
     return 0.0;
 }
@@ -981,7 +1001,7 @@ double MediaController::current_time() const
 
 double MediaController::fps() const
 {
-    if(m_impl && m_impl->m_prerolled){ return m_impl->m_fps; }
+    if(m_impl){ return m_impl->m_fps; }
     return 0.0;
 }
 
@@ -1066,7 +1086,7 @@ void MediaController::set_rate(float r)
 
     m_impl->m_rate = r;
     gint64 current_time = m_impl->current_time_nanos();
-    return m_impl->send_seek_event(current_time);
+    m_impl->send_seek_event(current_time);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1090,7 +1110,7 @@ void MediaController::set_on_load_callback(callback_t c)
 void MediaController::set_media_ended_callback(callback_t c)
 {
     if(!m_impl){ return; }
-    m_impl->m_movie_ended_cb = c;
+    m_impl->m_media_ended_cb = c;
 }
 
 /////////////////////////////////////////////////////////////////
