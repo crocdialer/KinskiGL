@@ -402,7 +402,7 @@ namespace kinski{ namespace media
                                RenderTarget the_render_target, AudioTarget the_audio_target)
     {
         std::string found_path;
-        if(fs::is_url(filePath)){ found_path = filePath; }
+        if(fs::is_uri(filePath)){ found_path = filePath; }
         else
         {
             try{ found_path = fs::search_file(filePath); }
