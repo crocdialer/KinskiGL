@@ -264,16 +264,17 @@ struct MediaControllerImpl
             if(!m_gst_gl_display)
             {
                 GstGLDisplay* gl_display = nullptr;
-#if defined(KINSKI_RASPI)
-                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display( platformData->mDisplay );
+#if defined(KINSKI_EGL)
+                auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
+                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_disaply);
 #elif defined(KINSKI_LINUX)
                 gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
 #endif
                 m_gst_gl_display = std::shared_ptr<GstGLDisplay>(gl_display, &gst_object_unref);
                 g_gst_gl_display = m_gst_gl_display;
             }
-#if defined(KINSKI_RASPI)
-            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platformData->mContext,
+#if defined(KINSKI_EGL)
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platform_data_egl->egl_context,
                                                       GST_GL_PLATFORM_EGL, GST_GL_API_GLES2);
 #elif defined(KINSKI_LINUX)
             m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
