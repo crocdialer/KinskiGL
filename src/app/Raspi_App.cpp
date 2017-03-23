@@ -42,9 +42,9 @@ namespace kinski
 
     Raspi_App::~Raspi_App()
     {
-        eglMakeCurrent(m_context->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT );
+        eglMakeCurrent(m_context->eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         eglDestroySurface(m_context->eglDisplay, m_context->eglSurface);
-        eglDestroyContext(m_context->eglDisplay, m_context->eglContext );
+        eglDestroyContext(m_context->eglDisplay, m_context->eglContext);
         eglTerminate(m_context->eglDisplay);
 
         m_timer_device_scan.cancel();
@@ -60,6 +60,14 @@ namespace kinski
         gettimeofday(&m_startTime, NULL);
 
         esInitContext(m_context.get());
+
+        // init gl::Context object
+        auto platform_data = std::make_shared<gl::PlatformDataEGL>(m_context->eglDisplay,
+                                                                   m_context->eglContext,
+                                                                   m_context->eglSurface);
+        gl::Context *ctx = new gl::Context(platform_data);
+        (void)ctx;
+
         esCreateWindow(m_context.get(), name().c_str(),
                        ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH /*| ES_WINDOW_MULTISAMPLE*/);
 

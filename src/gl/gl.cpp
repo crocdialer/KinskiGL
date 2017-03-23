@@ -28,20 +28,31 @@ using namespace std;
 namespace kinski { namespace gl {
     
 ///////////////////////////////////////////////////////////////////////////////
-    
-    class Impl
+
+    namespace
     {
-    private:
-        
-        glm::vec2 g_viewport_dim;
-        std::stack<glm::mat4> g_projectionMatrixStack;
-        std::stack<glm::mat4> g_modelViewMatrixStack;
-        gl::MaterialPtr g_line_material;
-        
-        vector<vec3> draw_line_points;
-        MaterialPtr draw_lines_material;
+        Context* g_context = nullptr;
     };
-    
+
+    struct ContextImpl
+    {
+        std::shared_ptr<Context::PlatformData> m_platform_data;
+    };
+
+    Context::Context(std::shared_ptr<PlatformData> platform_data):m_impl(new ContextImpl)
+    {
+        m_impl->m_platform_data = platform_data;
+        if(g_context){ delete(g_context); }
+        g_context = this;
+    }
+
+    std::shared_ptr<Context::PlatformData> Context::platform_data()
+    {
+        return m_impl->m_platform_data;
+    }
+
+    const Context* context(){ return g_context; }
+
     static glm::vec2 g_viewport_dim;
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;

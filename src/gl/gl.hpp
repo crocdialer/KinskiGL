@@ -19,6 +19,7 @@
 #endif
 
 #if defined(KINSKI_RASPI)
+#define KINSKI_EGL
 #define KINSKI_NO_VAO
 #define GL_GLEXT_PROTOTYPES
 #endif
@@ -52,6 +53,20 @@
 #define GL_COMPRESSED_RGBA_S3TC_DXT1_EXT  0x83F1
 #define GL_COMPRESSED_RGBA_S3TC_DXT3_EXT  0x83F2
 #define GL_COMPRESSED_RGBA_S3TC_DXT5_EXT  0x83F3
+#endif
+
+#if defined(KINSKI_COCOA)
+typedef struct _CGLContextObject *CGLContextObj;
+#elif defined(KINSKI_COCOA_TOUCH)
+    #if defined( __OBJC__ )
+		@class	EAGLContext;
+	#else
+		class	EAGLContext;
+	#endif
+#elif defined(KINSKI_EGL)
+    typedef void* EGLContext;
+	typedef void* EGLDisplay;
+	typedef void* EGLSurface;
 #endif
 
 // crossplattform helper-macros to append either nothing or "OES"
@@ -123,7 +138,21 @@ namespace kinski { namespace gl {
     DEFINE_CLASS_PTR(Bone);
     DEFINE_CLASS_PTR(Scene);
 
-    
+    class Context
+    {
+    public:
+        struct PlatformData
+        {
+            virtual ~PlatformData(){};
+        };
+        Context(std::shared_ptr<PlatformData> platform_data);
+        std::shared_ptr<PlatformData> platform_data();
+    private:
+        std::shared_ptr<struct ContextImpl> m_impl;
+    };
+
+    KINSKI_API const Context* context();
+
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
     KINSKI_API void push_matrix(const Matrixtype type);
     KINSKI_API void pop_matrix(const Matrixtype type);

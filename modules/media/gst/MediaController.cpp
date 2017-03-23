@@ -3,6 +3,9 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "core/file_functions.hpp"
+#include "gl/Texture.hpp"
+#include "MediaController.hpp"
 
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
@@ -11,7 +14,7 @@
 //#if GST_CHECK_VERSION(1, 4, 5)
 #include <gst/gl/gstglconfig.h>
 
-#if defined(KINSKI_GLES)
+#if defined(KINSKI_RASPI)
 #undef GST_GL_HAVE_OPENGL
 //#undef GST_GL_HAVE_GLES2
 #undef GST_GL_HAVE_PLATFORM_GLX
@@ -24,18 +27,16 @@
 #define GST_USE_UNSTABLE_API
 #include <gst/gl/gstglcontext.h>
 #include <gst/gl/gstgldisplay.h>
-#include <gst/gl/x11/gstgldisplay_x11.h>
-//#include <gst/gl/egl/gstgldisplay_egl.h>
 
+#if defined(KINSKI_RASPI)
+#include <gst/gl/egl/gstgldisplay_egl.h>
+#elif defined(KINSKI_LINUX)
+#include <gst/gl/x11/gstgldisplay_x11.h>
 #include "GLFW/glfw3.h"
 #define GLFW_EXPOSE_NATIVE_X11
 #define GLFW_EXPOSE_NATIVE_GLX
 #include "GLFW/glfw3native.h"
-
-#include "core/file_functions.hpp"
-#include "gl/Texture.hpp"
-#include "MediaController.hpp"
-
+#endif
 
 namespace kinski{ namespace media
 {
@@ -262,14 +263,24 @@ struct MediaControllerImpl
         {
             if(!m_gst_gl_display)
             {
-                m_gst_gl_display =
-                        std::shared_ptr<GstGLDisplay>((GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display()),
-                                                      &gst_object_unref);
+                GstGLDisplay* gl_display = nullptr;
+#if defined(KINSKI_RASPI)
+                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display( platformData->mDisplay );
+#elif defined(KINSKI_LINUX)
+                gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
+#endif
+                m_gst_gl_display = std::shared_ptr<GstGLDisplay>(gl_display, &gst_object_unref);
                 g_gst_gl_display = m_gst_gl_display;
             }
+#if defined(KINSKI_RASPI)
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platformData->mContext,
+                                                      GST_GL_PLATFORM_EGL, GST_GL_API_GLES2);
+#elif defined(KINSKI_LINUX)
             m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
                                                       (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
                                                       GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
+#endif
+
 
             m_gl_upload = gst_element_factory_make("glupload", "upload");
             if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
@@ -279,8 +290,12 @@ struct MediaControllerImpl
 
             m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
 
-#if defined( CINDER_LINUX_EGL_ONLY ) && defined( CINDER_GST_HAS_GL )
-        if(m_raw_caps_filter) g_object_set( G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw(memory:GLMemory)" ), nullptr );
+#if defined(KINSKI_RASPI)
+            if(m_raw_caps_filter)
+            {
+                g_object_set(G_OBJECT(m_raw_caps_filter), "caps",
+                             gst_caps_from_string("video/x-raw(memory:GLMemory)"), nullptr);
+            }
 #else
             if(m_raw_caps_filter)
             {
