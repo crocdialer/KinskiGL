@@ -51,7 +51,7 @@ namespace kinski { namespace gl {
         return m_impl->m_platform_data;
     }
 
-    const Context* context(){ return g_context; }
+    Context* context(){ return g_context; }
 
     static glm::vec2 g_viewport_dim;
     static std::stack<glm::mat4> g_projectionMatrixStack;

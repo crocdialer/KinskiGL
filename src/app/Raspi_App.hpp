@@ -13,25 +13,6 @@
 #include "App.hpp"
 #include "OutstreamGL.hpp"
 
-namespace kinski
-{
-
-namespace gl
-{
-    struct PlatformDataEGL : public Context::PlatformData
-    {
-        PlatformDataEGL(EGLDisplay the_display, EGLContext the_context, EGLSurface the_surface):
-        egl_display(the_display),
-        egl_context(the_context),
-        egl_surface(the_surface)
-        {}
-
-        EGLDisplay egl_display;
-        EGLContext egl_context;
-        EGLSurface egl_surface;
-    };
-}
-
 class Raspi_App : public App
 {
  public:
