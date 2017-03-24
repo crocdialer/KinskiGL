@@ -13,6 +13,9 @@
 #include "App.hpp"
 #include "OutstreamGL.hpp"
 
+namespace kinski
+{
+
 class Raspi_App : public App
 {
  public:
