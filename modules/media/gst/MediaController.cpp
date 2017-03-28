@@ -266,7 +266,7 @@ struct MediaControllerImpl
                 GstGLDisplay* gl_display = nullptr;
 #if defined(KINSKI_EGL)
                 auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
-                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_disaply);
+                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_display);
 #elif defined(KINSKI_LINUX)
                 gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
 #endif
@@ -274,6 +274,7 @@ struct MediaControllerImpl
                 g_gst_gl_display = m_gst_gl_display;
             }
 #if defined(KINSKI_EGL)
+            auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
             m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platform_data_egl->egl_context,
                                                       GST_GL_PLATFORM_EGL, GST_GL_API_GLES2);
 #elif defined(KINSKI_LINUX)
@@ -291,7 +292,7 @@ struct MediaControllerImpl
 
             m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
 
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_EGL)
             if(m_raw_caps_filter)
             {
                 g_object_set(G_OBJECT(m_raw_caps_filter), "caps",
