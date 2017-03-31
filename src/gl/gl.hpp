@@ -82,9 +82,9 @@ namespace kinski { namespace gl {
     KINSKI_API void load_identity(const Matrixtype type);
     KINSKI_API void get_matrix(const Matrixtype type, mat4 &theMatrix);
     
-    KINSKI_API void set_matrices( const CameraPtr &cam );
-    KINSKI_API void set_modelview( const CameraPtr &cam );
-    KINSKI_API void set_projection( const CameraPtr &cam );
+    KINSKI_API void set_matrices(const CameraPtr &cam);
+    KINSKI_API void set_modelview(const CameraPtr &cam);
+    KINSKI_API void set_projection(const CameraPtr &cam);
     KINSKI_API void set_matrices_for_window();
     
     static const vec3 X_AXIS = vec3(1, 0, 0);

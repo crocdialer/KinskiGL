@@ -23,6 +23,7 @@
  */
 
 #include <bluetooth/sdp.h>
+#include "gattrib.h"
 
 /* GATT Profile Attribute types */
 #define GATT_PRIM_SVC_UUID		0x2800
@@ -82,15 +83,14 @@ guint gatt_find_info(GAttrib *attrib, uint16_t start, uint16_t end,
 				GAttribResultFunc func, gpointer user_data);
 
 guint gatt_write_cmd(GAttrib *attrib, uint16_t handle, uint8_t *value, int vlen,
-				GDestroyNotify notify, gpointer user_data);
+					 GDestroyNotify notify, gpointer user_data);
 
 guint gatt_read_char_by_uuid(GAttrib *attrib, uint16_t start, uint16_t end,
-				bt_uuid_t *uuid, GAttribResultFunc func,
-				gpointer user_data);
+							 bt_uuid_t *uuid, GAttribResultFunc func,
+							 gpointer user_data);
 
-guint gatt_exchange_mtu(GAttrib *attrib, uint16_t mtu, GAttribResultFunc func,
-							gpointer user_data);
+guint gatt_exchange_mtu(GAttrib *attrib, uint16_t mtu, GAttribResultFunc func, gpointer user_data);
 
 gboolean gatt_parse_record(const sdp_record_t *rec,
-					uuid_t *prim_uuid, uint16_t *psm,
-					uint16_t *start, uint16_t *end);
+						   uuid_t *prim_uuid, uint16_t *psm,
+						   uint16_t *start, uint16_t *end);

@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include "internal.h"
 #include "att.h"
+#include "gatt.h"
 
 struct gattlib_result_read_uuid_t {
 	void*          buffer;

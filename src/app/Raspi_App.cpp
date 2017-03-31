@@ -63,7 +63,7 @@ namespace kinski
 
         esCreateWindow(m_context.get(), name().c_str(),
                        ES_WINDOW_RGB | ES_WINDOW_ALPHA | ES_WINDOW_DEPTH /*| ES_WINDOW_MULTISAMPLE*/);
-        
+
         // init gl::Context object
         auto platform_data = std::make_shared<gl::PlatformDataEGL>(m_context->eglDisplay,
                                                                    m_context->eglContext,
