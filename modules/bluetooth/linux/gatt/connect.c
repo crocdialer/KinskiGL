@@ -26,6 +26,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <bluetooth/bluetooth.h>
+//#include <bluetooth/hci_lib.h>
 #include "internal.h"
 #include "uuid.h"
 #include "att.h"
@@ -33,6 +34,8 @@
 #include "gattrib.h"
 
 #define CONNECTION_TIMEOUT    2
+
+int hci_devba(int dev_id, bdaddr_t *bdaddr);
 
 struct gattlib_thread_t g_gattlib_thread = { 0 };
 

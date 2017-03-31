@@ -491,8 +491,6 @@ struct MediaControllerImpl
 
     void process_sample(GstSample* sample)
     {
-//        m_prerolled = true;
-
         // pull the memory buffer from sample.
         {
             std::lock_guard<std::mutex> guard(m_mutex);
