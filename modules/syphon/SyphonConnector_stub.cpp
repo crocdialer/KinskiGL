@@ -29,6 +29,11 @@ std::string Output::getName()
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+std::vector<ServerDescription> Input::get_inputs()
+{
+    return {};
+}
+
 struct InputImpl
 {
 
