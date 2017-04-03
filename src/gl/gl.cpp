@@ -176,14 +176,14 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void set_modelview( const CameraPtr &cam )
+    void set_modelview(const CameraPtr &cam)
     {
         load_matrix(MODEL_VIEW_MATRIX, cam->view_matrix());
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void set_projection( const CameraPtr &cam )
+    void set_projection(const CameraPtr &cam)
     {
         load_matrix(PROJECTION_MATRIX, cam->projection_matrix());
     }
@@ -226,7 +226,7 @@ namespace kinski { namespace gl {
 ///////////////////////////////////////////////////////////////////////////////
 
     gl::Ray calculate_ray(const CameraPtr &theCamera, const glm::vec2 &window_pos,
-                         const glm::vec2 &window_size)
+                          const glm::vec2 &window_size)
     {
         glm::vec3 cam_pos = theCamera->position();
         glm::vec3 lookAt = theCamera->lookAt(),
@@ -258,55 +258,6 @@ namespace kinski { namespace gl {
         LOG_TRACE_2 << "clicked_world: (" << click_world_pos.x << ",  " << click_world_pos.y
             << ",  " << click_world_pos.z << ")";
         return Ray(click_world_pos, click_world_pos - cam_pos);
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    gl::AABB calculate_AABB(const std::vector<glm::vec3> &theVertices)
-    {
-        if(theVertices.empty()){ return AABB(); }
-
-        AABB ret = AABB(glm::vec3(numeric_limits<float>::max()),
-                        glm::vec3(numeric_limits<float>::min()));
-
-        for (const glm::vec3 &vertex : theVertices)
-        {
-            // X
-            if(vertex.x < ret.min.x)
-                ret.min.x = vertex.x;
-            else if(vertex.x > ret.max.x)
-                ret.max.x = vertex.x;
-            // Y
-            if(vertex.y < ret.min.y)
-                ret.min.y = vertex.y;
-            else if(vertex.y > ret.max.y)
-                ret.max.y = vertex.y;
-            // Z
-            if(vertex.z < ret.min.z)
-                ret.min.z = vertex.z;
-            else if(vertex.z > ret.max.z)
-                ret.max.z = vertex.z;
-        }
-        return ret;
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
-    vec3 calculate_centroid(const vector<vec3> &theVertices)
-    {
-        if(theVertices.empty())
-        {
-            LOG_TRACE << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
-            return vec3(0);
-        }
-        vec3 sum(0);
-        vector<vec3>::const_iterator it = theVertices.begin();
-        for(;it != theVertices.end(); ++it)
-        {
-            sum += *it;
-        }
-        sum /= theVertices.size();
-        return sum;
     }
 
 ///////////////////////////////////////////////////////////////////////////////

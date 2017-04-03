@@ -93,7 +93,24 @@ ray_intersection intersect(const OBB &theOBB, const Ray& theRay)
     else
         return ray_intersection(INTERSECT, t_max);
 }
-    
+
+///////////////////////////////////////////////////////////////////////////////
+
+vec3 calculate_centroid(const vector<vec3> &theVertices)
+{
+    if(theVertices.empty())
+    {
+        LOG_TRACE << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
+        return vec3(0);
+    }
+    vec3 sum(0);
+    for(const auto &v : theVertices){ sum += v; }
+    sum /= theVertices.size();
+    return sum;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 Plane::Plane()
 {
     coefficients = glm::vec4(0, 1, 0, 0);
@@ -125,7 +142,9 @@ Plane::Plane(const glm::vec3& theFoot, const glm::vec3& theNormal)
     float distance = -glm::dot(theFoot, normal);
     coefficients = vec4(normal, distance);
 }
-    
+
+///////////////////////////////////////////////////////////////////////////////
+
 OBB::OBB(const AABB &theAABB, const glm::mat4 &t)
 {
     center = (t * glm::vec4(theAABB.center(), 1.0f)).xyz();
@@ -153,7 +172,9 @@ OBB& OBB::transform(const mat4& t)
     
     return *this;
 }
-    
+
+///////////////////////////////////////////////////////////////////////////////
+
 AABB& AABB::transform(const glm::mat4& t)
 {
     glm::vec3 aMin, aMax;
@@ -207,6 +228,38 @@ uint32_t AABB::intersect(const Triangle& t) const
     return triBoxOverlap(&center()[0],&halfExtents()[0],triVerts);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+gl::AABB calculate_AABB(const std::vector<glm::vec3> &theVertices)
+{
+    if(theVertices.empty()){ return AABB(); }
+
+    AABB ret = AABB(glm::vec3(std::numeric_limits<float>::max()),
+                    glm::vec3(std::numeric_limits<float>::min()));
+
+    for(const glm::vec3 &vertex : theVertices)
+    {
+        // X
+        if(vertex.x < ret.min.x)
+            ret.min.x = vertex.x;
+        else if(vertex.x > ret.max.x)
+            ret.max.x = vertex.x;
+        // Y
+        if(vertex.y < ret.min.y)
+            ret.min.y = vertex.y;
+        else if(vertex.y > ret.max.y)
+            ret.max.y = vertex.y;
+        // Z
+        if(vertex.z < ret.min.z)
+            ret.min.z = vertex.z;
+        else if(vertex.z > ret.max.z)
+            ret.max.z = vertex.z;
+    }
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 Frustum::Frustum(const glm::mat4 &the_VP_martix)
 {
     planes[0] = Plane(the_VP_martix[2] + the_VP_martix[3]); // near plane
@@ -254,7 +307,9 @@ Frustum::Frustum(float left, float right,float bottom, float top,
 	planes[5] = Plane(eyePos + (bottom * up), up); // bottom plane
     
 }
-    
+
+///////////////////////////////////////////////////////////////////////////////
+
 /********************************************************/
 
 /* AABB-triangle overlap test code                      */

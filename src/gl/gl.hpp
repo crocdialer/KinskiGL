@@ -115,8 +115,6 @@ namespace kinski { namespace gl {
     KINSKI_API float aspect_ratio();
     KINSKI_API gl::Ray calculate_ray(const CameraPtr &theCamera, const vec2 &window_pos,
                                      const vec2 &window_size = window_dimension());
-    KINSKI_API gl::AABB calculate_AABB(const std::vector<vec3> &theVertices);
-    KINSKI_API vec3 calculate_centroid(const std::vector<vec3> &theVertices);
     KINSKI_API gl::MeshPtr create_frustum_mesh(const CameraPtr &cam);
     KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light, float far_clip = 1000.f);
     KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light, float far_clip = 1000.f);

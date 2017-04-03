@@ -33,12 +33,15 @@ struct ray_intersection;
 struct ray_triangle_intersection;
 
 /********************************** Ray intersection tests ****************************************/
-    
-ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray);
-ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay);
-ray_intersection intersect(const Sphere &theSphere, const Ray &theRay);
-ray_intersection intersect(const AABB &theAABB, const Ray& theRay);
-ray_intersection intersect(const OBB &theOBB, const Ray& theRay);
+
+KINSKI_API ray_intersection intersect(const gl::Plane &plane, const gl::Ray &ray);
+KINSKI_API ray_triangle_intersection intersect(const Triangle &theTri, const Ray &theRay);
+KINSKI_API ray_intersection intersect(const Sphere &theSphere, const Ray &theRay);
+KINSKI_API ray_intersection intersect(const AABB &theAABB, const Ray& theRay);
+KINSKI_API ray_intersection intersect(const OBB &theOBB, const Ray& theRay);
+
+KINSKI_API gl::AABB calculate_AABB(const std::vector<vec3> &theVertices);
+KINSKI_API vec3 calculate_centroid(const std::vector<vec3> &theVertices);
     
 struct KINSKI_API Ray
 {
