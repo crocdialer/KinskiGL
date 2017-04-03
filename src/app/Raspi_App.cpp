@@ -68,8 +68,7 @@ namespace kinski
         auto platform_data = std::make_shared<gl::PlatformDataEGL>(m_context->eglDisplay,
                                                                    m_context->eglContext,
                                                                    m_context->eglSurface);
-        gl::Context *ctx = new gl::Context(platform_data);
-        (void)ctx;
+        gl::set_context(new gl::Context(platform_data));
 
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);

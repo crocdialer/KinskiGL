@@ -269,6 +269,8 @@ struct MediaControllerImpl
                 gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_display);
 #elif defined(KINSKI_LINUX)
                 gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
+#elif defined(KINSKI_MAC)
+                gl_display = gst_gl_display_new();
 #endif
                 m_gst_gl_display = std::shared_ptr<GstGLDisplay>(gl_display, &gst_object_unref);
                 g_gst_gl_display = m_gst_gl_display;
@@ -281,6 +283,10 @@ struct MediaControllerImpl
             m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
                                                       (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
                                                       GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
+#elif defined(KINSKI_MAC)
+            auto platform_data_mac = std::dynamic_pointer_cast<gl::PlatformDataCGL>(gl::context()->platform_data());
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platform_data_mac->cgl_context,
+                                                      GST_GL_PLATFORM_CGL, GST_GL_API_OPENGL);
 #endif
 
 

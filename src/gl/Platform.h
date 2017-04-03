@@ -85,7 +85,7 @@ public:
     };
     Context(std::shared_ptr<PlatformData> platform_data);
     std::shared_ptr<PlatformData> platform_data();
-private:
+public:
     std::shared_ptr<struct ContextImpl> m_impl;
 };
 
@@ -102,6 +102,17 @@ struct PlatformDataEGL : public Context::PlatformData
     EGLContext egl_context;
     EGLSurface egl_surface;
 };
+
+#elif defined(KINSKI_MAC)
+struct PlatformDataCGL : public Context::PlatformData
+{
+    PlatformDataCGL(CGLContextObj the_context):
+    cgl_context(the_context)
+    {}
+
+    CGLContextObj cgl_context;
+};
+
 #endif
 
 }}

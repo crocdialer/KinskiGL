@@ -191,6 +191,13 @@ namespace kinski
         auto main_window = GLFW_Window::create(default_sz.x, default_sz.y, name(), fullscreen());
         add_window(main_window);
 
+        // create gl::Context object
+        std::shared_ptr<gl::Context::PlatformData> pd;
+#if defined(KINSKI_MAC)
+        pd.reset(new gl::PlatformDataCGL(CGLGetCurrentContext()));
+#endif
+        gl::set_context(new gl::Context(pd));
+
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);
 

@@ -72,6 +72,7 @@ namespace kinski { namespace gl {
     DEFINE_CLASS_PTR(Bone);
     DEFINE_CLASS_PTR(Scene);
 
+    KINSKI_API void set_context(Context* the_ctx);
     KINSKI_API Context* context();
 
     enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
