@@ -856,7 +856,14 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     std::string uri_path = filePath;
 
     if(fs::is_uri(filePath)){ m_impl->m_stream = true; }
-    else{ uri_path = fs::path_as_uri(found_path); }
+    else
+    {
+        GError* err = nullptr;
+        gchar* uri = gst_filename_to_uri(filePath.c_str(), &err);
+        uri_path = std::string(static_cast<const char*>(uri));
+        g_free(uri);
+        if(err){ g_free(err); }
+    }
 
     // set the new path
     g_object_set(G_OBJECT(m_impl->m_pipeline), "uri", uri_path.c_str(), nullptr);

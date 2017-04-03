@@ -12,6 +12,12 @@
 #include "AntTweakBarConnector.hpp"
 #include "GLFW_App.hpp"
 
+#if defined(KINSKI_LINUX)
+#include <GL/glx.h>
+#elif defined (__APPLE__) || defined(MACOSX)
+#include <OpenGL/CGLCurrent.h>
+#endif
+
 using namespace std;
 
 namespace kinski
