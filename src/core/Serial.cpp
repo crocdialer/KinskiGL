@@ -131,7 +131,7 @@ namespace kinski
         }
         catch(boost::system::system_error &e)
         {
-            LOG_WARNING << e.what() << " (" << description() << ")";
+            LOG_WARNING << e.what() << " (" << the_name << ")";
         }
         return false;
     }
