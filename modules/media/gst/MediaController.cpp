@@ -447,9 +447,6 @@ struct MediaControllerImpl
     {
         if(!m_prerolled){ return; }
 
-        m_seeking = true;
-        m_done = false;
-
         GstState current, pending;
         GstStateChangeReturn state_change = gst_element_get_state(m_pipeline, &current, &pending, 0);
 
@@ -462,6 +459,7 @@ struct MediaControllerImpl
 
         GstEvent* seek_event;
         GstSeekFlags seek_flags = GstSeekFlags(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);
+        if(fabsf(m_rate) > 2){ seek_flags = GstSeekFlags(seek_flags | GST_SEEK_FLAG_TRICKMODE); }
 
         if(m_rate > 0.0)
         {
@@ -474,7 +472,6 @@ struct MediaControllerImpl
                                             GST_SEEK_TYPE_SET, the_position_nanos);
         }
         if(!gst_element_send_event(m_pipeline, seek_event)){ LOG_WARNING << "seek failed"; }
-        m_seek_requested = false;
     }
 
     gint64 current_time_nanos()
@@ -725,7 +722,7 @@ gboolean MediaControllerImpl::check_bus_messages_async(GstBus* bus, GstMessage* 
                         if(self->m_seek_requested)
                         {
                             self->send_seek_event(self->m_seek_requested_nanos);
-//                            self->m_seek_requested = false;
+                            self->m_seek_requested = false;
                         }
                         else{ self->m_seeking = false; }
                     }
@@ -1037,7 +1034,12 @@ double MediaController::fps() const
 
 void MediaController::seek_to_time(double value)
 {
-    if(m_impl){ m_impl->send_seek_event(value * GST_SECOND); }
+    if(m_impl)
+    {
+        m_impl->m_seeking = true;
+        m_impl->m_done = false;
+        m_impl->send_seek_event(value * GST_SECOND);
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -1096,22 +1098,14 @@ float MediaController::rate() const
 
 void MediaController::set_rate(float r)
 {
-//    if(r == m_impl->m_rate)
-//        return; // Avoid unnecessary rate change;
-    if(!m_impl) return;
+    if(!is_loaded() || (r < 0.0f && m_impl->m_stream)) return;
 
-    // A rate equal to 0 is not valid and has to be handled by pausing the pipeline.
+    // rate equal to 0 is not valid and has to be handled by pausing the pipeline.
     if(r == 0.0f)
     {
-        m_impl->set_pipeline_state(GST_STATE_PAUSED);
+        pause();
         return;
     }
-
-    if(r < 0.0f && m_impl->m_stream)
-    {
-        return;
-    }
-
     m_impl->m_rate = r;
     gint64 current_time = m_impl->current_time_nanos();
     m_impl->send_seek_event(current_time);

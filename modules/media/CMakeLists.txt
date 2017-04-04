@@ -1,21 +1,22 @@
 OPTION (USE_GSTREAMER "Use GStreamer" OFF)
 
-if(KINSKI_LINUX)
+if(KINSKI_LINUX AND NOT KINSKI_RASPI)
   set(USE_GSTREAMER ON)
-endif(KINSKI_LINUX)
+endif()
 
 if(USE_GSTREAMER)
     add_definitions(-DKINSKI_GSTREAMER)
     find_package(GStreamer REQUIRED COMPONENTS GL APP VIDEO)
     pkg_search_module(GLIB REQUIRED glib-2.0)
     find_library(GLIB NAMES glib-2.0)
-    #pkg_search_module(GOBJECT REQUIRED gobject-2.0)
     find_library(GOBJECT NAMES gobject-2.0)
-    FILE(GLOB MODULE_SOURCES gst/*.c*)
     set(MODULE_LIBRARIES ${GSTREAMER_LIBRARIES} ${GSTREAMER_BASE_LIBRARIES} ${GSTREAMER_APP_LIBRARIES} ${GSTREAMER_VIDEO_LIBRARIES} ${GSTREAMER_GL_LIBRARIES} ${GLIB} ${GOBJECT})
     set(MODULE_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GSTREAMER_INCLUDE_DIRS} ${GSTREAMER_GL_INCLUDE_DIRS} ${GSTREAMER_APP_INCLUDE_DIRS} "/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include" "/usr/local/lib/gstreamer-1.0/include")
-    message(WARNING "${MODULE_LIBRARIES}")
+#    message(WARNING "${MODULE_LIBRARIES}")
+#    message(WARNING "${MODULE_INCLUDE_DIRS}")
 
+    # GStreamer implementation
+    FILE(GLOB MODULE_SOURCES gst/*.c*)
 elseif(KINSKI_RASPI)
   # Raspian specific implementation
   FILE(GLOB MODULE_SOURCES rpi/*.c* rpi/utils/*.c* rpi/linux/*.c*)
