@@ -150,11 +150,11 @@ void MediaPlayer::key_press(const KeyEvent &e)
                 m_needs_redraw = true;
                 break;
             case Key::_UP:
-                m_media->set_volume(m_media->volume() + .1f);
+                *m_volume += .1f;
                 break;
                 
             case Key::_DOWN:
-                m_media->set_volume(m_media->volume() - .1f);
+                *m_volume -= .1f;
                 break;
  
             default:
