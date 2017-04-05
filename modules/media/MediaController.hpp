@@ -62,24 +62,26 @@ public:
     void set_media_ended_callback(callback_t c);
 
     /*!
-     * upload the current frame to the_texture with target GL_RECTANGLE as default
-     * or GL_TEXTURE_2D if as_texture2D is true
-     * @param the_texture - the texture object to populate with the new frame, if any
-     * return: true if a new frame has been uploaded successfully,
-     * false otherwise
+     * upload the current frame to the provided gl::Texture.
+     * @param[out] the_texture
+     * the texture object to be populated with the new frame, if any
+     * @param as_texture2D
+     * force the target of the returned texture to always be GL_TEXTURE_2D, rather than GL_RECTANGLE.
+     * the texture will be converted, if necessary.
+     * @return true if a new frame has been uploaded successfully, false otherwise
      */
     bool copy_frame_to_texture(gl::Texture &the_texture, bool as_texture2D = false);
 
     /*!
      * copy the current frame to a std::vector<uint8_t>
-     * return: true if a new frame has been copied successfully,
+     * @return true if a new frame has been copied successfully,
      * false otherwise
      */
     bool copy_frame(std::vector<uint8_t>& data, int *width = nullptr, int *height = nullptr);
 
     /*!
      * upload all frames to a gl::Texture object with target GL_TEXTURE_2D_ARRAY
-     * return: true if all frames have been uploaded successfully,
+     * @return true if all frames have been uploaded successfully,
      * false otherwise
      */
     bool copy_frames_offline(gl::Texture &tex, bool compress = false);
