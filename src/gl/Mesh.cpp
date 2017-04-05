@@ -157,23 +157,20 @@ namespace kinski { namespace gl {
                 glEnableVertexAttribArray(location);
 
 #if !defined(KINSKI_GLES)
+                if(vertex_attrib.type == GL_INT)
+                {
+                    glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
+                                           vertex_attrib.buffer.stride(),
+                                           BUFFER_OFFSET(vertex_attrib.offset));
+                }
+                else
+#endif
                 if(vertex_attrib.type == GL_FLOAT)
                 {
                     glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
                                           vertex_attrib.normalize, vertex_attrib.buffer.stride(),
                                           BUFFER_OFFSET(vertex_attrib.offset));
                 }
-                else if(vertex_attrib.type == GL_INT)
-                {
-                    glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
-                                           vertex_attrib.buffer.stride(),
-                                           BUFFER_OFFSET(vertex_attrib.offset));
-                }
-#else
-                glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
-                                      vertex_attrib.normalize, vertex_attrib.buffer.stride(),
-                                      BUFFER_OFFSET(vertex_attrib.offset));
-#endif
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
@@ -385,7 +382,7 @@ namespace kinski { namespace gl {
         if(it != m_vertexArrays.end())
         {
             vaos = it->second;
-            GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &vaos[0]);
+            GL_SUFFIX(glDeleteVertexArrays)(vaos.size(), &vaos[0]);
             vaos.clear();
         }
 
