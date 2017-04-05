@@ -106,6 +106,7 @@ namespace kinski
     void GLFW_Window::draw() const
     {
         glfwMakeContextCurrent(m_handle);
+        gl::context()->set_current_context_id(m_handle);
 
         gl::set_window_dimension(framebuffer_size());
 
@@ -203,6 +204,7 @@ namespace kinski
         pd.reset(new gl::PlatformDataCGL(CGLGetCurrentContext()));
 #endif
         gl::set_context(new gl::Context(pd));
+        gl::context()->set_current_context_id(main_window->handle());
 
         // set graphical log stream
         Logger::get()->add_outstream(&m_outstream_gl);

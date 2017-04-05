@@ -37,6 +37,8 @@ namespace kinski { namespace gl {
     struct ContextImpl
     {
         std::shared_ptr<Context::PlatformData> m_platform_data;
+        void* m_current_context_id = nullptr;
+        //std::map<std::pair<void*, gl::MeshWeakPtr>, std::vector<GLuint>> m_vao_map;
     };
 
     Context::Context(std::shared_ptr<PlatformData> platform_data):m_impl(new ContextImpl)
@@ -48,6 +50,17 @@ namespace kinski { namespace gl {
     {
         return m_impl->m_platform_data;
     }
+
+    void* Context::current_context_id()
+    {
+        return m_impl->m_current_context_id;
+    }
+
+    void Context::set_current_context_id(void* the_id)
+    {
+        m_impl->m_current_context_id = the_id;
+    }
+
 
     void set_context(Context* the_ctx)
     {

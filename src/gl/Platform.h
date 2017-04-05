@@ -85,6 +85,9 @@ public:
     };
     Context(std::shared_ptr<PlatformData> platform_data);
     std::shared_ptr<PlatformData> platform_data();
+    void* current_context_id();
+    void set_current_context_id(void* the_id);
+
 public:
     std::shared_ptr<struct ContextImpl> m_impl;
 };

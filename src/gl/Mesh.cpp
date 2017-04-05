@@ -65,7 +65,11 @@ namespace kinski { namespace gl {
     Mesh::~Mesh()
     {
 #ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
+        for(auto &pair : m_vertexArrays)
+        {
+            auto vaos = pair.second;
+            GL_SUFFIX(glDeleteVertexArrays)(vaos.size(), &vaos[0]);
+        }
 #endif
     }
 
@@ -372,14 +376,26 @@ namespace kinski { namespace gl {
 #ifndef KINSKI_NO_VAO
         m_shaders.clear();
         m_shaders.resize(m_materials.size());
-        GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
-        m_vertexArrays.clear();
-        m_vertexArrays.resize(m_materials.size(), 0);
-        GL_SUFFIX(glGenVertexArrays)(m_vertexArrays.size(), &m_vertexArrays[0]);
 
-        for (uint32_t i = 0; i < m_vertexArrays.size(); i++)
+        std::vector<GLuint> v;
+        std::vector<GLuint>& vaos = v;
+
+        auto context_id = gl::context()->current_context_id();
+        auto it = m_vertexArrays.find(context_id);
+        if(it != m_vertexArrays.end())
         {
-            GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);
+            vaos = it->second;
+            GL_SUFFIX(glDeleteVertexArrays)(m_vertexArrays.size(), &vaos[0]);
+            vaos.clear();
+        }
+
+        vaos.resize(m_materials.size(), 0);
+        GL_SUFFIX(glGenVertexArrays)(vaos.size(), &vaos[0]);
+        m_vertexArrays[context_id] = vaos;
+
+        for (uint32_t i = 0; i < vaos.size(); i++)
+        {
+            GL_SUFFIX(glBindVertexArray)(vaos[i]);
             bind_vertex_pointers(i);
             m_shaders[i] = m_materials[i]->shader();
         }
@@ -389,24 +405,27 @@ namespace kinski { namespace gl {
 
     GLuint Mesh::vertex_array(uint32_t i) const
     {
-        if(m_shaders[i] != m_materials[i]->shader())
+        auto context_id = gl::context()->current_context_id();
+        auto it = m_vertexArrays.find(context_id);
+
+        if(it == m_vertexArrays.end() ||
+           i >= it->second.size() ||
+           m_shaders[i] != m_materials[i]->shader())
         {
             throw WrongVertexArrayDefinedException(get_id());
         }
-        return m_vertexArrays[i];
+        return it->second[i];
     };
 
     void Mesh::bind_vertex_array(uint32_t i)
     {
 #if !defined(KINSKI_NO_VAO)
 
-        if(i >= m_vertexArrays.size()){ create_vertex_array();}
-
         try{GL_SUFFIX(glBindVertexArray)(vertex_array(i));}
         catch(const WrongVertexArrayDefinedException &e)
         {
             create_vertex_array();
-            try{GL_SUFFIX(glBindVertexArray)(m_vertexArrays[i]);}
+            try{GL_SUFFIX(glBindVertexArray)(vertex_array(i));}
             catch(std::exception &e)
             {
                 // should not arrive here

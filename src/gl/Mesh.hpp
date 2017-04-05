@@ -198,7 +198,11 @@ namespace kinski { namespace gl {
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;
         std::vector<MaterialPtr> m_materials;
-        std::vector<GLuint> m_vertexArrays;
+
+        /*!
+         * context specific vertex array objects for this mesh
+         */
+        std::map<void*, std::vector<GLuint>> m_vertexArrays;
         
         std::vector<gl::Shader> m_shaders;
         
