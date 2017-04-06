@@ -43,11 +43,8 @@ std::wstring utf8_to_wstring(const std::string& str)
 //    return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
 //}
 
-#if defined(KINSKI_RASPI)
-    #define BITMAP_WIDTH 1024
-#else 
-    #define BITMAP_WIDTH 2048
-#endif
+
+#define BITMAP_WIDTH(font_sz) font_sz > 50 ? 2048 : 1024
 
 namespace kinski { namespace gl {
     
@@ -77,7 +74,6 @@ namespace kinski { namespace gl {
         std::unordered_map<std::string, string_mesh_container> string_mesh_map;
         
         FontImpl():
-        bitmap(Image::create(BITMAP_WIDTH, BITMAP_WIDTH, 1)),
         max_mesh_buffer_size(500)
         {
             font_height = 64;
@@ -134,6 +130,7 @@ namespace kinski { namespace gl {
             m_impl->font_height = theSize;
             m_impl->line_height = theSize;
             m_impl->use_sdf = use_sdf;
+            m_impl->bitmap = Image::create(BITMAP_WIDTH(theSize), BITMAP_WIDTH(theSize), 1);
             
             // rect packing
             stbtt_pack_context spc;
