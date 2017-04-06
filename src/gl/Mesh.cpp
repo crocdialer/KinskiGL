@@ -156,21 +156,20 @@ namespace kinski { namespace gl {
                 vertex_attrib.buffer.bind();
                 glEnableVertexAttribArray(location);
 
-#if !defined(KINSKI_GLES)
-                if(vertex_attrib.type == GL_INT)
-                {
-                    glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
-                                           vertex_attrib.buffer.stride(),
-                                           BUFFER_OFFSET(vertex_attrib.offset));
-                }
-                else
-#endif
                 if(vertex_attrib.type == GL_FLOAT)
                 {
                     glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,
                                           vertex_attrib.normalize, vertex_attrib.buffer.stride(),
                                           BUFFER_OFFSET(vertex_attrib.offset));
                 }
+#if !defined(KINSKI_GLES)
+                else if(vertex_attrib.type == GL_INT)
+                {
+                    glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
+                                           vertex_attrib.buffer.stride(),
+                                           BUFFER_OFFSET(vertex_attrib.offset));
+                }
+#endif
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
