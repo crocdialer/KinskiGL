@@ -455,10 +455,9 @@ namespace kinski {
                     windows().front()->set_size(*m_window_size);
                     gl::set_window_dimension(*m_window_size);
                 }
-                
-                m_gui_camera = gl::OrthographicCamera::create(0, gl::window_dimension().x, 0,
-                                                              gl::window_dimension().y, 0, 1.f);
             }
+            m_gui_camera = gl::OrthographicCamera::create(0, gl::window_dimension().x, 0,
+                                                          gl::window_dimension().y, 0, 1.f);
         }
         else if(theProperty == m_fullscreen)
         {

@@ -137,14 +137,13 @@ void Timer::expires_from_now(double secs)
     
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(duration_t(secs)));
     m_impl->m_running = true;
-    
+
     m_impl->m_timer.async_wait([this, impl_cp, secs](const boost::system::error_code &error)
     {
-        impl_cp->m_running = false;
-        
         // Timer expired regularly
         if(!error && impl_cp.use_count() > 1)
         {
+            impl_cp->m_running = false;
             if(impl_cp->m_callback) { impl_cp->m_callback(); }
             if(impl_cp->m_periodic){ expires_from_now(secs); }
         }
@@ -165,7 +164,7 @@ bool Timer::has_expired() const
 
 void Timer::cancel()
 {
-    if(m_impl){ m_impl->m_timer.cancel(); }
+    if(m_impl){ m_impl->m_running = false; m_impl->m_timer.cancel(); }
 }
 
 bool Timer::periodic() const
