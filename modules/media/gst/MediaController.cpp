@@ -285,10 +285,10 @@ struct MediaControllerImpl
                                                       GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
 #elif defined(KINSKI_MAC)
             auto platform_data_mac = std::dynamic_pointer_cast<gl::PlatformDataCGL>(gl::context()->platform_data());
-            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platform_data_mac->cgl_context,
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
+                                                      (guintptr)platform_data_mac->cgl_context,
                                                       GST_GL_PLATFORM_CGL, GST_GL_API_OPENGL);
 #endif
-
 
             m_gl_upload = gst_element_factory_make("glupload", "upload");
             if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
