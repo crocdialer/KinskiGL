@@ -181,7 +181,7 @@ namespace kinski{ namespace media{
                       {
                           m_impl->m_loaded = true;
                           set_loop(loop || m_impl->m_loop);
-
+                          
                           if(autoplay){ play(); }
                           else{ pause(); }
 
@@ -569,7 +569,7 @@ namespace kinski{ namespace media{
         if(!is_loaded()){ return; }
 
         m_impl->m_rate = r;
-        [m_impl->m_player setRate: r];
+        if(is_playing()){ [m_impl->m_player setRate: r]; }
     }
 
 /////////////////////////////////////////////////////////////////
