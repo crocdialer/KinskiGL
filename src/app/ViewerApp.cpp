@@ -182,9 +182,9 @@ namespace kinski {
         // update joysticks
         for(auto &joystick : get_joystick_states())
         {
-            float min_val = 0.0f, multiplier = .1f;
-            float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
-            float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
+            float min_val = 0.05f, multiplier = .1f;
+            float x_axis = fabs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
+            float y_axis = fabs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
 
             *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * x_axis, gl::Y_AXIS));
             *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * y_axis, gl::X_AXIS));
