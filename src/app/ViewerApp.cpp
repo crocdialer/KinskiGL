@@ -180,18 +180,26 @@ namespace kinski {
         }
 
         // update joysticks
-//        for(auto &joystick : get_joystick_states())
-//        {
-//            float min_val = .38f, multiplier = 1.2f;
-//            float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
-//            float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
-//
-//            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * x_axis, gl::Y_AXIS));
-//            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * y_axis, gl::Z_AXIS));
-//
-//            if(joystick.buttons()[4]){ *m_distance += 5.f; }
-//            if(joystick.buttons()[5]){ *m_distance -= 5.f; }
-//        }
+        for(auto &joystick : get_joystick_states())
+        {
+            float min_val = 0.0f, multiplier = .1f;
+            float x_axis = abs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
+            float y_axis = abs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
+
+            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * x_axis, gl::Y_AXIS));
+            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * y_axis, gl::X_AXIS));
+
+            if(joystick.buttons()[4]){ *m_distance += 5.f; }
+            if(joystick.buttons()[5]){ *m_distance -= 5.f; }
+
+//            LOG_DEBUG << x_axis;
+
+            for(int i = 0; i < joystick.buttons().size(); ++i)
+            {
+                const auto b = joystick.buttons()[i];
+                if(b){ LOG_DEBUG << joystick.name() << ": " << "button " << i; }
+            }
+        }
 
         // update animations
         for(auto &anim : m_animations)

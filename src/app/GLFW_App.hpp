@@ -141,6 +141,7 @@ namespace kinski
         static void s_charFunc(GLFWwindow* window, unsigned int key);
         static void s_file_drop_func(GLFWwindow* window, int num_files, const char **paths);
         static void s_monitor_func(GLFWmonitor* the_monitor, int);
+        static void s_joystick_cb(int joy, int event);
 
         // return the current key and mouse button modifier mask
         static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,

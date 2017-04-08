@@ -237,6 +237,10 @@ namespace kinski
         TwInit(TW_OPENGL_CORE, nullptr);
         set_window_size(main_window->size());
 
+#if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
+        glfwSetJoystickCallback(&GLFW::s_joystick_cb);
+#endif
+
         // call user defined setup callback
         setup();
     }
@@ -618,6 +622,18 @@ namespace kinski
 
         if(status == GLFW_CONNECTED){ LOG_DEBUG << "monitor connected: " << name; }
         else if(status == GLFW_DISCONNECTED){ LOG_DEBUG << "monitor disconnected: " << name; }
+    }
+
+    void GLFW_App::s_joystick_cb(int joy, int event)
+    {
+        if (event == GLFW_CONNECTED)
+        {
+            LOG_DEBUG << "joystick " << joy << " connected";
+        }
+        else if (event == GLFW_DISCONNECTED)
+        {
+            LOG_DEBUG << "joystick " << joy << " disconnected";
+        }
     }
 
 /****************************  TweakBar + Properties **************************/
