@@ -238,7 +238,7 @@ namespace kinski
         set_window_size(main_window->size());
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 2
-        glfwSetJoystickCallback(&GLFW::s_joystick_cb);
+        glfwSetJoystickCallback(&GLFW_App::s_joystick_cb);
 #endif
 
         // call user defined setup callback
