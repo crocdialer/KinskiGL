@@ -6,7 +6,7 @@
 
 namespace kinski{ namespace media{
 
-std::weak_ptr<GstGLDisplay> GstUtil::s_gst_gl_display = nullptr;
+std::weak_ptr<GstGLDisplay> GstUtil::s_gst_gl_display;
 const int GstUtil::s_enable_async_state_change = true;
 
 GstUtil::GstUtil()
@@ -382,6 +382,180 @@ void GstUtil::reset_bus()
     m_gst_bus = nullptr;
 }
 
+GstBusSyncReply GstUtil::check_bus_messages_sync(GstBus* bus, GstMessage* message, gpointer userData)
+{
+    if(!userData ){ return GST_BUS_DROP; }
+
+    GstUtil* self = static_cast<GstUtil*>(userData);
+
+    switch(GST_MESSAGE_TYPE(message))
+    {
+        case GST_MESSAGE_NEED_CONTEXT:
+        {
+            const gchar *context_type = nullptr;
+            GstContext* context = nullptr;
+            gst_message_parse_context_type(message, &context_type);
+
+            LOG_TRACE_2 << "need context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+
+            if(g_strcmp0(context_type, GST_GL_DISPLAY_CONTEXT_TYPE) == 0)
+            {
+                context = gst_context_new(GST_GL_DISPLAY_CONTEXT_TYPE, TRUE);
+                gst_context_set_gl_display(context, self->m_gst_gl_display.get());
+                gst_element_set_context(GST_ELEMENT(message->src), context);
+            }
+            else if(g_strcmp0(context_type, "gst.gl.app_context") == 0)
+            {
+                context = gst_context_new("gst.gl.app_context", TRUE);
+                GstStructure *s = gst_context_writable_structure(context);
+                gst_structure_set(s, "context", GST_GL_TYPE_CONTEXT, self->m_gl_context, nullptr);
+                gst_element_set_context(GST_ELEMENT(message->src), context);
+            }
+
+            if(context){ gst_context_unref(context); }
+            break;
+        }
+        default: break;
+    }
+    return GST_BUS_PASS;
+}
+
+gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpointer userData)
+{
+    if(!userData){ return true; }
+
+    GstUtil* self = static_cast<GstUtil*>(userData);
+
+    switch(GST_MESSAGE_TYPE(message))
+    {
+        case GST_MESSAGE_ERROR:
+        {
+            GError *err = nullptr;
+            gchar *dbg;
+            gst_message_parse_error(message, &err, &dbg);
+            gst_object_default_error(message->src, err, dbg);
+            g_error_free(err);
+            g_free(dbg);
+
+            GstStateChangeReturn state = gst_element_set_state(self->m_pipeline, GST_STATE_NULL);
+
+            if(state == GST_STATE_CHANGE_FAILURE)
+            {
+                LOG_ERROR << "failed to set the pipeline to nullptr state after ERROR occured";
+            }
+            break;
+        }
+
+        case GST_MESSAGE_HAVE_CONTEXT:
+        {
+            GstContext *context = nullptr;
+            const gchar *context_type = nullptr;
+            gchar *context_str = nullptr;
+
+            gst_message_parse_have_context(message, &context);
+            context_type = gst_context_get_context_type(context);
+            context_str = gst_structure_to_string(gst_context_get_structure(context));
+            LOG_TRACE_2 << "have context " << context_type << " from element " << GST_ELEMENT_NAME(GST_MESSAGE_SRC(message));
+            g_free(context_str);
+
+            if(context){ gst_context_unref(context); }
+            break;
+        }
+
+        case GST_MESSAGE_BUFFERING:
+        {
+            // no buffering for live sources.
+            if(self->m_live) break;
+            gint percent = 0;
+            gst_message_parse_buffering(message, &percent);
+            LOG_DEBUG << "buffering " << std::setfill('0') << std::setw(3) << percent << " %";
+
+            if(percent == 100)
+            {
+                self->m_buffering = false;
+                LOG_TRACE_2 << "buffering complete!";
+
+                if(self->m_target_state == GST_STATE_PLAYING)
+                {
+                    gst_element_set_state(self->m_pipeline, GST_STATE_PLAYING);
+                }
+            }
+            else
+            {
+                if(!self->m_buffering && self->m_target_state == GST_STATE_PLAYING)
+                {
+                    gst_element_set_state(self->m_pipeline, GST_STATE_PAUSED);
+                    LOG_TRACE_2 << "buffering in process ...";
+                }
+                self->m_buffering = true;
+            }
+            break;
+        }
+
+            // possibly due to network connection error while streaming
+        case GST_MESSAGE_CLOCK_LOST:
+        {
+            // Get a new clock
+            gst_element_set_state(self->m_pipeline, GST_STATE_PAUSED);
+            gst_element_set_state(self->m_pipeline, GST_STATE_PLAYING);
+            break;
+        }
+
+        case GST_MESSAGE_DURATION_CHANGED:
+            break;
+
+        case GST_MESSAGE_STATE_CHANGED:
+        {
+            if(GST_MESSAGE_SRC(message) == GST_OBJECT(self->m_pipeline))
+            {
+                GstState old, current, pending;
+                gst_message_parse_state_changed(message, &old, &current, &pending);
+
+                if(old != current)
+                {
+                    LOG_TRACE_2 << "pipeline state changed from: "
+                                << gst_element_state_get_name(old) << " to: "
+                                << gst_element_state_get_name(current) << " with pending: "
+                                << gst_element_state_get_name(pending);
+                }
+                self->update_state(current);
+
+                if(self->m_target_state != self->m_current_state && pending == GST_STATE_VOID_PENDING)
+                {
+                    if(self->m_target_state == GST_STATE_PAUSED){ self->set_pipeline_state(GST_STATE_PAUSED); }
+                    else if(self->m_target_state == GST_STATE_PLAYING){ self->set_pipeline_state(GST_STATE_PLAYING); }
+                }
+            }
+            break;
+        }
+        case GST_MESSAGE_ASYNC_DONE:
+        {
+            switch(self->m_current_state)
+            {
+                case GST_STATE_PAUSED:
+                {
+                    if(self->m_on_async_done_cb){ self->m_on_async_done_cb(); }
+                    break;
+                }
+
+                default:
+                    break;
+            }
+            break;
+        }
+
+        case GST_MESSAGE_EOS:
+        {
+            if(self->m_on_end_cb){ self->m_on_end_cb(); }
+            break;
+        }
+
+        default: break;
+    }
+
+    return true;
+}
+
 void GstUtil::on_gst_eos(GstAppSink *sink, gpointer userData)
 {
 
@@ -401,54 +575,69 @@ GstFlowReturn GstUtil::on_gst_preroll(GstAppSink *sink, gpointer userData)
     return GST_FLOW_OK;
 }
 
-const std::atomic<unsigned int> &GstUtil::num_video_channels() const
+const uint32_t GstUtil::num_video_channels() const
 {
     return m_num_video_channels;
 }
 
-const std::atomic<unsigned int> &GstUtil::num_audio_channels() const
+const uint32_t GstUtil::num_audio_channels() const
 {
     return m_num_audio_channels;
 }
 
-const std::atomic<bool> &GstUtil::has_subtitle() const
+const bool GstUtil::has_subtitle() const
 {
     return m_has_subtitle;
 }
 
-const std::atomic<bool> &GstUtil::is_prerolled() const
+const bool GstUtil::is_prerolled() const
 {
     return m_prerolled;
 }
 
-const std::atomic<bool> &GstUtil::is_live() const
+const bool GstUtil::is_live() const
 {
     return m_live;
 }
 
-const std::atomic<bool> &GstUtil::is_buffering() const
+const bool GstUtil::is_buffering() const
 {
     return m_buffering;
 }
 
-const std::atomic<bool> &GstUtil::has_new_frame() const
+const bool GstUtil::has_new_frame() const
 {
     return m_has_new_frame;
 }
 
-const std::atomic<float> &GstUtil::fps() const
+const float GstUtil::fps() const
 {
     return m_fps;
 }
 
-const std::atomic<bool> &GstUtil::is_done() const
+const bool GstUtil::is_done() const
 {
     return m_done;
 }
 
-const std::atomic<bool> &GstUtil::is_paused() const
+const bool GstUtil::is_paused() const
 {
     return m_pause;
+}
+
+void GstUtil::set_on_load_cb(const std::function<void()> &the_cb)
+{
+    m_on_load_cb = the_cb;
+}
+
+void GstUtil::set_on_end_cb(const std::function<void()> &the_cb)
+{
+    m_on_end_cb = the_cb;
+}
+
+void GstUtil::set_on_aysnc_done_cb(const std::function<void()> &the_cb)
+{
+    m_on_async_done_cb = the_cb;
 }
 
 }}//namespaces

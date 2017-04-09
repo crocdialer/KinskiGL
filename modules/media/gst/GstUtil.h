@@ -57,16 +57,22 @@ public:
     GstElement* pipeline(){ return m_pipeline; }
     GstClock* clock(){ return m_gst_clock.get(); }
 
-    const std::atomic<unsigned int>& num_video_channels() const;
-    const std::atomic<unsigned int>& num_audio_channels() const;
-    const std::atomic<bool>& has_subtitle() const;
-    const std::atomic<bool>& is_prerolled() const;
-    const std::atomic<bool>& is_live() const;
-    const std::atomic<bool>& is_buffering() const;
-    const std::atomic<bool>& has_new_frame() const;
-    const std::atomic<float>& fps() const;
-    const std::atomic<bool>& is_done() const;
-    const std::atomic<bool>& is_paused() const;
+    GstMemory* new_buffer();
+
+    const uint32_t num_video_channels() const;
+    const uint32_t num_audio_channels() const;
+    const bool has_subtitle() const;
+    const bool is_prerolled() const;
+    const bool is_live() const;
+    const bool is_buffering() const;
+    const bool has_new_frame() const;
+    const float fps() const;
+    const bool is_done() const;
+    const bool is_paused() const;
+
+    void set_on_load_cb(const std::function<void()> &the_cb);
+    void set_on_end_cb(const std::function<void()> &the_cb);
+    void set_on_aysnc_done_cb(const std::function<void()> &the_cb);
 
 private:
     static std::weak_ptr<GstGLDisplay> s_gst_gl_display;
@@ -84,7 +90,7 @@ private:
     std::atomic<bool> m_done;
     std::atomic<bool> m_pause;
 
-    std::function<void()> m_on_load_cb;
+    std::function<void()> m_on_load_cb, m_on_end_cb, m_on_async_done_cb;
 
     // memory map that holds the incoming frame.
     GstMapInfo m_memory_map_info;
