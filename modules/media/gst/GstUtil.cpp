@@ -85,7 +85,7 @@ bool GstUtil::init_gstreamer()
 
 void GstUtil::reset_pipeline()
 {
-    if(!m_pipeline ){ return; }
+    if(!m_pipeline){ return; }
 
     gst_element_set_state(m_pipeline, GST_STATE_NULL);
     gst_element_get_state(m_pipeline, nullptr, nullptr, GST_CLOCK_TIME_NONE);
@@ -101,11 +101,17 @@ void GstUtil::reset_pipeline()
     m_gl_context = nullptr;
 }
 
-void GstUtil::construct_pipeline()
+void GstUtil::construct_pipeline(GstElement* the_pipeline)
 {
-    if(m_pipeline) return;
+    if(m_pipeline)
+    {
+        reset_pipeline();
+        reset_bus();
+    }
 
-    m_pipeline = gst_element_factory_make("playbin", "playbinsink");
+    if(!the_pipeline){ return; }
+
+    m_pipeline = the_pipeline;
     m_gst_clock = std::shared_ptr<GstClock>(gst_pipeline_get_clock(GST_PIPELINE(m_pipeline)),
                                             &gst_object_unref);
 
@@ -243,49 +249,8 @@ void GstUtil::process_sample(GstSample* sample)
         /// reset the new video flag
         m_video_has_changed = false;
     }
-
     gst_sample_unref(sample);
     m_has_new_frame = true;
-//        {
-//            std::lock_guard<std::mutex> guard(m_mutex);
-//            GstBuffer* new_buffer = gst_sample_get_buffer(sample);
-//
-//            // map the buffer for reading
-//            gst_buffer_map(new_buffer, &m_memory_map_info, GST_MAP_READ);
-//
-//            // We have pre-rolled so query info and allocate buffers if we have a new video.
-//            if(m_video_has_changed)
-//            {
-//                GstCaps* currentCaps = gst_sample_get_caps(sample);
-//
-//                if(gst_video_info_from_caps(&m_video_info, currentCaps))
-//                {
-//                    //
-//                }
-//                auto deleter = []( unsigned char* p ) {
-//                    delete [] p;
-//                };
-//                if(!mFrontVBuffer)
-//                {
-//                    mFrontVBuffer = std::shared_ptr<unsigned char>(new unsigned char[m_memory_map_info.size], deleter);
-//                }
-//
-//                if(!mBackVBuffer)
-//                {
-//                    mBackVBuffer = std::shared_ptr<unsigned char>(new unsigned char[m_memory_map_info.size], deleter);
-//                }
-//
-//                /// reset the new video flag
-//                m_video_has_changed = false;
-//            }
-//            memcpy( mBackVBuffer.get(), m_memory_map_info.data, m_memory_map_info.size);
-//            gst_buffer_unmap(new_buffer, &m_memory_map_info);
-//            mNewFrame = true;
-//
-//            // Finished working with the sample - unref-it.
-//            gst_sample_unref(sample);
-//            sample = nullptr;
-//        }
 }
 
 void GstUtil::update_state(GstState the_state)
@@ -578,15 +543,14 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
     return true;
 }
 
-GstMemory* GstUtil::new_buffer()
+GstBuffer* GstUtil::new_buffer()
 {
     if(m_has_new_frame)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
-        GstMemory *mem = gst_buffer_peek_memory(m_new_buffer.get(), 0);
-        std::swap(m_new_buffer, m_current_buffer);
         m_has_new_frame = false;
-        return mem;
+        std::swap(m_new_buffer, m_current_buffer);
+        return m_current_buffer.get();
     }
     return nullptr;
 }

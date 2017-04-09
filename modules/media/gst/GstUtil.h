@@ -56,13 +56,13 @@ public:
 
     void reset_pipeline();
 
-    void construct_pipeline();
+    void construct_pipeline(GstElement* the_pipeline = nullptr);
 
     GstElement* pipeline(){ return m_pipeline; }
 
     GstClock* clock(){ return m_gst_clock.get(); }
 
-    GstMemory* new_buffer();
+    GstBuffer* new_buffer();
     const GstVideoInfo &video_info() const;
 
     bool is_playing() const;
@@ -100,8 +100,6 @@ private:
 
     std::function<void()> m_on_load_cb, m_on_end_cb, m_on_async_done_cb;
 
-    // memory map that holds the incoming frame.
-    GstMapInfo m_memory_map_info;
     GstVideoInfo m_video_info;
 
     GstElement* m_pipeline = nullptr;

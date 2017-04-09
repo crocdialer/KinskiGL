@@ -4,13 +4,13 @@
 
 namespace kinski{ namespace media{
 
-    struct CameraController::Impl
+    struct CameraControllerImpl
     {
-        Impl(int device_id)
+        CameraControllerImpl(int device_id)
         {
         }
 
-        ~Impl()
+        ~CameraControllerImpl()
         {
         };
     };
@@ -21,7 +21,7 @@ namespace kinski{ namespace media{
     }
 
     CameraController::CameraController(int device_id):
-    m_impl(new Impl(device_id))
+    m_impl(new CameraControllerImpl(device_id))
     {
 
     }

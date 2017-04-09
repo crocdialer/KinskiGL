@@ -66,7 +66,7 @@ struct MediaControllerImpl
                 if(m_rate < 0){ if(mc) mc->seek_to_time(mc->duration()); }
                 else{ send_seek_event(0); }
             }
-            });
+        });
 
         m_gst_util.set_on_aysnc_done_cb([this]()
         {
@@ -188,7 +188,7 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     m_impl->m_audio_target = the_audio_target;
 
     // construct a pipeline
-    m_impl->m_gst_util.construct_pipeline();
+    m_impl->m_gst_util.construct_pipeline(gst_element_factory_make("playbin", "playbinsink"));
     m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY);
 
     std::string uri_path = filePath;
@@ -302,9 +302,9 @@ bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *he
 
 bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 {
-    if(m_impl)
+    if(m_impl && m_impl->m_gst_util.has_new_frame())
     {
-        GstMemory *mem = m_impl->m_gst_util.new_buffer();
+        GstMemory *mem = gst_buffer_peek_memory(m_impl->m_gst_util.new_buffer(), 0);
 
         if(mem && gst_is_gl_memory(mem))
         {
