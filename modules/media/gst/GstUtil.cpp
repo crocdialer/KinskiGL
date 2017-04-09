@@ -140,8 +140,8 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline)
         app_sink_callbacks.new_sample = on_gst_sample;
 
         std::string caps_descr = "video/x-raw(memory:GLMemory), format=RGBA";
-        //!sUseGstGl
-        if(false){ caps_descr = "video/x-raw, format=RGBA"; }
+
+        if(!m_use_gl){ caps_descr = "video/x-raw, format=RGBA"; }
 
         gst_app_sink_set_callbacks(GST_APP_SINK(m_app_sink), &app_sink_callbacks, this, nullptr);
         GstCaps* caps = gst_caps_from_string(caps_descr.c_str());
