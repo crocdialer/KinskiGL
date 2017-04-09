@@ -1,42 +1,6 @@
-#include <atomic>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-
-#include "core/file_functions.hpp"
+#include "GstUtil.h"
 #include "gl/Texture.hpp"
 #include "MediaController.hpp"
-
-#include <gst/gst.h>
-#include <gst/app/gstappsink.h>
-#include <gst/video/video.h>
-
-//#if GST_CHECK_VERSION(1, 4, 5)
-#include <gst/gl/gstglconfig.h>
-
-#if defined(KINSKI_RASPI)
-#undef GST_GL_HAVE_OPENGL
-//#undef GST_GL_HAVE_GLES2
-#undef GST_GL_HAVE_PLATFORM_GLX
-#else // Desktop
-#undef GST_GL_HAVE_GLES2
-#undef GST_GL_HAVE_PLATFORM_EGL
-#undef GST_GL_HAVE_GLEGLIMAGEOES
-#endif
-
-#define GST_USE_UNSTABLE_API
-#include <gst/gl/gstglcontext.h>
-#include <gst/gl/gstgldisplay.h>
-
-#if defined(KINSKI_RASPI)
-#include <gst/gl/egl/gstgldisplay_egl.h>
-#elif defined(KINSKI_LINUX)
-#include <gst/gl/x11/gstgldisplay_x11.h>
-#include "GLFW/glfw3.h"
-#define GLFW_EXPOSE_NATIVE_X11
-#define GLFW_EXPOSE_NATIVE_GLX
-#include "GLFW/glfw3native.h"
-#endif
 
 namespace kinski{ namespace media
 {
