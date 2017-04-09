@@ -49,16 +49,23 @@ namespace kinski{ namespace media{
 class GstUtil
 {
 public:
-    GstUtil();
+    GstUtil(bool use_gl);
     ~GstUtil();
 
     bool set_pipeline_state(GstState the_target_state);
 
+    void reset_pipeline();
+
+    void construct_pipeline();
+
     GstElement* pipeline(){ return m_pipeline; }
+
     GstClock* clock(){ return m_gst_clock.get(); }
 
     GstMemory* new_buffer();
+    const GstVideoInfo &video_info() const;
 
+    bool is_playing() const;
     const uint32_t num_video_channels() const;
     const uint32_t num_audio_channels() const;
     const bool has_subtitle() const;
@@ -78,6 +85,7 @@ private:
     static std::weak_ptr<GstGLDisplay> s_gst_gl_display;
     static const int s_enable_async_state_change;
 
+    bool m_use_gl;
     std::atomic<uint32_t> m_num_video_channels;
     std::atomic<uint32_t> m_num_audio_channels;
     std::atomic<bool> m_has_subtitle;
@@ -95,6 +103,7 @@ private:
     // memory map that holds the incoming frame.
     GstMapInfo m_memory_map_info;
     GstVideoInfo m_video_info;
+
     GstElement* m_pipeline = nullptr;
     GstElement* m_app_sink = nullptr;
     GstElement* m_video_bin = nullptr;
@@ -129,10 +138,6 @@ private:
     std::mutex m_mutex;
 
     bool init_gstreamer();
-
-    void reset_pipeline();
-
-    void construct_pipeline();
 
     static GstBusSyncReply check_bus_messages_sync(GstBus* bus, GstMessage* message, gpointer userData);
     static gboolean check_bus_messages_async(GstBus* bus, GstMessage* message, gpointer userData);

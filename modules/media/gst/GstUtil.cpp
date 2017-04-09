@@ -9,7 +9,21 @@ namespace kinski{ namespace media{
 std::weak_ptr<GstGLDisplay> GstUtil::s_gst_gl_display;
 const int GstUtil::s_enable_async_state_change = true;
 
-GstUtil::GstUtil()
+GstUtil::GstUtil(bool use_gl):
+m_use_gl(use_gl),
+m_num_video_channels(0),
+m_num_audio_channels(0),
+m_has_subtitle(false),
+m_prerolled(false),
+m_live(false),
+m_buffering(false),
+m_has_new_frame(false),
+m_video_has_changed(true),
+m_fps(0.f),
+m_done(false),
+m_pause(false),
+m_current_state(GST_STATE_NULL),
+m_target_state(GST_STATE_NULL)
 {
     auto success = init_gstreamer();
 
@@ -23,8 +37,6 @@ GstUtil::GstUtil()
 
 GstUtil::~GstUtil()
 {
-//    m_playing = false;
-
     if(m_pipeline)
     {
         reset_pipeline();
@@ -133,8 +145,7 @@ void GstUtil::construct_pipeline()
 
     GstPad *pad = nullptr;
 
-    //sUseGstGl
-    if(true)
+    if(m_use_gl)
     {
         if(!m_gst_gl_display)
         {
@@ -368,6 +379,17 @@ bool GstUtil::set_pipeline_state(GstState the_target_state)
     }
 }
 
+bool GstUtil::is_playing() const
+{
+    if(m_pipeline)
+    {
+        GstState current, pending;
+        gst_element_get_state(m_pipeline, &current, &pending, 0);
+        return current == GST_STATE_PLAYING;
+    }
+    return false;
+}
+
 void GstUtil::add_bus_watch(GstElement* the_pipeline)
 {
     m_gst_bus = gst_pipeline_get_bus(GST_PIPELINE(the_pipeline));
@@ -556,6 +578,19 @@ gboolean GstUtil::check_bus_messages_async(GstBus* bus, GstMessage* message, gpo
     return true;
 }
 
+GstMemory* GstUtil::new_buffer()
+{
+    if(m_has_new_frame)
+    {
+        std::lock_guard<std::mutex> guard(m_mutex);
+        GstMemory *mem = gst_buffer_peek_memory(m_new_buffer.get(), 0);
+        std::swap(m_new_buffer, m_current_buffer);
+        m_has_new_frame = false;
+        return mem;
+    }
+    return nullptr;
+}
+
 void GstUtil::on_gst_eos(GstAppSink *sink, gpointer userData)
 {
 
@@ -638,6 +673,11 @@ void GstUtil::set_on_end_cb(const std::function<void()> &the_cb)
 void GstUtil::set_on_aysnc_done_cb(const std::function<void()> &the_cb)
 {
     m_on_async_done_cb = the_cb;
+}
+
+const GstVideoInfo& GstUtil::video_info() const
+{
+    return m_video_info;
 }
 
 }}//namespaces

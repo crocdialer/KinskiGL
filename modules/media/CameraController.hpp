@@ -8,8 +8,7 @@
 
 namespace kinski{ namespace media{
 
-    class CameraController;
-    typedef std::shared_ptr<CameraController> CameraControllerPtr;
+    DEFINE_CLASS_PTR(CameraController);
     
     class CameraController
     {
@@ -45,7 +44,6 @@ namespace kinski{ namespace media{
     private:
         
         CameraController(int device_id);
-        struct Impl;
-        std::shared_ptr<Impl> m_impl;
+        std::shared_ptr<struct CameraControllerImpl> m_impl;
     };
 }} // namespaces

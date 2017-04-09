@@ -132,21 +132,21 @@
 
 namespace kinski{ namespace media{
     
-    struct CameraController::Impl
+    struct CameraControllerImpl
     {
         Camera* m_camera;
         
         gl::Buffer m_pbo[2];
         uint8_t m_pbo_index;
-        
-        Impl(int device_id):
+
+        CameraControllerImpl(int device_id):
         m_camera(nullptr),
         m_pbo_index(0)
         {
             m_camera = [[Camera alloc] initWithDeviceId: device_id];
         }
         
-        ~Impl()
+        ~CameraControllerImpl()
         {
             [m_camera dealloc];
         };
@@ -158,7 +158,7 @@ namespace kinski{ namespace media{
     }
     
     CameraController::CameraController(int device_id):
-    m_impl(new Impl(device_id))
+    m_impl(new CameraControllerImpl(device_id))
     {
         
     }
