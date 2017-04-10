@@ -101,7 +101,7 @@ void GstUtil::reset_pipeline()
     m_gl_context = nullptr;
 }
 
-void GstUtil::construct_pipeline(GstElement* the_pipeline)
+void GstUtil::construct_pipeline(GstElement* the_pipeline, GstElement* the_appsink)
 {
     if(m_pipeline)
     {
@@ -120,36 +120,49 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline)
         LOG_ERROR << "failed to create playbin pipeline";
         return;
     }
-    m_video_bin = gst_bin_new("kinski-vbin");
-    if(!m_video_bin){ LOG_ERROR << "Failed to create video bin"; }
 
-    m_app_sink = gst_element_factory_make("appsink", "videosink");
-
-    if(!m_app_sink){ LOG_ERROR << "failed to create app sink element"; }
+    if(the_appsink)
+    {
+        LOG_DEBUG << "using provided appsink";
+        m_app_sink = the_appsink;
+    }
     else
     {
+        m_app_sink = gst_element_factory_make("appsink", "videosink");
+
+        if(!m_app_sink)
+        {
+            LOG_ERROR << "failed to create app sink element";
+            return;
+        }
+
         gst_app_sink_set_max_buffers(GST_APP_SINK(m_app_sink), 1);
         gst_app_sink_set_drop(GST_APP_SINK(m_app_sink), true);
         gst_base_sink_set_qos_enabled(GST_BASE_SINK(m_app_sink), true);
         gst_base_sink_set_sync(GST_BASE_SINK(m_app_sink), true);
         gst_base_sink_set_max_lateness(GST_BASE_SINK(m_app_sink), 20 * GST_MSECOND);
 
-        GstAppSinkCallbacks app_sink_callbacks;
-        app_sink_callbacks.eos = on_gst_eos;
-        app_sink_callbacks.new_preroll = on_gst_preroll;
-        app_sink_callbacks.new_sample = on_gst_sample;
-
         std::string caps_descr = "video/x-raw(memory:GLMemory), format=RGBA";
-
         if(!m_use_gl){ caps_descr = "video/x-raw, format=RGBA"; }
-
-        gst_app_sink_set_callbacks(GST_APP_SINK(m_app_sink), &app_sink_callbacks, this, nullptr);
         GstCaps* caps = gst_caps_from_string(caps_descr.c_str());
         gst_app_sink_set_caps(GST_APP_SINK(m_app_sink), caps);
         gst_caps_unref(caps);
     }
 
+    // set appsink callbacks
+    GstAppSinkCallbacks app_sink_callbacks;
+    app_sink_callbacks.eos = on_gst_eos;
+    app_sink_callbacks.new_preroll = on_gst_preroll;
+    app_sink_callbacks.new_sample = on_gst_sample;
+    gst_app_sink_set_callbacks(GST_APP_SINK(m_app_sink), &app_sink_callbacks, this, nullptr);
+
     GstPad *pad = nullptr;
+
+    if(!the_appsink)
+    {
+        m_video_bin = gst_bin_new("kinski-vbin");
+        if(!m_video_bin){ LOG_ERROR << "Failed to create video bin"; }
+    }
 
     if(m_use_gl)
     {
@@ -214,7 +227,7 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline)
         pad = gst_element_get_static_pad(m_raw_caps_filter, "sink");
         gst_element_add_pad(m_video_bin, gst_ghost_pad_new("sink", pad));
     }
-    else
+    else if(!the_appsink)
     {
         gst_bin_add(GST_BIN(m_video_bin), m_app_sink);
         pad = gst_element_get_static_pad(m_app_sink, "sink");
@@ -226,7 +239,10 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline)
         gst_object_unref(pad);
         pad = nullptr;
     }
-    g_object_set(G_OBJECT(m_pipeline), "video-sink", m_video_bin, nullptr);
+
+    if(!the_appsink)
+        g_object_set(G_OBJECT(m_pipeline), "video-sink", m_video_bin, nullptr);
+
     add_bus_watch(m_pipeline);
 }
 

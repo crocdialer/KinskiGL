@@ -44,13 +44,13 @@ class KINSKI_API Buffer
     GLint id() const;
     GLenum target() const;
     GLenum usage() const;
-    GLsizei num_bytes() const;
-    GLsizei stride() const;
+    size_t num_bytes() const;
+    size_t stride() const;
     
     void set_target(GLenum theTarget);
     void set_usage(GLenum theUsage);
-    void set_stride(GLsizei theStride);
-    void set_data(const void *theData, GLsizei num_bytes);
+    void set_stride(size_t theStride);
+    void set_data(const void *theData, size_t num_bytes);
     
     template <typename T>
     inline void set_data(const std::vector<T> &the_vec)

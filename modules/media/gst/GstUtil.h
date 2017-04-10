@@ -56,7 +56,7 @@ public:
 
     void reset_pipeline();
 
-    void construct_pipeline(GstElement* the_pipeline = nullptr);
+    void construct_pipeline(GstElement* the_pipeline, GstElement* the_appsink = nullptr);
 
     GstElement* pipeline(){ return m_pipeline; }
 

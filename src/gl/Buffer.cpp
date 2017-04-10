@@ -29,8 +29,8 @@ struct BufferImpl
     GLuint buffer_id;
     GLenum target;
     GLenum usage;
-    GLsizei num_bytes;
-    GLsizei stride;
+    size_t num_bytes;
+    size_t stride;
     bool do_not_dispose;
 };
     
@@ -106,12 +106,12 @@ GLenum Buffer::usage() const
     return m_impl->usage;
 }
 
-GLsizei Buffer::num_bytes() const
+size_t Buffer::num_bytes() const
 {
     return m_impl->num_bytes;
 }
 
-GLsizei Buffer::stride() const
+size_t Buffer::stride() const
 {
     return m_impl->stride;
 }
@@ -137,12 +137,12 @@ void Buffer::set_usage(GLenum theUsage)
     if(m_impl) m_impl->usage = theUsage;
 }
     
-void Buffer::set_stride(GLsizei theStride)
+void Buffer::set_stride(size_t theStride)
 {
     m_impl->stride = theStride;
 }
     
-void Buffer::set_data(const void *the_data, GLsizei num_bytes)
+void Buffer::set_data(const void *the_data, size_t num_bytes)
 {
     if(!m_impl)
     {

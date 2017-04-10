@@ -194,7 +194,7 @@ namespace kinski {
 
 //            LOG_DEBUG << x_axis;
 
-            for(int i = 0; i < joystick.buttons().size(); ++i)
+            for(uint32_t i = 0; i < joystick.buttons().size(); ++i)
             {
                 const auto b = joystick.buttons()[i];
                 if(b){ LOG_DEBUG << joystick.name() << ": " << "button " << i; }
