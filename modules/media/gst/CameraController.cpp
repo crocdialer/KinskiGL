@@ -61,8 +61,8 @@ void CameraController::start_capture()
                 "v4l2src device=/dev/video0 ! "
                 "video/x-raw, format=RGB, width=1280, height=720, framerate=60/1 !"
                 "decodebin !"
-                "videoconvert !"
-                "appsink name=kinski_appsink enable-last-sample=0 caps=\"video/x-raw,format=RGBA\"";
+//                "videoconvert !"
+                "appsink name=kinski_appsink enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
         GError *error = nullptr;
 
         // construct a pipeline
@@ -145,7 +145,7 @@ bool CameraController::copy_frame_to_texture(gl::Texture &tex)
 
             // bind pbo and schedule texture upload
             m_impl->m_buffer_front.bind();
-            tex.update(nullptr, GL_UNSIGNED_BYTE, GL_RGBA, width, height, true);
+            tex.update(nullptr, GL_UNSIGNED_BYTE, GL_RGB, width, height, true);
             m_impl->m_buffer_front.unbind();
 
             // ping pong our pbos
