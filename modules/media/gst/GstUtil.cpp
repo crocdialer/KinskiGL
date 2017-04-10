@@ -97,7 +97,7 @@ void GstUtil::reset_pipeline()
     m_gl_upload = nullptr;
     m_gl_color_convert = nullptr;
 
-    gst_object_unref(m_gl_context);
+    if(m_gl_context){ gst_object_unref(m_gl_context); }
     m_gl_context = nullptr;
 }
 
@@ -121,11 +121,8 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline, GstElement* the_appsi
         return;
     }
 
-    if(the_appsink)
-    {
-        LOG_DEBUG << "using provided appsink";
-        m_app_sink = the_appsink;
-    }
+    // user provided appsink?
+    if(the_appsink){ m_app_sink = the_appsink; }
     else
     {
         m_app_sink = gst_element_factory_make("appsink", "videosink");
@@ -147,6 +144,83 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline, GstElement* the_appsi
         GstCaps* caps = gst_caps_from_string(caps_descr.c_str());
         gst_app_sink_set_caps(GST_APP_SINK(m_app_sink), caps);
         gst_caps_unref(caps);
+
+        GstPad *pad = nullptr;
+        m_video_bin = gst_bin_new("kinski-vbin");
+        if(!m_video_bin){ LOG_ERROR << "Failed to create video bin"; }
+
+        if(m_use_gl)
+        {
+            if(!m_gst_gl_display)
+            {
+                GstGLDisplay* gl_display = nullptr;
+#if defined(KINSKI_EGL)
+                auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
+                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_display);
+#elif defined(KINSKI_LINUX)
+                gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
+#elif defined(KINSKI_MAC)
+                gl_display = gst_gl_display_new();
+#endif
+                m_gst_gl_display = std::shared_ptr<GstGLDisplay>(gl_display, &gst_object_unref);
+                s_gst_gl_display = m_gst_gl_display;
+            }
+#if defined(KINSKI_EGL)
+            auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platform_data_egl->egl_context,
+                                                      GST_GL_PLATFORM_EGL, GST_GL_API_GLES2);
+#elif defined(KINSKI_LINUX)
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
+                                                      (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
+                                                      GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
+#elif defined(KINSKI_MAC)
+            auto platform_data_mac = std::dynamic_pointer_cast<gl::PlatformDataCGL>(gl::context()->platform_data());
+            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
+                                                      (guintptr)platform_data_mac->cgl_context,
+                                                      GST_GL_PLATFORM_CGL, GST_GL_API_OPENGL);
+#endif
+
+            m_gl_upload = gst_element_factory_make("glupload", "upload");
+            if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
+
+            m_gl_color_convert = gst_element_factory_make("glcolorconvert", "convert");
+            if(!m_gl_color_convert){ LOG_ERROR << "failed to create GL convert element"; }
+
+            m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
+
+#if defined(KINSKI_EGL)
+            if(m_raw_caps_filter)
+            {
+                g_object_set(G_OBJECT(m_raw_caps_filter), "caps",
+                             gst_caps_from_string("video/x-raw(memory:GLMemory)"), nullptr);
+            }
+#else
+            if(m_raw_caps_filter)
+            {
+                g_object_set(G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw" ), nullptr );
+            }
+#endif
+            else{ LOG_ERROR << "failed to create raw caps filter element"; }
+
+            gst_bin_add_many(GST_BIN(m_video_bin), m_raw_caps_filter, m_gl_upload, m_gl_color_convert, m_app_sink,
+                             nullptr);
+
+            if(!gst_element_link_many(m_raw_caps_filter, m_gl_upload, m_gl_color_convert, m_app_sink, nullptr))
+            {
+                LOG_ERROR << "failed to link video elements";
+            }
+            pad = gst_element_get_static_pad(m_raw_caps_filter, "sink");
+            gst_element_add_pad(m_video_bin, gst_ghost_pad_new("sink", pad));
+        }
+        else
+        {
+            gst_bin_add(GST_BIN(m_video_bin), m_app_sink);
+            pad = gst_element_get_static_pad(m_app_sink, "sink");
+            gst_element_add_pad(m_video_bin, gst_ghost_pad_new("sink", pad));
+        }
+
+        if(pad){ gst_object_unref(pad); }
+        g_object_set(G_OBJECT(m_pipeline), "video-sink", m_video_bin, nullptr);
     }
 
     // set appsink callbacks
@@ -155,93 +229,6 @@ void GstUtil::construct_pipeline(GstElement* the_pipeline, GstElement* the_appsi
     app_sink_callbacks.new_preroll = on_gst_preroll;
     app_sink_callbacks.new_sample = on_gst_sample;
     gst_app_sink_set_callbacks(GST_APP_SINK(m_app_sink), &app_sink_callbacks, this, nullptr);
-
-    GstPad *pad = nullptr;
-
-    if(!the_appsink)
-    {
-        m_video_bin = gst_bin_new("kinski-vbin");
-        if(!m_video_bin){ LOG_ERROR << "Failed to create video bin"; }
-    }
-
-    if(m_use_gl)
-    {
-        if(!m_gst_gl_display)
-        {
-            GstGLDisplay* gl_display = nullptr;
-#if defined(KINSKI_EGL)
-            auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
-                gl_display = (GstGLDisplay*) gst_gl_display_egl_new_with_egl_display(platform_data_egl->egl_display);
-#elif defined(KINSKI_LINUX)
-            gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
-#elif defined(KINSKI_MAC)
-            gl_display = gst_gl_display_new();
-#endif
-            m_gst_gl_display = std::shared_ptr<GstGLDisplay>(gl_display, &gst_object_unref);
-            s_gst_gl_display = m_gst_gl_display;
-        }
-#if defined(KINSKI_EGL)
-        auto platform_data_egl = std::dynamic_pointer_cast<gl::PlatformDataEGL>(gl::context()->platform_data());
-            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(), (guintptr)platform_data_egl->egl_context,
-                                                      GST_GL_PLATFORM_EGL, GST_GL_API_GLES2);
-#elif defined(KINSKI_LINUX)
-        m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
-                                                  (guintptr)::glfwGetGLXContext(glfwGetCurrentContext()),
-                                                  GST_GL_PLATFORM_GLX, GST_GL_API_OPENGL);
-#elif defined(KINSKI_MAC)
-        auto platform_data_mac = std::dynamic_pointer_cast<gl::PlatformDataCGL>(gl::context()->platform_data());
-            m_gl_context = gst_gl_context_new_wrapped(m_gst_gl_display.get(),
-                                                      (guintptr)platform_data_mac->cgl_context,
-                                                      GST_GL_PLATFORM_CGL, GST_GL_API_OPENGL);
-#endif
-
-        m_gl_upload = gst_element_factory_make("glupload", "upload");
-        if(!m_gl_upload){ LOG_ERROR << "failed to create GL upload element"; };
-
-        m_gl_color_convert = gst_element_factory_make("glcolorconvert", "convert");
-        if(!m_gl_color_convert){ LOG_ERROR << "failed to create GL convert element"; }
-
-        m_raw_caps_filter = gst_element_factory_make("capsfilter", "rawcapsfilter");
-
-#if defined(KINSKI_EGL)
-        if(m_raw_caps_filter)
-            {
-                g_object_set(G_OBJECT(m_raw_caps_filter), "caps",
-                             gst_caps_from_string("video/x-raw(memory:GLMemory)"), nullptr);
-            }
-#else
-        if(m_raw_caps_filter)
-        {
-            g_object_set(G_OBJECT(m_raw_caps_filter), "caps", gst_caps_from_string( "video/x-raw" ), nullptr );
-        }
-#endif
-        else{ LOG_ERROR << "failed to create raw caps filter element"; }
-
-        gst_bin_add_many(GST_BIN(m_video_bin), m_raw_caps_filter, m_gl_upload, m_gl_color_convert, m_app_sink,
-                         nullptr);
-
-        if(!gst_element_link_many(m_raw_caps_filter, m_gl_upload, m_gl_color_convert, m_app_sink, nullptr))
-        {
-            LOG_ERROR << "failed to link video elements";
-        }
-        pad = gst_element_get_static_pad(m_raw_caps_filter, "sink");
-        gst_element_add_pad(m_video_bin, gst_ghost_pad_new("sink", pad));
-    }
-    else if(!the_appsink)
-    {
-        gst_bin_add(GST_BIN(m_video_bin), m_app_sink);
-        pad = gst_element_get_static_pad(m_app_sink, "sink");
-        gst_element_add_pad(m_video_bin, gst_ghost_pad_new("sink", pad));
-    }
-
-    if(pad)
-    {
-        gst_object_unref(pad);
-        pad = nullptr;
-    }
-
-    if(!the_appsink)
-        g_object_set(G_OBJECT(m_pipeline), "video-sink", m_video_bin, nullptr);
 
     add_bus_watch(m_pipeline);
 }
