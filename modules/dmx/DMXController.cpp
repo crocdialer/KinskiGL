@@ -32,7 +32,7 @@
 
 #define STD_TIMEOUT_RECONNECT 0.f
 
-namespace kinski
+namespace kinski{ namespace dmx
 {
     struct DMXControllerImpl
     {
@@ -160,4 +160,4 @@ namespace kinski
         return m_impl->m_serial->is_open();
     }
 
-}// namespace
+}}// namespace

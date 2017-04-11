@@ -50,7 +50,7 @@ namespace kinski { namespace gl {
     Scene::Scene():
     m_root(new Object3D())
     {
-    
+        m_root->set_name("scene root");
     }
     
     void Scene::add_object(const Object3DPtr &the_object)
@@ -82,20 +82,21 @@ namespace kinski { namespace gl {
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
     {
         Object3DPtr ret;
-        SelectVisitor<Mesh> sv;
+        SelectVisitor<Object3D> sv;
         m_root->accept(sv);
         
         std::list<range_item_t> clicked_items;
         for (const auto &the_object : sv.get_objects())
         {
+            if(the_object == m_root.get()){ continue; }
+
             gl::OBB boundingBox = the_object->obb();
-            //(the_object->boundingbox(), the_object->global_transform());
 
             if (ray_intersection ray_hit = boundingBox.intersect(ray))
             {
                 if(high_precision)
                 {
-                    if(gl::Mesh *m = the_object)
+                    if(gl::Mesh *m = dynamic_cast<gl::Mesh*>(the_object))
                     {
                         gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
                         const auto &vertices = m->geometry()->vertices();

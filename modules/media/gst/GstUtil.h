@@ -99,6 +99,7 @@ private:
     std::atomic<bool> m_pause;
 
     std::function<void()> m_on_load_cb, m_on_end_cb, m_on_async_done_cb;
+    std::function<void(GstBuffer*)> m_on_new_frame_cb;
 
     GstVideoInfo m_video_info;
 

@@ -239,6 +239,7 @@ void GstUtil::process_sample(GstSample* sample)
     {
         std::lock_guard<std::mutex> guard(m_mutex);
         m_new_buffer = std::shared_ptr<GstBuffer>(gst_buffer_ref(gst_sample_get_buffer(sample)), &gst_buffer_unref);
+        m_has_new_frame = true;
     }
 
     if(m_video_has_changed)
@@ -253,7 +254,8 @@ void GstUtil::process_sample(GstSample* sample)
         m_video_has_changed = false;
     }
     gst_sample_unref(sample);
-    m_has_new_frame = true;
+
+    if(m_on_new_frame_cb){ m_on_new_frame_cb(new_buffer()); }
 }
 
 void GstUtil::update_state(GstState the_state)

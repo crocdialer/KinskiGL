@@ -10,7 +10,7 @@
 
 #include "core/core.hpp"
 
-namespace kinski
+namespace kinski{ namespace dmx
 {
     class DMXController
     {
@@ -36,4 +36,4 @@ namespace kinski
     private:
         std::unique_ptr<struct DMXControllerImpl> m_impl;
     };
-}// namespace
+}}// namespace

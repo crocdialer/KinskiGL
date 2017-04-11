@@ -245,32 +245,37 @@ namespace kinski { namespace gl {
         glm::vec3 lookAt = theCamera->lookAt(),
         side = theCamera->side(), up = theCamera->up();
         float near = theCamera->near();
-        // bring click_pos to range -1, 1
-        glm::vec2 offset (window_size / 2.0f);
-        glm::vec2 click_2D(window_pos);
-        click_2D -= offset;
-        click_2D /= offset;
-        click_2D.y = - click_2D.y;
-        glm::vec3 click_world_pos;
+        glm::vec3 click_world_pos, ray_dir;
 
-        if(PerspectiveCamera::Ptr cam = dynamic_pointer_cast<PerspectiveCamera>(theCamera) )
+        if(PerspectiveCamera::Ptr cam = dynamic_pointer_cast<PerspectiveCamera>(theCamera))
         {
+            // bring click_pos to range -1, 1
+            glm::vec2 click_2D(window_pos);
+            glm::vec2 offset (window_size / 2.0f);
+            click_2D -= offset;
+            click_2D /= offset;
+            click_2D.y = - click_2D.y;
+
             // convert fovy to radians
             float rad = glm::radians(cam->fov());
             float vLength = tan( rad / 2) * near;
             float hLength = vLength * cam->aspect();
 
             click_world_pos = cam_pos + lookAt * near
-            + side * hLength * click_2D.x
-            + up * vLength * click_2D.y;
+                + side * hLength * click_2D.x
+                + up * vLength * click_2D.y;
+            ray_dir = click_world_pos - cam_pos;
 
         }else if (OrthographicCamera::Ptr cam = dynamic_pointer_cast<OrthographicCamera>(theCamera))
         {
-            click_world_pos = cam_pos + lookAt * near + side * click_2D.x + up  * click_2D.y;
+            gl::vec2 coord(map_value<float>(window_pos.x, 0, window_size.x, cam->left(), cam->right()),
+                           map_value<float>(window_pos.y, window_size.y, 0, cam->bottom(), cam->top()));
+            click_world_pos = cam_pos + lookAt * near + side * coord.x + up  * coord.y;
+            ray_dir = lookAt;
         }
         LOG_TRACE_2 << "clicked_world: (" << click_world_pos.x << ",  " << click_world_pos.y
             << ",  " << click_world_pos.z << ")";
-        return Ray(click_world_pos, click_world_pos - cam_pos);
+        return Ray(click_world_pos, ray_dir);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1048,8 +1053,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             for (int i = 0; i < 24; i++)
                 theColors.push_back(colorWhite);
 
-            geom->create_gl_buffers();
-            line_mesh->create_vertex_array();
+//            geom->create_gl_buffers();
+//            line_mesh->create_vertex_array();
         }
         AABB mesh_bb = the_obj->bounding_box();
         glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
