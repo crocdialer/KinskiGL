@@ -1676,7 +1676,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                     frag_src = phong_shadows_frag;
                     break;
                 case ShaderType::PHONG_SKIN_SHADOWS:
-                    vert_src = phong_skin_vert;
+                    vert_src = phong_skin_shadows_vert;
                     frag_src = phong_shadows_frag;
                     break;
 
