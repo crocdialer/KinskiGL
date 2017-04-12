@@ -313,7 +313,7 @@ gl::MeshPtr LSystem::create_mesh() const
                 vec3 grow_dir = head();
                 
                 // number of tries to grow in this direction
-                int num_grow_tries = 0;
+                uint32_t num_grow_tries = 0;
                 
                 //geometry check here
                 while(true)
@@ -399,7 +399,7 @@ gl::MeshPtr LSystem::create_mesh() const
         
         gl::GeometryPtr merged_geom = gl::Geometry::create();
         
-        for (int i = 0; i < max_branch_depth; i++)
+        for (uint32_t i = 0; i < max_branch_depth; i++)
         {
             // merge vertices
             merged_geom->vertices().insert(merged_geom->vertices().end(),
