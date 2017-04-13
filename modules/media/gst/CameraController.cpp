@@ -91,7 +91,7 @@ void CameraController::start_capture()
 
 void CameraController::stop_capture()
 {
-    if(m_impl){ m_impl->m_gst_util.set_pipeline_state(GST_STATE_PAUSED); }
+    if(m_impl){ m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY); }
 }
 
 bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, int *height)
