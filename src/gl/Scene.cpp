@@ -79,10 +79,11 @@ namespace kinski { namespace gl {
         m_num_visible_objects = m_renderer.render_scene(shared_from_this(), theCamera, the_tags);
     }
     
-    Object3DPtr Scene::pick(const Ray &ray, bool high_precision) const
+    Object3DPtr Scene::pick(const Ray &ray, bool high_precision,
+                            const std::set<std::string> &the_tags) const
     {
         Object3DPtr ret;
-        SelectVisitor<Object3D> sv;
+        SelectVisitor<Object3D> sv(the_tags);
         m_root->accept(sv);
         
         std::list<range_item_t> clicked_items;

@@ -283,7 +283,7 @@ namespace kinski{ namespace gl{
     /********************************* PRIMITIVES ****************************************/
     
     Geometry::Ptr Geometry::create_plane(float width, float height,
-                                        uint32_t numSegments_W , uint32_t numSegments_H)
+                                         uint32_t numSegments_W , uint32_t numSegments_H)
     {
         GeometryPtr geom = Geometry::create();
         
@@ -295,10 +295,10 @@ namespace kinski{ namespace gl{
         glm::vec3 normal (0, 0, 1);
         
         // create vertices
-        for ( uint32_t iz = 0; iz < gridZ1; iz ++ )
+        for(uint32_t iz = 0; iz < gridZ1; ++iz)
         {
             
-            for ( uint32_t ix = 0; ix < gridX1; ix ++ )
+            for (uint32_t ix = 0; ix < gridX1; ++ix)
             {
                 float x = ix * segment_width - width_half;
                 float y = iz * segment_height - height_half;

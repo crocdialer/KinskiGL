@@ -26,7 +26,8 @@ namespace kinski { namespace gl {
         
         virtual void update(float time_delta);
         void render(const CameraPtr &theCamera, const std::set<std::string> &the_tags = {}) const;
-        Object3DPtr pick(const Ray &ray, bool high_precision = false) const;
+        Object3DPtr pick(const Ray &ray, bool high_precision = false,
+                         const std::set<std::string> &the_tags = {}) const;
     
         void add_object(const Object3DPtr &the_object);
         void remove_object(const Object3DPtr &the_object);
