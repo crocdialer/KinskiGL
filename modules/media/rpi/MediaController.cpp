@@ -547,7 +547,7 @@ namespace kinski{ namespace media
 
     void MediaController::play()
     {
-        if(!m_impl || (m_impl->m_playing && !m_impl->m_pause)){ return; }
+        if(!is_loaded() || (m_impl->m_playing && !m_impl->m_pause)){ return; }
         if(m_impl->m_playing && m_impl->m_pause){ m_impl->m_pause = false; }
         else
         {
