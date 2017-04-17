@@ -33,6 +33,8 @@ namespace kinski
         static const std::string PROPERTY_TYPE_UINT;
         static const std::string PROPERTY_TYPE_FLOAT_ARRAY;
         static const std::string PROPERTY_TYPE_STRING_ARRAY;
+        static const std::string PROPERTY_TYPE_INT_ARRAY;
+        static const std::string PROPERTY_TYPE_UINT_ARRAY;
         static const std::string PROPERTY_TYPE_UNKNOWN;
         static const std::string PROPERTY_NAME;
         static const std::string PROPERTIES;

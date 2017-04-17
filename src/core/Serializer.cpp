@@ -27,6 +27,8 @@ namespace kinski {
     const std::string PropertyIO::PROPERTY_TYPE_UINT = "uint";
     const std::string PropertyIO::PROPERTY_TYPE_FLOAT_ARRAY = "float_array";
     const std::string PropertyIO::PROPERTY_TYPE_STRING_ARRAY = "string_array";
+    const std::string PropertyIO::PROPERTY_TYPE_INT_ARRAY = "int_array";
+    const std::string PropertyIO::PROPERTY_TYPE_UINT_ARRAY = "uint_array";
     const std::string PropertyIO::PROPERTY_TYPE_UNKNOWN = "unknown";
     const std::string PropertyIO::PROPERTY_NAME = "name";
     const std::string PropertyIO::PROPERTIES = "properties";
@@ -82,6 +84,26 @@ namespace kinski {
         {
             theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_FLOAT_ARRAY;
             const auto& vals = theProperty->get_value<std::vector<float>>();
+            for (uint32_t i = 0; i < vals.size(); ++i)
+            {
+                theJsonValue[PROPERTY_VALUE][i] = vals[i];
+            }
+            success = true;
+        }
+        else if(theProperty->is_of_type<std::vector<int>>())
+        {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_INT_ARRAY;
+            const auto& vals = theProperty->get_value<std::vector<int>>();
+            for (uint32_t i = 0; i < vals.size(); ++i)
+            {
+                theJsonValue[PROPERTY_VALUE][i] = vals[i];
+            }
+            success = true;
+        }
+        else if(theProperty->is_of_type<std::vector<uint32_t>>())
+        {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_UINT_ARRAY;
+            const auto& vals = theProperty->get_value<std::vector<uint32_t>>();
             for (uint32_t i = 0; i < vals.size(); ++i)
             {
                 theJsonValue[PROPERTY_VALUE][i] = vals[i];
@@ -169,6 +191,34 @@ namespace kinski {
             }
             success = true;
             
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_INT_ARRAY)
+        {
+            if(theJsonValue[PROPERTY_VALUE].isArray())
+            {
+                std::vector<int> vals;
+                for (uint32_t i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+                {
+                    vals.push_back(theJsonValue[PROPERTY_VALUE][i].asInt());
+                }
+                theProperty->set_value<std::vector<int>>(vals);
+            }
+            success = true;
+
+        }
+        else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UINT_ARRAY)
+        {
+            if(theJsonValue[PROPERTY_VALUE].isArray())
+            {
+                std::vector<uint32_t> vals;
+                for (uint32_t i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+                {
+                    vals.push_back(theJsonValue[PROPERTY_VALUE][i].asUInt());
+                }
+                theProperty->set_value<std::vector<uint32_t>>(vals);
+            }
+            success = true;
+
         }
         else if (theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_UNKNOWN)
         {
