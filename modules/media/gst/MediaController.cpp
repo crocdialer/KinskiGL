@@ -197,7 +197,7 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     else
     {
         GError* err = nullptr;
-        gchar* uri = gst_filename_to_uri(filePath.c_str(), &err);
+        gchar* uri = gst_filename_to_uri(found_path.c_str(), &err);
         uri_path = std::string(static_cast<const char*>(uri));
         g_free(uri);
         if(err){ g_free(err); }
