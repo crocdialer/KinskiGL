@@ -101,7 +101,7 @@ void GstUtil::reset_pipeline()
     m_gl_context = nullptr;
 }
 
-void GstUtil::construct_pipeline(GstElement* the_pipeline, GstElement* the_appsink)
+void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 {
     if(m_pipeline)
     {

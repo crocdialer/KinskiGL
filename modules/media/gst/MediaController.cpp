@@ -188,7 +188,7 @@ void MediaController::load(const std::string &filePath, bool autoplay, bool loop
     m_impl->m_audio_target = the_audio_target;
 
     // construct a pipeline
-    m_impl->m_gst_util.construct_pipeline(gst_element_factory_make("playbin", "playbinsink"));
+    m_impl->m_gst_util.use_pipeline(gst_element_factory_make("playbin", "playbinsink"));
     m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY);
 
     std::string uri_path = filePath;

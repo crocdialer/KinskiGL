@@ -418,9 +418,10 @@ void MediaPlayer::reload_media()
 
 std::string MediaPlayer::secs_to_time_str(float the_secs) const
 {
-    char buf[32];
-    sprintf(buf, "%d:%02d:%04.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
-    return buf;
+//    char buf[32];
+//    sprintf(buf, "%d:%02d:%04.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
+//    return buf;
+    return format("%d:%02d:%04.1f", (int) the_secs / 3600, ((int) the_secs / 60) % 60, fmodf(the_secs, 60));
 }
 
 /////////////////////////////////////////////////////////////////
