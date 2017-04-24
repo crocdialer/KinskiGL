@@ -1280,21 +1280,27 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
         // process load queues
         // texture queue
-        for(auto &pair : the_mat->texture_paths())
+        if(!the_mat->texture_paths().empty())
         {
-            if(pair.second == gl::Material::AssetLoadStatus::NOT_LOADED)
+            std::list<gl::Texture> tmp_textures;
+            
+            for(auto &pair : the_mat->texture_paths())
             {
-                try
+                if(pair.second == gl::Material::AssetLoadStatus::NOT_LOADED)
                 {
-                    the_mat->add_texture(gl::create_texture_from_file(pair.first, true, true));
-                    pair.second = gl::Material::AssetLoadStatus::LOADED;
-                }
-                catch(Exception &e)
-                {
-                    LOG_WARNING << e.what();
-                    pair.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                    try
+                    {
+                        tmp_textures.push_back(gl::create_texture_from_file(pair.first, true, true));
+                        pair.second = gl::Material::AssetLoadStatus::LOADED;
+                    }
+                    catch(Exception &e)
+                    {
+                        LOG_WARNING << e.what();
+                        pair.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                    }
                 }
             }
+            the_mat->textures() = concat_containers<gl::Texture>(tmp_textures, the_mat->textures());
         }
 
         // shader queue
@@ -1398,7 +1404,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // add texturemaps
         int32_t tex_unit = 0, tex_2d = 0;
 #if !defined(KINSKI_GLES)
-        int32_t tex_rect = 0, tex_3d = 0, tex_2d_array = 0;
+        int32_t tex_rect = 0, tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
 #endif
 
         for(auto &t : the_mat->textures())
@@ -1425,6 +1431,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
                 case GL_TEXTURE_2D_ARRAY:
                     sprintf(buf, "u_sampler_2D_array[%d]", tex_2d_array++);
+                    break;
+                
+                case GL_TEXTURE_CUBE_MAP:
+                    sprintf(buf, "u_sampler_cube[%d]", tex_cube++);
                     break;
 #endif
                 default:
