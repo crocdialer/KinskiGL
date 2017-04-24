@@ -55,14 +55,15 @@ void CameraController::start_capture()
     if(m_impl)
     {
         int device_id = 0, w = 1280, h = 720, framerate = 60;
+        const char* app_sink_name = "kinski_appsink";
 
         std::string pipeline_str =
                 "v4l2src device=/dev/video%d ! "
                 "video/x-raw, format=RGB, width=%d, height=%d, framerate=%d/1 !"
                 "decodebin !"
 //                "videoconvert !"
-                "appsink name=kinski_appsink enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
-        pipeline_str = format(pipeline_str, device_id, w, h, framerate);
+                "appsink name=%s enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
+        pipeline_str = format(pipeline_str, device_id, w, h, framerate, app_sink_name);
         GError *error = nullptr;
 
         // construct a pipeline
@@ -75,7 +76,7 @@ void CameraController::start_capture()
         }
         else
         {
-            GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline), "kinski_appsink");
+            GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline), app_sink_name);
             gst_base_sink_set_sync(GST_BASE_SINK(sink), true);
 
             m_impl->m_gst_util.use_pipeline(pipeline, sink);
