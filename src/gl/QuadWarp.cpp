@@ -189,7 +189,12 @@ namespace kinski{ namespace gl{
     void QuadWarp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
     {
         auto new_impl = std::make_shared<Impl>(the_res_w, the_res_h);
-        if(m_impl){ new_impl->m_control_points = m_impl->m_control_points; }
+        
+        if(m_impl)
+        {
+            new_impl->m_control_points = m_impl->m_control_points;
+            new_impl->m_selected_indices = m_impl->m_selected_indices;
+        }
         m_impl = new_impl;
     }
     
