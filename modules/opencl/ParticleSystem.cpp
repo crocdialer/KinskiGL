@@ -145,6 +145,8 @@ namespace kinski{ namespace gl{
 
     void ParticleSystem::update(float time_delta)
     {
+        if(!m_mesh){ return; }
+
         update_params();
         
         auto iter = m_kernel_map.find(g_update_kernel);
@@ -177,7 +179,7 @@ namespace kinski{ namespace gl{
                 kernel.setArg(5, m_velocityGen);
                 kernel.setArg(6, time_delta); //pass in the timestep
                 kernel.setArg(7, m_param_buffer);
-                
+
                 int num = num_particles();
                 
                 // execute the kernel
@@ -197,42 +199,6 @@ namespace kinski{ namespace gl{
         }
     }
     
-//    void ParticleSystem::texture_input(gl::Texture &the_texture)
-//    {
-//        auto iter = m_kernel_map.find("texture_input");
-//        if(iter != m_kernel_map.end())
-//        {
-//            // get a ref for our kernel
-//            auto &kernel = iter->second;
-//
-//            try
-//            {
-//                cl::ImageGL img(opencl().context(), CL_MEM_READ_ONLY, the_texture.target(), 0,
-//                                the_texture.id());
-//
-//                kernel.setArg(0, img);
-//                kernel.setArg(1, m_positionGen);
-//                kernel.setArg(2, m_param_buffer);
-//
-//                int num = num_particles();
-//
-//                // execute the kernel
-//                m_opencl.queue().enqueueNDRangeKernel(kernel,
-//                                                      cl::NullRange,
-//                                                      cl::NDRange(num),
-//                                                      cl::NullRange);
-//
-//                m_opencl.queue().finish();
-//            }
-//            catch(cl::Error &error)
-//            {
-//                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
-//            }
-//
-//        }
-//    }
-//
-    
     void ParticleSystem::apply_forces(float time_delta)
     {
         auto iter = m_kernel_map.find(g_forces_kernel);
@@ -251,7 +217,7 @@ namespace kinski{ namespace gl{
                 force_kernel.setArg(3, (int)m_forces.size());
                 force_kernel.setArg(4, time_delta);
                 force_kernel.setArg(5, m_param_buffer);
-                
+
                 int num = num_particles();
                 
                 // execute the kernel
@@ -300,12 +266,8 @@ namespace kinski{ namespace gl{
 
     int ParticleSystem::num_particles() const
     {
-        int ret = 0;
-        
-        if(m_mesh)
-            ret = m_mesh->geometry()->vertices().size();
-            
-        return ret;
+        if(m_mesh){ return m_mesh->entries().front().num_vertices; }
+        return 0;
     }
     
     void ParticleSystem::add_kernel(const std::string &kernel_name)
@@ -313,8 +275,7 @@ namespace kinski{ namespace gl{
         // OpenCL
         try
         {
-            auto pair = std::make_pair(kernel_name, cl::Kernel(opencl().program(),
-                                                               kernel_name.c_str()));
+            auto pair = std::make_pair(kernel_name, cl::Kernel(opencl().program(), kernel_name.c_str()));
             m_kernel_map.insert(pair);
         }
         catch(cl::Error &error)
@@ -345,18 +306,14 @@ namespace kinski{ namespace gl{
         m_start_velocity_max = the_max;
     }
 
-//    void ParticleSystem::set_param_buffer(void *the_data, size_t num_bytes)
-//    {
-//        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, num_bytes, the_data);
-//    }
-
     void ParticleSystem::update_params()
     {
         // update global param buffer
         Params params;
         params.gravity = vec4(m_gravity, 0);
-        params.velocity_min = vec4(m_start_velocity_min, 0);
-        params.velocity_max = vec4(m_start_velocity_max, 0);
+        gl::mat3 m(m_mesh->global_transform());
+        params.velocity_min = vec4(m * m_start_velocity_min, 0);
+        params.velocity_max = vec4(m * m_start_velocity_max, 0);
         params.life_min = m_lifetime_min;
         params.life_max = m_lifetime_max;
         params.debug_life = m_debug_life;
@@ -366,7 +323,7 @@ namespace kinski{ namespace gl{
         if(!m_planes.empty())
         {
             auto tmp = m_planes;
-            gl::mat4 m = glm::inverse(m_mesh->transform());
+            gl::mat4 m = glm::inverse(m_mesh->global_transform());
             std::transform(m_planes.begin(), m_planes.end(), tmp.begin(), [m](const gl::Plane& p)
             {
                 return p.transform(m);
@@ -380,7 +337,7 @@ namespace kinski{ namespace gl{
         if(!m_forces.empty())
         {
             auto tmp = m_forces;
-            gl::mat4 m = glm::inverse(m_mesh->transform());
+            gl::mat4 m = glm::inverse(m_mesh->global_transform());
             std::transform(m_forces.begin(), m_forces.end(), tmp.begin(), [m](const gl::vec4& f)
             {
                 gl::vec4 ret = m * gl::vec4(f.xyz(), 1.f);

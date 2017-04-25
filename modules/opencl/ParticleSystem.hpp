@@ -58,13 +58,6 @@ public:
 
     void set_debug_life(bool b){ m_debug_life = b; };
 
-//        void texture_input(gl::Texture &the_texture);
-//
-//        // hacky ->remove when tex input is generic for multiple textures
-//        void texture_input_alt(gl::Texture &the_tex1, gl::Texture &the_tex2);
-
-//    void set_param_buffer(void *the_data, size_t num_bytes);
-
     cl::BufferGL& vertices() { return m_vertices; }
     cl::BufferGL& colors() { return m_colors; }
     cl::BufferGL& normals() { return m_normals; }
