@@ -18,12 +18,12 @@ namespace kinski{ namespace gl{
     {
         const std::string g_update_kernel = "update_particles";
         const std::string g_forces_kernel = "apply_forces";
+        const std::string g_constraints_kernel = "apply_contraints";
     }
 
     struct Params
     {
         vec4 gravity;
-        vec4 contraints_min, contraints_max;
         vec4 velocity_min, velocity_max;
         float bouncyness;
         float life_min, life_max;
@@ -42,7 +42,7 @@ namespace kinski{ namespace gl{
     m_lifetime_min(1.f),
     m_lifetime_max(1.f),
     m_particle_bounce(0.f),
-    m_use_constraints(false)
+    m_use_constraints(true)
     {
     
     }
@@ -56,8 +56,6 @@ namespace kinski{ namespace gl{
             auto &geom = m_mesh->geometry();
             geom->create_gl_buffers();
             the_mesh->create_vertex_attribs();
-            
-//            m_contraints_aabb = geom->bounding_box();
             
             try
             {
@@ -107,10 +105,12 @@ namespace kinski{ namespace gl{
                 // reserve memory for 200 forces, seems enough
                 m_force_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(glm::vec4));
-                
-                
+
                 m_param_buffer = cl::Buffer(opencl().context(), CL_MEM_READ_ONLY, sizeof(Params), NULL);
-                
+
+                m_plane_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
+                                            200 * sizeof(gl::Plane));
+
                 vector<glm::vec4> velGen;
                 
                 for (int i = 0; i < num_particles(); i++)
@@ -179,11 +179,11 @@ namespace kinski{ namespace gl{
                 int num = num_particles();
                 
                 // execute the kernel
-                m_opencl.queue().enqueueNDRangeKernel(kernel,
-                                                      cl::NullRange,
-                                                      cl::NDRange(num),
-                                                      cl::NullRange);
-                
+                m_opencl.queue().enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
+
+                // apply our constraints
+                if(m_use_constraints){ apply_contraints(); }
+
                 // Release the VBOs again
                 m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
                 m_opencl.queue().finish();
@@ -243,13 +243,6 @@ namespace kinski{ namespace gl{
             
             try
             {
-                if(!m_forces.empty())
-                {
-                    m_opencl.queue().enqueueWriteBuffer(m_force_buffer, CL_TRUE, 0,
-                                                        m_forces.size() * sizeof(vec4),
-                                                        &m_forces[0]);
-                }
-                
                 force_kernel.setArg(0, m_vertices);
                 force_kernel.setArg(1, m_velocities);
                 force_kernel.setArg(2, m_force_buffer);
@@ -274,7 +267,39 @@ namespace kinski{ namespace gl{
         
         }
     }
-    
+
+    void ParticleSystem::apply_contraints()
+    {
+        auto iter = m_kernel_map.find(g_constraints_kernel);
+
+        if(iter == m_kernel_map.end()){ LOG_WARNING << "kernel: " << g_constraints_kernel << " not found"; }
+        else
+        {
+            // get a ref for our kernel
+            auto &kernel = iter->second;
+
+            try
+            {
+                kernel.setArg(0, m_vertices);
+                kernel.setArg(1, m_velocities);
+                kernel.setArg(2, m_plane_buffer);
+                kernel.setArg(3, (int)m_planes.size());
+                kernel.setArg(4, m_param_buffer);
+
+                int num = num_particles();
+
+                // execute the kernel
+                m_opencl.queue().enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
+                m_opencl.queue().finish();
+            }
+            catch(cl::Error &error)
+            {
+                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+            }
+
+        }
+    }
+
     int ParticleSystem::num_particles() const
     {
         int ret = 0;
@@ -336,14 +361,45 @@ namespace kinski{ namespace gl{
         params.velocity_max = vec4(m_start_velocity_max, 0);
         params.life_min = m_lifetime_min;
         params.life_max = m_lifetime_max;
-
-        params.contraints_min = m_mesh->transform() * (m_use_constraints ? vec4(m_contraints_aabb.min, 1) :
-                                                       vec4(std::numeric_limits<float>::min()));
-
-        params.contraints_max = m_mesh->transform() * (m_use_constraints ? vec4(m_contraints_aabb.max, 1) :
-                                                       vec4(std::numeric_limits<float>::max()));
         params.bouncyness = m_particle_bounce;
-
         m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
+
+        if(!m_planes.empty())
+        {
+            auto tmp = m_planes;
+            gl::mat4 m = glm::inverse(m_mesh->transform());
+            std::transform(m_planes.begin(), m_planes.end(), tmp.begin(), [m](const gl::Plane& p)
+            {
+                return p.transform(m);
+            });
+
+            m_opencl.queue().enqueueWriteBuffer(m_plane_buffer, CL_TRUE, 0,
+                                                tmp.size() * sizeof(vec4),
+                                                tmp.data());
+        }
+
+        if(!m_forces.empty())
+        {
+            auto tmp = m_forces;
+            gl::mat4 m = glm::inverse(m_mesh->transform());
+            std::transform(m_forces.begin(), m_forces.end(), tmp.begin(), [m](const gl::vec4& f)
+            {
+                gl::vec4 ret = m * gl::vec4(f.xyz(), 1.f);
+                ret.w = f.w;
+                return ret;
+            });
+
+            m_opencl.queue().enqueueWriteBuffer(m_force_buffer, CL_TRUE, 0,
+                                                tmp.size() * sizeof(vec4),
+                                                tmp.data());
+        }
+    }
+
+    void ParticleSystem::set_kernel_source(const std::string &kernel_source)
+    {
+        m_opencl.set_sources(kernel_source);
+        add_kernel(g_update_kernel);
+        add_kernel(g_forces_kernel);
+        add_kernel(g_constraints_kernel);
     }
 }}

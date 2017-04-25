@@ -36,6 +36,11 @@ public:
 
     void add_kernel(const std::string &kernel_name);
 
+    void set_kernel_source(const std::string &kernel_source);
+
+    std::vector<gl::Plane>& planes(){ return m_planes; }
+    const std::vector<gl::Plane>& planes() const { return m_planes;}
+
     std::vector<glm::vec4>& forces(){ return m_forces;}
     const std::vector<glm::vec4>& forces() const { return m_forces;}
 
@@ -47,8 +52,6 @@ public:
 
     bool use_constraints() const {return m_use_constraints;}
     void set_use_constraints(bool b) {m_use_constraints = b;}
-
-    void set_aabb(gl::AABB the_aabb){m_contraints_aabb = the_aabb;}
 
     void set_lifetime(float the_min, float the_max);
     void set_start_velocity(gl::vec3 the_min, gl::vec3 the_max);
@@ -70,6 +73,7 @@ public:
 
     void update_params();
     void apply_forces(float time_delta);
+    void apply_contraints();
 
     gl::MeshPtr m_mesh;
 
@@ -80,7 +84,7 @@ public:
     KernelMap m_kernel_map;
 
     // particle system related
-    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_force_buffer, m_param_buffer;
+    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_force_buffer, m_param_buffer, m_plane_buffer;
 
     glm::vec3 m_gravity;
 
@@ -93,9 +97,11 @@ public:
     //! radial forces -> (x, y, z, strength)
     std::vector<glm::vec4> m_forces;
 
-    //! an aabb to constrain particle positions
+    //! plane constraints
+    std::vector<gl::Plane> m_planes;
+
+    //! constrain particle positions
     bool m_use_constraints;
-    gl::AABB m_contraints_aabb;
 
     // OpenCL buffer objects, corrensponding to the Buffers present in a gl::Mesh instance
     cl::BufferGL m_vertices, m_colors, m_normals, m_texCoords, m_pointSizes;
