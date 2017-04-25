@@ -11,6 +11,7 @@
 #include "core/core.hpp"
 
 #define __CL_ENABLE_EXCEPTIONS
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include "cl.hpp"
 
 namespace kinski
