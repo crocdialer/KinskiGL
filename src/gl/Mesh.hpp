@@ -94,15 +94,17 @@ namespace kinski { namespace gl {
 
         virtual ~Mesh();
         
-        const GeometryPtr& geometry() const { return m_geometry; };
+        const GeometryConstPtr geometry() const { return m_geometry; };
         GeometryPtr& geometry() { return m_geometry; };
         
-        const MaterialPtr& material() const { return m_materials.front(); };
+        const MaterialConstPtr material() const { return m_materials.front(); };
         MaterialPtr& material() { return m_materials.front(); };
         
         //! create the vertex attrib structures corresponding to the attached Geometry
         // and store them in <m_vertex_attribs>
         void create_vertex_attribs();
+
+        void add_vertex_attrib(const VertexAttrib& v){ m_vertex_attribs.push_back(v); };
         
         void bind_vertex_pointers(int material_index = 0);
         void bind_vertex_array(uint32_t i = 0);

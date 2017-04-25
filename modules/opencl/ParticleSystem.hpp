@@ -56,6 +56,8 @@ public:
     void set_lifetime(float the_min, float the_max);
     void set_start_velocity(gl::vec3 the_min, gl::vec3 the_max);
 
+    void set_debug_life(bool b){ m_debug_life = b; };
+
 //        void texture_input(gl::Texture &the_texture);
 //
 //        // hacky ->remove when tex input is generic for multiple textures
@@ -91,6 +93,7 @@ public:
     glm::vec3 m_start_velocity_min, m_start_velocity_max;
 
     float m_lifetime_min, m_lifetime_max;
+    bool m_debug_life;
 
     float m_particle_bounce;
 

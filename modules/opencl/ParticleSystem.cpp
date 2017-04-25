@@ -27,6 +27,7 @@ namespace kinski{ namespace gl{
         vec4 velocity_min, velocity_max;
         float bouncyness;
         float life_min, life_max;
+        bool debug_life;
     };
     
     ParticleSystem::ParticleSystem(): ParticleSystem(cl_context())
@@ -41,6 +42,7 @@ namespace kinski{ namespace gl{
     m_start_velocity_max(0),
     m_lifetime_min(1.f),
     m_lifetime_max(1.f),
+    m_debug_life(false),
     m_particle_bounce(0.f),
     m_use_constraints(true)
     {
@@ -53,8 +55,8 @@ namespace kinski{ namespace gl{
         
         if(m_mesh)
         {
-            auto &geom = m_mesh->geometry();
-            geom->create_gl_buffers();
+            m_mesh->geometry()->create_gl_buffers();
+            gl::GeometryConstPtr geom = m_mesh->geometry();
             the_mesh->create_vertex_attribs();
             
             try
@@ -127,7 +129,7 @@ namespace kinski{ namespace gl{
                 m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_bytes, &velGen[0]);
                 
                 // generate spawn positions from original positions
-                uint8_t *vert_buf = geom->vertex_buffer().map();
+                const uint8_t *vert_buf = geom->vertex_buffer().map();
                 m_opencl.queue().enqueueWriteBuffer(m_positionGen, CL_TRUE, 0,
                                                     geom->vertex_buffer().num_bytes(),
                                                     vert_buf);
@@ -140,7 +142,7 @@ namespace kinski{ namespace gl{
         }
     
     }
-    
+
     void ParticleSystem::update(float time_delta)
     {
         update_params();
@@ -253,11 +255,7 @@ namespace kinski{ namespace gl{
                 int num = num_particles();
                 
                 // execute the kernel
-                m_opencl.queue().enqueueNDRangeKernel(force_kernel,
-                                                      cl::NullRange,
-                                                      cl::NDRange(num),
-                                                      cl::NullRange);
-                
+                m_opencl.queue().enqueueNDRangeKernel(force_kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
                 m_opencl.queue().finish();
             }
             catch(cl::Error &error)
@@ -361,6 +359,7 @@ namespace kinski{ namespace gl{
         params.velocity_max = vec4(m_start_velocity_max, 0);
         params.life_min = m_lifetime_min;
         params.life_max = m_lifetime_max;
+        params.debug_life = m_debug_life;
         params.bouncyness = m_particle_bounce;
         m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
 
