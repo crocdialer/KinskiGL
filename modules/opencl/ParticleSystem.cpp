@@ -112,13 +112,28 @@ namespace kinski{ namespace gl{
                     m_pointSizes = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
                                                 geom->point_size_buffer().id());
                 }
-                
+
+                m_mesh->create_vertex_attribs();
+
+                vector<glm::vec4> velGen;
+
+                for (int i = 0; i < num_particles(); i++)
+                {
+                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
+                    glm::vec3 vel = gl::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
+                    velGen.push_back(glm::vec4(vel, life));
+                }
+
+                // create velocity/life VBO and VertexAttrib
+                gl::Buffer velocity_vbo(velGen, GL_ARRAY_BUFFER, GL_STREAM_DRAW);
+                gl::Mesh::VertexAttrib va("a_velocity", velocity_vbo);
+                va.size = 4;
+                m_mesh->add_vertex_attrib(va);
+
+                m_velocities = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE, velocity_vbo.id());
+
                 //////////////// create the OpenCL only arrays //////////////////
-                
-                // combined velocity / life array
-                m_velocities = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                          geom->vertex_buffer().num_bytes());
-                
+
                 // spawn positions
                 m_positionGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                            geom->vertex_buffer().num_bytes() );
@@ -136,20 +151,10 @@ namespace kinski{ namespace gl{
 
                 m_plane_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(gl::Plane));
-
-                vector<glm::vec4> velGen;
-                
-                for (int i = 0; i < num_particles(); i++)
-                {
-                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
-                    glm::vec3 vel = gl::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
-                    velGen.push_back(glm::vec4(vel, life));
-                }
                 
                 // all buffer are holding vec4s and have same size in bytes
                 int num_bytes = geom->vertex_buffer().num_bytes();
-                
-                m_opencl.queue().enqueueWriteBuffer(m_velocities, CL_TRUE, 0, num_bytes, &velGen[0]);
+
                 m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_bytes, &velGen[0]);
                 
                 // generate spawn positions from original positions
@@ -188,7 +193,7 @@ namespace kinski{ namespace gl{
             
             try
             {
-                vector<cl::Memory> glBuffers = {m_vertices, m_colors, m_pointSizes};
+                vector<cl::Memory> glBuffers = {m_vertices, m_velocities, m_colors, m_pointSizes};
                 
                 // Make sure OpenGL is done using our VBOs
                 glFinish();

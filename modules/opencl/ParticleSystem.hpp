@@ -83,7 +83,8 @@ public:
     KernelMap m_kernel_map;
 
     // particle system related
-    cl::Buffer m_velocities, m_positionGen, m_velocityGen, m_force_buffer, m_param_buffer, m_plane_buffer;
+    cl::Buffer m_positionGen, m_velocityGen, m_force_buffer, m_param_buffer, m_plane_buffer;
+//    cl::Buffer m_velocities;
 
     glm::vec3 m_gravity;
 
@@ -104,7 +105,7 @@ public:
     bool m_use_constraints;
 
     // OpenCL buffer objects, corrensponding to the Buffers present in a gl::Mesh instance
-    cl::BufferGL m_vertices, m_colors, m_normals, m_texCoords, m_pointSizes;
+    cl::BufferGL m_vertices, m_velocities, m_colors, m_normals, m_texCoords, m_pointSizes;
     cl::ImageGL m_cl_image;
 };
     
