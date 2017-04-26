@@ -24,6 +24,8 @@ public:
 
     static ParticleSystemPtr create(const cl_context& context = cl_context());
 
+    void init_with_count(size_t the_particle_count);
+
     void update(float time_delta) override;
 
     void set_mesh(gl::MeshPtr the_mesh);

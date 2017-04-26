@@ -54,18 +54,34 @@ namespace kinski{ namespace gl{
     {
     
     }
-    
-    void ParticleSystem::set_mesh(gl::MeshPtr the_mesh)
+
+    void ParticleSystem::init_with_count(size_t the_particle_count)
     {
         remove_child(m_mesh);
-        add_child(the_mesh);
+        auto geom = gl::Geometry::create();
+        auto mat = gl::Material::create(gl::ShaderType::POINTS_COLOR);
+        geom->set_primitive_type(GL_POINTS);
+        geom->vertices().resize(the_particle_count, vec3(0));
+        geom->colors().resize(the_particle_count, gl::COLOR_WHITE);
+        geom->point_sizes().resize(the_particle_count, 1.f);
+        mat->set_point_size(1.f);
+        mat->set_point_attenuation(0.f, 0.01f, 0.f);
+        mat->uniform("u_pointRadius", 50.f);
+        mat->set_point_size(1.f);
+        mat->set_blending();
+        set_mesh(gl::Mesh::create(geom, mat));
+    }
+
+    void ParticleSystem::set_mesh(gl::MeshPtr the_mesh)
+    {
+        if(!m_mesh){ m_opencl.init(); }
         m_mesh = the_mesh;
-        
+        add_child(m_mesh);
+
         if(m_mesh)
         {
             m_mesh->geometry()->create_gl_buffers();
             gl::GeometryConstPtr geom = m_mesh->geometry();
-            the_mesh->create_vertex_attribs();
             
             try
             {
