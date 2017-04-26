@@ -46,7 +46,7 @@ namespace kinski{ namespace gl{
         }
         if(!m_impl->m_material)
         {
-            m_impl->m_material = gl::Material::create(gl::create_shader(gl::ShaderType::NOISE_3D));
+            m_impl->m_material = gl::Material::create(gl::ShaderType::NOISE_3D);
             m_impl->m_material->set_depth_test(false);
             m_impl->m_material->set_depth_write(false);
         }
@@ -65,9 +65,9 @@ namespace kinski{ namespace gl{
         int w = m_impl->m_tex_size.x, h = m_impl->m_tex_size.y;
         ImagePtr ret = Image::create(w, h, 1);
     
-        for (int i = 0; i < h; i++)
+        for (int i = 0; i < h; ++i)
         {
-            for (int j = 0; j < w; j++)
+            for (int j = 0; j < w; ++j)
             {
                 ret->data[i * h + j] =
                 255 * (glm::simplex(vec3(vec2(i, j) * m_impl->m_scale, the_seed)) + 1.f) / 2.f;

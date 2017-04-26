@@ -114,26 +114,26 @@ namespace kinski { namespace gl {
     
     void Object3D::set_global_transform(const glm::mat4 &transform)
     {
-        glm::mat4 global_trans_inv = glm::inverse(global_transform());
-        m_transform = global_trans_inv * transform;
+        glm::mat4 parent_trans_inv = parent() ? glm::inverse(parent()->global_transform()) : glm::mat4();
+        m_transform = parent_trans_inv * transform;
     }
     
     void Object3D::set_global_position(const glm::vec3 &position)
     {
-        glm::mat4 global_trans_inv = glm::inverse(global_transform());
-        m_transform = global_trans_inv * glm::translate(glm::mat4(), position);
+        gl::vec3 parent_pos = parent() ? parent()->global_position() : gl::vec3();
+        set_position(position - parent_pos);
     }
     
     void Object3D::set_global_rotation(const glm::quat &rotation)
     {
-        glm::mat4 global_trans_inv = glm::inverse(global_transform());
-        m_transform = global_trans_inv * glm::mat4_cast(rotation);
+        glm::quat parent_rotation = parent() ? parent()->global_rotation() : glm::quat();
+        set_rotation(glm::inverse(parent_rotation) * rotation);
     }
     
     void Object3D::set_global_scale(const glm::vec3 &the_scale)
     {
-        glm::mat4 global_trans_inv = glm::inverse(global_transform());
-        m_transform = global_trans_inv * glm::scale(glm::mat4(), the_scale);
+        gl::vec3 parent_scale = parent() ? parent()->global_scale() : gl::vec3(1);
+        set_scale(the_scale / parent_scale);
     }
     
     void Object3D::set_parent(const Object3DPtr &the_parent)

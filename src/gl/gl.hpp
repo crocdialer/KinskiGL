@@ -169,7 +169,6 @@ namespace kinski { namespace gl {
                                  const vec2 &theTopLeft = vec2(0));
     
     KINSKI_API void draw_grid(float width, float height, int numW = 20, int numH = 20);
-    KINSKI_API void draw_axes(const MeshWeakPtr &theMesh);
     KINSKI_API void draw_transform(const mat4& the_transform, float the_scale = 1.f);
     KINSKI_API void draw_boundingbox(const Object3DPtr &the_obj);
     KINSKI_API void draw_normals(const MeshWeakPtr &theMesh);

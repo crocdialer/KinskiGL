@@ -743,58 +743,6 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_axes(const MeshWeakPtr &weakMesh)
-    {
-        static map<MeshWeakPtr, MeshPtr, std::owner_less<MeshWeakPtr> > theMap;
-        static vec4 colorRed(1.0, 0, 0 ,1.0), colorGreen(0, 1.0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
-
-        if(theMap.find(weakMesh) == theMap.end())
-        {
-            Mesh::ConstPtr m = weakMesh.lock();
-            if(!m) return;
-
-            GeometryPtr geom = Geometry::create();
-            geom->set_primitive_type(GL_LINES);
-            gl::MaterialPtr mat = gl::Material::create();
-            MeshPtr line_mesh (gl::Mesh::create(geom, mat));
-            AABB bb = m->bounding_box();
-            vector<vec3> &thePoints = geom->vertices();
-            vector<vec4> &theColors = geom->colors();
-            float axis_length = std::max(bb.width(), bb.height());
-            axis_length = std::max(axis_length, bb.depth());
-
-            thePoints.push_back(vec3(0));
-            thePoints.push_back(vec3(axis_length, 0, 0));
-            theColors.push_back(colorRed);
-            theColors.push_back(colorRed);
-
-            thePoints.push_back(vec3(0));
-            thePoints.push_back(vec3(0, axis_length, 0));
-            theColors.push_back(colorGreen);
-            theColors.push_back(colorGreen);
-
-            thePoints.push_back(vec3(0));
-            thePoints.push_back(vec3(0, 0, axis_length));
-            theColors.push_back(colorBlue);
-            theColors.push_back(colorBlue);
-
-            geom->create_gl_buffers();
-            line_mesh->create_vertex_array();
-            theMap[weakMesh] = line_mesh;
-        }
-        gl::draw_mesh(theMap[weakMesh]);
-
-        // cleanup
-        map<MeshWeakPtr, MeshPtr >::iterator meshIt = theMap.begin();
-        for (; meshIt != theMap.end(); ++meshIt)
-        {
-            if(! meshIt->first.lock() )
-                theMap.erase(meshIt);
-        }
-    }
-
-///////////////////////////////////////////////////////////////////////////////
-
 void draw_transform(const glm::mat4& the_transform, float the_scale)
 {
     static gl::MeshPtr transform_mesh;
@@ -817,7 +765,6 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             gl::COLOR_GREEN, gl::COLOR_GREEN,
             gl::COLOR_BLUE, gl::COLOR_BLUE
         };
-        transform_mesh->create_vertex_array();
     }
     gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
     gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(the_transform, glm::vec3(the_scale)));

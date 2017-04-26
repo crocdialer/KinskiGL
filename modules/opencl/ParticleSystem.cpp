@@ -23,13 +23,19 @@ namespace kinski{ namespace gl{
 
     struct Params
     {
+        vec4 emitter_position;
         vec4 gravity;
         vec4 velocity_min, velocity_max;
         float bouncyness;
         float life_min, life_max;
         bool debug_life;
     };
-    
+
+    ParticleSystemPtr ParticleSystem::create(const cl_context& context)
+    {
+        return ParticleSystemPtr(new ParticleSystem(context));
+    }
+
     ParticleSystem::ParticleSystem(): ParticleSystem(cl_context())
     {
         
@@ -41,7 +47,7 @@ namespace kinski{ namespace gl{
     m_start_velocity_min(0),
     m_start_velocity_max(0),
     m_lifetime_min(1.f),
-    m_lifetime_max(1.f),
+    m_lifetime_max(3.f),
     m_debug_life(false),
     m_particle_bounce(0.f),
     m_use_constraints(true)
@@ -51,6 +57,8 @@ namespace kinski{ namespace gl{
     
     void ParticleSystem::set_mesh(gl::MeshPtr the_mesh)
     {
+        remove_child(m_mesh);
+        add_child(the_mesh);
         m_mesh = the_mesh;
         
         if(m_mesh)
@@ -117,8 +125,8 @@ namespace kinski{ namespace gl{
                 
                 for (int i = 0; i < num_particles(); i++)
                 {
-                    float life = kinski::random(m_lifetime_min, m_lifetime_max);
-                    glm::vec3 vel = glm::linearRand(m_start_velocity_min, m_start_velocity_max);
+                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
+                    glm::vec3 vel = gl::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
                     velGen.push_back(glm::vec4(vel, life));
                 }
                 
@@ -145,7 +153,12 @@ namespace kinski{ namespace gl{
 
     void ParticleSystem::update(float time_delta)
     {
+        Object3D::update(time_delta);
+
         if(!m_mesh){ return; }
+
+        // make sure the particle mesh has global identity transform
+        m_mesh->set_global_transform(gl::mat4());
 
         update_params();
         
@@ -308,10 +321,12 @@ namespace kinski{ namespace gl{
 
     void ParticleSystem::update_params()
     {
+        gl::mat3 m(global_transform());
+
         // update global param buffer
         Params params;
+        params.emitter_position = vec4(global_position(), 1.f);
         params.gravity = vec4(m_gravity, 0);
-        gl::mat3 m(m_mesh->global_transform());
         params.velocity_min = vec4(m * m_start_velocity_min, 0);
         params.velocity_max = vec4(m * m_start_velocity_max, 0);
         params.life_min = m_lifetime_min;

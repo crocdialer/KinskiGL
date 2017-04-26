@@ -8,24 +8,23 @@
 
 #pragma once
 
-#include "gl/gl.hpp"
+#include "gl/Object3D.hpp"
 #include "gl/geometry_types.hpp"
 #include "opencl/cl_context.h"
 
 namespace kinski{ namespace gl{
 
-typedef std::shared_ptr<class ParticleSystem> ParticleSystemPtr;
+DEFINE_CLASS_PTR(ParticleSystem);
 
-KINSKI_API class ParticleSystem
+KINSKI_API class ParticleSystem : public Object3D
 {
 public:
 
     typedef std::map<std::string, cl::Kernel> KernelMap;
 
-    ParticleSystem();
-    ParticleSystem(const cl_context& context);
+    static ParticleSystemPtr create(const cl_context& context = cl_context());
 
-    void update(float time_delta);
+    void update(float time_delta) override;
 
     void set_mesh(gl::MeshPtr the_mesh);
     gl::MeshPtr mesh() const {return m_mesh;};
@@ -65,6 +64,9 @@ public:
     cl::BufferGL& point_sizes() { return m_pointSizes; }
         
     private:
+
+    ParticleSystem();
+    ParticleSystem(const cl_context& context);
 
     void update_params();
     void apply_forces(float time_delta);
