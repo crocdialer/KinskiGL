@@ -25,8 +25,8 @@ struct BufferImpl
             glDeleteBuffers(1, &buffer_id);
         }
     };
-    
-    GLuint buffer_id;
+
+    uint32_t buffer_id;
     GLenum target;
     GLenum usage;
     size_t num_bytes;
@@ -48,7 +48,7 @@ void Buffer::init(GLenum target, GLenum usage)
     m_impl->usage = usage;
 }
 
-GLint Buffer::id() const
+uint32_t Buffer::id() const
 {
     return m_impl->buffer_id;
 }

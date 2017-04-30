@@ -58,7 +58,6 @@ namespace kinski{ namespace gl{
 
     void ParticleSystem::init_with_count(size_t the_particle_count)
     {
-        remove_child(m_mesh);
         auto geom = gl::Geometry::create();
         auto mat = gl::Material::create(gl::ShaderType::POINTS_COLOR);
         geom->set_primitive_type(GL_POINTS);
@@ -76,6 +75,8 @@ namespace kinski{ namespace gl{
     void ParticleSystem::set_mesh(gl::MeshPtr the_mesh)
     {
         if(!m_mesh){ m_opencl.init(); }
+        else{ remove_child(m_mesh); }
+
         m_mesh = the_mesh;
         add_child(m_mesh);
 

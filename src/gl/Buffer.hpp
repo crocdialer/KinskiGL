@@ -40,8 +40,8 @@ class KINSKI_API Buffer
     
     void bind(GLenum the_target = 0) const;
     void unbind(GLenum the_target = 0) const;
-    
-    GLint id() const;
+
+    uint32_t id() const;
     GLenum target() const;
     GLenum usage() const;
     size_t num_bytes() const;
