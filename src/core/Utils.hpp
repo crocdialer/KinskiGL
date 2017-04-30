@@ -198,7 +198,8 @@ namespace kinski
     template <typename T = double, typename C>
     inline const T mean(const C &the_container)
     {
-        return sum<T>(the_container) / (T)(std::end(the_container) - std::begin(the_container));
+        size_t size = std::end(the_container) - std::begin(the_container);
+        return size ? sum<T>(the_container) / (T)(size) : T(0);
     }
     
     template <typename T = double, typename C>

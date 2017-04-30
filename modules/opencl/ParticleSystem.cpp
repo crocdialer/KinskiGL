@@ -26,6 +26,7 @@ namespace kinski{ namespace gl{
         vec4 emitter_position;
         vec4 gravity;
         vec4 velocity_min, velocity_max;
+        mat3 rotation_matrix;
         float bouncyness;
         float life_min, life_max;
         bool debug_life;
@@ -348,8 +349,9 @@ namespace kinski{ namespace gl{
         Params params;
         params.emitter_position = vec4(global_position(), 1.f);
         params.gravity = vec4(m_gravity, 0);
-        params.velocity_min = vec4(m * m_start_velocity_min, 0);
-        params.velocity_max = vec4(m * m_start_velocity_max, 0);
+        params.velocity_min = vec4(m_start_velocity_min, 0);
+        params.velocity_max = vec4(m_start_velocity_max, 0);
+        params.rotation_matrix = global_transform();
         params.life_min = m_lifetime_min;
         params.life_max = m_lifetime_max;
         params.debug_life = m_debug_life;

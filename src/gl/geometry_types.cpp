@@ -103,10 +103,7 @@ vec3 calculate_centroid(const vector<vec3> &theVertices)
         LOG_TRACE << "Called gl::calculateCentroid() on zero vertices, returned vec3(0, 0, 0)";
         return vec3(0);
     }
-    vec3 sum(0);
-    for(const auto &v : theVertices){ sum += v; }
-    sum /= theVertices.size();
-    return sum;
+    return kinski::mean<vec3>(theVertices);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
