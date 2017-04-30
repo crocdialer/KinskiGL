@@ -7,7 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-//  UART.hpp
+//  Connection.hpp
 //  kinskiGL
 //
 //  Created by Fabian on 05/04/16.
@@ -19,15 +19,15 @@
 namespace kinski
 {
 
-DEFINE_CLASS_PTR(UART);
+DEFINE_CLASS_PTR(Connection);
     
-//! UART interface
-class UART
+//! Connection interface
+class Connection
 {
 public:
     
-    typedef std::function<void(UARTPtr)> connection_cb_t;
-    typedef std::function<void(UARTPtr, const std::vector<uint8_t>&)> receive_cb_t;
+    typedef std::function<void(ConnectionPtr)> connection_cb_t;
+    typedef std::function<void(ConnectionPtr, const std::vector<uint8_t>&)> receive_cb_t;
     
     //! open the device
     virtual bool open() = 0;

@@ -84,7 +84,7 @@ tcp_connection_ptr async_send_tcp(boost::asio::io_service& io_service,
                                   uint16_t the_port)
 {
     auto con = tcp_connection::create(io_service, the_ip, the_port);
-    con->set_connect_cb([bytes](UARTPtr the_uart)
+    con->set_connect_cb([bytes](ConnectionPtr the_uart)
     {
         the_uart->write_bytes(&bytes[0], bytes.size());
     });
@@ -415,9 +415,9 @@ struct tcp_connection_impl
     // additional receive callback with connection context
     tcp_connection::tcp_receive_cb_t tcp_receive_cb;
 
-    // used by UART interface
-    UART::connection_cb_t m_connect_cb, m_disconnect_cb;
-    UART::receive_cb_t m_receive_cb;
+    // used by Connection interface
+    Connection::connection_cb_t m_connect_cb, m_disconnect_cb;
+    Connection::receive_cb_t m_receive_cb;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -428,7 +428,7 @@ tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
                                           tcp_receive_cb_t f)
 {
     auto ret = tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f));
-    auto connect_cb = [](UARTPtr the_uart)
+    auto connect_cb = [](ConnectionPtr the_uart)
     {
         LOG_TRACE_1 << "connected: " << the_uart->description();
     };

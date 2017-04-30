@@ -8,13 +8,13 @@ namespace kinski{ namespace sensors{
 #define QUERY_ID_CMD "ID"
 #define QUERY_TIME_OUT 5.0
 
-void query_device(UARTPtr the_uart, boost::asio::io_service &io, device_cb_t the_device_cb)
+void query_device(ConnectionPtr the_device, boost::asio::io_service &io, device_cb_t the_device_cb)
 {
-    Timer timer(io, [the_uart](){ the_uart->set_receive_cb(); });
+    Timer timer(io, [the_device](){ the_device->set_receive_cb(); });
     timer.expires_from_now(QUERY_TIME_OUT);
-    
-    the_uart->set_receive_cb([&io, the_device_cb, the_uart, timer]
-                             (UARTPtr the_uart, const std::vector<uint8_t> &the_data)
+
+    the_device->set_receive_cb([&io, the_device_cb, the_device, timer]
+                               (ConnectionPtr the_device, const std::vector<uint8_t> &the_data)
     {
         // parse response, find returned ID
         std::string id_str;
@@ -36,16 +36,16 @@ void query_device(UARTPtr the_uart, boost::asio::io_service &io, device_cb_t the
         
         if(the_device_cb && !id_str.empty())
         {
-            io.post([the_device_cb, id_str, the_uart]()
+            io.post([the_device_cb, id_str, the_device]()
             {
-                the_device_cb(id_str, the_uart);
+                the_device_cb(id_str, the_device);
             });
             
             // we got the id now -> stop listening
-            the_uart->set_receive_cb();
+            the_device->set_receive_cb();
         }
     });
-    the_uart->write(QUERY_ID_CMD + string("\n"));
+    the_device->write(QUERY_ID_CMD + string("\n"));
 }
     
 void scan_for_serials(boost::asio::io_service &io, device_cb_t the_device_cb)

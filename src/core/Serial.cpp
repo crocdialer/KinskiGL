@@ -33,7 +33,7 @@ namespace kinski
     SerialPtr Serial::create(boost::asio::io_service &io, receive_cb_t cb)
     {
         auto ret = SerialPtr(new Serial(io, cb));
-        ret->set_connect_cb([](UARTPtr the_uart)
+        ret->set_connect_cb([](ConnectionPtr the_uart)
         {
             LOG_TRACE_1 << "connected: " << the_uart->description();
         });

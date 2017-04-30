@@ -14,7 +14,7 @@
 #pragma once
 
 #include "core/core.hpp"
-#include "core/UART.hpp"
+#include "core/Connection.hpp"
 
 namespace kinski{ namespace net{
 
@@ -99,7 +99,7 @@ private:
     std::shared_ptr<struct tcp_server_impl> m_impl;
 };
 
-KINSKI_API class tcp_connection : public UART, public std::enable_shared_from_this<tcp_connection>
+KINSKI_API class tcp_connection : public Connection, public std::enable_shared_from_this<tcp_connection>
 {
 public:
 

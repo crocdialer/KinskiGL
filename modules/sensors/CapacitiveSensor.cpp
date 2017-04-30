@@ -20,7 +20,7 @@ namespace kinski
 {
     struct CapacitiveSensorImpl
     {
-        UARTPtr m_sensor_device;
+        ConnectionPtr m_sensor_device;
         std::string m_device_name;
         CircularBuffer<uint8_t> m_sensor_accumulator{512};
         bool m_dirty_params = true;
@@ -32,10 +32,10 @@ namespace kinski
         CapacitiveSensor::touch_cb_t m_touch_callback, m_release_callback;
     };
     
-    CapacitiveSensorPtr CapacitiveSensor::create(UARTPtr the_uart_device)
+    CapacitiveSensorPtr CapacitiveSensor::create(ConnectionPtr the_device)
     {
         CapacitiveSensorPtr ret(new CapacitiveSensor());
-        if(the_uart_device){ ret->connect(the_uart_device); }
+        if(the_device){ ret->connect(the_device); }
         return ret;
     }
     
@@ -50,7 +50,7 @@ namespace kinski
         
     }
     
-    void CapacitiveSensor::receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data)
+    void CapacitiveSensor::receive_data(ConnectionPtr the_device, const std::vector<uint8_t> &the_data)
     {
         if(m_impl->m_dirty_params && is_initialized())
         {
@@ -129,14 +129,14 @@ namespace kinski
         return NUM_SENSOR_PADS;
     }
     
-    bool CapacitiveSensor::connect(UARTPtr the_uart_device)
+    bool CapacitiveSensor::connect(ConnectionPtr the_device)
     {
-        m_impl->m_sensor_device = the_uart_device;
+        m_impl->m_sensor_device = the_device;
         m_impl->m_sensor_accumulator.clear();
         
-        if(the_uart_device /*&& the_uart_device->is_open()*/)
+        if(the_device /*&& the_uart_device->is_open()*/)
         {
-            the_uart_device->drain();
+            the_device->drain();
             set_thresholds(m_impl->m_thresh_touch, m_impl->m_thresh_release);
             set_charge_current(m_impl->m_charge_current);
             m_impl->m_sensor_device->set_receive_cb(std::bind(&CapacitiveSensor::receive_data,

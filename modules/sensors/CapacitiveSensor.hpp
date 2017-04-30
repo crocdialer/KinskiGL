@@ -8,7 +8,7 @@
 #pragma once
 
 #include "core/core.hpp"
-#include "core/UART.hpp"
+#include "core/Connection.hpp"
 
 namespace kinski
 {
@@ -21,10 +21,10 @@ namespace kinski
         typedef std::function<void(int)> touch_cb_t;
         
         static std::string id();
-        static CapacitiveSensorPtr create(UARTPtr the_uart_device = UARTPtr());
+        static CapacitiveSensorPtr create(ConnectionPtr the_uart_device = ConnectionPtr());
         virtual ~CapacitiveSensor();
         
-        bool connect(UARTPtr the_uart_device);
+        bool connect(ConnectionPtr the_device);
         
         uint16_t touch_state() const;
         
@@ -50,7 +50,7 @@ namespace kinski
     private:
         
         CapacitiveSensor();
-        void receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data);
+        void receive_data(ConnectionPtr the_device, const std::vector<uint8_t> &the_data);
         bool update_config();
         
         std::unique_ptr<struct CapacitiveSensorImpl> m_impl;

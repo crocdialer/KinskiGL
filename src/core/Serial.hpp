@@ -9,14 +9,14 @@
 
 #pragma once
 
-#include "UART.hpp"
+#include "Connection.hpp"
 
 namespace kinski
 {
 
 DEFINE_CLASS_PTR(Serial);
 
-class Serial : public UART, public std::enable_shared_from_this<Serial>
+class Serial : public Connection, public std::enable_shared_from_this<Serial>
 {
     
 public:

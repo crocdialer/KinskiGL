@@ -155,7 +155,7 @@ namespace kinski{ namespace gl{
                                             200 * sizeof(gl::Plane));
                 
                 // all buffer are holding vec4s and have same size in bytes
-                int num_bytes = geom->vertex_buffer().num_bytes();
+                size_t num_bytes = geom->vertex_buffer().num_bytes();
 
                 m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_bytes, &velGen[0]);
                 

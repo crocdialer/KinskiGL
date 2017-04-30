@@ -18,17 +18,17 @@ namespace kinski{
     
     struct DistanceSensorImpl
     {
-        UARTPtr m_sensor_device;
+        ConnectionPtr m_sensor_device;
         CircularBuffer<uint8_t> m_sensor_accumulator{512};
         uint32_t m_distance = 0;
         
         DistanceSensor::distance_cb_t m_distance_callback;
     };
     
-    DistanceSensorPtr DistanceSensor::create(UARTPtr the_uart_device)
+    DistanceSensorPtr DistanceSensor::create(ConnectionPtr the_device)
     {
         DistanceSensorPtr ret(new DistanceSensor());
-        if(the_uart_device){ ret->connect(the_uart_device); }
+        if(the_device){ ret->connect(the_device); }
         return ret;
     }
     
@@ -43,23 +43,23 @@ namespace kinski{
     
     }
     
-    bool DistanceSensor::connect(UARTPtr the_uart_device)
+    bool DistanceSensor::connect(ConnectionPtr the_device)
     {
-        m_impl->m_sensor_device = the_uart_device;
+        m_impl->m_sensor_device = the_device;
         m_impl->m_sensor_accumulator.clear();
         
-        if(the_uart_device && the_uart_device->is_open())
+        if(the_device && the_device->is_open())
         {
-            the_uart_device->set_receive_cb(std::bind(&DistanceSensor::receive_data,
-                                                      this,
-                                                      std::placeholders::_1,
-                                                      std::placeholders::_2));
+            the_device->set_receive_cb(std::bind(&DistanceSensor::receive_data,
+                                                 this,
+                                                 std::placeholders::_1,
+                                                 std::placeholders::_2));
             return true;
         }
         return false;
     }
     
-    void DistanceSensor::receive_data(UARTPtr the_uart, const std::vector<uint8_t> &the_data)
+    void DistanceSensor::receive_data(ConnectionPtr the_device, const std::vector<uint8_t> &the_data)
     {
         bool reading_complete = false;
         uint32_t distance_val = 0;
