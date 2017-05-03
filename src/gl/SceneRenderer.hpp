@@ -42,7 +42,19 @@ public:
         //! the light's transform in eye-coords
         mat4 transform;
     };
-
+    
+//    struct sort_items_increasing
+//    {
+//        inline bool operator()(const item &lhs, const item &rhs)
+//        {return lhs.transform[3].z > rhs.transform[3].z;}
+//    };
+//    
+//    struct sort_items_decreasing
+//    {
+//        inline bool operator()(const item &lhs, const item &rhs)
+//        {return lhs.transform[3].z < rhs.transform[3].z;}
+//    };
+    
     RenderBin(const CameraPtr &cam): camera(cam){};
     CameraPtr camera;
     std::list<item> items;

@@ -1128,7 +1128,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::set_window_dimension(theFbo.size());
-        gl::scoped_bind<gl::Fbo> fbo_bind(theFbo);
+        theFbo.bind();
         gl::clear();
         theScene->render(theCam);
         return theFbo.texture();
@@ -1146,7 +1146,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::set_window_dimension(theFbo.size());
-        gl::scoped_bind<gl::Fbo> fbo_bind(theFbo);
+        theFbo.bind();
         functor();
         return theFbo.texture();
     }
@@ -1217,7 +1217,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader)
     {
         static MaterialWeakPtr weak_last;
-
+        KINSKI_CHECK_GL_ERRORS();
+        
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
 
         if(!the_mat) return;
@@ -1263,7 +1264,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // bind the shader
         gl::ShaderPtr shader = override_shader ? override_shader : the_mat->shader();
         shader->bind();
-
+        KINSKI_CHECK_GL_ERRORS();
+        
         char buf[512];
 
         // twoSided
@@ -1394,7 +1396,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         KINSKI_CHECK_GL_ERRORS();
 
         // update uniform buffers and uniform values for current shader
-        the_mat->update_uniforms();
+        the_mat->update_uniforms(shader);
     }
 
 ///////////////////////////////////////////////////////////////////////////////

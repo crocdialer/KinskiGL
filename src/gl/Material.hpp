@@ -43,7 +43,7 @@ namespace kinski { namespace gl {
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
         
-        void update_uniforms();
+        void update_uniforms(const ShaderPtr &the_shader = ShaderPtr());
         
         const ShaderPtr& shader() {return m_shader;};
         ShaderConstPtr shader() const {return m_shader;};
@@ -79,7 +79,7 @@ namespace kinski { namespace gl {
         void set_depth_test(bool b = true) { m_depth_test = b;};
         void set_depth_write(bool b = true) { m_depth_write = b;};
         
-        bool opaque() const { return !m_blending && m_diffuse.a == 1.f ;};
+        bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
         bool depth_test() const { return m_depth_test; };
         bool depth_write() const { return m_depth_write; };
         float point_size() const { return m_point_size; };

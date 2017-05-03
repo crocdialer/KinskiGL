@@ -118,9 +118,10 @@ namespace kinski { namespace gl {
         m_texture_paths[the_texture_path] = AssetLoadStatus::NOT_LOADED;
     }
     
-    void Material::update_uniforms()
+    void Material::update_uniforms(const ShaderPtr &the_shader)
     {
-        
+        auto shader_obj = the_shader ? the_shader : m_shader;
+
 #if !defined(KINSKI_GLES)
         if(!m_uniform_buffer){ m_uniform_buffer = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW); }
         
@@ -153,6 +154,7 @@ namespace kinski { namespace gl {
             m_dirty_uniform_buffer = false;
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
+        KINSKI_CHECK_GL_ERRORS();
 #else
         if(m_dirty_uniform_buffer)
         {
@@ -174,7 +176,7 @@ namespace kinski { namespace gl {
             // set all other uniform values
             for (auto it = uniforms().begin(); it != uniforms().end(); ++it)
             {
-                boost::apply_visitor(InsertUniformVisitor(shader(), it->first), it->second);
+                boost::apply_visitor(InsertUniformVisitor(shader_obj, it->first), it->second);
                 KINSKI_CHECK_GL_ERRORS();
             }
         }

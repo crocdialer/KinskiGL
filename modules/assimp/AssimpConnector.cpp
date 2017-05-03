@@ -98,10 +98,10 @@ namespace kinski { namespace gl{
         
         if(aMesh->HasVertexColors(0))//TODO: test
         {
-            geom->colors().reserve(aMesh->mNumVertices);
             geom->colors().insert(geom->colors().end(), (vec4*)aMesh->mColors,
                                    (vec4*) aMesh->mColors + aMesh->mNumVertices);
         }
+//        else{ geom->colors().resize(aMesh->mNumVertices, gl::COLOR_WHITE); }
         
         if(aMesh->HasTangentsAndBitangents())
         {
@@ -363,26 +363,16 @@ namespace kinski { namespace gl{
                 create_bone_animation(theScene->mRootNode, assimpAnimation, mesh->root_bone(), anim);
                 mesh->add_animation(anim);
             }
-            
-//            gl::Shader shader;
             gl::ShaderType sh_type;
             
             try
             {
-                if(geom->has_bones())
-                {
-//                    shader = gl::create_shader(gl::ShaderType::PHONG_SKIN);
-                    sh_type = gl::ShaderType::PHONG_SKIN;
-                }
-                else
-                {
-//                    shader = gl::create_shader(gl::ShaderType::PHONG);
-                    sh_type = gl::ShaderType::PHONG;
-                }
+                if(geom->has_bones()){ sh_type = gl::ShaderType::PHONG_SKIN; }
+                else{ sh_type = gl::ShaderType::PHONG; }
                 
             }catch (std::exception &e){ LOG_WARNING<<e.what(); }
             
-            for (uint32_t i = 0; i < materials.size(); i++)
+            for(uint32_t i = 0; i < materials.size(); i++)
             {
 //                materials[i]->setShader(shader);
                 materials[i]->load_queue_shader().push_back(sh_type);

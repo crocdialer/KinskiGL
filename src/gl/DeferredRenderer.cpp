@@ -6,6 +6,7 @@
 #include "Camera.hpp"
 #include "Light.hpp"
 #include "Scene.hpp"
+#include "ShaderLibrary.h"
 #include "DeferredRenderer.hpp"
 
 namespace kinski{ namespace gl{
@@ -43,9 +44,10 @@ void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBin
     if(!m_fbo || m_fbo.size() != the_size)
     {
         gl::Fbo::Format fmt;
-        fmt.set_color_internal_format(GL_RGBA32F);
+        fmt.set_color_internal_format(GL_RGB32F);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_fbo = gl::Fbo(the_size, fmt);
+        KINSKI_CHECK_GL_ERRORS();
     }
 
     std::list<RenderBin::item> opaque_items, blended_items;
@@ -54,8 +56,15 @@ void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBin
     // bind G-Buffer
     gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
     gl::set_window_dimension(m_fbo.size());
-    gl::scoped_bind<gl::Fbo> fbo_bind(m_fbo);
+    m_fbo.bind();
     gl::clear();
+    KINSKI_CHECK_GL_ERRORS();
+
+    // create our shaders
+    if(!m_shader_g_buffer){ m_shader_g_buffer = gl::Shader::create(phong_vert, create_g_buffer_frag); }
+    if(!m_shader_g_buffer_skin){ m_shader_g_buffer_skin = gl::Shader::create(phong_skin_vert, create_g_buffer_frag); }
+
+    gl::ShaderPtr shader = m_shader_g_buffer;
 
     for (const RenderBin::item &item : opaque_items)
     {
@@ -70,22 +79,19 @@ void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBin
             mat->uniform("u_modelViewMatrix", modelView);
             mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
             mat->uniform("u_normalMatrix", normal_matrix);
-
-            if(m->geometry()->has_bones())
-            {
-                mat->uniform("u_bones", m->bone_matrices());
-            }
-
-            GLint block_index = m_shader_geometry_pass->uniform_block_index("MaterialBlock");
-
-            if(block_index >= 0)
-            {
-                glUniformBlockBinding(m_shader_geometry_pass->handle(), block_index, MATERIAL_BLOCK);
-                KINSKI_CHECK_GL_ERRORS();
-            }
-
+            if(m->geometry()->has_bones()){ mat->uniform("u_bones", m->bone_matrices()); }
+            KINSKI_CHECK_GL_ERRORS();
         }
-        gl::apply_material(m->material());
+
+        if(m->geometry()->has_bones()){ shader = m_shader_g_buffer_skin; }
+        GLint block_index = shader->uniform_block_index("MaterialBlock");
+
+        if(block_index >= 0)
+        {
+            glUniformBlockBinding(shader->handle(), block_index, MATERIAL_BLOCK);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        gl::apply_material(m->material(), false, shader);
         m->bind_vertex_array();
 
         KINSKI_CHECK_GL_ERRORS();
@@ -106,7 +112,7 @@ void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBin
                                                0,
                                                m->materials().size() - 1);
                     m->bind_vertex_array(mat_index);
-                    apply_material(m->materials()[mat_index]);
+                    apply_material(m->materials()[mat_index], false, shader);
                     KINSKI_CHECK_GL_ERRORS();
 
                     glDrawElementsBaseVertex(primitive_type,
@@ -126,8 +132,7 @@ void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBin
         }
         else
         {
-            glDrawArrays(m->geometry()->primitive_type(), 0,
-                         m->geometry()->vertices().size());
+            glDrawArrays(m->geometry()->primitive_type(), 0, m->geometry()->vertices().size());
         }
         KINSKI_CHECK_GL_ERRORS();
     }

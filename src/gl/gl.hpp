@@ -234,14 +234,9 @@ class SaveFramebufferBinding
 template<typename T> class scoped_bind
 {
 public:
-    explicit scoped_bind(T *theObj): m_obj(theObj)
-    {
-        m_obj->bind();
-    }
-
+    explicit scoped_bind(T *theObj): m_obj(theObj){ m_obj->bind(); }
     explicit scoped_bind(const std::shared_ptr<T> &theObj): scoped_bind(theObj.get()){}
     explicit scoped_bind(T &theObj): scoped_bind(&theObj){}
-
     ~scoped_bind(){ m_obj->unbind(); }
 
 private:

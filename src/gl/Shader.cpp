@@ -101,8 +101,7 @@ void Shader::link()
 void Shader::bind() const
 {
     if(!m_impl) throw ShaderNullProgramExc();
-    
-	glUseProgram( m_impl->m_Handle );
+	glUseProgram(m_impl->m_Handle);
 }
 
 void Shader::unbind()

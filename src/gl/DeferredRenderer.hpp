@@ -21,11 +21,14 @@ public:
     uint32_t render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                           const std::set<std::string> &the_tags = {}) override;
 
+
+    gl::Fbo g_buffer(){ return m_fbo; }
+
 private:
 
     void create_g_buffer(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
 
-    gl::ShaderPtr m_shader_geometry_pass;
+    gl::ShaderPtr m_shader_g_buffer, m_shader_g_buffer_skin;
     gl::Fbo m_fbo;
 };
 
