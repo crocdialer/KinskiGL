@@ -32,18 +32,21 @@ struct ShaderImpl
 
 //////////////////////////////////////////////////////////////////////////
 // Shader
-
-Shader::Shader(){}
+ShaderPtr Shader::create(const std::string &vertexShader, const std::string &fragmentShader,
+						 const std::string &geometryShader)
+{
+	return ShaderPtr(new Shader(vertexShader, fragmentShader, geometryShader));
+}
     
-Shader::Shader(const char *vertexShader, const char *fragmentShader, const char *geometryShader):
+Shader::Shader(const std::string &vertexShader, const std::string &fragmentShader, const std::string &geometryShader):
 m_impl(new ShaderImpl)
 {
-    if(vertexShader){ load_shader(vertexShader, GL_VERTEX_SHADER); }
+    if(!vertexShader.empty()){ load_shader(vertexShader.c_str(), GL_VERTEX_SHADER); }
     
-    if(fragmentShader){ load_shader(fragmentShader, GL_FRAGMENT_SHADER); }
+    if(!fragmentShader.empty()){ load_shader(fragmentShader.c_str(), GL_FRAGMENT_SHADER); }
     
 #ifndef KINSKI_GLES
-    if(geometryShader){ load_shader(geometryShader, GL_GEOMETRY_SHADER); }
+    if(!geometryShader.empty()){ load_shader(geometryShader.c_str(), GL_GEOMETRY_SHADER); }
 #endif
     
 	link();
@@ -107,7 +110,7 @@ void Shader::unbind()
 	glUseProgram(0);
 }
 
-GLuint Shader::getHandle() const
+GLuint Shader::handle() const
 {
     return m_impl->m_Handle;
 }

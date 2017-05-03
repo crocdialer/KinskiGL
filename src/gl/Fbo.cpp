@@ -257,7 +257,7 @@ void Fbo::init()
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 		}
 #if ! defined(KINSKI_GLES)
-        if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), &drawBuffers[0]); }
+        if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
 #endif
 
 		// allocate and attach depth texture
@@ -337,7 +337,7 @@ bool Fbo::init_multisample()
 		drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 	}
 
-    if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), &drawBuffers[0]); }
+    if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
 
 	// see if the resolve buffer is ok
 	FboExceptionInvalidSpecification ignoredException;
@@ -358,9 +358,6 @@ bool Fbo::init_multisample()
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER,
                                   m_impl->mMultisampleColorRenderbuffers.back().id());
 	}
-	
-	if(!drawBuffers.empty())
-		glDrawBuffers(drawBuffers.size(), &drawBuffers[0]);
 
 	if(m_impl->m_format.m_depth_buffer)
     {
@@ -482,7 +479,7 @@ void Fbo::resolve_textures() const
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
         
 		glBindFramebuffer(GL_FRAMEBUFFER, m_impl->m_id);
-		glDrawBuffers(drawBuffers.size(), &drawBuffers[0]);
+		glDrawBuffers(drawBuffers.size(), drawBuffers.data());
         KINSKI_CHECK_GL_ERRORS();
 	}
 #endif
@@ -572,7 +569,7 @@ GLint Fbo::max_num_attachments()
 #if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
     
 void Fbo::blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &the_dst,
-             GLenum filter, GLbitfield mask) const
+                  GLenum filter, GLbitfield mask) const
 {
 	SaveFramebufferBinding sb;
 

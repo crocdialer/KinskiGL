@@ -74,7 +74,7 @@ namespace kinski { namespace gl {
     static std::stack<glm::mat4> g_projectionMatrixStack;
     static std::stack<glm::mat4> g_modelViewMatrixStack;
     static gl::MaterialPtr g_line_material;
-    static std::map<ShaderType, Shader> g_shaders;
+    static std::map<ShaderType, ShaderPtr> g_shaders;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -555,7 +555,7 @@ namespace kinski { namespace gl {
         }
 
 #if !defined(KINSKI_GLES)
-        static Shader tex_2D, rect_2D;
+        static ShaderPtr tex_2D, rect_2D;
 
         // create shaders
         if(!tex_2D || !rect_2D)
@@ -802,8 +802,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 #if !defined(KINSKI_GLES)
             if(mat->shader())
             {
-                GLuint block_index = mat->shader().uniform_block_index("MaterialBlock");
-                glUniformBlockBinding(mat->shader().getHandle(), block_index, 0);
+                GLuint block_index = mat->shader()->uniform_block_index("MaterialBlock");
+                glUniformBlockBinding(mat->shader()->handle(), block_index, 0);
             }
 #endif
         }
@@ -1128,7 +1128,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::set_window_dimension(theFbo.size());
-        theFbo.bind();
+        gl::scoped_bind<gl::Fbo> fbo_bind(theFbo);
         gl::clear();
         theScene->render(theCam);
         return theFbo.texture();
@@ -1146,7 +1146,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         // push framebuffer and viewport states
         gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
         gl::set_window_dimension(theFbo.size());
-        theFbo.bind();
+        gl::scoped_bind<gl::Fbo> fbo_bind(theFbo);
         functor();
         return theFbo.texture();
     }
@@ -1214,7 +1214,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void apply_material(const MaterialPtr &the_mat, bool force_apply)
+    void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader)
     {
         static MaterialWeakPtr weak_last;
 
@@ -1261,7 +1261,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
 
         // bind the shader
-        the_mat->shader().bind();
+        gl::ShaderPtr shader = override_shader ? override_shader : the_mat->shader();
+        shader->bind();
 
         char buf[512];
 
@@ -1340,11 +1341,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         }
 
         // texture matrix from first texture, if any
-        the_mat->shader().uniform("u_textureMatrix",
-                         (the_mat->textures().empty() || !the_mat->textures().front()) ?
-                                  glm::mat4() : the_mat->textures().front().texture_matrix());
+        shader->uniform("u_textureMatrix", (the_mat->textures().empty() || !the_mat->textures().front()) ?
+                                          glm::mat4() : the_mat->textures().front().texture_matrix());
 
-        the_mat->shader().uniform("u_numTextures", (GLint) the_mat->textures().size());
+        shader->uniform("u_numTextures", (GLint) the_mat->textures().size());
 
 //        if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1543,25 +1543,25 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     //////////////////////////////////////////////////////////////////////////
     // global shader creation functions
 
-    Shader create_shader_from_file(const std::string &vertPath,
-                                   const std::string &fragPath,
-                                   const std::string &geomPath)
+    ShaderPtr create_shader_from_file(const std::string &vertPath,
+                                      const std::string &fragPath,
+                                      const std::string &geomPath)
     {
-        Shader ret;
+        ShaderPtr ret;
         std::string vertSrc, fragSrc, geomSrc;
         vertSrc = fs::read_file(vertPath);
         fragSrc = fs::read_file(fragPath);
 
         if (!geomPath.empty()) geomSrc = fs::read_file(geomPath);
 
-        try { ret.load_from_data(vertSrc, fragSrc, geomSrc); }
+        try { ret = gl::Shader::create(vertSrc, fragSrc, geomSrc); }
         catch (Exception &e){ LOG_ERROR<<e.what(); }
         return ret;
     }
 
-    Shader create_shader(ShaderType type, bool use_cached_shader)
+    ShaderPtr create_shader(ShaderType type, bool use_cached_shader)
     {
-        Shader ret;
+        ShaderPtr ret;
         auto it = use_cached_shader ? g_shaders.find(type) : g_shaders.end();
 
         if(it == g_shaders.end())
@@ -1677,7 +1677,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
                 LOG_WARNING << "requested shader not available, falling back to UNLIT";
                 return create_shader(gl::ShaderType::UNLIT, false);
             }
-            ret.load_from_data(vert_src, frag_src, geom_src);
+            ret = gl::Shader::create(vert_src, frag_src, geom_src);
             if(use_cached_shader){ g_shaders[type] = ret; }
             KINSKI_CHECK_GL_ERRORS();
         }

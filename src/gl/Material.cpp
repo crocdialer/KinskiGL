@@ -17,22 +17,22 @@ namespace kinski { namespace gl {
     class InsertUniformVisitor : public boost::static_visitor<>
     {
     private:
-        gl::Shader &m_shader;
+        gl::ShaderPtr m_shader;
         const std::string &m_uniform;
         
     public:
         
-        InsertUniformVisitor(gl::Shader &theShader, const std::string &theUniform)
+        InsertUniformVisitor(gl::ShaderPtr theShader, const std::string &theUniform)
         :m_shader(theShader), m_uniform(theUniform){};
         
         template <typename T>
         void operator()( T &value ) const
         {
-            m_shader.uniform(m_uniform, value);
+            m_shader->uniform(m_uniform, value);
         }
     };
     
-    Material::Material(const Shader &theShader):
+    Material::Material(const ShaderPtr &theShader):
     m_shader(theShader),
     m_dirty_uniform_buffer(true),
     m_polygon_mode(GL_FRONT),
@@ -60,7 +60,7 @@ namespace kinski { namespace gl {
         return MaterialPtr(new Material(gl::create_shader(the_type)));
     }
     
-    MaterialPtr Material::create(const Shader &theShader)
+    MaterialPtr Material::create(const ShaderPtr &theShader)
     {
         return MaterialPtr(new Material(theShader));
     }
@@ -107,7 +107,7 @@ namespace kinski { namespace gl {
         m_dirty_uniform_buffer = true;
     };
     
-    void Material::set_shader(const Shader &theShader)
+    void Material::set_shader(const ShaderPtr &theShader)
     {
         m_shader = theShader;
         m_load_queue_shader.clear();

@@ -87,7 +87,9 @@ namespace kinski
         }
         else if(theProperty == m_direction)
         {
-            active_light->set_look_at(active_light->position() + m_direction->value());
+            auto dir = active_light->type() == gl::Light::DIRECTIONAL ?
+                       -m_direction->value() : active_light->position() + m_direction->value();
+            active_light->set_look_at(dir);
         }
         else if(theProperty == m_diffuse)
         {

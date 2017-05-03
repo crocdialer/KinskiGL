@@ -141,7 +141,7 @@ namespace kinski { namespace gl {
     {
         if(m_vertex_attribs.empty()){ create_vertex_attribs(); }
 
-        Shader& shader = m_materials[material_index]->shader();
+        ShaderPtr shader = m_materials[material_index]->shader();
         if(!shader)
             throw Exception("No Shader defined in Mesh::create_vertex_array()");
 
@@ -149,7 +149,7 @@ namespace kinski { namespace gl {
 
         for(auto &vertex_attrib : m_vertex_attribs)
         {
-            GLint location = shader.attrib_location(vertex_attrib.name);
+            GLint location = shader->attrib_location(vertex_attrib.name);
 
             if(location >= 0)
             {
@@ -177,7 +177,7 @@ namespace kinski { namespace gl {
         // set standard values for some attribs, in case they're not defined
         if(!m_geometry->has_colors())
         {
-            GLint colorAttribLocation = shader.attrib_location(m_colorLocationName);
+            GLint colorAttribLocation = shader->attrib_location(m_colorLocationName);
             if(colorAttribLocation >= 0)
             {
                 glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
@@ -193,7 +193,7 @@ namespace kinski { namespace gl {
         // }
         if(!m_geometry->has_point_sizes())
         {
-            GLint pointSizeAttribLocation = shader.attrib_location(m_pointSizeLocationName);
+            GLint pointSizeAttribLocation = shader->attrib_location(m_pointSizeLocationName);
             if(pointSizeAttribLocation >= 0)
             {
                 glVertexAttrib1f(pointSizeAttribLocation, 1.0f);

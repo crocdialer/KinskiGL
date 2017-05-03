@@ -89,7 +89,7 @@ namespace kinski
                 theProperty == m_shader_frag ||
                 theProperty == m_shader_geom)
         {
-            gl::Shader shader;
+            gl::ShaderPtr shader;
             
             if(!m_shader_vert->value().empty() && !m_shader_frag->value().empty())
             {

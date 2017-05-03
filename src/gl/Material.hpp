@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
         enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
         
         static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
-        static MaterialPtr create(const Shader &theShader);        
+        static MaterialPtr create(const ShaderPtr &theShader);
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         
@@ -45,9 +45,9 @@ namespace kinski { namespace gl {
         
         void update_uniforms();
         
-        Shader& shader() {return m_shader;};
-        const Shader& shader() const {return m_shader;};
-        void set_shader(const Shader &theShader);
+        const ShaderPtr& shader() {return m_shader;};
+        ShaderConstPtr shader() const {return m_shader;};
+        void set_shader(const ShaderPtr &theShader);
         
         std::vector<Texture>& textures() {return m_textures;};
         const std::vector<Texture>& textures() const {return m_textures;};
@@ -104,9 +104,9 @@ namespace kinski { namespace gl {
         
     private:
         
-        Material(const Shader &theShader);
+        Material(const ShaderPtr &theShader);
         
-        Shader m_shader;
+        ShaderPtr m_shader;
         
         UniformMap m_uniforms;
         gl::Buffer m_uniform_buffer;

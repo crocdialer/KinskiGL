@@ -18,16 +18,14 @@ namespace kinski { namespace gl {
 //! Represents an OpenGL GLSL program.
 class KINSKI_API Shader
 {
-  public: 
-	Shader();
-    
-	Shader(const char *vertexShader, const char *fragmentShader,
-           const char *geometryShader = nullptr);
+  public:
 
+	static ShaderPtr create(const std::string &vertexShader, const std::string &fragmentShader,
+							const std::string &geometryShader = "");
 	void bind() const;
 	static void unbind();
 
-	GLuint getHandle() const;
+	GLuint handle() const;
 
 	void uniform(const std::string &name, GLint data);
     inline void uniform(const std::string &name, GLuint data){ uniform(name, GLint(data)); };
@@ -77,18 +75,12 @@ class KINSKI_API Shader
 						const std::string &geomSrc = "");
     
   private:
+	Shader(const std::string &vertexShader, const std::string &fragmentShader,
+		   const std::string &geometryShader);
 	void load_shader(const char *shaderSource, GLint shaderType);
 	void link();
 
-    std::shared_ptr<struct ShaderImpl> m_impl;
-
-  public:
-	//! Emulates shared_ptr-like behavior
-	operator bool() const { return m_impl.get() != nullptr; }
-	void reset() { m_impl.reset(); }
-    
-    bool operator==(const Shader &other) const { return m_impl.get() == other.m_impl.get();}
-    bool operator!=(const Shader &other) const { return m_impl.get() != other.m_impl.get();}
+    std::unique_ptr<struct ShaderImpl> m_impl;
 };
     
 

@@ -34,7 +34,7 @@ namespace kinski{ namespace gl{
         m_camera = gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1);
         
         gl::MeshPtr m_mesh, m_grid_mesh;
-        gl::Shader m_shader_warp_vert, m_shader_warp_vert_rect;
+        gl::ShaderPtr m_shader_warp_vert, m_shader_warp_vert_rect;
         
         Area_<uint32_t> m_src_area;
         

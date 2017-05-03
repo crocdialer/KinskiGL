@@ -206,7 +206,7 @@ namespace kinski { namespace gl {
          */
         std::map<void*, std::vector<GLuint>> m_vertexArrays;
         
-        std::vector<gl::Shader> m_shaders;
+        std::vector<gl::ShaderPtr> m_shaders;
         
         // skeletal animations stuff
         BonePtr m_rootBone;
