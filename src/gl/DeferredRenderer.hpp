@@ -26,7 +26,7 @@ public:
 
 private:
 
-    void create_g_buffer(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
+    void geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
 
     gl::ShaderPtr m_shader_g_buffer, m_shader_g_buffer_skin;
     gl::Fbo m_fbo;

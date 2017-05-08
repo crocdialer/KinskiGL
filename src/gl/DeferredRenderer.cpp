@@ -19,32 +19,23 @@ DeferredRenderer::DeferredRenderer()
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
-    // skybox drawing
-    if(the_scene->skybox())
-    {
-        gl::set_projection(the_cam);
-        mat4 m = the_cam->view_matrix();
-        m[3] = vec4(0, 0, 0, 1);
-        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
-        gl::draw_mesh(the_scene->skybox());
-    }
-
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
 
     // create G-buffer, if necessary, and fill it
-    create_g_buffer(gl::window_dimension(), render_bin);
+    geometry_pass(gl::window_dimension(), render_bin);
 
     // return number of rendered objects
     return render_bin->items.size();
 }
 
-void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
+void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
 {
     if(!m_fbo || m_fbo.size() != the_size)
     {
         gl::Fbo::Format fmt;
         fmt.set_color_internal_format(GL_RGB32F);
+//        fmt.set_num_samples(4);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_fbo = gl::Fbo(the_size, fmt);
         KINSKI_CHECK_GL_ERRORS();
@@ -62,7 +53,10 @@ void DeferredRenderer::create_g_buffer(const gl::vec2 &the_size, const RenderBin
 
     // create our shaders
     if(!m_shader_g_buffer){ m_shader_g_buffer = gl::Shader::create(phong_vert, create_g_buffer_frag); }
-    if(!m_shader_g_buffer_skin){ m_shader_g_buffer_skin = gl::Shader::create(phong_skin_vert, create_g_buffer_frag); }
+    if(!m_shader_g_buffer_skin)
+    {
+        m_shader_g_buffer_skin = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
+    }
 
     gl::ShaderPtr shader = m_shader_g_buffer;
 

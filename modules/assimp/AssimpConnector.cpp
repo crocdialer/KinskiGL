@@ -76,7 +76,7 @@ namespace kinski { namespace gl{
         }
         
         std::vector<uint32_t> &indices = geom->indices(); indices.reserve(aMesh->mNumFaces * 3);
-        for(uint32_t i = 0; i < aMesh->mNumFaces; i++)
+        for(uint32_t i = 0; i < aMesh->mNumFaces; ++i)
         {
             const aiFace &f = aMesh->mFaces[i];
             if(f.mNumIndices != 3) throw Exception("Non triangle mesh loaded");
@@ -87,7 +87,6 @@ namespace kinski { namespace gl{
         
         if(aMesh->HasNormals())
         {
-            geom->normals().reserve(aMesh->mNumVertices);
             geom->normals().insert(geom->normals().end(), (vec3*)aMesh->mNormals,
                                    (vec3*) aMesh->mNormals + aMesh->mNumVertices);
         }
@@ -99,13 +98,12 @@ namespace kinski { namespace gl{
         if(aMesh->HasVertexColors(0))//TODO: test
         {
             geom->colors().insert(geom->colors().end(), (vec4*)aMesh->mColors,
-                                   (vec4*) aMesh->mColors + aMesh->mNumVertices);
+                                  (vec4*) aMesh->mColors + aMesh->mNumVertices);
         }
 //        else{ geom->colors().resize(aMesh->mNumVertices, gl::COLOR_WHITE); }
         
         if(aMesh->HasTangentsAndBitangents())
         {
-            geom->tangents().reserve(aMesh->mNumVertices);
             geom->tangents().insert(geom->tangents().end(), (vec3*)aMesh->mTangents,
                                     (vec3*) aMesh->mTangents + aMesh->mNumVertices);
         }

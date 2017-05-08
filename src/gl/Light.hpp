@@ -40,6 +40,8 @@ namespace kinski { namespace gl {
         void set_diffuse(const Color &theColor);
         void set_ambient(const Color &theColor);
         void set_specular(const Color &theColor);
+        float intensity() const { return m_intensity; }
+        void set_intensity(float the_intensity);
         
         const Attenuation& attenuation() const;
         void set_attenuation(const Attenuation &theAttenuation);
@@ -59,11 +61,13 @@ namespace kinski { namespace gl {
         
         void accept(Visitor &theVisitor);
         
+        float max_distance() const;
+        
     private:
         
         Type m_type;
         Attenuation m_attenuation;
-        float m_spot_cutoff, m_spot_exponent;
+        float m_spot_cutoff, m_spot_exponent, m_intensity;
         Color m_ambient, m_diffuse, m_specular;
         bool m_cast_shadow;
     };

@@ -2,7 +2,7 @@
 if(KINSKI_RASPI)
   set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ES2")
 else()
-  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/330")
+  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/410")
 endif()
 
 #stringify all shader files

@@ -777,9 +777,6 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     {
         if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
 
-        // create or update Gl buffers, if necessary
-        the_mesh->geometry()->create_gl_buffers();
-
         const glm::mat4 &modelView = g_modelViewMatrixStack.top();
         mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
         mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
@@ -802,13 +799,13 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 #if !defined(KINSKI_GLES)
             if(mat->shader())
             {
-                GLuint block_index = mat->shader()->uniform_block_index("MaterialBlock");
-                glUniformBlockBinding(mat->shader()->handle(), block_index, 0);
+                GLint block_index = mat->shader()->uniform_block_index("MaterialBlock");
+                if(block_index >= 0){ glUniformBlockBinding(mat->shader()->handle(), block_index, 0); }
             }
 #endif
         }
-        gl::apply_material(the_mesh->material());
         KINSKI_CHECK_GL_ERRORS();
+        gl::apply_material(the_mesh->material());
 
 #ifndef KINSKI_NO_VAO
         the_mesh->bind_vertex_array();
@@ -1216,8 +1213,8 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
     void apply_material(const MaterialPtr &the_mat, bool force_apply, const ShaderPtr &override_shader)
     {
-        static MaterialWeakPtr weak_last;
         KINSKI_CHECK_GL_ERRORS();
+        static MaterialWeakPtr weak_last;
         
         MaterialPtr last_mat = force_apply ? MaterialPtr() : weak_last.lock();
 
@@ -1335,9 +1332,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
         if(!last_mat || last_mat->line_width() != the_mat->line_width())
         {
-            if(the_mat->line_width() > 0.f)
+            if(the_mat->line_width() > 1.f)
             {
-                glLineWidth(the_mat->line_width());
+//                glEnable(GL_LINE_SMOOTH);
+//                glLineWidth(2.f);
                 KINSKI_CHECK_GL_ERRORS();
             }
         }

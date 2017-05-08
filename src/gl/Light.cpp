@@ -19,9 +19,10 @@ namespace kinski { namespace gl {
     Light::Light(Type theType):
     Object3D(),
     m_type(theType),
-    m_attenuation(Attenuation(1.f, 0, 0)),
+    m_attenuation(Attenuation(1.f, 0, 1.f)),
     m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
+    m_intensity(1.f),
     m_ambient(Color(0)),
     m_diffuse(Color(1)),
     m_specular(Color(1)),
@@ -48,6 +49,11 @@ namespace kinski { namespace gl {
     void Light::set_specular(const Color &theColor)
     {
         m_specular = glm::clamp(theColor, Color(0), Color(1));
+    }
+    
+    void Light::set_intensity(float the_intensity)
+    {
+        m_intensity = clamp(the_intensity, 0.f, std::numeric_limits<float>::max());
     }
     
     const Light::Attenuation& Light::attenuation() const
@@ -96,6 +102,17 @@ namespace kinski { namespace gl {
                 break;
         }
         return ret;
+    }
+    
+    float Light::max_distance() const
+    {
+        if(type() == DIRECTIONAL){ return std::numeric_limits<float>::max(); }
+        float i = m_intensity * std::max(std::max(m_diffuse.r, m_diffuse.g), m_diffuse.b);
+        float l = m_attenuation.linear, q = m_attenuation.quadratic, c = m_attenuation.constant;
+        if(q != 0.f)
+            return (- l + std::sqrtf(l * l - 4 * (c - i / 255.f) * q)) / 2.f * q;
+        else
+            return 1;
     }
     
     void Light::accept(Visitor &theVisitor)

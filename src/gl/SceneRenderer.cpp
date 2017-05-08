@@ -166,7 +166,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
             set_shadow_pass(false);
         }
     }
-    
+
     // skybox drawing
     if(the_scene->skybox())
     {
@@ -217,8 +217,6 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                                             const list<RenderBin::light> &light_list)
 {
     KINSKI_CHECK_GL_ERRORS();
-    //        typedef map<pair<Material*, Geometry*>, list<RenderBin::item> > MatMeshMap;
-    //        MatMeshMap mat_mesh_map;
     
     for (const RenderBin::item &item : item_list)
     {
@@ -289,7 +287,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
 #endif
         }
         gl::apply_material(m->material());
-        
+
 #ifndef KINSKI_NO_VAO
         m->bind_vertex_array();
 #else
@@ -316,7 +314,6 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                                                m->materials().size() - 1);
                     m->bind_vertex_array(mat_index);
                     apply_material(m->materials()[mat_index]);
-                    KINSKI_CHECK_GL_ERRORS();
                     
                     glDrawElementsBaseVertex(primitive_type,
                                              m->entries()[i].num_indices,
@@ -392,11 +389,13 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         vec4 ambient;
         vec4 specular;
         vec3 direction;
+        float intensity;
         float spotCosCutoff;
         float spotExponent;
         float constantAttenuation;
         float linearAttenuation;
         float quadraticAttenuation;
+        float pad_0, pad_1, pad_2;
     };
     
     if(!m_uniform_buffer[LIGHT_UNIFORM_BUFFER])
@@ -416,6 +415,7 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         buf.diffuse = l.light->diffuse();
         buf.ambient = l.light->ambient();
         buf.specular = l.light->specular();
+        buf.intensity = l.light->intensity();
         buf.constantAttenuation = l.light->attenuation().constant;
         buf.linearAttenuation = l.light->attenuation().linear;
         buf.quadraticAttenuation = l.light->attenuation().quadratic;

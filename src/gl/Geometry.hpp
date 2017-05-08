@@ -40,6 +40,20 @@ namespace kinski{ namespace gl{
         weights(vec4(0)){};
     };
     
+    struct HalfEdge
+    {
+        //! Vertex index at the end of this half-edge
+        uint32_t index;
+        
+        //! Oppositely oriented adjacent half-edge
+        HalfEdge* twin = nullptr;
+        
+        //! Next half-edge around the face
+        HalfEdge* next = nullptr;
+    };
+    
+    std::vector<HalfEdge> compute_half_edges(gl::GeometryPtr the_geom);
+    
     class KINSKI_API Geometry
     {
     public:
