@@ -799,13 +799,13 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 #if !defined(KINSKI_GLES)
 
             // force shader creation from queue, if any
-            if(!mat->shader()){ apply_material(mat); }
-
-            if(mat->shader())
-            {
-                GLint block_index = mat->shader()->uniform_block_index("MaterialBlock");
-                if(block_index >= 0){ glUniformBlockBinding(mat->shader()->handle(), block_index, 0); }
-            }
+//            if(!mat->shader()){ apply_material(mat); }
+//
+//            if(mat->shader())
+//            {
+//                GLint block_index = mat->shader()->uniform_block_index("MaterialBlock");
+//                if(block_index >= 0){ glUniformBlockBinding(mat->shader()->handle(), block_index, 0); }
+//            }
 #endif
         }
         KINSKI_CHECK_GL_ERRORS();

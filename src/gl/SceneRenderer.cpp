@@ -79,7 +79,10 @@ public:
                     break;
             }
             // collect only lights that actually affect the scene
-//            if(glm::length(light_item.transform[3].xyz()) < light_item.light->max_distance())
+            gl::Sphere bounding_sphere(gl::vec3(theNode.transform()[3].xyz()), theNode.max_distance());
+//            bounding_sphere.transform(theNode.transform());
+
+//            if(m_frustum.intersect(bounding_sphere))
             {
                 m_render_bin->lights.push_back(light_item);
             }
@@ -432,7 +435,6 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
     memcpy(buf, &num_lights, 4);
     memcpy(buf + 16, &light_structs[0], sizeof(lightstruct_std140) * light_structs.size());
     m_uniform_buffer[LIGHT_UNIFORM_BUFFER].set_data(buf, num_bytes);
-    
     glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BLOCK, m_uniform_buffer[LIGHT_UNIFORM_BUFFER].id());
 #endif
 }

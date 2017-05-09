@@ -183,6 +183,8 @@ struct KINSKI_API Sphere
     inline Sphere& transform(const mat4& t)
 	{
 		center = (t * vec4(center, 1.0f)).xyz();
+		float max_scale = std::max(std::max(t[0][0], t[1][1]), t[2][2]);
+		radius *= max_scale;
 		return *this;
 	};
     

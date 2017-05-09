@@ -89,16 +89,20 @@ namespace kinski { namespace gl {
         switch (m_type)
         {
             case DIRECTIONAL:
-                ret.min = glm::vec3(std::numeric_limits<float>::max());
-                ret.max = glm::vec3(std::numeric_limits<float>::min());
+                ret.min = glm::vec3(std::numeric_limits<float>::min());
+                ret.max = glm::vec3(std::numeric_limits<float>::max());
                 break;
-                
+
             case POINT:
-                break;
-                
             case SPOT:
+            {
+                float d = max_distance();
+                ret.min = glm::vec3(-d);
+                ret.max = glm::vec3(d);
+                ret.transform(global_transform());
                 break;
-                
+            }
+
             default:
                 break;
         }

@@ -429,6 +429,25 @@ void Fbo::enable_draw_buffers(bool b)
 	else{ glDrawBuffer(GL_NONE); }
 }
 
+void Fbo::add_attachment(gl::Texture the_attachment)
+{
+    uint32_t index = m_impl->m_color_textures.size();
+
+    SaveFramebufferBinding sfb;
+    glBindFramebuffer(GL_FRAMEBUFFER, m_impl->m_id);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, target(),
+                           the_attachment.id(), 0);
+    FboExceptionInvalidSpecification exc;
+
+    if(check_status(&exc))
+    {
+        m_impl->m_color_textures.push_back(the_attachment);
+        m_impl->m_format.set_num_color_buffers(m_impl->m_color_textures.size());
+        enable_draw_buffers(true);
+    }
+    else{ LOG_ERROR << exc.what(); }
+}
+
 Texture Fbo::texture(int attachment)
 {
 	resolve_textures();

@@ -158,6 +158,12 @@ namespace kinski { namespace gl {
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
         KINSKI_CHECK_GL_ERRORS();
+
+        if(shader_obj)
+        {
+            GLint block_index = shader_obj->uniform_block_index("MaterialBlock");
+            if(block_index >= 0){ glUniformBlockBinding(shader_obj->handle(), block_index, 0); }
+        }
 #else
         if(m_dirty_uniform_buffer)
         {

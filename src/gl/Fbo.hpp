@@ -82,6 +82,8 @@ class KINSKI_API Fbo
 
 	void enable_draw_buffers(bool b = true);
 
+	void add_attachment(gl::Texture the_attachment);
+
 	//! Returns the bounding area of the FBO in pixels
 	//Area			getBounds() const { return Area( 0, 0, m_obj->m_width, m_obj->m_height ); }
     

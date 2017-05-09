@@ -71,8 +71,14 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
         fmt.set_color_internal_format(GL_RGB32F);
         fmt.enable_stencil_buffer(true);
 //        fmt.set_num_samples(4);
-        fmt.set_num_color_buffers(G_BUFFER_SIZE);
+        fmt.set_num_color_buffers(G_BUFFER_SIZE - 1);
         m_geometry_fbo = gl::Fbo(the_size, fmt);
+
+        gl::Texture::Format tex_fmt;
+        tex_fmt.set_internal_format(GL_RGBA32F);
+        tex_fmt.set_data_type(GL_FLOAT);
+        gl::Texture t(the_size.x, the_size.y, tex_fmt);
+        m_geometry_fbo.add_attachment(t);
 
         for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
         {
@@ -191,6 +197,14 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
     for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ m_mat_lighting->add_texture(m_geometry_fbo.texture(i)); }
 
     gl::apply_material(m_mat_lighting);
+    update_uniform_buffers(the_renderbin->lights);
+    GLint block_index = m_mat_lighting->shader()->uniform_block_index("LightBlock");
+
+    if(block_index >= 0)
+    {
+        glUniformBlockBinding(m_mat_lighting->shader()->handle(), block_index, LIGHT_BLOCK);
+        KINSKI_CHECK_GL_ERRORS();
+    }
     gl::clear();
 
     // stencil pass
@@ -214,15 +228,18 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, c
 
     m_mesh_sphere->material() = the_mat;
     m_mesh_cone->material() = the_mat;
+    int light_index = 0;
 
     for(auto l : the_renderbin->lights)
     {
         float d = l.light->max_distance(1.f / 10.f);
+        the_mat->uniform("u_light_index", light_index++);
 
         switch(l.light->type())
         {
             case Light::DIRECTIONAL:
             {
+                //TODO: find proper stencil-op for this to work
                 gl::draw_quad(the_mat, gl::window_dimension());
                 break;
             }

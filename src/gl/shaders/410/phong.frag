@@ -1,5 +1,7 @@
 #version 410
 
+#define MAX_NUM_LIGHTS 8
+
 struct Material
 {
   vec4 diffuse;
@@ -81,7 +83,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[];
+  Lightsource u_lights[MAX_NUM_LIGHTS];
 };
 
 // regular textures
@@ -109,12 +111,12 @@ void main()
   vec3 normal = normalize(vertex_in.normal);
   vec4 shade_color = vec4(0, 0, 0, 1);
 
-  //for(int i = 0; i < u_numLights; i++)
-  if(u_numLights > 0)
-    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
+  int num_lights = min(MAX_NUM_LIGHTS, u_numLights);
 
-  if(u_numLights > 1)
-    shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
+  for(int i = 0; i < num_lights; ++i)
+  {
+      shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
+  }
 
   fragData = shade_color;
 }
