@@ -369,7 +369,7 @@ namespace kinski { namespace gl {
 
     void clear()
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -797,6 +797,10 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             }
 
 #if !defined(KINSKI_GLES)
+
+            // force shader creation from queue, if any
+            if(!mat->shader()){ apply_material(mat); }
+
             if(mat->shader())
             {
                 GLint block_index = mat->shader()->uniform_block_index("MaterialBlock");
@@ -868,42 +872,35 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
     {
         static gl::MeshPtr directional_mesh, point_mesh, spot_mesh;
 
-
         gl::ScopedMatrixPush mat_push(gl::MODEL_VIEW_MATRIX);
-        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, theLight->global_transform());
 
         if(!directional_mesh)
         {
             directional_mesh = gl::Mesh::create(gl::Geometry::create(), gl::Material::create());
-            point_mesh = gl::Mesh::create(gl::Geometry::create_sphere(5.f, 8),
+            point_mesh = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 8),
                                           gl::Material::create());
-            spot_mesh = gl::Mesh::create(gl::Geometry::create_cone(5.f, 10.f, 8),
+            spot_mesh = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16),
                                          gl::Material::create());
 
             glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
 
             for(auto &vert : spot_mesh->geometry()->vertices())
             {
+                vert -= vec3(0, 1, 0);
                 vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
             }
-            spot_mesh->geometry()->create_gl_buffers();
-            spot_mesh->create_vertex_array();
 
             std::list<gl::MaterialPtr> mats =
             {
                 directional_mesh->material(),
                 point_mesh->material(),
                 spot_mesh->material()
-
             };
-            for (auto mat : mats)
-            {
-                mat->set_wireframe();
-            }
+            for (auto mat : mats){ mat->set_wireframe(); }
 
         }
-
         gl::MeshPtr light_mesh;
+        float scale = theLight->max_distance(1.f / 10.f);
 
         switch (theLight->type())
         {
@@ -913,10 +910,17 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
             case gl::Light::POINT:
                 light_mesh = point_mesh;
+                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(theLight->global_transform(),
+                                                                  vec3(scale)));
                 break;
 
             case gl::Light::SPOT:
+            {
                 light_mesh = spot_mesh;
+                float r_scale = tan(glm::radians(theLight->spot_cutoff())) * scale;
+                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(theLight->global_transform(),
+                                                                  vec3(r_scale, r_scale, scale)));
+            }
                 break;
         }
 

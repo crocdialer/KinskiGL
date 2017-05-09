@@ -16,6 +16,29 @@ DeferredRenderer::DeferredRenderer()
 
 }
 
+void DeferredRenderer::init()
+{
+    auto shader = gl::Shader::create(unlit_vert, deferred_lighting_frag);
+    m_mat_lighting = gl::Material::create(shader);
+    m_mat_lighting->set_depth_write(false);
+    m_mat_lighting->set_depth_test(false);
+    m_mat_lighting->set_two_sided();
+    m_mat_lighting->set_blending(true);
+    m_mat_lighting->set_blend_equation(GL_FUNC_ADD);
+    m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
+
+    m_mesh_sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), m_mat_lighting);
+    m_mesh_cone = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16), m_mat_lighting);
+
+    glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
+
+    for(auto &vert : m_mesh_cone->geometry()->vertices())
+    {
+        vert -= vec3(0, 1, 0);
+        vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
+    }
+}
+
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
@@ -42,6 +65,12 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
 //        fmt.set_num_samples(4);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_geometry_fbo = gl::Fbo(the_size, fmt);
+
+        for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
+        {
+            m_geometry_fbo.texture(i).set_mag_filter(GL_NEAREST);
+            m_geometry_fbo.texture(i).set_min_filter(GL_NEAREST);
+        }
         KINSKI_CHECK_GL_ERRORS();
     }
 
@@ -148,29 +177,55 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         KINSKI_CHECK_GL_ERRORS();
     }
 
-    auto mat = gl::Material::create();
-    mat->set_depth_write(false);
-    mat->set_depth_test(false);
-    mat->set_two_sided();
-    mat->set_blending(true);
-    mat->set_blend_equation(GL_FUNC_ADD);
-    mat->set_blend_factors(GL_ONE, GL_ONE);
-    mat->textures().clear();
-    for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ mat->add_texture(m_geometry_fbo.texture(i)); }
+    gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
+    gl::set_window_dimension(m_lighting_fbo.size());
+    m_lighting_fbo.bind();
 
-    gl::MeshPtr sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), mat);
+    if(!m_mat_lighting){ init(); }
 
-    gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
-    gl::load_matrix(gl::MODEL_VIEW_MATRIX, the_renderbin->camera->view_matrix());
+    m_mat_lighting->textures().clear();
+    m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
+    for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ m_mat_lighting->add_texture(m_geometry_fbo.texture(i)); }
+
+    gl::apply_material(m_mat_lighting);
+    gl::clear();
+
+    gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+    gl::set_matrices(the_renderbin->camera);
 
     for(auto l : the_renderbin->lights)
     {
         float d = l.light->max_distance();
         gl::ScopedMatrixPush p(gl::MODEL_VIEW_MATRIX);
-        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform, glm::vec3(d)));
-//        gl::draw_mesh(sphere);
+
+        switch(l.light->type())
+        {
+            case Light::DIRECTIONAL:
+            {
+                gl::draw_quad(m_mat_lighting, gl::window_dimension());
+                break;
+            }
+            case Light::POINT:
+            {
+                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform, glm::vec3(d)));
+                gl::draw_mesh(m_mesh_sphere);
+                break;
+            }
+            case Light::SPOT:
+            {
+                float r_scale = tan(glm::radians(l.light->spot_cutoff())) * d;
+                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform,
+                                                                  vec3(r_scale, r_scale, d)));
+                gl::draw_mesh(m_mesh_cone);
+                break;
+            }
+        }
     }
 }
 
+gl::Texture DeferredRenderer::final_texture()
+{
+    return m_lighting_fbo.texture();
+}
 
 }}

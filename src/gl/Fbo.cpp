@@ -202,6 +202,8 @@ void Fbo::Format::enable_depth_buffer(bool the_depth_buffer, bool as_texture)
 
 void Fbo::init()
 {
+    SaveFramebufferBinding sfb;
+
 	bool useAA = m_impl->m_format.m_num_samples > 0;
 
 	// allocate the framebuffer itself
@@ -311,7 +313,7 @@ void Fbo::init()
 	m_impl->m_needs_resolve = false;
 	m_impl->m_needs_mipmap_update = false;
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 bool Fbo::init_multisample()
@@ -439,10 +441,13 @@ Texture& Fbo::depth_texture()
 
 void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 {
+#if ! defined(KINSKI_GLES)
     if(m_impl->m_format.m_depth_buffer)
     {
         if(m_impl->m_format.m_depth_buffer_texture)
         {
+            SaveFramebufferBinding sfb;
+            bind();
             auto attach = m_impl->m_format.has_stencil_buffer() ?
                           GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
@@ -456,6 +461,7 @@ void Fbo::set_depth_texture(gl::Texture the_depth_tex)
             else{ LOG_ERROR << exc.what(); }
         }
     }
+#endif
 }
 
 void Fbo::bind_texture(int the_texture_unit, int the_attachment)

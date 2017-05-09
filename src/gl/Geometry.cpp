@@ -599,7 +599,6 @@ Geometry::Ptr Geometry::create_sphere(float radius, int numSlices)
         }
 
     geom->compute_tangents();
-    geom->create_gl_buffers();
     geom->compute_bounding_box();
     return geom;
 }

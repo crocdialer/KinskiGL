@@ -79,7 +79,7 @@ public:
                     break;
             }
             // collect only lights that actually affect the scene
-            if(glm::length(light_item.transform[3].xyz()) < light_item.light->max_distance())
+//            if(glm::length(light_item.transform[3].xyz()) < light_item.light->max_distance())
             {
                 m_render_bin->lights.push_back(light_item);
             }
@@ -260,7 +260,9 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
             {
                 mat->uniform("u_bones", m->bone_matrices());
             }
-            
+
+            gl::apply_material(m->material());
+
             // lighting parameters
 #if !defined(KINSKI_GLES)
             GLint block_index = mat->shader()->uniform_block_index("LightBlock");
@@ -288,7 +290,6 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
             set_light_uniforms(mat, light_list);
 #endif
         }
-        gl::apply_material(m->material());
 
 #ifndef KINSKI_NO_VAO
         m->bind_vertex_array();

@@ -52,12 +52,14 @@ namespace kinski { namespace gl {
     m_point_size(1.f)
     {
         set_point_attenuation(1.f, 0.f, 0.f);
-        m_shader = theShader? theShader : gl::create_shader(gl::ShaderType::UNLIT);
     }
     
     MaterialPtr Material::create(const gl::ShaderType &the_type)
     {
-        return MaterialPtr(new Material(gl::create_shader(the_type)));
+        auto ret = MaterialPtr(new Material(nullptr));
+        ret->load_queue_shader().push_back(the_type);
+        return ret;
+//        return MaterialPtr(new Material(gl::create_shader(the_type)));
     }
     
     MaterialPtr Material::create(const ShaderPtr &theShader)
