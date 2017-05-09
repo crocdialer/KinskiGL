@@ -61,7 +61,6 @@ public:
     
     void visit(Light &theNode) override
     {
-        //TODO: only collect lights that actually affect the scene (e.g. point-light radi)
         if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
         {
             RenderBin::light light_item;
@@ -79,8 +78,11 @@ public:
                     light_item.transform = transform_stack().top() * theNode.transform();
                     break;
             }
-            
-            m_render_bin->lights.push_back(light_item);
+            // collect only lights that actually affect the scene
+            if(glm::length(light_item.transform[3].xyz()) < light_item.light->max_distance())
+            {
+                m_render_bin->lights.push_back(light_item);
+            }
         }
         // super class provides node traversing and transform accumulation
         Visitor::visit(static_cast<gl::Object3D&>(theNode));

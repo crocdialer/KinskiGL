@@ -7,23 +7,25 @@ uniform mat4 u_textureMatrix;
 
 struct Lightsource
 {
-  vec3 position;
-  int type;
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec3 direction;
-  float spotCosCutoff;
-  float spotExponent;
-  float constantAttenuation;
-  float linearAttenuation;
-  float quadraticAttenuation;
+    vec3 position;
+    int type;
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec3 direction;
+    float intensity;
+    float spotCosCutoff;
+    float spotExponent;
+    float constantAttenuation;
+    float linearAttenuation;
+    float quadraticAttenuation;
+    float pad_0, pad_1, pad_2;
 };
 
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[16];
+  Lightsource u_lights[];
 };
 
 layout(location = 0) in vec4 a_vertex;

@@ -224,7 +224,7 @@ void Fbo::init()
 	textureFormat.set_mipmapping(format().has_mipmapping());
 
 	// allocate the color buffers
-	for(int c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+	for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
     {
         auto tex = Texture(m_impl->m_width, m_impl->m_height, textureFormat);
         
@@ -273,24 +273,18 @@ void Fbo::init()
                              m_impl->m_width, m_impl->m_height, 0, GL_DEPTH_STENCIL,
                              GL_FLOAT_32_UNSIGNED_INT_24_8_REV, nullptr);
                 
-//                glTexImage2D(target(), 0, getFormat().getDepthInternalFormat(),
-//                             m_impl->m_width, m_impl->m_height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-                
 				glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, m_impl->m_format.m_min_filter);
 				glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, m_impl->m_format.m_mag_filter);
 				glTexParameteri(target(), GL_TEXTURE_WRAP_S, m_impl->m_format.m_wrap_s);
 				glTexParameteri(target(), GL_TEXTURE_WRAP_T, m_impl->m_format.m_wrap_t);
 				m_impl->m_depth_texture = Texture(target(), depthTextureId, m_impl->m_width,
                                                 m_impl->m_height, false);
-                
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, target(),
+
+                auto attach = m_impl->m_format.has_stencil_buffer() ?
+                              GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+
+                glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
                                        m_impl->m_depth_texture.id(), 0);
-                
-                if(m_impl->m_format.has_stencil_buffer())
-                {
-                    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, target(),
-                                           m_impl->m_depth_texture.id(), 0);
-                }
 	#endif
 			}
             // implement depth buffer as RenderBuffer
@@ -348,7 +342,7 @@ bool Fbo::init_multisample()
 	m_impl->m_format.m_num_samples = std::min(m_impl->m_format.m_num_samples, max_num_samples());
     
 	// setup the multisampled color renderbuffers
-	for(int c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
+	for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
     {
 		m_impl->mMultisampleColorRenderbuffers.push_back(Renderbuffer(m_impl->m_width, m_impl->m_height,
                                                                     m_impl->m_format.m_color_internal_format,
@@ -415,7 +409,22 @@ float Fbo::aspect_ratio() const{ return m_impl->m_width / (float)m_impl->m_heigh
 const Fbo::Format& Fbo::format() const { return m_impl->m_format; }
     
 GLenum Fbo::target() const { return m_impl->m_format.m_target; }
-    
+
+void Fbo::enable_draw_buffers(bool b)
+{
+	if(b)
+	{
+		vector<GLenum> drawBuffers;
+		for(size_t c = 0; c < m_impl->m_color_textures.size(); ++c)
+		{
+			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
+		}
+
+		if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
+	}
+	else{ glDrawBuffer(GL_NONE); }
+}
+
 Texture Fbo::texture(int attachment)
 {
 	resolve_textures();
@@ -426,6 +435,27 @@ Texture Fbo::texture(int attachment)
 Texture& Fbo::depth_texture()
 {
 	return m_impl->m_depth_texture;
+}
+
+void Fbo::set_depth_texture(gl::Texture the_depth_tex)
+{
+    if(m_impl->m_format.m_depth_buffer)
+    {
+        if(m_impl->m_format.m_depth_buffer_texture)
+        {
+            auto attach = m_impl->m_format.has_stencil_buffer() ?
+                          GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
+
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
+                                   the_depth_tex.id(), 0);
+
+            FboExceptionInvalidSpecification exc;
+
+            // failed creation; throw
+            if(check_status(&exc)) { m_impl->m_depth_texture = the_depth_tex; }
+            else{ LOG_ERROR << exc.what(); }
+        }
+    }
 }
 
 void Fbo::bind_texture(int the_texture_unit, int the_attachment)

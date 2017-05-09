@@ -29,9 +29,9 @@ namespace kinski
     m_ambient(Property_<gl::Color>::create("ambient", gl::Color(0))),
     m_diffuse(Property_<gl::Color>::create("diffuse", gl::Color())),
     m_specular(Property_<gl::Color>::create("specular", gl::Color())),
-    m_att_constant(RangedProperty<float>::create("attenuation, constant", 1, 0, 1)),
-    m_att_linear(RangedProperty<float>::create("attenuation, linear", 0, 0, 1.f)),
-    m_att_quadratic(RangedProperty<float>::create("attenuation, quadratic", 0, 0, 1.f)),
+    m_att_constant(RangedProperty<float>::create("attenuation, constant", 1, 0, 10)),
+    m_att_linear(RangedProperty<float>::create("attenuation, linear", 0, 0, 10.f)),
+    m_att_quadratic(RangedProperty<float>::create("attenuation, quadratic", 0, 0, 10.f)),
     m_spot_cutoff(RangedProperty<float>::create("spot cutoff", 45.f, 0.f, 360.f)),
     m_spot_exponent(RangedProperty<float>::create("spot exponent", 0, 0, 256.f))
     {

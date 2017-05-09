@@ -25,19 +25,23 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     // create G-buffer, if necessary, and fill it
     geometry_pass(gl::window_dimension(), render_bin);
 
+    // lighting pass
+    light_pass(gl::window_dimension(), render_bin);
+
     // return number of rendered objects
     return render_bin->items.size();
 }
 
 void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
 {
-    if(!m_fbo || m_fbo.size() != the_size)
+    if(!m_geometry_fbo || m_geometry_fbo.size() != the_size)
     {
         gl::Fbo::Format fmt;
         fmt.set_color_internal_format(GL_RGB32F);
+        fmt.enable_stencil_buffer(true);
 //        fmt.set_num_samples(4);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
-        m_fbo = gl::Fbo(the_size, fmt);
+        m_geometry_fbo = gl::Fbo(the_size, fmt);
         KINSKI_CHECK_GL_ERRORS();
     }
 
@@ -46,8 +50,8 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
 
     // bind G-Buffer
     gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-    gl::set_window_dimension(m_fbo.size());
-    m_fbo.bind();
+    gl::set_window_dimension(m_geometry_fbo.size());
+    m_geometry_fbo.bind();
     gl::clear();
     KINSKI_CHECK_GL_ERRORS();
 
@@ -132,5 +136,41 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
     }
     GL_SUFFIX(glBindVertexArray)(0);
 }
+
+void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
+{
+    if(!m_lighting_fbo || m_lighting_fbo.size() != the_size)
+    {
+        gl::Fbo::Format fmt;
+        fmt.enable_stencil_buffer(true);
+        m_lighting_fbo = gl::Fbo(the_size, fmt);
+        m_lighting_fbo.set_depth_texture(m_geometry_fbo.depth_texture());
+        KINSKI_CHECK_GL_ERRORS();
+    }
+
+    auto mat = gl::Material::create();
+    mat->set_depth_write(false);
+    mat->set_depth_test(false);
+    mat->set_two_sided();
+    mat->set_blending(true);
+    mat->set_blend_equation(GL_FUNC_ADD);
+    mat->set_blend_factors(GL_ONE, GL_ONE);
+    mat->textures().clear();
+    for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ mat->add_texture(m_geometry_fbo.texture(i)); }
+
+    gl::MeshPtr sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), mat);
+
+    gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+    gl::load_matrix(gl::MODEL_VIEW_MATRIX, the_renderbin->camera->view_matrix());
+
+    for(auto l : the_renderbin->lights)
+    {
+        float d = l.light->max_distance();
+        gl::ScopedMatrixPush p(gl::MODEL_VIEW_MATRIX);
+        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform, glm::vec3(d)));
+//        gl::draw_mesh(sphere);
+    }
+}
+
 
 }}

@@ -61,7 +61,7 @@ namespace kinski { namespace gl {
         
         void accept(Visitor &theVisitor);
         
-        float max_distance() const;
+        float max_distance(float thresh = 5.f / 255.f) const;
         
     private:
         

@@ -79,7 +79,9 @@ class KINSKI_API Fbo
     int height() const;
 	//! Returns the size of the FBO in pixels
     vec2 size() const;
-    
+
+	void enable_draw_buffers(bool b = true);
+
 	//! Returns the bounding area of the FBO in pixels
 	//Area			getBounds() const { return Area( 0, 0, m_obj->m_width, m_obj->m_height ); }
     
@@ -94,6 +96,8 @@ class KINSKI_API Fbo
 	Texture texture(int the_attachment = 0);
 	//! Returns a reference to the depth texture of the FBO.
 	Texture& depth_texture();
+
+    void set_depth_texture(gl::Texture the_depth_tex);
 	
 	//! Binds the color texture associated with an Fbo to its target. Optionally binds to a multitexturing unit when \a textureUnit is non-zero.  \a attachment specifies which color buffer in the case of multiple attachments.
 	void bind_texture(int the_texture_unit = 0, int the_attachment = 0);
@@ -232,7 +236,7 @@ class KINSKI_API Fbo
 		bool has_mipmapping() const { return m_mipmapping; }
         
         //! Returns the number of color buffers
-		int num_color_buffers() const { return m_num_color_buffers; }
+		uint32_t num_color_buffers() const { return m_num_color_buffers; }
         void set_num_color_buffers(int the_num) { m_num_color_buffers = the_num; }
 		
 	  protected:
@@ -243,7 +247,7 @@ class KINSKI_API Fbo
 		int			m_num_coverage_samples;
 		bool		m_mipmapping;
 		bool		m_depth_buffer, m_depth_buffer_texture, m_stencil_buffer;
-		int			m_num_color_buffers;
+		uint32_t	m_num_color_buffers;
 		GLenum		m_wrap_s, m_wrap_t;
 		GLenum		m_min_filter, m_mag_filter;
 		

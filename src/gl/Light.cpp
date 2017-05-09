@@ -11,6 +11,7 @@
 //
 //  Created by Fabian Schmidt on 6/18/13.
 
+//#include <cmath>
 #include "Light.hpp"
 #include "Visitor.hpp"
 
@@ -19,7 +20,7 @@ namespace kinski { namespace gl {
     Light::Light(Type theType):
     Object3D(),
     m_type(theType),
-    m_attenuation(Attenuation(1.f, 0, 1.f)),
+    m_attenuation(Attenuation(1.f, 0, 0.f)),
     m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
     m_intensity(1.f),
@@ -104,15 +105,14 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    float Light::max_distance() const
+    float Light::max_distance(float thresh) const
     {
         if(type() == DIRECTIONAL){ return std::numeric_limits<float>::max(); }
         float i = m_intensity * std::max(std::max(m_diffuse.r, m_diffuse.g), m_diffuse.b);
         float l = m_attenuation.linear, q = m_attenuation.quadratic, c = m_attenuation.constant;
-        if(q != 0.f)
-            return (- l + std::sqrtf(l * l - 4 * (c - i / 255.f) * q)) / 2.f * q;
-        else
-            return 1;
+        if(q != 0.f){ return (- l + sqrtf(l * l + 4 * (i / thresh - c) * q)) / (2.f * q); }
+        else if(l != 0.f){ return (i / thresh - c) / l; }
+        else return std::numeric_limits<float>::max();
     }
     
     void Light::accept(Visitor &theVisitor)

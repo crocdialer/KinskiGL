@@ -12,17 +12,19 @@ struct Material
 
 struct Lightsource
 {
-  vec3 position;
-  int type;
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec3 direction;
-  float spotCosCutoff;
-  float spotExponent;
-  float constantAttenuation;
-  float linearAttenuation;
-  float quadraticAttenuation;
+    vec3 position;
+    int type;
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec3 direction;
+    float intensity;
+    float spotCosCutoff;
+    float spotExponent;
+    float constantAttenuation;
+    float linearAttenuation;
+    float quadraticAttenuation;
+    float pad_0, pad_1, pad_2;
 };
 
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal,
@@ -40,7 +42,9 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal,
   if (light.type > 0)
   {
     float dist = length(lightDir);
-    att = 1.0 / (light.constantAttenuation + light.linearAttenuation * dist + light.quadraticAttenuation * dist * dist);
+    att = min(1.f, light.intensity / (light.constantAttenuation +
+                   light.linearAttenuation * dist +
+                   light.quadraticAttenuation * dist * dist));
 
     if(light.type > 1)
     {
@@ -71,7 +75,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[16];
+  Lightsource u_lights[];
 };
 
 // regular textures
@@ -113,7 +117,7 @@ void main()
 
   normal = normalize(2.0 * (texture(u_sampler_2D[NORMAL],
                                     vertex_in.texCoord.xy).xyz - vec3(0.5)));
-  vec4 shade_color = vec4(0);
+  vec4 shade_color = vec4(0, 0, 0, 1);
 
   for(int i = 0; i < u_numLights; i++)
   {

@@ -81,7 +81,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[16];
+  Lightsource u_lights[];
 };
 
 // regular textures
@@ -107,7 +107,7 @@ void main()
     texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
 
   vec3 normal = normalize(vertex_in.normal);
-  vec4 shade_color = vec4(0);
+  vec4 shade_color = vec4(0, 0, 0, 1);
 
   //for(int i = 0; i < u_numLights; i++)
   if(u_numLights > 0)

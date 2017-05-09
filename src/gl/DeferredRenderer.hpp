@@ -22,14 +22,15 @@ public:
                           const std::set<std::string> &the_tags = {}) override;
 
 
-    gl::Fbo g_buffer(){ return m_fbo; }
+    gl::Fbo g_buffer(){ return m_geometry_fbo; }
 
 private:
 
     void geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
+    void light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
 
     gl::ShaderPtr m_shader_g_buffer, m_shader_g_buffer_skin;
-    gl::Fbo m_fbo;
+    gl::Fbo m_geometry_fbo, m_lighting_fbo;
 };
 
 }}

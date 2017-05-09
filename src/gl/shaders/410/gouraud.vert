@@ -43,7 +43,7 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
     att = min(1.f, light.intensity / (light.constantAttenuation +
                    light.linearAttenuation * dist +
                    light.quadraticAttenuation * dist * dist));
-                   
+
     if(light.type > 1)
     {
       float spotEffect = dot(normalize(light.direction), -L);
@@ -76,7 +76,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[16];
+  Lightsource u_lights[];
 };
 
 layout(location = 0) in vec4 a_vertex;
