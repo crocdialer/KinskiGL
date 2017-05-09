@@ -414,6 +414,8 @@ GLenum Fbo::target() const { return m_impl->m_format.m_target; }
 
 void Fbo::enable_draw_buffers(bool b)
 {
+	bind();
+
 	if(b)
 	{
 		vector<GLenum> drawBuffers;

@@ -13,7 +13,7 @@ public:
 
     enum G_BUFFER
     {
-        G_BUFFER_ALBEDO = 0, G_BUFFER_NORMAL = 1, G_BUFFER_POSITION = 2, G_BUFFER_TEX_COORD = 3, G_BUFFER_SIZE = 4
+        G_BUFFER_ALBEDO = 0, G_BUFFER_NORMAL = 1, G_BUFFER_POSITION = 2, G_BUFFER_SIZE = 3
     };
 
     DeferredRenderer();
@@ -30,11 +30,14 @@ private:
     void init();
     void geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
     void light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
+    void stencil_pass(const RenderBinPtr &the_renderbin);
+
+    void render_light_volumes(const RenderBinPtr &the_renderbin, const gl::MaterialPtr &the_mat);
 
     gl::ShaderPtr m_shader_g_buffer, m_shader_g_buffer_skin;
     gl::Fbo m_geometry_fbo, m_lighting_fbo;
 
-    gl::MaterialPtr m_mat_lighting;
+    gl::MaterialPtr m_mat_lighting, m_mat_stencil;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone;
 };
 

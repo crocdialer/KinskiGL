@@ -40,6 +40,7 @@ namespace kinski { namespace gl {
     m_wireframe(false),
     m_depth_test(true),
     m_depth_write(true),
+    m_stencil_test(false),
     m_blending(false),
     m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
     m_blend_equation(GL_FUNC_ADD),

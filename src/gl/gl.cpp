@@ -1305,6 +1305,14 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         }
         KINSKI_CHECK_GL_ERRORS();
 
+        if(!last_mat || last_mat->stencil_test() != the_mat->stencil_test())
+        {
+            if(the_mat->stencil_test()){ glEnable(GL_STENCIL_TEST); }
+            else{ glDisable(GL_STENCIL_TEST); }
+
+        }
+        KINSKI_CHECK_GL_ERRORS();
+
         if(!last_mat || last_mat->blending() != the_mat->blending())
         {
             if(!the_mat->blending())

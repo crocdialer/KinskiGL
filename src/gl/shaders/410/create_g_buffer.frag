@@ -29,7 +29,6 @@ in VertexData
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
 layout(location = 2) out vec4 out_position;
-layout(location = 3) out vec4 out_tex_coord;
 
 void main()
 {
@@ -39,5 +38,4 @@ void main()
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(vertex_in.normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
-  out_tex_coord = vec4(vertex_in.texCoord.st, 0, 1);
 }

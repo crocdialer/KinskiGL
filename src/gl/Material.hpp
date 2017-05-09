@@ -78,10 +78,13 @@ namespace kinski { namespace gl {
         
         void set_depth_test(bool b = true) { m_depth_test = b;};
         void set_depth_write(bool b = true) { m_depth_write = b;};
+
+        void set_stencil_test(bool b = true) { m_stencil_test = b;};
         
         bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
         bool depth_test() const { return m_depth_test; };
         bool depth_write() const { return m_depth_write; };
+        bool stencil_test() const { return m_stencil_test; };
         float point_size() const { return m_point_size; };
         
         void set_line_width(float the_line_width) { m_line_width = the_line_width; };
@@ -118,6 +121,7 @@ namespace kinski { namespace gl {
         bool m_wireframe;
         bool m_depth_test;
         bool m_depth_write;
+        bool m_stencil_test;
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
         

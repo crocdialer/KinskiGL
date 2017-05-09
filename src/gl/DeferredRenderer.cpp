@@ -21,11 +21,17 @@ void DeferredRenderer::init()
     auto shader = gl::Shader::create(unlit_vert, deferred_lighting_frag);
     m_mat_lighting = gl::Material::create(shader);
     m_mat_lighting->set_depth_write(false);
+    m_mat_lighting->set_stencil_test(true);
     m_mat_lighting->set_depth_test(false);
-    m_mat_lighting->set_two_sided();
     m_mat_lighting->set_blending(true);
     m_mat_lighting->set_blend_equation(GL_FUNC_ADD);
     m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
+
+    m_mat_stencil = gl::Material::create(shader);
+    m_mat_stencil->set_depth_test(true);
+    m_mat_stencil->set_depth_write(false);
+    m_mat_stencil->set_stencil_test(true);
+    m_mat_stencil->set_two_sided(true);
 
     m_mesh_sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), m_mat_lighting);
     m_mesh_cone = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16), m_mat_lighting);
@@ -42,6 +48,8 @@ void DeferredRenderer::init()
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
+    gl::SaveFramebufferBinding sfb;
+
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
 
@@ -78,8 +86,6 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
     sort_render_bin(the_renderbin, opaque_items, blended_items);
 
     // bind G-Buffer
-    gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-    gl::set_window_dimension(m_geometry_fbo.size());
     m_geometry_fbo.bind();
     gl::clear();
     KINSKI_CHECK_GL_ERRORS();
@@ -168,17 +174,14 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
 
 void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
 {
-    if(!m_lighting_fbo || m_lighting_fbo.size() != the_size)
+    if(!m_lighting_fbo || m_lighting_fbo.size() != m_geometry_fbo.size())
     {
         gl::Fbo::Format fmt;
         fmt.enable_stencil_buffer(true);
-        m_lighting_fbo = gl::Fbo(the_size, fmt);
+        m_lighting_fbo = gl::Fbo(m_geometry_fbo.size(), fmt);
         m_lighting_fbo.set_depth_texture(m_geometry_fbo.depth_texture());
         KINSKI_CHECK_GL_ERRORS();
     }
-
-    gl::SaveViewPort sv; gl::SaveFramebufferBinding sfb;
-    gl::set_window_dimension(m_lighting_fbo.size());
     m_lighting_fbo.bind();
 
     if(!m_mat_lighting){ init(); }
@@ -190,32 +193,49 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
     gl::apply_material(m_mat_lighting);
     gl::clear();
 
+    // stencil pass
+    glStencilFunc(GL_ALWAYS, 0, 0);
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+    m_lighting_fbo.enable_draw_buffers(false);
+    render_light_volumes(the_renderbin, m_mat_stencil);
+
+    // light pass
+    glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
+    m_lighting_fbo.enable_draw_buffers(true);
+    render_light_volumes(the_renderbin, m_mat_lighting);
+}
+
+
+void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, const gl::MaterialPtr &the_mat)
+{
     gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
-    gl::set_matrices(the_renderbin->camera);
+    gl::set_projection(the_renderbin->camera);
+
+    m_mesh_sphere->material() = the_mat;
+    m_mesh_cone->material() = the_mat;
 
     for(auto l : the_renderbin->lights)
     {
-        float d = l.light->max_distance();
-        gl::ScopedMatrixPush p(gl::MODEL_VIEW_MATRIX);
+        float d = l.light->max_distance(1.f / 10.f);
 
         switch(l.light->type())
         {
             case Light::DIRECTIONAL:
             {
-                gl::draw_quad(m_mat_lighting, gl::window_dimension());
+                gl::draw_quad(the_mat, gl::window_dimension());
                 break;
             }
             case Light::POINT:
             {
-                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform, glm::vec3(d)));
+                gl::load_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform, glm::vec3(d)));
                 gl::draw_mesh(m_mesh_sphere);
                 break;
             }
             case Light::SPOT:
             {
                 float r_scale = tan(glm::radians(l.light->spot_cutoff())) * d;
-                gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform,
-                                                                  vec3(r_scale, r_scale, d)));
+                gl::load_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(l.transform, vec3(r_scale, r_scale, d)));
                 gl::draw_mesh(m_mesh_cone);
                 break;
             }

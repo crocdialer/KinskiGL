@@ -72,7 +72,6 @@ uniform sampler2D u_sampler_2D[4];
 #define ALBEDO 0
 #define NORMAL 1
 #define POSITION 2
-#define TEX_COORD 3
 
 in VertexData
 {
@@ -89,7 +88,7 @@ void main()
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
 
-    vec4 shade_color = color;//vec4(1, 0, 0, 1);
+    vec4 shade_color = vec4(1, 0, 0, 1);
 
     // shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, 1.0);
     fragData = shade_color;
