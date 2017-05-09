@@ -41,13 +41,15 @@ namespace kinski { namespace gl {
         
         const gl::MeshPtr& skybox() const { return m_skybox; }
         void set_skybox(const gl::Texture& t);
-        
+
+        void set_renderer(SceneRendererPtr the_renderer){ m_renderer = the_renderer; }
+        SceneRendererPtr renderer(){ return m_renderer; }
     private:
         
         Scene();
         gl::MeshPtr m_skybox;
         mutable uint32_t m_num_visible_objects;
-        mutable gl::SceneRenderer m_renderer;
+        mutable gl::SceneRendererPtr m_renderer;
         Object3DPtr m_root;
     };
     

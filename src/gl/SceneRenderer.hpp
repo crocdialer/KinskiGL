@@ -56,18 +56,18 @@ void sort_render_bin(const RenderBinPtr &the_bin,
                      std::list<RenderBin::item> &the_opaque_items,
                      std::list<RenderBin::item> &the_transparent_items);
 
-//    DEFINE_CLASS_PTR(SceneRenderer);
+DEFINE_CLASS_PTR(SceneRenderer);
 
 class KINSKI_API SceneRenderer
 {
 public:
 
+    static SceneRendererPtr create();
     enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1,
         SHADOW_UNIFORM_BUFFER = 2};
     enum UniformBlockBinding {MATERIAL_BLOCK = 0, LIGHT_BLOCK = 1, MATRIX_BLOCK = 2,
         SHADOW_BLOCK = 3};
 
-    SceneRenderer();
     virtual ~SceneRenderer(){};
 
     virtual uint32_t render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
@@ -82,6 +82,9 @@ public:
     std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
     std::vector<gl::CameraPtr>& shadow_cams() { return m_shadow_cams; }
     void set_shadow_pass(bool b){ m_shadow_pass = b; }
+
+protected:
+    SceneRenderer();
 
 private:
 

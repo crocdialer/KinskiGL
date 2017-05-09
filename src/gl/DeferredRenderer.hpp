@@ -7,6 +7,8 @@
 
 namespace kinski{ namespace gl {
 
+DEFINE_CLASS_PTR(DeferredRenderer);
+
 class KINSKI_API DeferredRenderer : public SceneRenderer
 {
 public:
@@ -20,8 +22,7 @@ public:
         G_BUFFER_SIZE = 4
     };
 
-    DeferredRenderer();
-
+    static DeferredRendererPtr create();
     uint32_t render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                           const std::set<std::string> &the_tags = {}) override;
 
@@ -31,6 +32,7 @@ public:
     gl::Texture final_texture();
 private:
 
+    DeferredRenderer();
     void init();
     void geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
     void light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);

@@ -30,7 +30,9 @@ namespace kinski { namespace gl {
         std::vector<mat3>, std::vector<mat4> > UniformValue;
         
         typedef std::unordered_map<std::string, UniformValue> UniformMap;
-        
+
+        enum CullType{CULL_NONE = 0, CULL_FRONT = 1, CULL_BACK = 2};
+
         enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
         
         static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
@@ -63,14 +65,14 @@ namespace kinski { namespace gl {
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
         
-        bool two_sided() const { return m_two_sided; };
+        bool two_sided() const { return !m_cull_value; };
         bool wireframe() const { return m_wireframe; };
         bool blending() const { return m_blending; };
         GLenum blend_src() const { return m_blend_src; };
         GLenum blend_dst() const { return m_blend_dst; };
         GLenum blend_equation() const { return m_blend_equation; };
         
-        void set_two_sided(bool b = true) { m_two_sided = b;};
+        void set_two_sided(bool b = true) { m_cull_value = b ? CULL_NONE : CULL_BACK;};
         void set_wireframe(bool b = true) { m_wireframe = b;};
         void set_blending(bool b = true) { m_blending = b;};
         void set_blend_factors(GLenum src, GLenum dst){ m_blend_src = src; m_blend_dst = dst; };
@@ -80,7 +82,11 @@ namespace kinski { namespace gl {
         void set_depth_write(bool b = true) { m_depth_write = b;};
 
         void set_stencil_test(bool b = true) { m_stencil_test = b;};
-        
+
+        //! bitmask with values from CULL_FRONT, CULL_BACK
+        uint32_t culling() const { return m_cull_value; }
+        void set_culling(uint32_t the_value);
+
         bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
         bool depth_test() const { return m_depth_test; };
         bool depth_write() const { return m_depth_write; };
@@ -117,14 +123,15 @@ namespace kinski { namespace gl {
         bool m_dirty_uniform_buffer;
         
         GLenum m_polygon_mode;
-        bool m_two_sided;
         bool m_wireframe;
         bool m_depth_test;
         bool m_depth_write;
         bool m_stencil_test;
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
-        
+
+        uint32_t m_cull_value;
+
         // those are available in shader
         Color m_diffuse;
         Color m_ambient;

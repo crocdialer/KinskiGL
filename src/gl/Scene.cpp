@@ -48,6 +48,7 @@ namespace kinski { namespace gl {
     }
     
     Scene::Scene():
+    m_renderer(gl::SceneRenderer::create()),
     m_root(new Object3D())
     {
         m_root->set_name("scene root");
@@ -76,7 +77,7 @@ namespace kinski { namespace gl {
     
     void Scene::render(const CameraPtr &theCamera, const std::set<std::string> &the_tags) const
     {
-        m_num_visible_objects = m_renderer.render_scene(shared_from_this(), theCamera, the_tags);
+        m_num_visible_objects = m_renderer->render_scene(shared_from_this(), theCamera, the_tags);
     }
     
     Object3DPtr Scene::pick(const Ray &ray, bool high_precision,

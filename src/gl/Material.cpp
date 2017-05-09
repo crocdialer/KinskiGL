@@ -36,7 +36,6 @@ namespace kinski { namespace gl {
     m_shader(theShader),
     m_dirty_uniform_buffer(true),
     m_polygon_mode(GL_FRONT),
-    m_two_sided(false),
     m_wireframe(false),
     m_depth_test(true),
     m_depth_write(true),
@@ -44,6 +43,7 @@ namespace kinski { namespace gl {
     m_blending(false),
     m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
     m_blend_equation(GL_FUNC_ADD),
+    m_cull_value(CULL_BACK),
     m_diffuse(Color(1)),
     m_ambient(Color(1)),
     m_specular(Color(1)),
@@ -67,7 +67,12 @@ namespace kinski { namespace gl {
     {
         return MaterialPtr(new Material(theShader));
     }
-    
+
+    void Material::set_culling(uint32_t the_value)
+    {
+        m_cull_value = the_value & (CULL_FRONT | CULL_BACK);
+    }
+
     void Material::set_diffuse(const Color &theColor)
     {
         m_diffuse = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));

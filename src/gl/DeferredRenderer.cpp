@@ -11,6 +11,11 @@
 
 namespace kinski{ namespace gl{
 
+DeferredRendererPtr DeferredRenderer::create()
+{
+    return DeferredRendererPtr(new DeferredRenderer());
+}
+
 DeferredRenderer::DeferredRenderer()
 {
 
@@ -23,6 +28,7 @@ void DeferredRenderer::init()
     m_mat_lighting->set_depth_write(false);
     m_mat_lighting->set_stencil_test(true);
     m_mat_lighting->set_depth_test(false);
+    m_mat_lighting->set_culling(Material::CULL_FRONT);
     m_mat_lighting->set_blending(true);
     m_mat_lighting->set_blend_equation(GL_FUNC_ADD);
     m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
@@ -31,7 +37,7 @@ void DeferredRenderer::init()
     m_mat_stencil->set_depth_test(true);
     m_mat_stencil->set_depth_write(false);
     m_mat_stencil->set_stencil_test(true);
-    m_mat_stencil->set_two_sided(true);
+    m_mat_stencil->set_culling(Material::CULL_NONE);
 
     m_mesh_sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), m_mat_lighting);
     m_mesh_cone = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16), m_mat_lighting);
@@ -48,16 +54,22 @@ void DeferredRenderer::init()
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
-    gl::SaveFramebufferBinding sfb;
-
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
 
-    // create G-buffer, if necessary, and fill it
-    geometry_pass(gl::window_dimension(), render_bin);
+    {
+        gl::SaveFramebufferBinding sfb;
 
-    // lighting pass
-    light_pass(gl::window_dimension(), render_bin);
+        // create G-buffer, if necessary, and fill it
+        geometry_pass(gl::window_dimension(), render_bin);
+
+        // lighting pass
+        light_pass(gl::window_dimension(), render_bin);
+    }
+    Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
+    Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
+    m_lighting_fbo.blit_to_screen(src, dst);
+    gl::reset_state();
 
     // return number of rendered objects
     return render_bin->items.size();

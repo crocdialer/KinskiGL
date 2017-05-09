@@ -129,7 +129,12 @@ void sort_render_bin(const RenderBinPtr &the_bin,
         return lhs.transform[3].z < rhs.transform[3].z;
     });
 }
-    
+
+SceneRendererPtr SceneRenderer::create()
+{
+    return SceneRendererPtr(new SceneRenderer());
+}
+
 SceneRenderer::SceneRenderer()
 {
     m_shadow_fbos.resize(4);

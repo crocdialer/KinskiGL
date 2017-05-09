@@ -1270,14 +1270,23 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         char buf[512];
 
         // twoSided
-        if(!last_mat || (last_mat->two_sided() != the_mat->two_sided() ||
+        if(!last_mat || (last_mat->culling() != the_mat->culling() ||
                          last_mat->wireframe() != the_mat->wireframe()))
         {
-            if(the_mat->two_sided() || the_mat->wireframe()) { glDisable(GL_CULL_FACE); }
+            if(the_mat->culling() == Material::CULL_NONE || the_mat->wireframe())
+            { glDisable(GL_CULL_FACE); }
             else
             {
                 glEnable(GL_CULL_FACE);
-                glCullFace(GL_BACK);
+                int val = GL_BACK;
+
+                if(the_mat->culling() & Material::CULL_BACK)
+                {
+                    val = GL_BACK;
+
+                    if(the_mat->culling() & Material::CULL_FRONT){ val = GL_FRONT_AND_BACK; }
+                }else if(the_mat->culling() & Material::CULL_FRONT){ val = GL_FRONT; }
+                glCullFace(val);
             }
         }
         KINSKI_CHECK_GL_ERRORS();
