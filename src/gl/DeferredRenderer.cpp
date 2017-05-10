@@ -79,7 +79,8 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     }
     Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
     Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
-    m_lighting_fbo.blit_to_current(src, dst);
+    m_lighting_fbo.blit_to_current(src, dst, GL_NEAREST, GL_COLOR_BUFFER_BIT);
+    m_geometry_fbo.blit_to_current(src, dst, GL_NEAREST, GL_DEPTH_BUFFER_BIT);
 
     // return number of rendered objects
     return render_bin->items.size();
@@ -262,7 +263,15 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, c
             case Light::DIRECTIONAL:
             {
                 //TODO: find proper stencil-op for this to work
-                gl::draw_quad(the_mat, gl::window_dimension());
+//                gl::draw_quad(the_mat, gl::window_dimension());
+
+                auto frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
+                frustum_mesh->material() = the_mat;
+                gl::load_matrix(gl::MODEL_VIEW_MATRIX,
+                                glm::scale(glm::translate(mat4(),
+                                                          vec3(0, 0, -the_renderbin->camera->near())),
+                                           vec3(.99f)));
+                gl::draw_mesh(frustum_mesh);
                 break;
             }
             case Light::POINT:

@@ -82,7 +82,7 @@ public:
             gl::Sphere bounding_sphere(gl::vec3(theNode.transform()[3].xyz()), theNode.max_distance());
 //            bounding_sphere.transform(theNode.transform());
 
-//            if(m_frustum.intersect(bounding_sphere))
+            if(m_frustum.intersect(bounding_sphere))
             {
                 m_render_bin->lights.push_back(light_item);
             }

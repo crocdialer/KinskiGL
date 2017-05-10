@@ -280,15 +280,19 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    gl::MeshPtr create_frustum_mesh(const CameraPtr &cam)
+    gl::MeshPtr create_frustum_mesh(const CameraPtr &cam, bool solid)
     {
         glm::mat4 inverse_projection = glm::inverse(cam->projection_matrix());
         gl::GeometryPtr geom = Geometry::create();
-        geom->set_primitive_type(GL_LINE_STRIP);
+
         const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
-            vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
-        const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
-        size_t num_indices = sizeof(indices) / sizeof(GLuint);
+                                       vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
+
+        auto append_quad = [geom](uint32_t a, uint32_t b, uint32_t c, uint32_t d)
+        {
+            geom->append_face(a, b, c);
+            geom->append_face(c, d, a);
+        };
 
         for (int i = 0; i < 8; i++)
         {
@@ -296,7 +300,24 @@ namespace kinski { namespace gl {
             geom->vertices().push_back(vec3(proj_v) / proj_v.w);
         }
 
-        geom->append_indices(indices, num_indices);
+        if(solid)
+        {
+            geom->set_primitive_type(GL_TRIANGLES);
+            append_quad(0, 1, 2, 3);
+            append_quad(4, 0, 3, 7);
+            append_quad(1, 5, 6, 2);
+            append_quad(3, 2, 6, 7);
+            append_quad(4, 5, 1, 0);
+            append_quad(5, 4, 7, 6);
+        }
+        else
+        {
+            geom->set_primitive_type(GL_LINE_STRIP);
+            const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
+            size_t num_indices = sizeof(indices) / sizeof(GLuint);
+            geom->append_indices(indices, num_indices);
+        }
+
         geom->compute_bounding_box();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
@@ -795,18 +816,6 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
             {
                 mat->uniform("u_bones", the_mesh->bone_matrices());
             }
-
-#if !defined(KINSKI_GLES)
-
-            // force shader creation from queue, if any
-//            if(!mat->shader()){ apply_material(mat); }
-//
-//            if(mat->shader())
-//            {
-//                GLint block_index = mat->shader()->uniform_block_index("MaterialBlock");
-//                if(block_index >= 0){ glUniformBlockBinding(mat->shader()->handle(), block_index, 0); }
-//            }
-#endif
         }
         KINSKI_CHECK_GL_ERRORS();
         gl::apply_material(the_mesh->material());

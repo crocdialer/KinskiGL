@@ -115,7 +115,7 @@ KINSKI_API void set_window_dimension(const vec2 &theDim, const vec2 &the_offset 
 KINSKI_API float aspect_ratio();
 KINSKI_API gl::Ray calculate_ray(const CameraPtr &theCamera, const vec2 &window_pos,
                                  const vec2 &window_size = window_dimension());
-KINSKI_API gl::MeshPtr create_frustum_mesh(const CameraPtr &cam);
+KINSKI_API gl::MeshPtr create_frustum_mesh(const CameraPtr &cam, bool solid = false);
 KINSKI_API gl::CameraPtr create_shadow_camera(const LightPtr &the_light, float far_clip = 1000.f);
 KINSKI_API gl::CameraPtr create_shadow_camera(const Light *the_light, float far_clip = 1000.f);
 
