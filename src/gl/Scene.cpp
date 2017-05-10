@@ -162,7 +162,7 @@ namespace kinski { namespace gl {
                 m_skybox = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 16),
                                             gl::Material::create());
                 m_skybox->material()->set_depth_write(false);
-                m_skybox->material()->set_two_sided();
+                m_skybox->material()->set_culling(gl::Material::CULL_FRONT);
                 m_skybox->material()->textures() = {t};
                 break;
                 

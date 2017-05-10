@@ -1322,7 +1322,9 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || last_mat->blending() != the_mat->blending())
+        if(!last_mat || last_mat->blending() != the_mat->blending()
+                     || last_mat->blend_factors() != the_mat->blend_factors()
+                     || last_mat->blend_equation() != the_mat->blend_equation())
         {
             if(!the_mat->blending())
             {

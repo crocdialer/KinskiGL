@@ -227,6 +227,7 @@ class SaveFramebufferBinding
  public:
     SaveFramebufferBinding();
     ~SaveFramebufferBinding();
+    int value(){ return m_old_value; }
  private:
     GLint m_old_value;
 };

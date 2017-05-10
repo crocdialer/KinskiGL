@@ -180,6 +180,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
     // skybox drawing
     if(the_scene->skybox())
     {
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
         gl::set_projection(the_cam);
         mat4 m = the_cam->view_matrix();
         m[3] = vec4(0, 0, 0, 1);

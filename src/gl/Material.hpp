@@ -70,8 +70,9 @@ namespace kinski { namespace gl {
         bool blending() const { return m_blending; };
         GLenum blend_src() const { return m_blend_src; };
         GLenum blend_dst() const { return m_blend_dst; };
+        std::pair<GLenum, GLenum> blend_factors() const { return std::make_pair(m_blend_src, m_blend_dst); };
         GLenum blend_equation() const { return m_blend_equation; };
-        
+
         void set_two_sided(bool b = true) { m_cull_value = b ? CULL_NONE : CULL_BACK;};
         void set_wireframe(bool b = true) { m_wireframe = b;};
         void set_blending(bool b = true) { m_blending = b;};

@@ -54,6 +54,17 @@ void DeferredRenderer::init()
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
+//    // skybox drawing
+//    if(the_scene->skybox())
+//    {
+//        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+//        gl::set_projection(the_cam);
+//        mat4 m = the_cam->view_matrix();
+//        m[3] = vec4(0, 0, 0, 1);
+//        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
+//        gl::draw_mesh(the_scene->skybox());
+//    }
+
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
 
@@ -68,8 +79,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     }
     Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
     Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
-    m_lighting_fbo.blit_to_screen(src, dst);
-    gl::reset_state();
+    m_lighting_fbo.blit_to_current(src, dst);
 
     // return number of rendered objects
     return render_bin->items.size();
