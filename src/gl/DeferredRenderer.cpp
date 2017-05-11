@@ -221,14 +221,19 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         m_lighting_fbo = gl::Fbo(m_geometry_fbo.size(), fmt);
         m_lighting_fbo.set_depth_texture(m_geometry_fbo.depth_texture());
         KINSKI_CHECK_GL_ERRORS();
+
+        if(!m_mat_lighting){ init(); }
+        m_mat_lighting->textures().clear();
+        m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
+        for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ m_mat_lighting->add_texture(m_geometry_fbo.texture(i)); }
     }
     m_lighting_fbo.bind();
 
-    if(!m_mat_lighting){ init(); }
-
-    m_mat_lighting->textures().clear();
-    m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
-    for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ m_mat_lighting->add_texture(m_geometry_fbo.texture(i)); }
+    // update frustum for directional lights
+    m_frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
+    auto &verts = m_frustum_mesh->geometry()->vertices();
+    for(uint32_t i = 0; i < 4; ++i){ verts[i].z += -1.f; }
+    for(uint32_t i = 4; i < 8; ++i){ verts[i].z += 10.f; }
 
     gl::apply_material(m_mat_lighting);
     update_uniform_buffers(the_renderbin->lights);
@@ -239,7 +244,11 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         glUniformBlockBinding(m_mat_lighting->shader()->handle(), block_index, LIGHT_BLOCK);
         KINSKI_CHECK_GL_ERRORS();
     }
+    auto c = gl::COLOR_BLACK;
+    c.a = 0.f;
+    gl::clear_color(c);
     gl::clear();
+    gl::clear_color(gl::COLOR_BLACK);
 
     // stencil pass
     glStencilFunc(GL_ALWAYS, 0, 0);
@@ -274,16 +283,9 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, c
         {
             case Light::DIRECTIONAL:
             {
-                //TODO: find proper stencil-op for this to work
-//                gl::draw_quad(the_mat, gl::window_dimension());
-
-                auto frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
-                frustum_mesh->material() = the_mat;
-                gl::load_matrix(gl::MODEL_VIEW_MATRIX,
-                                glm::scale(glm::translate(mat4(),
-                                                          vec3(0, 0, -the_renderbin->camera->near())),
-                                           vec3(.99f)));
-                gl::draw_mesh(frustum_mesh);
+                m_frustum_mesh->material() = the_mat;
+                gl::load_identity(gl::MODEL_VIEW_MATRIX);
+                gl::draw_mesh(m_frustum_mesh);
                 break;
             }
             case Light::POINT:

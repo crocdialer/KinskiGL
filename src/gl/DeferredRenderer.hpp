@@ -44,7 +44,7 @@ private:
     gl::Fbo m_geometry_fbo, m_lighting_fbo;
 
     gl::MaterialPtr m_mat_lighting, m_mat_stencil, m_mat_stencil_directional;
-    gl::MeshPtr m_mesh_sphere, m_mesh_cone;
+    gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
 };
 
 }}

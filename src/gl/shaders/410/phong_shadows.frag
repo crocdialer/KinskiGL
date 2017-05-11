@@ -195,12 +195,8 @@ void main()
 
   int c = min(NUM_SHADOW_LIGHTS, u_numLights);
 
-  //for(int i = 0; i < c; i++)
-  if(c > 0)
-    shade_color += shade(u_lights[0], u_material, normal, vertex_in.eyeVec, texColors, factor[0]);
-
-  if(c > 1)
-    shade_color += shade(u_lights[1], u_material, normal, vertex_in.eyeVec, texColors, factor[1]);
+  for(int i = 0; i < c; i++)
+    shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec, texColors, factor[i]);
 
   fragData = shade_color;
 }

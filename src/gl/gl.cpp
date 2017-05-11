@@ -285,8 +285,8 @@ namespace kinski { namespace gl {
         glm::mat4 inverse_projection = glm::inverse(cam->projection_matrix());
         gl::GeometryPtr geom = Geometry::create();
 
-        const glm::vec3 vertices[8] = {vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1),
-                                       vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1)};
+        const glm::vec3 vertices[8] = {vec3(-1, -1, -1), vec3(1, -1, -1), vec3(1, 1, -1), vec3(-1, 1, -1),
+                                       vec3(-1, -1, 1), vec3(1, -1, 1), vec3(1, 1, 1), vec3(-1, 1, 1)};
 
         auto append_quad = [geom](uint32_t a, uint32_t b, uint32_t c, uint32_t d)
         {

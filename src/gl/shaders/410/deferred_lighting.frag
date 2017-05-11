@@ -91,6 +91,7 @@ void main()
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
     vec4 specular = texture(u_sampler_2D[SPECULAR], tex_coord);
+    specular = vec4(specular.r, specular.r, specular.r, specular.g);
     fragData = shade(u_lights[u_light_index], normal, position, color, specular, 1.0);
-    // fragData = vec4(1, 0, 0, 1);
+    //fragData = vec4(1, 0, 0, 1);
 }
