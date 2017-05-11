@@ -57,10 +57,10 @@ namespace kinski { namespace gl {
     
     MaterialPtr Material::create(const gl::ShaderType &the_type)
     {
-        auto ret = MaterialPtr(new Material(nullptr));
-        ret->load_queue_shader().push_back(the_type);
-        return ret;
-//        return MaterialPtr(new Material(gl::create_shader(the_type)));
+//        auto ret = MaterialPtr(new Material(nullptr));
+//        ret->load_queue_shader().push_back(the_type);
+//        return ret;
+        return MaterialPtr(new Material(gl::create_shader(the_type)));
     }
     
     MaterialPtr Material::create(const ShaderPtr &theShader)

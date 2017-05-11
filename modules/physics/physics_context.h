@@ -85,6 +85,9 @@ namespace kinski{ namespace physics{
         // issue the actual draw command
         inline void flush()
         {
+            m_mesh_lines->geometry()->create_gl_buffers();
+            m_mesh_points->geometry()->create_gl_buffers();
+
             // lines
             gl::draw_mesh(m_mesh_lines);
             m_mesh_lines->geometry()->vertices().clear();

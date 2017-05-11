@@ -54,6 +54,8 @@ void DeferredRenderer::init()
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
                                         const std::set<std::string> &the_tags)
 {
+#if !defined(KINSKI_GLES)
+
 //    // skybox drawing
 //    if(the_scene->skybox())
 //    {
@@ -84,10 +86,14 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
 
     // return number of rendered objects
     return render_bin->items.size();
+#endif
+    return 0;
 }
 
 void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
 {
+#if !defined(KINSKI_GLES)
+
     if(!m_geometry_fbo || m_geometry_fbo.size() != the_size)
     {
         gl::Fbo::Format fmt;
@@ -199,10 +205,13 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
         KINSKI_CHECK_GL_ERRORS();
     }
     GL_SUFFIX(glBindVertexArray)(0);
+#endif
 }
 
 void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
 {
+#if !defined(KINSKI_GLES)
+
     if(!m_lighting_fbo || m_lighting_fbo.size() != m_geometry_fbo.size())
     {
         gl::Fbo::Format fmt;
@@ -241,6 +250,7 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
     m_lighting_fbo.enable_draw_buffers(true);
     render_light_volumes(the_renderbin, m_mat_lighting);
+#endif
 }
 
 

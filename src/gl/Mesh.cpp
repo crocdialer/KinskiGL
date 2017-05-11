@@ -458,7 +458,7 @@ namespace kinski { namespace gl {
 
         ret->m_vertexArrays.clear();
         ret->m_shaders.clear();
-        ret->create_vertex_array();
+//        ret->create_vertex_array();
         return ret;
     }
 
