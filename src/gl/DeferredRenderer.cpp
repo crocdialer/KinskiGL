@@ -23,6 +23,7 @@ DeferredRenderer::DeferredRenderer()
 
 void DeferredRenderer::init()
 {
+#if !defined(KINSKI_GLES)
     auto shader = gl::Shader::create(unlit_vert, deferred_lighting_frag);
     m_mat_lighting = gl::Material::create(shader);
     m_mat_lighting->set_depth_write(false);
@@ -49,6 +50,7 @@ void DeferredRenderer::init()
         vert -= vec3(0, 1, 0);
         vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
     }
+#endif
 }
 
 uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, const CameraPtr &the_cam,
