@@ -164,7 +164,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
                 break;
             }
             set_shadow_pass(true);
-            shadow_cams()[i] = gl::create_shadow_camera(l, extents);
+            shadow_cams()[i] = gl::create_shadow_camera(l, min(extents, l->max_distance()));
             
             // offscreen render shadow map here
             gl::render_to_texture(shadow_fbos()[i], [&]()
@@ -281,20 +281,6 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 glUniformBlockBinding(mat->shader()->handle(), block_index, LIGHT_BLOCK);
                 KINSKI_CHECK_GL_ERRORS();
             }
-            
-            block_index = mat->shader()->uniform_block_index("MaterialBlock");
-            
-            if(block_index >= 0)
-            {
-                glUniformBlockBinding(mat->shader()->handle(), block_index, MATERIAL_BLOCK);
-                KINSKI_CHECK_GL_ERRORS();
-            }
-            
-            //                block_index = mat->shader().uniform_block_index("MatrixBlock");
-            //                glUniformBlockBinding(mat->shader().getHandle(), block_index, MATRIX_BLOCK);
-            
-            //                block_index = mat->shader().uniform_block_index("ShadowBlock");
-            //                glUniformBlockBinding(mat->shader().getHandle(), block_index, SHADOW_BLOCK);
 #else
             set_light_uniforms(mat, light_list);
 #endif

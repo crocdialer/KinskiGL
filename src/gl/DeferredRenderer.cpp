@@ -154,13 +154,6 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
         }
 
         if(m->geometry()->has_bones()){ shader = m_shader_g_buffer_skin; }
-        GLint block_index = shader->uniform_block_index("MaterialBlock");
-
-        if(block_index >= 0)
-        {
-            glUniformBlockBinding(shader->handle(), block_index, MATERIAL_BLOCK);
-            KINSKI_CHECK_GL_ERRORS();
-        }
         gl::apply_material(m->material(), false, shader);
         m->bind_vertex_array();
 
@@ -232,8 +225,8 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
     // update frustum for directional lights
     m_frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
     auto &verts = m_frustum_mesh->geometry()->vertices();
-    for(uint32_t i = 0; i < 4; ++i){ verts[i].z += -1.f; }
-    for(uint32_t i = 4; i < 8; ++i){ verts[i].z += 10.f; }
+    for(uint32_t i = 0; i < 4; ++i){ verts[i].z += -.1f; }
+    for(uint32_t i = 4; i < 8; ++i){ verts[i].z += 1.f; }
 
     gl::apply_material(m_mat_lighting);
     update_uniform_buffers(the_renderbin->lights);
