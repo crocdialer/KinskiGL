@@ -414,6 +414,7 @@ GLenum Fbo::target() const { return m_impl->m_format.m_target; }
 
 void Fbo::enable_draw_buffers(bool b)
 {
+#if !defined(KINSKI_GLES)
 	bind();
 
 	if(b)
@@ -427,6 +428,7 @@ void Fbo::enable_draw_buffers(bool b)
 		if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
 	}
 	else{ glDrawBuffer(GL_NONE); }
+#endif
 }
 
 void Fbo::add_attachment(gl::Texture the_attachment)
