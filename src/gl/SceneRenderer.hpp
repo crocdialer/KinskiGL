@@ -28,7 +28,7 @@ public:
     struct item
     {
         //! the item's mesh
-        gl::Mesh *mesh;
+        gl::MeshPtr mesh;
 
         //! the item's transform in eye-coords
         mat4 transform;
@@ -37,7 +37,7 @@ public:
     struct light
     {
         //! a lightsource
-        gl::Light *light;
+        gl::LightPtr light;
 
         //! the light's transform in eye-coords
         mat4 transform;

@@ -51,7 +51,7 @@ public:
         if(m_frustum.intersect(boundingBox))
         {
             RenderBin::item item;
-            item.mesh = &theNode;
+            item.mesh = std::dynamic_pointer_cast<gl::Mesh>(theNode.shared_from_this());
             item.transform = model_view;
             m_render_bin->items.push_back(item);
         }
@@ -64,7 +64,7 @@ public:
         if(theNode.enabled() && check_tags(m_tags, theNode.tags()))
         {
             RenderBin::light light_item;
-            light_item.light = &theNode;
+            light_item.light = std::dynamic_pointer_cast<gl::Light>(theNode.shared_from_this());
             switch (theNode.type())
             {
                 case Light::DIRECTIONAL:
@@ -231,7 +231,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
     
     for (const RenderBin::item &item : item_list)
     {
-        Mesh *m = item.mesh;
+        auto m = item.mesh;
         
         const glm::mat4 &modelView = item.transform;
         mat4 mvp_matrix = cam->projection_matrix() * modelView;

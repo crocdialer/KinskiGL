@@ -133,7 +133,7 @@ KINSKI_API void clear();
 KINSKI_API void clear_color(const Color &theColor);
 
 
-KINSKI_API void draw_mesh(const MeshPtr &theMesh);
+KINSKI_API void draw_mesh(const MeshPtr &theMesh, const ShaderPtr &overide_shader = ShaderPtr());
 KINSKI_API void draw_light(const LightPtr &theLight);
 KINSKI_API void draw_line(const vec2 &a, const vec2 &b,
                           const Color &theColor = COLOR_WHITE,

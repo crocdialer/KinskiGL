@@ -16,7 +16,7 @@ DeferredRendererPtr DeferredRenderer::create()
     return DeferredRendererPtr(new DeferredRenderer());
 }
 
-DeferredRenderer::DeferredRenderer()
+DeferredRenderer::DeferredRenderer(): SceneRenderer()
 {
 
 }
@@ -134,72 +134,15 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
         m_shader_g_buffer_skin = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
     }
 
-    gl::ShaderPtr shader = m_shader_g_buffer;
-
     for (const RenderBin::item &item : opaque_items)
     {
-        Mesh *m = item.mesh;
-
-        const glm::mat4 &modelView = item.transform;
-        mat4 mvp_matrix = the_renderbin->camera->projection_matrix() * modelView;
-        mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
-
-        for(auto &mat : m->materials())
-        {
-            mat->uniform("u_modelViewMatrix", modelView);
-            mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
-            mat->uniform("u_normalMatrix", normal_matrix);
-            if(m->geometry()->has_bones()){ mat->uniform("u_bones", m->bone_matrices()); }
-            KINSKI_CHECK_GL_ERRORS();
-        }
-
-        if(m->geometry()->has_bones()){ shader = m_shader_g_buffer_skin; }
-        gl::apply_material(m->material(), false, shader);
-        m->bind_vertex_array();
-
-        KINSKI_CHECK_GL_ERRORS();
-
-        if(m->geometry()->has_indices())
-        {
-            if(!m->entries().empty())
-            {
-                for (uint32_t i = 0; i < m->entries().size(); i++)
-                {
-                    // skip disabled entries
-                    if(!m->entries()[i].enabled) continue;
-
-                    uint32_t primitive_type = m->entries()[i].primitive_type;
-                    primitive_type = primitive_type ? : m->geometry()->primitive_type();
-
-                    int mat_index = clamp<int>(m->entries()[i].material_index,
-                                               0,
-                                               m->materials().size() - 1);
-                    m->bind_vertex_array(mat_index);
-                    apply_material(m->materials()[mat_index], false, shader);
-                    KINSKI_CHECK_GL_ERRORS();
-
-                    glDrawElementsBaseVertex(primitive_type,
-                                             m->entries()[i].num_indices,
-                                             m->geometry()->indexType(),
-                                             BUFFER_OFFSET(m->entries()[i].base_index
-                                                           * sizeof(m->geometry()->indexType())),
-                                             m->entries()[i].base_vertex);
-                }
-            }
-            else
-            {
-                glDrawElements(m->geometry()->primitive_type(),
-                               m->geometry()->indices().size(), m->geometry()->indexType(),
-                               BUFFER_OFFSET(0));
-            }
-        }
-        else
-        {
-            glDrawArrays(m->geometry()->primitive_type(), 0, m->geometry()->vertices().size());
-        }
-        KINSKI_CHECK_GL_ERRORS();
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+        gl::set_projection(the_renderbin->camera);
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
+        auto m = item.mesh;
+        gl::ShaderPtr shader = m->geometry()->has_bones() ? m_shader_g_buffer_skin : m_shader_g_buffer;
+        gl::draw_mesh(m, shader);
     }
-    GL_SUFFIX(glBindVertexArray)(0);
 #endif
 }
 
@@ -257,6 +200,34 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 #endif
 }
 
+void DeferredRenderer::shadow_pass(const gl::SceneConstPtr &the_scene, const gl::LightPtr &l)
+{
+    if(l->cast_shadow())
+    {
+        shadow_cams()[0] = gl::create_shadow_camera(l, std::min(1000.f, l->max_distance()));
+        auto bin = cull(the_scene, shadow_cams()[0]);
+        std::list<RenderBin::item> opaque_items, blended_items;
+        sort_render_bin(bin, opaque_items, blended_items);
+
+        // offscreen render shadow map here
+        gl::render_to_texture(shadow_fbos()[0], [&, bin]()
+        {
+            glClear(GL_DEPTH_BUFFER_BIT);
+            gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+            gl::set_projection(bin->camera);
+
+            for (const RenderBin::item &item : opaque_items)
+            {
+                gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
+                gl::ShaderPtr shader = item.mesh->geometry()->has_bones() ?
+                                       gl::create_shader(gl::ShaderType::UNLIT_SKIN) :
+                                       gl::create_shader(gl::ShaderType::UNLIT);
+                gl::draw_mesh(item.mesh, shader);
+            }
+
+        });
+    }
+}
 
 void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, const gl::MaterialPtr &the_mat)
 {

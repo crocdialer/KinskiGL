@@ -344,7 +344,7 @@ namespace kinski { namespace gl {
         else
         {
             cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
-                                                1.f, far_clip);
+                                                .1f, far_clip);
         }
         cam->set_transform(the_light->global_transform());
         return cam;
@@ -794,86 +794,78 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_mesh(const MeshPtr &the_mesh)
+void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
+{
+    if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
+
+    const glm::mat4 &modelView = g_modelViewMatrixStack.top();
+    mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
+    mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
+
+    for(auto &mat : the_mesh->materials())
     {
-        if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
-
-        const glm::mat4 &modelView = g_modelViewMatrixStack.top();
-        mat4 mvp_matrix = g_projectionMatrixStack.top() * modelView;
-        mat3 normal_matrix = glm::inverseTranspose(glm::mat3(modelView));
-
-        for(auto &mat : the_mesh->materials())
-        {
-            mat->uniform("u_modelViewMatrix", modelView);
-
-            if(the_mesh->geometry()->has_normals())
-            {
-                mat->uniform("u_normalMatrix", normal_matrix);
-            }
-            mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
-
-            if(the_mesh->geometry()->has_bones())
-            {
-                mat->uniform("u_bones", the_mesh->bone_matrices());
-            }
-        }
-        KINSKI_CHECK_GL_ERRORS();
-        gl::apply_material(the_mesh->material());
+        mat->uniform("u_modelViewMatrix", modelView);
+        mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
+        if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }
+        if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
+    }
+    KINSKI_CHECK_GL_ERRORS();
+    gl::apply_material(the_mesh->material(), false, overide_shader);
 
 #ifndef KINSKI_NO_VAO
-        the_mesh->bind_vertex_array();
+    the_mesh->bind_vertex_array();
 #else
-        the_mesh->bind_vertex_pointers();
+    the_mesh->bind_vertex_pointers();
 #endif
 
-        if(the_mesh->geometry()->has_indices())
-        {
+    if(the_mesh->geometry()->has_indices())
+    {
 #ifndef KINSKI_GLES
-            if(!the_mesh->entries().empty())
+        if(!the_mesh->entries().empty())
+        {
+            for (uint32_t i = 0; i < the_mesh->entries().size(); i++)
             {
-                for (uint32_t i = 0; i < the_mesh->entries().size(); i++)
-                {
-                    // skip disabled entries
-                    if(!the_mesh->entries()[i].enabled) continue;
+                // skip disabled entries
+                if(!the_mesh->entries()[i].enabled) continue;
 
-                    uint32_t primitive_type = the_mesh->entries()[i].primitive_type;
-                    primitive_type = primitive_type ? : the_mesh->geometry()->primitive_type();
+                uint32_t primitive_type = the_mesh->entries()[i].primitive_type;
+                primitive_type = primitive_type ? : the_mesh->geometry()->primitive_type();
 
-                    int mat_index = clamp<int>(the_mesh->entries()[i].material_index,
-                                               0,
-                                               the_mesh->materials().size() - 1);
-                    the_mesh->bind_vertex_array(mat_index);
-                    apply_material(the_mesh->materials()[mat_index]);
+                int mat_index = clamp<int>(the_mesh->entries()[i].material_index,
+                                           0,
+                                           the_mesh->materials().size() - 1);
+                the_mesh->bind_vertex_array(mat_index);
+                apply_material(the_mesh->materials()[mat_index], false, overide_shader);
 
-                    glDrawElementsBaseVertex(primitive_type,
-                                             the_mesh->entries()[i].num_indices,
-                                             the_mesh->geometry()->indexType(),
-                                             BUFFER_OFFSET(the_mesh->entries()[i].base_index *
-                                                           sizeof(the_mesh->geometry()->indexType())),
-                                             the_mesh->entries()[i].base_vertex);
-                }
-            }
-            else
-#endif
-            {
-                glDrawElements(the_mesh->geometry()->primitive_type(),
-                               the_mesh->geometry()->indices().size(), the_mesh->geometry()->indexType(),
-                               BUFFER_OFFSET(0));
+                glDrawElementsBaseVertex(primitive_type,
+                                         the_mesh->entries()[i].num_indices,
+                                         the_mesh->geometry()->indexType(),
+                                         BUFFER_OFFSET(the_mesh->entries()[i].base_index *
+                                                       sizeof(the_mesh->geometry()->indexType())),
+                                         the_mesh->entries()[i].base_vertex);
             }
         }
         else
+#endif
         {
-            glDrawArrays(the_mesh->geometry()->primitive_type(), 0,
-                         the_mesh->geometry()->vertices().size());
+            glDrawElements(the_mesh->geometry()->primitive_type(),
+                           the_mesh->geometry()->indices().size(), the_mesh->geometry()->indexType(),
+                           BUFFER_OFFSET(0));
         }
-        KINSKI_CHECK_GL_ERRORS();
+    }
+    else
+    {
+        glDrawArrays(the_mesh->geometry()->primitive_type(), 0,
+                     the_mesh->geometry()->vertices().size());
+    }
+    KINSKI_CHECK_GL_ERRORS();
 
 #ifndef KINSKI_NO_VAO
-        GL_SUFFIX(glBindVertexArray)(0);
+    GL_SUFFIX(glBindVertexArray)(0);
 #endif
 
-        KINSKI_CHECK_GL_ERRORS();
-    }
+    KINSKI_CHECK_GL_ERRORS();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
