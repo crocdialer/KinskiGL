@@ -33,6 +33,9 @@ void DeferredRenderer::init()
     m_mat_lighting->set_blending(true);
     m_mat_lighting->set_blend_equation(GL_FUNC_ADD);
     m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
+    m_mat_lighting_shadow = gl::Material::create();
+    *m_mat_lighting_shadow = *m_mat_lighting;
+    m_mat_lighting_shadow->set_shader(gl::Shader::create(unlit_vert, deferred_lighting_shadow_frag));
 
     m_mat_stencil = gl::Material::create(shader);
     m_mat_stencil->set_depth_test(true);
@@ -162,9 +165,17 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         KINSKI_CHECK_GL_ERRORS();
 
         if(!m_mat_lighting){ init(); }
-        m_mat_lighting->textures().clear();
         m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
-        for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i){ m_mat_lighting->add_texture(m_geometry_fbo.texture(i)); }
+        m_mat_lighting_shadow->uniform("u_window_dimension", gl::window_dimension());
+        m_mat_lighting->textures().clear();
+        m_mat_lighting_shadow->textures().clear();
+
+        for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
+        {
+            m_mat_lighting->add_texture(m_geometry_fbo.texture(i));
+            m_mat_lighting_shadow->add_texture(m_geometry_fbo.texture(i));
+        }
+        m_mat_lighting_shadow->add_texture(shadow_fbos()[0].depth_texture());
     }
     m_lighting_fbo.bind();
 
@@ -183,6 +194,15 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         glUniformBlockBinding(m_mat_lighting->shader()->handle(), block_index, LIGHT_BLOCK);
         KINSKI_CHECK_GL_ERRORS();
     }
+
+    block_index = m_mat_lighting_shadow->shader()->uniform_block_index("LightBlock");
+
+    if(block_index >= 0)
+    {
+        glUniformBlockBinding(m_mat_lighting_shadow->shader()->handle(), block_index, LIGHT_BLOCK);
+        KINSKI_CHECK_GL_ERRORS();
+    }
+
     auto c = gl::COLOR_BLACK;
     c.a = 0.f;
     gl::clear_color(c);
@@ -194,32 +214,34 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
     glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
     glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
     m_lighting_fbo.enable_draw_buffers(false);
-    render_light_volumes(the_renderbin, m_mat_stencil);
+    render_light_volumes(the_renderbin, true);
 
     // light pass
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
     m_lighting_fbo.enable_draw_buffers(true);
-    render_light_volumes(the_renderbin, m_mat_lighting);
+    render_light_volumes(the_renderbin, false);
 #endif
 }
 
-gl::Fbo DeferredRenderer::shadow_pass(const gl::SceneConstPtr &the_scene, const gl::LightPtr &l)
+gl::Fbo DeferredRenderer::shadow_pass(const RenderBinPtr &the_renderbin, const gl::LightPtr &l)
 {
     if(!m_shader_shadow || !m_shader_shadow_skin)
     {
-        m_shader_shadow = gl::Shader::create(shadowmap_vert, shadowmap_frag);
-        m_shader_shadow_skin = gl::Shader::create(shadowmap_skin_vert, shadowmap_frag);
+        m_shader_shadow = gl::create_shader(gl::ShaderType::UNLIT);
+        m_shader_shadow_skin = gl::create_shader(gl::ShaderType::UNLIT_SKIN);
     }
     if(l->cast_shadow())
     {
         shadow_cams()[0] = gl::create_shadow_camera(l, std::min(1000.f, l->max_distance()));
-        auto bin = cull(the_scene, shadow_cams()[0]);
+
+        auto bin = cull(the_renderbin->scene, shadow_cams()[0]);
         std::list<RenderBin::item> opaque_items, blended_items;
         sort_render_bin(bin, opaque_items, blended_items);
 
         // offscreen render shadow map here
         gl::render_to_texture(shadow_fbos()[0], [&]()
         {
+            gl::reset_state();
             glClear(GL_DEPTH_BUFFER_BIT);
             gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
             gl::set_projection(bin->camera);
@@ -235,32 +257,31 @@ gl::Fbo DeferredRenderer::shadow_pass(const gl::SceneConstPtr &the_scene, const 
             }
 
         });
+        mat4 shadow_matrix = shadow_cams()[0]->projection_matrix() * shadow_cams()[0]->view_matrix() * the_renderbin->camera->global_transform();
+        m_mat_lighting_shadow->uniform("u_shadow_matrix", shadow_matrix);
     }
     return shadow_fbos()[0];
 }
 
-void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, const gl::MaterialPtr &the_mat)
+void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass)
 {
     gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
     gl::set_projection(the_renderbin->camera);
 
-    bool is_shadow_pass = the_mat == m_mat_lighting;
-
-    m_frustum_mesh->material() = the_mat;
-    m_mesh_sphere->material() = the_mat;
-    m_mesh_cone->material() = the_mat;
+    gl::MaterialPtr mat = stencil_pass ? m_mat_stencil : m_mat_lighting;
+    m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
     int light_index = 0;
 
     for(auto l : the_renderbin->lights)
     {
-        if(is_shadow_pass && l.light->cast_shadow())
+        if(!stencil_pass && l.light->cast_shadow())
         {
-            auto shadow_fbo = shadow_pass(the_renderbin->scene, l.light);
-//            the_mat->add_texture(shadow_fbo.texture());
-//            the_mat->add_texture(shadow_fbo.depth_texture());
+            auto shadow_fbo = shadow_pass(the_renderbin, l.light);
+            mat = m_mat_lighting_shadow;
+            m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
         }
         float d = l.light->max_distance(1.f / 10.f);
-        the_mat->uniform("u_light_index", light_index++);
+        mat->uniform("u_light_index", light_index++);
 
         switch(l.light->type())
         {

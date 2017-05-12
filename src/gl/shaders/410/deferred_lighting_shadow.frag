@@ -20,10 +20,34 @@ struct Lightsource
     float pad_0, pad_1, pad_2;
 };
 
+layout(std140) uniform LightBlock
+{
+  int u_numLights;
+  Lightsource u_lights[MAX_NUM_LIGHTS];
+};
+
+// window dimension
+uniform vec2 u_window_dimension;
+uniform int u_light_index;
+
+// regular textures
+uniform int u_numTextures;
+uniform sampler2D u_sampler_2D[6];
+
+uniform mat4 u_shadow_matrix;
+uniform vec2 u_shadow_map_size = vec2(1024);
+uniform float u_poisson_radius = 3.0;
+
+#define ALBEDO 0
+#define NORMAL 1
+#define POSITION 2
+#define SPECULAR 3
+#define SHADOW_MAP 4
+
 const int NUM_TAPS = 12;
 vec2 fTaps_Poisson[NUM_TAPS] = vec2[]
 (
-  vec2(-.326,-.406),
+    vec2(-.326,-.406),
 	vec2(-.840,-.074),
 	vec2(-.696, .457),
 	vec2(-.203, .621),
@@ -37,9 +61,10 @@ vec2 fTaps_Poisson[NUM_TAPS] = vec2[]
 	vec2(-.792,-.598)
 );
 
-vec3 projected_coords(in vec4 the_lightspace_pos)
+vec3 shadow_coords(in vec3 the_eye_space_coord)
 {
-    vec3 proj_coords = the_lightspace_pos.xyz / the_lightspace_pos.w;
+    vec4 light_space_pos = u_shadow_matrix * vec4(the_eye_space_coord, 1.0);
+    vec3 proj_coords = light_space_pos.xyz / light_space_pos.w;
     proj_coords = (vec3(1) + proj_coords) * 0.5;
     return proj_coords;
 }
@@ -110,30 +135,6 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   return base_color * (ambient + diffuse) + vec4(final_spec, 0);
 }
 
-layout(std140) uniform LightBlock
-{
-  int u_numLights;
-  Lightsource u_lights[MAX_NUM_LIGHTS];
-};
-
-// window dimension
-uniform vec2 u_window_dimension;
-uniform int u_light_index;
-
-// regular textures
-uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[6];
-
-uniform vec2 u_shadow_map_size = vec2(1024);
-uniform float u_poisson_radius = 3.0;
-
-#define ALBEDO 0
-#define NORMAL 1
-#define POSITION 2
-#define SPECULAR 3
-#define POSITION_LIGHT_SPACE 4
-#define SHADOW_MAP 5
-
 in VertexData
 {
   vec4 color;
@@ -149,11 +150,11 @@ void main()
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
     vec4 specular = texture(u_sampler_2D[SPECULAR], tex_coord);
-    vec4 light_space_pos = texture(u_sampler_2D[POSITION_LIGHT_SPACE], tex_coord);
     specular = vec4(specular.r, specular.r, specular.r, specular.g);
 
     const float min_shade = 0.1, max_shade = 1.0;
-    float shadow_factor = shadow_factor(u_sampler_2D[SHADOW_MAP], projected_coords(light_space_pos));
+    float shadow_factor = shadow_factor(u_sampler_2D[SHADOW_MAP], shadow_coords(position));
     shadow_factor = mix(min_shade, max_shade, shadow_factor);
     fragData = shade(u_lights[u_light_index], normal, position, color, specular, shadow_factor);
+    // fragData = vec4(1, 0, 0, 1);
 }

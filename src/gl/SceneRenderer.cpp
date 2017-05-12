@@ -163,7 +163,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
                 LOG_WARNING << "too many lights with active shadows";
                 break;
             }
-            shadow_fbos()[i].enable_draw_buffers(false);
+//            shadow_fbos()[i].enable_draw_buffers(false);
             set_shadow_pass(true);
             shadow_cams()[i] = gl::create_shadow_camera(l, min(extents, l->max_distance()));
             
@@ -173,7 +173,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
                                       glClear(GL_DEPTH_BUFFER_BIT);
                                       render(cull(the_scene, shadow_cams()[i]));
                                   });
-            shadow_fbos()[i].enable_draw_buffers(true);
+//            shadow_fbos()[i].enable_draw_buffers(true);
             i++;
             set_shadow_pass(false);
         }
@@ -466,8 +466,8 @@ void SceneRenderer::set_shadowmap_size(const glm::vec2 &the_size)
 {
 #ifndef KINSKI_GLES
     gl::Fbo::Format fmt;
-    fmt.set_color_internal_format(GL_RGBA32F);
-//    fmt.set_num_color_buffers(0);
+//    fmt.set_color_internal_format(GL_RGBA32F);
+    fmt.set_num_color_buffers(0);
     
     for(size_t i = 0; i < m_shadow_fbos.size(); i++)
     {
