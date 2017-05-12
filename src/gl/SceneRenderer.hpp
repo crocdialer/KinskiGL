@@ -45,6 +45,7 @@ public:
     
     RenderBin(const CameraPtr &cam): camera(cam){};
     CameraPtr camera;
+    SceneConstPtr scene;
     std::list<item> items;
     std::list<light> lights;
 };

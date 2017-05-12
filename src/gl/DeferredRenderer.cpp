@@ -41,7 +41,7 @@ void DeferredRenderer::init()
     m_mat_stencil->set_culling(Material::CULL_NONE);
 
     m_mesh_sphere = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 32), m_mat_lighting);
-    m_mesh_cone = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 16), m_mat_lighting);
+    m_mesh_cone = gl::Mesh::create(gl::Geometry::create_cone(1.f, 1.f, 24), m_mat_lighting);
 
     glm::mat4 rot_spot_mat = glm::rotate(glm::mat4(), glm::half_pi<float>(), gl::X_AXIS);
 
@@ -50,6 +50,8 @@ void DeferredRenderer::init()
         vert -= vec3(0, 1, 0);
         vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
     }
+
+    set_shadowmap_size(glm::vec2(1024));
 #endif
 }
 
@@ -57,17 +59,6 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
                                         const std::set<std::string> &the_tags)
 {
 #if !defined(KINSKI_GLES)
-
-//    // skybox drawing
-//    if(the_scene->skybox())
-//    {
-//        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
-//        gl::set_projection(the_cam);
-//        mat4 m = the_cam->view_matrix();
-//        m[3] = vec4(0, 0, 0, 1);
-//        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
-//        gl::draw_mesh(the_scene->skybox());
-//    }
 
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
@@ -83,8 +74,21 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     }
     Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
     Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
-    m_lighting_fbo.blit_to_current(src, dst, GL_NEAREST, GL_COLOR_BUFFER_BIT);
+//    m_lighting_fbo.blit_to_current(src, dst, GL_NEAREST, GL_COLOR_BUFFER_BIT);
+    glDepthMask(GL_TRUE);
     m_geometry_fbo.blit_to_current(src, dst, GL_NEAREST, GL_DEPTH_BUFFER_BIT);
+
+    // skybox drawing
+    if(the_scene->skybox())
+    {
+        gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
+        gl::set_projection(the_cam);
+        mat4 m = the_cam->view_matrix();
+        m[3] = vec4(0, 0, 0, 1);
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
+        gl::draw_mesh(the_scene->skybox());
+    }
+    gl::draw_texture(m_lighting_fbo.texture(), gl::window_dimension());
 
     // return number of rendered objects
     return render_bin->items.size();
@@ -139,9 +143,8 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
         gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
         gl::set_projection(the_renderbin->camera);
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
-        auto m = item.mesh;
-        gl::ShaderPtr shader = m->geometry()->has_bones() ? m_shader_g_buffer_skin : m_shader_g_buffer;
-        gl::draw_mesh(m, shader);
+        gl::ShaderPtr shader = item.mesh->geometry()->has_bones() ? m_shader_g_buffer_skin : m_shader_g_buffer;
+        gl::draw_mesh(item.mesh, shader);
     }
 #endif
 }
@@ -200,8 +203,13 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 #endif
 }
 
-void DeferredRenderer::shadow_pass(const gl::SceneConstPtr &the_scene, const gl::LightPtr &l)
+gl::Fbo DeferredRenderer::shadow_pass(const gl::SceneConstPtr &the_scene, const gl::LightPtr &l)
 {
+    if(!m_shader_shadow || !m_shader_shadow_skin)
+    {
+        m_shader_shadow = gl::Shader::create(shadowmap_vert, shadowmap_frag);
+        m_shader_shadow_skin = gl::Shader::create(shadowmap_skin_vert, shadowmap_frag);
+    }
     if(l->cast_shadow())
     {
         shadow_cams()[0] = gl::create_shadow_camera(l, std::min(1000.f, l->max_distance()));
@@ -210,23 +218,25 @@ void DeferredRenderer::shadow_pass(const gl::SceneConstPtr &the_scene, const gl:
         sort_render_bin(bin, opaque_items, blended_items);
 
         // offscreen render shadow map here
-        gl::render_to_texture(shadow_fbos()[0], [&, bin]()
+        gl::render_to_texture(shadow_fbos()[0], [&]()
         {
             glClear(GL_DEPTH_BUFFER_BIT);
             gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
             gl::set_projection(bin->camera);
 
-            for (const RenderBin::item &item : opaque_items)
+            for(const RenderBin::item &item : opaque_items)
             {
+                // filter out non-shadow casters
+                if(!(item.mesh->material()->shadow_properties() & gl::Material::SHADOW_CAST)){ continue; }
+
                 gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
-                gl::ShaderPtr shader = item.mesh->geometry()->has_bones() ?
-                                       gl::create_shader(gl::ShaderType::UNLIT_SKIN) :
-                                       gl::create_shader(gl::ShaderType::UNLIT);
+                gl::ShaderPtr shader = item.mesh->geometry()->has_bones() ? m_shader_shadow_skin : m_shader_shadow;
                 gl::draw_mesh(item.mesh, shader);
             }
 
         });
     }
+    return shadow_fbos()[0];
 }
 
 void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, const gl::MaterialPtr &the_mat)
@@ -234,12 +244,21 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, c
     gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
     gl::set_projection(the_renderbin->camera);
 
+    bool is_shadow_pass = the_mat == m_mat_lighting;
+
+    m_frustum_mesh->material() = the_mat;
     m_mesh_sphere->material() = the_mat;
     m_mesh_cone->material() = the_mat;
     int light_index = 0;
 
     for(auto l : the_renderbin->lights)
     {
+        if(is_shadow_pass && l.light->cast_shadow())
+        {
+            auto shadow_fbo = shadow_pass(the_renderbin->scene, l.light);
+//            the_mat->add_texture(shadow_fbo.texture());
+//            the_mat->add_texture(shadow_fbo.depth_texture());
+        }
         float d = l.light->max_distance(1.f / 10.f);
         the_mat->uniform("u_light_index", light_index++);
 
@@ -247,7 +266,6 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, c
         {
             case Light::DIRECTIONAL:
             {
-                m_frustum_mesh->material() = the_mat;
                 gl::load_identity(gl::MODEL_VIEW_MATRIX);
                 gl::draw_mesh(m_frustum_mesh);
                 break;

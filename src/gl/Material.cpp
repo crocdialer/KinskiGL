@@ -44,6 +44,7 @@ namespace kinski { namespace gl {
     m_blend_src(GL_SRC_ALPHA), m_blend_dst(GL_ONE_MINUS_SRC_ALPHA),
     m_blend_equation(GL_FUNC_ADD),
     m_cull_value(CULL_BACK),
+    m_shadow_properties(SHADOW_CAST),
     m_diffuse(Color(1)),
     m_ambient(Color(1)),
     m_specular(Color(1)),
@@ -71,6 +72,11 @@ namespace kinski { namespace gl {
     void Material::set_culling(uint32_t the_value)
     {
         m_cull_value = the_value & (CULL_FRONT | CULL_BACK);
+    }
+
+    void Material::set_shadow_properties(uint32_t the_value)
+    {
+        m_shadow_properties = the_value & (SHADOW_CAST | SHADOW_RECEIVE);
     }
 
     void Material::set_diffuse(const Color &theColor)

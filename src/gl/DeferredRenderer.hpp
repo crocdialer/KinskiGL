@@ -38,12 +38,13 @@ private:
     void light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
     void stencil_pass(const RenderBinPtr &the_renderbin);
     void render_light_volumes(const RenderBinPtr &the_renderbin, const gl::MaterialPtr &the_mat);
-    void shadow_pass(const gl::SceneConstPtr &the_scene, const gl::LightPtr &l);
+    gl::Fbo shadow_pass(const gl::SceneConstPtr &the_scene, const gl::LightPtr &l);
 
     gl::ShaderPtr m_shader_g_buffer, m_shader_g_buffer_skin;
+    gl::ShaderPtr m_shader_shadow, m_shader_shadow_skin;
     gl::Fbo m_geometry_fbo, m_lighting_fbo;
 
-    gl::MaterialPtr m_mat_lighting, m_mat_stencil, m_mat_stencil_directional;
+    gl::MaterialPtr m_mat_lighting, m_mat_stencil;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
 };
 

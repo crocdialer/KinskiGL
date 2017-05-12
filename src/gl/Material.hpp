@@ -33,6 +33,8 @@ namespace kinski { namespace gl {
 
         enum CullType{CULL_NONE = 0, CULL_FRONT = 1, CULL_BACK = 2};
 
+        enum ShadowProperties{SHADOW_NONE = 0, SHADOW_CAST = 1, SHADOW_RECEIVE = 2};
+
         enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
         
         static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
@@ -88,6 +90,9 @@ namespace kinski { namespace gl {
         uint32_t culling() const { return m_cull_value; }
         void set_culling(uint32_t the_value);
 
+        uint32_t shadow_properties() const { return m_shadow_properties; }
+        void set_shadow_properties(uint32_t the_value);
+
         bool opaque() const { return !m_blending || m_diffuse.a == 1.f ;};
         bool depth_test() const { return m_depth_test; };
         bool depth_write() const { return m_depth_write; };
@@ -131,7 +136,7 @@ namespace kinski { namespace gl {
         bool m_blending;
         GLenum m_blend_src, m_blend_dst, m_blend_equation;
 
-        uint32_t m_cull_value;
+        uint32_t m_cull_value, m_shadow_properties;
 
         // those are available in shader
         Color m_diffuse;
