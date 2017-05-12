@@ -323,7 +323,22 @@ GLint Shader::uniform_block_index(const std::string &name)
 #endif
     return -1;
 }
-    
+
+bool Shader::uniform_block_binding(const std::string &name, int the_value)
+{
+#ifndef KINSKI_GLES
+	GLint block_index = uniform_block_index(name);
+
+	if(block_index >= 0)
+	{
+		glUniformBlockBinding(handle(), block_index, the_value);
+		KINSKI_CHECK_GL_ERRORS();
+		return true;
+	}
+#endif
+    return false;
+}
+
 GLint Shader::attrib_location(const std::string &name) const
 {
 	return glGetAttribLocation( m_impl->m_Handle, name.c_str() );

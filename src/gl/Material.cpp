@@ -77,6 +77,7 @@ namespace kinski { namespace gl {
     void Material::set_shadow_properties(uint32_t the_value)
     {
         m_shadow_properties = the_value & (SHADOW_CAST | SHADOW_RECEIVE);
+        m_dirty_uniform_buffer = true;
     }
 
     void Material::set_diffuse(const Color &theColor)
@@ -148,7 +149,8 @@ namespace kinski { namespace gl {
             vec4 emission;
             vec4 point_vals;
             float shinyness;
-            uint32_t pad[3];
+            int shadow_properties;
+            uint32_t pad[2];
         };
         
         if(m_dirty_uniform_buffer)
@@ -163,18 +165,15 @@ namespace kinski { namespace gl {
             m.point_vals[2] = m_point_attenuation.linear;
             m.point_vals[3] = m_point_attenuation.quadratic;
             m.shinyness = m_shinyness;
-            
+            m.shadow_properties = m_shadow_properties;
+
             m_uniform_buffer.set_data(&m, sizeof(m));
             m_dirty_uniform_buffer = false;
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
         KINSKI_CHECK_GL_ERRORS();
 
-        if(shader_obj)
-        {
-            GLint block_index = shader_obj->uniform_block_index("MaterialBlock");
-            if(block_index >= 0){ glUniformBlockBinding(shader_obj->handle(), block_index, 0); }
-        }
+        if(shader_obj){ shader_obj->uniform_block_binding("MaterialBlock", 0); }
 #else
         if(m_dirty_uniform_buffer)
         {

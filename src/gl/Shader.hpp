@@ -66,6 +66,7 @@ class KINSKI_API Shader
     
 	GLint uniform_location(const std::string &name);
     GLint uniform_block_index(const std::string &name);
+	bool uniform_block_binding(const std::string &name, int the_value);
 	GLint attrib_location(const std::string &name) const;
 
 	std::string get_shader_log(GLuint handle) const;

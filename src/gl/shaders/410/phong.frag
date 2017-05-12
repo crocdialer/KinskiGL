@@ -4,12 +4,13 @@
 
 struct Material
 {
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec4 emission;
-  vec4 point_vals;// (size, constant_att, linear_att, quad_att)
-  float shinyness;
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec4 emission;
+    vec4 point_vals;// (size, constant_att, linear_att, quad_att)
+    float shinyness;
+    int shadow_properties;
 };
 
 struct Lightsource
@@ -26,7 +27,6 @@ struct Lightsource
     float constantAttenuation;
     float linearAttenuation;
     float quadraticAttenuation;
-    float pad_0, pad_1, pad_2;
 };
 
 vec3 projected_coords(in vec4 the_lightspace_pos)

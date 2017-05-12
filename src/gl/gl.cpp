@@ -835,7 +835,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                                            0,
                                            the_mesh->materials().size() - 1);
                 the_mesh->bind_vertex_array(mat_index);
-                apply_material(the_mesh->materials()[mat_index], false, overide_shader);
+                if(i){ apply_material(the_mesh->materials()[mat_index], false, overide_shader); }
 
                 glDrawElementsBaseVertex(primitive_type,
                                          the_mesh->entries()[i].num_indices,

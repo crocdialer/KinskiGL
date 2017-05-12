@@ -278,13 +278,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
 
             // lighting parameters
 #if !defined(KINSKI_GLES)
-            GLint block_index = mat->shader()->uniform_block_index("LightBlock");
-            
-            if(block_index >= 0)
-            {
-                glUniformBlockBinding(mat->shader()->handle(), block_index, LIGHT_BLOCK);
-                KINSKI_CHECK_GL_ERRORS();
-            }
+            mat->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
 #else
             set_light_uniforms(mat, light_list);
 #endif

@@ -187,21 +187,8 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 
     gl::apply_material(m_mat_lighting);
     update_uniform_buffers(the_renderbin->lights);
-    GLint block_index = m_mat_lighting->shader()->uniform_block_index("LightBlock");
-
-    if(block_index >= 0)
-    {
-        glUniformBlockBinding(m_mat_lighting->shader()->handle(), block_index, LIGHT_BLOCK);
-        KINSKI_CHECK_GL_ERRORS();
-    }
-
-    block_index = m_mat_lighting_shadow->shader()->uniform_block_index("LightBlock");
-
-    if(block_index >= 0)
-    {
-        glUniformBlockBinding(m_mat_lighting_shadow->shader()->handle(), block_index, LIGHT_BLOCK);
-        KINSKI_CHECK_GL_ERRORS();
-    }
+    m_mat_lighting->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
+    m_mat_lighting_shadow->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
 
     auto c = gl::COLOR_BLACK;
     c.a = 0.f;

@@ -1,4 +1,6 @@
-#version 330
+#version 410
+
+#define MAX_NUM_LIGHTS 8
 
 uniform mat4 u_modelViewMatrix;
 uniform mat4 u_modelViewProjectionMatrix;
@@ -19,13 +21,12 @@ struct Lightsource
     float constantAttenuation;
     float linearAttenuation;
     float quadraticAttenuation;
-    float pad_0, pad_1, pad_2;
 };
 
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[];
+  Lightsource u_lights[MAX_NUM_LIGHTS];
 };
 
 layout(location = 0) in vec4 a_vertex;
@@ -39,8 +40,8 @@ out VertexData
   vec4 color;
   vec4 texCoord;
   vec3 eyeVec;
-  vec3 light_position[8];
-  vec3 light_direction[8];
+  vec3 light_position[MAX_NUM_LIGHTS];
+  vec3 light_direction[MAX_NUM_LIGHTS];
 } vertex_out;
 
 void main()

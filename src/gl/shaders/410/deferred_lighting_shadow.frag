@@ -17,7 +17,6 @@ struct Lightsource
     float constantAttenuation;
     float linearAttenuation;
     float quadraticAttenuation;
-    float pad_0, pad_1, pad_2;
 };
 
 layout(std140) uniform LightBlock
@@ -149,12 +148,12 @@ void main()
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
-    vec4 specular = texture(u_sampler_2D[SPECULAR], tex_coord);
-    specular = vec4(specular.r, specular.r, specular.r, specular.g);
+    vec4 comb_vals = texture(u_sampler_2D[SPECULAR], tex_coord);
+    vec4 specular = vec4(comb_vals.r, comb_vals.r, comb_vals.r, comb_vals.g);
 
+    bool receive_shadow = bool(comb_vals.b);
     const float min_shade = 0.1, max_shade = 1.0;
-    float shadow_factor = shadow_factor(u_sampler_2D[SHADOW_MAP], shadow_coords(position));
+    float shadow_factor = receive_shadow ? shadow_factor(u_sampler_2D[SHADOW_MAP], shadow_coords(position)) : 1.0;
     shadow_factor = mix(min_shade, max_shade, shadow_factor);
     fragData = shade(u_lights[u_light_index], normal, position, color, specular, shadow_factor);
-    // fragData = vec4(1, 0, 0, 1);
 }

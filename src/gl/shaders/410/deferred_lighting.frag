@@ -16,7 +16,6 @@ struct Lightsource
     float constantAttenuation;
     float linearAttenuation;
     float quadraticAttenuation;
-    float pad_0, pad_1, pad_2;
 };
 
 vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color, in vec4 the_spec,

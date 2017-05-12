@@ -11,6 +11,7 @@ struct Material
     vec4 emission;
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
     float shinyness;
+    int shadow_properties;
 };
 
 layout(std140) uniform MaterialBlock
@@ -39,5 +40,5 @@ void main()
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(vertex_in.normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
-  out_specular = vec4(u_material.specular.r, u_material.shinyness, 0, 1);
+  out_specular = vec4(u_material.specular.r, u_material.shinyness, u_material.shadow_properties & 2, 1);
 }

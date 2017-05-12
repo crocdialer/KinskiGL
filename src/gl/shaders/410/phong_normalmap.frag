@@ -1,13 +1,16 @@
 #version 410
 
+#define MAX_NUM_LIGHTS 8
+
 struct Material
 {
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec4 emission;
-  vec4 point_vals;// (size, constant_att, linear_att, quad_att)
-  float shinyness;
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec4 emission;
+    vec4 point_vals;// (size, constant_att, linear_att, quad_att)
+    float shinyness;
+    int shadow_properties;
 };
 
 struct Lightsource
@@ -24,7 +27,6 @@ struct Lightsource
     float constantAttenuation;
     float linearAttenuation;
     float quadraticAttenuation;
-    float pad_0, pad_1, pad_2;
 };
 
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal,
@@ -75,7 +77,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[];
+  Lightsource u_lights[MAX_NUM_LIGHTS];
 };
 
 // regular textures
@@ -87,8 +89,8 @@ in VertexData
   vec4 color;
   vec4 texCoord;
   vec3 eyeVec;
-  vec3 light_position[8];
-  vec3 light_direction[8];
+  vec3 light_position[MAX_NUM_LIGHTS];
+  vec3 light_direction[MAX_NUM_LIGHTS];
 } vertex_in;
 
 out vec4 fragData;
@@ -118,8 +120,9 @@ void main()
   normal = normalize(2.0 * (texture(u_sampler_2D[NORMAL],
                                     vertex_in.texCoord.xy).xyz - vec3(0.5)));
   vec4 shade_color = vec4(0, 0, 0, 1);
+  int num_lights = min(u_numLights, MAX_NUM_LIGHTS);
 
-  for(int i = 0; i < u_numLights; i++)
+  for(int i = 0; i < num_lights; i++)
   {
     shade_color += shade(u_lights[i], u_material, normal, vertex_in.eyeVec,
                          vertex_in.light_position[i],

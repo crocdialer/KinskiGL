@@ -5,12 +5,13 @@
 
 struct Material
 {
-  vec4 diffuse;
-  vec4 ambient;
-  vec4 specular;
-  vec4 emission;
-  vec4 point_vals;// (size, constant_att, linear_att, quad_att)
-  float shinyness;
+    vec4 diffuse;
+    vec4 ambient;
+    vec4 specular;
+    vec4 emission;
+    vec4 point_vals;// (size, constant_att, linear_att, quad_att)
+    float shinyness;
+    int shadow_properties;
 };
 
 struct Lightsource
