@@ -24,7 +24,7 @@ layout(std140) uniform MaterialBlock
 
 in VertexData
 {
-    vec4 color;
+    // vec4 color;
     vec4 texCoord;
     vec3 normal;
     vec3 eyeVec;
@@ -38,8 +38,8 @@ layout(location = 3) out vec4 out_specular;
 
 void main()
 {
-  vec4 texColors = vertex_in.color;
-  texColors *= texture(u_sampler_2D[COLOR], vertex_in.texCoord.st);
+  // vec4 texColors = vertex_in.color;
+  vec4 texColors = texture(u_sampler_2D[COLOR], vertex_in.texCoord.st);
 
   vec3 normal = normalize(2.0 * (texture(u_sampler_2D[NORMALMAP],
                                  vertex_in.texCoord.xy).xyz - vec3(0.5)));

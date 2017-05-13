@@ -107,9 +107,14 @@ namespace kinski { namespace gl {
         void add_vertex_attrib(const VertexAttrib& v){ m_vertex_attribs.push_back(v); };
         
         void bind_vertex_pointers(int material_index = 0);
+        void bind_vertex_pointers(const gl::ShaderPtr &the_shader);
         void bind_vertex_array(uint32_t i = 0);
-        void create_vertex_array();
+        void bind_vertex_array(const gl::ShaderPtr &the_shader);
+//        void create_vertex_array();
+        GLuint create_vertex_array(const gl::ShaderPtr &the_shader);
+
         GLuint vertex_array(uint32_t i = 0) const;
+        GLuint vertex_array(const gl::ShaderPtr &the_shader) const;
         
         void update(float time_delta) override;
         
@@ -146,42 +151,6 @@ namespace kinski { namespace gl {
         
         uint32_t get_num_bones(const BonePtr &theRoot);
         
-//        /*!
-//         * Set the name under which the attribute will be accessible in the shader.
-//         * Defaults to "a_vertex"
-//         */
-//        void setVertexLocationName(const std::string &theName);
-//
-//        /*!
-//         * Set the name under which the attribute will be accessible in the shader.
-//         * Defaults to "a_normal"
-//         */
-//        void setNormalLocationName(const std::string &theName);
-//
-//        /*!
-//         * Set the name under which the attribute will be accessible in the shader.
-//         * Defaults to "a_tangent"
-//         */
-//        void setTangentLocationName(const std::string &theName);
-//
-//        /*!
-//         * Set the name under which the attribute will be accessible in the shader.
-//         * Defaults to "a_pointSize"
-//         */
-//        void setPointSizeLocationName(const std::string &theName);
-//
-//        /*!
-//         * Set the name under which the attribute will be accessible in the shader.
-//         * Defaults to "a_texCoord"
-//         */
-//        void setTexCoordLocationName(const std::string &theName);
-//
-//        /*!
-//         * Set the name under which the attribute will be accessible in the shader.
-//         * Defaults to "a_color"
-//         */
-//        void setColorLocationName(const std::string &theName);
-        
         /*!
          *  return a copy of this mesh, sharing its geometry, materials, animations, etc.
          */
@@ -204,9 +173,7 @@ namespace kinski { namespace gl {
         /*!
          * context specific vertex array objects for this mesh
          */
-        std::map<void*, std::vector<GLuint>> m_vertexArrays;
-        
-        std::vector<gl::ShaderPtr> m_shaders;
+        std::map<void*, std::map<gl::ShaderPtr, GLuint>> m_vertexArrays;
         
         // skeletal animations stuff
         BonePtr m_rootBone;

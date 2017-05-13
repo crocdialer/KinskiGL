@@ -187,6 +187,7 @@ namespace kinski { namespace gl{
     gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     {
         gl::MaterialPtr theMaterial = gl::Material::create();
+        theMaterial->set_blending(true);
         int ret1, ret2;
         aiColor4D diffuse, specular, ambient, emission, transparent;
         float shininess, strength;
