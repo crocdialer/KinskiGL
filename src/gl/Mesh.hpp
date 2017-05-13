@@ -102,7 +102,7 @@ namespace kinski { namespace gl {
         
         //! create the vertex attrib structures corresponding to the attached Geometry
         // and store them in <m_vertex_attribs>
-        void create_vertex_attribs();
+        void create_vertex_attribs(bool recreate = false);
 
         void add_vertex_attrib(const VertexAttrib& v){ m_vertex_attribs.push_back(v); };
         
