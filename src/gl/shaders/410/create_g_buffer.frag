@@ -36,7 +36,8 @@ void main()
 {
   vec4 texColors = vertex_in.color;
   if(u_numTextures > 0){ texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); }
-
+  if(smoothstep(0.0, 1.0, texColors.a) < 0.01){ discard; }
+  
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(vertex_in.normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
