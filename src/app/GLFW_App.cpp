@@ -355,9 +355,19 @@ namespace kinski
             if(!b){ window->set_position(m_win_params.zw()); }
             else{ window->set_position(gl::vec2(0)); }
 
+            // juggle tweakbars
+            std::list<ComponentPtr> comps;
+
+            for(auto &p : m_tweakBars){ comps.push_back(p.first); }
+            m_tweakBars.clear();
+            TwTerminate();
+
             // remove first elem from vector
             m_windows.erase(m_windows.begin());
             add_window(window);
+
+            TwInit(TW_OPENGL_CORE, nullptr);
+            for(auto &c : comps){ add_tweakbar_for_component(c); }
             set_window_size(new_res);
 
             gl::reset_state();
@@ -641,14 +651,14 @@ namespace kinski
     void GLFW_App::add_tweakbar_for_component(const ComponentPtr &the_component)
     {
         if(!the_component) return;
-        auto tw_bar = TwNewBar(the_component->name().c_str());
+        auto tw_bar = std::shared_ptr<CTwBar>(TwNewBar(the_component->name().c_str()), TwDeleteBar);
         m_tweakBars[the_component] = tw_bar;
 
-        setBarColor(glm::vec4(0, 0, 0, .5), tw_bar);
+        setBarColor(glm::vec4(0, 0, 0, .5), tw_bar.get());
         setBarSize(glm::ivec2(250, 500));
         glm::ivec2 offset(10, 40);
-        setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), tw_bar);
-        addPropertyListToTweakBar(the_component->get_property_list(), "", tw_bar);
+        setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), tw_bar.get());
+        addPropertyListToTweakBar(the_component->get_property_list(), "", tw_bar.get());
     }
 
     void GLFW_App::remove_tweakbar_for_component(const ComponentPtr &the_component)
@@ -657,7 +667,6 @@ namespace kinski
 
         if(it != m_tweakBars.end())
         {
-            TwDeleteBar(it->second);
             m_tweakBars.erase(it);
         }
     }
@@ -669,7 +678,7 @@ namespace kinski
         if(!theBar)
         {
             if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()];
+            theBar = m_tweakBars[shared_from_this()].get();
         }
 
         try { AntTweakBarConnector::connect(theBar, propPtr, group); }
@@ -683,7 +692,7 @@ namespace kinski
         if(!theBar)
         {
             if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()];
+            theBar = m_tweakBars[shared_from_this()].get();
         }
         for (const auto &property : theProps)
         {
@@ -697,7 +706,7 @@ namespace kinski
         if(!theBar)
         {
             if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()];
+            theBar = m_tweakBars[shared_from_this()].get();
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " position='" <<thePos.x
@@ -710,7 +719,7 @@ namespace kinski
         if(!theBar)
         {
             if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()];
+            theBar = m_tweakBars[shared_from_this()].get();
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " size='" <<theSize.x
@@ -723,7 +732,7 @@ namespace kinski
         if(!theBar)
         {
             if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()];
+            theBar = m_tweakBars[shared_from_this()].get();
         }
         std::stringstream ss;
         glm::ivec4 color(theColor * 255.f);
@@ -737,7 +746,7 @@ namespace kinski
         if(!theBar)
         {
             if(m_tweakBars.empty()){ return; }
-            theBar = m_tweakBars[shared_from_this()];
+            theBar = m_tweakBars[shared_from_this()].get();
         }
         std::stringstream ss;
         ss << TwGetBarName(theBar) << " label='" << theTitle <<"'";

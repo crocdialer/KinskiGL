@@ -110,12 +110,10 @@ namespace kinski { namespace gl {
         void bind_vertex_pointers(const gl::ShaderPtr &the_shader);
         void bind_vertex_array(uint32_t i = 0);
         void bind_vertex_array(const gl::ShaderPtr &the_shader);
-//        void create_vertex_array();
-        GLuint create_vertex_array(const gl::ShaderPtr &the_shader);
-
         GLuint vertex_array(uint32_t i = 0) const;
         GLuint vertex_array(const gl::ShaderPtr &the_shader) const;
-        
+        GLuint create_vertex_array(const gl::ShaderPtr &the_shader);
+
         void update(float time_delta) override;
         
         /*!
@@ -194,11 +192,4 @@ namespace kinski { namespace gl {
         std::string m_boneIDsLocationName;
         std::string m_boneWeightsLocationName;
     };
-    
-    class WrongVertexArrayDefinedException : public kinski::Exception
-    {
-    public:
-        WrongVertexArrayDefinedException(uint32_t theID):
-        Exception("wrong vertex array defined for object: " + kinski::to_string(theID)){}
-    };    
 }}

@@ -147,7 +147,7 @@ namespace kinski
         static void s_getModifiers(GLFWwindow* window, uint32_t &buttonModifiers,
                                    uint32_t &keyModifiers);
         
-        std::map<ComponentPtr, CTwBar*> m_tweakBars;
+        std::map<ComponentPtr, std::shared_ptr<CTwBar>> m_tweakBars;
         
 //        std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
         
