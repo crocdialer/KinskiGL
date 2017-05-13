@@ -77,8 +77,6 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     }
     Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
     Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
-//    m_lighting_fbo.blit_to_current(src, dst, GL_NEAREST, GL_COLOR_BUFFER_BIT);
-    glDepthMask(GL_TRUE);
     m_geometry_fbo.blit_to_current(src, dst, GL_NEAREST, GL_DEPTH_BUFFER_BIT);
 
     // skybox drawing
@@ -140,13 +138,24 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
     {
         m_shader_g_buffer_skin = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
     }
-
+    if(!m_shader_g_buffer_normalmap)
+    {
+        m_shader_g_buffer_normalmap = gl::Shader::create(phong_tangent_vert, create_g_buffer_normalmap_frag);
+    }
+    
+    auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
+    {
+        if(m->geometry()->has_bones()){ return m_shader_g_buffer_skin; }
+        else if( m->material()->textures().size() > 1){ return m_shader_g_buffer_normalmap; }
+        else return m_shader_g_buffer;
+    };
+    
     for (const RenderBin::item &item : opaque_items)
     {
         gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
         gl::set_projection(the_renderbin->camera);
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
-        gl::ShaderPtr shader = item.mesh->geometry()->has_bones() ? m_shader_g_buffer_skin : m_shader_g_buffer;
+        gl::ShaderPtr shader = select_shader(item.mesh);
         gl::draw_mesh(item.mesh, shader);
     }
 #endif
@@ -219,7 +228,7 @@ gl::Fbo DeferredRenderer::shadow_pass(const RenderBinPtr &the_renderbin, const g
     }
     if(l->cast_shadow())
     {
-        shadow_cams()[0] = gl::create_shadow_camera(l, std::min(1000.f, l->max_distance()));
+        shadow_cams()[0] = gl::create_shadow_camera(l, std::max(2000.f, l->max_distance()));
 
         auto bin = cull(the_renderbin->scene, shadow_cams()[0]);
         std::list<RenderBin::item> opaque_items, blended_items;
@@ -261,11 +270,15 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
 
     for(auto l : the_renderbin->lights)
     {
-        if(!stencil_pass && l.light->cast_shadow())
+        if(!stencil_pass)
         {
-            auto shadow_fbo = shadow_pass(the_renderbin, l.light);
-            mat = m_mat_lighting_shadow;
-            m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
+            if(l.light->cast_shadow())
+            {
+                auto shadow_fbo = shadow_pass(the_renderbin, l.light);
+                mat = m_mat_lighting_shadow;
+                m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = m_mat_lighting_shadow;
+            }
+            else{ m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat; }
         }
         float d = l.light->max_distance(1.f / 10.f);
         mat->uniform("u_light_index", light_index++);
