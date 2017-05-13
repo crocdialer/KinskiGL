@@ -39,12 +39,12 @@ layout(location = 3) out vec4 out_specular;
 void main()
 {
   vec4 texColors = vertex_in.color;
-  if(u_numTextures > 0){ texColors *= texture(u_sampler_2D[COLOR], vertex_in.texCoord.st); }
+  texColors *= texture(u_sampler_2D[COLOR], vertex_in.texCoord.st);
 
   vec3 normal = normalize(2.0 * (texture(u_sampler_2D[NORMALMAP],
                                  vertex_in.texCoord.xy).xyz - vec3(0.5)));
-  mat3 tbn = mat3(vertex_in.tangent, cross(vertex_in.normal, vertex_in.tangent), vertex_in.normal);
-  normal = tbn * normal;
+  mat3 transpose_tbn = mat3(vertex_in.tangent, cross(vertex_in.normal, vertex_in.tangent), vertex_in.normal);
+  normal = transpose_tbn * normal;
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);

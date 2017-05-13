@@ -142,12 +142,20 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
     {
         m_shader_g_buffer_normalmap = gl::Shader::create(phong_tangent_vert, create_g_buffer_normalmap_frag);
     }
+    if(!m_shader_g_buffer_normalmap_skin)
+    {
+        m_shader_g_buffer_normalmap_skin = gl::Shader::create(phong_tangent_skin_vert,
+                                                              create_g_buffer_normalmap_frag);
+    }
     
     auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
     {
-        if(m->geometry()->has_bones()){ return m_shader_g_buffer_skin; }
-        else if( m->material()->textures().size() > 1){ return m_shader_g_buffer_normalmap; }
-        else return m_shader_g_buffer;
+        bool has_normal_map = m->material()->textures().size() > 1;
+        
+        if(m->geometry()->has_bones())
+            return has_normal_map ? m_shader_g_buffer_normalmap_skin : m_shader_g_buffer_skin;
+        else
+            return has_normal_map ? m_shader_g_buffer_normalmap : m_shader_g_buffer;
     };
     
     for (const RenderBin::item &item : opaque_items)
