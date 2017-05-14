@@ -139,13 +139,13 @@ namespace kinski { namespace gl {
         }
         return ret;
     }
-    
+
     std::vector<gl::Object3DPtr> Scene::get_objects_by_tag(const std::string &the_tag) const
     {
         std::vector<gl::Object3DPtr> ret;
         gl::SelectVisitor<gl::Object3D> sv({the_tag}, false);
         root()->accept(sv);
-        
+
         for(gl::Object3D *o : sv.get_objects()){ ret.push_back(o->shared_from_this()); }
         return ret;
     }

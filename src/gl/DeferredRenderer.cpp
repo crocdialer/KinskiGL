@@ -54,6 +54,17 @@ void DeferredRenderer::init()
         vert = (rot_spot_mat * glm::vec4(vert, 1.f)).xyz();
     }
 
+    // create our shaders
+    m_shader_map[PROP_DEFAULT] = gl::Shader::create(phong_vert, create_g_buffer_frag);
+    m_shader_map[PROP_SKIN] = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
+    m_shader_map[PROP_NORMAL] = gl::Shader::create(phong_tangent_vert, create_g_buffer_normalmap_frag);
+    m_shader_map[PROP_SKIN | PROP_NORMAL] = gl::Shader::create(phong_tangent_skin_vert,
+                                                               create_g_buffer_normalmap_frag);
+    m_shader_map[PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_vert,
+                                                               create_g_buffer_normal_spec_frag);
+    m_shader_map[PROP_SKIN | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_skin_vert,
+                                                                           create_g_buffer_normal_spec_frag);
+
     set_shadowmap_size(glm::vec2(1024));
 #endif
 }
@@ -62,6 +73,8 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
                                         const std::set<std::string> &the_tags)
 {
 #if !defined(KINSKI_GLES)
+
+    if(!m_mat_lighting){ init(); }
 
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
@@ -131,31 +144,14 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
     m_geometry_fbo.bind();
     gl::clear();
     KINSKI_CHECK_GL_ERRORS();
-
-    // create our shaders
-    if(!m_shader_g_buffer){ m_shader_g_buffer = gl::Shader::create(phong_vert, create_g_buffer_frag); }
-    if(!m_shader_g_buffer_skin)
-    {
-        m_shader_g_buffer_skin = gl::Shader::create(phong_skin_vert, create_g_buffer_frag);
-    }
-    if(!m_shader_g_buffer_normalmap)
-    {
-        m_shader_g_buffer_normalmap = gl::Shader::create(phong_tangent_vert, create_g_buffer_normalmap_frag);
-    }
-    if(!m_shader_g_buffer_normalmap_skin)
-    {
-        m_shader_g_buffer_normalmap_skin = gl::Shader::create(phong_tangent_skin_vert,
-                                                              create_g_buffer_normalmap_frag);
-    }
     
     auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
     {
         bool has_normal_map = m->material()->textures().size() > 1;
-        
-        if(m->geometry()->has_bones())
-            return has_normal_map ? m_shader_g_buffer_normalmap_skin : m_shader_g_buffer_skin;
-        else
-            return has_normal_map ? m_shader_g_buffer_normalmap : m_shader_g_buffer;
+        bool has_spec_map = m->material()->textures().size() > 2;
+        uint32_t key =  PROP_DEFAULT | (has_normal_map ? PROP_NORMAL : 0) |
+                        (m->geometry()->has_bones() ? PROP_SKIN : 0) | (has_spec_map ? PROP_SPEC : 0);
+        return m_shader_map[key];
     };
     
     for (const RenderBin::item &item : opaque_items)
@@ -181,7 +177,6 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         m_lighting_fbo.set_depth_texture(m_geometry_fbo.depth_texture());
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!m_mat_lighting){ init(); }
         m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
         m_mat_lighting_shadow->uniform("u_window_dimension", gl::window_dimension());
         m_mat_lighting->textures().clear();

@@ -77,7 +77,7 @@ Mesh::~Mesh()
 void Mesh::create_vertex_attribs(bool recreate)
 {
     if(!m_vertex_attribs.empty() && !recreate) return;
-    
+
     m_vertex_attribs.clear();
     m_geometry->create_gl_buffers();
 
