@@ -391,7 +391,7 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         float constantAttenuation;
         float linearAttenuation;
         float quadraticAttenuation;
-        float pad_0, pad_1, pad_2;
+        float pad[3];
     };
     
     if(!m_uniform_buffer[LIGHT_UNIFORM_BUFFER])

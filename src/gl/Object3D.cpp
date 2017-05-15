@@ -158,6 +158,14 @@ namespace kinski { namespace gl {
     {
         if(the_child)
         {
+            // avoid cyclic refs
+            Object3DPtr ancestor = parent();
+            while(ancestor)
+            {
+                if(ancestor == the_child) return;
+                ancestor = ancestor->parent();
+            }
+
             the_child->set_parent(Object3DPtr());
             the_child->m_parent = shared_from_this();
 

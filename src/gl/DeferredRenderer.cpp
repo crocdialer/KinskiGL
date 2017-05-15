@@ -283,7 +283,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             }
             else{ m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat; }
         }
-        float d = l.light->max_distance(1.f / 10.f);
+        float d = std::min(the_renderbin->camera->far() * 0.5f, l.light->max_distance());
         mat->uniform("u_light_index", light_index++);
 
         switch(l.light->type())
