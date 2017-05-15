@@ -811,12 +811,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     }
     KINSKI_CHECK_GL_ERRORS();
     gl::apply_material(the_mesh->material(), false, overide_shader);
-
-#ifndef KINSKI_NO_VAO
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
-#else
-    the_mesh->bind_vertex_pointers();
-#endif
 
     if(the_mesh->geometry()->has_indices())
     {

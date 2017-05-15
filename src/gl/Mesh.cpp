@@ -431,6 +431,8 @@ void Mesh::bind_vertex_array(const gl::ShaderPtr &the_shader)
     GLuint vao_id = vertex_array(the_shader);
     if(!vao_id){ vao_id = create_vertex_array(the_shader); }
     GL_SUFFIX(glBindVertexArray)(vao_id);
+#else
+    bind_vertex_pointers(the_shader);
 #endif
 }
 
