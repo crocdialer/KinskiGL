@@ -285,8 +285,7 @@ void Fbo::init()
                 auto attach = m_impl->m_format.has_stencil_buffer() ?
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
-                glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
-                                       m_impl->m_depth_texture.id(), 0);
+                glFramebufferTexture(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0);
 	#endif
 			}
             // implement depth buffer as RenderBuffer
@@ -475,9 +474,8 @@ void Fbo::set_depth_texture(gl::Texture the_depth_tex)
             auto attach = m_impl->m_format.has_stencil_buffer() ?
                           GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
-                                   the_depth_tex.id(), 0);
-
+            glFramebufferTexture(GL_FRAMEBUFFER, attach, the_depth_tex.id(), 0);
+            
             FboExceptionInvalidSpecification exc;
 
             // failed creation; throw

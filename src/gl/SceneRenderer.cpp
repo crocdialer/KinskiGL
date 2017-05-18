@@ -46,7 +46,6 @@ public:
         
         glm::mat4 model_view = transform_stack().top() * theNode.transform();
         gl::AABB boundingBox = theNode.bounding_box();
-        //            boundingbox.transform(theNode.global_transform());
         
         if(m_frustum.intersect(boundingBox))
         {

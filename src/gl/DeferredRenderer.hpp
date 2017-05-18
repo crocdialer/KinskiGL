@@ -38,10 +38,12 @@ private:
     void light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
     void stencil_pass(const RenderBinPtr &the_renderbin);
     void render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass);
-    gl::Fbo shadow_pass(const RenderBinPtr &the_renderbin, const gl::LightPtr &l);
-
+    gl::Texture shadow_pass(const RenderBinPtr &the_renderbin, const gl::LightPtr &l);
+    
     enum ShaderProperty{PROP_DEFAULT = 0, PROP_SKIN = 1, PROP_NORMAL = 2, PROP_SPEC = 4};
     std::map<uint32_t , gl::ShaderPtr> m_shader_map;
+    
+    gl::Texture m_shadow_map, m_shadow_cube;
     
     gl::ShaderPtr m_shader_shadow, m_shader_shadow_skin;
     gl::Fbo m_geometry_fbo, m_lighting_fbo;

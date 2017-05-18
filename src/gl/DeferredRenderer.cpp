@@ -64,8 +64,13 @@ void DeferredRenderer::init()
                                                                create_g_buffer_normal_spec_frag);
     m_shader_map[PROP_SKIN | PROP_NORMAL | PROP_SPEC] = gl::Shader::create(phong_tangent_skin_vert,
                                                                            create_g_buffer_normal_spec_frag);
+    
+    m_shader_shadow = gl::create_shader(gl::ShaderType::UNLIT);
+    m_shader_shadow_skin = gl::create_shader(gl::ShaderType::UNLIT_SKIN);
 
     set_shadowmap_size(glm::vec2(1024));
+    
+    m_shadow_map = shadow_fbos()[0].depth_texture();
 #endif
 }
 
@@ -222,21 +227,16 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 #endif
 }
 
-gl::Fbo DeferredRenderer::shadow_pass(const RenderBinPtr &the_renderbin, const gl::LightPtr &l)
+gl::Texture DeferredRenderer::shadow_pass(const RenderBinPtr &the_renderbin, const gl::LightPtr &l)
 {
-    if(!m_shader_shadow || !m_shader_shadow_skin)
+    if(l->type() == gl::Light::SPOT)
     {
-        m_shader_shadow = gl::create_shader(gl::ShaderType::UNLIT);
-        m_shader_shadow_skin = gl::create_shader(gl::ShaderType::UNLIT_SKIN);
-    }
-    if(l->cast_shadow())
-    {
-        shadow_cams()[0] = gl::create_shadow_camera(l, std::max(2000.f, l->max_distance()));
-
-        auto bin = cull(the_renderbin->scene, shadow_cams()[0]);
+        auto shadow_cam = gl::create_shadow_camera(l, std::max(2000.f, l->max_distance()));
+        
+        auto bin = cull(the_renderbin->scene, shadow_cam);
         std::list<RenderBin::item> opaque_items, blended_items;
         sort_render_bin(bin, opaque_items, blended_items);
-
+        
         // offscreen render shadow map here
         gl::render_to_texture(shadow_fbos()[0], [&]()
         {
@@ -244,22 +244,62 @@ gl::Fbo DeferredRenderer::shadow_pass(const RenderBinPtr &the_renderbin, const g
             glClear(GL_DEPTH_BUFFER_BIT);
             gl::ScopedMatrixPush mv(gl::MODEL_VIEW_MATRIX), proj(gl::PROJECTION_MATRIX);
             gl::set_projection(bin->camera);
-
+          
             for(const RenderBin::item &item : opaque_items)
             {
                 // filter out non-shadow casters
                 if(!(item.mesh->material()->shadow_properties() & gl::Material::SHADOW_CAST)){ continue; }
-
+              
                 gl::load_matrix(gl::MODEL_VIEW_MATRIX, item.transform);
                 gl::ShaderPtr shader = item.mesh->geometry()->has_bones() ? m_shader_shadow_skin : m_shader_shadow;
                 gl::draw_mesh(item.mesh, shader);
             }
-
         });
-        mat4 shadow_matrix = shadow_cams()[0]->projection_matrix() * shadow_cams()[0]->view_matrix() * the_renderbin->camera->global_transform();
+        mat4 shadow_matrix = shadow_cam->projection_matrix() * shadow_cam->view_matrix() *
+        the_renderbin->camera->global_transform();
         m_mat_lighting_shadow->uniform("u_shadow_matrix", shadow_matrix);
+        return shadow_fbos()[0].depth_texture();
     }
-    return shadow_fbos()[0];
+    else if(l->type() == gl::Light::POINT)
+    {
+        auto cam = gl::PerspectiveCamera::create(1.f, 90.f, .1f, std::max(2000.f, l->max_distance()));
+//        cam->set_position(l->global_position());
+        
+        if(!m_shadow_cube)
+        {
+            const GLuint w = 1024, h = 1024;
+            
+            gl::Texture::Format fmt;
+            fmt.set_target(GL_TEXTURE_CUBE_MAP);
+            fmt.set_data_type(GL_FLOAT);
+            fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
+            fmt.set_min_filter(GL_NEAREST);
+            fmt.set_mag_filter(GL_NEAREST);
+            m_shadow_cube = gl::Texture(nullptr, GL_DEPTH_COMPONENT, w, h, fmt);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        
+        auto p = l->global_position();
+        
+        const gl::vec3 vals[12] =
+        {
+            gl::X_AXIS, -gl::Y_AXIS,
+            -gl::X_AXIS, -gl::Y_AXIS,
+            gl::Y_AXIS, -gl::Z_AXIS,
+            -gl::Y_AXIS, gl::Z_AXIS,
+            gl::Z_AXIS, -gl::Y_AXIS,
+            -gl::Z_AXIS, -gl::Y_AXIS
+        };
+        
+        std::vector<glm::mat4> cam_matrices(6);
+        
+        for(uint32_t i = 0; i < 6; ++i)
+        {
+            cam_matrices[i] = cam->projection_matrix() * glm::lookAt(p, vals[2 * i], vals[2 * i + 1]);
+            
+        }
+    }
+    return gl::Texture();
 }
 
 void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass)

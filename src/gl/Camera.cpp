@@ -46,7 +46,7 @@ namespace kinski { namespace gl{
     
     gl::Frustum OrthographicCamera::frustum() const
     {
-        return gl::Frustum(left(), right(), bottom(), top(), near(), far()).transform(transform());
+        return gl::Frustum(left(), right(), bottom(), top(), near(), far()).transform(global_transform());
         //return gl::Frustum(projection_matrix()).transform(transform());
     }
     
@@ -80,7 +80,7 @@ namespace kinski { namespace gl{
     
     gl::Frustum PerspectiveCamera::frustum() const
     {
-        return gl::Frustum(aspect(), fov(), near(), far()).transform(transform());
+        return gl::Frustum(aspect(), fov(), near(), far()).transform(global_transform());
     }
     
     void PerspectiveCamera::set_fov(float theFov)

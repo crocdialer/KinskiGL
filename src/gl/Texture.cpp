@@ -242,6 +242,17 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
                      m_impl->m_width, m_impl->m_height, 0, dataFormat,
                      m_impl->m_datatype, data);
     }
+    else if (m_impl->m_target == GL_TEXTURE_CUBE_MAP)
+    {
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_R, format.m_wrap_t);
+        
+        for (GLuint i = 0; i < 6; ++i)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, m_impl->m_internal_format,
+                         m_impl->m_width, m_impl->m_height, 0, dataFormat, m_impl->m_datatype, data);
+        }
+        KINSKI_CHECK_GL_ERRORS();
+    }
 #if !defined(KINSKI_GLES)
     else if (m_impl->m_target == GL_TEXTURE_3D ||
              m_impl->m_target == GL_TEXTURE_2D_ARRAY)
@@ -258,7 +269,8 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
     if(format.m_mipmapping){ glGenerateMipmap(m_impl->m_target); }
     
 #ifndef KINSKI_GLES
-    if(dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
+    if(m_impl->m_target == GL_TEXTURE_2D &&
+       dataFormat != GL_RGB && dataFormat != GL_RGBA && dataFormat != GL_BGRA)
     {
         GLint swizzleMask[] = {(GLint)(dataFormat), (GLint)(dataFormat), (GLint)(dataFormat),
             GL_ONE};
