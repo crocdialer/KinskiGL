@@ -336,15 +336,21 @@ namespace kinski { namespace gl {
     {
         gl::Camera::Ptr cam;
 
-        if(the_light->type() == gl::Light::DIRECTIONAL)
+        switch(the_light->type())
         {
-            float v = 50.f;
-            cam = gl::OrthographicCamera::create(-v, v, -v, v, 1.f, far_clip);
-        }
-        else
-        {
-            cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
-                                                .1f, far_clip);
+            case gl::Light::DIRECTIONAL:
+            {
+                float v = 50.f;
+                cam = gl::OrthographicCamera::create(-v, v, -v, v, 1.f, far_clip);
+                break;
+            }
+            case gl::Light::POINT:
+                cam = gl::CubeCamera::create(.1f, far_clip);
+                break;
+            case gl::Light::SPOT:
+                cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
+                                                    .1f, far_clip);
+                break;
         }
         cam->set_transform(the_light->global_transform());
         return cam;
@@ -811,6 +817,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     }
     KINSKI_CHECK_GL_ERRORS();
     gl::apply_material(the_mesh->material(), false, overide_shader);
+    KINSKI_CHECK_GL_ERRORS();
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
 
     if(the_mesh->geometry()->has_indices())

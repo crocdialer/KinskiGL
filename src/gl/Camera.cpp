@@ -103,4 +103,32 @@ namespace kinski { namespace gl{
         update_projection_matrix();
     }
     
+    /****************** CubeCamera *******************/
+    
+    void CubeCamera::update_projection_matrix()
+    {
+        set_projection_matrix(glm::perspective(glm::radians(90.f), 1.f, m_near, m_far));
+    }
+    
+    gl::Frustum CubeCamera::frustum() const
+    {
+        return gl::Frustum(-far(), far(), -far(), far(), -far(), far()).transform(global_transform());
+    }
+    
+    mat4 CubeCamera::view_matrix(uint32_t the_face) const
+    {
+        const gl::vec3 vals[12] =
+        {
+            gl::X_AXIS, -gl::Y_AXIS,
+            -gl::X_AXIS, -gl::Y_AXIS,
+            gl::Y_AXIS, -gl::Z_AXIS,
+            -gl::Y_AXIS, gl::Z_AXIS,
+            gl::Z_AXIS, -gl::Y_AXIS,
+            -gl::Z_AXIS, -gl::Y_AXIS
+        };
+        auto p = global_position();
+        the_face = clamp<uint32_t>(the_face, 0, 5);
+        return glm::lookAt(p, vals[2 * the_face], vals[2 * the_face + 1]);
+    }
+    
 }}//namespace

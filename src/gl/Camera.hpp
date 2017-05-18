@@ -53,15 +53,15 @@ public:
         return Ptr(new OrthographicCamera(left, right, bottom, top, near, far));
     };
     
-    virtual gl::Frustum frustum() const;
+    virtual gl::Frustum frustum() const override;
     
-    float near() const {return m_near;};
+    float near() const override {return m_near;};
     void near(float val)
     {
         m_near = val;
         update_projection_matrix();
     };
-    float far() const {return m_far;};
+    float far() const override {return m_far;};
     void far(float val)
     {
         m_far = val;
@@ -96,7 +96,7 @@ public:
 
 protected:
     
-    void update_projection_matrix();
+    void update_projection_matrix() override;
     
 private:
     
@@ -119,7 +119,7 @@ public:
     
     PerspectiveCamera(float ascpect = 4.f / 3.f, float fov = 45, float near = .1, float far = 5000);
 
-    virtual gl::Frustum frustum() const;
+    virtual gl::Frustum frustum() const override;
     
     void set_fov(float theFov);
     float fov() const {return m_fov;};
@@ -129,18 +129,51 @@ public:
     
     void set_clipping(float near, float far);
     
-    float near() const {return m_near;};
-    float far() const {return m_far;};
+    float near() const override {return m_near;};
+    float far() const override {return m_far;};
 
 protected:
     
-    void update_projection_matrix();
+    void update_projection_matrix() override;
     
 private:
     
     float m_near, m_far;
     float m_fov;
     float m_aspect;
+};
+    
+class KINSKI_API CubeCamera : public Camera
+{
+public:
+    
+    typedef std::shared_ptr<CubeCamera> Ptr;
+    typedef std::shared_ptr<const CubeCamera> ConstPtr;
+    
+    static Ptr create(float the_near, float the_far)
+    {
+        return Ptr(new CubeCamera(the_near, the_far));
+    };
+    
+    virtual ~CubeCamera() = default;
+    
+    gl::Frustum frustum() const override;
+    float near() const override { return m_near; };
+    float far() const override { return m_far; };
+    
+    mat4 view_matrix(uint32_t the_face) const;
+    
+private:
+    
+    CubeCamera(float the_near, float the_far):
+    Camera(),
+    m_near(the_near),
+    m_far(the_far)
+    {
+        update_projection_matrix();
+    };
+    void update_projection_matrix() override;
+    float m_near, m_far;
 };
 
 }}//namespace
