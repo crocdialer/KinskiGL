@@ -121,14 +121,14 @@ namespace kinski { namespace gl{
         {
             gl::X_AXIS, -gl::Y_AXIS,
             -gl::X_AXIS, -gl::Y_AXIS,
-            gl::Y_AXIS, -gl::Z_AXIS,
-            -gl::Y_AXIS, gl::Z_AXIS,
+            gl::Y_AXIS, gl::Z_AXIS,
+            -gl::Y_AXIS, -gl::Z_AXIS,
             gl::Z_AXIS, -gl::Y_AXIS,
             -gl::Z_AXIS, -gl::Y_AXIS
         };
         auto p = global_position();
         the_face = clamp<uint32_t>(the_face, 0, 5);
-        return glm::lookAt(p, vals[2 * the_face], vals[2 * the_face + 1]);
+        return glm::lookAt(p, p + vals[2 * the_face], vals[2 * the_face + 1]);
     }
     
 }}//namespace
