@@ -83,11 +83,10 @@ float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
 {
     float rnd = 6.28 * nrand(light_space_pos.xy);
     float factor = 0.0;
-    vec4 basis = vec4( rot2d(vec2(1,0),rnd), rot2d(vec2(0,1),rnd) );
 
     for(int i = 0; i < NUM_TAPS; i++)
     {
-    	vec2 ofs = rot2d( fTaps_Poisson[i], rnd );
+    	vec2 ofs = rot2d(fTaps_Poisson[i], rnd);
     	vec2 texcoord = light_space_pos.xy + u_poisson_radius * ofs / u_shadow_map_size;
         float depth = texture(shadow_map, texcoord).x;
         bool is_in_shadow = depth < (light_space_pos.z - EPSILON);

@@ -291,7 +291,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
             gl::Texture::Format fmt;
             fmt.set_target(GL_TEXTURE_CUBE_MAP);
             fmt.set_data_type(GL_FLOAT);
-            fmt.set_internal_format(GL_DEPTH_COMPONENT);
+            fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
             fmt.set_min_filter(GL_NEAREST);
             fmt.set_mag_filter(GL_NEAREST);
             m_shadow_cube = gl::Texture(nullptr, GL_DEPTH_COMPONENT, w, h, fmt);
@@ -337,8 +337,9 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
             }
         });
         m_mat_lighting_shadow_omni->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
-        m_mat_lighting_shadow_omni->uniform("u_shadow_matrix",
+        m_mat_lighting_shadow_omni->uniform("u_camera_transform",
                                             the_renderbin->camera->global_transform());
+        m_mat_lighting_shadow_omni->uniform("u_poisson_radius", .005f);
         return m_shadow_cube;
     }
     return gl::Texture();
