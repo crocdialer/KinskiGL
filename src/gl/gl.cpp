@@ -340,7 +340,7 @@ namespace kinski { namespace gl {
         {
             case gl::Light::DIRECTIONAL:
             {
-                float v = 50.f;
+                float v = 512;
                 cam = gl::OrthographicCamera::create(-v, v, -v, v, 1.f, far_clip);
                 break;
             }

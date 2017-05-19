@@ -221,6 +221,7 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
     update_uniform_buffers(the_renderbin->lights);
     m_mat_lighting->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
     m_mat_lighting_shadow->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
+    m_mat_lighting_shadow_omni->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
 
     auto c = gl::COLOR_BLACK;
     c.a = 0.f;
@@ -245,7 +246,7 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbin,
                                                 const gl::LightPtr &l)
 {
-    auto shadow_cam = gl::create_shadow_camera(l, std::max(2000.f, l->max_distance()));
+    auto shadow_cam = gl::create_shadow_camera(l, l->max_distance());
     auto bin = cull(the_renderbin->scene, shadow_cam);
     std::list<RenderBin::item> opaque_items, blended_items;
     sort_render_bin(bin, opaque_items, blended_items);
@@ -275,7 +276,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         mat4 shadow_matrix = shadow_cam->projection_matrix() * shadow_cam->view_matrix() *
         the_renderbin->camera->global_transform();
         m_mat_lighting_shadow->uniform("u_shadow_matrix", shadow_matrix);
-        return shadow_fbos()[0].depth_texture();
+        return m_shadow_map;
     }
     else if(l->type() == gl::Light::POINT)
     {
@@ -290,7 +291,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
             gl::Texture::Format fmt;
             fmt.set_target(GL_TEXTURE_CUBE_MAP);
             fmt.set_data_type(GL_FLOAT);
-            fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
+            fmt.set_internal_format(GL_DEPTH_COMPONENT);
             fmt.set_min_filter(GL_NEAREST);
             fmt.set_mag_filter(GL_NEAREST);
             m_shadow_cube = gl::Texture(nullptr, GL_DEPTH_COMPONENT, w, h, fmt);
@@ -304,7 +305,6 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
             cam_matrices[i] = cube_cam->view_matrix(i);
         }
         
-        shadow_fbos()[0].set_depth_texture(m_shadow_cube);
         m_shader_shadow_omni->bind();
         m_shader_shadow_omni->uniform("u_shadow_view", cam_matrices);
         m_shader_shadow_omni->uniform("u_shadow_projection", cube_cam->projection_matrix());
@@ -314,6 +314,8 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         m_shader_shadow_omni_skin->uniform("u_shadow_projection", cube_cam->projection_matrix());
         m_shader_shadow_omni_skin->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         KINSKI_CHECK_GL_ERRORS();
+        
+        shadow_fbos()[0].set_depth_texture(m_shadow_cube);
         
         // offscreen render shadow map here
         gl::render_to_texture(shadow_fbos()[0], [&]()

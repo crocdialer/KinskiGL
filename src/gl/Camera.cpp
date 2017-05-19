@@ -112,7 +112,8 @@ namespace kinski { namespace gl{
     
     gl::Frustum CubeCamera::frustum() const
     {
-        return gl::Frustum(-far(), far(), -far(), far(), -far(), far()).transform(global_transform());
+        auto p = global_position();
+        return gl::Frustum(p.x - far(), p.x + far(), p.y - far(), p.y + far(), p.z - far(), p.z + far());
     }
     
     mat4 CubeCamera::view_matrix(uint32_t the_face) const

@@ -1,7 +1,7 @@
 #version 410
 
 #define MAX_NUM_LIGHTS 512
-#define EPSILON 0.00010
+#define EPSILON 0.0010
 
 struct Lightsource
 {
@@ -84,8 +84,10 @@ vec2 fTaps_Poisson[NUM_TAPS] = vec2[]
 
 float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 light_pos)
 {
-    vec3 world_space_dir = (u_shadow_matrix * vec4(eye_space_pos - light_pos, 1.0)).xyz;
-    float depth = u_clip_planes.y * texture(shadow_cube, world_space_dir).x;
+    const float bias = 0.05;
+    vec3 tmp = mat3(u_shadow_matrix) * (eye_space_pos - light_pos);
+    vec3 world_space_dir = tmp.xyz;
+    float depth = u_clip_planes.y * (texture(shadow_cube, world_space_dir).x + EPSILON);
     return depth < length(world_space_dir) ? 0.0 : 1.0;
 }
 // float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
@@ -108,7 +110,7 @@ float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 l
 vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color, in vec4 the_spec,
            float shade_factor)
 {
-  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : light.direction;
+  vec3 lightDir = light.position - eyeVec;
   vec3 L = normalize(lightDir);
   vec3 E = normalize(-eyeVec);
   vec3 R = reflect(-L, normal);
@@ -116,26 +118,11 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   float att = 1.0;
   float nDotL = dot(normal, L);
 
-  if (light.type > 0)
-  {
-    float dist = length(lightDir);
-    att = min(1.f, light.intensity / (light.constantAttenuation +
-                   light.linearAttenuation * dist +
-                   light.quadraticAttenuation * dist * dist));
+  float dist = length(lightDir);
+  att = min(1.f, light.intensity / (light.constantAttenuation +
+                 light.linearAttenuation * dist +
+                 light.quadraticAttenuation * dist * dist));
 
-    if(light.type > 1)
-    {
-      float spotEffect = dot(normalize(light.direction), -L);
-
-      if (spotEffect < light.spotCosCutoff)
-      {
-        att = 0.0;
-        base_color * ambient;
-      }
-      spotEffect = pow(spotEffect, light.spotExponent);
-      att *= spotEffect;
-    }
-  }
   nDotL = max(0.0, nDotL);
   float specIntesity = clamp(pow( max(dot(R, E), 0.0), the_spec.a), 0.0, 1.0);
   vec4 diffuse = light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0);
@@ -164,7 +151,7 @@ void main()
     const float min_shade = 0.1, max_shade = 1.0;
     float sf = receive_shadow ?
         shadow_factor(u_sampler_cube[0], position, u_lights[u_light_index].position) : 1.0;
-    // sf = mix(min_shade, max_shade, sf);
-    // fragData = shade(u_lights[u_light_index], normal, position, color, specular, shadow_factor);
-    fragData = sf < 0.5 ? vec4(1, 0 , 0, 1) : vec4(0, 1, 0, 1);
+    sf = mix(min_shade, max_shade, sf);
+    fragData = shade(u_lights[u_light_index], normal, position, color, specular, sf);
+    // fragData = mix(vec4(1, 0 , 0, 1), vec4(0, 0, 0, 1), sf);
 }

@@ -11,8 +11,6 @@ out VertexData
   vec3 eyeVec;
 } vertex_out;
 
-// out vec4 FragPos; // FragPos from GS (output per emitvertex)
-
 void main()
 {
     for(gl_Layer = 0; gl_Layer < 6; ++gl_Layer)
