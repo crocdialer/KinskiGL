@@ -35,6 +35,7 @@ uniform sampler2D u_sampler_2D[4];
 
 uniform samplerCube u_sampler_cube[1];
 
+uniform vec2 u_clip_planes;
 uniform mat4 u_shadow_matrix;
 uniform vec2 u_shadow_map_size = vec2(1024);
 uniform float u_poisson_radius = 3.0;
@@ -84,7 +85,8 @@ vec2 fTaps_Poisson[NUM_TAPS] = vec2[]
 float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 light_pos)
 {
     vec3 world_space_dir = (u_shadow_matrix * vec4(eye_space_pos - light_pos, 1.0)).xyz;
-    return texture(shadow_cube, world_space_dir).x;
+    float depth = u_clip_planes.y * texture(shadow_cube, world_space_dir).x;
+    return depth < length(world_space_dir) ? 0.0 : 1.0;
 }
 // float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
 // {
@@ -160,8 +162,9 @@ void main()
 
     bool receive_shadow = bool(comb_vals.b);
     const float min_shade = 0.1, max_shade = 1.0;
-    float shadow_factor = receive_shadow ?
+    float sf = receive_shadow ?
         shadow_factor(u_sampler_cube[0], position, u_lights[u_light_index].position) : 1.0;
-    shadow_factor = mix(min_shade, max_shade, shadow_factor);
-    fragData = shade(u_lights[u_light_index], normal, position, color, specular, shadow_factor);
+    // sf = mix(min_shade, max_shade, sf);
+    // fragData = shade(u_lights[u_light_index], normal, position, color, specular, shadow_factor);
+    fragData = sf < 0.5 ? vec4(1, 0 , 0, 1) : vec4(0, 1, 0, 1);
 }

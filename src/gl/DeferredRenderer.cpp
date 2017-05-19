@@ -75,7 +75,10 @@ void DeferredRenderer::init()
     
     m_shader_shadow = gl::Shader::create(empty_vert, empty_frag);
     m_shader_shadow_skin = gl::Shader::create(empty_skin_vert, empty_frag);
-
+    
+    m_shader_shadow_omni = gl::Shader::create(empty_vert, linear_depth_frag, shadow_omni_geom);
+    m_shader_shadow_omni_skin = gl::Shader::create(empty_skin_vert, linear_depth_frag, shadow_omni_geom);
+    
     set_shadowmap_size(glm::vec2(1024));
     
     m_shadow_map = shadow_fbos()[0].depth_texture();
@@ -294,24 +297,22 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
             KINSKI_CHECK_GL_ERRORS();
         }
         
-        if(!m_shader_shadow_omni || !m_shader_shadow_omni_skin)
-        {
-            m_shader_shadow_omni = gl::Shader::create(empty_vert, empty_frag, shadow_omni_geom);
-            m_shader_shadow_omni_skin = gl::Shader::create(empty_skin_vert, empty_frag, shadow_omni_geom);
-        }
-        
         std::vector<glm::mat4> cam_matrices(6);
         
         for(uint32_t i = 0; i < 6; ++i)
         {
-            cam_matrices[i] = cube_cam->projection_matrix() * cube_cam->view_matrix(i);
+            cam_matrices[i] = cube_cam->view_matrix(i);
         }
         
         shadow_fbos()[0].set_depth_texture(m_shadow_cube);
         m_shader_shadow_omni->bind();
-        m_shader_shadow_omni->uniform("u_shadow_matrices", cam_matrices);
+        m_shader_shadow_omni->uniform("u_shadow_view", cam_matrices);
+        m_shader_shadow_omni->uniform("u_shadow_projection", cube_cam->projection_matrix());
+        m_shader_shadow_omni->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         m_shader_shadow_omni_skin->bind();
-        m_shader_shadow_omni_skin->uniform("u_shadow_matrices", cam_matrices);
+        m_shader_shadow_omni_skin->uniform("u_shadow_view", cam_matrices);
+        m_shader_shadow_omni_skin->uniform("u_shadow_projection", cube_cam->projection_matrix());
+        m_shader_shadow_omni_skin->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         KINSKI_CHECK_GL_ERRORS();
         
         // offscreen render shadow map here
@@ -333,6 +334,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
                 gl::draw_mesh(item.mesh, shader);
             }
         });
+        m_mat_lighting_shadow_omni->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         m_mat_lighting_shadow_omni->uniform("u_shadow_matrix",
                                             the_renderbin->camera->global_transform());
         return m_shadow_cube;
@@ -356,10 +358,14 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             if(l.light->cast_shadow())
             {
                 auto shadow_map = create_shadow_map(the_renderbin, l.light);
-                mat = (l.light->type() == gl::Light::POINT) ?
-                    m_mat_lighting_shadow_omni : m_mat_lighting_shadow;
-                mat->textures().back() = shadow_map;
-                m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
+                
+                if(shadow_map)
+                {
+                    mat = (l.light->type() == gl::Light::POINT) ?
+                        m_mat_lighting_shadow_omni : m_mat_lighting_shadow;
+                    mat->textures().back() = shadow_map;
+                    m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
+                }
             }
             else{ m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat; }
         }
