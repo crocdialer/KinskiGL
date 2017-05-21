@@ -351,7 +351,6 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
     gl::set_projection(the_renderbin->camera);
 
     gl::MaterialPtr mat = stencil_pass ? m_mat_stencil : m_mat_lighting;
-    m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
     int light_index = 0;
 
     for(auto l : the_renderbin->lights)
@@ -367,11 +366,11 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                     mat = (l.light->type() == gl::Light::POINT) ?
                         m_mat_lighting_shadow_omni : m_mat_lighting_shadow;
                     mat->textures().back() = shadow_map;
-                    m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
                 }
             }
-            else{ m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat; }
+            else{ mat = m_mat_lighting; }
         }
+        m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
         float d = std::min(the_renderbin->camera->far() * 0.5f, l.light->max_distance());
         mat->uniform("u_light_index", light_index++);
 
