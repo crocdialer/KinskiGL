@@ -93,9 +93,8 @@ namespace kinski
         }
         else if(theProperty == m_direction)
         {
-            auto dir = active_light->type() == gl::Light::DIRECTIONAL ?
-                       -m_direction->value() : active_light->position() + m_direction->value();
-            active_light->set_look_at(dir);
+            auto p = active_light->position() + m_direction->value();
+            active_light->set_look_at(p);
         }
         else if(theProperty == m_diffuse)
         {
@@ -165,7 +164,7 @@ namespace kinski
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
         *m_position_z = light->position().z;
-        *m_direction = light->type() == gl::Light::DIRECTIONAL ? -light->lookAt() : light->lookAt();
+        *m_direction = light->lookAt();
         
         *m_diffuse = light->diffuse();
         *m_ambient = light->ambient();

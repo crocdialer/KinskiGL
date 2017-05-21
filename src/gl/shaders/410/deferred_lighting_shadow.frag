@@ -98,7 +98,7 @@ float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
 vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color, in vec4 the_spec,
            float shade_factor)
 {
-  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : light.direction;
+  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.direction;
   vec3 L = normalize(lightDir);
   vec3 E = normalize(-eyeVec);
   vec3 R = reflect(-L, normal);

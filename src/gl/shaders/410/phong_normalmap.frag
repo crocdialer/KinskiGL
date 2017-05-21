@@ -33,7 +33,7 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal,
            in vec3 eyeVec, in vec3 light_pos, in vec3 light_spot_dir,
            in vec4 base_color, float shade_factor)
 {
-  vec3 lightDir = light.type > 0 ? (light_pos - eyeVec) : light_spot_dir;
+  vec3 lightDir = light.type > 0 ? (light_pos - eyeVec) : -light_spot_dir;
   vec3 L = normalize(lightDir);
   vec3 E = normalize(-eyeVec);
   vec3 R = reflect(-L, normal);

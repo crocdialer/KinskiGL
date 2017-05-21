@@ -29,7 +29,7 @@ struct Lightsource
 
 vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec, in vec4 base_color)
 {
-  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : light.direction;
+  vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.direction;
   vec3 L = normalize(lightDir);
   vec3 E = normalize(-eyeVec);
   vec3 R = reflect(-L, normal);

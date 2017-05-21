@@ -341,7 +341,7 @@ namespace kinski { namespace gl {
             case gl::Light::DIRECTIONAL:
             {
                 float v = 512;
-                cam = gl::OrthographicCamera::create(-v, v, -v, v, 1.f, far_clip);
+                cam = gl::OrthographicCamera::create(-v, v, -v, v, .1f, far_clip);
                 break;
             }
             case gl::Light::POINT:
@@ -903,7 +903,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         }
         gl::MeshPtr light_mesh;
-        float scale = theLight->max_distance(1.f / 10.f);
+        float scale = theLight->max_distance(1.f / 2.f);
 
         switch (theLight->type())
         {

@@ -251,7 +251,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
     std::list<RenderBin::item> opaque_items, blended_items;
     sort_render_bin(bin, opaque_items, blended_items);
     
-    if(l->type() == gl::Light::SPOT)
+    if(l->type() == gl::Light::SPOT || l->type() == gl::Light::DIRECTIONAL)
     {
         shadow_fbos()[0].set_depth_texture(m_shadow_map);
         
