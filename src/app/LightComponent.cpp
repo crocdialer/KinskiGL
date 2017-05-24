@@ -121,6 +121,10 @@ namespace kinski
         {
             active_light->set_spot_exponent(*m_spot_exponent);
         }
+        else if(theProperty == m_draw_light_dummies)
+        {
+            m_draw_dummy_flags[*m_light_index] = *m_draw_light_dummies;
+        }
     }
     
     void LightComponent::set_index(int index)
@@ -128,20 +132,24 @@ namespace kinski
         *m_light_index = index;
     }
     
-    void LightComponent::set_drawLight_dummies(bool b)
-    {
-        *m_draw_light_dummies = b;
-    }
+//    void LightComponent::set_drawLight_dummies(bool b)
+//    {
+//        *m_draw_light_dummies = b;
+//    }
     
-    bool LightComponent::draw_light_dummies() const
+    void LightComponent::draw_light_dummies() const
     {
-        return *m_draw_light_dummies;
+        for(uint32_t i = 0 ; i < m_lights.size(); ++i)
+        {
+            if(m_draw_dummy_flags[i]){ gl::draw_light(m_lights[i]); }
+        }
     }
     
     void LightComponent::set_lights(const std::vector<gl::LightPtr> &l, bool copy_settings)
     {
         m_lights.assign(l.begin(), l.end());
         m_light_index->set_range(0, l.size() - 1);
+        m_draw_dummy_flags.resize(m_lights.size(), false);
         
         if(copy_settings)
         {
@@ -156,6 +164,8 @@ namespace kinski
         
         gl::LightPtr light = m_lights.empty() ? gl::LightPtr() : m_lights[*m_light_index];
         if(!light) return;
+        
+        *m_draw_light_dummies = m_draw_dummy_flags[*m_light_index];
         
         *m_light_type = light->type();
         *m_enabled = light->enabled();
@@ -174,7 +184,6 @@ namespace kinski
         *m_att_quadratic = light->attenuation().quadratic;
         *m_spot_cutoff = light->spot_cutoff();
         *m_spot_exponent = light->spot_exponent();
-        
         observe_properties(true);
     }
 }

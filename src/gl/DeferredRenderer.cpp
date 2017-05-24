@@ -246,6 +246,7 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbin,
                                                 const gl::LightPtr &l)
 {
+#if !defined(KINSKI_GLES)
     auto shadow_cam = gl::create_shadow_camera(l, l->max_distance());
     auto bin = cull(the_renderbin->scene, shadow_cam);
     std::list<RenderBin::item> opaque_items, blended_items;
@@ -342,6 +343,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         m_mat_lighting_shadow_omni->uniform("u_poisson_radius", .005f);
         return m_shadow_cube;
     }
+#endif
     return gl::Texture();
 }
 

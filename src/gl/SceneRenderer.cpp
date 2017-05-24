@@ -67,10 +67,10 @@ public:
             switch (theNode.type())
             {
                 case Light::DIRECTIONAL:
-                    light_item.transform =
-                    glm::mat4(glm::inverseTranspose(glm::mat3(transform_stack().top()))) *
-                    theNode.transform();
-                    break;
+//                    light_item.transform =
+//                    glm::mat4(glm::inverseTranspose(glm::mat3(transform_stack().top()))) *
+//                    theNode.transform();
+//                    break;
                     
                 case Light::POINT:
                 case Light::SPOT:
