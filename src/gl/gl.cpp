@@ -816,7 +816,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
     }
     KINSKI_CHECK_GL_ERRORS();
-    gl::apply_material(the_mesh->material(), false, overide_shader);
+    if(!the_mesh->geometry()->has_indices() || the_mesh->entries().empty())
+    { gl::apply_material(the_mesh->material(), false, overide_shader); }
     KINSKI_CHECK_GL_ERRORS();
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
 
@@ -837,7 +838,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                                            0,
                                            the_mesh->materials().size() - 1);
                 if(!overide_shader){ the_mesh->bind_vertex_array(mat_index); }
-                if(i){ apply_material(the_mesh->materials()[mat_index], false, overide_shader); }
+                apply_material(the_mesh->materials()[mat_index], false, overide_shader);
 
                 glDrawElementsBaseVertex(primitive_type,
                                          the_mesh->entries()[i].num_indices,

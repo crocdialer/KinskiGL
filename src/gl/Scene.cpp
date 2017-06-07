@@ -106,6 +106,8 @@ namespace kinski { namespace gl {
                         
                         for(const auto &e : m->entries())
                         {
+                            if(e.primitive_type != GL_TRIANGLES){ continue; }
+                            
                             for(uint32_t i = 0; i < e.num_indices; i += 3)
                             {
                                 gl::Triangle t(vertices[indices[i + e.base_index] + e.base_vertex],

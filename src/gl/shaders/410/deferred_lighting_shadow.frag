@@ -1,7 +1,8 @@
 #version 410
 
 #define MAX_NUM_LIGHTS 512
-#define EPSILON 0.00005
+// #define EPSILON 0.00005
+#define EPSILON 0.00001
 
 struct Lightsource
 {

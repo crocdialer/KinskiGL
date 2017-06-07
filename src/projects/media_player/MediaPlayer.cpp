@@ -98,6 +98,13 @@ void MediaPlayer::draw()
                 m_warp_component->render_output(i, textures()[TEXTURE_INPUT], *m_brightness);
             }
         }
+        if(m_line_cursor)
+        {
+            gl::vec2 cp = cursor_position();
+            gl::draw_line(gl::vec2(0, gl::window_dimension().y - cp.y),
+                          gl::vec2(gl::window_dimension().x, gl::window_dimension().y - cp.y));
+            gl::draw_line(gl::vec2(cp.x, 0), gl::vec2(cp.x, gl::window_dimension().y));
+        }
     }
     else{ gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
                            *m_brightness); }
@@ -123,6 +130,8 @@ void MediaPlayer::draw()
 void MediaPlayer::key_press(const KeyEvent &e)
 {
     ViewerApp::key_press(e);
+    
+    m_line_cursor = e.isAltDown();
     
     if(!e.isAltDown())
     {
@@ -183,6 +192,8 @@ void MediaPlayer::resize(int w ,int h)
 void MediaPlayer::key_release(const KeyEvent &e)
 {
     ViewerApp::key_release(e);
+    
+    m_line_cursor = e.isAltDown();
 }
 
 /////////////////////////////////////////////////////////////////
