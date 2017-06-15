@@ -11,8 +11,9 @@
 //
 //  Created by Fabian Schmidt on 12/05/15.
 
-#include "WarpComponent.hpp"
 #include "gl/Texture.hpp"
+#include "app/App.hpp"
+#include "WarpComponent.hpp"
 
 namespace kinski
 {
@@ -172,5 +173,138 @@ namespace kinski
         m_quad_warp[the_index].render_output(the_tex, the_brightness);
         if(m_params[the_index].display_grid){ m_quad_warp[the_index].render_grid(); }
         if(m_params[the_index].display_points){ m_quad_warp[the_index].render_control_points(); }
+    }
+    
+    void WarpComponent::key_press(const KeyEvent &e)
+    {
+        auto c = quad_warp().center();
+        gl::vec2 inc = 1.f / gl::window_dimension();
+        auto &control_points = quad_warp().control_points();
+        gl::ivec2 num_subs = quad_warp().num_subdivisions();
+        
+        switch(e.getCode())
+        {
+            case Key::_LEFT:
+                for(auto cp : m_active_control_points){ control_points[cp.index] -= gl::vec2(inc.x, 0.f); }
+                if(m_active_control_points.empty())
+                { quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
+                break;
+                
+            case Key::_RIGHT:
+                for(auto cp : m_active_control_points){ control_points[cp.index] += gl::vec2(inc.x, 0.f); }
+                if(m_active_control_points.empty())
+                { quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
+                break;
+                
+            case Key::_UP:
+                for(auto cp : m_active_control_points){ control_points[cp.index] -= gl::vec2(0.f, inc.y); }
+                if(m_active_control_points.empty())
+                { quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
+                break;
+                
+            case Key::_DOWN:
+                for(auto cp : m_active_control_points){ control_points[cp.index] += gl::vec2(0.f, inc.y); }
+                if(m_active_control_points.empty())
+                { quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
+                break;
+                
+            case Key::_F1:
+                num_subs.x = std::max(num_subs.x - 1, 1);
+                quad_warp().set_num_subdivisions(num_subs);
+                break;
+                
+            case Key::_F2:
+                num_subs.x = std::max(num_subs.x + 1, 1);
+                quad_warp().set_num_subdivisions(num_subs);
+                break;
+                
+            case Key::_F3:
+                num_subs.y = std::max(num_subs.y - 1, 1);
+                quad_warp().set_num_subdivisions(num_subs);
+                break;
+                
+            case Key::_F4:
+                num_subs.y = std::max(num_subs.y + 1, 1);
+                quad_warp().set_num_subdivisions(num_subs);
+                break;
+                
+            case Key::_1:
+            case Key::_2:
+            case Key::_3:
+            case Key::_4:
+            case Key::_5:
+            case Key::_6:
+            case Key::_7:
+            case Key::_8:
+            case Key::_9:
+                if(e.isShiftDown())
+                {
+                    
+                }
+                set_index(e.getCode() - Key::_1);
+                break;
+                
+            case Key::_F5:
+                set_enabled(index(), !enabled(index()));
+                break;
+                
+            case Key::_F6:
+                set_display_grid(index(), !display_grid(index()));
+                break;
+                
+            case Key::_F7:
+                set_display_points(index(), !display_points(index()));
+                break;
+                
+            case Key::_F9:
+                m_active_control_points.clear();
+                reset();
+                break;
+        }
+        refresh();
+    }
+    
+    void WarpComponent::mouse_press(const MouseEvent &e)
+    {
+        m_click_pos = glm::vec2(e.getX(), e.getY());
+        
+        if(e.isLeft() || e.is_touch())
+        {
+            auto coord = m_click_pos / gl::window_dimension();
+            auto px_length = 1.f / gl::window_dimension();
+
+            auto &control_points = quad_warp().control_points();
+
+            for(uint32_t i = 0; i < control_points.size(); i ++)
+            {
+                if(glm::length(control_points[i] - coord) < 15 * glm::length(px_length))
+                {
+                    control_point_t cp(i, control_points[i]);
+                    m_active_control_points.erase(cp);
+                    m_active_control_points.insert(cp);
+
+                    quad_warp().selected_indices().insert(i);
+                    LOG_DEBUG << "selected control point: " << i << " -> " << glm::to_string(coord);
+                }
+            }
+        }
+        else if(e.isRight())
+        {
+            m_active_control_points.clear();
+            quad_warp().selected_indices().clear();
+        }
+    }
+    
+    void WarpComponent::mouse_drag(const MouseEvent &e)
+    {
+        glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_click_pos;
+        
+        auto inc = mouseDiff / gl::window_dimension();
+        auto &control_points = quad_warp().control_points();
+
+        for(auto cp : m_active_control_points)
+        {
+            control_points[cp.index] = cp.value + inc;
+        }
     }
 }

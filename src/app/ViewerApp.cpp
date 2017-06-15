@@ -217,6 +217,9 @@ namespace kinski {
         m_look_at_tmp = *m_look_at;
         m_mouse_down = true;
         
+        // forward event
+        if(*m_use_warping && e.isAltDown()){ m_warp_component->mouse_press(e); }
+        
         if(e.isLeft() || e.is_touch())
         {
             m_drag_buffer.clear();
@@ -232,39 +235,11 @@ namespace kinski {
                     m_selected_mesh = m;
                 }
             }
-            
-            if(*m_use_warping)
-            {
-                auto coord = m_clickPos / gl::window_dimension();
-                auto px_length = 1.f / gl::window_dimension();
-                
-                auto &control_points = m_warp_component->quad_warp().control_points();
-                
-                for(uint32_t i = 0; i < control_points.size(); i ++)
-                {
-                    if(glm::length(control_points[i] - coord) < 15 * glm::length(px_length))
-                    {
-//                        if(!e.isShiftDown())
-//                        {
-//                            m_warp_control_points.clear();
-//                            m_warp_component->quad_warp().selected_indices().clear();
-//                        }
-                        control_point_t cp(i, control_points[i]);
-                        m_warp_control_points.erase(cp);
-                        m_warp_control_points.insert(cp);
-                        
-                        m_warp_component->quad_warp().selected_indices().insert(i);
-                        LOG_DEBUG << "selected control point: " << i << " -> " << glm::to_string(coord);
-                    }
-                }
-            }
         }
 
         if(e.isRight())
         {
             m_selected_mesh.reset();
-            m_warp_control_points.clear();
-            m_warp_component->quad_warp().selected_indices().clear();
         }
     }
 
@@ -285,16 +260,7 @@ namespace kinski {
             m_drag_buffer.push_back(glm::vec2(e.getX(), e.getY()) - m_dragPos);
             m_dragPos = glm::vec2(e.getX(), e.getY());
             
-            if(e.isAltDown())
-            {
-                auto inc = mouseDiff / gl::window_dimension();
-                auto &control_points = m_warp_component->quad_warp().control_points();
-                
-                for(auto cp : m_warp_control_points)
-                {
-                    control_points[cp.index] = cp.value + inc;
-                }
-            }
+            if(e.isAltDown()){ m_warp_component->mouse_drag(e); }
         }
         else if(e.isRight())
         {
@@ -324,103 +290,16 @@ namespace kinski {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
         
-        if(e.isAltDown())
-        {
-            auto c = m_warp_component->quad_warp().center();
-            gl::vec2 inc = 1.f / gl::window_dimension();
-            auto &control_points = m_warp_component->quad_warp().control_points();
-            gl::ivec2 num_subs = m_warp_component->quad_warp().num_subdivisions();
-            
-            switch(e.getCode())
-            {
-                case Key::_LEFT:
-                    for(auto cp : m_warp_control_points){ control_points[cp.index] -= gl::vec2(inc.x, 0.f); }
-                    if(m_warp_control_points.empty())
-                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
-                    break;
-                    
-                case Key::_RIGHT:
-                    for(auto cp : m_warp_control_points){ control_points[cp.index] += gl::vec2(inc.x, 0.f); }
-                    if(m_warp_control_points.empty())
-                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
-                    break;
-                    
-                case Key::_UP:
-                    for(auto cp : m_warp_control_points){ control_points[cp.index] -= gl::vec2(0.f, inc.y); }
-                    if(m_warp_control_points.empty())
-                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
-                    break;
-                    
-                case Key::_DOWN:
-                    for(auto cp : m_warp_control_points){ control_points[cp.index] += gl::vec2(0.f, inc.y); }
-                    if(m_warp_control_points.empty())
-                    { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
-                    break;
-                    
-                case Key::_F1:
-                    num_subs.x = std::max(num_subs.x - 1, 1);
-                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
-                    break;
-                    
-                case Key::_F2:
-                    num_subs.x = std::max(num_subs.x + 1, 1);
-                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
-                    break;
-                    
-                case Key::_F3:
-                    num_subs.y = std::max(num_subs.y - 1, 1);
-                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
-                    break;
-                    
-                case Key::_F4:
-                    num_subs.y = std::max(num_subs.y + 1, 1);
-                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
-                    break;
-                
-                case Key::_1:
-                case Key::_2:
-                case Key::_3:
-                case Key::_4:
-                case Key::_5:
-                case Key::_6:
-                case Key::_7:
-                case Key::_8:
-                case Key::_9:
-                    if(e.isShiftDown())
-                    {
-                        
-                    }
-                    m_warp_component->set_index(e.getCode() - Key::_1);
-                    break;
-                
-                case Key::_W:
-                    *m_use_warping = !*m_use_warping;
-                    break;
-                    
-                case Key::_F5:
-                    m_warp_component->set_enabled(m_warp_component->index(),
-                                                  !m_warp_component->enabled(m_warp_component->index()));
-                    break;
-                case Key::_F6:
-                    m_warp_component->set_display_grid(m_warp_component->index(),
-                                                       !m_warp_component->display_grid(m_warp_component->index()));
-                    break;
-                case Key::_F7:
-                    m_warp_component->set_display_points(m_warp_component->index(),
-                                                         !m_warp_component->display_points(m_warp_component->index()));
-                    break;
-                    
-                case Key::_F9:
-                    m_warp_component->reset();
-                    break;
-            }
-            m_warp_component->refresh();
-        }
+        if(e.isAltDown()){ m_warp_component->key_press(e); }
         
         if(!displayTweakBar())
         {
             switch (e.getCode())
             {
+                case Key::_W:
+                    *m_use_warping = !*m_use_warping;
+                    break;
+
                 case Key::_C:
                     m_center_selected = !m_center_selected;
                     break;

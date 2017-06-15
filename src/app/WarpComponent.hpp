@@ -20,6 +20,9 @@ namespace kinski
 {
     DEFINE_CLASS_PTR(WarpComponent);
     
+    class KeyEvent;
+    class MouseEvent;
+    
     class KINSKI_API WarpComponent : public kinski::Component
     {
     public:
@@ -44,8 +47,11 @@ namespace kinski
         bool display_grid(int the_index) const;
         void set_display_points(int the_index, bool b);
         bool display_points(int the_index) const;
-        
         uint32_t num_warps() const;
+        
+        void key_press(const KeyEvent &e);
+        void mouse_press(const MouseEvent &e);
+        void mouse_drag(const MouseEvent &e);
         
     private:
         std::vector<gl::QuadWarp> m_quad_warp{10};
@@ -58,6 +64,18 @@ namespace kinski
         } param_t;
         
         std::vector<param_t> m_params;
+        
+        struct control_point_t
+        {
+            int index = -1;
+            gl::vec2 value;
+            
+            control_point_t(int the_index, gl::vec2 the_value):index(the_index), value(the_value){}
+            bool operator<(const control_point_t &the_other) const { return index < the_other.index; }
+        };
+        
+        std::set<control_point_t> m_active_control_points;
+        gl::vec2 m_click_pos;
         
         Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_grid_sz_x, m_grid_sz_y;
