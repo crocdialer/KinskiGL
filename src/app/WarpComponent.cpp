@@ -26,10 +26,6 @@ namespace kinski
         m_grid_sz_y = RangedProperty<uint32_t>::create("grid size y", 1, 1, 5);
         m_draw_grid = Property_<bool>::create("draw grid", false);
         m_draw_control_points = Property_<bool>::create("draw control points", false);
-//        m_top_left = Property_<gl::vec2>::create("top left", gl::vec2(0.f, 0.f));
-//        m_top_right = Property_<gl::vec2>::create("top right", gl::vec2(1.f, 0.f));
-//        m_bottom_left = Property_<gl::vec2>::create("bottom left", gl::vec2(0.f, 1.f));
-//        m_bottom_right = Property_<gl::vec2>::create("bottom right", gl::vec2(1.f, 1.f));
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
         m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
         m_control_points = Property_<std::vector<gl::vec2>>::create("control points");
@@ -53,10 +49,6 @@ namespace kinski
     
     void WarpComponent::reset()
     {
-//        *m_top_left = gl::vec2(0.f);
-//        *m_top_right = gl::vec2(1.f, 0.f);
-//        *m_bottom_left = gl::vec2(0.f, 1.f);
-//        *m_bottom_right = gl::vec2(1.f, 1.f);
         *m_src_top_left = gl::vec2(0);
         *m_src_bottom_right = gl::vec2(0);
         m_quad_warp[*m_index].reset();

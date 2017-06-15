@@ -128,8 +128,12 @@ namespace kinski{ namespace gl{
         
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
+            bool is_corner =
+                !((i % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
+                !((i / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
+            
             gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f,
-                            contains(m_impl->m_selected_indices, i) ? gl::COLOR_RED : gl::COLOR_WHITE,
+                            contains(m_impl->m_selected_indices, i) ? gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
                             false);
         }
     }
@@ -217,6 +221,19 @@ namespace kinski{ namespace gl{
     void QuadWarp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)
     {
         control_point(the_x, the_y) = the_point;
+    }
+    
+    void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
+    {
+        // is corner ?
+        bool is_corner =
+            !((the_index % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
+            !((the_index / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
+        
+        if(is_corner)
+        {
+        
+        }
     }
     
     void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)

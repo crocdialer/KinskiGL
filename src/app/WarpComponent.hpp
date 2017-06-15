@@ -64,8 +64,6 @@ namespace kinski
         Property_<bool>::Ptr m_enabled, m_draw_grid, m_draw_control_points;
         
         Property_<gl::vec2>::Ptr m_src_top_left, m_src_bottom_right;
-//        Property_<gl::vec2>::Ptr m_top_left, m_top_right, m_bottom_left, m_bottom_right;
-        
         Property_<std::vector<gl::vec2>>::Ptr m_control_points;
     };
 }
