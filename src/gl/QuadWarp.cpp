@@ -134,9 +134,11 @@ namespace kinski{ namespace gl{
                 !((i % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
                 !((i / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
             
-            gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(), 20.f,
-                            contains(m_impl->m_selected_indices, i) ? gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
-                            false);
+            gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(),
+                            is_corner ? 15.f : 10.f,
+                            contains(m_impl->m_selected_indices, i) ?
+                                gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
+                            true);
         }
     }
     
@@ -265,6 +267,8 @@ namespace kinski{ namespace gl{
         }
         else if(diff != ivec2(0))
         {
+            m_impl->m_selected_indices.clear();
+            
             // keep corners, recalculate subs inbetween
             auto is_corner = [this](int the_index) -> bool
             {

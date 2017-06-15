@@ -244,9 +244,15 @@ namespace kinski {
                 {
                     if(glm::length(control_points[i] - coord) < 15 * glm::length(px_length))
                     {
+//                        if(!e.isShiftDown())
+//                        {
+//                            m_warp_control_points.clear();
+//                            m_warp_component->quad_warp().selected_indices().clear();
+//                        }
                         control_point_t cp(i, control_points[i]);
                         m_warp_control_points.erase(cp);
                         m_warp_control_points.insert(cp);
+                        
                         m_warp_component->quad_warp().selected_indices().insert(i);
                         LOG_DEBUG << "selected control point: " << i << " -> " << glm::to_string(coord);
                     }
@@ -351,11 +357,6 @@ namespace kinski {
                     { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
                     break;
                     
-                case Key::_R:
-                    m_warp_component->reset();
-                    return;
-                    break;
-                    
                 case Key::_F1:
                     num_subs.x = std::max(num_subs.x - 1, 1);
                     m_warp_component->quad_warp().set_num_subdivisions(num_subs);
@@ -396,17 +397,21 @@ namespace kinski {
                     *m_use_warping = !*m_use_warping;
                     break;
                     
-                case Key::_E:
+                case Key::_F5:
                     m_warp_component->set_enabled(m_warp_component->index(),
                                                   !m_warp_component->enabled(m_warp_component->index()));
                     break;
-                case Key::_G:
+                case Key::_F6:
                     m_warp_component->set_display_grid(m_warp_component->index(),
                                                        !m_warp_component->display_grid(m_warp_component->index()));
                     break;
-                case Key::_P:
+                case Key::_F7:
                     m_warp_component->set_display_points(m_warp_component->index(),
                                                          !m_warp_component->display_points(m_warp_component->index()));
+                    break;
+                    
+                case Key::_F9:
+                    m_warp_component->reset();
                     break;
             }
             m_warp_component->refresh();
