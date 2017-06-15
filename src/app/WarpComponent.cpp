@@ -170,7 +170,7 @@ namespace kinski
                                       const float the_brightness)
     {
         m_quad_warp[the_index].render_output(the_tex, the_brightness);
-        if(*m_draw_grid){ m_quad_warp[the_index].render_grid(); }
-        if(*m_draw_control_points){ m_quad_warp[the_index].render_control_points(); }
+        if(m_params[the_index].display_grid){ m_quad_warp[the_index].render_grid(); }
+        if(m_params[the_index].display_points){ m_quad_warp[the_index].render_control_points(); }
     }
 }

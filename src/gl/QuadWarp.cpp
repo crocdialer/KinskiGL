@@ -240,21 +240,62 @@ namespace kinski{ namespace gl{
     
     void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
     {
-        m_impl->m_num_subdivisions = glm::min(the_res, s_max_num_subdivisions);
-        int num_x = m_impl->m_num_subdivisions.x + 1;
-        int num_y = m_impl->m_num_subdivisions.y + 1;
+        auto num_subs = glm::min(the_res, s_max_num_subdivisions);
+        auto diff = num_subs - m_impl->m_num_subdivisions;
+        
         
         std::vector<gl::vec2> cp;
-        gl::vec2 inc = 1.f / vec2(m_impl->m_num_subdivisions);
+        int num_x = num_subs.x + 1;
+        int num_y = num_subs.y + 1;
         
-        for(int y = 0; y < num_y; ++y)
+        // create an even grid of controlpoints
+        if(m_impl->m_control_points.empty())
         {
-            for(int x = 0; x < num_x; ++x)
+            std::vector<gl::vec2> cp;
+            gl::vec2 inc = 1.f / vec2(num_subs);
+            
+            for(int y = 0; y < num_y; ++y)
             {
-                cp.push_back(inc * vec2(x, y));
+                for(int x = 0; x < num_x; ++x)
+                {
+                    cp.push_back(inc * vec2(x, y));
+                }
             }
+            m_impl->m_control_points = cp;
         }
-        if(cp.size() != m_impl->m_control_points.size()){ m_impl->m_control_points = cp; }
+        else if(diff != ivec2(0))
+        {
+            // keep corners, recalculate subs inbetween
+            auto is_corner = [this](int the_index) -> bool
+            {
+                return
+                !((the_index % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
+                !((the_index / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
+            };
+            
+            std::vector<gl::vec2> corners;
+            
+            for(uint32_t i = 0; i < m_impl->m_control_points.size(); ++i)
+            {
+                if(is_corner(i)){ corners.push_back(m_impl->m_control_points[i]); }
+            }
+            
+            // create subs for each row
+            for(int y = 0; y < num_y; ++y)
+            {
+                float frac_y = (float)y / num_subs.y;
+                auto left_edge = mix(corners[0], corners[2], frac_y);
+                auto right_edge = mix(corners[1], corners[3], frac_y);
+                
+                for(int x = 0; x < num_x; ++x)
+                {
+                    float frac_x = (float)x / num_subs.x;
+                    cp.push_back(mix(left_edge, right_edge, frac_x));
+                }
+            }
+            m_impl->m_control_points = cp;
+        }
+        m_impl->m_num_subdivisions = num_subs;
     }
     
     void QuadWarp::set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h)
