@@ -22,27 +22,25 @@ namespace kinski
         
         m_index = RangedProperty<uint32_t>::create("index", 0, 0, 9);
         m_enabled = Property_<bool>::create("enabled", false);
-        m_grid_sz_x = RangedProperty<uint32_t>::create("grid size x", 16, 1, 512);
-        m_grid_sz_y = RangedProperty<uint32_t>::create("grid size y", 9, 1, 512);
+        m_grid_sz_x = RangedProperty<uint32_t>::create("grid size x", 1, 1, 5);
+        m_grid_sz_y = RangedProperty<uint32_t>::create("grid size y", 1, 1, 5);
         m_draw_grid = Property_<bool>::create("draw grid", false);
         m_draw_control_points = Property_<bool>::create("draw control points", false);
-        m_top_left = Property_<gl::vec2>::create("top left", gl::vec2(0.f, 0.f));
-        m_top_right = Property_<gl::vec2>::create("top right", gl::vec2(1.f, 0.f));
-        m_bottom_left = Property_<gl::vec2>::create("bottom left", gl::vec2(0.f, 1.f));
-        m_bottom_right = Property_<gl::vec2>::create("bottom right", gl::vec2(1.f, 1.f));
+//        m_top_left = Property_<gl::vec2>::create("top left", gl::vec2(0.f, 0.f));
+//        m_top_right = Property_<gl::vec2>::create("top right", gl::vec2(1.f, 0.f));
+//        m_bottom_left = Property_<gl::vec2>::create("bottom left", gl::vec2(0.f, 1.f));
+//        m_bottom_right = Property_<gl::vec2>::create("bottom right", gl::vec2(1.f, 1.f));
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
         m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
-        
+        m_control_points = Property_<std::vector<gl::vec2>>::create("control points");
+        m_control_points->set_tweakable(false);
         register_property(m_index);
         register_property(m_enabled);
         register_property(m_grid_sz_x);
         register_property(m_grid_sz_y);
         register_property(m_draw_grid);
         register_property(m_draw_control_points);
-        register_property(m_top_left);
-        register_property(m_top_right);
-        register_property(m_bottom_left);
-        register_property(m_bottom_right);
+        register_property(m_control_points);
         register_property(m_src_top_left);
         register_property(m_src_bottom_right);
         
@@ -55,12 +53,15 @@ namespace kinski
     
     void WarpComponent::reset()
     {
-        *m_top_left = gl::vec2(0.f);
-        *m_top_right = gl::vec2(1.f, 0.f);
-        *m_bottom_left = gl::vec2(0.f, 1.f);
-        *m_bottom_right = gl::vec2(1.f, 1.f);
+//        *m_top_left = gl::vec2(0.f);
+//        *m_top_right = gl::vec2(1.f, 0.f);
+//        *m_bottom_left = gl::vec2(0.f, 1.f);
+//        *m_bottom_right = gl::vec2(1.f, 1.f);
         *m_src_top_left = gl::vec2(0);
         *m_src_bottom_right = gl::vec2(0);
+        m_quad_warp[*m_index].reset();
+        refresh();
+        
     }
     
     void WarpComponent::set_enabled(int the_index, bool b)
@@ -109,21 +110,16 @@ namespace kinski
         *m_enabled = m_params[the_index].enabled;
         *m_draw_grid = m_params[the_index].display_grid;
         *m_draw_control_points = m_params[the_index].display_points;
-        *m_top_left = the_quadwarp.control_point(0, 0);
-        *m_top_right = the_quadwarp.control_point(1, 0);
-        *m_bottom_left = the_quadwarp.control_point(0, 1);
-        *m_bottom_right = the_quadwarp.control_point(1, 1);
-        *m_grid_sz_x = the_quadwarp.grid_resolution().x;
-        *m_grid_sz_y = the_quadwarp.grid_resolution().y;
+        *m_grid_sz_x = the_quadwarp.num_subdivisions().x;
+        *m_grid_sz_y = the_quadwarp.num_subdivisions().y;
+        *m_control_points = the_quadwarp.control_points();
         *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
         *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
         m_params[the_index].enabled = *m_enabled;
         m_params[the_index].display_grid = *m_draw_grid;
         m_params[the_index].display_points = *m_draw_control_points;
-        m_quad_warp[the_index].control_point(0, 0) = *m_top_left;
-        m_quad_warp[the_index].control_point(1, 0) = *m_top_right;
-        m_quad_warp[the_index].control_point(0, 1) = *m_bottom_left;
-        m_quad_warp[the_index].control_point(1, 1) = *m_bottom_right;
+        m_quad_warp[the_index].set_num_subdivisions(the_quadwarp.num_subdivisions());
+        m_quad_warp[the_index].set_control_points(*m_control_points);
         m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
         m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
                                                            m_src_top_left->value().y,
@@ -161,25 +157,13 @@ namespace kinski
         {
             m_params[*m_index].display_points = *m_draw_control_points;
         }
-        else if(the_property == m_top_left)
+        else if(the_property == m_control_points)
         {
-            m_quad_warp[*m_index].control_point(0, 0) = *m_top_left;
-        }
-        else if(the_property == m_top_right)
-        {
-            m_quad_warp[*m_index].control_point(1, 0) = *m_top_right;;
-        }
-        else if(the_property == m_bottom_left)
-        {
-            m_quad_warp[*m_index].control_point(0, 1) = *m_bottom_left;
-        }
-        else if(the_property == m_bottom_right)
-        {
-            m_quad_warp[*m_index].control_point(1, 1) = *m_bottom_right;
+            m_quad_warp[*m_index].set_control_points(m_control_points->value());
         }
         else if(the_property == m_grid_sz_x || the_property == m_grid_sz_y)
         {
-            m_quad_warp[*m_index].set_grid_resolution(*m_grid_sz_x, *m_grid_sz_y);
+            m_quad_warp[*m_index].set_num_subdivisions(*m_grid_sz_x, *m_grid_sz_y);
         }
         else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
         {

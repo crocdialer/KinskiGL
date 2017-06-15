@@ -28,6 +28,8 @@ namespace kinski
         static const std::string PROPERTY_TYPE_MAT3;
         static const std::string PROPERTY_TYPE_MAT4;
         
+        static const std::string PROPERTY_TYPE_VEC2_ARRAY;
+        
         virtual ~PropertyIO_GL(){};
         virtual bool readPropertyValue(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const;

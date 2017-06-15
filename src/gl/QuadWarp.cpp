@@ -25,7 +25,9 @@ namespace kinski{ namespace gl{
     
     struct Impl
     {
-        uint32_t m_grid_num_w, m_grid_num_h;
+        uint32_t m_grid_num_w = 32, m_grid_num_h = 18;
+        
+        ivec2 m_num_subdivisions = ivec2(1, 1);
         
         std::vector<gl::vec2> m_control_points;
         std::set<uint32_t> m_selected_indices;
@@ -38,7 +40,7 @@ namespace kinski{ namespace gl{
         
         Area_<uint32_t> m_src_area;
         
-        Impl(uint32_t the_res_w = 16, uint32_t the_res_h = 9):
+        Impl(uint32_t the_res_w = 32, uint32_t the_res_h = 18):
         m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
         {
             m_control_points = default_points;
@@ -63,6 +65,7 @@ namespace kinski{ namespace gl{
             mat->set_depth_test(false);
             mat->set_depth_write(false);
             mat->set_blending(true);
+//            mat->set_wireframe();
             m_mesh = gl::Mesh::create(geom, mat);
             
             auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
@@ -82,7 +85,7 @@ namespace kinski{ namespace gl{
     QuadWarp::QuadWarp()
     :m_impl(new Impl)
     {
-
+//        set_num_subdivisions(2, 1);
     }
     
     void QuadWarp::render_output(const gl::Texture &the_texture, const float the_brightness)
@@ -107,16 +110,12 @@ namespace kinski{ namespace gl{
         m_impl->m_mesh->material()->textures() = {roi_tex};
         
         auto cp = m_impl->m_control_points;
-        const mat4 flipY = mat4(vec4(1, 0, 0, 1),
-                                vec4(0, -1, 0, 1),// invert y-coords
-                                vec4(0, 0, 1, 1),
-                                vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
-        
-        for(auto &p : cp){ p = (flipY * gl::vec4(p, 0, 1.f)).xy(); }
+        for(auto &p : cp){ p.y = 1.f - p.y; }
         
         m_impl->m_mesh->material()->uniform("u_control_points", cp);
+        m_impl->m_mesh->material()->uniform("u_num_subdivisions", m_impl->m_num_subdivisions);
         m_impl->m_mesh->material()->set_diffuse(gl::Color(the_brightness, the_brightness,
-                                                         the_brightness, 1.f));
+                                                          the_brightness, 1.f));
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);
@@ -154,14 +153,7 @@ namespace kinski{ namespace gl{
     
     gl::vec2 QuadWarp::center() const
     {
-        gl::vec2 ret(0);
-        
-        if(m_impl->m_control_points.empty())
-        {
-            for(auto &cp : m_impl->m_control_points){ ret += cp; }
-            ret /= (float)m_impl->m_control_points.size();
-        }
-        return ret;
+        return kinski::mean<gl::vec2>(m_impl->m_control_points);
     }
     
     void QuadWarp::render_grid()
@@ -170,6 +162,7 @@ namespace kinski{ namespace gl{
         auto cp = m_impl->m_control_points;
         for(auto &p : cp){ p.y = 1.f - p.y; }
         m_impl->m_grid_mesh->material()->uniform("u_control_points", cp);
+        m_impl->m_grid_mesh->material()->uniform("u_num_subdivisions", m_impl->m_num_subdivisions);
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);
@@ -188,14 +181,14 @@ namespace kinski{ namespace gl{
     
     void QuadWarp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
     {
-        auto new_impl = std::make_shared<Impl>(the_res_w, the_res_h);
-
-        if(m_impl)
-        {
-            new_impl->m_control_points = m_impl->m_control_points;
-            new_impl->m_selected_indices = m_impl->m_selected_indices;
-        }
-        m_impl = new_impl;
+//        auto new_impl = std::make_shared<Impl>(the_res_w, the_res_h);
+//
+//        if(m_impl)
+//        {
+//            new_impl->m_control_points = m_impl->m_control_points;
+//            new_impl->m_selected_indices = m_impl->m_selected_indices;
+//        }
+//        m_impl = new_impl;
     }
     
     std::vector<gl::vec2>& QuadWarp::control_points()
@@ -203,12 +196,17 @@ namespace kinski{ namespace gl{
         return m_impl->m_control_points;
     }
     
+    void QuadWarp::set_control_points(const std::vector<gl::vec2> &cp)
+    {
+        m_impl->m_control_points = cp;
+    }
+    
     gl::vec2& QuadWarp::control_point(int the_x, int the_y)
     {
         if(!m_impl){ m_impl.reset(new Impl); }
-        the_x = clamp(the_x, 0, 1);
-        the_y = clamp(the_y, 0, 1);
-        return m_impl->m_control_points[the_x + 2 * the_y];
+        the_x = clamp<int>(the_x, 0, m_impl->m_num_subdivisions.x);
+        the_y = clamp<int>(the_y, 0, m_impl->m_num_subdivisions.y);
+        return m_impl->m_control_points[the_x + (m_impl->m_num_subdivisions.x + 1) * the_y];
     }
     
     std::set<uint32_t>& QuadWarp::selected_indices()
@@ -219,5 +217,39 @@ namespace kinski{ namespace gl{
     void QuadWarp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)
     {
         control_point(the_x, the_y) = the_point;
+    }
+    
+    void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
+    {
+        m_impl->m_num_subdivisions = the_res;
+        int num_x = m_impl->m_num_subdivisions.x + 1;
+        int num_y = m_impl->m_num_subdivisions.y + 1;
+        
+        std::vector<gl::vec2> cp;
+        gl::vec2 inc = 1.f / vec2(m_impl->m_num_subdivisions);
+        
+        for(int y = 0; y < num_y; ++y)
+        {
+            for(int x = 0; x < num_x; ++x)
+            {
+                cp.push_back(inc * vec2(x, y));
+            }
+        }
+        if(cp.size() != m_impl->m_control_points.size()){ m_impl->m_control_points = cp; }
+    }
+    
+    void QuadWarp::set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h)
+    {
+        set_num_subdivisions(ivec2(the_div_w, the_div_h));
+    }
+    
+    ivec2 QuadWarp::num_subdivisions() const
+    {
+        return m_impl->m_num_subdivisions;
+    }
+    
+    void QuadWarp::reset()
+    {
+        m_impl.reset(new Impl);
     }
 }}

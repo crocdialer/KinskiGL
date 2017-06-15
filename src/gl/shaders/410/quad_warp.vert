@@ -4,7 +4,8 @@ uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
 // {TL, TR, BL, BR}
-uniform vec2[4] u_control_points;
+uniform vec2 u_control_points[25];
+uniform vec2 u_num_subdivisions = vec2(1, 1);
 
 layout(location = 0) in vec4 a_vertex;
 layout(location = 2) in vec4 a_texCoord;
@@ -20,16 +21,35 @@ void main()
 {
   // vertices are on a normalized quad
 
-  // interpolate bottom edge x coordinate
-  vec2 x1 = mix(u_control_points[2], u_control_points[3], a_vertex.x);
+  // find indices of relevant control_points
+  vec2 pos = a_vertex.xy * u_num_subdivisions;
+
+  // find TL corner
+  int row_step = int(u_num_subdivisions.x + 1.0);
+  int index_tl = int(pos.x) + row_step * int(u_num_subdivisions.y - floor(pos.y) - 1.0);
+  int index_bl = index_tl + row_step;
 
   // interpolate top edge x coordinate
-  vec2 x2 = mix(u_control_points[0], u_control_points[1], a_vertex.x);
+  vec2 x2 = mix(u_control_points[index_tl], u_control_points[index_tl + 1],
+                fract(pos.x));
+
+  // interpolate bottom edge x coordinate
+  vec2 x1 = mix(u_control_points[index_bl], u_control_points[index_bl + 1],
+                fract(pos.x));
 
   // interpolate y position
-  vec2 p = mix(x1, x2, a_vertex.y);
+  vec2 p = mix(x1, x2, fract(pos.y));
 
-  vertex_out.color = a_color;
+  // interpolate bottom edge x coordinate
+  // vec2 x1 = mix(u_control_points[2], u_control_points[3], a_vertex.x);
+  //
+  // // interpolate top edge x coordinate
+  // vec2 x2 = mix(u_control_points[0], u_control_points[1], a_vertex.x);
+  //
+  // // interpolate y position
+  // vec2 p = mix(x1, x2, a_vertex.y);
+
+  vertex_out.color = (index_tl > 0) ? vec4(1, 0, 0, 1) : a_color;
   vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;
   gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1);
 }

@@ -20,6 +20,8 @@ namespace kinski {
     const std::string PropertyIO_GL::PROPERTY_TYPE_MAT3 = "mat3";
     const std::string PropertyIO_GL::PROPERTY_TYPE_MAT4 = "mat4";
     
+    const std::string PropertyIO_GL::PROPERTY_TYPE_VEC2_ARRAY = "vec2_array";
+    
     bool PropertyIO_GL::readPropertyValue(const Property::ConstPtr &theProperty,
                                           Json::Value &theJsonValue) const
     {
@@ -101,7 +103,21 @@ namespace kinski {
             
             success = true;
         }
-        
+        else if(theProperty->is_of_type<std::vector<vec2>>())
+        {
+            theJsonValue[PROPERTY_TYPE] = PROPERTY_TYPE_VEC2_ARRAY;
+            
+            const std::vector<vec2> &vec_array = theProperty->get_value<std::vector<vec2>>();
+            
+            for(uint32_t j = 0; j < vec_array.size(); ++j)
+            {
+                for (int i = 0; i < 2; ++i)
+                    theJsonValue[PROPERTY_VALUE][j][i] = vec_array[j][i];
+            }
+            
+            success = true;
+            
+        }
         return success;
     }
     
@@ -184,7 +200,26 @@ namespace kinski {
             success = true;
             
         }
-        
+        else if(theJsonValue[PROPERTY_TYPE].asString() == PROPERTY_TYPE_VEC2_ARRAY)
+        {            
+            if(theJsonValue[PROPERTY_VALUE].isArray())
+            {
+                std::vector<vec2> vals;
+                
+                for (uint32_t i = 0; i < theJsonValue[PROPERTY_VALUE].size(); ++i)
+                {
+                    vec2 v;
+                    float *ptr = &v[0];
+                    
+                    for (int j = 0; j < 2; ++j)
+                        ptr[j] = theJsonValue[PROPERTY_VALUE][i][j].asDouble();
+                    
+                    vals.push_back(v);
+                }
+                theProperty->set_value<std::vector<vec2>>(vals);
+            }
+            success = true;
+        }
         return success;
     }
 }

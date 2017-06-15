@@ -248,7 +248,7 @@ namespace kinski {
                         m_warp_control_points.erase(cp);
                         m_warp_control_points.insert(cp);
                         m_warp_component->quad_warp().selected_indices().insert(i);
-                        LOG_DEBUG << "selected control point: " << glm::to_string(coord);
+                        LOG_DEBUG << "selected control point: " << i << " -> " << glm::to_string(coord);
                     }
                 }
             }
@@ -348,6 +348,11 @@ namespace kinski {
                     for(auto cp : m_warp_control_points){ control_points[cp.index] += gl::vec2(0.f, inc.y); }
                     if(m_warp_control_points.empty())
                     { m_warp_component->quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
+                    break;
+                    
+                case Key::_R:
+                    m_warp_component->reset();
+                    return;
                     break;
                     
                 case Key::_1:

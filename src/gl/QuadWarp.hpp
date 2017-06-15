@@ -33,6 +33,10 @@ namespace kinski{ namespace gl{
         void set_grid_resolution(const gl::ivec2 &the_res);
         void set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h);
         
+        ivec2 num_subdivisions() const;
+        void set_num_subdivisions(const gl::ivec2 &the_res);
+        void set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h);
+        
         void move_center_to(const gl::vec2 &the_pos);
         gl::vec2 center() const;
         
@@ -45,8 +49,11 @@ namespace kinski{ namespace gl{
         void set_control_point(int the_x, int the_y, const gl::vec2 &the_point);
         
         std::vector<gl::vec2>& control_points();
+        void set_control_points(const std::vector<gl::vec2> &cp);
         
         std::set<uint32_t>& selected_indices();
+        
+        void reset();
         
     private:
         

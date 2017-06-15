@@ -39,7 +39,7 @@ namespace kinski
     }
 
     template<typename ... Args>
-    std::string format(const std::string &format, Args ... args)
+    inline std::string format(const std::string &format, Args ... args)
     {
         int size = snprintf(nullptr, 0, format.c_str(), args ...) + 1;
         std::unique_ptr<char[]> buf(new char[size]);
@@ -271,8 +271,9 @@ namespace kinski
         
         // random mean
         std::default_random_engine e1(r());
-        std::uniform_int_distribution<uint64_t> uniform_dist(0, std::numeric_limits<uint64_t>::max());
-        return mix_slow<T>(min, max, uniform_dist(e1) / (T)std::numeric_limits<uint64_t>::max());
+        std::uniform_real_distribution<T>
+        uniform_dist(T(0), std::nextafter(T(1), std::numeric_limits<T>::max()));
+        return mix<T, T>(min, max, uniform_dist(e1));
     }
     
     template <typename T = int32_t>
@@ -283,7 +284,8 @@ namespace kinski
         
         // random mean
         std::default_random_engine e1(r());
-        std::uniform_int_distribution<T> uniform_dist(min, max);
+        std::uniform_int_distribution<T>
+        uniform_dist(min, std::nextafter(max, std::numeric_limits<T>::max()));
         return uniform_dist(e1);
     }
     
