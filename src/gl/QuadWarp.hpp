@@ -21,6 +21,8 @@ namespace kinski{ namespace gl{
     {
     public:
         
+        static const gl::ivec2 s_max_num_subdivisions;
+        
         QuadWarp();
 
         void render_output(const gl::Texture &the_texture, const float the_brightness = 1.f);

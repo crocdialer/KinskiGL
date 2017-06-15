@@ -323,6 +323,7 @@ namespace kinski {
             auto c = m_warp_component->quad_warp().center();
             gl::vec2 inc = 1.f / gl::window_dimension();
             auto &control_points = m_warp_component->quad_warp().control_points();
+            gl::ivec2 num_subs = m_warp_component->quad_warp().num_subdivisions();
             
             switch(e.getCode())
             {
@@ -355,6 +356,26 @@ namespace kinski {
                     return;
                     break;
                     
+                case Key::_F1:
+                    num_subs.x = std::max(num_subs.x - 1, 1);
+                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
+                    break;
+                    
+                case Key::_F2:
+                    num_subs.x = std::max(num_subs.x + 1, 1);
+                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
+                    break;
+                    
+                case Key::_F3:
+                    num_subs.y = std::max(num_subs.y - 1, 1);
+                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
+                    break;
+                    
+                case Key::_F4:
+                    num_subs.y = std::max(num_subs.y + 1, 1);
+                    m_warp_component->quad_warp().set_num_subdivisions(num_subs);
+                    break;
+                
                 case Key::_1:
                 case Key::_2:
                 case Key::_3:

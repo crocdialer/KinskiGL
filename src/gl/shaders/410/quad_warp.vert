@@ -4,7 +4,7 @@ uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
 // {TL, TR, BL, BR}
-uniform vec2 u_control_points[25];
+uniform vec2 u_control_points[36];
 uniform vec2 u_num_subdivisions = vec2(1, 1);
 
 layout(location = 0) in vec4 a_vertex;
@@ -49,7 +49,7 @@ void main()
   // // interpolate y position
   // vec2 p = mix(x1, x2, a_vertex.y);
 
-  vertex_out.color = (index_tl > 0) ? vec4(1, 0, 0, 1) : a_color;
+  vertex_out.color = a_color;
   vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;
   gl_Position = u_modelViewProjectionMatrix * vec4(p, 0, 1);
 }

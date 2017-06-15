@@ -5,7 +5,7 @@ uniform mat4 u_textureMatrix;
 uniform vec2 u_texture_size = vec2(1.0);
 
 // {TL, TR, BL, BR}
-uniform vec2 u_control_points[25];
+uniform vec2 u_control_points[36];
 uniform vec2 u_num_subdivisions = vec2(1, 1);
 
 layout(location = 0) in vec4 a_vertex;

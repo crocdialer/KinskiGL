@@ -2,7 +2,7 @@ uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
 
 // TL, TR, BL, BR
-uniform vec2 u_control_points[25];
+uniform vec2 u_control_points[36];
 uniform vec2 u_num_subdivisions;
 
 attribute vec4 a_vertex;

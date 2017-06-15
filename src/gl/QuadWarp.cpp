@@ -16,7 +16,9 @@
 #include "gl/Camera.hpp"
 
 namespace kinski{ namespace gl{
-
+    
+    const gl::ivec2 QuadWarp::s_max_num_subdivisions = gl::ivec2(5);
+    
     namespace
     {
         const std::vector<gl::vec2> default_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1),
@@ -238,7 +240,7 @@ namespace kinski{ namespace gl{
     
     void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
     {
-        m_impl->m_num_subdivisions = the_res;
+        m_impl->m_num_subdivisions = glm::min(the_res, s_max_num_subdivisions);
         int num_x = m_impl->m_num_subdivisions.x + 1;
         int num_y = m_impl->m_num_subdivisions.y + 1;
         
