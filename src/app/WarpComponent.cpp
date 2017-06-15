@@ -301,7 +301,7 @@ namespace kinski
                     m_active_control_points.insert(cp);
 
                     quad_warp().selected_indices().insert(i);
-                    LOG_DEBUG << "selected control point: " << i << " -> " << glm::to_string(coord);
+                    LOG_TRACE_2 << "selected control point: " << i << " -> " << glm::to_string(coord);
                 }
             }
         }
