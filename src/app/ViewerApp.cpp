@@ -245,7 +245,8 @@ namespace kinski {
     
     void ViewerApp::mouse_move(const MouseEvent &e)
     {
-        if(*m_use_warping){ m_warp_component->mouse_move(e); }
+        BaseApp::mouse_move(e);
+//        if(*m_use_warping){ m_warp_component->mouse_move(e); }
     }
     
     void ViewerApp::mouse_drag(const MouseEvent &e)
