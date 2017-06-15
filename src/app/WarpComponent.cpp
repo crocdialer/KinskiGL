@@ -119,13 +119,13 @@ namespace kinski
                                                            m_src_top_left->value().y,
                                                            m_src_bottom_right->value().x,
                                                            m_src_bottom_right->value().y));
-        m_active_control_points.clear();
-        
-        for(auto cp_index : quad_warp().selected_indices())
-        {
-            control_point_t cp(cp_index, quad_warp().control_points()[cp_index]);
-            m_active_control_points.insert(cp);
-        }
+//        m_active_control_points.clear();
+//        
+//        for(auto cp_index : quad_warp().selected_indices())
+//        {
+//            control_point_t cp(cp_index, quad_warp().control_points()[cp_index]);
+//            m_active_control_points.insert(cp);
+//        }
         
         observe_properties(true);
     }
