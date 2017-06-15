@@ -43,10 +43,12 @@ namespace kinski {
         void setup() override;
         void update(float timeDelta) override;
         void mouse_press(const MouseEvent &e) override;
-        void mouse_drag(const MouseEvent &e) override;
         void mouse_release(const MouseEvent &e) override;
+        void mouse_move(const MouseEvent &e) override;
+        void mouse_drag(const MouseEvent &e) override;
         void mouse_wheel(const MouseEvent &e) override;
         void key_press(const KeyEvent &e) override;
+        void key_release(const KeyEvent &e) override;
         void resize(int w, int h) override;
         
         // Property observer callback

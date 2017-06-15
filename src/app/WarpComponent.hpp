@@ -50,7 +50,9 @@ namespace kinski
         uint32_t num_warps() const;
         
         void key_press(const KeyEvent &e);
+        void key_release(const KeyEvent &e);
         void mouse_press(const MouseEvent &e);
+        void mouse_move(const MouseEvent &e);
         void mouse_drag(const MouseEvent &e);
         
     private:
@@ -75,7 +77,8 @@ namespace kinski
         };
         
         std::set<control_point_t> m_active_control_points;
-        gl::vec2 m_click_pos;
+        gl::vec2 m_click_pos, m_mouse_pos;
+        bool m_show_cursor = false;
         
         Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_grid_sz_x, m_grid_sz_y;

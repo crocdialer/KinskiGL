@@ -44,6 +44,7 @@ namespace kinski
         register_function("reset", std::bind(&WarpComponent::reset, this));
         
         m_params.resize(m_quad_warp.size());
+        m_params[0].enabled = true;
     }
     
     WarpComponent::~WarpComponent(){}
@@ -173,10 +174,21 @@ namespace kinski
         m_quad_warp[the_index].render_output(the_tex, the_brightness);
         if(m_params[the_index].display_grid){ m_quad_warp[the_index].render_grid(); }
         if(m_params[the_index].display_points){ m_quad_warp[the_index].render_control_points(); }
+        
+        if(m_show_cursor)
+        {
+            gl::vec2 cp = m_mouse_pos;
+            gl::draw_line(gl::vec2(0, gl::window_dimension().y - cp.y),
+                          gl::vec2(gl::window_dimension().x, gl::window_dimension().y - cp.y));
+            gl::draw_line(gl::vec2(cp.x, 0), gl::vec2(cp.x, gl::window_dimension().y));
+        }
+
     }
     
     void WarpComponent::key_press(const KeyEvent &e)
     {
+        m_show_cursor = e.isAltDown();
+        
         auto c = quad_warp().center();
         gl::vec2 inc = 1.f / gl::window_dimension();
         auto &control_points = quad_warp().control_points();
@@ -264,9 +276,14 @@ namespace kinski
         refresh();
     }
     
+    void WarpComponent::key_release(const KeyEvent &e)
+    {
+        m_show_cursor = e.isAltDown();
+    }
+    
     void WarpComponent::mouse_press(const MouseEvent &e)
     {
-        m_click_pos = glm::vec2(e.getX(), e.getY());
+        m_click_pos = m_mouse_pos = glm::vec2(e.getX(), e.getY());
         
         if(e.isLeft() || e.is_touch())
         {
@@ -295,9 +312,15 @@ namespace kinski
         }
     }
     
+    void WarpComponent::mouse_move(const MouseEvent &e)
+    {
+        m_mouse_pos = glm::vec2(e.getX(), e.getY());
+    }
+    
     void WarpComponent::mouse_drag(const MouseEvent &e)
     {
-        glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_click_pos;
+        m_mouse_pos = glm::vec2(e.getX(), e.getY());
+        glm::vec2 mouseDiff = m_mouse_pos - m_click_pos;
         
         auto inc = mouseDiff / gl::window_dimension();
         auto &control_points = quad_warp().control_points();

@@ -242,7 +242,12 @@ namespace kinski {
             m_selected_mesh.reset();
         }
     }
-
+    
+    void ViewerApp::mouse_move(const MouseEvent &e)
+    {
+        if(e.isAltDown()){ m_warp_component->mouse_move(e); }
+    }
+    
     void ViewerApp::mouse_drag(const MouseEvent &e)
     {
         glm::vec2 mouseDiff = glm::vec2(e.getX(), e.getY()) - m_clickPos;
@@ -333,7 +338,12 @@ namespace kinski {
             }
         }
     }
-
+    
+    void ViewerApp::key_release(const KeyEvent &e)
+    {
+        m_warp_component->key_release(e);
+    }
+    
     void ViewerApp::resize(int w, int h)
     {
         BaseApp::resize(w, h);
