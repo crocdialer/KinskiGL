@@ -23,8 +23,8 @@ namespace kinski
         
         m_index = RangedProperty<uint32_t>::create("index", 0, 0, 9);
         m_enabled = Property_<bool>::create("enabled", false);
-        m_grid_sz_x = RangedProperty<uint32_t>::create("grid size x", 1, 1, 5);
-        m_grid_sz_y = RangedProperty<uint32_t>::create("grid size y", 1, 1, 5);
+        m_num_subdivisions_x = RangedProperty<uint32_t>::create("num subdivisions x", 1, 1, 5);
+        m_num_subdivisions_y = RangedProperty<uint32_t>::create("num subdivisions y", 1, 1, 5);
         m_draw_grid = Property_<bool>::create("draw grid", false);
         m_draw_control_points = Property_<bool>::create("draw control points", false);
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
@@ -33,8 +33,8 @@ namespace kinski
         m_control_points->set_tweakable(false);
         register_property(m_index);
         register_property(m_enabled);
-        register_property(m_grid_sz_x);
-        register_property(m_grid_sz_y);
+        register_property(m_num_subdivisions_x);
+        register_property(m_num_subdivisions_y);
         register_property(m_draw_grid);
         register_property(m_draw_control_points);
         register_property(m_control_points);
@@ -104,8 +104,8 @@ namespace kinski
         *m_enabled = m_params[the_index].enabled;
         *m_draw_grid = m_params[the_index].display_grid;
         *m_draw_control_points = m_params[the_index].display_points;
-        *m_grid_sz_x = the_quadwarp.num_subdivisions().x;
-        *m_grid_sz_y = the_quadwarp.num_subdivisions().y;
+        *m_num_subdivisions_x = the_quadwarp.num_subdivisions().x;
+        *m_num_subdivisions_y = the_quadwarp.num_subdivisions().y;
         *m_control_points = the_quadwarp.control_points();
         *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
         *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
@@ -114,11 +114,11 @@ namespace kinski
         m_params[the_index].display_points = *m_draw_control_points;
         m_quad_warp[the_index].set_num_subdivisions(the_quadwarp.num_subdivisions());
         m_quad_warp[the_index].set_control_points(*m_control_points);
-        m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
         m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
                                                            m_src_top_left->value().y,
                                                            m_src_bottom_right->value().x,
                                                            m_src_bottom_right->value().y));
+//        m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
 //        m_active_control_points.clear();
 //        
 //        for(auto cp_index : quad_warp().selected_indices())
@@ -163,9 +163,9 @@ namespace kinski
         {
             m_quad_warp[*m_index].set_control_points(m_control_points->value());
         }
-        else if(the_property == m_grid_sz_x || the_property == m_grid_sz_y)
+        else if(the_property == m_num_subdivisions_x || the_property == m_num_subdivisions_y)
         {
-            m_quad_warp[*m_index].set_num_subdivisions(*m_grid_sz_x, *m_grid_sz_y);
+            m_quad_warp[*m_index].set_num_subdivisions(*m_num_subdivisions_x, *m_num_subdivisions_y);
         }
         else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
         {
@@ -231,21 +231,25 @@ namespace kinski
             case Key::_F1:
                 num_subs.x = std::max(num_subs.x - 1, 1);
                 quad_warp().set_num_subdivisions(num_subs);
+                m_active_control_points.clear();
                 break;
                 
             case Key::_F2:
                 num_subs.x = std::max(num_subs.x + 1, 1);
                 quad_warp().set_num_subdivisions(num_subs);
+                m_active_control_points.clear();
                 break;
                 
             case Key::_F3:
                 num_subs.y = std::max(num_subs.y - 1, 1);
                 quad_warp().set_num_subdivisions(num_subs);
+                m_active_control_points.clear();
                 break;
                 
             case Key::_F4:
                 num_subs.y = std::max(num_subs.y + 1, 1);
                 quad_warp().set_num_subdivisions(num_subs);
+                m_active_control_points.clear();
                 break;
                 
             case Key::_1:

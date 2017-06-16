@@ -177,18 +177,18 @@ namespace kinski{ namespace gl{
         gl::draw_mesh(m_impl->m_grid_mesh);
     }
     
-    ivec2 QuadWarp::grid_resolution() const
-    {
-        return m_impl ? ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h) : ivec2();
-    }
-    
-    void QuadWarp::set_grid_resolution(const gl::ivec2 &the_res)
-    {
-        set_grid_resolution(the_res.x, the_res.y);
-    }
-    
-    void QuadWarp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
-    {
+//    ivec2 QuadWarp::grid_resolution() const
+//    {
+//        return m_impl ? ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h) : ivec2();
+//    }
+//
+//    void QuadWarp::set_grid_resolution(const gl::ivec2 &the_res)
+//    {
+//        set_grid_resolution(the_res.x, the_res.y);
+//    }
+//
+//    void QuadWarp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
+//    {
 //        auto new_impl = std::make_shared<Impl>(the_res_w, the_res_h);
 //
 //        if(m_impl)
@@ -197,7 +197,7 @@ namespace kinski{ namespace gl{
 //            new_impl->m_selected_indices = m_impl->m_selected_indices;
 //        }
 //        m_impl = new_impl;
-    }
+//    }
     
     std::vector<gl::vec2>& QuadWarp::control_points()
     {
@@ -227,18 +227,18 @@ namespace kinski{ namespace gl{
         control_point(the_x, the_y) = the_point;
     }
     
-    void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
-    {
-        // is corner ?
-        bool is_corner =
-            !((the_index % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
-            !((the_index / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
-        
-        if(is_corner)
-        {
-        
-        }
-    }
+//    void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
+//    {
+//        // is corner ?
+//        bool is_corner =
+//            !((the_index % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
+//            !((the_index / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
+//
+//        if(is_corner)
+//        {
+//
+//        }
+//    }
     
     void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
     {
