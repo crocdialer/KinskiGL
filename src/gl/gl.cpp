@@ -823,7 +823,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
     if(the_mesh->geometry()->has_indices())
     {
-#ifndef KINSKI_GLES
         if(!the_mesh->entries().empty())
         {
             for (uint32_t i = 0; i < the_mesh->entries().size(); i++)
@@ -840,16 +839,22 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 if(!overide_shader){ the_mesh->bind_vertex_array(mat_index); }
                 apply_material(the_mesh->materials()[mat_index], false, overide_shader);
 
+#ifndef KINSKI_GLES
                 glDrawElementsBaseVertex(primitive_type,
                                          the_mesh->entries()[i].num_indices,
                                          the_mesh->geometry()->indexType(),
                                          BUFFER_OFFSET(the_mesh->entries()[i].base_index *
                                                        sizeof(the_mesh->geometry()->indexType())),
                                          the_mesh->entries()[i].base_vertex);
+#else
+                glDrawElements(primitive_type,
+                               the_mesh->entries()[i].num_indices, the_mesh->geometry()->indexType(),
+                               BUFFER_OFFSET(0));
+#endif
             }
         }
         else
-#endif
+
         {
             glDrawElements(the_mesh->geometry()->primitive_type(),
                            the_mesh->geometry()->indices().size(), the_mesh->geometry()->indexType(),
