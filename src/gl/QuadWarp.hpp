@@ -32,9 +32,9 @@ namespace kinski{ namespace gl{
         
         void render_grid();
         
-//        ivec2 grid_resolution() const;
-//        void set_grid_resolution(const gl::ivec2 &the_res);
-//        void set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h);
+        ivec2 grid_resolution() const;
+        void set_grid_resolution(const gl::ivec2 &the_res);
+        void set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h);
         
         ivec2 num_subdivisions() const;
         void set_num_subdivisions(const gl::ivec2 &the_res);
@@ -46,7 +46,6 @@ namespace kinski{ namespace gl{
         const Area_<uint32_t>& src_area() const;
         void set_src_area(const Area_<uint32_t>& the_src_area);
         
-//        const gl::vec2& control_point(int the_x, int the_y) const;
         gl::vec2& control_point(int the_x, int the_y);
         
         const gl::vec2 control_point(int the_index);
@@ -58,8 +57,13 @@ namespace kinski{ namespace gl{
         const std::vector<gl::vec2>& control_points() const;
         void set_control_points(const std::vector<gl::vec2> &cp);
         
+        bool cubic_interpolation() const;
+        void set_cubic_interpolation(bool b);
+        
         std::set<uint32_t>& selected_indices();
-        std::array<gl::vec2, 4> corners() const;
+        
+        const std::vector<gl::vec2>& corners() const;
+        void set_corners(const std::vector<gl::vec2> &cp);
         
         const gl::mat4& transform() const;
         

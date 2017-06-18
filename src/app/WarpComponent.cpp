@@ -27,17 +27,22 @@ namespace kinski
         m_num_subdivisions_y = RangedProperty<uint32_t>::create("num subdivisions y", 1, 1, 5);
         m_draw_grid = Property_<bool>::create("draw grid", false);
         m_draw_control_points = Property_<bool>::create("draw control points", false);
+        m_cubic_interpolation = Property_<bool>::create("use cubic interpolation", false);
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
         m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
         m_control_points = Property_<std::vector<gl::vec2>>::create("control points");
         m_control_points->set_tweakable(false);
+        m_corners = Property_<std::vector<gl::vec2>>::create("quad corners");
+        m_corners->set_tweakable(false);
         register_property(m_index);
         register_property(m_enabled);
         register_property(m_num_subdivisions_x);
         register_property(m_num_subdivisions_y);
         register_property(m_draw_grid);
         register_property(m_draw_control_points);
+        register_property(m_cubic_interpolation);
         register_property(m_control_points);
+        register_property(m_corners);
         register_property(m_src_top_left);
         register_property(m_src_bottom_right);
         
@@ -104,9 +109,12 @@ namespace kinski
         *m_enabled = m_params[the_index].enabled;
         *m_draw_grid = m_params[the_index].display_grid;
         *m_draw_control_points = m_params[the_index].display_points;
+        *m_cubic_interpolation = the_quadwarp.cubic_interpolation();
         *m_num_subdivisions_x = the_quadwarp.num_subdivisions().x;
         *m_num_subdivisions_y = the_quadwarp.num_subdivisions().y;
         *m_control_points = the_quadwarp.control_points();
+        *m_corners = the_quadwarp.corners();
+        
         *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
         *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
         m_params[the_index].enabled = *m_enabled;
@@ -114,6 +122,8 @@ namespace kinski
         m_params[the_index].display_points = *m_draw_control_points;
         m_quad_warp[the_index].set_num_subdivisions(the_quadwarp.num_subdivisions());
         m_quad_warp[the_index].set_control_points(*m_control_points);
+        m_quad_warp[the_index].set_corners(*m_corners);
+        m_quad_warp[the_index].set_cubic_interpolation(*m_cubic_interpolation);
         m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
                                                            m_src_top_left->value().y,
                                                            m_src_bottom_right->value().x,
@@ -163,6 +173,10 @@ namespace kinski
         {
             m_quad_warp[*m_index].set_control_points(m_control_points->value());
         }
+        else if(the_property == m_corners)
+        {
+            m_quad_warp[*m_index].set_corners(m_corners->value());
+        }
         else if(the_property == m_num_subdivisions_x || the_property == m_num_subdivisions_y)
         {
             m_quad_warp[*m_index].set_num_subdivisions(*m_num_subdivisions_x, *m_num_subdivisions_y);
@@ -173,6 +187,10 @@ namespace kinski
                                                                m_src_top_left->value().y,
                                                                m_src_bottom_right->value().x,
                                                                m_src_bottom_right->value().y));
+        }
+        else if(the_property == m_cubic_interpolation)
+        {
+            m_quad_warp[*m_index].set_cubic_interpolation(*m_cubic_interpolation);
         }
     }
     
@@ -205,7 +223,6 @@ namespace kinski
         
         auto c = quad_warp().center();
         gl::vec2 inc = 1.f / gl::window_dimension();
-        auto &control_points = quad_warp().control_points();
         gl::ivec2 num_subs = quad_warp().num_subdivisions();
         
         switch(e.getCode())
@@ -213,7 +230,7 @@ namespace kinski
             case Key::_LEFT:
                 for(auto cp : m_active_control_points)
                 {
-                    quad_warp().set_control_point(cp.index, control_points[cp.index] - gl::vec2(inc.x, 0.f));
+                    quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) - gl::vec2(inc.x, 0.f));
                 }
                 if(m_active_control_points.empty())
                 { quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
@@ -222,7 +239,7 @@ namespace kinski
             case Key::_RIGHT:
                 for(auto cp : m_active_control_points)
                 {
-                    quad_warp().set_control_point(cp.index, control_points[cp.index] + gl::vec2(inc.x, 0.f));
+                    quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) + gl::vec2(inc.x, 0.f));
                 }
                 if(m_active_control_points.empty())
                 { quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
@@ -231,19 +248,19 @@ namespace kinski
             case Key::_UP:
                 for(auto cp : m_active_control_points)
                 {
-                    quad_warp().set_control_point(cp.index, control_points[cp.index] - gl::vec2(0.f, inc.y));
+                    quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) + gl::vec2(0.f, inc.y));
                 }
                 if(m_active_control_points.empty())
-                { quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
+                { quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
                 break;
                 
             case Key::_DOWN:
                 for(auto cp : m_active_control_points)
                 {
-                    quad_warp().set_control_point(cp.index, control_points[cp.index] + gl::vec2(0.f, inc.y));
+                    quad_warp().set_control_point(cp.index, quad_warp().control_point(cp.index) - gl::vec2(0.f, inc.y));
                 }
                 if(m_active_control_points.empty())
-                { quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
+                { quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
                 break;
                 
             case Key::_F1:
