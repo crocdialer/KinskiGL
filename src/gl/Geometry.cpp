@@ -351,14 +351,13 @@ Geometry::Ptr Geometry::create_plane(float width, float height,
     float width_half = width / 2, height_half = height / 2;
     float segment_width = width / numSegments_W, segment_height = height / numSegments_H;
 
-    uint32_t gridX = numSegments_W, gridZ = numSegments_H, gridX1 = gridX +1, gridZ1 = gridZ + 1;
+    uint32_t gridX = numSegments_W, gridZ = numSegments_H, gridX1 = gridX + 1, gridZ1 = gridZ + 1;
 
     glm::vec3 normal (0, 0, 1);
 
     // create vertices
     for(uint32_t iz = 0; iz < gridZ1; ++iz)
     {
-
         for (uint32_t ix = 0; ix < gridX1; ++ix)
         {
             float x = ix * segment_width - width_half;

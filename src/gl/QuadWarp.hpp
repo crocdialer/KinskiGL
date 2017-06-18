@@ -49,6 +49,8 @@ namespace kinski{ namespace gl{
 //        const gl::vec2& control_point(int the_x, int the_y) const;
         gl::vec2& control_point(int the_x, int the_y);
         
+        const gl::vec2 control_point(int the_index);
+        
         void set_control_point(int the_x, int the_y, const gl::vec2 &the_point);
         
         void set_control_point(int the_index, const gl::vec2 &the_point);

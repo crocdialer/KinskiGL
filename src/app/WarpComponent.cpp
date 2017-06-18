@@ -318,15 +318,18 @@ namespace kinski
         if(e.isLeft() || e.is_touch())
         {
             auto coord = m_click_pos / gl::window_dimension();
+            coord.y = 1.f - coord.y;
             auto px_length = 1.f / gl::window_dimension();
 
             const auto &control_points = quad_warp().control_points();
 
             for(uint32_t i = 0; i < control_points.size(); i ++)
             {
-                if(glm::length(control_points[i] - coord) < 15 * glm::length(px_length))
+                auto c = quad_warp().control_point(i);
+                
+                if(glm::length(c - coord) < 15 * glm::length(px_length))
                 {
-                    control_point_t cp(i, control_points[i]);
+                    control_point_t cp(i, c);
                     m_active_control_points.erase(cp);
                     m_active_control_points.insert(cp);
 
@@ -353,7 +356,7 @@ namespace kinski
         glm::vec2 mouseDiff = m_mouse_pos - m_click_pos;
         
         auto inc = mouseDiff / gl::window_dimension();
-        const auto &control_points = quad_warp().control_points();
+        inc.y *= -1.f;
 
         for(auto cp : m_active_control_points)
         {

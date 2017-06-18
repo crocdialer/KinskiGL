@@ -35,8 +35,8 @@ namespace kinski{ namespace gl{
     
     namespace
     {
-        const std::vector<gl::vec2> default_points = {gl::vec2(0, 0), gl::vec2(1, 0), gl::vec2(0, 1),
-            gl::vec2(1, 1)};
+        const std::array<gl::vec2, 4> default_points = {{gl::vec2(0, 1), gl::vec2(1, 1), gl::vec2(0, 0),
+            gl::vec2(1, 0)}};
     };
     
     struct Impl
@@ -45,6 +45,7 @@ namespace kinski{ namespace gl{
         
         ivec2 m_num_subdivisions = ivec2(1, 1);
         
+        std::array<gl::vec2, 4> m_corners = default_points;
         std::vector<gl::vec2> m_control_points;
         std::set<uint32_t> m_selected_indices;
         
@@ -56,14 +57,14 @@ namespace kinski{ namespace gl{
         
         Area_<uint32_t> m_src_area;
         
-        mat4 m_transform;
-        bool m_dirty = true;
+        mat4 m_transform, m_inv_transform;
+        bool m_dirty = true, m_dirty_subs = true;
         bool m_linear = true;
         
         Impl(uint32_t the_res_w = 32, uint32_t the_res_h = 18):
         m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
         {
-            m_control_points = default_points;
+//            m_control_points = default_points;
             
             try
             {
@@ -124,15 +125,18 @@ namespace kinski{ namespace gl{
             float u, v;
             int col, row;
             
+            uint32_t index = 0;
+            auto &verts = m_mesh->geometry()->vertices();
+            
             std::vector<vec2> cols, rows;
             
-            for( int x = 0; x < m_grid_num_w; ++x )
+            for(int y = 0; y < m_grid_num_h + 1; ++y)
             {
-                for( int y = 0; y < m_grid_num_h; ++y )
+                for(int x = 0; x < m_grid_num_w + 1; ++x)
                 {
                     // transform coordinates to [0..numControls]
-                    u = x * (m_num_subdivisions.x) / (float)(m_grid_num_w - 1);
-                    v = y * (m_num_subdivisions.y) / (float)(m_grid_num_h - 1);
+                    u = x * (m_num_subdivisions.x) / (float)(m_grid_num_w);
+                    v = y * (m_num_subdivisions.y) / (float)(m_grid_num_h);
                     
                     // determine col and row
                     col = (int)(u);
@@ -149,7 +153,8 @@ namespace kinski{ namespace gl{
                         vec2 p2 = mix(control_point(col, row + 1), control_point(col + 1, row + 1), u);
                         p = mix(p1, p2, v);
                     }
-                    else {
+                    else
+                    {
                         // perform bicubic interpolation
                         rows.clear();
                         for(int i = -1; i < 3; ++i)
@@ -163,22 +168,32 @@ namespace kinski{ namespace gl{
                         }
                         p = cubic_interpolate(rows, u);
                     }
+                    verts[index++] = vec3(p, 0);
                 }
             }
+            m_mesh->geometry()->create_gl_buffers();
+            m_dirty_subs = false;
         }
         
-        gl::vec2& control_point(int the_x, int the_y)
+        inline gl::vec2& control_point(int the_x, int the_y)
         {
-            the_x = clamp<int>(the_x, 0, m_num_subdivisions.x);
-            the_y = clamp<int>(the_y, 0, m_num_subdivisions.y);
+//            the_x = clamp<int>(the_x, 0, m_num_subdivisions.x);
+//            the_y = clamp<int>(the_y, 0, m_num_subdivisions.y);
             return m_control_points[the_x + (m_num_subdivisions.x + 1) * the_y];
         }
         
-//        int is_edge(uint32_t the_index)
-//        {
-//            //                !((i % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
-//            //                !((i / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
-//        }
+        int convert_index(uint32_t the_index)
+        {
+            int index_tl = 0, index_tr = m_num_subdivisions.x;
+            int index_bl = (m_num_subdivisions.x + 1) * m_num_subdivisions.y;
+            int index_br = index_bl + m_num_subdivisions.x;
+            
+            if(the_index == index_tl) return 0;
+            if(the_index == index_tr) return 1;
+            if(the_index == index_bl) return 2;
+            if(the_index == index_br) return 3;
+            return -1;
+        }
     };
     
     QuadWarp::QuadWarp()
@@ -216,11 +231,13 @@ namespace kinski{ namespace gl{
         
         m_impl->m_mesh->material()->textures() = {roi_tex};
         
-        auto cp = m_impl->m_control_points;
-        for(auto &p : cp){ p.y = 1.f - p.y; }
+        if(m_impl->m_dirty_subs){ m_impl->update_mesh(); }
         
-        m_impl->m_mesh->material()->uniform("u_control_points", cp);
-        m_impl->m_mesh->material()->uniform("u_num_subdivisions", m_impl->m_num_subdivisions);
+//        auto cp = m_impl->m_control_points;
+//        for(auto &p : cp){ p.y = 1.f - p.y; }
+//        m_impl->m_mesh->material()->uniform("u_control_points", cp);
+//        m_impl->m_mesh->material()->uniform("u_num_subdivisions", m_impl->m_num_subdivisions);
+        
         m_impl->m_mesh->material()->set_diffuse(gl::Color(the_brightness, the_brightness,
                                                           the_brightness, 1.f));
         
@@ -238,8 +255,11 @@ namespace kinski{ namespace gl{
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
             bool is_corner = m_impl->is_corner(i);
-
-            gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(),
+            
+            vec2 p = control_point(i);
+            p.y = (1.f - p.y);
+            
+            gl::draw_circle(p * window_dimension(),
                             is_corner ? 15.f : 10.f,
                             contains(m_impl->m_selected_indices, i) ?
                                 gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
@@ -281,7 +301,7 @@ namespace kinski{ namespace gl{
     {
         if(!m_impl){ m_impl.reset(new Impl); }
         auto cp = m_impl->m_control_points;
-        for(auto &p : cp){ p.y = 1.f - p.y; }
+//        for(auto &p : cp){ p.y = 1.f - p.y; }
         m_impl->m_grid_mesh->material()->uniform("u_control_points", cp);
         m_impl->m_grid_mesh->material()->uniform("u_num_subdivisions", m_impl->m_num_subdivisions);
         
@@ -322,6 +342,7 @@ namespace kinski{ namespace gl{
     {
         m_impl->m_control_points = cp;
         m_impl->m_dirty = true;
+        m_impl->m_dirty_subs = true;
     }
     
     gl::vec2& QuadWarp::control_point(int the_x, int the_y)
@@ -330,44 +351,42 @@ namespace kinski{ namespace gl{
         return m_impl->control_point(the_x, the_y);
     }
     
+    const gl::vec2 QuadWarp::control_point(int the_index)
+    {
+        auto tmp = transform() * vec4(m_impl->m_control_points[the_index], 0, 1);
+        return (tmp / tmp.w).xy();
+    }
+    
     std::set<uint32_t>& QuadWarp::selected_indices()
     {
         return m_impl->m_selected_indices;
     }
     
-    void QuadWarp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)
-    {
-        control_point(the_x, the_y) = the_point;
-    }
+//    void QuadWarp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)
+//    {
+//        control_point(the_x, the_y) = the_point;
+//    }
     
     void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
     {
         the_index = clamp<int>(the_index, 0 , m_impl->m_control_points.size() - 1);
-        m_impl->m_control_points[the_index] = the_point;
         
         if(m_impl->is_corner(the_index))
         {
-            // if corners are moved recalculate subs inbetween
-//            auto old_corners = corners();
-//            m_impl->m_control_points[the_index] = the_point;
-//            auto new_corners = corners();
-            
-//            mat4 hm = calculate_homography(old_corners.data(), new_corners.data());
-            
             m_impl->m_dirty = true;
-//            m_impl->m_transform = calculate_homography(default_points.data(), corners().data());
             
-//            for(auto &cp : m_impl->m_control_points)
-//            {
-//                auto p = (hm * vec4(cp, 0, 1));
-//                
-//                if(p.w != 0 ) { p /= p.w; }
-//                
-//                cp = p.xy();
-//            }
-            
+            // convert to corner index
+            m_impl->m_corners[m_impl->convert_index(the_index)] = the_point;
         }
-//        else{ m_impl->m_control_points[the_index] = the_point; }
+        else
+        {
+            //TODO: convert to warp space
+            auto p = m_impl->m_inv_transform * vec4(the_point, 0, 1);
+            p /= p.w;
+            
+            m_impl->m_control_points[the_index] = p.xy();
+            m_impl->m_dirty_subs = true;
+        }
     }
     
     void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
@@ -399,15 +418,12 @@ namespace kinski{ namespace gl{
         {
             m_impl->m_selected_indices.clear();
             
-            // keep corners, recalculate subs inbetween
-            auto corner_array = corners();
-            
             // create subs for each row
             for(int y = 0; y < num_y; ++y)
             {
                 float frac_y = (float)y / num_subs.y;
-                auto left_edge = mix(corner_array[0], corner_array[2], frac_y);
-                auto right_edge = mix(corner_array[1], corner_array[3], frac_y);
+                auto left_edge = mix(default_points[0], default_points[2], frac_y);
+                auto right_edge = mix(default_points[1], default_points[3], frac_y);
                 
                 for(int x = 0; x < num_x; ++x)
                 {
@@ -416,6 +432,8 @@ namespace kinski{ namespace gl{
                 }
             }
             m_impl->m_control_points = cp;
+            m_impl->m_num_subdivisions = num_subs;
+            m_impl->m_dirty_subs = true;
         }
         m_impl->m_num_subdivisions = num_subs;
     }
@@ -435,30 +453,18 @@ namespace kinski{ namespace gl{
         m_impl.reset(new Impl);
     }
     
-    std::array<gl::vec2, 4> QuadWarp::corners() const
-    {
-        int index_tl = 0, index_tr = m_impl->m_num_subdivisions.x;
-        int index_bl = (m_impl->m_num_subdivisions.x + 1) * m_impl->m_num_subdivisions.y;
-        int index_br = index_bl + m_impl->m_num_subdivisions.x;
-        
-        return { {m_impl->m_control_points[index_tl],
-                  m_impl->m_control_points[index_tr],
-                  m_impl->m_control_points[index_bl],
-                  m_impl->m_control_points[index_br]} };
-    }
-    
-    
     const gl::mat4& QuadWarp::transform() const
     {
         if(m_impl->m_dirty)
         {
             auto src = default_points;
-            auto dest = corners();
+            auto dest = m_impl->m_corners; //corners();
             std::swap(src[2], src[3]);
             std::swap(dest[2], dest[3]);
-            for(auto &p : src){ p.y = 1.f - p.y; }
-            for(auto &p : dest){ p.y = 1.f - p.y; }
+//            for(auto &p : src){ p.y = 1.f - p.y; }
+//            for(auto &p : dest){ p.y = 1.f - p.y; }
             m_impl->m_transform = calculate_homography(src.data(), dest.data());
+            m_impl->m_inv_transform = glm::inverse(m_impl->m_transform);
             m_impl->m_dirty = false;
         }
         return m_impl->m_transform;
