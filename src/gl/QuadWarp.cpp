@@ -41,7 +41,7 @@ namespace kinski{ namespace gl{
     
     struct Impl
     {
-        uint32_t m_grid_num_w = 64, m_grid_num_h = 36;
+        uint32_t m_grid_num_w = 32, m_grid_num_h = 18;
         
         ivec2 m_num_subdivisions = ivec2(1, 1);
         
