@@ -219,9 +219,9 @@ namespace kinski{ namespace gl{
         
         int convert_index(uint32_t the_index)
         {
-            int index_tl = 0, index_tr = m_num_subdivisions.x;
-            int index_bl = (m_num_subdivisions.x + 1) * m_num_subdivisions.y;
-            int index_br = index_bl + m_num_subdivisions.x;
+            uint32_t index_tl = 0, index_tr = m_num_subdivisions.x;
+            uint32_t index_bl = (m_num_subdivisions.x + 1) * m_num_subdivisions.y;
+            uint32_t index_br = index_bl + m_num_subdivisions.x;
             
             if(the_index == index_tl) return 0;
             if(the_index == index_tr) return 1;

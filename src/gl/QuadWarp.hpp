@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include <array>
 #include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
