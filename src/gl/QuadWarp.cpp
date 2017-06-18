@@ -60,10 +60,9 @@ namespace kinski{ namespace gl{
         bool m_dirty = true, m_dirty_subs = true;
         bool m_cubic_interpolation = false;
         
-        Impl(uint32_t the_res_w = 32, uint32_t the_res_h = 18):
-        m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
+        Impl()
         {
-            create_mesh(the_res_w, the_res_h);
+            create_mesh(m_grid_num_w, m_grid_num_h);
             
             auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
             for(auto &v : grid_geom->vertices())
