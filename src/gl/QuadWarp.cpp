@@ -157,9 +157,9 @@ namespace kinski{ namespace gl{
             
             uint32_t num_w = m_grid_num_w + 1, num_h = m_grid_num_h + 1;
             
-            for(int y = 0; y < num_h; ++y)
+            for(uint32_t y = 0; y < num_h; ++y)
             {
-                for(int x = 0; x < num_w; ++x)
+                for(uint32_t x = 0; x < num_w; ++x)
                 {
                     uint32_t index = x + y * num_w;
                     
