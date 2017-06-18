@@ -45,9 +45,8 @@ namespace kinski{ namespace gl{
         const Area_<uint32_t>& src_area() const;
         void set_src_area(const Area_<uint32_t>& the_src_area);
         
-        gl::vec2& control_point(int the_x, int the_y);
-        
-        const gl::vec2 control_point(int the_index);
+        const gl::vec2 control_point(int the_x, int the_y) const;
+        const gl::vec2 control_point(int the_index) const;
         
         void set_control_point(int the_x, int the_y, const gl::vec2 &the_point);
         

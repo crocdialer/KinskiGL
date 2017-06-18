@@ -58,23 +58,13 @@ namespace kinski{ namespace gl{
         
         mat4 m_transform, m_inv_transform;
         bool m_dirty = true, m_dirty_subs = true;
-        bool m_cubic_interpolation = false;
+        bool m_cubic_interpolation = true;
         
         Impl()
         {
             create_mesh(m_grid_num_w, m_grid_num_h);
             
-            auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
-            for(auto &v : grid_geom->vertices())
-            {
-                v = vec3(v.x, -v.z, v.y) + vec3(0.5f, 0.5f, 0.f);
-            }
-            for(auto &c : grid_geom->colors()){ c = gl::COLOR_WHITE; }
             
-            auto grid_mat = gl::Material::create();
-            grid_mat->set_depth_test(false);
-            grid_mat->set_depth_write(false);
-            m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
         }
         
         inline bool is_corner(uint32_t the_index)
@@ -147,7 +137,7 @@ namespace kinski{ namespace gl{
                             cols.clear();
                             for(int j = -1; j < 3; ++j)
                             {
-                                cols.push_back( control_point(col + i, row + j));
+                                cols.push_back(control_point(col + i, row + j));
                             }
                             rows.push_back(cubic_interpolate(cols, v));
                         }
@@ -158,6 +148,39 @@ namespace kinski{ namespace gl{
             }
             m_mesh->geometry()->create_gl_buffers();
             m_dirty_subs = false;
+            
+            // recreate grid mesh
+            auto grid_geom = gl::Geometry::create();
+            grid_geom->append_vertices(m_mesh->geometry()->vertices());
+            grid_geom->set_primitive_type(GL_LINES);
+            auto &indices = grid_geom->indices();
+            
+            uint32_t num_w = m_grid_num_w + 1, num_h = m_grid_num_h + 1;
+            
+            for(int y = 0; y < num_h; ++y)
+            {
+                for(int x = 0; x < num_w; ++x)
+                {
+                    uint32_t index = x + y * num_w;
+                    
+                    if(x < m_grid_num_w)
+                    {
+                        indices.push_back(index);
+                        indices.push_back(index + 1);
+                    }
+                    
+                    if(y < m_grid_num_h)
+                    {
+                        indices.push_back(index);
+                        indices.push_back(index + num_w);
+                    }
+                }
+            }
+            
+            auto grid_mat = gl::Material::create();
+            grid_mat->set_depth_test(false);
+            grid_mat->set_depth_write(false);
+            m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
         }
         
         void set_num_subdivisions(const gl::ivec2 &the_res)
@@ -210,10 +233,24 @@ namespace kinski{ namespace gl{
             m_num_subdivisions = num_subs;
         }
         
-        inline gl::vec2& control_point(int the_x, int the_y)
+        const gl::vec2 control_point(int the_x, int the_y)
         {
-            the_x = clamp<int>(the_x, 0, m_num_subdivisions.x);
-            the_y = clamp<int>(the_y, 0, m_num_subdivisions.y);
+            // extrapolate points beyond the edges
+            if(the_x < 0){ return 2.0f * control_point(0, the_y) - control_point(-the_x, the_y); }
+            
+            if(the_x > m_num_subdivisions.x)
+            {
+                return 2.0f * control_point(m_num_subdivisions.x, the_y) -
+                       control_point(2 * m_num_subdivisions.x - the_x, the_y);
+            }
+            
+            if(the_y < 0){ return 2.0f * control_point(the_x, 0) - control_point(the_x, -the_y); }
+            
+            if(the_y > m_num_subdivisions.y)
+            {
+                return 2.0f * control_point(the_x, m_num_subdivisions.y) -
+                       control_point(the_x, 2 * m_num_subdivisions.y - the_y);
+            }
             return m_control_points[the_x + (m_num_subdivisions.x + 1) * the_y];
         }
         
@@ -354,13 +391,12 @@ namespace kinski{ namespace gl{
         m_impl->m_dirty_subs = true;
     }
     
-    gl::vec2& QuadWarp::control_point(int the_x, int the_y)
+    const gl::vec2 QuadWarp::control_point(int the_x, int the_y) const
     {
-        if(!m_impl){ m_impl.reset(new Impl); }
         return m_impl->control_point(the_x, the_y);
     }
     
-    const gl::vec2 QuadWarp::control_point(int the_index)
+    const gl::vec2 QuadWarp::control_point(int the_index) const
     {
         auto tmp = transform() * vec4(m_impl->m_control_points[the_index], 0, 1);
         return (tmp / tmp.w).xy();
