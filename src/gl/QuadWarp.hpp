@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include <array>
 #include "gl/gl.hpp"
 
 namespace kinski{ namespace gl{
@@ -50,12 +51,15 @@ namespace kinski{ namespace gl{
         
         void set_control_point(int the_x, int the_y, const gl::vec2 &the_point);
         
-//        void set_control_point(int the_index, const gl::vec2 &the_point);
+        void set_control_point(int the_index, const gl::vec2 &the_point);
         
-        std::vector<gl::vec2>& control_points();
+        const std::vector<gl::vec2>& control_points() const;
         void set_control_points(const std::vector<gl::vec2> &cp);
         
         std::set<uint32_t>& selected_indices();
+        std::array<gl::vec2, 4> corners() const;
+        
+        const gl::mat4& transform() const;
         
         void reset();
         

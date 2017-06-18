@@ -189,6 +189,12 @@ namespace kinski
             gl::draw_line(gl::vec2(0, gl::window_dimension().y - cp.y),
                           gl::vec2(gl::window_dimension().x, gl::window_dimension().y - cp.y));
             gl::draw_line(gl::vec2(cp.x, 0), gl::vec2(cp.x, gl::window_dimension().y));
+            
+//            auto p = (m_quad_warp[the_index].transform() * gl::vec4(m_mouse_pos / gl::window_dimension(), 0, 1));
+//            if(p.w != 0 ) { p /= p.w; }
+//            p.xy() *= gl::window_dimension();
+//            
+//            gl::draw_circle(p.xy(), 5.f, gl::COLOR_ORANGE, true);
         }
 
     }
@@ -205,25 +211,37 @@ namespace kinski
         switch(e.getCode())
         {
             case Key::_LEFT:
-                for(auto cp : m_active_control_points){ control_points[cp.index] -= gl::vec2(inc.x, 0.f); }
+                for(auto cp : m_active_control_points)
+                {
+                    quad_warp().set_control_point(cp.index, control_points[cp.index] - gl::vec2(inc.x, 0.f));
+                }
                 if(m_active_control_points.empty())
                 { quad_warp().move_center_to(gl::vec2(c.x - inc.x, c.y)); }
                 break;
                 
             case Key::_RIGHT:
-                for(auto cp : m_active_control_points){ control_points[cp.index] += gl::vec2(inc.x, 0.f); }
+                for(auto cp : m_active_control_points)
+                {
+                    quad_warp().set_control_point(cp.index, control_points[cp.index] + gl::vec2(inc.x, 0.f));
+                }
                 if(m_active_control_points.empty())
                 { quad_warp().move_center_to(gl::vec2(c.x + inc.x, c.y)); }
                 break;
                 
             case Key::_UP:
-                for(auto cp : m_active_control_points){ control_points[cp.index] -= gl::vec2(0.f, inc.y); }
+                for(auto cp : m_active_control_points)
+                {
+                    quad_warp().set_control_point(cp.index, control_points[cp.index] - gl::vec2(0.f, inc.y));
+                }
                 if(m_active_control_points.empty())
                 { quad_warp().move_center_to(gl::vec2(c.x, c.y - inc.y)); }
                 break;
                 
             case Key::_DOWN:
-                for(auto cp : m_active_control_points){ control_points[cp.index] += gl::vec2(0.f, inc.y); }
+                for(auto cp : m_active_control_points)
+                {
+                    quad_warp().set_control_point(cp.index, control_points[cp.index] + gl::vec2(0.f, inc.y));
+                }
                 if(m_active_control_points.empty())
                 { quad_warp().move_center_to(gl::vec2(c.x, c.y + inc.y)); }
                 break;
@@ -302,7 +320,7 @@ namespace kinski
             auto coord = m_click_pos / gl::window_dimension();
             auto px_length = 1.f / gl::window_dimension();
 
-            auto &control_points = quad_warp().control_points();
+            const auto &control_points = quad_warp().control_points();
 
             for(uint32_t i = 0; i < control_points.size(); i ++)
             {
@@ -335,11 +353,11 @@ namespace kinski
         glm::vec2 mouseDiff = m_mouse_pos - m_click_pos;
         
         auto inc = mouseDiff / gl::window_dimension();
-        auto &control_points = quad_warp().control_points();
+        const auto &control_points = quad_warp().control_points();
 
         for(auto cp : m_active_control_points)
         {
-            control_points[cp.index] = cp.value + inc;
+            quad_warp().set_control_point(cp.index, cp.value + inc);
         }
     }
 }

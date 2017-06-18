@@ -17,6 +17,20 @@
 
 namespace kinski{ namespace gl{
     
+    // utilities
+//    mat4 calculate_homography(const vec2 src[4], const vec2 dst[4]);
+//    void gaussian_elimination(float *a, int n);
+    
+    vec2 cubic_interpolate(const std::vector<vec2> &knots, float t)
+    {
+        assert( knots.size() >= 4 );
+        
+        return knots[1] + 0.5f * t * (knots[2] - knots[0] +
+                                      t * (2.0f * knots[0] - 5.0f * knots[1] + 4.0f * knots[2] -
+                                           knots[3] + t * (3.0f * (knots[1] - knots[2]) +
+                                                           knots[3] - knots[0])));
+    }
+    
     const gl::ivec2 QuadWarp::s_max_num_subdivisions = gl::ivec2(5);
     
     namespace
@@ -42,15 +56,14 @@ namespace kinski{ namespace gl{
         
         Area_<uint32_t> m_src_area;
         
+        mat4 m_transform;
+        bool m_dirty = true;
+        bool m_linear = true;
+        
         Impl(uint32_t the_res_w = 32, uint32_t the_res_h = 18):
         m_grid_num_w(the_res_w), m_grid_num_h(the_res_h)
         {
             m_control_points = default_points;
-            
-            // adjust grid density here
-            auto geom = gl::Geometry::create_plane(1, 1, m_grid_num_w, m_grid_num_h);
-            for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
-            geom->compute_bounding_box();
             
             try
             {
@@ -63,12 +76,7 @@ namespace kinski{ namespace gl{
             }
             catch(Exception &e){ LOG_ERROR << e.what(); }
             
-            auto mat = gl::Material::create(m_shader_warp_vert);
-            mat->set_depth_test(false);
-            mat->set_depth_write(false);
-            mat->set_blending(true);
-//            mat->set_wireframe();
-            m_mesh = gl::Mesh::create(geom, mat);
+            create_mesh(the_res_w, the_res_h);
             
             auto grid_geom = gl::Geometry::create_grid(1.f, 1.f, m_grid_num_w, m_grid_num_h);
             for(auto &v : grid_geom->vertices())
@@ -82,6 +90,95 @@ namespace kinski{ namespace gl{
             grid_mat->set_depth_write(false);
             m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
         }
+        
+        inline bool is_corner(uint32_t the_index)
+        {
+            int num_cp = (m_num_subdivisions.x + 1) * (m_num_subdivisions.y + 1);
+            return  the_index == 0 ||
+                    the_index == m_num_subdivisions.x ||
+                    the_index == (num_cp - m_num_subdivisions.x - 1) ||
+                    the_index == (num_cp - 1);
+        }
+        
+        void create_mesh(uint32_t the_res_w, uint32_t the_res_h)
+        {
+            m_grid_num_w = the_res_w;
+            m_grid_num_h = the_res_h;
+            
+            // adjust grid density here
+            auto geom = gl::Geometry::create_plane(1, 1, m_grid_num_w, m_grid_num_h);
+            for(auto &v : geom->vertices()){ v += vec3(0.5f, 0.5f, 0.f); }
+            geom->compute_bounding_box();
+            
+//            auto mat = gl::Material::create(m_shader_warp_vert);
+            auto mat = gl::Material::create();
+            mat->set_depth_test(false);
+            mat->set_depth_write(false);
+            mat->set_blending(true);
+            m_mesh = gl::Mesh::create(geom, mat);
+        }
+        
+        void update_mesh()
+        {
+            vec2 p;
+            float u, v;
+            int col, row;
+            
+            std::vector<vec2> cols, rows;
+            
+            for( int x = 0; x < m_grid_num_w; ++x )
+            {
+                for( int y = 0; y < m_grid_num_h; ++y )
+                {
+                    // transform coordinates to [0..numControls]
+                    u = x * (m_num_subdivisions.x) / (float)(m_grid_num_w - 1);
+                    v = y * (m_num_subdivisions.y) / (float)(m_grid_num_h - 1);
+                    
+                    // determine col and row
+                    col = (int)(u);
+                    row = (int)(v);
+                    
+                    // normalize coordinates to [0..1]
+                    u -= col;
+                    v -= row;
+                    
+                    if(m_linear)
+                    {
+                        // perform linear interpolation
+                        vec2 p1 = mix(control_point(col, row), control_point(col + 1, row), u);
+                        vec2 p2 = mix(control_point(col, row + 1), control_point(col + 1, row + 1), u);
+                        p = mix(p1, p2, v);
+                    }
+                    else {
+                        // perform bicubic interpolation
+                        rows.clear();
+                        for(int i = -1; i < 3; ++i)
+                        {
+                            cols.clear();
+                            for(int j = -1; j < 3; ++j)
+                            {
+                                cols.push_back( control_point(col + i, row + j));
+                            }
+                            rows.push_back(cubic_interpolate(cols, v));
+                        }
+                        p = cubic_interpolate(rows, u);
+                    }
+                }
+            }
+        }
+        
+        gl::vec2& control_point(int the_x, int the_y)
+        {
+            the_x = clamp<int>(the_x, 0, m_num_subdivisions.x);
+            the_y = clamp<int>(the_y, 0, m_num_subdivisions.y);
+            return m_control_points[the_x + (m_num_subdivisions.x + 1) * the_y];
+        }
+        
+//        int is_edge(uint32_t the_index)
+//        {
+//            //                !((i % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
+//            //                !((i / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
+//        }
     };
     
     QuadWarp::QuadWarp()
@@ -96,12 +193,20 @@ namespace kinski{ namespace gl{
         if(!m_impl){ m_impl.reset(new Impl); }
         
 #if !defined(KINSKI_GLES)
+//        if(the_texture.target() == GL_TEXTURE_RECTANGLE)
+//        {
+//            m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert_rect);
+//            m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.size());
+//        }
+//        else{ m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert); }
+
         if(the_texture.target() == GL_TEXTURE_RECTANGLE)
         {
-            m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert_rect);
+            m_impl->m_mesh->material()->set_shader(gl::create_shader(gl::ShaderType::RECT_2D));
             m_impl->m_mesh->material()->uniform("u_texture_size", the_texture.size());
         }
-        else{ m_impl->m_mesh->material()->set_shader(m_impl->m_shader_warp_vert); }
+        else{ m_impl->m_mesh->material()->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
+
 #endif
         gl::Texture roi_tex = the_texture;
         if(m_impl->m_src_area != Area_<uint32_t>())
@@ -121,7 +226,9 @@ namespace kinski{ namespace gl{
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);
+        gl::mult_matrix(MODEL_VIEW_MATRIX, transform());
         gl::draw_mesh(m_impl->m_mesh);
+//        gl::draw_mesh(m_impl->m_mesh, gl::create_shader(gl::ShaderType::UNLIT));
     }
     
     void QuadWarp::render_control_points()
@@ -130,16 +237,22 @@ namespace kinski{ namespace gl{
         
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
-            bool is_corner =
-                !((i % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
-                !((i / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
-            
+            bool is_corner = m_impl->is_corner(i);
+
             gl::draw_circle(m_impl->m_control_points[i] * gl::window_dimension(),
                             is_corner ? 15.f : 10.f,
                             contains(m_impl->m_selected_indices, i) ?
                                 gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
                             true);
         }
+        
+//        uint32_t num_x = m_impl->m_num_subdivisions.x + 1, num_y = m_impl->m_num_subdivisions.x + 1;
+        
+//        for(uint32_t y = 0; y < num_y; ++y)
+//            for(uint32_t x = 0; x < num_x; ++x)
+//            {
+//                
+//            }
     }
     
     const Area_<uint32_t>& QuadWarp::src_area() const
@@ -174,7 +287,8 @@ namespace kinski{ namespace gl{
         
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);
-        gl::draw_mesh(m_impl->m_grid_mesh);
+        gl::mult_matrix(MODEL_VIEW_MATRIX, transform());
+        gl::draw_mesh(m_impl->m_grid_mesh, gl::create_shader(gl::ShaderType::UNLIT));
     }
     
 //    ivec2 QuadWarp::grid_resolution() const
@@ -199,7 +313,7 @@ namespace kinski{ namespace gl{
 //        m_impl = new_impl;
 //    }
     
-    std::vector<gl::vec2>& QuadWarp::control_points()
+    const std::vector<gl::vec2>& QuadWarp::control_points() const
     {
         return m_impl->m_control_points;
     }
@@ -207,14 +321,13 @@ namespace kinski{ namespace gl{
     void QuadWarp::set_control_points(const std::vector<gl::vec2> &cp)
     {
         m_impl->m_control_points = cp;
+        m_impl->m_dirty = true;
     }
     
     gl::vec2& QuadWarp::control_point(int the_x, int the_y)
     {
         if(!m_impl){ m_impl.reset(new Impl); }
-        the_x = clamp<int>(the_x, 0, m_impl->m_num_subdivisions.x);
-        the_y = clamp<int>(the_y, 0, m_impl->m_num_subdivisions.y);
-        return m_impl->m_control_points[the_x + (m_impl->m_num_subdivisions.x + 1) * the_y];
+        return m_impl->control_point(the_x, the_y);
     }
     
     std::set<uint32_t>& QuadWarp::selected_indices()
@@ -227,18 +340,35 @@ namespace kinski{ namespace gl{
         control_point(the_x, the_y) = the_point;
     }
     
-//    void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
-//    {
-//        // is corner ?
-//        bool is_corner =
-//            !((the_index % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
-//            !((the_index / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
-//
-//        if(is_corner)
-//        {
-//
-//        }
-//    }
+    void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
+    {
+        the_index = clamp<int>(the_index, 0 , m_impl->m_control_points.size() - 1);
+        m_impl->m_control_points[the_index] = the_point;
+        
+        if(m_impl->is_corner(the_index))
+        {
+            // if corners are moved recalculate subs inbetween
+//            auto old_corners = corners();
+//            m_impl->m_control_points[the_index] = the_point;
+//            auto new_corners = corners();
+            
+//            mat4 hm = calculate_homography(old_corners.data(), new_corners.data());
+            
+            m_impl->m_dirty = true;
+//            m_impl->m_transform = calculate_homography(default_points.data(), corners().data());
+            
+//            for(auto &cp : m_impl->m_control_points)
+//            {
+//                auto p = (hm * vec4(cp, 0, 1));
+//                
+//                if(p.w != 0 ) { p /= p.w; }
+//                
+//                cp = p.xy();
+//            }
+            
+        }
+//        else{ m_impl->m_control_points[the_index] = the_point; }
+    }
     
     void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
     {
@@ -270,26 +400,14 @@ namespace kinski{ namespace gl{
             m_impl->m_selected_indices.clear();
             
             // keep corners, recalculate subs inbetween
-            auto is_corner = [this](int the_index) -> bool
-            {
-                return
-                !((the_index % (m_impl->m_num_subdivisions.x + 1)) % (m_impl->m_num_subdivisions.x)) &&
-                !((the_index / (m_impl->m_num_subdivisions.x + 1)) % m_impl->m_num_subdivisions.y);
-            };
-            
-            std::vector<gl::vec2> corners;
-            
-            for(uint32_t i = 0; i < m_impl->m_control_points.size(); ++i)
-            {
-                if(is_corner(i)){ corners.push_back(m_impl->m_control_points[i]); }
-            }
+            auto corner_array = corners();
             
             // create subs for each row
             for(int y = 0; y < num_y; ++y)
             {
                 float frac_y = (float)y / num_subs.y;
-                auto left_edge = mix(corners[0], corners[2], frac_y);
-                auto right_edge = mix(corners[1], corners[3], frac_y);
+                auto left_edge = mix(corner_array[0], corner_array[2], frac_y);
+                auto right_edge = mix(corner_array[1], corner_array[3], frac_y);
                 
                 for(int x = 0; x < num_x; ++x)
                 {
@@ -316,4 +434,35 @@ namespace kinski{ namespace gl{
     {
         m_impl.reset(new Impl);
     }
+    
+    std::array<gl::vec2, 4> QuadWarp::corners() const
+    {
+        int index_tl = 0, index_tr = m_impl->m_num_subdivisions.x;
+        int index_bl = (m_impl->m_num_subdivisions.x + 1) * m_impl->m_num_subdivisions.y;
+        int index_br = index_bl + m_impl->m_num_subdivisions.x;
+        
+        return { {m_impl->m_control_points[index_tl],
+                  m_impl->m_control_points[index_tr],
+                  m_impl->m_control_points[index_bl],
+                  m_impl->m_control_points[index_br]} };
+    }
+    
+    
+    const gl::mat4& QuadWarp::transform() const
+    {
+        if(m_impl->m_dirty)
+        {
+            auto src = default_points;
+            auto dest = corners();
+            std::swap(src[2], src[3]);
+            std::swap(dest[2], dest[3]);
+            for(auto &p : src){ p.y = 1.f - p.y; }
+            for(auto &p : dest){ p.y = 1.f - p.y; }
+            m_impl->m_transform = calculate_homography(src.data(), dest.data());
+            m_impl->m_dirty = false;
+        }
+        return m_impl->m_transform;
+    }
+    
+    
 }}
