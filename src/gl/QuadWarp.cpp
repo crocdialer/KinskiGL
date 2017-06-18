@@ -67,9 +67,9 @@ namespace kinski{ namespace gl{
             
         }
         
-        inline bool is_corner(uint32_t the_index)
+        inline bool is_corner(int the_index)
         {
-            uint32_t num_cp = (m_num_subdivisions.x + 1) * (m_num_subdivisions.y + 1);
+            int num_cp = (m_num_subdivisions.x + 1) * (m_num_subdivisions.y + 1);
             return  the_index == 0 ||
                     the_index == m_num_subdivisions.x ||
                     the_index == (num_cp - m_num_subdivisions.x - 1) ||
