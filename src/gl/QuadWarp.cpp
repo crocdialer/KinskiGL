@@ -105,9 +105,9 @@ namespace kinski{ namespace gl{
             
             std::vector<vec2> cols, rows;
             
-            for(int y = 0; y < m_grid_num_h + 1; ++y)
+            for(uint32_t y = 0; y < m_grid_num_h + 1; ++y)
             {
-                for(int x = 0; x < m_grid_num_w + 1; ++x)
+                for(uint32_t x = 0; x < m_grid_num_w + 1; ++x)
                 {
                     // transform coordinates to [0..numControls]
                     u = x * (m_num_subdivisions.x) / (float)(m_grid_num_w);
