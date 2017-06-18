@@ -314,6 +314,10 @@ namespace kinski
             case Key::_F7:
                 set_display_points(index(), !display_points(index()));
                 break;
+            
+            case Key::_F8:
+                *m_cubic_interpolation = !*m_cubic_interpolation;
+                break;
                 
             case Key::_F9:
                 m_active_control_points.clear();
