@@ -7,7 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
-//  QuadWarp.hpp
+//  Warp.hpp
 //
 //  Created by Croc Dialer on 04/12/15.
 
@@ -17,13 +17,13 @@
 
 namespace kinski{ namespace gl{
     
-    class KINSKI_API QuadWarp
+    class KINSKI_API Warp
     {
     public:
         
         static const gl::ivec2 s_max_num_subdivisions;
         
-        QuadWarp();
+        Warp();
 
         void render_output(const gl::Texture &the_texture, const float the_brightness = 1.f);
         

@@ -11,7 +11,7 @@
 //
 //  Created by Croc Dialer on 25/08/15.
 
-#include "QuadWarp.hpp"
+#include "Warp.hpp"
 #include "gl/Mesh.hpp"
 #include "gl/Camera.hpp"
 
@@ -31,7 +31,7 @@ namespace kinski{ namespace gl{
     
     ////////////////////////////////////////////////////////////////////////////////////////////////
     
-    const gl::ivec2 QuadWarp::s_max_num_subdivisions = gl::ivec2(5);
+    const gl::ivec2 Warp::s_max_num_subdivisions = gl::ivec2(5);
     
     namespace
     {
@@ -185,8 +185,8 @@ namespace kinski{ namespace gl{
         
         void set_num_subdivisions(const gl::ivec2 &the_res)
         {
-//            auto num_subs = glm::min(the_res, QuadWarp::s_max_num_subdivisions);
-            auto num_subs = glm::clamp(the_res, gl::ivec2(1), QuadWarp::s_max_num_subdivisions);
+//            auto num_subs = glm::min(the_res, Warp::s_max_num_subdivisions);
+            auto num_subs = glm::clamp(the_res, gl::ivec2(1), Warp::s_max_num_subdivisions);
             auto diff = num_subs - m_num_subdivisions;
             
             
@@ -268,13 +268,13 @@ namespace kinski{ namespace gl{
         }
     };
     
-    QuadWarp::QuadWarp()
+    Warp::Warp()
     :m_impl(new Impl)
     {
 
     }
     
-    void QuadWarp::render_output(const gl::Texture &the_texture, const float the_brightness)
+    void Warp::render_output(const gl::Texture &the_texture, const float the_brightness)
     {
         if(!the_texture){ return; }
         if(!m_impl){ m_impl.reset(new Impl); }
@@ -307,7 +307,7 @@ namespace kinski{ namespace gl{
         gl::draw_mesh(m_impl->m_mesh);
     }
     
-    void QuadWarp::render_control_points()
+    void Warp::render_control_points()
     {
         if(!m_impl){ m_impl.reset(new Impl); }
         
@@ -334,29 +334,29 @@ namespace kinski{ namespace gl{
 //            }
     }
     
-    const Area_<uint32_t>& QuadWarp::src_area() const
+    const Area_<uint32_t>& Warp::src_area() const
     {
         return m_impl->m_src_area;
     }
     
-    void QuadWarp::set_src_area(const Area_<uint32_t> &the_src_area)
+    void Warp::set_src_area(const Area_<uint32_t> &the_src_area)
     {
         m_impl->m_src_area = the_src_area;
     }
     
-    void QuadWarp::move_center_to(const gl::vec2 &the_pos)
+    void Warp::move_center_to(const gl::vec2 &the_pos)
     {
         auto diff = the_pos - center();
         
         for(auto &cp : m_impl->m_corners){ cp += diff; }
     }
     
-    gl::vec2 QuadWarp::center() const
+    gl::vec2 Warp::center() const
     {
         return kinski::mean<gl::vec2>(m_impl->m_corners);
     }
     
-    void QuadWarp::render_grid()
+    void Warp::render_grid()
     {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
         gl::set_matrices(m_impl->m_camera);
@@ -364,55 +364,55 @@ namespace kinski{ namespace gl{
         gl::draw_mesh(m_impl->m_grid_mesh);
     }
     
-    ivec2 QuadWarp::grid_resolution() const
+    ivec2 Warp::grid_resolution() const
     {
         return m_impl ? ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h) : ivec2();
     }
 
-    void QuadWarp::set_grid_resolution(const gl::ivec2 &the_res)
+    void Warp::set_grid_resolution(const gl::ivec2 &the_res)
     {
         set_grid_resolution(the_res.x, the_res.y);
     }
 
-    void QuadWarp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
+    void Warp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
     {
         m_impl->create_mesh(the_res_w, the_res_h);
     }
     
-    const std::vector<gl::vec2>& QuadWarp::control_points() const
+    const std::vector<gl::vec2>& Warp::control_points() const
     {
         return m_impl->m_control_points;
     }
     
-    void QuadWarp::set_control_points(const std::vector<gl::vec2> &cp)
+    void Warp::set_control_points(const std::vector<gl::vec2> &cp)
     {
         m_impl->m_control_points = cp;
         m_impl->m_dirty = true;
         m_impl->m_dirty_subs = true;
     }
     
-    const gl::vec2 QuadWarp::control_point(int the_x, int the_y) const
+    const gl::vec2 Warp::control_point(int the_x, int the_y) const
     {
         return m_impl->control_point(the_x, the_y);
     }
     
-    const gl::vec2 QuadWarp::control_point(int the_index) const
+    const gl::vec2 Warp::control_point(int the_index) const
     {
         auto tmp = transform() * vec4(m_impl->m_control_points[the_index], 0, 1);
         return (tmp / tmp.w).xy();
     }
     
-    std::set<uint32_t>& QuadWarp::selected_indices()
+    std::set<uint32_t>& Warp::selected_indices()
     {
         return m_impl->m_selected_indices;
     }
     
-    void QuadWarp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)
+    void Warp::set_control_point(int the_x, int the_y, const gl::vec2 &the_point)
     {
         set_control_point(the_x + (m_impl->m_num_subdivisions.x + 1) * the_y, the_point);
     }
     
-    void QuadWarp::set_control_point(int the_index, const gl::vec2 &the_point)
+    void Warp::set_control_point(int the_index, const gl::vec2 &the_point)
     {
         the_index = clamp<int>(the_index, 0 , m_impl->m_control_points.size() - 1);
         
@@ -434,33 +434,33 @@ namespace kinski{ namespace gl{
         }
     }
     
-    void QuadWarp::set_num_subdivisions(const gl::ivec2 &the_res)
+    void Warp::set_num_subdivisions(const gl::ivec2 &the_res)
     {
         m_impl->set_num_subdivisions(the_res);
     }
     
-    void QuadWarp::set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h)
+    void Warp::set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h)
     {
         set_num_subdivisions(ivec2(the_div_w, the_div_h));
     }
     
-    ivec2 QuadWarp::num_subdivisions() const
+    ivec2 Warp::num_subdivisions() const
     {
         return m_impl->m_num_subdivisions;
     }
     
-    void QuadWarp::reset()
+    void Warp::reset()
     {
         m_impl.reset(new Impl);
         set_num_subdivisions(num_subdivisions());
     }
     
-    const std::vector<gl::vec2>& QuadWarp::corners() const
+    const std::vector<gl::vec2>& Warp::corners() const
     {
         return m_impl->m_corners;
     }
     
-    void QuadWarp::set_corners(const std::vector<gl::vec2> &cp)
+    void Warp::set_corners(const std::vector<gl::vec2> &cp)
     {
         if(cp.size() == 4)
         {
@@ -469,7 +469,7 @@ namespace kinski{ namespace gl{
         }
     }
     
-    const gl::mat4& QuadWarp::transform() const
+    const gl::mat4& Warp::transform() const
     {
         if(m_impl->m_dirty)
         {
@@ -484,13 +484,13 @@ namespace kinski{ namespace gl{
         return m_impl->m_transform;
     }
     
-    void QuadWarp::set_cubic_interpolation(bool b)
+    void Warp::set_cubic_interpolation(bool b)
     {
         m_impl->m_cubic_interpolation = b;
         m_impl->m_dirty_subs = true;
     }
     
-    bool QuadWarp::cubic_interpolation() const
+    bool Warp::cubic_interpolation() const
     {
         return m_impl->m_cubic_interpolation;
     }

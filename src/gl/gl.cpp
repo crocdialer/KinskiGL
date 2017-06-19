@@ -32,6 +32,22 @@ namespace kinski { namespace gl {
     namespace
     {
         Context* g_context = nullptr;
+        
+        std::map<gl::ShaderType, std::string> g_shader_names =
+        {
+            {ShaderType::UNKNOWN, "UNKNOWN"},
+            {ShaderType::UNLIT, "UNLIT"}, {ShaderType::UNLIT_MASK, "UNLIT_MASK"},
+            {ShaderType::UNLIT_SKIN, "UNLIT_SKIN"}, {ShaderType::BLUR, "BLUR"},
+            {ShaderType::GOURAUD, "GOURAUD"}, {ShaderType::PHONG, "PHONG"},
+            {ShaderType::PHONG_SHADOWS, "PHONG_SHADOWS"},
+            {ShaderType::PHONG_SKIN_SHADOWS, "PHONG_SKIN_SHADOWS"},
+            {ShaderType::PHONG_NORMALMAP, "PHONG_NORMALMAP"},
+            {ShaderType::PHONG_SKIN, "PHONG_SKIN"}, {ShaderType::POINTS_TEXTURE, "POINTS_TEXTURE"},
+            {ShaderType::LINES_2D, "LINES_2D"}, {ShaderType::POINTS_COLOR, "POINTS_COLOR"},
+            {ShaderType::POINTS_SPHERE, "POINTS_SPHERE"}, {ShaderType::RECT_2D, "RECT_2D"},
+            {ShaderType::NOISE_3D, "NOISE_3D"}, {ShaderType::DEPTH_OF_FIELD, "DEPTH_OF_FIELD"},
+            {ShaderType::SDF_FONT, "SDF_FONT"}
+        };
     };
 
     struct ContextImpl
@@ -1643,17 +1659,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     frag_src = points_frag;
                     break;
 
-                case ShaderType::QUAD_WARP:
-                    vert_src = quad_warp_vert;
-                    frag_src = unlit_frag;
-                    break;
-
 #if !defined(KINSKI_GLES)
-
-                case ShaderType::QUAD_WARP_RECT:
-                    vert_src = quad_warp_rect_vert;
-                    frag_src = unlit_rect_frag;
-                    break;
 
                 case ShaderType::BLUR:
                     vert_src = unlit_vert;
@@ -1706,7 +1712,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
             if(vert_src.empty() || frag_src.empty())
             {
-                LOG_WARNING << "requested shader not available, falling back to UNLIT";
+                LOG_WARNING << get_shader_name(type) << " not available, falling back to: " <<
+                    get_shader_name(ShaderType::UNLIT);
                 return create_shader(gl::ShaderType::UNLIT, false);
             }
             ret = gl::Shader::create(vert_src, frag_src, geom_src);
@@ -1715,6 +1722,13 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         }
         else{ ret = it->second; }
         return ret;
+    }
+    
+    const std::string& get_shader_name(ShaderType the_type)
+    {
+        auto it = g_shader_names.find(the_type);
+        if(it != g_shader_names.end()){ return it->second; }
+        return g_shader_names[ShaderType::UNKNOWN];
     }
     
 }}//namespace

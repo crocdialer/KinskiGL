@@ -101,7 +101,7 @@ namespace kinski
         set_from(m_quad_warp[*m_index], *m_index);
     }
     
-    void WarpComponent::set_from(gl::QuadWarp &the_quadwarp, uint32_t the_index)
+    void WarpComponent::set_from(gl::Warp &the_quadwarp, uint32_t the_index)
     {
         observe_properties(false);
         the_index = clamp<int>(the_index, 0, m_quad_warp.size() - 1);
@@ -140,7 +140,7 @@ namespace kinski
         observe_properties(true);
     }
     
-    gl::QuadWarp& WarpComponent::quad_warp(int i)
+    gl::Warp& WarpComponent::quad_warp(int i)
     {
         i = i < 0 || i >= (int)m_quad_warp.size() ? *m_index : i;
         return m_quad_warp[i];

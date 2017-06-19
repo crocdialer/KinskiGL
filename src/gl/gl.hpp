@@ -200,14 +200,15 @@ KINSKI_API Texture create_cube_texture(const std::vector<gl::Texture> &the_plane
 
 /*********************************** Shader loading *******************************************/
 
-enum class ShaderType {UNLIT, UNLIT_MASK, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS,
+enum class ShaderType {UNKNOWN, UNLIT, UNLIT_MASK, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS,
     PHONG_SKIN_SHADOWS, PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR,
-    POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD, SDF_FONT, QUAD_WARP, QUAD_WARP_RECT};
+    POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD, SDF_FONT};
 
 KINSKI_API ShaderPtr create_shader(ShaderType type, bool use_cached_shader = true);
 KINSKI_API ShaderPtr create_shader_from_file(const std::string &vertPath, const std::string &fragPath,
                                              const std::string &geomPath="");
 
+KINSKI_API const std::string& get_shader_name(ShaderType the_type);
 KINSKI_API const std::set<std::string>& get_extensions();
 KINSKI_API bool is_extension_supported(const std::string &theName);
 

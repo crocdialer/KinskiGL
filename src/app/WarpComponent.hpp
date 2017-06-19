@@ -14,7 +14,7 @@
 #pragma once
 
 #include "core/Component.hpp"
-#include "QuadWarp.hpp"
+#include "Warp.hpp"
 
 namespace kinski
 {
@@ -35,10 +35,10 @@ namespace kinski
         void refresh();
         void reset();
         
-        gl::QuadWarp& quad_warp(int i = -1);
+        gl::Warp& quad_warp(int i = -1);
         
         void render_output(int the_index, const gl::Texture &the_tex, const float the_brightness = 1.f);
-        void set_from(gl::QuadWarp &the_quadwarp, uint32_t the_index = 0);
+        void set_from(gl::Warp &the_quadwarp, uint32_t the_index = 0);
         uint32_t index() const{ return *m_index; }
         void set_index(int the_index) { *m_index = the_index; }
         void set_enabled(int the_index, bool b);
@@ -56,7 +56,7 @@ namespace kinski
         void mouse_drag(const MouseEvent &e);
         
     private:
-        std::vector<gl::QuadWarp> m_quad_warp{10};
+        std::vector<gl::Warp> m_quad_warp{10};
         
         typedef struct
         {
