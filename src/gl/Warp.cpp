@@ -390,6 +390,10 @@ namespace kinski{ namespace gl{
             std::swap(m_impl->m_corners[2], m_impl->m_corners[3]);
             std::swap(m_impl->m_corners[0], m_impl->m_corners[3]);
         }
+        // recreate mesh to swap subdivisions
+        auto culling = m_impl->m_mesh->material()->culling();
+        m_impl->create_mesh(m_impl->m_grid_num_h, m_impl->m_grid_num_w);
+        m_impl->m_mesh->material()->set_culling(culling);
     }
     
     void Warp::render_grid()
