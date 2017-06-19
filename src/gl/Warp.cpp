@@ -356,6 +356,42 @@ namespace kinski{ namespace gl{
         return kinski::mean<gl::vec2>(m_impl->m_corners);
     }
     
+    void Warp::flip_content(bool horizontal)
+    {
+        if(horizontal)
+        {
+            std::swap(m_impl->m_corners[0], m_impl->m_corners[2]);
+            std::swap(m_impl->m_corners[1], m_impl->m_corners[3]);
+        }
+        else
+        {
+            std::swap(m_impl->m_corners[0], m_impl->m_corners[1]);
+            std::swap(m_impl->m_corners[2], m_impl->m_corners[3]);
+        }
+        
+        // adjust culling
+        if(m_impl->m_mesh->material()->culling() == gl::Material::CULL_BACK)
+        {
+            m_impl->m_mesh->material()->set_culling(gl::Material::CULL_FRONT);
+        }else{ m_impl->m_mesh->material()->set_culling(gl::Material::CULL_BACK); }
+    }
+    
+    void Warp::rotate_content(bool clock_wise)
+    {
+        if(clock_wise)
+        {
+            std::swap(m_impl->m_corners[0], m_impl->m_corners[2]);
+            std::swap(m_impl->m_corners[1], m_impl->m_corners[3]);
+            std::swap(m_impl->m_corners[0], m_impl->m_corners[3]);
+        }
+        else
+        {
+            std::swap(m_impl->m_corners[0], m_impl->m_corners[1]);
+            std::swap(m_impl->m_corners[2], m_impl->m_corners[3]);
+            std::swap(m_impl->m_corners[0], m_impl->m_corners[3]);
+        }
+    }
+    
     void Warp::render_grid()
     {
         gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);

@@ -42,6 +42,9 @@ namespace kinski{ namespace gl{
         void move_center_to(const gl::vec2 &the_pos);
         gl::vec2 center() const;
         
+        void flip_content(bool horizontal = true);
+        void rotate_content(bool clock_wise = true);
+        
         const Area_<uint32_t>& src_area() const;
         void set_src_area(const Area_<uint32_t>& the_src_area);
         
@@ -49,7 +52,6 @@ namespace kinski{ namespace gl{
         const gl::vec2 control_point(int the_index) const;
         
         void set_control_point(int the_x, int the_y, const gl::vec2 &the_point);
-        
         void set_control_point(int the_index, const gl::vec2 &the_point);
         
         const std::vector<gl::vec2>& control_points() const;

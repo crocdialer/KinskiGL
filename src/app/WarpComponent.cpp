@@ -323,6 +323,18 @@ namespace kinski
                 m_active_control_points.clear();
                 reset();
                 break;
+                
+            case Key::_F10:
+                quad_warp().rotate_content();
+                break;
+                
+            case Key::_F11:
+                quad_warp().flip_content(true);
+                break;
+                
+            case Key::_F12:
+                quad_warp().flip_content(false);
+                break;
         }
         refresh();
     }
