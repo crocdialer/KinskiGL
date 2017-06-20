@@ -274,7 +274,7 @@ namespace kinski { namespace gl {
         // look for an existing mesh
         auto mesh_iter = m_impl->string_mesh_map.find(theText);
         
-        if(m_impl->string_mesh_map.find(theText) != m_impl->string_mesh_map.end())
+        if(mesh_iter != m_impl->string_mesh_map.end())
         {
             mesh_iter->second.counter++;
             mesh_iter->second.mesh->set_transform(mat4());

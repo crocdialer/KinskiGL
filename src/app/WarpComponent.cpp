@@ -25,6 +25,8 @@ namespace kinski
         m_enabled = Property_<bool>::create("enabled", false);
         m_num_subdivisions_x = RangedProperty<uint32_t>::create("num subdivisions x", 1, 1, 5);
         m_num_subdivisions_y = RangedProperty<uint32_t>::create("num subdivisions y", 1, 1, 5);
+        m_grid_resolution_x = RangedProperty<uint32_t>::create("grid resolution x", 32, 1, 160);
+        m_grid_resolution_y = RangedProperty<uint32_t>::create("grid resolution y", 18, 1, 160);
         m_draw_grid = Property_<bool>::create("draw grid", false);
         m_draw_control_points = Property_<bool>::create("draw control points", false);
         m_cubic_interpolation = Property_<bool>::create("use cubic interpolation", false);
@@ -45,6 +47,8 @@ namespace kinski
         register_property(m_corners);
         register_property(m_src_top_left);
         register_property(m_src_bottom_right);
+        register_property(m_grid_resolution_x);
+        register_property(m_grid_resolution_y);
         
         register_function("reset", std::bind(&WarpComponent::reset, this));
         
@@ -117,6 +121,8 @@ namespace kinski
         
         *m_src_top_left = gl::vec2(the_quadwarp.src_area().x0, the_quadwarp.src_area().y0);
         *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
+        *m_grid_resolution_x = the_quadwarp.grid_resolution().x;
+        *m_grid_resolution_y = the_quadwarp.grid_resolution().y;
         m_params[the_index].enabled = *m_enabled;
         m_params[the_index].display_grid = *m_draw_grid;
         m_params[the_index].display_points = *m_draw_control_points;
@@ -128,15 +134,7 @@ namespace kinski
                                                            m_src_top_left->value().y,
                                                            m_src_bottom_right->value().x,
                                                            m_src_bottom_right->value().y));
-//        m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
-//        m_active_control_points.clear();
-//        
-//        for(auto cp_index : quad_warp().selected_indices())
-//        {
-//            control_point_t cp(cp_index, quad_warp().control_points()[cp_index]);
-//            m_active_control_points.insert(cp);
-//        }
-        
+        m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
         observe_properties(true);
     }
     
@@ -180,6 +178,10 @@ namespace kinski
         else if(the_property == m_num_subdivisions_x || the_property == m_num_subdivisions_y)
         {
             m_quad_warp[*m_index].set_num_subdivisions(*m_num_subdivisions_x, *m_num_subdivisions_y);
+        }
+        else if(the_property == m_grid_resolution_x || the_property == m_grid_resolution_y)
+        {
+            m_quad_warp[*m_index].set_grid_resolution(*m_grid_resolution_x, *m_grid_resolution_y);
         }
         else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
         {

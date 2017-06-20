@@ -322,7 +322,7 @@ namespace kinski{ namespace gl{
                             is_corner ? 15.f : 10.f,
                             contains(m_impl->m_selected_indices, i) ?
                                 gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
-                            true);
+                            true, 24);
         }
         
 //        uint32_t num_x = m_impl->m_num_subdivisions.x + 1, num_y = m_impl->m_num_subdivisions.x + 1;
@@ -416,7 +416,10 @@ namespace kinski{ namespace gl{
 
     void Warp::set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h)
     {
-        m_impl->create_mesh(the_res_w, the_res_h);
+        if(m_impl->m_grid_num_w != the_res_w || m_impl->m_grid_num_h != the_res_h)
+        {
+            m_impl->create_mesh(the_res_w, the_res_h);
+        }
     }
     
     const std::vector<gl::vec2>& Warp::control_points() const

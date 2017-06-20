@@ -82,6 +82,7 @@ namespace kinski
         
         Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_num_subdivisions_x, m_num_subdivisions_y;
+        Property_<uint32_t>::Ptr m_grid_resolution_x, m_grid_resolution_y;
         Property_<bool>::Ptr m_enabled, m_draw_grid, m_draw_control_points, m_cubic_interpolation;
         
         Property_<gl::vec2>::Ptr m_src_top_left, m_src_bottom_right;
