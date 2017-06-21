@@ -759,7 +759,7 @@ namespace kinski { namespace gl {
         m->set_position(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
                                  m->geometry()->bounding_box().height(), 0.f));
         gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
-        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
+        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
         draw_mesh(m);
     }
 

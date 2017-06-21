@@ -14,6 +14,7 @@
 #pragma once
 
 #include "core/Component.hpp"
+#include "gl/Font.hpp"
 #include "Warp.hpp"
 
 namespace kinski
@@ -48,6 +49,7 @@ namespace kinski
         void set_display_points(int the_index, bool b);
         bool display_points(int the_index) const;
         uint32_t num_warps() const;
+        void set_font(const gl::Font& the_font){ m_font = the_font; };
         
         void key_press(const KeyEvent &e);
         void key_release(const KeyEvent &e);
@@ -79,6 +81,7 @@ namespace kinski
         std::set<control_point_t> m_active_control_points;
         gl::vec2 m_click_pos, m_mouse_pos;
         bool m_show_cursor = false;
+        gl::Font m_font;
         
         Property_<uint32_t>::Ptr m_index;
         Property_<uint32_t>::Ptr m_num_subdivisions_x, m_num_subdivisions_y;

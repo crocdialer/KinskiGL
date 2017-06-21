@@ -122,7 +122,7 @@ namespace kinski {
         
         outstream_gl().set_color(gl::COLOR_WHITE);
         outstream_gl().set_font(fonts()[0]);
-
+        
         gl::ShaderPtr unlit_shader = gl::create_shader(gl::ShaderType::UNLIT);
 
         for (int i = 0; i < 8; i++)
@@ -152,6 +152,7 @@ namespace kinski {
         // warp component
         m_warp_component = std::make_shared<WarpComponent>();
         m_warp_component->observe_properties();
+        m_warp_component->set_font(fonts()[0]);
 
         // setup remote control
         m_remote_control = RemoteControl(main_queue().io_service(), {shared_from_this(), m_light_component});
