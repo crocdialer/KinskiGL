@@ -151,7 +151,7 @@ namespace kinski{ namespace gl{
         void compute_tangents();
         
         GLenum index_type();
-        inline constexpr size_t index_size(){ return sizeof(index_t); };
+        inline size_t index_size() const { return sizeof(index_t); };
         inline GLenum primitive_type() const {return m_primitive_type;};
         void set_primitive_type(GLenum type){ m_primitive_type = type; };
         
