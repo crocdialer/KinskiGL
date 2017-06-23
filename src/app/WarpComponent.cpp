@@ -196,7 +196,7 @@ namespace kinski
         }
     }
     
-    void WarpComponent::render_output(int the_index, const gl::Texture &the_tex,
+    void WarpComponent::render_output(uint32_t the_index, const gl::Texture &the_tex,
                                       const float the_brightness)
     {
         m_quad_warp[the_index].render_output(the_tex, the_brightness);

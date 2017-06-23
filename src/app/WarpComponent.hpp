@@ -38,7 +38,7 @@ namespace kinski
         
         gl::Warp& quad_warp(int i = -1);
         
-        void render_output(int the_index, const gl::Texture &the_tex, const float the_brightness = 1.f);
+        void render_output(uint32_t the_index, const gl::Texture &the_tex, const float the_brightness = 1.f);
         void set_from(gl::Warp &the_quadwarp, uint32_t the_index = 0);
         uint32_t index() const{ return *m_index; }
         void set_index(int the_index) { *m_index = the_index; }
