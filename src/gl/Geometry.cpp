@@ -9,12 +9,6 @@
 
 #include "Geometry.hpp"
 
-#ifdef KINSKI_GLES
-typedef GLushort index_type;
-#else
-typedef GLuint index_type;
-#endif
-
 using namespace std;
 
 namespace kinski{ namespace gl{
@@ -317,9 +311,9 @@ void Geometry::create_gl_buffers()
     {
         // index buffer
         m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-        m_index_buffer.set_data(NULL, m_indices.size() * sizeof(index_type));
+        m_index_buffer.set_data(NULL, m_indices.size() * sizeof(index_t));
         KINSKI_CHECK_GL_ERRORS();
-        index_type *indexPtr = (index_type*) m_index_buffer.map();
+        index_t *indexPtr = (index_t*) m_index_buffer.map();
         KINSKI_CHECK_GL_ERRORS();
 
         // insert indices
@@ -331,7 +325,7 @@ void Geometry::create_gl_buffers()
     }
 }
 
-GLenum Geometry::indexType()
+GLenum Geometry::index_type()
 {
 #if defined(KINSKI_GLES)
     GLenum ret = GL_UNSIGNED_SHORT;
@@ -340,6 +334,11 @@ GLenum Geometry::indexType()
 #endif
     return ret;
 }
+    
+//size_t Geometry::index_size()
+//{
+//    return sizeof(index_t);
+//}
 
 /********************************* PRIMITIVES ****************************************/
 

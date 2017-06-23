@@ -311,22 +311,22 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
 #ifndef KINSKI_GLES
                     glDrawElementsBaseVertex(primitive_type,
                                              m->entries()[i].num_indices,
-                                             m->geometry()->indexType(),
+                                             m->geometry()->index_type(),
                                              BUFFER_OFFSET(m->entries()[i].base_index
-                                                           * sizeof(m->geometry()->indexType())),
+                                                           * m->geometry()->index_size()),
                                              m->entries()[i].base_vertex);
 #else
                     glDrawElements(primitive_type,
-                                   m->entries()[i].num_indices, m->geometry()->indexType(),
+                                   m->entries()[i].num_indices, m->geometry()->index_type(),
                                    BUFFER_OFFSET(m->entries()[i].base_index
-                                                 * sizeof(m->geometry()->indexType())));
+                                                 * m->geometry()->index_size()));
 #endif
                 }
             }
             else
             {
                 glDrawElements(m->geometry()->primitive_type(),
-                               m->geometry()->indices().size(), m->geometry()->indexType(),
+                               m->geometry()->indices().size(), m->geometry()->index_type(),
                                BUFFER_OFFSET(0));
             }
         }

@@ -858,15 +858,15 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #ifndef KINSKI_GLES
                 glDrawElementsBaseVertex(primitive_type,
                                          the_mesh->entries()[i].num_indices,
-                                         the_mesh->geometry()->indexType(),
+                                         the_mesh->geometry()->index_type(),
                                          BUFFER_OFFSET(the_mesh->entries()[i].base_index *
-                                                       sizeof(the_mesh->geometry()->indexType())),
+                                                       the_mesh->geometry()->index_size()),
                                          the_mesh->entries()[i].base_vertex);
 #else
                 glDrawElements(primitive_type,
-                               the_mesh->entries()[i].num_indices, the_mesh->geometry()->indexType(),
+                               the_mesh->entries()[i].num_indices, the_mesh->geometry()->index_type(),
                                BUFFER_OFFSET(the_mesh->entries()[i].base_index *
-                                             sizeof(the_mesh->geometry()->indexType())));
+                                             the_mesh->geometry()->index_size()));
 #endif
             }
         }
@@ -874,7 +874,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         {
             glDrawElements(the_mesh->geometry()->primitive_type(),
-                           the_mesh->geometry()->indices().size(), the_mesh->geometry()->indexType(),
+                           the_mesh->geometry()->indices().size(), the_mesh->geometry()->index_type(),
                            BUFFER_OFFSET(0));
         }
     }
@@ -1379,16 +1379,18 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             }
         }
 
+#if defined(KINSKI_GLES)
         if(!last_mat || last_mat->line_width() != the_mat->line_width())
         {
             if(the_mat->line_width() > 1.f)
             {
-//                glEnable(GL_LINE_SMOOTH);
-//                glLineWidth(2.f);
+                glEnable(GL_LINE_SMOOTH);
+                glLineWidth(the_mat->line_width());
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
-
+#endif
+        
         // texture matrix from first texture, if any
         shader->uniform("u_textureMatrix", (the_mat->textures().empty() || !the_mat->textures().front()) ?
                                           glm::mat4() : the_mat->textures().front().texture_matrix());

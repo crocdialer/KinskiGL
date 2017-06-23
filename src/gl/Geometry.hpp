@@ -58,6 +58,12 @@ namespace kinski{ namespace gl{
     {
     public:
         
+#ifdef KINSKI_GLES
+        typedef GLushort index_t;
+#else
+        typedef GLuint index_t;
+#endif
+        
         typedef std::shared_ptr<Geometry> Ptr;
         
         ~Geometry();
@@ -144,7 +150,8 @@ namespace kinski{ namespace gl{
         void compute_vertex_normals();
         void compute_tangents();
         
-        GLenum indexType();
+        GLenum index_type();
+        inline constexpr size_t index_size(){ return sizeof(index_t); };
         inline GLenum primitive_type() const {return m_primitive_type;};
         void set_primitive_type(GLenum type){ m_primitive_type = type; };
         
