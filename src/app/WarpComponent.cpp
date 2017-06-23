@@ -213,7 +213,7 @@ namespace kinski
             // label
             if(the_index == *m_index)
             {
-                auto p = m_quad_warp[the_index].transform() * gl::vec4(0.f, 1.f,
+                auto p = m_quad_warp[the_index].transform() * gl::vec4(0.025f, 1.f,
                                                                        0, 1);
                 p /= p.w;
                 p.y = 1.f - p.y;

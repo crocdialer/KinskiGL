@@ -185,7 +185,6 @@ namespace kinski{ namespace gl{
         
         void set_num_subdivisions(const gl::ivec2 &the_res)
         {
-//            auto num_subs = glm::min(the_res, Warp::s_max_num_subdivisions);
             auto num_subs = glm::clamp(the_res, gl::ivec2(1), Warp::s_max_num_subdivisions);
             auto diff = num_subs - m_num_subdivisions;
             
@@ -277,7 +276,6 @@ namespace kinski{ namespace gl{
     void Warp::render_output(const gl::Texture &the_texture, const float the_brightness)
     {
         if(!the_texture){ return; }
-        if(!m_impl){ m_impl.reset(new Impl); }
         
 #if !defined(KINSKI_GLES)
         if(the_texture.target() == GL_TEXTURE_RECTANGLE)
@@ -309,8 +307,6 @@ namespace kinski{ namespace gl{
     
     void Warp::render_control_points()
     {
-        if(!m_impl){ m_impl.reset(new Impl); }
-        
         for(uint32_t i = 0; i < m_impl->m_control_points.size(); i++)
         {
             bool is_corner = m_impl->is_corner(i);
@@ -319,19 +315,11 @@ namespace kinski{ namespace gl{
             p.y = (1.f - p.y);
             
             gl::draw_circle(p * window_dimension(),
-                            is_corner ? 15.f : 10.f,
+                            is_corner ? 10.f : 6.6f,
                             contains(m_impl->m_selected_indices, i) ?
                                 gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
                             true, 24);
         }
-        
-//        uint32_t num_x = m_impl->m_num_subdivisions.x + 1, num_y = m_impl->m_num_subdivisions.x + 1;
-        
-//        for(uint32_t y = 0; y < num_y; ++y)
-//            for(uint32_t x = 0; x < num_x; ++x)
-//            {
-//                
-//            }
     }
     
     const Area_<uint32_t>& Warp::src_area() const
@@ -406,7 +394,7 @@ namespace kinski{ namespace gl{
     
     ivec2 Warp::grid_resolution() const
     {
-        return m_impl ? ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h) : ivec2();
+        return ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h);
     }
 
     void Warp::set_grid_resolution(const gl::ivec2 &the_res)

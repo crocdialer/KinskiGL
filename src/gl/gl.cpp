@@ -759,7 +759,7 @@ namespace kinski { namespace gl {
         m->set_position(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
                                  m->geometry()->bounding_box().height(), 0.f));
         gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
-        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
         draw_mesh(m);
     }
 
@@ -865,7 +865,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #else
                 glDrawElements(primitive_type,
                                the_mesh->entries()[i].num_indices, the_mesh->geometry()->indexType(),
-                               BUFFER_OFFSET(0));
+                               BUFFER_OFFSET(the_mesh->entries()[i].base_index *
+                                             sizeof(the_mesh->geometry()->indexType())));
 #endif
             }
         }
