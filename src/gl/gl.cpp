@@ -1384,7 +1384,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         {
             if(the_mat->line_width() > 1.f)
             {
-                glEnable(GL_LINE_SMOOTH);
+//                glEnable(GL_LINE_SMOOTH);
                 glLineWidth(the_mat->line_width());
                 KINSKI_CHECK_GL_ERRORS();
             }
