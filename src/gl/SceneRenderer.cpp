@@ -273,7 +273,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 mat->uniform("u_bones", m->bone_matrices());
             }
 
-            gl::apply_material(m->material());
+//            gl::apply_material(m->material());
 
             // lighting parameters
 #if !defined(KINSKI_GLES)
@@ -283,11 +283,8 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
 #endif
         }
 
-#ifndef KINSKI_NO_VAO
-        m->bind_vertex_array();
-#else
-        m->bind_vertex_pointers();
-#endif
+        m->bind_vertex_array();        
+        gl::apply_material(m->material());
         
         KINSKI_CHECK_GL_ERRORS();
         
