@@ -222,6 +222,9 @@ void SceneRenderer::render(const RenderBinPtr &theBin)
     // update uniform buffers (global light settings)
     update_uniform_buffers(theBin->lights);
     
+    // make sure we start with a known state
+    gl::reset_state();
+    
     // draw our stuff
     draw_sorted_by_material(theBin->camera, opaque_items, theBin->lights);
     draw_sorted_by_material(theBin->camera, blended_items, theBin->lights);
