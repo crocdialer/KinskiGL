@@ -1396,14 +1396,19 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #if defined(KINSKI_GLES)
         if(!last_mat || last_mat->line_width() != the_mat->line_width())
         {
-            if(the_mat->line_width() > 1.f)
-            {
+//            if(the_mat->line_width() > 1.f)
+//            {
 //                glEnable(GL_LINE_SMOOTH);
                 glLineWidth(the_mat->line_width());
                 KINSKI_CHECK_GL_ERRORS();
-            }
+//            }
         }
 #endif
+        
+        if(!last_mat || override_shader)
+        {
+        
+        }
         
         // texture matrix from first texture, if any
         shader->uniform("u_textureMatrix", (the_mat->textures().empty() || !the_mat->textures().front()) ?
