@@ -334,11 +334,6 @@ GLenum Geometry::index_type()
 #endif
     return ret;
 }
-    
-//size_t Geometry::index_size()
-//{
-//    return sizeof(index_t);
-//}
 
 /********************************* PRIMITIVES ****************************************/
 

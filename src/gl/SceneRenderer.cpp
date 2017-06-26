@@ -120,12 +120,14 @@ void sort_render_bin(const RenderBinPtr &the_bin,
     //sort opaque items near to far
     the_opaque_items.sort([](const RenderBin::item &lhs, const RenderBin::item &rhs) -> bool
     {
-        return lhs.transform[3].z > rhs.transform[3].z;
+        return  std::make_tuple(lhs.mesh->material().get(), lhs.transform[3].z) >
+                std::make_tuple(rhs.mesh->material().get(), rhs.transform[3].z);
     });
     //sort transparent items far to near
     the_transparent_items.sort([](const RenderBin::item &lhs, const RenderBin::item &rhs) -> bool
     {
-        return lhs.transform[3].z < rhs.transform[3].z;
+        return  std::make_tuple(lhs.mesh->material().get(), lhs.transform[3].z) <
+                std::make_tuple(rhs.mesh->material().get(), rhs.transform[3].z);
     });
 }
 
@@ -162,7 +164,6 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
                 LOG_WARNING << "too many lights with active shadows";
                 break;
             }
-//            shadow_fbos()[i].enable_draw_buffers(false);
             set_shadow_pass(true);
             shadow_cams()[i] = gl::create_shadow_camera(l, min(extents, l->max_distance()));
             
@@ -172,7 +173,6 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
                                       glClear(GL_DEPTH_BUFFER_BIT);
                                       render(cull(the_scene, shadow_cams()[i]));
                                   });
-//            shadow_fbos()[i].enable_draw_buffers(true);
             i++;
             set_shadow_pass(false);
         }
@@ -273,8 +273,6 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 mat->uniform("u_bones", m->bone_matrices());
             }
 
-//            gl::apply_material(m->material());
-
             // lighting parameters
 #if !defined(KINSKI_GLES)
             mat->shader()->uniform_block_binding("LightBlock", LIGHT_BLOCK);
@@ -292,33 +290,49 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
         {
             if(!m->entries().empty())
             {
-                for (uint32_t i = 0; i < m->entries().size(); i++)
+                std::list<uint32_t> mat_entries[m->materials().size()];
+                
+                for (uint32_t i = 0; i < m->entries().size(); ++i)
                 {
-                    // skip disabled entries
-                    if(!m->entries()[i].enabled) continue;
-                    
-                    uint32_t primitive_type = m->entries()[i].primitive_type;
-                    primitive_type = primitive_type ? : m->geometry()->primitive_type();
-                    
-                    int mat_index = clamp<int>(m->entries()[i].material_index,
-                                               0,
+                    int mat_index = clamp<int>(m->entries()[i].material_index, 0,
                                                m->materials().size() - 1);
-                    m->bind_vertex_array(mat_index);
-                    apply_material(m->materials()[mat_index]);
-#ifndef KINSKI_GLES
-                    glDrawElementsBaseVertex(primitive_type,
-                                             m->entries()[i].num_indices,
-                                             m->geometry()->index_type(),
-                                             BUFFER_OFFSET(m->entries()[i].base_index
-                                                           * m->geometry()->index_size()),
-                                             m->entries()[i].base_vertex);
-#else
-                    glDrawElements(primitive_type,
-                                   m->entries()[i].num_indices, m->geometry()->index_type(),
-                                   BUFFER_OFFSET(m->entries()[i].base_index
-                                                 * m->geometry()->index_size()));
-#endif
+                    mat_entries[mat_index].push_back(i);
                 }
+                
+                for (uint32_t i = 0; i < m->materials().size(); ++i)
+                {
+                    const auto& entry_list = mat_entries[i];
+                    
+                    if(!entry_list.empty())
+                    {
+                        m->bind_vertex_array(i);
+                        apply_material(m->materials()[i]);
+                    }
+                    
+                    for (auto entry_index : entry_list)
+                    {
+                        const gl::Mesh::Entry &e = m->entries()[entry_index];
+                        
+                        // skip disabled entries
+                        if(!e.enabled) continue;
+                        
+                        uint32_t primitive_type = e.primitive_type;
+                        primitive_type = primitive_type ? : m->geometry()->primitive_type();
+
+#ifndef KINSKI_GLES
+                        glDrawElementsBaseVertex(primitive_type,
+                                                 e.num_indices,
+                                                 m->geometry()->index_type(),
+                                                 BUFFER_OFFSET(e.base_index * m->geometry()->index_size()),
+                                                 e.base_vertex);
+#else
+                        glDrawElements(primitive_type,
+                                       e.num_indices, m->geometry()->index_type(),
+                                       BUFFER_OFFSET(e.base_index * m->geometry()->index_size()));
+#endif
+                    }
+                }
+                
             }
             else
             {

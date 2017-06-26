@@ -841,33 +841,47 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     {
         if(!the_mesh->entries().empty())
         {
-            for (uint32_t i = 0; i < the_mesh->entries().size(); i++)
+            std::list<uint32_t> mat_entries[the_mesh->materials().size()];
+            
+            for (uint32_t i = 0; i < the_mesh->entries().size(); ++i)
             {
-                // skip disabled entries
-                if(!the_mesh->entries()[i].enabled) continue;
-
-                uint32_t primitive_type = the_mesh->entries()[i].primitive_type;
-                primitive_type = primitive_type ? : the_mesh->geometry()->primitive_type();
-
-                int mat_index = clamp<int>(the_mesh->entries()[i].material_index,
-                                           0,
+                int mat_index = clamp<int>(the_mesh->entries()[i].material_index, 0,
                                            the_mesh->materials().size() - 1);
-                if(!overide_shader){ the_mesh->bind_vertex_array(mat_index); }
-                apply_material(the_mesh->materials()[mat_index], false, overide_shader);
+                mat_entries[mat_index].push_back(i);
+            }
+            
+            for (uint32_t i = 0; i < the_mesh->materials().size(); ++i)
+            {
+                const auto& entry_list = mat_entries[i];
+                
+                if(!entry_list.empty())
+                {
+                    if(!overide_shader){ the_mesh->bind_vertex_array(i); }
+                    apply_material(the_mesh->materials()[i], false, overide_shader);
+                }
 
+                for (auto entry_index : entry_list)
+                {
+                    const gl::Mesh::Entry &e = the_mesh->entries()[entry_index];
+                    
+                    // skip disabled entries
+                    if(!e.enabled) continue;
+                    
+                    uint32_t primitive_type = e.primitive_type;
+                    primitive_type = primitive_type ? : the_mesh->geometry()->primitive_type();
 #ifndef KINSKI_GLES
-                glDrawElementsBaseVertex(primitive_type,
-                                         the_mesh->entries()[i].num_indices,
-                                         the_mesh->geometry()->index_type(),
-                                         BUFFER_OFFSET(the_mesh->entries()[i].base_index *
-                                                       the_mesh->geometry()->index_size()),
-                                         the_mesh->entries()[i].base_vertex);
+                    glDrawElementsBaseVertex(primitive_type,
+                                             e.num_indices,
+                                             the_mesh->geometry()->index_type(),
+                                             BUFFER_OFFSET(e.base_index *the_mesh->geometry()->index_size()),
+                                             e.base_vertex);
 #else
-                glDrawElements(primitive_type,
-                               the_mesh->entries()[i].num_indices, the_mesh->geometry()->index_type(),
-                               BUFFER_OFFSET(the_mesh->entries()[i].base_index *
-                                             the_mesh->geometry()->index_size()));
+                    glDrawElements(primitive_type,
+                                   e.num_indices,
+                                   the_mesh->geometry()->index_type(),
+                                   BUFFER_OFFSET(e.base_index * the_mesh->geometry()->index_size()));
 #endif
+                }
             }
         }
         else
