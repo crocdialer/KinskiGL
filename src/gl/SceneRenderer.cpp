@@ -64,22 +64,10 @@ public:
         {
             RenderBin::light light_item;
             light_item.light = std::dynamic_pointer_cast<gl::Light>(theNode.shared_from_this());
-            switch (theNode.type())
-            {
-                case Light::DIRECTIONAL:
-//                    light_item.transform =
-//                    glm::mat4(glm::inverseTranspose(glm::mat3(transform_stack().top()))) *
-//                    theNode.transform();
-//                    break;
-                    
-                case Light::POINT:
-                case Light::SPOT:
-                    light_item.transform = transform_stack().top() * theNode.transform();
-                    break;
-            }
+            light_item.transform = transform_stack().top() * theNode.transform();
+            
             // collect only lights that actually affect the scene
             gl::Sphere bounding_sphere(gl::vec3(theNode.transform()[3].xyz()), theNode.max_distance());
-//            bounding_sphere.transform(theNode.transform());
 
             if(m_frustum.intersect(bounding_sphere))
             {
@@ -223,7 +211,7 @@ void SceneRenderer::render(const RenderBinPtr &theBin)
     update_uniform_buffers(theBin->lights);
     
     // make sure we start with a known state
-    gl::reset_state();
+//    gl::reset_state();
     
     // draw our stuff
     draw_sorted_by_material(theBin->camera, opaque_items, theBin->lights);
