@@ -116,7 +116,7 @@ namespace kinski
                 theProperty == m_texture_path_3 ||
                 theProperty == m_texture_path_4)
         {
-            active_mat->textures().clear();
+            active_mat->clear_textures();
             
             std::list<std::string> tex_names = {*m_texture_path_1, *m_texture_path_2,
                 *m_texture_path_3, *m_texture_path_4};

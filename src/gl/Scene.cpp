@@ -165,7 +165,7 @@ namespace kinski { namespace gl {
                                             gl::Material::create());
                 m_skybox->material()->set_depth_write(false);
                 m_skybox->material()->set_culling(gl::Material::CULL_FRONT);
-                m_skybox->material()->textures() = {t};
+                m_skybox->material()->set_textures({t});
                 break;
                 
             default:

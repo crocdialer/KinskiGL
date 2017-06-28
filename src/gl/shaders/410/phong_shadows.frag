@@ -182,6 +182,8 @@ void main()
   if(u_numTextures > 0)
     texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
 
+  if(smoothstep(0.0, 1.0, texColors.a) < 0.01){ discard; }
+
   vec3 normal = normalize(vertex_in.normal);
   vec4 shade_color = vec4(0);
 

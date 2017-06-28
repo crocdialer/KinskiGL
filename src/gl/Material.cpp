@@ -168,7 +168,6 @@ namespace kinski { namespace gl {
             m.shadow_properties = m_shadow_properties;
 
             m_uniform_buffer.set_data(&m, sizeof(m));
-            m_dirty_uniform_buffer = false;
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
         KINSKI_CHECK_GL_ERRORS();
@@ -186,11 +185,10 @@ namespace kinski { namespace gl {
                                                        m_point_attenuation.constant,
                                                        m_point_attenuation.linear,
                                                        m_point_attenuation.quadratic);
-            m_dirty_uniform_buffer = false;
         }
 #endif
         
-//        if(m_dirty_uniform_buffer)
+        if(m_dirty_uniform_buffer)
         {
             // set all other uniform values
             for (auto it = uniforms().begin(); it != uniforms().end(); ++it)
@@ -199,6 +197,7 @@ namespace kinski { namespace gl {
                 KINSKI_CHECK_GL_ERRORS();
             }
         }
+        m_dirty_uniform_buffer = false;
     }
     
 }}// namespace

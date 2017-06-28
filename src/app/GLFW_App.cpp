@@ -1,4 +1,4 @@
-  // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
+   // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 //
 // Copyright (C) 2012-2016, Fabian Schmidt <crocdialer@googlemail.com>
 //
@@ -36,7 +36,7 @@ namespace kinski
 
     GLFW_Window::GLFW_Window(int width, int height, const std::string &theName, bool fullscreen,
                              int monitor_index, GLFWwindow* share)
-     {
+    {
          int monitor_count = 0;
          GLFWmonitor **monitors = glfwGetMonitors(&monitor_count);
          monitor_index = clamp(monitor_index, 0, monitor_count - 1);
@@ -107,11 +107,8 @@ namespace kinski
     {
         glfwMakeContextCurrent(m_handle);
         gl::context()->set_current_context_id(m_handle);
-
         gl::set_window_dimension(framebuffer_size());
-
-        glDepthMask(GL_TRUE);
-
+        
         if(m_draw_function){ m_draw_function(); }
     }
 
@@ -141,7 +138,7 @@ namespace kinski
             max(0, min(wx + ww, mx + mw) - max(wx, mx)) *
             max(0, min(wy + wh, my + mh) - max(wy, my));
 
-            if (bestoverlap < overlap)
+            if(bestoverlap < overlap)
             {
                 bestoverlap = overlap;
                 ret = i;

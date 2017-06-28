@@ -292,7 +292,7 @@ namespace kinski{ namespace gl{
             roi_tex.set_roi(m_impl->m_src_area);
         }
         
-        m_impl->m_mesh->material()->textures() = {roi_tex};
+        m_impl->m_mesh->material()->set_textures({roi_tex});
         
         if(m_impl->m_dirty_subs){ m_impl->update_mesh(); }
         

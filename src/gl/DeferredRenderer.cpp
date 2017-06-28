@@ -196,9 +196,9 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
         m_mat_lighting_shadow->uniform("u_window_dimension", gl::window_dimension());
         m_mat_lighting_shadow_omni->uniform("u_window_dimension", gl::window_dimension());
-        m_mat_lighting->textures().clear();
-        m_mat_lighting_shadow->textures().clear();
-        m_mat_lighting_shadow_omni->textures().clear();
+        m_mat_lighting->clear_textures();
+        m_mat_lighting_shadow->clear_textures();
+        m_mat_lighting_shadow_omni->clear_textures();
         
         for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
         {
@@ -367,7 +367,8 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 {
                     mat = (l.light->type() == gl::Light::POINT) ?
                         m_mat_lighting_shadow_omni : m_mat_lighting_shadow;
-                    mat->textures().back() = shadow_map;
+                    auto tmp = mat->textures(); tmp.back() = shadow_map;
+                    mat->set_textures(tmp);
                 }
             }
             else{ mat = m_mat_lighting; }

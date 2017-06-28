@@ -113,7 +113,8 @@ void main()
 {
   vec4 texColors = /*vertex_in.color **/ texture(u_sampler_2D[DIFFUSE],
                                              vertex_in.texCoord.st);
-
+  if(smoothstep(0.0, 1.0, texColors.a) < 0.01){ discard; }
+  
   vec3 normal;
   //normal = normalFromHeightMap(u_sampler_2D[1], vertex_in.texCoord.xy, 0.8);
 

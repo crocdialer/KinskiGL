@@ -42,7 +42,8 @@ namespace kinski { namespace gl {
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         
-        void add_texture(const Texture &theTexture) {m_textures.push_back(theTexture);};
+        void add_texture(const Texture &theTexture)
+        { m_textures.push_back(theTexture); m_dirty_uniform_buffer = true; };
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
@@ -53,8 +54,12 @@ namespace kinski { namespace gl {
         ShaderConstPtr shader() const {return m_shader;};
         void set_shader(const ShaderPtr &theShader);
         
-        std::vector<Texture>& textures() {return m_textures;};
+        void set_textures(const std::vector<Texture>& the_textures)
+        { m_textures = the_textures; m_dirty_uniform_buffer = true; };
+        
         const std::vector<Texture>& textures() const {return m_textures;};
+        
+        void clear_textures(){ m_textures.clear(); }
         
         std::map<std::string, AssetLoadStatus>& texture_paths(){ return m_texture_paths; }
         const std::map<std::string, AssetLoadStatus>& texture_paths() const { return m_texture_paths; }

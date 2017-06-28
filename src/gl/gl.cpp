@@ -529,8 +529,7 @@ namespace kinski { namespace gl {
         //create material, if not yet here
         if(!material)
         {
-            try{ material = gl::Material::create(); }
-            catch (Exception &e){ LOG_ERROR<<e.what(); }
+            material = gl::Material::create();
             material->set_shader(gl::create_shader(gl::ShaderType::POINTS_COLOR));
             material->set_depth_test(false);
             material->set_depth_write(false);
@@ -620,7 +619,7 @@ namespace kinski { namespace gl {
         }
 #endif
         // add the texture to the material
-        material->textures().clear();
+        material->clear_textures();
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
         material->add_texture(theTexture);
 
@@ -654,7 +653,7 @@ namespace kinski { namespace gl {
         }
 
         // add the texture to the material
-        material->textures() = {the_texture, the_mask};
+        material->set_textures({the_texture, the_mask});
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
 
         vec2 sz = theSize;
@@ -836,7 +835,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     { gl::apply_material(the_mesh->material(), false, overide_shader); }
     
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
-
+    
     if(the_mesh->geometry()->has_indices())
     {
         if(!the_mesh->entries().empty())
@@ -845,9 +844,10 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             
             for (uint32_t i = 0; i < the_mesh->entries().size(); ++i)
             {
-                int mat_index = clamp<int>(the_mesh->entries()[i].material_index, 0,
-                                           the_mesh->materials().size() - 1);
-                mat_entries[mat_index].push_back(i);
+                int mat_index = the_mesh->entries()[i].material_index;
+                
+                if(mat_index >= 0 && mat_index < the_mesh->materials().size())
+                    mat_entries[mat_index].push_back(i);
             }
             
             for (uint32_t i = 0; i < the_mesh->materials().size(); ++i)
@@ -1289,7 +1289,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     }
                 }
             }
-            the_mat->textures() = concat_containers<gl::Texture>(tmp_textures, the_mat->textures());
+            the_mat->set_textures(concat_containers<gl::Texture>(tmp_textures, the_mat->textures()));
         }
 
         // shader queue
