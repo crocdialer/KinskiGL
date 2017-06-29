@@ -846,7 +846,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             {
                 uint32_t mat_index = the_mesh->entries()[i].material_index;
                 
-                if(mat_index >= 0 && mat_index < the_mesh->materials().size())
+                if(mat_index < the_mesh->materials().size())
                     mat_entries[mat_index].push_back(i);
             }
             
