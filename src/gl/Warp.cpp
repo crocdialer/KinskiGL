@@ -59,6 +59,8 @@ namespace kinski{ namespace gl{
         mat4 m_transform, m_inv_transform;
         bool m_dirty = true, m_dirty_subs = true;
         bool m_cubic_interpolation = true;
+
+        gl::vec4 m_edges = gl::vec4(0, 1, 1, 0), m_edge_exponents = gl::vec4(1);
         
         Impl()
         {
@@ -102,12 +104,13 @@ namespace kinski{ namespace gl{
             
             uint32_t index = 0;
             auto &verts = m_mesh->geometry()->vertices();
+            auto &colors = m_mesh->geometry()->colors();
             
             std::vector<vec2> cols, rows;
             
             for(uint32_t y = 0; y < m_grid_num_h + 1; ++y)
             {
-                for(uint32_t x = 0; x < m_grid_num_w + 1; ++x)
+                for(uint32_t x = 0; x < m_grid_num_w + 1; ++x, ++index)
                 {
                     // transform coordinates to [0..numControls]
                     u = x * (m_num_subdivisions.x) / (float)(m_grid_num_w);
@@ -143,7 +146,19 @@ namespace kinski{ namespace gl{
                         }
                         p = cubic_interpolate(rows, u);
                     }
-                    verts[index++] = vec3(p, 0);
+                    verts[index] = vec3(p, 0);
+
+                    //softedges
+                    float alpha = 1.f;
+                    float edge_u = x / (float)(m_grid_num_w);
+                    float edge_v = y / (float)(m_grid_num_h);
+
+                    if(m_edges.x > 0){ alpha *= std::pow(clamp(edge_v / m_edges.x, 0.f, 1.f), m_edge_exponents.x); }
+                    if(m_edges.z < 1.f){ alpha *= std::pow(map_value(edge_v, 1.f, m_edges.z, 0.f, 1.f), m_edge_exponents.z); }
+                    if(m_edges.w > 0){ alpha *= std::pow(clamp(edge_u / m_edges.w, 0.f, 1.f), m_edge_exponents.w); }
+                    if(m_edges.y < 1.f){ alpha *= std::pow(map_value(edge_u, 1.f, m_edges.y, 0.f, 1.f), m_edge_exponents.y); }
+
+                    colors[index].a = alpha;
                 }
             }
             m_mesh->geometry()->create_gl_buffers();
@@ -474,7 +489,21 @@ namespace kinski{ namespace gl{
     {
         set_num_subdivisions(ivec2(the_div_w, the_div_h));
     }
-    
+
+    void Warp::set_edges(const gl::vec4& the_factors)
+    {
+        m_impl->m_edges.x = clamp(the_factors.x, 0.f, 1.f);
+        m_impl->m_edges.y = clamp(1.f - the_factors.y, 0.f, 1.f);
+        m_impl->m_edges.z = clamp(1.f - the_factors.z, 0.f, 1.f);
+        m_impl->m_edges.w = clamp(the_factors.w, 0.f, 1.f);
+        m_impl->m_dirty_subs = true;
+    }
+
+    void Warp::set_edge_exponents(const gl::vec4& the_exponents)
+    {
+        m_impl->m_edge_exponents = the_exponents;
+    }
+
     ivec2 Warp::num_subdivisions() const
     {
         return m_impl->m_num_subdivisions;

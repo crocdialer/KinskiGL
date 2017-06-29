@@ -118,7 +118,7 @@ void LSystem::iterate(int num_iterations)
 */
 gl::MeshPtr LSystem::create_mesh() const
 {
-//    m_state_stack = {{glm::mat4(), false, m_diameter}};
+    m_cancel_requested = false;
     
     // use subgeometries for different branch depths
     bool use_mesh_entries = true;
@@ -154,6 +154,12 @@ gl::MeshPtr LSystem::create_mesh() const
     // create geometry out of our buffer string
     for (auto iter = m_buffer.begin(), end = m_buffer.end(); iter != end; ++iter)
     {
+        if(m_cancel_requested)
+        {
+            LOG_DEBUG << "cancel requested ...";
+            return gl::MeshPtr();
+        }
+
         char ch = *iter, next_ch = (iter + 1) != m_buffer.end() ? *(iter + 1) : 0;
         
         gl::Color current_color(gl::COLOR_WHITE);
@@ -450,6 +456,11 @@ gl::MeshPtr LSystem::create_mesh() const
     ret->geometry()->set_primitive_type(GL_LINES);
     ret->geometry()->compute_bounding_box();
     return ret;
+}
+
+void LSystem::cancel()
+{
+    m_cancel_requested = true;
 }
 
 void LSystem::add_rule(const std::pair<char, string> the_rule)

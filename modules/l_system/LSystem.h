@@ -10,6 +10,7 @@
 
 #include "gl/gl.hpp"
 #include <unordered_map>
+#include <atomic>
 
 namespace kinski
 {
@@ -27,7 +28,10 @@ namespace kinski
         
         //! generate a gl::Mesh object from current string
         gl::MeshPtr create_mesh() const;
-        
+
+        //! cancel currently running calculations
+        void cancel();
+
         const std::string axiom() const { return m_axiom;}
         void set_axiom(const std::string &the_axiom){m_axiom = the_axiom;};
         
@@ -110,7 +114,9 @@ namespace kinski
         
         // iteration depth of last run
         uint32_t m_iteration_depth;
-        
+
+        mutable std::atomic<bool> m_cancel_requested;
+
         /*! an optional function object, responsible for performing validity checks for
          *  newly created geometry
          */

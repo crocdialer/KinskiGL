@@ -95,6 +95,8 @@ void MediaPlayer::draw()
         {
             if(m_warp_component->enabled(i))
             {
+//                m_warp_component->quad_warp().set_edges(gl::vec4(0, 0.2f, 0, 0));
+//                m_warp_component->quad_warp().set_edge_exponents(gl::vec4(1, 2, 1, 1));
                 m_warp_component->render_output(i, textures()[TEXTURE_INPUT], *m_brightness);
             }
         }
