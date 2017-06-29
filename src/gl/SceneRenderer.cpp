@@ -287,7 +287,7 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 {
                     uint32_t mat_index = m->entries()[i].material_index;
                     
-                    if(mat_index >= 0 && mat_index < m->materials().size())
+                    if(mat_index < m->materials().size())
                         mat_entries[mat_index].push_back(i);
                 }
                 
