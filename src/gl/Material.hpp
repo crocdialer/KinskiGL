@@ -23,9 +23,9 @@ namespace kinski { namespace gl {
     {
     public:
         
-        typedef boost::variant<GLint, GLfloat, double, vec2, vec3, vec4,
+        typedef boost::variant<int32_t, uint32_t, float, double, vec2, vec3, vec4,
         mat3, mat4,
-        std::vector<GLint>, std::vector<GLfloat>,
+        std::vector<int32_t>, std::vector<uint32_t>, std::vector<GLfloat>,
         std::vector<vec2>, std::vector<vec3>, std::vector<vec4>,
         std::vector<mat3>, std::vector<mat4> > UniformValue;
         

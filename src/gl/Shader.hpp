@@ -30,7 +30,7 @@ class KINSKI_API Shader
 	void uniform(const std::string &name, GLint data);
     inline void uniform(const std::string &name, GLuint data){ uniform(name, GLint(data)); };
 	void uniform(const std::string &name, GLfloat data);
-    inline void uniform( const std::string &name, double data ){ uniform(name, (float) data); };
+    inline void uniform( const std::string &name, double data){ uniform(name, (float) data); };
     
 	void uniform(const std::string &name, const GLint *data, int count);
 	void uniform(const std::string &name, const ivec2 *theArray, int count);
@@ -53,7 +53,9 @@ class KINSKI_API Shader
     
     // uniform std::vector
     void uniform(const std::string &name, const std::vector<GLint> &theArray);
+	void uniform(const std::string &name, const std::vector<GLuint> &theArray);
     void uniform(const std::string &name, const std::vector<GLfloat> &theArray);
+//	void uniform(const std::string &name, const std::vector<GLdouble> &theArray);
 	void uniform(const std::string &name, const std::vector<vec2> &theArray);
 	void uniform(const std::string &name, const std::vector<vec3> &theArray);
 	void uniform(const std::string &name, const std::vector<vec4> &theArray);

@@ -89,11 +89,11 @@ namespace kinski{ namespace gl{
                     bool flipped = false);
         
         //! the width of the texture in pixels
-        GLint width() const;
+        uint32_t width() const;
         //! the height of the texture in pixels
-        GLint height() const;
+        uint32_t height() const;
         //! the depth of the texture in pixels
-        GLint depth() const;
+        uint32_t depth() const;
         
         //! the size of the texture in pixels
         const vec2 size() const { return vec2(width(), height()); }

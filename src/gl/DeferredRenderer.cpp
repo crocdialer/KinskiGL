@@ -92,6 +92,8 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
 
     if(!m_mat_lighting){ init(); }
 
+    gl::reset_state();
+
     // culling
     auto render_bin = cull(the_scene, the_cam, the_tags);
 

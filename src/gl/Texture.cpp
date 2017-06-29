@@ -518,7 +518,7 @@ GLint Texture::internal_format() const
 	return m_impl->m_internal_format;
 }
 
-GLint Texture::width() const
+uint32_t Texture::width() const
 {
     if(!m_impl){ return 0; };
     
@@ -532,7 +532,7 @@ GLint Texture::width() const
 	return m_impl->m_width;
 }
 
-GLint Texture::height() const
+uint32_t Texture::height() const
 {
     if(!m_impl){ return 0; };
     
@@ -545,8 +545,8 @@ GLint Texture::height() const
 #endif
 	return m_impl->m_height;
 }
-    
-GLint Texture::depth() const
+
+uint32_t Texture::depth() const
 {
     if(!m_impl){ return 0; };
     

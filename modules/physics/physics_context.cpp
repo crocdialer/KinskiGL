@@ -610,7 +610,7 @@ namespace kinski{ namespace physics{
         *indexbase = reinterpret_cast<unsigned char*>(&geom->indices()[e.base_index]);
         indexstride = 3 * sizeof(geom->indices()[0]);
         numfaces = e.num_indices / 3;
-        indicestype = geom->indexType() == GL_UNSIGNED_INT ? PHY_INTEGER : PHY_SHORT;
+        indicestype = geom->index_type() == GL_UNSIGNED_INT ? PHY_INTEGER : PHY_SHORT;
     }
     
     void Mesh::getLockedReadOnlyVertexIndexBase(const unsigned char **vertexbase,
@@ -632,7 +632,7 @@ namespace kinski{ namespace physics{
         *indexbase = reinterpret_cast<const unsigned char*>(&geom->indices()[e.base_index]);
         indexstride = 3 * sizeof(geom->indices()[0]);
         numfaces = e.num_indices / 3;
-        indicestype = geom->indexType() == GL_UNSIGNED_INT ? PHY_INTEGER : PHY_SHORT;
+        indicestype = geom->index_type() == GL_UNSIGNED_INT ? PHY_INTEGER : PHY_SHORT;
     }
     
     /// unLockVertexBase finishes the access to a subpart of the triangle mesh
