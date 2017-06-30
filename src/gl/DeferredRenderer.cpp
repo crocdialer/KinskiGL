@@ -113,13 +113,6 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
 
         // lighting pass
         light_pass(gl::window_dimension(), render_bin);
-        
-        //emission pass
-        gl::render_to_texture(m_lighting_fbo, [this]()
-        {
-            m_mat_lighting_emissive->set_textures({m_geometry_fbo.texture(G_BUFFER_EMISSION)});
-            gl::draw_quad(m_mat_lighting_emissive, gl::window_dimension());
-        });
     }
     Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
     Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
@@ -135,8 +128,12 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
         gl::draw_mesh(the_scene->skybox());
     }
+    // draw light texture
     gl::draw_texture(m_lighting_fbo.texture(), gl::window_dimension());
-
+    
+    // draw emission texture
+    gl::draw_quad(m_mat_lighting_emissive, gl::window_dimension());
+    
     // return number of rendered objects
     return render_bin->items.size();
 #endif
@@ -168,6 +165,8 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
             m_geometry_fbo.texture(i).set_min_filter(GL_NEAREST);
         }
         KINSKI_CHECK_GL_ERRORS();
+        
+        m_mat_lighting_emissive->set_textures({m_geometry_fbo.texture(G_BUFFER_EMISSION)});
     }
 
     std::list<RenderBin::item> opaque_items, blended_items;
