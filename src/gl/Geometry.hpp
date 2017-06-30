@@ -224,6 +224,7 @@ namespace kinski{ namespace gl{
         static GeometryPtr create_solid_circle(int numSegments, float the_radius = 1.f);
         static GeometryPtr create_circle(int numSegments, float the_radius = 1.f);
         static GeometryPtr create_box(const vec3 &theHalfExtents);
+        static GeometryPtr create_box_lines();
         static GeometryPtr create_sphere(float radius, int numSlices);
         static GeometryPtr create_cone(float radius, float height, int numSegments);
         

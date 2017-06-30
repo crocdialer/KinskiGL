@@ -988,61 +988,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         if(!line_mesh)
         {
-
-            GeometryPtr geom = Geometry::create();
-            geom->set_primitive_type(GL_LINES);
-            gl::MaterialPtr mat = gl::Material::create();
-            line_mesh = gl::Mesh::create(geom, mat);
-
-            auto bb = gl::AABB(vec3(-.5f), vec3(.5f));
-
-            vector<vec3> &thePoints = geom->vertices();
-            vector<vec4> &theColors = geom->colors();
-
-            // bottom
-            thePoints.push_back(bb.min);
-            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
-
-            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
-            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.max.z));
-
-            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.max.z));
-            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
-
-            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
-            thePoints.push_back(bb.min);
-
-            // top
-            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.min.z));
-            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.max.z));
-
-            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.max.z));
-            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.max.z));
-
-            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.max.z));
-            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
-
-            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
-            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.min.z));
-
-            //sides
-            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.min.z));
-            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.min.z));
-
-            thePoints.push_back(vec3(bb.min.x, bb.min.y, bb.max.z));
-            thePoints.push_back(vec3(bb.min.x, bb.max.y, bb.max.z));
-
-            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.max.z));
-            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.max.z));
-
-            thePoints.push_back(vec3(bb.max.x, bb.min.y, bb.min.z));
-            thePoints.push_back(vec3(bb.max.x, bb.max.y, bb.min.z));
-
-            for (int i = 0; i < 24; i++)
-                theColors.push_back(colorWhite);
-
-//            geom->create_gl_buffers();
-//            line_mesh->create_vertex_array();
+            line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines());
         }
         AABB mesh_bb = the_obj->bounding_box();
         glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());

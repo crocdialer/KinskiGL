@@ -557,6 +557,43 @@ Geometry::Ptr Geometry::create_box(const glm::vec3 &theHalfExtents)
     return geom;
 }
 
+GeometryPtr Geometry::create_box_lines()
+{
+    GeometryPtr geom = Geometry::create();
+    geom->set_primitive_type(GL_LINES);
+
+    auto bb = gl::AABB(vec3(-.5f), vec3(.5f));
+
+    vector<vec3> &thePoints = geom->vertices();
+    vector<vec4> &theColors = geom->colors();
+
+    thePoints =
+    {
+        // botton
+        bb.min, vec3(bb.min.x, bb.min.y, bb.max.z),
+        vec3(bb.min.x, bb.min.y, bb.max.z), vec3(bb.max.x, bb.min.y, bb.max.z),
+        vec3(bb.max.x, bb.min.y, bb.max.z), vec3(bb.max.x, bb.min.y, bb.min.z),
+        vec3(bb.max.x, bb.min.y, bb.min.z), bb.min,
+
+        // top
+        vec3(bb.min.x, bb.max.y, bb.min.z), vec3(bb.min.x, bb.max.y, bb.max.z),
+        vec3(bb.min.x, bb.max.y, bb.max.z), vec3(bb.max.x, bb.max.y, bb.max.z),
+        vec3(bb.max.x, bb.max.y, bb.max.z), vec3(bb.max.x, bb.max.y, bb.min.z),
+        vec3(bb.max.x, bb.max.y, bb.min.z), vec3(bb.min.x, bb.max.y, bb.min.z),
+
+        //sides
+        vec3(bb.min.x, bb.min.y, bb.min.z), vec3(bb.min.x, bb.max.y, bb.min.z),
+        vec3(bb.min.x, bb.min.y, bb.max.z), vec3(bb.min.x, bb.max.y, bb.max.z),
+        vec3(bb.max.x, bb.min.y, bb.max.z), vec3(bb.max.x, bb.max.y, bb.max.z),
+        vec3(bb.max.x, bb.min.y, bb.min.z), vec3(bb.max.x, bb.max.y, bb.min.z)
+    };
+
+    for (int i = 0; i < 24; i++)
+        theColors.push_back(gl::COLOR_WHITE);
+
+    return geom;
+}
+
 Geometry::Ptr Geometry::create_sphere(float radius, int numSlices)
 {
     uint32_t rings = numSlices, sectors = numSlices;

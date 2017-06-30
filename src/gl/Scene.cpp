@@ -106,7 +106,7 @@ namespace kinski { namespace gl {
                         
                         for(const auto &e : m->entries())
                         {
-                            if(e.primitive_type != GL_TRIANGLES){ continue; }
+                            if(e.primitive_type && e.primitive_type != GL_TRIANGLES){ continue; }
                             
                             for(uint32_t i = 0; i < e.num_indices; i += 3)
                             {
