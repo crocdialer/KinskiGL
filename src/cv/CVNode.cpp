@@ -41,10 +41,11 @@ namespace kinski
         
         m_captureFPS = m_capture.get(CV_CAP_PROP_FPS);
         m_numFrames = m_capture.get(CV_CAP_PROP_FRAME_COUNT);
-        
-        boost::format fmt("CVCaptureNode from movie file '%s'\n# frames: %d\nfps: %.2f");
-        fmt % movieFile % m_numFrames % m_captureFPS;
-        m_description = fmt.str();
+
+        m_description = kinski::format("CVCaptureNode from movie file '%s'\n# frames: %d\nfps: %.2f", movieFile,
+                                       m_numFrames, m_captureFPS);
+//        fmt % movieFile % m_numFrames % m_captureFPS;
+//        m_description = fmt.str();
     }
     
     CVCaptureNode::~CVCaptureNode(){ m_capture.release();};

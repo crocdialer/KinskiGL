@@ -90,5 +90,6 @@ namespace kinski
         
         Property_<gl::vec2>::Ptr m_src_top_left, m_src_bottom_right;
         Property_<std::vector<gl::vec2>>::Ptr m_corners, m_control_points;
+        Property_<std::vector<float>>::Ptr m_edges, m_edge_exponents;
     };
 }

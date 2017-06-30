@@ -36,6 +36,11 @@ namespace kinski
         m_control_points->set_tweakable(false);
         m_corners = Property_<std::vector<gl::vec2>>::create("quad corners");
         m_corners->set_tweakable(false);
+        m_edges = Property_<std::vector<float>>::create("edges", std::vector<float>(4, 0.f));
+        m_edges->set_tweakable(false);
+        m_edge_exponents = Property_<std::vector<float>>::create("edge exponents", std::vector<float>(4, 1.f));
+        m_edge_exponents->set_tweakable(false);
+
         register_property(m_index);
         register_property(m_enabled);
         register_property(m_num_subdivisions_x);
@@ -49,6 +54,8 @@ namespace kinski
         register_property(m_src_bottom_right);
         register_property(m_grid_resolution_x);
         register_property(m_grid_resolution_y);
+        register_property(m_edges);
+        register_property(m_edge_exponents);
         
         register_function("reset", std::bind(&WarpComponent::reset, this));
         
@@ -193,6 +200,24 @@ namespace kinski
         else if(the_property == m_cubic_interpolation)
         {
             m_quad_warp[*m_index].set_cubic_interpolation(*m_cubic_interpolation);
+        }
+        else if(the_property == m_edges)
+        {
+            if(m_edges->value().size() == 4)
+            {
+                const auto &vec = m_edges->value();
+                gl::vec4 tmp(vec[0], vec[1], vec[2], vec[3]);
+                m_quad_warp[*m_index].set_edges(tmp);
+            }
+        }
+        else if(the_property == m_edge_exponents)
+        {
+            if(m_edge_exponents->value().size() == 4)
+            {
+                const auto &vec = m_edge_exponents->value();
+                gl::vec4 tmp(vec[0], vec[1], vec[2], vec[3]);
+                m_quad_warp[*m_index].set_edge_exponents(tmp);
+            }
         }
     }
     
