@@ -18,8 +18,8 @@ struct Lightsource
     float quadraticAttenuation;
 };
 
-vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color, in vec4 the_spec,
-           float shade_factor)
+vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
+           in vec4 the_spec, float shade_factor)
 {
   vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.direction;
   vec3 L = normalize(lightDir);
@@ -68,12 +68,13 @@ uniform int u_light_index;
 
 // regular textures
 uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[4];
+uniform sampler2D u_sampler_2D[5];
 
 #define ALBEDO 0
 #define NORMAL 1
 #define POSITION 2
-#define SPECULAR 3
+#define EMISSION 3
+#define SPECULAR 4
 
 in VertexData
 {

@@ -31,7 +31,7 @@ uniform int u_light_index;
 
 // regular textures
 uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[4];
+uniform sampler2D u_sampler_2D[5];
 
 // shadow cubemap
 uniform samplerCube u_sampler_cube[1];
@@ -43,7 +43,8 @@ uniform float u_poisson_radius = 0.005;
 #define ALBEDO 0
 #define NORMAL 1
 #define POSITION 2
-#define SPECULAR 3
+#define EMISSION 3
+#define SPECULAR 4
 
 const int NUM_TAPS = 12;
 vec3 fTaps_Poisson[NUM_TAPS] = vec3[]
@@ -92,8 +93,8 @@ float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 l
     return sum / NUM_TAPS;
 }
 
-vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color, in vec4 the_spec,
-           float shade_factor)
+vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
+           in vec4 the_spec, float shade_factor)
 {
   vec3 lightDir = light.position - eyeVec;
   vec3 L = normalize(lightDir);

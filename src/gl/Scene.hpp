@@ -12,6 +12,7 @@
 #include "Mesh.hpp"
 #include "Light.hpp"
 #include "Camera.hpp"
+#include "Visitor.hpp"
 #include "SceneRenderer.hpp"
 
 namespace kinski { namespace gl {

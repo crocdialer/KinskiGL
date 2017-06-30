@@ -48,7 +48,7 @@ namespace kinski { namespace gl {
     m_diffuse(Color(1)),
     m_ambient(Color(1)),
     m_specular(Color(1)),
-    m_emission(Color(0)),
+    m_emission(gl::COLOR_BLACK),
     m_shinyness(10.0f),
     m_line_width(1.f),
     m_point_size(1.f)

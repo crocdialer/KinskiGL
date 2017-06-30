@@ -34,7 +34,8 @@ in VertexData
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
 layout(location = 2) out vec4 out_position;
-layout(location = 3) out vec4 out_specular;
+layout(location = 3) out vec4 out_emission;
+layout(location = 4) out vec4 out_specular;
 
 void main()
 {
@@ -48,5 +49,7 @@ void main()
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
-  out_specular = vec4(u_material.specular.r, u_material.shinyness, u_material.shadow_properties & 2, 1);
+  out_emission = u_material.emission;
+  out_specular = vec4(u_material.specular.r, u_material.shinyness, u_material.shadow_properties & 2,
+                      1);
 }

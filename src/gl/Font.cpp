@@ -244,28 +244,40 @@ namespace kinski { namespace gl {
         
         auto dst_img = Image::create(dst_data, max_x, max_y, 1, true);
         
-        Area_Pairs::iterator area_it = area_pairs.begin();
-        for (; area_it != area_pairs.end(); ++area_it)
+        for (const auto &a : area_pairs)
         {
-            m_impl->bitmap->roi = area_it->first;
-            dst_img->roi = area_it->second;
+            m_impl->bitmap->roi = a.first;
+            dst_img->roi = a.second;
             copy_image(m_impl->bitmap, dst_img);
         }
         
-        // create RGBA data
-        uint8_t r = 255 * theColor.r, g = 255 * theColor.g, b = 255 * theColor.b;
-        uint8_t* rgba_data = new uint8_t[max_x * max_y * 4];
-        uint8_t *dst_ptr = dst_data, *rgba_ptr = rgba_data, *rgba_end = rgba_data + max_x * max_y * 4;
+#if defined(KINSKI_RASPI)
+        GLint tex_format = GL_LUMINANCE_ALPHA;
         
-        for (; rgba_ptr < rgba_end; rgba_ptr += 4, ++dst_ptr)
+        // create data
+        size_t num_bytes = dst_img->width * dst_img->height * 2;
+        uint8_t *luminance_alpha_data = new uint8_t[num_bytes];
+        uint8_t
+        *src_ptr = m_impl->bitmap->data,
+        *out_ptr = luminance_alpha_data, *data_end = luminance_alpha_data + num_bytes;
+        
+        for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
         {
-            rgba_ptr[0] = r;
-            rgba_ptr[1] = g;
-            rgba_ptr[2] = b;
-            rgba_ptr[3] = *dst_ptr;
+            out_ptr[0] = 255;
+            out_ptr[1] = *src_ptr;
         }
-        ret.update(rgba_data, GL_UNSIGNED_BYTE, GL_RGBA, max_x, max_y, true);
-        delete [] rgba_data;
+        
+        // create a new texture object
+        gl::Texture::Format fmt;
+        fmt.set_internal_format(tex_format);
+        ret = gl::Texture(luminance_alpha_data, tex_format, dst_img->width, dst_img->height, fmt);
+        ret.set_flipped();
+        ret.set_mipmapping(true);
+        delete [](luminance_alpha_data);
+#else
+        ret = create_texture_from_image(dst_img, true);
+        ret.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
+#endif
         return ret;
     }
     

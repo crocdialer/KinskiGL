@@ -18,8 +18,9 @@ public:
         G_BUFFER_ALBEDO = 0,
         G_BUFFER_NORMAL = 1,
         G_BUFFER_POSITION = 2,
-        G_BUFFER_SPECULAR = 3,
-        G_BUFFER_SIZE = 4
+        G_BUFFER_EMISSION = 3,
+        G_BUFFER_SPECULAR = 4,
+        G_BUFFER_SIZE = 5
     };
 
     static DeferredRendererPtr create();
@@ -48,7 +49,8 @@ private:
     gl::ShaderPtr m_shader_shadow, m_shader_shadow_skin, m_shader_shadow_omni, m_shader_shadow_omni_skin;
     gl::Fbo m_geometry_fbo, m_lighting_fbo;
 
-    gl::MaterialPtr m_mat_lighting, m_mat_lighting_shadow, m_mat_lighting_shadow_omni, m_mat_stencil;
+    gl::MaterialPtr m_mat_lighting, m_mat_lighting_shadow, m_mat_lighting_shadow_omni,
+    m_mat_lighting_emissive, m_mat_stencil;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
 };
 

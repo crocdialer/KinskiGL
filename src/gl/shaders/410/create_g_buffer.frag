@@ -30,16 +30,19 @@ in VertexData
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
 layout(location = 2) out vec4 out_position;
-layout(location = 3) out vec4 out_specular;
+layout(location = 3) out vec4 out_emission;
+layout(location = 4) out vec4 out_specular;
 
 void main()
 {
   vec4 texColors = vertex_in.color;
   if(u_numTextures > 0){ texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st); }
   if(smoothstep(0.0, 1.0, texColors.a) < 0.01){ discard; }
-  
+
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(vertex_in.normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
-  out_specular = vec4(u_material.specular.r, u_material.shinyness, u_material.shadow_properties & 2, 1);
+  out_emission = u_material.emission;
+  out_specular = vec4(u_material.specular.r, u_material.shinyness, u_material.shadow_properties & 2,
+                      1);
 }
