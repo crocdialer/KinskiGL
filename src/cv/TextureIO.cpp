@@ -120,13 +120,13 @@ void TextureIO::updateTexture(Texture &theTexture, const Mat &theImage, bool com
             format = GL_BGRA;
             internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
         default:
-            break;
+            return;
 #endif
 	}
     GLenum dataType = (theImage.type() == CV_32FC(theImage.channels())) ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
     theTexture.update(theImage.data, dataType, 
                       format, theImage.cols, theImage.rows, true);
-    
+    if(theImage.channels() > 1){ theTexture.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
 }
 }}//namespace
