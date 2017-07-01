@@ -255,8 +255,8 @@ namespace kinski {
 
         if(e.isLeft() || e.is_touch())
         {
-
-            if(e.isAltDown() || !displayTweakBar())
+            if(e.isAltDown() && *m_use_warping){ m_warp_component->mouse_drag(e); }
+            else if(!displayTweakBar())
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
@@ -265,8 +265,6 @@ namespace kinski {
             }
             m_drag_buffer.push_back(glm::vec2(e.getX(), e.getY()) - m_dragPos);
             m_dragPos = glm::vec2(e.getX(), e.getY());
-            
-            if(e.isAltDown()){ m_warp_component->mouse_drag(e); }
         }
         else if(e.isRight())
         {

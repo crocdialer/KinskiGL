@@ -635,6 +635,7 @@ void Fbo::blit_to_current(const Area_<int> &the_src, const Area_<int> &the_dst,
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, sb.value());
     glBlitFramebuffer(the_src.x0, the_src.y0, the_src.x1, the_src.y1, the_dst.x0, the_dst.y0,
                       the_dst.x1, the_dst.y1, mask, filter);
+	KINSKI_CHECK_GL_ERRORS();
 }
 
 void Fbo::blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &the_dst,

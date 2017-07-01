@@ -59,6 +59,7 @@ m_boneWeightsLocationName("a_boneWeights")
     entry.num_indices = theGeom->indices().size();
     entry.base_index = entry.base_vertex = 0;
     entry.material_index = 0;
+    entry.primitive_type = theGeom->primitive_type();
     m_entries.push_back(entry);
 }
 

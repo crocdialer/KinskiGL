@@ -440,20 +440,20 @@ GeometryPtr Geometry::create_circle(int numSegments, float the_radius)
     return ret;
 }
 
-Geometry::Ptr Geometry::create_box(const glm::vec3 &theHalfExtents)
+Geometry::Ptr Geometry::create_box(const glm::vec3 &the_half_extents)
 {
     GeometryPtr geom = Geometry::create();
 
     glm::vec3 vertices[8] =
     {
-        glm::vec3(-theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom left front
-        glm::vec3(theHalfExtents.x, -theHalfExtents.y, theHalfExtents.z),// bottom right front
-        glm::vec3(theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom right back
-        glm::vec3(-theHalfExtents.x, -theHalfExtents.y, -theHalfExtents.z),// bottom left back
-        glm::vec3(-theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top left front
-        glm::vec3(theHalfExtents.x, theHalfExtents.y, theHalfExtents.z),// top right front
-        glm::vec3(theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top right back
-        glm::vec3(-theHalfExtents.x, theHalfExtents.y, -theHalfExtents.z),// top left back
+        glm::vec3(-the_half_extents.x, -the_half_extents.y, the_half_extents.z),// bottom left front
+        glm::vec3(the_half_extents.x, -the_half_extents.y, the_half_extents.z),// bottom right front
+        glm::vec3(the_half_extents.x, -the_half_extents.y, -the_half_extents.z),// bottom right back
+        glm::vec3(-the_half_extents.x, -the_half_extents.y, -the_half_extents.z),// bottom left back
+        glm::vec3(-the_half_extents.x, the_half_extents.y, the_half_extents.z),// top left front
+        glm::vec3(the_half_extents.x, the_half_extents.y, the_half_extents.z),// top right front
+        glm::vec3(the_half_extents.x, the_half_extents.y, -the_half_extents.z),// top right back
+        glm::vec3(-the_half_extents.x, the_half_extents.y, -the_half_extents.z),// top left back
     };
     glm::vec4 colors[6] = { glm::vec4(1, 0, 0, 1), glm::vec4(0, 1, 0, 1), glm::vec4(0, 0 , 1, 1),
         glm::vec4(1, 1, 0, 1), glm::vec4(0, 1, 1, 1), glm::vec4(1, 0 , 1, 1)};
@@ -552,22 +552,16 @@ Geometry::Ptr Geometry::create_box(const glm::vec3 &theHalfExtents)
         geom->append_face(i * 4 + 2, i * 4 + 3, i * 4 + 0);
     }
     geom->compute_tangents();
-    geom->create_gl_buffers();
     geom->compute_bounding_box();
     return geom;
 }
 
-GeometryPtr Geometry::create_box_lines()
+GeometryPtr Geometry::create_box_lines(const glm::vec3 &the_half_extents)
 {
     GeometryPtr geom = Geometry::create();
     geom->set_primitive_type(GL_LINES);
-
-    auto bb = gl::AABB(vec3(-.5f), vec3(.5f));
-
-    vector<vec3> &thePoints = geom->vertices();
-    vector<vec4> &theColors = geom->colors();
-
-    thePoints =
+    auto bb = gl::AABB(-the_half_extents, the_half_extents);
+    geom->vertices() =
     {
         // botton
         bb.min, vec3(bb.min.x, bb.min.y, bb.max.z),
@@ -587,10 +581,7 @@ GeometryPtr Geometry::create_box_lines()
         vec3(bb.max.x, bb.min.y, bb.max.z), vec3(bb.max.x, bb.max.y, bb.max.z),
         vec3(bb.max.x, bb.min.y, bb.min.z), vec3(bb.max.x, bb.max.y, bb.min.z)
     };
-
-    for (int i = 0; i < 24; i++)
-        theColors.push_back(gl::COLOR_WHITE);
-
+    geom->colors().resize(geom->vertices().size(), gl::COLOR_WHITE);
     return geom;
 }
 
