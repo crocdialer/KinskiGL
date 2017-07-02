@@ -515,6 +515,7 @@ namespace kinski{ namespace gl{
     void Warp::set_edge_exponents(const gl::vec4& the_exponents)
     {
         m_impl->m_edge_exponents = the_exponents;
+        m_impl->m_dirty_subs = true;
     }
 
     ivec2 Warp::num_subdivisions() const
