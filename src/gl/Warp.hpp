@@ -39,6 +39,8 @@ namespace kinski{ namespace gl{
         void set_num_subdivisions(const gl::ivec2 &the_res);
         void set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h);
 
+        gl::vec4 edges() const;
+        gl::vec4 edge_exponents() const;
         void set_edges(const gl::vec4& the_factors);
         void set_edge_exponents(const gl::vec4& the_exponents);
         

@@ -445,7 +445,7 @@ namespace kinski
             std::vector<uint8_t> buttons(glfw_buttons, glfw_buttons + count);
 
             std::string name(glfwGetJoystickName(i));
-            ret.push_back(JoystickState(name, buttons, axis));
+            ret.emplace_back(name, buttons, axis);
         }
         return ret;
     }

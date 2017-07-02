@@ -489,7 +489,20 @@ namespace kinski{ namespace gl{
     {
         set_num_subdivisions(ivec2(the_div_w, the_div_h));
     }
-
+    
+    gl::vec4 Warp::edges() const
+    {
+        gl::vec4 ret = m_impl->m_edges;
+        ret.y = 1.f - ret.y;
+        ret.z = 1.f - ret.z;
+        return ret;
+    }
+    
+    gl::vec4 Warp::edge_exponents() const
+    {
+        return m_impl->m_edge_exponents;
+    }
+    
     void Warp::set_edges(const gl::vec4& the_factors)
     {
         m_impl->m_edges.x = clamp(the_factors.x, 0.f, 1.f);

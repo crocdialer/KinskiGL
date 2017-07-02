@@ -130,6 +130,11 @@ namespace kinski
         *m_src_bottom_right = gl::vec2(the_quadwarp.src_area().x1, the_quadwarp.src_area().y1);
         *m_grid_resolution_x = the_quadwarp.grid_resolution().x;
         *m_grid_resolution_y = the_quadwarp.grid_resolution().y;
+        
+        auto edges = the_quadwarp.edges(), edge_exp = the_quadwarp.edge_exponents();
+        *m_edges = {edges.x, edges.y, edges.z, edges.w};
+        *m_edge_exponents = {edge_exp.x, edge_exp.y, edge_exp.z, edge_exp.w};
+        
         m_params[the_index].enabled = *m_enabled;
         m_params[the_index].display_grid = *m_draw_grid;
         m_params[the_index].display_points = *m_draw_control_points;
@@ -137,11 +142,25 @@ namespace kinski
         m_quad_warp[the_index].set_control_points(*m_control_points);
         m_quad_warp[the_index].set_corners(*m_corners);
         m_quad_warp[the_index].set_cubic_interpolation(*m_cubic_interpolation);
-        m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
-                                                           m_src_top_left->value().y,
-                                                           m_src_bottom_right->value().x,
-                                                           m_src_bottom_right->value().y));
+        m_quad_warp[the_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
+                                                            m_src_top_left->value().y,
+                                                            m_src_bottom_right->value().x,
+                                                            m_src_bottom_right->value().y));
         m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
+        
+        if(m_edges->value().size() == 4)
+        {
+            const auto &vec = m_edges->value();
+            gl::vec4 tmp(vec[0], vec[1], vec[2], vec[3]);
+            m_quad_warp[the_index].set_edges(tmp);
+        }
+        if(m_edge_exponents->value().size() == 4)
+        {
+            const auto &vec = m_edge_exponents->value();
+            gl::vec4 tmp(vec[0], vec[1], vec[2], vec[3]);
+            m_quad_warp[the_index].set_edge_exponents(tmp);
+        }
+        
         observe_properties(true);
     }
     
