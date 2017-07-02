@@ -251,8 +251,7 @@ void Shader::uniform(const std::string &name, const std::vector<GLint> &theArray
 
 void Shader::uniform(const std::string &name, const std::vector<GLuint> &theArray)
 {
-	GLint loc = uniform_location(name);
-	if(loc != -1) glUniform1uiv(loc, theArray.size(), &theArray[0]);
+    uniform(name, std::vector<GLint>(theArray.begin(), theArray.end()));
 }
 
 void Shader::uniform(const std::string &name, const std::vector<GLfloat> &theArray)
