@@ -200,13 +200,18 @@ std::list<ComponentPtr>
 RemoteControl::components()
 {
     std::list<ComponentPtr> ret;
-
+    std::list<ComponentWeakPtr> weak_comps;
+    
     for(auto &weak_comp : m_components)
     {
         ComponentPtr ptr = weak_comp.lock();
-        if(ptr){ ret.push_back(ptr); }
-//        else{ m_components.remove(weak_comp); }
+        if(ptr)
+        {
+            weak_comps.push_back(weak_comp);
+            ret.push_back(ptr);
+        }
     }
+    m_components = weak_comps;
     return ret;
 }
 

@@ -579,7 +579,7 @@ namespace kinski{ namespace media
 
     void MediaController::unload()
     {
-        m_impl.reset();
+        m_impl.reset(new MediaControllerImpl);
     }
 
 /////////////////////////////////////////////////////////////////

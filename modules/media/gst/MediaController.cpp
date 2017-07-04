@@ -231,7 +231,7 @@ bool MediaController::is_loaded() const
 
 void MediaController::unload()
 {
-    m_impl.reset();
+    m_impl.reset(new MediaControllerImpl);
 }
 
 /////////////////////////////////////////////////////////////////
