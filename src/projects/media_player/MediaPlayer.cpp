@@ -73,6 +73,12 @@ void MediaPlayer::setup()
         if(fs::is_directory(args()[1])){ create_playlist(args()[1]); }
         else{ *m_media_path = args()[1]; }
     }
+    
+#if defined(KINSKI_RASPI)
+    m_scan_media_timer = Timer(background_queue().io_service(), [this](){ create_playlist("/media/usb0"); });
+    m_scan_media_timer.set_periodic();
+    m_scan_media_timer.expires_from_now(10.f);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////
@@ -598,11 +604,16 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
     auto it = files.find(fs::FileType::MOVIE);
     if(it != files.end())
     {
-        if(it->second.size() != m_playlist.size())
+        auto file_list = it->second;
+        
+        if(file_list.size() != m_playlist.size())
         {
-            m_current_playlist_index = 0;
-            m_playlist = it->second;
-            *m_media_path = m_playlist[0];
+            main_queue().submit([this, file_list]()
+            {
+                m_current_playlist_index = 0;
+                m_playlist = file_list;
+                *m_media_path = m_playlist[0];
+            });
         }
     }
 }

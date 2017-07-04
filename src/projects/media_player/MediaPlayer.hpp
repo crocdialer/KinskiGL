@@ -30,7 +30,7 @@ namespace kinski
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
         bool m_reload_media = false, m_needs_redraw = true;
         int m_is_syncing = 0;
-        Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer;
+        Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer, m_scan_media_timer;
         
         net::udp_server m_udp_server;
         std::unordered_map<std::string, float> m_ip_timestamps;

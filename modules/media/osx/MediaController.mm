@@ -187,7 +187,11 @@ namespace kinski{ namespace media{
 
                           if(m_impl->m_on_load_cb){ m_impl->m_on_load_cb(shared_from_this()); }
                       }
-                      else{ LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path; }
+                      else
+                      {
+                          LOG_ERROR << "Could not load movie file: " << m_impl->m_src_path;
+                          if(m_impl->m_movie_ended_cb){ m_impl->m_movie_ended_cb(shared_from_this()); }
+                      }
                   }
                   @catch(NSException *e){ LOG_ERROR << [[e reason] UTF8String]; }
               }
