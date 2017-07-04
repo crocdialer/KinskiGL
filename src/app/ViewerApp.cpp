@@ -153,7 +153,10 @@ namespace kinski {
         m_warp_component = std::make_shared<WarpComponent>();
         m_warp_component->observe_properties();
         m_warp_component->set_font(fonts()[0]);
-
+        
+        // print local ip
+        LOG_INFO << "local ip: " << kinski::net::local_ip();
+        
         // setup remote control
         m_remote_control = RemoteControl(main_queue().io_service(), {shared_from_this(), m_light_component});
         m_remote_control.start_listen();
