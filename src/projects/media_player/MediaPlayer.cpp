@@ -68,17 +68,21 @@ void MediaPlayer::setup()
     load_settings();
     
     // check for command line input
-    if(args().size() > 1 && fs::exists(args()[1]))
+    if(args().size() > 1)
     {
-        if(fs::is_directory(args()[1])){ create_playlist(args()[1]); }
-        else{ *m_media_path = args()[1]; }
+        if(fs::exists(args()[1]))
+        {
+            if(fs::is_directory(args()[1])){ create_playlist(args()[1]); }
+            else{ *m_media_path = args()[1]; }
+        }
+        else
+        {
+            m_scan_media_timer = Timer(background_queue().io_service(),
+                                       [this](){ create_playlist(args()[1]); });
+            m_scan_media_timer.set_periodic();
+            m_scan_media_timer.expires_from_now(5.f);
+        }
     }
-    
-#if defined(KINSKI_RASPI)
-    m_scan_media_timer = Timer(background_queue().io_service(), [this](){ create_playlist("/media/usb0"); });
-    m_scan_media_timer.set_periodic();
-    m_scan_media_timer.expires_from_now(10.f);
-#endif
 }
 
 /////////////////////////////////////////////////////////////////
