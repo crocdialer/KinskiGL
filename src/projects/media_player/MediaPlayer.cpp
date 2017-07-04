@@ -72,15 +72,16 @@ void MediaPlayer::setup()
     {
         if(fs::exists(args()[1]))
         {
-            if(fs::is_directory(args()[1])){ create_playlist(args()[1]); }
+            if(fs::is_directory(args()[1]))
+            {
+                create_playlist(args()[1]);
+                
+                m_scan_media_timer = Timer(background_queue().io_service(),
+                                           [this](){ create_playlist(args()[1]); });
+                m_scan_media_timer.set_periodic();
+                m_scan_media_timer.expires_from_now(5.f);
+            }
             else{ *m_media_path = args()[1]; }
-        }
-        else
-        {
-            m_scan_media_timer = Timer(background_queue().io_service(),
-                                       [this](){ create_playlist(args()[1]); });
-            m_scan_media_timer.set_periodic();
-            m_scan_media_timer.expires_from_now(5.f);
         }
     }
 }
