@@ -36,6 +36,9 @@ namespace kinski
         std::unordered_map<std::string, float> m_ip_timestamps;
         std::unordered_map<std::string, CircularBuffer<double>> m_ip_roundtrip;
         
+        std::vector<string> m_playlist;
+        uint32_t m_current_playlist_index = 0;
+        
         // properties
         Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");
         Property_<bool>::Ptr
@@ -62,6 +65,7 @@ namespace kinski
         void send_sync_cmd();
         void send_network_cmd(const std::string &the_cmd);
         void ping_delay(const std::string &the_ip);
+        void create_playlist(const std::string &the_base_dir);
         
     public:
 

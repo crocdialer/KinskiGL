@@ -282,7 +282,7 @@ namespace kinski { namespace fs{
     
     std::string get_filename_part(const std::string &the_file_name)
     {
-        return path(expand_user(the_file_name)).filename().string();
+        return boost::filesystem::path(expand_user(the_file_name)).filename().string();
     }
     
 ///////////////////////////////////////////////////////////////////////////////
@@ -391,9 +391,9 @@ namespace kinski { namespace fs{
         auto expanded_path = expand_user(the_file_name);
         
         if(is_directory(expanded_path))
-            return path(expanded_path).string();
+            return boost::filesystem::path(expanded_path).string();
         else
-            return path(expanded_path).parent_path().string();
+            return boost::filesystem::path(expanded_path).parent_path().string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -407,7 +407,7 @@ namespace kinski { namespace fs{
     
     std::string remove_extension(const std::string &the_file_name)
     {
-        return path(expand_user(the_file_name)).replace_extension().string();
+        return boost::filesystem::path(expand_user(the_file_name)).replace_extension().string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////

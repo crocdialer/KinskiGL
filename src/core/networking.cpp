@@ -24,22 +24,24 @@ using namespace boost::asio::ip;
 std::string local_ip(bool ipV6)
 {
     std::string ret = "unknown_ip";
-
+    std::set<std::string> ip_set;
+    
     try
     {
         boost::asio::io_service io;
         tcp::resolver resolver(io);
         tcp::resolver::query query(ipV6 ? tcp::v6() : tcp::v4(), host_name(), "");
         tcp::resolver::iterator it = resolver.resolve(query), end;
-
+        
         for (; it != end; ++it)
         {
             const tcp::endpoint &endpoint = *it;
-            ret = endpoint.address().to_string();
+            ip_set.insert(endpoint.address().to_string());
         }
+        ip_set.erase("127.0.1.1");
     }
     catch (std::exception &e) { LOG_ERROR << e.what(); }
-
+    if(!ip_set.empty()){ ret = *ip_set.begin(); }
     return ret;
 }
 

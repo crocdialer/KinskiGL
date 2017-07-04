@@ -145,7 +145,7 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
 {
     if(m_vertex_attribs.empty()){ create_vertex_attribs(); }
 
-    // shader.bind();
+    the_shader->bind();
 
     for(auto &vertex_attrib : m_vertex_attribs)
     {

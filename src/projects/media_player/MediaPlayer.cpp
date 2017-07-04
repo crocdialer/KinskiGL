@@ -95,8 +95,6 @@ void MediaPlayer::draw()
         {
             if(m_warp_component->enabled(i))
             {
-//                m_warp_component->quad_warp().set_edges(gl::vec4(0, 0.2f, 0, 0));
-//                m_warp_component->quad_warp().set_edge_exponents(gl::vec4(1, 2, 1, 1));
                 m_warp_component->render_output(i, textures()[TEXTURE_INPUT], *m_brightness);
             }
         }
@@ -272,6 +270,12 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     {
         m_reload_media = true;
     }
+#ifdef KINSKI_RASPI
+    else if(theProperty == m_use_warping)
+    {
+        m_reload_media = true;
+    }
+#endif
     else if(theProperty == m_loop)
     {
         m_media->set_loop(*m_loop);
@@ -365,7 +369,7 @@ void MediaPlayer::reload_media()
         auto render_target = *m_use_warping ? media::MediaController::RenderTarget::TEXTURE :
         media::MediaController::RenderTarget::SCREEN;
 
-        auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::AUDIO_JACK :
+        auto audio_target = *m_force_audio_jack ? media::MediaController::AudioTarget::BOTH :
         media::MediaController::AudioTarget::AUTO;
 
         if(render_target == media::MediaController::RenderTarget::SCREEN)
@@ -420,10 +424,8 @@ void MediaPlayer::reload_media()
 
 std::string MediaPlayer::secs_to_time_str(float the_secs) const
 {
-//    char buf[32];
-//    sprintf(buf, "%d:%02d:%04.1f", (int)the_secs / 3600, ((int)the_secs / 60) % 60, fmodf(the_secs, 60));
-//    return buf;
-    return format("%d:%02d:%04.1f", (int) the_secs / 3600, ((int) the_secs / 60) % 60, fmodf(the_secs, 60));
+    return format("%d:%02d:%04.1f", (int) the_secs / 3600, ((int) the_secs / 60) % 60,
+                  fmodf(the_secs, 60));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -570,6 +572,29 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
     con->set_connect_cb([this](ConnectionPtr the_con){ the_con->write("echo ping"); });
     con->set_tcp_receive_cb(receive_func);
 }
+
+/////////////////////////////////////////////////////////////////
+
+void MediaPlayer::create_playlist(const std::string &the_base_dir)
+{
+    std::map<fs::FileType, std::vector<fs::path>> files;
+    
+    for(const auto &p : fs::get_directory_entries(the_base_dir, "", 3))
+    {
+        files[fs::get_file_type(p)].push_back(p);
+    }
+    auto it = files.find(fs::FileType::MOVIE);
+    if(it != files.end())
+    {
+        if(it->second.size() != m_playlist.size())
+        {
+            m_current_playlist_index = 0;
+            m_playlist = it->second;
+        }
+    }
+}
+
+/////////////////////////////////////////////////////////////////
 
 void MediaPlayer::setup_rpc_interface()
 {
