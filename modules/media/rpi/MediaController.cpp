@@ -436,7 +436,8 @@ namespace kinski{ namespace media
                                       false, 15.f))
         {
             LOG_WARNING << "could not open location: " << m_impl->m_src_path;
-            m_impl.reset();
+            // m_impl.reset();
+            if(m_impl->m_movie_ended_cb){ m_impl->m_movie_ended_cb(shared_from_this()); }
             return;
         }
 

@@ -390,8 +390,11 @@ void MediaPlayer::reload_media()
             }
             else if(!m_playlist.empty())
             {
-                m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
-                *m_media_path = m_playlist[m_current_playlist_index];
+                main_queue().submit([this]()
+                {
+                    m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
+                    *m_media_path = m_playlist[m_current_playlist_index];
+                });
             }
         });
         
