@@ -70,18 +70,22 @@ void MediaPlayer::setup()
     // check for command line input
     if(args().size() > 1)
     {
-        if(fs::exists(args()[1]))
+        fs::path p = args()[1];
+        
+        if(fs::exists(p))
         {
-            if(fs::is_directory(args()[1]))
+            if(fs::is_directory(p))
             {
-                create_playlist(args()[1]);
+                create_playlist(p);
                 
                 m_scan_media_timer = Timer(background_queue().io_service(),
-                                           [this](){ create_playlist(args()[1]); });
+                                           [this, p](){ create_playlist(p); });
                 m_scan_media_timer.set_periodic();
                 m_scan_media_timer.expires_from_now(5.f);
+                
+                fs::add_search_path(p);
             }
-            else{ *m_media_path = args()[1]; }
+            else{ *m_media_path = p; }
         }
     }
 }
