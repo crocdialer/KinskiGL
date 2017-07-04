@@ -68,7 +68,11 @@ void MediaPlayer::setup()
     load_settings();
     
     // check for command line input
-    if(args().size() > 1 && fs::exists(args()[1])){ *m_media_path = args()[1]; }
+    if(args().size() > 1 && fs::exists(args()[1]))
+    {
+        if(fs::is_directory(args()[1])){ create_playlist(args()[1]); }
+        else{ *m_media_path = args()[1]; }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -384,6 +388,11 @@ void MediaPlayer::reload_media()
                 send_network_cmd("restart");
                 begin_network_sync();
             }
+            else if(!m_playlist.empty())
+            {
+                m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
+                *m_media_path = m_playlist[m_current_playlist_index];
+            }
         });
         
         m_media->set_on_load_callback([this](media::MediaControllerPtr mc)
@@ -590,6 +599,7 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
         {
             m_current_playlist_index = 0;
             m_playlist = it->second;
+            *m_media_path = m_playlist[0];
         }
     }
 }
