@@ -87,9 +87,10 @@ void MediaPlayer::update(float timeDelta)
 {
     if(m_reload_media){ reload_media(); }
 
-    if(m_camera_control && m_camera_control->is_capturing())
-        m_needs_redraw = m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
-    else if(m_media)
+//    if(m_camera_control && m_camera_control->is_capturing())
+//        m_needs_redraw = m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
+    
+    if(m_media)
         m_needs_redraw = m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
     else
         m_needs_redraw = true;
@@ -138,12 +139,12 @@ void MediaPlayer::key_press(const KeyEvent &e)
     {
         switch (e.getCode())
         {
-            case Key::_C:
-                if(m_camera_control->is_capturing())
-                    m_camera_control->stop_capture();
-                else
-                    m_camera_control->start_capture();
-                break;
+//            case Key::_C:
+//                if(m_camera_control->is_capturing())
+//                    m_camera_control->stop_capture();
+//                else
+//                    m_camera_control->start_capture();
+//                break;
                 
             case Key::_P:
                 m_media->is_playing() ? m_media->pause() : m_media->play();
