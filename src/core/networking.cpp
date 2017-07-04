@@ -15,32 +15,79 @@
 #include <boost/asio.hpp>
 #include "networking.hpp"
 
+
+#include <ifaddrs.h>
+#include <arpa/inet.h>
+
 namespace kinski{ namespace net {
 
 using namespace boost::asio::ip;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+//std::string local_ip(bool ipV6)
+//{
+//    std::string ret = "unknown_ip";
+//    std::set<std::string> ip_set;
+//    
+//    try
+//    {
+//        boost::asio::io_service io;
+//        tcp::resolver resolver(io);
+//        tcp::resolver::query query(ipV6 ? tcp::v6() : tcp::v4(), host_name(), "");
+//        tcp::resolver::iterator it = resolver.resolve(query), end;
+//        
+//        for (; it != end; ++it)
+//        {
+//            const tcp::endpoint &endpoint = *it;
+//            ip_set.insert(endpoint.address().to_string());
+//        }
+//        ip_set.erase("127.0.1.1");
+//    }
+//    catch (std::exception &e) { LOG_ERROR << e.what(); }
+//    if(!ip_set.empty()){ ret = *ip_set.begin(); }
+//    return ret;
+//}
+  
 std::string local_ip(bool ipV6)
 {
     std::string ret = "unknown_ip";
     std::set<std::string> ip_set;
     
-    try
+    struct ifaddrs * ifAddrStruct = NULL;
+    struct ifaddrs * ifa = NULL;
+    void * tmpAddrPtr = NULL;
+    
+    getifaddrs(&ifAddrStruct);
+    
+    for(ifa = ifAddrStruct; ifa != NULL; ifa = ifa->ifa_next)
     {
-        boost::asio::io_service io;
-        tcp::resolver resolver(io);
-        tcp::resolver::query query(ipV6 ? tcp::v6() : tcp::v4(), host_name(), "");
-        tcp::resolver::iterator it = resolver.resolve(query), end;
+        if(!ifa->ifa_addr){ continue; }
         
-        for (; it != end; ++it)
+        // check it is IP4
+        if(!ipV6 && ifa->ifa_addr->sa_family == AF_INET)
         {
-            const tcp::endpoint &endpoint = *it;
-            ip_set.insert(endpoint.address().to_string());
+            // is a valid IP4 Address
+            tmpAddrPtr=&((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
+            char addressBuffer[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
+//            LOG_INFO << format("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+            ip_set.insert(addressBuffer);
         }
-        ip_set.erase("127.0.1.1");
+        // check it is IP6
+        else if(ipV6 && ifa->ifa_addr->sa_family == AF_INET6)
+        {
+            // is a valid IP6 Address
+            tmpAddrPtr=&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
+            char addressBuffer[INET6_ADDRSTRLEN];
+            inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
+//            LOG_INFO << format("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+            ip_set.insert(addressBuffer);
+        }
     }
-    catch (std::exception &e) { LOG_ERROR << e.what(); }
+    if(ifAddrStruct){ freeifaddrs(ifAddrStruct); }
+    ip_set.erase("127.0.0.1");
+    ip_set.erase("127.0.1.1");
     if(!ip_set.empty()){ ret = *ip_set.begin(); }
     return ret;
 }
