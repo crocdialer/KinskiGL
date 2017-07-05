@@ -20,7 +20,7 @@
 //#if GST_CHECK_VERSION(1, 4, 5)
 #include <gst/gl/gstglconfig.h>
 
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_ARM)
 #undef GST_GL_HAVE_OPENGL
 //#undef GST_GL_HAVE_GLES2
 #undef GST_GL_HAVE_PLATFORM_GLX
@@ -34,7 +34,7 @@
 #include <gst/gl/gstglcontext.h>
 #include <gst/gl/gstgldisplay.h>
 
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_ARM)
 #include <gst/gl/egl/gstgldisplay_egl.h>
 #elif defined(KINSKI_LINUX)
 #include <gst/gl/x11/gstgldisplay_x11.h>

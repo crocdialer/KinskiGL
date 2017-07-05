@@ -1,6 +1,6 @@
 OPTION (USE_GSTREAMER "Use GStreamer" OFF)
 
-if(KINSKI_LINUX AND NOT KINSKI_RASPI)
+if(KINSKI_LINUX AND NOT KINSKI_ARM)
   set(USE_GSTREAMER ON)
 endif()
 
@@ -17,7 +17,7 @@ if(USE_GSTREAMER)
 
     # GStreamer implementation
     FILE(GLOB MODULE_SOURCES gst/*.c*)
-elseif(KINSKI_RASPI)
+elseif(KINSKI_ARM)
   # Raspian specific implementation
   FILE(GLOB MODULE_SOURCES rpi/*.c* rpi/utils/*.c* rpi/linux/*.c*)
 

@@ -24,7 +24,7 @@
 #include "gl/Fbo.hpp"
 #include "gl/Font.hpp"
 
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_ARM)
     #include "app/Raspi_App.hpp"
     #define BaseApp Raspi_App
 #else

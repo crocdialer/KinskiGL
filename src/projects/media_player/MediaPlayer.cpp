@@ -83,7 +83,7 @@ void MediaPlayer::setup()
                 m_scan_media_timer.set_periodic();
                 m_scan_media_timer.expires_from_now(5.f);
                 
-                fs::add_search_path(p);
+                fs::add_search_path(p, 3);
             }
             else{ *m_media_path = p; }
         }
@@ -290,7 +290,7 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
     {
         m_reload_media = true;
     }
-#ifdef KINSKI_RASPI
+#ifdef KINSKI_ARM
     else if(theProperty == m_use_warping)
     {
         m_reload_media = true;

@@ -1,5 +1,5 @@
 # which shaders to include
-if(KINSKI_RASPI)
+if(KINSKI_ARM)
   set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ES2")
 else()
   set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/410")
@@ -25,7 +25,7 @@ endif(REPORT_GL_ERRORS)
 
 if(BUILD_IOS)
 set(LIBS ${LIBS} "-framework OpenGLES")
-elseif(KINSKI_RASPI)
+elseif(KINSKI_ARM)
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads")
 link_directories("/opt/vc/lib")
 set(LIBS ${LIBS} "EGL" "GLESv2")

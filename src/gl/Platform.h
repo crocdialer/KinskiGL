@@ -8,11 +8,11 @@
 //triggers checks with glGetError()
 //#define KINSKI_GL_REPORT_ERRORS
 
-#if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_RASPI)
+#if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_ARM)
 #define KINSKI_GLES
 #endif
 
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_ARM)
 #define KINSKI_EGL
 #define KINSKI_NO_VAO
 #define GL_GLEXT_PROTOTYPES

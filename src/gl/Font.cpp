@@ -152,7 +152,7 @@ namespace kinski { namespace gl {
 //                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
             }
             
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_ARM)
             GLint tex_format = GL_LUMINANCE_ALPHA;
             
             // create data
@@ -251,7 +251,7 @@ namespace kinski { namespace gl {
             copy_image(m_impl->bitmap, dst_img);
         }
         
-#if defined(KINSKI_RASPI)
+#if defined(KINSKI_ARM)
         GLint tex_format = GL_LUMINANCE_ALPHA;
         
         // create data
