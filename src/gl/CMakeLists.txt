@@ -36,7 +36,7 @@ pkg_search_module(LIB_DRM REQUIRED libdrm)
 include_directories(${LIB_DRM_INCLUDE_DIRS})
 link_directories(${LIB_DRM_LIBRARY_DIRS})
 SET_TARGET_PROPERTIES(${LIB_NAME} PROPERTIES LINK_FLAGS -Wl,-L/usr/lib/arm-linux-gnueabihf/)
-set(LIBS ${LIBS} "${LIB_DRM_LIBRARIES} EGL GLESv2 gbm")
+set(LIBS ${LIBS} "${LIB_DRM_LIBRARIES}" "EGL" "GLESv2" "gbm")
 else()
 ##### OPENGL
 find_package(OpenGL REQUIRED)
