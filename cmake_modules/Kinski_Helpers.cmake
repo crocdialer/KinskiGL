@@ -24,23 +24,24 @@ function(KINSKI_ADD_SAMPLE theName thePath)
 
     INCLUDE_DIRECTORIES("${PROJECT_BINARY_DIR}")
 
-    IF( APPLE )
+    if(APPLE)
       SET_SOURCE_FILES_PROPERTIES(${resFiles} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
       set(MACOSX_BUNDLE_ICON_FILE "icon.icns")
-      ADD_EXECUTABLE(${theName} MACOSX_BUNDLE ${ICON_FILE} ${FOLDER_SOURCES} ${FOLDER_HEADERS}
+      add_executable(${theName} MACOSX_BUNDLE ${ICON_FILE} ${FOLDER_SOURCES} ${FOLDER_HEADERS}
               ${MODULE_FILES} ${resFiles})
-    ELSE( APPLE )
-    if(KINSKI_ARM)
-      include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
-        "/opt/vc/include/interface/vmcs_host/linux" )
-      link_directories("/opt/vc/lib")
-      add_definitions(-DTARGET_LINUX)
-      add_definitions(-DUSE_VCHIQ_ARM)
-      add_definitions(-DOMX_SKIP64BIT)
+    else()
 
-    endif(KINSKI_ARM)
-    add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS} ${MODULE_FILES})
-    ENDIF( APPLE )
+      if(KINSKI_RASPI)
+        include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
+                            "/opt/vc/include/interface/vmcs_host/linux" )
+        link_directories("/opt/vc/lib")
+        add_definitions(-DTARGET_LINUX)
+        add_definitions(-DUSE_VCHIQ_ARM)
+        add_definitions(-DOMX_SKIP64BIT)
+      endif(KINSKI_RASPI)
+
+      add_executable(${theName} ${FOLDER_SOURCES} ${FOLDER_HEADERS} ${MODULE_FILES})
+    ENDIF(APPLE)
 
     target_link_libraries (${theName} ${LIBS})
 

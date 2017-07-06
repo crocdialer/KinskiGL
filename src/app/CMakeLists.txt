@@ -1,25 +1,28 @@
-FILE(GLOB FOLDER_SOURCES *.c*)
-FILE(GLOB FOLDER_HEADERS *.h)
-
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 SET(LIB_NAME "app")
+
+FILE(GLOB FOLDER_SOURCES App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp
+     Object3DComponent.cpp OutstreamGL.cpp MaterialComponent.cpp WarpComponent.cpp)
+FILE(GLOB FOLDER_HEADERS App.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp
+     Object3DComponent.hpp OutstreamGL.hpp MaterialComponent.hpp WarpComponent.hpp)
 
 ##### GLFW
 if(NOT KINSKI_ARM)
 find_package(GLFW3 REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIRS})
 SET(LIBS ${LIBS} ${GLFW_LIBRARIES})
-FILE(GLOB FOLDER_SOURCES GLFW_App.cpp App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp Object3DComponent.cpp
-        AntTweakBarConnector.cpp OutstreamGL.cpp MaterialComponent.cpp WarpComponent.cpp)
-FILE(GLOB FOLDER_HEADERS GLFW_App.hpp App.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp Object3DComponent.hpp
-        AntTweakBarConnector.hpp OutstreamGL.hpp MaterialComponent.hpp WarpComponent.hpp)
+FILE(GLOB GLFW_SOURCES GLFW_App.cpp App.cpp AntTweakBarConnector.cpp)
+FILE(GLOB GLFW_HEADERS GLFW_App.hpp AntTweakBarConnector.hpp)
+set(FOLDER_SOURCES ${FOLDER_SOURCES} ${GLFW_SOURCES})
+set(FOLDER_HEADERS ${FOLDER_HEADERS} ${GLFW_HEADERS})
 
 ##### RASPI
 else()
-FILE(GLOB FOLDER_SOURCES Raspi_App.cpp ViewerApp.cpp esUtil.c App.cpp OutstreamGL.cpp RemoteControl.cpp
-    LightComponent.cpp Object3DComponent.cpp MaterialComponent.cpp WarpComponent.cpp)
-FILE(GLOB FOLDER_HEADERS Raspi_App.hpp esUtil.h App.hpp OutstreamGL.hpp RemoteControl.hpp
-    LightComponent.hpp Object3DComponent.hpp MaterialComponent.hpp WarpComponent.hpp)
+FILE(GLOB ARM_SOURCES Raspi_App.cpp esUtil.c)
+FILE(GLOB ARM_HEADERS Raspi_App.hpp esUtil.h)
+set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES})
+set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS})
+
 include_directories("/opt/vc/include/" "/opt/vc/include/interface/vcos/pthreads"
         "/opt/vc/include/interface/vmcs_host/linux" )
 link_directories("/opt/vc/lib")

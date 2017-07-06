@@ -43,10 +43,24 @@ if(UNIX AND NOT APPLE)
 
     # check if we are on raspberry pi
     find_file(BCMHOST bcm_host.h PATHS "/opt/vc/include/")
-    if(NOT BCMHOST)
-    else()
+
+    # check if we have a mali gpu
+    find_file(MALI libmali.so PATHS "/usr/lib/arm-linux-gnueabihf")
+
+    # it's an ARM for sure
+    if(BCMHOST OR MALI)
       set(KINSKI_ARM TRUE)
       add_definitions(-DKINSKI_ARM)
+    endif()
+
+    # broadcom SoC -> RaspberryPi
+    if(BCMHOST)
+      set(KINSKI_RASPI TRUE)
+      add_definitions(-DKINSKI_RASPI)
+    endif()
+
+    if(MALI)
+        set(KINSKI_MALI TRUE)
     endif()
 endif()
 
@@ -58,4 +72,3 @@ IF(NOT CMAKE_BUILD_TYPE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
 ADD_SUBDIRECTORY("src")
-

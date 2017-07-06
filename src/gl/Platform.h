@@ -14,8 +14,11 @@
 
 #if defined(KINSKI_ARM)
 #define KINSKI_EGL
-#define KINSKI_NO_VAO
 #define GL_GLEXT_PROTOTYPES
+#endif
+
+#if defined(KINSKI_RASPI)
+#define KINSKI_NO_VAO
 #endif
 
 #ifdef KINSKI_GLES // OpenGL ES
