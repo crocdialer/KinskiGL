@@ -183,7 +183,7 @@ namespace kinski
     void Raspi_App::swap_buffers()
     {
         // eglSwapBuffers(m_context->eglDisplay, m_context->eglSurface);
-        m_context->esSwapBuffer(m_context.get());
+        esSwapBuffer(m_context.get());
     }
 
     double Raspi_App::get_application_time()

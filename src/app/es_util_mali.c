@@ -1,23 +1,3 @@
-//
-// Book:      OpenGL(R) ES 2.0 Programming Guide
-// Authors:   Aaftab Munshi, Dan Ginsburg, Dave Shreiner
-// ISBN-10:   0321502795
-// ISBN-13:   9780321502797
-// Publisher: Addison-Wesley Professional
-// URLs:      http://safari.informit.com/9780321563835
-//            http://www.opengles-book.com
-//
-
-// ESUtil.c
-//
-//    A utility library for OpenGL ES.  This library provides a
-//    basic common framework for the example applications in the
-//    OpenGL ES 2.0 Programming Guide.
-//
-
-///
-//  Includes
-//
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -34,6 +34,7 @@ FILE(GLOB ARM_SOURCES Raspi_App.cpp es_util_mali.c)
 FILE(GLOB ARM_HEADERS Raspi_App.hpp esUtil.h)
 set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES})
 set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS})
+include_directories("/usr/include/libdrm/")
 endif()
 
 add_library(${LIB_NAME} ${LIB_TYPE} ${FOLDER_SOURCES} ${FOLDER_HEADERS})
