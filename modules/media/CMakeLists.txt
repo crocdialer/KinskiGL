@@ -11,7 +11,7 @@ if(USE_GSTREAMER)
     find_library(GLIB NAMES glib-2.0)
     find_library(GOBJECT NAMES gobject-2.0)
     set(MODULE_LIBRARIES ${GSTREAMER_LIBRARIES} ${GSTREAMER_BASE_LIBRARIES} ${GSTREAMER_APP_LIBRARIES} ${GSTREAMER_VIDEO_LIBRARIES} ${GSTREAMER_GL_LIBRARIES} ${GLIB} ${GOBJECT})
-    set(MODULE_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GSTREAMER_INCLUDE_DIRS} ${GSTREAMER_GL_INCLUDE_DIRS} ${GSTREAMER_APP_INCLUDE_DIRS} "/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include" "/usr/local/lib/gstreamer-1.0/include")
+    set(MODULE_INCLUDE_DIRS ${GLIB_INCLUDE_DIRS} ${GSTREAMER_INCLUDE_DIRS} ${GSTREAMER_GL_INCLUDE_DIRS} ${GSTREAMER_APP_INCLUDE_DIRS} "/usr/lib/x86_64-linux-gnu/gstreamer-1.0/include" "/usr/local/lib/gstreamer-1.0/include" /usr/lib/arm-linux-gnueabihf/gstreamer-1.0/include/)
 #    message(WARNING "${MODULE_LIBRARIES}")
 #    message(WARNING "${MODULE_INCLUDE_DIRS}")
 
