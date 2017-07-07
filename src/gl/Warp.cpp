@@ -290,6 +290,7 @@ namespace kinski{ namespace gl{
     
     void Warp::render_output(const gl::Texture &the_texture, const float the_brightness)
     {
+        if(m_impl->m_dirty_subs){ m_impl->update_mesh(); }
         if(!the_texture){ return; }
         
 #if !defined(KINSKI_GLES)
@@ -308,8 +309,6 @@ namespace kinski{ namespace gl{
         }
         
         m_impl->m_mesh->material()->set_textures({roi_tex});
-        
-        if(m_impl->m_dirty_subs){ m_impl->update_mesh(); }
         
         m_impl->m_mesh->material()->set_diffuse(gl::Color(the_brightness, the_brightness,
                                                           the_brightness, 1.f));
