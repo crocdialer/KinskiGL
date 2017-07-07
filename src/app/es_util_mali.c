@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdarg.h>
 #include <sys/time.h>
-#include <assert.h>
 
 #define GL_GLEXT_PROTOTYPES 1
 #include <GLES2/gl2.h>
@@ -15,6 +14,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
+#include <assert.h>
 
 #include <xf86drm.h>
 #include <xf86drmMode.h>
@@ -43,6 +44,14 @@ struct drm_fb
 };
 
 fd_set g_fds;
+
+static void page_flip_handler(int fd, unsigned int frame,
+		                      unsigned int sec, unsigned int usec, void *data)
+{
+	int *waiting_for_flip = data;
+	*waiting_for_flip = 0;
+}
+
 drmEventContext g_evctx =
 {
         .version = DRM_EVENT_CONTEXT_VERSION,
@@ -87,6 +96,18 @@ static uint32_t find_crtc_for_connector(const drmModeRes *resources,
 
 	/* no match found */
 	return -1;
+}
+
+static void
+drm_fb_destroy_callback(struct gbm_bo *bo, void *data)
+{
+	struct drm_fb *fb = data;
+	struct gbm_device *gbm = gbm_bo_get_device(bo);
+
+	if (fb->fb_id)
+		drmModeRmFB(drm.fd, fb->fb_id);
+
+	free(fb);
 }
 
 static int init_drm(void)
@@ -175,6 +196,35 @@ static int init_drm(void)
 	}
 	drm.connector_id = connector->connector_id;
 	return 0;
+}
+
+static struct drm_fb * drm_fb_get_from_bo(struct gbm_bo *bo)
+{
+	struct drm_fb *fb = gbm_bo_get_user_data(bo);
+	uint32_t width, height, stride, handle;
+	int ret;
+
+	if (fb)
+		return fb;
+
+	fb = calloc(1, sizeof *fb);
+	fb->bo = bo;
+
+	width = gbm_bo_get_width(bo);
+	height = gbm_bo_get_height(bo);
+	stride = gbm_bo_get_stride(bo);
+	handle = gbm_bo_get_handle(bo).u32;
+
+	ret = drmModeAddFB(drm.fd, width, height, 24, 32, stride, handle, &fb->fb_id);
+	if (ret) {
+		printf("failed to create fb: %s\n", strerror(errno));
+		free(fb);
+		return NULL;
+	}
+
+	gbm_bo_set_user_data(bo, fb, drm_fb_destroy_callback);
+
+	return fb;
 }
 
 static int init_gbm(void)
