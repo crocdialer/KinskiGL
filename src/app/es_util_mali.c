@@ -311,7 +311,7 @@ EGLBoolean CreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
        return EGL_FALSE;
    }
 
-   printf("GL Extensions: \"%s\"\n", glGetString(GL_EXTENSIONS));
+   // printf("GL Extensions: \"%s\"\n", glGetString(GL_EXTENSIONS));
 
    *eglDisplay = display;
    *eglSurface = surface;

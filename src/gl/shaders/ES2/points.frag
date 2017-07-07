@@ -1,3 +1,4 @@
+precision mediump float;
 uniform int u_numTextures;
 uniform sampler2D u_sampler_2D[1];
 
