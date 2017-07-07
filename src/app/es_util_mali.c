@@ -385,14 +385,13 @@ GLboolean ESUTIL_API esCreateWindow ( ESContext *esContext, const char* title, G
    g_fb = drm_fb_get_from_bo(g_bo);
 
    /* set mode: */
-   ret = drmModeSetCrtc(drm.fd, drm.crtc_id, g_fb->fb_id, 0, 0,
-           &drm.connector_id, 1, drm.mode);
+   int ret = drmModeSetCrtc(drm.fd, drm.crtc_id, g_fb->fb_id, 0, 0,
+                            &drm.connector_id, 1, drm.mode);
    if(ret)
    {
        printf("failed to set mode: %s\n", strerror(errno));
        return GL_FALSE;
    }
-
    return GL_TRUE;
 }
 
