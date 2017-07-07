@@ -211,14 +211,13 @@ static struct drm_fb * drm_fb_get_from_bo(struct gbm_bo *bo)
 	handle = gbm_bo_get_handle(bo).u32;
 
 	ret = drmModeAddFB(drm.fd, width, height, 24, 32, stride, handle, &fb->fb_id);
-	if (ret) {
+	if(ret)
+    {
 		printf("failed to create fb: %s\n", strerror(errno));
 		free(fb);
 		return NULL;
 	}
-
 	gbm_bo_set_user_data(bo, fb, drm_fb_destroy_callback);
-
 	return fb;
 }
 
@@ -270,6 +269,12 @@ EGLBoolean CreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
    printf("EGL Version \"%s\"\n", eglQueryString(display, EGL_VERSION));
    printf("EGL Vendor \"%s\"\n", eglQueryString(display, EGL_VENDOR));
    printf("EGL Extensions \"%s\"\n", eglQueryString(display, EGL_EXTENSIONS));
+
+   if(!eglBindAPI(EGL_OPENGL_ES_API))
+   {
+       printf("failed to bind api EGL_OPENGL_ES_API\n");
+       return EGL_FALSE;
+   }
 
    // Get configs
    if(!eglGetConfigs(display, NULL, 0, &numConfigs)){ return EGL_FALSE; }
@@ -370,9 +375,6 @@ GLboolean ESUTIL_API esCreateWindow ( ESContext *esContext, const char* title, G
    };
    if(!esContext){ return GL_FALSE; }
 
-  //  esContext->width = width;
-  //  esContext->height = height;
-
    if(!WinCreate(esContext, title)){ return GL_FALSE; }
    if(!CreateEGLContext(esContext->hWnd, &esContext->eglDisplay,
                         &esContext->eglContext, &esContext->eglSurface,
@@ -383,6 +385,9 @@ GLboolean ESUTIL_API esCreateWindow ( ESContext *esContext, const char* title, G
    eglSwapBuffers(esContext->eglDisplay, esContext->eglSurface);
    g_bo = gbm_surface_lock_front_buffer(gbm.surface);
    g_fb = drm_fb_get_from_bo(g_bo);
+
+   esContext->width = gbm_bo_get_width(g_bo);
+   esContext->height = gbm_bo_get_height(g_bo);
 
    /* set mode: */
    int ret = drmModeSetCrtc(drm.fd, drm.crtc_id, g_fb->fb_id, 0, 0,
