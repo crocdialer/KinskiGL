@@ -1,3 +1,4 @@
+precision mediump float;
 uniform mat4 u_modelViewProjectionMatrix;
 uniform float u_pointSize;
 
