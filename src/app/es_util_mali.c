@@ -280,20 +280,38 @@ EGLBoolean CreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
    if(!eglGetConfigs(display, NULL, 0, &numConfigs)){ return EGL_FALSE; }
 
    // Choose config
-   if(!eglChooseConfig(display, attribList, &config, 1, &numConfigs)){ return EGL_FALSE; }
+   if(!eglChooseConfig(display, attribList, &config, 1, &numConfigs) || numConfigs != 1)
+   {
+       printf("failed to choose config: %d\n", numConfigs);
+       return EGL_FALSE;
+   }
 
    // Create a surface
    surface = eglCreateWindowSurface(display, config, (EGLNativeWindowType)hWnd, NULL);
 
-   if(surface == EGL_NO_SURFACE){ return EGL_FALSE; }
+   if(surface == EGL_NO_SURFACE)
+   {
+       printf("failed to create egl surface\n");
+       return EGL_FALSE;
+   }
 
    // Create a GL context
-   context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs );
+   context = eglCreateContext(display, config, EGL_NO_CONTEXT, contextAttribs);
 
-   if(context == EGL_NO_CONTEXT){ return EGL_FALSE; }
+   if(context == EGL_NO_CONTEXT)
+   {
+       printf("failed to create context\n");
+       return EGL_FALSE;
+   }
 
    // Make the context current
-   if(!eglMakeCurrent(display, surface, surface, context)){ return EGL_FALSE; }
+   if(!eglMakeCurrent(display, surface, surface, context))
+   {
+       printf("failed to make context current\n");
+       return EGL_FALSE;
+   }
+
+   printf("GL Extensions: \"%s\"\n", glGetString(GL_EXTENSIONS));
 
    *eglDisplay = display;
    *eglSurface = surface;
