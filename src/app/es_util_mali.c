@@ -378,10 +378,69 @@ GLboolean ESUTIL_API esCreateWindow ( ESContext *esContext, const char* title, G
                         &esContext->eglContext, &esContext->eglSurface,
                         attribList))
    { return GL_FALSE; }
+
+   glClear(GL_COLOR_BUFFER_BIT);
+   eglSwapBuffers(esContext->eglDisplay, esContext->eglSurface);
+   g_bo = gbm_surface_lock_front_buffer(gbm.surface);
+   g_fb = drm_fb_get_from_bo(g_bo);
+
+   /* set mode: */
+   ret = drmModeSetCrtc(drm.fd, drm.crtc_id, g_fb->fb_id, 0, 0,
+           &drm.connector_id, 1, drm.mode);
+   if(ret)
+   {
+       printf("failed to set mode: %s\n", strerror(errno));
+       return GL_FALSE;
+   }
+
    return GL_TRUE;
 }
 
 void ESUTIL_API esSwapBuffer(ESContext *esContext)
 {
+    struct gbm_bo *next_bo;
+    int waiting_for_flip = 1;
+
     eglSwapBuffers(esContext->eglDisplay, esContext->eglSurface);
+
+    next_bo = gbm_surface_lock_front_buffer(gbm.surface);
+    g_fb = drm_fb_get_from_bo(next_bo);
+
+    /*
+     * Here you could also update drm plane layers if you want
+     * hw composition
+     */
+
+    int ret = drmModePageFlip(drm.fd, drm.crtc_id, g_fb->fb_id,
+                              DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
+    if(ret)
+    {
+        printf("failed to queue page flip: %s\n", strerror(errno));
+        return;
+    }
+
+    while(waiting_for_flip)
+    {
+        ret = select(drm.fd + 1, &g_fds, NULL, NULL, NULL);
+        if(ret < 0)
+        {
+            printf("select err: %s\n", strerror(errno));
+            return;
+        }
+        else if(ret == 0)
+        {
+            printf("select timeout!\n");
+            return;
+        }
+        else if (FD_ISSET(0, &g_fds))
+        {
+            printf("user interrupted!\n");
+            break;
+        }
+        drmHandleEvent(drm.fd, &g_evctx);
+    }
+
+    /* release last buffer to render on again: */
+    gbm_surface_release_buffer(gbm.surface, g_bo);
+    g_bo = next_bo;
 }
