@@ -242,3 +242,8 @@ GLboolean ESUTIL_API esCreateWindow ( ESContext *esContext, const char* title, G
 
    return GL_TRUE;
 }
+
+void ESUTIL_API esSwapBuffer(ESContext *esContext)
+{
+    eglSwapBuffers(esContext->eglDisplay, esContext->eglSurface);
+}

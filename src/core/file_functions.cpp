@@ -233,13 +233,16 @@ namespace kinski { namespace fs{
     std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
-        std::ifstream inStream(path.c_str(), ios::in | ios::binary);
+        std::ifstream inStream(path.c_str(), ios::in | ios::binary | ios::ate);
 
         if(!inStream.good())
         {
             throw OpenFileFailed(theUTF8Filename);
         }
         std::vector<uint8_t> content;
+        content.reserve(inStream.tellg());
+        inStream.seekg(0);
+        
         content.insert(content.end(), (istreambuf_iterator<char>(inStream)),
                        istreambuf_iterator<char>());
         return content;

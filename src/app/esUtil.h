@@ -67,8 +67,12 @@ typedef struct ESContext
    /// EGL surface
    EGLSurface  eglSurface;
 
+   EGLConfig eglConfig;
+
 } ESContext;
 
+
+void ESUTIL_API esSwapBuffer ( ESContext *esContext );
 
 ///
 //  Public Functions
