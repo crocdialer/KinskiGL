@@ -14,8 +14,8 @@
 
 #if defined(KINSKI_ARM)
 #define KINSKI_EGL
-ifndef GL_GLEXT_PROTOTYPES
-#define GL_GLEXT_PROTOTYPES
+#ifndef GL_GLEXT_PROTOTYPES
+    #define GL_GLEXT_PROTOTYPES
 #endif
 #endif
 
