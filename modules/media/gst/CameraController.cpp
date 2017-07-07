@@ -82,9 +82,10 @@ void CameraController::start_capture()
             m_impl->m_gst_util.use_pipeline(pipeline, sink);
             m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY);
 
+#if !defined(KINSKI_ARM)
             m_impl->m_buffer_front = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
             m_impl->m_buffer_back = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
-
+#endif
             m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
         }
     }
@@ -120,6 +121,8 @@ bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, in
 
 bool CameraController::copy_frame_to_texture(gl::Texture &tex)
 {
+#if !defined(KINSKI_ARM)
+
     if(m_impl)
     {
         GstBuffer* buf = m_impl->m_gst_util.new_buffer();
@@ -154,6 +157,7 @@ bool CameraController::copy_frame_to_texture(gl::Texture &tex)
             return true;
         }
     }
+#endif
     return false;
 }
 
