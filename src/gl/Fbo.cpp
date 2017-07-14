@@ -258,7 +258,7 @@ void Fbo::init()
                                    m_impl->m_color_textures[c].id(), 0);
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 		}
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
         if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
 #endif
 
@@ -267,7 +267,7 @@ void Fbo::init()
         {
 			if(m_impl->m_format.m_depth_buffer_texture)
             {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
 				GLuint depthTextureId;
 				glGenTextures(1, &depthTextureId);
 				glBindTexture(target(), depthTextureId);
@@ -464,7 +464,7 @@ Texture& Fbo::depth_texture()
 
 void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
     if(m_impl->m_format.m_depth_buffer)
     {
         if(m_impl->m_format.m_depth_buffer_texture)
