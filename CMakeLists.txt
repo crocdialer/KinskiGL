@@ -61,6 +61,7 @@ if(UNIX AND NOT APPLE)
 
     if(MALI)
         set(KINSKI_MALI TRUE)
+      	add_definitions(-DKINSKI_MALI)
     endif()
 endif()
 
