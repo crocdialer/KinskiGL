@@ -40,6 +40,7 @@
 
 #elif defined(KINSKI_GLES_3)
 #include <GLES3/gl31.h>
+#include <GLES2/gl2ext.h>
 #else // general ES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>

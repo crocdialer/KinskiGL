@@ -65,7 +65,7 @@ GLint Fbo::sMaxAttachments = -1;
             
             glBindRenderbuffer(GL_RENDERBUFFER, m_id);
             
-#if ! defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
             if(m_num_samples) // create a regular MSAA buffer
                 glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_num_samples, m_internal_format, m_width, m_height);
             else
@@ -178,7 +178,7 @@ Fbo::Format::Format()
 
 void Fbo::Format::enable_color_buffer(bool the_color_buffer, int the_num_buffers)
 {
-#if defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
 	m_num_color_buffers = (the_color_buffer && m_num_color_buffers) ? 1 : 0;
 #else
 	m_num_color_buffers = the_color_buffer ? m_num_color_buffers : 0;
@@ -188,7 +188,7 @@ void Fbo::Format::enable_color_buffer(bool the_color_buffer, int the_num_buffers
 void Fbo::Format::enable_depth_buffer(bool the_depth_buffer, bool as_texture)
 {
 	m_depth_buffer = the_depth_buffer;
-#if defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
 	m_depth_buffer_texture = false;
 #else
 	m_depth_buffer_texture = as_texture;
@@ -258,7 +258,7 @@ void Fbo::init()
                                    m_impl->m_color_textures[c].id(), 0);
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 		}
-#if ! defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
         if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
 #endif
 
@@ -267,7 +267,7 @@ void Fbo::init()
         {
 			if(m_impl->m_format.m_depth_buffer_texture)
             {
-	#if ! defined(KINSKI_GLES)			
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
 				GLuint depthTextureId;
 				glGenTextures(1, &depthTextureId);
 				glBindTexture(target(), depthTextureId);
@@ -413,7 +413,7 @@ GLenum Fbo::target() const { return m_impl->m_format.m_target; }
 
 void Fbo::enable_draw_buffers(bool b)
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
 	SaveFramebufferBinding sfb;
 	bind();
 
@@ -464,7 +464,7 @@ Texture& Fbo::depth_texture()
 
 void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 {
-#if ! defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
     if(m_impl->m_format.m_depth_buffer)
     {
         if(m_impl->m_format.m_depth_buffer_texture)
@@ -507,7 +507,7 @@ void Fbo::resolve_textures() const
 {
     if(!m_impl->m_needs_resolve){ return; }
 
-#if ! defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
 	// if this FBO is multisampled, resolve it, so it can be displayed
 	if(m_impl->m_resolve_fbo_id)
     {
