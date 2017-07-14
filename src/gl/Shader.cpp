@@ -45,7 +45,7 @@ m_impl(new ShaderImpl)
     
     if(!fragmentShader.empty()){ load_shader(fragmentShader.c_str(), GL_FRAGMENT_SHADER); }
     
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
     if(!geometryShader.empty()){ load_shader(geometryShader.c_str(), GL_GEOMETRY_SHADER); }
 #endif
     
@@ -60,7 +60,7 @@ m_impl(new ShaderImpl)
 	load_shader(vertSrc.c_str(), GL_VERTEX_SHADER);
 	load_shader(fragSrc.c_str(), GL_FRAGMENT_SHADER);
 
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
     if(!geomSrc.empty()){ load_shader(geomSrc.c_str(), GL_GEOMETRY_SHADER); }
 #endif
     
