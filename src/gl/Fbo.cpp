@@ -413,7 +413,7 @@ GLenum Fbo::target() const { return m_impl->m_format.m_target; }
 
 void Fbo::enable_draw_buffers(bool b)
 {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
 	SaveFramebufferBinding sfb;
 	bind();
 
