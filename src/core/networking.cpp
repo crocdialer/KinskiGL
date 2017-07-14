@@ -25,6 +25,8 @@ using namespace boost::asio::ip;
 
 ///////////////////////////////////////////////////////////////////////////////
 
+char const* const UNKNOWN_IP = "0.0.0.0";
+    
 //std::string local_ip(bool ipV6)
 //{
 //    std::string ret = "unknown_ip";
@@ -51,7 +53,7 @@ using namespace boost::asio::ip;
   
 std::string local_ip(bool ipV6)
 {
-    std::string ret = "unknown_ip";
+    std::string ret = UNKNOWN_IP;
     std::set<std::string> ip_set;
     
     struct ifaddrs * ifAddrStruct = NULL;
@@ -682,7 +684,7 @@ std::string tcp_connection::remote_ip() const
 {
     try{ return m_impl->socket.remote_endpoint().address().to_string(); }
     catch (std::exception &e) {}
-    return "0.0.0.0";
+    return UNKNOWN_IP;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

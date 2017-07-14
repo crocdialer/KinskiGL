@@ -18,6 +18,8 @@
 
 namespace kinski{ namespace net{
 
+extern char const* const UNKNOWN_IP;
+    
 std::string local_ip(bool ipV6 = false);
 
 typedef std::shared_ptr<class tcp_connection> tcp_connection_ptr;

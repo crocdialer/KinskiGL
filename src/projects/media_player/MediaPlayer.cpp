@@ -88,6 +88,15 @@ void MediaPlayer::setup()
             else{ *m_media_path = p; }
         }
     }
+    
+    m_ip_adress = net::local_ip();
+    m_check_ip_timer = Timer(background_queue().io_service(), [this]()
+    {
+        auto fetched_ip = net::local_ip();
+        main_queue().submit([this, fetched_ip](){ m_ip_adress = fetched_ip; });
+    });
+    m_check_ip_timer.set_periodic();
+    m_check_ip_timer.expires_from_now(5.f);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -129,10 +138,13 @@ void MediaPlayer::draw()
     if(displayTweakBar())
     {
         gl::draw_text_2D(m_media->is_loaded() ? fs::get_filename_part(m_media->path()) : *m_media_path,
-                         fonts()[1], gl::COLOR_WHITE, gl::vec2(10));
+                         fonts()[1], m_media->is_loaded() ? gl::COLOR_WHITE : gl::COLOR_RED, gl::vec2(10));
         gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
                          secs_to_time_str(m_media->duration()),
                          fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
+        gl::draw_text_2D(m_ip_adress, fonts()[1],
+                         m_ip_adress == net::UNKNOWN_IP ? gl::COLOR_RED : gl::COLOR_WHITE,
+                         gl::vec2(10, 70));
         draw_textures(textures());
     }
     m_needs_redraw = false;

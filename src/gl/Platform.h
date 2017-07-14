@@ -23,6 +23,10 @@
 #define KINSKI_NO_VAO
 #endif
 
+#if defined(KINSKI_MALI)
+#define KINSKI_GLES_3
+#endif
+
 #ifdef KINSKI_GLES // OpenGL ES
 
 #ifdef KINSKI_COCOA_TOUCH // iOS
@@ -34,6 +38,8 @@
 #import <OpenGLES/ES2/glext.h>
 #endif // KINSKI_COCOA_TOUCH (iOS)
 
+#elif defined(KINSKI_GLES_3)
+#include <GLES3/gl31.h>
 #else // general ES2
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
