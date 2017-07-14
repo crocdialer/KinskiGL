@@ -507,7 +507,7 @@ void Fbo::resolve_textures() const
 {
     if(!m_impl->m_needs_resolve){ return; }
 
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES)
 	// if this FBO is multisampled, resolve it, so it can be displayed
 	if(m_impl->m_resolve_fbo_id)
     {
