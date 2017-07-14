@@ -101,8 +101,6 @@ private:
     std::vector<gl::Fbo> m_shadow_fbos;
     std::vector<gl::CameraPtr> m_shadow_cams;
     bool m_shadow_pass;
-
-    void update_uniform_buffer_shadows(const mat4 &the_transform);
 };
     
 }}// namespace

@@ -133,19 +133,24 @@ m_impl(new timer_impl(io, cb)){}
 void Timer::expires_from_now(double secs)
 {
     if(!m_impl) return;
-    auto impl_cp = m_impl;
+    std::weak_ptr<timer_impl> weak_impl= m_impl;
     
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(duration_t(secs)));
     m_impl->m_running = true;
 
-    m_impl->m_timer.async_wait([this, impl_cp, secs](const boost::system::error_code &error)
+    m_impl->m_timer.async_wait([this, weak_impl, secs](const boost::system::error_code &error)
     {
         // Timer expired regularly
-        if(!error && impl_cp.use_count() > 1)
+        if(!error)
         {
-            impl_cp->m_running = false;
-            if(impl_cp->m_callback) { impl_cp->m_callback(); }
-            if(impl_cp->m_periodic){ expires_from_now(secs); }
+            auto impl = weak_impl.lock();
+            
+            if(impl)
+            {
+                impl->m_running = false;
+                if(impl->m_callback) { impl->m_callback(); }
+                if(impl->m_periodic){ expires_from_now(secs); }
+            }
         }
     });
 }

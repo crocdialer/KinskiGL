@@ -477,9 +477,9 @@ tcp_connection_ptr tcp_connection::create(boost::asio::io_service& io_service,
                                           tcp_receive_cb_t f)
 {
     auto ret = tcp_connection_ptr(new tcp_connection(io_service, the_ip, the_port, f));
-    auto connect_cb = [](ConnectionPtr the_uart)
+    auto connect_cb = [](ConnectionPtr the_con)
     {
-        LOG_TRACE_1 << "connected: " << the_uart->description();
+        LOG_TRACE_1 << "connected: " << the_con->description();
     };
     ret->set_connect_cb(connect_cb);
 

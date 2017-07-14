@@ -256,9 +256,6 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
                 //                    mat->uniform("u_poisson_radius", 3.f);
             }
             
-            // update uniform buffers for matrices and shadows
-            update_uniform_buffer_shadows(m->global_transform());
-            
             if(m->geometry()->has_bones())
             {
                 mat->uniform("u_bones", m->bone_matrices());
@@ -479,10 +476,4 @@ void SceneRenderer::set_shadowmap_size(const glm::vec2 &the_size)
 #endif
 }
 
-void SceneRenderer::update_uniform_buffer_shadows(const glm::mat4 &the_transform)
-{
-#ifndef KINSKI_GLES
-    
-#endif
-}
 }}
