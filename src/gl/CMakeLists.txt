@@ -1,6 +1,8 @@
 # which shaders to include
-if(KINSKI_ARM)
+if(KINSKI_RASPI)
   set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ES2")
+elseif(KINSKI_MALI)
+  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/ES3")
 else()
   set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders/410")
 endif()

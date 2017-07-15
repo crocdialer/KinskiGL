@@ -137,7 +137,7 @@ namespace kinski { namespace gl {
     {
         auto shader_obj = the_shader ? the_shader : m_shader;
 
-#if !defined(KINSKI_GLES)// || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
         if(!m_uniform_buffer){ m_uniform_buffer = gl::Buffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW); }
         
         
