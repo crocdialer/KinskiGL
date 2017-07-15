@@ -1,4 +1,5 @@
 #version 310 es
+precision highp float;
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;

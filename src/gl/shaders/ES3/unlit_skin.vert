@@ -2,7 +2,7 @@
 
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
-uniform mat4 u_bones[36];
+uniform mat4 u_bones[110];
 
 layout(location = 0) in vec4 a_vertex;
 layout(location = 2) in vec4 a_texCoord;
