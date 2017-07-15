@@ -480,7 +480,8 @@ void Fbo::set_depth_texture(gl::Texture the_depth_tex)
                           GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
             
 #if defined(KINSKI_GLES_3)
-            glFramebufferTexture2D(GL_FRAMEBUFFER, attach, the_depth_tex.id(), 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, attach, the_depth_tex.target(),
+                                   the_depth_tex.id(), 0);
 #else
             glFramebufferTexture(GL_FRAMEBUFFER, attach, the_depth_tex.id(), 0);
 #endif
