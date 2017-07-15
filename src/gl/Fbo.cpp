@@ -165,9 +165,9 @@ Fbo::Format::Format()
     m_depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
 	m_depth_buffer_texture = true;
 #if defined(KINSKI_GLES_3)
-    m_depth_data_type = GL_DEPTH24_STENCIL8;//GL_UNSIGNED_INT_24_8;
-    m_depth_internal_format = GL_DEPTH24_STENCIL8;
-    m_depth_buffer_texture = false;
+    m_depth_data_type = GL_UNSIGNED_INT_24_8;//GL_DEPTH24_STENCIL8;
+    m_depth_internal_format = GL_DEPTH_COMPONENT24;
+    m_depth_buffer_texture = true;
 #endif
     
 #endif
@@ -175,7 +175,7 @@ Fbo::Format::Format()
 	m_num_coverage_samples = 0;
 	m_num_color_buffers = 1;
 	m_depth_buffer = true;
-	m_stencil_buffer = true;
+	m_stencil_buffer = false;
 	m_mipmapping = false;
 	m_wrap_s = GL_CLAMP_TO_EDGE;
 	m_wrap_t = GL_CLAMP_TO_EDGE;
