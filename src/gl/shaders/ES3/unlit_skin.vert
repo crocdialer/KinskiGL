@@ -1,26 +1,27 @@
+#version 310 es
+
 uniform mat4 u_modelViewProjectionMatrix;
 uniform mat4 u_textureMatrix;
-uniform mat4 u_bones[18];
+uniform mat4 u_bones[72];
 
-attribute vec4 a_vertex;
-attribute vec4 a_texCoord;
-attribute vec4 a_color;
-attribute vec4 a_boneIds;
-attribute vec4 a_boneWeights;
+layout(location = 0) in vec4 a_vertex;
+layout(location = 2) in vec4 a_texCoord;
+layout(location = 3) in vec4 a_color;
+layout(location = 6) in ivec4 a_boneIds;
+layout(location = 7) in vec4 a_boneWeights;
 
-varying lowp vec4 v_color;
-varying lowp vec4 v_texCoord;
+out vec4 v_color;
+out vec2 v_texCoord;
 
 void main(void)
 {
   v_color = a_color;
   v_texCoord =  u_textureMatrix * a_texCoord;
-
   vec4 newVertex = vec4(0);
 
   for (int i = 0; i < 4; i++)
   {
-    newVertex += u_bones[int(a_boneIds[i])] * a_vertex * a_boneWeights[i];
+      newVertex += u_bones[int(a_boneIds[i])] * a_vertex * a_boneWeights[i];
   }
   gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
 }
