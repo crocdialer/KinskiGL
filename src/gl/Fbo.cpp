@@ -164,11 +164,11 @@ Fbo::Format::Format()
     m_depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
     m_depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
 	m_depth_buffer_texture = true;
-#if defined(KINSKI_GLES_3)
-    m_depth_data_type = GL_UNSIGNED_INT_24_8;//GL_DEPTH24_STENCIL8;
-    m_depth_internal_format = GL_DEPTH_COMPONENT24;
-    m_depth_buffer_texture = true;
-#endif
+//#if defined(KINSKI_GLES_3)
+//    m_depth_data_type = GL_UNSIGNED_INT_24_8;//GL_DEPTH24_STENCIL8;
+//    m_depth_internal_format = GL_DEPTH_COMPONENT24;
+//    m_depth_buffer_texture = true;
+//#endif
     
 #endif
 	m_num_samples = 0;
