@@ -1320,7 +1320,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             {
                 glEnable(GL_BLEND);
                 glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
-#ifndef KINSKI_GLES
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
                 glBlendEquation(the_mat->blend_equation());
 #endif
             }
