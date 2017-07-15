@@ -161,9 +161,11 @@ Fbo::Format::Format()
 	m_depth_buffer_texture = false;
 #else
 	m_color_internal_format = GL_RGBA8;
+    m_depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
     m_depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
 	m_depth_buffer_texture = true;
 #if defined(KINSKI_GLES_3)
+    m_depth_data_type = GL_UNSIGNED_INT_24_8;
     m_depth_internal_format = GL_DEPTH24_STENCIL8;
 #endif
     
@@ -277,21 +279,21 @@ void Fbo::init()
 				glBindTexture(target(), depthTextureId);
 				glTexImage2D(target(), 0, format().depth_internal_format(),
                              m_impl->m_width, m_impl->m_height, 0, GL_DEPTH_STENCIL,
-                             GL_FLOAT_32_UNSIGNED_INT_24_8_REV, nullptr);
+                             format().m_depth_data_type, nullptr);
                 
-				glTexParameteri(target(), GL_TEXTURE_MIN_FILTER, m_impl->m_format.m_min_filter);
-				glTexParameteri(target(), GL_TEXTURE_MAG_FILTER, m_impl->m_format.m_mag_filter);
-				glTexParameteri(target(), GL_TEXTURE_WRAP_S, m_impl->m_format.m_wrap_s);
-				glTexParameteri(target(), GL_TEXTURE_WRAP_T, m_impl->m_format.m_wrap_t);
 				m_impl->m_depth_texture = Texture(target(), depthTextureId, m_impl->m_width,
                                                 m_impl->m_height, false);
-
+                m_impl->m_depth_texture.set_min_filter(m_impl->m_format.m_min_filter);
+                m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.m_mag_filter);
+                m_impl->m_depth_texture.set_wrap_s(m_impl->m_format.m_wrap_s);
+                m_impl->m_depth_texture.set_wrap_t(m_impl->m_format.m_wrap_t);
+                
                 auto attach = m_impl->m_format.has_stencil_buffer() ?
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
                 
 #if defined(KINSKI_GLES_3)
-//                glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
-//                                       m_impl->m_depth_texture.id(), 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
+                                       m_impl->m_depth_texture.id(), 0);
 #else
                 glFramebufferTexture(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0);
 #endif

@@ -246,7 +246,9 @@ class KINSKI_API Fbo
 		
 	  protected:
 		GLenum		m_target;
-		GLenum		m_color_internal_format, m_depth_internal_format, m_stencil_internal_format;
+		GLenum		m_color_internal_format, m_depth_internal_format, m_stencil_internal_format,
+                    m_depth_data_type;
+        
         GLint       m_data_type;
 		int			m_num_samples;
 		int			m_num_coverage_samples;

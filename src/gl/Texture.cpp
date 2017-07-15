@@ -490,7 +490,7 @@ bool Texture::has_alpha() const
     
 	switch(m_impl->m_internal_format)
     {
-#if ! defined(KINSKI_GLES)
+#if ! defined(KINSKI_GLES_2)
 		case GL_RGBA8:
 		case GL_RGBA16:
 		case GL_RGBA32F:
