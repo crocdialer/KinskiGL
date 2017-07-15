@@ -18,18 +18,15 @@ layout(std140) uniform MaterialBlock
   Material u_material;
 };
 
-in VertexData
-{
-  vec4 color;
-  vec2 texCoord;
-} vertex_in;
+in vec4 v_color;
+in vec2 v_texCoord;
 
 out vec4 fragData;
 
 void main()
 {
-  vec4 texColors = vertex_in.color;
+  vec4 texColors = v_color;
   if(u_numTextures > 0)
-    texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
+    texColors *= texture(u_sampler_2D[0], v_texCoord.st);
   fragData = u_material.diffuse * texColors;
 }
