@@ -174,7 +174,7 @@ Fbo::Format::Format()
 	m_num_coverage_samples = 0;
 	m_num_color_buffers = 1;
 	m_depth_buffer = true;
-	m_stencil_buffer = false;
+	m_stencil_buffer = true;
 	m_mipmapping = false;
 	m_wrap_s = GL_CLAMP_TO_EDGE;
 	m_wrap_t = GL_CLAMP_TO_EDGE;
