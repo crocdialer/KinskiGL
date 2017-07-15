@@ -165,7 +165,7 @@ Fbo::Format::Format()
     m_depth_internal_format = GL_DEPTH32F_STENCIL8;//GL_DEPTH_COMPONENT32F; //GL_DEPTH24_STENCIL8;
 	m_depth_buffer_texture = true;
 #if defined(KINSKI_GLES_3)
-    m_depth_data_type = GL_UNSIGNED_INT_24_8;
+    m_depth_data_type = GL_DEPTH24_STENCIL8;//GL_UNSIGNED_INT_24_8;
     m_depth_internal_format = GL_DEPTH24_STENCIL8;
 #endif
     
