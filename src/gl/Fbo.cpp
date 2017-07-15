@@ -267,7 +267,7 @@ void Fbo::init()
         {
 			if(m_impl->m_format.m_depth_buffer_texture)
             {
-#if !defined(KINSKI_GLES_2)
+#if !defined(KINSKI_GLES)
 				GLuint depthTextureId;
 				glGenTextures(1, &depthTextureId);
 				glBindTexture(target(), depthTextureId);
@@ -285,13 +285,13 @@ void Fbo::init()
                 auto attach = m_impl->m_format.has_stencil_buffer() ?
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
                 
-#if defined(KINSKI_GLES_3)
-                glFramebufferTextureLayer(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0, 0);
-#else
+//#if defined(KINSKI_GLES_3)
+//                glFramebufferTextureLayer(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0, 0);
+//#else
                 glFramebufferTexture(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0);
-#endif
+//#endif
                 
-#endif//KINSKI_GLES_2
+#endif//KINSKI_GLES
 			}
             // implement depth buffer as RenderBuffer
 			else if(m_impl->m_format.m_depth_buffer)
