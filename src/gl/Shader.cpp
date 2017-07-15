@@ -320,7 +320,7 @@ GLint Shader::uniform_location(const std::string &name)
     
 GLint Shader::uniform_block_index(const std::string &name)
 {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
     
     auto it = m_impl->m_UniformBlockIndices.find(name);
     if(it == m_impl->m_UniformBlockIndices.end())
@@ -337,7 +337,7 @@ GLint Shader::uniform_block_index(const std::string &name)
 
 bool Shader::uniform_block_binding(const std::string &name, int the_value)
 {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
 	GLint block_index = uniform_block_index(name);
 
 	if(block_index >= 0)

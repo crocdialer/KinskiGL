@@ -65,7 +65,7 @@ GLint Fbo::sMaxAttachments = -1;
             
             glBindRenderbuffer(GL_RENDERBUFFER, m_id);
             
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
             if(m_num_samples) // create a regular MSAA buffer
                 glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_num_samples, m_internal_format, m_width, m_height);
             else
@@ -154,7 +154,7 @@ struct FboImpl
 Fbo::Format::Format()
 {
 	m_target = GL_TEXTURE_2D;
-#if defined(KINSKI_GLES)
+#if defined(KINSKI_GLES_2)
 	m_color_internal_format = GL_RGBA;
 	m_depth_internal_format = GL_ENUM(GL_DEPTH_COMPONENT24);
     m_stencil_internal_format = GL_STENCIL_INDEX8;
@@ -178,7 +178,7 @@ Fbo::Format::Format()
 
 void Fbo::Format::enable_color_buffer(bool the_color_buffer, int the_num_buffers)
 {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
 	m_num_color_buffers = (the_color_buffer && m_num_color_buffers) ? 1 : 0;
 #else
 	m_num_color_buffers = the_color_buffer ? m_num_color_buffers : 0;
@@ -188,7 +188,7 @@ void Fbo::Format::enable_color_buffer(bool the_color_buffer, int the_num_buffers
 void Fbo::Format::enable_depth_buffer(bool the_depth_buffer, bool as_texture)
 {
 	m_depth_buffer = the_depth_buffer;
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if defined(KINSKI_GLES_2)
 	m_depth_buffer_texture = false;
 #else
 	m_depth_buffer_texture = as_texture;
@@ -215,7 +215,7 @@ void Fbo::init()
     auto col_fmt = format().color_internal_format();
 	textureFormat.set_internal_format(col_fmt);
     
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
     GLint float_types[] = {GL_R32F, GL_RG32F, GL_RGB32F, GL_RGBA32F};
     GLint one_comp_types[] = {GL_RED, GL_GREEN, GL_BLUE, GL_R32F};
     if(contains(float_types, col_fmt)){ textureFormat.set_data_type(GL_FLOAT); }
@@ -230,7 +230,7 @@ void Fbo::init()
     {
         auto tex = Texture(m_impl->m_width, m_impl->m_height, textureFormat);
         
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
         if(contains(one_comp_types, col_fmt)){ tex.set_swizzle(GL_RED, GL_RED, GL_RED, GL_ONE); }
 #endif
 		m_impl->m_color_textures.push_back(tex);
@@ -258,7 +258,7 @@ void Fbo::init()
                                    m_impl->m_color_textures[c].id(), 0);
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + c);
 		}
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
         if(!drawBuffers.empty()){ glDrawBuffers(drawBuffers.size(), drawBuffers.data()); }
 #endif
 
@@ -267,7 +267,7 @@ void Fbo::init()
         {
 			if(m_impl->m_format.m_depth_buffer_texture)
             {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
 				GLuint depthTextureId;
 				glGenTextures(1, &depthTextureId);
 				glBindTexture(target(), depthTextureId);
@@ -286,7 +286,7 @@ void Fbo::init()
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
 
                 glFramebufferTexture(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0);
-	#endif
+#endif
 			}
             // implement depth buffer as RenderBuffer
 			else if(m_impl->m_format.m_depth_buffer)
@@ -317,7 +317,7 @@ void Fbo::init()
 
 bool Fbo::init_multisample()
 {
-#if defined(KINSKI_GLES)
+#if defined(KINSKI_GLES_2)
 	return false;
 #else
 	glGenFramebuffers(1, &m_impl->m_resolve_fbo_id);
@@ -346,8 +346,8 @@ bool Fbo::init_multisample()
 	for(uint32_t c = 0; c < m_impl->m_format.m_num_color_buffers; ++c)
     {
 		m_impl->mMultisampleColorRenderbuffers.push_back(Renderbuffer(m_impl->m_width, m_impl->m_height,
-                                                                    m_impl->m_format.m_color_internal_format,
-                                                                    m_impl->m_format.m_num_samples));
+                                                                      m_impl->m_format.m_color_internal_format,
+                                                                      m_impl->m_format.m_num_samples));
 
 		// attach the multisampled color buffer
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + c, GL_RENDERBUFFER,
@@ -464,7 +464,7 @@ Texture& Fbo::depth_texture()
 
 void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 {
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
     if(m_impl->m_format.m_depth_buffer)
     {
         if(m_impl->m_format.m_depth_buffer_texture)
@@ -507,7 +507,7 @@ void Fbo::resolve_textures() const
 {
     if(!m_impl->m_needs_resolve){ return; }
 
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES_2)
 	// if this FBO is multisampled, resolve it, so it can be displayed
 	if(m_impl->m_resolve_fbo_id)
     {
@@ -518,8 +518,10 @@ void Fbo::resolve_textures() const
 		
 		for(size_t c = 0; c < m_impl->m_color_textures.size(); ++c)
         {
+#if !defined(KINSKI_GLES)
 			glDrawBuffer(GL_COLOR_ATTACHMENT0 + c);
 			glReadBuffer(GL_COLOR_ATTACHMENT0 + c);
+#endif
 			GLbitfield bitfield = GL_COLOR_BUFFER_BIT;
             
 			if(m_impl->m_depth_texture && m_impl->m_depth_texture.id())
@@ -624,7 +626,7 @@ GLint Fbo::max_num_attachments()
 #endif
 }
 
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
 
 void Fbo::blit_to_current(const Area_<int> &the_src, const Area_<int> &the_dst,
                           GLenum filter, GLbitfield mask) const

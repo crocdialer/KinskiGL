@@ -117,7 +117,7 @@ class KINSKI_API Fbo
 	//! Returns the ID of the framebuffer itself. For antialiased FBOs this is the ID of the output multisampled FBO
     GLuint id() const;
 
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
 //	//! For antialiased FBOs this returns the ID of the mirror FBO designed for reading, where the multisampled render buffers are resolved to. For non-antialised, this is the equivalent to getId()
 //	GLuint		getResolveId() const { if( m_obj->m_resolve_fbo_id ) return m_obj->m_resolve_fbo_id; else return m_obj->m_id; }
 //

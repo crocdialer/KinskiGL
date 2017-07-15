@@ -20,6 +20,7 @@
 #endif
 
 #if defined(KINSKI_RASPI)
+#define KINSKI_GLES_2
 #define KINSKI_NO_VAO
 #endif
 

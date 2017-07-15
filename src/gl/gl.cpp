@@ -1320,7 +1320,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             {
                 glEnable(GL_BLEND);
                 glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
                 glBlendEquation(the_mat->blend_equation());
 #endif
             }
@@ -1366,7 +1366,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         // add texturemaps
         int32_t tex_unit = 0, tex_2d = 0;
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
         int32_t tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
 #endif
         
@@ -1386,7 +1386,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     sprintf(buf, "u_sampler_2D[%d]", tex_2d++);
                     break;
 
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
 
                 case GL_TEXTURE_3D:
                     sprintf(buf, "u_sampler_3D[%d]", tex_3d++);
@@ -1436,7 +1436,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         if(s_extensions.empty())
         {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
             GLint numExtensions = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions) ;
             for (int i = 0; i < numExtensions; ++i) {

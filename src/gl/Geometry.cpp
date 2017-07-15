@@ -286,7 +286,7 @@ void Geometry::create_gl_buffers()
     // insert bone indices and weights
     if(m_dirty_bone_buffer &&has_bones())
     {
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
         m_bone_buffer.set_data(m_bone_vertex_data);
         m_bone_buffer.set_stride(sizeof(gl::BoneVertexData));
 #else

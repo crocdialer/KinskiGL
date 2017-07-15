@@ -125,7 +125,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         // bone IDs
         VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->bone_buffer());
         bone_IDs.size = 4;
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
         bone_IDs.type = GL_INT;
 #else
         bone_IDs.type = GL_FLOAT;
@@ -162,7 +162,7 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
                                       vertex_attrib.normalize, vertex_attrib.buffer.stride(),
                                       BUFFER_OFFSET(vertex_attrib.offset));
             }
-#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
             else if(vertex_attrib.type == GL_INT)
             {
                 glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
