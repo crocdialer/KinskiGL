@@ -471,7 +471,7 @@ void ESUTIL_API esSwapBuffer(ESContext *esContext)
     uint32_t handle = gbm_bo_get_handle(g_bo).u32;
 	uint32_t pitch = gbm_bo_get_stride(g_bo);
 	uint32_t fb;
-	drmModeAddFB(gbm.dev, drm.mode.hdisplay, drm.mode.vdisplay, 24, 32, pitch, handle, &fb);
+	drmModeAddFB(gbm.dev, drm.mode->hdisplay, drm.mode->vdisplay, 24, 32, pitch, handle, &fb);
     drmModeSetCrtc(gbm.dev, drm.crtc_id, fb, 0, 0, &drm.connector_id, 1, &drm.mode);
 
     /* release last buffer to render on again: */
