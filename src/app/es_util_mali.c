@@ -428,41 +428,53 @@ void ESUTIL_API esSwapBuffer(ESContext *esContext)
     next_bo = gbm_surface_lock_front_buffer(gbm.surface);
     g_fb = drm_fb_get_from_bo(next_bo);
 
-    /*
-     * Here you could also update drm plane layers if you want
-     * hw composition
-     */
+    // /*
+    //  * Here you could also update drm plane layers if you want
+    //  * hw composition
+    //  */
+    //
+    // int ret = drmModePageFlip(drm.fd, drm.crtc_id, g_fb->fb_id,
+    //                           DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
+    // if(ret)
+    // {
+    //     printf("failed to queue page flip: %s\n", strerror(errno));
+    //     return;
+    // }
+    //
+    // while(waiting_for_flip)
+    // {
+    //     ret = select(drm.fd + 1, &g_fds, NULL, NULL, NULL);
+    //     if(ret < 0)
+    //     {
+    //         printf("select err: %s\n", strerror(errno));
+    //         return;
+    //     }
+    //     else if(ret == 0)
+    //     {
+    //         printf("select timeout!\n");
+    //         return;
+    //     }
+    //     else if (FD_ISSET(0, &g_fds))
+    //     {
+    //         printf("user interrupted!\n");
+    //         break;
+    //     }
+    //     drmHandleEvent(drm.fd, &g_evctx);
+    // }
+    //
+    // /* release last buffer to render on again: */
+    // gbm_surface_release_buffer(gbm.surface, g_bo);
+    // g_bo = next_bo;
 
-    int ret = drmModePageFlip(drm.fd, drm.crtc_id, g_fb->fb_id,
-                              DRM_MODE_PAGE_FLIP_EVENT, &waiting_for_flip);
-    if(ret)
-    {
-        printf("failed to queue page flip: %s\n", strerror(errno));
-        return;
-    }
-
-    while(waiting_for_flip)
-    {
-        ret = select(drm.fd + 1, &g_fds, NULL, NULL, NULL);
-        if(ret < 0)
-        {
-            printf("select err: %s\n", strerror(errno));
-            return;
-        }
-        else if(ret == 0)
-        {
-            printf("select timeout!\n");
-            return;
-        }
-        else if (FD_ISSET(0, &g_fds))
-        {
-            printf("user interrupted!\n");
-            break;
-        }
-        drmHandleEvent(drm.fd, &g_evctx);
-    }
+    uint32_t handle = gbm_bo_get_handle(g_bo).u32;
+	uint32_t pitch = gbm_bo_get_stride(g_bo);
+	uint32_t fb;
+	drmModeAddFB(gbm->dev, drm->mode.hdisplay, drm->mode.vdisplay, 24, 32, pitch, handle, &fb);
+    drmModeSetCrtc(gbm->dev, drm->crtc_id, fb, 0, 0, &drm->connector_id, 1, &drm->mode);
 
     /* release last buffer to render on again: */
+    drmModeRmFB (device, g_fb);
     gbm_surface_release_buffer(gbm.surface, g_bo);
+    g_fb = fb;
     g_bo = next_bo;
 }
