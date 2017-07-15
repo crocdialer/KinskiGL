@@ -125,7 +125,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         // bone IDs
         VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->bone_buffer());
         bone_IDs.size = 4;
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
         bone_IDs.type = GL_INT;
 #else
         bone_IDs.type = GL_FLOAT;
@@ -183,14 +183,7 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
             glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
         }
     }
-    // if(!m_geometry->hasTexCoords())
-    // {
-    //     GLint texCoordLocation = shader.attrib_location(m_texCoordLocationName);
-    //     if(texCoordLocation >= 0)
-    //     {
-    //         glVertexAttrib2f(texCoordLocation, 0.f, 0.f);
-    //     }
-    // }
+    
     if(!m_geometry->has_point_sizes())
     {
         GLint pointSizeAttribLocation = the_shader->attrib_location(m_pointSizeLocationName);
@@ -442,24 +435,7 @@ MeshPtr Mesh::copy()
     MeshPtr ret = create(m_geometry, material());
     *ret = *this;
 
-    // deep copy bones
-//        ret->root_bone() = deep_copy_bones(root_bone());
-//
-//        // remap animations
-//        std::vector<MeshAnimation> anim_cp;
-//
-//        for(const auto &anim : m_animations)
-//        {
-//            auto cp = anim;
-//            cp.boneKeys.clear();
-//
-//            for(const auto &bone_key : anim.boneKeys)
-//            {
-//                cp.boneKeys[get_bone_by_name(ret->root_bone(), bone_key.first->name)] = bone_key.second;
-//            }
-//            anim_cp.push_back(anim);
-//        }
-//        ret->m_animations = anim_cp;
+    //TODO: deep copy bones, rebuild animations
 
     ret->m_vertexArrays.clear();
     return ret;
