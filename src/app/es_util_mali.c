@@ -55,6 +55,8 @@ drmEventContext g_evctx =
 struct gbm_bo *g_bo = NULL;
 struct drm_fb *g_fb = NULL;
 
+static uint32_t g_previous_fb = 0;
+
 static uint32_t find_crtc_for_encoder(const drmModeRes *resources,
 				                      const drmModeEncoder *encoder)
 {
@@ -469,12 +471,12 @@ void ESUTIL_API esSwapBuffer(ESContext *esContext)
     uint32_t handle = gbm_bo_get_handle(g_bo).u32;
 	uint32_t pitch = gbm_bo_get_stride(g_bo);
 	uint32_t fb;
-	drmModeAddFB(gbm->dev, drm->mode.hdisplay, drm->mode.vdisplay, 24, 32, pitch, handle, &fb);
-    drmModeSetCrtc(gbm->dev, drm->crtc_id, fb, 0, 0, &drm->connector_id, 1, &drm->mode);
+	drmModeAddFB(gbm.dev, drm.mode.hdisplay, drm.mode.vdisplay, 24, 32, pitch, handle, &fb);
+    drmModeSetCrtc(gbm.dev, drm.crtc_id, fb, 0, 0, &drm.connector_id, 1, &drm.mode);
 
     /* release last buffer to render on again: */
-    drmModeRmFB (device, g_fb);
+    drmModeRmFB(gbm.dev, &g_previous_fb);
     gbm_surface_release_buffer(gbm.surface, g_bo);
-    g_fb = fb;
+    g_previous_fb = fb;
     g_bo = next_bo;
 }
