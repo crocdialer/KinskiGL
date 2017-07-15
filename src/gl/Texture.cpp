@@ -242,7 +242,7 @@ void Texture::init(const void *data, GLint dataFormat, const Format &format)
                      m_impl->m_width, m_impl->m_height, 0, dataFormat,
                      m_impl->m_datatype, data);
     }
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
     else if (m_impl->m_target == GL_TEXTURE_CUBE_MAP)
     {
         glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_R, format.m_wrap_t);

@@ -1382,11 +1382,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     sprintf(buf, "u_sampler_2D[%d]", tex_2d++);
                     break;
 
-#if !defined(KINSKI_GLES)
-
-                case GL_TEXTURE_RECTANGLE:
-                    sprintf(buf, "u_sampler_2Drect[%d]", tex_rect++);
-                    break;
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
 
                 case GL_TEXTURE_3D:
                     sprintf(buf, "u_sampler_3D[%d]", tex_3d++);
@@ -1398,6 +1394,13 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 
                 case GL_TEXTURE_CUBE_MAP:
                     sprintf(buf, "u_sampler_cube[%d]", tex_cube++);
+                    break;
+#endif
+                    
+#if !defined(KINSKI_GLES)
+                    
+                case GL_TEXTURE_RECTANGLE:
+                    sprintf(buf, "u_sampler_2Drect[%d]", tex_rect++);
                     break;
 #endif
                 default:
@@ -1429,7 +1432,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         if(s_extensions.empty())
         {
-#ifndef KINSKI_GLES
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
             GLint numExtensions = 0;
             glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions) ;
             for (int i = 0; i < numExtensions; ++i) {
