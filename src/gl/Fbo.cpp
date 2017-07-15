@@ -286,7 +286,8 @@ void Fbo::init()
                               GL_DEPTH_STENCIL_ATTACHMENT : GL_DEPTH_ATTACHMENT;
                 
 #if defined(KINSKI_GLES_3)
-                glFramebufferTextureLayer(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0, 0);
+                glFramebufferTexture2D(GL_FRAMEBUFFER, attach, target(),
+                                       m_impl->m_depth_texture.id(), 0);
 #else
                 glFramebufferTexture(GL_FRAMEBUFFER, attach, m_impl->m_depth_texture.id(), 0);
 #endif
