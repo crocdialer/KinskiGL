@@ -1366,8 +1366,12 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         // add texturemaps
         int32_t tex_unit = 0, tex_2d = 0;
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
+        int32_t tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
+#endif
+        
 #if !defined(KINSKI_GLES)
-        int32_t tex_rect = 0, tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
+        int32_t tex_rect = 0;
 #endif
 
         for(auto &t : the_mat->textures())
