@@ -16,12 +16,12 @@ out vec2 v_texCoord;
 void main(void)
 {
   v_color = a_color;
-  v_texCoord =  u_textureMatrix * a_texCoord;
+  v_texCoord = (u_textureMatrix * a_texCoord).xy;
   vec4 newVertex = vec4(0);
 
   for (int i = 0; i < 4; i++)
   {
-      newVertex += u_bones[int(a_boneIds[i])] * a_vertex * a_boneWeights[i];
+      newVertex += u_bones[a_boneIds[i]] * a_vertex * a_boneWeights[i];
   }
   gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
 }

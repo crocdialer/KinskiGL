@@ -162,7 +162,7 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
                                       vertex_attrib.normalize, vertex_attrib.buffer.stride(),
                                       BUFFER_OFFSET(vertex_attrib.offset));
             }
-#if !defined(KINSKI_GLES)
+#if !defined(KINSKI_GLES) || defined(KINSKI_GLES_3)
             else if(vertex_attrib.type == GL_INT)
             {
                 glVertexAttribIPointer(location, vertex_attrib.size, vertex_attrib.type,
