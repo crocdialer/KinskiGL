@@ -42,6 +42,8 @@
 #define GLFW_EXPOSE_NATIVE_X11
 #define GLFW_EXPOSE_NATIVE_GLX
 #include "GLFW/glfw3native.h"
+#elif defined(KINSKI_MAC)
+#include <gst/gl/cocoa/gstgldisplay_cocoa.h>
 #endif
 
 namespace kinski{ namespace media{

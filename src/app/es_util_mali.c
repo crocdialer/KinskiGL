@@ -265,7 +265,7 @@ EGLBoolean CreateEGLContext ( EGLNativeWindowType hWnd, EGLDisplay* eglDisplay,
    // Initialize EGL
    if(!eglInitialize(display, &major, &minor)){ return EGL_FALSE; }
 
-   printf("Using display %p with EGL version %d.%d\n", display, major, minor);
+   printf("Using display %p(%p) with EGL version %d.%d\n", display, gbm.dev, major, minor);
    printf("EGL Version \"%s\"\n", eglQueryString(display, EGL_VERSION));
    printf("EGL Vendor \"%s\"\n", eglQueryString(display, EGL_VENDOR));
    printf("EGL Extensions \"%s\"\n", eglQueryString(display, EGL_EXTENSIONS));

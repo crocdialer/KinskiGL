@@ -187,12 +187,6 @@ namespace kinski
             4, 16, 26, 16, 4,
             1, 4, 7, 4, 1,
         };
-//        const std::vector<float> identity =
-//        {
-//            0, 0, 0,
-//            0, 1, 0,
-//            0, 0, 0
-//        };
         return convolve(gaussian);
     }
     

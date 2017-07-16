@@ -160,7 +160,7 @@ void GstUtil::use_pipeline(GstElement *the_pipeline, GstElement *the_appsink)
 #elif defined(KINSKI_LINUX)
                 gl_display = (GstGLDisplay*)gst_gl_display_x11_new_with_display(glfwGetX11Display());
 #elif defined(KINSKI_MAC)
-                gl_display = gst_gl_display_new();
+                gl_display = gst_gl_display_new();//(GstGLDisplay*)gst_gl_display_cocoa_new();
 #endif
                 m_gst_gl_display = std::shared_ptr<GstGLDisplay>(gl_display, &gst_object_unref);
                 s_gst_gl_display = m_gst_gl_display;
