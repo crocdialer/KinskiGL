@@ -419,6 +419,11 @@ namespace kinski
                 
                 if(glm::length(c - coord) < 15 * glm::length(px_length))
                 {
+                    if(!e.isControlDown())
+                    {
+                        quad_warp().selected_indices().clear();
+                        m_active_control_points.clear();
+                    }
                     control_point_t cp(i, c);
                     m_active_control_points.erase(cp);
                     m_active_control_points.insert(cp);
