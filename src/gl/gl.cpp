@@ -817,6 +817,7 @@ void draw_transform(const glm::mat4& the_transform, float the_scale)
 
 void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 {
+    KINSKI_CHECK_GL_ERRORS();
     if(!the_mesh || the_mesh->geometry()->vertices().empty()) return;
 
     const glm::mat4 &modelView = g_modelViewMatrixStack.top();
@@ -830,7 +831,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }
         if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
     }
-    KINSKI_CHECK_GL_ERRORS();
 //  if(!the_mesh->geometry()->has_indices() || the_mesh->entries().empty())
     { gl::apply_material(the_mesh->material(), false, overide_shader); }
     

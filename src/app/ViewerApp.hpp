@@ -145,6 +145,7 @@ namespace kinski {
         Property_<bool>::Ptr m_hide_cursor;
         Property_<glm::vec2>::Ptr m_window_size;
         Property_<bool>::Ptr m_fullscreen;
+        Property_<bool>::Ptr m_v_sync;
         
         RangedProperty<float>::Ptr m_distance;
         Property_<glm::mat3>::Ptr m_rotation;

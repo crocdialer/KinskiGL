@@ -50,6 +50,9 @@ namespace kinski {
         m_fullscreen = Property_<bool>::create("fullscreen", false);
         register_property(m_fullscreen);
 
+        m_v_sync = Property_<bool>::create("v-sync", true);
+        register_property(m_v_sync);
+
         m_look_at = Property_<glm::vec3>::create("look at", glm::vec3());
         register_property(m_look_at);
 
@@ -316,7 +319,7 @@ namespace kinski {
                     break;
 
                 case Key::_F:
-                    set_fullscreen(!fullscreen(), windows().front()->monitor_index());
+                    *m_fullscreen = !*m_fullscreen;
                     break;
                     
                 case Key::_H:
@@ -396,6 +399,10 @@ namespace kinski {
             {
                 set_fullscreen(*m_fullscreen, windows().front()->monitor_index());
             }
+        }
+        else if(theProperty == m_v_sync)
+        {
+            set_v_sync(*m_v_sync);
         }
         else if(theProperty == m_clear_color)
         {
