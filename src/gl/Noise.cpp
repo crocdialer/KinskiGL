@@ -55,8 +55,10 @@ namespace kinski{ namespace gl{
         
         noise_tex = gl::render_to_texture(m_impl->m_fbo, [this]()
         {
+            KINSKI_CHECK_GL_ERRORS();
             gl::draw_quad(m_impl->m_material, m_impl->m_tex_size);
         });
+        KINSKI_CHECK_GL_ERRORS();
         return noise_tex;
     }
     
