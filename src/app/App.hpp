@@ -113,6 +113,9 @@ namespace kinski
         virtual void set_fullscreen(bool b, int monitor_index){ m_fullscreen = b; };
         void set_fullscreen(bool b = true){ set_fullscreen(b, 0); };
         
+        virtual bool v_sync() const { return false; };
+        virtual void set_v_sync(bool b){};
+        
         virtual void set_cursor_position(float x, float y) = 0;
         virtual gl::vec2 cursor_position() const = 0;
         virtual bool cursor_visible() const { return m_cursorVisible;};

@@ -8,12 +8,8 @@
 
 namespace kinski{ namespace media{
 
-class MediaController;
-typedef std::shared_ptr<MediaController> MediaControllerPtr;
-
-typedef MediaController MovieController;
-typedef MediaControllerPtr MovieControllerPtr;
-
+DEFINE_CLASS_PTR(MediaController)
+    
 class MediaController : public std::enable_shared_from_this<MediaController>
 {
 public:

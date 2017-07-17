@@ -314,7 +314,17 @@ namespace kinski
         return  running() && !m_windows.empty() &&
             !glfwGetKey(m_windows.front()->handle(), GLFW_KEY_ESCAPE );
     }
-
+    
+    bool GLFW_App::v_sync() const
+    {
+        return true;
+    }
+    
+    void GLFW_App::set_v_sync(bool b)
+    {
+        main_queue().submit([b](){ glfwSwapInterval(b ? 1 : 0); });
+    }
+    
     double GLFW_App::get_application_time()
     {
         return glfwGetTime();

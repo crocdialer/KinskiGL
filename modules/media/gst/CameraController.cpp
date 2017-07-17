@@ -54,7 +54,7 @@ void CameraController::start_capture()
 {
     if(m_impl)
     {
-        int device_id = 0, w = 1280, h = 720, framerate = 60;
+        int w = 1280, h = 720, framerate = 60;
         const char* app_sink_name = "kinski_appsink";
 
         std::string pipeline_str =
@@ -63,7 +63,7 @@ void CameraController::start_capture()
                 "decodebin !"
 //                "videoconvert !"
                 "appsink name=%s enable-last-sample=0 caps=\"video/x-raw,format=RGB\"";
-        pipeline_str = format(pipeline_str, device_id, w, h, framerate, app_sink_name);
+        pipeline_str = format(pipeline_str, m_impl->m_device_id, w, h, framerate, app_sink_name);
         GError *error = nullptr;
 
         // construct a pipeline
@@ -83,8 +83,8 @@ void CameraController::start_capture()
             m_impl->m_gst_util.set_pipeline_state(GST_STATE_READY);
 
 #if !defined(KINSKI_ARM)
-            m_impl->m_buffer_front = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
-            m_impl->m_buffer_back = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_DRAW);
+            m_impl->m_buffer_front = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_COPY);
+            m_impl->m_buffer_back = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STREAM_COPY);
 #endif
             m_impl->m_gst_util.set_pipeline_state(GST_STATE_PLAYING);
         }

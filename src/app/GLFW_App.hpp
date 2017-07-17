@@ -87,6 +87,9 @@ namespace kinski
         void set_cursor_position(float x, float y) override;
         gl::vec2 cursor_position() const override;
         
+        bool v_sync() const override;
+        void set_v_sync(bool b) override;
+        
         std::vector<JoystickState> get_joystick_states() const override;
         
         ///////////////////////////////////////////////////////////////////////////////
