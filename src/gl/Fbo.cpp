@@ -283,7 +283,7 @@ void Fbo::init()
                              format().m_depth_data_type, nullptr);
                 
 				m_impl->m_depth_texture = Texture(target(), depthTextureId, m_impl->m_width,
-                                                m_impl->m_height, false);
+                                                  m_impl->m_height, false);
                 m_impl->m_depth_texture.set_min_filter(m_impl->m_format.m_min_filter);
                 m_impl->m_depth_texture.set_mag_filter(m_impl->m_format.m_mag_filter);
                 m_impl->m_depth_texture.set_wrap_s(m_impl->m_format.m_wrap_s);

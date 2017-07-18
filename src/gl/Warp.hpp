@@ -62,6 +62,9 @@ namespace kinski{ namespace gl{
         const std::vector<gl::vec2>& control_points() const;
         void set_control_points(const std::vector<gl::vec2> &cp);
         
+        bool perspective() const;
+        void set_perspective(bool b);
+        
         bool cubic_interpolation() const;
         void set_cubic_interpolation(bool b);
         

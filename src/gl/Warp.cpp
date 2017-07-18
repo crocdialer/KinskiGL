@@ -57,7 +57,7 @@ namespace kinski{ namespace gl{
         Area_<uint32_t> m_src_area;
         
         mat4 m_transform, m_inv_transform;
-        bool m_dirty = true, m_dirty_subs = true;
+        bool m_dirty = true, m_dirty_subs = true, m_perspective = true;
         bool m_cubic_interpolation = true;
 
         gl::vec4 m_edges = gl::vec4(0, 1, 1, 0), m_edge_exponents = gl::vec4(1);
@@ -65,8 +65,6 @@ namespace kinski{ namespace gl{
         Impl()
         {
             create_mesh(m_grid_num_w, m_grid_num_h);
-            
-            
         }
         
         inline bool is_corner(int the_index)
@@ -461,7 +459,7 @@ namespace kinski{ namespace gl{
     {
         the_index = clamp<int>(the_index, 0 , m_impl->m_control_points.size() - 1);
         
-        if(m_impl->is_corner(the_index))
+        if(m_impl->m_perspective && m_impl->is_corner(the_index))
         {
             m_impl->m_dirty = true;
             
@@ -546,15 +544,33 @@ namespace kinski{ namespace gl{
     {
         if(m_impl->m_dirty)
         {
-            auto src = default_points;
-            auto dest = m_impl->m_corners; //corners();
-            std::swap(src[2], src[3]);
-            std::swap(dest[2], dest[3]);
-            m_impl->m_transform = calculate_homography(src.data(), dest.data());
-            m_impl->m_inv_transform = glm::inverse(m_impl->m_transform);
+            if(m_impl->m_perspective)
+            {
+                auto src = default_points;
+                auto dest = m_impl->m_corners; //corners();
+                std::swap(src[2], src[3]);
+                std::swap(dest[2], dest[3]);
+                m_impl->m_transform = calculate_homography(src.data(), dest.data());
+                m_impl->m_inv_transform = glm::inverse(m_impl->m_transform);
+            }
+            else{ m_impl->m_transform = m_impl->m_inv_transform = glm::mat4(); }
             m_impl->m_dirty = false;
         }
         return m_impl->m_transform;
+    }
+    
+    bool Warp::perspective() const
+    {
+        return m_impl->m_perspective;
+    }
+    
+    void Warp::set_perspective(bool b)
+    {
+        if(b != m_impl->m_perspective)
+        {
+            m_impl->m_perspective = b;
+            m_impl->m_dirty = m_impl->m_dirty_subs = true;
+        }
     }
     
     void Warp::set_cubic_interpolation(bool b)

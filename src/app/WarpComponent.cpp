@@ -29,6 +29,7 @@ namespace kinski
         m_grid_resolution_y = RangedProperty<uint32_t>::create("grid resolution y", 18, 1, 160);
         m_draw_grid = Property_<bool>::create("draw grid", false);
         m_draw_control_points = Property_<bool>::create("draw control points", false);
+        m_perspective = Property_<bool>::create("perspective", true);
         m_cubic_interpolation = Property_<bool>::create("use cubic interpolation", false);
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
         m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
@@ -47,6 +48,7 @@ namespace kinski
         register_property(m_num_subdivisions_y);
         register_property(m_draw_grid);
         register_property(m_draw_control_points);
+        register_property(m_perspective);
         register_property(m_cubic_interpolation);
         register_property(m_control_points);
         register_property(m_corners);
@@ -121,6 +123,7 @@ namespace kinski
         *m_draw_grid = m_params[the_index].display_grid;
         *m_draw_control_points = m_params[the_index].display_points;
         *m_cubic_interpolation = the_quadwarp.cubic_interpolation();
+        *m_perspective = the_quadwarp.perspective();
         *m_num_subdivisions_x = the_quadwarp.num_subdivisions().x;
         *m_num_subdivisions_y = the_quadwarp.num_subdivisions().y;
         *m_control_points = the_quadwarp.control_points();
@@ -141,6 +144,7 @@ namespace kinski
         m_quad_warp[the_index].set_num_subdivisions(the_quadwarp.num_subdivisions());
         m_quad_warp[the_index].set_control_points(*m_control_points);
         m_quad_warp[the_index].set_corners(*m_corners);
+        m_quad_warp[the_index].set_perspective(*m_perspective);
         m_quad_warp[the_index].set_cubic_interpolation(*m_cubic_interpolation);
         m_quad_warp[the_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
                                                             m_src_top_left->value().y,
@@ -215,6 +219,10 @@ namespace kinski
                                                                m_src_top_left->value().y,
                                                                m_src_bottom_right->value().x,
                                                                m_src_bottom_right->value().y));
+        }
+        else if(the_property == m_perspective)
+        {
+            m_quad_warp[*m_index].set_perspective(*m_perspective);
         }
         else if(the_property == m_cubic_interpolation)
         {
