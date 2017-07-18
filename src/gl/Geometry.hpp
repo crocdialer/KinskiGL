@@ -15,17 +15,23 @@
 
 namespace kinski{ namespace gl{
     
+#ifdef KINSKI_GLES
+    using index_t = uint16_t;
+#else
+    using index_t = uint32_t;
+#endif
+    
     struct KINSKI_API Face3
     {
         Face3():a(0), b(0), c(0){};
-        Face3(uint32_t theA, uint32_t theB, uint32_t theC):
+        Face3(index_t theA, index_t theB, index_t theC):
         a(theA), b(theB), c(theC){}
         
         // vertex indices
         union
         {
-            struct{uint32_t a, b, c;};
-            uint32_t indices[3];
+            struct{index_t a, b, c;};
+            index_t indices[3];
         };
     };
     
@@ -43,7 +49,7 @@ namespace kinski{ namespace gl{
     struct HalfEdge
     {
         //! Vertex index at the end of this half-edge
-        uint32_t index;
+        index_t index;
         
         //! Oppositely oriented adjacent half-edge
         HalfEdge* twin = nullptr;
@@ -57,12 +63,6 @@ namespace kinski{ namespace gl{
     class KINSKI_API Geometry
     {
     public:
-        
-#ifdef KINSKI_GLES
-        typedef GLushort index_t;
-#else
-        typedef GLuint index_t;
-#endif
         
         typedef std::shared_ptr<Geometry> Ptr;
         
@@ -120,19 +120,19 @@ namespace kinski{ namespace gl{
             colors().insert(m_colors.end(), theColors, theColors + numColors);
         }
         
-        inline void append_index(uint32_t theIndex)
+        inline void append_index(index_t theIndex)
         { indices().push_back(theIndex); };
         
-        inline void append_indices(const std::vector<uint32_t> &theIndices)
+        inline void append_indices(const std::vector<index_t> &theIndices)
         {
             indices().insert(m_indices.end(), theIndices.begin(), theIndices.end());
         }
-        inline void append_indices(const uint32_t *theIndices, size_t numIndices)
+        inline void append_indices(const index_t *theIndices, size_t numIndices)
         {
             indices().insert(m_indices.end(), theIndices, theIndices + numIndices);
         }
         
-        inline void append_face(uint32_t a, uint32_t b, uint32_t c){ append_face(Face3(a, b, c)); }
+        inline void append_face(index_t a, index_t b, index_t c){ append_face(Face3(a, b, c)); }
         inline void append_face(const Face3 &theFace)
         {
             m_faces.push_back(theFace);
@@ -141,7 +141,7 @@ namespace kinski{ namespace gl{
         inline void append_faces(const std::vector<gl::Face3> &the_faces)
         {
             m_faces.insert(m_faces.end(), the_faces.begin(), the_faces.end());
-            uint32_t *start = (uint32_t*) &the_faces[0].indices;
+            index_t *start = (index_t*) &the_faces[0].indices;
             m_indices.insert(m_indices.end(), start, start + 3 * the_faces.size());
         }
         
@@ -179,8 +179,8 @@ namespace kinski{ namespace gl{
         const std::vector<vec4>& colors() const { return m_colors; };
         
         bool has_indices() const { return !m_indices.empty(); };
-        std::vector<uint32_t>& indices(){ m_dirty_index_buffer = true; return m_indices; };
-        const std::vector<uint32_t>& indices() const { return m_indices; };
+        std::vector<index_t>& indices(){ m_dirty_index_buffer = true; return m_indices; };
+        const std::vector<index_t>& indices() const { return m_indices; };
         
         inline std::vector<Face3>& faces(){ return m_faces; };
         inline const std::vector<Face3>& faces() const { return m_faces; };
@@ -241,7 +241,7 @@ namespace kinski{ namespace gl{
         std::vector<vec4> m_colors;
         std::vector<vec3> m_tangents;
         std::vector<float> m_point_sizes;
-        std::vector<uint32_t> m_indices;
+        std::vector<index_t> m_indices;
         std::vector<Face3> m_faces;
         std::vector<BoneVertexData> m_bone_vertex_data;
         

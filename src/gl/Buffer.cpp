@@ -57,7 +57,7 @@ uint8_t* Buffer::map(GLenum mode)
 {
     glBindBuffer(m_impl->target, m_impl->buffer_id);
 
-#if defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
     uint8_t *ptr = (uint8_t*) glMapBufferRange(m_impl->target, 0, m_impl->num_bytes, mode);
 #else
@@ -75,7 +75,7 @@ const uint8_t* Buffer::map(GLenum mode) const
 {
     glBindBuffer(m_impl->target, m_impl->buffer_id);
 
-#if defined(KINSKI_GLES_3)
+#if !defined(KINSKI_GLES_2)
     mode = mode ? mode : GL_MAP_WRITE_BIT;
     const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_impl->target, 0, m_impl->num_bytes, mode);
 #else

@@ -227,19 +227,12 @@ void Geometry::create_gl_buffers()
 {
     if(m_dirty_vertex_buffer && !m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
     {
-        //m_vertex_buffer.set_data(m_vertices);
         m_vertex_buffer.set_data(NULL, m_vertices.size() * sizeof(glm::vec4));
         m_vertex_buffer.set_stride(sizeof(glm::vec4));
-
         glm::vec4 *buf_ptr = (glm::vec4*) m_vertex_buffer.map();
-        vector<glm::vec3>::const_iterator it = m_vertices.begin();
-        for (; it != m_vertices.end(); ++buf_ptr, ++it)
-        {
-            *buf_ptr = glm::vec4(*it, 1.f);
-        }
+        for (const auto &v3 : m_vertices){ (*buf_ptr++) = glm::vec4(v3, 1.f); }
         m_vertex_buffer.unmap();
         KINSKI_CHECK_GL_ERRORS();
-
         m_dirty_vertex_buffer = false;
     }
 
@@ -284,7 +277,7 @@ void Geometry::create_gl_buffers()
     }
 
     // insert bone indices and weights
-    if(m_dirty_bone_buffer &&has_bones())
+    if(m_dirty_bone_buffer && has_bones())
     {
 #if !defined(KINSKI_GLES_2)
         m_bone_buffer.set_data(m_bone_vertex_data);
@@ -310,16 +303,7 @@ void Geometry::create_gl_buffers()
     if(m_dirty_index_buffer && has_indices())
     {
         // index buffer
-        m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
-        m_index_buffer.set_data(NULL, m_indices.size() * sizeof(index_t));
-        KINSKI_CHECK_GL_ERRORS();
-        index_t *indexPtr = (index_t*) m_index_buffer.map();
-        KINSKI_CHECK_GL_ERRORS();
-
-        // insert indices
-        for (const auto &index : m_indices){ *indexPtr++ = index; }
-
-        m_index_buffer.unmap();
+        m_index_buffer = gl::Buffer(m_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_index_buffer = false;
     }
