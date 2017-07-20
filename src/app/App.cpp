@@ -68,7 +68,7 @@ namespace kinski
             timeStamp = get_application_time();
             
             // poll io_service if no seperate worker-threads exist
-            if(!m_main_queue.get_num_threads()) m_main_queue.io_service().poll();
+            if(!m_main_queue.get_num_threads()) m_main_queue.poll();
             
             // poll input events
             poll_events();
@@ -97,13 +97,13 @@ namespace kinski
             m_running = is_running();
             
             // fps managment
-            float current_fps = 1.f / time_delta;
-            
-            if(current_fps > m_max_fps)
-            {
-                double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
-                this_thread::sleep_for(duration_t(sleep_secs));
-            }
+//            float current_fps = 1.f / time_delta;
+//            
+//            if(current_fps > m_max_fps)
+//            {
+//                double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
+//                this_thread::sleep_for(duration_t(sleep_secs));
+//            }
         }
         
         // manage teardown, save stuff etc.

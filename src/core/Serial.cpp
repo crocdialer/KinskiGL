@@ -221,15 +221,14 @@ namespace kinski
                     case boost::asio::error::connection_reset:
                     case boost::system::errc::no_such_device_or_address:
                     case boost::asio::error::operation_aborted:
+                    {
                         LOG_TRACE_1 << "disconnected: " << impl_cp->m_device_name;
                         
-                        if(self)
-                        {
-                            std::lock_guard<std::mutex> lock(g_mutex);
-                            g_connected_devices.erase(impl_cp->m_device_name);
-                            if(impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(self); }
-                        }
+                        if(self && impl_cp->m_disconnect_cb){ impl_cp->m_disconnect_cb(self); }
                         
+                        std::lock_guard<std::mutex> lock(g_mutex);
+                        g_connected_devices.erase(impl_cp->m_device_name);
+                    }
                         break;
                         
                     default:

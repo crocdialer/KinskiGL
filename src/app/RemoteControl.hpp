@@ -30,7 +30,7 @@ namespace kinski
     public:
         
         RemoteControl(){};
-        RemoteControl(boost::asio::io_service &io, const std::list<ComponentPtr> &the_list);
+        RemoteControl(io_service &io, const std::list<ComponentPtr> &the_list);
         
         void start_listen(uint16_t tcp_port = 33333, uint16_t udp_port = 33334);
         void stop_listen();

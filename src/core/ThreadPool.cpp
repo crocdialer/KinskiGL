@@ -58,7 +58,12 @@ namespace kinski
         t.expires_from_now(the_delay);
     }
     
-    boost::asio::io_service& ThreadPool::io_service()
+    std::size_t ThreadPool::poll()
+    {
+        return m_impl->io_service.poll();
+    }
+    
+    io_service& ThreadPool::io_service()
     {
         return m_impl->io_service;
     }

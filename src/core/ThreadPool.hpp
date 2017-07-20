@@ -28,7 +28,7 @@ namespace kinski
         
         void set_num_threads(int num);
         int get_num_threads();
-        boost::asio::io_service& io_service();
+        io_service& io_service();
         
         /*!
          * submit a task to be processed by the threadpool
@@ -40,6 +40,11 @@ namespace kinski
          * with an delay in seconds
          */
         KINSKI_API void submit_with_delay(std::function<void()> the_task, double the_delay);
+        
+        /*!
+         * poll
+         */
+        KINSKI_API std::size_t poll();
         
     private:
         void join_all();

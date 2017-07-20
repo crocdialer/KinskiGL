@@ -63,7 +63,7 @@ class Client
 {
 public:
     
-    Client(boost::asio::io_service &io);
+    Client(io_service &io);
     
     /*!
      * get the resource at the given url (non-blocking) with HTTP HEAD

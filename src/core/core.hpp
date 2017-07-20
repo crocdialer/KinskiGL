@@ -51,9 +51,9 @@
 //! forward declare a class and define shared-, const- and weak smart-pointers for it.
 #define DEFINE_CLASS_PTR(CLASS_NAME)\
 class CLASS_NAME;\
-typedef std::shared_ptr<CLASS_NAME> CLASS_NAME##Ptr;\
-typedef std::shared_ptr<const CLASS_NAME> CLASS_NAME##ConstPtr;\
-typedef std::weak_ptr<CLASS_NAME> CLASS_NAME##WeakPtr;
+using CLASS_NAME##Ptr = std::shared_ptr<CLASS_NAME>;\
+using CLASS_NAME##ConstPtr = std::shared_ptr<const CLASS_NAME>;\
+using CLASS_NAME##WeakPtr = std::weak_ptr<CLASS_NAME>;
 
 
 // forward declare boost io_service
@@ -69,4 +69,6 @@ namespace kinski
     using std::vector;
     using std::list;
     using std::set;
+    
+    using io_service = boost::asio::io_service;
 }
