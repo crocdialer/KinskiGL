@@ -79,7 +79,7 @@ namespace kinski{ namespace gl{
         
     private:
         
-        std::shared_ptr<struct Impl> m_impl;
+        std::shared_ptr<struct WarpImpl> m_impl;
     };
     
 

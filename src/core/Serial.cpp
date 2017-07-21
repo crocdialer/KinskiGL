@@ -30,7 +30,7 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    SerialPtr Serial::create(boost::asio::io_service &io, receive_cb_t cb)
+    SerialPtr Serial::create(io_service &io, receive_cb_t cb)
     {
         auto ret = SerialPtr(new Serial(io, cb));
         ret->set_connect_cb([](ConnectionPtr the_uart)
@@ -42,7 +42,7 @@ namespace kinski
     
     ///////////////////////////////////////////////////////////////////////////////
     
-    Serial::Serial(boost::asio::io_service &io, receive_cb_t cb):
+    Serial::Serial(io_service &io, receive_cb_t cb):
     m_impl(new SerialImpl(io, cb))
     {
     

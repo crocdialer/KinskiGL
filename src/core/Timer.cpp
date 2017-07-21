@@ -127,13 +127,13 @@ struct timer_impl
 
 Timer::Timer(){}
 
-Timer::Timer(boost::asio::io_service &io, Timer::timer_cb_t cb):
+Timer::Timer(io_service &io, Timer::timer_cb_t cb):
 m_impl(new timer_impl(io, cb)){}
 
 void Timer::expires_from_now(double secs)
 {
     if(!m_impl) return;
-    std::weak_ptr<timer_impl> weak_impl= m_impl;
+    std::weak_ptr<timer_impl> weak_impl = m_impl;
     
     m_impl->m_timer.expires_from_now(duration_cast<steady_clock::duration>(duration_t(secs)));
     m_impl->m_running = true;

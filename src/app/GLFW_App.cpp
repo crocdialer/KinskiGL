@@ -253,10 +253,15 @@ namespace kinski
     void GLFW_App::set_window_size(const glm::vec2 &size)
     {
         App::set_window_size(size);
-        TwWindowSize(size.x, size.y);
         resize(size.x, size.y);
 
-        if(!m_windows.empty()){ m_windows.front()->set_size(size); }
+        if(!m_windows.empty())
+        {
+            m_windows.front()->set_size(size);
+            
+            auto fb_size = m_windows.front()->framebuffer_size();
+            TwWindowSize(fb_size.x, fb_size.y);
+        }
     }
 
     void GLFW_App::set_window_title(const std::string &the_title)
@@ -493,7 +498,11 @@ namespace kinski
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         if(app->displayTweakBar() && app->windows().front()->handle() == window)
-            TwEventMousePosGLFW((int)x, (int)y);
+        {
+            auto &w = app->windows().front();
+            auto fb_pos = w->framebuffer_size() * gl::vec2(x, y) / w->size();
+            TwEventMousePosGLFW((int)fb_pos.x, (int)fb_pos.y);
+        }
         uint32_t buttonModifiers, keyModifiers, bothMods;
         s_getModifiers(window, buttonModifiers, keyModifiers);
         bothMods = buttonModifiers | keyModifiers;

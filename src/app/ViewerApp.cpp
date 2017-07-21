@@ -386,7 +386,7 @@ namespace kinski {
                 if(!windows().empty())
                 {
                     windows().front()->set_size(*m_window_size);
-                    gl::set_window_dimension(windows().front()->size());
+                    gl::set_window_dimension(windows().front()->framebuffer_size());
                 }
             }
             m_gui_camera = gl::OrthographicCamera::create(0, gl::window_dimension().x,

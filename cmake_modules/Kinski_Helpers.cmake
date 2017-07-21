@@ -26,9 +26,10 @@ function(KINSKI_ADD_SAMPLE theName thePath)
 
     if(APPLE)
       SET_SOURCE_FILES_PROPERTIES(${resFiles} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-      set(MACOSX_BUNDLE_ICON_FILE "icon.icns")
+      #set(MACOSX_BUNDLE_ICON_FILE "icon.icns")
       add_executable(${theName} MACOSX_BUNDLE ${ICON_FILE} ${FOLDER_SOURCES} ${FOLDER_HEADERS}
               ${MODULE_FILES} ${resFiles})
+      set_target_properties(${theName} PROPERTIES MACOSX_BUNDLE_ICON_FILE "icon.icns")
     else()
 
       if(KINSKI_RASPI)

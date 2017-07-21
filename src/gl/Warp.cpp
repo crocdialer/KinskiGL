@@ -39,7 +39,7 @@ namespace kinski{ namespace gl{
             gl::vec2(1, 0)};
     };
     
-    struct Impl
+    struct WarpImpl
     {
         uint32_t m_grid_num_w = 32, m_grid_num_h = 18;
         
@@ -62,7 +62,7 @@ namespace kinski{ namespace gl{
 
         gl::vec4 m_edges = gl::vec4(0, 1, 1, 0), m_edge_exponents = gl::vec4(1);
         
-        Impl()
+        WarpImpl()
         {
             create_mesh(m_grid_num_w, m_grid_num_h);
         }
@@ -281,7 +281,7 @@ namespace kinski{ namespace gl{
     };
     
     Warp::Warp()
-    :m_impl(new Impl)
+    :m_impl(new WarpImpl)
     {
 
     }
@@ -348,12 +348,14 @@ namespace kinski{ namespace gl{
     {
         auto diff = the_pos - center();
         
-        for(auto &cp : m_impl->m_corners){ cp += diff; }
+        if(m_impl->m_perspective){ for(auto &cp : m_impl->m_corners){ cp += diff; } }
+        else{ for(auto &cp : m_impl->m_control_points){ cp += diff; } }
     }
     
     gl::vec2 Warp::center() const
     {
-        return kinski::mean<gl::vec2>(m_impl->m_corners);
+        if(m_impl->m_perspective){ return kinski::mean<gl::vec2>(m_impl->m_corners); }
+        else{ return kinski::mean<gl::vec2>(m_impl->m_control_points); }
     }
     
     void Warp::flip_content(bool horizontal)
@@ -522,7 +524,7 @@ namespace kinski{ namespace gl{
     
     void Warp::reset()
     {
-        m_impl.reset(new Impl);
+        m_impl.reset(new WarpImpl);
         set_num_subdivisions(num_subdivisions());
     }
     
