@@ -29,9 +29,9 @@ namespace kinski{ namespace animation{
         PlaybackType playback_type;
         LoopType loop_type;
         steady_clock::time_point start_time, end_time, current_time;
-        EaseFunction ease_fn;
-        InterpolationFunction interpolate_fn;
-        Callback start_fn, update_fn, finish_fn, reverse_start_fn, reverse_finish_fn;
+        ease_fn_t ease_fn;
+        interpolate_fn_t interpolate_fn;
+        callback_t start_fn, update_fn, finish_fn, reverse_start_fn, reverse_finish_fn;
         
         AnimationImpl():
         playback_type(PLAYBACK_PAUSED),
@@ -42,7 +42,7 @@ namespace kinski{ namespace animation{
         ease_fn(EaseNone()),
         interpolate_fn([](float){}){}
         
-        AnimationImpl(float duration, float delay, InterpolationFunction interpolate_fn):
+        AnimationImpl(float duration, float delay, interpolate_fn_t interpolate_fn):
         playback_type(PLAYBACK_PAUSED),
         loop_type(LOOP_NONE),
         start_time(steady_clock::now()),
@@ -55,7 +55,7 @@ namespace kinski{ namespace animation{
     Animation::Animation():m_impl(new AnimationImpl)
     {}
     
-    Animation::Animation(float duration, float delay, InterpolationFunction interpolate_fn):
+    Animation::Animation(float duration, float delay, interpolate_fn_t interpolate_fn):
     m_impl(new AnimationImpl(duration, delay, interpolate_fn))
     {}
     
@@ -109,17 +109,17 @@ namespace kinski{ namespace animation{
 //    steady_clock::time_point Animation::start_time() const {return m_impl->start_time;}
 //    steady_clock::time_point Animation::end_time() const {return m_impl->end_time;}
     
-    void Animation::set_interpolation_function(InterpolationFunction fn)
+    void Animation::set_interpolation_function(interpolate_fn_t fn)
     {
         m_impl->interpolate_fn = fn;
     }
     
-    void Animation::set_ease_function(EaseFunction fn){m_impl->ease_fn = fn;}
-    void Animation::set_start_callback(Callback cb){m_impl->start_fn = cb;}
-    void Animation::set_update_callback(Callback cb){m_impl->update_fn = cb;}
-    void Animation::set_finish_callback(Callback cb){m_impl->finish_fn = cb;}
-    void Animation::set_reverse_start_callback(Callback cb){m_impl->reverse_start_fn = cb;}
-    void Animation::set_reverse_finish_callback(Callback cb){m_impl->reverse_finish_fn = cb;}
+    void Animation::set_ease_function(ease_fn_t fn){m_impl->ease_fn = fn;}
+    void Animation::set_start_callback_t(callback_t cb){m_impl->start_fn = cb;}
+    void Animation::set_update_callback_t(callback_t cb){m_impl->update_fn = cb;}
+    void Animation::set_finish_callback_t(callback_t cb){m_impl->finish_fn = cb;}
+    void Animation::set_reverse_start_callback_t(callback_t cb){m_impl->reverse_start_fn = cb;}
+    void Animation::set_reverse_finish_callback_t(callback_t cb){m_impl->reverse_finish_fn = cb;}
     
     float Animation::progress() const
     {
@@ -142,7 +142,7 @@ namespace kinski{ namespace animation{
         
         if(finished())
         {
-            // fire finish callback, if any
+            // fire finish callback_t, if any
             if(m_impl->playback_type == PLAYBACK_FORWARD && m_impl->finish_fn)
                 m_impl->finish_fn();
             else if(m_impl->playback_type == PLAYBACK_BACKWARD && m_impl->reverse_finish_fn)
@@ -170,7 +170,7 @@ namespace kinski{ namespace animation{
         if(m_impl->playback_type == PLAYBACK_BACKWARD){ val = 1.f - val; }
         m_impl->interpolate_fn(val);
             
-        // fire update callback, if any
+        // fire update callback_t, if any
         if(m_impl->update_fn)
             m_impl->update_fn();
     };
@@ -188,7 +188,7 @@ namespace kinski{ namespace animation{
         m_impl->start_time = m_impl->current_time + duration_cast<steady_clock::duration>(float_second(delay));
         m_impl->end_time = m_impl->start_time + duration_cast<steady_clock::duration>(float_second(dur));
         
-        // fire start callback, if any
+        // fire start callback_t, if any
         if(m_impl->playback_type == PLAYBACK_FORWARD && m_impl->start_fn)
             m_impl->start_fn();
         else if(m_impl->playback_type == PLAYBACK_BACKWARD && m_impl->reverse_start_fn)

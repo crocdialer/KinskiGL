@@ -24,9 +24,9 @@ namespace kinski{ namespace animation{
     
     DEFINE_CLASS_PTR(Animation);
     
-    typedef std::function<float (float)> EaseFunction;
-    typedef std::function<void (float)> InterpolationFunction;
-    typedef std::function<void (void)> Callback;
+    using ease_fn_t = std::function<float (float)>;
+    using interpolate_fn_t = std::function<void (float)>;
+    using callback_t = std::function<void (void)>;
     
     enum LoopType {LOOP_NONE = 0, LOOP = 1, LOOP_BACK_FORTH = 2};
     enum PlaybackType {PLAYBACK_PAUSED = 0, PLAYBACK_FORWARD = 1, PLAYBACK_BACKWARD = 2};
@@ -36,7 +36,7 @@ namespace kinski{ namespace animation{
     public:
         
         Animation();
-        Animation(float duration, float delay, InterpolationFunction interpolate_fn);
+        Animation(float duration, float delay, interpolate_fn_t interpolate_fn);
         virtual ~Animation();
         
         int getId() const;
@@ -51,13 +51,13 @@ namespace kinski{ namespace animation{
         
         LoopType loop() const;
         void set_loop(LoopType loop_type = LOOP);
-        void set_interpolation_function(InterpolationFunction fn);
-        void set_ease_function(EaseFunction fn);
-        void set_start_callback(Callback cb);
-        void set_update_callback(Callback cb);
-        void set_finish_callback(Callback cb);
-        void set_reverse_start_callback(Callback cb);
-        void set_reverse_finish_callback(Callback cb);
+        void set_interpolation_function(interpolate_fn_t fn);
+        void set_ease_function(ease_fn_t fn);
+        void set_start_callback_t(callback_t cb);
+        void set_update_callback_t(callback_t cb);
+        void set_finish_callback_t(callback_t cb);
+        void set_reverse_start_callback_t(callback_t cb);
+        void set_reverse_finish_callback_t(callback_t cb);
         
         virtual float progress() const;
         
@@ -106,7 +106,7 @@ namespace kinski{ namespace animation{
 //        virtual float duration() const;
 //    };
     
-//    AnimationPtr create(float duration, float delay, InterpolationFunction interpolate_fn)
+//    AnimationPtr create(float duration, float delay, interpolate_fn_t interpolate_fn)
 //    { return std::make_shared<Animation>(duration, delay, interpolate_fn); };
     
     template<typename T>
