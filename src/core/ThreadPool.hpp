@@ -28,7 +28,7 @@ namespace kinski
         
         void set_num_threads(int num);
         int get_num_threads();
-        io_service& io_service();
+        io_service_t& io_service();
         
         /*!
          * submit a task to be processed by the threadpool

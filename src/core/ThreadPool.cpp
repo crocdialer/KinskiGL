@@ -63,7 +63,7 @@ namespace kinski
         return m_impl->io_service.poll();
     }
     
-    io_service& ThreadPool::io_service()
+    io_service_t& ThreadPool::io_service()
     {
         return m_impl->io_service;
     }

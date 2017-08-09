@@ -21,7 +21,7 @@ class Serial : public Connection, public std::enable_shared_from_this<Serial>
     
 public:
     
-    static SerialPtr create(io_service &io, receive_cb_t cb = receive_cb_t());
+    static SerialPtr create(io_service_t &io, receive_cb_t cb = receive_cb_t());
     virtual ~Serial();
     
     static std::vector<std::string>
@@ -48,7 +48,7 @@ private:
     void async_read_bytes();
     void async_write_bytes(const void *buffer, size_t sz);
     
-    Serial(io_service &io, receive_cb_t cb = receive_cb_t());
+    Serial(io_service_t &io, receive_cb_t cb = receive_cb_t());
     std::shared_ptr<struct SerialImpl> m_impl;
 };
     

@@ -129,12 +129,12 @@ tcp_connection_ptr async_send_tcp(boost::asio::io_service& io_service,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-tcp_connection_ptr async_send_tcp(boost::asio::io_service& io_service,
+tcp_connection_ptr async_send_tcp(boost::asio::io_service& the_io_service,
                                   const std::vector<uint8_t> &bytes,
                                   const std::string &the_ip,
                                   uint16_t the_port)
 {
-    auto con = tcp_connection::create(io_service, the_ip, the_port);
+    auto con = tcp_connection::create(the_io_service, the_ip, the_port);
     con->set_connect_cb([bytes](ConnectionPtr the_uart)
     {
         the_uart->write_bytes(&bytes[0], bytes.size());

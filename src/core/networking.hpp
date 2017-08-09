@@ -33,31 +33,31 @@ KINSKI_API void send_udp(const std::vector<uint8_t> &bytes,
 
 KINSKI_API void send_udp_broadcast(const std::vector<uint8_t> &bytes, int port);
 
-KINSKI_API tcp_connection_ptr async_send_tcp(io_service& io_service,
+KINSKI_API tcp_connection_ptr async_send_tcp(io_service_t& io_service,
                                              const std::string &str,
                                              const std::string &ip,
                                              int port);
 
-KINSKI_API tcp_connection_ptr async_send_tcp(io_service& io_service,
+KINSKI_API tcp_connection_ptr async_send_tcp(io_service_t& io_service,
                                              const std::vector<uint8_t> &bytes,
                                              const std::string &the_ip,
                                              uint16_t the_port);
 
-KINSKI_API void async_send_udp(io_service& io_service,
+KINSKI_API void async_send_udp(io_service_t& io_service,
                                const std::string &str,
                                const std::string &ip,
                                int port);
 
-KINSKI_API void async_send_udp(io_service& io_service,
+KINSKI_API void async_send_udp(io_service_t& io_service,
                                const std::vector<uint8_t> &bytes,
                                const std::string &ip,
                                int port);
 
-KINSKI_API void async_send_udp_broadcast(io_service& io_service,
+KINSKI_API void async_send_udp_broadcast(io_service_t& io_service,
                                          const std::vector<uint8_t> &bytes,
                                          int port);
 
-KINSKI_API void async_send_udp_broadcast(io_service& io_service,
+KINSKI_API void async_send_udp_broadcast(io_service_t& io_service,
                                          const std::string &str,
                                          int port);
 
@@ -69,7 +69,7 @@ public:
         receive_cb_t;
 
     udp_server();
-    udp_server(io_service& io_service, receive_cb_t f = receive_cb_t());
+    udp_server(io_service_t& io_service, receive_cb_t f = receive_cb_t());
 
     KINSKI_API void start_listen(uint16_t port);
     KINSKI_API void stop_listen();
@@ -89,7 +89,7 @@ public:
 
     tcp_server();
 
-    tcp_server(io_service& io_service, tcp_connection_callback ccb);
+    tcp_server(io_service_t& io_service, tcp_connection_callback ccb);
 
     KINSKI_API void start_listen(uint16_t port);
     KINSKI_API void stop_listen();
@@ -109,7 +109,7 @@ public:
     typedef std::function<void(tcp_connection_ptr,
                                const std::vector<uint8_t>&)> tcp_receive_cb_t;
 
-    KINSKI_API static tcp_connection_ptr create(io_service& io_service,
+    KINSKI_API static tcp_connection_ptr create(io_service_t& io_service,
                                                 const std::string &the_ip,
                                                 uint16_t the_port,
                                                 tcp_receive_cb_t f = tcp_receive_cb_t());
@@ -138,7 +138,7 @@ private:
     friend tcp_server_impl;
     std::shared_ptr<struct tcp_connection_impl> m_impl;
 
-    tcp_connection(io_service& io_service,
+    tcp_connection(io_service_t& io_service,
                    const std::string &the_ip,
                    uint16_t the_port,
                    tcp_receive_cb_t f);

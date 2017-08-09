@@ -70,5 +70,5 @@ namespace kinski
     using std::list;
     using std::set;
     
-    using io_service = boost::asio::io_service;
+    using io_service_t = boost::asio::io_service;
 }

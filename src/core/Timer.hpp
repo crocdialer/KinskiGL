@@ -73,7 +73,7 @@ namespace kinski
         typedef std::function<void(void)> timer_cb_t;
         
         Timer();
-        Timer(io_service &io, timer_cb_t cb = timer_cb_t());
+        Timer(io_service_t &io, timer_cb_t cb = timer_cb_t());
         
         /*!
          * set expiration date from now in seconds
