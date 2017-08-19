@@ -26,6 +26,8 @@ using std::map;
 using std::list;
 using namespace glm;
 
+const char* SceneRenderer::TAG_NO_CULL = "no_cull";
+
 class CullVisitor : public Visitor
 {
 public:
@@ -46,8 +48,8 @@ public:
         
         glm::mat4 model_view = transform_stack().top() * theNode.transform();
         gl::AABB boundingBox = theNode.bounding_box();
-        
-        if(m_frustum.intersect(boundingBox))
+
+        if(m_frustum.intersect(boundingBox) || kinski::contains(theNode.tags(), gl::SceneRenderer::TAG_NO_CULL))
         {
             RenderBin::item item;
             item.mesh = std::dynamic_pointer_cast<gl::Mesh>(theNode.shared_from_this());

@@ -213,7 +213,7 @@ namespace kinski
         T stdev = std::sqrt(sq_sum / (T)diff.size());
         return stdev;
     }
-    
+
     template <typename T = double, typename C>
     inline const T median(const C &the_container)
     {
@@ -238,7 +238,7 @@ namespace kinski
     }
     
     template <typename T>
-    inline const T& clamp(const T &val, const T &min, const T &max)
+    inline constexpr const T& clamp(const T &val, const T &min, const T &max)
     {
         return val < min ? min : (val > max ? max : val);
     }
