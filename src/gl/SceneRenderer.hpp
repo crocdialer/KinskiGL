@@ -63,6 +63,8 @@ class KINSKI_API SceneRenderer
 {
 public:
 
+    static const char* TAG_NO_CULL;
+
     static SceneRendererPtr create();
     enum UniformBufferIndex {LIGHT_UNIFORM_BUFFER = 0, MATRIX_UNIFORM_BUFFER = 1,
         SHADOW_UNIFORM_BUFFER = 2};
