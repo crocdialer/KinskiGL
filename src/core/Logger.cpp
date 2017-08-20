@@ -206,19 +206,22 @@ namespace kinski {
         
     }
     
-    void log(Severity the_severity, const char *the_format_text, ...)
-    {
-        Logger *l = Logger::get();
-        
-        if(the_severity > l->severity()){ return; }
-        
-        const size_t buf_sz = 1024 * 2;
-        char buf[buf_sz];
-        va_list argptr;
-        va_start(argptr, the_format_text);
-        vsnprintf(buf, buf_sz, the_format_text, argptr);
-        va_end(argptr);
-        
-        l->log(the_severity, "unknown module", 0, buf);
-    }
+//    void log(Severity the_severity, const std::string &the_format_text, Args ... args)
+//    {
+//        Logger *l = Logger::get();
+//        if(the_severity > l->severity()){ return; }
+//        
+////        const size_t buf_sz = 1024 * 2;
+////        char buf[buf_sz];
+////        va_list argptr;
+////        va_start(argptr, the_format_text);
+////        vsnprintf(buf, buf_sz, the_format_text, argptr);
+////        va_end(argptr);
+//        
+//        int size = snprintf(nullptr, 0, the_format_text.c_str(), args ...) + 1;
+//        std::unique_ptr<char[]> buf(new char[size]);
+//        snprintf(buf.get(), size, format.c_str(), args ...);
+//        
+//        l->log(the_severity, "unknown module", 0, buf);
+//    }
 };

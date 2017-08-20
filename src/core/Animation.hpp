@@ -53,11 +53,11 @@ namespace kinski{ namespace animation{
         void set_loop(LoopType loop_type = LOOP);
         void set_interpolation_function(interpolate_fn_t fn);
         void set_ease_function(ease_fn_t fn);
-        void set_start_callback_t(callback_t cb);
-        void set_update_callback_t(callback_t cb);
-        void set_finish_callback_t(callback_t cb);
-        void set_reverse_start_callback_t(callback_t cb);
-        void set_reverse_finish_callback_t(callback_t cb);
+        void set_start_callback(callback_t cb);
+        void set_update_callback(callback_t cb);
+        void set_finish_callback(callback_t cb);
+        void set_reverse_start_callback(callback_t cb);
+        void set_reverse_finish_callback(callback_t cb);
         
         virtual float progress() const;
         

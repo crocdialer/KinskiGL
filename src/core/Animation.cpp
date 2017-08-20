@@ -115,11 +115,11 @@ namespace kinski{ namespace animation{
     }
     
     void Animation::set_ease_function(ease_fn_t fn){m_impl->ease_fn = fn;}
-    void Animation::set_start_callback_t(callback_t cb){m_impl->start_fn = cb;}
-    void Animation::set_update_callback_t(callback_t cb){m_impl->update_fn = cb;}
-    void Animation::set_finish_callback_t(callback_t cb){m_impl->finish_fn = cb;}
-    void Animation::set_reverse_start_callback_t(callback_t cb){m_impl->reverse_start_fn = cb;}
-    void Animation::set_reverse_finish_callback_t(callback_t cb){m_impl->reverse_finish_fn = cb;}
+    void Animation::set_start_callback(callback_t cb){m_impl->start_fn = cb;}
+    void Animation::set_update_callback(callback_t cb){m_impl->update_fn = cb;}
+    void Animation::set_finish_callback(callback_t cb){m_impl->finish_fn = cb;}
+    void Animation::set_reverse_start_callback(callback_t cb){m_impl->reverse_start_fn = cb;}
+    void Animation::set_reverse_finish_callback(callback_t cb){m_impl->reverse_finish_fn = cb;}
     
     float Animation::progress() const
     {

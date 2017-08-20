@@ -111,7 +111,16 @@ class MessagePort
 };
 
 // convenience xprintf style log-function
-void log(Severity theSeverity, const char *the_format_text, ...);
+template<typename ... Args>
+void log(Severity the_severity, const std::string &the_format_text, Args ... args)
+{
+    Logger *l = Logger::get();
+    if(the_severity > l->severity()){ return; }
+    int size = snprintf(nullptr, 0, the_format_text.c_str(), args ...) + 1;
+    std::unique_ptr<char[]> buf(new char[size]);
+    snprintf(buf.get(), size, the_format_text.c_str(), args ...);
+    l->log(the_severity, __FILE__, __LINE__, buf.get());
+}
     
 #define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->if_log(SEVERITY,MODULE,MSGID) \
     && (kinski::MessagePort(SEVERITY,MODULE,MSGID).getStream())
