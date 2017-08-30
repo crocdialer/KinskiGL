@@ -8,7 +8,7 @@ namespace kinski{ namespace sensors{
 #define QUERY_ID_CMD "ID"
 #define QUERY_TIME_OUT 5.0
 
-void query_device(ConnectionPtr the_device, boost::asio::io_service &io, device_cb_t the_device_cb)
+void query_device(ConnectionPtr the_device, io_service_t &io, device_cb_t the_device_cb)
 {
     Timer timer(io, [the_device](){ the_device->set_receive_cb(); });
     timer.expires_from_now(QUERY_TIME_OUT);
@@ -48,7 +48,7 @@ void query_device(ConnectionPtr the_device, boost::asio::io_service &io, device_
     the_device->write(QUERY_ID_CMD + string("\n"));
 }
     
-void scan_for_serials(boost::asio::io_service &io, device_cb_t the_device_cb)
+void scan_for_serials(io_service_t &io, device_cb_t the_device_cb)
 {
     io.post([&io, the_device_cb]
     {
@@ -69,7 +69,7 @@ void scan_for_serials(boost::asio::io_service &io, device_cb_t the_device_cb)
     });
 }
     
-void scan_for_devices(boost::asio::io_service &io, device_cb_t the_device_cb)
+void scan_for_devices(io_service_t &io, device_cb_t the_device_cb)
 {
     scan_for_serials(io, the_device_cb);
 }

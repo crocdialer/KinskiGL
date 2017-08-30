@@ -9,13 +9,13 @@
 #include <curl/curl.h>
 #include <boost/asio.hpp>
 #include <mutex>
-#include "http.h"
+#include "http.hpp"
 
 using namespace std;
 
 namespace kinski{ namespace net{ namespace http{
 
-typedef std::shared_ptr<class Action> ActionPtr;
+typedef std::shared_ptr<class CurlAction> ActionPtr;
 typedef std::map<CURL*, ActionPtr> HandleMap;
     
 // Timeout interval for http requests
@@ -45,15 +45,15 @@ struct ClientImpl
     m_curl_multi_handle(curl_multi_init(), curl_multi_cleanup),
     m_timeout(DEFAULT_TIMEOUT),
     m_num_connections(0){};
-    
+
     void poll();
     
     void add_action(ActionPtr the_action, completion_cb_t ch, progress_cb_t ph = progress_cb_t());
 };
-    
+
 ///////////////////////////////////////////////////////////////////////////////
     
-class Action
+class CurlAction
 {
 private:
     std::shared_ptr<CURL> m_curl_handle;
@@ -74,7 +74,7 @@ private:
         
         if(userp)
         {
-            Action *ourAction = static_cast<Action*>(userp);
+            CurlAction *ourAction = static_cast<CurlAction*>(userp);
             uint8_t* buf_start = (uint8_t*)(buffer);
             uint8_t* buf_end = buf_start + num_bytes;
             ourAction->m_response.data.insert(ourAction->m_response.data.end(), buf_start, buf_end);
@@ -105,7 +105,7 @@ private:
     static int progress_static(void *userp, double dltotal, double dlnow, double ult,
                                double uln)
     {
-        Action *self = static_cast<Action*>(userp);
+        CurlAction *self = static_cast<CurlAction*>(userp);
         self->m_connection_info.dl_total = dltotal;
         self->m_connection_info.dl_now = dlnow;
         self->m_connection_info.ul_total = ult;
@@ -120,7 +120,7 @@ private:
     }
     
 public:
-    Action(const std::string &the_url):
+    CurlAction(const std::string &the_url):
     m_connection_info({the_url, 0, 0, 0, 0, 0})
     {
         set_handle(curl_easy_init());
@@ -182,11 +182,11 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
     
-typedef Action Action_GET;
+typedef CurlAction Action_GET;
  
 ///////////////////////////////////////////////////////////////////////////////
     
-class Action_POST: public Action
+class Action_POST: public CurlAction
 {
 private:
     std::vector<uint8_t> m_data;
@@ -196,7 +196,7 @@ public:
     Action_POST(const string &the_url,
                 const std::vector<uint8_t> &the_data,
                 const std::string &the_mime_type):
-    Action(the_url),
+    CurlAction(the_url),
     m_data(the_data)
     {
         auto header_content = "Content-Type: " + the_mime_type;
@@ -213,7 +213,7 @@ public:
     
 ///////////////////////////////////////////////////////////////////////////////
 
-class Action_PUT: public Action
+class Action_PUT: public CurlAction
 {
 private:
     std::vector<uint8_t> m_data;
@@ -223,7 +223,7 @@ public:
     Action_PUT(const string &the_url,
                const std::vector<uint8_t> &the_data,
                const std::string &the_mime_type):
-    Action(the_url),
+    CurlAction(the_url),
     m_data(the_data)
     {
         auto header_content = "Content-Type: " + the_mime_type;
@@ -245,11 +245,11 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////////
     
-class Action_DELETE: public Action
+class Action_DELETE: public CurlAction
 {
 public:
     Action_DELETE(const string &the_url):
-    Action(the_url)
+    CurlAction(the_url)
     {
         curl_easy_setopt(handle(), CURLOPT_CUSTOMREQUEST, "DELETE");
     }
@@ -312,14 +312,34 @@ response_t del(const std::string &the_url)
 
 ///////////////////////////////////////////////////////////////////////////////
     
-Client::Client(boost::asio::io_service &io):
-m_impl(new ClientImpl(&io))
+Client::Client(io_service_t &io):
+m_impl(std::make_unique<ClientImpl>(&io))
 {
 
 }
-    
+
 ///////////////////////////////////////////////////////////////////////////////
-    
+
+Client::Client(Client &&the_client):
+m_impl(std::move(the_client.m_impl))
+{
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Client::~Client() = default;
+
+///////////////////////////////////////////////////////////////////////////////
+
+Client& Client::operator=(Client other)
+{
+    std::swap(m_impl, other.m_impl);
+    return *this;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 void ClientImpl::poll()
 {
     curl_multi_perform(m_curl_multi_handle.get(), &m_num_connections);

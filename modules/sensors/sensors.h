@@ -9,12 +9,12 @@ namespace kinski{ namespace sensors{
 
 typedef std::function<void(const std::string&, ConnectionPtr)> device_cb_t;
 
-void query_device(ConnectionPtr the_device, io_service &io, device_cb_t the_device_cb);
+void query_device(ConnectionPtr the_device, io_service_t &io, device_cb_t the_device_cb);
     
 //! scan for available devices, group them by their ID and connect them
-void scan_for_devices(io_service &io, device_cb_t);
+void scan_for_devices(io_service_t &io, device_cb_t);
 
 //! scan for available serial devices, group them by their ID and connect them
-void scan_for_serials(io_service &io, device_cb_t the_device_cb);
+void scan_for_serials(io_service_t &io, device_cb_t the_device_cb);
     
 }}

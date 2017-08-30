@@ -63,8 +63,14 @@ class Client
 {
 public:
     
-    Client(io_service &io);
-    
+    Client(io_service_t &io);
+
+    Client(Client &&the_client);
+
+    ~Client();
+
+    Client& operator=(Client other);
+
     /*!
      * get the resource at the given url (non-blocking) with HTTP HEAD
      */
@@ -104,9 +110,9 @@ public:
     
     uint64_t timeout() const;
     void set_timeout(uint64_t t);
-    
+
 private:
-    std::shared_ptr<struct ClientImpl> m_impl;
+    std::unique_ptr<struct ClientImpl> m_impl;
 };
     
 }}}// namespace

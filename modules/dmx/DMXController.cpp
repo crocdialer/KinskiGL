@@ -42,7 +42,7 @@ namespace kinski{ namespace dmx
         float m_last_reading = 0.f, m_timeout_reconnect = STD_TIMEOUT_RECONNECT;
         std::thread m_reconnect_thread;
         
-        DMXControllerImpl(io_service &io):
+        DMXControllerImpl(io_service_t &io):
         m_serial(Serial::create(io)){}
         
         void transmit(uint8_t label, const uint8_t* data, size_t data_length)

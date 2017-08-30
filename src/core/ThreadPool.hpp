@@ -24,7 +24,9 @@ namespace kinski
     public:
         
         explicit ThreadPool(size_t num = 1);
+        ThreadPool(ThreadPool &&other);
         ~ThreadPool();
+        ThreadPool& operator=(ThreadPool other);
         
         void set_num_threads(int num);
         int get_num_threads();
@@ -45,10 +47,13 @@ namespace kinski
          * poll
          */
         KINSKI_API std::size_t poll();
+
+        /*!
+         * join_all
+         */
+        KINSKI_API void join_all();
         
     private:
-        void join_all();
-        
         std::unique_ptr<struct ThreadPoolImpl> m_impl;
     };
     
