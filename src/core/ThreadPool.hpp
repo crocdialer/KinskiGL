@@ -18,7 +18,6 @@
 
 namespace kinski
 {
-    
     class ThreadPool
     {
     public:
@@ -56,5 +55,4 @@ namespace kinski
     private:
         std::unique_ptr<struct ThreadPoolImpl> m_impl;
     };
-    
 }//namespace
