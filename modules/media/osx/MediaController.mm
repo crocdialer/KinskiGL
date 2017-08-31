@@ -529,7 +529,6 @@ namespace kinski{ namespace media{
         if(!is_loaded()){ return; }
         CMTime t = CMTimeMakeWithSeconds(value, NSEC_PER_SEC);
         [m_impl->m_player seekToTime:t];
-        [m_impl->m_player setRate: m_impl->m_rate];
     }
 
 /////////////////////////////////////////////////////////////////
