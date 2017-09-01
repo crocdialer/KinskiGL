@@ -82,6 +82,7 @@ public:
     void apply_forces(float time_delta);
     void apply_contraints();
     void apply_emission();
+    void apply_killing();
 
     gl::MeshPtr m_mesh;
 

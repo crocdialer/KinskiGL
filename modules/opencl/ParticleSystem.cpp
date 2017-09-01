@@ -20,6 +20,7 @@ namespace kinski{ namespace gl{
         const std::string g_forces_kernel = "apply_forces";
         const std::string g_constraints_kernel = "apply_contraints";
         const std::string g_spawn_kernel = "spawn_particle";
+        const std::string g_kill_kernel = "kill_particles";
     }
 
     struct Params
@@ -188,7 +189,6 @@ namespace kinski{ namespace gl{
         
         m_emission_accum = std::min<float>(m_emission_accum + m_emission_rate * time_delta,
                                            max_num_particles() - m_num_alive);
-//        emit_particles(m_emission_accum);
         apply_emission();
         
         // pass global parameters to a buffer used by all kernels
@@ -234,15 +234,11 @@ namespace kinski{ namespace gl{
                     // apply our constraints
                     if(m_use_constraints){ apply_contraints(); }
                     
+                    apply_killing();
+                    
                     // Release the VBOs again
                     m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
                     m_opencl.queue().finish();
-                    
-                    // read back num alive particles
-                    Params params;
-                    m_opencl.queue().enqueueReadBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
-                    m_num_alive = std::max<uint32_t>(params.num_alive, 0);
-                    m_mesh->entries().front().num_indices = m_num_alive;
                 }
                 catch(cl::Error &error)
                 {
@@ -385,6 +381,45 @@ namespace kinski{ namespace gl{
         }
     }
     
+    void ParticleSystem::apply_killing()
+    {
+        auto iter = m_kernel_map.find(g_kill_kernel);
+        
+        if(iter == m_kernel_map.end()){ LOG_WARNING << "kernel: " << g_kill_kernel << " not found"; }
+        else
+        {
+            // get a ref for our kernel
+            auto &kernel = iter->second;
+            
+            if(m_num_alive)
+            {
+                try
+                {
+                    kernel.setArg(0, m_velocities);
+                    kernel.setArg(1, m_indices);
+                    kernel.setArg(2, m_param_buffer);
+                    
+                    // execute the kernel
+                    m_opencl.queue().enqueueNDRangeKernel(kernel,
+                                                          cl::NullRange,
+                                                          cl::NDRange(m_num_alive),
+                                                          cl::NullRange);
+                    m_opencl.queue().finish();
+                    
+                    // read back num alive particles
+                    Params params;
+                    m_opencl.queue().enqueueReadBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
+                    m_num_alive = std::max<uint32_t>(params.num_alive, 0);
+                    m_mesh->entries().front().num_indices = m_num_alive;
+                }
+                catch(cl::Error &error)
+                {
+                    LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+                }
+            }
+        }
+    }
+    
     float ParticleSystem::emission_rate() const
     {
         return m_emission_rate;
@@ -488,5 +523,6 @@ namespace kinski{ namespace gl{
         add_kernel(g_forces_kernel);
         add_kernel(g_constraints_kernel);
         add_kernel(g_spawn_kernel);
+        add_kernel(g_kill_kernel);
     }
 }}
