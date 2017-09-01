@@ -19,6 +19,7 @@ namespace kinski{ namespace gl{
         const std::string g_update_kernel = "update_particles";
         const std::string g_forces_kernel = "apply_forces";
         const std::string g_constraints_kernel = "apply_contraints";
+        const std::string g_spawn_kernel = "spawn_particle";
     }
 
     struct Params
@@ -30,6 +31,7 @@ namespace kinski{ namespace gl{
         float bouncyness;
         float life_min, life_max;
         bool debug_life;
+        uint32_t num_alive;
     };
 
     ParticleSystemPtr ParticleSystem::create(const cl_context& context)
@@ -47,6 +49,8 @@ namespace kinski{ namespace gl{
     m_gravity(vec3(0, -9.87f, 0)),
     m_start_velocity_min(0),
     m_start_velocity_max(0),
+    m_emission_rate(0.f),
+    m_emission_accum(0.f),
     m_lifetime_min(1.f),
     m_lifetime_max(3.f),
     m_debug_life(false),
@@ -64,12 +68,16 @@ namespace kinski{ namespace gl{
         geom->vertices().resize(the_particle_count, vec3(0));
         geom->colors().resize(the_particle_count, gl::COLOR_WHITE);
         geom->point_sizes().resize(the_particle_count, 1.f);
+        auto &indices = geom->indices();
+        indices.resize(the_particle_count);
+        for(int i = 0; i < the_particle_count; ++i){ indices[i] = i; }
         mat->set_point_size(1.f);
         mat->set_point_attenuation(0.f, 0.01f, 0.f);
         mat->uniform("u_pointRadius", 50.f);
         mat->set_point_size(1.f);
         mat->set_blending();
         set_mesh(gl::Mesh::create(geom, mat));
+        m_num_alive = the_particle_count;
     }
 
     void ParticleSystem::set_mesh(gl::MeshPtr the_mesh)
@@ -121,8 +129,8 @@ namespace kinski{ namespace gl{
 
                 for (int i = 0; i < num_particles(); i++)
                 {
-                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
-                    glm::vec3 vel = gl::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
+                    float life = kinski::random(m_lifetime_min, m_lifetime_max);
+                    glm::vec3 vel = glm::linearRand(m_start_velocity_min, m_start_velocity_max);
                     velGen.push_back(glm::vec4(vel, life));
                 }
 
@@ -139,12 +147,7 @@ namespace kinski{ namespace gl{
                 // spawn positions
                 m_positionGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                            geom->vertex_buffer().num_bytes() );
-                
-                
-                m_velocityGen = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
-                                           geom->vertex_buffer().num_bytes());
-                
-                
+
                 // reserve memory for 200 forces, seems enough
                 m_force_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(glm::vec4));
@@ -153,11 +156,6 @@ namespace kinski{ namespace gl{
 
                 m_plane_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(gl::Plane));
-                
-                // all buffer are holding vec4s and have same size in bytes
-                size_t num_bytes = geom->vertex_buffer().num_bytes();
-
-                m_opencl.queue().enqueueWriteBuffer(m_velocityGen, CL_TRUE, 0, num_bytes, &velGen[0]);
                 
                 // generate spawn positions from original positions
                 const uint8_t *vert_buf = geom->vertex_buffer().map();
@@ -179,10 +177,13 @@ namespace kinski{ namespace gl{
         Object3D::update(time_delta);
 
         if(!m_mesh){ return; }
+        
+        m_emission_accum += m_emission_rate * time_delta;
 
         // make sure the particle mesh has global identity transform
         m_mesh->set_global_transform(gl::mat4());
-
+        
+        // pass global parameters to a buffer used by all kernels
         update_params();
         
         auto iter = m_kernel_map.find(g_update_kernel);
@@ -192,45 +193,52 @@ namespace kinski{ namespace gl{
         {
             // get a ref for our kernel
             auto &kernel = iter->second;
+            int num = num_particles();
             
-            try
+            if(num)
             {
-                vector<cl::Memory> glBuffers = {m_vertices, m_velocities, m_colors, m_pointSizes};
-                
-                // Make sure OpenGL is done using our VBOs
-                glFinish();
-                
-                // map OpenGL buffer object for writing from OpenCL
-                // this passes in the vector of VBO buffer objects (position and color)
-                m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
-
-                // apply our forces
-                apply_forces(time_delta);
-
-                kernel.setArg(0, m_vertices);
-                kernel.setArg(1, m_colors);
-                kernel.setArg(2, m_pointSizes);
-                kernel.setArg(3, m_velocities);
-                kernel.setArg(4, m_positionGen);
-                kernel.setArg(5, m_velocityGen);
-                kernel.setArg(6, time_delta); //pass in the timestep
-                kernel.setArg(7, m_param_buffer);
-
-                int num = num_particles();
-                
-                // execute the kernel
-                m_opencl.queue().enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
-
-                // apply our constraints
-                if(m_use_constraints){ apply_contraints(); }
-
-                // Release the VBOs again
-                m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
-                m_opencl.queue().finish();
-            }
-            catch(cl::Error &error)
-            {
-                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+                try
+                {
+                    vector<cl::Memory> glBuffers = {m_vertices, m_velocities, m_colors, m_pointSizes};
+                    
+                    // Make sure OpenGL is done using our VBOs
+                    glFinish();
+                    
+                    // map OpenGL buffer object for writing from OpenCL
+                    // this passes in the vector of VBO buffer objects (position and color)
+                    m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
+                    
+                    // apply our forces
+                    apply_forces(time_delta);
+                    
+                    kernel.setArg(0, m_vertices);
+                    kernel.setArg(1, m_colors);
+                    kernel.setArg(2, m_pointSizes);
+                    kernel.setArg(3, m_velocities);
+                    kernel.setArg(4, m_positionGen);
+                    kernel.setArg(5, time_delta); //pass in the timestep
+                    kernel.setArg(6, m_param_buffer);
+                    
+                    // execute the kernel
+                    m_opencl.queue().enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
+                    
+                    // apply our constraints
+                    if(m_use_constraints){ apply_contraints(); }
+                    
+                    // Release the VBOs again
+                    m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
+                    m_opencl.queue().finish();
+                    
+                    // read back num alive particles
+                    Params params;
+                    m_opencl.queue().enqueueReadBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
+                    m_num_alive = std::max<uint32_t>(params.num_alive, 0);
+//                    m_mesh->entries().front().nu
+                }
+                catch(cl::Error &error)
+                {
+                    LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+                }
             }
         }
     }
@@ -242,27 +250,30 @@ namespace kinski{ namespace gl{
         if(iter == m_kernel_map.end()){ LOG_WARNING << "kernel: " << g_forces_kernel << " not found"; }
         else
         {
-            // get a ref for our kernel
-            auto &force_kernel = iter->second;
+            int num = num_particles();
             
-            try
+            if(num)
             {
-                force_kernel.setArg(0, m_vertices);
-                force_kernel.setArg(1, m_velocities);
-                force_kernel.setArg(2, m_force_buffer);
-                force_kernel.setArg(3, (int)m_forces.size());
-                force_kernel.setArg(4, time_delta);
-                force_kernel.setArg(5, m_param_buffer);
-
-                int num = num_particles();
+                // get a ref for our kernel
+                auto &force_kernel = iter->second;
                 
-                // execute the kernel
-                m_opencl.queue().enqueueNDRangeKernel(force_kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
-                m_opencl.queue().finish();
-            }
-            catch(cl::Error &error)
-            {
-                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+                try
+                {
+                    force_kernel.setArg(0, m_vertices);
+                    force_kernel.setArg(1, m_velocities);
+                    force_kernel.setArg(2, m_force_buffer);
+                    force_kernel.setArg(3, (int)m_forces.size());
+                    force_kernel.setArg(4, time_delta);
+                    force_kernel.setArg(5, m_param_buffer);
+                    
+                    // execute the kernel
+                    m_opencl.queue().enqueueNDRangeKernel(force_kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
+                    m_opencl.queue().finish();
+                }
+                catch(cl::Error &error)
+                {
+                    LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+                }
             }
         
         }
@@ -300,10 +311,31 @@ namespace kinski{ namespace gl{
         }
     }
 
-    int ParticleSystem::num_particles() const
+    uint32_t ParticleSystem::num_particles() const
     {
-        if(m_mesh){ return m_mesh->entries().front().num_vertices; }
+//        if(m_mesh){ return m_mesh->entries().front().num_vertices; }
+        return m_num_alive;
+    }
+    
+    uint32_t ParticleSystem::max_num_particles() const
+    {
+        if(m_mesh){ return m_mesh->geometry()->vertices().size(); }
         return 0;
+    }
+    
+    size_t ParticleSystem::emit_particles(size_t the_num)
+    {
+        return 0;
+    }
+    
+    float ParticleSystem::emission_rate() const
+    {
+        return m_emission_rate;
+    }
+    
+    void ParticleSystem::set_emission_rate(float the_rate)
+    {
+        m_emission_rate = the_rate;
     }
     
     void ParticleSystem::add_kernel(const std::string &kernel_name)
@@ -357,6 +389,8 @@ namespace kinski{ namespace gl{
         params.life_max = m_lifetime_max;
         params.debug_life = m_debug_life;
         params.bouncyness = m_particle_bounce;
+        params.num_alive = m_num_alive;
+        
         m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
 
         if(!m_planes.empty())

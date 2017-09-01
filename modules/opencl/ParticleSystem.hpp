@@ -28,10 +28,18 @@ public:
 
     void update(float time_delta) override;
 
+    uint32_t num_particles() const;
+    
+    uint32_t max_num_particles() const;
+    
+    size_t emit_particles(size_t the_num);
+    
+    float emission_rate() const;
+    
+    void set_emission_rate(float the_rate);
+    
     void set_mesh(gl::MeshPtr the_mesh);
     gl::MeshPtr mesh() const {return m_mesh;};
-
-    int num_particles() const;
 
     cl_context& opencl(){return m_opencl;};
 
@@ -83,13 +91,15 @@ public:
     KernelMap m_kernel_map;
 
     // particle system related
-    cl::Buffer m_positionGen, m_velocityGen, m_force_buffer, m_param_buffer, m_plane_buffer;
-//    cl::Buffer m_velocities;
+    cl::Buffer m_positionGen, m_force_buffer, m_param_buffer, m_plane_buffer;
 
     glm::vec3 m_gravity;
 
     glm::vec3 m_start_velocity_min, m_start_velocity_max;
-
+    
+    uint32_t m_num_alive;
+    
+    float m_emission_rate, m_emission_accum;
     float m_lifetime_min, m_lifetime_max;
     bool m_debug_life;
 
@@ -105,7 +115,7 @@ public:
     bool m_use_constraints;
 
     // OpenCL buffer objects, corrensponding to the Buffers present in a gl::Mesh instance
-    cl::BufferGL m_vertices, m_velocities, m_colors, m_normals, m_texCoords, m_pointSizes;
+    cl::BufferGL m_vertices, m_velocities, m_colors, m_normals, m_texCoords, m_pointSizes, m_indices;
     cl::ImageGL m_cl_image;
 };
     
