@@ -49,7 +49,7 @@ namespace kinski{ namespace gl{
     m_gravity(vec3(0, -9.87f, 0)),
     m_start_velocity_min(0),
     m_start_velocity_max(0),
-    m_emission_rate(0.f),
+    m_emission_rate(1000.f),
     m_emission_accum(0.f),
     m_lifetime_min(1.f),
     m_lifetime_max(3.f),
@@ -122,15 +122,19 @@ namespace kinski{ namespace gl{
                     m_pointSizes = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
                                                 geom->point_size_buffer().id());
                 }
-
+                if(geom->has_indices())
+                {
+                    m_indices = cl::BufferGL(m_opencl.context(), CL_MEM_READ_WRITE,
+                                             geom->index_buffer().id());
+                }
                 m_mesh->create_vertex_attribs();
 
                 vector<glm::vec4> velGen;
 
                 for (int i = 0; i < num_particles(); i++)
                 {
-                    float life = kinski::random(m_lifetime_min, m_lifetime_max);
-                    glm::vec3 vel = glm::linearRand(m_start_velocity_min, m_start_velocity_max);
+                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
+                    glm::vec3 vel = glm::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
                     velGen.push_back(glm::vec4(vel, life));
                 }
 
@@ -153,7 +157,8 @@ namespace kinski{ namespace gl{
                                             200 * sizeof(glm::vec4));
 
                 m_param_buffer = cl::Buffer(opencl().context(), CL_MEM_READ_ONLY, sizeof(Params), NULL);
-
+                update_params();
+                
                 m_plane_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(gl::Plane));
                 
@@ -177,11 +182,14 @@ namespace kinski{ namespace gl{
         Object3D::update(time_delta);
 
         if(!m_mesh){ return; }
-        
-        m_emission_accum += m_emission_rate * time_delta;
 
         // make sure the particle mesh has global identity transform
         m_mesh->set_global_transform(gl::mat4());
+        
+        m_emission_accum = std::min<float>(m_emission_accum + m_emission_rate * time_delta,
+                                           max_num_particles() - m_num_alive);
+//        emit_particles(m_emission_accum);
+        apply_emission();
         
         // pass global parameters to a buffer used by all kernels
         update_params();
@@ -216,8 +224,9 @@ namespace kinski{ namespace gl{
                     kernel.setArg(2, m_pointSizes);
                     kernel.setArg(3, m_velocities);
                     kernel.setArg(4, m_positionGen);
-                    kernel.setArg(5, time_delta); //pass in the timestep
-                    kernel.setArg(6, m_param_buffer);
+                    kernel.setArg(5, m_indices);
+                    kernel.setArg(6, time_delta); //pass in the timestep
+                    kernel.setArg(7, m_param_buffer);
                     
                     // execute the kernel
                     m_opencl.queue().enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
@@ -233,7 +242,7 @@ namespace kinski{ namespace gl{
                     Params params;
                     m_opencl.queue().enqueueReadBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
                     m_num_alive = std::max<uint32_t>(params.num_alive, 0);
-//                    m_mesh->entries().front().nu
+                    m_mesh->entries().front().num_indices = m_num_alive;
                 }
                 catch(cl::Error &error)
                 {
@@ -261,13 +270,17 @@ namespace kinski{ namespace gl{
                 {
                     force_kernel.setArg(0, m_vertices);
                     force_kernel.setArg(1, m_velocities);
-                    force_kernel.setArg(2, m_force_buffer);
-                    force_kernel.setArg(3, (int)m_forces.size());
-                    force_kernel.setArg(4, time_delta);
-                    force_kernel.setArg(5, m_param_buffer);
+                    force_kernel.setArg(2, m_indices);
+                    force_kernel.setArg(3, m_force_buffer);
+                    force_kernel.setArg(4, (int)m_forces.size());
+                    force_kernel.setArg(5, time_delta);
+                    force_kernel.setArg(6, m_param_buffer);
                     
                     // execute the kernel
-                    m_opencl.queue().enqueueNDRangeKernel(force_kernel, cl::NullRange, cl::NDRange(num), cl::NullRange);
+                    m_opencl.queue().enqueueNDRangeKernel(force_kernel,
+                                                          cl::NullRange,
+                                                          cl::NDRange(num),
+                                                          cl::NullRange);
                     m_opencl.queue().finish();
                 }
                 catch(cl::Error &error)
@@ -293,9 +306,10 @@ namespace kinski{ namespace gl{
             {
                 kernel.setArg(0, m_vertices);
                 kernel.setArg(1, m_velocities);
-                kernel.setArg(2, m_plane_buffer);
-                kernel.setArg(3, (int)m_planes.size());
-                kernel.setArg(4, m_param_buffer);
+                kernel.setArg(2, m_indices);
+                kernel.setArg(3, m_plane_buffer);
+                kernel.setArg(4, (int)m_planes.size());
+                kernel.setArg(5, m_param_buffer);
 
                 int num = num_particles();
 
@@ -325,7 +339,50 @@ namespace kinski{ namespace gl{
     
     size_t ParticleSystem::emit_particles(size_t the_num)
     {
-        return 0;
+        the_num = std::min<size_t>(the_num, max_num_particles() - m_emission_accum);
+        m_emission_accum += the_num;
+        return the_num;
+    }
+    
+    void ParticleSystem::apply_emission()
+    {
+        uint32_t num = std::min<uint32_t>(m_emission_accum, max_num_particles() - m_num_alive);;
+        m_emission_accum -= num;
+        
+        auto iter = m_kernel_map.find(g_spawn_kernel);
+        
+        if(iter == m_kernel_map.end()){ LOG_WARNING << "kernel: " << g_spawn_kernel << " not found"; }
+        else
+        {
+            // get a ref for our kernel
+            auto &kernel = iter->second;
+            
+            if(num)
+            {
+                try
+                {
+                    kernel.setArg(0, m_vertices);
+                    kernel.setArg(1, m_colors);
+                    kernel.setArg(2, m_pointSizes);
+                    kernel.setArg(3, m_velocities);
+                    kernel.setArg(4, m_positionGen);
+                    kernel.setArg(5, m_indices);
+                    kernel.setArg(6, m_param_buffer);
+                    
+                    // execute the kernel
+                    m_opencl.queue().enqueueNDRangeKernel(kernel,
+                                                          cl::NDRange(m_num_alive),
+                                                          cl::NDRange(num),
+                                                          cl::NullRange);
+                    m_opencl.queue().finish();
+                    m_num_alive += num;
+                }
+                catch(cl::Error &error)
+                {
+                    LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
+                }
+            }
+        }
     }
     
     float ParticleSystem::emission_rate() const
@@ -430,5 +487,6 @@ namespace kinski{ namespace gl{
         add_kernel(g_update_kernel);
         add_kernel(g_forces_kernel);
         add_kernel(g_constraints_kernel);
+        add_kernel(g_spawn_kernel);
     }
 }}
