@@ -71,7 +71,7 @@ namespace kinski{ namespace gl{
         geom->point_sizes().resize(the_particle_count, 1.f);
         auto &indices = geom->indices();
         indices.resize(the_particle_count);
-        for(int i = 0; i < the_particle_count; ++i){ indices[i] = i; }
+        for(uint32_t i = 0; i < the_particle_count; ++i){ indices[i] = i; }
         mat->set_point_size(1.f);
         mat->set_point_attenuation(0.f, 0.01f, 0.f);
         mat->uniform("u_pointRadius", 50.f);
@@ -132,7 +132,7 @@ namespace kinski{ namespace gl{
 
                 vector<glm::vec4> velGen;
 
-                for (int i = 0; i < num_particles(); i++)
+                for(uint32_t i = 0; i < num_particles(); i++)
                 {
                     float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
                     glm::vec3 vel = glm::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
@@ -158,7 +158,6 @@ namespace kinski{ namespace gl{
                                             200 * sizeof(glm::vec4));
 
                 m_param_buffer = cl::Buffer(opencl().context(), CL_MEM_READ_ONLY, sizeof(Params), NULL);
-                update_params();
                 
                 m_plane_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(gl::Plane));
@@ -169,6 +168,8 @@ namespace kinski{ namespace gl{
                                                     geom->vertex_buffer().num_bytes(),
                                                     vert_buf);
                 geom->vertex_buffer().unmap();
+                
+                update_params();
             }
             catch(cl::Error &error)
             {
@@ -189,10 +190,6 @@ namespace kinski{ namespace gl{
         
         m_emission_accum = std::min<float>(m_emission_accum + m_emission_rate * time_delta,
                                            max_num_particles() - m_num_alive);
-        apply_emission();
-        
-        // pass global parameters to a buffer used by all kernels
-        update_params();
         
         auto iter = m_kernel_map.find(g_update_kernel);
 
@@ -201,21 +198,28 @@ namespace kinski{ namespace gl{
         {
             // get a ref for our kernel
             auto &kernel = iter->second;
-            int num = num_particles();
             
-            if(num)
+            try
             {
-                try
+                vector<cl::Memory>
+                glBuffers = {m_vertices, m_velocities, m_colors, m_pointSizes, m_indices};
+                
+                // Make sure OpenGL is done using our VBOs
+                glFinish();
+                
+                // map OpenGL buffer object for writing from OpenCL
+                // this passes in the vector of VBO buffer objects (position and color)
+                m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
+                
+                apply_emission();
+                
+                // pass global parameters to a buffer used by all kernels
+                update_params();
+                
+                uint32_t num = num_particles();
+                
+                if(num)
                 {
-                    vector<cl::Memory> glBuffers = {m_vertices, m_velocities, m_colors, m_pointSizes};
-                    
-                    // Make sure OpenGL is done using our VBOs
-                    glFinish();
-                    
-                    // map OpenGL buffer object for writing from OpenCL
-                    // this passes in the vector of VBO buffer objects (position and color)
-                    m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
-                    
                     // apply our forces
                     apply_forces(time_delta);
                     
@@ -235,15 +239,15 @@ namespace kinski{ namespace gl{
                     if(m_use_constraints){ apply_contraints(); }
                     
                     apply_killing();
-                    
-                    // Release the VBOs again
-                    m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
-                    m_opencl.queue().finish();
                 }
-                catch(cl::Error &error)
-                {
-                    LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
-                }
+                
+                // Release the VBOs again
+                m_opencl.queue().enqueueReleaseGLObjects(&glBuffers, NULL);
+                m_opencl.queue().finish();
+            }
+            catch(cl::Error &error)
+            {
+                LOG_ERROR << error.what() << "(" << oclErrorString(error.err()) << ")";
             }
         }
     }
@@ -323,7 +327,6 @@ namespace kinski{ namespace gl{
 
     uint32_t ParticleSystem::num_particles() const
     {
-//        if(m_mesh){ return m_mesh->entries().front().num_vertices; }
         return m_num_alive;
     }
     
