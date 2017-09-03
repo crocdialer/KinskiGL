@@ -78,7 +78,6 @@ namespace kinski{ namespace gl{
         mat->set_point_size(1.f);
         mat->set_blending();
         set_mesh(gl::Mesh::create(geom, mat));
-        m_num_alive = the_particle_count;
     }
 
     void ParticleSystem::set_mesh(gl::MeshPtr the_mesh)
@@ -91,7 +90,7 @@ namespace kinski{ namespace gl{
 
         if(m_mesh)
         {
-            m_mesh->geometry()->create_gl_buffers();
+            m_mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
             gl::GeometryConstPtr geom = m_mesh->geometry();
             
             try
@@ -130,17 +129,19 @@ namespace kinski{ namespace gl{
                 }
                 m_mesh->create_vertex_attribs();
 
-                vector<glm::vec4> velGen;
-
-                for(uint32_t i = 0; i < num_particles(); i++)
-                {
-                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
-                    glm::vec3 vel = glm::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
-                    velGen.push_back(glm::vec4(vel, life));
-                }
+//                vector<glm::vec4> velGen(num_particles(), gl::vec4(0));
+//                for(uint32_t i = 0; i < num_particles(); i++)
+//                {
+//                    float life = 0.f;//kinski::random(m_lifetime_min, m_lifetime_max);
+//                    glm::vec3 vel = glm::vec3(0);//glm::linearRand(m_start_velocity_min, m_start_velocity_max);
+//                    velGen.push_back(glm::vec4(vel, life));
+//                }
 
                 // create velocity/life VBO and VertexAttrib
-                gl::Buffer velocity_vbo(velGen, GL_ARRAY_BUFFER, GL_STREAM_DRAW);
+                gl::Buffer velocity_vbo(vector<glm::vec4>(geom->vertices().size(), gl::vec4(0)),
+                                        GL_ARRAY_BUFFER,
+                                        GL_STREAM_DRAW);
+                
                 gl::Mesh::VertexAttrib va("a_velocity", velocity_vbo);
                 va.size = 4;
                 m_mesh->add_vertex_attrib(va);
@@ -157,7 +158,7 @@ namespace kinski{ namespace gl{
                 m_force_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(glm::vec4));
 
-                m_param_buffer = cl::Buffer(opencl().context(), CL_MEM_READ_ONLY, sizeof(Params), NULL);
+                m_param_buffer = cl::Buffer(opencl().context(), CL_MEM_READ_WRITE, sizeof(Params), NULL);
                 
                 m_plane_buffer = cl::Buffer(m_opencl.context(), CL_MEM_READ_WRITE,
                                             200 * sizeof(gl::Plane));
@@ -169,6 +170,7 @@ namespace kinski{ namespace gl{
                                                     vert_buf);
                 geom->vertex_buffer().unmap();
                 
+                m_num_alive = 0;
                 update_params();
             }
             catch(cl::Error &error)
@@ -345,7 +347,7 @@ namespace kinski{ namespace gl{
     
     void ParticleSystem::apply_emission()
     {
-        uint32_t num = std::min<uint32_t>(m_emission_accum, max_num_particles() - m_num_alive);;
+        uint32_t num = std::min<uint32_t>(m_emission_accum, max_num_particles() - m_num_alive);
         m_emission_accum -= num;
         
         auto iter = m_kernel_map.find(g_spawn_kernel);

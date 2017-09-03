@@ -210,7 +210,7 @@ namespace kinski{ namespace gl{
         const gl::Buffer& index_buffer() const { return m_index_buffer; };
         
         bool has_dirty_buffers() const;
-        void create_gl_buffers();
+        void create_gl_buffers(GLenum usage = GL_DONT_CARE);
         
         /********************************* Factory methods ****************************************/
          

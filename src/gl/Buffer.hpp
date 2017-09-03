@@ -57,6 +57,7 @@ class KINSKI_API Buffer
     {
         GLsizei num_bytes = the_vec.size() * sizeof(T);
         set_data((void*)&the_vec[0], num_bytes);
+        set_stride(sizeof(T));
     };
     
 private:

@@ -223,12 +223,20 @@ bool Geometry::has_dirty_buffers() const
 
 }
 
-void Geometry::create_gl_buffers()
+void Geometry::create_gl_buffers(GLenum usage)
 {
-    if(m_dirty_vertex_buffer && !m_vertices.empty())// pad vec3 -> vec4 (OpenCL compat issue)
+    auto usage_fn = [](gl::Buffer &the_buf, GLenum the_usage) -> GLenum
     {
-        m_vertex_buffer.set_data(NULL, m_vertices.size() * sizeof(glm::vec4));
+        return the_usage != GL_DONT_CARE ? the_usage : the_buf ? the_buf.usage() : GL_STATIC_DRAW;
+    };
+    
+    if(!m_vertices.empty() && (m_dirty_vertex_buffer || m_vertex_buffer.usage() != usage))
+    {
+        m_vertex_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_vertex_buffer, usage));
+        m_vertex_buffer.set_data(nullptr, m_vertices.size() * sizeof(glm::vec4));
         m_vertex_buffer.set_stride(sizeof(glm::vec4));
+        
+        // pad vec3 -> vec4 (OpenCL compat issue)
         glm::vec4 *buf_ptr = (glm::vec4*) m_vertex_buffer.map();
         for (const auto &v3 : m_vertices){ (*buf_ptr++) = glm::vec4(v3, 1.f); }
         m_vertex_buffer.unmap();
@@ -237,53 +245,55 @@ void Geometry::create_gl_buffers()
     }
 
     // insert normals
-    if(m_dirty_normal_buffer && has_normals())
+    if(has_normals() && (m_dirty_normal_buffer || usage != m_normal_buffer.usage()))
     {
-        m_normal_buffer.set_data(m_normals);
+        m_normal_buffer = gl::Buffer(m_normals, GL_ARRAY_BUFFER, usage_fn(m_normal_buffer, usage));
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_normal_buffer = false;
     }
 
     // insert normals
-    if(m_dirty_tex_coord_buffer && has_tex_coords())
+    if(has_tex_coords() && (m_dirty_tex_coord_buffer || usage != m_tex_coord_buffer.usage()))
     {
-        m_tex_coord_buffer.set_data(m_tex_coords);
+        m_tex_coord_buffer = gl::Buffer(m_tex_coords, GL_ARRAY_BUFFER, usage_fn(m_tex_coord_buffer, usage));
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_tex_coord_buffer = false;
     }
 
     // insert tangents
-    if(m_dirty_tangent_buffer && has_tangents())
+    if(has_tangents() && (m_dirty_tangent_buffer || usage != m_tangent_buffer.usage()))
     {
-        m_tangent_buffer.set_data(m_tangents);
+        m_tangent_buffer = gl::Buffer(m_tangents, GL_ARRAY_BUFFER, usage_fn(m_tangent_buffer, usage));
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_tangent_buffer = false;
     }
 
     // insert point sizes
-    if(m_dirty_point_size_buffer && has_point_sizes())
+    if(has_point_sizes() && (m_dirty_point_size_buffer || usage != m_point_size_buffer.usage()))
     {
-        m_point_size_buffer.set_data(m_point_sizes);
+        m_point_size_buffer = gl::Buffer(m_point_sizes, GL_ARRAY_BUFFER, usage_fn(m_point_size_buffer, usage));
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_point_size_buffer = false;
     }
 
     // insert colors
-    if(m_dirty_color_buffer && has_colors())
+    if(has_colors() && (m_dirty_color_buffer || usage != m_color_buffer.usage()))
     {
-        m_color_buffer.set_data(m_colors);
+        m_color_buffer = gl::Buffer(m_colors, GL_ARRAY_BUFFER, usage_fn(m_color_buffer, usage));
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_color_buffer = false;
     }
 
     // insert bone indices and weights
-    if(m_dirty_bone_buffer && has_bones())
+    if(has_bones() && (m_dirty_bone_buffer || usage != m_bone_buffer.usage()))
     {
 #if !defined(KINSKI_GLES_2)
-        m_bone_buffer.set_data(m_bone_vertex_data);
+        m_bone_buffer = gl::Buffer(m_bone_vertex_data, GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
         m_bone_buffer.set_stride(sizeof(gl::BoneVertexData));
 #else
+        
         // crunch bone-indices to floats
+        m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
         size_t bone_stride = 2 * sizeof(glm::vec4);
         m_bone_buffer.set_data(nullptr, m_bone_vertex_data.size() * bone_stride);
         m_bone_buffer.set_stride(bone_stride);
@@ -300,10 +310,10 @@ void Geometry::create_gl_buffers()
         m_dirty_bone_buffer = false;
     }
 
-    if(m_dirty_index_buffer && has_indices())
+    if(has_indices() && (m_dirty_index_buffer || usage != m_index_buffer.usage()))
     {
         // index buffer
-        m_index_buffer = gl::Buffer(m_indices, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW);
+        m_index_buffer = gl::Buffer(m_indices, GL_ELEMENT_ARRAY_BUFFER, usage_fn(m_index_buffer, usage));
         KINSKI_CHECK_GL_ERRORS();
         m_dirty_index_buffer = false;
     }

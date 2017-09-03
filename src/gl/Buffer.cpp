@@ -58,7 +58,7 @@ uint8_t* Buffer::map(GLenum mode)
     glBindBuffer(m_impl->target, m_impl->buffer_id);
 
 #if !defined(KINSKI_GLES_2)
-    mode = mode ? mode : GL_MAP_WRITE_BIT;
+    mode = mode ? mode : GL_MAP_WRITE_BIT | GL_MAP_READ_BIT;
     uint8_t *ptr = (uint8_t*) glMapBufferRange(m_impl->target, 0, m_impl->num_bytes, mode);
 #else
     mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
@@ -76,7 +76,7 @@ const uint8_t* Buffer::map(GLenum mode) const
     glBindBuffer(m_impl->target, m_impl->buffer_id);
 
 #if !defined(KINSKI_GLES_2)
-    mode = mode ? mode : GL_MAP_WRITE_BIT;
+    mode = mode ? mode : GL_MAP_WRITE_BIT | GL_MAP_READ_BIT;
     const uint8_t *ptr = (uint8_t*) glMapBufferRange(m_impl->target, 0, m_impl->num_bytes, mode);
 #else
     mode = mode ? mode : GL_ENUM(GL_WRITE_ONLY);
@@ -98,32 +98,32 @@ void Buffer::unmap() const
 
 GLenum Buffer::target() const
 {
-    return m_impl->target;
+    return m_impl ? m_impl->target : GL_NONE;
 }
 
 GLenum Buffer::usage() const
 {
-    return m_impl->usage;
+    return m_impl ? m_impl->usage : GL_NONE;
 }
 
 size_t Buffer::num_bytes() const
 {
-    return m_impl->num_bytes;
+    return m_impl ? m_impl->num_bytes : 0;
 }
 
 size_t Buffer::stride() const
 {
-    return m_impl->stride;
+    return m_impl ? m_impl->stride : 0;
 }
 
 void Buffer::bind(GLenum the_target) const
 {
-    glBindBuffer(the_target ? the_target : m_impl->target, m_impl->buffer_id);
+    if(m_impl){ glBindBuffer(the_target ? the_target : m_impl->target, m_impl->buffer_id); }
 }
 
 void Buffer::unbind(GLenum the_target) const
 {
-    glBindBuffer(the_target ? the_target : m_impl->target, 0);
+    if(m_impl){ glBindBuffer(the_target ? the_target : m_impl->target, 0); }
 }
     
     
@@ -139,7 +139,7 @@ void Buffer::set_usage(GLenum theUsage)
     
 void Buffer::set_stride(size_t theStride)
 {
-    m_impl->stride = theStride;
+    if(m_impl){ m_impl->stride = theStride; }
 }
     
 void Buffer::set_data(const void *the_data, size_t num_bytes)

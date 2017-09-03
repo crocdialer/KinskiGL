@@ -39,11 +39,11 @@ namespace kinski
     }
 
     template<typename ... Args>
-    inline std::string format(const std::string &format, Args ... args)
+    inline std::string format(const std::string &the_format, Args ... args)
     {
-        int size = snprintf(nullptr, 0, format.c_str(), args ...) + 1;
+        int size = snprintf(nullptr, 0, the_format.c_str(), args ...) + 1;
         std::unique_ptr<char[]> buf(new char[size]);
-        snprintf(buf.get(), size, format.c_str(), args ...);
+        snprintf(buf.get(), size, the_format.c_str(), args ...);
         return std::string(buf.get(), buf.get() + size - 1);
     }
 
