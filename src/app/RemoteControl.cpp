@@ -109,7 +109,8 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                                              const std::string& the_ip,
                                              uint16_t the_port)
     {
-        LOG_TRACE_2 << "incoming udp(" << m_udp_server.listening_port() << "): " << the_ip << ": " << the_port;
+        LOG_TRACE_2 << "incoming udp(" << m_udp_server.listening_port() << "): " << the_ip
+            << ": " << the_port << "\n" <<string(the_data.begin(), the_data.end());
         receive_cb(nullptr, the_data);
     });
 }

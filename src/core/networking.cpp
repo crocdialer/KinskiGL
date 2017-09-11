@@ -22,6 +22,7 @@
 namespace kinski{ namespace net {
 
 using namespace boost::asio::ip;
+using namespace std::chrono;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -287,6 +288,9 @@ void udp_server::set_receive_buffer_size(size_t sz)
 
 void udp_server::start_listen(uint16_t port)
 {
+    if(!m_impl) return;
+    std::weak_ptr<udp_server_impl> weak_impl = m_impl;
+    
     try
     {
         if(!m_impl->socket.is_open())
@@ -296,35 +300,35 @@ void udp_server::start_listen(uint16_t port)
         }
 
     }
-    catch(std::exception &e){ LOG_WARNING << e.what(); }
+    catch(std::exception &e){ LOG_WARNING << e.what(); return; }
 
     if(port != m_impl->socket.local_endpoint().port())
     {
         m_impl->socket.connect(udp::endpoint(udp::v4(), port));
     }
 
-    auto impl_cp = m_impl;
-
     m_impl->socket.async_receive_from(boost::asio::buffer(m_impl->recv_buffer),
                                       m_impl->remote_endpoint,
-                                      [this, impl_cp](const boost::system::error_code& error,
-                                                      std::size_t bytes_transferred)
+                                      [this, weak_impl](const boost::system::error_code& error,
+                                                        std::size_t bytes_transferred)
     {
         if(!error)
         {
-            if(impl_cp->receive_function)
+            auto impl = weak_impl.lock();
+            
+            if(impl && impl->receive_function)
             {
                 try
                 {
-                    std::vector<uint8_t> datavec(impl_cp->recv_buffer.begin(),
-                                                 impl_cp->recv_buffer.begin() + bytes_transferred);
-                    impl_cp->receive_function(datavec,
-                                              impl_cp->remote_endpoint.address().to_string(),
-                                              impl_cp->remote_endpoint.port());
+                    std::vector<uint8_t> datavec(impl->recv_buffer.begin(),
+                                                 impl->recv_buffer.begin() + bytes_transferred);
+                    impl->receive_function(datavec,
+                                           impl->remote_endpoint.address().to_string(),
+                                           impl->remote_endpoint.port());
                 }
                 catch (std::exception &e){ LOG_WARNING << e.what(); }
             }
-            if(impl_cp.use_count() > 1){ start_listen(impl_cp->socket.local_endpoint().port()); }
+            if(impl && impl->socket.is_open()){ start_listen(impl->socket.local_endpoint().port()); }
         }
         else
         {
@@ -445,14 +449,23 @@ void tcp_server::stop_listen()
 
 /////////////////////////////////////////////////////////////////////////////////////
 
+typedef std::chrono::duration<double> duration_t;
+    
 struct tcp_connection_impl
 {
     tcp_connection_impl(tcp::socket s,
                         tcp_connection::tcp_receive_cb_t f = tcp_connection::tcp_receive_cb_t()):
     socket(std::move(s)),
     recv_buffer(8192),
+    m_deadline_timer(socket.get_io_service()),
+    m_timeout(duration_t(0.0)),
     tcp_receive_cb(f)
-    {}
+    {
+        m_deadline_timer.expires_at(steady_clock::time_point::max());
+        
+        // Start the persistent actor that checks for deadline expiry.
+        check_deadline();
+    }
 
     ~tcp_connection_impl()
     {
@@ -462,13 +475,39 @@ struct tcp_connection_impl
 
     tcp::socket socket;
     std::vector<uint8_t> recv_buffer;
-
+    boost::asio::basic_waitable_timer<steady_clock> m_deadline_timer;
+    duration_t m_timeout;
+    
     // additional receive callback with connection context
     tcp_connection::tcp_receive_cb_t tcp_receive_cb;
 
     // used by Connection interface
     Connection::connection_cb_t m_connect_cb, m_disconnect_cb;
     Connection::receive_cb_t m_receive_cb;
+    
+    void check_deadline()
+    {
+        // Check whether the deadline has passed. We compare the deadline against
+        // the current time since a new asynchronous operation may have moved the
+        // deadline before this actor had a chance to run.
+        if(m_deadline_timer.expires_at() <= steady_clock::now())
+        {
+            LOG_TRACE_1 << "connection timeout";
+            
+            // The deadline has passed. The socket is closed so that any outstanding
+            // asynchronous operations are cancelled. This allows the blocked
+            // connect(), read_line() or write_line() functions to return.
+            boost::system::error_code ignored_ec;
+            socket.close(ignored_ec);
+            
+            // There is no longer an active deadline. The expiry is set to positive
+            // infinity so that the actor takes no action until a new deadline is set.
+            m_deadline_timer.expires_at(steady_clock::time_point::max());
+        }
+        
+        // Put the actor back to sleep.
+        m_deadline_timer.async_wait([this](const boost::system::error_code& ec){ check_deadline(); });
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -551,12 +590,18 @@ bool tcp_connection::open()
 size_t tcp_connection::write_bytes(const void *buffer, size_t num_bytes)
 {
     auto bytes = std::vector<uint8_t>((uint8_t*)buffer, (uint8_t*)buffer + num_bytes);
-
-    auto impl = m_impl;
+    auto impl_cp = m_impl;
+    
+    if(impl_cp->m_timeout != duration_t(0))
+    {
+        auto dur = duration_cast<steady_clock::duration>(impl_cp->m_timeout);
+        impl_cp->m_deadline_timer.expires_from_now(dur);
+    }
+    
     boost::asio::async_write(m_impl->socket,
                              boost::asio::buffer(bytes),
-                             [impl, bytes](const boost::system::error_code& error,
-                                           std::size_t bytes_transferred)
+                             [impl_cp, bytes](const boost::system::error_code& error,
+                                              std::size_t bytes_transferred)
     {
         if(!error)
         {
@@ -599,7 +644,13 @@ void tcp_connection::start_receive()
 {
     auto impl_cp = m_impl;
     auto weak_self = std::weak_ptr<tcp_connection>(shared_from_this());
-
+    
+    if(impl_cp->m_timeout != duration_t(0))
+    {
+        auto dur = duration_cast<steady_clock::duration>(impl_cp->m_timeout);
+        impl_cp->m_deadline_timer.expires_from_now(dur);
+    }
+    
     impl_cp->socket.async_receive(boost::asio::buffer(impl_cp->recv_buffer),
                                   [impl_cp, weak_self](const boost::system::error_code& error,
                                                        std::size_t bytes_transferred)
@@ -620,7 +671,7 @@ void tcp_connection::start_receive()
                 {
                     impl_cp->m_receive_cb(self, datavec);
                 }
-                LOG_TRACE_2 << "received " << bytes_transferred << " bytes";
+                LOG_TRACE_2 << "tcp: received " << bytes_transferred << " bytes";
             }
 
             // only keep receiving if there are any refs on this instance left
@@ -647,7 +698,7 @@ void tcp_connection::start_receive()
                     }
 
                 default:
-                    LOG_TRACE_3 << error.message() << " ("<<error.value() << ")";
+                    LOG_TRACE_2 << error.message() << " ("<<error.value() << ")";
                     break;
             }
         }
@@ -736,6 +787,21 @@ void tcp_connection::set_connect_cb(connection_cb_t cb)
 void tcp_connection::set_disconnect_cb(connection_cb_t cb)
 {
     m_impl->m_disconnect_cb = cb;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+    
+double tcp_connection::timeout() const
+{
+    return m_impl->m_timeout.count();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+    
+void tcp_connection::set_timeout(double the_timeout_secs)
+{
+    m_impl->m_timeout = duration_t(the_timeout_secs);
+    m_impl->m_deadline_timer.expires_from_now(duration_cast<steady_clock::duration>(m_impl->m_timeout));
 }
 
 }}// namespaces

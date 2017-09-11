@@ -1,5 +1,6 @@
 #include <boost/asio.hpp>
 #include "core/Serial.hpp"
+#include "core/networking.hpp"
 #include "core/Timer.hpp"
 #include "sensors.h"
 
@@ -71,7 +72,7 @@ void scan_for_serials(io_service_t &io, device_cb_t the_device_cb)
     
 void scan_for_devices(io_service_t &io, device_cb_t the_device_cb)
 {
-    scan_for_serials(io, the_device_cb);
+    io.post([&io, the_device_cb]{ scan_for_serials(io, the_device_cb); });
 }
 
 

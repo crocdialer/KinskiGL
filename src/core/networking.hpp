@@ -73,7 +73,7 @@ public:
 
     KINSKI_API void start_listen(uint16_t port);
     KINSKI_API void stop_listen();
-    KINSKI_API void set_receive_function(receive_cb_t f);
+    KINSKI_API void set_receive_function(receive_cb_t f = receive_cb_t());
     KINSKI_API void set_receive_buffer_size(size_t sz);
     KINSKI_API uint16_t listening_port() const;
 
@@ -132,6 +132,9 @@ public:
     KINSKI_API uint16_t port() const;
     KINSKI_API std::string remote_ip() const;
     KINSKI_API uint16_t remote_port() const;
+    
+    KINSKI_API double timeout() const;
+    KINSKI_API void set_timeout(double the_timeout_secs);
 
 private:
 

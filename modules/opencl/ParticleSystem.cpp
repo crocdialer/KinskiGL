@@ -283,7 +283,7 @@ namespace kinski{ namespace gl{
                                                           cl::NullRange,
                                                           cl::NDRange(num),
                                                           cl::NullRange);
-                    m_opencl.queue().finish();
+//                    m_opencl.queue().finish();
                 }
                 catch(cl::Error &error)
                 {
@@ -375,7 +375,7 @@ namespace kinski{ namespace gl{
                                                           cl::NDRange(m_num_alive),
                                                           cl::NDRange(num),
                                                           cl::NullRange);
-                    m_opencl.queue().finish();
+//                    m_opencl.queue().finish();
                     m_num_alive += num;
                 }
                 catch(cl::Error &error)

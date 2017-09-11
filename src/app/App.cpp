@@ -97,13 +97,13 @@ namespace kinski
             m_running = is_running();
             
             // fps managment
-//            float current_fps = 1.f / time_delta;
-//            
-//            if(current_fps > m_max_fps)
-//            {
-//                double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
-//                this_thread::sleep_for(duration_t(sleep_secs));
-//            }
+            float current_fps = 1.f / time_delta;
+            
+            if(current_fps > m_max_fps)
+            {
+                double sleep_secs = std::max(0.0, (1.0 / m_max_fps - time_delta));
+                this_thread::sleep_for(duration_t(sleep_secs));
+            }
         }
         
         // manage teardown, save stuff etc.
