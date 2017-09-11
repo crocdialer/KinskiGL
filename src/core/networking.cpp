@@ -492,7 +492,7 @@ struct tcp_connection_impl
         // deadline before this actor had a chance to run.
         if(m_deadline_timer.expires_at() <= steady_clock::now())
         {
-            LOG_TRACE_1 << "connection timeout";
+            LOG_TRACE_2 << "connection timeout (" << to_string(m_timeout.count(), 2) << ")";
             
             // The deadline has passed. The socket is closed so that any outstanding
             // asynchronous operations are cancelled. This allows the blocked
@@ -689,7 +689,7 @@ void tcp_connection::start_receive()
                     {
                         std::string str = "tcp_connection";
                         if(self){ str = self->description(); }
-                        LOG_TRACE_2 << "disconnected: " << str;
+                        LOG_TRACE_1 << "disconnected: " << str;
                     }
 
                     if(self && impl_cp->m_disconnect_cb)
