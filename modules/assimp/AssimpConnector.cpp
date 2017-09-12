@@ -83,7 +83,7 @@ namespace kinski { namespace gl{
             indices.insert(indices.end(), f.mIndices, f.mIndices + 3);
         }
         geom->faces().resize(aMesh->mNumFaces);
-        ::memcpy(&geom->faces()[0], &indices[0], indices.size() * sizeof(uint32_t));
+        ::memcpy(&geom->faces()[0], &indices[0], indices.size() * sizeof(index_t));
         
         if(aMesh->HasNormals())
         {
