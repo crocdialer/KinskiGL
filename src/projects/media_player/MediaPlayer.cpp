@@ -144,7 +144,8 @@ void MediaPlayer::draw()
         // time + playlist position
         auto str = secs_to_time_str(m_media->current_time()) + " / " +
             secs_to_time_str(m_media->duration());
-        str += m_playlist.empty() ? "" : format(" (%d / %d", m_current_playlist_index, m_playlist.size());
+        str += m_playlist.empty() ? "" : format(" (%d / %d)", m_current_playlist_index,
+                                                m_playlist.size());
         
         gl::draw_text_2D(str, fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
         
