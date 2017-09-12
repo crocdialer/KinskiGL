@@ -631,25 +631,23 @@ void MediaPlayer::ping_delay(const std::string &the_ip)
 void MediaPlayer::create_playlist(const std::string &the_base_dir)
 {
     std::map<fs::FileType, std::vector<fs::path>> files;
+    files[fs::FileType::MOVIE] = {};
+    files[fs::FileType::AUDIO] = {};
     
     for(const auto &p : fs::get_directory_entries(the_base_dir, "", 3))
     {
         files[fs::get_file_type(p)].push_back(p);
     }
-    auto it = files.find(fs::FileType::MOVIE);
-    if(it != files.end())
+    auto file_list = concat_containers<fs::path>(files[fs::FileType::MOVIE], files[fs::FileType::AUDIO]);
+    
+    if(file_list.size() != m_playlist.size())
     {
-        auto file_list = it->second;
-        
-        if(file_list.size() != m_playlist.size())
+        main_queue().submit([this, file_list]()
         {
-            main_queue().submit([this, file_list]()
-            {
-                m_current_playlist_index = 0;
-                m_playlist = file_list;
-                *m_media_path = m_playlist[0];
-            });
-        }
+            m_current_playlist_index = 0;
+            m_playlist = file_list;
+            *m_media_path = m_playlist[0];
+        });
     }
 }
 
