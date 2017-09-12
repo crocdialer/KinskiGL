@@ -702,6 +702,7 @@ void tcp_connection::check_deadline()
     }
     
     std::weak_ptr<tcp_connection_impl> weak_impl = m_impl;
+    
     // Put the actor back to sleep.
     m_impl->m_deadline_timer.async_wait([this, weak_impl](const boost::system::error_code& ec)
     {
