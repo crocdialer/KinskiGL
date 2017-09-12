@@ -137,11 +137,18 @@ void MediaPlayer::draw()
     }
     if(displayTweakBar())
     {
+        // media title
         gl::draw_text_2D(m_media->is_loaded() ? fs::get_filename_part(m_media->path()) : *m_media_path,
                          fonts()[1], m_media->is_loaded() ? gl::COLOR_WHITE : gl::COLOR_RED, gl::vec2(10));
-        gl::draw_text_2D(secs_to_time_str(m_media->current_time()) + " / " +
-                         secs_to_time_str(m_media->duration()),
-                         fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
+        
+        // time + playlist position
+        auto str = secs_to_time_str(m_media->current_time()) + " / " +
+            secs_to_time_str(m_media->duration());
+        str += m_playlist.empty() ? "" : format(" (%d / %d", m_current_playlist_index, m_playlist.size());
+        
+        gl::draw_text_2D(str, fonts()[1], gl::COLOR_WHITE, gl::vec2(10, 40));
+        
+        // ip-adress
         gl::draw_text_2D(m_ip_adress, fonts()[1],
                          m_ip_adress == net::UNKNOWN_IP ? gl::COLOR_RED : gl::COLOR_WHITE,
                          gl::vec2(10, 70));
@@ -160,13 +167,6 @@ void MediaPlayer::key_press(const KeyEvent &e)
     {
         switch (e.getCode())
         {
-//            case Key::_C:
-//                if(m_camera_control->is_capturing())
-//                    m_camera_control->stop_capture();
-//                else
-//                    m_camera_control->start_capture();
-//                break;
-                
             case Key::_P:
                 m_media->is_playing() ? m_media->pause() : m_media->play();
                 if(*m_is_master){ send_network_cmd(m_media->is_playing() ? "play" : "pause"); }
@@ -188,7 +188,24 @@ void MediaPlayer::key_press(const KeyEvent &e)
             case Key::_DOWN:
                 *m_volume -= .1f;
                 break;
- 
+            
+            case Key::_PAGE_UP:
+                if(!m_playlist.empty())
+                {
+                    m_current_playlist_index = (m_current_playlist_index + 1) % m_playlist.size();
+                    *m_media_path = m_playlist[m_current_playlist_index];
+                }
+                break;
+                
+            case Key::_PAGE_DOWN:
+                if(!m_playlist.empty())
+                {
+                    int next_index = m_current_playlist_index - 1;
+                    next_index += next_index < 0 ? m_playlist.size() : 0;
+                    m_current_playlist_index = next_index;
+                    *m_media_path = m_playlist[m_current_playlist_index];
+                }
+                break;
             default:
                 break;
         }
@@ -229,11 +246,6 @@ void MediaPlayer::mouse_press(const MouseEvent &e)
 void MediaPlayer::mouse_release(const MouseEvent &e)
 {
     ViewerApp::mouse_release(e);
-//    if(m_media && m_media->is_loaded())
-//    {
-//        if(m_media->is_playing()){ m_media->pause(); }
-//        else{ m_media->play(); }
-//    }
 }
 
 /////////////////////////////////////////////////////////////////
