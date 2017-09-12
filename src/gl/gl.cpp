@@ -573,7 +573,7 @@ namespace kinski { namespace gl {
         point_mesh->geometry()->append_vertices(the_points);
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
         point_mesh->geometry()->point_sizes().resize(the_points.size(), 1.f);
-        point_mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
+        point_mesh->geometry()->create_gl_buffers();
         gl::draw_mesh(point_mesh);
     }
 
