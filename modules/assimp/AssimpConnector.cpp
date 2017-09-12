@@ -75,7 +75,7 @@ namespace kinski { namespace gl{
             geom->tex_coords().resize(aMesh->mNumVertices, vec2(0));
         }
         
-        std::vector<uint32_t> &indices = geom->indices(); indices.reserve(aMesh->mNumFaces * 3);
+        std::vector<index_t> &indices = geom->indices(); indices.reserve(aMesh->mNumFaces * 3);
         for(uint32_t i = 0; i < aMesh->mNumFaces; ++i)
         {
             const aiFace &f = aMesh->mFaces[i];
