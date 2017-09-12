@@ -177,7 +177,8 @@ namespace kinski
 
         if(cursor_visible() && (m_mouse_fd || m_touch_fd))
         {
-             gl::draw_points_2D({current_mouse_pos}, gl::COLOR_RED, 5.f);
+            std::vector<gl::vec2> pos_vec(1, current_mouse_pos);
+            gl::draw_points_2D(pos_vec, gl::COLOR_RED, 5.f);
         }
     }
     void Raspi_App::swap_buffers()

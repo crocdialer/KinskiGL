@@ -232,8 +232,6 @@ void Geometry::create_gl_buffers(GLenum usage)
     
     if(!m_vertices.empty() && (m_dirty_vertex_buffer || m_vertex_buffer.usage() != usage))
     {
-        if(m_primitive_type == GL_POINTS){ LOG_DEBUG << "recreating point_buffer"; }
-        
         m_vertex_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_vertex_buffer, usage));
         m_vertex_buffer.set_data(nullptr, m_vertices.size() * sizeof(glm::vec4));
         m_vertex_buffer.set_stride(sizeof(glm::vec4));
