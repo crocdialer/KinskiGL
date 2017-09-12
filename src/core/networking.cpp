@@ -23,6 +23,8 @@ namespace kinski{ namespace net {
 
 using namespace boost::asio::ip;
 using namespace std::chrono;
+    
+using duration_t = std::chrono::duration<double>;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -448,8 +450,6 @@ void tcp_server::stop_listen()
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-
-typedef std::chrono::duration<double> duration_t;
     
 struct tcp_connection_impl
 {
