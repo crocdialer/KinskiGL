@@ -149,5 +149,6 @@ private:
     tcp_connection();
 
     void start_receive();
+    void check_deadline();
 };
 }}// namespaces net kinski

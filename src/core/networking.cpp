@@ -462,9 +462,6 @@ struct tcp_connection_impl
     tcp_receive_cb(f)
     {
         m_deadline_timer.expires_at(steady_clock::time_point::max());
-        
-        // Start the persistent actor that checks for deadline expiry.
-        check_deadline();
     }
 
     ~tcp_connection_impl()
@@ -484,30 +481,6 @@ struct tcp_connection_impl
     // used by Connection interface
     Connection::connection_cb_t m_connect_cb, m_disconnect_cb;
     Connection::receive_cb_t m_receive_cb;
-    
-    void check_deadline()
-    {
-        // Check whether the deadline has passed. We compare the deadline against
-        // the current time since a new asynchronous operation may have moved the
-        // deadline before this actor had a chance to run.
-        if(m_deadline_timer.expires_at() <= steady_clock::now())
-        {
-            LOG_TRACE_2 << "connection timeout (" << to_string(m_timeout.count(), 2) << ")";
-            
-            // The deadline has passed. The socket is closed so that any outstanding
-            // asynchronous operations are cancelled. This allows the blocked
-            // connect(), read_line() or write_line() functions to return.
-            boost::system::error_code ignored_ec;
-            socket.close(ignored_ec);
-            
-            // There is no longer an active deadline. The expiry is set to positive
-            // infinity so that the actor takes no action until a new deadline is set.
-            m_deadline_timer.expires_at(steady_clock::time_point::max());
-        }
-        
-        // Put the actor back to sleep.
-        m_deadline_timer.async_wait([this](const boost::system::error_code& ec){ check_deadline(); });
-    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -568,7 +541,8 @@ tcp_connection::tcp_connection(boost::asio::io_service& io_service,
                                tcp_receive_cb_t f):
 m_impl(new tcp_connection_impl(tcp::socket(io_service), f))
 {
-
+    // Start the persistent actor that checks for deadline expiry.
+    check_deadline();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -707,6 +681,39 @@ void tcp_connection::start_receive()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+void tcp_connection::check_deadline()
+{
+    // Check whether the deadline has passed. We compare the deadline against
+    // the current time since a new asynchronous operation may have moved the
+    // deadline before this actor had a chance to run.
+    if(m_impl->m_deadline_timer.expires_at() <= steady_clock::now())
+    {
+        LOG_TRACE_2 << "connection timeout (" << to_string(m_impl->m_timeout.count(), 2) << ")";
+        
+        // The deadline has passed. The socket is closed so that any outstanding
+        // asynchronous operations are cancelled. This allows the blocked
+        // connect(), read_line() or write_line() functions to return.
+        boost::system::error_code ignored_ec;
+        m_impl->socket.close(ignored_ec);
+        
+        // There is no longer an active deadline. The expiry is set to positive
+        // infinity so that the actor takes no action until a new deadline is set.
+        m_impl->m_deadline_timer.expires_at(steady_clock::time_point::max());
+    }
+    
+    std::weak_ptr<tcp_connection_impl> weak_impl = m_impl;
+    // Put the actor back to sleep.
+    m_impl->m_deadline_timer.async_wait([this, weak_impl](const boost::system::error_code& ec)
+    {
+        auto impl = weak_impl.lock();
+        
+        if(impl)
+        { check_deadline(); }
+    });
+}
+
+///////////////////////////////////////////////////////////////////////////////
+    
 void tcp_connection::close()
 {
     try{ m_impl->socket.close(); }
