@@ -329,8 +329,8 @@ namespace kinski { namespace gl {
         else
         {
             geom->set_primitive_type(GL_LINE_STRIP);
-            const GLuint indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
-            size_t num_indices = sizeof(indices) / sizeof(GLuint);
+            const index_t indices[] = {0, 1, 2, 3, 0, 4, 5, 6, 7, 4, 0, 3, 7, 6, 2, 1, 5};
+            size_t num_indices = sizeof(indices) / sizeof(index_t);
             geom->append_indices(indices, num_indices);
         }
 
