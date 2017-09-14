@@ -352,7 +352,7 @@ bool Shader::uniform_block_binding(const std::string &name, int the_value)
 
 GLint Shader::attrib_location(const std::string &name) const
 {
-	return glGetAttribLocation( m_impl->m_Handle, name.c_str() );
+	return glGetAttribLocation(m_impl->m_Handle, name.c_str());
 }
 
 //////////////////////////////////////////////////////////////////////////

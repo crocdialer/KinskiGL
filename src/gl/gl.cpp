@@ -486,8 +486,8 @@ namespace kinski { namespace gl {
         mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
         mesh->geometry()->tex_coords().resize(thePoints.size(), gl::vec2(0));
-//        mesh->geometry()->create_gl_buffers();
-        mesh->create_vertex_attribs(true);
+
+        mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
         
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
@@ -515,7 +515,8 @@ namespace kinski { namespace gl {
         mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);
-        mesh->geometry()->create_gl_buffers();
+//        mesh->geometry()->create_gl_buffers();
+        mesh->create_vertex_attribs(true);
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();
@@ -575,7 +576,6 @@ namespace kinski { namespace gl {
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
         point_mesh->geometry()->point_sizes().resize(the_points.size(), 1.f);
         point_mesh->create_vertex_attribs(true);
-//        point_mesh->geometry()->create_gl_buffers();
         gl::draw_mesh(point_mesh);
     }
 

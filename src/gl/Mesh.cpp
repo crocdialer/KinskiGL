@@ -150,12 +150,14 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
     for(auto &vertex_attrib : m_vertex_attribs)
     {
         GLint location = the_shader->attrib_location(vertex_attrib.name);
-
+        KINSKI_CHECK_GL_ERRORS();
+        
         if(location >= 0)
         {
             vertex_attrib.buffer.bind();
             glEnableVertexAttribArray(location);
-
+            KINSKI_CHECK_GL_ERRORS();
+            
             if(vertex_attrib.type == GL_FLOAT)
             {
                 glVertexAttribPointer(location, vertex_attrib.size, vertex_attrib.type,

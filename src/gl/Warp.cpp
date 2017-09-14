@@ -159,7 +159,7 @@ namespace kinski{ namespace gl{
                     colors[index].a = alpha;
                 }
             }
-            m_mesh->geometry()->create_gl_buffers();
+            m_mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
             m_dirty_subs = false;
             
             // recreate grid mesh
