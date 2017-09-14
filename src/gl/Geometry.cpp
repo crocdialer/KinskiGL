@@ -225,7 +225,7 @@ bool Geometry::has_dirty_buffers() const
 
 void Geometry::create_gl_buffers(GLenum usage)
 {
-#if defined(KINSKI_GLES2)
+#if defined(KINSKI_GLES_2)
     usage = GL_STATIC_DRAW;
 #endif
     
