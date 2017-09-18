@@ -23,13 +23,19 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.inl"
 
-#include <codecvt>
+// still causing trouble with gcc 5.4
+//#include <codecvt>
+
+// -> fallback to boost/locale
+#include <boost/locale/encoding_utf.hpp>
 
 std::wstring utf8_to_wstring(const std::string& str)
 {
     // the UTF-8 / UTF-16 standard conversion facet
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> utf16conv;
-    return utf16conv.from_bytes(str);
+//    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> utf16conv;
+//    return utf16conv.from_bytes(str);
+
+    return boost::locale::conv::utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
 }
 
 //std::string wstring_to_utf8(const std::wstring& str)
@@ -209,9 +215,6 @@ namespace kinski { namespace gl {
                 continue;
             }
             
-//            stbtt_GetBakedQuad(m_impl->char_data, m_impl->bitmap_width, m_impl->bitmap_height,
-//                               codepoint - 32, &x, &y, &q, 1);
-            
             stbtt_GetPackedQuad(m_impl->char_data, m_impl->bitmap->width, m_impl->bitmap->height,
                                 codepoint - 32, &x, &y, &q, 1);
             
@@ -379,7 +382,7 @@ namespace kinski { namespace gl {
         }
         geom->compute_vertex_normals();
         geom->compute_bounding_box();
-        
+
         // free the less frequent used half of our buffered string-meshes
         if(m_impl->string_mesh_map.size() >= m_impl->max_mesh_buffer_size)
         {
@@ -400,7 +403,6 @@ namespace kinski { namespace gl {
         }
         // insert the newly created mesh
         m_impl->string_mesh_map[theText] = string_mesh_container(theText, ret);
-        
         return ret;
     }
     
