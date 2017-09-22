@@ -24,6 +24,7 @@ namespace kinski
     KINSKI_API void copy_image(const ImagePtr &src_img, ImagePtr &dst_img);
     KINSKI_API bool save_image_to_file(const ImagePtr &the_img, const std::string &the_path);
     KINSKI_API std::vector<uint8_t> encode_png(const ImagePtr &the_img);
+    KINSKI_API std::vector<uint8_t> encode_jpg(const ImagePtr &the_img);
     KINSKI_API ImagePtr compute_distance_field(ImagePtr the_img, float spread);
     
     class Image

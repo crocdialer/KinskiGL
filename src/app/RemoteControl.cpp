@@ -89,7 +89,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
                 ptr->background_queue().submit([con, img]()
                 {
                     LOG_DEBUG << "compressing snapshot data ...";
-                    auto compressed_data = encode_png(img);
+                    auto compressed_data = encode_jpg(img);
                     auto message = std::vector<uint8_t>(4);
                     *(uint32_t*)(&message[0]) = compressed_data.size();
                     message.insert(message.end(), compressed_data.begin(), compressed_data.end());

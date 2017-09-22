@@ -124,19 +124,7 @@ namespace kinski
             for(const std::string& n : tex_names)
             {
                 if(n.empty()) continue;
-                
-                try
-                {
-                    auto tex = gl::create_texture_from_file(n);
-                    if(tex)
-                    {
-                        active_mat->add_texture(tex);
-                    }
-                }
-                catch (Exception &e)
-                {
-                    LOG_ERROR << e.what();
-                }
+                active_mat->queue_texture_load(n);
             }
         }
     }

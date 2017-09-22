@@ -108,7 +108,14 @@ public:
      */
     void async_del(const std::string &the_url, completion_cb_t ch = completion_cb_t());
     
+    /*!
+     * return the currently applied timeout for connections
+     */
     uint64_t timeout() const;
+    
+    /*!
+     * set the timeout for connections
+     */
     void set_timeout(uint64_t t);
 
 private:

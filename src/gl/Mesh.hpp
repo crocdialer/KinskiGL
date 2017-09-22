@@ -65,7 +65,7 @@ namespace kinski { namespace gl {
             material_index(0), primitive_type(0), enabled(true){}
             
             uint32_t num_indices, num_vertices;
-            uint32_t base_vertex, base_index;
+            index_t base_vertex, base_index;
             uint32_t material_index;
             uint32_t primitive_type;
             bool enabled;

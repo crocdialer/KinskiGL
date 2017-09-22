@@ -376,6 +376,10 @@ struct tcp_server_impl
             {
                 tcp_connection_ptr con(new tcp_connection());
                 con->m_impl = std::make_shared<tcp_connection_impl>(std::move(socket));
+                
+                // Start the persistent actor that checks for deadline expiry.
+                con->check_deadline();
+                
                 con->set_tcp_receive_cb([](tcp_connection_ptr, const std::vector<uint8_t> &data)
                 {
                     LOG_DEBUG << std::string(data.begin(), data.end());

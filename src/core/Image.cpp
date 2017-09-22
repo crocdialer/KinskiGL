@@ -22,6 +22,15 @@
 
 namespace kinski
 {
+    namespace
+    {
+        void stbi_write_func(void *context, void *data, int size)
+        {
+            std::vector<uint8_t> *out = static_cast<std::vector<uint8_t>*>(context);
+            out->insert(out->end(), (uint8_t*)data, (uint8_t*)data + size);
+        }
+    }
+    
     ImagePtr create_image_from_file(const std::string &the_path, int num_channels)
     {
         std::vector<uint8_t> dataVec;
@@ -88,12 +97,17 @@ namespace kinski
     
     std::vector<uint8_t> encode_png(const ImagePtr &the_img)
     {
-        
-        int num_bytes = 0;
-        uint8_t* encoded_data = stbi_write_png_to_mem(the_img->data, 0, the_img->width, the_img->height,
-                                                      the_img->bytes_per_pixel, &num_bytes);
-        auto ret = std::vector<uint8_t>(encoded_data, encoded_data + num_bytes);
-        STBI_FREE(encoded_data);
+        auto ret = std::vector<uint8_t>();
+        stbi_write_png_to_func(&stbi_write_func, &ret, the_img->width, the_img->height,
+                               the_img->bytes_per_pixel, the_img->data, 0);
+        return ret;
+    }
+    
+    std::vector<uint8_t> encode_jpg(const ImagePtr &the_img)
+    {
+        auto ret = std::vector<uint8_t>();
+        stbi_write_jpg_to_func(&stbi_write_func, &ret, the_img->width, the_img->height,
+                               the_img->bytes_per_pixel, the_img->data, 83);
         return ret;
     }
     
