@@ -381,7 +381,7 @@ namespace kinski { namespace gl {
             geom->append_face(i, i + 2, i + 3);
         }
         geom->compute_vertex_normals();
-        geom->compute_bounding_box();
+        geom->compute_aabb();
 
         // free the less frequent used half of our buffered string-meshes
         if(m_impl->string_mesh_map.size() >= m_impl->max_mesh_buffer_size)
@@ -428,7 +428,7 @@ namespace kinski { namespace gl {
             auto line_mesh = create_mesh(l)->copy();
             
             // center line_mesh
-            auto line_aabb = line_mesh->bounding_box();
+            auto line_aabb = line_mesh->aabb();
             
             //split line, if necessary
             while(line_aabb.width() > the_linewidth)
@@ -460,7 +460,7 @@ namespace kinski { namespace gl {
                 line_mesh = create_mesh(l)->copy();
                 
                 // new aabb
-                line_aabb = line_mesh->bounding_box();
+                line_aabb = line_mesh->aabb();
             }
 
             switch (the_align)

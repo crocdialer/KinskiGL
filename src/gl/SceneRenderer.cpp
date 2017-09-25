@@ -47,7 +47,7 @@ public:
         if(!theNode.enabled() || !check_tags(m_tags, theNode.tags())) return;
         
         glm::mat4 model_view = transform_stack().top() * theNode.transform();
-        gl::AABB boundingBox = theNode.bounding_box();
+        gl::AABB boundingBox = theNode.aabb();
 
         if(m_frustum.intersect(boundingBox) || kinski::contains(theNode.tags(), gl::SceneRenderer::TAG_NO_CULL))
         {
@@ -140,7 +140,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
     SelectVisitor<Light> lv;
     the_scene->root()->accept(lv);
     
-    float extents = 2.f * glm::length(the_scene->root()->bounding_box().halfExtents());
+    float extents = 2.f * glm::length(the_scene->root()->aabb().halfExtents());
     
     uint32_t i = 0;
     set_shadowmap_size(glm::vec2(1024));

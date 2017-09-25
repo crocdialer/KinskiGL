@@ -145,7 +145,7 @@ namespace kinski{ namespace gl{
             m_indices.insert(m_indices.end(), start, start + 3 * the_faces.size());
         }
         
-        void compute_bounding_box();
+        void compute_aabb();
         void compute_face_normals();
         void compute_vertex_normals();
         void compute_tangents();
@@ -189,7 +189,7 @@ namespace kinski{ namespace gl{
         std::vector<BoneVertexData>& bone_vertex_data(){ return m_bone_vertex_data; };
         const std::vector<BoneVertexData>& bone_vertex_data() const { return m_bone_vertex_data; };
         
-        inline const AABB& bounding_box() const { return m_bounding_box; };
+        inline const AABB& aabb() const { return m_bounding_box; };
         
         // GL buffers
         gl::Buffer& vertex_buffer(){ return m_vertex_buffer; };

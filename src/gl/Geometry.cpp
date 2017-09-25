@@ -97,14 +97,15 @@ Geometry::~Geometry()
 
 }
 
-void Geometry::compute_bounding_box()
+void Geometry::compute_aabb()
 {
-    m_bounding_box = gl::calculate_AABB(m_vertices);
+    m_bounding_box = gl::compute_aabb(m_vertices);
 }
 
 void Geometry::compute_face_normals()
 {
     m_normals.resize(m_vertices.size());
+    
     for(const Face3& face : m_faces)
     {
         const glm::vec3 &vA = m_vertices[face.a];
@@ -117,24 +118,21 @@ void Geometry::compute_face_normals()
 
 void Geometry::compute_vertex_normals()
 {
-    //mark gpu buffer as dirty
-    m_dirty_normal_buffer = true;
-
     if(m_faces.empty()) return;
-
+    
+    // set dirty flag
+    m_dirty_normal_buffer = true;
+    
     // create tmp array, if not yet constructed
     if(m_normals.size() != m_vertices.size())
     {
         m_normals.clear();
         m_normals.resize(m_vertices.size(), glm::vec3(0));
     }
-    else
-    {
-        std::fill(m_normals.begin(), m_normals.end(), glm::vec3(0));
-    }
+    else{ std::fill(m_normals.begin(), m_normals.end(), glm::vec3(0)); }
 
     // iterate faces and sum normals for all vertices
-    for (const Face3 &face : m_faces)
+    for(const Face3 &face : m_faces)
     {
         const glm::vec3 &vA = m_vertices[face.a];
         const glm::vec3 &vB = m_vertices[face.b];
@@ -146,12 +144,7 @@ void Geometry::compute_vertex_normals()
     }
 
     // normalize vertexNormals
-    vector<glm::vec3>::iterator normIt = m_normals.begin();
-    for (; normIt != m_normals.end(); normIt++)
-    {
-        glm::vec3 &vertNormal = *normIt;
-        vertNormal = glm::normalize(vertNormal);
-    }
+    for(auto &n : m_normals){ n = glm::normalize(n); }
 }
 
 void Geometry::compute_tangents()
@@ -168,10 +161,8 @@ void Geometry::compute_tangents()
         tangents.resize(m_vertices.size(), glm::vec3(0));
     }
 
-    vector<Face3>::iterator faceIt = m_faces.begin();
-    for (; faceIt != m_faces.end(); faceIt++)
+    for(const auto &face : m_faces)
     {
-        Face3 &face = *faceIt;
         const glm::vec3 &v1 = m_vertices[face.a], &v2 = m_vertices[face.b], &v3 = m_vertices[face.c];
         const glm::vec2 &w1 = m_tex_coords[face.a], &w2 = m_tex_coords[face.b], &w3 = m_tex_coords[face.c];
 
@@ -197,7 +188,7 @@ void Geometry::compute_tangents()
         tangents[face.c] += sdir;
     }
 
-    for (uint32_t a = 0; a < m_vertices.size(); a++)
+    for (uint32_t a = 0; a < m_vertices.size(); ++a)
     {
         const glm::vec3& n = m_normals[a];
         const glm::vec3& t = tangents[a];
@@ -402,7 +393,7 @@ Geometry::Ptr Geometry::create_plane(float width, float height,
         }
     }
     geom->compute_tangents();
-    geom->compute_bounding_box();
+    geom->compute_aabb();
     return geom;
 }
 
@@ -432,7 +423,7 @@ GeometryPtr Geometry::create_solid_circle(int numSegments, float the_radius)
     }
     ret->compute_vertex_normals();
     ret->compute_tangents();
-    ret->compute_bounding_box();
+    ret->compute_aabb();
     return ret;
 }
 
@@ -457,7 +448,7 @@ GeometryPtr Geometry::create_circle(int numSegments, float the_radius)
         verts[s] = the_radius * unit_val;
         texCoords[s] = (unit_val.xy() + glm::vec2(1)) / 2.f;
     }
-    ret->compute_bounding_box();
+    ret->compute_aabb();
     return ret;
 }
 
@@ -573,7 +564,7 @@ Geometry::Ptr Geometry::create_box(const glm::vec3 &the_half_extents)
         geom->append_face(i * 4 + 2, i * 4 + 3, i * 4 + 0);
     }
     geom->compute_tangents();
-    geom->compute_bounding_box();
+    geom->compute_aabb();
     return geom;
 }
 
@@ -641,7 +632,7 @@ Geometry::Ptr Geometry::create_sphere(float radius, int numSlices)
         }
 
     geom->compute_tangents();
-    geom->compute_bounding_box();
+    geom->compute_aabb();
     return geom;
 }
 
@@ -668,7 +659,7 @@ GeometryPtr Geometry::create_cone(float radius, float height, int numSegments)
         ret->append_face(s, next_index, 0);
     }
     ret->compute_vertex_normals();
-    ret->compute_bounding_box();
+    ret->compute_aabb();
     return ret;
 }
 

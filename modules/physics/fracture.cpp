@@ -284,7 +284,7 @@ namespace kinski{namespace physics{
             outer_geom->append_indices(inner_geom->indices());
             outer_geom->faces().insert(outer_geom->faces().end(),
                                        inner_geom->faces().begin(), inner_geom->faces().end());
-            outer_geom->compute_bounding_box();
+            outer_geom->compute_aabb();
             
             auto inner_mat = gl::Material::create();
             
@@ -302,7 +302,7 @@ namespace kinski{namespace physics{
             auto &vertices = m->geometry()->vertices();
             
             // aabb
-            auto out_aabb = the_mesh->bounding_box();
+            auto out_aabb = the_mesh->aabb();
             vec3 aabb_extents = out_aabb.halfExtents() * 2.f;
             
             uint32_t base_vertex = m->entries()[1].base_vertex;

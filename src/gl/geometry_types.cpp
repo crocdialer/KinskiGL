@@ -227,7 +227,7 @@ uint32_t AABB::intersect(const Triangle& t) const
 
 ///////////////////////////////////////////////////////////////////////////////
 
-gl::AABB calculate_AABB(const std::vector<glm::vec3> &theVertices)
+gl::AABB compute_aabb(const std::vector<glm::vec3> &theVertices)
 {
     if(theVertices.empty()){ return AABB(); }
 

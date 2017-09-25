@@ -112,7 +112,7 @@ namespace kinski { namespace gl{
             // compute tangents
             geom->compute_tangents();
         }
-        geom->compute_bounding_box();
+        geom->compute_aabb();
         return geom;
     }
 
@@ -338,7 +338,7 @@ namespace kinski { namespace gl{
                 mergeGeometries(g, combined_geom);
                 materials[aMesh->mMaterialIndex] = createMaterial(theScene->mMaterials[aMesh->mMaterialIndex]);
             }
-            combined_geom->compute_bounding_box();
+            combined_geom->compute_aabb();
             
             // insert colors, if not present
             combined_geom->colors().resize(combined_geom->vertices().size(), gl::COLOR_WHITE);
@@ -381,8 +381,8 @@ namespace kinski { namespace gl{
             LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
             geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";
             
-            LOG_DEBUG<<"bounds: " <<to_string(mesh->bounding_box().min)<<" - "<<
-                to_string(mesh->bounding_box().max);
+            LOG_DEBUG<<"bounds: " <<to_string(mesh->aabb().min)<<" - "<<
+                to_string(mesh->aabb().max);
             
             importer.FreeScene();
             return mesh;

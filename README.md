@@ -1,20 +1,20 @@
 KinskiGL
 ========
 
-kinskiGL is a set of portable C++ libraries useful for realtime graphics applications.
+kinskiGL is a set of portable C++ libraries useful for realtime-graphic applications.
 
 kinskiGL is currently known to compile and work for these platforms:
 
 * MacOS 10.12
-* Ubuntu Desktop
+* Ubuntu Desktop 16.04.3 LTS
 * iOS
-* Rasbian Stretch (Rasberry Pi)
-* Linaro on Asus Tinkerboard
+* Rasbian Stretch on Rasberry Pi
+* Linaro Strech on Asus Tinkerboard
 
 the basic library-structure:
 
 * core
-{
+
     * image IO
     * asynchronous networking
     * serial ports
@@ -23,19 +23,28 @@ the basic library-structure:
     * serialization
     * threadpools
     * utilities
-}
+
 
 * gl
-{
+
     * linear algebra utilities
+    * drawing utilities
     * geometric primitives, ray-casting
     * scenegraph, forward/deferred rendering paths
-}
+    * lights and materials
+    * post-fx
 
 * app
-{
+
     * lightweight application framework
-}
+    * rpc-interface
+    * UI components
+
+* samples
+
+    * empty template
+    * media player with support for network-syncing and warping
+    * 3D viewer
 
 TODO:
 

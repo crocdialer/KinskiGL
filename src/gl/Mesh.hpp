@@ -119,7 +119,7 @@ namespace kinski { namespace gl {
         /*!
          * returns an AABB with global transform applied to it
          */
-        AABB bounding_box() const override;
+        AABB aabb() const override;
         
         gl::OBB obb() const override;
         

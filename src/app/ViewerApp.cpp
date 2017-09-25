@@ -262,7 +262,7 @@ namespace kinski {
         if(e.isLeft() || e.is_touch())
         {
             if(e.isAltDown() && *m_use_warping){ m_warp_component->mouse_drag(e); }
-            else if(!displayTweakBar())
+            else if(!displayTweakBar() || e.isAltDown())
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
@@ -300,7 +300,7 @@ namespace kinski {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
         
-        if(e.isAltDown()){ m_warp_component->key_press(e); }
+        if(*m_use_warping && e.isAltDown()){ m_warp_component->key_press(e); }
         
         if(!displayTweakBar())
         {
@@ -346,7 +346,7 @@ namespace kinski {
     
     void ViewerApp::key_release(const KeyEvent &e)
     {
-        m_warp_component->key_release(e);
+        if(*m_use_warping && e.isAltDown()){ m_warp_component->key_release(e); }
     }
     
     void ViewerApp::resize(int w, int h)
@@ -418,7 +418,7 @@ namespace kinski {
         {
             glm::vec3 look_at = *m_look_at;
             if(m_selected_mesh && m_center_selected)
-                look_at = gl::OBB(m_selected_mesh->bounding_box(), m_selected_mesh->transform()).center;
+                look_at = gl::OBB(m_selected_mesh->aabb(), m_selected_mesh->transform()).center;
 
             glm::mat4 tmp = glm::mat4(m_rotation->value());
             tmp[3] = glm::vec4(look_at + m_rotation->value()[2] * m_distance->value(), 1.0f);

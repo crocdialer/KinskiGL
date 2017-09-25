@@ -342,22 +342,22 @@ void Mesh::build_bone_matrices(float time, BonePtr bone, glm::mat4 parentTransfo
     }
 }
 
-AABB Mesh::bounding_box() const
+AABB Mesh::aabb() const
 {
-    AABB ret = m_geometry->bounding_box();
+    AABB ret = m_geometry->aabb();
     mat4 global_trans = global_transform();
     ret.transform(global_trans);
 
     for (auto &c :children())
     {
-        ret += c->bounding_box();
+        ret += c->aabb();
     }
     return ret;
 }
 
 gl::OBB Mesh::obb() const
 {
-    gl::OBB ret(m_geometry->bounding_box(), global_transform());
+    gl::OBB ret(m_geometry->aabb(), global_transform());
     return ret;
 }
 

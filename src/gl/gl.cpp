@@ -334,7 +334,7 @@ namespace kinski { namespace gl {
             geom->append_indices(indices, num_indices);
         }
 
-        geom->compute_bounding_box();
+        geom->compute_aabb();
         gl::MaterialPtr mat = gl::Material::create();
         gl::MeshPtr m = gl::Mesh::create(geom, mat);
         m->set_transform(cam->transform());
@@ -725,7 +725,7 @@ namespace kinski { namespace gl {
             geom->tex_coords().push_back(glm::vec2(1.f, 1.f));
             geom->colors().assign(4, glm::vec4(1.f));
             geom->normals().assign(4, glm::vec3(0, 0, 1));
-            geom->compute_bounding_box();
+            geom->compute_aabb();
             geom->compute_tangents();
             quad_mesh = gl::Mesh::create(geom, Material::create());
             quad_mesh->set_position(glm::vec3(0.5f, 0.5f , 0.f));
@@ -759,7 +759,7 @@ namespace kinski { namespace gl {
         m->material()->set_diffuse(the_color);
         m->material()->set_depth_test(false);
         m->set_position(glm::vec3(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y -
-                                 m->geometry()->bounding_box().height(), 0.f));
+                                 m->geometry()->aabb().height(), 0.f));
         gl::load_matrix(gl::PROJECTION_MATRIX, projectionMatrix);
         gl::load_matrix(gl::MODEL_VIEW_MATRIX, m->transform());
         draw_mesh(m);
@@ -993,7 +993,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         {
             line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines());
         }
-        AABB mesh_bb = the_obj->bounding_box();
+        AABB mesh_bb = the_obj->aabb();
         glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
 
         glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(mesh_bb.width(),
@@ -1026,8 +1026,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             const vector<vec3> &vertices = m->geometry()->vertices();
             const vector<vec3> &normals = m->geometry()->normals();
 
-            float length = (m->geometry()->bounding_box().max -
-                            m->geometry()->bounding_box().min).length() * 5;
+            float length = (m->geometry()->aabb().max -
+                            m->geometry()->aabb().min).length() * 5;
 
             for (uint32_t i = 0; i < vertices.size(); i++)
             {
@@ -1482,7 +1482,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             return false;
         }
 
-        auto aabb = m->bounding_box();
+        auto aabb = m->aabb();
 
         // checks if p is inside the aabb of our mesh)
         if(!aabb.contains(p)) return false;
@@ -1524,7 +1524,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             return h1.distance < h2.distance;
         };
 
-        float ray_offset = 2 * glm::length(src->bounding_box().transform(src->global_transform()).halfExtents());
+        float ray_offset = 2 * glm::length(src->aabb().transform(src->global_transform()).halfExtents());
         float scale_val = 1.01f;
         mat4 world_to_src = glm::inverse(glm::scale(src->global_transform(), vec3(scale_val)));
 

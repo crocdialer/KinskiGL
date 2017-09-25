@@ -454,7 +454,7 @@ gl::MeshPtr LSystem::create_mesh() const
         ret->entries().front().num_indices = ret->geometry()->indices().size();
     }
     ret->geometry()->set_primitive_type(GL_LINES);
-    ret->geometry()->compute_bounding_box();
+    ret->geometry()->compute_aabb();
     return ret;
 }
 
