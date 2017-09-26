@@ -1,9 +1,11 @@
 KinskiGL
 ========
 
+![Preview](http://crocdialer.com/kinskiGL/kinski_cover.jpg)
+
 kinskiGL is a set of portable C++ libraries useful for realtime-graphic applications.
 
-kinskiGL is currently known to compile and work for these platforms:
+currently known to compile and work for these platforms:
 
 * MacOS 10.12
 * Ubuntu Desktop 16.04.3 LTS
@@ -23,7 +25,6 @@ the basic library-structure:
     * serialization
     * threadpools
     * utilities
-
 
 * gl
 
