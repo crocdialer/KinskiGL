@@ -31,9 +31,9 @@ namespace kinski
         static const std::string PROPERTY_TYPE_VEC2_ARRAY;
         
         virtual ~PropertyIO_GL(){};
-        virtual bool readPropertyValue(const Property::ConstPtr &theProperty,
+        virtual bool read_property(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const;
-        virtual bool writePropertyValue(Property::Ptr &theProperty,
+        virtual bool write_property(Property::Ptr &theProperty,
                                         const Json::Value &theJsonValue) const;
     };
     

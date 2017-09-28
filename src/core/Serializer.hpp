@@ -40,10 +40,10 @@ namespace kinski
         static const std::string PROPERTIES;
         
         virtual ~PropertyIO(){};
-        virtual bool readPropertyValue(const Property::ConstPtr &theProperty,
-                                       Json::Value &theJsonValue) const;
-        virtual bool writePropertyValue(Property::Ptr &theProperty,
-                                        const Json::Value &theJsonValue) const;
+        virtual bool read_property(const Property::ConstPtr &theProperty,
+                                   Json::Value &theJsonValue) const;
+        virtual bool write_property(Property::Ptr &theProperty,
+                                    const Json::Value &theJsonValue) const;
     };
     
     class KINSKI_API Serializer
@@ -55,57 +55,57 @@ namespace kinski
         /*!
          * Save a single component´s state to file using json file formatting
          */
-        static void saveComponentState(const ComponentPtr &theComponent,
-                                       const std::string &theFileName,
-                                       const PropertyIO &theIO = PropertyIO());
+        static void save_state(const ComponentPtr &theComponent,
+                               const std::string &theFileName,
+                               const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Save multiple component´s states to file using json file formatting
          */
-        static void saveComponentState(const std::list<ComponentPtr> &theComponentList,
-                                const std::string &theFileName,
-                                const PropertyIO &theIO = PropertyIO());
+        static void save_state(const std::list<ComponentPtr> &theComponentList,
+                               const std::string &theFileName,
+                               const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Read a component´s state from a json-file
          */
-        static void loadComponentState(const ComponentPtr &theComponent,
-                                       const std::string &theFileName,
-                                       const PropertyIO &theIO = PropertyIO());
+        static void load_state(const ComponentPtr &theComponent,
+                               const std::string &theFileName,
+                               const PropertyIO &theIO = PropertyIO());
         
-        static void loadComponentState(const std::list<ComponentPtr> &theComponentList,
-                                       const std::string &theFileName,
-                                       const PropertyIO &theIO = PropertyIO());
-        
-        /*!
-         * Serialize a component to a string in json format.
-         * Supported Property types are determined by theIO object
-         */
-        static std::string serializeComponent(const ComponentPtr &theComponent,
-                                              const PropertyIO &theIO = PropertyIO());
+        static void load_state(const std::list<ComponentPtr> &theComponentList,
+                               const std::string &theFileName,
+                               const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Serialize a component to a string in json format.
          * Supported Property types are determined by theIO object
          */
-        static std::string serializeComponents(const std::list<ComponentPtr> &theComponentList,
-                                               const PropertyIO &theIO = PropertyIO());
+        static std::string serialize(const ComponentPtr &theComponent,
+                                     const PropertyIO &theIO = PropertyIO());
+        
+        /*!
+         * Serialize a component to a string in json format.
+         * Supported Property types are determined by theIO object
+         */
+        static std::string serialize(const std::list<ComponentPtr> &theComponentList,
+                                     const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Read a component´s state from a string in json-format
          * Supported Property types are determined by theIO object
          */
-        static void applyStateToComponent(const ComponentPtr &theComponent,
-                                          const std::string &theState,
-                                          const PropertyIO &theIO = PropertyIO());
+        static void apply_state(const ComponentPtr &theComponent,
+                                const std::string &theState,
+                                const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Read a component´s state from a string in json-format
          * Supported Property types are determined by theIO object
          */
-        static void applyStateToComponents(const std::list<ComponentPtr> &theComponentList,
-                                           const std::string &theState,
-                                           const PropertyIO &theIO = PropertyIO());
+        static void apply_state(const std::list<ComponentPtr> &theComponentList,
+                                const std::string &theState,
+                                const PropertyIO &theIO = PropertyIO());
         
         class ParsingException: public Exception
         {

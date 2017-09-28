@@ -471,16 +471,16 @@ namespace kinski {
             
             try
             {
-                Serializer::saveComponentState(shared_from_this(),
+                Serializer::save_state(shared_from_this(),
                                                fs::join_paths(path_prefix ,"config.json"),
                                                PropertyIO_GL());
-                Serializer::saveComponentState(light_components,
+                Serializer::save_state(light_components,
                                                fs::join_paths(path_prefix ,"light_config.json"),
                                                PropertyIO_GL());
-                Serializer::saveComponentState(material_components,
+                Serializer::save_state(material_components,
                                                fs::join_paths(path_prefix ,"material_config.json"),
                                                PropertyIO_GL());
-                Serializer::saveComponentState(warp_components,
+                Serializer::save_state(warp_components,
                                                fs::join_paths(path_prefix , "warp_config.json"),
                                                PropertyIO_GL());
                 
@@ -529,16 +529,16 @@ namespace kinski {
         
         try
         {
-            Serializer::loadComponentState(shared_from_this(),
+            Serializer::load_state(shared_from_this(),
                                            fs::join_paths(path_prefix , "config.json"),
                                            PropertyIO_GL());
-            Serializer::loadComponentState(light_components,
+            Serializer::load_state(light_components,
                                            fs::join_paths(path_prefix , "light_config.json"),
                                            PropertyIO_GL());
-            Serializer::loadComponentState(material_components,
+            Serializer::load_state(material_components,
                                            fs::join_paths(path_prefix , "material_config.json"),
                                            PropertyIO_GL());
-            Serializer::loadComponentState(warp_components,
+            Serializer::load_state(warp_components,
                                            fs::join_paths(path_prefix, "warp_config.json"),
                                            PropertyIO_GL());
             

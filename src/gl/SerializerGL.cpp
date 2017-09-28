@@ -22,10 +22,10 @@ namespace kinski {
     
     const std::string PropertyIO_GL::PROPERTY_TYPE_VEC2_ARRAY = "vec2_array";
     
-    bool PropertyIO_GL::readPropertyValue(const Property::ConstPtr &theProperty,
+    bool PropertyIO_GL::read_property(const Property::ConstPtr &theProperty,
                                           Json::Value &theJsonValue) const
     {
-        bool success = PropertyIO::readPropertyValue(theProperty, theJsonValue);
+        bool success = PropertyIO::read_property(theProperty, theJsonValue);
         
         if(success) return true;
         
@@ -121,10 +121,10 @@ namespace kinski {
         return success;
     }
     
-    bool PropertyIO_GL::writePropertyValue(Property::Ptr &theProperty,
+    bool PropertyIO_GL::write_property(Property::Ptr &theProperty,
                                            const Json::Value &theJsonValue) const
     {
-        bool success = PropertyIO::writePropertyValue(theProperty, theJsonValue);
+        bool success = PropertyIO::write_property(theProperty, theJsonValue);
         
         if(success) return true;
         

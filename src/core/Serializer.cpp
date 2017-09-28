@@ -33,7 +33,7 @@ namespace kinski {
     const std::string PropertyIO::PROPERTY_NAME = "name";
     const std::string PropertyIO::PROPERTIES = "properties";
     
-    bool PropertyIO::readPropertyValue(const Property::ConstPtr &theProperty,
+    bool PropertyIO::read_property(const Property::ConstPtr &theProperty,
                                        Json::Value &theJsonValue) const
     {
         bool success = false;
@@ -123,7 +123,7 @@ namespace kinski {
         return success;
     }
     
-    bool PropertyIO::writePropertyValue(Property::Ptr &theProperty,
+    bool PropertyIO::write_property(Property::Ptr &theProperty,
                                         const Json::Value &theJsonValue) const
     {
         bool success = false;
@@ -252,7 +252,7 @@ namespace kinski {
                 json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->name();
                 
                 // delegate reading to PropertyIO object
-                if(! theIO.readPropertyValue(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
+                if(! theIO.read_property(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
                 {
                     json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_TYPE] =
                     PropertyIO::PROPERTY_TYPE_UNKNOWN;
@@ -264,13 +264,13 @@ namespace kinski {
         }
     }
     
-    std::string Serializer::serializeComponent(const ComponentPtr &theComponent,
+    std::string Serializer::serialize(const ComponentPtr &theComponent,
                                                const PropertyIO &theIO)
     {
-        return serializeComponents({theComponent}, theIO);
+        return serialize({theComponent}, theIO);
     }
     
-    std::string Serializer::serializeComponents(const std::list<ComponentPtr> &theComponentList,
+    std::string Serializer::serialize(const std::list<ComponentPtr> &theComponentList,
                                                 const PropertyIO &theIO)
     {
         Json::Value myRoot;
@@ -279,7 +279,7 @@ namespace kinski {
         return myWriter.write(myRoot);
     }
     
-    void Serializer::applyStateToComponent(const ComponentPtr &theComponent,
+    void Serializer::apply_state(const ComponentPtr &theComponent,
                                            const std::string &theState,
                                            const PropertyIO &theIO)
     {
@@ -305,7 +305,7 @@ namespace kinski {
                     myComponentNode[PropertyIO::PROPERTIES][j][PropertyIO::PROPERTY_NAME].asString();
                     
                     Property::Ptr myProperty = theComponent->get_property_by_name(myName);
-                    theIO.writePropertyValue(myProperty, myComponentNode[PropertyIO::PROPERTIES][j]);
+                    theIO.write_property(myProperty, myComponentNode[PropertyIO::PROPERTIES][j]);
                     
                 } catch (PropertyNotFoundException &myException)
                 {
@@ -315,22 +315,22 @@ namespace kinski {
         }
     }
     
-    void Serializer::applyStateToComponents(const std::list<ComponentPtr> &theComponentList,
+    void Serializer::apply_state(const std::list<ComponentPtr> &theComponentList,
                                             const std::string &theState,
                                             const PropertyIO &theIO)
     {
-        for(auto c : theComponentList){ applyStateToComponent(c, theState, theIO);}
+        for(auto c : theComponentList){ apply_state(c, theState, theIO);}
     }
     
-    void Serializer::saveComponentState(const ComponentPtr &theComponent,
+    void Serializer::save_state(const ComponentPtr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
-        std::string state = serializeComponent(theComponent, theIO);
+        std::string state = serialize(theComponent, theIO);
         fs::write_file(theFileName, state);
     }
     
-    void Serializer::saveComponentState(const std::list<ComponentPtr> &theComponentList,
+    void Serializer::save_state(const std::list<ComponentPtr> &theComponentList,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
@@ -341,23 +341,23 @@ namespace kinski {
         fs::write_file(theFileName, state);
     }
     
-    void Serializer::loadComponentState(const ComponentPtr &theComponent,
+    void Serializer::load_state(const ComponentPtr &theComponent,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
         if(!theComponent) return;
         std::string myState = fs::read_file(theFileName);
-        applyStateToComponent(theComponent, myState, theIO);
+        apply_state(theComponent, myState, theIO);
     }
     
-    void Serializer::loadComponentState(const std::list<ComponentPtr> &theComponentList,
+    void Serializer::load_state(const std::list<ComponentPtr> &theComponentList,
                                         const std::string &theFileName,
                                         const PropertyIO &theIO)
     {
         if(theComponentList.empty()) return;
         std::string myState = fs::read_file(theFileName);
         
-        for (auto &component : theComponentList){applyStateToComponent(component, myState, theIO);}
+        for (auto &component : theComponentList){apply_state(component, myState, theIO);}
     }
 
 }//namespace
