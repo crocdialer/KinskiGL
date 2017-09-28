@@ -265,13 +265,16 @@ namespace kinski {
     }
     
     std::string Serializer::serialize(const ComponentPtr &theComponent,
-                                               const PropertyIO &theIO)
+                                      const PropertyIO &theIO)
     {
-        return serialize({theComponent}, theIO);
+        Json::Value myRoot;
+        add_to_json_object({theComponent}, myRoot, theIO);
+        Json::StyledWriter myWriter;
+        return myWriter.write(myRoot);
     }
     
     std::string Serializer::serialize(const std::list<ComponentPtr> &theComponentList,
-                                                const PropertyIO &theIO)
+                                      const PropertyIO &theIO)
     {
         Json::Value myRoot;
         add_to_json_object(theComponentList, myRoot, theIO);
