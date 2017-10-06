@@ -1138,6 +1138,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         gl::set_window_dimension(theFbo.size());
         theFbo.bind();
         functor();
+        gl::reset_state();
         return theFbo.texture();
     }
 

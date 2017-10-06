@@ -73,29 +73,34 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         {
             if(auto ptr = std::dynamic_pointer_cast<ViewerApp>(comp))
             {
-                LOG_DEBUG << "generate_snapshot ...";
-                Stopwatch timer;
-                timer.start();
-                
-                ImagePtr img;
-                
-                if(false)
+                ptr->main_queue().submit([con, ptr]()
                 {
-                    ptr->generate_snapshot();
-                    img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
-                }
-                else{ img = gl::create_image_from_framebuffer(); }
-                
-                ptr->background_queue().submit([con, img]()
-                {
-                    LOG_DEBUG << "compressing snapshot data ...";
-                    auto compressed_data = encode_jpg(img);
-                    auto message = std::vector<uint8_t>(4);
-                    *(uint32_t*)(&message[0]) = compressed_data.size();
-                    message.insert(message.end(), compressed_data.begin(), compressed_data.end());
-                    con->write(message);
-                    LOG_DEBUG << "sending snapshot: " << compressed_data.size() << " bytes";
+                    LOG_DEBUG << "generate_snapshot ...";
+                    Stopwatch timer;
+                    timer.start();
+
+                    ImagePtr img;
+
+                    if(false)
+                    {
+                        ptr->generate_snapshot();
+                        img = gl::create_image_from_framebuffer(ptr->snapshot_fbo());
+                    }
+                    else{ img = gl::create_image_from_framebuffer(); }
+
+                    ptr->background_queue().submit([con, img]()
+                    {
+                        LOG_DEBUG << "compressing snapshot data ...";
+                        auto compressed_data = encode_jpg(img);
+                        auto message = std::vector<uint8_t>(4);
+                        *(uint32_t*)(&message[0]) = compressed_data.size();
+                        message.insert(message.end(), compressed_data.begin(), compressed_data.end());
+                        con->write(message);
+                        LOG_DEBUG << "sending snapshot: " << compressed_data.size() << " bytes";
+                    });
                 });
+
+
                 return;
             }
         }
