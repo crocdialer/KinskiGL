@@ -49,8 +49,9 @@ the basic library-structure:
 
 * modules
 
-a list of optional modules can be used, offering a variety of functionality.
-including but not not limited to
+  a list of optional modules can be used, offering a variety of functionality.
+  including but not not limited to  
+  
     * blocking- / non-blocking http, using libcurl
     * integration of scenegraph elements with the Bullet Physics Library, offering rigid- and softbody physics
     * integration of the Asset Import Library (assimp) for loading 3D models and scenes
