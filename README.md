@@ -3,7 +3,7 @@ KinskiGL
 
 ![Preview](http://crocdialer.com/kinskiGL/kinski_cover.jpg)
 
-kinskiGL is a set of portable C++ libraries useful for realtime-graphic applications.
+kinskiGL is a set of portable C++ libraries useful for cross-platform OpenGL applications.
 
 currently known to compile and work for these platforms:
 
@@ -46,6 +46,17 @@ the basic library-structure:
     * empty template
     * media player with support for network-syncing and warping
     * 3D viewer
+
+* modules
+
+a list of optional modules can be used, offering a variety of functionality.
+including but not not limited to:
+
+    * blocking- / non-blocking http, using libcurl
+    * integration of scenegraph elements with the Bullet Physics Library, offering rigid- and softbody physics
+    * integration of the Asset Import Library (assimp) for loading 3D models and scenes
+    * an L-System implementation for generating procedural meshes
+    * OpenCL-based particlesystem, using CL/GL interop
 
 TODO:
 
