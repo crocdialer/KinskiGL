@@ -20,7 +20,7 @@ namespace kinski { namespace fs{
 
     namespace
     {
-        std::set<std::string> g_searchPaths;
+        std::set<path> g_searchPaths;
     }
 
     std::string expand_user(std::string path)
@@ -50,14 +50,14 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    const std::set<std::string>& get_search_paths()
+    const std::set<fs::path>& get_search_paths()
     {
         return g_searchPaths;
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    void add_search_path(const std::string &thePath, int the_recursion_depth)
+    void add_search_path(const fs::path &thePath, int the_recursion_depth)
     {
         boost::filesystem::path path_expanded (expand_user(thePath));
         
@@ -113,11 +113,11 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    list<string> get_directory_entries(const std::string &thePath, const std::string &theExtension,
+    list<string> get_directory_entries(const fs::path &thePath, const std::string &theExtension,
                                        int the_recursion_depth)
     {
         list<string> ret;
-        path p (expand_user(thePath));
+        path p(expand_user(thePath));
         
         auto check_file_status = [](const boost::filesystem::file_status &s) -> bool
         {
@@ -129,7 +129,7 @@ namespace kinski { namespace fs{
         
         try
         {
-            if (exists(p))    // does p actually exist?
+            if(exists(p))    // does p actually exist?
             {
                 if(the_recursion_depth)
                 {
@@ -198,7 +198,7 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::list<string> get_directory_entries(const std::string &thePath, FileType the_type,
+    std::list<string> get_directory_entries(const fs::path &thePath, FileType the_type,
                                             int the_recursion_depth)
     {
         auto ret = get_directory_entries(thePath, "", the_recursion_depth);
@@ -211,7 +211,7 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    int get_file_size(const std::string &the_file_name)
+    size_t get_file_size(const fs::path &the_file_name)
     {
         return boost::filesystem::file_size(expand_user(the_file_name));
     }
@@ -219,7 +219,7 @@ namespace kinski { namespace fs{
 ///////////////////////////////////////////////////////////////////////////////
     
     /// read a complete file into a string
-    const std::string read_file(const std::string & theUTF8Filename)
+    const std::string read_file(const fs::path & theUTF8Filename)
     {
         string path = search_file(theUTF8Filename);
         std::ifstream inStream(path);
@@ -230,9 +230,9 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::vector<uint8_t> read_binary_file(const std::string &theUTF8Filename)
+    std::vector<uint8_t> read_binary_file(const fs::path &theUTF8Filename)
     {
-        string path = search_file(theUTF8Filename);
+        fs::path path = search_file(theUTF8Filename);
         std::ifstream inStream(path, ios::in | ios::binary | ios::ate);
 
         if(!inStream.good())
@@ -250,7 +250,7 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool write_file(const std::string &the_file_name, const std::string &the_data)
+    bool write_file(const fs::path &the_file_name, const std::string &the_data)
     {
         std::ofstream file_out(expand_user(the_file_name));
         if(!file_out){ return false; }
@@ -261,7 +261,7 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool write_file(const std::string &the_file_name, const std::vector<uint8_t> &the_data)
+    bool write_file(const fs::path &the_file_name, const std::vector<uint8_t> &the_data)
     {
         std::ofstream file_out(expand_user(the_file_name), ios::out | ios::binary);
         if(!file_out){ return false; }
@@ -272,7 +272,7 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool append_to_file(const std::string &the_file_name, const std::string &the_data)
+    bool append_to_file(const fs::path &the_file_name, const std::string &the_data)
     {
         std::ofstream file_out(expand_user(the_file_name), ios::out | ios::app);
         if(!file_out){ return false; }
@@ -283,14 +283,14 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string get_filename_part(const std::string &the_file_name)
+    std::string get_filename_part(const fs::path &the_file_name)
     {
         return boost::filesystem::path(expand_user(the_file_name)).filename().string();
     }
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool is_uri(const std::string &the_str)
+    bool is_uri(const fs::path &the_str)
     {
         auto result = the_str.find("://");
         
@@ -305,21 +305,21 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool is_directory(const std::string &the_file_name)
+    bool is_directory(const fs::path &the_file_name)
     {
         return boost::filesystem::is_directory(expand_user(the_file_name));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool exists(const std::string& the_file_name)
+    bool exists(const fs::path& the_file_name)
     {
         return boost::filesystem::exists(expand_user(the_file_name));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    bool create_directory(const std::string &the_file_name)
+    bool create_directory(const fs::path &the_file_name)
     {
         if(!exists(the_file_name))
         {
@@ -333,14 +333,14 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string join_paths(const std::string &p1, const std::string &p2)
+    std::string join_paths(const fs::path &p1, const fs::path &p2)
     {
         return (path(p1) / path(p2)).string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    std::string path_as_uri(const std::string &p)
+    std::string path_as_uri(const fs::path &p)
     {
         if(is_uri(p)) return p;
         return "file://" + canonical(expand_user(p)).string();
@@ -348,7 +348,7 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    std::string search_file(const std::string &the_file_name, bool use_entire_path)
+    fs::path search_file(const fs::path &the_file_name, bool use_entire_path)
     {
         auto trim_file_name = trim(the_file_name);
         
@@ -382,14 +382,14 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string get_working_directory()
+    fs::path get_working_directory()
     {
         return boost::filesystem::current_path().string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string get_directory_part(const std::string &the_file_name)
+    fs::path get_directory_part(const std::string &the_file_name)
     {
         auto expanded_path = expand_user(the_file_name);
         
@@ -401,21 +401,21 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string get_extension(const std::string &the_file_name)
+    std::string get_extension(const fs::path &the_file_name)
     {
         return boost::filesystem::extension(expand_user(the_file_name));
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::string remove_extension(const std::string &the_file_name)
+    std::string remove_extension(const fs::path &the_file_name)
     {
         return boost::filesystem::path(expand_user(the_file_name)).replace_extension().string();
     }
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    FileType get_file_type(const std::string &file_name)
+    FileType get_file_type(const fs::path &file_name)
     {
         if(!exists(file_name)){ return FileType::NOT_A_FILE; }
         if(is_directory(file_name)){ return FileType::DIRECTORY; }
