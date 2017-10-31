@@ -10,11 +10,17 @@
 #pragma once
 
 #include <boost/any.hpp>
+//#include <experimental/any>
 #include "core/core.hpp"
 
 namespace kinski
 {
 
+// future migration to std::any
+using boost::any;
+using boost::bad_any_cast;
+using boost::any_cast;
+    
 class KINSKI_API Property : public std::enable_shared_from_this<Property>
 {
 public:
@@ -22,7 +28,7 @@ public:
     typedef std::shared_ptr<const Property> ConstPtr;
     virtual ~Property(){};
     
-    inline boost::any get_value() const {return m_value;};
+    inline any get_value() const {return m_value;};
     const std::string& name() const;
     void set_name(const std::string& theName);
 	void set_tweakable(bool isTweakable);
@@ -43,22 +49,22 @@ public:
     template <typename T>
     inline const T& get_value() const
     {
-        try{return *boost::any_cast<T>(&m_value);}
-        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(name());}
+        try{return *any_cast<T>(&m_value);}
+        catch (const bad_any_cast &theException){throw WrongTypeGetException(name());}
     }
     
     template <typename T>
     inline T& get_value()
     {
-        try{return *boost::any_cast<T>(&m_value);}
-        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(name());}
+        try{return *any_cast<T>(&m_value);}
+        catch (const bad_any_cast &theException){throw WrongTypeGetException(name());}
     }
     
     template <typename T>
     inline T* get_value_ptr()
     {
-        try{return boost::any_cast<T>(&m_value);}
-        catch (const boost::bad_any_cast &theException){throw WrongTypeGetException(name());}
+        try{return any_cast<T>(&m_value);}
+        catch (const bad_any_cast &theException){throw WrongTypeGetException(name());}
     }
     
     template <typename C>
@@ -67,7 +73,7 @@ public:
         return m_value.type() == typeid(C);
     }
     
-    virtual bool check_value(const boost::any &theVal)
+    virtual bool check_value(const any &theVal)
     {return theVal.type() == m_value.type();};
     
     DEFINE_CLASS_PTR(Observer);
@@ -85,11 +91,11 @@ public:
 
 protected:
     Property();
-    Property(const std::string &theName, const boost::any &theValue);
+    Property(const std::string &theName, const any &theValue);
     
 private:
     std::shared_ptr<struct PropertyImpl> m_impl;
-    boost::any m_value;
+    any m_value;
 
 public:
     // define exceptions
@@ -238,16 +244,16 @@ public:
         return std::make_pair(m_min, m_max);
     };
 
-    bool check_value(const boost::any &theVal)
+    bool check_value(const any &theVal)
     {
         T v;
         
         try
         {
-            v = boost::any_cast<T>(theVal);
+            v = any_cast<T>(theVal);
             range_check(v);
         }
-        catch (const boost::bad_any_cast &e)
+        catch (const bad_any_cast &e)
         {
             return false;
         }

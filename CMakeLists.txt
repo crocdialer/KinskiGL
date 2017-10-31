@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 2.8)
+cmake_minimum_required (VERSION 3.1)
 
 project (kinskiGL)
 
@@ -12,13 +12,18 @@ OPTION (BUILD_TESTS "Build Tests" ON)
 
 if(USE_CXX11)
     add_definitions(-DKINSKI_CPP11)
+
+    #set(CMAKE_CXX_STANDARD 14)
+    #set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
     if(APPLE)
-    SET (CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libc++")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++14")
+    SET (CMAKE_CXX_FLAGS "-std=c++1z -stdlib=libc++")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++1z")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     ELSE( APPLE )
     SET (CMAKE_CXX_FLAGS "-std=c++14 -pthread -Wall")
     endif(APPLE)
+
 endif(USE_CXX11)
 
 SET (LIB_TYPE SHARED)

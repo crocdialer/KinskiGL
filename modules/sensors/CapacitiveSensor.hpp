@@ -25,6 +25,7 @@ namespace kinski
         virtual ~CapacitiveSensor();
         
         bool connect(ConnectionPtr the_device);
+        ConnectionPtr device_connection() const;
         
         uint16_t touch_state() const;
         

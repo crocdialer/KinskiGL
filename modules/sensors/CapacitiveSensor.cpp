@@ -148,6 +148,11 @@ namespace kinski
         return false;
     }
     
+    ConnectionPtr CapacitiveSensor::device_connection() const
+    {
+        return m_impl ? m_impl->m_sensor_device : nullptr;
+    }
+    
     bool CapacitiveSensor::update_config()
     {
         int bytes_written = 0;
