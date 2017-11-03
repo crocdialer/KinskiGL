@@ -63,18 +63,30 @@ public:
 
     //! set a disconnect callback, that fires when the connection is closed
     virtual void set_disconnect_cb(connection_cb_t cb = connection_cb_t()) = 0;
-
-    //! convenience template to transfer the content of generic containers
-    template<typename T> size_t write(const T &the_container)
+    
+    //! c-strings
+    inline size_t write(const char *the_cstring)
+    {
+        return write_bytes(the_cstring, strlen(the_cstring));
+    };
+    
+    //! template to transfer the content of generic containers
+    template<typename T> inline size_t write(const T &the_container)
     {
         return write(std::vector<uint8_t>(std::begin(the_container), std::end(the_container)));
     };
 
-    //! convenience template to transfer the content of std::vector
-    template<typename T> size_t write(const std::vector<T> &the_data)
+    //! template to transfer the content of std::vector
+    template<typename T> inline size_t write(const std::vector<T> &the_data)
     {
         return write_bytes(the_data.data(), the_data.size() * sizeof(T));
     }
+};
+
+//! template specialization for std::string
+template<> inline size_t Connection::write(const std::string &the_string)
+{
+    return write_bytes(the_string.data(), the_string.size());
 };
     
 }// namespace
