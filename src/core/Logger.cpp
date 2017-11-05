@@ -16,8 +16,69 @@
 #include "file_functions.hpp"
 #include "ThreadPool.hpp"
 #include "Logger.hpp"
+#include "Connection.hpp"
 
-namespace kinski {
+namespace kinski
+{
+////////////////////////// ConnectionStreamBuf ////////////////////////////////////////////
+    
+    class ConnectionStreamBuf : public std::streambuf
+    {
+    public:
+        ConnectionStreamBuf(const ConnectionPtr &the_con, size_t buff_sz = 1 << 10);
+    protected:
+        
+        // flush the characters in the buffer
+        int flushBuffer ();
+        virtual int overflow (int c = EOF);
+        virtual int sync();
+        
+    private:
+        ConnectionPtr m_connection;
+        std::vector<char> m_buffer;
+    };
+    
+    ConnectionStreamBuf::ConnectionStreamBuf(const ConnectionPtr &the_con, size_t buff_sz):
+    m_connection(the_con),
+    m_buffer(buff_sz + 1)
+    {
+        //set putbase pointer and endput pointer
+        char *base = &m_buffer[0];
+        setp(base, base + buff_sz);
+    }
+    
+    // flush the characters in the buffer
+    int ConnectionStreamBuf::flushBuffer()
+    {
+        int num = pptr() - pbase();
+        
+        // pass the flushed char sequence
+        m_connection->write_bytes(pbase(), num);
+        
+        // reset put pointer
+        pbump(-num);
+        return num;
+    }
+    
+    int ConnectionStreamBuf::overflow(int c)
+    {
+        if(c != EOF)
+        {
+            *pptr() = c;
+            pbump(1);
+        }
+        if(flushBuffer() == EOF){ return EOF; }
+        return c;
+    }
+    
+    int ConnectionStreamBuf::sync()
+    {
+        // ERROR
+        if(flushBuffer() == EOF){ return -1; }
+        return 0;
+    }
+    
+///////////////////////////////////////////////////////////////////////////////
     
     namespace
     {
@@ -166,16 +227,40 @@ namespace kinski {
     {
         std::lock_guard<std::mutex> lock(mutex);
         
+        // do not delete on deconstruction
+        auto ptr = std::shared_ptr<std::ostream>(the_stream, [](std::ostream *p){});
+        
         // change state
-        m_out_streams.insert(the_stream);
+        m_out_streams.insert(ptr);
     }
     
     void Logger::remove_outstream(std::ostream *the_stream)
     {
         std::lock_guard<std::mutex> lock(mutex);
         
-        // change state
-        m_out_streams.erase(the_stream);
+        for(auto &ptr : m_out_streams)
+        {
+            if(ptr.get() == the_stream){ m_out_streams.erase(ptr); }
+        }
+    }
+    
+    void Logger::add_outstream(ConnectionPtr the_con)
+    {
+        auto out_stream = std::make_shared<std::ostream>(new ConnectionStreamBuf(the_con));
+        
+        the_con->set_disconnect_cb([this, out_stream](ConnectionPtr c)
+        {
+            LOG_DEBUG << "removing outstream: " << c->description();
+            std::lock_guard<std::mutex> lock(mutex);
+            m_out_streams.erase(out_stream);
+        });
+        std::lock_guard<std::mutex> lock(mutex);
+        m_out_streams.insert(out_stream);
+    }
+    
+    void Logger::remove_outstream(const ConnectionPtr &the_con)
+    {
+        LOG_WARNING << "NOT IMPLEMENTED: <Logger::remove_outstream>";
     }
     
     void Logger::clear_streams()

@@ -151,9 +151,6 @@ namespace kinski
                                    uint32_t &keyModifiers);
         
         std::map<ComponentPtr, std::shared_ptr<CTwBar>> m_tweakBars;
-        
-//        std::map<CTwBar*, std::list<Property::Ptr> > m_tweakProperties;
-        
         gl::OutstreamGL m_outstream_gl;
     };
 }

@@ -14,6 +14,9 @@
 
 namespace kinski
 {
+    // forward declare
+    DEFINE_CLASS_PTR(Connection);
+    
     enum class Severity
     {
         DISABLED = 0,
@@ -62,6 +65,8 @@ class KINSKI_API Logger
     
     void add_outstream(std::ostream *the_stream);
     void remove_outstream(std::ostream *the_stream);
+    void add_outstream(ConnectionPtr the_con);
+    void remove_outstream(const ConnectionPtr &the_con);
     void clear_streams();
     
     bool use_time_stamp() const{ return m_use_timestamp;};
@@ -75,12 +80,12 @@ class KINSKI_API Logger
 
     private:
     
-        Logger();
-        static Logger *s_instance;
-        Severity m_global_severity;
-        std::set<std::ostream*> m_out_streams;
-    
-        bool m_use_timestamp, m_use_thread_id;
+    Logger();
+    static Logger *s_instance;
+    Severity m_global_severity;
+    std::set<std::shared_ptr<std::ostream>> m_out_streams;
+
+    bool m_use_timestamp, m_use_thread_id;
 };
 
 /**
