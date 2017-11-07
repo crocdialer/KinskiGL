@@ -26,6 +26,8 @@ namespace kinski
     {
     public:
         ConnectionStreamBuf(const ConnectionPtr &the_con, size_t buff_sz = 1 << 10);
+        const ConnectionPtr& connection() const { return m_connection; }
+        
     protected:
         
         // flush the characters in the buffer
@@ -43,7 +45,7 @@ namespace kinski
     m_buffer(buff_sz + 1)
     {
         //set putbase pointer and endput pointer
-        char *base = &m_buffer[0];
+        char *base = m_buffer.data();
         setp(base, base + buff_sz);
     }
     
@@ -246,21 +248,33 @@ namespace kinski
     
     void Logger::add_outstream(ConnectionPtr the_con)
     {
-        auto out_stream = std::make_shared<std::ostream>(new ConnectionStreamBuf(the_con));
-        
-        the_con->set_disconnect_cb([this, out_stream](ConnectionPtr c)
+        if(the_con && the_con->is_open())
         {
-            LOG_DEBUG << "removing outstream: " << c->description();
+            auto out_stream = std::make_shared<std::ostream>(new ConnectionStreamBuf(the_con));
+            
+            the_con->set_disconnect_cb([this, out_stream](ConnectionPtr c)
+            {
+                LOG_DEBUG << "removing outstream: " << c->description();
+                std::lock_guard<std::mutex> lock(mutex);
+                m_out_streams.erase(out_stream);
+            });
             std::lock_guard<std::mutex> lock(mutex);
-            m_out_streams.erase(out_stream);
-        });
-        std::lock_guard<std::mutex> lock(mutex);
-        m_out_streams.insert(out_stream);
+            m_out_streams.insert(out_stream);
+        }
     }
     
     void Logger::remove_outstream(const ConnectionPtr &the_con)
     {
-        LOG_WARNING << "NOT IMPLEMENTED: <Logger::remove_outstream>";
+        for(auto &ptr : m_out_streams)
+        {
+            auto stream_buf = dynamic_cast<ConnectionStreamBuf*>(ptr->rdbuf());
+            
+            if(stream_buf && stream_buf->connection() == the_con)
+            {
+                remove_outstream(ptr.get());
+                return;
+            }
+        }
     }
     
     void Logger::clear_streams()
