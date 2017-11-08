@@ -118,6 +118,7 @@ namespace kinski
 
     Logger::~Logger()
     {
+        clear_streams();
         log_file_stream.close();
     }
     
@@ -250,13 +251,20 @@ namespace kinski
     {
         if(the_con && the_con->is_open())
         {
-            auto out_stream = std::make_shared<std::ostream>(new ConnectionStreamBuf(the_con));
+            auto out_stream =
+            std::shared_ptr<std::ostream>(new std::ostream(new ConnectionStreamBuf(the_con)),
+                                          [](std::ostream *the_ost)
+            {
+                delete the_ost->rdbuf();
+                delete the_ost;
+            });
             
             the_con->set_disconnect_cb([this, out_stream](ConnectionPtr c)
             {
                 LOG_DEBUG << "removing outstream: " << c->description();
                 std::lock_guard<std::mutex> lock(mutex);
                 m_out_streams.erase(out_stream);
+                c->set_disconnect_cb();
             });
             std::lock_guard<std::mutex> lock(mutex);
             m_out_streams.insert(out_stream);

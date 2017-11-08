@@ -367,7 +367,12 @@ struct tcp_server_impl
     acceptor(io_service),
     socket(io_service),
     connection_callback(ccb){}
-
+    
+    ~tcp_server_impl()
+    {
+        acceptor.close();
+    }
+    
     void accept()
     {
         acceptor.async_accept(socket, [this](boost::system::error_code ec)
@@ -426,6 +431,8 @@ void tcp_server::start_listen(uint16_t port)
         {
             m_impl->acceptor.close();
             m_impl->acceptor.open(tcp::v4());
+            boost::asio::socket_base::reuse_address option(true);
+            m_impl->acceptor.set_option(option);
             m_impl->acceptor.bind(tcp::endpoint(tcp::v4(), port));
             m_impl->acceptor.listen();
         }
@@ -470,7 +477,11 @@ struct tcp_connection_impl
 
     ~tcp_connection_impl()
     {
-        try{ socket.close(); }
+        try
+        {
+            socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+            socket.close();
+        }
         catch (std::exception &e) { LOG_WARNING << e.what(); }
     }
 
@@ -553,14 +564,16 @@ m_impl(new tcp_connection_impl(tcp::socket(io_service), f))
 
 tcp_connection::~tcp_connection()
 {
-    close();
+//    close();
+    try{ m_impl->socket.shutdown(boost::asio::ip::tcp::socket::shutdown_receive); }
+    catch (std::exception &e) { LOG_TRACE_3 << e.what(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 bool tcp_connection::open()
 {
-    return false;
+    return m_impl && m_impl->socket.is_open();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -594,7 +607,7 @@ size_t tcp_connection::write_bytes(const void *buffer, size_t num_bytes)
             {
                 case boost::asio::error::bad_descriptor:
                 default:
-                    LOG_TRACE_1 << error.message() << " (" << error.value() << ")";
+                    LOG_TRACE_2 << error.message() << " (" << error.value() << ")";
                     break;
             }
         }
@@ -721,8 +734,12 @@ void tcp_connection::check_deadline()
     
 void tcp_connection::close()
 {
-    try{ m_impl->socket.close(); }
-    catch (std::exception &e) { LOG_WARNING << e.what(); }
+    try
+    {
+        m_impl->socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+        m_impl->socket.close();
+    }
+    catch (std::exception &e) { LOG_TRACE_3 << e.what(); }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
