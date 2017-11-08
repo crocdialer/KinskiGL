@@ -482,7 +482,7 @@ struct tcp_connection_impl
             socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
             socket.close();
         }
-        catch (std::exception &e) { LOG_WARNING << e.what(); }
+        catch(std::exception &e) { LOG_TRACE_2 << e.what(); }
     }
 
     tcp::socket socket;
