@@ -477,11 +477,9 @@ struct tcp_connection_impl
 
     ~tcp_connection_impl()
     {
-        try
-        {
-            socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
-            socket.close();
-        }
+        try{ socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both); }
+        catch(std::exception &e) { LOG_TRACE_2 << e.what(); }
+        try{ socket.close(); }
         catch(std::exception &e) { LOG_TRACE_2 << e.what(); }
     }
 
