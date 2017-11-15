@@ -97,8 +97,6 @@ void MediaPlayer::setup()
     });
     m_check_ip_timer.set_periodic();
     m_check_ip_timer.expires_from_now(5.f);
-
-    textures()[8] = fonts()[0].glyph_texture();
 }
 
 /////////////////////////////////////////////////////////////////

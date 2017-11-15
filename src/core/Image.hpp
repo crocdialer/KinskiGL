@@ -55,7 +55,7 @@ namespace kinski
         
         inline size_t num_bytes() const { return height * width * bytes_per_pixel; }
         
-        ImagePtr resize(uint32_t the_width, uint32_t the_height);
+        ImagePtr resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels = 0);
         
         //! kernel is interpreted col-major
         ImagePtr convolve(const std::vector<float> &the_kernel);

@@ -204,13 +204,15 @@ namespace kinski
         return convolve(gaussian);
     }
     
-    ImagePtr Image::resize(uint32_t the_width, uint32_t the_height)
+    ImagePtr Image::resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels)
     {
-        ImagePtr ret = Image::create(the_width, the_height, bytes_per_pixel);
+        if(!the_num_channels){ the_num_channels = bytes_per_pixel; };
+        
+        ImagePtr ret = Image::create(the_width, the_height, the_num_channels);
         float scale_x = the_width / (float)width, scale_y = the_height / (float)height;
         
         // blur
-        ImagePtr blur_img = blur();
+//        ImagePtr blur_img = blur();
         
         // for all components in all pixels, calculate new value
         for(uint32_t y = 0; y < the_height; ++y)
@@ -221,8 +223,19 @@ namespace kinski
                 uint8_t* dst_ptr = ret->at(x, y);
                 
                 // nearest neighbour
-                uint8_t* src_ptr = blur_img->at(roundf(src_x), roundf(src_y));
-                for(uint32_t c = 0; c < bytes_per_pixel; ++c){ dst_ptr[c] = src_ptr[c]; }
+                uint8_t* src_ptr = at(roundf(src_x), roundf(src_y));
+                
+                if(the_num_channels <= bytes_per_pixel)
+                {
+                    for(uint32_t c = 0; c < the_num_channels; ++c){ dst_ptr[c] = src_ptr[c]; }
+                }
+                else
+                {
+                    for(uint32_t c = 0; c < the_num_channels; ++c)
+                    {
+                        dst_ptr[c] = c > bytes_per_pixel ? 0 : src_ptr[c];
+                    }
+                }
             }
         }
         return ret;
