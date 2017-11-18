@@ -44,6 +44,7 @@ namespace kinski
         // properties
         Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");
         Property_<bool>::Ptr
+        m_scale_to_fit = Property_<bool>::create("scale_to_fit", false),
         m_loop = Property_<bool>::create("loop", false),
         m_auto_play = Property_<bool>::create("autoplay", true),
         m_force_audio_jack = Property_<bool>::create("force 3.5mm audio-jack", false),
