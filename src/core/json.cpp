@@ -10,7 +10,7 @@
 #include <fstream>
 #include "file_functions.hpp"
 #include "Logger.hpp"
-#include "Serializer.hpp"
+#include "json.hpp"
 
 using namespace std;
 
@@ -228,139 +228,140 @@ namespace kinski {
         
         return success;
     }
-    
-    bool Serializer::is_json(const std::string &the_string)
-    {
-        Json::Reader json_reader;
-        Json::Value root;
-        return json_reader.parse(the_string, root);
-    }
-    
-    void Serializer::add_to_json_object(const std::list<ComponentPtr> &theComponentList,
-                                        Json::Value &json_val,
-                                        const PropertyIO &theIO)
-    {
-        int myIndex = 0;
-        int myVIndex = 0;
-        
-        for (const auto &theComponent : theComponentList)
-        {
-            json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->name();
-            
-            for ( const auto &property : theComponent->get_property_list() )
-            {
-                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->name();
-                
-                // delegate reading to PropertyIO object
-                if(! theIO.read_property(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
-                {
-                    json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_TYPE] =
-                    PropertyIO::PROPERTY_TYPE_UNKNOWN;
-                }
-                myVIndex++;
-            }
-            myIndex++;
-            myVIndex = 0;
-        }
-    }
-    
-    std::string Serializer::serialize(const ComponentPtr &theComponent,
-                                      const PropertyIO &theIO)
-    {
-        Json::Value myRoot;
-        add_to_json_object({theComponent}, myRoot, theIO);
-        Json::StyledWriter myWriter;
-        return myWriter.write(myRoot);
-    }
-    
-    std::string Serializer::serialize(const std::list<ComponentPtr> &theComponentList,
-                                      const PropertyIO &theIO)
-    {
-        Json::Value myRoot;
-        add_to_json_object(theComponentList, myRoot, theIO);
-        Json::StyledWriter myWriter;
-        return myWriter.write(myRoot);
-    }
-    
-    void Serializer::apply_state(const ComponentPtr &theComponent,
-                                           const std::string &theState,
-                                           const PropertyIO &theIO)
-    {
-        Json::Reader myReader;
-        Json::Value myRoot;
-        bool myParsingSuccessful = myReader.parse(theState, myRoot);
-        
-        if (!myParsingSuccessful)
-        {
-            throw ParsingException(theState);
-        }
-        
-        for (unsigned int i=0; i<myRoot.size(); i++)
-        {
-            Json::Value myComponentNode = myRoot[i];
-            if(myComponentNode[PropertyIO::PROPERTY_NAME] != theComponent->name()){continue;}
-            
-            for (unsigned int j=0; j < myComponentNode[PropertyIO::PROPERTIES].size(); j++)
-            {
-                try
-                {
-                    std::string myName =
-                    myComponentNode[PropertyIO::PROPERTIES][j][PropertyIO::PROPERTY_NAME].asString();
-                    
-                    Property::Ptr myProperty = theComponent->get_property_by_name(myName);
-                    theIO.write_property(myProperty, myComponentNode[PropertyIO::PROPERTIES][j]);
-                    
-                } catch (PropertyNotFoundException &myException)
-                {
-                    LOG_WARNING << myException.what();
-                }
-            }
-        }
-    }
-    
-    void Serializer::apply_state(const std::list<ComponentPtr> &theComponentList,
-                                            const std::string &theState,
-                                            const PropertyIO &theIO)
-    {
-        for(auto c : theComponentList){ apply_state(c, theState, theIO);}
-    }
-    
-    void Serializer::save_state(const ComponentPtr &theComponent,
-                                        const std::string &theFileName,
-                                        const PropertyIO &theIO)
-    {
-        std::string state = serialize(theComponent, theIO);
-        fs::write_file(theFileName, state);
-    }
-    
-    void Serializer::save_state(const std::list<ComponentPtr> &theComponentList,
-                                        const std::string &theFileName,
-                                        const PropertyIO &theIO)
-    {
-        Json::Value myRoot;
-        add_to_json_object(theComponentList, myRoot, theIO);
-        Json::StyledWriter myWriter;
-        std::string state = myWriter.write(myRoot);
-        fs::write_file(theFileName, state);
-    }
-    
-    void Serializer::load_state(const ComponentPtr &theComponent,
-                                        const std::string &theFileName,
-                                        const PropertyIO &theIO)
-    {
-        if(!theComponent) return;
-        std::string myState = fs::read_file(theFileName);
-        apply_state(theComponent, myState, theIO);
-    }
-    
-    void Serializer::load_state(const std::list<ComponentPtr> &theComponentList,
-                                        const std::string &theFileName,
-                                        const PropertyIO &theIO)
-    {
-        if(theComponentList.empty()) return;
-        std::string myState = fs::read_file(theFileName);
-        
-        for (auto &component : theComponentList){apply_state(component, myState, theIO);}
-    }
 
-}//namespace
+namespace json{
+    
+void add_to_json_object(const std::list<ComponentPtr> &theComponentList,
+                        Json::Value &json_val,
+                        const PropertyIO &theIO = PropertyIO());
+    
+bool is_valid(const std::string &the_string)
+{
+    Json::Reader json_reader;
+    Json::Value root;
+    return json_reader.parse(the_string, root);
+}
+    
+void add_to_json_object(const std::list<ComponentPtr> &theComponentList,
+                        Json::Value &json_val,
+                        const PropertyIO &theIO)
+{
+    int myIndex = 0;
+    int myVIndex = 0;
+    
+    for (const auto &theComponent : theComponentList)
+    {
+        json_val[myIndex][PropertyIO::PROPERTY_NAME] = theComponent->name();
+        
+        for ( const auto &property : theComponent->get_property_list() )
+        {
+            json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_NAME] = property->name();
+            
+            // delegate reading to PropertyIO object
+            if(! theIO.read_property(property, json_val[myIndex][PropertyIO::PROPERTIES][myVIndex]))
+            {
+                json_val[myIndex][PropertyIO::PROPERTIES][myVIndex][PropertyIO::PROPERTY_TYPE] =
+                PropertyIO::PROPERTY_TYPE_UNKNOWN;
+            }
+            myVIndex++;
+        }
+        myIndex++;
+        myVIndex = 0;
+    }
+}
+    
+std::string serialize(const ComponentPtr &theComponent, const PropertyIO &theIO)
+{
+    Json::Value myRoot;
+    add_to_json_object({theComponent}, myRoot, theIO);
+    Json::StyledWriter myWriter;
+    return myWriter.write(myRoot);
+}
+    
+std::string serialize(const std::list<ComponentPtr> &theComponentList, const PropertyIO &theIO)
+{
+    Json::Value myRoot;
+    add_to_json_object(theComponentList, myRoot, theIO);
+    Json::StyledWriter myWriter;
+    return myWriter.write(myRoot);
+}
+    
+void apply_state(const ComponentPtr &theComponent, const std::string &theState,
+                 const PropertyIO &theIO)
+{
+    Json::Reader myReader;
+    Json::Value myRoot;
+    bool myParsingSuccessful = myReader.parse(theState, myRoot);
+    
+    if (!myParsingSuccessful)
+    {
+        throw ParsingException(theState);
+    }
+    
+    for (unsigned int i=0; i<myRoot.size(); i++)
+    {
+        Json::Value myComponentNode = myRoot[i];
+        if(myComponentNode[PropertyIO::PROPERTY_NAME] != theComponent->name()){continue;}
+        
+        for (unsigned int j=0; j < myComponentNode[PropertyIO::PROPERTIES].size(); j++)
+        {
+            try
+            {
+                std::string myName =
+                myComponentNode[PropertyIO::PROPERTIES][j][PropertyIO::PROPERTY_NAME].asString();
+                
+                Property::Ptr myProperty = theComponent->get_property_by_name(myName);
+                theIO.write_property(myProperty, myComponentNode[PropertyIO::PROPERTIES][j]);
+                
+            } catch (PropertyNotFoundException &myException)
+            {
+                LOG_WARNING << myException.what();
+            }
+        }
+    }
+}
+    
+void apply_state(const std::list<ComponentPtr> &theComponentList, const std::string &theState,
+                 const PropertyIO &theIO)
+{
+    for(auto c : theComponentList){ apply_state(c, theState, theIO);}
+}
+
+void save_state(const ComponentPtr &theComponent,
+                const std::string &theFileName,
+                const PropertyIO &theIO)
+{
+    std::string state = serialize(theComponent, theIO);
+    fs::write_file(theFileName, state);
+}
+    
+void save_state(const std::list<ComponentPtr> &theComponentList, const std::string &theFileName,
+                const PropertyIO &theIO)
+{
+    Json::Value myRoot;
+    add_to_json_object(theComponentList, myRoot, theIO);
+    Json::StyledWriter myWriter;
+    std::string state = myWriter.write(myRoot);
+    fs::write_file(theFileName, state);
+}
+    
+void load_state(const ComponentPtr &theComponent,
+                const std::string &theFileName,
+                const PropertyIO &theIO)
+{
+    if(!theComponent) return;
+    std::string myState = fs::read_file(theFileName);
+    apply_state(theComponent, myState, theIO);
+}
+    
+void load_state(const std::list<ComponentPtr> &theComponentList,
+                const std::string &theFileName,
+                const PropertyIO &theIO)
+{
+    if(theComponentList.empty()) return;
+    std::string myState = fs::read_file(theFileName);
+    
+    for (auto &component : theComponentList){apply_state(component, myState, theIO);}
+}
+
+}}//namespace

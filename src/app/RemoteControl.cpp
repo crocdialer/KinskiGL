@@ -35,7 +35,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
     add_command("request_state", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
     {
         // send the state string via tcp
-        con->write(Serializer::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL()));
     });
     
     add_command("load_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -46,7 +46,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         }
         
         // send the state string via tcp
-        con->write(Serializer::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL()));
     });
     
     add_command("save_settings", [this](net::tcp_connection_ptr con, const std::vector<std::string>&)
@@ -57,7 +57,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         }
         
         // send the state string via tcp
-        con->write(Serializer::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL()));
     });
     
     add_command("log_stream", [this](net::tcp_connection_ptr con,
@@ -113,7 +113,7 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         }
         
         // send the state string via tcp
-        con->write(Serializer::serialize(components(), PropertyIO_GL()));
+        con->write(json::serialize(components(), PropertyIO_GL()));
     });
     
     m_udp_server.start_listen(udp_port);
@@ -201,9 +201,9 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
         {
             string str(response.begin(), response.end());
             
-            if(Serializer::is_json(str))
+            if(json::is_valid(str))
             {
-                Serializer::apply_state(components(), str, PropertyIO_GL());
+                json::apply_state(components(), str, PropertyIO_GL());
             }
         } catch (std::exception &e){ LOG_ERROR << e.what(); }
     }

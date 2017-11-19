@@ -146,16 +146,8 @@ void MediaPlayer::draw()
                 gl::vec2 pos, size;
                 
                 // arrange y-position
-                if(tex.width() > tex.height())
-                {
-                    size = gl::vec2(gl::window_dimension().x, gl::window_dimension().x / aspect);
-                    pos = gl::vec2(0, (gl::window_dimension().y - size.y) / 2.f);
-                }
-                else
-                {
-                    size = gl::vec2(gl::window_dimension().y * aspect, gl::window_dimension().y);
-                    pos = gl::vec2((gl::window_dimension().x - size.x) / 2.f, 0);
-                }
+                size = gl::vec2(gl::window_dimension().x, gl::window_dimension().x / aspect);
+                pos = gl::vec2(0, (gl::window_dimension().y - size.y) / 2.f);
                 gl::draw_texture(textures()[TEXTURE_INPUT], size, pos, *m_brightness);
             }
         }

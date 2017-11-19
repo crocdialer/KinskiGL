@@ -46,66 +46,65 @@ namespace kinski
                                     const Json::Value &theJsonValue) const;
     };
     
-    class KINSKI_API Serializer
+    namespace json
     {
-    public:
         
-        static bool is_json(const std::string &the_string);
+        KINSKI_API bool is_valid(const std::string &the_string);
         
         /*!
          * Save a single component´s state to file using json file formatting
          */
-        static void save_state(const ComponentPtr &theComponent,
-                               const std::string &theFileName,
-                               const PropertyIO &theIO = PropertyIO());
+        KINSKI_API void save_state(const ComponentPtr &theComponent,
+                                   const std::string &theFileName,
+                                   const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Save multiple component´s states to file using json file formatting
          */
-        static void save_state(const std::list<ComponentPtr> &theComponentList,
-                               const std::string &theFileName,
-                               const PropertyIO &theIO = PropertyIO());
+        KINSKI_API void save_state(const std::list<ComponentPtr> &theComponentList,
+                                   const std::string &theFileName,
+                                   const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Read a component´s state from a json-file
          */
-        static void load_state(const ComponentPtr &theComponent,
-                               const std::string &theFileName,
-                               const PropertyIO &theIO = PropertyIO());
+        KINSKI_API void load_state(const ComponentPtr &theComponent,
+                                   const std::string &theFileName,
+                                   const PropertyIO &theIO = PropertyIO());
         
-        static void load_state(const std::list<ComponentPtr> &theComponentList,
-                               const std::string &theFileName,
-                               const PropertyIO &theIO = PropertyIO());
-        
-        /*!
-         * Serialize a component to a string in json format.
-         * Supported Property types are determined by theIO object
-         */
-        static std::string serialize(const ComponentPtr &theComponent,
-                                     const PropertyIO &theIO = PropertyIO());
+        KINSKI_API void load_state(const std::list<ComponentPtr> &theComponentList,
+                                   const std::string &theFileName,
+                                   const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Serialize a component to a string in json format.
          * Supported Property types are determined by theIO object
          */
-        static std::string serialize(const std::list<ComponentPtr> &theComponentList,
-                                     const PropertyIO &theIO = PropertyIO());
+        KINSKI_API std::string serialize(const ComponentPtr &theComponent,
+                                         const PropertyIO &theIO = PropertyIO());
+        
+        /*!
+         * Serialize a component to a string in json format.
+         * Supported Property types are determined by theIO object
+         */
+        KINSKI_API std::string serialize(const std::list<ComponentPtr> &theComponentList,
+                                         const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Read a component´s state from a string in json-format
          * Supported Property types are determined by theIO object
          */
-        static void apply_state(const ComponentPtr &theComponent,
-                                const std::string &theState,
-                                const PropertyIO &theIO = PropertyIO());
+        KINSKI_API void apply_state(const ComponentPtr &theComponent,
+                                    const std::string &theState,
+                                    const PropertyIO &theIO = PropertyIO());
         
         /*!
          * Read a component´s state from a string in json-format
          * Supported Property types are determined by theIO object
          */
-        static void apply_state(const std::list<ComponentPtr> &theComponentList,
-                                const std::string &theState,
-                                const PropertyIO &theIO = PropertyIO());
+        KINSKI_API void apply_state(const std::list<ComponentPtr> &theComponentList,
+                                    const std::string &theState,
+                                    const PropertyIO &theIO = PropertyIO());
         
         class ParsingException: public Exception
         {
@@ -113,25 +112,5 @@ namespace kinski
             ParsingException(const std::string &theContentString) :
             Exception(std::string("Error while parsing json string: ") + theContentString) {}
         };
-    private:
-        static void add_to_json_object(const std::list<ComponentPtr> &theComponentList,
-                                       Json::Value &json_val,
-                                       const PropertyIO &theIO = PropertyIO());
-    };
-    
-    /************************ Exceptions ************************/
-    
-    class FileReadingException: public Exception
-    {
-    public:
-        FileReadingException(const std::string &theFilename) :
-        Exception(std::string("Error while reading file: ") + theFilename) {}
-    };
-    
-    class OutputFileException: public Exception
-    {
-    public:
-        OutputFileException(const std::string &theFilename) :
-        Exception(std::string("Could not open file for writing configuration: ") + theFilename) {}
     };
 }
