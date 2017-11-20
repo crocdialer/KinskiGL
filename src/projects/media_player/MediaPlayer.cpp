@@ -138,16 +138,24 @@ void MediaPlayer::draw()
         }
         else
         {
-            auto tex = textures()[TEXTURE_INPUT];
-            
-            if(tex)
+            if(textures()[TEXTURE_INPUT])
             {
-                float aspect = tex.aspect_ratio();
+                float aspect = textures()[TEXTURE_INPUT].aspect_ratio();
+                float window_aspect = gl::window_dimension().x / gl::window_dimension().y;
                 gl::vec2 pos, size;
                 
-                // arrange y-position
-                size = gl::vec2(gl::window_dimension().x, gl::window_dimension().x / aspect);
-                pos = gl::vec2(0, (gl::window_dimension().y - size.y) / 2.f);
+                if(window_aspect < aspect)
+                {
+                    // arrange y-position
+                    size = gl::vec2(gl::window_dimension().x, gl::window_dimension().x / aspect);
+                    pos = gl::vec2(0, (gl::window_dimension().y - size.y) / 2.f);
+                }
+                else
+                {
+                    // arrange x-position
+                    size = gl::vec2(gl::window_dimension().y * aspect, gl::window_dimension().y);
+                    pos = gl::vec2((gl::window_dimension().x - size.x) / 2.f, 0);
+                }
                 gl::draw_texture(textures()[TEXTURE_INPUT], size, pos, *m_brightness);
             }
         }
