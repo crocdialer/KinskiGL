@@ -27,7 +27,7 @@ namespace kinski
         enum TextureEnum{TEXTURE_INPUT = 0, TEXTURE_OUTPUT = 1};
 
         media::MediaControllerPtr m_media = media::MediaController::create();
-//        media::CameraControllerPtr m_camera_control = media::CameraController::create();
+        media::CameraControllerPtr m_camera_control = media::CameraController::create();
         bool m_reload_media = false, m_needs_redraw = true;
         int m_is_syncing = 0;
         Timer m_broadcast_timer, m_sync_timer, m_sync_off_timer, m_scan_media_timer, m_check_ip_timer;
