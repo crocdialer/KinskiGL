@@ -19,6 +19,9 @@ struct MediaControllerImpl
 
     GstUtil m_gst_util;
 
+    // memory map that holds the incoming frame.
+    GstMapInfo m_memory_map_info;
+
     std::weak_ptr<MediaController> m_media_controller;
     MediaController::callback_t m_on_load_cb, m_on_end_cb;
 
@@ -295,6 +298,21 @@ void MediaController::set_volume(float newVolume)
 
 bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
 {
+    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+
+    if(buf)
+    {
+        *width = m_impl->m_gst_util.video_info().width;
+        *height = m_impl->m_gst_util.video_info().height;
+
+        // map the buffer for reading
+        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        uint8_t *buf_data = m_impl->m_memory_map_info.data;
+        size_t num_bytes = m_impl->m_memory_map_info.size;
+        data.assign(buf_data, buf_data + num_bytes);
+        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        return true;
+    }
     return false;
 }
 
@@ -302,9 +320,11 @@ bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *he
 
 bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
 {
-    if(m_impl && m_impl->m_gst_util.has_new_frame())
+    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+
+    if(buf)
     {
-        GstMemory *mem = gst_buffer_peek_memory(m_impl->m_gst_util.new_buffer(), 0);
+        GstMemory *mem = gst_buffer_peek_memory(buf, 0);
 
         if(mem && gst_is_gl_memory(mem))
         {
@@ -318,8 +338,8 @@ bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
             tex = gl::Texture(target, id, m_impl->m_gst_util.video_info().width,
                               m_impl->m_gst_util.video_info().height, true);
             tex.set_flipped(true);
+            return true;
         }
-        return true;
     }
     return false;
 }
