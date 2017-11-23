@@ -16,12 +16,12 @@
 namespace kinski
 {
 
-class Raspi_App : public App
+class EGL_App : public App
 {
  public:
 
-    Raspi_App(int argc = 0, char *argv[] = nullptr);
-    virtual ~Raspi_App();
+    EGL_App(int argc = 0, char *argv[] = nullptr);
+    virtual ~EGL_App();
 
     void set_window_size(const glm::vec2 &size) override;
     double get_application_time() override;

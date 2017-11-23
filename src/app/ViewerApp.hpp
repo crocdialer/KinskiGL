@@ -25,8 +25,8 @@
 #include "gl/Font.hpp"
 
 #if defined(KINSKI_ARM)
-    #include "app/Raspi_App.hpp"
-    #define BaseApp Raspi_App
+    #include "app/EGL_App.hpp"
+    #define BaseApp EGL_App
 #else
     #include "app/GLFW_App.hpp"
     #define BaseApp GLFW_App

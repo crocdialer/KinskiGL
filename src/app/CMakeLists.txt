@@ -18,8 +18,8 @@ set(FOLDER_HEADERS ${FOLDER_HEADERS} ${GLFW_HEADERS})
 
 ##### RASPI
 elseif(KINSKI_RASPI)
-FILE(GLOB ARM_SOURCES Raspi_App.cpp esUtil.c)
-FILE(GLOB ARM_HEADERS Raspi_App.hpp esUtil.h)
+FILE(GLOB ARM_SOURCES EGL_App.cpp esUtil.c)
+FILE(GLOB ARM_HEADERS EGL_App.hpp esUtil.h)
 set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES})
 set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS})
 
@@ -30,8 +30,8 @@ set(LIBS ${LIBS} bcm_host)
 
 ##### MALI
 elseif(KINSKI_MALI)
-FILE(GLOB ARM_SOURCES Raspi_App.cpp es_util_mali.c)
-FILE(GLOB ARM_HEADERS Raspi_App.hpp esUtil.h)
+FILE(GLOB ARM_SOURCES EGL_App.cpp es_util_mali.c)
+FILE(GLOB ARM_HEADERS EGL_App.hpp esUtil.h)
 set(FOLDER_SOURCES ${FOLDER_SOURCES} ${ARM_SOURCES})
 set(FOLDER_HEADERS ${FOLDER_HEADERS} ${ARM_HEADERS})
 include_directories("/usr/include/libdrm/")

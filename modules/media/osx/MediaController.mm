@@ -632,7 +632,7 @@ namespace kinski{ namespace media{
 - (void)playerItemDidReachEnd:(NSNotification *)notification
 {
     AVPlayerItem *p = [notification object];
-    [p seekToTime:kCMTimeZero];
+    [p seekToTime:kCMTimeZero completionHandler:^(BOOL finished){}];
     
     if(self.movie_control_impl->m_loop)
     {
