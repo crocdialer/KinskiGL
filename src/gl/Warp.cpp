@@ -206,22 +206,7 @@ namespace kinski{ namespace gl{
             int num_x = num_subs.x + 1;
             int num_y = num_subs.y + 1;
             
-            // create an even grid of controlpoints
-            if(m_control_points.empty())
-            {
-                std::vector<gl::vec2> cp;
-                gl::vec2 inc = 1.f / vec2(num_subs);
-                
-                for(int y = 0; y < num_y; ++y)
-                {
-                    for(int x = 0; x < num_x; ++x)
-                    {
-                        cp.push_back(inc * vec2(x, y));
-                    }
-                }
-                m_control_points = cp;
-            }
-            else if(diff != ivec2(0))
+            if(diff != ivec2(0))
             {
                 m_selected_indices.clear();
                 
@@ -326,11 +311,12 @@ namespace kinski{ namespace gl{
             vec2 p = control_point(i);
             p.y = (1.f - p.y);
             
-            gl::draw_circle(p * window_dimension(),
-                            is_corner ? 10.f : 6.6f,
-                            contains(m_impl->m_selected_indices, i) ?
-                                gl::COLOR_RED : is_corner ? gl::COLOR_WHITE : gl::COLOR_GRAY,
-                            true, 24);
+            float sz = is_corner ? 14.f : 9.f;
+            auto col = contains(m_impl->m_selected_indices, i) ? gl::COLOR_RED : is_corner ?
+                gl::COLOR_WHITE : gl::COLOR_GRAY;
+            
+            gl::draw_circle(p * window_dimension(), sz / 4.f, col, true, 24);
+            gl::draw_circle(p * window_dimension(), sz, col, false, 24);
         }
     }
     
