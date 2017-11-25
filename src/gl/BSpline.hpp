@@ -123,10 +123,6 @@ template<int D, typename T> class KINSKI_API BSpline
     //! Returns the time associated with an arc length in the range [0,getLength(0,1)]
     float time(float length) const;
 
-    // Access the basis function to compute it without control points.  This
-    // is useful for least squares fitting of curves.
-//    BSplineBasis& basis();
-
  private:
     // Replicate the necessary number of control points when the create
     // function has bLoop equal to true, in which case the spline curve must
@@ -135,9 +131,9 @@ template<int D, typename T> class KINSKI_API BSpline
     
     std::unique_ptr<class BSplineBasis> m_basis;
     int m_num_control_points;
-    VecT *m_control_points;  // ctrl[n+1]
+    VecT *m_control_points;
     bool m_loop;
-    int m_replicate;  // the number of replicated control points
+    int m_replicate;
 };
     
 extern template class KINSKI_API BSpline<2, float>;
