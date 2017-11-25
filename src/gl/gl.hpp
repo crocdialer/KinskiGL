@@ -32,9 +32,15 @@ namespace kinski { namespace gl {
 using glm::vec2;
 using glm::vec3;
 using glm::vec4;
+using glm::dvec2;
+using glm::dvec3;
+using glm::dvec4;
 using glm::ivec2;
 using glm::ivec3;
 using glm::ivec4;
+using glm::uvec2;
+using glm::uvec3;
+using glm::uvec4;
 using glm::mat2;
 using glm::mat3;
 using glm::mat4;
@@ -48,6 +54,21 @@ using glm::translate;
 using glm::rotate;
 using glm::scale;
 
+template<uint8_t DIM,typename T> struct KINSKI_API Vector{};
+
+template<> struct KINSKI_API Vector<2, float>{ using Type = vec2; };
+template<> struct KINSKI_API Vector<3, float>{ using Type = vec3; };
+template<> struct KINSKI_API Vector<4, float>{ using Type = vec4; };
+template<> struct KINSKI_API Vector<2, double>{ using Type = dvec2; };
+template<> struct KINSKI_API Vector<3, double>{ using Type = dvec3; };
+template<> struct KINSKI_API Vector<4, double>{ using Type = dvec4; };
+template<> struct KINSKI_API Vector<2, int32_t>{ using Type = ivec2; };
+template<> struct KINSKI_API Vector<3, int32_t>{ using Type = ivec3; };
+template<> struct KINSKI_API Vector<4, int32_t>{ using Type = ivec4; };
+template<> struct KINSKI_API Vector<2, uint32_t>{ using Type = ivec2; };
+template<> struct KINSKI_API Vector<3, uint32_t>{ using Type = ivec3; };
+template<> struct KINSKI_API Vector<4, uint32_t>{ using Type = ivec4; };
+    
 // forward declarations
 class Buffer;
 class Fbo;
