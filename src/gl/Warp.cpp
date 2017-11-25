@@ -222,12 +222,12 @@ namespace kinski{ namespace gl{
                     BSpline2f s(points, 1, false, true);
 
                     // calculate position of new control points
-                    float length = s.getLength(0.0f, 1.0f);
+                    float length = s.length(0.0f, 1.0f);
                     float step = 1.0f / (new_num_x - 1);
 
                     for(uint32_t col = 0; col < new_num_x; ++col)
                     {
-                        cp[row * new_num_x + col] = s.getPosition(s.getTime(length * col * step));
+                        cp[row * new_num_x + col] = s.position(s.time(length * col * step));
                     }
                 }
                 else
@@ -255,12 +255,12 @@ namespace kinski{ namespace gl{
                     BSpline2f s(points, 3, false, true);
 
                     // calculate position of new control points
-                    float length = s.getLength(0.0f, 1.0f);
+                    float length = s.length(0.0f, 1.0f);
                     float step = 1.0f / (new_num_x - 1);
 
                     for(uint32_t col = 0; col < new_num_x; ++col)
                     {
-                        cp[row * new_num_x + col] = s.getPosition(s.getTime(length * col * step));
+                        cp[row * new_num_x + col] = s.position(s.time(length * col * step));
                     }
                 }
             }
@@ -293,12 +293,12 @@ namespace kinski{ namespace gl{
                     BSpline2f s(points, 1, false, true);
                     
                     // calculate position of new control points
-                    float length = s.getLength(0.0f, 1.0f);
+                    float length = s.length(0.0f, 1.0f);
                     float step = 1.0f / (new_num_y - 1);
                     
                     for(uint32_t row = 0; row < new_num_y; ++row)
                     {
-                        cp[row * num_controls_x + col] = s.getPosition(s.getTime(length * col * step));
+                        cp[row * num_controls_x + col] = s.position(s.time(length * col * step));
                     }
                 }
                 else
@@ -326,12 +326,12 @@ namespace kinski{ namespace gl{
                     BSpline2f s(points, 3, false, true);
                     
                     // calculate position of new control points
-                    float length = s.getLength(0.0f, 1.0f);
+                    float length = s.length(0.0f, 1.0f);
                     float step = 1.0f / (new_num_y - 1);
                     
                     for(uint32_t row = 0; row < new_num_y; ++row)
                     {
-                        cp[row * num_controls_x + col] = s.getPosition(s.getTime(length * row * step));
+                        cp[row * num_controls_x + col] = s.position(s.time(length * row * step));
                     }
                 }
             }
