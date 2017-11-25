@@ -33,71 +33,6 @@
 
 namespace kinski{ namespace gl {
 
-class KINSKI_API BSplineBasis
-{
- public:
-    BSplineBasis();
-
-    // Open uniform or periodic uniform.  The knot array is internally
-    // generated with equally spaced elements.
-    BSplineBasis(int aNumCtrlPoints, int iDegree, bool bOpen);
-    void create(int aNumCtrlPoints, int iDegree, bool bOpen);
-
-    // Open nonuniform.  The knot array must have n-d elements.  The elements
-    // must be nondecreasing.  Each element must be in [0,1].  The caller is
-    // responsible for deleting afKnot.  An internal copy is made, so to
-    // dynamically change knots you must use the setKnot function.
-    BSplineBasis(int aNumCtrlPoints, int iDegree, const float* afKnot);
-    void create(int aNumCtrlPoints, int iDegree, const float* afKnot);
-
-    BSplineBasis(const BSplineBasis &basis);
-    BSplineBasis& operator=(const BSplineBasis &basis);
-
-    ~BSplineBasis();
-
-    int getNumControlPoints() const;
-    int getDegree() const;
-    bool isOpen() const;
-    bool isUniform() const;
-
-    // The knot values can be changed only if the basis function is nonuniform
-    // and the input index is valid (0 <= i <= n-d-1).  If these conditions
-    // are not satisfied, getKnot returns MAX_REAL.
-    void setKnot(int i, float fKnot);
-    float getKnot(int i) const;
-
-    // access basis functions and their derivatives
-    float getD0(int i) const;
-    float getD1(int i) const;
-    float getD2(int i) const;
-    float getD3(int i) const;
-
-    // evaluate basis functions and their derivatives
-    void compute(float fTime, unsigned int uiOrder, int &riMinIndex, int &riMaxIndex) const;
-
- protected:
-    int initialize(int iNumCtrlPoints, int iDegree, bool bOpen);
-    float** allocate() const;
-    void deallocate(float** aafArray);
-
-    // Determine knot index i for which knot[i] <= rfTime < knot[i+1].
-    int getKey(float& rfTime) const;
-
-    int mNumCtrlPoints;    // n+1
-    int mDegree;           // d
-    float *mKnots;          // knot[n+d+2]
-    bool mOpen, mUniform;
-
-    // Storage for the basis functions and their derivatives first three
-    // derivatives.  The basis array is always allocated by the constructor
-    // calls.  A derivative basis array is allocated on the first call to a
-    // derivative member function.
-    float **m_aafBD0;             // bd0[d+1][n+d+1]
-    mutable float **m_aafBD1;     // bd1[d+1][n+d+1]
-    mutable float **m_aafBD2;     // bd2[d+1][n+d+1]
-    mutable float **m_aafBD3;     // bd3[d+1][n+d+1]
-};
-
 template<int D, typename T> class KINSKI_API BSpline
 {
   public:
@@ -129,13 +64,15 @@ template<int D, typename T> class KINSKI_API BSpline
     
     // Open, nonuniform spline.  The knot array must have n-d elements.  The
     // elements must be nondecreasing.  Each element must be in [0,1].
-    BSpline() : m_num_control_points(-1), m_control_points(0){}
+    BSpline();
     
     BSpline(int numControlPoints, const VecT *controlPoints, int degree, bool loop,
             const float *knots);
     
+    // move, copy + assignment
+    BSpline(BSpline &&bspline);
     BSpline(const BSpline &bspline);
-    BSpline& operator=(const BSpline &bspline);
+    BSpline& operator=(BSpline bspline);
 
     ~BSpline();
 
@@ -188,18 +125,18 @@ template<int D, typename T> class KINSKI_API BSpline
 
     // Access the basis function to compute it without control points.  This
     // is useful for least squares fitting of curves.
-    BSplineBasis& basis();
+//    BSplineBasis& basis();
 
  private:
     // Replicate the necessary number of control points when the create
     // function has bLoop equal to true, in which case the spline curve must
     // be a closed curve.
     void create_control(const VecT *akCtrlPoint);
-
+    
+    std::unique_ptr<class BSplineBasis> m_basis;
     int m_num_control_points;
     VecT *m_control_points;  // ctrl[n+1]
     bool m_loop;
-    BSplineBasis m_basis;
     int m_replicate;  // the number of replicated control points
 };
     

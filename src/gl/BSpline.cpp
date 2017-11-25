@@ -59,6 +59,72 @@ T rombergIntegral(T a, T b, const std::function<T(T)> &SPEEDFN)
 }
     
 //////////////////////////////////////////////////////////////////////////////////////////////
+    
+class BSplineBasis
+{
+public:
+    BSplineBasis();
+    
+    // Open uniform or periodic uniform.  The knot array is internally
+    // generated with equally spaced elements.
+    BSplineBasis(int aNumCtrlPoints, int iDegree, bool bOpen);
+    void create(int aNumCtrlPoints, int iDegree, bool bOpen);
+    
+    // Open nonuniform.  The knot array must have n-d elements.  The elements
+    // must be nondecreasing.  Each element must be in [0,1].  The caller is
+    // responsible for deleting afKnot.  An internal copy is made, so to
+    // dynamically change knots you must use the setKnot function.
+    BSplineBasis(int aNumCtrlPoints, int iDegree, const float* afKnot);
+    void create(int aNumCtrlPoints, int iDegree, const float* afKnot);
+    
+    BSplineBasis(const BSplineBasis &basis);
+    BSplineBasis& operator=(const BSplineBasis &basis);
+    
+    ~BSplineBasis();
+    
+    int getNumControlPoints() const;
+    int getDegree() const;
+    bool isOpen() const;
+    bool isUniform() const;
+    
+    // The knot values can be changed only if the basis function is nonuniform
+    // and the input index is valid (0 <= i <= n-d-1).  If these conditions
+    // are not satisfied, getKnot returns MAX_REAL.
+    void setKnot(int i, float fKnot);
+    float getKnot(int i) const;
+    
+    // access basis functions and their derivatives
+    float getD0(int i) const;
+    float getD1(int i) const;
+    float getD2(int i) const;
+    float getD3(int i) const;
+    
+    // evaluate basis functions and their derivatives
+    void compute(float fTime, unsigned int uiOrder, int &riMinIndex, int &riMaxIndex) const;
+    
+protected:
+    int initialize(int iNumCtrlPoints, int iDegree, bool bOpen);
+    float** allocate() const;
+    void deallocate(float** aafArray);
+    
+    // Determine knot index i for which knot[i] <= rfTime < knot[i+1].
+    int getKey(float& rfTime) const;
+    
+    int mNumCtrlPoints;    // n+1
+    int mDegree;           // d
+    float *mKnots;          // knot[n+d+2]
+    bool mOpen, mUniform;
+    
+    // Storage for the basis functions and their derivatives first three
+    // derivatives.  The basis array is always allocated by the constructor
+    // calls.  A derivative basis array is allocated on the first call to a
+    // derivative member function.
+    float **m_aafBD0;             // bd0[d+1][n+d+1]
+    mutable float **m_aafBD1;     // bd1[d+1][n+d+1]
+    mutable float **m_aafBD2;     // bd2[d+1][n+d+1]
+    mutable float **m_aafBD3;     // bd3[d+1][n+d+1]
+};
+    
 // BSplineBasis
 template <class T>
 void allocate2D(int iCols, int iRows, T**& raatArray)
@@ -430,9 +496,20 @@ void BSplineBasis::compute(float fTime, unsigned int uiOrder, int &riMinIndex, i
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 // BSpline
+
 template<int D,typename T>
-BSpline<D,T>::BSpline(const std::vector<VecT> &points, int degree, bool loop, bool open)
-    : m_loop(loop)
+BSpline<D,T>::BSpline():
+m_basis(std::make_unique<BSplineBasis>()),
+m_num_control_points(-1),
+m_control_points(0)
+{
+    
+}
+    
+template<int D,typename T>
+BSpline<D,T>::BSpline(const std::vector<VecT> &points, int degree, bool loop, bool open):
+m_basis(std::make_unique<BSplineBasis>()),
+m_loop(loop)
 {
     assert(points.size() >= 2);
     assert((1 <= degree) && (degree <= (int)points.size() - 1));
@@ -440,46 +517,61 @@ BSpline<D,T>::BSpline(const std::vector<VecT> &points, int degree, bool loop, bo
     m_num_control_points = (int)points.size();
     m_replicate = (m_loop ? (open ? 1 : degree) : 0);
     create_control(&points[0]);
-    m_basis.create(m_num_control_points + m_replicate, degree, open);
+    m_basis->create(m_num_control_points + m_replicate, degree, open);
 }
 
 template<int D,typename T>
-BSpline<D,T>::BSpline(int numControlPoints, const typename BSpline<D,T>::VecT *controlPoints, int degree, bool loop, const float *knots)
-    : m_num_control_points(numControlPoints), m_loop(loop)
+BSpline<D,T>::BSpline(int numControlPoints, const typename BSpline<D,T>::VecT *controlPoints,
+                      int degree, bool loop, const float *knots):
+m_basis(std::make_unique<BSplineBasis>()),
+m_num_control_points(numControlPoints),
+m_loop(loop)
 {
     assert(m_num_control_points >= 2);
     assert((1 <= degree) && (degree <= m_num_control_points - 1));
 
     m_replicate = m_loop ? 1 : 0;
     create_control(controlPoints);
-    m_basis.create(m_num_control_points + m_replicate, degree, knots);
+    m_basis->create(m_num_control_points + m_replicate, degree, knots);
+}
+    
+template<int D,typename T>
+BSpline<D,T>::BSpline(BSpline &&other):
+m_basis(std::move(other.m_basis)),
+m_num_control_points(other.m_num_control_points),
+m_control_points(other.m_control_points),
+m_loop(other.m_loop),
+m_replicate(other.m_replicate)
+{
+    other.m_control_points = nullptr;
+    other.m_num_control_points = 0;
+    other.m_loop = false;
+}
+    
+template<int D,typename T>
+BSpline<D,T>::BSpline(const BSpline &other):
+m_basis(std::make_unique<BSplineBasis>()),
+m_num_control_points(0)
+{
+    m_num_control_points = other.m_num_control_points;
+    m_loop = other.m_loop;
+    *m_basis = *other.m_basis;
+    m_replicate = other.m_replicate;
+
+    if(m_num_control_points > 0){ create_control(other.m_control_points); }
+    else{ m_num_control_points = 0; }
 }
 
 template<int D,typename T>
-BSpline<D,T>::BSpline(const BSpline &bspline)
-    : m_num_control_points(0)
+BSpline<D,T>& BSpline<D,T>::operator=(BSpline other)
 {
-    *this = bspline;
-}
-
-template<int D,typename T>
-BSpline<D,T>& BSpline<D,T>::operator=(const BSpline &bspline)
-{
-    delete [] m_control_points;
-
-    m_num_control_points = bspline.m_num_control_points;
-    m_loop = bspline.m_loop;
-    m_basis = bspline.m_basis;
-    m_replicate = bspline.m_replicate;
-    
-    if(m_num_control_points > 0)
-        create_control(bspline.m_control_points);
-    else
-        m_num_control_points = 0;
-    
+    std::swap(m_basis, other.m_basis);
+    std::swap(m_num_control_points, other.m_num_control_points);
+    std::swap(m_control_points, other.m_control_points);
+    std::swap(m_loop, other.m_loop);
+    std::swap(m_replicate, other.m_replicate);
     return *this;
 }
-
 
 template<int D, typename T>
 BSpline<D,T>::~BSpline()
@@ -491,16 +583,16 @@ template<int D, typename T>
 int BSpline<D,T>::num_control_points() const { return m_num_control_points; }
 
 template<int D, typename T>
-int BSpline<D,T>::degree() const { return m_basis.getDegree(); }
+int BSpline<D,T>::degree() const { return m_basis->getDegree(); }
 
 template<int D, typename T>
-int BSpline<D,T>::num_spans() const { return m_num_control_points - m_basis.getDegree(); }
+int BSpline<D,T>::num_spans() const { return m_num_control_points - m_basis->getDegree(); }
 
 template<int D, typename T>
-bool BSpline<D,T>::open() const { return m_basis.isOpen(); }
+bool BSpline<D,T>::open() const { return m_basis->isOpen(); }
 
 template<int D, typename T>
-bool BSpline<D,T>::uniform() const { return m_basis.isUniform(); }
+bool BSpline<D,T>::uniform() const { return m_basis->isUniform(); }
 
 template<int D, typename T>
 bool BSpline<D,T>::loop() const { return m_loop; }
@@ -542,13 +634,13 @@ typename BSpline<D,T>::VecT BSpline<D,T>::control_point(int i) const
 template<int D,typename T>
 void BSpline<D,T>::set_knot(int i, float fKnot)
 {
-    m_basis.setKnot(i, fKnot);
+    m_basis->setKnot(i, fKnot);
 }
 
 template<int D,typename T>
 float BSpline<D,T>::knot(int i) const
 {
-    return m_basis.getKnot(i);
+    return m_basis->getKnot(i);
 }
 
 template<int D,typename T>
@@ -557,22 +649,22 @@ void BSpline<D,T>::get(float t, VecT *the_position, VecT *firstDerivative,
 {
     int i, iMin, iMax;
     if(thirdDerivative) {
-        m_basis.compute(t, 3, iMin, iMax);
+        m_basis->compute(t, 3, iMin, iMax);
     }
     else if(secondDerivative) {
-        m_basis.compute(t, 2, iMin, iMax);
+        m_basis->compute(t, 2, iMin, iMax);
     }
     else if(firstDerivative) {
-        m_basis.compute(t, 1, iMin, iMax);
+        m_basis->compute(t, 1, iMin, iMax);
     }
     else {
-        m_basis.compute(t, 0, iMin, iMax);
+        m_basis->compute(t, 0, iMin, iMax);
     }
 
     if(the_position) {
         *the_position = VecT();
         for(i = iMin; i <= iMax; i++) {
-            float weight = m_basis.getD0(i);
+            float weight = m_basis->getD0(i);
             *the_position += m_control_points[i] * weight;
         }
     }
@@ -580,21 +672,21 @@ void BSpline<D,T>::get(float t, VecT *the_position, VecT *firstDerivative,
     if(firstDerivative)
     {
         *firstDerivative = VecT();
-        for(i = iMin; i <= iMax; i++){ *firstDerivative += m_control_points[i] * m_basis.getD1(i); }
+        for(i = iMin; i <= iMax; i++){ *firstDerivative += m_control_points[i] * m_basis->getD1(i); }
     }
 
     if(secondDerivative)
     {
         *secondDerivative = VecT();
         for(i = iMin; i <= iMax; i++) {
-            *secondDerivative += m_control_points[i] * m_basis.getD2(i);
+            *secondDerivative += m_control_points[i] * m_basis->getD2(i);
         }
     }
 
     if(thirdDerivative) {
         *thirdDerivative = VecT();
         for (i = iMin; i <= iMax; i++) {
-            *thirdDerivative += m_control_points[i] * m_basis.getD3(i);
+            *thirdDerivative += m_control_points[i] * m_basis->getD3(i);
         }
     }
 }
@@ -655,11 +747,11 @@ float BSpline<D,T>::length(float fT0, float fT1) const
     return rombergIntegral<T,10>(fT0, fT1, std::bind(&BSpline<D,T>::speed, this, std::placeholders::_1));
 }
 
-template<int D,typename T>
-BSplineBasis& BSpline<D,T>::basis()
-{
-    return m_basis;
-}
+//template<int D,typename T>
+//BSplineBasis& BSpline<D,T>::basis()
+//{
+//    return m_basis;
+//}
 
 template<int D,typename T>
 typename BSpline<D,T>::VecT BSpline<D,T>::position(float t) const
