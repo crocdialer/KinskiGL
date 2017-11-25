@@ -54,7 +54,7 @@ using glm::translate;
 using glm::rotate;
 using glm::scale;
 
-template<uint8_t DIM,typename T> struct KINSKI_API Vector{};
+template<uint8_t DIM, typename T> struct KINSKI_API Vector{};
 
 template<> struct KINSKI_API Vector<2, float>{ using Type = vec2; };
 template<> struct KINSKI_API Vector<3, float>{ using Type = vec3; };

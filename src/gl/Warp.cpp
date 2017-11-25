@@ -32,7 +32,7 @@ namespace kinski{ namespace gl{
     
     ////////////////////////////////////////////////////////////////////////////////////////////////
     
-    const gl::ivec2 Warp::s_max_num_subdivisions = gl::ivec2(5);
+    const gl::ivec2 Warp::s_max_num_subdivisions = gl::ivec2(7);
     
     namespace
     {
@@ -298,7 +298,7 @@ namespace kinski{ namespace gl{
                     
                     for(uint32_t row = 0; row < new_num_y; ++row)
                     {
-                        cp[row * num_controls_x + col] = s.position(s.time(length * col * step));
+                        cp[row * num_controls_x + col] = s.position(s.time(length * row * step));
                     }
                 }
                 else
