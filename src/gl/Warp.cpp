@@ -265,11 +265,7 @@ namespace kinski{ namespace gl{
         }
     };
     
-    Warp::Warp()
-    :m_impl(new WarpImpl)
-    {
-
-    }
+    Warp::Warp(): m_impl(new WarpImpl){}
     
     void Warp::render_output(const gl::Texture &the_texture, const float the_brightness)
     {
