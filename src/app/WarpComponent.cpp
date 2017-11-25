@@ -34,7 +34,7 @@ namespace kinski
         m_perspective = Property_<bool>::create("perspective", true);
         m_cubic_interpolation = Property_<bool>::create("use cubic interpolation", false);
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
-        m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
+        m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(1));
         m_control_points = Property_<std::vector<gl::vec2>>::create("control points");
         m_control_points->set_tweakable(false);
         m_corners = Property_<std::vector<gl::vec2>>::create("quad corners");
@@ -148,10 +148,10 @@ namespace kinski
         m_quad_warp[the_index].set_corners(*m_corners);
         m_quad_warp[the_index].set_perspective(*m_perspective);
         m_quad_warp[the_index].set_cubic_interpolation(*m_cubic_interpolation);
-        m_quad_warp[the_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
-                                                            m_src_top_left->value().y,
-                                                            m_src_bottom_right->value().x,
-                                                            m_src_bottom_right->value().y));
+        m_quad_warp[the_index].set_src_area(Area_<float>(m_src_top_left->value().x,
+                                                         m_src_top_left->value().y,
+                                                         m_src_bottom_right->value().x,
+                                                         m_src_bottom_right->value().y));
         m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
         
         if(m_edges->value().size() == 4)
@@ -217,10 +217,10 @@ namespace kinski
         }
         else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
         {
-            m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
-                                                               m_src_top_left->value().y,
-                                                               m_src_bottom_right->value().x,
-                                                               m_src_bottom_right->value().y));
+            m_quad_warp[*m_index].set_src_area(Area_<float>(m_src_top_left->value().x,
+                                                            m_src_top_left->value().y,
+                                                            m_src_bottom_right->value().x,
+                                                            m_src_bottom_right->value().y));
         }
         else if(the_property == m_perspective)
         {

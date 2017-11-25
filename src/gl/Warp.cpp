@@ -38,6 +38,8 @@ namespace kinski{ namespace gl{
     {
         const std::vector<gl::vec2> default_points = {gl::vec2(0, 1), gl::vec2(1, 1), gl::vec2(0, 0),
             gl::vec2(1, 0)};
+        
+        const Area_<float> default_roi = Area_<float>(0.f, 0.f, 1.f, 1.f);
     };
     
     struct WarpImpl
@@ -55,7 +57,7 @@ namespace kinski{ namespace gl{
         
         gl::MeshPtr m_mesh, m_grid_mesh;
         
-        Area_<uint32_t> m_src_area;
+        Area_<float> m_src_area = default_roi;
         
         mat4 m_transform, m_inv_transform;
         bool m_dirty = true, m_dirty_subs = true, m_perspective = true;
@@ -218,7 +220,6 @@ namespace kinski{ namespace gl{
                     {
                         points.push_back(control_point(col, row));
                     }
-
                     BSpline2f s(points, 1, false, true);
 
                     // calculate position of new control points
@@ -243,8 +244,7 @@ namespace kinski{ namespace gl{
                         // control points according to an optimized Catmull-Rom implementation
                         vec2 b1 = p1 + (p2 - p0) / 6.0f;
                         vec2 b2 = p2 - (p3 - p1) / 6.0f;
-
-                        points.push_back( p1 );
+                        points.push_back(p1);
 
                         if(col < num_controls_x - 1)
                         {
@@ -289,7 +289,6 @@ namespace kinski{ namespace gl{
                     {
                         points.push_back(control_point(col, row));
                     }
-                    
                     BSpline2f s(points, 1, false, true);
                     
                     // calculate position of new control points
@@ -314,7 +313,6 @@ namespace kinski{ namespace gl{
                         // control points according to an optimized Catmull-Rom implementation
                         vec2 b1 = p1 + (p2 - p0) / 6.0f;
                         vec2 b2 = p2 - (p3 - p1) / 6.0f;
-                        
                         points.push_back(p1);
                         
                         if(row < num_controls_y - 1)
@@ -392,9 +390,13 @@ namespace kinski{ namespace gl{
 
 #endif
         gl::Texture roi_tex = the_texture;
-        if(m_impl->m_src_area != Area_<uint32_t>())
+        if(m_impl->m_src_area != default_roi)
         {
-            roi_tex.set_roi(m_impl->m_src_area);
+            uvec2 sz(the_texture.width() - 1, the_texture.height() - 1);
+            
+            Area_<uint32_t> abs_roi(m_impl->m_src_area.x0 * sz.x, m_impl->m_src_area.y0 * sz.y,
+                                    m_impl->m_src_area.x1 * sz.x, m_impl->m_src_area.y1 * sz.y);
+            roi_tex.set_roi(abs_roi);
         }
         
         m_impl->m_mesh->material()->set_textures({roi_tex});
@@ -426,12 +428,12 @@ namespace kinski{ namespace gl{
         }
     }
     
-    const Area_<uint32_t>& Warp::src_area() const
+    const Area_<float>& Warp::src_area() const
     {
         return m_impl->m_src_area;
     }
     
-    void Warp::set_src_area(const Area_<uint32_t> &the_src_area)
+    void Warp::set_src_area(const Area_<float> &the_src_area)
     {
         m_impl->m_src_area = the_src_area;
     }
