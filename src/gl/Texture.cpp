@@ -80,10 +80,11 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     ret.set_flipped();
     KINSKI_CHECK_GL_ERRORS();
 
+#if !defined(KINSKI_GLES)
     Image::Type bgr_types[] = {Image::Type::BGR, Image::Type::BGRA};
-
     if(contains(bgr_types, the_img->m_type)){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
-
+#endif
+    
     ret.set_anisotropic_filter(anisotropic_filter_lvl);
     return ret;
 }
