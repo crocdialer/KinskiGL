@@ -213,7 +213,39 @@ namespace kinski{ namespace media{
             
             // unlock base address, release buffer
             CVPixelBufferUnlockBaseAddress(buffer, 0);
+            return true;
+        }
+        return false;
+    }
+    
+    bool CameraController::copy_frame_to_image(ImagePtr& the_image)
+    {
+        if(!m_impl->m_camera.has_new_frame) return false;
+        
+        CVPixelBufferRef buffer = CMSampleBufferGetImageBuffer(m_impl->m_camera.sampleBuffer);
+        
+        if(buffer)
+        {
+            m_impl->m_camera.has_new_frame = false;
             
+            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
+            uint32_t w = CVPixelBufferGetWidth(buffer);
+            uint32_t h = CVPixelBufferGetHeight(buffer);
+            constexpr uint8_t num_channels = 4;
+            
+            if(!the_image || the_image->width != w || the_image->height != h ||
+               the_image->num_coponents() != num_channels)
+            {
+                the_image = Image::create(w, h, num_channels);
+            }
+            the_image->m_type = Image::Type::BGRA;
+            
+            // lock base adress
+            CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
+            memcpy(the_image->data, CVPixelBufferGetBaseAddress(buffer), num_bytes);
+            
+            // unlock base address, release buffer
+            CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
             return true;
         }
         return false;

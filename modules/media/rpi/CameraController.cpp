@@ -51,6 +51,11 @@ namespace kinski{ namespace media{
         return false;
     }
 
+    bool CameraController::copy_frame_to_image(ImagePtr& the_image)
+    {
+        return false;
+    }
+
     bool CameraController::copy_frame_to_texture(gl::Texture &tex)
     {
         return false;
