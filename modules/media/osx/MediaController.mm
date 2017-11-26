@@ -70,6 +70,20 @@ namespace kinski{ namespace media{
 //            }
             if(m_output_tex_name){ glDeleteTextures(1, &m_output_tex_name); }
         };
+        
+//        std::shared_ptr<CVPixelBufferRef> new_buffer()
+//        {
+//            CMTime ct = [m_player currentTime];
+//
+//            if (![m_output hasNewPixelBufferForItemTime:ct])
+//            {
+//                return std::shared_ptr<CVPixelBufferRef>();
+//            }
+//
+//            CVPixelBufferRef buffer = std::shared_ptr<CVPixelBufferRef>([m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil], [](CVPixelBufferRef b)
+//            {
+//            });
+//        }
     };
 
 /////////////////////////////////////////////////////////////////
@@ -291,10 +305,7 @@ namespace kinski{ namespace media{
 
         CMTime ct = [m_impl->m_player currentTime];
 
-        if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])
-        {
-            return false;
-        }
+        if(![m_impl->m_output hasNewPixelBufferForItemTime:ct]){ return false; }
 
         CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
 
@@ -320,7 +331,45 @@ namespace kinski{ namespace media{
     }
 
 /////////////////////////////////////////////////////////////////
-
+    
+    bool MediaController::copy_frame_to_image(ImagePtr& the_image)
+    {
+        if(!m_impl || !m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
+        
+        CMTime ct = [m_impl->m_player currentTime];
+        
+        if(![m_impl->m_output hasNewPixelBufferForItemTime:ct]){ return false; }
+        
+        CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
+        
+        if(buffer)
+        {
+            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
+            uint32_t w = CVPixelBufferGetWidth(buffer);
+            uint32_t h = CVPixelBufferGetHeight(buffer);
+            constexpr uint8_t num_channels = 4;
+            
+            if(!the_image || the_image->width != w || the_image->height != h ||
+               the_image->num_coponents() != num_channels)
+            {
+                the_image = Image::create(w, h, num_channels);
+            }
+            the_image->m_type = Image::Type::BGRA;
+            
+            // lock base adress
+            CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
+            memcpy(the_image->data, CVPixelBufferGetBaseAddress(buffer), num_bytes);
+            
+            // unlock base address, release buffer
+            CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
+            CFRelease(buffer);
+            return true;
+        }
+        return false;
+    }
+    
+/////////////////////////////////////////////////////////////////
+    
     bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
         if(!m_impl || !is_playing() || !m_impl->m_output || !m_impl->m_player_item) return false;

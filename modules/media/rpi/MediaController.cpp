@@ -645,6 +645,13 @@ namespace kinski{ namespace media
 
 /////////////////////////////////////////////////////////////////
 
+    bool MediaController::copy_frame_to_image(ImagePtr& the_image)
+    {
+        return false;
+    }
+    
+/////////////////////////////////////////////////////////////////
+
     bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
         if(!is_loaded() || !m_impl->m_has_new_frame){ return false; }
