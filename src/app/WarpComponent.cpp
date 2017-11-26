@@ -23,8 +23,10 @@ namespace kinski
         
         m_index = RangedProperty<uint32_t>::create("index", 0, 0, 9);
         m_enabled = Property_<bool>::create("enabled", false);
-        m_num_subdivisions_x = RangedProperty<uint32_t>::create("num subdivisions x", 1, 1, 5);
-        m_num_subdivisions_y = RangedProperty<uint32_t>::create("num subdivisions y", 1, 1, 5);
+        m_num_subdivisions_x = RangedProperty<uint32_t>::create("num subdivisions x", 1, 1,
+                                                                gl::Warp::s_max_num_subdivisions.x);
+        m_num_subdivisions_y = RangedProperty<uint32_t>::create("num subdivisions y", 1, 1,
+                                                                gl::Warp::s_max_num_subdivisions.y);
         m_grid_resolution_x = RangedProperty<uint32_t>::create("grid resolution x", 32, 1, 160);
         m_grid_resolution_y = RangedProperty<uint32_t>::create("grid resolution y", 18, 1, 160);
         m_draw_grid = Property_<bool>::create("draw grid", false);
@@ -32,7 +34,7 @@ namespace kinski
         m_perspective = Property_<bool>::create("perspective", true);
         m_cubic_interpolation = Property_<bool>::create("use cubic interpolation", false);
         m_src_top_left = Property_<gl::vec2>::create("source area top left", gl::vec2(0));
-        m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(0));
+        m_src_bottom_right = Property_<gl::vec2>::create("source area bottom right", gl::vec2(1));
         m_control_points = Property_<std::vector<gl::vec2>>::create("control points");
         m_control_points->set_tweakable(false);
         m_corners = Property_<std::vector<gl::vec2>>::create("quad corners");
@@ -146,10 +148,10 @@ namespace kinski
         m_quad_warp[the_index].set_corners(*m_corners);
         m_quad_warp[the_index].set_perspective(*m_perspective);
         m_quad_warp[the_index].set_cubic_interpolation(*m_cubic_interpolation);
-        m_quad_warp[the_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
-                                                            m_src_top_left->value().y,
-                                                            m_src_bottom_right->value().x,
-                                                            m_src_bottom_right->value().y));
+        m_quad_warp[the_index].set_src_area(Area_<float>(m_src_top_left->value().x,
+                                                         m_src_top_left->value().y,
+                                                         m_src_bottom_right->value().x,
+                                                         m_src_bottom_right->value().y));
         m_quad_warp[the_index].set_grid_resolution(the_quadwarp.grid_resolution());
         
         if(m_edges->value().size() == 4)
@@ -215,10 +217,10 @@ namespace kinski
         }
         else if(the_property == m_src_bottom_right || the_property == m_src_top_left)
         {
-            m_quad_warp[*m_index].set_src_area(Area_<uint32_t>(m_src_top_left->value().x,
-                                                               m_src_top_left->value().y,
-                                                               m_src_bottom_right->value().x,
-                                                               m_src_bottom_right->value().y));
+            m_quad_warp[*m_index].set_src_area(Area_<float>(m_src_top_left->value().x,
+                                                            m_src_top_left->value().y,
+                                                            m_src_bottom_right->value().x,
+                                                            m_src_bottom_right->value().y));
         }
         else if(the_property == m_perspective)
         {
@@ -256,25 +258,29 @@ namespace kinski
         
         if(m_show_cursor)
         {
+            auto col = (the_index == *m_index) ? gl::COLOR_RED : gl::COLOR_WHITE;
+            
+            // boundary
+            m_quad_warp[the_index].render_boundary(col);
+            
+            // label
+            auto p = m_quad_warp[the_index].transform() * gl::vec4(0.025f, 1.f, 0, 1);
+            p /= p.w;
+            p.y = 1.f - p.y;
+            gl::draw_text_2D("warp_" + to_string(the_index + 1), m_font, col,
+                             p.xy() * gl::window_dimension());
+            
+            if(the_index == *m_index)
+            {
+                // control points
+                m_quad_warp[the_index].render_control_points();
+            }
+            
             // cursor
             gl::vec2 cp = m_mouse_pos;
             gl::draw_line(gl::vec2(0, gl::window_dimension().y - cp.y),
                           gl::vec2(gl::window_dimension().x, gl::window_dimension().y - cp.y));
             gl::draw_line(gl::vec2(cp.x, 0), gl::vec2(cp.x, gl::window_dimension().y));
-            
-            // label
-            if(the_index == *m_index)
-            {
-                auto p = m_quad_warp[the_index].transform() * gl::vec4(0.025f, 1.f,
-                                                                       0, 1);
-                p /= p.w;
-                p.y = 1.f - p.y;
-                gl::draw_text_2D("warp_" + to_string(the_index + 1), m_font, gl::COLOR_RED,
-                                 p.xy() * gl::window_dimension());
-                
-                // control points
-                m_quad_warp[the_index].render_control_points();
-            }
         }
         else if(m_params[the_index].display_points && (the_index == *m_index))
         {
@@ -361,11 +367,10 @@ namespace kinski
             case Key::_7:
             case Key::_8:
             case Key::_9:
-                if(e.isShiftDown())
+                if(e.isAltDown())
                 {
-                    
+                    set_index(e.getCode() - Key::_1);
                 }
-                set_index(e.getCode() - Key::_1);
                 break;
                 
             case Key::_F5:

@@ -14,6 +14,7 @@
 #include "Warp.hpp"
 #include "gl/Mesh.hpp"
 #include "gl/Camera.hpp"
+#include "gl/BSpline.hpp"
 
 namespace kinski{ namespace gl{
     
@@ -31,12 +32,14 @@ namespace kinski{ namespace gl{
     
     ////////////////////////////////////////////////////////////////////////////////////////////////
     
-    const gl::ivec2 Warp::s_max_num_subdivisions = gl::ivec2(5);
+    const gl::ivec2 Warp::s_max_num_subdivisions = gl::ivec2(7);
     
     namespace
     {
         const std::vector<gl::vec2> default_points = {gl::vec2(0, 1), gl::vec2(1, 1), gl::vec2(0, 0),
             gl::vec2(1, 0)};
+        
+        const Area_<float> default_roi = Area_<float>(0.f, 0.f, 1.f, 1.f);
     };
     
     struct WarpImpl
@@ -54,7 +57,7 @@ namespace kinski{ namespace gl{
         
         gl::MeshPtr m_mesh, m_grid_mesh;
         
-        Area_<uint32_t> m_src_area;
+        Area_<float> m_src_area = default_roi;
         
         mat4 m_transform, m_inv_transform;
         bool m_dirty = true, m_dirty_subs = true, m_perspective = true;
@@ -196,38 +199,143 @@ namespace kinski{ namespace gl{
             m_grid_mesh = gl::Mesh::create(grid_geom, grid_mat);
         }
         
-        void set_num_subdivisions(const gl::ivec2 &the_res)
+        void set_num_subdivisions_x(uint32_t the_num_subs_x)
         {
-            auto num_subs = glm::clamp(the_res, gl::ivec2(1), Warp::s_max_num_subdivisions);
-            auto diff = num_subs - m_num_subdivisions;
+            m_selected_indices.clear();
             
+            uint32_t num_controls_x = m_num_subdivisions.x + 1;
+            uint32_t num_controls_y = m_num_subdivisions.y + 1;
+            uint32_t new_num_x = the_num_subs_x + 1;
+            std::vector<gl::vec2> cp(new_num_x * num_controls_y);
             
-            std::vector<gl::vec2> cp;
-            int num_x = num_subs.x + 1;
-            int num_y = num_subs.y + 1;
-            
-            if(diff != ivec2(0))
+            // spline fitting
+            for(uint32_t row = 0; row < num_controls_y; ++row)
             {
-                m_selected_indices.clear();
-                
-                // create subs for each row
-                for(int y = 0; y < num_y; ++y)
+                std::vector<vec2> points;
+
+                if(!m_cubic_interpolation)
                 {
-                    float frac_y = (float)y / num_subs.y;
-                    auto left_edge = mix(default_points[0], default_points[2], frac_y);
-                    auto right_edge = mix(default_points[1], default_points[3], frac_y);
-                    
-                    for(int x = 0; x < num_x; ++x)
+                    // construct piece-wise linear spline
+                    for(uint32_t col = 0; col < num_controls_x; ++col)
                     {
-                        float frac_x = (float)x / num_subs.x;
-                        cp.push_back(mix(left_edge, right_edge, frac_x));
+                        points.push_back(control_point(col, row));
+                    }
+                    BSpline2f s(points, 1, false, true);
+
+                    // calculate position of new control points
+                    float length = s.length(0.0f, 1.0f);
+                    float step = 1.0f / (new_num_x - 1);
+
+                    for(uint32_t col = 0; col < new_num_x; ++col)
+                    {
+                        cp[row * new_num_x + col] = s.position(s.time(length * col * step));
                     }
                 }
-                m_control_points = cp;
-                m_num_subdivisions = num_subs;
-                m_dirty_subs = true;
+                else
+                {
+                    // construct piece-wise catmull-rom spline
+                    for(uint32_t col = 0; col < num_controls_x; ++col)
+                    {
+                        vec2 p0 = control_point(col - 1, row);
+                        vec2 p1 = control_point(col, row);
+                        vec2 p2 = control_point(col + 1, row);
+                        vec2 p3 = control_point(col + 2, row);
+
+                        // control points according to an optimized Catmull-Rom implementation
+                        vec2 b1 = p1 + (p2 - p0) / 6.0f;
+                        vec2 b2 = p2 - (p3 - p1) / 6.0f;
+                        points.push_back(p1);
+
+                        if(col < num_controls_x - 1)
+                        {
+                            points.push_back(b1);
+                            points.push_back(b2);
+                        }
+                    }
+                    BSpline2f s(points, 3, false, true);
+
+                    // calculate position of new control points
+                    float length = s.length(0.0f, 1.0f);
+                    float step = 1.0f / (new_num_x - 1);
+
+                    for(uint32_t col = 0; col < new_num_x; ++col)
+                    {
+                        cp[row * new_num_x + col] = s.position(s.time(length * col * step));
+                    }
+                }
             }
-            m_num_subdivisions = num_subs;
+            m_control_points = cp;
+            m_num_subdivisions.x = the_num_subs_x;
+            m_dirty_subs = true;
+        }
+        
+        void set_num_subdivisions_y(uint32_t the_num_subs_y)
+        {
+            m_selected_indices.clear();
+            uint32_t num_controls_x = m_num_subdivisions.x + 1;
+            uint32_t num_controls_y = m_num_subdivisions.y + 1;
+            uint32_t new_num_y = the_num_subs_y + 1;
+            std::vector<gl::vec2> cp(num_controls_x * new_num_y);
+            
+            // spline fitting
+            for(uint32_t col = 0; col < num_controls_x; ++col)
+            {
+                std::vector<vec2> points;
+                
+                if(!m_cubic_interpolation)
+                {
+                    // construct piece-wise linear spline
+                    for(uint32_t row = 0; row < num_controls_y; ++row)
+                    {
+                        points.push_back(control_point(col, row));
+                    }
+                    BSpline2f s(points, 1, false, true);
+                    
+                    // calculate position of new control points
+                    float length = s.length(0.0f, 1.0f);
+                    float step = 1.0f / (new_num_y - 1);
+                    
+                    for(uint32_t row = 0; row < new_num_y; ++row)
+                    {
+                        cp[row * num_controls_x + col] = s.position(s.time(length * row * step));
+                    }
+                }
+                else
+                {
+                    // construct piece-wise catmull-rom spline
+                    for(uint32_t row = 0; row < num_controls_y; ++row)
+                    {
+                        vec2 p0 = control_point(col, row - 1);
+                        vec2 p1 = control_point(col, row);
+                        vec2 p2 = control_point(col, row + 1);
+                        vec2 p3 = control_point(col, row + 2);
+                        
+                        // control points according to an optimized Catmull-Rom implementation
+                        vec2 b1 = p1 + (p2 - p0) / 6.0f;
+                        vec2 b2 = p2 - (p3 - p1) / 6.0f;
+                        points.push_back(p1);
+                        
+                        if(row < num_controls_y - 1)
+                        {
+                            points.push_back(b1);
+                            points.push_back(b2);
+                        }
+                    }
+                    BSpline2f s(points, 3, false, true);
+                    
+                    // calculate position of new control points
+                    float length = s.length(0.0f, 1.0f);
+                    float step = 1.0f / (new_num_y - 1);
+                    
+                    for(uint32_t row = 0; row < new_num_y; ++row)
+                    {
+                        cp[row * num_controls_x + col] = s.position(s.time(length * row * step));
+                    }
+                }
+            }
+            m_control_points = cp;
+            m_num_subdivisions.y = the_num_subs_y;
+            m_dirty_subs = true;
         }
         
         const gl::vec2 control_point(int the_x, int the_y)
@@ -265,11 +373,7 @@ namespace kinski{ namespace gl{
         }
     };
     
-    Warp::Warp()
-    :m_impl(new WarpImpl)
-    {
-
-    }
+    Warp::Warp(): m_impl(new WarpImpl){}
     
     void Warp::render_output(const gl::Texture &the_texture, const float the_brightness)
     {
@@ -286,9 +390,13 @@ namespace kinski{ namespace gl{
 
 #endif
         gl::Texture roi_tex = the_texture;
-        if(m_impl->m_src_area != Area_<uint32_t>())
+        if(m_impl->m_src_area != default_roi)
         {
-            roi_tex.set_roi(m_impl->m_src_area);
+            uvec2 sz(the_texture.width() - 1, the_texture.height() - 1);
+            
+            Area_<uint32_t> abs_roi(m_impl->m_src_area.x0 * sz.x, m_impl->m_src_area.y0 * sz.y,
+                                    m_impl->m_src_area.x1 * sz.x, m_impl->m_src_area.y1 * sz.y);
+            roi_tex.set_roi(abs_roi);
         }
         
         m_impl->m_mesh->material()->set_textures({roi_tex});
@@ -320,12 +428,12 @@ namespace kinski{ namespace gl{
         }
     }
     
-    const Area_<uint32_t>& Warp::src_area() const
+    const Area_<float>& Warp::src_area() const
     {
         return m_impl->m_src_area;
     }
     
-    void Warp::set_src_area(const Area_<uint32_t> &the_src_area)
+    void Warp::set_src_area(const Area_<float> &the_src_area)
     {
         m_impl->m_src_area = the_src_area;
     }
@@ -390,6 +498,21 @@ namespace kinski{ namespace gl{
         gl::set_matrices(m_impl->m_camera);
         gl::mult_matrix(MODEL_VIEW_MATRIX, transform());
         gl::draw_mesh(m_impl->m_grid_mesh);
+    }
+    
+    void Warp::render_boundary(const gl::Color &the_colour)
+    {
+        gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
+        gl::set_matrices(m_impl->m_camera);
+        gl::mult_matrix(MODEL_VIEW_MATRIX, transform());
+        
+        std::vector<gl::vec3> points =
+        {
+            gl::vec3(default_points[0], 0.f), gl::vec3(default_points[1], 0.f),
+            gl::vec3(default_points[3], 0.f), gl::vec3(default_points[2], 0.f),
+            gl::vec3(default_points[0], 0.f)
+        };
+        gl::draw_linestrip(points, the_colour);
     }
     
     ivec2 Warp::grid_resolution() const
@@ -467,7 +590,10 @@ namespace kinski{ namespace gl{
     
     void Warp::set_num_subdivisions(const gl::ivec2 &the_res)
     {
-        m_impl->set_num_subdivisions(the_res);
+        auto num_subs = glm::clamp(the_res, gl::ivec2(1), Warp::s_max_num_subdivisions);
+        auto diff = num_subs - m_impl->m_num_subdivisions;
+        if(diff.x){ m_impl->set_num_subdivisions_x(num_subs.x); }
+        if(diff.y){ m_impl->set_num_subdivisions_y(num_subs.y); }
     }
     
     void Warp::set_num_subdivisions(uint32_t the_div_w, uint32_t the_div_h)
