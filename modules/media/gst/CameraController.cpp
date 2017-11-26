@@ -98,26 +98,55 @@ void CameraController::stop_capture()
 
 bool CameraController::copy_frame(std::vector<uint8_t>& out_data, int *width, int *height)
 {
-    if(m_impl)
+    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+
+    if(buf)
     {
-        GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+        *width = m_impl->m_gst_util.video_info().width;
+        *height = m_impl->m_gst_util.video_info().height;
 
-        if(buf)
-        {
-            *width = m_impl->m_gst_util.video_info().width;
-            *height = m_impl->m_gst_util.video_info().height;
-
-            // map the buffer for reading
-            gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
-            uint8_t *buf_data = m_impl->m_memory_map_info.data;
-            size_t num_bytes = m_impl->m_memory_map_info.size;
-            out_data.assign(buf_data, buf_data + num_bytes);
-            gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
-            return true;
-        }
+        // map the buffer for reading
+        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        uint8_t *buf_data = m_impl->m_memory_map_info.data;
+        size_t num_bytes = m_impl->m_memory_map_info.size;
+        out_data.assign(buf_data, buf_data + num_bytes);
+        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        return true;
     }
     return false;
 }
+
+/////////////////////////////////////////////////////////////////
+
+bool CameraController::copy_frame_to_image(ImagePtr& the_image)
+{
+    GstBuffer* buf = m_impl->m_gst_util.new_buffer();
+
+    if(buf)
+    {
+        constexpr uint8_t num_channels = 3;
+        uint32_t w = m_impl->m_gst_util.video_info().width;
+        uint32_t h = m_impl->m_gst_util.video_info().height;
+
+        if(!the_image || the_image->width != w || the_image->height != h ||
+           the_image->num_coponents() != num_channels)
+        {
+            the_image = Image::create(w, h, num_channels);
+        }
+        the_image->m_type = Image::Type::RGB;
+
+        // map the buffer for reading
+        gst_buffer_map(buf, &m_impl->m_memory_map_info, GST_MAP_READ);
+        uint8_t *buf_data = m_impl->m_memory_map_info.data;
+        size_t num_bytes = m_impl->m_memory_map_info.size;
+        memcpy(the_image->data, buf_data, num_bytes);
+        gst_buffer_unmap(buf, &m_impl->m_memory_map_info);
+        return true;
+    }
+    return false;
+}
+
+/////////////////////////////////////////////////////////////////
 
 bool CameraController::copy_frame_to_texture(gl::Texture &tex)
 {
