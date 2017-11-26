@@ -30,12 +30,15 @@ namespace kinski
     class Image
     {
     public:
-        
+
+        enum class Type{UNKNOWN = 0, GRAY, RGB, BGR, RGBA, BGRA};
+
         uint8_t* data = nullptr;
         uint32_t width = 0, height = 0;
         uint32_t bytes_per_pixel = 1;
         Area_<uint32_t> roi;
         bool do_not_dispose = false;
+        Type m_type = Type::UNKNOWN;
         
         static ImagePtr create(uint8_t* theData, uint32_t the_width, uint32_t the_height,
                                uint32_t theBytesPerPixel = 1, bool not_dispose = false)

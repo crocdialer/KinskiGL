@@ -134,7 +134,8 @@ namespace kinski
     height(the_height),
     bytes_per_pixel(the_bytes_per_pixel),
     roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
-    do_not_dispose(false)
+    do_not_dispose(false),
+    m_type(Type::UNKNOWN)
     {
     
     }
@@ -145,7 +146,8 @@ namespace kinski
     height(the_other.height),
     bytes_per_pixel(the_other.bytes_per_pixel),
     roi(the_other.roi),
-    do_not_dispose(the_other.do_not_dispose)
+    do_not_dispose(the_other.do_not_dispose),
+    m_type(the_other.m_type)
     {
         memcpy(data, the_other.data, width * height * bytes_per_pixel);
     }
@@ -156,7 +158,8 @@ namespace kinski
     height(the_other.height),
     bytes_per_pixel(the_other.bytes_per_pixel),
     roi(the_other.roi),
-    do_not_dispose(the_other.do_not_dispose)
+    do_not_dispose(the_other.do_not_dispose),
+    m_type(the_other.m_type)
     {
         the_other.data = nullptr;
     }
@@ -169,6 +172,7 @@ namespace kinski
         std::swap(bytes_per_pixel, the_other.bytes_per_pixel);
         std::swap(roi, the_other.roi);
         std::swap(do_not_dispose, the_other.do_not_dispose);
+        std::swap(m_type, the_other.m_type);
         return *this;
     }
     
