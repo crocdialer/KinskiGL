@@ -515,8 +515,6 @@ namespace kinski { namespace gl {
         mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), theColor);
-//        mesh->geometry()->create_gl_buffers();
-        mesh->create_vertex_attribs(true);
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
         mesh->geometry()->colors().clear();

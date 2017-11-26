@@ -276,6 +276,9 @@ namespace kinski
                 
                 // control points
                 m_quad_warp[the_index].render_control_points();
+                
+                // boundary
+                m_quad_warp[the_index].render_boundary();
             }
         }
         else if(m_params[the_index].display_points && (the_index == *m_index))

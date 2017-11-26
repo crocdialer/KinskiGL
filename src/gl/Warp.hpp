@@ -31,6 +31,8 @@ namespace kinski{ namespace gl{
         
         void render_grid();
         
+        void render_boundary();
+        
         ivec2 grid_resolution() const;
         void set_grid_resolution(const gl::ivec2 &the_res);
         void set_grid_resolution(uint32_t the_res_w, uint32_t the_res_h);

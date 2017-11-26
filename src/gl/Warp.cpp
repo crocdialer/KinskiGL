@@ -500,6 +500,21 @@ namespace kinski{ namespace gl{
         gl::draw_mesh(m_impl->m_grid_mesh);
     }
     
+    void Warp::render_boundary()
+    {
+        gl::ScopedMatrixPush model(MODEL_VIEW_MATRIX), projection(PROJECTION_MATRIX);
+        gl::set_matrices(m_impl->m_camera);
+        gl::mult_matrix(MODEL_VIEW_MATRIX, transform());
+        
+        std::vector<gl::vec3> points =
+        {
+            gl::vec3(default_points[0], 0.f), gl::vec3(default_points[1], 0.f),
+            gl::vec3(default_points[3], 0.f), gl::vec3(default_points[2], 0.f),
+            gl::vec3(default_points[0], 0.f)
+        };
+        gl::draw_linestrip(points, gl::COLOR_RED);
+    }
+    
     ivec2 Warp::grid_resolution() const
     {
         return ivec2(m_impl->m_grid_num_w, m_impl->m_grid_num_h);
