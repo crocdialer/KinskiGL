@@ -258,28 +258,29 @@ namespace kinski
         
         if(m_show_cursor)
         {
+            auto col = (the_index == *m_index) ? gl::COLOR_RED : gl::COLOR_WHITE;
+            
+            // boundary
+            m_quad_warp[the_index].render_boundary(col);
+            
+            // label
+            auto p = m_quad_warp[the_index].transform() * gl::vec4(0.025f, 1.f, 0, 1);
+            p /= p.w;
+            p.y = 1.f - p.y;
+            gl::draw_text_2D("warp_" + to_string(the_index + 1), m_font, col,
+                             p.xy() * gl::window_dimension());
+            
+            if(the_index == *m_index)
+            {
+                // control points
+                m_quad_warp[the_index].render_control_points();
+            }
+            
             // cursor
             gl::vec2 cp = m_mouse_pos;
             gl::draw_line(gl::vec2(0, gl::window_dimension().y - cp.y),
                           gl::vec2(gl::window_dimension().x, gl::window_dimension().y - cp.y));
             gl::draw_line(gl::vec2(cp.x, 0), gl::vec2(cp.x, gl::window_dimension().y));
-            
-            // label
-            if(the_index == *m_index)
-            {
-                auto p = m_quad_warp[the_index].transform() * gl::vec4(0.025f, 1.f,
-                                                                       0, 1);
-                p /= p.w;
-                p.y = 1.f - p.y;
-                gl::draw_text_2D("warp_" + to_string(the_index + 1), m_font, gl::COLOR_RED,
-                                 p.xy() * gl::window_dimension());
-                
-                // control points
-                m_quad_warp[the_index].render_control_points();
-                
-                // boundary
-                m_quad_warp[the_index].render_boundary();
-            }
         }
         else if(m_params[the_index].display_points && (the_index == *m_index))
         {

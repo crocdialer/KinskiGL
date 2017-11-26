@@ -31,7 +31,7 @@ namespace kinski{ namespace gl{
         
         void render_grid();
         
-        void render_boundary();
+        void render_boundary(const gl::Color &the_colour = gl::COLOR_WHITE);
         
         ivec2 grid_resolution() const;
         void set_grid_resolution(const gl::ivec2 &the_res);

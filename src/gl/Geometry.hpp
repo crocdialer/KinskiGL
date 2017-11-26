@@ -141,7 +141,7 @@ namespace kinski{ namespace gl{
         inline void append_faces(const std::vector<gl::Face3> &the_faces)
         {
             m_faces.insert(m_faces.end(), the_faces.begin(), the_faces.end());
-            index_t *start = (index_t*) &the_faces[0].indices;
+            index_t *start = (index_t*) the_faces.data();
             m_indices.insert(m_indices.end(), start, start + 3 * the_faces.size());
         }
         
