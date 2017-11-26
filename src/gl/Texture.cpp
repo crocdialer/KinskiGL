@@ -22,7 +22,7 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     if(!the_img){ return ret; }
     GLenum format = 0, internal_format = 0;
     
-    switch(the_img->bytes_per_pixel)
+    switch(the_img->m_num_coponents)
     {
 #ifdef KINSKI_GLES
         case 1:
@@ -79,7 +79,11 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     ret = Texture(data, format, the_img->width, the_img->height, fmt);
     ret.set_flipped();
     KINSKI_CHECK_GL_ERRORS();
-    
+
+    Image::Type bgr_types[] = {Image::Type::BGR, Image::Type::BGRA};
+
+    if(contains(bgr_types, the_img->m_type)){ ret.set_swizzle(GL_BLUE, GL_GREEN, GL_RED, GL_ALPHA); }
+
     ret.set_anisotropic_filter(anisotropic_filter_lvl);
     return ret;
 }

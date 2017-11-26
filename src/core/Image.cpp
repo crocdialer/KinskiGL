@@ -99,7 +99,7 @@ namespace kinski
     {
         auto ret = std::vector<uint8_t>();
         stbi_write_png_to_func(&stbi_write_func, &ret, the_img->width, the_img->height,
-                               the_img->bytes_per_pixel, the_img->data, 0);
+                               the_img->m_num_coponents, the_img->data, 0);
         return ret;
     }
     
@@ -107,7 +107,7 @@ namespace kinski
     {
         auto ret = std::vector<uint8_t>();
         stbi_write_jpg_to_func(&stbi_write_func, &ret, the_img->width, the_img->height,
-                               the_img->bytes_per_pixel, the_img->data, 83);
+                               the_img->m_num_coponents, the_img->data, 83);
         return ret;
     }
     
@@ -116,13 +116,13 @@ namespace kinski
     data(the_data),
     width(the_width),
     height(the_height),
-    bytes_per_pixel(the_bytes_per_pixel),
+    m_num_coponents(the_bytes_per_pixel),
     roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(not_dispose)
     {
         if(!do_not_dispose)
         {
-            size_t num_bytes = height * width * bytes_per_pixel;
+            size_t num_bytes = height * width * m_num_coponents;
             data = new uint8_t[num_bytes];
             memcpy(data, the_data, num_bytes);
         }
@@ -132,7 +132,7 @@ namespace kinski
     data(new uint8_t[the_width * the_height * the_bytes_per_pixel]()),
     width(the_width),
     height(the_height),
-    bytes_per_pixel(the_bytes_per_pixel),
+    m_num_coponents(the_bytes_per_pixel),
     roi(Area_<uint32_t>(0, 0, the_width - 1, the_height - 1)),
     do_not_dispose(false),
     m_type(Type::UNKNOWN)
@@ -141,22 +141,22 @@ namespace kinski
     }
     
     Image::Image(const Image &the_other):
-    data(new uint8_t[the_other.width * the_other.height * the_other.bytes_per_pixel]),
+    data(new uint8_t[the_other.width * the_other.height * the_other.m_num_coponents]),
     width(the_other.width),
     height(the_other.height),
-    bytes_per_pixel(the_other.bytes_per_pixel),
+    m_num_coponents(the_other.m_num_coponents),
     roi(the_other.roi),
     do_not_dispose(the_other.do_not_dispose),
     m_type(the_other.m_type)
     {
-        memcpy(data, the_other.data, width * height * bytes_per_pixel);
+        memcpy(data, the_other.data, width * height * m_num_coponents);
     }
     
     Image::Image(Image &&the_other):
     data(the_other.data),
     width(the_other.width),
     height(the_other.height),
-    bytes_per_pixel(the_other.bytes_per_pixel),
+    m_num_coponents(the_other.m_num_coponents),
     roi(the_other.roi),
     do_not_dispose(the_other.do_not_dispose),
     m_type(the_other.m_type)
@@ -169,7 +169,7 @@ namespace kinski
         std::swap(data, the_other.data);
         std::swap(height, the_other.height);
         std::swap(width, the_other.width);
-        std::swap(bytes_per_pixel, the_other.bytes_per_pixel);
+        std::swap(m_num_coponents, the_other.m_num_coponents);
         std::swap(roi, the_other.roi);
         std::swap(do_not_dispose, the_other.do_not_dispose);
         std::swap(m_type, the_other.m_type);
@@ -183,8 +183,8 @@ namespace kinski
     
     void Image::flip()
     {
-        size_t line_offset = width * bytes_per_pixel;
-        size_t total_bytes = width * height * bytes_per_pixel;
+        size_t line_offset = width * m_num_coponents;
+        size_t total_bytes = width * height * m_num_coponents;
         
         // swap lines
         for(uint32_t i = 0; i < height / 2; i++)
@@ -210,7 +210,7 @@ namespace kinski
     
     ImagePtr Image::resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels)
     {
-        if(!the_num_channels){ the_num_channels = bytes_per_pixel; };
+        if(!the_num_channels){ the_num_channels = m_num_coponents; };
         
         ImagePtr ret = Image::create(the_width, the_height, the_num_channels);
         float scale_x = the_width / (float)width, scale_y = the_height / (float)height;
@@ -229,7 +229,7 @@ namespace kinski
                 // nearest neighbour
                 uint8_t* src_ptr = at(roundf(src_x), roundf(src_y));
                 
-                if(the_num_channels <= bytes_per_pixel)
+                if(the_num_channels <= m_num_coponents)
                 {
                     for(uint32_t c = 0; c < the_num_channels; ++c){ dst_ptr[c] = src_ptr[c]; }
                 }
@@ -237,7 +237,7 @@ namespace kinski
                 {
                     for(uint32_t c = 0; c < the_num_channels; ++c)
                     {
-                        dst_ptr[c] = c > bytes_per_pixel ? 0 : src_ptr[c];
+                        dst_ptr[c] = c > m_num_coponents ? 0 : src_ptr[c];
                     }
                 }
             }
@@ -260,7 +260,7 @@ namespace kinski
             LOG_WARNING << "only quadratic kernels accepted";
             return ret;
         }
-        ret = Image::create(width, height, bytes_per_pixel);
+        ret = Image::create(width, height, m_num_coponents);
         
         for(uint32_t y = 0; y < height; ++y)
         {
@@ -268,7 +268,7 @@ namespace kinski
             {
                 uint8_t* dst_ptr = ret->at(x, y);
                 
-                for(uint32_t c = 0; c < bytes_per_pixel; ++c)
+                for(uint32_t c = 0; c < m_num_coponents; ++c)
                 {
                     float sum = 0;
                     int k_idx = 0;
@@ -288,7 +288,35 @@ namespace kinski
         }
         return ret;
     }
-    
+
+    void Image::offsets(uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a) const
+    {
+        switch(m_type)
+        {
+            case Type::BGR:
+                *r = 2; *g = 1; *b = 0; if(a){ *a = 0; }
+                break;
+
+            case Type::RGB:
+                *r = 0; *g = 1; *b = 2; if(a){ *a = 0; }
+                break;
+
+            case Type::RGBA:
+                *r = 0; *g = 1; *b = 2; if(a){ *a = 3; }
+                break;
+
+            case Type::BGRA:
+                *r = 2; *g = 1; *b = 0; if(a){ *a = 3; }
+                break;
+
+            case Type::GRAY:
+            case Type::UNKNOWN:
+            default:
+                *r = *g = *b = 0; if(a){ *a = 0; }
+                break;
+        }
+    }
+
     template<typename T> struct Point_
     {
         T x, y;
@@ -424,7 +452,7 @@ namespace kinski
     
     ImagePtr compute_distance_field(ImagePtr the_img, float spread)
     {
-        if(!the_img || the_img->bytes_per_pixel > 1){ return nullptr; }
+        if(!the_img || the_img->m_num_coponents > 1){ return nullptr; }
         
         // create two grids
         Grid grid1(the_img->width, the_img->height), grid2(the_img->width, the_img->height);
