@@ -82,62 +82,78 @@ void Mesh::create_vertex_attribs(bool recreate)
     m_vertex_attribs.clear();
     m_geometry->create_gl_buffers();
 
-    VertexAttrib vertices(m_vertexLocationName, m_geometry->vertex_buffer());
-    m_vertex_attribs.push_back(vertices);
+    VertexAttrib vertices;
+    vertices.name = m_vertexLocationName;
+    vertices.buffer = m_geometry->vertex_buffer();
+    m_vertex_attribs[Geometry::VERTEX_BIT] = vertices;
 
     if(m_geometry->has_tex_coords())
     {
-        VertexAttrib tex_coords(m_texCoordLocationName, m_geometry->tex_coord_buffer());
+        VertexAttrib tex_coords;
+        tex_coords.name = m_texCoordLocationName;
+        tex_coords.buffer = m_geometry->tex_coord_buffer();
         tex_coords.size = 2;
-        m_vertex_attribs.push_back(tex_coords);
+        m_vertex_attribs[Geometry::TEXCOORD_BIT] = tex_coords;
     }
 
     if(m_geometry->has_colors())
     {
-        VertexAttrib colors(m_colorLocationName, m_geometry->color_buffer());
+        VertexAttrib colors;
+        colors.name = m_colorLocationName;
+        colors.buffer = m_geometry->color_buffer();
         colors.size = 4;
-        m_vertex_attribs.push_back(colors);
+        m_vertex_attribs[Geometry::COLOR_BIT] = colors;
     }
 
     if(m_geometry->has_normals())
     {
-        VertexAttrib normals(m_normalLocationName, m_geometry->normal_buffer());
+        VertexAttrib normals;
+        normals.name = m_normalLocationName;
+        normals.buffer = m_geometry->normal_buffer();
         normals.size = 3;
-        m_vertex_attribs.push_back(normals);
+        m_vertex_attribs[Geometry::NORMAL_BIT] = normals;
     }
 
     if(m_geometry->has_tangents())
     {
-        VertexAttrib tangents(m_tangentLocationName, m_geometry->tangent_buffer());
+        VertexAttrib tangents;
+        tangents.name = m_tangentLocationName;
+        tangents.buffer = m_geometry->tangent_buffer();
         tangents.size = 3;
-        m_vertex_attribs.push_back(tangents);
+        m_vertex_attribs[Geometry::TANGENT_BIT] = tangents;
     }
 
     if(m_geometry->has_point_sizes())
     {
-        VertexAttrib point_sizes(m_pointSizeLocationName, m_geometry->point_size_buffer());
+        VertexAttrib point_sizes;
+        point_sizes.name = m_pointSizeLocationName;
+        point_sizes.buffer = m_geometry->point_size_buffer();
         point_sizes.size = 1;
-        m_vertex_attribs.push_back(point_sizes);
+        m_vertex_attribs[Geometry::POINTSIZE_BIT] = point_sizes;
     }
 
     if(m_geometry->has_bones())
     {
         // bone IDs
-        VertexAttrib bone_IDs(m_boneIDsLocationName, m_geometry->bone_buffer());
-        bone_IDs.size = 4;
+        VertexAttrib bone_indices;
+        bone_indices.name = m_boneIDsLocationName;
+        bone_indices.buffer = m_geometry->bone_buffer();
+        bone_indices.size = 4;
 #if !defined(KINSKI_GLES_2)
-        bone_IDs.type = GL_INT;
+        bone_indices.type = GL_INT;
 #else
-        bone_IDs.type = GL_FLOAT;
+        bone_indices.type = GL_FLOAT;
 #endif
-        m_vertex_attribs.push_back(bone_IDs);
+        m_vertex_attribs[Geometry::BONE_INDEX_BIT] = bone_indices;
 
         // bone weights
-        VertexAttrib bone_weights(m_boneWeightsLocationName, m_geometry->bone_buffer());
+        VertexAttrib bone_weights;
+        bone_weights.name = m_boneWeightsLocationName;
+        bone_weights.buffer = m_geometry->bone_buffer();
         bone_weights.size = 4;
         bone_weights.type = GL_FLOAT;
         bone_weights.offset = sizeof(glm::ivec4);
-        m_vertex_attribs.push_back(bone_weights);
+        m_vertex_attribs[Geometry::BONE_WEIGHT_BIT] = bone_weights;
     }
 }
 
@@ -147,8 +163,9 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
 
     the_shader->bind();
 
-    for(auto &vertex_attrib : m_vertex_attribs)
+    for(auto &p : m_vertex_attribs)
     {
+        const auto &vertex_attrib = p.second;
         GLint location = the_shader->attrib_location(vertex_attrib.name);
         KINSKI_CHECK_GL_ERRORS();
         

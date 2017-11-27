@@ -68,7 +68,7 @@ public:
     {
         VERTEX_BIT = 1UL << 0, NORMAL_BIT = 1UL << 1, TANGENT_BIT = 1UL << 2,
         POINTSIZE_BIT = 1UL << 3, TEXCOORD_BIT = 1UL << 4, COLOR_BIT = 1UL << 5,
-        BONES_BIT = 1UL << 6, INDEX_BIT = 1UL << 7
+        BONE_INDEX_BIT = 1UL << 6, BONE_WEIGHT_BIT = 1UL << 7, INDEX_BIT = 1UL << 8
     };
     
     ~Geometry();
@@ -191,14 +191,17 @@ public:
     inline const std::vector<Face3>& faces() const { return m_faces; };
     
     bool has_bones() const { return !m_vertices.empty() && m_vertices.size() == m_bone_vertex_data.size(); };
-    std::vector<BoneVertexData>& bone_vertex_data(){ set_flag(BONES_BIT); return m_bone_vertex_data; };
+    
+    std::vector<BoneVertexData>& bone_vertex_data()
+    { set_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT); return m_bone_vertex_data; };
+    
     const std::vector<BoneVertexData>& bone_vertex_data() const { return m_bone_vertex_data; };
     
     inline const AABB& aabb() const { return m_bounding_box; };
     
-    inline void set_flag(BufferBit b){ m_dirty_bits |= b; }
-    inline void remove_flag(BufferBit b){ m_dirty_bits &= ~b; }
-    inline bool has_flag(BufferBit b){ return m_dirty_bits & b; }
+    inline void set_flag(uint32_t b){ m_dirty_bits |= b; }
+    inline void remove_flag(uint32_t b){ m_dirty_bits &= ~b; }
+    inline bool has_flag(uint32_t b){ return m_dirty_bits & b; }
     
     // GL buffers
     gl::Buffer& vertex_buffer(){ return m_vertex_buffer; };

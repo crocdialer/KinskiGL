@@ -311,7 +311,7 @@ void Geometry::create_gl_buffers(GLenum usage)
     }
 
     // insert bone indices and weights
-    if(has_flag(BONES_BIT) || usage != m_bone_buffer.usage())
+    if(has_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT) || usage != m_bone_buffer.usage())
     {
         if(has_bones())
         {
@@ -337,7 +337,7 @@ void Geometry::create_gl_buffers(GLenum usage)
 #endif
             KINSKI_CHECK_GL_ERRORS();
         }
-        remove_flag(BONES_BIT);
+        remove_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT);
     }
 
     if(has_flag(INDEX_BIT) || usage != m_index_buffer.usage())

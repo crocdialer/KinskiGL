@@ -73,8 +73,8 @@ namespace kinski { namespace gl {
         
         struct VertexAttrib
         {
-            VertexAttrib(const std::string &the_name, const gl::Buffer &the_buffer):
-            name(the_name), buffer(the_buffer){}
+//            VertexAttrib(const std::string &the_name, const gl::Buffer &the_buffer):
+//            name(the_name), buffer(the_buffer){}
             std::string name;
             gl::Buffer buffer;
             size_t size = 3;
@@ -104,7 +104,7 @@ namespace kinski { namespace gl {
         // and store them in <m_vertex_attribs>
         void create_vertex_attribs(bool recreate = false);
 
-        void add_vertex_attrib(const VertexAttrib& v){ m_vertex_attribs.push_back(v); };
+//        void add_vertex_attrib(const VertexAttrib& v){ m_vertex_attribs.push_back(v); };
         
         void bind_vertex_pointers(int material_index = 0);
         void bind_vertex_pointers(const gl::ShaderPtr &the_shader);
@@ -180,7 +180,7 @@ namespace kinski { namespace gl {
         std::vector<mat4> m_boneMatrices;
         
         //! holds our vertex attributes
-        std::vector<VertexAttrib> m_vertex_attribs;
+        std::map<Geometry::BufferBit, VertexAttrib> m_vertex_attribs;
         
         std::string m_vertexLocationName;
         std::string m_normalLocationName;
