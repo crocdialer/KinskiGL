@@ -349,16 +349,14 @@ namespace kinski { namespace gl{
             gl::MeshPtr mesh = gl::Mesh::create(combined_geom, materials[0]);
             mesh->entries() = entries;
             mesh->materials() = materials;
-            mesh->root_bone() = create_bone_hierarchy(theScene->mRootNode, mat4(), bonemap);
-            
-            if(mesh->root_bone()) mesh->init_bone_matrices();
+            mesh->set_root_bone(create_bone_hierarchy(theScene->mRootNode, mat4(), bonemap));
             
             for (uint32_t i = 0; i < theScene->mNumAnimations; i++)
             {
                 aiAnimation *assimpAnimation = theScene->mAnimations[i];
                 MeshAnimation anim;
                 anim.duration = assimpAnimation->mDuration;
-                anim.ticksPerSec = assimpAnimation->mTicksPerSecond;
+                anim.ticks_per_sec = assimpAnimation->mTicksPerSecond;
                 create_bone_animation(theScene->mRootNode, assimpAnimation, mesh->root_bone(), anim);
                 mesh->add_animation(anim);
             }
@@ -497,7 +495,7 @@ namespace kinski { namespace gl{
                 animKeys.scalekeys.push_back(gl::Key<vec3>(nodeAnim->mScalingKeys[i].mTime,
                                                            boneScale));
             }
-            outAnim.boneKeys[bone] = animKeys;
+            outAnim.bone_keys[bone] = animKeys;
         }
         
         for (uint32_t i = 0 ; i < theNode->mNumChildren ; i++)
@@ -562,7 +560,7 @@ namespace kinski { namespace gl{
                 aiAnimation *assimpAnimation = theScene->mAnimations[i];
                 MeshAnimation anim;
                 anim.duration = assimpAnimation->mDuration;
-                anim.ticksPerSec = assimpAnimation->mTicksPerSecond;
+                anim.ticks_per_sec = assimpAnimation->mTicksPerSecond;
                 create_bone_animation(theScene->mRootNode, assimpAnimation, m->root_bone(), anim);
                 m->add_animation(anim);
             }

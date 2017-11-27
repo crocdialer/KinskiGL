@@ -27,9 +27,6 @@ namespace kinski { namespace gl {
         std::list<BonePtr> children;
     };
     
-    BonePtr deep_copy_bones(BonePtr src);
-    BonePtr get_bone_by_name(BonePtr root, const std::string &the_name);
-    
     template<typename T> struct Key
     {
         float time;
@@ -50,10 +47,17 @@ namespace kinski { namespace gl {
     public:
         float current_time;
         float duration;
-        float ticksPerSec;
-        std::map<BonePtr, AnimationKeys> boneKeys;
-        MeshAnimation():current_time(0), ticksPerSec(1.0f){};
+        float ticks_per_sec;
+        std::map<BonePtr, AnimationKeys> bone_keys;
+        MeshAnimation():current_time(0), ticks_per_sec(1.0f){};
     };
+    
+    BonePtr deep_copy_bones(BonePtr src);
+    
+    BonePtr get_bone_by_name(BonePtr root, const std::string &the_name);
+    
+    void build_bone_matrices(const MeshAnimation &the_animation, BonePtr bone,
+                             std::vector<mat4> &matrices, mat4 parentTransform = gl::mat4());
     
     class KINSKI_API Mesh : public Object3D
     {
@@ -137,9 +141,7 @@ namespace kinski { namespace gl {
         std::vector<mat4>& bone_matrices(){ return m_boneMatrices; };
         const std::vector<mat4>& bone_matrices() const { return m_boneMatrices; };
         
-        void init_bone_matrices();
-        
-        BonePtr& root_bone(){ return m_rootBone; };
+        void set_root_bone(BonePtr b){ m_rootBone = b; };
         const BonePtr& root_bone() const { return m_rootBone; };
         
         uint32_t get_num_bones(const BonePtr &theRoot);
@@ -154,9 +156,6 @@ namespace kinski { namespace gl {
     private:
         
         Mesh(const GeometryPtr &theGeom, const MaterialPtr &theMaterial);
-        
-        void build_bone_matrices(float time, BonePtr bone, std::vector<mat4> &matrices,
-                                 mat4 parentTransform = gl::mat4());
         
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;
