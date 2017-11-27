@@ -10,16 +10,15 @@
 
 #include "gl/gl.hpp"
 
-namespace kinski { namespace gl {
+namespace kinski { namespace assimp{
 
-class AssimpConnector
-{
- public:
+//! load a single 3D model from file
+gl::MeshPtr load_model(const std::string &thePath);
     
-    static MeshPtr loadModel(const std::string &thePath);
-    static ScenePtr loadScene(const std::string &thePath);
-    static size_t add_animations_to_mesh(const std::string &thePath,
-                                         MeshPtr m);
-};
+//! load a scene from file
+gl::ScenePtr load_scene(const std::string &thePath);
     
-}}//namespace
+//! load animations from file and add to existing mesh
+size_t add_animations_to_mesh(const std::string &thePath, gl::MeshPtr m);
+    
+}}//namespaces

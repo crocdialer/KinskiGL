@@ -532,7 +532,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
             break;
 
         case fs::FileType::MODEL:
-            m = gl::AssimpConnector::loadModel(the_path);
+            m = assimp::load_model(the_path);
             break;
 
         case fs::FileType::IMAGE:
@@ -570,7 +570,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
 
         for(const auto &f : get_directory_entries(animation_folder, fs::FileType::MODEL))
         {
-            gl::AssimpConnector::add_animations_to_mesh(f, m);
+            assimp::add_animations_to_mesh(f, m);
         }
         m->set_animation_speed(*m_animation_speed);
         m->set_animation_index(*m_animation_index);
