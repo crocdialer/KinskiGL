@@ -176,28 +176,27 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
         }
     }
 
-    // set standard values for some attribs, in case they're not defined
-    if(!m_geometry->has_colors())
-    {
-        GLint colorAttribLocation = the_shader->attrib_location(m_colorLocationName);
-        if(colorAttribLocation >= 0)
-        {
-            glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-        }
-    }
-    
-    if(!m_geometry->has_point_sizes())
-    {
-        GLint pointSizeAttribLocation = the_shader->attrib_location(m_pointSizeLocationName);
-        if(pointSizeAttribLocation >= 0)
-        {
-            glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
-        }
-    }
+//    //set standard values for some attribs, in case they're not defined
+//    if(!m_geometry->has_colors())
+//    {
+//        GLint colorAttribLocation = the_shader->attrib_location(m_colorLocationName);
+//        if(colorAttribLocation >= 0)
+//        {
+//            glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
+//        }
+//    }
+//
+//    if(!m_geometry->has_point_sizes())
+//    {
+//        GLint pointSizeAttribLocation = the_shader->attrib_location(m_pointSizeLocationName);
+//        if(pointSizeAttribLocation >= 0)
+//        {
+//            glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
+//        }
+//    }
 
     // index buffer
-    if(m_geometry->has_indices())
-        m_geometry->index_buffer().bind();
+    if(m_geometry->has_indices()){ m_geometry->index_buffer().bind(); }
 }
 
 void Mesh::bind_vertex_pointers(int material_index)
