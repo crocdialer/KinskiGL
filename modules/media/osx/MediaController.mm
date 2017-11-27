@@ -71,19 +71,12 @@ namespace kinski{ namespace media{
             if(m_output_tex_name){ glDeleteTextures(1, &m_output_tex_name); }
         };
         
-//        std::shared_ptr<CVPixelBufferRef> new_buffer()
-//        {
-//            CMTime ct = [m_player currentTime];
-//
-//            if (![m_output hasNewPixelBufferForItemTime:ct])
-//            {
-//                return std::shared_ptr<CVPixelBufferRef>();
-//            }
-//
-//            CVPixelBufferRef buffer = std::shared_ptr<CVPixelBufferRef>([m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil], [](CVPixelBufferRef b)
-//            {
-//            });
-//        }
+        CVPixelBufferRef new_buffer()
+        {
+            CMTime ct = [m_player currentTime];
+            if(![m_output hasNewPixelBufferForItemTime:ct]){ return nullptr; }
+            return [m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
+        }
     };
 
 /////////////////////////////////////////////////////////////////
@@ -302,12 +295,7 @@ namespace kinski{ namespace media{
     bool MediaController::copy_frame(std::vector<uint8_t>& data, int *width, int *height)
     {
         if(!m_impl || !m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
-
-        CMTime ct = [m_impl->m_player currentTime];
-
-        if(![m_impl->m_output hasNewPixelBufferForItemTime:ct]){ return false; }
-
-        CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
+        CVPixelBufferRef buffer = m_impl->new_buffer();
 
         if(buffer)
         {
@@ -335,12 +323,7 @@ namespace kinski{ namespace media{
     bool MediaController::copy_frame_to_image(ImagePtr& the_image)
     {
         if(!m_impl || !m_impl->m_playing || !m_impl->m_output || !m_impl->m_player_item) return false;
-        
-        CMTime ct = [m_impl->m_player currentTime];
-        
-        if(![m_impl->m_output hasNewPixelBufferForItemTime:ct]){ return false; }
-        
-        CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
+        CVPixelBufferRef buffer = m_impl->new_buffer();
         
         if(buffer)
         {
@@ -373,15 +356,7 @@ namespace kinski{ namespace media{
     bool MediaController::copy_frame_to_texture(gl::Texture &tex, bool as_texture2D)
     {
         if(!m_impl || !is_playing() || !m_impl->m_output || !m_impl->m_player_item) return false;
-
-        CMTime ct = [m_impl->m_player currentTime];
-
-        if (![m_impl->m_output hasNewPixelBufferForItemTime:ct])
-        {
-            return false;
-        }
-
-        CVPixelBufferRef buffer = [m_impl->m_output copyPixelBufferForItemTime:ct itemTimeForDisplay:nil];
+        CVPixelBufferRef buffer = m_impl->new_buffer();
 
         if(buffer)
         {

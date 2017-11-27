@@ -208,11 +208,11 @@ namespace kinski{ namespace media{
             data.resize(num_bytes);
             
             // lock base adress
-            CVPixelBufferLockBaseAddress(buffer, 0);
+            CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
             memcpy(&data[0], CVPixelBufferGetBaseAddress(buffer), num_bytes);
             
             // unlock base address, release buffer
-            CVPixelBufferUnlockBaseAddress(buffer, 0);
+            CVPixelBufferUnlockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
             return true;
         }
         return false;
@@ -227,8 +227,6 @@ namespace kinski{ namespace media{
         if(buffer)
         {
             m_impl->m_camera.has_new_frame = false;
-            
-            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
             uint32_t w = CVPixelBufferGetWidth(buffer);
             uint32_t h = CVPixelBufferGetHeight(buffer);
             constexpr uint8_t num_channels = 4;
@@ -239,6 +237,9 @@ namespace kinski{ namespace media{
                 the_image = Image::create(w, h, num_channels);
             }
             the_image->m_type = Image::Type::BGRA;
+            
+            // the buffer seems to hold some extra bytes at the end -> cap
+            size_t num_bytes = std::min(CVPixelBufferGetDataSize(buffer), the_image->num_bytes());
             
             // lock base adress
             CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);
