@@ -1015,7 +1015,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         if(theMap.find(the_mesh) == theMap.end())
         {
-            Mesh::ConstPtr m = the_mesh.lock();
+            MeshConstPtr m = the_mesh.lock();
             if(m->geometry()->normals().empty()) return;
             GeometryPtr geom = Geometry::create();
             geom->set_primitive_type(GL_LINES);

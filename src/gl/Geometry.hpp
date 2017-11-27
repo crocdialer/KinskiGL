@@ -68,7 +68,8 @@ public:
     {
         VERTEX_BIT = 1UL << 0, NORMAL_BIT = 1UL << 1, TANGENT_BIT = 1UL << 2,
         POINTSIZE_BIT = 1UL << 3, TEXCOORD_BIT = 1UL << 4, COLOR_BIT = 1UL << 5,
-        BONE_INDEX_BIT = 1UL << 6, BONE_WEIGHT_BIT = 1UL << 7, INDEX_BIT = 1UL << 8
+        BONE_INDEX_BIT = 1UL << 6, BONE_WEIGHT_BIT = 1UL << 7, INDEX_BIT = 1UL << 8,
+        CUSTOM_BIT = 1UL << 9
     };
     
     ~Geometry();

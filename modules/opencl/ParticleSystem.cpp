@@ -90,7 +90,7 @@ namespace kinski{ namespace gl{
 
         if(m_mesh)
         {
-            m_mesh->geometry()->create_gl_buffers(GL_STATIC_DRAW);
+            m_mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
             gl::GeometryConstPtr geom = m_mesh->geometry();
             
             try
@@ -140,9 +140,11 @@ namespace kinski{ namespace gl{
                 // create velocity/life VBO and VertexAttrib
                 gl::Buffer velocity_vbo(vector<glm::vec4>(geom->vertices().size(), gl::vec4(0)),
                                         GL_ARRAY_BUFFER,
-                                        GL_STATIC_DRAW);
+                                        GL_STREAM_DRAW);
                 
-                gl::Mesh::VertexAttrib va("a_velocity", velocity_vbo);
+                gl::Mesh::VertexAttrib va;
+                va.name = "a_velocity";
+                va.buffer = velocity_vbo;
                 va.size = 4;
                 m_mesh->add_vertex_attrib(va);
 

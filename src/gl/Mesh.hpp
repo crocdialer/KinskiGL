@@ -61,14 +61,13 @@ namespace kinski { namespace gl {
         
         struct Entry
         {
-            Entry():num_indices(0), num_vertices(0), base_vertex(0), base_index(0),
-            material_index(0), primitive_type(0), enabled(true){}
-            
-            uint32_t num_indices, num_vertices;
-            index_t base_vertex, base_index;
-            uint32_t material_index;
-            uint32_t primitive_type;
-            bool enabled;
+            uint32_t num_indices = 0;
+            uint32_t num_vertices = 0;
+            index_t base_vertex = 0;
+            index_t base_index = 0;
+            uint32_t material_index = 0;
+            uint32_t primitive_type = 0;
+            bool enabled = true;
         };
         
         struct VertexAttrib
@@ -81,13 +80,10 @@ namespace kinski { namespace gl {
             bool normalize = false;
         };
         
-        typedef std::shared_ptr<Mesh> Ptr;
-        typedef std::shared_ptr<const Mesh> ConstPtr;
-        
-        static Ptr create(const GeometryPtr &theGeom = gl::Geometry::create(),
-                          const MaterialPtr &theMaterial = gl::Material::create())
+        static MeshPtr create(const GeometryPtr &theGeom = gl::Geometry::create(),
+                              const MaterialPtr &theMaterial = gl::Material::create())
         {
-            return Ptr(new Mesh(theGeom, theMaterial));
+            return MeshPtr(new Mesh(theGeom, theMaterial));
         }
 
         virtual ~Mesh();
@@ -101,8 +97,9 @@ namespace kinski { namespace gl {
         //! create the vertex attrib structures corresponding to the attached Geometry
         // and store them in <m_vertex_attribs>
         void create_vertex_attribs(bool recreate = false);
-
-//        void add_vertex_attrib(const VertexAttrib& v){ m_vertex_attribs.push_back(v); };
+        
+        //! add a custom VertexAttrib
+        void add_vertex_attrib(const VertexAttrib& v);
         
         void bind_vertex_pointers(int material_index = 0);
         void bind_vertex_pointers(const gl::ShaderPtr &the_shader);
@@ -178,7 +175,7 @@ namespace kinski { namespace gl {
         std::vector<mat4> m_boneMatrices;
         
         //! holds our vertex attributes
-        std::map<Geometry::BufferBit, VertexAttrib> m_vertex_attribs;
+        std::unordered_multimap<uint32_t, VertexAttrib> m_vertex_attribs;
         
         std::string m_vertexLocationName;
         std::string m_normalLocationName;

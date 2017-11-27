@@ -85,7 +85,7 @@ void Mesh::create_vertex_attribs(bool recreate)
     VertexAttrib vertices;
     vertices.name = m_vertexLocationName;
     vertices.buffer = m_geometry->vertex_buffer();
-    m_vertex_attribs[Geometry::VERTEX_BIT] = vertices;
+    m_vertex_attribs.insert(std::make_pair(Geometry::VERTEX_BIT, vertices));
 
     if(m_geometry->has_tex_coords())
     {
@@ -93,7 +93,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         tex_coords.name = m_texCoordLocationName;
         tex_coords.buffer = m_geometry->tex_coord_buffer();
         tex_coords.size = 2;
-        m_vertex_attribs[Geometry::TEXCOORD_BIT] = tex_coords;
+        m_vertex_attribs.insert(std::make_pair(Geometry::TEXCOORD_BIT, tex_coords));
     }
 
     if(m_geometry->has_colors())
@@ -102,7 +102,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         colors.name = m_colorLocationName;
         colors.buffer = m_geometry->color_buffer();
         colors.size = 4;
-        m_vertex_attribs[Geometry::COLOR_BIT] = colors;
+        m_vertex_attribs.insert(std::make_pair(Geometry::COLOR_BIT, colors));
     }
 
     if(m_geometry->has_normals())
@@ -111,7 +111,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         normals.name = m_normalLocationName;
         normals.buffer = m_geometry->normal_buffer();
         normals.size = 3;
-        m_vertex_attribs[Geometry::NORMAL_BIT] = normals;
+        m_vertex_attribs.insert(std::make_pair(Geometry::NORMAL_BIT, normals));
     }
 
     if(m_geometry->has_tangents())
@@ -120,7 +120,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         tangents.name = m_tangentLocationName;
         tangents.buffer = m_geometry->tangent_buffer();
         tangents.size = 3;
-        m_vertex_attribs[Geometry::TANGENT_BIT] = tangents;
+        m_vertex_attribs.insert(std::make_pair(Geometry::TANGENT_BIT, tangents));
     }
 
     if(m_geometry->has_point_sizes())
@@ -129,7 +129,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         point_sizes.name = m_pointSizeLocationName;
         point_sizes.buffer = m_geometry->point_size_buffer();
         point_sizes.size = 1;
-        m_vertex_attribs[Geometry::POINTSIZE_BIT] = point_sizes;
+        m_vertex_attribs.insert(std::make_pair(Geometry::POINTSIZE_BIT, point_sizes));
     }
 
     if(m_geometry->has_bones())
@@ -144,7 +144,7 @@ void Mesh::create_vertex_attribs(bool recreate)
 #else
         bone_indices.type = GL_FLOAT;
 #endif
-        m_vertex_attribs[Geometry::BONE_INDEX_BIT] = bone_indices;
+        m_vertex_attribs.insert(std::make_pair(Geometry::BONE_INDEX_BIT, bone_indices));
 
         // bone weights
         VertexAttrib bone_weights;
@@ -153,10 +153,15 @@ void Mesh::create_vertex_attribs(bool recreate)
         bone_weights.size = 4;
         bone_weights.type = GL_FLOAT;
         bone_weights.offset = offsetof(BoneVertexData, weights);
-        m_vertex_attribs[Geometry::BONE_WEIGHT_BIT] = bone_weights;
+        m_vertex_attribs.insert(std::make_pair(Geometry::BONE_WEIGHT_BIT, bone_weights));
     }
 }
 
+void Mesh::add_vertex_attrib(const VertexAttrib& v)
+{
+    m_vertex_attribs.insert(std::make_pair(Geometry::CUSTOM_BIT, v));
+}
+    
 void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
 {
     if(m_vertex_attribs.empty()){ create_vertex_attribs(); }
@@ -192,25 +197,6 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
             KINSKI_CHECK_GL_ERRORS();
         }
     }
-
-//    //set standard values for some attribs, in case they're not defined
-//    if(!m_geometry->has_colors())
-//    {
-//        GLint colorAttribLocation = the_shader->attrib_location(m_colorLocationName);
-//        if(colorAttribLocation >= 0)
-//        {
-//            glVertexAttrib4f(colorAttribLocation, 1.0f, 1.0f, 1.0f, 1.0f);
-//        }
-//    }
-//
-//    if(!m_geometry->has_point_sizes())
-//    {
-//        GLint pointSizeAttribLocation = the_shader->attrib_location(m_pointSizeLocationName);
-//        if(pointSizeAttribLocation >= 0)
-//        {
-//            glVertexAttrib1f(pointSizeAttribLocation, 1.0f);
-//        }
-//    }
 
     // index buffer
     if(m_geometry->has_indices()){ m_geometry->index_buffer().bind(); }
