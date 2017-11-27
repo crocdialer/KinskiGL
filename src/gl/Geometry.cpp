@@ -80,14 +80,7 @@ std::vector<HalfEdge> compute_half_edges(gl::GeometryPtr the_geom)
     
 Geometry::Geometry():
 m_primitive_type(GL_TRIANGLES),
-m_dirty_vertex_buffer(true),
-m_dirty_normal_buffer(true),
-m_dirty_tex_coord_buffer(true),
-m_dirty_color_buffer(true),
-m_dirty_tangent_buffer(true),
-m_dirty_point_size_buffer(true),
-m_dirty_index_buffer(true),
-m_dirty_bone_buffer(true)
+m_dirty_bits(0)
 {
 
 }
@@ -104,6 +97,11 @@ void Geometry::compute_aabb()
 
 void Geometry::compute_face_normals()
 {
+    if(m_faces.empty()) return;
+    
+    // set dirty flag
+    set_flag(NORMAL_BIT);
+    
     m_normals.resize(m_vertices.size());
     
     for(const Face3& face : m_faces)
@@ -121,7 +119,7 @@ void Geometry::compute_vertex_normals()
     if(m_faces.empty()) return;
     
     // set dirty flag
-    m_dirty_normal_buffer = true;
+    set_flag(NORMAL_BIT);
     
     // create tmp array, if not yet constructed
     if(m_normals.size() != m_vertices.size())
@@ -152,7 +150,9 @@ void Geometry::compute_tangents()
     if(m_faces.empty()) return;
     if(m_tex_coords.size() != m_vertices.size()) return;
 
-    m_dirty_tangent_buffer = true;
+    // set dirty flag
+    set_flag(TANGENT_BIT);
+    
     vector<glm::vec3> tangents;
     if(m_tangents.size() != m_vertices.size())
     {
@@ -203,15 +203,7 @@ void Geometry::compute_tangents()
 
 bool Geometry::has_dirty_buffers() const
 {
-    return m_dirty_vertex_buffer ||
-        (has_indices() && m_dirty_index_buffer) ||
-        (has_normals() && m_dirty_normal_buffer) ||
-        (has_colors() && m_dirty_color_buffer) ||
-        (has_tex_coords() && m_dirty_tex_coord_buffer) ||
-        (has_tangents() && m_dirty_tangent_buffer) ||
-        (has_tex_coords() && m_dirty_tex_coord_buffer) ||
-        (has_point_sizes() && m_dirty_point_size_buffer);
-
+    return m_dirty_bits;
 }
 
 void Geometry::create_gl_buffers(GLenum usage)
@@ -225,115 +217,141 @@ void Geometry::create_gl_buffers(GLenum usage)
         return the_usage != GL_DONT_CARE ? the_usage : the_buf ? the_buf.usage() : GL_STATIC_DRAW;
     };
     
-    if(!m_vertices.empty() && (m_dirty_vertex_buffer || m_vertex_buffer.usage() != usage))
+    if(has_flag(VERTEX_BIT) || m_vertex_buffer.usage() != usage)
     {
-        if(!m_vertex_buffer || m_vertex_buffer.usage() != usage)
-            m_vertex_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_vertex_buffer, usage));
-        
-        m_vertex_buffer.set_data(nullptr, m_vertices.size() * sizeof(glm::vec4));
-        m_vertex_buffer.set_stride(sizeof(glm::vec4));
-        
-        // pad vec3 -> vec4 (OpenCL compat issue)
-        glm::vec4 *buf_ptr = (glm::vec4*) m_vertex_buffer.map();
-        for (const auto &v3 : m_vertices){ (*buf_ptr++) = glm::vec4(v3, 1.f); }
-        m_vertex_buffer.unmap();
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_vertex_buffer = false;
+        if(!m_vertices.empty())
+        {
+            if(!m_vertex_buffer || m_vertex_buffer.usage() != usage)
+                m_vertex_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_vertex_buffer, usage));
+            
+            m_vertex_buffer.set_data(nullptr, m_vertices.size() * sizeof(glm::vec4));
+            m_vertex_buffer.set_stride(sizeof(glm::vec4));
+            
+            // pad vec3 -> vec4 (OpenCL compat issue)
+            glm::vec4 *buf_ptr = (glm::vec4*) m_vertex_buffer.map();
+            for (const auto &v3 : m_vertices){ (*buf_ptr++) = glm::vec4(v3, 1.f); }
+            m_vertex_buffer.unmap();
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(VERTEX_BIT);
     }
 
     // insert normals
-    if(has_normals() && (m_dirty_normal_buffer || usage != m_normal_buffer.usage()))
+    if(has_flag(NORMAL_BIT) || usage != m_normal_buffer.usage())
     {
-        if(!m_normal_buffer || m_normal_buffer.usage() != usage)
-            m_normal_buffer = gl::Buffer(m_normals, GL_ARRAY_BUFFER, usage_fn(m_normal_buffer, usage));
-        
-        m_normal_buffer.set_data(m_normals);
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_normal_buffer = false;
+        if(has_normals())
+        {
+            if(!m_normal_buffer || m_normal_buffer.usage() != usage)
+            {
+                m_normal_buffer = gl::Buffer(m_normals, GL_ARRAY_BUFFER,
+                                             usage_fn(m_normal_buffer, usage));
+            }
+            m_normal_buffer.set_data(m_normals);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(NORMAL_BIT);
     }
 
     // insert normals
-    if(has_tex_coords() && (m_dirty_tex_coord_buffer || usage != m_tex_coord_buffer.usage()))
+    if(has_flag(TEXCOORD_BIT) || usage != m_tex_coord_buffer.usage())
     {
-        if(!m_tex_coord_buffer || m_tex_coord_buffer.usage() != usage)
-            m_tex_coord_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_tex_coord_buffer, usage));
-        
-        m_tex_coord_buffer.set_data(m_tex_coords);
-        
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_tex_coord_buffer = false;
+        if(has_tex_coords())
+        {
+            if(!m_tex_coord_buffer || m_tex_coord_buffer.usage() != usage)
+            {
+                m_tex_coord_buffer = gl::Buffer(GL_ARRAY_BUFFER,
+                                                usage_fn(m_tex_coord_buffer, usage));
+            }
+            m_tex_coord_buffer.set_data(m_tex_coords);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(TEXCOORD_BIT);
     }
 
     // insert tangents
-    if(has_tangents() && (m_dirty_tangent_buffer || usage != m_tangent_buffer.usage()))
+    if(has_flag(TANGENT_BIT) || usage != m_tangent_buffer.usage())
     {
-        if(!m_tangent_buffer || m_tangent_buffer.usage() != usage)
-            m_tangent_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_tangent_buffer, usage));
-        
-        m_tangent_buffer.set_data(m_tangents);
-        
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_tangent_buffer = false;
+        if(has_tangents())
+        {
+            if(!m_tangent_buffer || m_tangent_buffer.usage() != usage)
+                m_tangent_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_tangent_buffer, usage));
+            
+            m_tangent_buffer.set_data(m_tangents);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(TANGENT_BIT);
     }
 
     // insert point sizes
-    if(has_point_sizes() && (m_dirty_point_size_buffer || usage != m_point_size_buffer.usage()))
+    if(has_flag(POINTSIZE_BIT) || usage != m_point_size_buffer.usage())
     {
-        if(!m_point_size_buffer || m_point_size_buffer.usage() != usage)
-            m_point_size_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_point_size_buffer, usage));
-        
-        m_point_size_buffer.set_data(m_point_sizes);
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_point_size_buffer = false;
+        if(has_point_sizes())
+        {
+            if(!m_point_size_buffer || m_point_size_buffer.usage() != usage)
+                m_point_size_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_point_size_buffer, usage));
+            
+            m_point_size_buffer.set_data(m_point_sizes);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(POINTSIZE_BIT);
     }
 
     // insert colors
-    if(has_colors() && (m_dirty_color_buffer || usage != m_color_buffer.usage()))
+    if(has_flag(COLOR_BIT) || usage != m_color_buffer.usage())
     {
-        if(!m_color_buffer || m_color_buffer.usage() != usage)
-            m_color_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_color_buffer, usage));
-        
-        m_color_buffer.set_data(m_colors);
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_color_buffer = false;
+        if(has_colors())
+        {
+            if(!m_color_buffer || m_color_buffer.usage() != usage)
+                m_color_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_color_buffer, usage));
+            
+            m_color_buffer.set_data(m_colors);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(COLOR_BIT);
     }
 
     // insert bone indices and weights
-    if(has_bones() && (m_dirty_bone_buffer || usage != m_bone_buffer.usage()))
+    if(has_flag(BONES_BIT) || usage != m_bone_buffer.usage())
     {
-        if(!m_bone_buffer || m_bone_buffer.usage() != usage)
-            m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
-        
-#if !defined(KINSKI_GLES_2)
-        m_bone_buffer.set_data(m_bone_vertex_data);
-#else
-        // crunch bone-indices to floats
-        m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
-        size_t bone_stride = 2 * sizeof(glm::vec4);
-        m_bone_buffer.set_data(nullptr, m_bone_vertex_data.size() * bone_stride);
-        m_bone_buffer.set_stride(bone_stride);
-        glm::vec4 *buf_ptr = (glm::vec4*) m_bone_buffer.map();
-
-        for (const auto &b : m_bone_vertex_data)
+        if(has_bones())
         {
-            *buf_ptr++ = gl::vec4(b.indices);
-            *buf_ptr++ = b.weights;
-        }
-        m_bone_buffer.unmap();
+            if(!m_bone_buffer || m_bone_buffer.usage() != usage)
+                m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
+            
+#if !defined(KINSKI_GLES_2)
+            m_bone_buffer.set_data(m_bone_vertex_data);
+#else
+            // crunch bone-indices to floats
+            m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
+            size_t bone_stride = 2 * sizeof(glm::vec4);
+            m_bone_buffer.set_data(nullptr, m_bone_vertex_data.size() * bone_stride);
+            m_bone_buffer.set_stride(bone_stride);
+            glm::vec4 *buf_ptr = (glm::vec4*) m_bone_buffer.map();
+            
+            for (const auto &b : m_bone_vertex_data)
+            {
+                *buf_ptr++ = gl::vec4(b.indices);
+                *buf_ptr++ = b.weights;
+            }
+            m_bone_buffer.unmap();
 #endif
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_bone_buffer = false;
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(BONES_BIT);
     }
 
-    if(has_indices() && (m_dirty_index_buffer || usage != m_index_buffer.usage()))
+    if(has_flag(INDEX_BIT) || usage != m_index_buffer.usage())
     {
-        if(!m_index_buffer || m_index_buffer.usage() != usage)
-            m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
-        
-        // index buffer
-        m_index_buffer.set_data(m_indices);
-        KINSKI_CHECK_GL_ERRORS();
-        m_dirty_index_buffer = false;
+        if(has_indices())
+        {
+            if(!m_index_buffer || m_index_buffer.usage() != usage)
+                m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
+            
+            // index buffer
+            m_index_buffer.set_data(m_indices);
+            KINSKI_CHECK_GL_ERRORS();
+        }
+        remove_flag(INDEX_BIT);
     }
 }
 
