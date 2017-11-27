@@ -349,8 +349,8 @@ GLenum Geometry::index_type()
 
 /********************************* PRIMITIVES ****************************************/
 
-Geometry::Ptr Geometry::create_plane(float width, float height,
-                                     uint32_t numSegments_W , uint32_t numSegments_H)
+GeometryPtr Geometry::create_plane(float width, float height,
+                                   uint32_t numSegments_W , uint32_t numSegments_H)
 {
     GeometryPtr geom = Geometry::create();
 
@@ -452,7 +452,7 @@ GeometryPtr Geometry::create_circle(int numSegments, float the_radius)
     return ret;
 }
 
-Geometry::Ptr Geometry::create_box(const glm::vec3 &the_half_extents)
+GeometryPtr Geometry::create_box(const glm::vec3 &the_half_extents)
 {
     GeometryPtr geom = Geometry::create();
 
@@ -597,7 +597,7 @@ GeometryPtr Geometry::create_box_lines(const glm::vec3 &the_half_extents)
     return geom;
 }
 
-Geometry::Ptr Geometry::create_sphere(float radius, int numSlices)
+GeometryPtr Geometry::create_sphere(float radius, int numSlices)
 {
     uint32_t rings = numSlices, sectors = numSlices;
     GeometryPtr geom = Geometry::create();

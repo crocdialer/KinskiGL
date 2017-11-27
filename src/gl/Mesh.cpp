@@ -39,7 +39,7 @@ BonePtr get_bone_by_name(BonePtr root, const std::string &the_name)
     return BonePtr();
 }
 
-Mesh::Mesh(const Geometry::Ptr &theGeom, const MaterialPtr &theMaterial):
+Mesh::Mesh(const GeometryPtr &theGeom, const MaterialPtr &theMaterial):
 Object3D(),
 m_geometry(theGeom),
 m_animation_index(0),

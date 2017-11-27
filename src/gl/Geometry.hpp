@@ -64,8 +64,6 @@ namespace kinski{ namespace gl{
     {
     public:
         
-        typedef std::shared_ptr<Geometry> Ptr;
-        
         ~Geometry();
         
         inline void append_vertex(const vec3 &theVert)
@@ -214,7 +212,7 @@ namespace kinski{ namespace gl{
         
         /********************************* Factory methods ****************************************/
          
-        static GeometryPtr create(){return Ptr(new Geometry());};
+        static GeometryPtr create(){return GeometryPtr(new Geometry());};
         static GeometryPtr create_grid(float width, float height,
                                        uint32_t numSegments_W = 20,
                                        uint32_t numSegments_H = 20);
@@ -254,6 +252,9 @@ namespace kinski{ namespace gl{
         gl::Buffer m_point_size_buffer;
         gl::Buffer m_index_buffer;
         gl::Buffer m_bone_buffer;
+        
+        // bitmask for dirty buffers
+        uint32_t m_dirty_bits;
         
         bool m_dirty_vertex_buffer;
         bool m_dirty_normal_buffer;
