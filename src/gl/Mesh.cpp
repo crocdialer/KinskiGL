@@ -152,7 +152,7 @@ void Mesh::create_vertex_attribs(bool recreate)
         bone_weights.buffer = m_geometry->bone_buffer();
         bone_weights.size = 4;
         bone_weights.type = GL_FLOAT;
-        bone_weights.offset = sizeof(glm::ivec4);
+        bone_weights.offset = offsetof(BoneVertexData, weights);
         m_vertex_attribs[Geometry::BONE_WEIGHT_BIT] = bone_weights;
     }
 }

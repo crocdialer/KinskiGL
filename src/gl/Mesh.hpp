@@ -73,8 +73,6 @@ namespace kinski { namespace gl {
         
         struct VertexAttrib
         {
-//            VertexAttrib(const std::string &the_name, const gl::Buffer &the_buffer):
-//            name(the_name), buffer(the_buffer){}
             std::string name;
             gl::Buffer buffer;
             size_t size = 3;
