@@ -248,7 +248,7 @@ void ModelViewer::draw()
     }
 
     // draw texture map(s)
-    if(displayTweakBar())
+    if(display_tweakbar())
     {
         if(*m_use_deferred_render && m_deferred_renderer->g_buffer())
         {

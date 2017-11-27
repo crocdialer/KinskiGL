@@ -103,8 +103,8 @@ namespace kinski
         inline bool running() const { return m_running; };
         inline void set_running(bool b){ m_running = b; }
         
-        inline void displayTweakBar(bool b) {m_displayTweakBar = b;};
-        inline bool displayTweakBar() const {return m_displayTweakBar;};
+        virtual void set_display_tweakbar(bool b) {m_displayTweakBar = b;};
+        inline bool display_tweakbar() const {return m_displayTweakBar;};
         
         inline float max_fps() const {return m_max_fps;};
         inline void set_max_fps(float fps){m_max_fps = fps;};

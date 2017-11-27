@@ -179,7 +179,7 @@ namespace kinski {
                                                              glm::radians(-m_inertia.x), 0)));
         }
         // rotation from fixed rotationspeed
-        else if(!m_mouse_down || displayTweakBar())
+        else if(!m_mouse_down || display_tweakbar())
         {
             *m_rotation = glm::mat3( glm::rotate(glm::mat4(m_rotation->value()),
                                                  *m_rotation_speed * timeDelta,
@@ -262,7 +262,7 @@ namespace kinski {
         if(e.isLeft() || e.is_touch())
         {
             if(e.isAltDown() && *m_use_warping){ m_warp_component->mouse_drag(e); }
-            else if(!displayTweakBar() || e.isAltDown())
+            else if(!display_tweakbar() || e.isAltDown())
             {
                 *m_rotation = glm::mat3_cast(glm::quat(m_lastTransform) *
                                              glm::quat(glm::vec3(glm::radians(-mouseDiff.y),
@@ -283,7 +283,7 @@ namespace kinski {
     void ViewerApp::mouse_release(const MouseEvent &e)
     {
         m_mouse_down = false;
-        if(!displayTweakBar()){ m_inertia = kinski::mean<glm::vec2>(m_drag_buffer); }
+        if(!display_tweakbar()){ m_inertia = kinski::mean<glm::vec2>(m_drag_buffer); }
     }
 
     void ViewerApp::mouse_wheel(const MouseEvent &e)
@@ -302,7 +302,7 @@ namespace kinski {
         
         if(*m_use_warping){ m_warp_component->key_press(e); }
         
-        if(!displayTweakBar())
+        if(!display_tweakbar())
         {
             switch (e.getCode())
             {
@@ -373,7 +373,7 @@ namespace kinski {
         }
         else if(theProperty == m_show_tweakbar)
         {
-            displayTweakBar(*m_show_tweakbar);
+            set_display_tweakbar(*m_show_tweakbar);
         }
         else if(theProperty == m_hide_cursor)
         {

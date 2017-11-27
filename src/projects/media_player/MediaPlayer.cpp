@@ -165,7 +165,7 @@ void MediaPlayer::draw()
     {
         gl::draw_text_2D(to_string(m_is_syncing) + " ms", fonts()[1], gl::COLOR_WHITE, vec2(50));
     }
-    if(displayTweakBar())
+    if(display_tweakbar())
     {
         // media title
         gl::draw_text_2D(m_media->is_loaded() ? fs::get_filename_part(m_media->path()) : *m_media_path,

@@ -272,8 +272,11 @@ namespace kinski
     void GLFW_App::set_cursor_visible(bool b)
     {
         App::set_cursor_visible(b);
-        glfwSetInputMode(m_windows.front()->handle(), GLFW_CURSOR,
-                         b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+        
+        for(auto &w : m_windows)
+        {
+            glfwSetInputMode(w->handle(), GLFW_CURSOR, b ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+        }
     }
 
     gl::vec2 GLFW_App::cursor_position() const
@@ -383,6 +386,7 @@ namespace kinski
             set_window_size(new_res);
 
             gl::reset_state();
+            set_cursor_visible(cursor_visible());
             App::set_fullscreen(b, monitor_index);
         });
     }
@@ -427,7 +431,7 @@ namespace kinski
                 draw();
 
                 // draw tweakbar
-                if(displayTweakBar())
+                if(display_tweakbar())
                 {
                     // console output
                     outstream_gl().draw();
@@ -497,7 +501,7 @@ namespace kinski
     void GLFW_App::s_mouseMove(GLFWwindow* window, double x, double y)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar() && app->windows().front()->handle() == window)
+        if(app->display_tweakbar() && app->windows().front()->handle() == window)
         {
             auto &w = app->windows().front();
             auto fb_pos = w->framebuffer_size() * gl::vec2(x, y) / w->size();
@@ -517,7 +521,7 @@ namespace kinski
     void GLFW_App::s_mouseButton(GLFWwindow* window, int button, int action, int modifier_mask)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar() && app->windows().front()->handle() == window)
+        if(app->display_tweakbar() && app->windows().front()->handle() == window)
             TwEventMouseButtonGLFW(button, action);
 
         uint32_t initiator, keyModifiers, bothMods;
@@ -546,7 +550,7 @@ namespace kinski
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
         glm::ivec2 offset = glm::ivec2(offset_x, offset_y);
         app->m_lastWheelPos -= offset;
-        if(app->displayTweakBar() && app->windows().front()->handle() == window)
+        if(app->display_tweakbar() && app->windows().front()->handle() == window)
             TwMouseWheel(app->m_lastWheelPos.y);
 
         double posX, posY;
@@ -560,7 +564,7 @@ namespace kinski
     void GLFW_App::s_keyFunc(GLFWwindow* window, int key, int scancode, int action, int modifier_mask)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar() && app->windows().front()->handle() == window)
+        if(app->display_tweakbar() && app->windows().front()->handle() == window)
             TwEventKeyGLFW(key, action);
 
         uint32_t buttonMod, keyMod;
@@ -588,7 +592,7 @@ namespace kinski
     void GLFW_App::s_charFunc(GLFWwindow* window, unsigned int key)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-        if(app->displayTweakBar() && app->windows().front()->handle() == window)
+        if(app->display_tweakbar() && app->windows().front()->handle() == window)
             TwEventCharGLFW(key, GLFW_PRESS);
 
         if(key == GLFW_KEY_SPACE){return;}
@@ -663,18 +667,30 @@ namespace kinski
     }
 
 /****************************  TweakBar + Properties **************************/
-
+    
+    void GLFW_App::set_display_tweakbar(bool b)
+    {
+        App::set_display_tweakbar(b);
+        
+        if(!b)
+        {
+            bool c = cursor_visible();
+            set_cursor_visible(true);
+            set_cursor_visible(c);
+        }
+    }
+    
     void GLFW_App::add_tweakbar_for_component(const ComponentPtr &the_component)
     {
         if(!the_component) return;
         auto tw_bar = std::shared_ptr<CTwBar>(TwNewBar(the_component->name().c_str()), TwDeleteBar);
         m_tweakBars[the_component] = tw_bar;
 
-        setBarColor(glm::vec4(0, 0, 0, .5), tw_bar.get());
-        setBarSize(glm::ivec2(250, 500), tw_bar.get());
+        set_bar_color(glm::vec4(0, 0, 0, .5), tw_bar.get());
+        set_bar_size(glm::ivec2(250, 500), tw_bar.get());
         glm::ivec2 offset(10, 40);
-        setBarPosition(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), tw_bar.get());
-        addPropertyListToTweakBar(the_component->get_property_list(), "", tw_bar.get());
+        set_bar_position(glm::ivec2(offset.x + 260 * (m_tweakBars.size() - 1), offset.y), tw_bar.get());
+        add_list_to_tweakbar(the_component->get_property_list(), "", tw_bar.get());
     }
 
     void GLFW_App::remove_tweakbar_for_component(const ComponentPtr &the_component)
@@ -687,7 +703,7 @@ namespace kinski
         }
     }
 
-    void GLFW_App::addPropertyToTweakBar(const Property::Ptr propPtr,
+    void GLFW_App::add_property_to_tweakbar(const Property::Ptr propPtr,
                                          const string &group,
                                          TwBar *theBar)
     {
@@ -701,9 +717,9 @@ namespace kinski
         catch (AntTweakBarConnector::PropertyUnsupportedException &e){ LOG_ERROR<<e.what(); }
     }
 
-    void GLFW_App::addPropertyListToTweakBar(const list<Property::Ptr> &theProps,
-                                             const string &group,
-                                             TwBar *theBar)
+    void GLFW_App::add_list_to_tweakbar(const list<Property::Ptr> &theProps,
+                                        const string &group,
+                                        TwBar *theBar)
     {
         if(!theBar)
         {
@@ -712,12 +728,12 @@ namespace kinski
         }
         for (const auto &property : theProps)
         {
-            addPropertyToTweakBar(property, group, theBar);
+            add_property_to_tweakbar(property, group, theBar);
         }
         TwAddSeparator(theBar, "sep1", NULL);
     }
 
-    void GLFW_App::setBarPosition(const glm::ivec2 &thePos, TwBar *theBar)
+    void GLFW_App::set_bar_position(const glm::ivec2 &thePos, TwBar *theBar)
     {
         if(!theBar)
         {
@@ -730,7 +746,7 @@ namespace kinski
         TwDefine(ss.str().c_str());
     }
 
-    void GLFW_App::setBarSize(const glm::ivec2 &theSize, TwBar *theBar)
+    void GLFW_App::set_bar_size(const glm::ivec2 &theSize, TwBar *theBar)
     {
         if(!theBar)
         {
@@ -743,7 +759,7 @@ namespace kinski
         TwDefine(ss.str().c_str());
     }
 
-    void GLFW_App::setBarColor(const glm::vec4 &theColor, TwBar *theBar)
+    void GLFW_App::set_bar_color(const glm::vec4 &theColor, TwBar *theBar)
     {
         if(!theBar)
         {
@@ -757,7 +773,7 @@ namespace kinski
         TwDefine(ss.str().c_str());
     }
 
-    void GLFW_App::setBarTitle(const std::string &theTitle, TwBar *theBar)
+    void GLFW_App::set_bar_title(const std::string &theTitle, TwBar *theBar)
     {
         if(!theBar)
         {

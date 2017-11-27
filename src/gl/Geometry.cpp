@@ -353,6 +353,9 @@ void Geometry::create_gl_buffers(GLenum usage)
         }
         remove_flag(INDEX_BIT);
     }
+    
+    // not necessary, but who knows
+    m_dirty_bits = 0;
 }
 
 GLenum Geometry::index_type()

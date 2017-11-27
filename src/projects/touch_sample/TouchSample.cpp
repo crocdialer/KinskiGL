@@ -71,7 +71,7 @@ void TouchSample::draw()
     // draw info text
     gl::draw_text_2D(name(), fonts()[FONT_LARGE], gl::COLOR_WHITE, gl::vec2(20));
     
-    if(displayTweakBar()){ draw_textures(textures()); }
+    if(display_tweakbar()){ draw_textures(textures()); }
 }
 
 /////////////////////////////////////////////////////////////////

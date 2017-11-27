@@ -94,18 +94,20 @@ namespace kinski
         
         ///////////////////////////////////////////////////////////////////////////////
         
-        void addPropertyToTweakBar(const Property::Ptr propPtr,
-                                   const std::string &group = "",
-                                   CTwBar *theBar = nullptr);
+        void set_display_tweakbar(bool b) override;
         
-        void addPropertyListToTweakBar(const std::list<Property::Ptr> &theProps,
-                                       const std::string &group = "",
-                                       CTwBar *theBar = nullptr);
+        void add_property_to_tweakbar(const Property::Ptr propPtr,
+                                      const std::string &group = "",
+                                      CTwBar *theBar = nullptr);
         
-        void setBarPosition(const glm::ivec2 &thePos, CTwBar *theBar = nullptr);
-        void setBarSize(const glm::ivec2 &theSize, CTwBar *theBar = nullptr);
-        void setBarColor(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
-        void setBarTitle(const std::string &theTitle, CTwBar *theBar = nullptr);
+        void add_list_to_tweakbar(const std::list<Property::Ptr> &theProps,
+                                  const std::string &group = "",
+                                  CTwBar *theBar = nullptr);
+        
+        void set_bar_position(const glm::ivec2 &thePos, CTwBar *theBar = nullptr);
+        void set_bar_size(const glm::ivec2 &theSize, CTwBar *theBar = nullptr);
+        void set_bar_color(const glm::vec4 &theColor, CTwBar *theBar = nullptr);
+        void set_bar_title(const std::string &theTitle, CTwBar *theBar = nullptr);
         
         void add_tweakbar_for_component(const ComponentPtr &the_component) override;
         void remove_tweakbar_for_component(const ComponentPtr &the_component) override;

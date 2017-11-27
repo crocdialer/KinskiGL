@@ -169,6 +169,7 @@ namespace kinski{ namespace gl{
             auto grid_geom = gl::Geometry::create();
             grid_geom->append_vertices(m_mesh->geometry()->vertices());
             grid_geom->set_primitive_type(GL_LINES);
+            grid_geom->colors().resize(m_mesh->geometry()->vertices().size(), gl::COLOR_WHITE);
             auto &indices = grid_geom->indices();
             
             uint32_t num_w = m_grid_num_w + 1, num_h = m_grid_num_h + 1;
