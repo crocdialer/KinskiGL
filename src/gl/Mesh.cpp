@@ -218,7 +218,7 @@ void Mesh::update(float time_delta)
         anim.current_time += anim.current_time < 0.f ? anim.duration : 0.f;
 
         m_boneMatrices.resize(get_num_bones(m_rootBone));
-        build_bone_matrices(anim.current_time, m_rootBone, glm::mat4(), m_boneMatrices);
+        build_bone_matrices(anim.current_time, m_rootBone, m_boneMatrices);
     }
 }
 
@@ -235,11 +235,11 @@ uint32_t Mesh::get_num_bones(const BonePtr &theRoot)
 void Mesh::init_bone_matrices()
 {
     m_boneMatrices.resize(get_num_bones(m_rootBone));
-    build_bone_matrices(0, m_rootBone, glm::mat4(), m_boneMatrices);
+    build_bone_matrices(0, m_rootBone, m_boneMatrices);
 }
 
-void Mesh::build_bone_matrices(float time, BonePtr bone, glm::mat4 parentTransform,
-                               std::vector<glm::mat4> &matrices)
+void Mesh::build_bone_matrices(float time, BonePtr bone, std::vector<glm::mat4> &matrices,
+                               glm::mat4 parentTransform)
 {
     if(m_animations.empty()) return;
 
@@ -335,11 +335,7 @@ void Mesh::build_bone_matrices(float time, BonePtr bone, glm::mat4 parentTransfo
     matrices[bone->index] = bone->worldtransform * bone->offset;
 
     // recursion through all children
-    std::list<BonePtr>::iterator it = bone->children.begin();
-    for (; it != bone->children.end(); ++it)
-    {
-        build_bone_matrices(time, *it, bone->worldtransform, matrices);
-    }
+    for (auto &b : bone->children){ build_bone_matrices(time, b, matrices, bone->worldtransform); }
 }
 
 AABB Mesh::aabb() const
