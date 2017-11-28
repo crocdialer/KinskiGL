@@ -56,9 +56,6 @@ namespace kinski { namespace gl {
     
     BonePtr get_bone_by_name(BonePtr root, const std::string &the_name);
     
-    void build_bone_matrices(const MeshAnimation &the_animation, BonePtr bone,
-                             std::vector<mat4> &matrices, mat4 parentTransform = gl::mat4());
-    
     class KINSKI_API Mesh : public Object3D
     {
     public:
@@ -137,13 +134,12 @@ namespace kinski { namespace gl {
         
         float animation_speed() const { return m_animation_speed; }
         void set_animation_speed(const float the_speed) { m_animation_speed = the_speed; }
-        
-        std::vector<mat4>& bone_matrices(){ return m_boneMatrices; };
+
         const std::vector<mat4>& bone_matrices() const { return m_boneMatrices; };
-        
-        void set_root_bone(BonePtr b){ m_rootBone = b; };
+
         const BonePtr& root_bone() const { return m_rootBone; };
-        
+        void set_root_bone(BonePtr b){ m_rootBone = b; };
+
         uint32_t get_num_bones(const BonePtr &theRoot);
         
         /*!
@@ -156,7 +152,10 @@ namespace kinski { namespace gl {
     private:
         
         Mesh(const GeometryPtr &theGeom, const MaterialPtr &theMaterial);
-        
+
+        void build_bone_matrices(BonePtr bone, std::vector<glm::mat4> &matrices,
+                                 glm::mat4 parentTransform = glm::mat4());
+
         GeometryPtr m_geometry;
         std::vector<Entry> m_entries;
         std::vector<MaterialPtr> m_materials;
