@@ -57,7 +57,7 @@ void ModelViewer::setup()
     // create our UI
     add_tweakbar_for_component(shared_from_this());
     add_tweakbar_for_component(m_light_component);
-    remote_control().set_components({ shared_from_this(), m_warp_component });
+    remote_control().set_components({ shared_from_this(), m_light_component, m_warp_component });
 
     auto light_geom = gl::Geometry::create_sphere(2.f, 24);
     
@@ -104,60 +104,6 @@ void ModelViewer::update(float timeDelta)
     }
     
     auto js_states = get_joystick_states();
-}
-
-void ModelViewer::update_fbos()
-{
-    // check fbo
-    vec2 offscreen_sz = *m_offscreen_resolution;
-    vec2 sz = (offscreen_sz.x > 0 && offscreen_sz.y > 0) ?
-              *m_offscreen_resolution : gl::window_dimension();
-
-    if(*m_use_warping)
-    {
-        if(!m_offscreen_fbo || m_offscreen_fbo.size() != sz)
-        {
-            gl::Fbo::Format fmt;
-            try{ m_offscreen_fbo = gl::Fbo(sz, fmt); }
-            catch(Exception &e){ LOG_WARNING << e.what(); }
-        }
-    }
-    if(*m_use_post_process)
-    {
-        if(!m_post_process_fbo || m_post_process_fbo.size() != sz)
-        {
-            gl::Fbo::Format fmt;
-            fmt.set_num_samples(8);
-            try{ m_post_process_fbo = gl::Fbo(sz, fmt); }
-            catch(Exception &e){ LOG_WARNING << e.what(); }
-        }
-
-        // check material
-        if(!m_post_process_mat)
-        {
-            try
-            {
-                gl::ShaderPtr shader = create_shader(gl::ShaderType::DEPTH_OF_FIELD);
-                m_post_process_mat = gl::Material::create(shader);
-                m_post_process_mat->set_depth_write(false);
-                m_post_process_mat->set_depth_test(false);
-            }catch(Exception &e){ LOG_WARNING << e.what(); }
-        }
-
-        camera()->set_clipping(0.1f, 1000.f);
-        m_post_process_mat->uniform("u_window_dimension", gl::window_dimension());
-        m_post_process_mat->uniform("u_znear", camera()->near());
-        m_post_process_mat->uniform("u_zfar", camera()->far());
-        m_post_process_mat->uniform("u_focal_depth", *m_focal_depth);
-        m_post_process_mat->uniform("u_focal_length", *m_focal_length);
-        m_post_process_mat->uniform("u_fstop", *m_fstop);
-        m_post_process_mat->uniform("u_gain", *m_gain);
-        m_post_process_mat->uniform("u_fringe", *m_fringe);
-        m_post_process_mat->uniform("u_debug_focus", *m_debug_focus);
-        m_post_process_mat->uniform("u_auto_focus", *m_auto_focus);
-        m_post_process_mat->uniform("u_circle_of_confusion_sz", *m_circle_of_confusion_sz);
-
-    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -281,6 +227,62 @@ void ModelViewer::draw()
             }
             draw_textures(comb_texs);
         }
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
+void ModelViewer::update_fbos()
+{
+    // check fbo
+    vec2 offscreen_sz = *m_offscreen_resolution;
+    vec2 sz = (offscreen_sz.x > 0 && offscreen_sz.y > 0) ?
+              *m_offscreen_resolution : gl::window_dimension();
+
+    if(*m_use_warping)
+    {
+        if(!m_offscreen_fbo || m_offscreen_fbo.size() != sz)
+        {
+            gl::Fbo::Format fmt;
+            try{ m_offscreen_fbo = gl::Fbo(sz, fmt); }
+            catch(Exception &e){ LOG_WARNING << e.what(); }
+        }
+    }
+    if(*m_use_post_process)
+    {
+        if(!m_post_process_fbo || m_post_process_fbo.size() != sz)
+        {
+            gl::Fbo::Format fmt;
+            fmt.set_num_samples(8);
+            try{ m_post_process_fbo = gl::Fbo(sz, fmt); }
+            catch(Exception &e){ LOG_WARNING << e.what(); }
+        }
+
+        // check material
+        if(!m_post_process_mat)
+        {
+            try
+            {
+                gl::ShaderPtr shader = create_shader(gl::ShaderType::DEPTH_OF_FIELD);
+                m_post_process_mat = gl::Material::create(shader);
+                m_post_process_mat->set_depth_write(false);
+                m_post_process_mat->set_depth_test(false);
+            }catch(Exception &e){ LOG_WARNING << e.what(); }
+        }
+
+        camera()->set_clipping(0.1f, 1000.f);
+        m_post_process_mat->uniform("u_window_dimension", gl::window_dimension());
+        m_post_process_mat->uniform("u_znear", camera()->near());
+        m_post_process_mat->uniform("u_zfar", camera()->far());
+        m_post_process_mat->uniform("u_focal_depth", *m_focal_depth);
+        m_post_process_mat->uniform("u_focal_length", *m_focal_length);
+        m_post_process_mat->uniform("u_fstop", *m_fstop);
+        m_post_process_mat->uniform("u_gain", *m_gain);
+        m_post_process_mat->uniform("u_fringe", *m_fringe);
+        m_post_process_mat->uniform("u_debug_focus", *m_debug_focus);
+        m_post_process_mat->uniform("u_auto_focus", *m_auto_focus);
+        m_post_process_mat->uniform("u_circle_of_confusion_sz", *m_circle_of_confusion_sz);
+
     }
 }
 
