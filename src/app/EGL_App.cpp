@@ -163,9 +163,6 @@ void EGL_App::set_window_size(const glm::vec2 &size)
 
 void EGL_App::draw_internal()
 {
-    // clear framebuffer
-    gl::clear();
-
     // fire user draw-callback
     draw();
 
