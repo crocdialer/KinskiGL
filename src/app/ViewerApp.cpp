@@ -553,13 +553,11 @@ namespace kinski {
         }
         catch(Exception &e)
         {
-            LOG_ERROR<<e.what();
+            LOG_WARNING << e.what();
             for(auto p : get_property_list()){ p->notify_observers(); }
             return false;
         }
-
         m_light_component->refresh();
-
         return true;
     }
 
