@@ -170,7 +170,7 @@ void EGL_App::draw_internal()
     draw();
 
     // draw tweakbar
-    if(displayTweakBar())
+    if(display_tweakbar())
     {
         // console output
         outstream_gl().draw();
