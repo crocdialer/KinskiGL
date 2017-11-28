@@ -84,7 +84,7 @@ public:
     void apply_emission();
     void apply_killing();
 
-    std::vector<cl::Event> m_events;
+    std::vector<cl::Event> m_events{1};
     
     gl::MeshPtr m_mesh;
 

@@ -14,15 +14,6 @@ using namespace glm;
 
 namespace kinski{ namespace gl{
 
-    namespace
-    {
-        const std::string g_update_kernel = "update_particles";
-        const std::string g_forces_kernel = "apply_forces";
-        const std::string g_constraints_kernel = "apply_contraints";
-        const std::string g_spawn_kernel = "spawn_particle";
-        const std::string g_kill_kernel = "kill_particles";
-    }
-
     struct Params
     {
         vec4 emitter_position;
@@ -31,10 +22,20 @@ namespace kinski{ namespace gl{
         mat3 rotation_matrix;
         float bouncyness;
         float life_min, life_max;
-        bool debug_life;
-        uint32_t num_alive;
+        bool debug_life = false;
+        uint32_t num_alive = 0;
     };
-
+    
+    namespace
+    {
+        const std::string g_update_kernel = "update_particles";
+        const std::string g_forces_kernel = "apply_forces";
+        const std::string g_constraints_kernel = "apply_contraints";
+        const std::string g_spawn_kernel = "spawn_particle";
+        const std::string g_kill_kernel = "kill_particles";
+        Params g_params;
+    }
+    
     ParticleSystemPtr ParticleSystem::create(const cl_context& context)
     {
         return ParticleSystemPtr(new ParticleSystem(context));
@@ -215,6 +216,10 @@ namespace kinski{ namespace gl{
                 // this passes in the vector of VBO buffer objects (position and color)
                 m_opencl.queue().enqueueAcquireGLObjects(&glBuffers);
                 
+                if(m_events[0]()){ cl::WaitForEvents(m_events); }
+                m_num_alive = std::max<uint32_t>(g_params.num_alive, 0);
+                m_mesh->entries().front().num_indices = m_num_alive;
+                
                 apply_emission();
                 
                 // pass global parameters to a buffer used by all kernels
@@ -376,7 +381,6 @@ namespace kinski{ namespace gl{
                                                           cl::NDRange(m_num_alive),
                                                           cl::NDRange(num),
                                                           cl::NullRange);
-//                    m_opencl.queue().finish();
                     m_num_alive += num;
                 }
                 catch(cl::Error &error)
@@ -413,10 +417,9 @@ namespace kinski{ namespace gl{
                     m_opencl.queue().finish();
                     
                     // read back num alive particles
-                    Params params;
-                    m_opencl.queue().enqueueReadBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
-                    m_num_alive = std::max<uint32_t>(params.num_alive, 0);
-                    m_mesh->entries().front().num_indices = m_num_alive;
+//                    Params params;
+                    m_opencl.queue().enqueueReadBuffer(m_param_buffer, false, 0, sizeof(Params),
+                                                       &g_params, nullptr, &m_events[0]);
                 }
                 catch(cl::Error &error)
                 {
