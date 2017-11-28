@@ -298,8 +298,8 @@ void Mesh::bind_vertex_pointers(const gl::ShaderPtr &the_shader)
             KINSKI_CHECK_GL_ERRORS();
         }
     }
-
-    // index buffer
+    
+    // bin index buffer
     if(m_geometry->has_indices()){ m_geometry->index_buffer().bind(); }
 }
 
@@ -405,7 +405,6 @@ GLuint Mesh::vertex_array(const gl::ShaderPtr &the_shader) const
         auto vao_it = vao_map.find(the_shader);
         if(vao_it != vao_map.end()){ return vao_it->second; }
     }
-//    LOG_WARNING << "failed to find vertex array object";
     return 0;
 }
 
@@ -444,7 +443,7 @@ void Mesh::set_animation_index(uint32_t the_index)
         m_animations[m_animation_index].current_time = 0.f;
     }
 }
-
+    
 void Mesh::accept(Visitor &theVisitor)
 {
     theVisitor.visit(*this);

@@ -210,6 +210,8 @@ void Geometry::create_gl_buffers(GLenum usage)
 {
 #if defined(KINSKI_GLES_2)
     usage = GL_STATIC_DRAW;
+//#else
+//    usage = usage != GL_DONT_CARE ? usage : GL_STATIC_DRAW;
 #endif
     
     auto usage_fn = [](gl::Buffer &the_buf, GLenum the_usage) -> GLenum
@@ -217,12 +219,14 @@ void Geometry::create_gl_buffers(GLenum usage)
         return the_usage != GL_DONT_CARE ? the_usage : the_buf ? the_buf.usage() : GL_STATIC_DRAW;
     };
     
-    if(has_flag(VERTEX_BIT) || m_vertex_buffer.usage() != usage)
+    if(has_vertices())
     {
-        if(!m_vertices.empty())
+        auto buf_usage = usage_fn(m_vertex_buffer, usage);
+        
+        if(has_flag(VERTEX_BIT) || m_vertex_buffer.usage() != buf_usage)
         {
-            if(!m_vertex_buffer || m_vertex_buffer.usage() != usage)
-                m_vertex_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_vertex_buffer, usage));
+            if(!m_vertex_buffer){ m_vertex_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_vertex_buffer.set_usage(buf_usage); }
             
             m_vertex_buffer.set_data(nullptr, m_vertices.size() * sizeof(glm::vec4));
             m_vertex_buffer.set_stride(sizeof(glm::vec4));
@@ -232,97 +236,104 @@ void Geometry::create_gl_buffers(GLenum usage)
             for (const auto &v3 : m_vertices){ (*buf_ptr++) = glm::vec4(v3, 1.f); }
             m_vertex_buffer.unmap();
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(VERTEX_BIT);
         }
-        remove_flag(VERTEX_BIT);
     }
 
     // insert normals
-    if(has_flag(NORMAL_BIT) || usage != m_normal_buffer.usage())
+    if(has_normals())
     {
-        if(has_normals())
+        auto buf_usage = usage_fn(m_normal_buffer, usage);
+        
+        if(has_flag(NORMAL_BIT) || m_normal_buffer.usage() != buf_usage)
         {
-            if(!m_normal_buffer || m_normal_buffer.usage() != usage)
-            {
-                m_normal_buffer = gl::Buffer(m_normals, GL_ARRAY_BUFFER,
-                                             usage_fn(m_normal_buffer, usage));
-            }
+            if(!m_normal_buffer){ m_normal_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_vertex_buffer.set_usage(buf_usage); }
+            
             m_normal_buffer.set_data(m_normals);
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(NORMAL_BIT);
         }
-        remove_flag(NORMAL_BIT);
     }
 
-    // insert normals
-    if(has_flag(TEXCOORD_BIT) || usage != m_tex_coord_buffer.usage())
+    // insert texcoords
+    if(has_tex_coords())
     {
-        if(has_tex_coords())
+        auto buf_usage = usage_fn(m_tex_coord_buffer, usage);
+        
+        if(has_flag(TEXCOORD_BIT) || m_tex_coord_buffer.usage() != buf_usage)
         {
-            if(!m_tex_coord_buffer || m_tex_coord_buffer.usage() != usage)
-            {
-                m_tex_coord_buffer = gl::Buffer(GL_ARRAY_BUFFER,
-                                                usage_fn(m_tex_coord_buffer, usage));
-            }
+            if(!m_tex_coord_buffer){ m_tex_coord_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_tex_coord_buffer.set_usage(buf_usage); }
+            
             m_tex_coord_buffer.set_data(m_tex_coords);
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(TEXCOORD_BIT);
         }
-        remove_flag(TEXCOORD_BIT);
     }
 
     // insert tangents
-    if(has_flag(TANGENT_BIT) || usage != m_tangent_buffer.usage())
+    if(has_tangents())
     {
-        if(has_tangents())
+        auto buf_usage = usage_fn(m_tangent_buffer, usage);
+        
+        if(has_flag(TANGENT_BIT) || m_tangent_buffer.usage() != buf_usage)
         {
-            if(!m_tangent_buffer || m_tangent_buffer.usage() != usage)
-                m_tangent_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_tangent_buffer, usage));
+            if(!m_tangent_buffer){ m_tangent_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_tangent_buffer.set_usage(buf_usage); }
             
             m_tangent_buffer.set_data(m_tangents);
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(TANGENT_BIT);
         }
-        remove_flag(TANGENT_BIT);
     }
 
     // insert point sizes
-    if(has_flag(POINTSIZE_BIT) || usage != m_point_size_buffer.usage())
+    if(has_point_sizes())
     {
-        if(has_point_sizes())
+        auto buf_usage = usage_fn(m_point_size_buffer, usage);
+        
+        if(has_flag(POINTSIZE_BIT) || m_point_size_buffer.usage() != buf_usage)
         {
-            if(!m_point_size_buffer || m_point_size_buffer.usage() != usage)
-                m_point_size_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_point_size_buffer, usage));
+            if(!m_point_size_buffer){ m_point_size_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_point_size_buffer.set_usage(buf_usage); }
             
             m_point_size_buffer.set_data(m_point_sizes);
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(POINTSIZE_BIT);
         }
-        remove_flag(POINTSIZE_BIT);
     }
 
     // insert colors
-    if(has_flag(COLOR_BIT) || usage != m_color_buffer.usage())
+    if(has_colors())
     {
-        if(has_colors())
+        auto buf_usage = usage_fn(m_color_buffer, usage);
+        
+        if(has_flag(COLOR_BIT) || m_color_buffer.usage() != buf_usage)
         {
-            if(!m_color_buffer || m_color_buffer.usage() != usage)
-                m_color_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_color_buffer, usage));
+            if(!m_color_buffer){ m_color_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_color_buffer.set_usage(buf_usage); }
             
             m_color_buffer.set_data(m_colors);
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(COLOR_BIT);
         }
-        remove_flag(COLOR_BIT);
     }
 
     // insert bone indices and weights
-    if(has_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT) || usage != m_bone_buffer.usage())
+    if(has_bones())
     {
-        if(has_bones())
+        auto buf_usage = usage_fn(m_bone_buffer, usage);
+        
+        if(has_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT) || m_bone_buffer.usage() != buf_usage)
         {
-            if(!m_bone_buffer || m_bone_buffer.usage() != usage)
-                m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
+            if(!m_bone_buffer){ m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, buf_usage); }
+            else{ m_bone_buffer.set_usage(buf_usage); }
             
 #if !defined(KINSKI_GLES_2)
             m_bone_buffer.set_data(m_bone_vertex_data);
 #else
             // crunch bone-indices to floats
-            m_bone_buffer = gl::Buffer(GL_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
             size_t bone_stride = 2 * sizeof(glm::vec4);
             m_bone_buffer.set_data(nullptr, m_bone_vertex_data.size() * bone_stride);
             m_bone_buffer.set_stride(bone_stride);
@@ -336,22 +347,24 @@ void Geometry::create_gl_buffers(GLenum usage)
             m_bone_buffer.unmap();
 #endif
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT);
         }
-        remove_flag(BONE_INDEX_BIT | BONE_WEIGHT_BIT);
     }
 
-    if(has_flag(INDEX_BIT) || usage != m_index_buffer.usage())
+    if(has_indices())
     {
-        if(has_indices())
+        auto buf_usage = usage_fn(m_index_buffer, usage);
+        
+        if(has_flag(INDEX_BIT) || m_index_buffer.usage() != buf_usage)
         {
-            if(!m_index_buffer || m_index_buffer.usage() != usage)
-                m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, usage_fn(m_bone_buffer, usage));
+            if(!m_index_buffer){ m_index_buffer = gl::Buffer(GL_ELEMENT_ARRAY_BUFFER, buf_usage); }
+            else{ m_index_buffer.set_usage(buf_usage); }
             
             // index buffer
             m_index_buffer.set_data(m_indices);
             KINSKI_CHECK_GL_ERRORS();
+            remove_flag(INDEX_BIT);
         }
-        remove_flag(INDEX_BIT);
     }
     
     // not necessary, but who knows

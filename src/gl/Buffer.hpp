@@ -56,7 +56,7 @@ class KINSKI_API Buffer
     inline void set_data(const std::vector<T> &the_vec)
     {
         GLsizei num_bytes = the_vec.size() * sizeof(T);
-        set_data((void*)&the_vec[0], num_bytes);
+        set_data((void*)the_vec.data(), num_bytes);
         set_stride(sizeof(T));
     };
     

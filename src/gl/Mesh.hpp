@@ -37,9 +37,9 @@ namespace kinski { namespace gl {
     
     struct AnimationKeys
     {
-        std::vector< Key<vec3> > positionkeys;
-        std::vector< Key<quat> > rotationkeys;
-        std::vector< Key<vec3> > scalekeys;
+        std::vector<Key<vec3>> positionkeys;
+        std::vector<Key<quat>> rotationkeys;
+        std::vector<Key<vec3>> scalekeys;
     };
     
     class MeshAnimation
@@ -109,8 +109,8 @@ namespace kinski { namespace gl {
         void bind_vertex_pointers(const gl::ShaderPtr &the_shader);
         void bind_vertex_array(uint32_t i = 0);
         void bind_vertex_array(const gl::ShaderPtr &the_shader);
-        GLuint vertex_array(uint32_t i = 0) const;
-        GLuint vertex_array(const gl::ShaderPtr &the_shader) const;
+        uint32_t vertex_array(uint32_t i = 0) const;
+        uint32_t vertex_array(const gl::ShaderPtr &the_shader) const;
         GLuint create_vertex_array(const gl::ShaderPtr &the_shader);
 
         void update(float time_delta) override;
@@ -173,7 +173,7 @@ namespace kinski { namespace gl {
         float m_animation_speed;
         std::vector<mat4> m_boneMatrices;
         
-        //! holds our vertex attributes
+        //! holds our vertex attributes, using gl::Geometry::BufferBit as keys
         std::unordered_multimap<uint32_t, VertexAttrib> m_vertex_attribs;
         
         std::string m_vertexLocationName;

@@ -487,7 +487,7 @@ namespace kinski { namespace gl {
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
         mesh->geometry()->tex_coords().resize(thePoints.size(), gl::vec2(0));
 
-        mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
+//        mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
         
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
@@ -834,8 +834,9 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }
         if(the_mesh->geometry()->has_bones()){ mat->uniform("u_bones", the_mesh->bone_matrices()); }
     }
-//  if(!the_mesh->geometry()->has_indices() || the_mesh->entries().empty())
-    { gl::apply_material(the_mesh->material(), false, overide_shader); }
+    if(the_mesh->geometry()->has_dirty_buffers()){ the_mesh->geometry()->create_gl_buffers(); }
+    
+    gl::apply_material(the_mesh->material(), false, overide_shader);
     
     the_mesh->bind_vertex_array(overide_shader ? overide_shader : the_mesh->materials()[0]->shader());
     

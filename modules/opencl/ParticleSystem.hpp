@@ -84,6 +84,8 @@ public:
     void apply_emission();
     void apply_killing();
 
+    std::vector<cl::Event> m_events;
+    
     gl::MeshPtr m_mesh;
 
     //! holds opencl standard assets

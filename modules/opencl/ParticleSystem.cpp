@@ -173,7 +173,7 @@ namespace kinski{ namespace gl{
                 geom->vertex_buffer().unmap();
                 
                 m_num_alive = 0;
-                update_params();
+//                update_params();
             }
             catch(cl::Error &error)
             {
@@ -285,7 +285,6 @@ namespace kinski{ namespace gl{
                                                           cl::NullRange,
                                                           cl::NDRange(num),
                                                           cl::NullRange);
-//                    m_opencl.queue().finish();
                 }
                 catch(cl::Error &error)
                 {
@@ -490,37 +489,41 @@ namespace kinski{ namespace gl{
         params.bouncyness = m_particle_bounce;
         params.num_alive = m_num_alive;
         
-        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, CL_TRUE, 0, sizeof(Params), &params);
+        std::vector<cl::Event> events(3);
+        auto tmp_planes = m_planes;
+        auto tmp_forces = m_forces;
+        
+        m_opencl.queue().enqueueWriteBuffer(m_param_buffer, false, 0, sizeof(Params), &params,
+                                            nullptr, &events[0]);
 
         if(!m_planes.empty())
         {
-            auto tmp = m_planes;
             gl::mat4 m = glm::inverse(m_mesh->global_transform());
-            std::transform(m_planes.begin(), m_planes.end(), tmp.begin(), [m](const gl::Plane& p)
+            std::transform(m_planes.begin(), m_planes.end(), tmp_planes.begin(), [m](const gl::Plane& p)
             {
                 return p.transform(m);
             });
 
-            m_opencl.queue().enqueueWriteBuffer(m_plane_buffer, CL_TRUE, 0,
-                                                tmp.size() * sizeof(vec4),
-                                                tmp.data());
+            m_opencl.queue().enqueueWriteBuffer(m_plane_buffer, false, 0,
+                                                tmp_planes.size() * sizeof(vec4), tmp_planes.data(),
+                                                nullptr, &events[1]);
         }
 
         if(!m_forces.empty())
         {
-            auto tmp = m_forces;
             gl::mat4 m = glm::inverse(m_mesh->global_transform());
-            std::transform(m_forces.begin(), m_forces.end(), tmp.begin(), [m](const gl::vec4& f)
+            std::transform(m_forces.begin(), m_forces.end(), tmp_forces.begin(), [m](const gl::vec4& f)
             {
                 gl::vec4 ret = m * gl::vec4(f.xyz(), 1.f);
                 ret.w = f.w;
                 return ret;
             });
 
-            m_opencl.queue().enqueueWriteBuffer(m_force_buffer, CL_TRUE, 0,
-                                                tmp.size() * sizeof(vec4),
-                                                tmp.data());
+            m_opencl.queue().enqueueWriteBuffer(m_force_buffer, false, 0,
+                                                tmp_forces.size() * sizeof(vec4), tmp_forces.data(),
+                                                nullptr, &events[2]);
         }
+        cl::WaitForEvents(events);
     }
 
     void ParticleSystem::set_kernel_source(const std::string &kernel_source)
