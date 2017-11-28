@@ -8,7 +8,7 @@
 
 #include "core/Image.hpp"
 #include "ModelViewer.h"
-#include "AssimpConnector.h"
+#include "assimp/assimp.hpp"
 
 using namespace std;
 using namespace kinski;
@@ -156,6 +156,7 @@ void ModelViewer::update(float timeDelta)
 
 void ModelViewer::draw()
 {
+    gl::clear();
     gl::set_matrices(camera());
     if(draw_grid()){ gl::draw_grid(50, 50); }
 
@@ -166,7 +167,7 @@ void ModelViewer::draw()
         scene()->render(camera());
         if(m_selected_mesh){ gl::draw_boundingbox(m_selected_mesh); }
 
-        // draw enabeld light dummies
+        // draw enabled light dummies
         m_light_component->draw_light_dummies();
 
         if(m_mesh && *m_display_bones) // slow!
@@ -214,6 +215,7 @@ void ModelViewer::draw()
         {
             textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this, draw_fn]()
             {
+                gl::clear();
                 draw_fn();
             });
             depth_fbo = m_offscreen_fbo;

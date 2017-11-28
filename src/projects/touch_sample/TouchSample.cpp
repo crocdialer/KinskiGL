@@ -54,6 +54,8 @@ void TouchSample::update(float timeDelta)
 
 void TouchSample::draw()
 {
+    gl::clear();
+    
     // offscreen render pass
     auto touches_tex = gl::render_to_texture(m_offscreen_fbo, [this]()
     {

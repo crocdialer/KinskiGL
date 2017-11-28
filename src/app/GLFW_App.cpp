@@ -419,7 +419,7 @@ namespace kinski
         glfwSetCharCallback(w, &GLFW_App::s_charFunc);
 
         // called during resize, move and similar events
-//        glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
+        glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
 
         // first added window
         if(m_windows.empty())
@@ -427,7 +427,6 @@ namespace kinski
             glfwSetWindowSizeCallback(w, &GLFW_App::s_resize);
             the_window->set_draw_function([this]()
             {
-                gl::clear();
                 draw();
 
                 // draw tweakbar
@@ -438,15 +437,12 @@ namespace kinski
                     TwDraw();
                 }
             });
-//            resize(glfw_win->size().x, glfw_win->size().y);
         }
 
 #if GLFW_VERSION_MAJOR >= 3 && GLFW_VERSION_MINOR >= 1
         glfwSetDropCallback(w, &GLFW_App::s_file_drop_func);
 #endif
         m_windows.push_back(glfw_win);
-
-//        glfwMakeContextCurrent(w);
     }
 
     std::vector<JoystickState> GLFW_App::get_joystick_states() const
@@ -479,8 +475,6 @@ namespace kinski
     void GLFW_App::s_window_refresh(GLFWwindow* window)
     {
         GLFW_App* app = static_cast<GLFW_App*>(glfwGetWindowUserPointer(window));
-
-        LOG_TRACE << "window refresh";
 
         for(auto &w : app->windows())
         {

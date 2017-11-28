@@ -11,7 +11,7 @@
 #include <assimp/postprocess.h>
 #include "core/file_functions.hpp"
 #include "gl/Mesh.hpp"
-#include "AssimpConnector.h"
+#include "assimp.hpp"
 
 using namespace std;
 using namespace glm;

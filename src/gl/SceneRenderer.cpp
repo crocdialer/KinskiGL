@@ -214,7 +214,7 @@ void SceneRenderer::render(const RenderBinPtr &theBin)
     
     // make sure we start with a known state
 //    gl::reset_state();
-    
+
     // draw our stuff
     draw_sorted_by_material(theBin->camera, opaque_items, theBin->lights);
     draw_sorted_by_material(theBin->camera, blended_items, theBin->lights);
@@ -271,9 +271,10 @@ void SceneRenderer::draw_sorted_by_material(const CameraPtr &cam, const list<Ren
 #endif
         }
 
-        m->bind_vertex_array();        
+//        if(m->geometry()->has_dirty_buffers()){ m->geometry()->create_gl_buffers(); }
         gl::apply_material(m->material());
-        
+        m->bind_vertex_array();
+
         KINSKI_CHECK_GL_ERRORS();
         
         if(m->geometry()->has_indices())

@@ -486,8 +486,6 @@ namespace kinski { namespace gl {
         mesh->geometry()->append_vertices(thePoints);
         mesh->geometry()->colors().resize(thePoints.size(), mesh->material()->diffuse());
         mesh->geometry()->tex_coords().resize(thePoints.size(), gl::vec2(0));
-
-//        mesh->geometry()->create_gl_buffers(GL_STREAM_DRAW);
         
         gl::draw_mesh(mesh);
         mesh->geometry()->vertices().clear();
@@ -1037,8 +1035,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 theColors.push_back(colorGrey);
                 theColors.push_back(colorRed);
             }
-//            geom->create_gl_buffers();
-//            line_mesh->create_vertex_array();
             theMap[the_mesh] = line_mesh;
         }
         gl::draw_mesh(theMap[the_mesh]);
