@@ -426,6 +426,7 @@ GLenum Fbo::target() const { return m_impl->m_format.m_target; }
 
 void Fbo::enable_draw_buffers(bool b)
 {
+	if(!m_impl){ return; }
 #if !defined(KINSKI_GLES)
 	SaveFramebufferBinding sfb;
 	bind();
@@ -446,6 +447,7 @@ void Fbo::enable_draw_buffers(bool b)
 
 void Fbo::add_attachment(gl::Texture the_attachment)
 {
+	if(!m_impl){ return; }
     uint32_t index = m_impl->m_color_textures.size();
 
     SaveFramebufferBinding sfb;
@@ -465,20 +467,24 @@ void Fbo::add_attachment(gl::Texture the_attachment)
 
 Texture Fbo::texture(int attachment)
 {
-	resolve_textures();
-	update_mipmaps(true, attachment);
-	return m_impl->m_color_textures.empty() ? gl::Texture() : m_impl->m_color_textures[attachment];
+	if(m_impl)
+	{
+		resolve_textures();
+		update_mipmaps(true, attachment);
+		return m_impl->m_color_textures.empty() ? gl::Texture() : m_impl->m_color_textures[attachment];
+	}
+	return gl::Texture();
 }
 
-Texture& Fbo::depth_texture()
+Texture Fbo::depth_texture()
 {
-	return m_impl->m_depth_texture;
+	return m_impl ? m_impl->m_depth_texture : gl::Texture();
 }
 
 void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 {
 #if !defined(KINSKI_GLES_2)
-    if(m_impl->m_format.m_depth_buffer)
+    if(m_impl && m_impl->m_format.m_depth_buffer)
     {
         if(m_impl->m_format.m_depth_buffer_texture)
         {
@@ -505,9 +511,12 @@ void Fbo::set_depth_texture(gl::Texture the_depth_tex)
 
 void Fbo::bind_texture(int the_texture_unit, int the_attachment)
 {
-	resolve_textures();
-	m_impl->m_color_textures[the_attachment].bind(the_texture_unit);
-	update_mipmaps(false, the_attachment);
+	if(m_impl)
+	{
+		resolve_textures();
+		m_impl->m_color_textures[the_attachment].bind(the_texture_unit);
+		update_mipmaps(false, the_attachment);
+	}
 }
 
 void Fbo::unbind_texture()
@@ -517,12 +526,12 @@ void Fbo::unbind_texture()
 
 void Fbo::bind_depth_texture(int the_texture_unit)
 {
-	m_impl->m_depth_texture.bind(the_texture_unit);
+	if(m_impl){ m_impl->m_depth_texture.bind(the_texture_unit); }
 }
 
 void Fbo::resolve_textures() const
 {
-    if(!m_impl->m_needs_resolve){ return; }
+    if(!m_impl || !m_impl->m_needs_resolve){ return; }
 
 #if !defined(KINSKI_GLES_2)
 	// if this FBO is multisampled, resolve it, so it can be displayed
@@ -579,9 +588,12 @@ void Fbo::update_mipmaps(bool the_bind_first, int the_attachment) const
 
 void Fbo::bind()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, m_impl->m_id);
-	if(m_impl->m_resolve_fbo_id){ m_impl->m_needs_resolve = true; }
-	if(m_impl->m_format.has_mipmapping()){ m_impl->m_needs_mipmap_update = true; }
+	if(m_impl)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, m_impl->m_id);
+		if(m_impl->m_resolve_fbo_id){ m_impl->m_needs_resolve = true; }
+		if(m_impl->m_format.has_mipmapping()){ m_impl->m_needs_mipmap_update = true; }
+	}
 }
 
 void Fbo::unbind()
@@ -648,6 +660,7 @@ GLint Fbo::max_num_attachments()
 void Fbo::blit_to_current(const Area_<int> &the_src, const Area_<int> &the_dst,
                           GLenum filter, GLbitfield mask) const
 {
+	if(!m_impl){ return; }
     SaveFramebufferBinding sb;
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->m_id);
@@ -660,6 +673,7 @@ void Fbo::blit_to_current(const Area_<int> &the_src, const Area_<int> &the_dst,
 void Fbo::blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &the_dst,
                   GLenum filter, GLbitfield mask) const
 {
+	if(!m_impl){ return; }
 	SaveFramebufferBinding sb;
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->m_id);
@@ -671,6 +685,7 @@ void Fbo::blit_to(Fbo the_dst_fbo, const Area_<int> &the_src, const Area_<int> &
 void Fbo::blit_to_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
                          GLenum filter, GLbitfield mask) const
 {
+	if(!m_impl){ return; }
 	SaveFramebufferBinding sb;
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_impl->m_id);
@@ -682,6 +697,7 @@ void Fbo::blit_to_screen(const Area_<int> &the_src, const Area_<int> &the_dst,
 void Fbo::blit_from_screen(const Area_<int> &the_src, const Area_<int> &the_dst, GLenum filter,
                            GLbitfield mask)
 {
+	if(!m_impl){ return; }
 	SaveFramebufferBinding sb;
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, GL_NONE);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_impl->m_id);

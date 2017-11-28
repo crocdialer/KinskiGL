@@ -111,6 +111,8 @@ namespace kinski
         void file_drop(const MouseEvent &e, const std::vector<std::string> &files) override;
         void teardown() override;
         void update_property(const Property::ConstPtr &theProperty) override;
+
+        void update_fbos();
     };
 }// namespace kinski
 

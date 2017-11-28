@@ -418,8 +418,11 @@ namespace kinski
         glfwSetKeyCallback(w, &GLFW_App::s_keyFunc);
         glfwSetCharCallback(w, &GLFW_App::s_charFunc);
 
-        // called during resize, move and similar events
-        glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
+        main_queue().submit_with_delay([w]()
+        {
+            // called during resize, move and similar events
+            glfwSetWindowRefreshCallback(w, &GLFW_App::s_window_refresh);
+        }, 2.f);
 
         // first added window
         if(m_windows.empty())

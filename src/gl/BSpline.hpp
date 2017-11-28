@@ -70,9 +70,9 @@ template<int D, typename T> class KINSKI_API BSpline
             const float *knots);
     
     // move, copy + assignment
-    BSpline(BSpline &&bspline);
-    BSpline(const BSpline &bspline);
-    BSpline& operator=(BSpline bspline);
+    BSpline(BSpline &&other);
+    BSpline(const BSpline &other);
+    BSpline& operator=(BSpline other);
 
     ~BSpline();
 
@@ -92,12 +92,12 @@ template<int D, typename T> class KINSKI_API BSpline
     // valid (0 <= i <= n).  If it is invalid, getControlPoint returns a
     // vector whose components are all MAX_REAL.
     VecT control_point(int i) const;
-    void set_control_point(int i, const VecT &rkCtrl);
+    void set_control_point(int i, const VecT &the_cp);
 
     // The knot values can be changed only if the basis function is nonuniform
     // and the input index is valid (0 <= i <= n-d-1).  If these conditions
     // are not satisfied, getKnot returns MAX_REAL.
-    void set_knot(int i, float fKnot);
+    void set_knot(int i, float the_knot);
     float knot(int i) const;
 
     // The spline is defined for 0 <= t <= 1.  If a t-value is outside [0,1],
@@ -111,7 +111,7 @@ template<int D, typename T> class KINSKI_API BSpline
 
     T speed(float t) const;
 
-    float length(float fT0, float fT1) const;
+    float length(float the_t0, float the_t1) const;
 
     // If you need position and derivatives at the same time, it is more
     // efficient to call these functions.  Pass the addresses of those
