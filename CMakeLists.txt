@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.1)
+cmake_minimum_required (VERSION 3.3)
 
 project (kinskiGL)
 
@@ -17,7 +17,7 @@ if(USE_CXX11)
     #set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
     if(APPLE)
-    SET (CMAKE_CXX_FLAGS "-std=c++1z -stdlib=libc++")
+    SET(CMAKE_CXX_FLAGS "-std=c++1z -stdlib=libc++")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++1z")
     set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
     ELSE( APPLE )
@@ -70,11 +70,15 @@ if(UNIX AND NOT APPLE)
     endif()
 endif()
 
-
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
+
+set(RELEASE_BUILDS "Release MinSizeRel")
+if(${CMAKE_BUILD_TYPE} IN_LIST RELEASE_BUILDS)
+    list(APPEND CXX_FLAGS "-O3")
+endif()
 
 ADD_SUBDIRECTORY("src")
