@@ -52,8 +52,8 @@ namespace kinski{ namespace gl{
         std::vector<gl::vec2> m_control_points = default_points;
         std::set<uint32_t> m_selected_indices;
         
-        gl::OrthographicCamera::Ptr
-        m_camera = gl::OrthographicCamera::create(0, 1, 0, 1, -100, 100);
+        gl::OrthoCamera::Ptr
+        m_camera = gl::OrthoCamera::create(0, 1, 0, 1, -100, 100);
         
         gl::MeshPtr m_mesh, m_grid_mesh;
         

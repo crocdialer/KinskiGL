@@ -229,7 +229,7 @@ namespace kinski{ namespace gl{
         
     public:
         //! Emulates shared_ptr-like behavior
-        operator bool() const { return m_impl.get(); }
+        explicit operator bool() const { return m_impl.get(); }
         void reset() { m_impl.reset(); }
     };
     

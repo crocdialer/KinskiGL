@@ -26,7 +26,20 @@ namespace kinski { namespace gl{
     
     /****************** OrthographicCamera *******************/
     
-    OrthographicCamera::OrthographicCamera(float left, float right, float bottom, float top,
+    OrthoCamera::Ptr OrthoCamera::create_for_window()
+    {
+        return OrthoCamera::Ptr(new OrthoCamera(0.f, gl::window_dimension().x,
+                                                              0.f, gl::window_dimension().y,
+                                                              0.f, 1.f));
+    }
+    OrthoCamera::Ptr OrthoCamera::create(float left, float right,
+                                                       float bottom, float top,
+                                                       float near, float far)
+    {
+        return OrthoCamera::Ptr(new OrthoCamera(left, right, bottom, top, near, far));
+    };
+    
+    OrthoCamera::OrthoCamera(float left, float right, float bottom, float top,
                                            float near, float far):
     Camera(),
     m_left(left),
@@ -39,18 +52,18 @@ namespace kinski { namespace gl{
         update_projection_matrix();
     }
     
-    void OrthographicCamera::update_projection_matrix()
+    void OrthoCamera::update_projection_matrix()
     {
         set_projection_matrix(glm::ortho(m_left, m_right, m_bottom, m_top, m_near, m_far));
     }
     
-    gl::Frustum OrthographicCamera::frustum() const
+    gl::Frustum OrthoCamera::frustum() const
     {
         return gl::Frustum(left(), right(), bottom(), top(), near(), far()).transform(global_transform());
         //return gl::Frustum(projection_matrix()).transform(transform());
     }
     
-    void OrthographicCamera::set_size(const gl::vec2 &the_sz)
+    void OrthoCamera::set_size(const gl::vec2 &the_sz)
     {
         m_left = 0.f;
         m_right = the_sz.x;

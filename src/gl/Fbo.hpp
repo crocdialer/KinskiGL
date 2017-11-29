@@ -54,7 +54,7 @@ class KINSKI_API Renderbuffer
     std::shared_ptr<struct RenderbufferImpl> m_impl;
 
   public:
-    operator bool() const { return m_impl.get(); }
+    explicit operator bool() const { return m_impl.get(); }
 	void reset() { m_impl.reset(); }
 };
 

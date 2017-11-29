@@ -15,6 +15,7 @@
 
 #include "gl/gl.hpp"
 #include "gl/Font.hpp"
+#include "gl/Fbo.hpp"
 
 namespace kinski{ namespace gl{
     
@@ -51,5 +52,7 @@ namespace kinski{ namespace gl{
         gl::Color m_color;
         uint32_t m_max_lines;
         std::list<std::string> m_lines;
+        gl::Fbo m_fbo;
+        bool m_dirty;
     };
 }}//namespace

@@ -152,6 +152,8 @@ KINSKI_API vec2 project_point_to_screen(const vec3 &the_point,
 
 KINSKI_API void clear();
 KINSKI_API void clear_color(const Color &theColor);
+    
+KINSKI_API void clear(const gl::Color &the_color);
 
 
 KINSKI_API void draw_mesh(const MeshPtr &theMesh, const ShaderPtr &overide_shader = ShaderPtr());

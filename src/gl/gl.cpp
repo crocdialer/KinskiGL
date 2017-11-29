@@ -282,7 +282,7 @@ namespace kinski { namespace gl {
                 + up * vLength * click_2D.y;
             ray_dir = click_world_pos - cam_pos;
 
-        }else if (OrthographicCamera::Ptr cam = dynamic_pointer_cast<OrthographicCamera>(theCamera))
+        }else if (OrthoCamera::Ptr cam = dynamic_pointer_cast<OrthoCamera>(theCamera))
         {
             gl::vec2 coord(map_value<float>(window_pos.x, 0, window_size.x, cam->left(), cam->right()),
                            map_value<float>(window_pos.y, window_size.y, 0, cam->bottom(), cam->top()));
@@ -357,7 +357,7 @@ namespace kinski { namespace gl {
             case gl::Light::DIRECTIONAL:
             {
                 float v = 512;
-                cam = gl::OrthographicCamera::create(-v, v, -v, v, .1f, far_clip);
+                cam = gl::OrthoCamera::create(-v, v, -v, v, .1f, far_clip);
                 break;
             }
             case gl::Light::POINT:
@@ -403,9 +403,9 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void clear_color(const Color &theColor)
+    void clear_color(const Color &the_color)
     {
-        glClearColor(theColor.r, theColor.g, theColor.b, theColor.a);
+        glClearColor(the_color.r, the_color.g, the_color.b, the_color.a);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -415,6 +415,17 @@ namespace kinski { namespace gl {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
+///////////////////////////////////////////////////////////////////////////////
+    
+    void clear(const gl::Color &the_color)
+    {
+        gl::Color c;
+        glGetFloatv(GL_COLOR_CLEAR_VALUE, &c[0]);
+        if(the_color != c){ glClearColor(the_color.r, the_color.g, the_color.b, the_color.a); }
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        if(the_color != c){ glClearColor(c.r, c.g, c.b, c.a); }
+    }
+    
 ///////////////////////////////////////////////////////////////////////////////
 
     void draw_line(const vec2 &a, const vec2 &b, const Color &theColor, float line_thickness)

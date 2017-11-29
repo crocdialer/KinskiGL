@@ -30,7 +30,7 @@ class KINSKI_API Buffer
     ~Buffer();
     
     //! Emulates shared_ptr-like behavior
-    operator bool() const { return m_impl.get(); }
+    explicit operator bool() const { return m_impl.get(); }
     void reset() { m_impl.reset(); }
     
     // map and unmap the buffer to local memory

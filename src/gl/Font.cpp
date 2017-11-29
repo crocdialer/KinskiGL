@@ -483,8 +483,7 @@ namespace kinski { namespace gl {
             // advance offset
             line_offset.y -= line_height();
             
-            if(!l.empty())
-            { ret->add_child(line_mesh); }
+            if(!l.empty()){ ret->add_child(line_mesh); }
         }
         
         return ret;

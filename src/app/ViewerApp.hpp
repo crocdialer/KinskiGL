@@ -63,7 +63,7 @@ namespace kinski {
         void set_clear_color(const gl::Color &the_color){ *m_clear_color = the_color; };
         
         const gl::PerspectiveCamera::Ptr& camera() const { return m_camera; };
-        const gl::OrthographicCamera::Ptr& gui_camera() const { return m_gui_camera; };
+        const gl::OrthoCamera::Ptr& gui_camera() const { return m_gui_camera; };
         
         const gl::MeshPtr& selected_mesh() const { return m_selected_mesh; };
         void set_selected_mesh(gl::MeshPtr m){ m_selected_mesh = m; };
@@ -121,7 +121,7 @@ namespace kinski {
         
         gl::ScenePtr m_scene;
         
-        gl::OrthographicCamera::Ptr m_gui_camera;
+        gl::OrthoCamera::Ptr m_gui_camera;
         
         // Lightsources
         std::vector<gl::LightPtr> m_lights;

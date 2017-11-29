@@ -21,7 +21,7 @@ namespace kinski {
     ViewerApp::ViewerApp(int argc, char *argv[]):BaseApp(argc, argv),
     m_camera(new gl::PerspectiveCamera),
     m_scene(gl::Scene::create()),
-    m_gui_camera(gl::OrthographicCamera::create(0, 1, 0, 1, 0, 1)),
+    m_gui_camera(gl::OrthoCamera::create(0, 1, 0, 1, 0, 1)),
     m_precise_selection(true),
     m_center_selected(false),
     m_rotation_damping (.9)
@@ -389,7 +389,7 @@ namespace kinski {
                     gl::set_window_dimension(windows().front()->framebuffer_size());
                 }
             }
-            m_gui_camera = gl::OrthographicCamera::create(0, gl::window_dimension().x,
+            m_gui_camera = gl::OrthoCamera::create(0, gl::window_dimension().x,
                                                           0, gl::window_dimension().y,
                                                           -1000.f, 1000.f);
         }

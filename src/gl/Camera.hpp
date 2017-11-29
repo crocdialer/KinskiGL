@@ -41,17 +41,14 @@ private:
     mat4 m_projectionMatrix;
 };
    
-class KINSKI_API OrthographicCamera : public Camera
+class KINSKI_API OrthoCamera : public Camera
 {
 public:
     
-    typedef std::shared_ptr<OrthographicCamera> Ptr;
+    typedef std::shared_ptr<OrthoCamera> Ptr;
     
-    static Ptr create(float left, float right, float bottom, float top,
-                      float near, float far)
-    {
-        return Ptr(new OrthographicCamera(left, right, bottom, top, near, far));
-    };
+    static Ptr create_for_window();
+    static Ptr create(float left, float right, float bottom, float top, float near, float far);
     
     virtual gl::Frustum frustum() const override;
     
@@ -100,7 +97,7 @@ protected:
     
 private:
     
-    OrthographicCamera(float left, float right, float bottom, float top,
+    OrthoCamera(float left, float right, float bottom, float top,
                        float near, float far);
     
     float m_left, m_right, m_bottom, m_top, m_near, m_far;

@@ -27,7 +27,7 @@ class Output
     std::shared_ptr<struct OutputImpl> m_impl;
 
     //! Emulates shared_ptr-like behavior
-    operator bool() const { return m_impl.get() != nullptr; }
+    explicit operator bool() const { return m_impl.get() != nullptr; }
     void reset() { m_impl.reset(); }
 };
 
