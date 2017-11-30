@@ -406,19 +406,15 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    gl::Object3DPtr Font::create_text_obj(const std::string &the_text, float the_linewidth,
+    gl::Object3DPtr Font::create_text_obj(const std::string &the_text, uint32_t the_linewidth,
+                                          uint32_t the_lineheight,
                                           Align the_align) const
     {
+        if(!the_lineheight){ the_lineheight = line_height(); }
         gl::Object3DPtr ret = gl::Object3D::create();
         
         // create text meshes (1 per line)
         auto lines = split(the_text, '\n', false);
-        
-        // common material
-//        gl::MaterialPtr mat = gl::Material::create();
-//        mat->setDepthTest(false);
-//        mat->setDepthWrite(false);
-        
         vec2 line_offset;
         
         for(uint32_t i = 0; i < lines.size(); i++)

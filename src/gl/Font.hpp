@@ -32,7 +32,8 @@ namespace kinski { namespace gl {
         
         Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;
         gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;
-        gl::Object3DPtr create_text_obj(const std::string &the_text, float the_linewidth,
+        gl::Object3DPtr create_text_obj(const std::string &the_text, uint32_t the_linewidth,
+                                        uint32_t the_lineheight = 0,
                                         Align the_align = Align::LEFT) const;
         uint32_t font_size() const;
         uint32_t line_height() const;

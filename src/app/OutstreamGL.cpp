@@ -95,7 +95,8 @@ namespace kinski{ namespace gl{
                 for(auto it = m_lines.crbegin(); it != m_lines.crend(); ++it){ stream << *it; }
             }
             m_gui_scene->clear();
-            auto text_obj = m_font.create_text_obj(stream.str(), window_dimension().x - 2 * margin);
+            auto text_obj = m_font.create_text_obj(stream.str(), window_dimension().x - 2 * margin,
+                                                   m_font.line_height() * 1.1f);
             auto aabb = text_obj->aabb();
             text_obj->set_position(gl::vec3(margin, aabb.height() + margin, 0.f));
             m_gui_scene->add_object(text_obj);
