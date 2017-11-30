@@ -53,6 +53,8 @@ namespace kinski{ namespace gl{
         uint32_t m_max_lines;
         std::list<std::string> m_lines;
         gl::Fbo m_fbo;
+        gl::ScenePtr m_gui_scene;
+        gl::MaterialPtr m_blend_material;
         bool m_dirty;
     };
 }}//namespace

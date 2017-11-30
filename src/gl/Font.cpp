@@ -380,7 +380,7 @@ namespace kinski { namespace gl {
             geom->append_face(i, i + 1, i + 2);
             geom->append_face(i, i + 2, i + 3);
         }
-        geom->compute_vertex_normals();
+        geom->compute_face_normals();
         geom->compute_aabb();
 
         // free the less frequent used half of our buffered string-meshes
@@ -423,12 +423,14 @@ namespace kinski { namespace gl {
         
         for(uint32_t i = 0; i < lines.size(); i++)
         {
-            string l = lines[i];
+            string& l = lines[i];
             
             auto line_mesh = create_mesh(l)->copy();
             
             // center line_mesh
             auto line_aabb = line_mesh->aabb();
+            
+            bool reformat = false;
             
             //split line, if necessary
             while(line_aabb.width() > the_linewidth)
@@ -437,7 +439,7 @@ namespace kinski { namespace gl {
                 auto words = split(l);
                 
                 if(words.size() < 2){ break; }
-                //            line_mesh->material()->setDiffuse(gl::COLOR_DARK_RED);
+//                line_mesh->material()->set_diffuse(gl::COLOR_DARK_RED);
                 
                 std::string last_word = words.back();
                 words.pop_back();
@@ -450,7 +452,12 @@ namespace kinski { namespace gl {
                 // cut last ' ' char
                 if(!l.empty()){ l = l.substr(0, l.size() - 1); }
                 
-                if(i + 1 < lines.size())
+                if(!reformat)
+                {
+                    reformat = true;
+                    lines.insert(lines.begin() + i + 1, last_word);
+                }
+                else if(i + 1 < lines.size())
                 {
                     lines[i + 1] = last_word + " " + lines[i + 1];
                 }
@@ -478,14 +485,12 @@ namespace kinski { namespace gl {
             
             line_mesh->set_position(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
             
-//            line_mesh->material() = mat;
-            
             // advance offset
             line_offset.y -= line_height();
             
-            if(!l.empty()){ ret->add_child(line_mesh); }
+            // add line
+            ret->add_child(line_mesh);
         }
-        
         return ret;
     }
     
