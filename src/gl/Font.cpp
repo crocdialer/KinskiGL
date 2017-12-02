@@ -431,20 +431,23 @@ namespace kinski { namespace gl {
                                           Align the_align) const
     {
         if(!the_lineheight){ the_lineheight = line_height(); }
-        gl::Object3DPtr ret = gl::Object3D::create();
+        gl::Object3DPtr root = gl::Object3D::create();
+        auto parent = root;
         
         // create text meshes (1 per line)
         auto lines = split(the_text, '\n', false);
         vec2 line_offset;
+        bool reformat = false;
         
         for(uint32_t i = 0; i < lines.size(); i++)
         {
+            if(!reformat){ parent = root; }
             string& l = lines[i];
             
             // center line_mesh
             auto line_aabb = create_aabb(l);
             
-            bool reformat = false;
+            reformat = false;
             
             //split line, if necessary
             while(line_aabb.width() > the_linewidth)
@@ -452,11 +455,13 @@ namespace kinski { namespace gl {
                 size_t indx = l.find_last_of(' ');
                 if(indx == string::npos){ break; }
                 
-                std::string last_word = l.substr(indx);
+                std::string last_word = l.substr(indx + 1);
                 l = l.substr(0, indx);
                 
                 if(!reformat)
                 {
+                    parent = gl::Object3D::create();
+                    root->add_child(parent);
                     reformat = true;
                     lines.insert(lines.begin() + i + 1, last_word);
                 }
@@ -489,9 +494,9 @@ namespace kinski { namespace gl {
             line_offset.y -= line_height();
             
             // add line
-            ret->add_child(line_mesh);
+            parent->add_child(line_mesh);
         }
-        return ret;
+        return root;
     }
     
 }}// namespace
