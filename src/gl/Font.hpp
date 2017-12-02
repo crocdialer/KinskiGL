@@ -30,6 +30,7 @@ namespace kinski { namespace gl {
         Texture glyph_texture() const;
         Texture sdf_texture() const;
         
+        gl::AABB create_aabb(const std::string &theText) const;
         Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;
         gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;
         gl::Object3DPtr create_text_obj(const std::string &the_text, uint32_t the_linewidth,

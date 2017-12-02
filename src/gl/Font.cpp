@@ -79,6 +79,35 @@ namespace kinski { namespace gl {
             line_height = 70;
             use_sdf = false;
         }
+        
+        std::list<stbtt_aligned_quad> create_quads(const std::string  &the_text,
+                                                   float start_x, uint32_t *the_max_y)
+        {
+            float x = start_x, y = 0.f;
+            stbtt_aligned_quad q;
+            std::list<stbtt_aligned_quad> quads;
+            
+            auto wstr = utf8_to_wstring(the_text);
+            
+            for (auto it = wstr.begin(); it != wstr.end(); ++it)
+            {
+                const auto &codepoint = *it;
+                
+                //new line
+                if(codepoint == '\n')
+                {
+                    x = start_x;
+                    y += line_height;
+                    continue;
+                }
+                stbtt_GetPackedQuad(char_data, bitmap->width, bitmap->height,
+                                    codepoint - 32, &x, &y, &q, 1);
+                
+                if(*the_max_y < q.y1 + font_height){ *the_max_y = q.y1 + font_height;}
+                quads.push_back(q);
+            }
+            return quads;
+        }
     };
     
     
@@ -188,6 +217,23 @@ namespace kinski { namespace gl {
         }
     }
     
+    gl::AABB Font::create_aabb(const std::string &theText) const
+    {
+        gl::AABB ret;
+        
+        // workaround for weirdness in stb_truetype (blank 1st characters on line)
+        const float start_x = 0.6f;
+        uint32_t max_y = 0;
+        auto quads = m_impl->create_quads(theText, start_x, &max_y);
+        
+        for(const auto &quad : quads)
+        {
+            ret += gl::AABB(gl::vec3(quad.x0, quad.y0, 0),
+                            gl::vec3(quad.x1, quad.y1, 0));
+        }
+        return ret;
+    }
+    
     Texture Font::create_texture(const std::string &theText, const glm::vec4 &theColor) const
     {
         Texture ret;
@@ -198,7 +244,7 @@ namespace kinski { namespace gl {
         float x = start_x, y = 0.f;
         uint32_t max_x = 0, max_y = 0;
         stbtt_aligned_quad q;
-        typedef std::list< std::pair<Area_<uint32_t>, Area_<uint32_t> > > Area_Pairs;
+        typedef std::list<std::pair<Area_<uint32_t>, Area_<uint32_t>>> Area_Pairs;
         Area_Pairs area_pairs;
         
         auto wstr = utf8_to_wstring(theText);
@@ -314,42 +360,16 @@ namespace kinski { namespace gl {
         
         // workaround for weirdness in stb_truetype (blank 1st characters on line)
         const float start_x = 0.6f;
-        
-        float x = start_x, y = 0.f;
         uint32_t max_y = 0;
-        stbtt_aligned_quad q;
-        std::list<stbtt_aligned_quad> quads;
-        
-        auto wstr = utf8_to_wstring(theText);
-        
-        for (auto it = wstr.begin(); it != wstr.end(); ++it)
-        {
-            const auto &codepoint = *it;
-            
-            //new line
-            if(codepoint == '\n')
-            {
-                x = start_x;
-                y += m_impl->line_height;
-                continue;
-            }
-            stbtt_GetPackedQuad(m_impl->char_data, m_impl->bitmap->width, m_impl->bitmap->height,
-                                codepoint - 32, &x, &y, &q, 1);
-            
-            if(max_y < q.y1 + m_impl->font_height){ max_y = q.y1 + m_impl->font_height;}
-            quads.push_back(q);
-        }
+        auto quads = m_impl->create_quads(theText, start_x, &max_y);
         
         // reserve memory
         vertices.reserve(quads.size() * 4);
         tex_coords.reserve(quads.size() * 4);
         colors.reserve(quads.size() * 4);
         
-        std::list<stbtt_aligned_quad>::const_iterator quad_it = quads.begin();
-        for (; quad_it != quads.end(); ++quad_it)
+        for (const auto &quad : quads)
         {
-            const stbtt_aligned_quad &quad = *quad_it;
-            
             int w = quad.x1 - quad.x0;
             int h = quad.y1 - quad.y0;
 
@@ -421,32 +441,19 @@ namespace kinski { namespace gl {
         {
             string& l = lines[i];
             
-            auto line_mesh = create_mesh(l)->copy();
-            
             // center line_mesh
-            auto line_aabb = line_mesh->aabb();
+            auto line_aabb = create_aabb(l);
             
             bool reformat = false;
             
             //split line, if necessary
             while(line_aabb.width() > the_linewidth)
             {
-                // split up line into words (seperated by ' ')
-                auto words = split(l);
+                size_t indx = l.find_last_of(' ');
+                if(indx == string::npos){ break; }
                 
-                if(words.size() < 2){ break; }
-//                line_mesh->material()->set_diffuse(gl::COLOR_DARK_RED);
-                
-                std::string last_word = words.back();
-                words.pop_back();
-                
-                // rebuild string
-                l.clear();
-                
-                for (auto &w : words){ l.append(w + " "); }
-                
-                // cut last ' ' char
-                if(!l.empty()){ l = l.substr(0, l.size() - 1); }
+                std::string last_word = l.substr(indx);
+                l = l.substr(0, indx);
                 
                 if(!reformat)
                 {
@@ -459,11 +466,8 @@ namespace kinski { namespace gl {
                 }
                 else{ lines.push_back(last_word); }
                 
-                // recreate cut mesh
-                line_mesh = create_mesh(l)->copy();
-                
                 // new aabb
-                line_aabb = line_mesh->aabb();
+                line_aabb = create_aabb(l);
             }
 
             switch (the_align)
@@ -478,7 +482,7 @@ namespace kinski { namespace gl {
                     line_offset.x = (the_linewidth - line_aabb.width());
                     break;
             }
-            
+            auto line_mesh = create_mesh(l)->copy();
             line_mesh->set_position(vec3(line_offset.x, line_offset.y - line_aabb.height(), 0.f));
             
             // advance offset

@@ -121,6 +121,7 @@ namespace kinski{ namespace gl{
                 }
                 m_blend_material->set_textures({m_fbo.texture()});
             }
+            m_gui_scene->clear();
             m_dirty = false;
         }
         if(use_caching)
