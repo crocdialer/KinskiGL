@@ -89,14 +89,31 @@ namespace kinski{ namespace gl{
     
         if(m_dirty)
         {
+            std::unique_lock<std::mutex> scoped_lock(mutex);
             std::stringstream stream;
-            {
-                std::unique_lock<std::mutex> scoped_lock(mutex);
-                for(auto it = m_lines.crbegin(); it != m_lines.crend(); ++it){ stream << *it; }
-            }
+            for(auto it = m_lines.crbegin(); it != m_lines.crend(); ++it){ stream << *it; }
             m_gui_scene->clear();
             auto text_obj = m_font.create_text_obj(stream.str(), window_dimension().x - 2 * margin,
                                                    m_font.line_height() * 1.1f);
+            
+            auto obj_it = text_obj->children().rbegin();
+            
+            for(auto &line : m_lines)
+            {
+                gl::SelectVisitor<gl::Mesh> visitor;
+                (*obj_it)->accept(visitor);
+                
+                if(line.find("WARNING") != std::string::npos)
+                {
+                    for(auto m : visitor.get_objects()){ m->material()->set_diffuse(gl::COLOR_ORANGE) ;}
+                }
+                else if(line.find("ERROR") != std::string::npos)
+                {
+                    for(auto m : visitor.get_objects()){ m->material()->set_diffuse(gl::COLOR_RED) ;}
+                }
+                ++obj_it;
+            }
+            
             auto aabb = text_obj->aabb();
             text_obj->set_position(gl::vec3(margin, aabb.height() + margin, 0.f));
             m_gui_scene->add_object(text_obj);
