@@ -36,6 +36,12 @@ namespace kinski { namespace gl {
         gl::Object3DPtr create_text_obj(const std::string &the_text, uint32_t the_linewidth,
                                         uint32_t the_lineheight = 0,
                                         Align the_align = Align::LEFT) const;
+
+        gl::Object3DPtr create_text_obj(const std::list<std::string> &the_lines,
+                                        uint32_t the_linewidth,
+                                        uint32_t the_lineheight = 0,
+                                        Align the_align = Align::LEFT) const;
+        
         uint32_t font_size() const;
         uint32_t line_height() const;
         void set_line_height(uint32_t the_line_height);

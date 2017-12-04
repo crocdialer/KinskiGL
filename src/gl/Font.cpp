@@ -426,28 +426,30 @@ namespace kinski { namespace gl {
         return ret;
     }
     
-    gl::Object3DPtr Font::create_text_obj(const std::string &the_text, uint32_t the_linewidth,
+    gl::Object3DPtr Font::create_text_obj(const std::list<std::string> &the_lines,
+                                          uint32_t the_linewidth,
                                           uint32_t the_lineheight,
                                           Align the_align) const
     {
+        std::list<std::string> lines = the_lines;
         if(!the_lineheight){ the_lineheight = line_height(); }
         gl::Object3DPtr root = gl::Object3D::create();
         auto parent = root;
         
-        // create text meshes (1 per line)
-        auto lines = split(the_text, '\n', false);
         vec2 line_offset;
         bool reformat = false;
         
-        for(uint32_t i = 0; i < lines.size(); i++)
+        for(auto it = lines.begin(); it != lines.end(); ++it)
         {
             if(!reformat){ parent = root; }
-            string& l = lines[i];
+            string& l = *it;
             
             // center line_mesh
             auto line_aabb = create_aabb(l);
             
             reformat = false;
+            auto insert_it = it;
+            insert_it++;
             
             //split line, if necessary
             while(line_aabb.width() > the_linewidth)
@@ -463,19 +465,19 @@ namespace kinski { namespace gl {
                     parent = gl::Object3D::create();
                     root->add_child(parent);
                     reformat = true;
-                    lines.insert(lines.begin() + i + 1, last_word);
+                    insert_it = lines.insert(insert_it, last_word);
                 }
-                else if(i + 1 < lines.size())
+                else if(insert_it != lines.end())
                 {
-                    lines[i + 1] = last_word + " " + lines[i + 1];
+                    *insert_it = last_word + " " + *insert_it;
                 }
                 else{ lines.push_back(last_word); }
                 
                 // new aabb
                 line_aabb = create_aabb(l);
             }
-
-            switch (the_align)
+            
+            switch(the_align)
             {
                 case Align::LEFT:
                     line_offset.x = 0.f;
@@ -497,6 +499,15 @@ namespace kinski { namespace gl {
             parent->add_child(line_mesh);
         }
         return root;
+    }
+    
+    gl::Object3DPtr Font::create_text_obj(const std::string &the_text, uint32_t the_linewidth,
+                                          uint32_t the_lineheight,
+                                          Align the_align) const
+    {
+        // create text meshes (1 per line)
+        auto lines = split(the_text, '\n', false);
+        return create_text_obj(lines, the_linewidth, the_lineheight, the_align);
     }
     
 }}// namespace

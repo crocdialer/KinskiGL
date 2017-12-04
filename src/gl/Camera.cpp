@@ -29,18 +29,19 @@ namespace kinski { namespace gl{
     OrthoCamera::Ptr OrthoCamera::create_for_window()
     {
         return OrthoCamera::Ptr(new OrthoCamera(0.f, gl::window_dimension().x,
-                                                              0.f, gl::window_dimension().y,
-                                                              0.f, 1.f));
+                                                0.f, gl::window_dimension().y,
+                                                0.f, 1.f));
     }
     OrthoCamera::Ptr OrthoCamera::create(float left, float right,
-                                                       float bottom, float top,
-                                                       float near, float far)
+                                         float bottom, float top,
+                                         float near, float far)
     {
         return OrthoCamera::Ptr(new OrthoCamera(left, right, bottom, top, near, far));
     };
     
-    OrthoCamera::OrthoCamera(float left, float right, float bottom, float top,
-                                           float near, float far):
+    OrthoCamera::OrthoCamera(float left, float right,
+                             float bottom, float top,
+                             float near, float far):
     Camera(),
     m_left(left),
     m_right(right),

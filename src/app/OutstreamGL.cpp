@@ -73,8 +73,8 @@ namespace kinski{ namespace gl{
     {
         std::unique_lock<std::mutex> scoped_lock(mutex);
         
-        while(m_lines.size() >= m_max_lines) m_lines.pop_back();
-        m_lines.push_front(line);
+        while(m_lines.size() >= m_max_lines) m_lines.pop_front();
+        m_lines.push_back(line);
         m_dirty = true;
     }
     
@@ -90,13 +90,11 @@ namespace kinski{ namespace gl{
         if(m_dirty)
         {
             std::unique_lock<std::mutex> scoped_lock(mutex);
-            std::stringstream stream;
-            for(auto it = m_lines.crbegin(); it != m_lines.crend(); ++it){ stream << *it; }
             m_gui_scene->clear();
-            auto text_obj = m_font.create_text_obj(stream.str(), window_dimension().x - 2 * margin,
+            auto text_obj = m_font.create_text_obj(m_lines, window_dimension().x - 2 * margin,
                                                    m_font.line_height() * 1.1f);
             
-            auto obj_it = text_obj->children().rbegin();
+            auto obj_it = text_obj->children().begin();
             
             for(auto &line : m_lines)
             {
@@ -147,22 +145,6 @@ namespace kinski{ namespace gl{
                           gl::vec2(0.f, gl::window_dimension().y - m_fbo.size().y));
         }
         else{ m_gui_scene->render(gl::OrthoCamera::create_for_window()); }
-        
-//        std::unique_lock<std::mutex> scoped_lock(mutex);
-//        glm::vec2 step(0, m_font.line_height() * 1.1f);
-//        glm::vec2 offset(10, window_dimension().y - step.y);
-//        int i = m_lines.size();
-//        for (const string &line : m_lines)
-//        {
-//            gl::Color color = m_color;
-//            color.a = glm::smoothstep(0.f, 1.f, (float) i / m_lines.size());
-//            if(line.find("WARNING") != std::string::npos){color = gl::COLOR_ORANGE;}
-//            else if(line.find("ERROR") != std::string::npos){color = gl::COLOR_RED;}
-//
-//            gl::draw_text_2D(line.substr(0, line.size() - 1), m_font, color, offset);
-//            offset -= step;
-//            i--;
-//        }
     }
     
     StreamBufferGL::StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz):

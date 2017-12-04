@@ -183,7 +183,7 @@ void RemoteControl::receive_cb(net::tcp_connection_ptr rec_con,
             
             if(iter != m_command_map.end())
             {
-                std::vector<std::string> args(tokens.begin() + 1, tokens.end());
+                std::vector<std::string> args(++tokens.begin(), tokens.end());
                 
                 LOG_TRACE_1 << "Executing command: " << iter->first;
                 cmd_found = true;

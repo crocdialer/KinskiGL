@@ -47,9 +47,9 @@ namespace kinski
         return std::string(buf.get(), buf.get() + size - 1);
     }
 
-    inline std::vector<std::string>& split(const std::string &s, char delim,
-                                           std::vector<std::string> &elems,
-                                           bool remove_empty_splits = true)
+    inline std::list<std::string>& split(const std::string &s, char delim,
+                                         std::list<std::string> &elems,
+                                         bool remove_empty_splits = true)
     {
         std::stringstream ss(s);
         std::string item;
@@ -61,11 +61,11 @@ namespace kinski
         return elems;
     }
     
-    inline std::vector<std::string> split(const std::string &s,
-                                          char delim = ' ',
-                                          bool remove_empty_splits = true)
+    inline std::list<std::string> split(const std::string &s,
+                                        char delim = ' ',
+                                        bool remove_empty_splits = true)
     {
-        std::vector<std::string> elems;
+        std::list<std::string> elems;
         split(s, delim, elems, remove_empty_splits);
         return elems;
     }
