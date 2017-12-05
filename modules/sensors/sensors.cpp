@@ -23,8 +23,9 @@ void query_device(ConnectionPtr the_device, io_service_t &io, device_cb_t the_de
         
         for(const auto &line : lines)
         {
-            auto tokens = split(line, ' ');
-            
+            auto tmp = split(line, ' ');
+            std::vector<std::string> tokens(tmp.begin(), tmp.end());
+
             for(uint32_t i = 0; i < tokens.size(); ++i)
             {
                 if(tokens[i] == QUERY_ID_CMD && i < (tokens.size() - 1))

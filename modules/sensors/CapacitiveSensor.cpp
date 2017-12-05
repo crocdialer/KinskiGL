@@ -67,8 +67,9 @@ namespace kinski
             {
                 case SERIAL_END_CODE:
                 {
-                    auto tokens = split(string(m_impl->m_sensor_accumulator.begin(),
-                                               m_impl->m_sensor_accumulator.end()));
+                    auto tmp = split(string(m_impl->m_sensor_accumulator.begin(),
+                                            m_impl->m_sensor_accumulator.end()));
+                    std::vector<std::string> tokens(tmp.begin(), tmp.end());
                     m_impl->m_sensor_accumulator.clear();
                     
                     if(!tokens.empty())
