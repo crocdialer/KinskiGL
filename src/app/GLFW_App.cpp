@@ -108,7 +108,6 @@ namespace kinski
         glfwMakeContextCurrent(m_handle);
         gl::context()->set_current_context_id(m_handle);
         gl::set_window_dimension(framebuffer_size());
-        
         if(m_draw_function){ m_draw_function(); }
     }
 
@@ -438,6 +437,9 @@ namespace kinski
                     // console output
                     outstream_gl().draw();
                     TwDraw();
+                    
+                    // TODO: remove this, as soon as the side-effect making this necessary is found
+                    glDepthMask(GL_TRUE);
                 }
             });
         }

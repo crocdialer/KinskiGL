@@ -1307,8 +1307,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         if(!last_mat || (last_mat->depth_write() != the_mat->depth_write()))
         {
-            if(the_mat->depth_write()) glDepthMask(GL_TRUE);
-            else glDepthMask(GL_FALSE);
+            if(the_mat->depth_write()){ glDepthMask(GL_TRUE); }
+            else{ glDepthMask(GL_FALSE); }
         }
         KINSKI_CHECK_GL_ERRORS();
 
@@ -1334,7 +1334,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         KINSKI_CHECK_GL_ERRORS();
 
 #if !defined(KINSKI_GLES_2)
-        if(!last_mat || last_mat->blend_equation() != the_mat->blend_equation())
+        if(!last_mat || (last_mat->blend_equation() != the_mat->blend_equation()))
         {
             glBlendEquation(the_mat->blend_equation());
         }
