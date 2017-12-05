@@ -36,6 +36,7 @@ T rombergIntegral(T a, T b, const std::function<T(T)> &SPEEDFN)
 {
     static_assert(ORDER > 2, "ORDER must be greater than 2");
     T rom[2][ORDER];
+    memset(rom, 0, sizeof(rom));
     T half = b - a;
     
     rom[0][0] = ((T)0.5) * half * (SPEEDFN(a)+SPEEDFN(b));
