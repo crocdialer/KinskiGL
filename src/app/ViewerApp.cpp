@@ -300,7 +300,7 @@ namespace kinski {
             *m_show_tweakbar = !*m_show_tweakbar;
         }
         
-        if(*m_use_warping){ m_warp_component->key_press(e); }
+        if(*m_use_warping && e.isAltDown()){ m_warp_component->key_press(e); }
         
         if(!display_tweakbar())
         {
