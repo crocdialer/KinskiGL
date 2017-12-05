@@ -119,6 +119,7 @@ namespace kinski{ namespace gl{
             if(use_caching)
             {
                 gl::vec2 fbo_sz(window_dimension().x, aabb.height() + margin);
+                fbo_sz = glm::min(fbo_sz, gl::window_dimension());
                 if(!m_fbo || m_fbo.size() != fbo_sz){ m_fbo = gl::Fbo(fbo_sz); }
                 gl::render_to_texture(m_fbo, [this]()
                 {
@@ -132,7 +133,7 @@ namespace kinski{ namespace gl{
                     m_blend_material->set_depth_test(false);
                     m_blend_material->set_depth_write(false);
                     m_blend_material->set_blending(true);
-                    m_blend_material->set_blend_factors(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                    m_blend_material->set_blend_factors(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR);
                 }
                 m_blend_material->set_textures({m_fbo.texture()});
             }

@@ -1298,21 +1298,21 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         KINSKI_CHECK_GL_ERRORS();
 
         // read write depth buffer ?
-        if(!last_mat || last_mat->depth_test() != the_mat->depth_test())
+        if(!last_mat || (last_mat->depth_test() != the_mat->depth_test()))
         {
             if(the_mat->depth_test()) { glEnable(GL_DEPTH_TEST); }
             else { glDisable(GL_DEPTH_TEST); }
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || last_mat->depth_write() != the_mat->depth_write())
+        if(!last_mat || (last_mat->depth_write() != the_mat->depth_write()))
         {
             if(the_mat->depth_write()) glDepthMask(GL_TRUE);
             else glDepthMask(GL_FALSE);
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || last_mat->stencil_test() != the_mat->stencil_test())
+        if(!last_mat || (last_mat->stencil_test() != the_mat->stencil_test()))
         {
             if(the_mat->stencil_test()){ glEnable(GL_STENCIL_TEST); }
             else{ glDisable(GL_STENCIL_TEST); }
@@ -1320,24 +1320,26 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         }
         KINSKI_CHECK_GL_ERRORS();
 
-        if(!last_mat || last_mat->blending() != the_mat->blending()
-                     || last_mat->blend_factors() != the_mat->blend_factors()
-                     || last_mat->blend_equation() != the_mat->blend_equation())
+        if(!last_mat || (last_mat->blending() != the_mat->blending()))
         {
-            if(!the_mat->blending())
-            {
-                glDisable(GL_BLEND);
-            }
-            else
-            {
-                glEnable(GL_BLEND);
-                glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
-#if !defined(KINSKI_GLES_2)
-                glBlendEquation(the_mat->blend_equation());
-#endif
-            }
+            if(!the_mat->blending()){ glDisable(GL_BLEND); }
+            else{ glEnable(GL_BLEND); }
         }
         KINSKI_CHECK_GL_ERRORS();
+        
+        if(!last_mat || (last_mat->blend_factors() != the_mat->blend_factors()))
+        {
+            glBlendFunc(the_mat->blend_src(), the_mat->blend_dst());
+        }
+        KINSKI_CHECK_GL_ERRORS();
+
+#if !defined(KINSKI_GLES_2)
+        if(!last_mat || last_mat->blend_equation() != the_mat->blend_equation())
+        {
+            glBlendEquation(the_mat->blend_equation());
+        }
+        KINSKI_CHECK_GL_ERRORS();
+#endif
 
         if(!last_mat || last_mat->point_size() != the_mat->point_size())
         {
