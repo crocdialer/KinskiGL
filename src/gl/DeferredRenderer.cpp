@@ -241,9 +241,7 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
 
     auto c = gl::COLOR_BLACK;
     c.a = 0.f;
-    gl::clear_color(c);
-    gl::clear();
-    gl::clear_color(gl::COLOR_BLACK);
+    gl::clear(c);
 
     // stencil pass
     glStencilFunc(GL_ALWAYS, 0, 0);

@@ -68,10 +68,8 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   return base_color * (ambient + diffuse) + spec;
 }
 
-uniform float u_pointRadius;
-uniform vec3 u_lightDir;
 uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[8];
+uniform sampler2D u_sampler_2D[4];
 
 layout(std140) uniform MaterialBlock
 {
@@ -81,7 +79,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[16];
+  Lightsource u_lights[MAX_NUM_LIGHTS];
 };
 
 in VertexData
