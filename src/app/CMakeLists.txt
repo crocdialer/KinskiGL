@@ -2,9 +2,9 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 SET(LIB_NAME "app")
 
 FILE(GLOB FOLDER_SOURCES App.cpp RemoteControl.cpp ViewerApp.cpp LightComponent.cpp
-     Object3DComponent.cpp OutstreamGL.cpp MaterialComponent.cpp WarpComponent.cpp)
+     Object3DComponent.cpp MaterialComponent.cpp WarpComponent.cpp)
 FILE(GLOB FOLDER_HEADERS App.hpp RemoteControl.hpp ViewerApp.hpp LightComponent.hpp
-     Object3DComponent.hpp OutstreamGL.hpp MaterialComponent.hpp WarpComponent.hpp)
+     Object3DComponent.hpp MaterialComponent.hpp WarpComponent.hpp)
 
 ##### GLFW
 if(NOT KINSKI_ARM)

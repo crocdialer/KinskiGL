@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "core/CircularBuffer.hpp"
 #include "gl/gl.hpp"
 #include "gl/Font.hpp"
 #include "gl/Fbo.hpp"
@@ -32,16 +33,16 @@ namespace kinski{ namespace gl{
         explicit OutstreamGL(const gl::Font &the_font, uint32_t max_lines = 10);
         virtual ~OutstreamGL();
         
-        const std::list<std::string>& lines() const {return m_lines;};
-        uint32_t max_lines() const {return m_max_lines;}
-        void set_max_lines(uint32_t ml){m_max_lines = ml;}
+//        const std::list<std::string>& lines() const {return m_lines;};
+        uint32_t max_lines() const { return m_lines.capacity(); }
+        void set_max_lines(uint32_t ml){ m_lines.set_capacity(ml); }
         
         const gl::Font& font() const {return m_font;};
         gl::Font& font() {return m_font;};
         void set_font(gl::Font &the_font){m_font = the_font;};
         
-        const gl::Color& color() const {return m_color;}
-        void set_color(const gl::Color &c){m_color = c;}
+        const gl::Color& color() const { return m_color; }
+        void set_color(const gl::Color &c){ m_color = c; }
         
         void add_line(const std::string &line);
         void draw();
@@ -50,8 +51,8 @@ namespace kinski{ namespace gl{
         
         gl::Font m_font;
         gl::Color m_color;
-        uint32_t m_max_lines;
-        std::list<std::string> m_lines;
+//        uint32_t m_max_lines;
+        CircularBuffer<std::string> m_lines;
         gl::Fbo m_fbo;
         gl::ScenePtr m_gui_scene;
         gl::MaterialPtr m_blend_material;

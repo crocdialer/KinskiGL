@@ -474,7 +474,7 @@ namespace kinski
 
     void GLFW_App::s_error_cb(int error_code, const char* error_msg)
     {
-        LOG_ERROR<<"GLFW Error ("<< error_code <<"): "<<error_msg;
+        LOG_WARNING << "GLFW Error (" << error_code << "): " << error_msg;
     }
 
     void GLFW_App::s_window_refresh(GLFWwindow* window)

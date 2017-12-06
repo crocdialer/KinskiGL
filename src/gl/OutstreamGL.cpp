@@ -46,7 +46,7 @@ namespace kinski{ namespace gl{
     OutstreamGL::OutstreamGL(uint32_t max_lines):
     ios(0),
     ostream(new StreamBufferGL(this)),
-    m_max_lines(max_lines),
+    m_lines(max_lines),
     m_gui_scene(gl::Scene::create()),
     m_dirty(true)
     {
@@ -57,7 +57,7 @@ namespace kinski{ namespace gl{
     ios(0),
     ostream(new StreamBufferGL(this)),
     m_font(the_font),
-    m_max_lines(max_lines),
+    m_lines(max_lines),
     m_gui_scene(gl::Scene::create()),
     m_dirty(true)
     {
@@ -72,8 +72,6 @@ namespace kinski{ namespace gl{
     void OutstreamGL::add_line(const std::string &line)
     {
         std::unique_lock<std::mutex> scoped_lock(mutex);
-        
-        while(m_lines.size() >= m_max_lines) m_lines.pop_front();
         m_lines.push_back(line);
         m_dirty = true;
     }

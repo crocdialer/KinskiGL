@@ -2,7 +2,7 @@ INCLUDE(Kinski_Helpers)
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 OPTION (BUILD_APPLIB "Build App framework" ON)
-OPTION (BUILD_CVLIB "Build CV framework" ON)
+OPTION (BUILD_CVLIB "Build CV framework" OFF)
 set(PROJECT_DIRS "${CMAKE_SOURCE_DIR}/src/projects" CACHE PROJECT_DIRS "Project directories")
 
 ADD_SUBDIRECTORY("core")
