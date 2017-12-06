@@ -131,7 +131,9 @@ namespace kinski{ namespace gl{
                     m_blend_material->set_depth_test(false);
                     m_blend_material->set_depth_write(false);
                     m_blend_material->set_blending(true);
+#if !defined(KINSKI_GLES_2)
                     m_blend_material->set_blend_factors(GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR);
+#endif
                 }
                 m_blend_material->set_textures({m_fbo.texture()});
             }

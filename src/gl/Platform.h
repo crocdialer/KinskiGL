@@ -71,7 +71,7 @@ typedef struct _CGLContextObject *CGLContextObj;
 		class	EAGLContext;
 	#endif
 #elif defined(KINSKI_EGL)
-typedef void* EGLContext;
+    typedef void* EGLContext;
 	typedef void* EGLDisplay;
 	typedef void* EGLSurface;
 #endif
