@@ -29,7 +29,7 @@ namespace kinski{ namespace gl{
     class StreamBufferGL : public std::streambuf
     {
     public:
-        StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz = 1 << 20);
+        StreamBufferGL(OutstreamGL *ostreamGL);
         
     protected:
         
@@ -40,7 +40,7 @@ namespace kinski{ namespace gl{
         
     private:
         OutstreamGL* m_outstreamGL;
-        std::vector<char> m_buffer;
+        std::array<char, 1 << 16> m_buffer;
     };
     
     OutstreamGL::OutstreamGL(uint32_t max_lines):
@@ -148,13 +148,12 @@ namespace kinski{ namespace gl{
         else{ m_gui_scene->render(gl::OrthoCamera::create_for_window()); }
     }
     
-    StreamBufferGL::StreamBufferGL(OutstreamGL *ostreamGL, size_t buff_sz):
+    StreamBufferGL::StreamBufferGL(OutstreamGL *ostreamGL):
     m_outstreamGL(ostreamGL),
-    m_buffer(buff_sz + 1)
+    m_buffer()
     {
         //set putbase pointer and endput pointer
-        char *base = &m_buffer[0];
-        setp(base, base + buff_sz);
+        setp(m_buffer.data(), m_buffer.data() + m_buffer.size());
     }
 
     
@@ -165,8 +164,10 @@ namespace kinski{ namespace gl{
         
         // pass the flushed char sequence
         m_outstreamGL->add_line(std::string(pbase(), pptr()));
-        
-        pbump(-num); // reset put pointer accordingly
+
+        // reset put pointer accordingly
+        pbump(-num);
+
         return num;
     }
     
