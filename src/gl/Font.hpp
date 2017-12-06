@@ -14,7 +14,6 @@
 #pragma once
 
 #include "gl/gl.hpp"
-#include "core/CircularBuffer.hpp"
 
 namespace kinski { namespace gl {
     
