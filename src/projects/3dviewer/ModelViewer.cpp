@@ -270,7 +270,7 @@ void ModelViewer::update_fbos()
             }catch(Exception &e){ LOG_WARNING << e.what(); }
         }
 
-        camera()->set_clipping(0.1f, 1000.f);
+        camera()->set_clipping(0.1f, 5000.f);
         m_post_process_mat->uniform("u_window_dimension", gl::window_dimension());
         m_post_process_mat->uniform("u_znear", camera()->near());
         m_post_process_mat->uniform("u_zfar", camera()->far());

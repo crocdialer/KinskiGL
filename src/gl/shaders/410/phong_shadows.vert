@@ -1,6 +1,6 @@
 #version 410
 
-#define NUM_SHADOW_LIGHTS 2
+#define NUM_SHADOW_LIGHTS 4
 
 uniform mat4 u_modelViewMatrix;
 uniform mat4 u_modelViewProjectionMatrix;

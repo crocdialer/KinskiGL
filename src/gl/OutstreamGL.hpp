@@ -20,11 +20,6 @@
 
 namespace kinski{ namespace gl{
     
-    /* see
-     * http://savingyoutime.wordpress.com/2009/04/21/using-c-stl-streambufostream-to-create-time-stamped-logging-class/
-     * for references
-     */
-    
     class OutstreamGL : public std::ostream
     {
     public:
