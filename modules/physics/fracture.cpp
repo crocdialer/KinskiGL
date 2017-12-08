@@ -203,7 +203,7 @@ namespace kinski{namespace physics{
                 cur_plane[3] = -cur_plane.dot(convexHC->vertices[v0]);
                 bool is_outside = false;
                 
-                for(uint32_t q = 0; q < convexPlanes.size(); q++)
+                for(int q = 0; q < convexPlanes.size(); q++)
                 {
                     if(is_equal(convexPlanes[q], cur_plane, 0.01f)){ is_outside = true; break;}
                 }

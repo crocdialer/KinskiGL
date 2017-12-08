@@ -17,15 +17,11 @@ std::pair<char, std::string> LSystem::parse_rule(const std::string &the_rule)
 {
     auto ret = std::pair<char, std::string>();
     auto splits = split(remove_whitespace(the_rule), '=');
-    
-    if(splits.size() != 2)
+
+    if(splits.size() == 2)
     {
-//        LOG_ERROR << "parse error";
-    }
-    else
-    {
-        ret.first = splits[0][0];
-        ret.second = splits[1];
+        ret.first = splits.front()[0];
+        ret.second = splits.back();
     }
     return ret;
 }

@@ -79,8 +79,8 @@ namespace kinski
         RangedProperty<float>::Ptr
         m_animation_speed = RangedProperty<float>::create("animation speed", 1.f, -1.5f, 1.5f);
         
-        void build_skeleton(gl::BonePtr currentBone, vector<gl::vec3> &points,
-                            vector<string> &bone_names);
+        void build_skeleton(gl::BonePtr currentBone, const glm::mat4 start_transform,
+                            vector<gl::vec3> &points, vector<string> &bone_names);
         
         //! asset loading routine
         gl::MeshPtr load_asset(const std::string &the_path);

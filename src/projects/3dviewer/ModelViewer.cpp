@@ -129,16 +129,22 @@ void ModelViewer::draw()
             // crunch bone data
             vector<vec3> skel_points;
             vector<string> bone_names;
-            build_skeleton(m_mesh->root_bone(), skel_points, bone_names);
-            gl::load_matrix(gl::MODEL_VIEW_MATRIX, camera()->view_matrix() * m_mesh->global_transform());
+            build_skeleton(m_mesh->root_bone(), m_mesh->global_transform(), skel_points, bone_names);
+            gl::load_matrix(gl::MODEL_VIEW_MATRIX, camera()->view_matrix());
 
-            // draw bone data
+            // draw bones
             gl::draw_lines(skel_points, gl::COLOR_DARK_RED, 5.f);
+
+            // draw labels
+            for(uint32_t i = 1; i < skel_points.size(); i += 2)
+            {
+                vec2 p2d = gl::project_point_to_screen(mix(skel_points[i], skel_points[i - 1], 0.5f), camera());
+                gl::draw_text_2D(bone_names[i / 2], fonts()[0], gl::COLOR_WHITE, p2d);
+            }
 
             for(const auto &p : skel_points)
             {
-                vec3 p_trans = (m_mesh->global_transform() * vec4(p, 1.f)).xyz();
-                vec2 p2d = gl::project_point_to_screen(p_trans, camera());
+                vec2 p2d = gl::project_point_to_screen(p, camera());
                 gl::draw_circle(p2d, 5.f, false);
             }
         }
@@ -509,8 +515,8 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
 
 /////////////////////////////////////////////////////////////////
 
-void ModelViewer::build_skeleton(gl::BonePtr currentBone, vector<vec3> &points,
-                                 vector<string> &bone_names)
+void ModelViewer::build_skeleton(gl::BonePtr currentBone, const glm::mat4 start_transform,
+                                 vector<gl::vec3> &points, vector<string> &bone_names)
 {
     if(!currentBone) return;
 
@@ -519,12 +525,12 @@ void ModelViewer::build_skeleton(gl::BonePtr currentBone, vector<vec3> &points,
 
     for (auto child_bone : currentBone->children)
     {
-        mat4 globalTransform = currentBone->worldtransform;
-        mat4 childGlobalTransform = child_bone->worldtransform;
+        mat4 globalTransform = start_transform * currentBone->worldtransform;
+        mat4 childGlobalTransform = start_transform * child_bone->worldtransform;
         points.push_back(globalTransform[3].xyz());
         points.push_back(childGlobalTransform[3].xyz());
 
-        build_skeleton(child_bone, points, bone_names);
+        build_skeleton(child_bone, start_transform, points, bone_names);
     }
 }
 
