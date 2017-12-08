@@ -205,15 +205,7 @@ public:
     inline void remove_flag(uint32_t b){ m_dirty_bits &= ~b; }
     inline bool has_flag(uint32_t b){ return m_dirty_bits & b; }
     
-//    // GL buffers
-//    gl::Buffer& vertex_buffer(){ return m_vertex_buffer; };
-//    gl::Buffer& normal_buffer(){ return m_normal_buffer; };
-//    gl::Buffer& tex_coord_buffer(){ return m_tex_coord_buffer; };
-//    gl::Buffer& tangent_buffer(){ return m_tangent_buffer; };
-//    gl::Buffer& point_size_buffer(){ return m_point_size_buffer; };
-//    gl::Buffer& color_buffer(){ return m_color_buffer; };
-//    gl::Buffer& bone_buffer(){ return m_bone_buffer; };
-//    gl::Buffer& index_buffer(){ return m_index_buffer; };
+    // GL buffers
     const gl::Buffer& vertex_buffer() const { return m_vertex_buffer; };
     const gl::Buffer& normal_buffer() const { return m_normal_buffer; };
     const gl::Buffer& tex_coord_buffer() const { return m_tex_coord_buffer; };
