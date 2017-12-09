@@ -468,9 +468,10 @@ GeometryPtr Geometry::create_circle(int numSegments, float the_radius)
     auto &verts = ret->vertices();
     auto &texCoords = ret->tex_coords();
 
-    // automatically determine the number of segments from the circumference
-    //        if( numSegments <= 0 ){ numSegments = (int)floor(radius * M_PI * 2);}
-    //        numSegments = std::max(numSegments, 2);
+//    // automatically determine the number of segments from the circumference
+//    if( numSegments <= 0 ){ numSegments = (int)floor(the_radius * M_PI * 2);}
+//    numSegments = std::max(numSegments, 2);
+
     verts.resize(numSegments + 1);
     texCoords.resize(verts.size());
     ret->colors().resize(verts.size(), gl::COLOR_WHITE);

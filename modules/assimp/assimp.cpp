@@ -11,6 +11,7 @@
 #include <assimp/postprocess.h>
 #include "core/file_functions.hpp"
 #include "gl/Mesh.hpp"
+#include "gl/Scene.hpp"
 #include "assimp.hpp"
 
 using namespace std;
@@ -43,7 +44,9 @@ gl::BonePtr find_bone_by_name(const std::string &the_name, gl::BonePtr the_root)
 void create_bone_animation(const aiNode *theNode, const aiAnimation *theAnimation,
                            gl::BonePtr root_bone, gl::MeshAnimation &outAnim);
 
-void get_node_transform(const aiNode *the_node, mat4 &the_transform);
+//void get_node_transform(const aiNode *the_node, mat4 &the_transform);
+
+void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl::Object3DPtr &the_parent_node);
     
 /////////////////////////////////////////////////////////////////
     
@@ -163,8 +166,6 @@ void insertBoneVertexData(gl::GeometryPtr geom, const WeightMap &weightmap, uint
         uint32_t i = 0, max_num_weights = boneData.indices.length();
         
         list< pair<uint32_t, float> > tmp_list(it->second.begin(), it->second.end());
-//            tmp_list.sort(boost::bind(&pair<uint32_t, float>::second, _1) >
-//                          boost::bind(&pair<uint32_t, float>::second, _2));
         tmp_list.sort([](const pair<uint32_t, float> &lhs,
                          const pair<uint32_t, float> &rhs)
         {
@@ -298,6 +299,8 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         LOG_ERROR << e.what();
         return gl::MeshPtr();
     }
+    load_scene(theModelPath);
+
     LOG_DEBUG << "loading model '" << theModelPath << "' ...";
     const aiScene *theScene = importer.ReadFile(found_path, 0);
     
@@ -313,7 +316,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         std::vector<gl::MaterialPtr> materials;
         materials.resize(theScene->mNumMaterials, gl::Material::create());
         
-        uint32_t current_index = 0, current_vertex = 0;
+        uint32_t current_base_index = 0, current_base_vertex = 0;
         gl::GeometryPtr combined_geom = gl::Geometry::create();
         BoneMap bonemap;
         WeightMap weightmap;
@@ -323,16 +326,16 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         {
             aiMesh *aMesh = theScene->mMeshes[i];
             gl::GeometryPtr g = createGeometry(aMesh, theScene);
-            loadBones(aMesh, current_vertex, bonemap, weightmap);
+            loadBones(aMesh, current_base_vertex, bonemap, weightmap);
             gl::Mesh::Entry m;
             m.num_vertices = g->vertices().size();
             m.num_indices = g->indices().size();
-            m.base_index = current_index;
-            m.base_vertex = current_vertex;
+            m.base_index = current_base_index;
+            m.base_vertex = current_base_vertex;
             m.material_index = aMesh->mMaterialIndex;
             entries.push_back(m);
-            current_vertex += g->vertices().size();
-            current_index += g->indices().size();
+            current_base_vertex += g->vertices().size();
+            current_base_index += g->indices().size();
             
             geometries.push_back(g);
             mergeGeometries(g, combined_geom);
@@ -386,7 +389,83 @@ gl::MeshPtr load_model(const std::string &theModelPath)
 }
 
 /////////////////////////////////////////////////////////////////
-    
+
+gl::ScenePtr load_scene(const std::string &the_path)
+{
+    gl::ScenePtr ret;
+
+    Assimp::Importer importer;
+    std::string found_path;
+    try { found_path = fs::search_file(the_path); }
+    catch(fs::FileNotFoundException &e)
+    {
+        LOG_ERROR << e.what();
+        return ret;
+    }
+    LOG_DEBUG << "loading scene '" << the_path << "' ...";
+    const aiScene *in_scene = importer.ReadFile(found_path, 0);
+
+    // super useful postprocessing steps
+    in_scene = importer.ApplyPostProcessing(aiProcess_Triangulate
+                                            | aiProcess_GenSmoothNormals
+                                            | aiProcess_JoinIdenticalVertices
+                                            | aiProcess_CalcTangentSpace
+                                            | aiProcess_LimitBoneWeights);
+
+    if(in_scene)
+    {
+        ret = gl::Scene::create();
+
+        LOG_DEBUG << "num lights: " << in_scene->mNumLights;
+
+        for(uint32_t i = 0; i < in_scene->mNumLights; ++i)
+        {
+
+        }
+        LOG_DEBUG << "num cams: " << in_scene->mNumCameras;
+
+        for(uint32_t i = 0; i < in_scene->mNumCameras; ++i)
+        {
+
+        }
+
+        process_node(in_scene, in_scene->mRootNode, ret->root());
+        importer.FreeScene();
+    }
+    return ret;
+}
+
+/////////////////////////////////////////////////////////////////
+
+void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl::Object3DPtr &the_parent_node)
+{
+    if(!the_in_node){ return; }
+
+    string node_name(the_in_node->mName.data);
+    mat4 node_transform = aimatrix_to_glm_mat4(the_in_node->mTransformation);
+
+    aiNode* p = the_in_node->mParent;
+    string parent_string;
+
+//    while(p && p != the_scene->mRootNode && p != the_in_node)
+//    { parent_string = string(p->mName.data) + " -> " + parent_string;}
+
+    LOG_DEBUG << "node: " << parent_string + node_name << " -- " << glm::to_string(node_transform[3].xyz());
+
+    // meshes assigned to this node
+    for (uint32_t  n = 0; n < the_in_node->mNumMeshes; ++n)
+    {
+        const aiMesh *mesh = the_scene->mMeshes[the_in_node->mMeshes[n]];
+    }
+
+    for(uint32_t i = 0; i < the_in_node->mNumChildren; ++i)
+    {
+        process_node(the_scene, the_in_node->mChildren[i], the_parent_node);
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+
 gl::BonePtr create_bone_hierarchy(const aiNode *theNode, const gl::mat4 &parentTransform,
                                   const map<std::string, pair<int, gl::mat4>> &boneMap,
                                   gl::BonePtr parentBone)
@@ -516,18 +595,18 @@ gl::BonePtr find_bone_by_name(const std::string &the_name, gl::BonePtr the_root)
     
 /////////////////////////////////////////////////////////////////
     
-void get_node_transform(const aiNode *the_node, mat4 &the_transform)
-{
-    if(the_node)
-    {
-        the_transform *= aimatrix_to_glm_mat4(the_node->mTransformation);
-        
-        for (uint32_t i = 0 ; i < the_node->mNumChildren ; i++)
-        {
-            get_node_transform(the_node->mChildren[i], the_transform);
-        }
-    }
-}
+//void get_node_transform(const aiNode *the_node, mat4 &the_transform)
+//{
+//    if(the_node)
+//    {
+//        the_transform *= aimatrix_to_glm_mat4(the_node->mTransformation);
+//
+//        for (uint32_t i = 0 ; i < the_node->mNumChildren ; i++)
+//        {
+//            get_node_transform(the_node->mChildren[i], the_transform);
+//        }
+//    }
+//}
     
 /////////////////////////////////////////////////////////////////
     

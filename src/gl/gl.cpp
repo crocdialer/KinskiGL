@@ -1062,7 +1062,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 ///////////////////////////////////////////////////////////////////////////////
 
     void draw_circle(const vec2 &center, float radius, const gl::Color &the_color, bool solid,
-                     int numSegments)
+                     uint32_t the_num_segments)
     {
         static gl::MaterialPtr color_mat;
 
@@ -1073,36 +1073,46 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             color_mat->set_depth_write(false);
         }
         color_mat->set_diffuse(the_color);
-        draw_circle(center, radius, solid, color_mat, numSegments);
+        draw_circle(center, radius, solid, color_mat, the_num_segments);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_circle(const glm::vec2 &center, float radius, bool solid,
-                     const MaterialPtr &theMaterial, int numSegments)
+    void draw_circle(const glm::vec2 &center, float the_radius, bool solid,
+                     const MaterialPtr &theMaterial, uint32_t the_num_segments)
     {
-        static gl::MeshPtr solid_mesh, line_mesh;
+        constexpr uint32_t max_num_buffer_meshes = 10;
+        static std::unordered_map<uint32_t, gl::MeshPtr> solid_meshes, line_meshes;
         static gl::MaterialPtr default_mat;
-        static int last_num_sequments = 0;
-        gl::MeshPtr our_mesh = solid ? solid_mesh : line_mesh;
 
-        if(!our_mesh || last_num_sequments != numSegments)
+        // automatically determine the number of segments from the circumference
+        if(!the_num_segments){ the_num_segments = (int)floor(the_radius * M_PI * 2);}
+        the_num_segments = std::max(the_num_segments, 2U);
+
+        gl::MeshPtr our_mesh;
+        auto it = solid ? solid_meshes.find(the_num_segments) : line_meshes.find(the_num_segments);
+        if(it != (solid ? solid_meshes.end() : line_meshes.end())){ our_mesh = it->second; }
+
+        if(!our_mesh)
         {
-            last_num_sequments = numSegments;
-            GeometryPtr geom = solid ? Geometry::create_solid_circle(numSegments) :
-                Geometry::create_circle(numSegments);
+            GeometryPtr geom = solid ? Geometry::create_solid_circle(the_num_segments) :
+                Geometry::create_circle(the_num_segments);
             default_mat = gl::Material::create();
             default_mat->set_depth_test(false);
             default_mat->set_depth_write(false);
             our_mesh = gl::Mesh::create(geom, default_mat);
-            if(solid)
-                solid_mesh = our_mesh;
-            else
-                line_mesh = our_mesh;
+
+            // cleanup
+            if(solid_meshes.size() >= max_num_buffer_meshes){ solid_meshes.clear(); }
+            if(line_meshes.size() >= max_num_buffer_meshes){ line_meshes.clear(); }
+
+            // add our newly created mesh
+            if(solid){ solid_meshes[the_num_segments] = our_mesh; }
+            else{ line_meshes[the_num_segments] = our_mesh; }
         }
         our_mesh->material() = theMaterial ? theMaterial : default_mat;
         mat4 projectionMatrix = ortho(0.0f, g_viewport_dim[0], 0.0f, g_viewport_dim[1], 0.0f, 1.0f);
-        mat4 modelView = glm::scale(mat4(), vec3(radius));
+        mat4 modelView = glm::scale(mat4(), vec3(the_radius));
         modelView[3] = vec4(center.x, g_viewport_dim[1] - center.y, 0, modelView[3].w);
 
         ScopedMatrixPush m(MODEL_VIEW_MATRIX), p(PROJECTION_MATRIX);

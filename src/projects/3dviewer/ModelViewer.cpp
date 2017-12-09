@@ -67,6 +67,7 @@ void ModelViewer::setup()
         light_mesh->material()->set_diffuse(gl::COLOR_BLACK);
         light_mesh->material()->set_emission(gl::COLOR_WHITE);
         light_mesh->material()->set_shadow_properties(gl::Material::SHADOW_NONE);
+        light_mesh->set_name(l->name() + " dummy");
         l->add_child(light_mesh);
     }
     
@@ -119,7 +120,14 @@ void ModelViewer::draw()
     auto draw_fn = [this]()
     {
         scene()->render(camera());
-        if(m_selected_mesh){ gl::draw_boundingbox(m_selected_mesh); }
+        if(m_selected_mesh)
+        {
+            gl::draw_boundingbox(m_selected_mesh);
+
+            auto aabb = m_selected_mesh->aabb();
+            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
+            gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
+        }
 
         // draw enabled light dummies
         m_light_component->draw_light_dummies();

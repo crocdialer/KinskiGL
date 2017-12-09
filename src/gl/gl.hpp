@@ -196,9 +196,9 @@ KINSKI_API void draw_transform(const mat4& the_transform, float the_scale = 1.f)
 KINSKI_API void draw_boundingbox(const Object3DPtr &the_obj);
 KINSKI_API void draw_normals(const MeshWeakPtr &theMesh);
 KINSKI_API void draw_circle(const vec2 &center, float radius, const gl::Color &the_color,
-                            bool solid = true, int numSegments = 32);
+                            bool solid = true, uint32_t the_num_segments = 0);
 KINSKI_API void draw_circle(const vec2 &center, float radius, bool solid = true,
-                            const MaterialPtr &theMaterial = MaterialPtr(), int numSegments = 32);
+                            const MaterialPtr &theMaterial = MaterialPtr(), uint32_t the_num_segments = 0);
 
 KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene, gl::Fbo &theFbo,
                                          const gl::CameraPtr &theCam);
