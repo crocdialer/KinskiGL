@@ -346,8 +346,27 @@ namespace kinski
         const std::string& name() const { return m_name; };
         const std::vector<uint8_t>& buttons() const { return m_buttons; };
         const std::vector<float>& axis() const { return m_axis; };
+
+        const gl::vec2 left() const
+        {
+            return gl::vec2(fabs(m_axis[0]) > m_dead_zone ? m_axis[0] : 0.f,
+                            fabs(m_axis[1]) > m_dead_zone ? m_axis[1] : 0.f);
+        }
+
+        const gl::vec2 right() const
+        {
+            return gl::vec2(fabs(m_axis[4]) > m_dead_zone ? m_axis[2] : 0.f,
+                            fabs(m_axis[5]) > m_dead_zone ? m_axis[3] : 0.f);
+        }
+
+        const gl::vec2 trigger() const
+        {
+            return gl::vec2(fabs(m_axis[4]) > m_dead_zone ? m_axis[4] : 0.f,
+                            fabs(m_axis[5]) > m_dead_zone ? m_axis[5] : 0.f);
+        }
         
     private:
+        float m_dead_zone = 0.03f;
         std::string m_name;
         std::vector<uint8_t> m_buttons;
         std::vector<float> m_axis;

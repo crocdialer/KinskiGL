@@ -299,7 +299,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         LOG_ERROR << e.what();
         return gl::MeshPtr();
     }
-    load_scene(theModelPath);
+//    load_scene(theModelPath);
 
     LOG_DEBUG << "loading model '" << theModelPath << "' ...";
     const aiScene *theScene = importer.ReadFile(found_path, 0);
@@ -417,12 +417,13 @@ gl::ScenePtr load_scene(const std::string &the_path)
         ret = gl::Scene::create();
 
         LOG_DEBUG << "num lights: " << in_scene->mNumLights;
+        LOG_DEBUG << "num cams: " << in_scene->mNumCameras;
 
         for(uint32_t i = 0; i < in_scene->mNumLights; ++i)
         {
 
         }
-        LOG_DEBUG << "num cams: " << in_scene->mNumCameras;
+
 
         for(uint32_t i = 0; i < in_scene->mNumCameras; ++i)
         {
@@ -444,11 +445,11 @@ void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl:
     string node_name(the_in_node->mName.data);
     mat4 node_transform = aimatrix_to_glm_mat4(the_in_node->mTransformation);
 
-    aiNode* p = the_in_node->mParent;
+    const aiNode* p = the_in_node->mParent;
     string parent_string;
 
-//    while(p && p != the_scene->mRootNode && p != the_in_node)
-//    { parent_string = string(p->mName.data) + " -> " + parent_string;}
+    while(p && p != the_scene->mRootNode)
+    { parent_string = string(p->mName.data) + " -> " + parent_string; p = p->mParent; }
 
     LOG_DEBUG << "node: " << parent_string + node_name << " -- " << glm::to_string(node_transform[3].xyz());
 

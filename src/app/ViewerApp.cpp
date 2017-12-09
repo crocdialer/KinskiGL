@@ -187,24 +187,18 @@ namespace kinski {
         }
 
         // update joysticks
-        for(auto &joystick : get_joystick_states())
+        for(auto &j : get_joystick_states())
         {
-            float min_val = 0.05f, multiplier = .1f;
-            float x_axis = fabs(joystick.axis()[0]) > min_val ? joystick.axis()[0] : 0.f;
-            float y_axis = fabs(joystick.axis()[1]) > min_val ? joystick.axis()[1] : 0.f;
+            float multiplier = .08f;
 
-            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * x_axis, gl::Y_AXIS));
-            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * y_axis, gl::X_AXIS));
+            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.left().x, gl::Y_AXIS));
+            *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.left().y, gl::X_AXIS));
+            *m_distance += timeDelta * j.right().y * 60.f;
 
-            if(joystick.buttons()[4]){ *m_distance += 5.f; }
-            if(joystick.buttons()[5]){ *m_distance -= 5.f; }
-
-//            LOG_DEBUG << x_axis;
-
-            for(uint32_t i = 0; i < joystick.buttons().size(); ++i)
+            for(uint32_t i = 0; i < j.buttons().size(); ++i)
             {
-                const auto b = joystick.buttons()[i];
-                if(b){ LOG_DEBUG << joystick.name() << ": " << "button " << i; }
+                uint32_t b = j.buttons()[i];
+                if(b){ LOG_DEBUG << j.name() << ": " << "button " << i << " -> " << b; }
             }
         }
 

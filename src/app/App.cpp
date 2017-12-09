@@ -28,7 +28,7 @@ namespace kinski
     // threadsafe task-counting internals
     namespace
     {
-        uint32_t num_tasks = 0;
+        std::atomic<uint32_t> num_tasks(0);
         std::mutex mutex;
     }
     
@@ -139,13 +139,13 @@ namespace kinski
     
     void App::inc_task()
     {
-        std::unique_lock<std::mutex> lock(mutex);
+//        std::unique_lock<std::mutex> lock(mutex);
         num_tasks++;
     }
     
     void App::dec_task()
     {
-        std::unique_lock<std::mutex> lock(mutex);
+//        std::unique_lock<std::mutex> lock(mutex);
         if(num_tasks){ num_tasks--; }
     }
     

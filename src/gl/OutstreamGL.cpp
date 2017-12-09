@@ -94,19 +94,20 @@ namespace kinski{ namespace gl{
             
             auto obj_it = text_obj->children().begin();
             
-            for(auto &line : m_lines)
+            for(uint32_t i = 0; i < m_lines.size(); ++i)
             {
+                auto &line = m_lines[i];
                 gl::SelectVisitor<gl::Mesh> visitor;
                 (*obj_it)->accept(visitor);
-                
+                auto col = gl::COLOR_WHITE;
+
                 if(line.find("WARNING") != std::string::npos)
-                {
-                    for(auto m : visitor.get_objects()){ m->material()->set_diffuse(gl::COLOR_ORANGE) ;}
-                }
+                { col = gl::COLOR_ORANGE; }
                 else if(line.find("ERROR") != std::string::npos)
-                {
-                    for(auto m : visitor.get_objects()){ m->material()->set_diffuse(gl::COLOR_RED) ;}
-                }
+                { col = gl::COLOR_RED; }
+
+//                col.a = (float) i / m_lines.size();
+                for(auto m : visitor.get_objects()){ m->material()->set_diffuse(col); }
                 ++obj_it;
             }
             

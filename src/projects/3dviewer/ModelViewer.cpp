@@ -103,8 +103,16 @@ void ModelViewer::update(float timeDelta)
         
         if(selected_mesh() && l == selected_mesh()->parent()){ m_light_component->set_index(i); }
     }
-    
-    auto js_states = get_joystick_states();
+
+//    for(auto &j : get_joystick_states())
+//    {
+//        if(m_mesh)
+//        {
+//            m_mesh->transform() = glm::rotate(m_mesh->transform(),
+//                                              timeDelta * j.trigger().y * 10.f,
+//                                              gl::Y_AXIS);
+//        }
+//    }
 }
 
 /////////////////////////////////////////////////////////////////
