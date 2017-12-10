@@ -510,6 +510,7 @@ m_control_points(nullptr)
 template<int D,typename T>
 BSpline<D,T>::BSpline(const std::vector<VecT> &points, int degree, bool loop, bool open):
 m_basis(std::make_unique<BSplineBasis>()),
+m_control_points(nullptr),
 m_loop(loop)
 {
     assert(points.size() >= 2);
@@ -526,6 +527,7 @@ BSpline<D,T>::BSpline(int numControlPoints, const typename BSpline<D,T>::VecT *c
                       int degree, bool loop, const float *knots):
 m_basis(std::make_unique<BSplineBasis>()),
 m_num_control_points(numControlPoints),
+m_control_points(nullptr),
 m_loop(loop)
 {
     assert(m_num_control_points >= 2);
@@ -552,7 +554,8 @@ m_replicate(other.m_replicate)
 template<int D,typename T>
 BSpline<D,T>::BSpline(const BSpline &other):
 m_basis(std::make_unique<BSplineBasis>()),
-m_num_control_points(0)
+m_num_control_points(0),
+m_control_points(nullptr)
 {
     m_num_control_points = other.m_num_control_points;
     m_loop = other.m_loop;
@@ -577,7 +580,7 @@ BSpline<D,T>& BSpline<D,T>::operator=(BSpline other)
 template<int D, typename T>
 BSpline<D,T>::~BSpline()
 {
-    delete [] m_control_points;
+    delete[] m_control_points;
 }
     
 template<int D, typename T>
@@ -601,6 +604,7 @@ bool BSpline<D,T>::loop() const { return m_loop; }
 template<int D, typename T>
 void BSpline<D,T>::create_control(const VecT *akCtrlPoint)
 {
+    if(m_control_points){ delete[] m_control_points; }
     int iNewNumCtrlPoints = m_num_control_points + m_replicate;
     m_control_points = new VecT[iNewNumCtrlPoints];
     size_t uiSrcSize = m_num_control_points * sizeof(VecT);
