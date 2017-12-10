@@ -104,15 +104,22 @@ void ModelViewer::update(float timeDelta)
         if(selected_mesh() && l == selected_mesh()->parent()){ m_light_component->set_index(i); }
     }
 
-//    for(auto &j : get_joystick_states())
-//    {
-//        if(m_mesh)
-//        {
-//            m_mesh->transform() = glm::rotate(m_mesh->transform(),
-//                                              timeDelta * j.trigger().y * 10.f,
-//                                              gl::Y_AXIS);
-//        }
-//    }
+    for(auto &j : get_joystick_states())
+    {
+        if(m_mesh)
+        {
+            auto val = (j.trigger() + gl::vec2(1)) / 2.f;
+            m_mesh->transform() = glm::rotate(m_mesh->transform(),
+                                              timeDelta * (val.y - val.x) * 7.f,
+                                              gl::Y_AXIS);
+
+            if(!m_mesh->animations().empty())
+            {
+                *m_animation_index += j.cross().x;
+                *m_animation_speed -= j.cross().y * 0.005f;
+            }
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////

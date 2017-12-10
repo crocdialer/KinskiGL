@@ -338,32 +338,19 @@ namespace kinski
     public:
         JoystickState(const std::string &n,
                       const std::vector<uint8_t>& b,
-                      const std::vector<float>& a):
-        m_name(n),
-        m_buttons(b),
-        m_axis(a){}
+                      const std::vector<float>& a);
         
-        const std::string& name() const { return m_name; };
-        const std::vector<uint8_t>& buttons() const { return m_buttons; };
-        const std::vector<float>& axis() const { return m_axis; };
+        const std::string& name() const;
+        const std::vector<uint8_t>& buttons() const;
+        const std::vector<float>& axis() const;
 
-        const gl::vec2 left() const
-        {
-            return gl::vec2(fabs(m_axis[0]) > m_dead_zone ? m_axis[0] : 0.f,
-                            fabs(m_axis[1]) > m_dead_zone ? m_axis[1] : 0.f);
-        }
+        const gl::vec2 left() const;
 
-        const gl::vec2 right() const
-        {
-            return gl::vec2(fabs(m_axis[4]) > m_dead_zone ? m_axis[2] : 0.f,
-                            fabs(m_axis[5]) > m_dead_zone ? m_axis[3] : 0.f);
-        }
+        const gl::vec2 right() const;
 
-        const gl::vec2 trigger() const
-        {
-            return gl::vec2(fabs(m_axis[4]) > m_dead_zone ? m_axis[4] : 0.f,
-                            fabs(m_axis[5]) > m_dead_zone ? m_axis[5] : 0.f);
-        }
+        const gl::vec2 trigger() const;
+
+        const gl::vec2 cross() const;
         
     private:
         float m_dead_zone = 0.03f;
