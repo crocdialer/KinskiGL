@@ -102,10 +102,7 @@ class MessagePort
         Logger::get()->log(m_severity, m_module, m_Id, m_stream.str());
     }
 
-    inline std::ostringstream& getStream()
-    {
-        return m_stream;
-    }
+    inline std::ostringstream& getStream(){ return m_stream; }
  
  private:
     
@@ -126,7 +123,7 @@ void log(Severity the_severity, const std::string &the_format_text, Args ... arg
     snprintf(buf.get(), size, the_format_text.c_str(), args ...);
     l->log(the_severity, __FILE__, __LINE__, buf.get());
 }
-    
+
 #define KINSKI_LOG_CHECK(SEVERITY,MODULE,MSGID) kinski::Logger::get()->if_log(SEVERITY,MODULE,MSGID) \
     && (kinski::MessagePort(SEVERITY,MODULE,MSGID).getStream())
 

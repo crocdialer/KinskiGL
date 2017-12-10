@@ -276,10 +276,15 @@ void GstUtil::update_state(GstState the_state)
             if(!m_prerolled)
             {
                 gint num_audio_channels = 0, num_video_channels = 0;
-                g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
+
+                if(g_object_class_find_property(G_OBJECT_GET_CLASS(m_pipeline), "n-audio"))
+                    g_object_get(G_OBJECT(m_pipeline), "n-audio", &num_audio_channels, nullptr);
                 m_num_audio_channels = num_audio_channels;
-                g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
+
+                if(g_object_class_find_property(G_OBJECT_GET_CLASS(m_pipeline), "n-video"))
+                    g_object_get(G_OBJECT(m_pipeline), "n-video", &num_video_channels, nullptr);
                 m_num_video_channels = num_video_channels;
+
                 m_prerolled = true;
                 if(m_on_load_cb){ m_on_load_cb(); }
             };
