@@ -14,6 +14,7 @@
 #pragma once
 
 #include "gl/gl.hpp"
+#include "core/Image.hpp"
 
 namespace kinski { namespace gl {
     
@@ -31,27 +32,30 @@ public:
     Texture sdf_texture() const;
 
     gl::AABB create_aabb(const std::string &theText) const;
+
+    ImagePtr create_image(const std::string &theText, const vec4 &theColor = vec4(1)) const;
     Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;
     gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;
 
-    gl::Object3DPtr create_text_obj(const std::string &the_text, uint32_t the_linewidth,
-                                    uint32_t the_lineheight = 0,
-                                    Align the_align = Align::LEFT) const;
+    gl::Object3DPtr create_text_obj(const std::string &the_text,
+                                    Align the_align = Align::LEFT,
+                                    uint32_t the_linewidth = 0,
+                                    uint32_t the_lineheight = 0) const;
 
     gl::Object3DPtr create_text_obj(std::list<std::string> the_lines,
-                                    uint32_t the_linewidth,
-                                    uint32_t the_lineheight = 0,
-                                    Align the_align = Align::LEFT) const;
+                                    Align the_align = Align::LEFT,
+                                    uint32_t the_linewidth = 0,
+                                    uint32_t the_lineheight = 0) const;
 
     template<typename C>
     gl::Object3DPtr create_text_obj(const C &the_lines,
-                                    uint32_t the_linewidth,
-                                    uint32_t the_lineheight = 0,
-                                    Align the_align = Align::LEFT) const
+                                    Align the_align = Align::LEFT,
+                                    uint32_t the_linewidth = 0,
+                                    uint32_t the_lineheight = 0) const
     {
         return create_text_obj(std::list<std::string>(std::begin(the_lines),
                                                       std::end(the_lines)),
-                               the_linewidth, the_lineheight, the_align);
+                               the_align, the_linewidth, the_lineheight);
     }
 
     uint32_t font_size() const;

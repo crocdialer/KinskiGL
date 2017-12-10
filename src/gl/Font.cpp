@@ -176,8 +176,6 @@ namespace kinski { namespace gl {
             {
                 auto dist_img = compute_distance_field(m_impl->bitmap, 4)->resize(1024, 1024);
                 m_impl->sdf_texture = create_texture_from_image(dist_img, true);
-//                save_image_to_file(m_impl->bitmap->resize(1024, 1024), "/Users/Fabian/glyph.png");
-//                save_image_to_file(dist_img, "/Users/Fabian/glyph_dist.png");
             }
             
 #if defined(KINSKI_ARM)
@@ -233,26 +231,24 @@ namespace kinski { namespace gl {
         }
         return ret;
     }
-    
-    Texture Font::create_texture(const std::string &theText, const glm::vec4 &theColor) const
+
+    ImagePtr Font::create_image(const std::string &theText, const vec4 &theColor) const
     {
-        Texture ret;
-        
         // workaround for weirdness in stb_truetype (blank 1st characters on line)
         const float start_x = 0.f;
-        
+
         float x = start_x, y = 0.f;
         uint32_t max_x = 0, max_y = 0;
         stbtt_aligned_quad q;
         typedef std::list<std::pair<Area_<uint32_t>, Area_<uint32_t>>> Area_Pairs;
         Area_Pairs area_pairs;
-        
+
         auto wstr = utf8_to_wstring(theText);
-        
+
         for (auto it = wstr.begin(); it != wstr.end(); ++it)
         {
             const auto &codepoint = *it;
-            
+
             //new line
             if(codepoint == '\n')
             {
@@ -260,16 +256,16 @@ namespace kinski { namespace gl {
                 y += m_impl->line_height;
                 continue;
             }
-            
+
             stbtt_GetPackedQuad(m_impl->char_data, m_impl->bitmap->width, m_impl->bitmap->height,
                                 codepoint - 32, &x, &y, &q, 1);
-            
+
             int w = q.x1 - q.x0;
             int h = q.y1 - q.y0;
-            
+
             if(max_x < q.x1) max_x = q.x1;
             if(max_y < q.y1 + m_impl->font_height) max_y = q.y1 + m_impl->font_height;
-            
+
             Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_impl->bitmap->width),
                                 static_cast<uint32_t>(q.t0 * m_impl->bitmap->height),
                                 static_cast<uint32_t>(q.s0 * m_impl->bitmap->width + w),
@@ -283,24 +279,31 @@ namespace kinski { namespace gl {
         }
         uint8_t dst_data[max_x * max_y];
         std::fill(dst_data, dst_data + max_x * max_y, 0);
-        
+
         auto dst_img = Image::create(dst_data, max_x, max_y, 1, true);
-        
-        for (const auto &a : area_pairs)
+
+        for(const auto &a : area_pairs)
         {
             m_impl->bitmap->roi = a.first;
             dst_img->roi = a.second;
             copy_image(m_impl->bitmap, dst_img);
         }
-        
+        return dst_img;
+    }
+
+
+    Texture Font::create_texture(const std::string &theText, const glm::vec4 &theColor) const
+    {
+        Texture ret;
+        auto img = create_image(theText, theColor);
 #if defined(KINSKI_ARM)
         GLint tex_format = GL_LUMINANCE_ALPHA;
         
         // create data
-        size_t num_bytes = dst_img->width * dst_img->height * 2;
+        size_t num_bytes = img->width * img->height * 2;
         uint8_t *luminance_alpha_data = new uint8_t[num_bytes];
         uint8_t
-        *src_ptr = m_impl->bitmap->data,
+        *src_ptr = img->data,
         *out_ptr = luminance_alpha_data, *data_end = luminance_alpha_data + num_bytes;
         
         for (; out_ptr < data_end; out_ptr += 2, ++src_ptr)
@@ -312,12 +315,12 @@ namespace kinski { namespace gl {
         // create a new texture object
         gl::Texture::Format fmt;
         fmt.set_internal_format(tex_format);
-        ret = gl::Texture(luminance_alpha_data, tex_format, dst_img->width, dst_img->height, fmt);
+        ret = gl::Texture(luminance_alpha_data, tex_format, img->width, img->height, fmt);
         ret.set_flipped();
         ret.set_mipmapping(true);
         delete [](luminance_alpha_data);
 #else
-        ret = create_texture_from_image(dst_img, true);
+        ret = create_texture_from_image(img, true);
         ret.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
 #endif
         return ret;
@@ -427,9 +430,9 @@ namespace kinski { namespace gl {
     }
 
     gl::Object3DPtr Font::create_text_obj(std::list<std::string> the_lines,
+                                          Align the_align,
                                           uint32_t the_linewidth,
-                                          uint32_t the_lineheight,
-                                          Align the_align) const
+                                          uint32_t the_lineheight) const
     {
         if(!the_lineheight){ the_lineheight = line_height(); }
         gl::Object3DPtr root = gl::Object3D::create();
@@ -451,7 +454,7 @@ namespace kinski { namespace gl {
             insert_it++;
             
             //split line, if necessary
-            while(line_aabb.width() > the_linewidth)
+            while(the_linewidth && (line_aabb.width() > the_linewidth))
             {
                 size_t indx = l.find_last_of(' ');
                 if(indx == string::npos){ break; }
@@ -500,12 +503,13 @@ namespace kinski { namespace gl {
         return root;
     }
     
-    gl::Object3DPtr Font::create_text_obj(const std::string &the_text, uint32_t the_linewidth,
-                                          uint32_t the_lineheight,
-                                          Align the_align) const
+    gl::Object3DPtr Font::create_text_obj(const std::string &the_text,
+                                          Align the_align,
+                                          uint32_t the_linewidth,
+                                          uint32_t the_lineheight) const
     {
         // create text meshes (1 per line)
         auto lines = split(the_text, '\n', false);
-        return create_text_obj(std::move(lines), the_linewidth, the_lineheight, the_align);
+        return create_text_obj(std::move(lines), the_align, the_linewidth, the_lineheight);
     }
 }}// namespace

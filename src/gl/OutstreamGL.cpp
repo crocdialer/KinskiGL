@@ -89,7 +89,9 @@ namespace kinski{ namespace gl{
         {
             std::unique_lock<std::mutex> scoped_lock(mutex);
             m_gui_scene->clear();
-            auto text_obj = m_font.create_text_obj(m_lines, window_dimension().x - 2 * margin,
+            auto text_obj = m_font.create_text_obj(m_lines,
+                                                   gl::Font::Align::LEFT,
+                                                   window_dimension().x - 2 * margin,
                                                    m_font.line_height() * 1.1f);
             
             auto obj_it = text_obj->children().begin();
