@@ -115,8 +115,8 @@ void ModelViewer::update(float timeDelta)
 
             if(!m_mesh->animations().empty())
             {
-                *m_animation_index += j.cross().x;
-                *m_animation_speed -= j.cross().y * 0.005f;
+                *m_animation_index += 2.f * timeDelta * j.cross().x;
+                *m_animation_speed -= .5f * timeDelta * j.cross().y;
             }
         }
     }
@@ -452,6 +452,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
                 scene()->remove_object(m_mesh);
                 m_mesh = m;
                 scene()->add_object(m_mesh);
+                m_animation_index->set_range(0.f, m_mesh->animations().size() - 1);
                 m_dirty_shader = true;
             }
         });

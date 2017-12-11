@@ -1506,7 +1506,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         auto aabb = m->aabb();
 
         // checks if p is inside the aabb of our mesh)
-        if(!aabb.contains(p)) return false;
+        if(!aabb.intersect(p)) return false;
 
         const auto &vertices = m->geometry()->vertices();
 

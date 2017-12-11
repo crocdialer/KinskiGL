@@ -72,9 +72,9 @@ namespace kinski
         
         Property_<bool>::Ptr
         m_display_bones = Property_<bool>::create("display bones", false);
-        
-        Property_<uint32_t>::Ptr
-        m_animation_index = Property_<uint32_t>::create("animation index", 0);
+
+        RangedProperty<float>::Ptr
+        m_animation_index = RangedProperty<float>::create("animation index", 0, 0, 999);
         
         RangedProperty<float>::Ptr
         m_animation_speed = RangedProperty<float>::create("animation speed", 1.f, -1.5f, 1.5f);

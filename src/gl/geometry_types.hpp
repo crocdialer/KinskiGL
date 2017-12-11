@@ -314,13 +314,6 @@ struct KINSKI_API AABB
     ray_intersection intersect(const Ray& theRay) const;
     
 	uint32_t intersect(const Triangle& t) const ;
-    
-    inline bool contains(const vec3& p) const
-    {
-        return  p.x > min.x && p.x < max.x &&
-                p.y > min.y && p.y < max.y &&
-                p.z > min.z && p.z < max.z;
-    };
 };
     
 struct KINSKI_API OBB
