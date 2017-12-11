@@ -193,13 +193,15 @@ namespace kinski {
 
             *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.left().x, gl::Y_AXIS));
             *m_rotation = glm::mat3(glm::rotate(glm::mat4(m_rotation->value()), multiplier * j.left().y, gl::X_AXIS));
-            *m_distance += timeDelta * j.right().y * 60.f;
 
-            for(uint32_t i = 0; i < j.buttons().size(); ++i)
-            {
-                uint32_t b = j.buttons()[i];
-                if(b){ LOG_DEBUG << j.name() << ": " << "button " << i << " -> " << b; }
-            }
+            *m_look_at += 40.f * timeDelta * (camera()->side() * j.right().x - camera()->up() * j.right().y);
+            *m_distance += 40.f * timeDelta * (j.buttons()[6] - j.buttons()[7]);
+
+//            for(uint32_t i = 0; i < j.buttons().size(); ++i)
+//            {
+//                uint32_t b = j.buttons()[i];
+//                if(b){ LOG_DEBUG << j.name() << ": " << "button " << i << " -> " << b; }
+//            }
         }
 
         // update animations
