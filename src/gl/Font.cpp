@@ -400,10 +400,10 @@ namespace kinski { namespace gl {
         return ret;
     }
 
-    gl::Object3DPtr Font::create_text_obj(std::list<std::string> the_lines,
-                                          Align the_align,
-                                          uint32_t the_linewidth,
-                                          uint32_t the_lineheight) const
+    gl::Object3DPtr Font::create_text_object(std::list<std::string> the_lines,
+                                             Align the_align,
+                                             uint32_t the_linewidth,
+                                             uint32_t the_lineheight) const
     {
         if(!the_lineheight){ the_lineheight = line_height(); }
         gl::Object3DPtr root = gl::Object3D::create();
@@ -474,13 +474,13 @@ namespace kinski { namespace gl {
         return root;
     }
     
-    gl::Object3DPtr Font::create_text_obj(const std::string &the_text,
-                                          Align the_align,
-                                          uint32_t the_linewidth,
-                                          uint32_t the_lineheight) const
+    gl::Object3DPtr Font::create_text_object(const std::string &the_text,
+                                             Align the_align,
+                                             uint32_t the_linewidth,
+                                             uint32_t the_lineheight) const
     {
         // create text meshes (1 per line)
         auto lines = split(the_text, '\n', false);
-        return create_text_obj(std::move(lines), the_align, the_linewidth, the_lineheight);
+        return create_text_object(std::move(lines), the_align, the_linewidth, the_lineheight);
     }
 }}// namespace

@@ -37,25 +37,25 @@ public:
     Texture create_texture(const std::string &theText, const vec4 &theColor = vec4(1)) const;
     gl::MeshPtr create_mesh(const std::string &theText, const vec4 &theColor = vec4(1)) const;
 
-    gl::Object3DPtr create_text_obj(const std::string &the_text,
-                                    Align the_align = Align::LEFT,
-                                    uint32_t the_linewidth = 0,
-                                    uint32_t the_lineheight = 0) const;
+    gl::Object3DPtr create_text_object(const std::string &the_text,
+                                       Align the_align = Align::LEFT,
+                                       uint32_t the_linewidth = 0,
+                                       uint32_t the_lineheight = 0) const;
 
-    gl::Object3DPtr create_text_obj(std::list<std::string> the_lines,
-                                    Align the_align = Align::LEFT,
-                                    uint32_t the_linewidth = 0,
-                                    uint32_t the_lineheight = 0) const;
+    gl::Object3DPtr create_text_object(std::list<std::string> the_lines,
+                                       Align the_align = Align::LEFT,
+                                       uint32_t the_linewidth = 0,
+                                       uint32_t the_lineheight = 0) const;
 
     template<template<typename, typename> class Collection, typename T = std::string>
-    gl::Object3DPtr create_text_obj(const Collection<T, std::allocator<T>> &the_lines,
-                                    Align the_align = Align::LEFT,
-                                    uint32_t the_linewidth = 0,
-                                    uint32_t the_lineheight = 0) const
+    gl::Object3DPtr create_text_object(const Collection<T, std::allocator<T>> &the_lines,
+                                       Align the_align = Align::LEFT,
+                                       uint32_t the_linewidth = 0,
+                                       uint32_t the_lineheight = 0) const
     {
-        return create_text_obj(std::list<std::string>(std::begin(the_lines),
-                                                      std::end(the_lines)),
-                               the_align, the_linewidth, the_lineheight);
+        return create_text_object(std::list<std::string>(std::begin(the_lines),
+                                                         std::end(the_lines)),
+                                  the_align, the_linewidth, the_lineheight);
     }
 
     uint32_t font_size() const;
