@@ -24,9 +24,9 @@ public:
     m_array_size(the_cap + 1),
     m_first(0),
     m_last(0),
-    m_data(new T[m_array_size])
+    m_data(new T[m_array_size]())
     {
-        memset(m_data, 0, m_array_size * sizeof(T));
+        
     }
     
     // copy constructor
@@ -41,10 +41,10 @@ public:
     
     // move constructor
     CircularBuffer(CircularBuffer&& other):
-    m_data(other.m_data),
     m_array_size(other.m_array_size),
     m_first(other.m_first),
-    m_last(other.m_last)
+    m_last(other.m_last),
+    m_data(other.m_data)
     {
         other.m_data = nullptr;
     }
