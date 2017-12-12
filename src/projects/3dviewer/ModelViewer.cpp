@@ -135,11 +135,11 @@ void ModelViewer::draw()
     auto draw_fn = [this]()
     {
         scene()->render(camera());
+        
         if(m_selected_mesh)
         {
-            gl::draw_boundingbox(m_selected_mesh);
-
             auto aabb = m_selected_mesh->aabb();
+            gl::draw_boundingbox(aabb);
             vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
             gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
         }
@@ -168,7 +168,7 @@ void ModelViewer::draw()
             for(const auto &p : skel_points)
             {
                 vec2 p2d = gl::project_point_to_screen(p, camera());
-                gl::draw_circle(p2d, 5.f, false);
+                gl::draw_circle(p2d, 5.f, gl::COLOR_WHITE, false);
             }
         }
     };
@@ -191,7 +191,7 @@ void ModelViewer::draw()
         {
             textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this]()
             {
-                gl::draw_quad(m_post_process_mat, gl::window_dimension());
+                gl::draw_quad(gl::window_dimension(), m_post_process_mat);
             });
         }
         else
@@ -214,7 +214,7 @@ void ModelViewer::draw()
     }
     else
     {
-        if(*m_use_post_process){ gl::draw_quad(m_post_process_mat, gl::window_dimension()); }
+        if(*m_use_post_process){ gl::draw_quad(gl::window_dimension(), m_post_process_mat); }
         else{ draw_fn(); }
     }
 

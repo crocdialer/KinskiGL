@@ -132,7 +132,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     gl::draw_texture(m_lighting_fbo.texture(), gl::window_dimension());
     
     // draw emission texture
-    gl::draw_quad(m_mat_lighting_emissive, gl::window_dimension());
+    gl::draw_quad(gl::window_dimension(), m_mat_lighting_emissive);
     
     // return number of rendered objects
     return render_bin->items.size();

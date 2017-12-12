@@ -676,10 +676,7 @@ namespace kinski { namespace gl {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_quad(const gl::Color &theColor,
-                  const vec2 &theSize,
-                  const vec2 &theTopLeft,
-                  bool filled)
+    void draw_quad(const vec2 &the_size, const Color &the_color, const vec2 &the_topleft, bool fill)
     {
         static gl::MaterialPtr material;
 
@@ -692,24 +689,22 @@ namespace kinski { namespace gl {
             material->set_depth_write(false);
             material->set_blending(true);
         }
-        material->set_diffuse(theColor);
+        material->set_diffuse(the_color);
 
-        vec2 sz = theSize;
+        vec2 sz = the_size;
         // flip to OpenGL coords
-        vec2 tl = vec2(theTopLeft.x, g_viewport_dim[1] - theTopLeft.y);
-        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1], filled);
+        vec2 tl = vec2(the_topleft.x, g_viewport_dim[1] - the_topleft.y);
+        draw_quad(material, tl[0], tl[1], (tl+sz)[0], tl[1]-sz[1], fill);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_quad(const gl::MaterialPtr &theMaterial,
-                  const vec2 &theSize,
-                  const vec2 &theTl,
-                  bool filled)
+    void draw_quad(const vec2 &the_size, const MaterialPtr &the_material, const vec2 &the_topleft,
+                   bool fill)
     {
         // flip to OpenGL coords
-        vec2 tl = vec2(theTl.x, g_viewport_dim[1] - theTl.y);
-        draw_quad(theMaterial, tl[0], tl[1], (tl + theSize)[0], tl[1] - theSize[1], filled);
+        vec2 tl = vec2(the_topleft.x, g_viewport_dim[1] - the_topleft.y);
+        draw_quad(the_material, tl[0], tl[1], (tl + the_size)[0], tl[1] - the_size[1], fill);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -778,21 +773,21 @@ namespace kinski { namespace gl {
 
     void draw_grid(float width, float height, int numW, int numH)
     {
-        static std::map<std::tuple<float,float,int,int>, MeshPtr> theMap;
-        static vec4 colorGrey(.7, .7, .7, 1.0), colorRed(1.0, 0, 0 ,1.0), colorBlue(0, 0, 1.0, 1.0);
+        static std::map<std::tuple<int, int>, MeshPtr> theMap;
 
         // search for incoming key
-        auto conf = std::make_tuple(width, height, numW, numH);
-
-        if(theMap.find(conf) == theMap.end())
+        auto conf = std::make_tuple(numW, numH);
+        auto it = theMap.find(conf);
+        
+        if(it == theMap.end())
         {
-            auto mesh = gl::Mesh::create(gl::Geometry::create_grid(width, height, numW, numH),
+            auto mesh = gl::Mesh::create(gl::Geometry::create_grid(1.f, 1.f, numW, numH),
                                          gl::Material::create());
-
-//            theMap.clear();
-            theMap[conf] = mesh;
+            it = theMap.insert(std::make_pair(conf, mesh)).first;
         }
-        draw_mesh(theMap[conf]);
+        gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
+        gl::mult_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(glm::mat4(), gl::vec3(width, 1.f, height)));
+        draw_mesh(it->second);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -993,24 +988,14 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_boundingbox(const Object3DPtr &the_obj)
+    void draw_boundingbox(const gl::AABB& the_aabb)
     {
-        static vec4 colorWhite(1.0), colorRed(1.0, 0, 0 ,1.0);
         static MeshPtr line_mesh;
-        if(!the_obj) return;
-
-        if(!line_mesh)
-        {
-            line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines());
-        }
-        AABB mesh_bb = the_obj->aabb();
-        glm::mat4 center_mat = glm::translate(glm::mat4(), mesh_bb.center());
-
-        glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(mesh_bb.width(),
-                                                           mesh_bb.height(),
-                                                           mesh_bb.depth()));
-
-
+        if(!line_mesh){ line_mesh = gl::Mesh::create(gl::Geometry::create_box_lines()); }
+        glm::mat4 center_mat = glm::translate(glm::mat4(), the_aabb.center());
+        glm::mat4 scale_mat = glm::scale(glm::mat4(), vec3(the_aabb.width(),
+                                                           the_aabb.height(),
+                                                           the_aabb.depth()));
         gl::ScopedMatrixPush sp(gl::MODEL_VIEW_MATRIX);
         gl::mult_matrix(gl::MODEL_VIEW_MATRIX, center_mat * scale_mat);
         gl::draw_mesh(line_mesh);
@@ -1073,13 +1058,13 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             color_mat->set_depth_write(false);
         }
         color_mat->set_diffuse(the_color);
-        draw_circle(center, radius, solid, color_mat, the_num_segments);
+        draw_circle(center, radius, color_mat, solid, the_num_segments);
     }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-    void draw_circle(const glm::vec2 &center, float the_radius, bool solid,
-                     const MaterialPtr &theMaterial, uint32_t the_num_segments)
+    void draw_circle(const glm::vec2 &center, float the_radius, const MaterialPtr &theMaterial,
+                     bool solid, uint32_t the_num_segments)
     {
         constexpr uint32_t max_num_buffer_meshes = 10;
         static std::unordered_map<uint32_t, gl::MeshPtr> solid_meshes, line_meshes;

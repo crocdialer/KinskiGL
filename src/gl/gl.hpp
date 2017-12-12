@@ -181,10 +181,10 @@ KINSKI_API void draw_texture_with_mask(const gl::Texture &the_texture,
                                        const vec2 &theSize,
                                        const vec2 &theTopLeft = vec2(0),
                                        const float the_brightness = 1.f);
-KINSKI_API void draw_quad(const MaterialPtr &theMaterial, const vec2 &theSize,
-                          const vec2 &theTopLeft = vec2(0), bool filled = true);
-KINSKI_API void draw_quad(const Color &theColor, const vec2 &theSize,
-                          const vec2 &theTopLeft = vec2(0), bool filled = true);
+KINSKI_API void draw_quad(const vec2 &the_size, const MaterialPtr &the_material,
+                          const vec2 &the_topleft = vec2(0), bool fill = true);
+KINSKI_API void draw_quad(const vec2 &the_size, const Color &the_color,
+                          const vec2 &the_topleft = vec2(0), bool fill = true);
 KINSKI_API void draw_quad(const MaterialPtr &theMaterial,
                           float x0, float y0, float x1, float y1, bool filled = true);
 KINSKI_API void draw_text_2D(const std::string &theText, const gl::Font &theFont,
@@ -193,12 +193,12 @@ KINSKI_API void draw_text_2D(const std::string &theText, const gl::Font &theFont
 
 KINSKI_API void draw_grid(float width, float height, int numW = 20, int numH = 20);
 KINSKI_API void draw_transform(const mat4& the_transform, float the_scale = 1.f);
-KINSKI_API void draw_boundingbox(const Object3DPtr &the_obj);
+KINSKI_API void draw_boundingbox(const gl::AABB& the_aabb);
 KINSKI_API void draw_normals(const MeshWeakPtr &theMesh);
 KINSKI_API void draw_circle(const vec2 &center, float radius, const gl::Color &the_color,
                             bool solid = true, uint32_t the_num_segments = 0);
-KINSKI_API void draw_circle(const vec2 &center, float radius, bool solid = true,
-                            const MaterialPtr &theMaterial = MaterialPtr(), uint32_t the_num_segments = 0);
+KINSKI_API void draw_circle(const vec2 &center, float radius, const MaterialPtr &theMaterial,
+                            bool solid = true, uint32_t the_num_segments = 0);
 
 KINSKI_API gl::Texture render_to_texture(const gl::SceneConstPtr &theScene, gl::Fbo &theFbo,
                                          const gl::CameraPtr &theCam);

@@ -147,7 +147,7 @@ namespace kinski{ namespace gl{
         }
         if(use_caching)
         {
-            gl::draw_quad(m_blend_material, m_fbo.size(),
+            gl::draw_quad(m_fbo.size(), m_blend_material,
                           gl::vec2(0.f, gl::window_dimension().y - m_fbo.size().y));
         }
         else{ m_gui_scene->render(gl::OrthoCamera::create_for_window()); }
