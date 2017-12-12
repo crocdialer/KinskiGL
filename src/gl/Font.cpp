@@ -81,12 +81,16 @@ namespace kinski { namespace gl {
         }
         
         std::list<stbtt_aligned_quad> create_quads(const std::string  &the_text,
-                                                   float start_x, uint32_t *the_max_y)
+                                                   uint32_t *the_max_x, uint32_t *the_max_y)
         {
-            float x = start_x, y = 0.f;
+            // workaround for weirdness in stb_truetype (blank 1st characters on line)
+            constexpr float start_x = 0.5f;
+            float x = start_x;
+            float y = 0.f;
             stbtt_aligned_quad q;
             std::list<stbtt_aligned_quad> quads;
             
+            // converts the codepoints to 16bit
             auto wstr = utf8_to_wstring(the_text);
             
             for (auto it = wstr.begin(); it != wstr.end(); ++it)
@@ -101,9 +105,10 @@ namespace kinski { namespace gl {
                     continue;
                 }
                 stbtt_GetPackedQuad(char_data, bitmap->width, bitmap->height,
-                                    codepoint - 32, &x, &y, &q, 1);
+                                    codepoint - 32, &x, &y, &q, 0);
                 
-                if(*the_max_y < q.y1 + font_height){ *the_max_y = q.y1 + font_height;}
+                if(the_max_y && *the_max_y < q.y1 + font_height){ *the_max_y = q.y1 + font_height;}
+                if(the_max_x && *the_max_x < q.x1){ *the_max_x = q.x1; }
                 quads.push_back(q);
             }
             return quads;
@@ -218,11 +223,8 @@ namespace kinski { namespace gl {
     gl::AABB Font::create_aabb(const std::string &theText) const
     {
         gl::AABB ret;
-        
-        // workaround for weirdness in stb_truetype (blank 1st characters on line)
-        const float start_x = 0.6f;
-        uint32_t max_y = 0;
-        auto quads = m_impl->create_quads(theText, start_x, &max_y);
+        uint32_t max_x = 0, max_y = 0;
+        auto quads = m_impl->create_quads(theText, &max_x, &max_y);
         
         for(const auto &quad : quads)
         {
@@ -234,53 +236,25 @@ namespace kinski { namespace gl {
 
     ImagePtr Font::create_image(const std::string &theText, const vec4 &theColor) const
     {
-        // workaround for weirdness in stb_truetype (blank 1st characters on line)
-        const float start_x = 0.f;
-
-        float x = start_x, y = 0.f;
         uint32_t max_x = 0, max_y = 0;
-        stbtt_aligned_quad q;
         typedef std::list<std::pair<Area_<uint32_t>, Area_<uint32_t>>> Area_Pairs;
         Area_Pairs area_pairs;
-
-        auto wstr = utf8_to_wstring(theText);
-
-        for (auto it = wstr.begin(); it != wstr.end(); ++it)
+        auto quads = m_impl->create_quads(theText, &max_x, &max_y);
+        
+        for(auto &q : quads)
         {
-            const auto &codepoint = *it;
-
-            //new line
-            if(codepoint == '\n')
-            {
-                x = start_x;
-                y += m_impl->line_height;
-                continue;
-            }
-
-            stbtt_GetPackedQuad(m_impl->char_data, m_impl->bitmap->width, m_impl->bitmap->height,
-                                codepoint - 32, &x, &y, &q, 1);
-
-            int w = q.x1 - q.x0;
-            int h = q.y1 - q.y0;
-
-            if(max_x < q.x1) max_x = q.x1;
-            if(max_y < q.y1 + m_impl->font_height) max_y = q.y1 + m_impl->font_height;
-
             Area_<uint32_t> src(static_cast<uint32_t>(q.s0 * m_impl->bitmap->width),
                                 static_cast<uint32_t>(q.t0 * m_impl->bitmap->height),
-                                static_cast<uint32_t>(q.s0 * m_impl->bitmap->width + w),
-                                static_cast<uint32_t>(q.t0 * m_impl->bitmap->height + h));
-            Area_<uint32_t> dst(static_cast<uint32_t>(q.x0 - start_x),
+                                static_cast<uint32_t>(q.s1 * m_impl->bitmap->width),
+                                static_cast<uint32_t>(q.t1 * m_impl->bitmap->height));
+            Area_<uint32_t> dst(static_cast<uint32_t>(q.x0),
                                 static_cast<uint32_t>(m_impl->font_height + q.y0),
-                                static_cast<uint32_t>(q.x0 + w - start_x),
-                                static_cast<uint32_t>(m_impl->font_height + q.y0 + h));
+                                static_cast<uint32_t>(q.x1),
+                                static_cast<uint32_t>(m_impl->font_height + q.y1));
 
             area_pairs.push_back(std::make_pair(src, dst));
         }
-        uint8_t dst_data[max_x * max_y];
-        std::fill(dst_data, dst_data + max_x * max_y, 0);
-
-        auto dst_img = Image::create(dst_data, max_x, max_y, 1, true);
+        auto dst_img = Image::create(max_x, max_y, 1);
 
         for(const auto &a : area_pairs)
         {
@@ -290,7 +264,6 @@ namespace kinski { namespace gl {
         }
         return dst_img;
     }
-
 
     Texture Font::create_texture(const std::string &theText, const glm::vec4 &theColor) const
     {
@@ -317,10 +290,10 @@ namespace kinski { namespace gl {
         fmt.set_internal_format(tex_format);
         ret = gl::Texture(luminance_alpha_data, tex_format, img->width, img->height, fmt);
         ret.set_flipped();
-        ret.set_mipmapping(true);
+//        ret.set_mipmapping(true);
         delete [](luminance_alpha_data);
 #else
-        ret = create_texture_from_image(img, true);
+        ret = create_texture_from_image(img, false);
         ret.set_swizzle(GL_ONE, GL_ONE, GL_ONE, GL_RED);
 #endif
         return ret;
@@ -361,10 +334,8 @@ namespace kinski { namespace gl {
         std::vector<glm::vec2>& tex_coords = geom->tex_coords();
         std::vector<glm::vec4>& colors = geom->colors();
         
-        // workaround for weirdness in stb_truetype (blank 1st characters on line)
-        const float start_x = 0.6f;
         uint32_t max_y = 0;
-        auto quads = m_impl->create_quads(theText, start_x, &max_y);
+        auto quads = m_impl->create_quads(theText, nullptr, &max_y);
         
         // reserve memory
         vertices.reserve(quads.size() * 4);
@@ -377,10 +348,10 @@ namespace kinski { namespace gl {
             int h = quad.y1 - quad.y0;
 
             Area_<float> tex_Area (quad.s0, 1 - quad.t0, quad.s1, 1 - quad.t1);
-            Area_<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0 - start_x),
-                                      static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0)),
-                                      static_cast<uint32_t>(quad.x0 + w - start_x),
-                                      static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0 + h)));
+            Area_<uint32_t> vert_Area (static_cast<uint32_t>(quad.x0),
+                                       static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0)),
+                                       static_cast<uint32_t>(quad.x0 + w),
+                                       static_cast<uint32_t>(max_y - (m_impl->font_height + quad.y0 + h)));
             
             // CREATE QUAD
             // create vertices

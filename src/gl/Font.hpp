@@ -47,8 +47,8 @@ public:
                                     uint32_t the_linewidth = 0,
                                     uint32_t the_lineheight = 0) const;
 
-    template<template<typename> class Collection, typename T = std::string>
-    gl::Object3DPtr create_text_obj(const Collection<T> &the_lines,
+    template<template<typename, typename> class Collection, typename T = std::string>
+    gl::Object3DPtr create_text_obj(const Collection<T, std::allocator<T>> &the_lines,
                                     Align the_align = Align::LEFT,
                                     uint32_t the_linewidth = 0,
                                     uint32_t the_lineheight = 0) const
