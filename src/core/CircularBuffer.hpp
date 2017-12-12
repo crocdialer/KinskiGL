@@ -13,12 +13,12 @@
 namespace kinski
 {
 
-template<typename T>
+template<typename T, typename Allocator = std::allocator<T>>
 class CircularBuffer
 {
 public:
     
-    typedef T value_type;
+    using value_type = T;
     
     CircularBuffer(uint32_t the_cap = 10):
     m_array_size(the_cap + 1),
@@ -40,12 +40,12 @@ public:
     }
     
     // move constructor
-    CircularBuffer(CircularBuffer&& other)
+    CircularBuffer(CircularBuffer&& other):
+    m_data(other.m_data),
+    m_array_size(other.m_array_size),
+    m_first(other.m_first),
+    m_last(other.m_last)
     {
-        m_data = other.m_data;
-        m_array_size = other.m_array_size;
-        m_first = other.m_first;
-        m_last = other.m_last;
         other.m_data = nullptr;
     }
     
