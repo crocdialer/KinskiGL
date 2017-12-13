@@ -60,7 +60,7 @@ namespace kinski { namespace gl {
     struct FontImpl
     {
         std::string path;
-        stbtt_packedchar char_data[1024];
+        std::unique_ptr<stbtt_packedchar[]> char_data, char_data_sdf;
         uint32_t font_height;
         uint32_t line_height;
         
@@ -78,6 +78,24 @@ namespace kinski { namespace gl {
             font_height = 64;
             line_height = 70;
             use_sdf = false;
+        }
+        
+        std::tuple<ImagePtr, std::unique_ptr<stbtt_packedchar[]>>
+        create_bitmap(const std::vector<uint8_t> &the_font, float the_font_size,
+                      uint32_t the_bitmap_width, uint32_t the_padding)
+        {
+            std::unique_ptr<stbtt_packedchar[]> c_data(new stbtt_packedchar[1024]);
+            ImagePtr img = Image::create(the_bitmap_width, the_bitmap_width, 1);
+            
+            // rect packing
+            stbtt_pack_context spc;
+            stbtt_PackBegin(&spc, img->data, img->width, img->height, 0, the_padding, nullptr);
+            
+            int num_chars = 768;
+            stbtt_PackFontRange(&spc, const_cast<uint8_t*>(the_font.data()), 0, the_font_size, 32,
+                                num_chars, c_data.get());
+            stbtt_PackEnd(&spc);
+            return std::make_tuple(img, std::move(c_data));
         }
         
         std::list<stbtt_aligned_quad> create_quads(const std::string  &the_text,
@@ -104,7 +122,7 @@ namespace kinski { namespace gl {
                     y += line_height;
                     continue;
                 }
-                stbtt_GetPackedQuad(char_data, bitmap->width, bitmap->height,
+                stbtt_GetPackedQuad(char_data.get(), bitmap->width, bitmap->height,
                                     codepoint - 32, &x, &y, &q, 0);
                 
                 if(the_max_y && *the_max_y < q.y1 + font_height){ *the_max_y = q.y1 + font_height;}
@@ -163,23 +181,20 @@ namespace kinski { namespace gl {
             m_impl->font_height = theSize;
             m_impl->line_height = theSize;
             m_impl->use_sdf = use_sdf;
-            m_impl->bitmap = Image::create(BITMAP_WIDTH(theSize), BITMAP_WIDTH(theSize), 1);
             
-            // rect packing
-            stbtt_pack_context spc;
-            stbtt_PackBegin(&spc, m_impl->bitmap->data, m_impl->bitmap->width,
-                            m_impl->bitmap->height, 0, use_sdf ? 6 : 2 /*padding*/, nullptr);
+            auto tuple = m_impl->create_bitmap(font_file, theSize, BITMAP_WIDTH(theSize), 2);
             
-//            stbtt_PackSetOversampling(&spc, 4, 4);//            -- for improved quality on small fonts
-            int num_chars = 768;
-            stbtt_PackFontRange(&spc, &font_file[0], 0,
-                                m_impl->font_height, 32, num_chars, m_impl->char_data);
-            stbtt_PackEnd(&spc);
+            m_impl->bitmap = std::get<0>(tuple);
+            m_impl->char_data = std::move(std::get<1>(tuple));
             
             // signed distance field
             if(use_sdf)
             {
-                auto dist_img = compute_distance_field(m_impl->bitmap, 4)->resize(1024, 1024);
+                tuple = m_impl->create_bitmap(font_file, 2 * theSize, 2 * BITMAP_WIDTH(theSize), 6);
+                auto bitmap = std::get<0>(tuple);
+                m_impl->char_data_sdf = std::move(std::get<1>(tuple));
+                auto dist_img = compute_distance_field(bitmap, 5);
+                dist_img = dist_img->blur()->resize(m_impl->bitmap->width, m_impl->bitmap->height);
                 m_impl->sdf_texture = create_texture_from_image(dist_img, true);
             }
             
