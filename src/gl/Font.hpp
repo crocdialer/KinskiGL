@@ -61,6 +61,9 @@ public:
     uint32_t font_size() const;
     uint32_t line_height() const;
     void set_line_height(uint32_t the_line_height);
+    
+    bool use_sdf() const;
+    void set_use_sdf(bool b);
 
 private:
     std::shared_ptr<struct FontImpl> m_impl;

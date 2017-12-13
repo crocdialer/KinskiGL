@@ -461,7 +461,7 @@ namespace kinski
         for (uint32_t x = 0; x < the_img->width; ++x)
             for (uint32_t y = 0; y < the_img->height; ++y)
             {
-                bool is_inside = *the_img->at(x, y) > 127;
+                bool is_inside = *the_img->at(x, y) > 32;
                 grid1.set(x, y, is_inside ? Grid::inf() : Grid::zero());
                 grid2.set(x, y, is_inside ? Grid::zero() : Grid::inf());
             }

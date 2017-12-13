@@ -60,7 +60,7 @@ namespace kinski { namespace gl {
     struct FontImpl
     {
         std::string path;
-        std::unique_ptr<stbtt_packedchar[]> char_data, char_data_sdf;
+        std::unique_ptr<stbtt_packedchar[]> char_data;
         uint32_t font_height;
         uint32_t line_height;
         
@@ -169,6 +169,9 @@ namespace kinski { namespace gl {
         m_impl->line_height = the_line_height;
     }
     
+    bool Font::use_sdf() const{ return m_impl->use_sdf;}
+    void Font::set_use_sdf(bool b){ m_impl->use_sdf = b; }
+    
     void Font::load(const std::string &thePath, size_t theSize, bool use_sdf)
     {
         //TODO: check extension
@@ -182,7 +185,8 @@ namespace kinski { namespace gl {
             m_impl->line_height = theSize;
             m_impl->use_sdf = use_sdf;
             
-            auto tuple = m_impl->create_bitmap(font_file, theSize, BITMAP_WIDTH(theSize), 2);
+            auto tuple = m_impl->create_bitmap(font_file, theSize, BITMAP_WIDTH(theSize),
+                                               use_sdf ? 6 : 2);
             
             m_impl->bitmap = std::get<0>(tuple);
             m_impl->char_data = std::move(std::get<1>(tuple));
@@ -190,11 +194,12 @@ namespace kinski { namespace gl {
             // signed distance field
             if(use_sdf)
             {
-                tuple = m_impl->create_bitmap(font_file, 2 * theSize, 2 * BITMAP_WIDTH(theSize), 6);
-                auto bitmap = std::get<0>(tuple);
-                m_impl->char_data_sdf = std::move(std::get<1>(tuple));
-                auto dist_img = compute_distance_field(bitmap, 5);
-                dist_img = dist_img->blur()->resize(m_impl->bitmap->width, m_impl->bitmap->height);
+//                tuple = m_impl->create_bitmap(font_file, theSize, BITMAP_WIDTH(theSize), 6);
+//                auto bitmap = std::get<0>(tuple);
+//                m_impl->char_data_sdf = std::move(std::get<1>(tuple));
+                
+                auto dist_img = compute_distance_field(m_impl->bitmap, 5);
+                dist_img = dist_img->blur();
                 m_impl->sdf_texture = create_texture_from_image(dist_img, true);
             }
             
