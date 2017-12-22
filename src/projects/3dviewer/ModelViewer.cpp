@@ -705,7 +705,7 @@ void ModelViewer::update_shader()
         gl::ShaderPtr shader;
         gl::ShaderType type;
 
-#if defined(KISNKI_GLES_2)
+#if defined(KINSKI_GLES_2)
         auto lit = gl::ShaderType::GOURAUD;
         auto lit_skin = gl::ShaderType::GOURAUD_SKIN;
 #else
