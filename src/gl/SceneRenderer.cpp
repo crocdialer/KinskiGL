@@ -350,33 +350,34 @@ void SceneRenderer::set_light_uniforms(MaterialPtr &the_mat,
 {
     int light_count = 0;
     
-    for (const auto &light : light_list)
+    for (const auto &l : light_list)
     {
         std::string light_str = std::string("u_lights") + "[" + to_string(light_count) + "]";
         
-        the_mat->uniform(light_str + ".type", (int)light.light->type());
-        the_mat->uniform(light_str + ".position", light.transform[3].xyz());
-        the_mat->uniform(light_str + ".diffuse", light.light->diffuse());
-        the_mat->uniform(light_str + ".ambient", light.light->ambient());
-        the_mat->uniform(light_str + ".specular", light.light->specular());
+        the_mat->uniform(light_str + ".type", (int)l.light->type());
+        the_mat->uniform(light_str + ".position", l.transform[3].xyz());
+        the_mat->uniform(light_str + ".direction", glm::normalize(-vec3(l.transform[2].xyz())));
+        the_mat->uniform(light_str + ".diffuse", l.light->diffuse());
+        the_mat->uniform(light_str + ".ambient", l.light->ambient());
+        the_mat->uniform(light_str + ".specular", l.light->specular());
+        the_mat->uniform(light_str + ".intensity", l.light->intensity());
         
         // point + spot
-        if(light.light->type() > 0)
+        if(l.light->type() > 0)
         {
-            the_mat->uniform(light_str + ".constantAttenuation", light.light->attenuation().constant);
-            the_mat->uniform(light_str + ".linearAttenuation", light.light->attenuation().linear);
-            the_mat->uniform(light_str + ".quadraticAttenuation", light.light->attenuation().quadratic);
+            the_mat->uniform(light_str + ".constantAttenuation", l.light->attenuation().constant);
+            the_mat->uniform(light_str + ".linearAttenuation", l.light->attenuation().linear);
+            the_mat->uniform(light_str + ".quadraticAttenuation", l.light->attenuation().quadratic);
             
-            if(light.light->type() == Light::SPOT)
+            if(l.light->type() == Light::SPOT)
             {
-                the_mat->uniform(light_str + ".spotDirection", glm::normalize(-light.transform[2].xyz()));
-                the_mat->uniform(light_str + ".spotCutoff", light.light->spot_cutoff());
-                the_mat->uniform(light_str + ".spotCosCutoff", cosf(glm::radians(light.light->spot_cutoff())));
-                the_mat->uniform(light_str + ".spotExponent", light.light->spot_exponent());
+                the_mat->uniform(light_str + ".spotCosCutoff", cosf(glm::radians(l.light->spot_cutoff())));
+                the_mat->uniform(light_str + ".spotExponent", l.light->spot_exponent());
             }
         }
         light_count++;
     }
+
     the_mat->uniform("u_numLights", light_count);
 }
 
