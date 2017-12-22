@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE( test_Plane )
 
 BOOST_AUTO_TEST_CASE( test_scale )
 {
-    gl::Object3DPtr test_object(new gl::Object3D());
+    auto test_object = gl::Object3D::create();
     test_object->transform() = glm::rotate(test_object->transform(), 47.f, glm::vec3(1, 1, 1));
     test_object->transform() = glm::translate(test_object->transform(), glm::vec3(100, -1221, 1));
     test_object->transform() = glm::scale(test_object->transform(), glm::vec3(2, 3, 4));
