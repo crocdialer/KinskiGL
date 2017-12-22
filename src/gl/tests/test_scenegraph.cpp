@@ -14,7 +14,7 @@ using namespace kinski;
 
 BOOST_AUTO_TEST_CASE( test_Object3D )
 {
-    gl::Object3DPtr a(new gl::Object3D()), b(new gl::Object3D()), c(new gl::Object3D());
+    gl::Object3DPtr a(gl::Object3D::create()), b(gl::Object3D::create()), c(gl::Object3D::create());
 
     a->set_parent(b);
     BOOST_CHECK(a->parent() == b);

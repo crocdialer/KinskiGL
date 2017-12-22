@@ -49,7 +49,7 @@ namespace kinski { namespace gl {
     
     Scene::Scene():
     m_renderer(gl::SceneRenderer::create()),
-    m_root(new Object3D())
+    m_root(Object3D::create())
     {
         m_root->set_name("scene root");
     }
@@ -66,7 +66,7 @@ namespace kinski { namespace gl {
     
     void Scene::clear()
     {
-        m_root.reset(new Object3D());
+        m_root = gl::Object3D::create();
     }
     
     void Scene::update(float time_delta)

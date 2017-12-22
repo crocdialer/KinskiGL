@@ -18,11 +18,10 @@ namespace kinski { namespace gl {
     {
     public:
         
-        typedef std::function<void (float)> UpdateFunction;
+        using update_fn_t = std::function<void (float)>;
         
         static Object3DPtr create();
-        
-        Object3D();
+
         virtual ~Object3D(){};
         
         inline uint32_t get_id() const {return m_id;};
@@ -97,12 +96,15 @@ namespace kinski { namespace gl {
         /*!
          * Provide a function object to be called on each update
          */
-        void set_update_function(UpdateFunction f){ m_update_function = f;}
+        void set_update_function(update_fn_t f){ m_update_function = f;}
         
         virtual void accept(Visitor &theVisitor);
-        
+
+    protected:
+        Object3D();
+
     private:
-        
+
         static uint32_t s_id_pool;
         
         //! unique id
@@ -124,7 +126,7 @@ namespace kinski { namespace gl {
         std::weak_ptr<Object3D> m_parent;
         std::list<Object3DPtr> m_children;
         
-        UpdateFunction m_update_function;
+        update_fn_t m_update_function;
     };
 
 }}//namespace
