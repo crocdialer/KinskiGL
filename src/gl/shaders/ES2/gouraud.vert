@@ -7,9 +7,6 @@ struct Material
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
     float shinyness;
 };
-uniform Material u_material;
-
-uniform int u_numLights;
 
 struct Lightsource
 {
@@ -71,7 +68,8 @@ uniform mat4 u_modelViewProjectionMatrix;
 uniform mat3 u_normalMatrix; 
 uniform mat4 u_textureMatrix; 
 uniform Material u_material; 
-uniform Lightsource u_lights[2]; 
+uniform Lightsource u_lights[2];
+uniform int u_numLights;
 
 attribute vec4 a_vertex; 
 attribute vec3 a_normal; 
