@@ -17,7 +17,12 @@ namespace kinski { namespace gl {
     uint32_t Object3D::s_id_pool = 0;
     
     // static factory
-    Object3DPtr Object3D::create(){ return Object3DPtr(new Object3D()); }
+    Object3DPtr Object3D::create(const std::string &the_name)
+    {
+        auto ret = Object3DPtr(new Object3D());
+        if(!the_name.empty()){ ret->set_name(the_name); }
+        return ret;
+    }
     
     Object3D::Object3D():
     m_id(s_id_pool++),

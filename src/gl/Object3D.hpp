@@ -20,7 +20,7 @@ namespace kinski { namespace gl {
         
         using update_fn_t = std::function<void (float)>;
         
-        static Object3DPtr create();
+        static Object3DPtr create(const std::string &the_name = "");
 
         virtual ~Object3D(){};
         

@@ -49,9 +49,9 @@ namespace kinski { namespace gl {
     
     Scene::Scene():
     m_renderer(gl::SceneRenderer::create()),
-    m_root(Object3D::create())
+    m_root(Object3D::create("scene root"))
     {
-        m_root->set_name("scene root");
+
     }
     
     void Scene::add_object(const Object3DPtr &the_object)
@@ -66,7 +66,8 @@ namespace kinski { namespace gl {
     
     void Scene::clear()
     {
-        m_root = gl::Object3D::create();
+        m_root = gl::Object3D::create("scene root");
+        m_skybox.reset();
     }
     
     void Scene::update(float time_delta)
