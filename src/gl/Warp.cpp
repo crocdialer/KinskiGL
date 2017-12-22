@@ -512,7 +512,7 @@ namespace kinski{ namespace gl{
             gl::vec3(default_points[3], 0.f), gl::vec3(default_points[2], 0.f),
             gl::vec3(default_points[0], 0.f)
         };
-        gl::draw_linestrip(points, the_colour);
+        gl::draw_linestrip(points, the_colour, 3.f);
     }
     
     ivec2 Warp::grid_resolution() const

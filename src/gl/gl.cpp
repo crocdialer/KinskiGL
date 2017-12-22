@@ -519,8 +519,10 @@ namespace kinski { namespace gl {
             gl::GeometryPtr geom = Geometry::create();
             mesh = gl::Mesh::create(geom, mat);
             mesh->geometry()->set_primitive_type(GL_LINE_STRIP);
+            mesh->material()->set_shader(gl::create_shader(gl::ShaderType::LINES_2D));
         }
         mesh->material()->set_diffuse(theColor);
+        mesh->material()->set_line_width(line_thickness);
         mesh->material()->uniform("u_window_size", window_dimension());
         mesh->material()->uniform("u_line_thickness", line_thickness);
         mesh->geometry()->append_vertices(thePoints);
@@ -1351,12 +1353,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #if defined(KINSKI_GLES)
         if(!last_mat || last_mat->line_width() != the_mat->line_width())
         {
-//            if(the_mat->line_width() > 1.f)
-//            {
-//                glEnable(GL_LINE_SMOOTH);
-                glLineWidth(the_mat->line_width());
-                KINSKI_CHECK_GL_ERRORS();
-//            }
+            glLineWidth(the_mat->line_width());
+            KINSKI_CHECK_GL_ERRORS();
         }
 #endif
         
