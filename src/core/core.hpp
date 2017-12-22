@@ -55,9 +55,15 @@ using CLASS_NAME##Ptr = std::shared_ptr<CLASS_NAME>;\
 using CLASS_NAME##ConstPtr = std::shared_ptr<const CLASS_NAME>;\
 using CLASS_NAME##WeakPtr = std::weak_ptr<CLASS_NAME>;
 
-
+#if defined(__APPLE__)
+// forward declare boost io_service
+namespace boost{ namespace asio{ class io_context; } }
+namespace kinski{ using io_service_t = boost::asio::io_context; }
+#else
 // forward declare boost io_service
 namespace boost{ namespace asio{ class io_service; } }
+namespace kinski{ using io_service_t = boost::asio::io_service; }
+#endif
 
 #include "Logger.hpp"
 #include "Exception.hpp"
@@ -69,6 +75,4 @@ namespace kinski
     using std::vector;
     using std::list;
     using std::set;
-    
-    using io_service_t = boost::asio::io_service;
 }

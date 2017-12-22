@@ -19,7 +19,7 @@
 
 using namespace kinski;
 
-RemoteControl::RemoteControl(boost::asio::io_service &io, const std::list<ComponentPtr> &the_list)
+RemoteControl::RemoteControl(io_service_t &io, const std::list<ComponentPtr> &the_list)
 {
     set_components(the_list);
     m_tcp_server = net::tcp_server(io, net::tcp_server::tcp_connection_callback());

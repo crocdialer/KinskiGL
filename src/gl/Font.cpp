@@ -174,7 +174,6 @@ namespace kinski { namespace gl {
     
     void Font::load(const std::string &thePath, size_t theSize, bool use_sdf)
     {
-        //TODO: check extension
         try
         {
             auto p = fs::search_file(thePath);
@@ -194,10 +193,6 @@ namespace kinski { namespace gl {
             // signed distance field
             if(use_sdf)
             {
-//                tuple = m_impl->create_bitmap(font_file, theSize, BITMAP_WIDTH(theSize), 6);
-//                auto bitmap = std::get<0>(tuple);
-//                m_impl->char_data_sdf = std::move(std::get<1>(tuple));
-                
                 auto dist_img = compute_distance_field(m_impl->bitmap, 5);
                 dist_img = dist_img->blur();
                 m_impl->sdf_texture = create_texture_from_image(dist_img, true);
