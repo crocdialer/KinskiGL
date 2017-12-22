@@ -1357,22 +1357,9 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             KINSKI_CHECK_GL_ERRORS();
         }
 #endif
-        
-        if(!last_mat || override_shader)
-        {
-        
-        }
-        
-        // texture matrix from first texture, if any
-        shader->uniform("u_textureMatrix", (the_mat->textures().empty() || !the_mat->textures().front()) ?
-                                          glm::mat4() : the_mat->textures().front().texture_matrix());
-
-        shader->uniform("u_numTextures", (GLint) the_mat->textures().size());
-
-//        if(the_mat->textures().empty()) glBindTexture(GL_TEXTURE_2D, 0);
 
         // add texturemaps
-        int32_t tex_unit = 0, tex_2d = 0;
+        int32_t tex_unit = 0, tex_2d = 0, num_textures = 0;
 #if !defined(KINSKI_GLES_2)
         int32_t tex_3d = 0, tex_2d_array = 0, tex_cube = 0;
 #endif
@@ -1384,7 +1371,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         for(auto &t : the_mat->textures())
         {
             if(!t){ continue; }
-
+            num_textures++;
             t.bind(tex_unit);
 
             switch (t.target())
@@ -1420,6 +1407,12 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
             the_mat->uniform(buf, tex_unit);
             tex_unit++;
         }
+
+        // texture matrix from first texture, if any
+        shader->uniform("u_textureMatrix", (the_mat->textures().empty() || !the_mat->textures().front()) ?
+                                           glm::mat4() : the_mat->textures().front().texture_matrix());
+
+        shader->uniform("u_numTextures", num_textures);
 
         KINSKI_CHECK_GL_ERRORS();
 
