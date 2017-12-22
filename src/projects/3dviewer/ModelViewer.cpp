@@ -728,7 +728,8 @@ void ModelViewer::update_shader()
             type = gl::ShaderType::PHONG_NORMALMAP;
         }
 
-        shader = gl::create_shader(type);
+        try{ shader = gl::create_shader(type); }
+        catch(Exception &e){ LOG_WARNING << e.what(); }
 
         for(auto &mat : m_mesh->materials())
         {
