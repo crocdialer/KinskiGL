@@ -223,7 +223,7 @@ KINSKI_API Texture create_cube_texture(const std::vector<gl::Texture> &the_plane
 
 /*********************************** Shader loading *******************************************/
 
-enum class ShaderType {UNKNOWN, UNLIT, UNLIT_MASK, UNLIT_SKIN, BLUR, GOURAUD, PHONG, PHONG_SHADOWS,
+enum class ShaderType {UNKNOWN, UNLIT, UNLIT_MASK, UNLIT_SKIN, BLUR, GOURAUD, GOURAUD_SKIN, PHONG, PHONG_SHADOWS,
     PHONG_SKIN_SHADOWS, PHONG_NORMALMAP, PHONG_SKIN, POINTS_TEXTURE, LINES_2D, POINTS_COLOR,
     POINTS_SPHERE, RECT_2D, NOISE_3D, DEPTH_OF_FIELD, SDF_FONT};
 

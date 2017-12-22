@@ -703,28 +703,33 @@ void ModelViewer::update_shader()
         bool use_bones = m_mesh->geometry()->has_bones() && *m_use_bones;
         bool use_normal_map = *m_use_normal_map && *m_use_lighting && m_normal_map;
         gl::ShaderPtr shader;
-        
-        try
+        gl::ShaderType type;
+
+#if defined(KISNKI_GLES_2)
+        auto lit = gl::ShaderType::GOURAUD;
+        auto lit_skin = gl::ShaderType::GOURAUD_SKIN;
+#else
+        auto lit = gl::ShaderType::PHONG;
+        auto lit_skin = gl::ShaderType::PHONG_SKIN;
+#endif
+
+        if(use_bones)
         {
-            if(use_bones)
-            {
-                shader = gl::create_shader(*m_use_lighting ? gl::ShaderType::PHONG_SKIN :
-                                           gl::ShaderType::UNLIT_SKIN, false);
-            }
-            else
-            {
-                shader = gl::create_shader(*m_use_lighting ? gl::ShaderType::PHONG :
-                                           gl::ShaderType::UNLIT, false);
-            }
-            
-            if(use_normal_map)
-            {
-                LOG_DEBUG << "adding normalmap: '" << m_normalmap_path->value() << "'";
-                shader = gl::create_shader(gl::ShaderType::PHONG_NORMALMAP);
-            }
+            type = *m_use_lighting ? lit_skin : gl::ShaderType::UNLIT_SKIN;
         }
-        catch (Exception &e){ LOG_ERROR << e.what(); }
-        
+        else
+        {
+            type = *m_use_lighting ? lit : gl::ShaderType::UNLIT;
+        }
+
+        if(use_normal_map)
+        {
+            LOG_DEBUG << "adding normalmap: '" << m_normalmap_path->value() << "'";
+            type = gl::ShaderType::PHONG_NORMALMAP;
+        }
+
+        shader = gl::create_shader(type);
+
         for(auto &mat : m_mesh->materials())
         {
             if(shader){ mat->set_shader(shader); }

@@ -1618,6 +1618,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     frag_src = gouraud_frag;
                     break;
 
+                case ShaderType::GOURAUD_SKIN:
+                    vert_src = gouraud_skin_vert;
+                    frag_src = gouraud_frag;
+                    break;
+
                 case ShaderType::PHONG:
                     vert_src = phong_vert;
                     frag_src = phong_frag;
