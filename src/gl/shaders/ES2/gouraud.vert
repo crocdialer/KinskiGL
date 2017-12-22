@@ -41,7 +41,7 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   if (light.type > 0)
   {
     float dist = length(lightDir);
-    att = min(1.f, light.intensity / (light.constantAttenuation +
+    att = min(1.0, light.intensity / (light.constantAttenuation +
                    light.linearAttenuation * dist +
                    light.quadraticAttenuation * dist * dist));
 
