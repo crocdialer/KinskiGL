@@ -70,7 +70,7 @@ uniform mat4 u_textureMatrix;
 uniform mat4 u_bones[18];
 
 uniform Material u_material;
-uniform Lightsource u_lights[2];
+uniform Lightsource u_lights[1];
 uniform int u_numLights;
 
 attribute vec4 a_vertex;
@@ -101,9 +101,6 @@ void main()
 
     if(u_numLights > 0)
         shade_color += shade(u_lights[0], u_material, normal, eyeVec, vec4(1), 1.0);
-
-    if(u_numLights > 1)
-        shade_color += shade(u_lights[1], u_material, normal, eyeVec, vec4(1), 1.0);
 
     v_color = shade_color;
     gl_Position = u_modelViewProjectionMatrix * vec4(newVertex.xyz, 1.0);
