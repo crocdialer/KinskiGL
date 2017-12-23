@@ -168,6 +168,9 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
         }
     }
 
+    // reset state
+    gl::reset_state();
+
     // skybox drawing
     if(the_scene->skybox())
     {
@@ -181,6 +184,8 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
     
     // forward render pass
     auto render_bin = cull(the_scene, the_cam, the_tags);
+
+    // issue draw commands
     render(render_bin);
     
     // return number of rendered objects
@@ -211,9 +216,9 @@ void SceneRenderer::render(const RenderBinPtr &theBin)
     
     // update uniform buffers (global light settings)
     update_uniform_buffers(theBin->lights);
-    
+
     // make sure we start with a known state
-//    gl::reset_state();
+    gl::reset_state();
 
     // draw our stuff
     draw_sorted_by_material(theBin->camera, opaque_items, theBin->lights);
