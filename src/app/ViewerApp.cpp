@@ -131,7 +131,7 @@ namespace kinski {
         for (int i = 0; i < 8; i++)
         {
             // lights
-            auto light = std::make_shared<gl::Light>(gl::Light::POINT);
+            auto light = gl::Light::create(gl::Light::POINT);
             light->set_enabled(false);
             lights().push_back(light);
 

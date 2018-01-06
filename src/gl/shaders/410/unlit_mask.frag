@@ -34,7 +34,7 @@ void main()
     vec4 texColors = vertex_in.color;
     if(u_numTextures > 0)
         texColors *= texture(u_sampler_2D[COLORMAP], vertex_in.texCoord.st);
-    float mask = texture(u_sampler_2D[MASK], vertex_in.texCoord.st).x;
+    float mask = texture(u_sampler_2D[MASK], vertex_in.texCoord.st).a;
     texColors.a *= mask;
     fragData = u_material.diffuse * texColors;
 }

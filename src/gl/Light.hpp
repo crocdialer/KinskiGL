@@ -22,7 +22,7 @@ namespace kinski { namespace gl {
     public:
         
         //! type enum
-        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2};
+        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2, AREA = 3, UNKNOWN = 4};
         
         //! Helper struct to bundle attenuation params
         struct Attenuation
@@ -31,7 +31,8 @@ namespace kinski { namespace gl {
             Attenuation(float c, float l, float q):constant(c), linear(l), quadratic(q){}
         };
         
-        Light(Type theType);
+        static LightPtr create(Type theType);
+        
         virtual ~Light();
         
         const Color& diffuse() const { return m_diffuse; };
@@ -64,6 +65,8 @@ namespace kinski { namespace gl {
         float max_distance(float thresh = 5.f / 255.f) const;
         
     private:
+        
+        Light(Type theType);
         
         Type m_type;
         Attenuation m_attenuation;

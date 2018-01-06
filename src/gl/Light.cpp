@@ -16,7 +16,12 @@
 #include "Visitor.hpp"
 
 namespace kinski { namespace gl {
-
+    
+    LightPtr Light::create(Type theType)
+    {
+        return LightPtr(new Light(theType));
+    }
+    
     Light::Light(Type theType):
     Object3D(),
     m_type(theType),

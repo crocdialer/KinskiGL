@@ -56,6 +56,33 @@ inline mat4 aimatrix_to_glm_mat4(aiMatrix4x4 theMat)
     memcpy(&ret[0][0], theMat.Transpose()[0], sizeof(ret));
     return ret;
 }
+
+/////////////////////////////////////////////////////////////////
+
+inline glm::vec3 aivector_to_glm_vec3(const aiVector3D &the_vec)
+{
+    glm::vec3 ret;
+    for(int i = 0; i < 3; ++i){ ret[i] = the_vec[i]; }
+    return ret;
+}
+    
+/////////////////////////////////////////////////////////////////
+    
+inline gl::Color aicolor_convert(const aiColor4D &the_color)
+{
+    gl::Color ret;
+    for(int i = 0; i < 4; ++i){ ret[i] = the_color[i]; }
+    return ret;
+}
+ 
+/////////////////////////////////////////////////////////////////
+
+inline gl::Color aicolor_convert(const aiColor3D &the_color)
+{
+    gl::Color ret;
+    for(int i = 0; i < 3; ++i){ ret[i] = the_color[i]; }
+    return ret;
+}
     
 /////////////////////////////////////////////////////////////////
     
@@ -184,45 +211,99 @@ void insertBoneVertexData(gl::GeometryPtr geom, const WeightMap &weightmap, uint
 }
 
 /////////////////////////////////////////////////////////////////
+
+gl::LightPtr create_light(const aiLight* the_light)
+{
+    gl::Light::Type t = gl::Light::UNKNOWN;
+    
+    switch (the_light->mType)
+    {
+        case aiLightSource_DIRECTIONAL:
+            t = gl::Light::DIRECTIONAL;
+            break;
+        case aiLightSource_SPOT:
+            t = gl::Light::SPOT;
+            break;
+        case aiLightSource_POINT:
+            t = gl::Light::POINT;
+            break;
+        case aiLightSource_AREA:
+            t = gl::Light::AREA;
+            break;
+        default:
+            break;
+    }
+    auto l = gl::Light::create(t);
+    l->set_name(the_light->mName.data);
+    l->set_spot_cutoff(the_light->mAngleOuterCone);
+    l->set_diffuse(aicolor_convert(the_light->mColorDiffuse));
+    l->set_ambient(aicolor_convert(the_light->mColorAmbient));
+    l->set_specular(aicolor_convert(the_light->mColorSpecular));
+    l->set_attenuation(the_light->mAttenuationConstant, the_light->mAttenuationLinear,
+                       the_light->mAttenuationQuadratic);
+    
+    auto pos = aivector_to_glm_vec3(the_light->mPosition);
+    auto y_axis = glm::normalize(aivector_to_glm_vec3(the_light->mUp));
+    auto z_axis = glm::normalize(-aivector_to_glm_vec3(the_light->mDirection));
+    auto x_axis = glm::normalize(glm::cross(z_axis, y_axis));
+    glm::mat4 m(vec4(x_axis, 0.f), vec4(y_axis, 0.f), vec4(z_axis, 0.f), vec4(pos, 1.f));
+    l->set_transform(m);
+    return l;
+}
+
+/////////////////////////////////////////////////////////////////
+    
+gl::CameraPtr create_camera(const aiCamera* the_cam)
+{
+    auto ret = gl::PerspectiveCamera::create();
+    ret->set_name(the_cam->mName.data);
+    ret->set_fov(the_cam->mHorizontalFOV);
+    ret->set_aspect(the_cam->mAspect);
+    ret->set_clipping(the_cam->mClipPlaneNear, the_cam->mClipPlaneFar);
+    auto pos = aivector_to_glm_vec3(the_cam->mPosition);
+    auto y_axis = glm::normalize(aivector_to_glm_vec3(the_cam->mUp));
+    auto z_axis = glm::normalize(-aivector_to_glm_vec3(the_cam->mLookAt));
+    auto x_axis = glm::normalize(glm::cross(z_axis, y_axis));
+    glm::mat4 m(vec4(x_axis, 0.f), vec4(y_axis, 0.f), vec4(z_axis, 0.f), vec4(pos, 1.f));
+    ret->set_transform(m);
+    return ret;
+}
+    
+/////////////////////////////////////////////////////////////////
     
 gl::MaterialPtr createMaterial(const aiMaterial *mtl)
 {
     gl::MaterialPtr theMaterial = gl::Material::create();
     theMaterial->set_blending(true);
     int ret1, ret2;
-    aiColor4D diffuse, specular, ambient, emission, transparent;
+    aiColor4D c;
     float shininess, strength;
     int two_sided;
     int wireframe;
     aiString texPath;
-    vec4 color;
     
-    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
+    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &c))
     {
-        color.r = diffuse.r; color.g = diffuse.g; color.b = diffuse.b; color.a = diffuse.a;
-        theMaterial->set_diffuse(color);
+        theMaterial->set_diffuse(aicolor_convert(c));
     }
     
-    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular))
+    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &c))
     {
-        color.r = specular.r; color.g = specular.g; color.b = specular.b; color.a = specular.a;
-        theMaterial->set_specular(color);
+        theMaterial->set_specular(aicolor_convert(c));
     }
     
-    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient))
+    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &c))
     {
-        color.r = ambient.r; color.g = ambient.g; color.b = ambient.b; color.a = ambient.a;
-        theMaterial->set_ambient(color);
+        theMaterial->set_ambient(aicolor_convert(c));
     }
     
-    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &emission))
+    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &c))
     {
-        color.r = emission.r; color.g = emission.g; color.b = emission.b; color.a = emission.a;
-        theMaterial->set_emission(color);
+        theMaterial->set_emission(aicolor_convert(c));
     }
     
     // transparent material
-    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &transparent))
+    if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_TRANSPARENT, &c))
     {
         //TODO: needed ?
     }
@@ -299,7 +380,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         LOG_ERROR << e.what();
         return gl::MeshPtr();
     }
-//    load_scene(theModelPath);
+    load_scene(theModelPath);
 
     LOG_DEBUG << "loading model '" << theModelPath << "' ...";
     const aiScene *theScene = importer.ReadFile(found_path, 0);
@@ -421,13 +502,14 @@ gl::ScenePtr load_scene(const std::string &the_path)
 
         for(uint32_t i = 0; i < in_scene->mNumLights; ++i)
         {
-
+            ret->add_object(create_light(in_scene->mLights[i]));
         }
 
 
         for(uint32_t i = 0; i < in_scene->mNumCameras; ++i)
         {
-
+            aiCamera* cam = in_scene->mCameras[i];
+//            cam->
         }
 
         process_node(in_scene, in_scene->mRootNode, ret->root());
@@ -451,7 +533,7 @@ void process_node(const aiScene *the_scene, const aiNode *the_in_node, const gl:
     while(p && p != the_scene->mRootNode)
     { parent_string = string(p->mName.data) + " -> " + parent_string; p = p->mParent; }
 
-    LOG_DEBUG << "node: " << parent_string + node_name << " -- " << glm::to_string(node_transform[3].xyz());
+    LOG_DEBUG << "node: " << parent_string + node_name << " -- num meshes: " << the_in_node->mNumMeshes;
 
     // meshes assigned to this node
     for (uint32_t  n = 0; n < the_in_node->mNumMeshes; ++n)

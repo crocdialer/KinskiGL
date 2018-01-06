@@ -26,7 +26,7 @@ void main(void)
     if(u_numTextures > 0)
         texColors *= texture2D(u_sampler_2D[COLORMAP], v_texCoord.st);
 
-    float mask = texture2D(u_sampler_2D[MASK], v_texCoord.st).x;
+    float mask = texture2D(u_sampler_2D[MASK], v_texCoord.st).a;
     texColors.a *= mask;
     gl_FragColor = u_material.diffuse * texColors;
 }

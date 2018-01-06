@@ -367,6 +367,10 @@ namespace kinski { namespace gl {
                 cam = gl::PerspectiveCamera::create(1.f, 2 * the_light->spot_cutoff(),
                                                     .1f, far_clip);
                 break;
+                
+            default:
+                LOG_WARNING << "light type not handled";
+                return nullptr;
         }
         cam->set_transform(the_light->global_transform());
         return cam;
@@ -972,6 +976,10 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                                                                   vec3(r_scale, r_scale, scale)));
             }
                 break;
+            
+            default:
+                LOG_WARNING << "light type not handled";
+                return;
         }
 
         if(theLight->enabled())

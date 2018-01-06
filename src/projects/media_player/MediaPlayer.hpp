@@ -24,7 +24,7 @@ namespace kinski
     {
     private:
 
-        enum TextureEnum{TEXTURE_INPUT = 0, TEXTURE_OUTPUT = 1};
+        enum TextureEnum{TEXTURE_INPUT = 0, TEXTURE_OUTPUT = 1, TEXTURE_MASK = 2};
 
         media::MediaControllerPtr m_media = media::MediaController::create();
         media::CameraControllerPtr m_camera_control = media::CameraController::create();
@@ -42,7 +42,10 @@ namespace kinski
         std::string m_ip_adress;
         
         // properties
-        Property_<string>::Ptr m_media_path = Property_<string>::create("media path", "");
+        Property_<string>::Ptr
+        m_media_path = Property_<string>::create("media path", ""),
+        m_text_overlay = Property_<string>::create("text overlay", "");
+        
         Property_<bool>::Ptr
         m_scale_to_fit = Property_<bool>::create("scale_to_fit", false),
         m_loop = Property_<bool>::create("loop", false),

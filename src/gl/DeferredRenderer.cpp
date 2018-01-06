@@ -414,6 +414,9 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 gl::draw_mesh(m_mesh_cone);
                 break;
             }
+            default:
+                LOG_WARNING << "light type not handled";
+                break;
         }
     }
 }

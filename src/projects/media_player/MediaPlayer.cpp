@@ -46,6 +46,7 @@ void MediaPlayer::setup()
     Logger::get()->set_use_log_file(true);
 
     fonts()[1].load(fonts()[0].path(), 28);
+    fonts()[2].load(fonts()[0].path(), 54);
     register_property(m_media_path);
     register_property(m_scale_to_fit);
     register_property(m_loop);
@@ -57,6 +58,7 @@ void MediaPlayer::setup()
     register_property(m_is_master);
     register_property(m_use_discovery_broadcast);
     register_property(m_broadcast_port);
+    register_property(m_text_overlay);
     observe_properties();
     add_tweakbar_for_component(shared_from_this());
 
@@ -110,9 +112,13 @@ void MediaPlayer::update(float timeDelta)
         m_needs_redraw = m_camera_control->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
     
     if(m_media)
-        m_needs_redraw = m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT]) || m_needs_redraw;
+        m_needs_redraw = m_media->copy_frame_to_texture(textures()[TEXTURE_INPUT], true) || m_needs_redraw;
     else
         m_needs_redraw = true;
+    
+//    auto mat = textures()[TEXTURE_MASK].texture_matrix();
+//    textures()[TEXTURE_MASK].set_texture_matrix(glm::rotate(mat, 2.f * (float)get_application_time(),
+//                                                            gl::Z_AXIS));
 }
 
 /////////////////////////////////////////////////////////////////
@@ -135,8 +141,20 @@ void MediaPlayer::draw()
     {
         if(*m_scale_to_fit)
         {
-            gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
-                             *m_brightness);
+            if(textures()[TEXTURE_MASK])
+            {
+                gl::draw_texture_with_mask(textures()[TEXTURE_INPUT],
+                                           textures()[TEXTURE_MASK],
+                                           gl::window_dimension(),
+                                           gl::vec2(0),
+                                           *m_brightness);
+                
+            }
+            else
+            {
+                gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
+                                 *m_brightness);
+            }
         }
         else
         {
@@ -426,6 +444,13 @@ void MediaPlayer::update_property(const Property::ConstPtr &theProperty)
                 m_is_syncing = 0;
             });
         }
+    }
+    else if(theProperty == m_text_overlay)
+    {
+//        auto text_obj = fonts()[0].create_text_object(*m_text_overlay, gl::Font::Align::CENTER,
+//                                                      gl::window_dimension());
+        string str = *m_text_overlay;
+        textures()[TEXTURE_MASK] = fonts()[2].create_texture(str);
     }
 }
 
