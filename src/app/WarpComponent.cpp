@@ -61,7 +61,7 @@ namespace kinski
         register_property(m_edges);
         register_property(m_edge_exponents);
         
-        register_function("reset", std::bind(&WarpComponent::reset, this));
+        register_function("reset", [this](const std::vector<std::string>&){ reset(); });
         
         m_params.resize(m_quad_warp.size());
         m_params[0].enabled = true;
