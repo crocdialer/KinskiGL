@@ -227,9 +227,9 @@ gl::LightPtr create_light(const aiLight* the_light)
         case aiLightSource_POINT:
             t = gl::Light::POINT;
             break;
-        case aiLightSource_AREA:
-            t = gl::Light::AREA;
-            break;
+//        case aiLightSource_AREA:
+//            t = gl::Light::AREA;
+//            break;
         default:
             break;
     }
@@ -241,9 +241,9 @@ gl::LightPtr create_light(const aiLight* the_light)
     l->set_specular(aicolor_convert(the_light->mColorSpecular));
     l->set_attenuation(the_light->mAttenuationConstant, the_light->mAttenuationLinear,
                        the_light->mAttenuationQuadratic);
-    
+
     auto pos = aivector_to_glm_vec3(the_light->mPosition);
-    auto y_axis = glm::normalize(aivector_to_glm_vec3(the_light->mUp));
+    auto y_axis = gl::Y_AXIS;//glm::normalize(aivector_to_glm_vec3(the_light->mUp));
     auto z_axis = glm::normalize(-aivector_to_glm_vec3(the_light->mDirection));
     auto x_axis = glm::normalize(glm::cross(z_axis, y_axis));
     glm::mat4 m(vec4(x_axis, 0.f), vec4(y_axis, 0.f), vec4(z_axis, 0.f), vec4(pos, 1.f));
@@ -508,8 +508,7 @@ gl::ScenePtr load_scene(const std::string &the_path)
 
         for(uint32_t i = 0; i < in_scene->mNumCameras; ++i)
         {
-            aiCamera* cam = in_scene->mCameras[i];
-//            cam->
+//            aiCamera* cam = in_scene->mCameras[i];
         }
 
         process_node(in_scene, in_scene->mRootNode, ret->root());
