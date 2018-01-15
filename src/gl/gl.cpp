@@ -839,6 +839,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
     for(auto &mat : the_mesh->materials())
     {
+        mat->uniform("u_window_dimension", gl::window_dimension());
         mat->uniform("u_modelViewMatrix", modelView);
         mat->uniform("u_modelViewProjectionMatrix", mvp_matrix);
         if(the_mesh->geometry()->has_normals()){ mat->uniform("u_normalMatrix", normal_matrix); }

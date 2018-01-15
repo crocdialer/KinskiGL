@@ -34,7 +34,7 @@ namespace kinski { namespace gl {
     m_specular(Color(1)),
     m_cast_shadow(false)
     {
-    
+        set_name("Light_" + to_string(get_id()));
     }
     
     Light::~Light()
@@ -60,6 +60,11 @@ namespace kinski { namespace gl {
     void Light::set_intensity(float the_intensity)
     {
         m_intensity = clamp(the_intensity, 0.f, std::numeric_limits<float>::max());
+    }
+    
+    void Light::set_radius(float the_radius)
+    {
+        m_radius = clamp(the_radius, 0.f, std::numeric_limits<float>::max());
     }
     
     const Light::Attenuation& Light::attenuation() const

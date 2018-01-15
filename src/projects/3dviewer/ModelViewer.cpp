@@ -300,7 +300,7 @@ void ModelViewer::update_fbos()
         }
 
         camera()->set_clipping(0.1f, 5000.f);
-        m_post_process_mat->uniform("u_window_dimension", gl::window_dimension());
+//        m_post_process_mat->uniform("u_window_dimension", gl::window_dimension());
         m_post_process_mat->uniform("u_znear", camera()->near());
         m_post_process_mat->uniform("u_zfar", camera()->far());
         m_post_process_mat->uniform("u_focal_depth", *m_focal_depth);

@@ -7,6 +7,7 @@
 //  http://www.boost.org/LICENSE_1_0.txt
 // __ ___ ____ _____ ______ _______ ________ _______ ______ _____ ____ ___ __
 
+#include "core/Timer.hpp"
 #include "Geometry.hpp"
 
 using namespace std;
@@ -21,8 +22,8 @@ namespace
 
 std::vector<HalfEdge> compute_half_edges(gl::GeometryPtr the_geom)
 {
-//    Stopwatch timer;
-//    timer.start();
+    Stopwatch timer;
+    timer.start();
     
     std::vector<HalfEdge> ret(3 * the_geom->faces().size());
     std::unordered_map<uint64_t, HalfEdge*> edge_table;
@@ -69,12 +70,11 @@ std::vector<HalfEdge> compute_half_edges(gl::GeometryPtr the_geom)
         else{ ++boundaryCount; }
     }
     
-    // Now that we have a half-edge structure, it's easy to create adjacency info:
     if(boundaryCount > 0)
     {
         LOG_DEBUG << "mesh is not watertight. contains " << boundaryCount << " boundary edges.";
     }
-//    LOG_DEBUG << "half-edge computation took " << timer.time_elapsed() * 1000.0 << " ms";
+    LOG_TRACE << "half-edge computation took " << (int)std::round(timer.time_elapsed() * 1000.0) << " ms";
     return ret;
 }
     

@@ -110,8 +110,8 @@ void sort_render_bin(const RenderBinPtr &the_bin,
     //sort opaque items near to far
     the_opaque_items.sort([](const RenderBin::item &lhs, const RenderBin::item &rhs) -> bool
     {
-        return  std::make_tuple(lhs.mesh->material().get(), lhs.transform[3].z) >
-                std::make_tuple(rhs.mesh->material().get(), rhs.transform[3].z);
+        return  std::make_tuple(lhs.transform[3].z, lhs.mesh->material().get()) >
+                std::make_tuple(lhs.transform[3].z, rhs.mesh->material().get());
     });
     //sort transparent items far to near
     the_transparent_items.sort([](const RenderBin::item &lhs, const RenderBin::item &rhs) -> bool

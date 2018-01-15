@@ -209,9 +209,6 @@ void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &
         m_lighting_fbo.set_depth_texture(m_geometry_fbo.depth_texture());
         KINSKI_CHECK_GL_ERRORS();
 
-        m_mat_lighting->uniform("u_window_dimension", gl::window_dimension());
-        m_mat_lighting_shadow->uniform("u_window_dimension", gl::window_dimension());
-        m_mat_lighting_shadow_omni->uniform("u_window_dimension", gl::window_dimension());
         m_mat_lighting->clear_textures();
         m_mat_lighting_shadow->clear_textures();
         m_mat_lighting_shadow_omni->clear_textures();

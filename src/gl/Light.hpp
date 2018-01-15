@@ -44,6 +44,9 @@ namespace kinski { namespace gl {
         float intensity() const { return m_intensity; }
         void set_intensity(float the_intensity);
         
+        float radius() const { return m_radius; }
+        void set_radius(float the_radius);
+        
         const Attenuation& attenuation() const;
         void set_attenuation(const Attenuation &theAttenuation);
         void get_attenuation(float &constant, float &linear, float &quadratic) const;
@@ -70,7 +73,7 @@ namespace kinski { namespace gl {
         
         Type m_type;
         Attenuation m_attenuation;
-        float m_spot_cutoff, m_spot_exponent, m_intensity;
+        float m_spot_cutoff, m_spot_exponent, m_intensity, m_radius;
         Color m_ambient, m_diffuse, m_specular;
         bool m_cast_shadow;
     };

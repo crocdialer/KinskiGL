@@ -26,7 +26,7 @@ namespace kinski { namespace gl {
     
     Object3D::Object3D():
     m_id(s_id_pool++),
-    m_name("Object3D " + to_string(m_id)),
+    m_name("Object3D_" + to_string(m_id)),
     m_enabled(true),
     m_billboard(false)
     {
@@ -206,7 +206,7 @@ namespace kinski { namespace gl {
         mat4 global_trans = global_transform();
         ret.transform(global_trans);
         
-        for (auto &c :children())
+        for(auto &c :children())
         {
             ret += c->aabb();
         }
@@ -225,7 +225,7 @@ namespace kinski { namespace gl {
         
         if(recursive)
         {
-            for (auto &c : children()){ c->add_tag(the_tag, recursive); }
+            for(auto &c : children()){ c->add_tag(the_tag, recursive); }
         }
 
     }
@@ -236,7 +236,7 @@ namespace kinski { namespace gl {
         
         if(recursive)
         {
-            for (auto &c : children()){ c->remove_tag(the_tag, recursive); }
+            for(auto &c : children()){ c->remove_tag(the_tag, recursive); }
         }
     }
     

@@ -56,7 +56,7 @@ uniform vec2 u_window_dimension;
 float width = u_window_dimension.x; //texture width
 float height = u_window_dimension.y; //texture height
 
-vec2 texel = vec2(1.0 / width, 1.0 / height);
+vec2 texel = vec2(1.0 / u_window_dimension.x, 1.0 / u_window_dimension.y);
 
 //uniform variables from external script
 
@@ -290,7 +290,7 @@ void main()
 		blur = abs(a-b)*c;
 	}
 
-	blur = clamp(blur,0.0,1.0);
+	blur = clamp(blur, 0.0, maxblur);
 
 	// calculation of pattern for ditering
 

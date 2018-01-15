@@ -22,7 +22,7 @@ namespace kinski { namespace gl {
     class Visitor
     {
     public:
-        Visitor(bool visit_only_enabled = true):
+        explicit Visitor(bool visit_only_enabled = true):
         m_visit_only_enabled(visit_only_enabled)
         {
             m_transform_stack.push(glm::mat4());

@@ -99,7 +99,7 @@ namespace kinski { namespace gl {
             {
                 if(high_precision)
                 {
-                    if(gl::Mesh *m = dynamic_cast<gl::Mesh*>(the_object))
+                    if(const gl::Mesh *m = dynamic_cast<const gl::Mesh*>(the_object))
                     {
                         gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
                         const auto &vertices = m->geometry()->vertices();
@@ -121,7 +121,7 @@ namespace kinski { namespace gl {
                                                                        ray_in_object_space.direction);
                                     ray_tri_hit.distance *= distance_scale;
                                     clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
-                                    LOG_TRACE<<"hit distance: "<<ray_tri_hit.distance;
+                                    LOG_TRACE_2 << "hit distance: " << ray_tri_hit.distance;
                                     break;
                                 }
                             }
@@ -138,7 +138,7 @@ namespace kinski { namespace gl {
         {
             clicked_items.sort();
             ret = clicked_items.front().object->shared_from_this();
-            LOG_TRACE<<"ray hit id "<<ret->get_id()<<" ("<<clicked_items.size()<<" total)";
+            LOG_TRACE << "ray hit id " << ret->get_id() << " (" << clicked_items.size() << " total)";
         }
         return ret;
     }
