@@ -42,6 +42,7 @@ namespace kinski
         RangedProperty<int>::Ptr m_light_type;
         Property_<bool>::Ptr m_enabled;
         Property_<float>::Ptr m_intensity;
+        Property_<float>::Ptr m_radius;
         Property_<bool>::Ptr m_cast_shadows;
         Property_<float>::Ptr m_position_x, m_position_y, m_position_z;
         Property_<glm::vec3>::Ptr m_direction;

@@ -16,10 +16,9 @@ struct Lightsource
     vec4 specular;
     vec3 direction;
     float intensity;
+    float radius;
     float spotCosCutoff;
     float spotExponent;
-    float constantAttenuation;
-    float linearAttenuation;
     float quadraticAttenuation;
 };
 

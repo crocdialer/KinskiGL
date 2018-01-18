@@ -955,7 +955,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         }
         gl::MeshPtr light_mesh;
-        float scale = theLight->max_distance();
+        float scale = theLight->radius();
 
         switch (theLight->type())
         {

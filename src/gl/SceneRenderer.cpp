@@ -69,7 +69,7 @@ public:
             light_item.transform = transform_stack().top() * theNode.transform();
             
             // collect only lights that actually affect the scene
-            gl::Sphere bounding_sphere(gl::vec3(theNode.transform()[3].xyz()), theNode.max_distance());
+            gl::Sphere bounding_sphere(gl::vec3(theNode.transform()[3].xyz()), theNode.radius());
 
             if(m_frustum.intersect(bounding_sphere))
             {
@@ -155,7 +155,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
                 break;
             }
             set_shadow_pass(true);
-            shadow_cams()[i] = gl::create_shadow_camera(l, min(extents, l->max_distance()));
+            shadow_cams()[i] = gl::create_shadow_camera(l, min(extents, l->radius()));
             
             // offscreen render shadow map here
             gl::render_to_texture(shadow_fbos()[i], [&]()
@@ -370,8 +370,9 @@ void SceneRenderer::set_light_uniforms(MaterialPtr &the_mat,
         // point + spot
         if(l.light->type() > 0)
         {
-            the_mat->uniform(light_str + ".constantAttenuation", l.light->attenuation().constant);
-            the_mat->uniform(light_str + ".linearAttenuation", l.light->attenuation().linear);
+//            the_mat->uniform(light_str + ".constantAttenuation", l.light->attenuation().constant);
+//            the_mat->uniform(light_str + ".linearAttenuation", l.light->attenuation().linear);
+            the_mat->uniform(light_str + ".radius", l.light->radius());
             the_mat->uniform(light_str + ".quadraticAttenuation", l.light->attenuation().quadratic);
             
             if(l.light->type() == Light::SPOT)
@@ -398,12 +399,13 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         vec4 specular;
         vec3 direction;
         float intensity;
+        float radius;
         float spotCosCutoff;
         float spotExponent;
-        float constantAttenuation;
-        float linearAttenuation;
+//        float constantAttenuation;
+//        float linearAttenuation;
         float quadraticAttenuation;
-        float pad[3];
+//        float pad[1];
     };
     
     if(!m_uniform_buffer[LIGHT_UNIFORM_BUFFER])
@@ -424,8 +426,9 @@ void SceneRenderer::update_uniform_buffers(const std::list<RenderBin::light> &li
         buf.ambient = l.light->ambient();
         buf.specular = l.light->specular();
         buf.intensity = l.light->intensity();
-        buf.constantAttenuation = l.light->attenuation().constant;
-        buf.linearAttenuation = l.light->attenuation().linear;
+        buf.radius = l.light->radius();
+//        buf.constantAttenuation = l.light->attenuation().constant;
+//        buf.linearAttenuation = l.light->attenuation().linear;
         buf.quadraticAttenuation = l.light->attenuation().quadratic;
         buf.spotCosCutoff = cosf(glm::radians(l.light->spot_cutoff()));
         buf.spotExponent = l.light->spot_exponent();

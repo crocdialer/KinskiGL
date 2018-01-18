@@ -29,6 +29,7 @@ namespace kinski { namespace gl {
     m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
     m_intensity(1.f),
+    m_radius(100.f),
     m_ambient(Color(0)),
     m_diffuse(Color(1)),
     m_specular(Color(1)),
@@ -96,38 +97,34 @@ namespace kinski { namespace gl {
     AABB Light::boundingBox() const
     {
         AABB ret;
-        switch (m_type)
-        {
-            case DIRECTIONAL:
-                ret.min = glm::vec3(std::numeric_limits<float>::min());
-                ret.max = glm::vec3(std::numeric_limits<float>::max());
-                break;
-
-            case POINT:
-            case SPOT:
-            {
-                float d = max_distance();
-                ret.min = glm::vec3(-d);
-                ret.max = glm::vec3(d);
-                ret.transform(global_transform());
-                break;
-            }
-
-            default:
-                break;
-        }
+        float d = radius();
+        ret.min = glm::vec3(-d);
+        ret.max = glm::vec3(d);
+        ret.transform(global_transform());
+        
+//        switch (m_type)
+//        {
+//            case DIRECTIONAL:
+//                ret.min = glm::vec3(std::numeric_limits<float>::min());
+//                ret.max = glm::vec3(std::numeric_limits<float>::max());
+//                break;
+//            case POINT:
+//            case SPOT:
+//            default:
+//                break;
+//        }
         return ret;
     }
     
-    float Light::max_distance(float thresh) const
-    {
-        if(type() == DIRECTIONAL){ return std::numeric_limits<float>::max(); }
-        float i = m_intensity * std::max(std::max(m_diffuse.r, m_diffuse.g), m_diffuse.b);
-        float l = m_attenuation.linear, q = m_attenuation.quadratic, c = m_attenuation.constant;
-        if(q != 0.f){ return (- l + sqrtf(l * l + 4 * (i / thresh - c) * q)) / (2.f * q); }
-        else if(l != 0.f){ return (i / thresh - c) / l; }
-        else return std::numeric_limits<float>::max();
-    }
+//    float Light::max_distance(float thresh) const
+//    {
+//        if(type() == DIRECTIONAL){ return std::numeric_limits<float>::max(); }
+//        float i = m_intensity * std::max(std::max(m_diffuse.r, m_diffuse.g), m_diffuse.b);
+//        float l = m_attenuation.linear, q = m_attenuation.quadratic, c = m_attenuation.constant;
+//        if(q != 0.f){ return (- l + sqrtf(l * l + 4 * (i / thresh - c) * q)) / (2.f * q); }
+//        else if(l != 0.f){ return (i / thresh - c) / l; }
+//        else return std::numeric_limits<float>::max();
+//    }
     
     void Light::accept(Visitor &theVisitor)
     {

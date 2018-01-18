@@ -258,7 +258,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
                                                 const gl::LightPtr &l)
 {
 #if !defined(KINSKI_GLES)
-    auto shadow_cam = gl::create_shadow_camera(l, l->max_distance());
+    auto shadow_cam = gl::create_shadow_camera(l, l->radius());
     auto bin = cull(the_renderbin->scene, shadow_cam);
     std::list<RenderBin::item> opaque_items, blended_items;
     sort_render_bin(bin, opaque_items, blended_items);
@@ -385,7 +385,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
             else{ mat = m_mat_lighting; }
         }
         m_frustum_mesh->material() = m_mesh_sphere->material() = m_mesh_cone->material() = mat;
-        float d = std::min(the_renderbin->camera->far() * 0.66f + l.transform[3].z, l.light->max_distance());
+        float d = std::min(the_renderbin->camera->far() * 0.66f + l.transform[3].z, l.light->radius());
         d = std::max(d, 1.f);
 
         mat->uniform("u_light_index", light_index++);

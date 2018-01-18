@@ -22,10 +22,9 @@ struct Lightsource
     vec4 specular;
     vec3 direction;
     float intensity;
+    float radius;
     float spotCosCutoff;
     float spotExponent;
-    float constantAttenuation;
-    float linearAttenuation;
     float quadraticAttenuation;
 };
 
@@ -43,10 +42,9 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal,
 
   if (light.type > 0)
   {
-    float dist = length(lightDir);
-    att = min(1.f, light.intensity / (light.constantAttenuation +
-                   light.linearAttenuation * dist +
-                   light.quadraticAttenuation * dist * dist));
+      float dist = length(lightDir);
+      float v = clamp(1.0 - pow((dist / light.radius), 4.0), 0.0, 1.0);
+      att = min(1.f, light.intensity * v * v / (1 + dist * dist * light.quadraticAttenuation));
 
     if(light.type > 1)
     {
@@ -114,7 +112,7 @@ void main()
   vec4 texColors = /*vertex_in.color **/ texture(u_sampler_2D[DIFFUSE],
                                              vertex_in.texCoord.st);
   if(smoothstep(0.0, 1.0, texColors.a) < 0.01){ discard; }
-  
+
   vec3 normal;
   //normal = normalFromHeightMap(u_sampler_2D[1], vertex_in.texCoord.xy, 0.8);
 

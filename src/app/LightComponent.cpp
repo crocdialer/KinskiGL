@@ -21,6 +21,7 @@ namespace kinski
     m_light_type(RangedProperty<int>::create("light type", 0, 0, 2)),
     m_enabled(Property_<bool>::create("enabled", true)),
     m_intensity(Property_<float>::create("intensity", 1.f)),
+    m_radius(Property_<float>::create("radius", 1.f)),
     m_cast_shadows(Property_<bool>::create("cast shadows", false)),
     m_position_x(Property_<float>::create("position X", 0)),
     m_position_y(Property_<float>::create("position Y", 0)),
@@ -40,6 +41,7 @@ namespace kinski
         register_property(m_light_type);
         register_property(m_enabled);
         register_property(m_intensity);
+        register_property(m_radius);
         register_property(m_cast_shadows);
         register_property(m_position_x);
         register_property(m_position_y);
@@ -78,6 +80,10 @@ namespace kinski
         else if(theProperty == m_intensity)
         {
             active_light->set_intensity(*m_intensity);
+        }
+        else if(theProperty == m_radius)
+        {
+            active_light->set_radius(*m_radius);
         }
         else if(theProperty == m_cast_shadows)
         {
@@ -170,6 +176,7 @@ namespace kinski
         *m_light_type = light->type();
         *m_enabled = light->enabled();
         *m_intensity = light->intensity();
+        *m_radius = light->radius();
         *m_cast_shadows = light->cast_shadow();
         *m_position_x = light->position().x;
         *m_position_y = light->position().y;
