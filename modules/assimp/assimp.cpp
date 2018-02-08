@@ -511,7 +511,7 @@ gl::ScenePtr load_scene(const std::string &the_path)
 //            aiCamera* cam = in_scene->mCameras[i];
         }
 
-        process_node(in_scene, in_scene->mRootNode, ret->root());
+//        process_node(in_scene, in_scene->mRootNode, ret->root());
         importer.FreeScene();
     }
     return ret;
