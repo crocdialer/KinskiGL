@@ -37,10 +37,10 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
 
   if (light.type > 0)
   {
-    float dist = length(lightDir);
-    att = min(1.0, light.intensity / (light.constantAttenuation +
-                   light.linearAttenuation * dist +
-                   light.quadraticAttenuation * dist * dist));
+      // distance^2
+      float dist2 = dot(lightDir, lightDir);
+      float v = clamp(1.0 - pow(dist2 / (light.radius * light.radius), 2.0), 0.0, 1.0);
+      att = min(1.0, light.intensity * v * v / (1.0 + dist2 * light.quadraticAttenuation));
 
     if(light.type > 1)
     {
@@ -63,34 +63,34 @@ vec4 shade(in Lightsource light, in Material mat, in vec3 normal, in vec3 eyeVec
   return base_color * (ambient + diffuse) + spec;
 }
 
-uniform mat4 u_modelViewMatrix; 
-uniform mat4 u_modelViewProjectionMatrix; 
-uniform mat3 u_normalMatrix; 
-uniform mat4 u_textureMatrix; 
-uniform Material u_material; 
+uniform mat4 u_modelViewMatrix;
+uniform mat4 u_modelViewProjectionMatrix;
+uniform mat3 u_normalMatrix;
+uniform mat4 u_textureMatrix;
+uniform Material u_material;
 uniform Lightsource u_lights[2];
 uniform int u_numLights;
 
-attribute vec4 a_vertex; 
-attribute vec3 a_normal; 
-attribute vec4 a_texCoord; 
+attribute vec4 a_vertex;
+attribute vec3 a_normal;
+attribute vec4 a_texCoord;
 
 varying vec4 v_color;
-varying vec4 v_texCoord; 
+varying vec4 v_texCoord;
 
-void main() 
+void main()
 {
   v_texCoord = u_textureMatrix * a_texCoord;
-  vec3 normal = normalize(u_normalMatrix * a_normal); 
+  vec3 normal = normalize(u_normalMatrix * a_normal);
   vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
   vec4 shade_color = vec4(0);
 
   if(u_numLights > 0)
     shade_color += shade(u_lights[0], u_material, normal, eyeVec, vec4(1), 1.0);
-  
+
   if(u_numLights > 1)
     shade_color += shade(u_lights[1], u_material, normal, eyeVec, vec4(1), 1.0);
-  
-  v_color = shade_color; 
-  gl_Position = u_modelViewProjectionMatrix * a_vertex; 
+
+  v_color = shade_color;
+  gl_Position = u_modelViewProjectionMatrix * a_vertex;
 }

@@ -227,7 +227,7 @@ namespace kinski
         {
             // even sized vector -> average the two middle values
             auto max_it = std::max_element(tmp_array.begin(), tmp_array.begin() + n);
-            return (*max_it + tmp_array[n]) / 2.0;
+            return (*max_it + tmp_array[n]) / T(2);
         }
     }
     

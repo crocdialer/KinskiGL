@@ -106,18 +106,15 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   vec3 E = normalize(-eyeVec);
   vec3 R = reflect(-L, normal);
   vec4 ambient = /*mat.ambient */ light.ambient;
-  float att = 1.0;
+  float att = 1.f;
   float nDotL = dot(normal, L);
 
   if (light.type > 0)
   {
-      float dist = length(lightDir);
-      float v = clamp(1.0 - pow((dist / light.radius), 4.0), 0.0, 1.0);
-      att = min(1.f, light.intensity * v * v / (1 + dist * dist * light.quadraticAttenuation));
-
-    // att = min(1.f, light.intensity / (light.constantAttenuation +
-    //                light.linearAttenuation * dist +
-    //                light.quadraticAttenuation * dist * dist));
+      // distance^2
+      float dist2 = dot(lightDir, lightDir);
+      float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
+      att = min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
 
     if(light.type > 1)
     {
@@ -125,14 +122,14 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
 
       if (spotEffect < light.spotCosCutoff)
       {
-        att = 0.0;
+        att = 0.f;
         base_color * ambient;
       }
       spotEffect = pow(spotEffect, light.spotExponent);
       att *= spotEffect;
     }
   }
-  nDotL = max(0.0, nDotL);
+  nDotL = max(0.f, nDotL);
   float specIntesity = clamp(pow( max(dot(R, E), 0.0), the_spec.a), 0.0, 1.0);
   vec4 diffuse = light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0);
   vec3 final_spec = shade_factor * att * the_spec.rgb * light.specular.rgb * specIntesity;

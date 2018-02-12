@@ -25,7 +25,7 @@ namespace kinski { namespace gl {
     Light::Light(Type theType):
     Object3D(),
     m_type(theType),
-    m_attenuation(Attenuation(1.f, 0.f, 0.001f)),
+    m_attenuation(Attenuation(1.f, 0.f, 0.05f)),
     m_spot_cutoff(25.f),
     m_spot_exponent(1.f),
     m_intensity(1.f),
