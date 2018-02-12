@@ -327,7 +327,6 @@ namespace kinski{ namespace media{
         
         if(buffer)
         {
-            size_t num_bytes = CVPixelBufferGetDataSize(buffer);
             uint32_t w = CVPixelBufferGetWidth(buffer);
             uint32_t h = CVPixelBufferGetHeight(buffer);
             constexpr uint8_t num_channels = 4;
@@ -338,6 +337,8 @@ namespace kinski{ namespace media{
                 the_image = Image::create(w, h, num_channels);
             }
             the_image->m_type = Image::Type::BGRA;
+            
+            size_t num_bytes = std::min(the_image->num_bytes(), CVPixelBufferGetDataSize(buffer));
             
             // lock base adress
             CVPixelBufferLockBaseAddress(buffer, kCVPixelBufferLock_ReadOnly);

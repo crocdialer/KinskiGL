@@ -76,6 +76,7 @@ namespace kinski{ namespace gl{
         void set_corners(const std::vector<gl::vec2> &cp);
         
         const gl::mat4& transform() const;
+        const gl::mat4& inv_transform() const;
         
         void reset();
         

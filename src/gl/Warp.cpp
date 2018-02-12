@@ -673,6 +673,12 @@ namespace kinski{ namespace gl{
         return m_impl->m_transform;
     }
     
+    const gl::mat4& Warp::inv_transform() const
+    {
+        transform();
+        return m_impl->m_inv_transform;
+    }
+    
     bool Warp::perspective() const
     {
         return m_impl->m_perspective;
