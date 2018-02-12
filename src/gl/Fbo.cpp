@@ -31,6 +31,7 @@ ImagePtr create_image_from_framebuffer(gl::Fbo the_fbo)
         format = GL_RGBA;
     }
     ret = Image::create(w, h, num_comp);
+    ret->m_type = Image::Type::RGBA;
     glReadPixels(0, 0, w, h, format, GL_UNSIGNED_BYTE, ret->data);
     ret->flip();
     return ret;
