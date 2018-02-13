@@ -121,6 +121,7 @@ ImagePtr create_image_from_texture(const gl::Texture &the_texture)
     the_texture.bind();
     glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
     ret->flip();
+    ret->m_type = Image::Type::RGBA;
 #endif
     return ret;
 }
