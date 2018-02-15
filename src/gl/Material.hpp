@@ -50,8 +50,8 @@ namespace kinski { namespace gl {
         
         void update_uniforms(const ShaderPtr &the_shader = ShaderPtr());
         
-        const ShaderPtr& shader() {return m_shader;};
-        ShaderConstPtr shader() const {return m_shader;};
+        const ShaderPtr& shader();
+        ShaderConstPtr shader() const;
         void set_shader(const ShaderPtr &theShader);
         
         void set_textures(const std::vector<Texture>& the_textures)
