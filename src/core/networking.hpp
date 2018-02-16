@@ -89,7 +89,7 @@ public:
 
     tcp_server();
 
-    tcp_server(io_service_t& io_service, tcp_connection_callback ccb);
+    tcp_server(io_service_t& io_service, tcp_connection_callback ccb = tcp_connection_callback());
 
     KINSKI_API void start_listen(uint16_t port);
     KINSKI_API void stop_listen();

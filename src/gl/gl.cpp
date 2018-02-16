@@ -590,6 +590,7 @@ namespace kinski { namespace gl {
         point_mesh->geometry()->vertices() = the_points;
         point_mesh->geometry()->colors().resize(the_points.size(), gl::COLOR_WHITE);
         point_mesh->geometry()->point_sizes().resize(the_points.size(), 1.f);
+        point_mesh->create_vertex_attribs(true);
         gl::draw_mesh(point_mesh);
     }
 

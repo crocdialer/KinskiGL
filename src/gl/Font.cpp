@@ -496,6 +496,7 @@ namespace kinski { namespace gl {
     {
         // create text meshes (1 per line)
         auto lines = split(the_text, '\n', false);
-        return create_text_object(std::move(lines), the_align, the_linewidth, the_lineheight);
+        return create_text_object(std::list<std::string>(lines.begin(), lines.end()),
+                                  the_align, the_linewidth, the_lineheight);
     }
 }}// namespace
