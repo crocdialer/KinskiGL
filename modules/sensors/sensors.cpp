@@ -64,7 +64,7 @@ void scan_for_serials(io_service_t &io, device_cb_t the_device_cb)
                 {
                     auto serial = Serial::create(io);
                     
-                    if(serial->open(dev)){ query_device(serial, io, the_device_cb); }
+                    if(serial->open(dev, 115200)){ query_device(serial, io, the_device_cb); }
                 });
             }
         }
