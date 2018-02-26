@@ -311,7 +311,6 @@ void ModelViewer::update_fbos()
         m_post_process_mat->uniform("u_debug_focus", *m_debug_focus);
         m_post_process_mat->uniform("u_auto_focus", *m_auto_focus);
         m_post_process_mat->uniform("u_circle_of_confusion_sz", *m_circle_of_confusion_sz);
-
     }
 }
 
