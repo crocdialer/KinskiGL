@@ -39,12 +39,12 @@ namespace kinski
         virtual ~Window(){ if(m_close_function) m_close_function(); };
         
         virtual void draw() const = 0;
-        virtual gl::vec2 framebuffer_size() const = 0;
+        virtual gl::ivec2 framebuffer_size() const = 0;
         
-        virtual gl::vec2 size() const = 0;
-        virtual void set_size(const gl::vec2 &the_sz) = 0;
-        virtual gl::vec2 position() const = 0;
-        virtual void set_position(const gl::vec2 &the_pos) = 0;
+        virtual gl::ivec2 size() const = 0;
+        virtual void set_size(const gl::ivec2 &the_sz) = 0;
+        virtual gl::ivec2 position() const = 0;
+        virtual void set_position(const gl::ivec2 &the_pos) = 0;
         virtual std::string title(const std::string &the_name) const = 0;
         virtual void set_title(const std::string &the_name) = 0;
         virtual uint32_t monitor_index() const = 0;

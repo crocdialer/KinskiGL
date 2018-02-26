@@ -22,10 +22,11 @@ namespace kinski{ namespace gl{
         gl::Fbo m_fbo;
         gl::MaterialPtr m_material;
         
-        vec2 m_scale, m_tex_size;
+        vec2 m_scale;
+        ivec2 m_tex_size;
     };
 
-    Noise::Noise(const vec2 &the_scale, const vec2 &the_tex_size):
+    Noise::Noise(const vec2 &the_scale, const ivec2 &the_tex_size):
     m_impl(new NoiseImpl)
     {
         m_impl->m_scale = the_scale;
@@ -78,7 +79,7 @@ namespace kinski{ namespace gl{
         return ret;
     }
     
-    const vec2& Noise::tex_size() const
+    const ivec2& Noise::tex_size() const
     {
         return m_impl->m_tex_size;
     }
@@ -88,7 +89,7 @@ namespace kinski{ namespace gl{
         return m_impl->m_scale;
     }
     
-    void Noise::set_tex_size(const vec2 &the_tex_size)
+    void Noise::set_tex_size(const ivec2 &the_tex_size)
     {
         m_impl->m_tex_size = the_tex_size;
     }

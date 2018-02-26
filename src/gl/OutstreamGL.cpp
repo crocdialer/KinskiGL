@@ -119,8 +119,8 @@ namespace kinski{ namespace gl{
             
             if(use_caching)
             {
-                gl::vec2 fbo_sz(window_dimension().x, aabb.height() + margin);
-                fbo_sz = glm::min(fbo_sz, gl::window_dimension());
+                gl::ivec2 fbo_sz(window_dimension().x, aabb.height() + margin);
+                fbo_sz = glm::min(fbo_sz, gl::ivec2(gl::window_dimension()));
                 if(!m_fbo || m_fbo.size() != fbo_sz){ m_fbo = gl::Fbo(fbo_sz); }
                 gl::render_to_texture(m_fbo, [this]()
                 {

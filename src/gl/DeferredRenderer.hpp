@@ -35,8 +35,8 @@ private:
 
     DeferredRenderer();
     void init();
-    void geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
-    void light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin);
+    void geometry_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin);
+    void light_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin);
     void stencil_pass(const RenderBinPtr &the_renderbin);
     void render_light_volumes(const RenderBinPtr &the_renderbin, bool stencil_pass);
     gl::Texture create_shadow_map(const RenderBinPtr &the_renderbin, const gl::LightPtr &l);

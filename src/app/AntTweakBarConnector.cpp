@@ -33,7 +33,7 @@ namespace kinski
         string defString = " group='" + theGroup+ "'";
         defString += string(" label='") + myPropName + "'";
         
-        if (theProperty->is_of_type<int>()) 
+        if(theProperty->is_of_type<int>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_INT32, 
                        AntTweakBarConnector::setValue<int>,
@@ -43,7 +43,7 @@ namespace kinski
             adjustRange<int>(theTweakBar, theProperty);
             
         }
-        else if (theProperty->is_of_type<unsigned int>())
+        else if(theProperty->is_of_type<unsigned int>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_UINT32, 
                        AntTweakBarConnector::setValue<unsigned int>,
@@ -53,7 +53,7 @@ namespace kinski
             adjustRange<unsigned int>(theTweakBar, theProperty);
             
         }
-        else if (theProperty->is_of_type<float>())
+        else if(theProperty->is_of_type<float>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_FLOAT, 
                        AntTweakBarConnector::setValue<float>,
@@ -64,7 +64,7 @@ namespace kinski
             adjustRange<float>(theTweakBar, theProperty);
             
         }
-        else if (theProperty->is_of_type<double>())
+        else if(theProperty->is_of_type<double>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_DOUBLE, 
                        AntTweakBarConnector::setValue<double>,
@@ -75,7 +75,7 @@ namespace kinski
             adjustRange<double>(theTweakBar, theProperty);
             
         }
-        else if (theProperty->is_of_type<unsigned short>())
+        else if(theProperty->is_of_type<unsigned short>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_UINT16, 
                        AntTweakBarConnector::setValue<unsigned short>,
@@ -86,7 +86,7 @@ namespace kinski
             adjustRange<unsigned short>(theTweakBar, theProperty);
             
         }
-        else if (theProperty->is_of_type<bool>())
+        else if(theProperty->is_of_type<bool>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_BOOLCPP, 
                        AntTweakBarConnector::setValue<bool>,
@@ -94,14 +94,14 @@ namespace kinski
                        (void*)myPProp, defString.c_str());
             
         }
-        else if (theProperty->is_of_type<string>())
+        else if(theProperty->is_of_type<string>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_STDSTRING, 
                        AntTweakBarConnector::setValue<string>,
                        AntTweakBarConnector::getString,
                        (void*)myPProp, defString.c_str());
         }
-        else if (theProperty->is_of_type<vec2>())
+        else if(theProperty->is_of_type<vec2>())
         {
             TwAddVarCB(theTweakBar, (myPropName + "_X").c_str(), TW_TYPE_FLOAT,
                        AntTweakBarConnector::setVec2_X,
@@ -112,21 +112,21 @@ namespace kinski
                        AntTweakBarConnector::getVec2_Y,
                        (void*)myPProp, defString.c_str());
         }
-        else if (theProperty->is_of_type<vec3>()) 
+        else if(theProperty->is_of_type<vec3>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_DIR3F, 
                        AntTweakBarConnector::setVec3,
                        AntTweakBarConnector::getVec3,
                        (void*)myPProp, defString.c_str());
         }
-        else if (theProperty->is_of_type<vec4>()) 
+        else if(theProperty->is_of_type<vec4>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_COLOR4F, 
                        AntTweakBarConnector::setVec4,
                        AntTweakBarConnector::getVec4,
                        (void*)myPProp, defString.c_str());
         }
-        else if (theProperty->is_of_type<mat3>()) 
+        else if(theProperty->is_of_type<mat3>())
         {
             TwAddVarCB(theTweakBar, myPropName.c_str(), TW_TYPE_QUAT4F, 
                        AntTweakBarConnector::setQuaternion,

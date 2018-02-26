@@ -38,12 +38,12 @@ namespace kinski
         
         void draw() const override;
         
-        gl::vec2 size() const override;
-        void set_size(const gl::vec2 &the_sz) override;
-        gl::vec2 framebuffer_size() const override;
+        gl::ivec2 size() const override;
+        void set_size(const gl::ivec2 &the_sz) override;
+        gl::ivec2 framebuffer_size() const override;
         
-        gl::vec2 position() const override;
-        void set_position(const gl::vec2 &the_pos) override;
+        gl::ivec2 position() const override;
+        void set_position(const gl::ivec2 &the_pos) override;
         
         std::string title(const std::string &the_name) const override;
         void set_title(const std::string &the_name) override;

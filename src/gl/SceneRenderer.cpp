@@ -471,7 +471,7 @@ void SceneRenderer::update_uniform_buffer_matrices(const glm::mat4 &model_view,
     //#endif
 }
 
-void SceneRenderer::set_shadowmap_size(const glm::vec2 &the_size)
+void SceneRenderer::set_shadowmap_size(const glm::ivec2 &the_size)
 {
 #ifndef KINSKI_GLES
     gl::Fbo::Format fmt;

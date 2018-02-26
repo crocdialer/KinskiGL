@@ -96,7 +96,7 @@ namespace kinski{ namespace gl{
         uint32_t depth() const;
         
         //! the size of the texture in pixels
-        const vec2 size() const { return vec2(width(), height()); }
+        const ivec2 size() const { return ivec2(width(), height()); }
         
         //! the aspect ratio of the texture (width / height)
         float aspect_ratio() const { return width() / (float)height(); }

@@ -22,16 +22,16 @@ class KINSKI_API Noise
 {
  public:
     
-    Noise(const vec2 &the_scale = vec2(0.05f), const vec2 &the_tex_size = vec2(128));
+    Noise(const vec2 &the_scale = vec2(0.05f), const ivec2 &the_tex_size = ivec2(128));
     
     gl::Texture simplex(const float the_seed);
     
     ImagePtr create_simplex_image(const float the_seed);
     
-    const vec2& tex_size() const;
+    const ivec2& tex_size() const;
     const vec2& scale() const;
     
-    void set_tex_size(const vec2 &the_tex_size);
+    void set_tex_size(const ivec2 &the_tex_size);
     void set_scale(const vec2 &the_scale);
 
  private:

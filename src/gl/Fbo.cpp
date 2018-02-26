@@ -417,7 +417,7 @@ int Fbo::width() const{ return m_impl->m_width; }
     
 int Fbo::height() const{ return m_impl->m_height; }
 
-vec2 Fbo::size() const{ return vec2( m_impl->m_width, m_impl->m_height ); }
+ivec2 Fbo::size() const{ return ivec2( m_impl->m_width, m_impl->m_height ); }
     
 float Fbo::aspect_ratio() const{ return m_impl->m_width / (float)m_impl->m_height; }
 

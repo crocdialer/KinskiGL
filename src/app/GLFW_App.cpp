@@ -56,26 +56,26 @@ namespace kinski
         glfwMakeContextCurrent(m_handle);
     }
 
-    gl::vec2 GLFW_Window::size() const
+    gl::ivec2 GLFW_Window::size() const
     {
         int w, h;
         glfwGetWindowSize(m_handle, &w, &h);
-        return gl::vec2(w, h);
+        return gl::ivec2(w, h);
     }
 
-    void GLFW_Window::set_size(const gl::vec2 &the_sz)
+    void GLFW_Window::set_size(const gl::ivec2 &the_sz)
     {
         glfwSetWindowSize(m_handle, the_sz.x, the_sz.y);
     }
 
-    gl::vec2 GLFW_Window::position() const
+    gl::ivec2 GLFW_Window::position() const
     {
         int x, y;
         glfwGetWindowPos(m_handle, &x, &y);
         return gl::vec2(x, y);
     }
 
-    void GLFW_Window::set_position(const gl::vec2 &the_pos)
+    void GLFW_Window::set_position(const gl::ivec2 &the_pos)
     {
         glfwSetWindowPos(m_handle, the_pos.x, the_pos.y);
     }
@@ -96,7 +96,7 @@ namespace kinski
         glfwDestroyWindow(m_handle);
     }
 
-    gl::vec2 GLFW_Window::framebuffer_size() const
+    gl::ivec2 GLFW_Window::framebuffer_size() const
     {
         int w, h;
         glfwGetFramebufferSize(m_handle, &w, &h);
@@ -503,8 +503,8 @@ namespace kinski
         if(app->display_tweakbar() && app->windows().front()->handle() == window)
         {
             auto &w = app->windows().front();
-            auto fb_pos = w->framebuffer_size() * gl::vec2(x, y) / w->size();
-            TwEventMousePosGLFW((int)fb_pos.x, (int)fb_pos.y);
+            auto fb_pos = w->framebuffer_size() * gl::ivec2(x, y) / w->size();
+            TwEventMousePosGLFW(fb_pos.x, fb_pos.y);
         }
         uint32_t buttonModifiers, keyModifiers, bothMods;
         s_getModifiers(window, buttonModifiers, keyModifiers);

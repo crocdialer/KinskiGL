@@ -140,7 +140,7 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
     return 0;
 }
 
-void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
+void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin)
 {
 #if !defined(KINSKI_GLES)
 
@@ -197,7 +197,7 @@ void DeferredRenderer::geometry_pass(const gl::vec2 &the_size, const RenderBinPt
 #endif
 }
 
-void DeferredRenderer::light_pass(const gl::vec2 &the_size, const RenderBinPtr &the_renderbin)
+void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr &the_renderbin)
 {
 #if !defined(KINSKI_GLES)
 

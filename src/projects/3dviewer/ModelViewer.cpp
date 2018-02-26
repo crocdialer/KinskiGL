@@ -270,7 +270,7 @@ void ModelViewer::update_fbos()
 
     if(*m_use_warping)
     {
-        if(!m_offscreen_fbo || m_offscreen_fbo.size() != sz)
+        if(!m_offscreen_fbo || m_offscreen_fbo.size() != ivec2(sz))
         {
             gl::Fbo::Format fmt;
             try{ m_offscreen_fbo = gl::Fbo(sz, fmt); }
@@ -279,7 +279,7 @@ void ModelViewer::update_fbos()
     }
     if(*m_use_post_process)
     {
-        if(!m_post_process_fbo || m_post_process_fbo.size() != sz)
+        if(!m_post_process_fbo || m_post_process_fbo.size() != ivec2(sz))
         {
             gl::Fbo::Format fmt;
             fmt.set_num_samples(8);

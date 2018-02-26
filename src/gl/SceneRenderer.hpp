@@ -81,7 +81,7 @@ public:
     void update_uniform_buffer_matrices(const mat4 &model_view,
                                         const mat4 &projection);
 
-    void set_shadowmap_size(const vec2 &the_size);
+    void set_shadowmap_size(const ivec2 &the_size);
     std::vector<gl::Fbo>& shadow_fbos() { return m_shadow_fbos; }
     std::vector<gl::CameraPtr>& shadow_cams() { return m_shadow_cams; }
     void set_shadow_pass(bool b){ m_shadow_pass = b; }

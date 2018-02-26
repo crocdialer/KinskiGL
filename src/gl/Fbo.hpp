@@ -78,7 +78,7 @@ class KINSKI_API Fbo
 	//! Returns the height of the FBO in pixels
     int height() const;
 	//! Returns the size of the FBO in pixels
-    vec2 size() const;
+    ivec2 size() const;
 
 	void enable_draw_buffers(bool b = true);
 

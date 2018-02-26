@@ -381,13 +381,13 @@ namespace kinski {
             {
                 if(!windows().empty())
                 {
-                    windows().front()->set_size(*m_window_size);
+                    windows().front()->set_size(gl::ivec2(m_window_size->value()));
                     gl::set_window_dimension(windows().front()->framebuffer_size());
                 }
             }
             m_gui_camera = gl::OrthoCamera::create(0, gl::window_dimension().x,
-                                                          0, gl::window_dimension().y,
-                                                          -1000.f, 1000.f);
+                                                   0, gl::window_dimension().y,
+                                                   -1000.f, 1000.f);
         }
         else if(theProperty == m_fullscreen)
         {
@@ -603,7 +603,7 @@ namespace kinski {
     {
         gl::Texture ret;
 
-        if(!m_snapshot_fbo || m_snapshot_fbo.size() != gl::window_dimension())
+        if(!m_snapshot_fbo || m_snapshot_fbo.size() != gl::ivec2(gl::window_dimension()))
         {
             gl::Fbo::Format fmt;
 //            fmt.set_num_samples(8);

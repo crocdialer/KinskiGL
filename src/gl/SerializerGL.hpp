@@ -27,6 +27,7 @@ namespace kinski
         static const std::string PROPERTY_TYPE_QUAT;
         static const std::string PROPERTY_TYPE_MAT3;
         static const std::string PROPERTY_TYPE_MAT4;
+        static const std::string PROPERTY_TYPE_IVEC2;
         
         static const std::string PROPERTY_TYPE_VEC2_ARRAY;
         
