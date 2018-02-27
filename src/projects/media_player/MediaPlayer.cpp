@@ -141,20 +141,10 @@ void MediaPlayer::draw()
     {
         if(*m_scale_to_fit)
         {
-//            if(textures()[TEXTURE_MASK])
-//            {
-//                gl::draw_texture_with_mask(textures()[TEXTURE_INPUT],
-//                                           textures()[TEXTURE_MASK],
-//                                           gl::window_dimension(),
-//                                           gl::vec2(0),
-//                                           *m_brightness);
-//
-//            }
-//            else
-            {
-                gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
-                                 *m_brightness);
-            }
+
+            gl::draw_texture(textures()[TEXTURE_INPUT], gl::window_dimension(), gl::vec2(0),
+                             *m_brightness);
+
         }
         else
         {
@@ -352,7 +342,9 @@ void MediaPlayer::touch_move(const MouseEvent &e, const std::set<const Touch*> &
 
 void MediaPlayer::file_drop(const MouseEvent &e, const std::vector<std::string> &files)
 {
-    *m_media_path = files.back();
+    auto media_type = fs::get_file_type(files.back());
+    if(media_type == fs::FileType::DIRECTORY){ create_playlist(files.back()); }
+    else{ *m_media_path = files.back(); }
 }
 
 /////////////////////////////////////////////////////////////////
