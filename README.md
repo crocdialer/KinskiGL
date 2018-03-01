@@ -34,6 +34,7 @@ the basic library-structure:
     * scenegraph, forward/deferred rendering paths
     * lights and materials
     * post-fx
+    * output warping
 
 * app
 
@@ -45,13 +46,13 @@ the basic library-structure:
 
     * empty template
     * media player with support for network-syncing and warping
-    * 3D viewer
+    * 3D viewer with forward/deferred rendering paths.
 
 * modules
 
   a list of optional modules can be used, offering a variety of functionality.
   including but not not limited to  
-  
+
     * blocking- / non-blocking http, using libcurl
     * integration of scenegraph elements with the Bullet Physics Library, offering rigid- and softbody physics
     * integration of the Asset Import Library (assimp) for loading 3D models and scenes

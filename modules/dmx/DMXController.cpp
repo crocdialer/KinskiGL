@@ -63,7 +63,7 @@ namespace kinski{ namespace dmx
         }
     };
 
-    DMXController::DMXController(boost::asio::io_service &io):
+    DMXController::DMXController(io_service_t &io):
     m_impl(new DMXControllerImpl(io))
     {
         connect("");

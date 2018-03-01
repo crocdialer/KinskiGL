@@ -16,7 +16,7 @@ namespace kinski{ namespace dmx
     {
     public:
 
-        DMXController(boost::asio::io_service &io);
+        DMXController(io_service_t &io);
         ~DMXController();
         
         bool connect(const std::string &the_device_name);
