@@ -695,6 +695,7 @@ void MediaPlayer::create_playlist(const std::string &the_base_dir)
         files[fs::get_file_type(p)].push_back(p);
     }
     auto file_list = concat_containers<fs::path>(files[fs::FileType::MOVIE], files[fs::FileType::AUDIO]);
+    std::sort(file_list.begin(), file_list.end());
     
     if(file_list.size() != m_playlist.size())
     {
