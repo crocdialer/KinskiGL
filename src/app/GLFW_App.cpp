@@ -195,11 +195,11 @@ namespace kinski
         add_window(main_window);
 
         // create gl::Context object
-        std::shared_ptr<gl::Context::PlatformData> pd;
+        std::shared_ptr<gl::PlatformData> pd;
 #if defined(KINSKI_MAC)
-        pd.reset(new gl::PlatformDataCGL(CGLGetCurrentContext()));
+        pd = std::make_shared<gl::PlatformDataCGL>(CGLGetCurrentContext());
 #endif
-        gl::set_context(new gl::Context(pd));
+        gl::create_context(pd);
         gl::context()->set_current_context_id(main_window->handle());
 
         // set graphical log stream

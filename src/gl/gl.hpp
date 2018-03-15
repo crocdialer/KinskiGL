@@ -93,8 +93,8 @@ DEFINE_CLASS_PTR(Camera);
 DEFINE_CLASS_PTR(Bone);
 DEFINE_CLASS_PTR(Scene);
 
-KINSKI_API void set_context(Context* the_ctx);
-KINSKI_API Context* context();
+KINSKI_API void create_context(const std::shared_ptr<PlatformData> &the_platform_data);
+KINSKI_API const std::unique_ptr<Context>& context();
 
 enum Matrixtype { MODEL_VIEW_MATRIX = 1 << 0, PROJECTION_MATRIX = 1 << 1};
 KINSKI_API void push_matrix(const Matrixtype type);

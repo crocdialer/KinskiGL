@@ -130,6 +130,24 @@ namespace kinski
         return ret;
     }
     
+    template <class T>
+    inline void hash_combine(std::size_t& seed, const T& v)
+    {
+        std::hash<T> hasher;
+        seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    
+    template <class T, class U> struct PairHash
+    {
+        inline size_t operator()(const std::pair<T, U> &the_pair) const
+        {
+            size_t h = 0;
+            hash_combine(h, the_pair.first);
+            hash_combine(h, the_pair.second);
+            return h;
+        }
+    };
+    
     template <typename T> inline T swap_endian(T u)
     {
         union
@@ -174,11 +192,6 @@ namespace kinski
         {
             l.insert(std::end(l), std::begin(r), std::end(r));
         }
-//        template<typename C1, typename C2> void concat_helper(C1& l, C2&& r)
-//        {
-//            l.insert(std::end(l), std::make_move_iterator(std::begin(r)),
-//                     std::make_move_iterator(std::end(r)));
-//        }
     } // namespace details
     
     template<typename T, typename... C>

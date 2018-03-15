@@ -31,7 +31,7 @@ namespace kinski { namespace gl {
 
     namespace
     {
-        Context* g_context = nullptr;
+        std::unique_ptr<Context> g_context;
         
         std::map<gl::ShaderType, std::string> g_shader_names =
         {
@@ -52,7 +52,7 @@ namespace kinski { namespace gl {
 
     struct ContextImpl
     {
-        std::shared_ptr<Context::PlatformData> m_platform_data;
+        std::shared_ptr<PlatformData> m_platform_data;
         void* m_current_context_id = nullptr;
         //std::map<std::pair<void*, gl::MeshWeakPtr>, std::vector<GLuint>> m_vao_map;
     };
@@ -62,7 +62,7 @@ namespace kinski { namespace gl {
         m_impl->m_platform_data = platform_data;
     }
 
-    std::shared_ptr<Context::PlatformData> Context::platform_data()
+    std::shared_ptr<PlatformData> Context::platform_data()
     {
         return m_impl->m_platform_data;
     }
@@ -78,13 +78,12 @@ namespace kinski { namespace gl {
     }
 
 
-    void set_context(Context* the_ctx)
+    void create_context(const std::shared_ptr<PlatformData> &the_platform_data)
     {
-        if(g_context){ delete(g_context); }
-        g_context = the_ctx;
+        g_context.reset(new Context(the_platform_data));
     }
 
-    Context* context(){ return g_context; }
+    const std::unique_ptr<Context>& context(){ return g_context; }
 
     static glm::vec2 g_viewport_dim;
     static std::stack<glm::mat4> g_projectionMatrixStack;

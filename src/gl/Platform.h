@@ -89,13 +89,15 @@ typedef struct _CGLContextObject *CGLContextObj;
 namespace kinski{ namespace gl
 {
 
+struct PlatformData
+{
+    virtual ~PlatformData(){};
+};
+    
 class Context
 {
 public:
-    struct PlatformData
-    {
-        virtual ~PlatformData(){};
-    };
+    
     Context(std::shared_ptr<PlatformData> platform_data);
     std::shared_ptr<PlatformData> platform_data();
     void* current_context_id();
@@ -106,7 +108,7 @@ public:
 };
 
 #if defined(KINSKI_EGL)
-struct PlatformDataEGL : public Context::PlatformData
+struct PlatformDataEGL : public PlatformData
 {
     PlatformDataEGL(EGLDisplay the_display, EGLContext the_context, EGLSurface the_surface):
     egl_display(the_display),
@@ -120,7 +122,7 @@ struct PlatformDataEGL : public Context::PlatformData
 };
 
 #elif defined(KINSKI_MAC)
-struct PlatformDataCGL : public Context::PlatformData
+struct PlatformDataCGL : public PlatformData
 {
     PlatformDataCGL(CGLContextObj the_context):
     cgl_context(the_context)
