@@ -409,6 +409,7 @@ mat4 Texture::texture_matrix() const
                                        vec4(0, 1, 0, 1));// [0, -1] -> [1, 0]
         ret = flipY * ret;
     }
+    ret = glm::scale(ret, glm::vec3(m_texcoord_scale, 1.f));
     return ret;
 }
 
@@ -443,25 +444,57 @@ void Texture::set_flipped(bool the_flipped)
 {
     if(m_impl){ m_impl->m_flipped = the_flipped; }
 }
+
+//! retrieve the current scale applied to texture-coordinates
+const gl::vec2& Texture::texcoord_scale() const
+{
+    return m_texcoord_scale;
+}
+
+//! set the current scale applied to texture-coordinates
+void Texture::set_texcoord_scale(const gl::vec2 &the_scale)
+{
+    m_texcoord_scale = the_scale;
+}
     
 void Texture::set_wrap_s(GLenum the_warp_s)
 {
-    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_S, the_warp_s); }
+    if(m_impl)
+    {
+//        gl::scoped_bind<Texture>(this);
+        bind();
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_S, the_warp_s);
+    }
 }
 
 void Texture::set_wrap_t(GLenum the_warp_t)
 {
-    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_T, the_warp_t); }
+    if(m_impl)
+    {
+//        gl::scoped_bind<Texture>(this);
+        bind();
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_WRAP_T, the_warp_t);
+    }
 }
 
 void Texture::set_min_filter(GLenum minFilter)
 {
-    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_MIN_FILTER, minFilter); }
+    if(m_impl)
+    {
+//        gl::scoped_bind<Texture>(this);
+        bind();
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_MIN_FILTER, minFilter);
+    }
 }
 
 void Texture::set_mag_filter(GLenum magFilter)
 {
-    if(m_impl){ glTexParameteri(m_impl->m_target, GL_TEXTURE_MAG_FILTER, magFilter); };
+    if(m_impl)
+    {
+//        gl::scoped_bind<Texture>(this);
+        bind();
+        glTexParameteri(m_impl->m_target, GL_TEXTURE_MAG_FILTER, magFilter);
+    };
 }
 
 void Texture::set_mipmapping(bool b)
@@ -486,7 +519,7 @@ void Texture::set_anisotropic_filter(float f)
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &fLargest);
         bind();
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, std::min(fLargest, f));
-        unbind();
+//        unbind();
     }
 }
     

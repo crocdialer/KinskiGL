@@ -59,6 +59,8 @@ namespace kinski { namespace gl {
         
         const std::vector<Texture>& textures() const {return m_textures;};
         
+        std::vector<Texture>& textures(){ return m_textures; };
+        
         void clear_textures(){ m_textures.clear(); }
         
         std::map<std::string, AssetLoadStatus>& texture_paths(){ return m_texture_paths; }

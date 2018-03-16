@@ -42,6 +42,7 @@ void ModelViewer::setup()
     register_property(m_normalmap_path);
     register_property(m_skybox_path);
     register_property(m_ground_textures);
+    register_property(m_ground_plane_texture_scale);
     
     register_property(m_focal_depth);
     register_property(m_focal_length);
@@ -532,6 +533,14 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         for(const auto &f : m_ground_textures->value())
         {
             m_ground_mesh->material()->queue_texture_load(f);
+        }
+    }
+    else if(theProperty == m_ground_plane_texture_scale)
+    {
+        for(auto &t : m_ground_mesh->material()->textures())
+        {
+            t.set_texcoord_scale(gl::vec2(*m_ground_plane_texture_scale));
+            t.set_wrap(GL_REPEAT, GL_REPEAT);
         }
     }
 }

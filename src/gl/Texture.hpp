@@ -119,6 +119,12 @@ namespace kinski{ namespace gl{
         //!	Marks the texture as being flipped vertically or not
         void set_flipped(bool the_flip = true);
         
+        //! retrieve the current scale applied to texture-coordinates
+        const gl::vec2& texcoord_scale() const;
+        
+        //! set the current scale applied to texture-coordinates
+        void set_texcoord_scale(const gl::vec2 &the_scale);
+        
         //!	set a region of interest (subimage), this function will alter the texture matrix appropriately
         void set_roi(int the_x, int the_y, uint32_t the_width, uint32_t the_height);
         
@@ -225,6 +231,7 @@ namespace kinski{ namespace gl{
         void init(const void *data, GLint dataFormat, const Format &format);
         
         mat4 m_textureMatrix;
+        gl::vec2 m_texcoord_scale = gl::vec2(1.f);
         std::shared_ptr<struct TextureImpl> m_impl;
         
     public:

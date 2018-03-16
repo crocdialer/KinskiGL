@@ -284,7 +284,9 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &c))
     {
-        theMaterial->set_diffuse(aicolor_convert(c));
+        auto col = aicolor_convert(c);
+        col.a = 1.f;
+        theMaterial->set_diffuse(col);
     }
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &c))
