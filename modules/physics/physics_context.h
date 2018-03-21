@@ -56,7 +56,7 @@ namespace kinski{ namespace physics{
             setDebugMode(DBG_DrawWireframe /*| DBG_DrawContactPoints*/);
         };
         
-        inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
+        inline void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override
         {
             m_mesh_lines->geometry()->append_vertex(glm::vec3(from.x(), from.y(), from.z()));
             m_mesh_lines->geometry()->append_vertex(glm::vec3(to.x(), to.y(), to.z()));
@@ -65,21 +65,21 @@ namespace kinski{ namespace physics{
         }
         
         void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB,
-                              btScalar distance, int lifeTime, const btVector3& color)
+                              btScalar distance, int lifeTime, const btVector3& color) override
         {
             m_mesh_points->geometry()->append_vertex(glm::vec3(PointOnB.x(), PointOnB.y(), PointOnB.z()));
             m_mesh_points->geometry()->append_color(glm::vec4(color.x(), color.y(), color.z(), 1.0f));
         }
         
-        void reportErrorWarning(const char* warningString) { LOG_WARNING << warningString; }
+        void reportErrorWarning(const char* warningString) override { LOG_WARNING << warningString; }
         
-        void draw3dText(const btVector3& location, const char* textString)
+        void draw3dText(const btVector3& location, const char* textString) override
         {
             //TODO: font rendering here
         }
         
-        void setDebugMode(int debugMode){ m_draw_mode = debugMode; }
-        int	getDebugMode() const { return m_draw_mode; }
+        void setDebugMode(int debugMode) override { m_draw_mode = debugMode; }
+        int	getDebugMode() const override { return m_draw_mode; }
         
         //!
         // issue the actual draw command
@@ -92,15 +92,11 @@ namespace kinski{ namespace physics{
             gl::draw_mesh(m_mesh_lines);
             m_mesh_lines->geometry()->vertices().clear();
             m_mesh_lines->geometry()->colors().clear();
-//            m_mesh_lines->geometry()->vertices().reserve(1024);
-//            m_mesh_lines->geometry()->colors().reserve(1024);
             
             // points
             gl::draw_mesh(m_mesh_points);
             m_mesh_points->geometry()->vertices().clear();
             m_mesh_points->geometry()->colors().clear();
-//            m_mesh_points->geometry()->vertices().reserve(1024);
-//            m_mesh_points->geometry()->colors().reserve(1024);
         };
         
     private:

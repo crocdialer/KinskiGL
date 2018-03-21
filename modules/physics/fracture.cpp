@@ -284,6 +284,7 @@ namespace kinski{namespace physics{
             outer_geom->append_indices(inner_geom->indices());
             outer_geom->faces().insert(outer_geom->faces().end(),
                                        inner_geom->faces().begin(), inner_geom->faces().end());
+            outer_geom->colors().resize(outer_geom->vertices().size(), gl::COLOR_WHITE);
             outer_geom->compute_aabb();
             
             auto inner_mat = gl::Material::create();
