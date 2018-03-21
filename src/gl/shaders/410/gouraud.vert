@@ -1,4 +1,5 @@
-#version 330
+#version 410
+#define MAX_NUM_LIGHTS 8
 
 struct Material
 {
@@ -74,7 +75,7 @@ layout(std140) uniform MaterialBlock
 layout(std140) uniform LightBlock
 {
   int u_numLights;
-  Lightsource u_lights[];
+  Lightsource u_lights[MAX_NUM_LIGHTS];
 };
 
 layout(location = 0) in vec4 a_vertex;
@@ -95,12 +96,12 @@ void main()
   vec3 eyeVec = (u_modelViewMatrix * a_vertex).xyz;
   vec4 shade_color = vec4(0);
 
-  if(u_numLights > 0)
-    shade_color += shade(u_lights[0], u_material, normal, eyeVec, vec4(1));
-
-  if(u_numLights > 1)
-    shade_color += shade(u_lights[1], u_material, normal, eyeVec, vec4(1));
-
+  int num_lights = min(MAX_NUM_LIGHTS, u_numLights);
+  
+  for(int i = 0; i < num_lights; ++i)
+  {
+      shade_color += shade(u_lights[i], u_material, normal, eyeVec, vec4(1));
+  }
   vertex_out.color = a_color * shade_color;
   gl_Position = u_modelViewProjectionMatrix * a_vertex;
 }
