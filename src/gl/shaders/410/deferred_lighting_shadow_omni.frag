@@ -100,7 +100,8 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   vec3 lightDir = light.position - eyeVec;
   vec3 L = normalize(lightDir);
   vec3 E = normalize(-eyeVec);
-  vec3 R = reflect(-L, normal);
+  // vec3 R = reflect(-L, normal);
+  vec3 H = normalize(L + E);
   vec4 ambient = /*mat.ambient */ light.ambient;
   float att = 1.f;
   float nDotL = dot(normal, L);
@@ -111,7 +112,8 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   att = min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
 
   nDotL = max(0.f, nDotL);
-  float specIntesity = clamp(pow( max(dot(R, E), 0.f), the_spec.a), 0.f, 1.f);
+  // blinn-phong speculars
+  float specIntesity = clamp(pow(max(dot(normal, H), 0.0), 4 * the_spec.a), 0.0, 1.0);
   vec4 diffuse = light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.f);
   vec3 final_spec = shade_factor * att * the_spec.rgb * light.specular.rgb * specIntesity;
   return base_color * (ambient + diffuse) + vec4(final_spec, 0);
