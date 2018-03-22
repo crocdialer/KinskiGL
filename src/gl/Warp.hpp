@@ -14,6 +14,7 @@
 #pragma once
 
 #include "gl/gl.hpp"
+#include "core/Area.hpp"
 
 namespace kinski{ namespace gl{
     

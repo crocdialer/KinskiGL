@@ -11,8 +11,6 @@
 
 #include "gl/gl.hpp"
 
-#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
-
 namespace kinski { namespace gl {
 
 //! Represents an OpenGL GLSL program.

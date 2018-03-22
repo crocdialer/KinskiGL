@@ -26,8 +26,8 @@ namespace kinski
     {
         void stbi_write_func(void *context, void *data, int size)
         {
-            std::vector<uint8_t> *out = static_cast<std::vector<uint8_t>*>(context);
-            out->insert(out->end(), (uint8_t*)data, (uint8_t*)data + size);
+            std::vector<uint8_t> &out = *reinterpret_cast<std::vector<uint8_t>*>(context);
+            out.insert(out.end(), (uint8_t*)data, (uint8_t*)data + size);
         }
     }
     
@@ -67,10 +67,12 @@ namespace kinski
     
     void copy_image(const ImagePtr &src_mat, ImagePtr &dst_mat)
     {
-        uint32_t bytes_per_pixel = 1;
+        if(!src_mat){ return; }
+        if(!dst_mat){ dst_mat = Image::create(src_mat->width, src_mat->height, src_mat->num_coponents()); }
+        uint32_t bytes_per_pixel = src_mat->num_coponents();
         
-        assert(src_mat->roi.x1 <= src_mat->width && src_mat->roi.y1 <= src_mat->height);
-        assert(dst_mat->roi.x1 <= dst_mat->width && dst_mat->roi.y1 <= dst_mat->height);
+        assert(src_mat->roi.width() <= src_mat->width && src_mat->roi.height() <= src_mat->height);
+        assert(dst_mat->roi.width() <= dst_mat->width && dst_mat->roi.height() <= dst_mat->height);
         assert(src_mat->roi.width() == src_mat->roi.width() && src_mat->roi.height() == src_mat->roi.height());
         
         uint32_t src_row_offset = src_mat->width - src_mat->roi.width();

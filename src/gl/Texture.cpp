@@ -13,6 +13,48 @@
 using namespace std;
 
 namespace kinski{ namespace gl{
+
+void get_format(int the_num_comps, bool compress, GLenum *out_format, GLenum *out_internal_format)
+{
+    switch(the_num_comps)
+    {
+#ifdef KINSKI_GLES
+        case 1:
+            *out_internal_format = *out_format = GL_LUMINANCE;
+            break;
+        case 2:
+            *out_internal_format = *out_format = GL_LUMINANCE_ALPHA;
+            break;
+        case 3:
+            *out_internal_format = *out_format = GL_RGB;
+            // needs precompressed image and call to glCompressedTexImage2D
+            //                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
+            break;
+        case 4:
+            *out_internal_format = *out_format = GL_RGBA;
+        default:
+            break;
+#else
+        case 1:
+            *out_format = GL_RED;
+            *out_internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
+            break;
+        case 2:
+            *out_format = GL_RG;
+            *out_internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
+            break;
+        case 3:
+            *out_format = GL_RGB;
+            *out_internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
+            break;
+        case 4:
+            *out_format = GL_RGBA;
+            *out_internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
+        default:
+            break;
+#endif
+    }
+}
     
 Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
                                   bool compress, GLfloat anisotropic_filter_lvl)
@@ -21,45 +63,8 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     
     if(!the_img){ return ret; }
     GLenum format = 0, internal_format = 0;
-    
-    switch(the_img->m_num_coponents)
-    {
-#ifdef KINSKI_GLES
-        case 1:
-            internal_format = format = GL_LUMINANCE;
-            break;
-        case 2:
-            internal_format = format = GL_LUMINANCE_ALPHA;
-            break;
-        case 3:
-            internal_format = format = GL_RGB;
-            // needs precompressed image and call to glCompressedTexImage2D
-            //                internal_format = compress ? GL_ETC1_RGB8_OES : GL_RGB;
-            break;
-        case 4:
-            internal_format = format = GL_RGBA;
-        default:
-            break;
-#else
-        case 1:
-            format = GL_RED;
-            internal_format = compress? GL_COMPRESSED_RED_RGTC1 : GL_RGBA;
-            break;
-        case 2:
-            format = GL_RG;
-            internal_format = compress? GL_COMPRESSED_RG_RGTC2 : GL_RGBA;
-            break;
-        case 3:
-            format = GL_RGB;
-            internal_format = compress? GL_COMPRESSED_RGB_S3TC_DXT1_EXT : GL_RGBA;
-            break;
-        case 4:
-            format = GL_RGBA;
-            internal_format = compress? GL_COMPRESSED_RGBA_S3TC_DXT5_EXT : GL_RGBA;
-        default:
-            break;
-#endif
-    }
+    get_format(the_img->m_num_coponents, compress, &format, &internal_format);
+
     Texture::Format fmt;
     fmt.set_internal_format(internal_format);
     
@@ -122,6 +127,96 @@ ImagePtr create_image_from_texture(const gl::Texture &the_texture)
     glGetTexImage(the_texture.target(), 0, GL_RGBA, GL_UNSIGNED_BYTE, ret->data);
     ret->flip();
     ret->m_type = Image::Type::RGBA;
+#endif
+    return ret;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLayout the_layout)
+{
+    // load image
+    auto img = create_image_from_file(the_path);
+    
+    if(img && the_layout == CubeTextureLayout::HORIZONTAL_CROSS)
+    {
+        uint32_t sub_w = img->width / 4, sub_h = img->width / 3;
+        
+        // create 6 images, take into account layout
+        std::vector<ImagePtr> out_images(6);
+        gl::ivec2 offsets[6] =
+        {
+            gl::ivec2(2, 1),
+            gl::ivec2(0, 1),
+            gl::ivec2(1, 0),
+            gl::ivec2(1, 2),
+            gl::ivec2(3, 1),
+            gl::ivec2(2, 2),
+        };
+        
+        for(int i = 0; i < 6; i++)
+        {
+            img->roi.x0 = offsets[i].x * sub_w;
+            img->roi.y0 = offsets[i].y * sub_h;
+            img->roi.x1 = img->roi.x0 + sub_w;
+            img->roi.y1 = img->roi.y0 + sub_h;
+            copy_image(img, out_images[i]);
+        }
+        return create_cube_texture_from_images(out_images);
+    }
+    return Texture();
+}
+    
+///////////////////////////////////////////////////////////////////////////////
+Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes, bool compress)
+{
+    gl::Texture ret;
+#if !defined(KINSKI_GLES)
+    // check if number and sizes of input textures match
+    if(the_planes.size() != 6 || !the_planes[0])
+    {
+        LOG_WARNING << "cube map creation failed. number of input textures must be 6 -- "
+        << the_planes.size() << " provided";
+        return ret;
+    }
+    
+    uint32_t width = the_planes[0]->width, height = the_planes[0]->height;
+    uint32_t num_components = the_planes[0]->num_coponents();
+    
+    for(auto img : the_planes)
+    {
+        if(!img || img->width != width || img->height != height ||
+           img->num_coponents() != num_components)
+        {
+            LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
+            return ret;
+        }
+    }
+    
+    // create and bind cube map
+    GLuint tex_name;
+    glGenTextures(1, &tex_name);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
+    
+    // create PBO
+    gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
+    
+    for(uint32_t i = 0; i < 6; i++)
+    {
+        GLenum format = 0, internal_format = 0;
+        get_format(the_planes[i]->m_num_coponents, compress, &format, &internal_format);
+        
+        // copy data to PBO
+        pixel_buf.set_data(the_planes[i]->data, the_planes[i]->num_bytes());
+        
+        // bind PBO
+        pixel_buf.bind();
+        
+        // copy data from PBO to appropriate image plane
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format, width, height, 0, format,
+                     GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
+    }
+    ret = gl::Texture(GL_TEXTURE_CUBE_MAP, tex_name, width, height, false);
 #endif
     return ret;
 }

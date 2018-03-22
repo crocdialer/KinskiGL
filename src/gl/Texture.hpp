@@ -248,7 +248,7 @@ namespace kinski{ namespace gl{
     
     /*********************************** inbuilt Texture loading **********************************/
     
-    KINSKI_API Texture create_texture_from_file(const std::string &theFileName,
+    KINSKI_API Texture create_texture_from_file(const std::string &the_path,
                                                 bool mipmap = false,
                                                 bool compress = false,
                                                 GLfloat anisotropic_filter_lvl = 1.f);
@@ -263,6 +263,13 @@ namespace kinski{ namespace gl{
                                                 GLfloat anisotropic_filter_lvl = 1.f);
     
     KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
-
+    
+    enum class CubeTextureLayout{VERTICAL_CROSS, HORIZONTAL_CROSS};
+    
+    KINSKI_API Texture create_cube_texture_from_file(const std::string &the_path,
+                                                     CubeTextureLayout the_layout = CubeTextureLayout::HORIZONTAL_CROSS);
+    
+    KINSKI_API Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
+                                                       bool compress = false);
     
 }}// namespace

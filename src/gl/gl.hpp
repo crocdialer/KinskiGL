@@ -131,6 +131,9 @@ private:
     Matrixtype m_type;
 };
 
+//! helper macro for buffer offsets
+#define BUFFER_OFFSET(i) ((char *)nullptr + (i))
+    
 KINSKI_API const vec2& window_dimension();
 KINSKI_API void set_window_dimension(const vec2 &theDim, const vec2 &the_offset = vec2(0));
 KINSKI_API float aspect_ratio();
@@ -214,12 +217,6 @@ KINSKI_API void apply_material(const MaterialPtr &the_mat, bool force_apply = fa
  * resets the OpenGL state to default values
  */
 KINSKI_API void reset_state();
-
-/*!
- * create a gl::Texture object of type GL_TEXTURE_CUBE
- * from 6 individual gl::Texture objects of type GL_TEXTURE_2D of same size
- */
-KINSKI_API Texture create_cube_texture(const std::vector<gl::Texture> &the_planes);
 
 /*********************************** Shader loading *******************************************/
 

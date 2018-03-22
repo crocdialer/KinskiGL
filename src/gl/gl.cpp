@@ -1137,8 +1137,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         return theFbo.texture();
     }
 
-//#ifdef KINSKI_CPP11
-
     KINSKI_API gl::Texture render_to_texture(gl::Fbo &theFbo, std::function<void()> functor)
     {
         if(!theFbo)
@@ -1153,67 +1151,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         functor();
         gl::reset_state();
         return theFbo.texture();
-    }
-
-//#endif
-
-///////////////////////////////////////////////////////////////////////////////
-
-    Texture create_cube_texture(const std::vector<gl::Texture> &the_planes)
-    {
-        gl::Texture ret;
-
-#if !defined(KINSKI_GLES)
-        // check if number and sizes of input textures match
-        if(the_planes.size() != 6)
-        {
-            LOG_WARNING << "cube map creation failed. number of input textures must be 6 -- "
-            << the_planes.size() << " provided";
-            return ret;
-        }
-
-        auto tex_sz = the_planes.front().size();
-        auto tex_target = the_planes.front().target();
-
-        for (auto &t : the_planes)
-        {
-            if(!t || tex_sz != t.size() || tex_target != t.target())
-            {
-                LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
-                return ret;
-            }
-        }
-
-        gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
-        pixel_buf.set_data(nullptr, tex_sz.x * tex_sz.y * 4);
-
-        GLuint tex_name;
-        glGenTextures(1, &tex_name);
-
-        pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
-        pixel_buf.bind(GL_PIXEL_PACK_BUFFER);
-
-        for (uint32_t i = 0; i < 6; i++)
-        {
-            const gl::Texture &t = the_planes[i];
-            t.bind();
-
-            // copy data to PBO
-            glGetTexImage(t.target(), 0, t.internal_format(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
-
-            // bind cube map
-            glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
-
-            // copy data from PBO to appropriate image plane
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, t.internal_format(), t.width(),
-                         t.height(), 0, t.internal_format(), GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
-        }
-        pixel_buf.unbind(GL_PIXEL_UNPACK_BUFFER);
-        pixel_buf.unbind(GL_PIXEL_PACK_BUFFER);
-
-        ret = gl::Texture(GL_TEXTURE_CUBE_MAP, tex_name, tex_sz.x, tex_sz.y, false);
-#endif
-        return ret;
     }
 
 ///////////////////////////////////////////////////////////////////////////////
