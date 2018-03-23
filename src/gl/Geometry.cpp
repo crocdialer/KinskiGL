@@ -591,7 +591,9 @@ GeometryPtr Geometry::create_box(const glm::vec3 &the_half_extents)
     geom->append_vertices(vertexVec);
     geom->append_normals(normalsVec);
     geom->append_tex_coords(texCoordVec);
+
     geom->append_colors(colorVec);
+//    geom->colors().resize(geom->vertices().size(), gl::COLOR_WHITE);
 
     for (int i = 0; i < 6; i++)
     {

@@ -43,9 +43,6 @@ namespace kinski{ namespace gl{
         //! Determines whether the Texture will call glDeleteTextures() to free the associated texture objects on destruction
         void set_do_not_dispose(bool do_not_dispose = true);
         
-        //! Installs an optional callback which fires when the texture is destroyed. Useful for integrating with external APIs
-        void set_deallocator(void(*the_deallocator_func)(void *), void *the_deallocator_refcon);
-        
         //! Sets the wrapping behavior when a texture coordinate falls outside the range of [0,1]. Possible values are \c GL_CLAMP, \c GL_REPEAT and \c GL_CLAMP_TO_EDGE.
         void set_wrap(GLenum the_wrap_s, GLenum the_wrap_t) { set_wrap_s(the_wrap_s); set_wrap_t(the_wrap_t); }
         

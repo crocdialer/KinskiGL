@@ -50,6 +50,7 @@ namespace kinski
         m_offscreen_resolution = Property_<gl::vec2>::create("offscreen resolution", gl::vec2(0));
         
         bool m_dirty_shader = true;
+        bool m_dirty_g_buffer = true;
         
         Property_<bool>::Ptr
         m_draw_fps = Property_<bool>::create("draw fps", true),

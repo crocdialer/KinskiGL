@@ -65,7 +65,8 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
 
     vec4 ambient = /*mat.ambient */ light.ambient;
     float att = 1.f;
-    float nDotL = dot(normal, L);
+    float nDotL = max(0.f, dot(normal, L));
+    float nDotH = max(0.f, dot(normal, H));
 
     if(light.type > 0)
     {
@@ -87,19 +88,17 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
             att *= spotEffect;
         }
     }
-    nDotL = max(0.f, nDotL);
 
     // phong speculars
     // float specIntesity = clamp(pow(max(dot(R, E), 0.0), the_spec.a), 0.0, 1.0);
 
     // blinn-phong speculars
-    float specIntesity = clamp(pow(max(dot(normal, H), 0.0), 4 * the_spec.a), 0.0, 1.0);
+    float specIntesity = pow(nDotH, 4 * the_spec.a);
 
     vec4 diffuse = light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0);
     vec3 final_spec = shade_factor * att * the_spec.rgb * light.specular.rgb * specIntesity;
     return base_color * (ambient + diffuse) + vec4(final_spec, 0);
 }
-
 
 //uniform Material u_material;
 layout(std140) uniform MaterialBlock

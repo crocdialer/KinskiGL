@@ -1585,7 +1585,12 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     break;
 
 #if !defined(KINSKI_GLES)
-
+                
+                case ShaderType::UNLIT_CUBE:
+                    vert_src = unlit_cube_vert;
+                    frag_src = unlit_cube_frag;
+                    break;
+                    
                 case ShaderType::BLUR:
                     vert_src = unlit_vert;
                     frag_src = blur_poisson_frag;

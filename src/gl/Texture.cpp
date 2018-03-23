@@ -14,6 +14,8 @@ using namespace std;
 
 namespace kinski{ namespace gl{
 
+///////////////////////////////////////////////////////////////////////////////
+    
 void get_format(int the_num_comps, bool compress, GLenum *out_format, GLenum *out_internal_format)
 {
     switch(the_num_comps)
@@ -55,6 +57,8 @@ void get_format(int the_num_comps, bool compress, GLenum *out_format, GLenum *ou
 #endif
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
     
 Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
                                   bool compress, GLfloat anisotropic_filter_lvl)
@@ -94,6 +98,8 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     return ret;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+    
 Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipmap,
                                  bool compress, GLfloat anisotropic_filter_lvl)
 {
@@ -109,6 +115,8 @@ Texture create_texture_from_data(const std::vector<uint8_t> &the_data, bool mipm
     return ret;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+    
 Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bool compress,
                                  GLfloat anisotropic_filter_lvl)
 {
@@ -117,6 +125,8 @@ Texture create_texture_from_file(const std::string &theFileName, bool mipmap, bo
     return ret;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+    
 ImagePtr create_image_from_texture(const gl::Texture &the_texture)
 {
     ImagePtr ret;
@@ -140,9 +150,10 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
     
     if(img && the_layout == CubeTextureLayout::HORIZONTAL_CROSS)
     {
-        uint32_t sub_w = img->width / 4, sub_h = img->width / 3;
+        uint32_t sub_w = img->width / 4, sub_h = img->height / 3;
         
-        // create 6 images, take into account layout
+        // TODO: take layout into account
+        // create 6 images
         std::vector<ImagePtr> out_images(6);
         gl::ivec2 offsets[6] =
         {
@@ -151,7 +162,7 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
             gl::ivec2(1, 0),
             gl::ivec2(1, 2),
             gl::ivec2(3, 1),
-            gl::ivec2(2, 2),
+            gl::ivec2(1, 1),
         };
         
         for(int i = 0; i < 6; i++)
@@ -160,14 +171,17 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
             img->roi.y0 = offsets[i].y * sub_h;
             img->roi.x1 = img->roi.x0 + sub_w;
             img->roi.y1 = img->roi.y0 + sub_h;
+            out_images[i] = Image::create(sub_w, sub_h, img->num_coponents());
             copy_image(img, out_images[i]);
         }
         return create_cube_texture_from_images(out_images);
+//        return create_texture_from_image(out_images[0]);
     }
     return Texture();
 }
     
 ///////////////////////////////////////////////////////////////////////////////
+    
 Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes, bool compress)
 {
     gl::Texture ret;
@@ -199,23 +213,29 @@ Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
     glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
     
     // create PBO
-    gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_PACK_BUFFER, GL_STATIC_COPY);
+    gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
+    
+    GLenum format = 0, internal_format = 0;
+    get_format(the_planes[0]->m_num_coponents, compress, &format, &internal_format);
     
     for(uint32_t i = 0; i < 6; i++)
     {
-        GLenum format = 0, internal_format = 0;
-        get_format(the_planes[i]->m_num_coponents, compress, &format, &internal_format);
-        
         // copy data to PBO
         pixel_buf.set_data(the_planes[i]->data, the_planes[i]->num_bytes());
         
         // bind PBO
-        pixel_buf.bind();
+        pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
         
         // copy data from PBO to appropriate image plane
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format, width, height, 0, format,
-                     GL_UNSIGNED_BYTE, BUFFER_OFFSET(0));
+                     GL_UNSIGNED_BYTE, nullptr);
     }
+//    gl::Texture::Format fmt;
+//    fmt.set_target(GL_TEXTURE_CUBE_MAP);
+//    fmt.set_internal_format(internal_format);
+//    fmt.set_min_filter(GL_NEAREST);
+//    fmt.set_mag_filter(GL_NEAREST);
+    
     ret = gl::Texture(GL_TEXTURE_CUBE_MAP, tex_name, width, height, false);
 #endif
     return ret;
@@ -242,17 +262,14 @@ Texture::Format::Format()
 struct TextureImpl
 {
     TextureImpl() : m_width(-1), m_height(-1), m_depth(-1), m_internal_format(-1), m_datatype(-1),
-    m_target(GL_TEXTURE_2D), m_texture_id(0), m_flipped(false), m_mip_map(false),
-    m_deallocator_func(0) {};
+    m_target(GL_TEXTURE_2D), m_texture_id(0), m_flipped(false), m_mip_map(false){};
     
     TextureImpl(int aWidth, int aHeight, int depth = 1) : m_width(aWidth), m_height(aHeight),
     m_depth(depth), m_internal_format(-1), m_datatype(-1), m_target(GL_TEXTURE_2D), m_texture_id(0),
-    m_flipped(false), m_mip_map(false), m_bound_texture_unit(-1), m_deallocator_func(0){};
+    m_flipped(false), m_mip_map(false), m_bound_texture_unit(-1){};
     
     ~TextureImpl()
     {
-        if(m_deallocator_func){ (*m_deallocator_func)(m_deallocator_ref); }
-        
         if(m_texture_id && !m_do_not_dispose){ glDeleteTextures(1, &m_texture_id); }
     }
 
@@ -267,8 +284,6 @@ struct TextureImpl
     bool m_flipped;
     bool m_mip_map;
     GLint m_bound_texture_unit;
-    void (*m_deallocator_func)(void *refcon);
-    void *m_deallocator_ref;
 };
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -281,7 +296,7 @@ Texture::Texture(int aWidth, int aHeight, int aDepth, Format format):
 m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
     if(format.m_internal_format == -1){ format.m_internal_format = GL_RGBA; }
-    m_impl->m_internal_format = format.m_internal_format;
+    else{ m_impl->m_internal_format = format.m_internal_format; }
     m_impl->m_target = format.m_target;
     m_impl->m_datatype = format.m_datatype;
     init(nullptr, GL_RGBA, format);
@@ -452,12 +467,6 @@ Texture	Texture::weak_clone() const
 	result.m_impl->m_internal_format = m_impl->m_internal_format;
 	result.m_impl->m_flipped = m_impl->m_flipped;	
 	return result;
-}
-
-void Texture::set_deallocator(void(*aDeallocatorFunc)(void *), void *aDeallocatorRefcon)
-{
-	m_impl->m_deallocator_func = aDeallocatorFunc;
-	m_impl->m_deallocator_ref = aDeallocatorRefcon;
 }
 
 void Texture::set_do_not_dispose(bool the_do_not_dispose)

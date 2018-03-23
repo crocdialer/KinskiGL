@@ -313,6 +313,13 @@ void ModelViewer::update_fbos()
         m_post_process_mat->uniform("u_auto_focus", *m_auto_focus);
         m_post_process_mat->uniform("u_circle_of_confusion_sz", *m_circle_of_confusion_sz);
     }
+    
+    if(m_dirty_g_buffer && *m_use_deferred_render)
+    {
+        m_deferred_renderer = gl::DeferredRenderer::create();
+        scene()->set_renderer(m_deferred_renderer);
+        m_dirty_g_buffer = false;
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -320,8 +327,7 @@ void ModelViewer::update_fbos()
 void ModelViewer::resize(int w ,int h)
 {
     ViewerApp::resize(w, h);
-    m_deferred_renderer = gl::DeferredRenderer::create();
-    if(*m_use_deferred_render){ scene()->set_renderer(m_deferred_renderer); }
+    m_dirty_g_buffer = true;
 }
 
 /////////////////////////////////////////////////////////////////
@@ -401,7 +407,6 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
     std::vector<gl::Texture> dropped_textures;
     auto obj = dynamic_pointer_cast<gl::Mesh>(scene()->pick(gl::calculate_ray(camera(), e.getPos())));
 
-
     for(const string &f : files)
     {
         LOG_INFO << f;
@@ -421,11 +426,18 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
                 break;
         }
     }
-    if(obj && !dropped_textures.empty()){ obj->material()->set_textures(dropped_textures); }
-    if(obj == m_ground_mesh)
+    if(obj == m_mesh && !dropped_textures.empty()){ obj->material()->set_textures(dropped_textures); }
+    else if(obj == m_ground_mesh)
     {
-        LOG_DEBUG << "texture drop on model";
+        LOG_DEBUG << "texture drop on ground";
         m_ground_textures->set(files);
+    }
+    else
+    {
+        // cubemap
+        auto cubemap = gl::create_cube_texture_from_file(files.back());
+        scene()->set_skybox(cubemap);
+        LOG_DEBUG << "loaded cubemap: " << files.back();
     }
 }
 
