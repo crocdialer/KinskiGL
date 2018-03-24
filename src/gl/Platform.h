@@ -6,7 +6,7 @@
 #define KINSKIGL_PLATFORM_H
 
 //triggers checks with glGetError()
-#define KINSKI_GL_REPORT_ERRORS
+//#define KINSKI_GL_REPORT_ERRORS
 
 #if defined(KINSKI_COCOA_TOUCH) || defined(KINSKI_ARM)
 #define KINSKI_GLES

@@ -526,31 +526,10 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_skybox_path)
     {
-        auto file_type = fs::get_file_type(*m_skybox_path);
-        
-        if(file_type == fs::FileType::IMAGE)
+        async_load_texture(*m_skybox_path, [this](const gl::Texture &t)
         {
-            async_load_texture(*m_skybox_path, [this](const gl::Texture &t)
-            {
-                scene()->set_skybox(t);
-            });
-        }
-        else if(file_type == fs::FileType::DIRECTORY)
-        {
-            auto img_paths = fs::get_directory_entries(*m_skybox_path, fs::FileType::IMAGE);
-            
-            if(img_paths.size() == 6)
-            {
-                std::vector<ImagePtr> images(6);
-                for(size_t i = 0; i < 6; i++)
-                {
-                    images[i] = create_image_from_file(img_paths[i]);
-                }
-                auto cubemap = gl::create_cube_texture_from_images(images);
-                scene()->set_skybox(cubemap);
-                LOG_DEBUG << "loaded cubemap folder: " << m_skybox_path->value();
-            }
-        }
+            scene()->set_skybox(t);
+        });
     }
     else if(theProperty == m_use_ground_plane)
     {

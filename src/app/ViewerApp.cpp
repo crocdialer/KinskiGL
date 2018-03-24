@@ -587,15 +587,50 @@ namespace kinski {
         background_queue().submit([this, the_path, the_callback, mip_map, compress,
                                    anisotropic_filter_lvl]()
         {
-            auto img = create_image_from_file(the_path);
-          
-            main_queue().submit([this, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
+            std::string abs_path = the_path;
+            try{ abs_path = fs::search_file(the_path); }
+            catch(std::exception &e){ }
+            
+            auto file_type = fs::get_file_type(abs_path);
+            
+            if(file_type == fs::FileType::IMAGE)
             {
-                auto tex = gl::create_texture_from_image(img, mip_map, compress,
-                                                         anisotropic_filter_lvl);
-                the_callback(tex);
+                auto img = create_image_from_file(abs_path);
+                
+                main_queue().submit([this, img, the_callback, mip_map, compress, anisotropic_filter_lvl]()
+                {
+                    auto tex = gl::create_texture_from_image(img, mip_map, compress,
+                                                             anisotropic_filter_lvl);
+                    the_callback(tex);
+                    dec_task();
+                });
+            }
+            else if(file_type == fs::FileType::DIRECTORY)
+            {
+                auto img_paths = fs::get_directory_entries(abs_path, fs::FileType::IMAGE);
+                
+                if(img_paths.size() == 6)
+                {
+                    std::vector<ImagePtr> images(6);
+                    for(size_t i = 0; i < 6; i++)
+                    {
+                        images[i] = create_image_from_file(img_paths[i]);
+                    }
+                    
+                    main_queue().submit([this, the_path, images, the_callback, compress]()
+                    {
+                        auto cubemap = gl::create_cube_texture_from_images(images);
+                        LOG_DEBUG << "loaded cubemap folder: " << the_path;
+                        the_callback(cubemap);
+                        dec_task();
+                    });
+                }
+            }
+            else
+            {
+                LOG_WARNING << "could not load texture: " << the_path;
                 dec_task();
-            });
+            }
         });
     }
     

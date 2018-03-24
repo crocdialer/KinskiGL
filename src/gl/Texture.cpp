@@ -292,7 +292,7 @@ Texture::Texture(int aWidth, int aHeight, int aDepth, Format format):
 m_impl(new TextureImpl(aWidth, aHeight, aDepth))
 {
     if(format.m_internal_format == -1){ format.m_internal_format = GL_RGBA; }
-    else{ m_impl->m_internal_format = format.m_internal_format; }
+    m_impl->m_internal_format = format.m_internal_format;
     m_impl->m_target = format.m_target;
     m_impl->m_datatype = format.m_datatype;
     init(nullptr, GL_RGBA, format);
