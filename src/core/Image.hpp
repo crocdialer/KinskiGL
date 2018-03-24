@@ -36,7 +36,7 @@ namespace kinski
 
         uint8_t* data = nullptr;
         uint32_t width = 0, height = 0;
-        uint32_t m_num_coponents = 1;
+        uint32_t m_num_components = 1;
         Area_<uint32_t> roi;
         bool do_not_dispose = false;
         Type m_type = Type::UNKNOWN;
@@ -53,11 +53,11 @@ namespace kinski
         };
         
         inline uint8_t* at(uint32_t x, uint32_t y) const
-        { return data + (x + y * width) * m_num_coponents; };
+        { return data + (x + y * width) * m_num_components; };
         
-        inline uint8_t* data_start_for_roi() const {return data + (roi.y0 * width + roi.x0) * m_num_coponents;}
+        inline uint8_t* data_start_for_roi() const {return data + (roi.y0 * width + roi.x0) * m_num_components;}
         
-        inline size_t num_bytes() const { return height * width * m_num_coponents; }
+        inline size_t num_bytes() const { return height * width * m_num_components; }
         
         ImagePtr resize(uint32_t the_width, uint32_t the_height, uint32_t the_num_channels = 0);
         
@@ -68,7 +68,7 @@ namespace kinski
         void flip();
 
         void offsets(uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a = nullptr) const;
-        inline uint32_t num_coponents() const{ return m_num_coponents; };
+        inline uint32_t num_components() const{ return m_num_components; };
 
         Image(const Image &the_other);
         Image(Image &&the_other);

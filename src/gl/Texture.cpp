@@ -67,7 +67,7 @@ Texture create_texture_from_image(const ImagePtr& the_img, bool mipmap,
     
     if(!the_img){ return ret; }
     GLenum format = 0, internal_format = 0;
-    get_format(the_img->m_num_coponents, compress, &format, &internal_format);
+    get_format(the_img->m_num_components, compress, &format, &internal_format);
 
     Texture::Format fmt;
     fmt.set_internal_format(internal_format);
@@ -171,7 +171,7 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
             img->roi.y0 = offsets[i].y * sub_h;
             img->roi.x1 = img->roi.x0 + sub_w;
             img->roi.y1 = img->roi.y0 + sub_h;
-            out_images[i] = Image::create(sub_w, sub_h, img->num_coponents());
+            out_images[i] = Image::create(sub_w, sub_h, img->num_components());
             copy_image(img, out_images[i]);
         }
         return create_cube_texture_from_images(out_images);
@@ -195,12 +195,12 @@ Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
     }
     
     uint32_t width = the_planes[0]->width, height = the_planes[0]->height;
-    uint32_t num_components = the_planes[0]->num_coponents();
+    uint32_t num_components = the_planes[0]->num_components();
     
     for(auto img : the_planes)
     {
         if(!img || img->width != width || img->height != height ||
-           img->num_coponents() != num_components)
+           img->num_components() != num_components)
         {
             LOG_WARNING << "cube map creation failed. size/type of input textures not consistent";
             return ret;
@@ -208,15 +208,19 @@ Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
     }
     
     // create and bind cube map
-    GLuint tex_name;
-    glGenTextures(1, &tex_name);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, tex_name);
+    GLenum format = 0, internal_format = 0;
+    get_format(the_planes[0]->num_components(), true, &format, &internal_format);
+    
+    gl::Texture::Format fmt;
+    fmt.set_target(GL_TEXTURE_CUBE_MAP);
+    fmt.set_internal_format(internal_format);
+    fmt.set_min_filter(GL_NEAREST);
+    fmt.set_mag_filter(GL_NEAREST);
+    ret = gl::Texture(nullptr, format, width, height, fmt);
+    ret.bind();
     
     // create PBO
     gl::Buffer pixel_buf = gl::Buffer(GL_PIXEL_UNPACK_BUFFER, GL_STATIC_COPY);
-    
-    GLenum format = 0, internal_format = 0;
-    get_format(the_planes[0]->m_num_coponents, compress, &format, &internal_format);
     
     for(uint32_t i = 0; i < 6; i++)
     {
@@ -227,16 +231,10 @@ Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
         pixel_buf.bind(GL_PIXEL_UNPACK_BUFFER);
         
         // copy data from PBO to appropriate image plane
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internal_format, width, height, 0, format,
-                     GL_UNSIGNED_BYTE, nullptr);
+        glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, format,
+                        GL_UNSIGNED_BYTE, nullptr);
     }
-//    gl::Texture::Format fmt;
-//    fmt.set_target(GL_TEXTURE_CUBE_MAP);
-//    fmt.set_internal_format(internal_format);
-//    fmt.set_min_filter(GL_NEAREST);
-//    fmt.set_mag_filter(GL_NEAREST);
-    
-    ret = gl::Texture(GL_TEXTURE_CUBE_MAP, tex_name, width, height, false);
+
 #endif
     return ret;
 }

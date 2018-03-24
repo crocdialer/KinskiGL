@@ -332,7 +332,7 @@ namespace kinski{ namespace media{
             constexpr uint8_t num_channels = 4;
             
             if(!the_image || the_image->width != w || the_image->height != h ||
-               the_image->num_coponents() != num_channels)
+               the_image->num_components() != num_channels)
             {
                 the_image = Image::create(w, h, num_channels);
             }
