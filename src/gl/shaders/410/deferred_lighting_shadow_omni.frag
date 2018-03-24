@@ -94,6 +94,29 @@ float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 l
     return sum / NUM_TAPS;
 }
 
+// Microfacet specular = D*G*F / (4*NoL*NoV) = D*Vis*F
+// Vis = G / (4*NoL*NoV)
+
+// GGX / Trowbridge-Reitz
+// [Walter et al. 2007, "Microfacet models for refraction through rough surfaces"]
+// float D_GGX(float Roughness, float NoH)
+// {
+// 	float a = Roughness * Roughness;
+// 	float a2 = a * a;
+// 	float d = ( NoH * a2 - NoH ) * NoH + 1;	// 2 mad
+// 	return a2 / ( PI*d*d );					// 4 mul, 1 rcp
+// }
+
+float D_blinn(float NoH, float shinyness)
+{
+    return pow(NoH, 4 * shinyness);
+}
+
+vec3 F_schlick(in vec3 c_spec, float NoL)
+{
+    return c_spec + (1 - c_spec) * pow(1 - NoL, 5);
+}
+
 vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
            in vec4 the_spec, float shade_factor)
 {
@@ -102,21 +125,20 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   vec3 E = normalize(-eyeVec);
   // vec3 R = reflect(-L, normal);
   vec3 H = normalize(L + E);
-  vec4 ambient = /*mat.ambient */ light.ambient;
-  float att = 1.f;
+  vec3 ambient = /*mat.ambient */ light.ambient.rgb;
   float nDotL = max(0.f, dot(normal, L));
   float nDotH = max(0.f, dot(normal, H));
 
   // distance^2
+  float att = shade_factor;
   float dist2 = dot(lightDir, lightDir);
   float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
-  att = min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
+  att *= min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
 
-  // blinn-phong speculars
-  float specIntesity = pow(nDotH, 4 * the_spec.a);
-  vec4 diffuse = light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.f);
-  vec3 final_spec = shade_factor * att * the_spec.rgb * light.specular.rgb * specIntesity;
-  return base_color * (ambient + diffuse) + vec4(final_spec, 0);
+  // brdf term
+  vec3 diffuse = att * vec3(nDotL) * light.diffuse.rgb;
+  vec3 specular = att * light.specular.rgb * F_schlick(the_spec.rgb, nDotL) * D_blinn(nDotH, the_spec.a);
+  return base_color * vec4(ambient + diffuse, 1.0) + vec4(specular, 0);
 }
 
 in VertexData

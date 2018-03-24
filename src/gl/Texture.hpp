@@ -264,7 +264,8 @@ namespace kinski{ namespace gl{
     enum class CubeTextureLayout{VERTICAL_CROSS, HORIZONTAL_CROSS};
     
     KINSKI_API Texture create_cube_texture_from_file(const std::string &the_path,
-                                                     CubeTextureLayout the_layout = CubeTextureLayout::HORIZONTAL_CROSS);
+                                                     CubeTextureLayout the_layout = CubeTextureLayout::HORIZONTAL_CROSS,
+                                                     bool compress = false);
     
     KINSKI_API Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
                                                        bool compress = false);

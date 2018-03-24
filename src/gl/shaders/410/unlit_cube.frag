@@ -30,6 +30,6 @@ out vec4 fragData;
 void main()
 {
     vec4 texColors = vertex_in.color;
-    texColors.rgb = texture(u_sampler_cube[0], vertex_in.eyeVec).rgb;
-    fragData = u_material.diffuse * texColors;
+    texColors = texture(u_sampler_cube[0], vertex_in.eyeVec);
+    fragData = texColors;
 }

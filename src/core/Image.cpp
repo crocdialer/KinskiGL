@@ -81,13 +81,15 @@ namespace kinski
         const uint8_t* src_area_start = src_mat->data + (src_mat->roi.y0 * src_mat->width + src_mat->roi.x0) * bytes_per_pixel;
         uint8_t* dst_area_start = dst_mat->data + (dst_mat->roi.y0 * dst_mat->width + dst_mat->roi.x0) * bytes_per_pixel;
         
-        for (uint32_t r = 0; r < src_mat->roi.height(); r++)
+        for(uint32_t r = 0; r < src_mat->roi.height(); r++)
         {
             const uint8_t* src_row_start = src_area_start + r * (src_mat->roi.width() + src_row_offset) * bytes_per_pixel;
             uint8_t* dst_row_start = dst_area_start + r * (dst_mat->roi.width() + dst_row_offset) * bytes_per_pixel;
-            for (uint32_t c = 0; c < src_mat->roi.width(); c++)
+            
+            for(uint32_t c = 0; c < src_mat->roi.width(); c++)
             {
-                dst_row_start[c * bytes_per_pixel] = src_row_start[c * bytes_per_pixel];
+                for(uint32_t ch = 0; ch < bytes_per_pixel; ch++)
+                    dst_row_start[c * bytes_per_pixel + ch] = src_row_start[c * bytes_per_pixel + ch];
             }
         }
     }
@@ -183,16 +185,32 @@ namespace kinski
         if(!do_not_dispose){ delete[](data); }
     }
     
-    void Image::flip()
+    void Image::flip(bool horizontal)
     {
         size_t line_offset = width * m_num_components;
         size_t total_bytes = width * height * m_num_components;
         
-        // swap lines
-        for(uint32_t i = 0; i < height / 2; i++)
+        if(horizontal)
         {
-            std::swap_ranges(data + line_offset * i, data +  line_offset * (i + 1),
-                             data + total_bytes - line_offset * (i + 1));
+            // swap lines
+            for(uint32_t r = 0; r < height; r++)
+            {
+                for(uint32_t c = 0; c < width / 2; c++)
+                {
+                    uint8_t* lhs = data + line_offset * r + m_num_components * c;
+                    uint8_t* rhs = data + line_offset * (r + 1) - m_num_components * (c + 1);
+                    std::swap_ranges(lhs, lhs + m_num_components, rhs);
+                }
+            }
+        }
+        else
+        {
+            // swap lines
+            for(uint32_t i = 0; i < height / 2; i++)
+            {
+                std::swap_ranges(data + line_offset * i, data +  line_offset * (i + 1),
+                                 data + total_bytes - line_offset * (i + 1));
+            }
         }
     }
     

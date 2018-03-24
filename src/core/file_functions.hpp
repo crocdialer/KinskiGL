@@ -24,11 +24,11 @@ namespace kinski { namespace fs {
     void add_search_path(const path &thePath, int the_recursion_depth = 0);
     void clear_search_paths();
     
-    std::list<std::string> get_directory_entries(const path &thePath,
-                                                 const std::string &theExtension = "",
-                                                 int the_recursion_depth = 0);
-    std::list<string> get_directory_entries(const path &thePath, FileType the_type,
-                                            int the_recursion_depth = 0);
+    std::vector<std::string> get_directory_entries(const path &thePath,
+                                                   const std::string &theExtension = "",
+                                                   int the_recursion_depth = 0);
+    std::vector<string> get_directory_entries(const path &thePath, FileType the_type,
+                                              int the_recursion_depth = 0);
     
     bool exists(const path &the_file_name);
     bool is_uri(const path &the_file_name);

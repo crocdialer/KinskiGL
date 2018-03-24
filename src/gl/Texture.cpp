@@ -143,7 +143,8 @@ ImagePtr create_image_from_texture(const gl::Texture &the_texture)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLayout the_layout)
+Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLayout the_layout,
+                                      bool compress)
 {
     // load image
     auto img = create_image_from_file(the_path);
@@ -173,9 +174,9 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
             img->roi.y1 = img->roi.y0 + sub_h;
             out_images[i] = Image::create(sub_w, sub_h, img->num_components());
             copy_image(img, out_images[i]);
+            out_images[i]->flip(true);
         }
-        return create_cube_texture_from_images(out_images);
-//        return create_texture_from_image(out_images[0]);
+        return create_cube_texture_from_images(out_images, compress);
     }
     return Texture();
 }
@@ -209,13 +210,11 @@ Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
     
     // create and bind cube map
     GLenum format = 0, internal_format = 0;
-    get_format(the_planes[0]->num_components(), true, &format, &internal_format);
+    get_format(num_components, compress, &format, &internal_format);
     
     gl::Texture::Format fmt;
     fmt.set_target(GL_TEXTURE_CUBE_MAP);
     fmt.set_internal_format(internal_format);
-    fmt.set_min_filter(GL_NEAREST);
-    fmt.set_mag_filter(GL_NEAREST);
     ret = gl::Texture(nullptr, format, width, height, fmt);
     ret.bind();
     
@@ -234,7 +233,6 @@ Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
         glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, width, height, format,
                         GL_UNSIGNED_BYTE, nullptr);
     }
-
 #endif
     return ret;
 }

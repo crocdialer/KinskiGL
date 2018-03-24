@@ -19,6 +19,6 @@ void main()
 {
   vertex_out.color = a_color;
   vertex_out.texCoord = (u_textureMatrix * a_texCoord).xy;
-  vertex_out.eyeVec = vec3(a_vertex.xy, -a_vertex.z);
+  vertex_out.eyeVec = a_vertex.xyz;
   gl_Position = u_modelViewProjectionMatrix * a_vertex;
 }

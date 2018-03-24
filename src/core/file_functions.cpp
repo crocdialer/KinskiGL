@@ -113,10 +113,10 @@ namespace kinski { namespace fs{
     
 ///////////////////////////////////////////////////////////////////////////////
     
-    list<string> get_directory_entries(const fs::path &thePath, const std::string &theExtension,
-                                       int the_recursion_depth)
+    vector<string> get_directory_entries(const fs::path &thePath, const std::string &theExtension,
+                                         int the_recursion_depth)
     {
-        list<string> ret;
+        vector<string> ret;
         path p(expand_user(thePath));
         
         auto check_file_status = [](const boost::filesystem::file_status &s) -> bool
@@ -198,8 +198,8 @@ namespace kinski { namespace fs{
 
 ///////////////////////////////////////////////////////////////////////////////
     
-    std::list<string> get_directory_entries(const fs::path &thePath, FileType the_type,
-                                            int the_recursion_depth)
+    std::vector<string> get_directory_entries(const fs::path &thePath, FileType the_type,
+                                              int the_recursion_depth)
     {
         auto ret = get_directory_entries(thePath, "", the_recursion_depth);
         ret.erase(std::remove_if(ret.begin(), ret.end(), [the_type](const std::string &f)

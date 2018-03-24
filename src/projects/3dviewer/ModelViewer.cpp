@@ -421,6 +421,21 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
             {
                 dropped_textures.push_back(gl::create_texture_from_file(f));
             }
+            case fs::FileType::DIRECTORY:
+            {
+                auto img_paths = fs::get_directory_entries(f, fs::FileType::IMAGE);
+                
+                if(img_paths.size() == 6)
+                {
+                    std::vector<ImagePtr> images(6);
+                    for(size_t i = 0; i < 6; i++)
+                    {
+                        images[i] = create_image_from_file(img_paths[i]);
+                    }
+                    dropped_textures.push_back(gl::create_cube_texture_from_images(images));
+                    LOG_DEBUG << "loaded cubemap folder: " << files.back();
+                }
+            }
                 break;
             default:
                 break;
@@ -435,7 +450,9 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
     else
     {
         // cubemap
-        auto cubemap = gl::create_cube_texture_from_file(files.back());
+        auto cubemap = gl::create_cube_texture_from_file(files.back(),
+                                                         gl::CubeTextureLayout::HORIZONTAL_CROSS,
+                                                         true);
         scene()->set_skybox(cubemap);
         LOG_DEBUG << "loaded cubemap: " << files.back();
     }

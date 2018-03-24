@@ -98,6 +98,16 @@ float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
     return factor / NUM_TAPS;
 }
 
+float D_blinn(float NoH, float shinyness)
+{
+    return pow(NoH, 4 * shinyness);
+}
+
+vec3 F_schlick(in vec3 c_spec, float NoL)
+{
+    return c_spec + (1 - c_spec) * pow(1 - NoL, 5);
+}
+
 vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
            in vec4 the_spec, float shade_factor)
 {
@@ -107,41 +117,31 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     vec3 H = normalize(L + E);
     // vec3 R = reflect(-L, normal);
 
-    vec4 ambient = /*mat.ambient */ light.ambient;
-    float att = 1.f;
+    vec3 ambient = /*mat.ambient */ light.ambient.rgb;
     float nDotL = max(0.f, dot(normal, L));
     float nDotH = max(0.f, dot(normal, H));
-
+    float att = shade_factor;
+    
     if(light.type > 0)
     {
         // distance^2
         float dist2 = dot(lightDir, lightDir);
         float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
-        att = min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
+        att *= min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
 
         if(light.type > 1)
         {
-            float spotEffect = dot(normalize(light.direction), -L);
-
-            if(spotEffect < light.spotCosCutoff)
-            {
-                att = 0.f;
-                base_color * ambient;
-            }
-            spotEffect = pow(spotEffect, light.spotExponent);
-            att *= spotEffect;
+            float spot_effect = dot(normalize(light.direction), -L);
+            att *= spot_effect < light.spotCosCutoff ? 0 : 1;
+            spot_effect = pow(spot_effect, light.spotExponent);
+            att *= spot_effect;
         }
     }
 
-    // phong speculars
-    // float specIntesity = clamp(pow(max(dot(R, E), 0.0), the_spec.a), 0.0, 1.0);
-
-    // blinn-phong speculars
-    float specIntesity = pow(nDotH, 4 * the_spec.a);
-
-    vec4 diffuse = light.diffuse * vec4(att * shade_factor * vec3(nDotL), 1.0);
-    vec3 final_spec = shade_factor * att * the_spec.rgb * light.specular.rgb * specIntesity;
-    return base_color * (ambient + diffuse) + vec4(final_spec, 0);
+    // brdf term
+    vec3 diffuse = att * vec3(nDotL) * light.diffuse.rgb;
+    vec3 specular = att * light.specular.rgb * F_schlick(the_spec.rgb, nDotL) * D_blinn(nDotH, the_spec.a);
+    return base_color * vec4(ambient + diffuse, 1.0) + vec4(specular, 0);
 }
 
 in VertexData
