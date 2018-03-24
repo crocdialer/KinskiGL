@@ -193,6 +193,7 @@ namespace kinski { namespace fs{
         {
             LOG_ERROR<<e.what();
         }
+        std::sort(ret.begin(), ret.end());
         return ret;
     }
 

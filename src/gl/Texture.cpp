@@ -149,7 +149,7 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
     // load image
     auto img = create_image_from_file(the_path);
     
-    if(img && the_layout == CubeTextureLayout::HORIZONTAL_CROSS)
+    if(img && the_layout == CubeTextureLayout::H_CROSS)
     {
         uint32_t sub_w = img->width / 4, sub_h = img->height / 3;
         
@@ -174,7 +174,7 @@ Texture create_cube_texture_from_file(const std::string &the_path, CubeTextureLa
             img->roi.y1 = img->roi.y0 + sub_h;
             out_images[i] = Image::create(sub_w, sub_h, img->num_components());
             copy_image(img, out_images[i]);
-            out_images[i]->flip(true);
+//            out_images[i]->flip(true);
         }
         return create_cube_texture_from_images(out_images, compress);
     }

@@ -421,20 +421,10 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
             {
                 dropped_textures.push_back(gl::create_texture_from_file(f));
             }
+                break;
             case fs::FileType::DIRECTORY:
             {
-                auto img_paths = fs::get_directory_entries(f, fs::FileType::IMAGE);
-                
-                if(img_paths.size() == 6)
-                {
-                    std::vector<ImagePtr> images(6);
-                    for(size_t i = 0; i < 6; i++)
-                    {
-                        images[i] = create_image_from_file(img_paths[i]);
-                    }
-                    dropped_textures.push_back(gl::create_cube_texture_from_images(images));
-                    LOG_DEBUG << "loaded cubemap folder: " << files.back();
-                }
+                *m_skybox_path = f;
             }
                 break;
             default:
@@ -446,15 +436,6 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
     {
         LOG_DEBUG << "texture drop on ground";
         m_ground_textures->set(files);
-    }
-    else
-    {
-        // cubemap
-        auto cubemap = gl::create_cube_texture_from_file(files.back(),
-                                                         gl::CubeTextureLayout::HORIZONTAL_CROSS,
-                                                         true);
-        scene()->set_skybox(cubemap);
-        LOG_DEBUG << "loaded cubemap: " << files.back();
     }
 }
 
@@ -545,7 +526,31 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
     }
     else if(theProperty == m_skybox_path)
     {
-        async_load_texture(*m_skybox_path, [this](const gl::Texture &t){ scene()->set_skybox(t); });
+        auto file_type = fs::get_file_type(*m_skybox_path);
+        
+        if(file_type == fs::FileType::IMAGE)
+        {
+            async_load_texture(*m_skybox_path, [this](const gl::Texture &t)
+            {
+                scene()->set_skybox(t);
+            });
+        }
+        else if(file_type == fs::FileType::DIRECTORY)
+        {
+            auto img_paths = fs::get_directory_entries(*m_skybox_path, fs::FileType::IMAGE);
+            
+            if(img_paths.size() == 6)
+            {
+                std::vector<ImagePtr> images(6);
+                for(size_t i = 0; i < 6; i++)
+                {
+                    images[i] = create_image_from_file(img_paths[i]);
+                }
+                auto cubemap = gl::create_cube_texture_from_images(images);
+                scene()->set_skybox(cubemap);
+                LOG_DEBUG << "loaded cubemap folder: " << m_skybox_path->value();
+            }
+        }
     }
     else if(theProperty == m_use_ground_plane)
     {

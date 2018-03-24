@@ -261,10 +261,10 @@ namespace kinski{ namespace gl{
     
     KINSKI_API ImagePtr create_image_from_texture(const gl::Texture &the_texture);
     
-    enum class CubeTextureLayout{VERTICAL_CROSS, HORIZONTAL_CROSS};
+    enum class CubeTextureLayout{V_CROSS, H_CROSS, V_STRIP, H_STRIP};
     
     KINSKI_API Texture create_cube_texture_from_file(const std::string &the_path,
-                                                     CubeTextureLayout the_layout = CubeTextureLayout::HORIZONTAL_CROSS,
+                                                     CubeTextureLayout the_layout = CubeTextureLayout::H_CROSS,
                                                      bool compress = false);
     
     KINSKI_API Texture create_cube_texture_from_images(const std::vector<ImagePtr> &the_planes,
