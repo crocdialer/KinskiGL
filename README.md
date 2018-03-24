@@ -1,7 +1,7 @@
 KinskiGL
 ========
 
-![Preview](http://crocdialer.com/kinskiGL/kinski_cover.jpg)
+![Preview](http://crocdialer.com/wp-content/uploads/2018/03/kinski_cover.jpg)
 
 kinskiGL is a set of portable C++ libraries useful for cross-platform OpenGL applications.
 
