@@ -423,8 +423,8 @@ namespace kinski { namespace fs{
         string ext = get_extension(file_name);
         ext = ext.empty() ? ext : kinski::to_lower(ext.substr(1));
 
-        const std::list<string>
-        image_exts{"png", "jpg", "jpeg", "bmp", "tga"},
+        const std::set<string>
+        image_exts{"png", "jpg", "jpeg", "gif", "bmp", "tga", "hdr"},
         audio_exts{"wav", "m4a", "mp3"},
         model_exts{"obj", "dae", "3ds", "ply", "md5mesh", "fbx"},
         movie_exts{"mpg", "mov", "avi", "mp4", "m4v", "mkv"},

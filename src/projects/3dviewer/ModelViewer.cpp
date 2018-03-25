@@ -443,7 +443,7 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
 
 void ModelViewer::teardown()
 {
-    LOG_PRINT<<"ciao " << name();
+    LOG_PRINT << "ciao " << name();
 }
 
 /////////////////////////////////////////////////////////////////
@@ -494,7 +494,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
             {
                 m_normal_map = t;
                 m_dirty_shader = true;
-            }, true, true, 8.f);
+            }, true, false, 8.f);
         }
     }
     else if(theProperty == m_use_normal_map){ m_dirty_shader = true; }
@@ -529,7 +529,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         async_load_texture(*m_skybox_path, [this](const gl::Texture &t)
         {
             scene()->set_skybox(t);
-        });
+        }, false, true);
     }
     else if(theProperty == m_use_ground_plane)
     {

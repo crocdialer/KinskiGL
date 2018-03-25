@@ -69,8 +69,8 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     }
 
     // brdf term
-    vec3 diffuse = att * vec3(nDotL) * light.diffuse.rgb;
     vec3 specular = att * light.specular.rgb * F_schlick(the_spec.rgb, nDotL) * D_blinn(nDotH, the_spec.a);
+    vec3 diffuse = (1 - specular) * att * vec3(nDotL) * light.diffuse.rgb;
     return base_color * vec4(ambient + diffuse, 1.0) + vec4(specular, 0);
 }
 
@@ -113,6 +113,7 @@ void main()
   if (mag > 1.0) discard;
 
   normal.z = sqrt(1.0 - mag);
+  normalize(normal);
   vec3 spherePosEye = -(vertex_in.eyeVec + normal * vertex_in.point_size / 2.0);
 
   vec4 shade_color = vec4(0);
