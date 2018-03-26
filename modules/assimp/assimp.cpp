@@ -327,7 +327,7 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
         theMaterial->set_shinyness(shininess * strength);
     else
     {
-        theMaterial->set_shinyness(0.f);
+        theMaterial->set_shinyness(1.f);
         theMaterial->set_specular(vec4(0));
     }
     

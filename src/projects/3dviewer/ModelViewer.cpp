@@ -765,7 +765,7 @@ void ModelViewer::update_shader()
                     mat->set_textures(tmp);
                 }
 
-                mat->set_specular(gl::COLOR_WHITE);
+//                mat->set_specular(gl::COLOR_WHITE);
                 mat->set_shinyness(15.f);
             }
             else if(!mat->textures().empty()){ mat->set_textures({mat->textures().front()}); }
