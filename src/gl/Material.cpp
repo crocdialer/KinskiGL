@@ -104,6 +104,17 @@ namespace kinski { namespace gl {
         m_dirty_uniform_buffer = true;
     }
     
+    void Material::set_metalness(float m)
+    {
+        m_metalness = clamp(m, 0.f, 1.f);
+        m_dirty_uniform_buffer = true;
+    }
+    void Material::set_roughness(float r)
+    {
+        m_roughness = clamp(r, 0.f, 1.f);
+        m_dirty_uniform_buffer = true;
+    }
+    
     void Material::set_shinyness(float s)
     {
         m_shinyness = s;
@@ -163,6 +174,8 @@ namespace kinski { namespace gl {
             vec4 specular;
             vec4 emission;
             vec4 point_vals;
+//            float metalness;
+//            float roughness;
             float shinyness;
             int shadow_properties;
             uint32_t pad[2];
@@ -179,6 +192,8 @@ namespace kinski { namespace gl {
             m.point_vals[1] = m_point_attenuation.constant;
             m.point_vals[2] = m_point_attenuation.linear;
             m.point_vals[3] = m_point_attenuation.quadratic;
+//            m.metalness = m_metalness;
+//            m.roughness = m_roughness;
             m.shinyness = m_shinyness;
             m.shadow_properties = m_shadow_properties;
 
