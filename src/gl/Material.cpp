@@ -47,11 +47,9 @@ namespace kinski { namespace gl {
     m_shadow_properties(SHADOW_CAST | SHADOW_RECEIVE),
     m_diffuse(Color(1)),
     m_ambient(Color(1)),
-    m_specular(Color(0.1f, 0.1f, 0.1f, 1.f)),
     m_emission(gl::COLOR_BLACK),
     m_metalness(0.f),
     m_roughness(1.f),
-    m_shinyness(10.0f),
     m_line_width(1.f),
     m_point_size(1.f)
     {
@@ -63,7 +61,6 @@ namespace kinski { namespace gl {
         auto ret = MaterialPtr(new Material(nullptr));
         ret->load_queue_shader().push_back(the_type);
         return ret;
-//        return MaterialPtr(new Material(gl::create_shader(the_type)));
     }
     
     MaterialPtr Material::create(const ShaderPtr &theShader)
@@ -94,12 +91,6 @@ namespace kinski { namespace gl {
         m_dirty_uniform_buffer = true;
     }
     
-    void Material::set_specular(const Color &theColor)
-    {
-        m_specular = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
-        m_dirty_uniform_buffer = true;
-    }
-    
     void Material::set_emission(const Color &theColor)
     {
         m_emission = glm::clamp(theColor, glm::vec4(0), glm::vec4(1));
@@ -114,12 +105,6 @@ namespace kinski { namespace gl {
     void Material::set_roughness(float r)
     {
         m_roughness = clamp(r, 0.f, 1.f);
-        m_dirty_uniform_buffer = true;
-    }
-    
-    void Material::set_shinyness(float s)
-    {
-        m_shinyness = s;
         m_dirty_uniform_buffer = true;
     }
     
@@ -173,14 +158,12 @@ namespace kinski { namespace gl {
         {
             vec4 diffuse;
             vec4 ambient;
-            vec4 specular;
             vec4 emission;
             vec4 point_vals;
             float metalness;
             float roughness;
-            float shinyness;
             int shadow_properties;
-//            uint32_t pad[2];
+            uint32_t pad[1];
         };
         
         if(m_dirty_uniform_buffer)
@@ -188,7 +171,6 @@ namespace kinski { namespace gl {
             material_struct_std140 m;
             m.diffuse = m_diffuse;
             m.ambient = m_ambient;
-            m.specular = m_specular;
             m.emission = m_emission;
             m.point_vals[0] = m_point_size;
             m.point_vals[1] = m_point_attenuation.constant;
@@ -196,9 +178,7 @@ namespace kinski { namespace gl {
             m.point_vals[3] = m_point_attenuation.quadratic;
             m.metalness = m_metalness;
             m.roughness = m_roughness;
-            m.shinyness = m_shinyness;
             m.shadow_properties = m_shadow_properties;
-
             m_uniform_buffer.set_data(&m, sizeof(m));
         }
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, m_uniform_buffer.id());
@@ -210,9 +190,9 @@ namespace kinski { namespace gl {
         {
             m_uniforms["u_material.diffuse"] = m_diffuse;
             m_uniforms["u_material.ambient"] = m_ambient;
-            m_uniforms["u_material.specular"] = m_specular;
             m_uniforms["u_material.emmission"] = m_emission;
-            m_uniforms["u_material.shinyness"] = m_shinyness;
+            m_uniforms["u_metalness"] = m_metalness;
+            m_uniforms["u_roughness"] = m_roughness;
             m_uniforms["u_material.point_vals"] = vec4(m_point_size,
                                                        m_point_attenuation.constant,
                                                        m_point_attenuation.linear,

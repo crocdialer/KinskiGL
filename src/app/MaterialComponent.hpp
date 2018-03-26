@@ -35,7 +35,7 @@ namespace kinski
     private:
         std::vector<gl::MaterialPtr> m_materials;
         RangedProperty<int>::Ptr m_index;
-        Property_<gl::Color>::Ptr m_ambient, m_diffuse, m_specular;
+        Property_<gl::Color>::Ptr m_ambient, m_diffuse;
         Property_<bool>::Ptr m_blending, m_write_depth, m_read_depth, m_two_sided;
         
         Property_<std::string>::Ptr m_shader_vert, m_shader_frag, m_shader_geom,

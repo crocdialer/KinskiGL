@@ -39,7 +39,9 @@ namespace kinski
         m_fstop = Property_<float>::create("fstop", 1.f),
         m_gain = Property_<float>::create("gain", 2.f),
         m_fringe = Property_<float>::create("fringe", .7f),
-        m_ground_plane_texture_scale = Property_<float>::create("groundplane texture scale", 1.f);
+        m_ground_plane_texture_scale = Property_<float>::create("groundplane texture scale", 1.f),
+        m_mesh_metalness = RangedProperty<float>::create("metalness", 0.f, 0.f, 1.f),
+        m_mesh_roughness = RangedProperty<float>::create("roughness", 1.f, 0.f, 1.f);
         
         Property_<bool>::Ptr
         m_debug_focus = Property_<bool>::create("debug focus", false),

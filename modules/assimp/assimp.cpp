@@ -291,7 +291,7 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &c))
     {
-        theMaterial->set_specular(aicolor_convert(c));
+        //TODO: introduce cavity param!?
     }
     
     if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &c))
@@ -322,14 +322,13 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     
     ret1 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS, &shininess);
     ret2 = aiGetMaterialFloat(mtl, AI_MATKEY_SHININESS_STRENGTH, &strength);
+    float roughness = 1.f;
     
     if((ret1 == AI_SUCCESS) && (ret2 == AI_SUCCESS))
-        theMaterial->set_shinyness(shininess * strength);
-    else
     {
-        theMaterial->set_shinyness(1.f);
-        theMaterial->set_specular(vec4(0));
+        roughness = 1.f - clamp(shininess * strength / 80.f, 0.f, 1.f);
     }
+    theMaterial->set_roughness(roughness);
     
     if(AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_ENABLE_WIREFRAME, &wireframe))
         theMaterial->set_wireframe(wireframe);

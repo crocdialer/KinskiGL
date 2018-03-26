@@ -43,6 +43,8 @@ void ModelViewer::setup()
     register_property(m_skybox_path);
     register_property(m_ground_textures);
     register_property(m_ground_plane_texture_scale);
+    register_property(m_mesh_metalness);
+    register_property(m_mesh_roughness);
     
     register_property(m_focal_depth);
     register_property(m_focal_length);
@@ -556,6 +558,17 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
             t.set_wrap(GL_REPEAT, GL_REPEAT);
         }
     }
+    else if(theProperty == m_mesh_roughness || theProperty == m_mesh_metalness)
+    {
+        if(m_mesh)
+        {
+            for(auto &mat : m_mesh->materials())
+            {
+                mat->set_metalness(*m_mesh_metalness);
+                mat->set_roughness(*m_mesh_roughness);
+            }
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////
@@ -637,6 +650,12 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
         }
         m->set_animation_speed(*m_animation_speed);
         m->set_animation_index(*m_animation_index);
+        
+        for(auto &mat : m->materials())
+        {
+            mat->set_metalness(*m_mesh_metalness);
+            mat->set_roughness(*m_mesh_roughness);
+        }
     }
     return m;
 }
@@ -764,9 +783,6 @@ void ModelViewer::update_shader()
                     auto tmp = mat->textures(); tmp[1] = m_normal_map;
                     mat->set_textures(tmp);
                 }
-
-//                mat->set_specular(gl::COLOR_WHITE);
-                mat->set_shinyness(15.f);
             }
             else if(!mat->textures().empty()){ mat->set_textures({mat->textures().front()}); }
         }

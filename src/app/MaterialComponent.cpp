@@ -20,7 +20,6 @@ namespace kinski
     m_index(RangedProperty<int>::create("index", -1, -1, 256)),
     m_ambient(Property_<gl::Color>::create("ambient", gl::Color(0))),
     m_diffuse(Property_<gl::Color>::create("diffuse", gl::Color())),
-    m_specular(Property_<gl::Color>::create("specular", gl::Color())),
     m_blending(Property_<bool>::create("blending", false)),
     m_write_depth(Property_<bool>::create("write_depth", true)),
     m_read_depth(Property_<bool>::create("read_depth", true)),
@@ -35,7 +34,6 @@ namespace kinski
         register_property(m_index);
         register_property(m_ambient);
         register_property(m_diffuse);
-        register_property(m_specular);
         register_property(m_blending);
         register_property(m_write_depth);
         register_property(m_read_depth);
@@ -68,10 +66,6 @@ namespace kinski
         else if(theProperty == m_ambient)
         {
             active_mat->set_ambient(*m_ambient);
-        }
-        else if(theProperty == m_specular)
-        {
-            active_mat->set_specular(*m_specular);
         }
         else if(theProperty == m_blending)
         {
@@ -155,7 +149,6 @@ namespace kinski
         
         *m_diffuse = mat->diffuse();
         *m_ambient = mat->ambient();
-        *m_specular = mat->specular();
         *m_blending = mat->blending();
         *m_write_depth = mat->depth_write();
         *m_read_depth = mat->depth_test();

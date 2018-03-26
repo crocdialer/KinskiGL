@@ -111,19 +111,15 @@ namespace kinski { namespace gl {
         
         const Color& diffuse() const { return m_diffuse; };
         const Color& ambient() const { return m_ambient; };
-        const Color& specular() const { return m_specular; };
         const Color& emission() const { return m_emission; };
         const float metalness() const { return m_metalness; };
         const float roughness() const { return m_roughness; };
-        const float shinyness() const { return m_shinyness; };
         
         void set_diffuse(const Color &theColor);
         void set_ambient(const Color &theColor);
-        void set_specular(const Color &theColor);
         void set_emission(const Color &theColor);
         void set_metalness(float m);
         void set_roughness(float r);
-        void set_shinyness(float s);
         void set_point_size(float sz);
         void set_point_attenuation(float constant, float linear, float quadratic);
         void set_line_thickness(float t);
@@ -152,13 +148,9 @@ namespace kinski { namespace gl {
         // those are available in shader
         Color m_diffuse;
         Color m_ambient;
-        Color m_specular;
         Color m_emission;
         float m_metalness;
         float m_roughness;
-        
-        float m_shinyness;
-        
         float m_line_width;
         
         std::map<std::string, AssetLoadStatus> m_texture_paths;

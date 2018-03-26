@@ -5,12 +5,10 @@ struct Material
 {
     vec4 diffuse;
     vec4 ambient;
-    vec4 specular;
     vec4 emission;
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
     float metalness;
     float roughness;
-    float shinyness;
     int shadow_properties;
 };
 
@@ -113,7 +111,7 @@ void main()
 
   for(int i = 0; i < num_lights; ++i)
   {
-      shade_color += shade(u_lights[i], normal, eyeVec, vec4(1), u_material.specular, 1.0);
+      shade_color += shade(u_lights[i], normal, eyeVec, vec4(1), vec4(0.04), 1.0);
   }
   vertex_out.color = a_color * shade_color;
   gl_Position = u_modelViewProjectionMatrix * a_vertex;
