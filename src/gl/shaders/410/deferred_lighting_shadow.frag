@@ -33,7 +33,7 @@ uniform int u_light_index;
 
 // regular textures
 uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[6];
+uniform sampler2D u_sampler_2D[7];
 
 uniform mat4 u_shadow_matrix;
 uniform vec2 u_shadow_map_size = vec2(1024);
@@ -44,7 +44,8 @@ uniform float u_poisson_radius = 3.0;
 #define POSITION 2
 #define EMISSION 3
 #define SPECULAR 4
-#define SHADOW_MAP 5
+#define MATERIAL_PROPS 5
+#define SHADOW_MAP 6
 
 const int NUM_TAPS = 12;
 vec2 fTaps_Poisson[NUM_TAPS] = vec2[]
@@ -158,10 +159,11 @@ void main()
     vec4 color = texture(u_sampler_2D[ALBEDO], tex_coord);
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
-    vec4 comb_vals = texture(u_sampler_2D[SPECULAR], tex_coord);
-    vec4 specular = vec4(comb_vals.r, comb_vals.r, comb_vals.r, comb_vals.g);
+    vec4 specular = texture(u_sampler_2D[SPECULAR], tex_coord);
+    vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
+    specular.a = mat_prop.g;
+    bool receive_shadow = bool(mat_prop.b);
 
-    bool receive_shadow = bool(comb_vals.b);
     const float min_shade = 0.1, max_shade = 1.0;
     float shadow_factor = receive_shadow ? shadow_factor(u_sampler_2D[SHADOW_MAP], shadow_coords(position)) : 1.0;
     shadow_factor = mix(min_shade, max_shade, shadow_factor);

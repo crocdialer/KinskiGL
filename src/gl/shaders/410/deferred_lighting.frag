@@ -77,13 +77,14 @@ uniform int u_light_index;
 
 // regular textures
 uniform int u_numTextures;
-uniform sampler2D u_sampler_2D[5];
+uniform sampler2D u_sampler_2D[6];
 
 #define ALBEDO 0
 #define NORMAL 1
 #define POSITION 2
 #define EMISSION 3
 #define SPECULAR 4
+#define MATERIAL_PROPS 5
 
 in VertexData
 {
@@ -100,7 +101,8 @@ void main()
     vec3 normal = normalize(texture(u_sampler_2D[NORMAL], tex_coord).xyz);
     vec3 position = texture(u_sampler_2D[POSITION], tex_coord).xyz;
     vec4 specular = texture(u_sampler_2D[SPECULAR], tex_coord);
-    specular = vec4(specular.r, specular.r, specular.r, specular.g);
+    vec4 mat_prop = texture(u_sampler_2D[MATERIAL_PROPS], tex_coord);
+    specular.a = mat_prop.g;
     fragData = shade(u_lights[u_light_index], normal, position, color, specular, 1.0);
     //fragData = vec4(1, 0, 0, 1);
 }

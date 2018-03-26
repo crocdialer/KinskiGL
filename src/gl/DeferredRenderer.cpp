@@ -150,14 +150,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         fmt.set_color_internal_format(GL_RGB32F);
         fmt.enable_stencil_buffer(true);
 //        fmt.set_num_samples(4);
-        fmt.set_num_color_buffers(G_BUFFER_SIZE - 1);
+        fmt.set_num_color_buffers(G_BUFFER_SIZE);
         m_geometry_fbo = gl::Fbo(the_size, fmt);
-
-        gl::Texture::Format tex_fmt;
-        tex_fmt.set_internal_format(GL_RGBA32F);
-        tex_fmt.set_data_type(GL_FLOAT);
-        gl::Texture t(the_size.x, the_size.y, tex_fmt);
-        m_geometry_fbo.add_attachment(t);
 
         for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
         {

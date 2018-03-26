@@ -20,7 +20,8 @@ public:
         G_BUFFER_POSITION = 2,
         G_BUFFER_EMISSION = 3,
         G_BUFFER_SPECULAR = 4,
-        G_BUFFER_SIZE = 5
+        G_BUFFER_MATERIAL_PROPS = 5,
+        G_BUFFER_SIZE = 6
     };
 
     static DeferredRendererPtr create();

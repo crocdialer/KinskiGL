@@ -9,6 +9,8 @@ struct Material
     vec4 specular;
     vec4 emission;
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
+    float metalness;
+    float roughness;
     float shinyness;
     int shadow_properties;
 };
