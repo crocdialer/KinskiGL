@@ -129,7 +129,7 @@ bool CameraController::copy_frame_to_image(ImagePtr& the_image)
         uint32_t h = m_impl->m_gst_util.video_info().height;
 
         if(!the_image || the_image->width != w || the_image->height != h ||
-           the_image->num_coponents() != num_channels)
+           the_image->num_components() != num_channels)
         {
             the_image = Image::create(w, h, num_channels);
         }
