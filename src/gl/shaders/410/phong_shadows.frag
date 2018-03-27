@@ -119,7 +119,7 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     }
 
     // brdf term
-    vec3 f0 = mix(vec3(0.04), base_color.rgb, the_params.x);
+    vec3 f0 = mix(vec3(0.04), base_color.rgb * light.diffuse.rgb, the_params.x);
     vec3 F = F_schlick(f0, lDotH);
     float D = D_GGX(nDotH, the_params.y);
     float Vis = Vis_schlick(nDotL, nDotV, the_params.y);
@@ -189,20 +189,6 @@ float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
     factor += is_in_shadow ? 0 : 1;
   }
   return factor / NUM_TAPS;
-  //float xOffset = 1.0/u_shadow_map_size.x;
-  //float yOffset = 1.0/u_shadow_map_size.y;
-
-  //for(int y = -2 ; y <= 2 ; y++)
-  //{
-  //  for (int x = -2 ; x <= 2 ; x++)
-  //  {
-  //    vec2 offset = vec2(x * xOffset, y * yOffset);
-  //    float depth = texture(u_shadow_map[shadow_index], proj_coords.xy + offset).x;
-  //    bool is_in_shadow = depth < (proj_coords.z - EPSILON);
-  //    factor += is_in_shadow ? 0 : 1;
-  //  }
-  //}
-  //return (0.5 + (factor / 50.0));
 }
 
 void main()
