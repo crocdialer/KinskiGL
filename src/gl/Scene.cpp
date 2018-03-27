@@ -94,36 +94,36 @@ namespace kinski { namespace gl {
             if(the_object == m_root.get()){ continue; }
 
             gl::OBB boundingBox = the_object->obb();
-
-            if (ray_intersection ray_hit = boundingBox.intersect(ray))
+            
+            if(ray_intersection ray_hit = boundingBox.intersect(ray))
             {
-                if(high_precision)
+                const gl::Mesh *m = dynamic_cast<const gl::Mesh*>(the_object);
+                bool use_high_prec = high_precision && m && m->geometry()->primitive_type() == GL_TRIANGLES;
+                
+                if(use_high_prec)
                 {
-                    if(const gl::Mesh *m = dynamic_cast<const gl::Mesh*>(the_object))
+                    gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
+                    const auto &vertices = m->geometry()->vertices();
+                    const auto &indices = m->geometry()->indices();
+                    
+                    for(const auto &e : m->entries())
                     {
-                        gl::Ray ray_in_object_space = ray.transform(glm::inverse(the_object->global_transform()));
-                        const auto &vertices = m->geometry()->vertices();
-                        const auto &indices = m->geometry()->indices();
+                        if(e.primitive_type && (e.primitive_type != GL_TRIANGLES)){ continue; }
                         
-                        for(const auto &e : m->entries())
+                        for(uint32_t i = 0; i < e.num_indices; i += 3)
                         {
-                            if(e.primitive_type && (e.primitive_type != GL_TRIANGLES)){ continue; }
+                            gl::Triangle t(vertices[indices[i + e.base_index] + e.base_vertex],
+                                           vertices[indices[i + e.base_index + 1] + e.base_vertex],
+                                           vertices[indices[i + e.base_index + 2] + e.base_vertex]);
                             
-                            for(uint32_t i = 0; i < e.num_indices; i += 3)
+                            if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
                             {
-                                gl::Triangle t(vertices[indices[i + e.base_index] + e.base_vertex],
-                                               vertices[indices[i + e.base_index + 1] + e.base_vertex],
-                                               vertices[indices[i + e.base_index + 2] + e.base_vertex]);
-                                
-                                if(ray_triangle_intersection ray_tri_hit = t.intersect(ray_in_object_space))
-                                {
-                                    float distance_scale = glm::length(the_object->global_scale() *
-                                                                       ray_in_object_space.direction);
-                                    ray_tri_hit.distance *= distance_scale;
-                                    clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
-                                    LOG_TRACE_2 << "hit distance: " << ray_tri_hit.distance;
-                                    break;
-                                }
+                                float distance_scale = glm::length(the_object->global_scale() *
+                                                                   ray_in_object_space.direction);
+                                ray_tri_hit.distance *= distance_scale;
+                                clicked_items.push_back(range_item_t(the_object, ray_tri_hit.distance));
+                                LOG_TRACE_2 << "hit distance: " << ray_tri_hit.distance;
+                                break;
                             }
                         }
                     }
