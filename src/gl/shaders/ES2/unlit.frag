@@ -7,10 +7,11 @@ struct Material
 {
     vec4 diffuse;
     vec4 ambient;
-    vec4 specular;
     vec4 emission;
     vec4 point_vals;// (size, constant_att, linear_att, quad_att)
-    float shinyness;
+    float metalness;
+    float roughness;
+    int shadow_properties;
 };
 uniform Material u_material;
 
