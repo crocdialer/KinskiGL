@@ -1,6 +1,7 @@
 #version 410
 
 #define PI 3.1415926535897932384626433832795
+#define ONE_OVER_PI	0.318309886
 #define NUM_SHADOW_LIGHTS 4
 #define EPSILON 0.00001
 
@@ -57,7 +58,7 @@ vec3 projected_coords(in vec4 the_lightspace_pos)
 vec4 BRDF_Lambertian(vec4 color, float metalness)
 {
 	color.rgb = mix(color.rgb, vec3(0.0), metalness);
-	// color.rgb *= ONE_OVER_PI;
+	color.rgb *= ONE_OVER_PI;
 	return color;
 }
 
@@ -107,7 +108,7 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
         // distance^2
         float dist2 = dot(lightDir, lightDir);
         float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
-        att *= min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
+        att *= light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation);
 
         if(light.type > 1)
         {
@@ -119,7 +120,7 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
     }
 
     // brdf term
-    vec3 f0 = mix(vec3(0.04), base_color.rgb * light.diffuse.rgb, the_params.x);
+    vec3 f0 = mix(vec3(0.04), base_color.rgb, the_params.x) * light.diffuse.rgb;
     vec3 F = F_schlick(f0, lDotH);
     float D = D_GGX(nDotH, the_params.y);
     float Vis = Vis_schlick(nDotL, nDotV, the_params.y);
@@ -193,11 +194,8 @@ float shadow_factor(in sampler2D shadow_map, in vec3 light_space_pos)
 
 void main()
 {
+  vec4 texColors = vertex_in.color * u_material.diffuse;
 
-
-  vec4 texColors = vertex_in.color;//vec4(1);
-
-  //for(int i = 0; i < u_numTextures; i++)
   if(u_numTextures > 0)
     texColors *= texture(u_sampler_2D[0], vertex_in.texCoord.st);
 

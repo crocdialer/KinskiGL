@@ -49,7 +49,7 @@ namespace kinski { namespace gl {
     m_ambient(Color(1)),
     m_emission(gl::COLOR_BLACK),
     m_metalness(0.f),
-    m_roughness(1.f),
+    m_roughness(.8f),
     m_line_width(1.f),
     m_point_size(1.f)
     {

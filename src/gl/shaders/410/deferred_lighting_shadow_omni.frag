@@ -107,7 +107,7 @@ float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 l
 vec4 BRDF_Lambertian(vec4 color, float metalness)
 {
 	color.rgb = mix(color.rgb, vec3(0.0), metalness);
-	// color.rgb *= ONE_OVER_PI;
+	color.rgb *= ONE_OVER_PI;
 	return color;
 }
 
@@ -154,10 +154,10 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   float att = shade_factor;
   float dist2 = dot(lightDir, lightDir);
   float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
-  att *= min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
+  att *= light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation);
 
   // brdf term
-  vec3 f0 = mix(vec3(0.04), base_color.rgb * light.diffuse.rgb, the_params.x);
+  vec3 f0 = mix(vec3(0.04), base_color.rgb, the_params.x) * light.diffuse.rgb;
   vec3 F = F_schlick(f0, lDotH);
   float D = D_GGX(nDotH, the_params.y);
   float Vis = Vis_schlick(nDotL, nDotV, the_params.y);

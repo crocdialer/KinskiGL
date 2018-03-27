@@ -1,6 +1,7 @@
 #version 410
 
 #define PI 3.1415926535897932384626433832795
+#define ONE_OVER_PI	0.318309886
 #define MAX_NUM_LIGHTS 8
 
 struct Material
@@ -32,7 +33,7 @@ struct Lightsource
 vec4 BRDF_Lambertian(vec4 color, float metalness)
 {
 	color.rgb = mix(color.rgb, vec3(0.0), metalness);
-	// color.rgb *= ONE_OVER_PI;
+	color.rgb *= ONE_OVER_PI;
 	return color;
 }
 
@@ -64,32 +65,44 @@ float D_GGX(float ndoth, float roughness)
 vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_color,
            in vec4 the_params, float shade_factor)
 {
-  vec3 lightDir = light.position - eyeVec;
-  vec3 L = normalize(lightDir);
-  vec3 E = normalize(-eyeVec);
-  // vec3 R = reflect(-L, normal);
-  vec3 H = normalize(L + E);
-  vec3 ambient = /*mat.ambient */ light.ambient.rgb;
-  float nDotL = max(0.f, dot(normal, L));
-  float nDotH = max(0.f, dot(normal, H));
-  float nDotV = max(0.f, dot(normal, E));
-  float lDotH = max(0.f, dot(L, H));
+    vec3 lightDir = light.type > 0 ? (light.position - eyeVec) : -light.direction;
+    vec3 L = normalize(lightDir);
+    vec3 E = normalize(-eyeVec);
+    vec3 H = normalize(L + E);
+    // vec3 R = reflect(-L, normal);
 
-  // distance^2
-  float att = shade_factor;
-  float dist2 = dot(lightDir, lightDir);
-  float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
-  att *= min(1.f, light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation));
+    vec3 ambient = /*mat.ambient */ light.ambient.rgb;
+    float nDotL = max(0.f, dot(normal, L));
+    float nDotH = max(0.f, dot(normal, H));
+    float nDotV = max(0.f, dot(normal, E));
+    float lDotH = max(0.f, dot(L, H));
+    float att = shade_factor;
 
-  // brdf term
-  vec3 f0 = mix(vec3(0.04), base_color.rgb * light.diffuse.rgb, the_params.x);
-  vec3 F = F_schlick(f0, lDotH);
-  float D = D_GGX(nDotH, the_params.y);
-  float Vis = Vis_schlick(nDotL, nDotV, the_params.y);
+    if(light.type > 0)
+    {
+        // distance^2
+        float dist2 = dot(lightDir, lightDir);
+        float v = clamp(1.f - pow(dist2 / (light.radius * light.radius), 2.f), 0.f, 1.f);
+        att *= light.intensity * v * v / (1.f + dist2 * light.quadraticAttenuation);
 
-  vec3 specular = F * D * Vis;
-  vec4 diffuse = BRDF_Lambertian(base_color, the_params.x) * light.diffuse;
-  return vec4(ambient, 1.0) + vec4(diffuse.rgb + specular, diffuse.a) * att * nDotL;
+        if(light.type > 1)
+        {
+            float spot_effect = dot(normalize(light.direction), -L);
+            att *= spot_effect < light.spotCosCutoff ? 0 : 1;
+            spot_effect = pow(spot_effect, light.spotExponent);
+            att *= spot_effect;
+        }
+    }
+
+    // brdf term
+    vec3 f0 = mix(vec3(0.04), base_color.rgb, the_params.x) * light.diffuse.rgb;
+    vec3 F = F_schlick(f0, lDotH);
+    float D = D_GGX(nDotH, the_params.y);
+    float Vis = Vis_schlick(nDotL, nDotV, the_params.y);
+
+    vec3 specular = F * D * Vis;
+    vec4 diffuse = BRDF_Lambertian(base_color, the_params.x) * light.diffuse;
+    return vec4(ambient, 1.0) + vec4(diffuse.rgb + specular, diffuse.a) * att * nDotL;
 }
 
 uniform int u_numTextures;
@@ -117,7 +130,7 @@ out vec4 fragData;
 
 void main()
 {
-  vec4 texColors = vertex_in.color;
+  vec4 texColors = vertex_in.color * u_material.diffuse;
 
   //for(int i = 0; i < u_numTextures; i++)
   if(u_numTextures > 0)
