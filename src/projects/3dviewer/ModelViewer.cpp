@@ -78,6 +78,7 @@ void ModelViewer::setup()
     m_ground_mesh = gl::Mesh::create(gl::Geometry::create_plane(400, 400),
                                      gl::Material::create(gl::create_shader(gl::ShaderType::PHONG_SHADOWS)));
     m_ground_mesh->material()->set_shadow_properties(gl::Material::SHADOW_RECEIVE);
+    m_ground_mesh->material()->set_roughness(0.4);
     m_ground_mesh->transform() = glm::rotate(mat4(), -glm::half_pi<float>(), gl::X_AXIS);
     m_ground_mesh->add_tag(tag_ground_plane);
     scene()->add_object(m_ground_mesh);

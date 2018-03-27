@@ -42,9 +42,10 @@ void main()
   // vec4 texColors = vertex_in.color;
   vec4 texColors = texture(u_sampler_2D[COLOR], vertex_in.texCoord.st);
   if(smoothstep(0.0, 1.0, texColors.a) < 0.01){ discard; }
-  vec3 normal = normalize(2.0 * (texture(u_sampler_2D[NORMALMAP],
-                                 vertex_in.texCoord.xy).xyz - vec3(0.5)));
-  mat3 transpose_tbn = mat3(vertex_in.tangent, cross(vertex_in.normal, vertex_in.tangent), vertex_in.normal);
+  vec3 normal = 2.0 * texture(u_sampler_2D[NORMALMAP], vertex_in.texCoord.xy).xyz - vec3(1.0);
+  vec3 n_norm = normalize(vertex_in.normal);
+  vec3 t_norm = normalize(vertex_in.tangent);
+  mat3 transpose_tbn = mat3(t_norm, cross(n_norm, t_norm), n_norm);
   normal = transpose_tbn * normal;
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(normal, 1);

@@ -1,6 +1,7 @@
 #version 410
 
 #define PI 3.1415926535897932384626433832795
+#define ONE_OVER_PI	0.318309886
 #define MAX_NUM_LIGHTS 512
 #define EPSILON 0.0010
 
@@ -103,6 +104,13 @@ float shadow_factor(in samplerCube shadow_cube, in vec3 eye_space_pos, in vec3 l
 //     return pow(NoH, 4 * shinyness);
 // }
 
+vec4 BRDF_Lambertian(vec4 color, float metalness)
+{
+	color.rgb = mix(color.rgb, vec3(0.0), metalness);
+	// color.rgb *= ONE_OVER_PI;
+	return color;
+}
+
 vec3 F_schlick(vec3 f0, float u)
 {
     return f0 + (vec3(1.0) - f0) * pow(1.0 - u, 5.0);
@@ -154,9 +162,9 @@ vec4 shade(in Lightsource light, in vec3 normal, in vec3 eyeVec, in vec4 base_co
   float D = D_GGX(nDotH, the_params.y);
   float Vis = Vis_schlick(nDotL, nDotV, the_params.y);
 
-  vec3 specular = att * F * D * Vis;
-  vec3 diffuse = (1 - specular) * att * vec3(nDotL) * light.diffuse.rgb;
-  return base_color * vec4(ambient + diffuse, 1.0) + vec4(specular, 0);
+  vec3 specular = F * D * Vis;
+  vec4 diffuse = BRDF_Lambertian(base_color, the_params.x) * light.diffuse;
+  return vec4(ambient, 1.0) + vec4(diffuse.rgb + specular, diffuse.a) * att * nDotL;
 }
 
 in VertexData
