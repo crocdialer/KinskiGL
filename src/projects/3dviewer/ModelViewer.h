@@ -95,6 +95,8 @@ namespace kinski
         
         void update_shader();
         
+        void render_bones(const gl::MeshPtr &the_mesh, const gl::CameraPtr &the_cam, bool use_labels);
+        
     public:
         
         ModelViewer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

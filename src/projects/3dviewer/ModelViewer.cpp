@@ -134,8 +134,6 @@ void ModelViewer::draw()
     gl::set_matrices(camera());
     if(draw_grid()){ gl::draw_grid(50, 50); }
 
-    gl::Fbo depth_fbo;
-
     auto draw_fn = [this]()
     {
         scene()->render(camera());
@@ -150,31 +148,6 @@ void ModelViewer::draw()
 
         // draw enabled light dummies
         m_light_component->draw_light_dummies();
-
-        if(m_mesh && *m_display_bones) // slow!
-        {
-            // crunch bone data
-            vector<vec3> skel_points;
-            vector<string> bone_names;
-            build_skeleton(m_mesh->root_bone(), m_mesh->global_transform(), skel_points, bone_names);
-            gl::load_matrix(gl::MODEL_VIEW_MATRIX, camera()->view_matrix());
-
-            // draw bones
-            gl::draw_lines(skel_points, gl::COLOR_DARK_RED, 5.f);
-
-            // draw labels
-            for(uint32_t i = 1; i < skel_points.size(); i += 2)
-            {
-                vec2 p2d = gl::project_point_to_screen(mix(skel_points[i], skel_points[i - 1], 0.5f), camera());
-                gl::draw_text_2D(bone_names[i / 2], fonts()[0], gl::COLOR_WHITE, p2d);
-            }
-
-            for(const auto &p : skel_points)
-            {
-                vec2 p2d = gl::project_point_to_screen(p, camera());
-                gl::draw_circle(p2d, 5.f, gl::COLOR_WHITE, false);
-            }
-        }
     };
 
     if(*m_use_post_process)
@@ -187,7 +160,6 @@ void ModelViewer::draw()
         m_post_process_mat->set_textures({  m_post_process_fbo.texture(),
                                             m_post_process_fbo.depth_texture() });
         textures()[TEXTURE_OFFSCREEN] = tex;
-        depth_fbo = m_post_process_fbo;
     }
     if(*m_use_warping)
     {
@@ -205,7 +177,6 @@ void ModelViewer::draw()
                 gl::clear();
                 draw_fn();
             });
-            depth_fbo = m_offscreen_fbo;
         }
         
         for(uint32_t i = 0; i < m_warp_component->num_warps(); i++)
@@ -221,7 +192,10 @@ void ModelViewer::draw()
         if(*m_use_post_process){ gl::draw_quad(gl::window_dimension(), m_post_process_mat); }
         else{ draw_fn(); }
     }
-
+    
+    // render bones
+    if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
+    
     if(*m_draw_fps)
     {
         gl::draw_text_2D(to_string(fps(), 1), fonts()[0],
@@ -786,6 +760,37 @@ void ModelViewer::update_shader()
                 }
             }
             else if(!mat->textures().empty()){ mat->set_textures({mat->textures().front()}); }
+        }
+    }
+}
+
+void ModelViewer::render_bones(const gl::MeshPtr &the_mesh, const gl::CameraPtr &the_cam,
+                               bool use_labels)
+{
+    if(!the_mesh || !the_cam){ return; }
+    
+    // crunch bone data
+    vector<vec3> skel_points;
+    vector<string> bone_names;
+    build_skeleton(the_mesh->root_bone(), the_mesh->global_transform(), skel_points, bone_names);
+    gl::load_matrix(gl::MODEL_VIEW_MATRIX, the_cam->view_matrix());
+    
+    // draw bones
+    gl::draw_lines(skel_points, gl::COLOR_DARK_RED, 5.f);
+    
+    for(const auto &p : skel_points)
+    {
+        vec2 p2d = gl::project_point_to_screen(p, the_cam);
+        gl::draw_circle(p2d, 5.f, gl::COLOR_WHITE, false);
+    }
+    
+    if(use_labels)
+    {
+        // draw labels
+        for(uint32_t i = 1; i < skel_points.size(); i += 2)
+        {
+            vec2 p2d = gl::project_point_to_screen(mix(skel_points[i], skel_points[i - 1], 0.5f), the_cam);
+            gl::draw_text_2D(bone_names[i / 2], fonts()[0], gl::COLOR_WHITE, p2d);
         }
     }
 }

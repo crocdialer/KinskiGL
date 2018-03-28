@@ -42,6 +42,6 @@ void main()
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(vertex_in.normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
-  out_emission = u_material.emission;
+  out_emission = u_material.emission * texColors;
   out_material_props = vec4(u_material.metalness, u_material.roughness, u_material.shadow_properties & 2, 1);
 }

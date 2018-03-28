@@ -50,7 +50,7 @@ void main()
   out_color = u_material.diffuse * texColors;
   out_normal = vec4(normal, 1);
   out_position = vec4(vertex_in.eyeVec, 1);
-  out_emission = u_material.emission;
+  out_emission = u_material.emission * texColors;
   float roughness = 1 - texture(u_sampler_2D[SPECULARMAP], vertex_in.texCoord.xy).x;
   out_material_props = vec4(u_material.metalness, roughness, u_material.shadow_properties & 2, 1);
 }
