@@ -97,6 +97,8 @@ namespace kinski
         
         void render_bones(const gl::MeshPtr &the_mesh, const gl::CameraPtr &the_cam, bool use_labels);
         
+        void process_joystick(float the_time_delta);
+        
     public:
         
         ModelViewer(int argc = 0, char *argv[] = nullptr):ViewerApp(argc, argv){};

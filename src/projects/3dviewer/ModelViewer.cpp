@@ -103,27 +103,12 @@ void ModelViewer::update(float timeDelta)
         
         gl::SelectVisitor<gl::Mesh> visitor;
         l->accept(visitor);
-        for(auto m : visitor.get_objects()){ m->material()->set_emission(1.2f * l->diffuse()); }
+        for(auto m : visitor.get_objects()){ m->material()->set_emission(1.8f * l->diffuse()); }
         
         if(selected_mesh() && l == selected_mesh()->parent()){ m_light_component->set_index(i); }
     }
 
-    for(auto &j : get_joystick_states())
-    {
-        if(m_mesh)
-        {
-            auto val = (j.trigger() + gl::vec2(1)) / 2.f;
-            m_mesh->transform() = glm::rotate(m_mesh->transform(),
-                                              timeDelta * (val.y - val.x) * 7.f,
-                                              gl::Y_AXIS);
-
-            if(!m_mesh->animations().empty())
-            {
-                *m_animation_index += 2.f * timeDelta * j.cross().x;
-                *m_animation_speed -= .5f * timeDelta * j.cross().y;
-            }
-        }
-    }
+    process_joystick(timeDelta);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -791,6 +776,26 @@ void ModelViewer::render_bones(const gl::MeshPtr &the_mesh, const gl::CameraPtr 
         {
             vec2 p2d = gl::project_point_to_screen(mix(skel_points[i], skel_points[i - 1], 0.5f), the_cam);
             gl::draw_text_2D(bone_names[i / 2], fonts()[0], gl::COLOR_WHITE, p2d);
+        }
+    }
+}
+
+void ModelViewer::process_joystick(float the_time_delta)
+{
+    for(auto &j : get_joystick_states())
+    {
+        if(m_mesh)
+        {
+            auto val = (j.trigger() + gl::vec2(1)) / 2.f;
+            m_mesh->transform() = glm::rotate(m_mesh->transform(),
+                                              the_time_delta * (val.y - val.x) * 7.f,
+                                              gl::Y_AXIS);
+            
+            if(!m_mesh->animations().empty())
+            {
+                *m_animation_index += 2.f * the_time_delta * j.cross().x;
+                *m_animation_speed -= .5f * the_time_delta * j.cross().y;
+            }
         }
     }
 }
