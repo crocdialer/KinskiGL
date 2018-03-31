@@ -59,7 +59,7 @@ namespace kinski { namespace gl {
     MaterialPtr Material::create(const gl::ShaderType &the_type)
     {
         auto ret = MaterialPtr(new Material(nullptr));
-        ret->load_queue_shader().push_back(the_type);
+        ret->queued_shader().push_back(the_type);
         return ret;
     }
     
@@ -123,15 +123,15 @@ namespace kinski { namespace gl {
     void Material::set_shader(const ShaderPtr &theShader)
     {
         m_shader = theShader;
-        m_load_queue_shader.clear();
+        m_queued_shader.clear();
     };
     
     const ShaderPtr& Material::shader()
     {
-        if(!m_shader && !m_load_queue_shader.empty())
+        if(!m_shader && !m_queued_shader.empty())
         {
-            m_shader = gl::create_shader(m_load_queue_shader.back());
-            m_load_queue_shader.clear();
+            m_shader = gl::create_shader(m_queued_shader.back());
+            m_queued_shader.clear();
         }
         return m_shader;
     }
@@ -141,9 +141,9 @@ namespace kinski { namespace gl {
         return m_shader;
     }
     
-    void Material::queue_texture_load(const std::string &the_texture_path)
+    void Material::enqueue_texture(const std::string &the_texture_path)
     {
-        m_texture_paths[the_texture_path] = AssetLoadStatus::NOT_LOADED;
+        m_queued_textures[the_texture_path] = AssetLoadStatus::NOT_LOADED;
     }
     
     void Material::update_uniforms(const ShaderPtr &the_shader)

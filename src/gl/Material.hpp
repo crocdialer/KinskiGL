@@ -23,19 +23,22 @@ namespace kinski { namespace gl {
     {
     public:
         
-        typedef boost::variant<int32_t, uint32_t, float, double, vec2, vec3, vec4,
+        using UniformValue = boost::variant<int32_t, uint32_t, float, double, vec2, vec3, vec4,
         mat3, mat4,
         std::vector<int32_t>, std::vector<uint32_t>, std::vector<GLfloat>,
         std::vector<vec2>, std::vector<vec3>, std::vector<vec4>,
-        std::vector<mat3>, std::vector<mat4> > UniformValue;
+        std::vector<mat3>, std::vector<mat4>>;
         
-        typedef std::unordered_map<std::string, UniformValue> UniformMap;
+        using UniformMap = std::unordered_map<std::string, UniformValue>;
 
         enum CullType{CULL_NONE = 0, CULL_FRONT = 1, CULL_BACK = 2};
 
         enum ShadowProperties{SHADOW_NONE = 0, SHADOW_CAST = 1, SHADOW_RECEIVE = 2};
-
-        enum class AssetLoadStatus{ NOT_LOADED, LOADED, NOT_FOUND };
+        
+        enum class TextureType{UNKNOWN = 0, DIFFUSE = 1, NORMAL = 2, EMISSION = 3, ROUGHNESS = 4,
+            METALNESS = 5, DISPLACEMENTMAP = 6, SHADOWMAP = 7, ENVIROMENTMAP = 8};
+        
+        enum class AssetLoadStatus{ NOT_LOADED = 0, LOADED = 1, NOT_FOUND = 2 };
         
         static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
         static MaterialPtr create(const ShaderPtr &theShader);
@@ -63,13 +66,13 @@ namespace kinski { namespace gl {
         
         void clear_textures(){ m_textures.clear(); }
         
-        std::map<std::string, AssetLoadStatus>& texture_paths(){ return m_texture_paths; }
-        const std::map<std::string, AssetLoadStatus>& texture_paths() const { return m_texture_paths; }
+        std::map<std::string, AssetLoadStatus>& queued_textures(){ return m_queued_textures; }
+        const std::map<std::string, AssetLoadStatus>& queued_textures() const { return m_queued_textures; }
         
-        void queue_texture_load(const std::string &the_texture_path);
+        void enqueue_texture(const std::string &the_texture_path);
         
-        std::vector<gl::ShaderType>& load_queue_shader(){ return m_load_queue_shader; }
-        const std::vector<gl::ShaderType>& load_queue_shader() const { return m_load_queue_shader; }
+        std::vector<gl::ShaderType>& queued_shader(){ return m_queued_shader; }
+        const std::vector<gl::ShaderType>& queued_shader() const { return m_queued_shader; }
         
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
@@ -153,10 +156,10 @@ namespace kinski { namespace gl {
         float m_roughness;
         float m_line_width;
         
-        std::map<std::string, AssetLoadStatus> m_texture_paths;
+        std::map<std::string, AssetLoadStatus> m_queued_textures;
         std::vector<Texture> m_textures;
         
-        std::vector<gl::ShaderType> m_load_queue_shader;
+        std::vector<gl::ShaderType> m_queued_shader;
         
         // point attributes
         float m_point_size;

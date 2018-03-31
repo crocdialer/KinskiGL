@@ -118,7 +118,7 @@ namespace kinski
             for(const std::string& n : tex_names)
             {
                 if(n.empty()) continue;
-                active_mat->queue_texture_load(n);
+                active_mat->enqueue_texture(n);
             }
         }
     }

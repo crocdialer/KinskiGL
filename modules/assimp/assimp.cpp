@@ -342,14 +342,14 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     {
         if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
         {
-            theMaterial->texture_paths()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
+            theMaterial->queued_textures()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
         }
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
     {
         LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
-        theMaterial->texture_paths()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
+        theMaterial->queued_textures()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
     }
     return theMaterial;
 }
@@ -456,7 +456,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         
         for(uint32_t i = 0; i < materials.size(); i++)
         {
-            materials[i]->load_queue_shader().push_back(sh_type);
+            materials[i]->queued_shader().push_back(sh_type);
         }
         LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
         geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";

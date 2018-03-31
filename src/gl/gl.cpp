@@ -1169,11 +1169,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 
         // process load queues
         // texture queue
-        if(!the_mat->texture_paths().empty())
+        if(!the_mat->queued_textures().empty())
         {
             std::list<gl::Texture> tmp_textures;
             
-            for(auto &pair : the_mat->texture_paths())
+            for(auto &pair : the_mat->queued_textures())
             {
                 if(pair.second == gl::Material::AssetLoadStatus::NOT_LOADED)
                 {
@@ -1193,21 +1193,19 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         }
 
         // shader queue
-        for(auto &sh_type : the_mat->load_queue_shader())
+        for(auto &sh_type : the_mat->queued_shader())
         {
             try{ the_mat->set_shader(gl::create_shader(sh_type)); }
             catch(Exception &e){ LOG_WARNING << e.what(); }
 
         }
-        the_mat->load_queue_shader().clear();
+        the_mat->queued_shader().clear();
         if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
 
         // bind the shader
         gl::ShaderPtr shader = override_shader ? override_shader : the_mat->shader();
         shader->bind();
         KINSKI_CHECK_GL_ERRORS();
-        
-        char buf[512];
 
         // twoSided
         if(!last_mat || (last_mat->culling() != the_mat->culling() ||
@@ -1312,7 +1310,8 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
 #if !defined(KINSKI_GLES)
         int32_t tex_rect = 0;
 #endif
-
+        char buf[512];
+        
         for(auto &t : the_mat->textures())
         {
             if(!t){ continue; }

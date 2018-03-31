@@ -29,7 +29,8 @@ template class Property_<gl::vec4>;
 namespace
 {
     std::atomic<uint32_t> num_tasks(0);
-//    std::mutex mutex;
+    uint32_t next_task_id = 0;
+    std::mutex task_mutex;
 }
 
 App::App(int argc, char *argv[]):
@@ -139,13 +140,13 @@ void App::timing(double timeStamp)
 
 void App::inc_task()
 {
-//        std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<std::mutex> lock(task_mutex);
     num_tasks++;
 }
 
 void App::dec_task()
 {
-//        std::unique_lock<std::mutex> lock(mutex);
+    std::unique_lock<std::mutex> lock(task_mutex);
     if(num_tasks){ num_tasks--; }
 }
 

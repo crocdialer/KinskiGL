@@ -507,7 +507,7 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
         m_ground_mesh->material()->clear_textures();
         for(const auto &f : m_ground_textures->value())
         {
-            m_ground_mesh->material()->queue_texture_load(f);
+            m_ground_mesh->material()->enqueue_texture(f);
         }
     }
     else if(theProperty == m_ground_plane_texture_scale)
@@ -646,7 +646,7 @@ void ModelViewer::async_load_asset(const std::string &the_path,
                           (*m_shadow_receive ? gl::Material::SHADOW_RECEIVE : 0);
                 mat->set_shadow_properties(val);
 
-                for(auto &p : mat->texture_paths())
+                for(auto &p : mat->queued_textures())
                 {
                     try
                     {

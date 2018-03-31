@@ -52,6 +52,8 @@ private:
     gl::MaterialPtr m_mat_lighting, m_mat_lighting_shadow, m_mat_lighting_shadow_omni,
     m_mat_lighting_emissive, m_mat_stencil;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
+    
+    bool m_skybox_loaded = false;
 };
 
 }}

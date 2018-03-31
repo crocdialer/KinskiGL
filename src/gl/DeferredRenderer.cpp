@@ -165,7 +165,10 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
 
     std::list<RenderBin::item> opaque_items, blended_items;
     sort_render_bin(the_renderbin, opaque_items, blended_items);
-
+    
+    // tmp hack to draw all geometry
+    opaque_items.insert(opaque_items.end(), blended_items.begin(), blended_items.end());
+    
     // bind G-Buffer
     m_geometry_fbo.bind();
     gl::clear();
@@ -216,6 +219,22 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
         m_mat_lighting_shadow->add_texture(m_shadow_map);
         m_mat_lighting_shadow_omni->add_texture(m_shadow_cube);
     }
+//    if(!m_skybox_loaded)
+//    {
+//        if(the_renderbin->scene->skybox())
+//        {
+//            auto t = the_renderbin->scene->skybox()->material()->textures().front();
+//
+//            if(t && t.target() == GL_TEXTURE_CUBE_MAP)
+//            {
+//                m_mat_lighting->add_texture(t);
+//                m_mat_lighting_shadow->add_texture(t);
+//                m_mat_lighting_shadow_omni->add_texture(t);
+//                m_skybox_loaded = true;
+//                LOG_DEBUG << "enviroment-map loaded";
+//            }
+//        }
+//    }
     m_lighting_fbo.bind();
 
     // update frustum for directional lights
