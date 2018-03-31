@@ -336,20 +336,28 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     if((AI_SUCCESS == aiGetMaterialInteger(mtl, AI_MATKEY_TWOSIDED, &two_sided)))
         theMaterial->set_two_sided(two_sided);
     
-    //int num_diffuse = aiGetMaterialTextureCount(mtl, aiTextureType_DIFFUSE);
-    
-    for (int i = 0; i < 10; i++)
+    // DIFFUSE
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &texPath))
     {
-        if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE + i), 0, &texPath))
-        {
-            theMaterial->queued_textures()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
-        }
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::COLOR);
+    }
+    
+    // EMISSION
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_EMISSIVE), 0, &texPath))
+    {
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::EMISSION);
+    }
+    
+    // ROUGHNESS / SHINYNESS
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SHININESS), 0, &texPath))
+    {
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::ROUGHNESS);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
     {
         LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
-        theMaterial->queued_textures()[string(texPath.data)] = gl::Material::AssetLoadStatus::NOT_LOADED;
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
     }
     return theMaterial;
 }

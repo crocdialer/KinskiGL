@@ -636,7 +636,6 @@ namespace kinski { namespace gl {
         }
 #endif
         // add the texture to the material
-        material->clear_textures();
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
         material->add_texture(theTexture);
 
@@ -670,7 +669,8 @@ namespace kinski { namespace gl {
         }
 
         // add the texture to the material
-        material->set_textures({the_texture, the_mask});
+        material->add_texture(the_texture);
+        material->add_texture(the_mask, gl::Material::TextureType::MASK);
         material->set_diffuse(gl::Color(the_brightness, the_brightness, the_brightness, 1.f));
 
         vec2 sz = theSize;
@@ -1171,25 +1171,29 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         // texture queue
         if(!the_mat->queued_textures().empty())
         {
-            std::list<gl::Texture> tmp_textures;
+//            std::list<gl::Texture> tmp_textures;
+            int i = 0;
             
             for(auto &pair : the_mat->queued_textures())
             {
-                if(pair.second == gl::Material::AssetLoadStatus::NOT_LOADED)
+                if(pair.second.second == gl::Material::AssetLoadStatus::NOT_LOADED)
                 {
                     try
                     {
-                        tmp_textures.push_back(gl::create_texture_from_file(pair.first, true, true));
-                        pair.second = gl::Material::AssetLoadStatus::LOADED;
+                        auto t = gl::create_texture_from_file(pair.first, true, true);
+//                        tmp_textures.push_back(t);
+                        the_mat->add_texture(t, i++);
+                        pair.second.second = gl::Material::AssetLoadStatus::LOADED;
                     }
                     catch(Exception &e)
                     {
                         LOG_WARNING << e.what();
-                        pair.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                        pair.second.second = gl::Material::AssetLoadStatus::NOT_FOUND;
                     }
                 }
+                
             }
-            the_mat->set_textures(concat_containers<gl::Texture>(tmp_textures, the_mat->textures()));
+//            the_mat->set_textures(concat_containers<gl::Texture>(tmp_textures, the_mat->textures()));
         }
 
         // shader queue
@@ -1311,10 +1315,14 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         int32_t tex_rect = 0;
 #endif
         char buf[512];
+        auto texture_matrix = glm::mat4();
         
-        for(auto &t : the_mat->textures())
+        for(const auto &pair : the_mat->textures())
         {
+            auto t = pair.second;
             if(!t){ continue; }
+            if(!pair.first){ texture_matrix = t.texture_matrix(); }
+            
             num_textures++;
             t.bind(tex_unit);
 
@@ -1348,14 +1356,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 default:
                     break;
             }
-            the_mat->uniform(buf, tex_unit);
-            tex_unit++;
+            the_mat->uniform(buf, tex_unit++);
         }
 
         // texture matrix from first texture, if any
-        shader->uniform("u_textureMatrix", (the_mat->textures().empty() || !the_mat->textures().front()) ?
-                                           glm::mat4() : the_mat->textures().front().texture_matrix());
-
+        shader->uniform("u_textureMatrix", texture_matrix);
         shader->uniform("u_numTextures", num_textures);
 
         KINSKI_CHECK_GL_ERRORS();

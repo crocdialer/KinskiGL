@@ -336,11 +336,11 @@ namespace kinski { namespace gl {
         if(m_impl->use_sdf)
         {
             mat->set_shader(gl::create_shader(ShaderType::SDF_FONT));
-            mat->add_texture(m_impl->sdf_texture);
+            mat->add_texture(m_impl->sdf_texture, gl::Material::TextureType::COLOR);
             mat->uniform("u_buffer", 0.725f);
             mat->uniform("u_gamma", 0.05f);
         }
-        else{ mat->add_texture(m_impl->texture); }
+        else{ mat->add_texture(m_impl->texture, gl::Material::TextureType::COLOR); }
         
         MeshPtr ret = gl::Mesh::create(geom, mat);
         ret->entries().clear();

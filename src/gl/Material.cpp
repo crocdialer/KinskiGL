@@ -118,13 +118,37 @@ namespace kinski { namespace gl {
     {
         m_point_attenuation = PointAttenuation(constant, linear, quadratic);
         m_dirty_uniform_buffer = true;
-    };
+    }
     
     void Material::set_shader(const ShaderPtr &theShader)
     {
         m_shader = theShader;
         m_queued_shader.clear();
-    };
+    }
+    
+    void Material::add_texture(const Texture &the_texture, TextureType the_type)
+    {
+        m_textures[static_cast<uint32_t>(the_type)] = the_texture;
+        m_dirty_uniform_buffer = true;
+    }
+    
+    void Material::clear_texture(TextureType the_type)
+    {
+        m_textures.erase(static_cast<uint32_t>(the_type));
+        m_dirty_uniform_buffer = true;
+    }
+    
+    void Material::add_texture(const Texture &the_texture, uint32_t the_key)
+    {
+        m_textures[the_key] = the_texture;
+        m_dirty_uniform_buffer = true;
+    }
+    
+    void Material::clear_texture(uint32_t the_key)
+    {
+        m_textures.erase(the_key);
+        m_dirty_uniform_buffer = true;
+    }
     
     const ShaderPtr& Material::shader()
     {
@@ -141,9 +165,9 @@ namespace kinski { namespace gl {
         return m_shader;
     }
     
-    void Material::enqueue_texture(const std::string &the_texture_path)
+    void Material::enqueue_texture(const std::string &the_texture_path, uint32_t the_key)
     {
-        m_queued_textures[the_texture_path] = AssetLoadStatus::NOT_LOADED;
+        m_queued_textures[the_texture_path] = std::make_pair(the_key, AssetLoadStatus::NOT_LOADED);
     }
     
     void Material::update_uniforms(const ShaderPtr &the_shader)

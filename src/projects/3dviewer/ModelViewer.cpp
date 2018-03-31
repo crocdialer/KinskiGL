@@ -142,8 +142,9 @@ void ModelViewer::draw()
             gl::clear();
             draw_fn();
         });
-        m_post_process_mat->set_textures({  m_post_process_fbo.texture(),
-                                            m_post_process_fbo.depth_texture() });
+        m_post_process_mat->add_texture(m_post_process_fbo.texture());
+        m_post_process_mat->add_texture(m_post_process_fbo.depth_texture(),
+                                        gl::Material::TextureType::DEPTH);
         textures()[TEXTURE_OFFSCREEN] = tex;
     }
     if(*m_use_warping)
@@ -215,7 +216,7 @@ void ModelViewer::draw()
 
             for(auto &mat : m_mesh->materials())
             {
-                comb_texs = concat_containers<gl::Texture>(mat->textures(), comb_texs);
+                for(auto &tex_pair : mat->textures()){ comb_texs.push_back(tex_pair.second); }
             }
             draw_textures(comb_texs);
         }
@@ -393,8 +394,8 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
                 break;
         }
     }
-    if(obj == m_mesh && !dropped_textures.empty()){ obj->material()->set_textures(dropped_textures); }
-    else if(obj == m_ground_mesh)
+//    if(obj == m_mesh && !dropped_textures.empty()){ obj->material()->set_textures(dropped_textures); }
+    if(obj == m_ground_mesh)
     {
         LOG_DEBUG << "texture drop on ground";
         m_ground_textures->set(files);
@@ -505,15 +506,17 @@ void ModelViewer::update_property(const Property::ConstPtr &theProperty)
     else if(theProperty == m_ground_textures)
     {
         m_ground_mesh->material()->clear_textures();
+        int i = 0;
         for(const auto &f : m_ground_textures->value())
         {
-            m_ground_mesh->material()->enqueue_texture(f);
+            m_ground_mesh->material()->enqueue_texture(f, i++);
         }
     }
     else if(theProperty == m_ground_plane_texture_scale)
     {
-        for(auto &t : m_ground_mesh->material()->textures())
+        for(auto &pair : m_ground_mesh->material()->textures())
         {
+            auto t = pair.second;
             t.set_texcoord_scale(gl::vec2(*m_ground_plane_texture_scale));
             t.set_wrap(GL_REPEAT, GL_REPEAT);
         }
@@ -581,7 +584,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
             
             async_load_texture(the_path, [this, m](const gl::Texture &t)
             {
-                m->material()->add_texture(t);
+                m->material()->add_texture(t, gl::Material::TextureType::COLOR);
                 m->material()->set_two_sided();
                 gl::vec3 s = m->scale();
                 m->set_scale(gl::vec3(s.x * t.aspect_ratio(), s.y, 1.f));
@@ -657,13 +660,13 @@ void ModelViewer::async_load_asset(const std::string &the_path,
                         if(img)
                         {
                             tex_imgs.push_back(img);
-                            p.second = gl::Material::AssetLoadStatus::LOADED;
+                            p.second.second = gl::Material::AssetLoadStatus::LOADED;
                         }
                     }
                     catch(Exception &e)
                     {
                         LOG_WARNING << e.what();
-                        p.second = gl::Material::AssetLoadStatus::NOT_FOUND;
+                        p.second.second = gl::Material::AssetLoadStatus::NOT_FOUND;
                     }
                 }
                 mat_img_map[mat] = tex_imgs;
@@ -680,7 +683,7 @@ void ModelViewer::async_load_asset(const std::string &the_path,
                     for(const ImagePtr &img : mat_img_map.at(mat))
                     {
                         gl::Texture tex = gl::create_texture_from_image(img, true, true);
-                        mat->add_texture(tex);
+                        mat->add_texture(tex, gl::Material::TextureType::COLOR);
                     }
                 }
             }
@@ -737,14 +740,16 @@ void ModelViewer::update_shader()
 
             if(use_normal_map)
             {
-                if(mat->textures().size() < 2){ mat->add_texture(m_normal_map); }
-                else
-                {
-                    auto tmp = mat->textures(); tmp[1] = m_normal_map;
-                    mat->set_textures(tmp);
-                }
+                mat->add_texture(m_normal_map, gl::Material::TextureType::NORMAL);
+//                if(mat->textures().size() < 2){ mat->add_texture(m_normal_map); }
+//                else
+//                {
+//                    auto tmp = mat->textures(); tmp[1] = m_normal_map;
+//                    mat->set_textures(tmp);
+//                }
             }
-            else if(!mat->textures().empty()){ mat->set_textures({mat->textures().front()}); }
+//            else if(!mat->textures().empty()){ mat->set_textures({mat->textures().front()}); }
+            else{ mat->clear_texture(gl::Material::TextureType::NORMAL); }
         }
     }
 }

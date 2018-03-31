@@ -160,7 +160,7 @@ namespace kinski { namespace gl {
         auto mat = gl::Material::create();
         mat->set_depth_write(false);
         mat->set_culling(gl::Material::CULL_FRONT);
-        mat->set_textures({t});
+        mat->add_texture(t, gl::Material::TextureType::ENVIROMENT);
         
         switch(t.target())
         {

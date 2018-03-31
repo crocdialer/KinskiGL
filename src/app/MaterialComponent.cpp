@@ -115,10 +115,12 @@ namespace kinski
             std::list<std::string> tex_names = {*m_texture_path_1, *m_texture_path_2,
                 *m_texture_path_3, *m_texture_path_4};
             
+            int i = 0;
+            
             for(const std::string& n : tex_names)
             {
                 if(n.empty()) continue;
-                active_mat->enqueue_texture(n);
+                active_mat->enqueue_texture(n, i++);
             }
         }
     }

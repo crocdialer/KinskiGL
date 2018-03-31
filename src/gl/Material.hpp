@@ -35,18 +35,26 @@ namespace kinski { namespace gl {
 
         enum ShadowProperties{SHADOW_NONE = 0, SHADOW_CAST = 1, SHADOW_RECEIVE = 2};
         
-        enum class TextureType{UNKNOWN = 0, DIFFUSE = 1, NORMAL = 2, EMISSION = 3, ROUGHNESS = 4,
-            METALNESS = 5, DISPLACEMENTMAP = 6, SHADOWMAP = 7, ENVIROMENTMAP = 8};
+        enum class TextureType{COLOR = 0, NORMAL = 1, EMISSION = 2, ROUGHNESS = 3,
+            METALNESS = 4, DISPLACEMENT = 5, SHADOW = 6, DEPTH = 7, ENVIROMENT = 8, NOISE = 9,
+            MASK = 10, CUSTOM_01 = 11, CUSTOM_02 = 12, CUSTOM_03 = 13, CUSTOM_04 = 14};
         
         enum class AssetLoadStatus{ NOT_LOADED = 0, LOADED = 1, NOT_FOUND = 2 };
+        
+        using texture_map_t = std::map<uint32_t, gl::Texture>;
+        
+        using texture_load_map_t = std::map<std::string, std::pair<uint32_t, AssetLoadStatus>>;
         
         static MaterialPtr create(const gl::ShaderType &the_type = gl::ShaderType::UNLIT);
         static MaterialPtr create(const ShaderPtr &theShader);
         
         bool dirty() const { return m_dirty_uniform_buffer; };
         
-        void add_texture(const Texture &theTexture)
-        { m_textures.push_back(theTexture); m_dirty_uniform_buffer = true; };
+        void add_texture(const Texture &the_texture, TextureType the_type = TextureType::COLOR);
+        void add_texture(const Texture &the_texture, uint32_t the_key);
+        
+        void clear_texture(TextureType the_type);
+        void clear_texture(uint32_t the_key);
         
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
@@ -57,19 +65,19 @@ namespace kinski { namespace gl {
         ShaderConstPtr shader() const;
         void set_shader(const ShaderPtr &theShader);
         
-        void set_textures(const std::vector<Texture>& the_textures)
+        void set_textures(const texture_map_t& the_textures)
         { m_textures = the_textures; m_dirty_uniform_buffer = true; };
         
-        const std::vector<Texture>& textures() const {return m_textures;};
+        const texture_map_t& textures() const { return m_textures; };
         
-        std::vector<Texture>& textures(){ return m_textures; };
+        texture_map_t& textures(){ return m_textures; };
         
         void clear_textures(){ m_textures.clear(); }
         
-        std::map<std::string, AssetLoadStatus>& queued_textures(){ return m_queued_textures; }
-        const std::map<std::string, AssetLoadStatus>& queued_textures() const { return m_queued_textures; }
+        texture_load_map_t& queued_textures(){ return m_queued_textures; }
+        const texture_load_map_t& queued_textures() const { return m_queued_textures; }
         
-        void enqueue_texture(const std::string &the_texture_path);
+        void enqueue_texture(const std::string &the_texture_path, uint32_t the_key);
         
         std::vector<gl::ShaderType>& queued_shader(){ return m_queued_shader; }
         const std::vector<gl::ShaderType>& queued_shader() const { return m_queued_shader; }
@@ -156,8 +164,8 @@ namespace kinski { namespace gl {
         float m_roughness;
         float m_line_width;
         
-        std::map<std::string, AssetLoadStatus> m_queued_textures;
-        std::vector<Texture> m_textures;
+        texture_load_map_t m_queued_textures;
+        texture_map_t m_textures;
         
         std::vector<gl::ShaderType> m_queued_shader;
         

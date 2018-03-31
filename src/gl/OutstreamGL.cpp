@@ -140,7 +140,7 @@ namespace kinski{ namespace gl{
                     m_blend_material->set_blend_factors(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 #endif
                 }
-                m_blend_material->set_textures({m_fbo.texture()});
+                m_blend_material->add_texture(m_fbo.texture(), gl::Material::TextureType::COLOR);
             }
             m_gui_scene->clear();
             m_dirty = false;

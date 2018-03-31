@@ -160,7 +160,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
         }
         KINSKI_CHECK_GL_ERRORS();
         
-        m_mat_lighting_emissive->set_textures({m_geometry_fbo.texture(G_BUFFER_EMISSION)});
+        m_mat_lighting_emissive->add_texture(m_geometry_fbo.texture(G_BUFFER_EMISSION),
+                                             gl::Material::TextureType::COLOR);
     }
 
     std::list<RenderBin::item> opaque_items, blended_items;
@@ -210,14 +211,15 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
         m_mat_lighting_shadow->clear_textures();
         m_mat_lighting_shadow_omni->clear_textures();
         
-        for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
+        uint32_t i = 0;
+        for(; i < G_BUFFER_SIZE; ++i)
         {
-            m_mat_lighting->add_texture(m_geometry_fbo.texture(i));
-            m_mat_lighting_shadow->add_texture(m_geometry_fbo.texture(i));
-            m_mat_lighting_shadow_omni->add_texture(m_geometry_fbo.texture(i));
+            m_mat_lighting->add_texture(m_geometry_fbo.texture(i), i);
+            m_mat_lighting_shadow->add_texture(m_geometry_fbo.texture(i), i);
+            m_mat_lighting_shadow_omni->add_texture(m_geometry_fbo.texture(i), i);
         }
-        m_mat_lighting_shadow->add_texture(m_shadow_map);
-        m_mat_lighting_shadow_omni->add_texture(m_shadow_cube);
+        m_mat_lighting_shadow->add_texture(m_shadow_map, i);
+        m_mat_lighting_shadow_omni->add_texture(m_shadow_cube, i);
     }
 //    if(!m_skybox_loaded)
 //    {
@@ -391,8 +393,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 {
                     mat = (l.light->type() == gl::Light::POINT) ?
                         m_mat_lighting_shadow_omni : m_mat_lighting_shadow;
-                    auto tmp = mat->textures(); tmp.back() = shadow_map;
-                    mat->set_textures(tmp);
+                    mat->add_texture(shadow_map, gl::Material::TextureType::SHADOW);
                 }
             }
             else{ mat = m_mat_lighting; }
