@@ -178,7 +178,7 @@ uint32_t SceneRenderer::render_scene(const gl::SceneConstPtr &the_scene,
         gl::set_projection(the_cam);
         mat4 m = the_cam->view_matrix();
         m[3] = vec4(0, 0, 0, 1);
-        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(m, gl::vec3(the_cam->far() * .99f)));
         gl::draw_mesh(the_scene->skybox());
     }
     
