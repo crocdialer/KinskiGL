@@ -51,6 +51,7 @@ namespace kinski { namespace gl {
     m_metalness(0.f),
     m_roughness(.8f),
     m_line_width(1.f),
+    m_queued_shader(ShaderType::NONE),
     m_point_size(1.f)
     {
         set_point_attenuation(1.f, 0.f, 0.f);
@@ -59,7 +60,7 @@ namespace kinski { namespace gl {
     MaterialPtr Material::create(const gl::ShaderType &the_type)
     {
         auto ret = MaterialPtr(new Material(nullptr));
-        ret->queued_shader().push_back(the_type);
+        ret->enqueue_shader(the_type);
         return ret;
     }
     
@@ -123,7 +124,7 @@ namespace kinski { namespace gl {
     void Material::set_shader(const ShaderPtr &theShader)
     {
         m_shader = theShader;
-        m_queued_shader.clear();
+        m_queued_shader = ShaderType::NONE;
     }
     
     void Material::add_texture(const Texture &the_texture, TextureType the_type)
@@ -152,10 +153,9 @@ namespace kinski { namespace gl {
     
     const ShaderPtr& Material::shader()
     {
-        if(!m_shader && !m_queued_shader.empty())
+        if(!m_shader && m_queued_shader != ShaderType::NONE)
         {
-            m_shader = gl::create_shader(m_queued_shader.back());
-            m_queued_shader.clear();
+            set_shader(gl::create_shader(m_queued_shader));
         }
         return m_shader;
     }
@@ -168,6 +168,11 @@ namespace kinski { namespace gl {
     void Material::enqueue_texture(const std::string &the_texture_path, uint32_t the_key)
     {
         m_queued_textures[the_texture_path] = std::make_pair(the_key, AssetLoadStatus::NOT_LOADED);
+    }
+    
+    void Material::enqueue_shader(gl::ShaderType the_type)
+    {
+        m_queued_shader = the_type;
     }
     
     void Material::update_uniforms(const ShaderPtr &the_shader)

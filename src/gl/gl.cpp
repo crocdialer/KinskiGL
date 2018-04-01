@@ -35,7 +35,7 @@ namespace kinski { namespace gl {
         
         std::map<gl::ShaderType, std::string> g_shader_names =
         {
-            {ShaderType::UNKNOWN, "UNKNOWN"},
+            {ShaderType::NONE, "NONE"},
             {ShaderType::UNLIT, "UNLIT"}, {ShaderType::UNLIT_MASK, "UNLIT_MASK"},
             {ShaderType::UNLIT_SKIN, "UNLIT_SKIN"}, {ShaderType::BLUR, "BLUR"},
             {ShaderType::GOURAUD, "GOURAUD"}, {ShaderType::PHONG, "PHONG"},
@@ -1197,13 +1197,12 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         }
 
         // shader queue
-        for(auto &sh_type : the_mat->queued_shader())
+        if(the_mat->queued_shader() != gl::ShaderType::NONE)
         {
-            try{ the_mat->set_shader(gl::create_shader(sh_type)); }
+            try{ the_mat->set_shader(gl::create_shader(the_mat->queued_shader())); }
             catch(Exception &e){ LOG_WARNING << e.what(); }
 
         }
-        the_mat->queued_shader().clear();
         if(!the_mat->shader()){ the_mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT)); }
 
         // bind the shader
@@ -1662,7 +1661,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
     {
         auto it = g_shader_names.find(the_type);
         if(it != g_shader_names.end()){ return it->second; }
-        return g_shader_names[ShaderType::UNKNOWN];
+        return g_shader_names[ShaderType::NONE];
     }
     
 }}//namespace

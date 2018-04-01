@@ -464,7 +464,7 @@ gl::MeshPtr load_model(const std::string &theModelPath)
         
         for(uint32_t i = 0; i < materials.size(); i++)
         {
-            materials[i]->queued_shader().push_back(sh_type);
+            materials[i]->enqueue_shader(sh_type);
         }
         LOG_DEBUG<<"loaded model: "<<geom->vertices().size()<<" vertices - " <<
         geom->faces().size()<<" faces - "<< mesh->get_num_bones(mesh->root_bone()) << " bones";

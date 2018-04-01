@@ -79,8 +79,9 @@ namespace kinski { namespace gl {
         
         void enqueue_texture(const std::string &the_texture_path, uint32_t the_key);
         
-        std::vector<gl::ShaderType>& queued_shader(){ return m_queued_shader; }
-        const std::vector<gl::ShaderType>& queued_shader() const { return m_queued_shader; }
+        void enqueue_shader(gl::ShaderType the_type);
+        
+        gl::ShaderType queued_shader() const { return m_queued_shader; };
         
         UniformMap& uniforms() {return m_uniforms;};
         const UniformMap& uniforms() const {return m_uniforms;};
@@ -167,7 +168,7 @@ namespace kinski { namespace gl {
         texture_load_map_t m_queued_textures;
         texture_map_t m_textures;
         
-        std::vector<gl::ShaderType> m_queued_shader;
+        gl::ShaderType m_queued_shader;
         
         // point attributes
         float m_point_size;
