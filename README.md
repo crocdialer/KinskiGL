@@ -32,7 +32,7 @@ the basic library-structure:
     * drawing utilities
     * geometric primitives, ray-casting
     * scenegraph, forward/deferred rendering paths
-    * lights and materials
+    * physically based lights and materials
     * post-fx
     * output warping
 
