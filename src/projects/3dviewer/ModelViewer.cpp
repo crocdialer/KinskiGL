@@ -117,19 +117,32 @@ void ModelViewer::draw()
 {
     gl::clear();
     gl::set_matrices(camera());
-    if(draw_grid()){ gl::draw_grid(50, 50); }
 
     auto draw_fn = [this]()
     {
-        scene()->render(camera());
+        if(draw_grid()){ gl::draw_grid(50, 50); }
+
+        // render bones
+        if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
+
+        if(m_selected_mesh)
+        {
+            auto aabb = m_selected_mesh->aabb();
+            gl::draw_boundingbox(aabb);
+            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
+            gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
+        }
+
+        // draw enabled light dummies
+        m_light_component->draw_light_dummies();
     };
 
     if(*m_use_post_process)
     {
-        auto tex = gl::render_to_texture(m_post_process_fbo, [this, draw_fn]()
+        auto tex = gl::render_to_texture(m_post_process_fbo, [this]()
         {
             gl::clear();
-            draw_fn();
+            scene()->render(camera());
         });
         m_post_process_mat->add_texture(m_post_process_fbo.texture());
         m_post_process_mat->add_texture(m_post_process_fbo.depth_texture(),
@@ -140,9 +153,11 @@ void ModelViewer::draw()
     {
         if(*m_use_post_process)
         {
-            textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this]()
+            textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this, draw_fn]()
             {
+                gl::clear();
                 gl::draw_quad(gl::window_dimension(), m_post_process_mat);
+                draw_fn();
             });
         }
         else
@@ -150,6 +165,7 @@ void ModelViewer::draw()
             textures()[TEXTURE_OUTPUT] = gl::render_to_texture(m_offscreen_fbo, [this, draw_fn]()
             {
                 gl::clear();
+                scene()->render(camera());
                 draw_fn();
             });
         }
@@ -164,24 +180,18 @@ void ModelViewer::draw()
     }
     else
     {
-        if(*m_use_post_process){ gl::draw_quad(gl::window_dimension(), m_post_process_mat); }
-        else{ draw_fn(); }
+        if(*m_use_post_process)
+        {
+            gl::draw_quad(gl::window_dimension(), m_post_process_mat);
+            draw_fn();
+        }
+        else
+        {
+            scene()->render(camera());
+            draw_fn();
+        }
     }
-    
-    // render bones
-    if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
-    
-    if(m_selected_mesh)
-    {
-        auto aabb = m_selected_mesh->aabb();
-        gl::draw_boundingbox(aabb);
-        vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
-        gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
-    }
-    
-    // draw enabled light dummies
-    m_light_component->draw_light_dummies();
-    
+
     if(*m_draw_fps)
     {
         gl::draw_text_2D(to_string(fps(), 1), fonts()[0],
