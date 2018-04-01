@@ -34,6 +34,9 @@ void DeferredRenderer::init()
     m_mat_lighting->set_blend_equation(GL_FUNC_ADD);
     m_mat_lighting->set_blend_factors(GL_ONE, GL_ONE);
     
+    m_mat_transfer = gl::Material::create(gl::ShaderType::UNLIT_DEPTH);
+    m_mat_transfer->set_blending();
+    
     // lighting with shadowmapping
     m_mat_lighting_shadow = gl::Material::create();
     *m_mat_lighting_shadow = *m_mat_lighting;
@@ -114,9 +117,6 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
         // lighting pass
         light_pass(gl::window_dimension(), render_bin);
     }
-    Area_<int> src(0, 0, m_lighting_fbo.size().x - 1, m_lighting_fbo.size().y - 1);
-    Area_<int> dst(0, 0, gl::window_dimension().x - 1, gl::window_dimension().y - 1);
-    m_geometry_fbo.blit_to_current(src, dst, GL_NEAREST, GL_DEPTH_BUFFER_BIT);
 
     // skybox drawing
     if(the_scene->skybox())
@@ -125,11 +125,13 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
         gl::set_projection(the_cam);
         mat4 m = the_cam->view_matrix();
         m[3] = vec4(0, 0, 0, 1);
-        gl::load_matrix(gl::MODEL_VIEW_MATRIX, m);
+        gl::load_matrix(gl::MODEL_VIEW_MATRIX, glm::scale(m, gl::vec3(the_cam->far() * .99f)));
         gl::draw_mesh(the_scene->skybox());
     }
     // draw light texture
-    gl::draw_texture(m_lighting_fbo.texture(), gl::window_dimension());
+    m_mat_transfer->add_texture(m_lighting_fbo.texture());
+    m_mat_transfer->add_texture(m_geometry_fbo.depth_texture(), gl::Material::TextureType::DEPTH);
+    gl::draw_quad(gl::window_dimension(), m_mat_transfer);
     
     // draw emission texture
     gl::draw_quad(gl::window_dimension(), m_mat_lighting_emissive);

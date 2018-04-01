@@ -248,8 +248,8 @@ float vignette()
 void main()
 {
 	//scene depth calculation
-
-	float depth = linearize(texture(u_sampler_2D[DEPTH_MAP],vertex_in.texCoord.xy).x);
+    float raw_depth = texture(u_sampler_2D[DEPTH_MAP],vertex_in.texCoord.xy).x;
+	float depth = linearize(raw_depth);
 
 	if (depthblur)
 	{
@@ -260,7 +260,7 @@ void main()
 
 	float fDepth = u_focal_depth;
 
-	if (u_auto_focus)
+	if(u_auto_focus)
 	{
 		fDepth = linearize(texture(u_sampler_2D[DEPTH_MAP],focus).x);
 	}
@@ -330,13 +330,13 @@ void main()
 					p = penta(vec2(pw,ph));
 				}
 				col += color(vertex_in.texCoord.xy + vec2(pw*w,ph*h),blur)*mix(1.0,(float(i))/(float(rings)),bias)*p;
-				s += 1.0*mix(1.0,(float(i))/(float(rings)),bias)*p;
+				s += 1.0 * mix(1.0,(float(i))/(float(rings)),bias)*p;
 			}
 		}
 		col /= s; //divide by sample count
 	}
 
-	if (u_debug_focus)
+	if(u_debug_focus)
 	{
 		col = debugFocus(col, blur, depth);
 	}
@@ -348,4 +348,5 @@ void main()
 
 	fragData.rgb = col;
 	fragData.a = 1.0;
+    gl_FragDepth = raw_depth;
 }

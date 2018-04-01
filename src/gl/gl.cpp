@@ -1594,6 +1594,11 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     frag_src = unlit_cube_frag;
                     break;
                     
+                case ShaderType::UNLIT_DEPTH:
+                    vert_src = unlit_vert;
+                    frag_src = unlit_depth_frag;
+                    break;
+                    
                 case ShaderType::BLUR:
                     vert_src = unlit_vert;
                     frag_src = blur_poisson_frag;

@@ -122,17 +122,6 @@ void ModelViewer::draw()
     auto draw_fn = [this]()
     {
         scene()->render(camera());
-        
-        if(m_selected_mesh)
-        {
-            auto aabb = m_selected_mesh->aabb();
-            gl::draw_boundingbox(aabb);
-            vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
-            gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
-        }
-
-        // draw enabled light dummies
-        m_light_component->draw_light_dummies();
     };
 
     if(*m_use_post_process)
@@ -181,6 +170,17 @@ void ModelViewer::draw()
     
     // render bones
     if(*m_display_bones){ render_bones(m_mesh, camera(), true); }
+    
+    if(m_selected_mesh)
+    {
+        auto aabb = m_selected_mesh->aabb();
+        gl::draw_boundingbox(aabb);
+        vec2 p2d = gl::project_point_to_screen(aabb.center() + camera()->up() * aabb.halfExtents().y, camera());
+        gl::draw_text_2D(m_selected_mesh->name(), fonts()[0], gl::COLOR_WHITE, p2d);
+    }
+    
+    // draw enabled light dummies
+    m_light_component->draw_light_dummies();
     
     if(*m_draw_fps)
     {
@@ -246,7 +246,6 @@ void ModelViewer::update_fbos()
         if(!m_post_process_fbo || m_post_process_fbo.size() != ivec2(sz))
         {
             gl::Fbo::Format fmt;
-            fmt.set_num_samples(8);
             try{ m_post_process_fbo = gl::Fbo(sz, fmt); }
             catch(Exception &e){ LOG_WARNING << e.what(); }
         }
@@ -258,13 +257,10 @@ void ModelViewer::update_fbos()
             {
                 gl::ShaderPtr shader = create_shader(gl::ShaderType::DEPTH_OF_FIELD);
                 m_post_process_mat = gl::Material::create(shader);
-                m_post_process_mat->set_depth_write(false);
-                m_post_process_mat->set_depth_test(false);
             }catch(Exception &e){ LOG_WARNING << e.what(); }
         }
 
         camera()->set_clipping(0.1f, 5000.f);
-//        m_post_process_mat->uniform("u_window_dimension", gl::window_dimension());
         m_post_process_mat->uniform("u_znear", camera()->near());
         m_post_process_mat->uniform("u_zfar", camera()->far());
         m_post_process_mat->uniform("u_focal_depth", *m_focal_depth);
@@ -381,10 +377,6 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
                 break;
 
             case fs::FileType::IMAGE:
-            {
-                dropped_textures.push_back(gl::create_texture_from_file(f));
-            }
-                break;
             case fs::FileType::DIRECTORY:
             {
                 *m_skybox_path = f;
@@ -394,7 +386,6 @@ void ModelViewer::file_drop(const MouseEvent &e, const std::vector<std::string> 
                 break;
         }
     }
-//    if(obj == m_mesh && !dropped_textures.empty()){ obj->material()->set_textures(dropped_textures); }
     if(obj == m_ground_mesh)
     {
         LOG_DEBUG << "texture drop on ground";
@@ -738,17 +729,7 @@ void ModelViewer::update_shader()
         {
             if(shader){ mat->set_shader(shader); }
 
-            if(use_normal_map)
-            {
-                mat->add_texture(m_normal_map, gl::Material::TextureType::NORMAL);
-//                if(mat->textures().size() < 2){ mat->add_texture(m_normal_map); }
-//                else
-//                {
-//                    auto tmp = mat->textures(); tmp[1] = m_normal_map;
-//                    mat->set_textures(tmp);
-//                }
-            }
-//            else if(!mat->textures().empty()){ mat->set_textures({mat->textures().front()}); }
+            if(use_normal_map){ mat->add_texture(m_normal_map, gl::Material::TextureType::NORMAL); }
             else{ mat->clear_texture(gl::Material::TextureType::NORMAL); }
         }
     }

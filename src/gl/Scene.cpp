@@ -158,7 +158,7 @@ namespace kinski { namespace gl {
         if(!t){ m_skybox.reset(); return; }
         
         auto mat = gl::Material::create();
-        mat->set_depth_write(false);
+//        mat->set_depth_write(false);
         mat->set_culling(gl::Material::CULL_FRONT);
         mat->add_texture(t, gl::Material::TextureType::ENVIROMENT);
         
@@ -167,9 +167,11 @@ namespace kinski { namespace gl {
             case GL_TEXTURE_CUBE_MAP:
                 mat->set_shader(gl::create_shader(gl::ShaderType::UNLIT_CUBE));
                 m_skybox = gl::Mesh::create(gl::Geometry::create_box(gl::vec3(.5f)), mat);
+                LOG_DEBUG << "adding cubical skybox";
                 break;
             case GL_TEXTURE_2D:
                 m_skybox = gl::Mesh::create(gl::Geometry::create_sphere(1.f, 16), mat);
+                LOG_DEBUG << "adding spherical skybox";
                 break;
             default:
                 break;
