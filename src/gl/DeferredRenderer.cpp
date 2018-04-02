@@ -179,8 +179,8 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     
     auto select_shader = [this](const gl::MeshPtr &m) -> gl::ShaderPtr
     {
-        bool has_normal_map = m->material()->textures().size() > 1;
-        bool has_spec_map = m->material()->textures().size() > 2;
+        bool has_normal_map = m->material()->has_texture(gl::Material::TextureType::NORMAL);
+        bool has_spec_map = m->material()->has_texture(gl::Material::TextureType::ROUGHNESS);
         uint32_t key =  PROP_DEFAULT | (has_normal_map ? PROP_NORMAL : 0) |
                         (m->geometry()->has_bones() ? PROP_SKIN : 0) | (has_spec_map ? PROP_SPEC : 0);
         return m_shader_map[key];

@@ -60,14 +60,14 @@ void RemoteControl::start_listen(uint16_t tcp_port, uint16_t udp_port)
         con->write(json::serialize(components(), PropertyIO_GL()));
     });
     
-    add_command("log_stream", [this](net::tcp_connection_ptr con,
+    add_command("log_stream", [](net::tcp_connection_ptr con,
                                      const std::vector<std::string>& the_args)
     {
         LOG_TRACE << "adding log_stream: " << con->remote_ip();
         Logger::get()->add_outstream(con);
     });
     
-    add_command("echo", [this](net::tcp_connection_ptr con, const std::vector<std::string>& the_args)
+    add_command("echo", [](net::tcp_connection_ptr con, const std::vector<std::string>& the_args)
     {
         // send an echo
         if(!the_args.empty()){ con->write(the_args.front()); }

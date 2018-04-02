@@ -151,6 +151,16 @@ namespace kinski { namespace gl {
         m_dirty_uniform_buffer = true;
     }
     
+    bool Material::has_texture(TextureType the_type)
+    {
+        return m_textures.find(static_cast<uint32_t>(the_type)) != std::end(m_textures);
+    }
+    
+    bool Material::has_texture(uint32_t the_key)
+    {
+        return m_textures.find(the_key) != std::end(m_textures);
+    }
+    
     const ShaderPtr& Material::shader()
     {
         if(!m_shader && m_queued_shader != ShaderType::NONE)

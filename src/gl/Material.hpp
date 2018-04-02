@@ -56,6 +56,9 @@ namespace kinski { namespace gl {
         void clear_texture(TextureType the_type);
         void clear_texture(uint32_t the_key);
         
+        bool has_texture(TextureType the_type);
+        bool has_texture(uint32_t the_key);
+        
         inline void uniform(const std::string &theName, const UniformValue &theVal)
         { m_uniforms[theName] = theVal; m_dirty_uniform_buffer = true; };
         

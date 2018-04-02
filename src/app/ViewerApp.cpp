@@ -617,7 +617,7 @@ namespace kinski {
                         images[i] = create_image_from_file(img_paths[i]);
                     }
                     
-                    main_queue().submit([this, the_path, images, the_callback, compress]()
+                    main_queue().submit([this, the_path, images, the_callback]()
                     {
                         auto cubemap = gl::create_cube_texture_from_images(images);
                         LOG_DEBUG << "loaded cubemap folder: " << the_path;

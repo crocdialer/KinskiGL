@@ -359,6 +359,12 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
         LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
     }
+    
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_HEIGHT), 0, &texPath))
+    {
+        LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
+    }
     return theMaterial;
 }
 
