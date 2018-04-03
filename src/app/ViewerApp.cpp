@@ -99,8 +99,6 @@ namespace kinski {
     {
         set_window_title(name());
         
-//        m_drag_buffer.set_capacity(5);
-        
         // find font file
         std::string font_path;
         try { font_path = fs::search_file("Courier New Bold.ttf"); }
@@ -196,12 +194,6 @@ namespace kinski {
 
             *m_look_at += 40.f * timeDelta * (camera()->side() * j.right().x - camera()->up() * j.right().y);
             *m_distance += 40.f * timeDelta * (j.buttons()[6] - j.buttons()[7]);
-
-//            for(uint32_t i = 0; i < j.buttons().size(); ++i)
-//            {
-//                uint32_t b = j.buttons()[i];
-//                if(b){ LOG_DEBUG << j.name() << ": " << "button " << i << " -> " << b; }
-//            }
         }
 
         // update animations

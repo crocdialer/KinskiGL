@@ -346,8 +346,6 @@ namespace kinski
 
         main_queue().submit([this, b, monitor_index, m]
         {
-            //        const GLFWvidmode* video_modes = glfwGetVideoModes(m, &num);
-
             // currently not in fullscreen mode
             if(!fullscreen())
             {

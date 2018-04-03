@@ -244,7 +244,7 @@ void ModelViewer::update_fbos()
 
     if(*m_use_warping)
     {
-        if(!m_offscreen_fbo || m_offscreen_fbo.size() != ivec2(sz))
+        if(!m_offscreen_fbo || m_offscreen_fbo.size() != ivec2(sz) || m_dirty_g_buffer)
         {
             gl::Fbo::Format fmt;
             try{ m_offscreen_fbo = gl::Fbo(sz, fmt); }
@@ -253,7 +253,7 @@ void ModelViewer::update_fbos()
     }
     if(*m_use_post_process)
     {
-        if(!m_post_process_fbo || m_post_process_fbo.size() != ivec2(sz))
+        if(!m_post_process_fbo || m_post_process_fbo.size() != ivec2(sz) || m_dirty_g_buffer)
         {
             gl::Fbo::Format fmt;
             try{ m_post_process_fbo = gl::Fbo(sz, fmt); }
@@ -283,10 +283,10 @@ void ModelViewer::update_fbos()
         m_post_process_mat->uniform("u_circle_of_confusion_sz", *m_circle_of_confusion_sz);
     }
     
-    if(m_dirty_g_buffer && *m_use_deferred_render)
+    if(m_dirty_g_buffer)
     {
         m_deferred_renderer = gl::DeferredRenderer::create();
-        scene()->set_renderer(m_deferred_renderer);
+        if(*m_use_deferred_render){ scene()->set_renderer(m_deferred_renderer); }
         m_dirty_g_buffer = false;
     }
 }

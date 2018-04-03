@@ -441,16 +441,20 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
     // enviroment lighting / reflection
     if(the_renderbin->scene->skybox())
     {
-        if(!stencil_pass)
+        auto tex_type = gl::Material::TextureType::ENVIROMENT;
+        auto t = the_renderbin->scene->skybox()->material()->get_texture(tex_type);
+
+        if(t && t.target() == GL_TEXTURE_CUBE_MAP)
         {
-            auto tex_type = gl::Material::TextureType::ENVIROMENT;
-            auto t = the_renderbin->scene->skybox()->material()->get_texture(tex_type);
-            m_mat_lighting_enviroment->add_texture(t, tex_type);
-            m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
-            m_frustum_mesh->material() = m_mat_lighting_enviroment;
+            if(!stencil_pass)
+            {
+                m_mat_lighting_enviroment->add_texture(t, tex_type);
+                m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
+                m_frustum_mesh->material() = m_mat_lighting_enviroment;
+            }
+            gl::load_identity(gl::MODEL_VIEW_MATRIX);
+            gl::draw_mesh(m_frustum_mesh);
         }
-        gl::load_identity(gl::MODEL_VIEW_MATRIX);
-        gl::draw_mesh(m_frustum_mesh);
     }
 }
 
