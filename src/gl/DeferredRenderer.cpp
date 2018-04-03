@@ -230,20 +230,6 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
         m_mat_lighting_shadow->add_texture(m_shadow_map, i);
         m_mat_lighting_shadow_omni->add_texture(m_shadow_cube, i);
     }
-    if(!m_skybox_loaded)
-    {
-        if(the_renderbin->scene->skybox())
-        {
-            auto t = the_renderbin->scene->skybox()->material()->get_texture(gl::Material::TextureType::ENVIROMENT);
-
-            if(t && t.target() == GL_TEXTURE_CUBE_MAP)
-            {
-                m_mat_lighting_enviroment->add_texture(t, gl::Material::TextureType::ENVIROMENT);
-                m_skybox_loaded = true;
-                LOG_DEBUG << "enviroment-map loaded";
-            }
-        }
-    }
     m_lighting_fbo.bind();
 
     // update frustum for directional and eviroment lights
