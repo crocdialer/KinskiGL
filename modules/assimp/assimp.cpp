@@ -339,6 +339,7 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     // DIFFUSE
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DIFFUSE), 0, &texPath))
     {
+        LOG_TRACE << "adding color map: '" << string(texPath.data) << "'";
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::COLOR);
     }
     
@@ -349,20 +350,27 @@ gl::MaterialPtr createMaterial(const aiMaterial *mtl)
     }
     
     // ROUGHNESS / SHINYNESS
-    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SHININESS), 0, &texPath))
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_SPECULAR), 0, &texPath))
     {
+        LOG_TRACE << "adding spec/roughness map: '" << string(texPath.data) << "'";
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::ROUGHNESS);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_NORMALS), 0, &texPath))
     {
-        LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
+        LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
+        theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
+    }
+    
+    if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_DISPLACEMENT), 0, &texPath))
+    {
+        LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
     }
     
     if(AI_SUCCESS == mtl->GetTexture(aiTextureType(aiTextureType_HEIGHT), 0, &texPath))
     {
-        LOG_DEBUG << "adding normalmap: '" << string(texPath.data) << "'";
+        LOG_TRACE << "adding normalmap: '" << string(texPath.data) << "'";
         theMaterial->enqueue_texture(string(texPath.data), (uint32_t)gl::Material::TextureType::NORMAL);
     }
     return theMaterial;

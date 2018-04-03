@@ -583,7 +583,7 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
             m = gl::Mesh::create(geom, mat);
             m->transform() = rotate(mat4(), 90.f, gl::Y_AXIS);
             
-            async_load_texture(the_path, [this, m](const gl::Texture &t)
+            async_load_texture(the_path, [m](const gl::Texture &t)
             {
                 m->material()->add_texture(t, gl::Material::TextureType::COLOR);
                 m->material()->set_two_sided();
@@ -601,10 +601,12 @@ gl::MeshPtr ModelViewer::load_asset(const std::string &the_path)
     if(m)
     {
         // apply scaling
-        auto aabb = m->aabb();
-        float scale_factor = 50.f / length(aabb.halfExtents());
+        float scale_factor = 50.f / length(m->aabb().halfExtents());
         m->set_scale(scale_factor);
-
+        
+        // set position
+        m->position().y = m->aabb().height() / 2.f - m->aabb().center().y;
+        
         // look for animations for this mesh
         auto animation_folder = fs::join_paths(asset_dir, "animations");
 
@@ -637,14 +639,14 @@ void ModelViewer::async_load_asset(const std::string &the_path,
         // load model on worker thread
         auto m = load_asset(*m_model_path);
 
-        std::map<gl::MaterialPtr, std::vector<ImagePtr>> mat_img_map;
+        std::map<gl::MaterialPtr, std::vector<std::pair<uint32_t, ImagePtr>>> mat_img_map;
 
         if(m)
         {
             // load and decode images on worker thread
             for(auto &mat : m->materials())
             {
-                std::vector<ImagePtr> tex_imgs;
+                std::vector<std::pair<uint32_t, ImagePtr>> tex_imgs;
                 mat->set_wireframe(wireframe());
                 int val = (*m_shadow_cast ? gl::Material::SHADOW_CAST : 0) |
                           (*m_shadow_receive ? gl::Material::SHADOW_RECEIVE : 0);
@@ -660,7 +662,7 @@ void ModelViewer::async_load_asset(const std::string &the_path,
                         
                         if(img)
                         {
-                            tex_imgs.push_back(img);
+                            tex_imgs.push_back(std::make_pair(p.second.first, img));
                             p.second.second = gl::Material::AssetLoadStatus::LOADED;
                         }
                     }
@@ -681,10 +683,11 @@ void ModelViewer::async_load_asset(const std::string &the_path,
             {
                 for(auto &mat : m->materials())
                 {
-                    for(const ImagePtr &img : mat_img_map.at(mat))
+                    for(const auto &pair : mat_img_map.at(mat))
                     {
+                        const ImagePtr &img = pair.second;
                         gl::Texture tex = gl::create_texture_from_image(img, true, true);
-                        mat->add_texture(tex, gl::Material::TextureType::COLOR);
+                        mat->add_texture(tex, pair.first);
                     }
                 }
             }

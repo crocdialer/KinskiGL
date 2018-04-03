@@ -161,6 +161,16 @@ namespace kinski { namespace gl {
         return m_textures.find(the_key) != std::end(m_textures);
     }
     
+    gl::Texture Material::get_texture(TextureType the_type)
+    {
+        auto it = m_textures.find(static_cast<uint32_t>(the_type));
+        if(it != std::end(m_textures))
+        {
+            return it->second;
+        }
+        return gl::Texture();
+    }
+    
     const ShaderPtr& Material::shader()
     {
         if(!m_shader && m_queued_shader != ShaderType::NONE)

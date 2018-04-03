@@ -50,7 +50,7 @@ private:
     gl::Fbo m_geometry_fbo, m_lighting_fbo;
 
     gl::MaterialPtr m_mat_lighting, m_mat_lighting_shadow, m_mat_lighting_shadow_omni,
-    m_mat_lighting_emissive, m_mat_stencil, m_mat_transfer;
+    m_mat_lighting_emissive, m_mat_lighting_enviroment, m_mat_stencil, m_mat_transfer;
     gl::MeshPtr m_mesh_sphere, m_mesh_cone, m_frustum_mesh;
     
     bool m_skybox_loaded = false;

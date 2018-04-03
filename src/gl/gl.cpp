@@ -1171,8 +1171,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
         // texture queue
         if(!the_mat->queued_textures().empty())
         {
-//            std::list<gl::Texture> tmp_textures;
-            int i = 0;
+//            int i = 0;
             
             for(auto &pair : the_mat->queued_textures())
             {
@@ -1181,8 +1180,7 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                     try
                     {
                         auto t = gl::create_texture_from_file(pair.first, true, true);
-//                        tmp_textures.push_back(t);
-                        the_mat->add_texture(t, i++);
+                        the_mat->add_texture(t, pair.second.first);
                         pair.second.second = gl::Material::AssetLoadStatus::LOADED;
                     }
                     catch(Exception &e)
@@ -1193,7 +1191,6 @@ void draw_mesh(const MeshPtr &the_mesh, const ShaderPtr &overide_shader)
                 }
                 
             }
-//            the_mat->set_textures(concat_containers<gl::Texture>(tmp_textures, the_mat->textures()));
         }
 
         // shader queue

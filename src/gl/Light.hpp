@@ -22,7 +22,7 @@ namespace kinski { namespace gl {
     public:
         
         //! type enum
-        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2, AREA = 3, UNKNOWN = 4};
+        enum Type {DIRECTIONAL = 0, POINT = 1, SPOT = 2, AREA = 3, ENVIROMENT = 4, UNKNOWN = 5};
         
         //! Helper struct to bundle attenuation params
         struct Attenuation

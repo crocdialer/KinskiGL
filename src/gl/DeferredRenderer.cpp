@@ -48,6 +48,12 @@ void DeferredRenderer::init()
     m_mat_lighting_shadow_omni->set_shader(gl::Shader::create(unlit_vert,
                                                               deferred_lighting_shadow_omni_frag));
     
+    // lighting from enviroment
+    m_mat_lighting_enviroment = gl::Material::create();
+    *m_mat_lighting_enviroment = *m_mat_lighting;
+    m_mat_lighting_enviroment->set_shader(gl::Shader::create(unlit_vert,
+                                                             deferred_lighting_enviroment_frag));
+    
     // lighting from emissive lighting
     m_mat_lighting_emissive = gl::Material::create();
     m_mat_lighting_emissive->set_depth_test(false);
@@ -241,7 +247,7 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
 //    }
     m_lighting_fbo.bind();
 
-    // update frustum for directional lights
+    // update frustum for directional and eviroment lights
     m_frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
     auto &verts = m_frustum_mesh->geometry()->vertices();
     for(uint32_t i = 0; i < 4; ++i){ verts[i].z += -.1f; }
@@ -409,6 +415,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
         switch(l.light->type())
         {
             case Light::DIRECTIONAL:
+//            case Light::ENVIROMENT:
             {
                 gl::load_identity(gl::MODEL_VIEW_MATRIX);
                 gl::draw_mesh(m_frustum_mesh);
