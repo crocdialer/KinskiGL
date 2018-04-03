@@ -225,26 +225,25 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
             m_mat_lighting->add_texture(m_geometry_fbo.texture(i), i);
             m_mat_lighting_shadow->add_texture(m_geometry_fbo.texture(i), i);
             m_mat_lighting_shadow_omni->add_texture(m_geometry_fbo.texture(i), i);
+            m_mat_lighting_enviroment->add_texture(m_geometry_fbo.texture(i), i);
         }
         m_mat_lighting_shadow->add_texture(m_shadow_map, i);
         m_mat_lighting_shadow_omni->add_texture(m_shadow_cube, i);
     }
-//    if(!m_skybox_loaded)
-//    {
-//        if(the_renderbin->scene->skybox())
-//        {
-//            auto t = the_renderbin->scene->skybox()->material()->textures().front();
-//
-//            if(t && t.target() == GL_TEXTURE_CUBE_MAP)
-//            {
-//                m_mat_lighting->add_texture(t);
-//                m_mat_lighting_shadow->add_texture(t);
-//                m_mat_lighting_shadow_omni->add_texture(t);
-//                m_skybox_loaded = true;
-//                LOG_DEBUG << "enviroment-map loaded";
-//            }
-//        }
-//    }
+    if(!m_skybox_loaded)
+    {
+        if(the_renderbin->scene->skybox())
+        {
+            auto t = the_renderbin->scene->skybox()->material()->get_texture(gl::Material::TextureType::ENVIROMENT);
+
+            if(t && t.target() == GL_TEXTURE_CUBE_MAP)
+            {
+                m_mat_lighting_enviroment->add_texture(t, gl::Material::TextureType::ENVIROMENT);
+                m_skybox_loaded = true;
+                LOG_DEBUG << "enviroment-map loaded";
+            }
+        }
+    }
     m_lighting_fbo.bind();
 
     // update frustum for directional and eviroment lights
@@ -438,6 +437,20 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
                 LOG_WARNING << "light type not handled";
                 break;
         }
+    }
+    // enviroment lighting / reflection
+    if(the_renderbin->scene->skybox())
+    {
+        if(!stencil_pass)
+        {
+            auto tex_type = gl::Material::TextureType::ENVIROMENT;
+            auto t = the_renderbin->scene->skybox()->material()->get_texture(tex_type);
+            m_mat_lighting_enviroment->add_texture(t, tex_type);
+            m_mat_lighting_enviroment->uniform("u_camera_transform", the_renderbin->camera->global_transform());
+            m_frustum_mesh->material() = m_mat_lighting_enviroment;
+        }
+        gl::load_identity(gl::MODEL_VIEW_MATRIX);
+        gl::draw_mesh(m_frustum_mesh);
     }
 }
 
