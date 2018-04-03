@@ -28,7 +28,7 @@ public:
                           const std::set<std::string> &the_tags = {}) override;
 
 
-    gl::Fbo g_buffer(){ return m_geometry_fbo; }
+    gl::Fbo g_buffer(){ return m_fbo_geometry; }
 
     gl::Texture final_texture();
 private:
@@ -44,10 +44,10 @@ private:
     enum ShaderProperty{PROP_DEFAULT = 0, PROP_SKIN = 1, PROP_NORMAL = 2, PROP_SPEC = 4};
     std::map<uint32_t , gl::ShaderPtr> m_shader_map;
     
-    gl::Texture m_shadow_map, m_shadow_cube;
+//    gl::Texture m_shadow_map, m_shadow_cube;
     
     gl::ShaderPtr m_shader_shadow, m_shader_shadow_skin, m_shader_shadow_omni, m_shader_shadow_omni_skin;
-    gl::Fbo m_geometry_fbo, m_lighting_fbo;
+    gl::Fbo m_fbo_geometry, m_fbo_lighting, m_fbo_shadow, m_fbo_shadow_cube;
 
     gl::MaterialPtr m_mat_lighting, m_mat_lighting_shadow, m_mat_lighting_shadow_omni,
     m_mat_lighting_emissive, m_mat_lighting_enviroment, m_mat_stencil, m_mat_transfer;

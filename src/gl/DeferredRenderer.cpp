@@ -96,9 +96,27 @@ void DeferredRenderer::init()
     m_shader_shadow_omni = gl::Shader::create(empty_vert, linear_depth_frag, shadow_omni_geom);
     m_shader_shadow_omni_skin = gl::Shader::create(empty_skin_vert, linear_depth_frag, shadow_omni_geom);
     
-    set_shadowmap_size(glm::vec2(1024));
+//    set_shadowmap_size(glm::vec2(512));
+//    m_shadow_map = shadow_fbos()[0].depth_texture();
     
-    m_shadow_map = shadow_fbos()[0].depth_texture();
+    const uint32_t sz = 1024, cube_sz = 512;
+    
+    // create shadow fbo (spot + directional lights)
+    gl::Fbo::Format fbo_fmt;
+    fbo_fmt.set_num_color_buffers(0);
+    m_fbo_shadow = gl::Fbo(sz, sz, fbo_fmt);
+    
+    // create shadow fbo (point lights)
+    m_fbo_shadow_cube = gl::Fbo(cube_sz, cube_sz, fbo_fmt);
+    gl::Texture::Format tex_fmt;
+    tex_fmt.set_target(GL_TEXTURE_CUBE_MAP);
+    tex_fmt.set_data_type(GL_FLOAT);
+    tex_fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
+    tex_fmt.set_min_filter(GL_NEAREST);
+    tex_fmt.set_mag_filter(GL_NEAREST);
+    auto cube_tex = gl::Texture(nullptr, GL_DEPTH_COMPONENT, cube_sz, cube_sz, tex_fmt);
+    m_fbo_shadow_cube.set_depth_texture(cube_tex);
+    KINSKI_CHECK_GL_ERRORS();
 #endif
 }
 
@@ -135,8 +153,8 @@ uint32_t DeferredRenderer::render_scene(const gl::SceneConstPtr &the_scene, cons
         gl::draw_mesh(the_scene->skybox());
     }
     // draw light texture
-    m_mat_transfer->add_texture(m_lighting_fbo.texture());
-    m_mat_transfer->add_texture(m_geometry_fbo.depth_texture(), gl::Material::TextureType::DEPTH);
+    m_mat_transfer->add_texture(m_fbo_lighting.texture());
+    m_mat_transfer->add_texture(m_fbo_geometry.depth_texture(), gl::Material::TextureType::DEPTH);
     gl::draw_quad(gl::window_dimension(), m_mat_transfer);
     
     // draw emission texture
@@ -152,23 +170,23 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
 {
 #if !defined(KINSKI_GLES)
 
-    if(!m_geometry_fbo || m_geometry_fbo.size() != the_size)
+    if(!m_fbo_geometry || m_fbo_geometry.size() != the_size)
     {
         gl::Fbo::Format fmt;
         fmt.set_color_internal_format(GL_RGB32F);
         fmt.enable_stencil_buffer(true);
 //        fmt.set_num_samples(4);
         fmt.set_num_color_buffers(G_BUFFER_SIZE);
-        m_geometry_fbo = gl::Fbo(the_size, fmt);
+        m_fbo_geometry = gl::Fbo(the_size, fmt);
 
         for(uint32_t i = 0; i < G_BUFFER_SIZE; ++i)
         {
-            m_geometry_fbo.texture(i).set_mag_filter(GL_NEAREST);
-            m_geometry_fbo.texture(i).set_min_filter(GL_NEAREST);
+            m_fbo_geometry.texture(i).set_mag_filter(GL_NEAREST);
+            m_fbo_geometry.texture(i).set_min_filter(GL_NEAREST);
         }
         KINSKI_CHECK_GL_ERRORS();
         
-        m_mat_lighting_emissive->add_texture(m_geometry_fbo.texture(G_BUFFER_EMISSION),
+        m_mat_lighting_emissive->add_texture(m_fbo_geometry.texture(G_BUFFER_EMISSION),
                                              gl::Material::TextureType::COLOR);
     }
 
@@ -179,7 +197,7 @@ void DeferredRenderer::geometry_pass(const gl::ivec2 &the_size, const RenderBinP
     opaque_items.insert(opaque_items.end(), blended_items.begin(), blended_items.end());
     
     // bind G-Buffer
-    m_geometry_fbo.bind();
+    m_fbo_geometry.bind();
     gl::clear();
     KINSKI_CHECK_GL_ERRORS();
     
@@ -207,12 +225,12 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
 {
 #if !defined(KINSKI_GLES)
 
-    if(!m_lighting_fbo || m_lighting_fbo.size() != m_geometry_fbo.size())
+    if(!m_fbo_lighting || m_fbo_lighting.size() != m_fbo_geometry.size())
     {
         gl::Fbo::Format fmt;
         fmt.enable_stencil_buffer(true);
-        m_lighting_fbo = gl::Fbo(m_geometry_fbo.size(), fmt);
-        m_lighting_fbo.set_depth_texture(m_geometry_fbo.depth_texture());
+        m_fbo_lighting = gl::Fbo(m_fbo_geometry.size(), fmt);
+        m_fbo_lighting.set_depth_texture(m_fbo_geometry.depth_texture());
         KINSKI_CHECK_GL_ERRORS();
 
         m_mat_lighting->clear_textures();
@@ -222,15 +240,15 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
         uint32_t i = 0;
         for(; i < G_BUFFER_SIZE; ++i)
         {
-            m_mat_lighting->add_texture(m_geometry_fbo.texture(i), i);
-            m_mat_lighting_shadow->add_texture(m_geometry_fbo.texture(i), i);
-            m_mat_lighting_shadow_omni->add_texture(m_geometry_fbo.texture(i), i);
-            m_mat_lighting_enviroment->add_texture(m_geometry_fbo.texture(i), i);
+            m_mat_lighting->add_texture(m_fbo_geometry.texture(i), i);
+            m_mat_lighting_shadow->add_texture(m_fbo_geometry.texture(i), i);
+            m_mat_lighting_shadow_omni->add_texture(m_fbo_geometry.texture(i), i);
+            m_mat_lighting_enviroment->add_texture(m_fbo_geometry.texture(i), i);
         }
-        m_mat_lighting_shadow->add_texture(m_shadow_map, i);
-        m_mat_lighting_shadow_omni->add_texture(m_shadow_cube, i);
+//        m_mat_lighting_shadow->add_texture(m_fbo_shadow.depth_texture(), i);
+//        m_mat_lighting_shadow_omni->add_texture(m_shadow_cube, i);
     }
-    m_lighting_fbo.bind();
+    m_fbo_lighting.bind();
 
     // update frustum for directional and eviroment lights
     m_frustum_mesh = gl::create_frustum_mesh(the_renderbin->camera, true);
@@ -252,12 +270,12 @@ void DeferredRenderer::light_pass(const gl::ivec2 &the_size, const RenderBinPtr 
     glStencilFunc(GL_ALWAYS, 0, 0);
     glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
     glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-    m_lighting_fbo.enable_draw_buffers(false);
+    m_fbo_lighting.enable_draw_buffers(false);
     render_light_volumes(the_renderbin, true);
 
     // light pass
     glStencilFunc(GL_NOTEQUAL, 0, 0xFF);
-    m_lighting_fbo.enable_draw_buffers(true);
+    m_fbo_lighting.enable_draw_buffers(true);
     render_light_volumes(the_renderbin, false);
 #endif
 }
@@ -273,10 +291,8 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
     
     if(l->type() == gl::Light::SPOT || l->type() == gl::Light::DIRECTIONAL)
     {
-        shadow_fbos()[0].set_depth_texture(m_shadow_map);
-        
         // offscreen render shadow map here
-        gl::render_to_texture(shadow_fbos()[0], [&]()
+        gl::render_to_texture(m_fbo_shadow, [&]()
         {
             gl::reset_state();
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -296,27 +312,13 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         mat4 shadow_matrix = shadow_cam->projection_matrix() * shadow_cam->view_matrix() *
         the_renderbin->camera->global_transform();
         m_mat_lighting_shadow->uniform("u_shadow_matrix", shadow_matrix);
-        return m_shadow_map;
+        return m_fbo_shadow.depth_texture();
     }
     else if(l->type() == gl::Light::POINT)
     {
         KINSKI_CHECK_GL_ERRORS();
         
         auto cube_cam = std::dynamic_pointer_cast<CubeCamera>(shadow_cam);
-        
-        if(!m_shadow_cube)
-        {
-            const GLuint w = 1024, h = 1024;
-            
-            gl::Texture::Format fmt;
-            fmt.set_target(GL_TEXTURE_CUBE_MAP);
-            fmt.set_data_type(GL_FLOAT);
-            fmt.set_internal_format(GL_DEPTH_COMPONENT32F);
-            fmt.set_min_filter(GL_NEAREST);
-            fmt.set_mag_filter(GL_NEAREST);
-            m_shadow_cube = gl::Texture(nullptr, GL_DEPTH_COMPONENT, w, h, fmt);
-            KINSKI_CHECK_GL_ERRORS();
-        }
         
         std::vector<glm::mat4> cam_matrices(6);
         
@@ -335,10 +337,8 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         m_shader_shadow_omni_skin->uniform("u_clip_planes", vec2(cube_cam->near(), cube_cam->far()));
         KINSKI_CHECK_GL_ERRORS();
         
-        shadow_fbos()[0].set_depth_texture(m_shadow_cube);
-        
         // offscreen render shadow map here
-        gl::render_to_texture(shadow_fbos()[0], [&]()
+        gl::render_to_texture(m_fbo_shadow_cube, [&]()
         {
             gl::reset_state();
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -360,7 +360,7 @@ gl::Texture DeferredRenderer::create_shadow_map(const RenderBinPtr &the_renderbi
         m_mat_lighting_shadow_omni->uniform("u_camera_transform",
                                             the_renderbin->camera->global_transform());
         m_mat_lighting_shadow_omni->uniform("u_poisson_radius", .005f);
-        return m_shadow_cube;
+        return m_fbo_shadow_cube.depth_texture();
     }
 #endif
     return gl::Texture();
@@ -446,7 +446,7 @@ void DeferredRenderer::render_light_volumes(const RenderBinPtr &the_renderbin, b
 
 gl::Texture DeferredRenderer::final_texture()
 {
-    return m_lighting_fbo.texture();
+    return m_fbo_lighting.texture();
 }
 
 }}
