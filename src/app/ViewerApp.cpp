@@ -617,6 +617,11 @@ namespace kinski {
                         dec_task();
                     });
                 }
+                else
+                {
+                    LOG_WARNING << "got " << img_paths.size() << " images, expected 6";
+                    dec_task();
+                }
             }
             else
             {
