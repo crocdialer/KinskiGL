@@ -3,7 +3,7 @@
 #define PI 3.1415926535897932384626433832795
 #define ONE_OVER_PI	0.318309886
 #define MAX_NUM_LIGHTS 512
-#define EPSILON 0.0010
+#define EPSILON 0.0025//0.0010
 
 struct Lightsource
 {
